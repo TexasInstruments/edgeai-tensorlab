@@ -11,7 +11,7 @@ from mmdet.models.dense_heads.anchor_head import AnchorHead
 
 
 # TODO: add loss evaluator for SSD
-@HEADS.register_module()
+@HEADS.register_module(force=True)
 class SSDHead(AnchorHead):
 
     def __init__(self,

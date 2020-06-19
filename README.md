@@ -15,7 +15,9 @@ This repository is released under the following [LICENSE](./LICENSE).
 
 ## Installation
 
-Please refer to [mmdetection install.md](https://github.com/open-mmlab/mmdetection/docs/install.md) for installation and dataset preparation.
+Please refer to [mmdetection install.md](https://github.com/open-mmlab/mmdetection/docs/install.md) for installation and dataset preparation. 
+
+We used the the version **v2.1.0** of mmdetection to test our changes. If you get any issues with the master branch of mmdetection, try checking out that tag.
 
 After installing mmdetection, please install [PyTorch-Jacinto-AI-DevKit](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/pytorch-jacinto-ai-devkit/browse/) as our repository uses several components from there - especially to define low complexity models and to Quantization Aware Training (QAT).
 

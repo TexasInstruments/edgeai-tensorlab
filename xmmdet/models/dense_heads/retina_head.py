@@ -5,7 +5,7 @@ from mmdet.models.builder import HEADS
 from mmdet.models.dense_heads.anchor_head import AnchorHead
 
 
-@HEADS.register_module()
+@HEADS.register_module(force=True)
 class RetinaHead(AnchorHead):
     """An anchor-based head used in
     `RetinaNet <https://arxiv.org/pdf/1708.02002.pdf>`_.

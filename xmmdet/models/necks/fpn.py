@@ -8,7 +8,7 @@ from mmdet.models.builder import NECKS
 from pytorch_jacinto_ai import xnn
 
 
-@NECKS.register_module()
+@NECKS.register_module(force=True)
 class FPN(nn.Module):
     """
     Feature Pyramid Network.

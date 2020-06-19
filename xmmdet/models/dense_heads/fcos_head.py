@@ -8,7 +8,7 @@ from mmdet.models.builder import HEADS, build_loss
 INF = 1e8
 
 
-@HEADS.register_module()
+@HEADS.register_module(force=True)
 class FCOSHead(nn.Module):
     """Anchor-free head used in `FCOS <https://arxiv.org/abs/1904.01355>`_.
 

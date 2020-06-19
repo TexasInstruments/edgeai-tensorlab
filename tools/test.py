@@ -8,11 +8,11 @@ from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 from mmcv.runner import get_dist_info, init_dist, load_checkpoint
 from tools.fuse_conv_bn import fuse_module
 
-from mmdet.apis import multi_gpu_test, single_gpu_test
-from mmdet.core import wrap_fp16_model
-from mmdet.datasets import build_dataloader, build_dataset
-from mmdet.models import build_detector
-from mmdet.utils import MMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint
+from xmmdet.apis import multi_gpu_test, single_gpu_test
+from xmmdet.core import wrap_fp16_model
+from xmmdet.datasets import build_dataloader, build_dataset
+from xmmdet.models import build_detector
+from xmmdet.utils import MMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint
 
 from pytorch_jacinto_ai import xnn
 
