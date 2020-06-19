@@ -1,0 +1,46 @@
+# Jacinto-AI-MMDetection Model Zoo
+
+MMDetection has a huge Model Zoo, supporting a lot of models. Many of them are high complexity models that are not suitable for embedded scenarios that require high throughput. (Please refer to the mmdetection documentation link above for details). However, in this fork, we list only speed/accuracy optimized models that we have trained ourselves or is recommending from another location.
+
+## Features
+
+|                    | ResNet   | Reget    | MobileNet|
+|--------------------|:--------:|:--------:|:--------:|
+| Faster R-CNN       | ✗        | ✗        | ✗        |
+| Mask R-CNN         | ✗        | ✗        | ✗        |
+| SSD                | ✓        | ✓        | ✓        |
+| RetinaNet          | ☐        | ☐        | ☐        |
+| ATSS               | ✗        | ✗        | ✗        |
+| FCOS               | ✗        | ✗        | ✗        |
+
+✓ Available, ☐ In progress or partially available, ✗ TBD
+
+#### Pascal VOC2007 Dataset
+- Train on Pascal VOC 2007+2012 TrainVal Set
+- Test on Pascal VOC 2007 Test Set
+
+|Dataset    |Mode Arch        |Backbone Model |Backbone Stride|Resolution |MeanAP50(mAP%)|GigaMACS|Model Config File                       |Download |
+|---------  |----------       |-----------    |-------------- |-----------|--------      |------- |----------                              |---
+|VOC2007    |SSD with FPN     |MobileNetV2    |32             |512x512    |76.1          |2.21    |configs/jacinto_ai/ssd_mobilenet_fpn.py |[link](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/pytorch/vision/object_detection/mmdetection/ssd/20200612-051942_ssd512_mobilenetv2_fpn) |
+|VOC2007    |SSD with FPN     |RegNet800MF    |32             |512x512    |79.7          |5.64    |configs/jacinto_ai/ssd_regnet_fpn.py    |[link](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/pytorch/vision/object_detection/mmdetection/ssd/20200611-200124_ssd512_regnet800mf_fpn_bgr) |
+|VOC2007    |SSD with FPN     |ResNet50       |32             |512x512    |80.5          |27.1    |configs/jacinto_ai/ssd_resnet_fpn.py    |[link](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/pytorch/vision/object_detection/mmdetection/ssd/20200614-234748_ssd512_resnet_fpn) |
+|.
+|VOC2007    |SSD              |VGG16          |32             |512x512    |              |90.39  |configs/pascal_voc/ssd512_voc0712.py     |         |
+
+#### COCO 2017 Dataset
+- Train on COCO 2017 Train Set
+- Test on COCO 2017 Validation Set
+
+|Dataset    |Mode Arch         |Backbone Model |Backbone Stride|Resolution |AP[0.5:0.95]% |MeanAP50(mAP%)|GigaMACS|Model Config File                              |Download |
+|---------  |----------        |-----------    |-------------- |-----------|--------      |---           |------- |----------                                     |---      |
+|COCO2017   |RetinaNet with FPN|ResNet50       |32             |768x384*   |29.0          |45.3          |        |configs/retinanet/retinanet_r50_fpn_1x_coco.py |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
+|COCO2017   |RetinaNet with FPN|ResNet50       |32             |1536x768*  |36.1          |54.9          |        |configs/retinanet/retinanet_r50_fpn_1x_coco.py |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/atss)    |
+
+
+\* Inference is run at this resolution using the trained model given in the link.
+
+## References
+
+[1] MMDetection: Open MMLab Detection Toolbox and Benchmark, https://arxiv.org/abs/1906.07155, Kai Chen, Jiaqi Wang, Jiangmiao Pang, Yuhang Cao, Yu Xiong, Xiaoxiao Li, Shuyang Sun, Wansen Feng, Ziwei Liu, Jiarui Xu, Zheng Zhang, Dazhi Cheng, Chenchen Zhu, Tianheng Cheng, Qijie Zhao, Buyu Li, Xin Lu, Rui Zhu, Yue Wu, Jifeng Dai, Jingdong Wang, Jianping Shi, Wanli Ouyang, Chen Change Loy, Dahua Lin
+
+[2] SSD: Single Shot MultiBox Detector, https://arxiv.org/abs/1512.02325, Wei Liu, Dragomir Anguelov, Dumitru Erhan, Christian Szegedy, Scott Reed, Cheng-Yang Fu, Alexander C. Berg

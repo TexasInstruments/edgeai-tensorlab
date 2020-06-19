@@ -11,21 +11,21 @@ from torch.distributed import launch as distributed_launch
 Usage: 
 (1) Use one of the following config files.
 (2) Inside the config file, make sure that the dataset that needs to be trained on is uncommented.
-(3) Use the appropriate input resolution int the config file (input_size).
+(3) Use the appropriate input resolution in the config file (input_size).
 (4) Recommend to run the first training with voc0712 dataset as it is widely used and reasonably small.
 (5) To convert cityscapes to coco format, run the script: tools/convert_datasets/cityscapes.py
 
-config='./configs/jacinto_ai/ssd_mobilenet.py'
-config='./configs/jacinto_ai/ssd_mobilenet_fpn.py'
-config='./configs/jacinto_ai/ssd_resnet_fpn.py'
-config='./configs/jacinto_ai/ssd_regnet_fpn_bgr.py'
+config='./configs/ssd/ssd_mobilenet.py'
+config='./configs/ssd/ssd_mobilenet_fpn.py'
+config='./configs/ssd/ssd_resnet_fpn.py'
+config='./configs/ssd/ssd_regnet_fpn_bgr.py'
 
-config='./configs/jacinto_ai/retinanet_regnet_fpn_bgr.py'
-config='./configs/jacinto_ai/retinanet_resnet_fpn.py'
-config='./configs/jacinto_ai/fcos_regnet_fpn_bgr.py'
+config='./configs/retinanet/retinanet_regnet_fpn_bgr.py'
+config='./configs/retinanet/retinanet_resnet_fpn.py'
+config='./configs/retinanet/fcos_regnet_fpn_bgr.py'
 '''
 
-config='./configs/jacinto_ai/ssd_mobilenet_fpn.py'
+config='./configs/retinanet/retinanet_regnet_fpn_bgr.py'
 
 ########################################################################
 # other settings

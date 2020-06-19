@@ -18,7 +18,7 @@ else:
     assert False, f'Unknown dataset_type: {dataset_type}'
 
 
-input_size = (32,32) #(768,384)                           # (1536,768) #(1024,512) #(768,384) #(512,512)
+input_size = (768,384)                           # (1536,768) #(1024,512) #(768,384) #(512,512)
 decoder_width_fact = 1                           # 1, 2, 3
 
 backbone_type = 'RegNet'
