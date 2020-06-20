@@ -6,7 +6,7 @@ test_pipeline = TBD
 
 dataset_type = 'CityscapesDataset'
 data_root = 'data/cityscapes/'
-dataset_repeats = 10
+dataset_repeats = 8
 
 data = dict(
     samples_per_gpu=TBD,

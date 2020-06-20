@@ -7,7 +7,7 @@ test_pipeline = TBD
 # dataset settings
 dataset_type = 'VOCDataset'
 data_root = 'data/VOCdevkit/'
-dataset_repeats = 5
+dataset_repeats = 10
 
 data = dict(
     samples_per_gpu=TBD,
