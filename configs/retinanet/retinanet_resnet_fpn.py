@@ -3,7 +3,7 @@ _base_ = [
     '../_jacinto_ai_base_/hyper_params/ssd_config.py',
 ]
 
-dataset_type = 'VOCDataset'
+dataset_type = 'CocoDataset'
 
 if dataset_type == 'VOCDataset':
     _base_ += ['../_jacinto_ai_base_/datasets/voc0712_det.py']

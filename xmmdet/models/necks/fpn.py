@@ -4,12 +4,13 @@ from mmcv.cnn import ConvModule, xavier_init
 
 from mmdet.core import auto_fp16
 from mmdet.models.builder import NECKS
+from ...ops import ConvModuleWrapper
 
 from pytorch_jacinto_ai import xnn
 
 
-@NECKS.register_module(force=True)
-class FPN(nn.Module):
+@NECKS.register_module()
+class JaiFPN(nn.Module):
     """
     Feature Pyramid Network.
 
@@ -78,7 +79,7 @@ class FPN(nn.Module):
                  norm_cfg=None,
                  act_cfg=None,
                  upsample_cfg=dict(mode='nearest')):
-        super(FPN, self).__init__()
+        super(JaiFPN, self).__init__()
         assert isinstance(in_channels, list)
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -116,7 +117,7 @@ class FPN(nn.Module):
         self.fpn_convs = nn.ModuleList()
 
         for i in range(self.start_level, self.backbone_end_level):
-            l_conv = ConvModule(
+            l_conv = ConvModuleWrapper(
                 in_channels[i],
                 out_channels,
                 1,
@@ -124,7 +125,7 @@ class FPN(nn.Module):
                 norm_cfg=norm_cfg if not self.no_norm_on_lateral else None,
                 act_cfg=act_cfg,
                 inplace=False)
-            fpn_conv = ConvModule(
+            fpn_conv = ConvModuleWrapper(
                 out_channels,
                 out_channels,
                 3,
@@ -145,7 +146,7 @@ class FPN(nn.Module):
                     in_channels = self.in_channels[self.backbone_end_level - 1]
                 else:
                     in_channels = out_channels
-                extra_fpn_conv = ConvModule(
+                extra_fpn_conv = ConvModuleWrapper(
                     in_channels,
                     out_channels,
                     3,
@@ -221,7 +222,7 @@ class FPN(nn.Module):
 
 
 @NECKS.register_module()
-class InLoopFPN(FPN):
+class JaiInLoopFPN(JaiFPN):
     @auto_fp16()
     def forward(self, inputs):
         assert len(inputs) == len(self.in_channels)

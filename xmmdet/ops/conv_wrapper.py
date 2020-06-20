@@ -100,32 +100,22 @@ class ConvDWTriplet2d(nn.Module):
         return y
 
 
+def ConvModuleWrapper(*args, **kwargs):
+    conv_cfg = kwargs.get('conv_cfg', dict(type=None))
+    has_type = conv_cfg and ('type' in conv_cfg)
 
-################################################################################
-if not hasattr(mmcv.cnn, '_ConvModule'):
-    # first, backup the original ConvModule. this will be called inside the wrapper
-    mmcv.cnn._ConvModule = mmcv.cnn.ConvModule
+    kernel_size = kwargs.get('kernel_size', None)
+    kernel_size = kernel_size or args[2]
+    assert kernel_size is not None, 'kernel_size must be specified'
 
+    if not has_type:
+        return mmcv.cnn.ConvModule(*args, **kwargs)
+    elif conv_cfg.type == 'ConvNormAct' or (conv_cfg.type == 'ConvDWSep' and kernel_size == 1):
+        return ConvNormAct2d(*args, **kwargs)
+    elif conv_cfg.type == 'ConvDWSep':
+        return ConvDWSep2d(*args, **kwargs)
+    elif conv_cfg.type == 'ConvDWTriplet':
+        return ConvDWTriplet2d(*args, **kwargs)
+    else:
+        return mmcv.cnn.ConvModule(*args, **kwargs)
 
-    def ConvModuleWrapper(*args, **kwargs):
-        conv_cfg = kwargs.get('conv_cfg', dict(type=None))
-        has_type = conv_cfg and ('type' in conv_cfg)
-
-        kernel_size = kwargs.get('kernel_size', None)
-        kernel_size = kernel_size or args[2]
-        assert kernel_size is not None, 'kernel_size must be specified'
-
-        if not has_type:
-            return mmcv.cnn._ConvModule(*args, **kwargs)
-        elif conv_cfg.type == 'ConvNormAct' or (conv_cfg.type == 'ConvDWSep' and kernel_size == 1):
-            return ConvNormAct2d(*args, **kwargs)
-        elif conv_cfg.type == 'ConvDWSep':
-            return ConvDWSep2d(*args, **kwargs)
-        elif conv_cfg.type == 'ConvDWTriplet':
-            return ConvDWTriplet2d(*args, **kwargs)
-        else:
-            return mmcv.cnn._ConvModule(*args, **kwargs)
-
-    # finally, replace the original ConvModule with ConvModuleWrapper
-    mmcv.cnn.ConvModule = ConvModuleWrapper
-#

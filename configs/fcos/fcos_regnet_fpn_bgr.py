@@ -44,7 +44,8 @@ fpn_out_channels = regnet_cfg['fpn_out_channels']
 fpn_start_level = 1
 fpn_num_outs = 5
 
-#retinanet_base_stride = (8 if fpn_start_level==1 else (4 if fpn_start_level==0 else None))
+fcos_num_levels = 5
+fcos_base_stride = (8 if fpn_start_level==1 else (4 if fpn_start_level==0 else None))
 
 # for multi-scale training
 input_size_ms = [(input_size[0], (input_size[1]*8)//10),
@@ -80,7 +81,7 @@ model = dict(
         norm_eval=False,
         style='pytorch'),
     neck=dict(
-        type='FPN',
+        type='JaiFPN',
         in_channels=fpn_in_channels,
         out_channels=fpn_out_channels,
         start_level=fpn_start_level,

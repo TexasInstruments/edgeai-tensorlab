@@ -3,7 +3,7 @@ _base_ = [
     '../_jacinto_ai_base_/hyper_params/ssd_config.py',
 ]
 
-dataset_type = 'VOCDataset'
+dataset_type = 'CocoDataset'
 
 if dataset_type == 'VOCDataset':
     _base_ += ['../_jacinto_ai_base_/datasets/voc0712_det.py']
@@ -66,7 +66,7 @@ model = dict(
         norm_eval=False,
         style='pytorch'),
     neck=dict(
-        type='FPN',
+        type='JaiFPN',
         in_channels=fpn_in_channels,
         out_channels=fpn_out_channels,
         start_level=fpn_start_level,
@@ -134,7 +134,7 @@ test_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=1, #16,
+    samples_per_gpu=16,
     workers_per_gpu=3,
     train=dict(dataset=dict(pipeline=train_pipeline)),
     val=dict(pipeline=test_pipeline),

@@ -60,7 +60,6 @@ model = dict(
         type='SSDHead',
         in_channels=[fpn_out_channels for _ in range(6)],
         num_classes=num_classes,
-        conv_cfg=conv_cfg,
         anchor_generator=dict(
             type='SSDAnchorGenerator',
             scale_major=False,
