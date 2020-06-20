@@ -4,9 +4,7 @@ import torch
 from torch.nn.modules.utils import _pair
 
 from mmdet.core.anchor.builder import ANCHOR_GENERATORS
-
-
-
+from mmdet.core.anchor import AnchorGenerator
 
 @ANCHOR_GENERATORS.register_module(force=True)
 class SSDAnchorGenerator(AnchorGenerator):
