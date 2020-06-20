@@ -25,7 +25,7 @@ MMDetection has a huge Model Zoo, supporting a lot of models. Many of them are h
 |VOC2007  |SSD+FPN      |ResNet50      |32       |512x512   |**80.5**       |**27.1** |configs/ssd/ ssd_resnet_fpn.py                    |ImageNet    |[link](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/pytorch/vision/object_detection/mmdetection/ssd/20200614-234748_ssd512_resnet_fpn) |
 |VOC2007  |SSD          |VGG16         |         |512x512   |               |**90.39**|mmdetection/configs/pascal_voc/ ssd512_voc0712.py|ImageNet    |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/pascal_voc)|
 |.
-|VOC2007  |RetinaNet+FPN|RegNet50      |32       |768x384    |**5.82**      |         |configs/retinanet/ retinanet_resnet_fpn_bgr.py    |COCO        |   |
+|VOC2007  |RetinaNet+FPN|RegNet800MF   |32       |768x384    |              |**5.82** |configs/retinanet/ retinanet_resnet_fpn_bgr.py    |COCO        |   |
 |VOC2007  |RetinaNet+FPN|ResNet50      |32       |768x384    |**81.6**      |**61.24**|configs/retinanet/ retinanet_resnet_fpn_bgr.py    |COCO        |   |
 
 #### COCO 2017 Dataset
