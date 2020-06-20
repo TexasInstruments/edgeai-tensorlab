@@ -1,18 +1,18 @@
 _base_ = [
-    '_jacinto_ai_base_/hyper_params/common_config.py',
-    '_jacinto_ai_base_/hyper_params/ssd_config.py',
+    '../_jacinto_ai_base_/hyper_params/common_config.py',
+    '../_jacinto_ai_base_/hyper_params/ssd_config.py',
 ]
 
 dataset_type = 'VOCDataset'
 
 if dataset_type == 'VOCDataset':
-    _base_ += ['_jacinto_ai_base_/datasets/voc0712_det.py']
+    _base_ += ['../_jacinto_ai_base_/datasets/voc0712_det.py']
     num_classes = 20
 elif dataset_type == 'CocoDataset':
-    _base_ += ['_jacinto_ai_base_/datasets/coco_det.py']
+    _base_ += ['../_jacinto_ai_base_/datasets/coco_det.py']
     num_classes = 80
 elif dataset_type == 'CityscapesDataset':
-    _base_ += ['_jacinto_ai_base_/datasets/cityscapes_det.py']
+    _base_ += ['../_jacinto_ai_base_/datasets/cityscapes_det.py']
     num_classes = 8
 else:
     assert False, f'Unknown dataset_type: {dataset_type}'
