@@ -17,7 +17,7 @@ This repository is released under the following [LICENSE](./LICENSE).
 
 Please refer to [mmdetection install.md](https://github.com/open-mmlab/mmdetection/docs/install.md) for installation and dataset preparation. 
 
-We used the the version **v2.1.0** of mmdetection to test our changes. If you get any issues with the master branch of mmdetection, try checking out that tag.
+If you get any issues with the master branch of mmdetection, please try after checking out the tag **v2.1.0**
 
 After installing mmdetection, please install [PyTorch-Jacinto-AI-DevKit](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/pytorch-jacinto-ai-devkit/browse/) as our repository uses several components from there - especially to define low complexity models and to Quantization Aware Training (QAT).
 
@@ -31,12 +31,12 @@ Please see [usage/instructions](https://github.com/open-mmlab/mmdetection/docs/j
 
 ## Benchmark and Model Zoo
 
-Several trained models with accuracy report is available at [Jacinto-AI-Detection Model Zoo](docs/jacinto_ai/jacinto_ai_detection_model_zoo.md) 
+Several trained models with accuracy report is available at [Jacinto-AI-Detection Model Zoo](docs/jacinto_ai_detection_model_zoo.md) 
 
 
 ## Quantization
 
-Tutorial on how to do [Quantization Aware Training in Jacinto-AI-Detection](docs/jacinto_ai/jacinto_ai_quantization_aware_training.md) in Jacinto-AI-MMDetection. 
+Tutorial on how to do [Quantization Aware Training in Jacinto-AI-Detection](docs/jacinto_ai_quantization_aware_training.md) in Jacinto-AI-MMDetection. 
 
 
 ## Acknowledgement

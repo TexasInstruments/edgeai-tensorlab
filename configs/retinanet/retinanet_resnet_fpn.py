@@ -140,3 +140,4 @@ if quantize:
 
 #optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=1e-4)
 #load_from = 'https://open-mmlab.s3.ap-northeast-2.amazonaws.com/mmdetection/v2.0/retinanet/retinanet_r50_fpn_1x_coco/retinanet_r50_fpn_1x_coco_20200130-c2398f9e.pth'
+#resume_from = './work_dirs/retinanet_resnet_fpn/latest.pth'
