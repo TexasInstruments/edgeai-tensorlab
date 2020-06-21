@@ -1,6 +1,6 @@
 _base_ = [
     '../_jacinto_ai_base_/hyper_params/common_config.py',
-    '../_jacinto_ai_base_/hyper_params/ssd_config.py',
+    '../_jacinto_ai_base_/hyper_params/fcos_config.py',
     '../_jacinto_ai_base_/hyper_params/schedule_1x.py',
 ]
 
