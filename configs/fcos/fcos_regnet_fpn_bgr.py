@@ -20,18 +20,18 @@ else:
 
 
 input_size = (768,384)                           # (1536,768) #(1024,512) #(768,384) #(512,512)
-decoder_width_fact = 1                           # 1, 2, 3
+decoder_width_fact = 2                           # 1, 2, 3
 
 backbone_type = 'RegNet'
 backbone_arch = 'regnetx_800mf'                  # 'regnetx_800mf' #'regnetx_1.6gf'
 to_rgb = False                                   # pycls regnet backbones are trained with bgr
 
 regnet_settings = {
-    'regnetx_800mf':{'regnet_base_channels':32, 'bacbone_out_channels':[64, 128, 288, 672],
-                      'group_size_dw':16, 'fpn_out_channels':(64*decoder_width_fact),
+    'regnetx_800mf':{'regnet_base_channels':32, 'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
+                     'fpn_out_channels':min(64*decoder_width_fact,256), 'fcos_stacked_convs':3,
                       'pretrained':'open-mmlab://regnetx_800mf'},
-    'regnetx_1.6gf':{'regnet_base_channels':32, 'bacbone_out_channels':[72, 168, 408, 912],
-                     'group_size_dw':24, 'fpn_out_channels':(96*decoder_width_fact),
+    'regnetx_1.6gf':{'regnet_base_channels':32, 'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
+                     'fpn_out_channels':min(96*decoder_width_fact,256), 'fcos_stacked_convs':4,
                      'pretrained':'open-mmlab://regnetx_1.6gf'}}
 
 regnet_cfg = regnet_settings[backbone_arch]
@@ -47,6 +47,7 @@ fpn_num_outs = 5
 
 fcos_num_levels = 5
 fcos_base_stride = (8 if fpn_start_level==1 else (4 if fpn_start_level==0 else None))
+fcos_stacked_convs = regnet_cfg['fcos_stacked_convs']
 
 # for multi-scale training
 input_size_ms = [(input_size[0], (input_size[1]*8)//10),
@@ -95,7 +96,7 @@ model = dict(
         type='JaiFCOSHead',
         num_classes=num_classes,
         in_channels=fpn_out_channels,
-        stacked_convs=4,
+        stacked_convs=fcos_stacked_convs,
         feat_channels=fpn_out_channels,
         strides=fcos_head_strides,
         regress_ranges=fcos_regress_ranges,
