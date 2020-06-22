@@ -28,7 +28,7 @@ to_rgb = False                                   # pycls regnet backbones are tr
 
 regnet_settings = {
     'regnetx_800mf':{'regnet_base_channels':32, 'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
-                      'fpn_out_channels':min(64*decoder_width_fact,256), 'retinanet_stacked_convs':2,
+                      'fpn_out_channels':min(64*decoder_width_fact,256), 'retinanet_stacked_convs':3,
                       'pretrained':'open-mmlab://regnetx_800mf'},
     'regnetx_1.6gf':{'regnet_base_channels':32, 'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
                      'fpn_out_channels':min(96*decoder_width_fact,256), 'retinanet_stacked_convs':4,
@@ -40,13 +40,16 @@ regnet_base_channels=regnet_cfg['regnet_base_channels']
 bacbone_out_channels=regnet_cfg['bacbone_out_channels']
 backbone_out_indices = (0, 1, 2, 3)
 
+fpn_type = 'JaiInLoopFPN' #'JaiInLoopFPN', #'JaiFPN'
 fpn_in_channels = bacbone_out_channels
 fpn_out_channels = regnet_cfg['fpn_out_channels']
-fpn_start_level = 0
+fpn_start_level = 1
 fpn_num_outs = 5
+fpn_upsample_cfg=dict(scale_factor=2, mode='nearest') #dict(scale_factor=2, mode='bilinear')
 
 #retinanet_base_stride = (8 if fpn_start_level==1 else (4 if fpn_start_level==0 else None))
 retinanet_stacked_convs = regnet_cfg['retinanet_stacked_convs']
+pipeline_size_divisor = 128 if fpn_type == 'JaiInLoopFPN' else 32
 
 # for multi-scale training
 input_size_ms = [(input_size[0], (input_size[1]*8)//10),
@@ -68,13 +71,13 @@ model = dict(
         norm_eval=False,
         style='pytorch'),
     neck=dict(
-        type='JaiInLoopFPN',
+        type=fpn_type,
         in_channels=fpn_in_channels,
         out_channels=fpn_out_channels,
         start_level=fpn_start_level,
         num_outs=fpn_num_outs,
         add_extra_convs='on_input', #'on_output',
-        upsample_cfg=dict(scale_factor=2, mode='nearest'), #dict(scale_factor=2, mode='bilinear'), #dict(scale_factor=2, mode='nearest'),
+        upsample_cfg=fpn_upsample_cfg,
         conv_cfg=conv_cfg,
         norm_cfg=norm_cfg),
     bbox_head=dict(
@@ -122,7 +125,7 @@ train_pipeline = [
         keep_ratio=True),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
-    dict(type='Pad', size_divisor=32),
+    dict(type='Pad', size_divisor=pipeline_size_divisor),
     dict(type='DefaultFormatBundle'),
     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
 ]
@@ -137,14 +140,14 @@ test_pipeline = [
             dict(type='Resize', keep_ratio=True),
             dict(type='RandomFlip'),
             dict(type='Normalize', **img_norm_cfg),
-            dict(type='Pad', size_divisor=32),
+            dict(type='Pad', size_divisor=pipeline_size_divisor),
             dict(type='ImageToTensor', keys=['img']),
             dict(type='Collect', keys=['img']),
         ])
 ]
 
 data = dict(
-    samples_per_gpu=8,
+    samples_per_gpu=16,
     workers_per_gpu=3,
     train=dict(dataset=dict(pipeline=train_pipeline)),
     val=dict(pipeline=test_pipeline),
