@@ -4,7 +4,7 @@ _base_ = [
     '../_jacinto_ai_base_/hyper_params/schedule_1x.py',
 ]
 
-dataset_type = 'VOCDataset'
+dataset_type = 'CocoDataset'
 
 if dataset_type == 'VOCDataset':
     _base_ += ['../_jacinto_ai_base_/datasets/voc0712_det.py']
@@ -20,7 +20,7 @@ else:
 
 
 input_size = (768,384)                           # (1536,768) #(1024,512) #(768,384) #(512,512)
-decoder_width_fact = 2                           # 1, 2, 3
+decoder_width_fact = 1                           # 1, 2, 3
 
 backbone_type = 'RegNet'
 backbone_arch = 'regnetx_800mf'                  # 'regnetx_800mf' #'regnetx_1.6gf'
@@ -28,7 +28,7 @@ to_rgb = False                                   # pycls regnet backbones are tr
 
 regnet_settings = {
     'regnetx_800mf':{'regnet_base_channels':32, 'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
-                     'fpn_out_channels':min(64*decoder_width_fact,256), 'fcos_stacked_convs':3,
+                     'fpn_out_channels':min(64*decoder_width_fact,256), 'fcos_stacked_convs':2,
                       'pretrained':'open-mmlab://regnetx_800mf'},
     'regnetx_1.6gf':{'regnet_base_channels':32, 'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
                      'fpn_out_channels':min(96*decoder_width_fact,256), 'fcos_stacked_convs':4,
@@ -42,7 +42,7 @@ backbone_out_indices = (0, 1, 2, 3)
 
 fpn_in_channels = bacbone_out_channels
 fpn_out_channels = regnet_cfg['fpn_out_channels']
-fpn_start_level = 1
+fpn_start_level = 0
 fpn_num_outs = 5
 
 fcos_num_levels = 5
@@ -83,13 +83,13 @@ model = dict(
         norm_eval=False,
         style='pytorch'),
     neck=dict(
-        type='JaiFPN',
+        type='JaiInLoopFPN',
         in_channels=fpn_in_channels,
         out_channels=fpn_out_channels,
         start_level=fpn_start_level,
         num_outs=fpn_num_outs,
         add_extra_convs='on_input', #'on_output',
-        upsample_cfg=dict(scale_factor=2, mode='bilinear'), #,mode='nearest'),
+        upsample_cfg=dict(scale_factor=2, mode='nearest'), #dict(scale_factor=2, mode='bilinear'), #dict(scale_factor=2, mode='nearest'),
         conv_cfg=conv_cfg,
         norm_cfg=norm_cfg),
     bbox_head=dict(
@@ -146,7 +146,7 @@ test_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=16,
+    samples_per_gpu=8,
     workers_per_gpu=3,
     train=dict(dataset=dict(pipeline=train_pipeline)),
     val=dict(pipeline=test_pipeline),
@@ -157,9 +157,11 @@ data = dict(
 quantize = False #'training' #'calibration'
 if quantize:
   load_from = './work_dirs/fcos_regnet_fpn/latest.pth'
-  optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=1e-4)
+  optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   lr_config = dict(policy='CosineAnealing', min_lr_ratio=1e-3, warmup='linear', warmup_iters=100, warmup_ratio=1e-4)
   total_epochs = 1 if quantize == 'calibration' else 5
+else:
+  optimizer = dict(type='SGD', lr=1e-2, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
 #
 
 
