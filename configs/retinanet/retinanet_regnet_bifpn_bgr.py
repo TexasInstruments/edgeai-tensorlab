@@ -40,7 +40,7 @@ regnet_base_channels=regnet_cfg['regnet_base_channels']
 bacbone_out_channels=regnet_cfg['bacbone_out_channels']
 backbone_out_indices = (0, 1, 2, 3)
 
-fpn_type = 'JaiFPN' #'JaiFPN' #'JaiBiFPN'
+fpn_type = 'JaiBiFPN' #'JaiFPN' #'JaiBiFPN'
 fpn_in_channels = bacbone_out_channels
 fpn_out_channels = regnet_cfg['fpn_out_channels']
 fpn_start_level = 1
@@ -104,13 +104,14 @@ model = dict(
             type='DeltaXYWHBBoxCoder',
             target_means=[.0, .0, .0, .0],
             target_stds=[1.0, 1.0, 1.0, 1.0]),
+        #https://github.com/open-mmlab/mmdetection/pull/2534/files
         loss_cls=dict(
             type='FocalLoss',
             use_sigmoid=True,
-            gamma=2.0,
+            gamma=1.5,
             alpha=0.25,
             loss_weight=1.0),
-        loss_bbox=dict(type='L1Loss', loss_weight=1.0)))
+        loss_bbox=dict(type='SmoothL1Loss', beta=0.11, loss_weight=1.0)))
 
 # dataset settings
 train_pipeline = [
@@ -159,8 +160,8 @@ if quantize:
   optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   lr_config = dict(policy='CosineAnealing', min_lr_ratio=1e-3, warmup='linear', warmup_iters=100, warmup_ratio=1e-4)
   total_epochs = 1 if quantize == 'calibration' else 5
-#else:
-#  optimizer = dict(type='SGD', lr=1e-2, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
+else:
+  optimizer = dict(type='SGD', lr=1e-2, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
 #
 
 
