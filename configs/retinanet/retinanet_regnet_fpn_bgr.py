@@ -28,10 +28,10 @@ to_rgb = False                                   # pycls regnet backbones are tr
 
 regnet_settings = {
     'regnetx_800mf':{'regnet_base_channels':32, 'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
-                      'fpn_out_channels':min(64*decoder_width_fact,256), 'retinanet_stacked_convs':3,
+                      'fpn_out_channels':min(64*decoder_width_fact,256), 'retinanet_stacked_convs':3, 'fpn_num_blocks':3,
                       'pretrained':'open-mmlab://regnetx_800mf'},
     'regnetx_1.6gf':{'regnet_base_channels':32, 'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
-                     'fpn_out_channels':min(96*decoder_width_fact,256), 'retinanet_stacked_convs':4,
+                     'fpn_out_channels':min(96*decoder_width_fact,256), 'retinanet_stacked_convs':4, 'fpn_num_blocks':4,
                      'pretrained':'open-mmlab://regnetx_1.6gf'}}
 
 regnet_cfg = regnet_settings[backbone_arch]
@@ -40,22 +40,28 @@ regnet_base_channels=regnet_cfg['regnet_base_channels']
 bacbone_out_channels=regnet_cfg['bacbone_out_channels']
 backbone_out_indices = (0, 1, 2, 3)
 
-fpn_type = 'JaiFPN' #'JaiInLoopFPN', #'JaiFPN'
+fpn_type = 'JaiFPN' #'JaiFPN' #'JaiBiFPN'
 fpn_in_channels = bacbone_out_channels
 fpn_out_channels = regnet_cfg['fpn_out_channels']
 fpn_start_level = 1
 fpn_num_outs = 5
-fpn_upsample_cfg=dict(scale_factor=2, mode='bilinear') #dict(scale_factor=2, mode='nearest')
+fpn_upsample_cfg=dict(scale_factor=2, mode='nearest') if fpn_type == 'JaiBiFPN' \
+    else dict(scale_factor=2, mode='bilinear')
+fpn_cfg = dict(num_blocks=regnet_cfg['fpn_num_blocks']) if fpn_type == 'JaiBiFPN' \
+    else dict()
 
 #retinanet_base_stride = (8 if fpn_start_level==1 else (4 if fpn_start_level==0 else None))
 retinanet_stacked_convs = regnet_cfg['retinanet_stacked_convs']
-pipeline_size_divisor = 128 if fpn_type == 'JaiInLoopFPN' else 32
+pipeline_size_divisor = 128 if fpn_type == 'JaiBiFPN' else 32
 
-# for multi-scale training
-input_size_ms = [input_size] #[(input_size[0], (input_size[1]*8)//10),(input_size[0], (input_size[1]*9)//10), input_size]
+# for multi-scale training, add more resolutions, but it may need much longer training schedule.
+# for example: [(input_size[0], (input_size[1]*8)//10),(input_size[0], (input_size[1]*9)//10), input_size]
+input_size_ms = [input_size]
 
 conv_cfg = dict(type='ConvDWSep', group_size_dw=regnet_cfg['group_size_dw'])
 norm_cfg = dict(type='BN')
+act_cfg = dict(type='ReLU') if fpn_type == 'JaiBiFPN' else None
+
 img_norm_cfg = dict(mean=[128.0, 128.0, 128.0], std=[64.0, 64.0, 64.0], to_rgb=to_rgb)
 
 model = dict(
@@ -77,7 +83,9 @@ model = dict(
         add_extra_convs='on_input', #'on_output',
         upsample_cfg=fpn_upsample_cfg,
         conv_cfg=conv_cfg,
-        norm_cfg=norm_cfg),
+        norm_cfg=norm_cfg,
+        act_cfg=act_cfg,
+        **fpn_cfg),
     bbox_head=dict(
         type='JaiRetinaHead',
         num_classes=num_classes,

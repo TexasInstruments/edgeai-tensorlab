@@ -1,6 +1,10 @@
+import warnings
+import functools
+
 import torch.nn as nn
 import torch.nn.functional as F
 from mmcv.cnn import ConvModule, xavier_init
+from mmcv.cnn import build_activation_layer
 
 from mmdet.core import auto_fp16
 from mmdet.models.builder import NECKS
@@ -222,156 +226,14 @@ class JaiFPN(nn.Module):
 
 
 @NECKS.register_module()
-class JaiInLoopFPN(nn.Module):
-    def __init__(self,
-                 in_channels,
-                 out_channels,
-                 num_outs,
-                 start_level=0,
-                 end_level=-1,
-                 add_extra_convs='on_input',
-                 extra_convs_on_inputs=True,
-                 relu_before_extra_convs=False,
-                 no_norm_on_lateral=False,
-                 conv_cfg=None,
-                 norm_cfg=None,
-                 act_cfg=None,
-                 upsample_cfg=dict(mode='nearest')):
-        super(JaiInLoopFPN, self).__init__()
-        assert isinstance(in_channels, list)
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.num_ins = len(in_channels)
-        self.num_outs = num_outs
-        self.relu_before_extra_convs = relu_before_extra_convs
-        self.no_norm_on_lateral = no_norm_on_lateral
-        self.fp16_enabled = False
-        self.upsample_cfg = upsample_cfg.copy()
-
-        if end_level == -1:
-            self.backbone_end_level = self.num_ins
-            assert num_outs >= self.num_ins - start_level
-        else:
-            # if end_level < inputs, no extra level is allowed
-            self.backbone_end_level = end_level
-            assert end_level <= len(in_channels)
-            assert num_outs == end_level - start_level
-        self.start_level = start_level
-        self.end_level = end_level
-        self.add_extra_convs = add_extra_convs
-
-        assert extra_convs_on_inputs == True,  \
-            'this version of FPN supports only extra_convs_on_inputs == True'
-        assert add_extra_convs == 'on_input', \
-            'this version of FPN supports only add_extra_convs == on_input'
-        assert self.relu_before_extra_convs == False, \
-            'this version of FPN supports only relu_before_extra_convs == False'
-
-        # add extra conv layers (e.g., RetinaNet)
-        self.extra_levels = num_outs - self.backbone_end_level + self.start_level
-        in_channels_last = in_channels[self.backbone_end_level - 1]
-        in_channels_plus = in_channels + [in_channels_last] * self.extra_levels
-
-        self.lateral_convs = nn.ModuleList()
-        self.fpn_convs = nn.ModuleList()
-
-        for i in range(self.start_level, self.backbone_end_level+ self.extra_levels):
-            l_conv = ConvModuleWrapper(
-                in_channels_plus[i],
-                out_channels,
-                3,
-                conv_cfg=conv_cfg,
-                norm_cfg=norm_cfg if not self.no_norm_on_lateral else None,
-                act_cfg=act_cfg,
-                inplace=False)
-            fpn_conv = ConvModuleWrapper(
-                out_channels,
-                out_channels,
-                3,
-                padding=1,
-                conv_cfg=conv_cfg,
-                norm_cfg=norm_cfg,
-                act_cfg=act_cfg,
-                inplace=False)
-
-            self.lateral_convs.append(l_conv)
-            self.fpn_convs.append(fpn_conv)
-
-        assert len(self.lateral_convs) == num_outs, 'num lateral_convs should be == num_outs'
-        for i in range(self.extra_levels):
-            extra_fpn_conv = ConvModuleWrapper(
-                in_channels_last,
-                in_channels_last,
-                3,
-                stride=2,
-                padding=1,
-                conv_cfg=conv_cfg,
-                norm_cfg=norm_cfg,
-                act_cfg=act_cfg,
-                inplace=False)
-            self.fpn_convs.append(extra_fpn_conv)
-
-    # default init_weights for conv(msra) and norm in ConvModule
-    def init_weights(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                xavier_init(m, distribution='uniform')
-
-    @auto_fp16()
-    def forward(self, inputs):
-        assert len(inputs) == len(self.in_channels)
-
-        # using resize_with instead of F.interpolate to generate compact onnx graph
-        interpolate_fn = xnn.layers.resize_with
-
-        # add extra levels
-        used_fpn_levels = len(self.lateral_convs)
-        ins = list(inputs)
-        if self.extra_levels >= 1:
-            extra_source = inputs[self.backbone_end_level - 1]
-            for i in range(self.extra_levels):
-                extra_source = self.fpn_convs[used_fpn_levels + i](extra_source)
-                ins.append(extra_source)
-
-        # build laterals
-        laterals = [
-            lateral_conv(ins[i + self.start_level]) \
-                for i, lateral_conv in enumerate(self.lateral_convs)
-        ]
-
-        # build top-down path
-        # inloop fpn. fpn_convs are applied immediately, inside the loop
-        # and the lateral fpn outs get used in the next level
-        for i in range(used_fpn_levels - 1, 0, -1):
-            # In some cases, fixing `scale factor` (e.g. 2) is preferred, but
-            #  it cannot co-exist with `size` in `F.interpolate`.
-            if 'scale_factor' in self.upsample_cfg:
-                laterals[i - 1] += interpolate_fn(laterals[i], **self.upsample_cfg)
-            else:
-                prev_shape = laterals[i - 1].shape[2:]
-                laterals[i - 1] += interpolate_fn(laterals[i], size=prev_shape, **self.upsample_cfg)
-            #
-            laterals[i - 1] = self.fpn_convs[i - 1](laterals[i - 1])
-        #
-        outs = [
-            laterals[i] for i in range(used_fpn_levels)
-        ]
-
-        return tuple(outs)
-
-
-@NECKS.register_module()
-class JaiBiFPN(nn.Module):
+class JaiBiFPN(nn.Sequential):
     def __init__(self, *args, num_blocks=None, **kwargs):
         blocks = []
         for i in range(num_blocks):
             bi_fpn = JaiBiFPNBlock(*args, block_id=i, **kwargs)
             blocks.append(bi_fpn)
         #
-        self.blocks = nn.Sequential(blocks)
-
-    def forward(self, x):
-        return self.blocks(x)
+        super().__init__(*blocks)
 
 
 class JaiBiFPNBlock(nn.Module):
@@ -423,12 +285,13 @@ class JaiBiFPNBlock(nn.Module):
             'this version of FPN supports only add_extra_convs == on_input'
         assert self.relu_before_extra_convs == False, \
             'this version of FPN supports only relu_before_extra_convs == False'
-        assert block_id is not None, 'block_id must be valid'
+        assert block_id is not None, f'block_id must be valid: {block_id}'
+        if act_cfg is None:
+            warnings.warn(f'better to use act_cfg and set activation for this class: {self.__class__.__name__}')
+        #
 
-        # Do not put extra activation, if the conv already has act
-        conv_has_act = (act_cfg is not None and act_cfg.type is not None)
-        use_extra_act = (not conv_has_act)
-        ActType = nn.ReLU if use_extra_act else nn.Identity
+        # Use act only if conv already has act
+        ActType = functools.partial(build_activation_layer, act_cfg) if act_cfg else nn.Identity
         DownType = nn.MaxPool2d
 
         # add extra conv layers (e.g., RetinaNet)

@@ -1,3 +1,3 @@
 from mmdet.models.necks import *
-from .fpn import JaiFPN, JaiInLoopFPN, JaiBiFPN
+from .fpn import JaiFPN, JaiBiFPN
 
