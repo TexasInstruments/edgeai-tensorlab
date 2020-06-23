@@ -40,12 +40,12 @@ regnet_base_channels=regnet_cfg['regnet_base_channels']
 bacbone_out_channels=regnet_cfg['bacbone_out_channels']
 backbone_out_indices = (0, 1, 2, 3)
 
-fpn_type = 'JaiInLoopFPN' #'JaiInLoopFPN', #'JaiFPN'
+fpn_type = 'JaiFPN' #'JaiInLoopFPN', #'JaiFPN'
 fpn_in_channels = bacbone_out_channels
 fpn_out_channels = regnet_cfg['fpn_out_channels']
 fpn_start_level = 1
 fpn_num_outs = 5
-fpn_upsample_cfg=dict(scale_factor=2, mode='nearest') #dict(scale_factor=2, mode='bilinear')
+fpn_upsample_cfg=dict(scale_factor=2, mode='bilinear') #dict(scale_factor=2, mode='nearest')
 
 fcos_num_levels = 5
 fcos_base_stride = (8 if fpn_start_level==1 else (4 if fpn_start_level==0 else None))
@@ -53,9 +53,7 @@ fcos_stacked_convs = regnet_cfg['fcos_stacked_convs']
 pipeline_size_divisor = 128 if fpn_type == 'JaiInLoopFPN' else 32
 
 # for multi-scale training
-input_size_ms = [(input_size[0], (input_size[1]*8)//10),
-                 (input_size[0], (input_size[1]*9)//10),
-                 input_size]
+input_size_ms = [input_size] #[(input_size[0], (input_size[1]*8)//10),(input_size[0], (input_size[1]*9)//10), input_size]
 
 conv_cfg = dict(type='ConvDWSep', group_size_dw=regnet_cfg['group_size_dw'])
 norm_cfg = dict(type='BN')
@@ -163,8 +161,8 @@ if quantize:
   optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   lr_config = dict(policy='CosineAnealing', min_lr_ratio=1e-3, warmup='linear', warmup_iters=100, warmup_ratio=1e-4)
   total_epochs = 1 if quantize == 'calibration' else 5
-else:
-  optimizer = dict(type='SGD', lr=1e-2, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
+#else:
+#  optimizer = dict(type='SGD', lr=1e-2, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
 #
 
 
