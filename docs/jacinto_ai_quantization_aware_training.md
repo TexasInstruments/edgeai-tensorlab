@@ -54,11 +54,11 @@ We have developed several tools to aid QAT and is provided in [PyTorch-Jacinto-A
 
 |Dataset    |Mode Arch        |Backbone Model |Backbone Stride|Resolution |Acc Float|Acc 8bit Calib|Acc 8bit QAT|Model Config File                      |
 |---------  |----------       |-----------    |-------------- |-----------|-------- |-------       |----------  |----------                             |
-|VOC2007    |SSD with FPN     |MobileNetV2    |32             |512x512    |76.1     |75.4          |75.4        |configs/jacinto_ai/ssd_mobilenet_fpn.py|
-|VOC2007    |SSD with FPN     |RegNet800MF    |32             |512x512    |79.7     |79.0          |79.5        |configs/jacinto_ai/ssd_regnet_fpn.py   |
-|VOC2007    |SSD with FPN     |ResNet50       |32             |512x512    |80.5     |77.0          |79.5        |configs/jacinto_ai/ssd_resnet_fpn.py   |
+|VOC2007    |SSD with FPN     |MobileNetV2    |32             |512x512    |76.1     |75.4          |75.4        |configs/ssd/ ssd_mobilenet_fpn.py|
+|VOC2007    |SSD with FPN     |RegNet800MF    |32             |512x512    |79.7     |79.0          |79.5        |configs/ssd/ ssd_regnet_fpn.py   |
+|VOC2007    |SSD with FPN     |ResNet50       |32             |512x512    |80.5     |77.0          |79.5        |configs/ssd/ ssd_resnet_fpn.py   |
 |.
-|VOC2007    |SSD              |VGG16          |32             |512x512    |79.8     |              |            |configs/pascal_voc/ssd512_voc0712.py   |
+|VOC2007    |SSD              |VGG16          |32             |512x512    |79.8     |              |            |mmdetection/configs/pascal_voc/ ssd512_voc0712.py   |
 
 - Acc Float: MeanAP50(mAP) Accuracy in percentage in this case.
 - Acc 8bit Calib: Same metric with 8bit quantization using PTQ/Calibration 
