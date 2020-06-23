@@ -425,16 +425,11 @@ class JaiBiFPNBlock(nn.Module):
             'this version of FPN supports only relu_before_extra_convs == False'
         assert block_id is not None, 'block_id must be valid'
 
-        # Do not put extra activation in some cases:
-        # (1) DW Sep / DW Triplet blocks have an intermediate activation already.
-        # (2) Also if the act_cfg set, activations are already introduced.
-        is_dw_conv = (conv_cfg is not None and isinstance(conv_cfg.type, str) and 'DW' in conv_cfg.type)
+        # Do not put extra activation, if the conv already has act
         conv_has_act = (act_cfg is not None and act_cfg.type is not None)
-        has_act_somewhere = (is_dw_conv or conv_has_act)
-        extra_act = not has_act_somewhere
-        ActType = nn.ReLU if extra_act else nn.Identity
-        #unsigned_outputs = (conv_has_act or extra_act)
-        DownType = nn.MaxPool2d #if unsigned_outputs else nn.AvgPool2d
+        use_extra_act = (not conv_has_act)
+        ActType = nn.ReLU if use_extra_act else nn.Identity
+        DownType = nn.MaxPool2d
 
         # add extra conv layers (e.g., RetinaNet)
         if block_id == 0:
@@ -446,7 +441,7 @@ class JaiBiFPNBlock(nn.Module):
                     in_conv = ConvModuleWrapper(
                         in_channels[self.start_level + i],
                         out_channels,
-                        3,
+                        kernel_size=3,
                         stride=1,
                         padding=1,
                         conv_cfg=conv_cfg,
@@ -454,27 +449,26 @@ class JaiBiFPNBlock(nn.Module):
                         act_cfg=act_cfg,
                         inplace=False)
                 elif i == (num_outs - self.extra_levels):
-                    in_conv = ConvModuleWrapper(
+                    in_conv = nn.Sequential(
+                        DownType(
+                            kernel_size=3,
+                            stride=2,
+                            padding=1),
+                        ConvModuleWrapper(
                         in_channels[self.start_level + i],
                         out_channels,
-                        3,
+                        kernel_size=1,
                         stride=2,
                         padding=1,
                         conv_cfg=conv_cfg,
                         norm_cfg=norm_cfg,
                         act_cfg=act_cfg,
-                        inplace=False)
+                        inplace=False))
                 else:
-                    in_conv = ConvModuleWrapper(
-                        out_channels,
-                        out_channels,
-                        3,
+                    in_conv = DownType(
+                        kernel_size=3,
                         stride=2,
-                        padding=1,
-                        conv_cfg=conv_cfg,
-                        norm_cfg=norm_cfg,
-                        act_cfg=act_cfg,
-                        inplace=False)
+                        padding=1)
                 #
                 self.in_convs.append(in_conv)
 
@@ -528,18 +522,15 @@ class JaiBiFPNBlock(nn.Module):
     def forward(self, inputs):
         assert len(inputs) == len(self.in_channels)
         # in convs
-        if self.block_id == 0:
-            ins = []
-            for i in range(self.num_backbone_convs):
-                ins.append(self.in_convs[i](inputs[i]))
-            #
+        if self.block_id > 0:
+            ins = inputs
+        else:
+            ins = [self.in_convs[i](inputs[i]) for i in range(self.num_backbone_convs)]
             extra_in = inputs[-1]
             for i in range(self.num_backbone_convs, self.num_outs):
                 extra_in = self.in_convs[i](extra_in)
                 ins.append(extra_in)
             #
-        else:
-            ins = inputs
         #
         # up convs
         ups = [None] * self.num_outs
