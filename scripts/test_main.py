@@ -20,8 +20,9 @@ config='./configs/ssd/ssd_mobilenet_fpn.py'
 config='./configs/ssd/ssd_resnet_fpn.py'
 config='./configs/ssd/ssd_regnet_fpn_bgr.py'
 
-config='./configs/retinanet/retinanet_regnet_fpn_bgr.py'
 config='./configs/retinanet/retinanet_resnet_fpn.py'
+config='./configs/retinanet/retinanet_regnet_fpn_bgr.py'
+config='./configs/retinanet/retinanet_regnet_bifpn_bgr.py'
 config='./configs/retinanet/fcos_regnet_fpn_bgr.py'
 '''
 
@@ -30,7 +31,7 @@ config='./configs/retinanet/retinanet_regnet_fpn_bgr.py'
 ########################################################################
 # other settings
 gpus = 4
-dataset_style = 'voc' #'voc' #'coco'
+dataset_style = 'coco' #'voc' #'coco'
 
 
 #########################################################################

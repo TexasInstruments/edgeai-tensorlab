@@ -40,19 +40,17 @@ regnet_base_channels=regnet_cfg['regnet_base_channels']
 bacbone_out_channels=regnet_cfg['bacbone_out_channels']
 backbone_out_indices = (0, 1, 2, 3)
 
-fpn_type = 'JaiBiFPN' #'JaiFPN' #'JaiBiFPN'
+fpn_type = 'JaiBiFPN'
 fpn_in_channels = bacbone_out_channels
 fpn_out_channels = regnet_cfg['fpn_out_channels']
 fpn_start_level = 1
 fpn_num_outs = 5
-fpn_upsample_cfg=dict(scale_factor=2, mode='nearest') if fpn_type == 'JaiBiFPN' \
-    else dict(scale_factor=2, mode='bilinear')
-fpn_cfg = dict(num_blocks=regnet_cfg['fpn_num_blocks']) if fpn_type == 'JaiBiFPN' \
-    else dict()
+fpn_upsample_cfg = dict(scale_factor=2, mode='nearest')
+fpn_num_blocks = regnet_cfg['fpn_num_blocks']
 
 #retinanet_base_stride = (8 if fpn_start_level==1 else (4 if fpn_start_level==0 else None))
 retinanet_stacked_convs = regnet_cfg['retinanet_stacked_convs']
-pipeline_size_divisor = 128 if fpn_type == 'JaiBiFPN' else 32
+input_size_divisor = 128
 
 # for multi-scale training, add more resolutions, but it may need much longer training schedule.
 # for example: [(input_size[0], (input_size[1]*8)//10),(input_size[0], (input_size[1]*9)//10), input_size]
@@ -60,7 +58,6 @@ input_size_ms = [input_size]
 
 conv_cfg = dict(type='ConvDWSep', group_size_dw=regnet_cfg['group_size_dw'])
 norm_cfg = dict(type='BN')
-act_cfg = dict(type='ReLU') if fpn_type == 'JaiBiFPN' else None
 
 img_norm_cfg = dict(mean=[128.0, 128.0, 128.0], std=[64.0, 64.0, 64.0], to_rgb=to_rgb)
 
@@ -84,8 +81,7 @@ model = dict(
         upsample_cfg=fpn_upsample_cfg,
         conv_cfg=conv_cfg,
         norm_cfg=norm_cfg,
-        act_cfg=act_cfg,
-        **fpn_cfg),
+        num_blocks=fpn_num_blocks),
     bbox_head=dict(
         type='JaiRetinaHead',
         num_classes=num_classes,
@@ -124,7 +120,7 @@ train_pipeline = [
         keep_ratio=True),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
-    dict(type='Pad', size_divisor=pipeline_size_divisor),
+    dict(type='Pad', size_divisor=input_size_divisor),
     dict(type='DefaultFormatBundle'),
     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
 ]
@@ -139,7 +135,7 @@ test_pipeline = [
             dict(type='Resize', keep_ratio=True),
             dict(type='RandomFlip'),
             dict(type='Normalize', **img_norm_cfg),
-            dict(type='Pad', size_divisor=pipeline_size_divisor),
+            dict(type='Pad', size_divisor=input_size_divisor),
             dict(type='ImageToTensor', keys=['img']),
             dict(type='Collect', keys=['img']),
         ])
@@ -160,8 +156,8 @@ if quantize:
   optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   lr_config = dict(policy='CosineAnealing', min_lr_ratio=1e-3, warmup='linear', warmup_iters=100, warmup_ratio=1e-4)
   total_epochs = 1 if quantize == 'calibration' else 5
-else:
-  optimizer = dict(type='SGD', lr=1e-2, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
+#else:
+#  optimizer = dict(type='SGD', lr=1e-2, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
 #
 
 

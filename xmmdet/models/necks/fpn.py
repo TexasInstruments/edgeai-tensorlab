@@ -3,7 +3,7 @@ import functools
 
 import torch.nn as nn
 import torch.nn.functional as F
-from mmcv.cnn import ConvModule, xavier_init
+from mmcv.cnn import ConvModule, kaiming_init
 from mmcv.cnn import build_activation_layer
 
 from mmdet.core import auto_fp16
@@ -166,7 +166,7 @@ class JaiFPN(nn.Module):
     def init_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                xavier_init(m, distribution='uniform')
+                kaiming_init(m, distribution='uniform')
 
     @auto_fp16()
     def forward(self, inputs):
@@ -235,23 +235,16 @@ class JaiBiFPN(nn.Sequential):
         #
         super().__init__(*blocks)
 
+    def init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                kaiming_init(m, distribution='uniform')
 
 class JaiBiFPNBlock(nn.Module):
-    def __init__(self,
-                 in_channels,
-                 out_channels,
-                 num_outs,
-                 start_level=0,
-                 end_level=-1,
-                 add_extra_convs='on_input',
-                 extra_convs_on_inputs=True,
-                 relu_before_extra_convs=False,
-                 no_norm_on_lateral=False,
-                 conv_cfg=None,
-                 norm_cfg=None,
-                 act_cfg=None,
-                 upsample_cfg=dict(scale_factor=2,mode='nearest'),
-                 block_id=None):
+    def __init__(self, in_channels, out_channels, num_outs, start_level=0, end_level=-1,
+                 add_extra_convs='on_input', extra_convs_on_inputs=True, relu_before_extra_convs=False,
+                 no_norm_on_lateral=False, conv_cfg=None, norm_cfg=None, act_cfg=dict(type='ReLU'),
+                 upsample_cfg=dict(scale_factor=2,mode='nearest'), block_id=None):
         super(JaiBiFPNBlock, self).__init__()
         assert isinstance(in_channels, list)
         self.in_channels = in_channels
@@ -286,9 +279,6 @@ class JaiBiFPNBlock(nn.Module):
         assert self.relu_before_extra_convs == False, \
             'this version of FPN supports only relu_before_extra_convs == False'
         assert block_id is not None, f'block_id must be valid: {block_id}'
-        if act_cfg is None:
-            warnings.warn(f'better to use act_cfg and set activation for this class: {self.__class__.__name__}')
-        #
 
         # Use act only if conv already has act
         ActType = functools.partial(build_activation_layer, act_cfg) if act_cfg else nn.Identity
@@ -300,40 +290,14 @@ class JaiBiFPNBlock(nn.Module):
             self.extra_levels = num_outs - self.num_backbone_convs
             self.in_convs = nn.ModuleList()
             for i in range(num_outs):
-                if i < self.num_backbone_convs:
-                    in_conv = ConvModuleWrapper(
-                        in_channels[self.start_level + i],
-                        out_channels,
-                        kernel_size=3,
-                        stride=1,
-                        padding=1,
-                        conv_cfg=conv_cfg,
-                        norm_cfg=norm_cfg,
-                        act_cfg=act_cfg,
-                        inplace=False)
-                elif i == (num_outs - self.extra_levels):
-                    in_conv = nn.Sequential(
-                        DownType(
-                            kernel_size=3,
-                            stride=2,
-                            padding=1),
-                        ConvModuleWrapper(
-                        in_channels[self.start_level + i],
-                        out_channels,
-                        kernel_size=1,
-                        stride=2,
-                        padding=1,
-                        conv_cfg=conv_cfg,
-                        norm_cfg=norm_cfg,
-                        act_cfg=act_cfg,
-                        inplace=False))
-                else:
-                    in_conv = DownType(
-                        kernel_size=3,
-                        stride=2,
-                        padding=1)
-                #
+                in_ch = in_channels[self.start_level + i] if i <= self.num_backbone_convs else out_channels
+                stride = 1 if i < self.num_backbone_convs else 2
+                in_conv = self.build_downsample_module(in_ch, out_channels, kernel_size=3, stride=stride,
+                                                            conv_cfg=conv_cfg, norm_cfg=norm_cfg, act_cfg=None,
+                                                            DownType=DownType)
                 self.in_convs.append(in_conv)
+            #
+        #
 
         self.ups = nn.ModuleList()
         self.up_convs = nn.ModuleList()
@@ -343,43 +307,40 @@ class JaiBiFPNBlock(nn.Module):
         self.down_acts = nn.ModuleList()
         for i in range(self.num_outs-1):
             # up modules
-            up = nn.Upsample(
-                    **self.upsample_cfg
-                    )
-            up_conv = ConvModuleWrapper(
-                    out_channels,
-                    out_channels,
-                    3,
-                    padding=1,
-                    conv_cfg=conv_cfg,
-                    norm_cfg=norm_cfg,
-                    act_cfg=act_cfg,
-                    inplace=False)
+            up = nn.Upsample(**self.upsample_cfg)
+            up_conv = ConvModuleWrapper(out_channels,
+                    out_channels, 3, padding=1,
+                    conv_cfg=conv_cfg, norm_cfg=norm_cfg,
+                    act_cfg=None, inplace=False)
             up_act = ActType()
             self.ups.append(up)
             self.up_convs.append(up_conv)
             self.up_acts.append(up_act)
             # down modules
             down = DownType(kernel_size=3, stride=2, padding=1)
-            down_conv = ConvModuleWrapper(
-                out_channels,
-                out_channels,
-                3,
-                padding=1,
-                conv_cfg=conv_cfg,
-                norm_cfg=norm_cfg,
-                act_cfg=act_cfg,
-                inplace=False)
+            down_conv = ConvModuleWrapper(out_channels,
+                out_channels, 3, padding=1,
+                conv_cfg=conv_cfg, norm_cfg=norm_cfg,
+                act_cfg=None, inplace=False)
             down_act = ActType()
             self.downs.append(down)
             self.down_convs.append(down_conv)
             self.down_acts.append(down_act)
 
-    # default init_weights for conv(msra) and norm in ConvModule
-    def init_weights(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                xavier_init(m, distribution='uniform')
+    def build_downsample_module(self, in_channels, out_channels, kernel_size, stride,
+                                     conv_cfg, norm_cfg, act_cfg, DownType):
+        padding = kernel_size//2
+        if in_channels == out_channels and stride > 1:
+            block = DownType(kernel_size=kernel_size,
+                             stride=stride, padding=padding)
+        else:
+            block = ConvModuleWrapper(in_channels,
+                out_channels, kernel_size=kernel_size, stride=stride,
+                padding=padding, conv_cfg=conv_cfg, norm_cfg=norm_cfg,
+                act_cfg=act_cfg, inplace=False)
+        #
+        return block
+    #
 
     @auto_fp16()
     def forward(self, inputs):
@@ -399,12 +360,12 @@ class JaiBiFPNBlock(nn.Module):
         ups = [None] * self.num_outs
         ups[-1] = ins[-1]
         for i in range(self.num_outs-2, 0, -1):
-            ups[i] = self.up_convs[i](self.up_acts(ins[i] + self.ups[i](ups[i+1])))
+            ups[i] = self.up_convs[i](self.up_acts[i](ins[i] + self.ups[i](ups[i+1])))
         #
         # down convs
         outs = [None] * self.num_outs
         outs[0] = ups[0]
         for i in range(0, self.num_outs-1):
-            outs[i+1] = self.down_convs[i](self.down_acts(ins[i+1] + ups[i+1] + self.downs[i](ups[i])))
+            outs[i+1] = self.down_convs[i](self.down_acts[i](ins[i+1] + ups[i+1] + self.downs[i](ups[i])))
         #
         return tuple(outs)

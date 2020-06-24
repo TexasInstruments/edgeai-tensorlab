@@ -31,6 +31,7 @@ fpn_in_channels = bacbone_out_channels
 fpn_out_channels = 256
 fpn_start_level = 1
 fpn_num_outs = 5
+fpn_upsample_cfg = dict(scale_factor=2, mode='bilinear') #dict(scale_factor=2, mode='nearest')
 
 #retinanet_base_stride = (8 if fpn_start_level==1 else (4 if fpn_start_level==0 else None))
 
@@ -62,7 +63,7 @@ model = dict(
         start_level=fpn_start_level,
         num_outs=fpn_num_outs,
         add_extra_convs='on_input', #'on_output',
-        upsample_cfg=dict(scale_factor=2, mode='bilinear'), #,mode='nearest'),
+        upsample_cfg=fpn_upsample_cfg,
         conv_cfg=conv_cfg,
         norm_cfg=norm_cfg),
     bbox_head=dict(
