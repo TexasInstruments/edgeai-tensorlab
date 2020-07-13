@@ -47,7 +47,7 @@ checkpoint = f'{work_dir}/latest.pth'
 outfile = os.path.join(work_dir,'result.pkl')
 date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-print(f'Saving to: {work_dir} @ {date}')
+print(f'Training with: {config} @ {date}')
 
 if distributed:
     sys.argv = [sys.argv[0], f'--nproc_per_node={gpus}', f'--master_port={master_port}',
@@ -58,7 +58,8 @@ if distributed:
 else:
     from xmmdet.tools import test as test_mmdet
     sys.argv = [sys.argv[0], f'--out={outfile}', f'--eval={metric}',
-                f'--option=work_dir={work_dir}', f'{config}', f'{checkpoint}']
+                f'--out={outfile}',
+                f'{config}', f'{checkpoint}']
     args = test_mmdet.parse_args()
     test_mmdet.main(args)
 #

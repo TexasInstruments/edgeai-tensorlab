@@ -40,21 +40,20 @@ master_port = 29500
 
 ########################################################################
 base_path = os.path.splitext(os.path.basename(config))[0]
-work_dir = os.path.join('./data/checkpoints/object_detection', base_path)
 date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-print(f'Saving to: {work_dir} @ {date}')
+print(f'Training with: {config} @ {date}')
 
 if distributed:
     sys.argv = [sys.argv[0], f'--nproc_per_node={gpus}', f'--master_port={master_port}',
                 './xmmdet/tools/train.py', '--launcher=pytorch',
-                f'--option=work_dir={work_dir}', config]
+                config]
 
     distributed_launch.main()
 else:
     from xmmdet.tools import train as train_mmdet
     sys.argv = [sys.argv[0], f'--gpus={gpus}', '--no-validate',
-                f'--option=work_dir={work_dir}', f'{config}']
+                f'{config}']
 
     args = train_mmdet.parse_args()
     train_mmdet.main(args)

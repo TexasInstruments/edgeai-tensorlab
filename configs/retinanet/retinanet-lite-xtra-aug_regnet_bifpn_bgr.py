@@ -150,7 +150,7 @@ test_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=4,
+    samples_per_gpu=8,
     workers_per_gpu=0,
     train=dict(dataset=dict(pipeline=train_pipeline)),
     val=dict(pipeline=test_pipeline),
@@ -164,6 +164,6 @@ if quantize:
   optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   total_epochs = 1 if quantize == 'calibration' else 5
 else:
-  optimizer = dict(type='SGD', lr=2e-2, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
+  optimizer = dict(type='SGD', lr=4e-2, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   optimizer_config = dict(grad_clip=dict(max_norm=10.0, norm_type=2))
 #
