@@ -35,7 +35,7 @@ We have developed several tools to aid QAT and is provided in [PyTorch-Jacinto-A
 
 - Training with QuantTrainModule is just like any other training. However using QuantCalibrateModule is a bit different in that it doesn't need backpropagation - so backpropagation is disabled when using QuantCalibrateModule.
 
-- We have derived additional classes from these modules called MMDetQuantTrainModules, MMDetQuantCalibrateModules and MMDetQuantTestModules because the forward call of models in mmdetection is a bit different. For example for tracing through the model, a forward_dummy method is used in mmdetection. Also the way arguments are passed to forward call are also a bit different.  
+- We have derived additional classes from these modules called XMMDetQuantTrainModules, XMMDetQuantCalibrateModules and XMMDetQuantTestModules because the forward call of models in mmdetection is a bit different. For example for tracing through the model, a forward_dummy method is used in mmdetection. Also the way arguments are passed to forward call are also a bit different.  
 
 - Training can be done by using the scripts ./scripts/train_main.py or ./scripts/train_dist.py. 
 

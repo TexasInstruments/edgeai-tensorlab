@@ -7,9 +7,9 @@ __all__ = ['save_model_proto']
 
 def save_model_proto(cfg, model, input_size, output_dir):
     model = model.module if is_mmdet_quant_module(model) else model
-    is_ssd = hasattr(cfg.model, 'bbox_head') and ('SSDHead' in cfg.model.bbox_head.type)
-    is_fcos = hasattr(cfg.model, 'bbox_head') and ('FCOSHead' in cfg.model.bbox_head.type)
-    is_retinanet = hasattr(cfg.model, 'bbox_head') and ('RetinaHead' in cfg.model.bbox_head.type)
+    is_ssd = hasattr(cfg.model, 'bbox_head') and ('SSD' in cfg.model.bbox_head.type)
+    is_fcos = hasattr(cfg.model, 'bbox_head') and ('FCOS' in cfg.model.bbox_head.type)
+    is_retinanet = hasattr(cfg.model, 'bbox_head') and ('Retina' in cfg.model.bbox_head.type)
     if is_ssd:
         input_names = ['input']
         output_names = []
@@ -91,8 +91,9 @@ def _save_mmdet_proto(cfg, model, input_size, output_dir, input_names=None, outp
                                                                      variance=heads.bbox_coder.stds, clip=False, flip=True))
     #
     nms_param = mmdet_meta_arch_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=100)
-    detection_output_param = mmdet_meta_arch_pb2.TIDLOdPostProc(num_classes=heads.num_classes, share_location=True,
-                                            background_label_id=0, nms_param=nms_param, code_type=mmdet_meta_arch_pb2.CENTER_SIZE, keep_top_k=100,
+    detection_output_param = mmdet_meta_arch_pb2.TIDLOdPostProc(num_classes=heads.num_classes+1, share_location=True,
+                                            background_label_id=heads.num_classes, nms_param=nms_param,
+                                            code_type=mmdet_meta_arch_pb2.CENTER_SIZE, keep_top_k=100,
                                             confidence_threshold=0.5)
     ssd = mmdet_meta_arch_pb2.TidlMaCaffeSsd(box_input=reg_output_names, class_input=cls_output_names, output='output', prior_box_param=prior_box_param,
                                              in_width=input_size[3], in_height=input_size[2], detection_output_param=detection_output_param)

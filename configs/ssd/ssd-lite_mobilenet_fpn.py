@@ -1,27 +1,28 @@
 _base_ = [
-    '../_jacinto_ai_base_/hyper_params/common_config.py',
-    '../_jacinto_ai_base_/hyper_params/ssd_config.py',
-    '../_jacinto_ai_base_/hyper_params/schedule_1x.py',
+    '../_xbase_/hyper_params/common_config.py',
+    '../_xbase_/hyper_params/ssd_config.py',
+    '../_xbase_/hyper_params/schedule_60e.py',
 ]
 
 dataset_type = 'VOCDataset'
 
-if dataset_type == 'VOCDataset':
-    _base_ += ['../_jacinto_ai_base_/datasets/voc0712_det.py']
-    num_classes = 20
-elif dataset_type == 'CocoDataset':
-    _base_ += ['../_jacinto_ai_base_/datasets/coco_det.py']
+if dataset_type == 'CocoDataset':
+    _base_ += ['../_xbase_/datasets/coco_det_1x.py']
     num_classes = 80
+elif dataset_type == 'VOCDataset':
+    _base_ += ['../_xbase_/datasets/voc0712_det_1x.py']
+    num_classes = 20
 elif dataset_type == 'CityscapesDataset':
-    _base_ += ['../_jacinto_ai_base_/datasets/cityscapes_det.py']
+    _base_ += ['../_xbase_/datasets/cityscapes_det_1x.py']
     num_classes = 8
 else:
     assert False, f'Unknown dataset_type: {dataset_type}'
 
+input_size = (512,512)          #(1536,768) #(1024,512) #(768,384) #(512,512)
 
-input_size = (768,384)          #(1536,768) #(1024,512) #(768,384) #(512,512)
+img_norm_cfg = dict(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True) #imagenet mean/std
 
-backbone_type = 'MobileNetV2'   #'MobileNetV1'
+backbone_type = 'MobileNetV2' #'MobileNetV2' #'MobileNetV1'
 mobilenetv2_pretrained='torchvision://mobilenet_v2'
 mobilenetv1_pretrained='./data/modelzoo/pytorch/image_classification/imagenet1k/jacinto_ai/mobilenet_v1_2019-09-06_17-15-44.pth'
 pretrained=(mobilenetv2_pretrained if backbone_type == 'MobileNetV2' else mobilenetv1_pretrained)
@@ -32,11 +33,13 @@ fpn_in_channels = bacbone_out_channels
 fpn_out_channels = 256
 fpn_start_level = 1
 fpn_num_outs = 6
+fpn_upsample_mode = 'bilinear' #'nearest' #'bilinear'
+fpn_upsample_cfg = dict(scale_factor=2, mode=fpn_upsample_mode)
+
 basesize_ratio_range = (0.1, 0.9)
 
 conv_cfg = dict(type='ConvDWSep')
 norm_cfg = dict(type='BN')
-img_norm_cfg = dict(mean=[128.0, 128.0, 128.0], std=[64.0, 64.0, 64.0], to_rgb=True)
 
 model = dict(
     type='SingleStageDetector',
@@ -52,17 +55,17 @@ model = dict(
         out_feature_indices=None,
         l2_norm_scale=None),
     neck=dict(
-        type='JaiFPN',
+        type='FPNLite',
         in_channels=fpn_in_channels,
         out_channels=fpn_out_channels,
         start_level=fpn_start_level,
         num_outs=fpn_num_outs,
         add_extra_convs='on_output',
-        upsample_cfg=dict(scale_factor=2,mode='bilinear'),
+        upsample_cfg=fpn_upsample_cfg,
         conv_cfg=conv_cfg,
         norm_cfg=norm_cfg),
     bbox_head=dict(
-        type='JaiSSDHead',
+        type='SSDLiteHead',
         in_channels=[fpn_out_channels for _ in range(6)],
         num_classes=num_classes,
         conv_cfg=conv_cfg,
@@ -120,7 +123,7 @@ test_pipeline = [
 
 data = dict(
     samples_per_gpu=16,
-    workers_per_gpu=3,
+    workers_per_gpu=0,
     train=dict(dataset=dict(pipeline=train_pipeline)),
     val=dict(pipeline=test_pipeline),
     test=dict(pipeline=test_pipeline))
@@ -129,8 +132,10 @@ data = dict(
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
 if quantize:
-  load_from = './work_dirs/ssd_mobilenet_fpn/latest.pth'
+  load_from = './data/checkpoints/object_detection/ssd-lite_mobilenet_fpn/latest.pth'
   optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=1e-4)
-  lr_config = dict(policy='CosineAnealing', min_lr_ratio=1e-3, warmup='linear', warmup_iters=100, warmup_ratio=1e-4)
   total_epochs = 1 if quantize == 'calibration' else 5
+else:
+  optimizer = dict(type='SGD', lr=4e-2, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
+  optimizer_config = dict(grad_clip=dict(max_norm=10.0, norm_type=2))
 #

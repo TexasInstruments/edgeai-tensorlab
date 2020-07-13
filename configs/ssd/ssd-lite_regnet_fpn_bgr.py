@@ -1,54 +1,79 @@
 _base_ = [
-    '../_jacinto_ai_base_/hyper_params/common_config.py',
-    '../_jacinto_ai_base_/hyper_params/ssd_config.py',
-    '../_jacinto_ai_base_/hyper_params/schedule_1x.py',
+    '../_xbase_/hyper_params/common_config.py',
+    '../_xbase_/hyper_params/ssd_config.py',
+    '../_xbase_/hyper_params/schedule_60e.py',
 ]
 
 dataset_type = 'VOCDataset'
 
-if dataset_type == 'VOCDataset':
-    _base_ += ['../_jacinto_ai_base_/datasets/voc0712_det.py']
-    num_classes = 20
-elif dataset_type == 'CocoDataset':
-    _base_ += ['../_jacinto_ai_base_/datasets/coco_det.py']
+if dataset_type == 'CocoDataset':
+    _base_ += ['../_xbase_/datasets/coco_det_1x.py']
     num_classes = 80
+elif dataset_type == 'VOCDataset':
+    _base_ += ['../_xbase_/datasets/voc0712_det_1x.py']
+    num_classes = 20
 elif dataset_type == 'CityscapesDataset':
-    _base_ += ['../_jacinto_ai_base_/datasets/cityscapes_det.py']
+    _base_ += ['../_xbase_/datasets/cityscapes_det_1x.py']
     num_classes = 8
 else:
     assert False, f'Unknown dataset_type: {dataset_type}'
 
-input_size = (768,384)          #(1536,768) #(1024,512) #(768,384) #(512,512)
 
-backbone_type = 'MobileNetV2'   #'MobileNetV1'
-mobilenetv2_pretrained='torchvision://mobilenet_v2'
-mobilenetv1_pretrained='./data/modelzoo/pytorch/image_classification/imagenet1k/jacinto_ai/mobilenet_v1_2019-09-06_17-15-44.pth'
-pretrained=(mobilenetv2_pretrained if backbone_type == 'MobileNetV2' else mobilenetv1_pretrained)
-bacbone_out_channels=(32, 96, 320, 512, 256, 256) if backbone_type == 'MobileNetV2' else (256, 512, 1024, 512, 256, 256)
-backbone_out_indices = (1, 2, 3, 4)
+input_size = (512,512)          #(1536,768) #(1024,512) #(768,384) #(512,512)
+
+img_norm_cfg = dict(mean=[103.53, 116.28, 123.675], std=[57.375, 57.12, 58.395], to_rgb=False) #imagenet mean used in pycls (bgr)
+
+backbone_type = 'RegNet'
+backbone_arch = 'regnetx_800mf' #'regnetx_800mf' #'regnetx_1.6gf'
+to_rgb = False                  #pycls regnet backbones are trained with bgr
+
+regnet_settings = {
+    'regnetx_800mf':{'bacbone_out_channels':[64, 128, 288, 672],
+                      'group_size_dw':16, 'fpn_out_channels':256,
+                      'pretrained':'open-mmlab://regnetx_800mf'},
+    'regnetx_1.6gf':{'bacbone_out_channels':[72, 168, 408, 912],
+                     'group_size_dw':24, 'fpn_out_channels':264,
+                     'pretrained':'open-mmlab://regnetx_1.6gf'}}
+
+regnet_cfg = regnet_settings[backbone_arch]
+pretrained=regnet_cfg['pretrained']
+bacbone_out_channels=regnet_cfg['bacbone_out_channels']
+backbone_out_indices = (0, 1, 2, 3)
+
+fpn_in_channels = bacbone_out_channels[-len(backbone_out_indices):]
+fpn_out_channels = regnet_cfg['fpn_out_channels']
+fpn_start_level = 1
+fpn_num_outs = 6
+fpn_upsample_mode = 'bilinear' #'nearest' #'bilinear'
+fpn_upsample_cfg = dict(scale_factor=2, mode=fpn_upsample_mode)
+
 basesize_ratio_range = (0.1, 0.9)
 
-conv_cfg = dict(type='ConvDWSep')
+conv_cfg = dict(type='ConvDWSep', group_size_dw=regnet_cfg['group_size_dw'])
 norm_cfg = dict(type='BN')
-img_norm_cfg = dict(mean=[128.0, 128.0, 128.0], std=[64.0, 64.0, 64.0], to_rgb=True)
 
 model = dict(
     type='SingleStageDetector',
     pretrained=pretrained,
     backbone=dict(
         type=backbone_type,
-        strides=(2, 2, 2, 2, 2),
-        depth=None,
-        with_last_pool=False,
-        ceil_mode=True,
-        need_extra=True,
-        out_indices=backbone_out_indices[-3:],
-        out_feature_indices=None,
-        l2_norm_scale=None),
-    neck=None,
+        arch=backbone_arch,
+        out_indices=backbone_out_indices,
+        norm_eval=False,
+        style='pytorch'),
+    neck=dict(
+        type='FPNLite',
+        in_channels=fpn_in_channels,
+        out_channels=fpn_out_channels,
+        start_level=fpn_start_level,
+        num_outs=fpn_num_outs,
+        add_extra_convs='on_output',
+        upsample_cfg=fpn_upsample_cfg,
+        conv_cfg=conv_cfg,
+        norm_cfg=norm_cfg),
     bbox_head=dict(
-        type='JaiSSDHead',
-        in_channels=bacbone_out_channels,
+        type='SSDLiteHead',
+        in_channels=[fpn_out_channels for _ in range(6)],
         num_classes=num_classes,
         conv_cfg=conv_cfg,
         anchor_generator=dict(
@@ -105,18 +130,19 @@ test_pipeline = [
 
 data = dict(
     samples_per_gpu=16,
-    workers_per_gpu=3,
+    workers_per_gpu=0,
     train=dict(dataset=dict(pipeline=train_pipeline)),
     val=dict(pipeline=test_pipeline),
     test=dict(pipeline=test_pipeline))
-
 
 # settings for qat or calibration - uncomment after doing floating point training
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
 if quantize:
-  load_from = './work_dirs/ssd_mobilenet/latest.pth'
+  load_from = './data/checkpoints/object_detection/ssd-lite_regnet_fpn_bgr/latest.pth'
   optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=1e-4)
-  lr_config = dict(policy='CosineAnealing', min_lr_ratio=1e-3, warmup='linear', warmup_iters=100, warmup_ratio=1e-4)
   total_epochs = 1 if quantize == 'calibration' else 5
+else:
+  optimizer = dict(type='SGD', lr=4e-2, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
+  optimizer_config = dict(grad_clip=dict(max_norm=10.0, norm_type=2))
 #

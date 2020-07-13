@@ -1,5 +1,5 @@
 '''
-# Derived from: https://bitbucket.itg.ti.com/projects/ALGO-DEVKIT/repos/pytorch-devkit/browse/modules/pytorch_jacinto_ai/vision/models/mobilenetv2.py
+# Derived from: https://bitbucket.itg.ti.com/projects/ALGO-DEVKIT/repos/pytorch-devkit/browse/modules/pytorch_jacinto_ai/xvision/models/mobilenetv2.py
 # Which in-turn is derived from: https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenet.py
 
 ==============================================================================
@@ -98,7 +98,7 @@ class ModelConfig(xnn.utils.ConfigNode):
         self.out_indices = None
         self.shortcut_channels = (16,24,32,96,320)
         self.frozen_stages = 0
-        self.need_extra = False
+        self.need_extra = 0
         self.act_cfg = None
 
     @property
@@ -256,7 +256,7 @@ class MobileNetV2(MobileNetV2Base):
         super().__init__(InvertedResidual, model_config)
 
         extra_outplanes=(512, 256, 256, 256, 256)
-        self.extra = self._make_extra_layers(320, extra_outplanes) \
+        self.extra = self._make_extra_layers(320, extra_outplanes[:self.model_config.need_extra]) \
             if self.model_config.need_extra else None
 
         # weights init

@@ -58,11 +58,9 @@ class ConvDWSep2d(nn.Sequential):
         super().__init__(*blocks)
 
 
-@CONV_LAYERS.register_module('ConvDWTriplet')
-class ConvDWTriplet2d(nn.Module):
-    def __init__(self, *args, with_residual=True, force_residual=False, **kwargs):
-        super().__init__()
-
+@CONV_LAYERS.register_module('ConvDWTripletRes')
+class ConvDWTripletRes2d(xnn.layers.ConvDWTripletRes2d):
+    def __init__(self, *args, **kwargs):
         conv_cfg = kwargs.pop('conv_cfg', dict(type=None))
 
         kwargs['groups'] = kwargs.get('groups', None) or conv_cfg.get('groups', 1)
@@ -81,23 +79,7 @@ class ConvDWTriplet2d(nn.Module):
 
         kwargs.pop('inplace', None)
 
-        self.conv = xnn.layers.ConvDWTripletNormAct2d(*args, **kwargs)
-
-        in_planes = args[0]
-        out_planes = args[1]
-        # kernel_size = kwargs.get('kernel_size', None) or args[2]
-        stride = kwargs.get('stride', 1) if len(args)<4 else args[3]
-        self.with_residual = force_residual or (with_residual and use_act and (in_planes==out_planes) and (stride==1))
-        if self.with_residual:
-            self.add = xnn.layers.AddBlock()
-        #
-
-    def forward(self, x):
-        y = self.conv(x)
-        if self.with_residual:
-            y = self.add((x,y))
-        #
-        return y
+        super().__init__(*args, **kwargs)
 
 
 def ConvModuleWrapper(*args, **kwargs):
@@ -108,14 +90,19 @@ def ConvModuleWrapper(*args, **kwargs):
     kernel_size = kernel_size or args[2]
     assert kernel_size is not None, 'kernel_size must be specified'
 
+    is_dw_conv = conv_cfg is not None and conv_cfg.type in ('ConvDWSep', 'ConvDWTripletRes')
     if not has_type:
         return mmcv.cnn.ConvModule(*args, **kwargs)
-    elif conv_cfg.type == 'ConvNormAct' or (conv_cfg.type == 'ConvDWSep' and kernel_size == 1):
+    elif conv_cfg.type == 'ConvNormAct' or (is_dw_conv and kernel_size == 1):
         return ConvNormAct2d(*args, **kwargs)
     elif conv_cfg.type == 'ConvDWSep':
         return ConvDWSep2d(*args, **kwargs)
-    elif conv_cfg.type == 'ConvDWTriplet':
-        return ConvDWTriplet2d(*args, **kwargs)
+    elif conv_cfg.type == 'ConvDWTripletRes':
+        return ConvDWTripletRes2d(*args, **kwargs)
+    elif conv_cfg.type == 'ConvDWTripletAlwaysRes':
+        kwargs['always_residual'] = True
+        return ConvDWTripletRes2d(*args, **kwargs)
     else:
         return mmcv.cnn.ConvModule(*args, **kwargs)
+
 

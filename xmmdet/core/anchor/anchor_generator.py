@@ -119,6 +119,7 @@ class SSDAnchorGenerator(AnchorGenerator):
         return multi_level_base_anchors
 
     def __repr__(self):
+        """str: a string that describes the module"""
         indent_str = '    '
         repr_str = self.__class__.__name__ + '(\n'
         repr_str += f'{indent_str}strides={self.strides},\n'

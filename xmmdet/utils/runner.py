@@ -1,6 +1,6 @@
 import torch
 import mmcv
-from mmcv.runner import Runner
+from mmcv.runner import EpochBasedRunner
 from mmcv.runner import OptimizerHook
 from .quantize import is_mmdet_quant_module
 
@@ -19,7 +19,7 @@ def mmdet_save_checkpoint(model, *args, **kwargs):
     mmcv.runner.save_checkpoint(model_orig, *args, **kwargs)
 
 
-class MMDetRunner(Runner):
+class XMMDetEpochBasedRunner(EpochBasedRunner):
     def _get_model_orig(self):
         model_orig = self.model
         is_model_orig = True
@@ -62,7 +62,7 @@ class MMDetRunner(Runner):
         #
 
 
-class MMDetNoOptimizerHook(OptimizerHook):
+class XMMDetNoOptimizerHook(OptimizerHook):
     def after_train_iter(self, runner):
         pass
 

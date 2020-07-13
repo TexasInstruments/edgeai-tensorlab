@@ -2,7 +2,7 @@ TBD = None
 
 dataset_type = 'CocoDataset'
 data_root = 'data/coco/'
-dataset_repeats = 5
+dataset_repeats = 1
 
 img_norm_cfg = dict(mean=TBD, std=TBD, to_rgb=TBD)
 

@@ -1,5 +1,5 @@
 '''
-# Derived from: https://bitbucket.itg.ti.com/projects/ALGO-DEVKIT/repos/pytorch-devkit/browse/modules/pytorch_jacinto_ai/vision/models/mobilenetv1.py
+# Derived from: https://bitbucket.itg.ti.com/projects/ALGO-DEVKIT/repos/pytorch-devkit/browse/modules/pytorch_jacinto_ai/xvision/models/mobilenetv1.py
 # Which in-turn is derived from: https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenet.py
 
 ==============================================================================
@@ -98,6 +98,8 @@ class ModelConfig(xnn.utils.ConfigNode):
         self.out_indices = None
         self.shortcut_channels = (32,128,256,512,1024)
         self.frozen_stages = 0
+        self.need_extra = 0
+        self.act_cfg = None
 
     @property
     def shortcut_strides(self):
@@ -192,13 +194,14 @@ class MobileNetV1(MobileNetV1Base):
         for key, value in kwargs.items():
             if key == 'model_config':
                 model_config = model_config.merge_from(value)
-            elif key in ('out_indices', 'strides', 'frozen_stages'):
+            elif key in ('out_indices', 'strides', 'need_extra', 'frozen_stages', 'act_cfg'):
                 setattr(model_config, key, value)
         #
         super().__init__(xnn.layers.ConvDWSepNormAct2d, model_config)
 
         outplanes=(512, 256, 256, 256, 256)
-        self.extra = self._make_extra_layers(1024, outplanes)
+        self.extra = self._make_extra_layers(1024, outplanes[:self.model_config.need_extra]) \
+            if self.model_config.need_extra else None
 
         # weights init
         xnn.utils.module_weights_init(self)
@@ -243,9 +246,11 @@ class MobileNetV1(MobileNetV1Base):
             else:
                 selected_out = out
             #
-            for layer in self.extra:
-                x = layer(x)
-                selected_out.append(x)
+            if self.extra:
+                for layer in self.extra:
+                    x = layer(x)
+                    selected_out.append(x)
+                #
             #
             if self.model_config.frozen_stages>0:
                 selected_out = [o.detach() for o in selected_out]
@@ -255,9 +260,12 @@ class MobileNetV1(MobileNetV1Base):
 
 
     def _make_extra_layers(self, inplanes, outplanes, kernel_size=3):
+        act_cfg = self.model_config.act_cfg
+        act_dw = (act_cfg is None) or ('act_dw' not in act_cfg) or act_cfg['act_dw']
         extra_layers = []
         for i, out_ch in enumerate(outplanes):
-            layer = xnn.layers.ConvDWSepNormAct2d(inplanes, out_ch, stride=2, kernel_size=kernel_size, activation=(False,xnn.layers.DefaultAct2d))
+            activation = (act_dw, True)
+            layer = xnn.layers.ConvDWSepNormAct2d(inplanes, out_ch, stride=2, kernel_size=kernel_size, activation=activation)
             extra_layers.append(layer)
             inplanes = out_ch
         #

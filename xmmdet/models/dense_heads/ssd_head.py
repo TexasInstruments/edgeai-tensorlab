@@ -13,11 +13,11 @@ from ...ops import ConvModuleWrapper
 
 # TODO: add loss evaluator for SSD
 @HEADS.register_module()
-class JaiSSDHead(SSDHead):
+class SSDLiteHead(SSDHead):
 
     def __init__(self, *args, **kwargs):
         conv_cfg = kwargs.pop('conv_cfg', None) # not supported in base class - so pop it
-        super(JaiSSDHead, self).__init__(*args, **kwargs)
+        super(SSDLiteHead, self).__init__(*args, **kwargs)
         num_anchors = self.anchor_generator.num_base_anchors
 
         reg_convs = []
