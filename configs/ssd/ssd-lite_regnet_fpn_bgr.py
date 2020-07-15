@@ -1,10 +1,10 @@
 _base_ = [
     '../_xbase_/hyper_params/common_config.py',
     '../_xbase_/hyper_params/ssd_config.py',
-    '../_xbase_/hyper_params/schedule_60e.py',
+    '../_xbase_/hyper_params/schedule_120e.py',
 ]
 
-dataset_type = 'VOCDataset'
+dataset_type = 'CocoDataset'
 
 if dataset_type == 'CocoDataset':
     _base_ += ['../_xbase_/datasets/coco_det_1x.py']
@@ -19,7 +19,7 @@ else:
     assert False, f'Unknown dataset_type: {dataset_type}'
 
 
-input_size = (512,512)          #(1536,768) #(1024,512) #(768,384) #(512,512)
+input_size = (768,384)          #(1536,768) #(1024,512) #(768,384) #(512,512)
 
 img_norm_cfg = dict(mean=[103.53, 116.28, 123.675], std=[57.375, 57.12, 58.395], to_rgb=False) #imagenet mean used in pycls (bgr)
 
@@ -28,12 +28,10 @@ backbone_arch = 'regnetx_800mf' #'regnetx_800mf' #'regnetx_1.6gf'
 to_rgb = False                  #pycls regnet backbones are trained with bgr
 
 regnet_settings = {
-    'regnetx_800mf':{'bacbone_out_channels':[64, 128, 288, 672],
-                      'group_size_dw':16, 'fpn_out_channels':256,
-                      'pretrained':'open-mmlab://regnetx_800mf'},
-    'regnetx_1.6gf':{'bacbone_out_channels':[72, 168, 408, 912],
-                     'group_size_dw':24, 'fpn_out_channels':264,
-                     'pretrained':'open-mmlab://regnetx_1.6gf'}}
+    'regnetx_800mf':{'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
+                     'fpn_out_channels':256, 'pretrained':'open-mmlab://regnetx_800mf'},
+    'regnetx_1.6gf':{'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
+                     'fpn_out_channels':264, 'pretrained':'open-mmlab://regnetx_1.6gf'}}
 
 regnet_cfg = regnet_settings[backbone_arch]
 pretrained=regnet_cfg['pretrained']
@@ -129,7 +127,7 @@ test_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=16,
+    samples_per_gpu=8,
     workers_per_gpu=0,
     train=dict(dataset=dict(pipeline=train_pipeline)),
     val=dict(pipeline=test_pipeline),

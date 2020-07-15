@@ -1,7 +1,7 @@
 _base_ = [
     '../_xbase_/hyper_params/common_config.py',
     '../_xbase_/hyper_params/retinanet_config.py',
-    '../_xbase_/hyper_params/schedule_60e.py',
+    '../_xbase_/hyper_params/schedule_120e.py',
 ]
 
 dataset_type = 'CocoDataset'
@@ -55,18 +55,6 @@ fpn_bifpn_cfg = dict(num_blocks=fpn_num_blocks) if decoder_fpn_type == 'BiFPNLit
 
 input_size_divisor = 128 if decoder_fpn_type == 'BiFPNLite' else 32
 
-#for multi-scale training, add more resolutions, but it may need much longer training schedule.
-#input_size_ms = [input_size]
-# setup the limits
-input_size_frac = (0.34, 0.34) if input_size_divisor > 64 else (0.2, 0.2)
-# construct a list of scales
-input_size_ms = [(input_size[0]+sz_max_idx*input_size_divisor, input_size[1]) for sz_max_idx in range(-4,2)] + \
-                [(input_size[0], input_size[1]+sz_min_idx*input_size_divisor) for sz_min_idx in range(-4,2)]
-# select the suitable range
-input_size_ms = [isz for isz in input_size_ms if isz[0] >= isz[1] and
-                 isz[0] >= input_size[0]*(1-input_size_frac[0]) and isz[0] <= input_size[0]*(1+input_size_frac[0]) and
-                 isz[1] >= input_size[1]*(1-input_size_frac[1]) and isz[1] <= input_size[1]*(1+input_size_frac[1])]
-
 conv_cfg = dict(type=decoder_conv_type, group_size_dw=regnet_cfg['group_size_dw']) #None
 norm_cfg = dict(type='BN')
 
@@ -117,13 +105,28 @@ model = dict(
             gamma=1.5, #2.0 ->1.5
             alpha=0.25,
             loss_weight=1.0),
-        loss_bbox=dict(type='SmoothL1Loss', beta=1.0/9.0, loss_weight=4.0))) #'L1Loss'->'SmoothL1Loss' & higher loss_weight
+        loss_bbox=dict(type='SmoothL1Loss', beta=1.0/9.0, loss_weight=2.0))) #'L1Loss'->'SmoothL1Loss' & higher loss_weight
 
 # dataset settings
 train_pipeline = [
-    dict(type='LoadImageFromFile'),
+    dict(type='LoadImageFromFile', to_float32=True),
     dict(type='LoadAnnotations', with_bbox=True),
-    dict(type='Resize', img_scale=input_size_ms, multiscale_mode='value', keep_ratio=True), #dict(type='Resize', img_scale=input_size, keep_ratio=True),
+    dict(
+        type='PhotoMetricDistortion',
+        brightness_delta=32,
+        contrast_range=(0.5, 1.5),
+        saturation_range=(0.5, 1.5),
+        hue_delta=18),
+    dict(
+        type='Expand',
+        mean=img_norm_cfg['mean'],
+        to_rgb=img_norm_cfg['to_rgb'],
+        ratio_range=(1, 4)),
+    dict(
+        type='MinIoURandomCrop',
+        min_ious=(0.1, 0.3, 0.5, 0.7, 0.9),
+        min_crop_size=0.3),
+    dict(type='Resize', img_scale=input_size, keep_ratio=True),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size_divisor=input_size_divisor),
@@ -157,7 +160,7 @@ data = dict(
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
 if quantize:
-  load_from = './data/checkpoints/object_detection/retinanet-lite_regnet_fpn_bgr/latest.pth'
+  load_from = './data/checkpoints/object_detection/retinanet-lite_regnet_bifpn_bgr/latest.pth'
   optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   total_epochs = 1 if quantize == 'calibration' else 5
 else:

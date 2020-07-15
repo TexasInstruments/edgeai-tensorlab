@@ -1,10 +1,10 @@
 _base_ = [
     '../_xbase_/hyper_params/common_config.py',
     '../_xbase_/hyper_params/ssd_config.py',
-    '../_xbase_/hyper_params/schedule_60e.py',
+    '../_xbase_/hyper_params/schedule_120e.py',
 ]
 
-dataset_type = 'VOCDataset'
+dataset_type = 'CocoDataset'
 
 if dataset_type == 'CocoDataset':
     _base_ += ['../_xbase_/datasets/coco_det_1x.py']
@@ -18,7 +18,8 @@ elif dataset_type == 'CityscapesDataset':
 else:
     assert False, f'Unknown dataset_type: {dataset_type}'
 
-input_size = (512,512)          #(1536,768) #(1024,512) #(768,384) #(512,512)
+
+input_size = (768,384)          #(1536,768) #(1024,512) #(768,384) #(512,512)
 
 img_norm_cfg = dict(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True) #imagenet mean/std
 
@@ -105,7 +106,7 @@ test_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=16,
+    samples_per_gpu=8,
     workers_per_gpu=0,
     train=dict(dataset=dict(pipeline=train_pipeline)),
     val=dict(pipeline=test_pipeline),

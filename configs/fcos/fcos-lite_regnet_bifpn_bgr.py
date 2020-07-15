@@ -1,7 +1,7 @@
 _base_ = [
     '../_xbase_/hyper_params/common_config.py',
     '../_xbase_/hyper_params/retinanet_config.py',
-    '../_xbase_/hyper_params/schedule_60e.py',
+    '../_xbase_/hyper_params/schedule_120e.py',
 ]
 
 dataset_type = 'CocoDataset'
@@ -32,15 +32,16 @@ backbone_arch = 'regnetx_800mf'                  # 'regnetx_800mf' #'regnetx_1.6
 to_rgb = False                                   # pycls regnet backbones are trained with bgr
 
 regnet_settings = {
-    'regnetx_800mf':{'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
+    'regnetx_800mf':{'regnet_base_channels':32, 'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
                       'fpn_out_channels':min(64*decoder_width_fact,256), 'head_stacked_convs':decoder_depth_fact,
                       'fpn_num_blocks':decoder_depth_fact, 'pretrained':'open-mmlab://regnetx_800mf'},
-    'regnetx_1.6gf':{'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
+    'regnetx_1.6gf':{'regnet_base_channels':32, 'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
                      'fpn_out_channels':min(96*decoder_width_fact,256), 'head_stacked_convs':decoder_depth_fact,
                      'fpn_num_blocks':decoder_depth_fact, 'pretrained':'open-mmlab://regnetx_1.6gf'}}
 
 regnet_cfg = regnet_settings[backbone_arch]
 pretrained=regnet_cfg['pretrained']
+regnet_base_channels=regnet_cfg['regnet_base_channels']
 bacbone_out_channels=regnet_cfg['bacbone_out_channels']
 backbone_out_indices = (0, 1, 2, 3)
 
@@ -54,18 +55,6 @@ fpn_num_blocks = regnet_cfg['fpn_num_blocks']
 fpn_bifpn_cfg = dict(num_blocks=fpn_num_blocks) if decoder_fpn_type == 'BiFPNLite' else dict()
 
 input_size_divisor = 128 if decoder_fpn_type == 'BiFPNLite' else 32
-
-#for multi-scale training, add more resolutions, but it may need much longer training schedule.
-#input_size_ms = [input_size]
-# setup the limits
-input_size_frac = (0.34, 0.34) if input_size_divisor > 64 else (0.2, 0.2)
-# construct a list of scales
-input_size_ms = [(input_size[0]+sz_max_idx*input_size_divisor, input_size[1]) for sz_max_idx in range(-4,2)] + \
-                [(input_size[0], input_size[1]+sz_min_idx*input_size_divisor) for sz_min_idx in range(-4,2)]
-# select the suitable range
-input_size_ms = [isz for isz in input_size_ms if isz[0] >= isz[1] and
-                 isz[0] >= input_size[0]*(1-input_size_frac[0]) and isz[0] <= input_size[0]*(1+input_size_frac[0]) and
-                 isz[1] >= input_size[1]*(1-input_size_frac[1]) and isz[1] <= input_size[1]*(1+input_size_frac[1])]
 
 fcos_num_levels = 5
 fcos_base_stride = (8 if fpn_start_level==1 else (4 if fpn_start_level==0 else None))
@@ -128,7 +117,7 @@ model = dict(
             gamma=1.5, #2.0 ->1.5
             alpha=0.25,
             loss_weight=1.0),
-        loss_bbox=dict(type='IoULoss', loss_weight=4.0), #higher loss_weight
+        loss_bbox=dict(type='IoULoss', loss_weight=2.0), #higher loss_weight
         loss_centerness=dict(type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0)))
 
 # dataset settings
@@ -150,9 +139,10 @@ train_pipeline = [
         type='MinIoURandomCrop',
         min_ious=(0.1, 0.3, 0.5, 0.7, 0.9),
         min_crop_size=0.3),
-    dict(type='Resize', img_scale=input_size_ms, multiscale_mode='value', keep_ratio=True), #dict(type='Resize', img_scale=input_size, keep_ratio=True),
-    dict(type='Normalize', **img_norm_cfg),
+    dict(type='Resize', img_scale=input_size, keep_ratio=True),
     dict(type='RandomFlip', flip_ratio=0.5),
+    dict(type='Normalize', **img_norm_cfg),
+    dict(type='Pad', size_divisor=input_size_divisor),
     dict(type='DefaultFormatBundle'),
     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
 ]
@@ -166,6 +156,7 @@ test_pipeline = [
         transforms=[
             dict(type='Resize', keep_ratio=True),
             dict(type='Normalize', **img_norm_cfg),
+            dict(type='Pad', size_divisor=input_size_divisor),
             dict(type='ImageToTensor', keys=['img']),
             dict(type='Collect', keys=['img']),
         ])
@@ -182,7 +173,7 @@ data = dict(
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
 if quantize:
-  load_from = './data/checkpoints/object_detection/fcos-lite_regnet_fpn_bgr/latest.pth'
+  load_from = './data/checkpoints/object_detection/fcos-lite_bifpn_bgr/latest.pth'
   optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   total_epochs = 1 if quantize == 'calibration' else 5
 else:
