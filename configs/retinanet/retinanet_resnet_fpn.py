@@ -1,7 +1,7 @@
 _base_ = [
     '../_xbase_/hyper_params/common_config.py',
     '../_xbase_/hyper_params/retinanet_config.py',
-    '../_xbase_/hyper_params/schedule_48e.py',
+    '../_xbase_/hyper_params/schedule_60e.py',
 ]
 
 dataset_type = 'CocoDataset'

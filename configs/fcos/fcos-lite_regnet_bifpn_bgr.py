@@ -178,5 +178,4 @@ if quantize:
   total_epochs = 1 if quantize == 'calibration' else 5
 else:
   optimizer = dict(type='SGD', lr=4e-2, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
-  optimizer_config = dict(grad_clip=dict(max_norm=10.0, norm_type=2))
 #

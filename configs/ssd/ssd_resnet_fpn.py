@@ -1,7 +1,7 @@
 _base_ = [
     '../_xbase_/hyper_params/common_config.py',
     '../_xbase_/hyper_params/ssd_config.py',
-    '../_xbase_/hyper_params/schedule_48e.py',
+    '../_xbase_/hyper_params/schedule_60e.py',
 ]
 
 dataset_type = 'CocoDataset'
@@ -118,7 +118,7 @@ test_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=16,
+    samples_per_gpu=8,
     workers_per_gpu=0,
     train=dict(dataset=dict(pipeline=train_pipeline)),
     val=dict(pipeline=test_pipeline),
@@ -131,4 +131,6 @@ if quantize:
   load_from = './data/checkpoints/object_detection/ssd_resnet_fpn/latest.pth'
   optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=1e-4)
   total_epochs = 1 if quantize == 'calibration' else 5
+else:
+  optimizer = dict(type='SGD', lr=4e-2, momentum=0.9, weight_decay=1e-4)
 #

@@ -2,7 +2,7 @@
 optimizer = dict(type='SGD', lr=1e-2, momentum=0.9, weight_decay=1e-4)
 
 # gradient clipping - adopted from fcos config
-optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
+optimizer_config = dict(grad_clip=dict(max_norm=10, norm_type=2))
 
 # warmup by iterations
 # warmup_cfg = dict(warmup='linear', warmup_iters=500, warmup_ratio=1e-3)
