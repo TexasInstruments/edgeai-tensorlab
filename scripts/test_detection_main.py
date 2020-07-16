@@ -28,25 +28,25 @@ config='./configs/retinanet/retinanet-lite_regnet_bifpn_bgr.py'
 config='./configs/fcos/fcos-lite_regnet_bifpn_bgr.py'
 '''
 
-config='./configs/retinanet/retinanet-lite_regnet_bifpn_bgr.py'
+config='./configs/ssd/ssd-lite_regnet_bifpn_bgr.py'
 
 ########################################################################
 # other settings
 distributed = 1
 gpus = 4
 dataset_style = 'coco' #'voc' #'coco'
-master_port = 29500
+master_port = 29501
 
 ########################################################################
 metric = ('bbox' if dataset_style=='coco' else 'mAP')
 
 base_path = os.path.splitext(os.path.basename(config))[0]
-work_dir = os.path.join('./data/checkpoints/object_detection', base_path)
+work_dir = os.path.join('./work_dirs', base_path)
 checkpoint = f'{work_dir}/latest.pth'
 outfile = os.path.join(work_dir,'result.pkl')
 date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-print(f'Training with: {config} @ {date}')
+print(f'Testing with: {config} @ {date}')
 
 if distributed:
     sys.argv = [sys.argv[0], f'--nproc_per_node={gpus}', f'--master_port={master_port}',
