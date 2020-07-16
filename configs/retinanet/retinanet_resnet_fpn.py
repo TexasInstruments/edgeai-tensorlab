@@ -29,7 +29,7 @@ pretrained='torchvision://resnet50'
 bacbone_out_channels=[256, 512, 1024, 2048]
 backbone_out_indices = (0, 1, 2, 3)
 
-fpn_type = 'FPN'
+fpn_type = 'FPNLite'
 fpn_in_channels = bacbone_out_channels
 fpn_out_channels = 256
 fpn_start_level = 1
