@@ -228,17 +228,57 @@ class FPNLite(nn.Module):
 
 
 @NECKS.register_module()
-class BiFPNLite(nn.Sequential):
+class BiFPNLite(nn.Module):
     def __init__(self, *args, num_blocks=None, **kwargs):
-        blocks = []
-        for i in range(num_blocks):
-            bi_fpn = BiFPNLiteBlock(*args, block_id=i, **kwargs)
-            blocks.append(bi_fpn)
+        super().__init__()
+        add_extra_convs = kwargs.pop('add_extra_convs', False)
+        extra_convs_on_inputs = kwargs.pop('extra_convs_on_inputs', True)
+
+        self.add_extra_convs = add_extra_convs
+        assert isinstance(add_extra_convs, (str, bool))
+        if isinstance(add_extra_convs, str):
+            # Extra_convs_source choices: 'on_input', 'on_lateral', 'on_output'
+            assert add_extra_convs in ('on_input', 'on_lateral', 'on_output')
+        elif add_extra_convs:  # True
+            if extra_convs_on_inputs:
+                # For compatibility with previous release
+                # TODO: deprecate `extra_convs_on_inputs`
+                self.add_extra_convs = 'on_input'
+            else:
+                self.add_extra_convs = 'on_output'
+            #
         #
-        super().__init__(*blocks)
+
+        assert 'num_outs' in kwargs, 'num_outs must be passed a kw argument'
+        self.num_outs = kwargs.pop('num_outs',None) or args[2]
+
         self.in_channels = kwargs.get('in_channels',None) or args[0]
         self.out_channels = kwargs.get('out_channels',None) or args[1]
-        self.num_outs = kwargs.get('num_outs',None) or args[2]
+
+        conv_cfg = kwargs.get('conv_cfg', None)
+        norm_cfg = kwargs.get('norm_cfg', None)
+        self.num_outs_bifpn = min(self.num_outs, 5)
+
+        blocks = []
+        for i in range(num_blocks):
+            bi_fpn = BiFPNLiteBlock(*args, block_id=i, num_outs=self.num_outs_bifpn, \
+                                    add_extra_convs=None, extra_convs_on_inputs=None, **kwargs)
+            blocks.append(bi_fpn)
+        #
+        self.bifpn_blocks = nn.Sequential(*blocks)
+
+        self.extra_convs = nn.ModuleList()
+        if self.num_outs > self.num_outs_bifpn:
+            in_ch = self.in_channels[-1] if self.add_extra_convs == 'on_input' else self.out_channels
+            DownsampleType = nn.MaxPool2d
+            for i in range(self.num_outs-self.num_outs_bifpn):
+                extra_conv = build_downsample_module(in_ch, self.out_channels, kernel_size=3, stride=2,
+                                                       conv_cfg=conv_cfg, norm_cfg=norm_cfg, act_cfg=None,
+                                                       DownsampleType=DownsampleType)
+                self.extra_convs.append(extra_conv)
+                in_ch = self.out_channels
+            #
+        #
 
     def init_weights(self):
         for m in self.modules():
@@ -247,19 +287,27 @@ class BiFPNLite(nn.Sequential):
 
     def forward(self, inputs):
         assert len(inputs) == len(self.in_channels)
-        for i, module in enumerate(self):
-            inputs = module(inputs)
+        outputs = self.bifpn_blocks(inputs)
+        outputs = list(outputs)
+        if self.num_outs > self.num_outs_bifpn:
+            inp = inputs[-1] if self.add_extra_convs == 'on_input' else outputs[-1]
+            for i in range(self.num_outs-self.num_outs_bifpn):
+                extra_inp = self.extra_convs[i](inp)
+                outputs.append(extra_inp)
+                inp = extra_inp
+            #
         #
-        return inputs
+        return outputs
 
     def init_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 kaiming_init(m, distribution='uniform')
 
+
 class BiFPNLiteBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, num_outs, start_level=0, end_level=-1,
-                 add_extra_convs='on_input', extra_convs_on_inputs=True, relu_before_extra_convs=False,
+    def __init__(self, in_channels, out_channels, num_outs=5, start_level=0, end_level=-1,
+                 add_extra_convs=None, extra_convs_on_inputs=None, relu_before_extra_convs=False,
                  no_norm_on_lateral=False, conv_cfg=None, norm_cfg=None, act_cfg=dict(type='ReLU'),
                  upsample_cfg=dict(scale_factor=2,mode='nearest'), block_id=None):
         super(BiFPNLiteBlock, self).__init__()
@@ -286,14 +334,12 @@ class BiFPNLiteBlock(nn.Module):
         self.add_extra_convs = add_extra_convs
         self.block_id = block_id
 
+        assert num_outs<=5, 'this block handles only upto 5 outputs. remaining has to be handled outside.'
         assert upsample_cfg is not None, 'upsample_cfg must not be None'
         assert upsample_cfg.scale_factor == 2, 'scale_factor of 2 is recommended'
-        assert extra_convs_on_inputs == True,  \
-            'this version of FPN supports only extra_convs_on_inputs == True'
-        assert add_extra_convs == 'on_input', \
-            'this version of FPN supports only add_extra_convs == on_input'
-        assert self.relu_before_extra_convs == False, \
-            'this version of FPN supports only relu_before_extra_convs == False'
+        assert extra_convs_on_inputs == None, 'this blocks ignores  add_extra_convs'
+        assert add_extra_convs == None, 'this blocks ignores  add_extra_convs'
+        assert self.relu_before_extra_convs == False, 'this blocks ignores  add_extra_convs'
         assert block_id is not None, f'block_id must be valid: {block_id}'
 
         # Use act only if conv already has act
@@ -315,7 +361,7 @@ class BiFPNLiteBlock(nn.Module):
                     in_ch = out_channels
                 #
                 stride = 1 if i < self.num_backbone_convs else 2
-                in_conv = self.build_downsample_module(in_ch, out_channels, kernel_size=3, stride=stride,
+                in_conv = build_downsample_module(in_ch, out_channels, kernel_size=3, stride=stride,
                                                             conv_cfg=conv_cfg, norm_cfg=norm_cfg, act_cfg=None,
                                                             DownsampleType=DownsampleType)
                 self.in_convs.append(in_conv)
@@ -350,29 +396,6 @@ class BiFPNLiteBlock(nn.Module):
             self.down_convs.append(down_conv)
             self.down_acts.append(down_act)
 
-    def build_downsample_module(self, in_channels, out_channels, kernel_size, stride,
-                                     conv_cfg, norm_cfg, act_cfg, DownsampleType):
-        padding = kernel_size//2
-        if in_channels == out_channels and stride == 1:
-            block = ConvModuleWrapper(in_channels, out_channels, kernel_size=1, stride=1,
-                                padding=0, conv_cfg=conv_cfg, norm_cfg=norm_cfg,
-                                act_cfg=act_cfg, inplace=False)
-        elif in_channels == out_channels and stride > 1:
-            block = DownsampleType(kernel_size=kernel_size, stride=stride, padding=padding)
-        elif in_channels != out_channels and stride == 1:
-            block = ConvModuleWrapper(in_channels, out_channels, kernel_size=1, stride=stride,
-                                padding=0, conv_cfg=conv_cfg, norm_cfg=norm_cfg,
-                                act_cfg=act_cfg, inplace=False)
-        else:
-            block = nn.Sequential(
-                    DownsampleType(kernel_size=kernel_size, stride=stride, padding=padding),
-                    ConvModuleWrapper(in_channels, out_channels, kernel_size=1, stride=1,
-                                padding=0, conv_cfg=conv_cfg, norm_cfg=norm_cfg,
-                                act_cfg=act_cfg, inplace=False))
-        #
-        return block
-    #
-
     def init_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -404,3 +427,27 @@ class BiFPNLiteBlock(nn.Module):
             outs[i+1] = self.down_convs[i](self.down_acts[i](ins[i+1] + ups[i+1] + self.downs[i](ups[i])))
         #
         return tuple(outs)
+
+
+def build_downsample_module(in_channels, out_channels, kernel_size, stride,
+                                 conv_cfg, norm_cfg, act_cfg, DownsampleType):
+    padding = kernel_size//2
+    if in_channels == out_channels and stride == 1:
+        block = ConvModuleWrapper(in_channels, out_channels, kernel_size=1, stride=1,
+                            padding=0, conv_cfg=conv_cfg, norm_cfg=norm_cfg,
+                            act_cfg=act_cfg, inplace=False)
+    elif in_channels == out_channels and stride > 1:
+        block = DownsampleType(kernel_size=kernel_size, stride=stride, padding=padding)
+    elif in_channels != out_channels and stride == 1:
+        block = ConvModuleWrapper(in_channels, out_channels, kernel_size=1, stride=stride,
+                            padding=0, conv_cfg=conv_cfg, norm_cfg=norm_cfg,
+                            act_cfg=act_cfg, inplace=False)
+    else:
+        block = nn.Sequential(
+                DownsampleType(kernel_size=kernel_size, stride=stride, padding=padding),
+                ConvModuleWrapper(in_channels, out_channels, kernel_size=1, stride=1,
+                            padding=0, conv_cfg=conv_cfg, norm_cfg=norm_cfg,
+                            act_cfg=act_cfg, inplace=False))
+    #
+    return block
+#

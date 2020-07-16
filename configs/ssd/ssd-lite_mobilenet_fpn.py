@@ -19,7 +19,7 @@ else:
     assert False, f'Unknown dataset_type: {dataset_type}'
 
 
-input_size = (768,384)          #(1536,768) #(1024,512) #(768,384) #(512,512)
+input_size = (512,512)          #(1536,768) #(1024,512) #(768,384) #(512,512)
 
 img_norm_cfg = dict(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True) #imagenet mean/std
 

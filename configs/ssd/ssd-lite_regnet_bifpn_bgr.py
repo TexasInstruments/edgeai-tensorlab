@@ -19,7 +19,7 @@ else:
     assert False, f'Unknown dataset_type: {dataset_type}'
 
 
-input_size = (768,384)                          # (1536,768) #(1024,512) #(768,384) #(512,512)
+input_size = (512,512)                          # (1536,768) #(1024,512) #(768,384) #(512,512)
 decoder_fpn_type = 'BiFPNLite'                  # 'FPNLite' #'BiFPNLite' #'FPN'
 decoder_conv_type = 'ConvDWSep'                 # 'ConvDWSep' #'ConvDWTripletRes' #'ConvDWTripletAlwaysRes'
 decoder_width_fact = (2 if decoder_fpn_type == 'BiFPNLite' else 4)
@@ -47,7 +47,7 @@ backbone_out_indices = (0, 1, 2, 3)
 fpn_in_channels = bacbone_out_channels[-len(backbone_out_indices):]
 fpn_out_channels = regnet_cfg['fpn_out_channels']
 fpn_start_level = 1
-fpn_num_outs = 5
+fpn_num_outs = 6
 fpn_upsample_mode = 'bilinear' #'nearest' #'bilinear'
 fpn_upsample_cfg = dict(scale_factor=2, mode=fpn_upsample_mode)
 fpn_num_blocks = decoder_depth_fact
@@ -74,7 +74,7 @@ model = dict(
         out_channels=fpn_out_channels,
         start_level=fpn_start_level,
         num_outs=fpn_num_outs,
-        add_extra_convs='on_input',
+        add_extra_convs='on_output',
         upsample_cfg=fpn_upsample_cfg,
         conv_cfg=conv_cfg,
         norm_cfg=norm_cfg,
@@ -89,8 +89,8 @@ model = dict(
             scale_major=False,
             input_size=input_size,
             basesize_ratio_range=basesize_ratio_range,
-            strides=[8, 16, 32, 64, 128],
-            ratios=[[2], [2, 3], [2, 3], [2, 3], [2, 3]]),
+            strides=[8, 16, 32, 64, 128, 256],
+            ratios=[[2], [2, 3], [2, 3], [2, 3], [2, 3], [2]]),
         bbox_coder=dict(
             type='DeltaXYWHBBoxCoder',
             target_means=[.0, .0, .0, .0],

@@ -19,7 +19,7 @@ else:
     assert False, f'Unknown dataset_type: {dataset_type}'
 
 
-input_size = (768,384)          #(1536,768) #(1024,512) #(768,384) #(512,512)
+input_size = (512,512)          #(1536,768) #(1024,512) #(768,384) #(512,512)
 
 img_norm_cfg = dict(mean=[103.53, 116.28, 123.675], std=[57.375, 57.12, 58.395], to_rgb=False) #imagenet mean used in pycls (bgr)
 
