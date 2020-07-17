@@ -1,3 +1,4 @@
+cudnn_benchmark = True
 
 checkpoint_config = dict(interval=1)
 

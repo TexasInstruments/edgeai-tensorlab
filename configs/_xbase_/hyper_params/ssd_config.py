@@ -1,6 +1,4 @@
 
-cudnn_benchmark = True
-
 train_cfg = dict(
     assigner=dict(
         type='MaxIoUAssigner',

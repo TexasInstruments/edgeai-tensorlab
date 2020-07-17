@@ -1,31 +1,20 @@
+input_size = (512,512)          #(512,512) #(768,768) #(1024,1024)
+dataset_type = 'CocoDataset'
+num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8}
+num_classes = num_classes_dict[dataset_type]
+img_norm_cfg = dict(mean=[103.53, 116.28, 123.675], std=[57.375, 57.12, 58.395], to_rgb=False) #imagenet mean used in pycls (bgr)
+
 _base_ = [
+    f'../_xbase_/datasets/{dataset_type.lower()}.py',
     '../_xbase_/hyper_params/common_config.py',
     '../_xbase_/hyper_params/ssd_config.py',
     '../_xbase_/hyper_params/schedule_60e.py',
 ]
 
-dataset_type = 'CocoDataset'
-
-if dataset_type == 'CocoDataset':
-    _base_ += ['../_xbase_/datasets/coco_det_1x.py']
-    num_classes = 80
-elif dataset_type == 'VOCDataset':
-    _base_ += ['../_xbase_/datasets/voc0712_det_1x.py']
-    num_classes = 20
-elif dataset_type == 'CityscapesDataset':
-    _base_ += ['../_xbase_/datasets/cityscapes_det_1x.py']
-    num_classes = 8
-else:
-    assert False, f'Unknown dataset_type: {dataset_type}'
-
-
-input_size = (512,512)                          # (1536,768) #(1024,512) #(768,384) #(512,512)
 decoder_fpn_type = 'BiFPNLite'                  # 'FPNLite' #'BiFPNLite' #'FPN'
 decoder_conv_type = 'ConvDWSep'                 # 'ConvDWSep' #'ConvDWTripletRes' #'ConvDWTripletAlwaysRes'
 decoder_width_fact = (2 if decoder_fpn_type == 'BiFPNLite' else 4)
 decoder_depth_fact = 4
-
-img_norm_cfg = dict(mean=[103.53, 116.28, 123.675], std=[57.375, 57.12, 58.395], to_rgb=False) #imagenet mean used in pycls (bgr)
 
 backbone_type = 'RegNet'
 backbone_arch = 'regnetx_800mf'                  # 'regnetx_800mf' #'regnetx_1.6gf'
@@ -131,6 +120,7 @@ test_pipeline = [
         flip=False,
         transforms=[
             dict(type='Resize', keep_ratio=False),
+            dict(type='RandomFlip'),
             dict(type='Normalize', **img_norm_cfg),
             dict(type='Pad', size_divisor=input_size_divisor),
             dict(type='ImageToTensor', keys=['img']),
