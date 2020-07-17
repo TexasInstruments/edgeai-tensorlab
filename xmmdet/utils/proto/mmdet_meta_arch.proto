@@ -9,6 +9,8 @@ message TIDLMetaArch {
   repeated TidlMaTfOdApiSsd tf_od_api_ssd = 3;
   repeated TidlMaSsd tidl_ssd = 4;
   repeated TidlMaFasterRcnn tidl_faster_rcnn = 5;
+  repeated TidlYoloOd tidl_yolo = 6;
+  repeated TidlMaRetinaNet tidl_retinanet = 7;
 }
 
 message TIDLNmsParam {
@@ -169,3 +171,68 @@ message TidlMaTfOdApiSsd {
 message TidlMaFasterRcnn {
   optional string name = 1;
 }
+
+//Yolo v2/v3/v4 Box decoding
+/*
+def get_boxes(pred, anchors, classes):
+    grid_size = tf.shape(pred)[1]
+    box_xy, box_wh, object_probability, class_probabilities = tf.split(
+        pred, (2, 2, 1, classes), axis=-1
+    )
+    box_xy = tf.sigmoid(box_xy)
+    object_probability = tf.sigmoid(object_probability)
+    class_probabilities = tf.sigmoid(class_probabilities)
+    pred_box = tf.concat((box_xy, box_wh), axis=-1)
+    grid = tf.meshgrid(tf.range(grid_size), tf.range(grid_size))
+    grid = tf.expand_dims(tf.stack(grid, axis=-1), axis=2)
+    box_xy = (box_xy + tf.cast(grid, tf.float32)) / tf.cast(
+        grid_size, tf.float32
+    )
+    box_wh = tf.exp(box_wh) * anchors
+    box_x1y1 = box_xy - box_wh / 2
+    box_x2y2 = box_xy + box_wh / 2
+    bbox = tf.concat([box_x1y1, box_x2y2], axis=-1)
+    return bbox, object_probability, class_probabilities, pred_box
+ */
+
+// Configuration for one  TidlYoloOd v2/v3/v4 
+message TidlYoloOd {
+  repeated TIDLYoloParams yolo_param = 1;
+  required TIDLOdPostProc detection_output_param = 2;
+  required string name = 3;
+  required uint32 in_width = 4;
+  required uint32 in_height = 5;
+}
+
+
+
+
+message TIDLYoloParams {
+  required string input = 1; 
+  repeated float anchor_width = 2;
+  repeated float anchor_height = 3;
+}
+
+
+// Configuration for retinanet 
+message TidlMaRetinaNet {
+  repeated string box_input = 1; 
+  repeated string class_input = 2; 
+  optional string output = 3;
+  optional string name = 4; 
+  required uint32 in_width = 5;
+  required uint32 in_height = 6;
+  optional float x_scale = 7 [default = 10.0];
+  optional float y_scale = 8 [default = 10.0];
+  optional float width_scale = 9 [default = 5.0];
+  optional float height_scale = 10 [default = 5.0];
+  optional TIDLScoreConverter score_converter = 11 [default = SOFTMAX]; 
+  required RetinaNetAnchorParameter anchor_param = 12;
+  required TIDLOdPostProc detection_output_param = 13;
+}
+message RetinaNetAnchorParameter {
+  repeated float aspect_ratio = 1;
+  required float octave_base_scale  = 2;
+  required uint32 scales_per_octave = 3;
+}
+

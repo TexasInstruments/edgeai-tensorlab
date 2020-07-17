@@ -1,6 +1,8 @@
 import os
 import torch
 from .quantize import is_mmdet_quant_module
+from .proto import mmdet_meta_arch_pb2
+from google.protobuf import text_format
 
 __all__ = ['save_model_proto']
 
@@ -20,7 +22,18 @@ def save_model_proto(cfg, model, input_size, output_dir):
             output_names.append(f'reg_convs_{reg_idx}')
         #
         _save_mmdet_onnx(cfg, model, input_size, output_dir, input_names, output_names)
-        _save_mmdet_proto(cfg, model, input_size, output_dir, input_names, output_names)
+        _save_mmdet_proto_ssd(cfg, model, input_size, output_dir, input_names, output_names)
+    elif is_retinanet:
+        input_names = ['input']
+        output_names = []
+        for i in range(model.neck.num_outs):
+            output_names.append(f'retina_cls_{i}')
+        #
+        for i in range(model.neck.num_outs):
+            output_names.append(f'retina_reg_{i}')
+        #
+        _save_mmdet_onnx(cfg, model, input_size, output_dir, input_names, output_names)
+        _save_mmdet_proto_retinanet(cfg, model, input_size, output_dir, input_names, output_names)
     elif is_fcos:
         input_names = ['input']
         output_names = []
@@ -32,16 +45,6 @@ def save_model_proto(cfg, model, input_size, output_dir):
         #
         for i in range(model.neck.num_outs):
             output_names.append(f'centerness_convs_{i}')
-        #
-        _save_mmdet_onnx(cfg, model, input_size, output_dir, input_names, output_names)
-    elif is_retinanet:
-        input_names = ['input']
-        output_names = []
-        for i in range(model.neck.num_outs):
-            output_names.append(f'retina_cls_{i}')
-        #
-        for i in range(model.neck.num_outs):
-            output_names.append(f'retina_reg_{i}')
         #
         _save_mmdet_onnx(cfg, model, input_size, output_dir, input_names, output_names)
     else:
@@ -71,14 +74,14 @@ def _save_mmdet_onnx(cfg, model, input_size, output_dir, input_names=None, outpu
     model.forward = forward_backup #restore forward
 
 
-from .proto import mmdet_meta_arch_pb2
-from google.protobuf import text_format
-def _save_mmdet_proto(cfg, model, input_size, output_dir, input_names=None, output_names=None, name='model.prototxt'):
+###########################################################
+def _save_mmdet_proto_ssd(cfg, model, input_size, output_dir, input_names=None, output_names=None, name='model.prototxt'):
     num_output_names = len(output_names)//2
     cls_output_names = output_names[:num_output_names]
     reg_output_names = output_names[num_output_names:]
-    heads = model.bbox_head
-    anchor_generator = model.bbox_head.anchor_generator
+    bbox_head = model.bbox_head
+    anchor_generator = bbox_head.anchor_generator
+
     prior_box_param = []
     for h_idx in range(num_output_names):
         min_size=[anchor_generator.min_sizes[h_idx]]
@@ -88,16 +91,54 @@ def _save_mmdet_proto(cfg, model, input_size, output_dir, input_names=None, outp
         step=step[0] if isinstance(step,(tuple,list)) else step
         prior_box_param.append(mmdet_meta_arch_pb2.PriorBoxParameter(min_size=min_size, max_size=max_size,
                                                                      aspect_ratio=aspect_ratio, step=step,
-                                                                     variance=heads.bbox_coder.stds, clip=False, flip=True))
+                                                                     variance=bbox_head.bbox_coder.stds, clip=False, flip=True))
     #
+
     nms_param = mmdet_meta_arch_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=100)
-    detection_output_param = mmdet_meta_arch_pb2.TIDLOdPostProc(num_classes=heads.num_classes+1, share_location=True,
-                                            background_label_id=heads.num_classes, nms_param=nms_param,
+    detection_output_param = mmdet_meta_arch_pb2.TIDLOdPostProc(num_classes=bbox_head.num_classes+1, share_location=True,
+                                            background_label_id=bbox_head.num_classes, nms_param=nms_param,
                                             code_type=mmdet_meta_arch_pb2.CENTER_SIZE, keep_top_k=100,
                                             confidence_threshold=0.5)
-    ssd = mmdet_meta_arch_pb2.TidlMaCaffeSsd(box_input=reg_output_names, class_input=cls_output_names, output='output', prior_box_param=prior_box_param,
+
+    ssd = mmdet_meta_arch_pb2.TidlMaSsd(box_input=reg_output_names, class_input=cls_output_names, output='output', prior_box_param=prior_box_param,
                                              in_width=input_size[3], in_height=input_size[2], detection_output_param=detection_output_param)
+
     arch = mmdet_meta_arch_pb2.TIDLMetaArch(name='ssd',  caffe_ssd=[ssd])
+
+    with open(os.path.join(output_dir, name), 'wt') as pfile:
+        txt_message = text_format.MessageToString(arch)
+        pfile.write(txt_message)
+
+
+###########################################################
+def _save_mmdet_proto_retinanet(cfg, model, input_size, output_dir, input_names=None, output_names=None, name='model.prototxt'):
+    num_output_names = len(output_names)//2
+    cls_output_names = output_names[:num_output_names]
+    reg_output_names = output_names[num_output_names:]
+    bbox_head = model.bbox_head
+    anchor_generator = bbox_head.anchor_generator
+
+    background_label_id = -1 if bbox_head.use_sigmoid_cls else bbox_head.num_classes
+    num_classes = bbox_head.num_classes if bbox_head.use_sigmoid_cls else bbox_head.num_classes+1
+    score_converter = mmdet_meta_arch_pb2.SIGMOID if bbox_head.use_sigmoid_cls else mmdet_meta_arch_pb2.SOFTMAX
+    anchor_param = mmdet_meta_arch_pb2.RetinaNetAnchorParameter(aspect_ratio=anchor_generator.ratios,
+                                                                octave_base_scale=anchor_generator.octave_base_scale,
+                                                                scales_per_octave=anchor_generator.scales_per_octave)
+
+    nms_param = mmdet_meta_arch_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=100)
+    detection_output_param = mmdet_meta_arch_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
+                                            background_label_id=background_label_id, nms_param=nms_param,
+                                            code_type=mmdet_meta_arch_pb2.CENTER_SIZE, keep_top_k=100,
+                                            confidence_threshold=0.5)
+
+    retinanet = mmdet_meta_arch_pb2.TidlMaRetinaNet(box_input=reg_output_names, class_input=cls_output_names, output='output',
+                                              x_scale=1.0, y_scale=1.0, width_scale=1.0, height_scale=1.0,
+                                              in_width=input_size[3], in_height=input_size[2],
+                                              score_converter=score_converter, anchor_param=anchor_param,
+                                              detection_output_param=detection_output_param)
+
+    arch = mmdet_meta_arch_pb2.TIDLMetaArch(name='retinanet',  tidl_retinanet=[retinanet])
+
     with open(os.path.join(output_dir, name), 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)
         pfile.write(txt_message)
