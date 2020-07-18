@@ -22,10 +22,10 @@ to_rgb = False                                   # pycls regnet backbones are tr
 
 regnet_settings = {
     'regnetx_800mf':{'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
-                      'fpn_out_channels':min(64*decoder_width_fact,256), 'head_stacked_convs':decoder_depth_fact,
+                      'fpn_out_channels':min(64*decoder_width_fact,256),
                       'fpn_num_blocks':decoder_depth_fact, 'pretrained':'open-mmlab://regnetx_800mf'},
     'regnetx_1.6gf':{'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
-                     'fpn_out_channels':min(96*decoder_width_fact,256), 'head_stacked_convs':decoder_depth_fact,
+                     'fpn_out_channels':min(96*decoder_width_fact,256),
                      'fpn_num_blocks':decoder_depth_fact, 'pretrained':'open-mmlab://regnetx_1.6gf'}}
 
 regnet_cfg = regnet_settings[backbone_arch]
@@ -39,7 +39,7 @@ fpn_start_level = 1
 fpn_num_outs = 6
 fpn_upsample_mode = 'bilinear' #'nearest' #'bilinear'
 fpn_upsample_cfg = dict(scale_factor=2, mode=fpn_upsample_mode)
-fpn_num_blocks = decoder_depth_fact
+fpn_num_blocks = regnet_cfg['fpn_num_blocks']
 fpn_bifpn_cfg = dict(num_blocks=fpn_num_blocks) if decoder_fpn_type == 'BiFPNLite' else dict()
 
 basesize_ratio_range = (0.1, 0.9)
