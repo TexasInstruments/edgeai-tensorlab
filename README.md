@@ -70,3 +70,7 @@ This package/toolbox is an extension of mmdetection (https://github.com/open-mml
 
 ## Contact
 This extension of MMDetection is part of Jacinto-AI-DevKit and is maintained by the Jacinto AI team (jacinto-ai-devkit@list.ti.com). For more details, please visit: https://github.com/TexasInstruments/jacinto-ai-devkit
+
+
+## References
+[1] MMDetection: Open MMLab Detection Toolbox and Benchmark, https://arxiv.org/abs/1906.07155, Kai Chen, Jiaqi Wang, Jiangmiao Pang, Yuhang Cao, Yu Xiong, Xiaoxiao Li, Shuyang Sun, Wansen Feng, Ziwei Liu, Jiarui Xu, Zheng Zhang, Dazhi Cheng, Chenchen Zhu, Tianheng Cheng, Qijie Zhao, Buyu Li, Xin Lu, Rui Zhu, Yue Wu, Jifeng Dai, Jingdong Wang, Jianping Shi, Wanli Ouyang, Chen Change Loy, Dahua Lin
