@@ -22,7 +22,7 @@ fpn_in_channels = bacbone_out_channels
 fpn_out_channels = 256
 fpn_start_level = 1
 fpn_num_outs = 5
-fpn_upsample_mode = 'nearest' #'nearest' #'bilinear'
+fpn_upsample_mode = 'bilinear' #'nearest' #'bilinear'
 fpn_upsample_cfg = dict(scale_factor=2, mode=fpn_upsample_mode)
 
 #retinanet_base_stride = (8 if fpn_start_level==1 else (4 if fpn_start_level==0 else None))
