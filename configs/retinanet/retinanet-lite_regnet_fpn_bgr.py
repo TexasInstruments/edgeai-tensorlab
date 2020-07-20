@@ -91,10 +91,10 @@ model = dict(
         loss_cls=dict(
             type='FocalLoss',
             use_sigmoid=True,
-            gamma=1.5, #2.0 ->1.5
+            gamma=2.0,
             alpha=0.25,
             loss_weight=1.0),
-        loss_bbox=dict(type='SmoothL1Loss', beta=1.0/9.0, loss_weight=2.0))) #'L1Loss'->'SmoothL1Loss' & higher loss_weight
+        loss_bbox=dict(type='L1Loss', loss_weight=1.0)))
 
 # dataset settings
 train_pipeline = [
@@ -150,7 +150,7 @@ data = dict(
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
 if quantize:
-  load_from = './data/checkpoints/object_detection/retinanet-lite_regnet_bifpn_bgr/latest.pth'
+  load_from = './data/checkpoints/object_detection/retinanet-lite_regnet_fpn_bgr/latest.pth'
   optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   total_epochs = 1 if quantize == 'calibration' else 6
 else:

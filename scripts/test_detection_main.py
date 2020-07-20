@@ -23,6 +23,7 @@ config='./configs/ssd/ssd-lite_regnet_fpn_bgr.py'
 config='./configs/ssd/ssd-lite_regnet_bifpn_bgr.py'
 
 config='./configs/retinanet/retinanet_resnet_fpn.py'
+config='./configs/retinanet/retinanet-lite_regnet_fpn_bgr.py'
 config='./configs/retinanet/retinanet-lite_regnet_bifpn_bgr.py'
 '''
 
