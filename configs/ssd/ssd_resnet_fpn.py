@@ -119,7 +119,7 @@ quantize = False #'training' #'calibration'
 if quantize:
   load_from = './data/checkpoints/object_detection/ssd_resnet_fpn/latest.pth'
   optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=1e-4)
-  total_epochs = 1 if quantize == 'calibration' else 5
+  total_epochs = 1 if quantize == 'calibration' else 6
 else:
   optimizer = dict(type='SGD', lr=4e-2, momentum=0.9, weight_decay=1e-4)
 #

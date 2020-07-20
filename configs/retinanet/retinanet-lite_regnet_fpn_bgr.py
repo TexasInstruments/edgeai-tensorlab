@@ -7,11 +7,11 @@ img_norm_cfg = dict(mean=[103.53, 116.28, 123.675], std=[57.375, 57.12, 58.395],
 _base_ = [
     f'../_xbase_/datasets/{dataset_type.lower()}.py',
     '../_xbase_/hyper_params/common_config.py',
-    '../_xbase_/hyper_params/fcos_config.py',
+    '../_xbase_/hyper_params/retinanet_config.py',
     '../_xbase_/hyper_params/schedule_60e.py',
 ]
 
-decoder_fpn_type = 'BiFPNLite'                  # 'FPNLite' #'BiFPNLite' #'FPN'
+decoder_fpn_type = 'FPNLite'                    # 'FPNLite' #'BiFPNLite' #'FPN'
 decoder_conv_type = 'ConvDWSep'                 # 'ConvDWSep' #'ConvDWTripletRes' #'ConvDWTripletAlwaysRes'
 decoder_width_fact = (2 if decoder_fpn_type == 'BiFPNLite' else 4)
 decoder_depth_fact = 4
@@ -21,16 +21,15 @@ backbone_arch = 'regnetx_800mf'                  # 'regnetx_800mf' #'regnetx_1.6
 to_rgb = False                                   # pycls regnet backbones are trained with bgr
 
 regnet_settings = {
-    'regnetx_800mf':{'regnet_base_channels':32, 'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
+    'regnetx_800mf':{'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
                       'fpn_out_channels':min(64*decoder_width_fact,256), 'head_stacked_convs':decoder_depth_fact,
                       'fpn_num_blocks':decoder_depth_fact, 'pretrained':'open-mmlab://regnetx_800mf'},
-    'regnetx_1.6gf':{'regnet_base_channels':32, 'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
+    'regnetx_1.6gf':{'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
                      'fpn_out_channels':min(96*decoder_width_fact,256), 'head_stacked_convs':decoder_depth_fact,
                      'fpn_num_blocks':decoder_depth_fact, 'pretrained':'open-mmlab://regnetx_1.6gf'}}
 
 regnet_cfg = regnet_settings[backbone_arch]
 pretrained=regnet_cfg['pretrained']
-regnet_base_channels=regnet_cfg['regnet_base_channels']
 bacbone_out_channels=regnet_cfg['bacbone_out_channels']
 backbone_out_indices = (0, 1, 2, 3)
 
@@ -45,32 +44,14 @@ fpn_bifpn_cfg = dict(num_blocks=fpn_num_blocks) if decoder_fpn_type == 'BiFPNLit
 
 input_size_divisor = 128 if decoder_fpn_type == 'BiFPNLite' else 32
 
-fcos_num_levels = 5
-fcos_base_stride = (8 if fpn_start_level==1 else (4 if fpn_start_level==0 else None))
-fcos_stacked_convs = regnet_cfg['fcos_stacked_convs']
-
 conv_cfg = dict(type=decoder_conv_type, group_size_dw=regnet_cfg['group_size_dw']) #None
 norm_cfg = dict(type='BN')
 
 #head_base_stride = (8 if fpn_start_level==1 else (4 if fpn_start_level==0 else None))
 head_stacked_convs = regnet_cfg['head_stacked_convs']
 
-if fcos_num_levels > 1:
-    fcos_input_size_max_edge = max(input_size)//2
-    fcos_regress_range_start = fcos_input_size_max_edge//(2**(fcos_num_levels-1))
-    fcos_pow2_factors = [2**i for i in range(fcos_num_levels)]
-    fcos_regress_range_edges = [-1] + [fcos_regress_range_start*p2 for p2 in fcos_pow2_factors[1:]] + [1e8]
-    fcos_regress_ranges = tuple([(fcos_regress_range_edges[i],fcos_regress_range_edges[i+1]) for i in range(fcos_num_levels)])
-    fpn_num_outs = max(fcos_num_levels, len(backbone_out_indices))
-    fcos_head_strides = [fcos_base_stride*p2 for p2 in fcos_pow2_factors]
-else:
-    fcos_regress_ranges = ((-1,1e8),)
-    fpn_num_outs = len(backbone_out_indices)
-    fcos_head_strides = [fcos_base_stride]
-#
-
 model = dict(
-    type='FCOS',
+    type='RetinaNet',
     pretrained=pretrained,
     backbone=dict(
         type=backbone_type,
@@ -90,24 +71,30 @@ model = dict(
         norm_cfg=norm_cfg,
         **fpn_bifpn_cfg),
     bbox_head=dict(
-        type='FCOSLiteHead',
+        type='RetinaLiteHead',
         num_classes=num_classes,
         in_channels=fpn_out_channels,
         stacked_convs=head_stacked_convs,
         feat_channels=fpn_out_channels,
-        strides=fcos_head_strides,
-        regress_ranges=fcos_regress_ranges,
-        center_sample_radius=1.5,
         conv_cfg=conv_cfg,
         norm_cfg=norm_cfg,
+        anchor_generator=dict(
+            type='AnchorGenerator',
+            octave_base_scale=4,
+            scales_per_octave=3,
+            ratios=[0.5, 1.0, 2.0],
+            strides=[8, 16, 32, 64, 128]),
+        bbox_coder=dict(
+            type='DeltaXYWHBBoxCoder',
+            target_means=[.0, .0, .0, .0],
+            target_stds=[1.0, 1.0, 1.0, 1.0]),
         loss_cls=dict(
             type='FocalLoss',
             use_sigmoid=True,
             gamma=1.5, #2.0 ->1.5
             alpha=0.25,
             loss_weight=1.0),
-        loss_bbox=dict(type='IoULoss', loss_weight=2.0), #higher loss_weight
-        loss_centerness=dict(type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0)))
+        loss_bbox=dict(type='SmoothL1Loss', beta=1.0/9.0, loss_weight=2.0))) #'L1Loss'->'SmoothL1Loss' & higher loss_weight
 
 # dataset settings
 train_pipeline = [
@@ -163,9 +150,9 @@ data = dict(
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
 if quantize:
-  load_from = './data/checkpoints/object_detection/fcos-lite_bifpn_bgr/latest.pth'
+  load_from = './data/checkpoints/object_detection/retinanet-lite_regnet_bifpn_bgr/latest.pth'
   optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
-  total_epochs = 1 if quantize == 'calibration' else 5
+  total_epochs = 1 if quantize == 'calibration' else 6
 else:
   optimizer = dict(type='SGD', lr=4e-2, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
 #
