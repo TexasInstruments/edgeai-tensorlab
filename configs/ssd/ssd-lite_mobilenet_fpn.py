@@ -122,7 +122,7 @@ data = dict(
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
 if quantize:
-  load_from = './data/checkpoints/object_detection/ssd-lite_mobilenet_fpn/latest.pth'
+  load_from = './work_dirs/ssd-lite_mobilenet_fpn/latest.pth'
   optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=1e-4)
   total_epochs = 1 if quantize == 'calibration' else 6
 else:
