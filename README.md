@@ -27,7 +27,7 @@ Please see [Usage](./docs/det_usage.md) for training and testing with this repos
 
 ## Benchmark and Model Zoo
 
-Several trained models with accuracy report is available at [Jacinto-AI-Detection Model Zoo](./docs/det_model_zoo.md) 
+Several trained models with accuracy report is available at [Jacinto-AI-Detection Model Zoo](./docs/det_modelzoo.md) 
 
 
 ## Quantization
