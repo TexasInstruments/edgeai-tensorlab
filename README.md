@@ -3,7 +3,7 @@
 
 This repository is an extension of the popular [mmdetection](https://github.com/open-mmlab/mmdetection) open source repository for object detection training. While mmdetection focuses on a wide variety of models, typically at high complexity, we focus on models that are optimized for speed and accuracy so that they run efficiently on embedded devices. 
 
-Kindly take time to read through the original documentation of the original [mmdetection](https://github.com/open-mmlab/mmdetection) before attempting to use this repository.
+Kindly take time to read through the documentation of the original [mmdetection](https://github.com/open-mmlab/mmdetection) before attempting to use this repository.
 
 
 ## License
@@ -13,7 +13,9 @@ Please see [LICENSE](./LICENSE) and [LICENSE.SPDX](./LICENSE.SPDX)
 
 ## Installation
 
-This repository requires mmdetection (mmdet Python package) to be installed. Please refer to [installation instructions for mmdetection](https://github.com/open-mmlab/mmdetection/blob/master/docs/install.md) for installation and dataset preparation. If you get any issues with the master branch of mmdetection, please try after checking out the latest release tag. Note mmdetection also requreis mmcv and several other dependencies to be installed as described in the above URL.
+This repository requires mmdet Python package from mmdetection to be installed. Please refer to [installation instructions for mmdetection](https://github.com/open-mmlab/mmdetection/blob/master/docs/install.md) for installation and also for dataset preparation. If you get any issues with the master branch of mmdetection, please try after checking out the latest release tag. 
+
+Note: mmdetection also requreis mmcv and several other dependencies to be installed as described in the above URL.
 
 After installing mmdetection, please install [PyTorch-Jacinto-AI-DevKit](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/pytorch-jacinto-ai-devkit/browse/) as this repository uses several components from there - especially to define low complexity models and to do Quantization Aware Training (QAT) and Calibration.
 
@@ -32,13 +34,14 @@ Several trained models with accuracy report is available at [Jacinto-AI-Detectio
 
 ## Quantization
 
-Tutorial on how to do [Quantization Aware Training](./docs/det_quantization.md) in Jacinto-AI-MMDetection. 
+This tutorial explaines how to do [Quantization Aware Training](./docs/det_quantization.md) of detection models. We also provide sample QAT models.
 
 
 ## Acknowledgement
 
 This is an open source project that is contributed by researchers and engineers from various colleges and companies. We appreciate all the contributors who implement their methods or add new features, as well as users who give valuable feedbacks.
-We wish that the toolbox and benchmark could serve the growing research community by providing a flexible toolkit to reimplement existing methods and develop their own new detectors.
+
+We wish that the toolbox and benchmark could serve the growing research community by providing a flexible toolkit to train existing detectors and also to develop their own new detectors.
 
 
 ## Citation
