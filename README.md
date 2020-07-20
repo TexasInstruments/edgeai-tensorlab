@@ -22,17 +22,17 @@ After installing mmdetection, please install [PyTorch-Jacinto-AI-DevKit](https:/
 
 Please see [Getting Started with MMDetection](https://github.com/open-mmlab/mmdetection/blob/master/docs/getting_started.md) for the basic usage of mmdetection. Note: Some of these may not apply to this repository.
 
-Please see [Usage](./docs/usage.md) for training and testing with this repository.
+Please see [Usage](./docs/det_usage.md) for training and testing with this repository.
 
 
 ## Benchmark and Model Zoo
 
-Several trained models with accuracy report is available at [Jacinto-AI-Detection Model Zoo](./docs/model_zoo.md) 
+Several trained models with accuracy report is available at [Jacinto-AI-Detection Model Zoo](./docs/det_model_zoo.md) 
 
 
 ## Quantization
 
-Tutorial on how to do [Quantization Aware Training](./docs/quantization.md) in Jacinto-AI-MMDetection. 
+Tutorial on how to do [Quantization Aware Training](./docs/det_quantization.md) in Jacinto-AI-MMDetection. 
 
 
 ## Acknowledgement

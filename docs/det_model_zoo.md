@@ -27,7 +27,7 @@ Please see the reference [1] for algorithmic details of the detector.
 |SSDLite+FPN      |RegNetX800MF  |512x512   |              |         |ssd-lite_regnet_fpn.py           |         |
 |SSDLite+FPN      |RegNetX1.6GF  |768x768   |              |         |ssd-lite_regnet_fpn.py           |         |
 |.
-|SSDLite+FPN      |ResNet50      |512x512   |              |         |ssd_resnet_fpn.py                |         |
+|SSD+FPN          |ResNet50      |512x512   |              |         |ssd_resnet_fpn.py                |[link](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/pytorch/vision/object_detection/xmmdet/coco/ssd_resnet_fpn) |
 |.
 |SSD*             |VGG16         |512x512   |**29.34**     |**98.81**|                                 |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/ssd) |
 
@@ -47,7 +47,7 @@ Please see the reference [2] for algorithmic details of the detector.
 
 - The suffix **Lite** indicates that the model uses either Depthwise Convolutions (like in MobileNet models) or grouped convolutions (like in RegNetX models). When the backbone is a MobileNet, we use Depthwise convolutions even in FPN and the detector heads. When the backbone is a RegNet model, we use Grouped convolutions with the same group size that the RegNet backbone uses. But for backbones that use regular convolutions (such as ResNet) we do not use Depthwise or Grouped convolutions.
 - A square resolution such as 512x512 indicates that the inputs are resized to that resolution without respecting the aspect ration of the image (keep_ratio=False in config files)<br>
-- A non-square resolution indicated with comma (1536,768) indicates that images are resized to fit within this maximum and minimum size - but the aspect ratio of the image is preserved (keep_ratio=True in config files). This means that each image may have a different size after it is resized and hence is not suitable for embedded inference. But the interesting thing is that such a model can also be inferred or evaluated using a square aspect ratio.<br>
+- A non-square resolution indicated with comma (1536,768) or dash (1536-768) indicates that images are resized to fit within this maximum and minimum size - but the aspect ratio of the image is preserved (keep_ratio=True in config files). This means that each image may have a different size after it is resized and hence is not suitable for embedded inference. But the interesting thing is that such a model can also be inferred or evaluated using a square aspect ratio.<br>
 - The models with a \* were not trained by us, but rather taken from mmdetection model zoo and inference is run at teh said resolution.<br>
 
 
