@@ -6,7 +6,7 @@ from .quantize import is_mmdet_quant_module
 
 
 def is_dataparallel_module(model):
-    return isinstance(model, torch.nn.DataParallel)
+    return isinstance(model, (torch.nn.DataParallel, torch.nn.parallel.DistributedDataParallel))
 
 
 def mmdet_load_checkpoint(model, *args, **kwargs):
@@ -23,11 +23,11 @@ class XMMDetEpochBasedRunner(EpochBasedRunner):
     def _get_model_orig(self):
         model_orig = self.model
         is_model_orig = True
-        if is_mmdet_quant_module(model_orig):
+        if is_dataparallel_module(model_orig):
             model_orig = model_orig.module
             is_model_orig = False
         #
-        if is_dataparallel_module(model_orig):
+        if is_mmdet_quant_module(model_orig):
             model_orig = model_orig.module
             is_model_orig = False
         #
