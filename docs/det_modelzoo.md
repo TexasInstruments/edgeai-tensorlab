@@ -1,4 +1,4 @@
-# Jacinto-AI-MMDetection Model Zoo
+# Object Detection Model Zoo
 
 MMDetection has a huge Model Zoo, supporting a lot of models. Many of them are high complexity models that are not suitable for embedded scenarios that require high throughput. (Please refer to the mmdetection documentation link above for details). However, in this fork, we list only speed/accuracy optimized models that we have trained ourselves or is recommending from another location.
 

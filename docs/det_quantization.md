@@ -1,4 +1,4 @@
-# Jacinto-AI-MMDetection Quantization
+# Quantization Aware Training of Object Detection Models
 
 Post Training Calibration for Quantization (PTQ) or Quantization Aware Training (QAT) are often required to achieve the best acuracy for inference in fixed point. This repository can do QAT and/or PTQ on object detection models trained here. PTQ can easily be performed on the inference engine itself, it need not be done using a training framework like this. While PTQ is fast, QAT provides the best accuracy. Due to these reasons, we shall focus on QAT in this repository. 
 
