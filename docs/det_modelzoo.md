@@ -25,7 +25,7 @@ The suffix **Lite** or **lite** in our model names or config files indicate that
 We shall add support for additional low complexity models as mmdetection adds support for those architectures. Additional detectors that we are looking forward to see in mmdetection are CenterNet(Objects As Points), EfficientDet and YOLOv3. For more information, see the [roadmap of mmdetection](https://github.com/open-mmlab/mmdetection/issues/2931).
 
 
-#### COCO 2017 Dataset
+#### Results for COCO 2017 Dataset
 - Train on COCO 2017 Train Set
 - Test on COCO 2017 Validation Set
 
@@ -33,27 +33,27 @@ We shall add support for additional low complexity models as mmdetection adds su
 ###### Single Shot Mult-Box Detector (SSD) 
 Please see the reference [1] for algorithmic details of the detector.
 
-|Model Arch       |Backbone Model|Resolution|AP [0.5:0.95]%|Giga MACS|Model Config File                |Download |
-|----------       |--------------|----------|--------------|---------|---------------------------------|---------|
-|SSDLite+FPN      |RegNetX800MF  |512x512   |              |         |ssd-lite_regnet_fpn.py           |         |
-|SSDLite+FPN      |RegNetX1.6GF  |768x768   |              |         |ssd-lite_regnet_fpn.py           |         |
+|Model Arch       |Backbone Model|Resolution |Giga MACS |AP [0.5:0.95]%|Model Config File                |Download |
+|----------       |--------------|-----------|----------|--------------|---------------------------------|---------|
+|SSDLite+FPN      |RegNetX800MF  |512x512    |          |              |ssd-lite_regnet_fpn.py           |         |
+|SSDLite+FPN      |RegNetX1.6GF  |768x768    |          |              |ssd-lite_regnet_fpn.py           |         |
 |.
-|SSD+FPN          |ResNet50      |512x512   |**31.2**      |**30.77**|ssd_resnet_fpn.py                |[link](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/pytorch/vision/object_detection/xmmdet/coco/ssd_resnet_fpn) |
+|SSD+FPN          |ResNet50      |512x512    |**30.77** |**31.2**      |ssd_resnet_fpn.py                |[link](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/pytorch/vision/object_detection/xmmdet/coco/ssd_resnet_fpn) |
 |.
-|SSD*             |VGG16         |512x512   |**29.34**     |**98.81**|                                 |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/ssd) |
+|SSD*             |VGG16         |512x512    |**98.81** |**29.34**     |                                 |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/ssd) |
 
 
 ###### RetinaNet Detector
 Please see the reference [2] for algorithmic details of the detector.
 
-|Model Arch       |Backbone Model|Resolution |AP [0.5:0.95]%|Giga MACS |Model Config File                |Download |
-|----------       |--------------|-----------|--------------|----------|---------------------------------|---------|
-|RetinaNetLite+FPN|RegNetX800MF  |512x512    |              |**6.04**  |retinanet-lite_regnet_fpn_bgr.py |         |
-|RetinaNetLite+FPN|RegNetX1.6GF  |768x768    |              |          |retinanet-lite_regnet_fpn.py     |         |
+|Model Arch       |Backbone Model|Resolution |Giga MACS |AP [0.5:0.95]%|Model Config File                |Download |
+|----------       |--------------|-----------|----------|--------------|---------------------------------|---------|
+|RetinaNetLite+FPN|RegNetX800MF  |512x512    |**6.04**  |              |retinanet-lite_regnet_fpn_bgr.py |         |
+|RetinaNetLite+FPN|RegNetX1.6GF  |768x768    |          |              |retinanet-lite_regnet_fpn.py     |         |
 |.
-|RetinaNet+FPN*   |ResNet50      |512x512    |**29.7**      |**68.88** |                                 |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
-|RetinaNet+FPN*   |ResNet50      |768x768    |**34.0**      |**137.75**|                                 |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
-|RetinaNet+FPN*   |ResNet50      |(1536,768) |**37.0**      |**275.5** |                                 |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
+|RetinaNet+FPN*   |ResNet50      |512x512    |**68.88** |**29.7**      |                                 |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
+|RetinaNet+FPN*   |ResNet50      |768x768    |**137.75**|**34.0**      |                                 |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
+|RetinaNet+FPN*   |ResNet50      |(1536,768) |**275.5** |**37.0**      |                                 |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
 <br>
 
 

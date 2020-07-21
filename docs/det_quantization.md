@@ -1,8 +1,10 @@
 # Jacinto-AI-MMDetection Quantization
 
-Post Training Quantization (PTQ) or Quantization Aware Training (QAT) are often required to achieve the best acuracy for inference in fixed point. 
+Post Training Calibration for Quantization (PTQ) or Quantization Aware Training (QAT) are often required to achieve the best acuracy for inference in fixed point. This repository can do QAT and/or PTQ on object detection models trained here. PTQ can easily be performed on the inference engine itself, it need not be done using a training framework like this. While PTQ is fast, QAT provides the best accuracy. Due to these reasons, we shall focus on QAT in this repository. 
 
-The foundational components for Quantization are provided in [PyTorch-Jacinto-AI-DevKit Main Page](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/pytorch-jacinto-ai-devkit/browse/). This repository uses those tools. Please consult the [documentation on Quantization](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/docs/Quantization.md) to understand the internals of our implementation of QAT.
+Although  repository does Quantization, the data is still kept as discrete floating point values. Activation range information is inserted into the model using Clip functions, wherever appropriate.  
+
+The foundational components for Quantization are provided in [PyTorch-Jacinto-AI-DevKit](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/pytorch-jacinto-ai-devkit/browse/). This repository uses Quantization tools from there. Please consult the [documentation on Quantization](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/docs/Quantization.md) to understand the internals of our implementation of QAT / PTQ.
 
 
 ## Features
@@ -11,9 +13,9 @@ The foundational components for Quantization are provided in [PyTorch-Jacinto-AI
 |--------------------                              |:--------:|:--------:|:--------:|:--------:|
 | Float32 training and test                        |✓         |          |          |          |
 | Float16 training and test                        |          |          |          |          |
-| Post Training Calibration for Quantization (PTQ) |          | ✓        | ✓        |✗         |
+| Post Training Calibration for Quantization (PTQ) |          | ☐        | ☐        |✗         |
 | Quantization Aware Training (QAT)                |          | ✓        | ✓        |✗         |
-| Test/Accuracy evaluation of PTQ & QAT models     |          | ✓        | ✓        |✗         |
+| Test/Accuracy evaluation of QAT / PTQ models     |          | ✓        | ✓        |✗         |
 
 ✓ Available, ☐ In progress or partially available, ✗ TBD
 
@@ -26,47 +28,59 @@ The foundational components for Quantization are provided in [PyTorch-Jacinto-AI
 
 #### How to do Quantization
 
-We support two quantization modes: Quantization Aware Training (QAT) and Post Training Calibration for Quantization (PTQ/Calibration). Everything required for quantization is already done in this repository and the only thing that user needs to be do is to set a **quantize** flag appropriately in the config file. If quantize flag is not set, the usual floating point training of evaluation will happen. These are the values of the quantize flag and their meanings:
+Everything required for quantization is already done in this repository and the only thing that user needs to be do is to set a **quantize** flag appropriately in the config file. If quantize flag is not set, the usual floating point training of evaluation will happen. These are the values of the quantize flag and their meanings:
 - False: Conventional floating point training (default).
-- True: Quantization Aware Training
-- calibration: Post Training Calibration for Quantization (PTQ/Calibration).
+- True or 'training': Quantization Aware Training (QAT)
+- 'calibration': Post Training Calibration for Quantization (PTQ).
 
-
-#### What is supported for Quantization
-
-- Post Training Calibration for Quantization (PTQ/Calibration): This is a fast method of improving the quantization accuracy of a model. It typically needs only one epoch to produce reasonable accuracy. This uses the module QuantCalibrateModule from PyTorch-Jacinto-AI-DevKit<br>
-- Quantization Aware Training (QAT): QAT is the recommended method for improving accuracy with quantization. This provides good accuracy with quantization, but may require several epochs (example: 10 or 25 or even more) of training. This uses the module QuantTrainModule<br>
-- Accuracy Evaluation with Quantization: When quantize flag is set in teh config file and when accuracy evaluation script is invoked, accuracy evalatuon with quantization is being done. This uses the module QuantTestModule<br>
-
+Accuracy Evaluation with Quantization: If quantize flag is set in the config file when test script is invoked, accuracy evalatuon with quantization is being done.
 
 #### What is happening behind the scenes   
-- After a model is created, it is wrapped in one of the above modules depending on whether the current phase is QAT, PTQ or Evaluation with Quantization.
+- PyTorch-Jacinto-AI-DevKit provides several modules to aid Quantization: QuantTrainModule for QAT, QuantCalibrateModule for PTQ and QuantTestModule for accuracy evaluation with Quantization. 
+
+- QuantTrainModule and QuantTestModule supports multiple gpus, whereas QuantCalibrateModule has the additional limitation that it doesn't support multiple gpus. But since PTQ is fast, this is not a real issue.
+
+- After a model is created, it is wrapped in one of the Quantization modules depending on whether the current phase is QAT, PTQ or accuracy evaluation with Quantization.
 
 - Loading of pretrained model or saving of trained model needs slight change when wrapped with the above modules as the original model is inside the wrapper (otherwise the symbols in pretrained will not match).
 
-- QuantCalibrateModule is fast, but QuantTrainModule typically gives better accuracy. QuantTrainModule and QuantTestModule supports multiple gpus, whereas QuantCalibrateModule has the additional limitation that it doesn't support multiple gpus. 
+- Training with QuantTrainModule is just like any other training. However using QuantCalibrateModule is a bit different in that it doesn't need backpropagation - so backpropagation is disabled when using PTQ.
 
-- Training with QuantTrainModule is just like any other training. However using QuantCalibrateModule is a bit different in that it doesn't need backpropagation - so backpropagation is disabled when using QuantCalibrateModule.
+All this has been taken care already in the code and the description in this section is for information only. 
 
+#### Results for COCO 2017 Dataset
 
-## Results
+###### Single Shot Mult-Box Detector (SSD) 
+Please see the reference [2] for algorithmic details of the detector.
 
-#### Pascal VOC2007 Dataset
-- Train on Pascal VOC 2007+2012
-- Test on Pascal VOC 2007
-
-|Dataset    |Mode Arch        |Backbone Model |Backbone Stride|Resolution |Acc Float|Acc 8bit Calib|Acc 8bit QAT|Model Config File                      |
-|---------  |----------       |-----------    |-------------- |-----------|-------- |-------       |----------  |----------                             |
-|VOC2007    |SSD with FPN     |MobileNetV2    |32             |512x512    |76.1     |75.4          |75.4        |configs/ssd/ ssd_mobilenet_fpn.py|
-|VOC2007    |SSD with FPN     |RegNet800MF    |32             |512x512    |79.7     |79.0          |79.5        |configs/ssd/ ssd_regnet_fpn.py   |
-|VOC2007    |SSD with FPN     |ResNet50       |32             |512x512    |80.5     |77.0          |79.5        |configs/ssd/ ssd_resnet_fpn.py   |
+|Model Arch       |Backbone Model|Resolution |Giga MACS |Float AP [0.5:0.95]%|8-bit QAT AP [0.5:0.95]%|Download |
+|----------       |--------------|-----------|----------|--------------------|------------------------|---------|
+|SSDLite+FPN      |RegNetX800MF  |512x512    |**6.03**  |**29.9**            |**29.6**                |         |
+|SSDLite+FPN      |RegNetX1.6GF  |768x768    |          |                    |                        |         |
 |.
-|VOC2007    |SSD              |VGG16          |32             |512x512    |79.8     |              |            |mmdetection/configs/pascal_voc/ ssd512_voc0712.py   |
+|SSD+FPN          |ResNet50      |512x512    |**30.77** |**31.2**            |                        |[link](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/pytorch/vision/object_detection/xmmdet/coco/ssd_resnet_fpn) |
 
-- Acc Float: MeanAP50(mAP) Accuracy in percentage in this case.
-- Acc 8bit Calib: Same metric with 8bit quantization using PTQ/Calibration 
-- Acc Float: Same metric with QAT
+
+###### RetinaNet Detector
+Please see the reference [3] for algorithmic details of the detector.
+
+|Model Arch       |Backbone Model|Resolution |Giga MACS |Float AP [0.5:0.95]%|8-bit QAT AP [0.5:0.95]%|Download |
+|----------       |--------------|-----------|----------|--------------------|------------------------|---------|
+|RetinaNetLite+FPN|RegNetX800MF  |512x512    |**6.04**  |                    |                        |         |
+|RetinaNetLite+FPN|RegNetX1.6GF  |768x768    |          |                    |                        |         |
+|.
+|RetinaNet+FPN*   |ResNet50      |512x512    |**68.88** |**29.7**            |                        |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
+|RetinaNet+FPN*   |ResNet50      |768x768    |**137.75**|**34.0**            |                        |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
+|RetinaNet+FPN*   |ResNet50      |(1536,768) |**275.5** |**37.0**            |                        |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
+<br>
+
+- Float AP [0.5:0.95]% : COCO Mean Average Precision metric in percentage for IoU range [0.5:0.95], with the floating point model.
+- 8-bit QAT AP [0.5:0.95]% : COCO Mean Average Precision metric in percentage for IoU range [0.5:0.95], with the the 8-bit Quantization Aware Trained Model.
 
 
 ## References
-Please Refer to the [pytorch-jacinto-ai-devkit](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/) and its [Quantization documentation](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/docs/Quantization.md) for further details on Quantization. 
+[1] [PyTorch-Jacinto-AI-DevKit](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/) and its [Quantization documentation](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/docs/Quantization.md). 
+
+[2] SSD: Single Shot MultiBox Detector, https://arxiv.org/abs/1512.02325, Wei Liu, Dragomir Anguelov, Dumitru Erhan, Christian Szegedy, Scott Reed, Cheng-Yang Fu, Alexander C. Berg
+
+[3] Focal Loss for Dense Object Detection, https://arxiv.org/abs/1708.02002, Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He, Piotr Dollár
