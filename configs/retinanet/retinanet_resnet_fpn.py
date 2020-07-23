@@ -8,7 +8,7 @@ _base_ = [
     f'../_xbase_/datasets/{dataset_type.lower()}.py',
     '../_xbase_/hyper_params/common_config.py',
     '../_xbase_/hyper_params/retinanet_config.py',
-    '../_xbase_/hyper_params/schedule_60e.py',
+    '../_xbase_/hyper_params/schedule.py',
 ]
 
 backbone_type = 'ResNet'
@@ -118,12 +118,13 @@ data = dict(
 # settings for qat or calibration - uncomment after doing floating point training
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
+initial_learning_rate = 4e-2
 if quantize:
   load_from = './work_dirs/retinanet_resnet_fpn_bgr/latest.pth'
-  optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=1e-4)
+  optimizer = dict(type='SGD', lr=initial_learning_rate/100.0, momentum=0.9, weight_decay=1e-4)
   total_epochs = 1 if quantize == 'calibration' else 6
 else:
-  optimizer = dict(type='SGD', lr=2e-2, momentum=0.9, weight_decay=1e-4)
+  optimizer = dict(type='SGD', lr=initial_learning_rate, momentum=0.9, weight_decay=1e-4)
 #
 
 #load_from = 'https://open-mmlab.s3.ap-northeast-2.amazonaws.com/mmdetection/v2.0/retinanet/retinanet_r50_fpn_2x_coco/retinanet_r50_fpn_2x_coco_20200131-fdb43119.pth'

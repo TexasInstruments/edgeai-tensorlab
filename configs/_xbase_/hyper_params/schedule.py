@@ -10,11 +10,11 @@ optimizer_config = dict(grad_clip=dict(max_norm=10, norm_type=2))
 warmup_cfg = dict(warmup='linear', warmup_by_epoch=True, warmup_iters=1, warmup_ratio=1e-4)
 
 # lr policy - step
-# lr_config = dict(policy='step', step=[8, 11], **warmup_cfg)
+# lr_config = dict(policy='step', step=[40, 55], **warmup_cfg)
 # lr policy - cosine
 lr_config = dict(policy='CosineAnealing', min_lr_ratio=1e-4, **warmup_cfg)
 
 # runtime settings
-total_epochs = 12
+total_epochs = 60
 
 

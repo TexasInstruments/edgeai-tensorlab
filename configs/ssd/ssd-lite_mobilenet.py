@@ -8,7 +8,7 @@ _base_ = [
     f'../_xbase_/datasets/{dataset_type.lower()}.py',
     '../_xbase_/hyper_params/common_config.py',
     '../_xbase_/hyper_params/ssd_config.py',
-    '../_xbase_/hyper_params/schedule_60e.py',
+    '../_xbase_/hyper_params/schedule.py',
 ]
 
 backbone_type = 'MobileNetV2' #'MobileNetV2' #'MobileNetV1'
@@ -104,10 +104,11 @@ data = dict(
 # settings for qat or calibration - uncomment after doing floating point training
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
+initial_learning_rate = 4e-2
 if quantize:
   load_from = './work_dirs/ssd-lite_mobilenet/latest.pth'
-  optimizer = dict(type='SGD', lr=1e-3, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
+  optimizer = dict(type='SGD', lr=initial_learning_rate/100.0, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   total_epochs = 1 if quantize == 'calibration' else 6
 else:
-  optimizer = dict(type='SGD', lr=4e-2, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
+  optimizer = dict(type='SGD', lr=initial_learning_rate, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
 #
