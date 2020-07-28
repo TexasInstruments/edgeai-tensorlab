@@ -1,3 +1,4 @@
+######################################################
 input_size = (512,512)                          #(512,512) #(768,384) #(768,768) #(1024,512) #(1024,1024)
 dataset_type = 'CocoDataset'
 num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8}
@@ -11,6 +12,20 @@ _base_ = [
     '../_xbase_/hyper_params/schedule.py',
 ]
 
+######################################################
+# settings for qat or calibration - uncomment after doing floating point training
+# also change dataset_repeats in the dataset config to 1 for fast learning
+quantize = False #'training' #'calibration'
+initial_learning_rate = 4e-2
+if quantize:
+  load_from = './work_dirs/retinanet_resnet_fpn_bgr/latest.pth'
+  optimizer = dict(type='SGD', lr=initial_learning_rate/10.0, momentum=0.9, weight_decay=1e-4)
+  total_epochs = 1 if quantize == 'calibration' else 6
+else:
+  optimizer = dict(type='SGD', lr=initial_learning_rate, momentum=0.9, weight_decay=1e-4)
+#
+
+######################################################
 backbone_type = 'ResNet'
 backbone_depth = 50
 pretrained='torchvision://resnet50'
@@ -82,8 +97,23 @@ model = dict(
 
 # dataset settings
 train_pipeline = [
-    dict(type='LoadImageFromFile'),
+    dict(type='LoadImageFromFile', to_float32=True),
     dict(type='LoadAnnotations', with_bbox=True),
+    dict(
+        type='PhotoMetricDistortion',
+        brightness_delta=32,
+        contrast_range=(0.5, 1.5),
+        saturation_range=(0.5, 1.5),
+        hue_delta=18) if not quantize else dict(type='Bypass'),
+    dict(
+        type='Expand',
+        mean=img_norm_cfg['mean'],
+        to_rgb=img_norm_cfg['to_rgb'],
+        ratio_range=(1, 4)),
+    dict(
+        type='MinIoURandomCrop',
+        min_ious=(0.1, 0.3, 0.5, 0.7, 0.9),
+        min_crop_size=0.3),
     dict(type='Resize', img_scale=input_size, keep_ratio=False),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
@@ -115,16 +145,5 @@ data = dict(
     val=dict(pipeline=test_pipeline),
     test=dict(pipeline=test_pipeline))
 
-# settings for qat or calibration - uncomment after doing floating point training
-# also change dataset_repeats in the dataset config to 1 for fast learning
-quantize = False #'training' #'calibration'
-initial_learning_rate = 4e-2
-if quantize:
-  load_from = './work_dirs/retinanet_resnet_fpn_bgr/latest.pth'
-  optimizer = dict(type='SGD', lr=initial_learning_rate/10.0, momentum=0.9, weight_decay=1e-4)
-  total_epochs = 1 if quantize == 'calibration' else 6
-else:
-  optimizer = dict(type='SGD', lr=initial_learning_rate, momentum=0.9, weight_decay=1e-4)
-#
 
 #load_from = 'https://open-mmlab.s3.ap-northeast-2.amazonaws.com/mmdetection/v2.0/retinanet/retinanet_r50_fpn_2x_coco/retinanet_r50_fpn_2x_coco_20200131-fdb43119.pth'

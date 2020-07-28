@@ -1,3 +1,4 @@
+######################################################
 input_size = (512,512)                          #(512,512) #(768,768) #(1024,1024)
 dataset_type = 'CocoDataset'
 num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8}
@@ -11,6 +12,20 @@ _base_ = [
     '../_xbase_/hyper_params/schedule.py',
 ]
 
+######################################################
+# settings for qat or calibration - uncomment after doing floating point training
+# also change dataset_repeats in the dataset config to 1 for fast learning
+quantize = False #'training' #'calibration'
+initial_learning_rate = 4e-2
+if quantize:
+  load_from = './work_dirs/ssd-lite_regnet_fpn_bgr/latest.pth'
+  optimizer = dict(type='SGD', lr=initial_learning_rate/10.0, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
+  total_epochs = 1 if quantize == 'calibration' else 6
+else:
+  optimizer = dict(type='SGD', lr=initial_learning_rate, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
+#
+
+######################################################
 backbone_type = 'RegNet'
 backbone_arch = 'regnetx_800mf' #'regnetx_800mf' #'regnetx_1.6gf'
 to_rgb = False                  #pycls regnet backbones are trained with bgr
@@ -83,7 +98,7 @@ train_pipeline = [
         brightness_delta=32,
         contrast_range=(0.5, 1.5),
         saturation_range=(0.5, 1.5),
-        hue_delta=18),
+        hue_delta=18) if not quantize else dict(type='Bypass'),
     dict(
         type='Expand',
         mean=img_norm_cfg['mean'],
@@ -122,14 +137,4 @@ data = dict(
     val=dict(pipeline=test_pipeline),
     test=dict(pipeline=test_pipeline))
 
-# settings for qat or calibration - uncomment after doing floating point training
-# also change dataset_repeats in the dataset config to 1 for fast learning
-quantize = False #'training' #'calibration'
-initial_learning_rate = 4e-2
-if quantize:
-  load_from = './work_dirs/ssd-lite_regnet_fpn_bgr/latest.pth'
-  optimizer = dict(type='SGD', lr=initial_learning_rate/10.0, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
-  total_epochs = 1 if quantize == 'calibration' else 6
-else:
-  optimizer = dict(type='SGD', lr=initial_learning_rate, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
-#
+
