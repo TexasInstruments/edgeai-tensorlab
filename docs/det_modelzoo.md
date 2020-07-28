@@ -35,7 +35,7 @@ Please see the reference [1] for algorithmic details of the detector.
 
 |Model Arch       |Backbone Model|Resolution |Giga MACS |AP [0.5:0.95]%|Model Config File                |Download |
 |----------       |--------------|-----------|----------|--------------|---------------------------------|---------|
-|SSDLite+FPN      |RegNetX800MF  |512x512    |          |              |ssd-lite_regnet_fpn.py           |         |
+|SSDLite+FPN      |RegNetX800MF  |512x512    |**6.03**  |**29.9**      |ssd-lite_regnet_fpn.py           |[link](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/pytorch/vision/object_detection/xmmdet/coco/ssd-lite_regnet_fpn_bgr) |
 |SSDLite+FPN      |RegNetX1.6GF  |768x768    |          |              |ssd-lite_regnet_fpn.py           |         |
 |.
 |SSD+FPN          |ResNet50      |512x512    |**30.77** |**31.2**      |ssd_resnet_fpn.py                |[link](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/pytorch/vision/object_detection/xmmdet/coco/ssd_resnet_fpn) |

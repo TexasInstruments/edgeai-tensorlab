@@ -115,7 +115,7 @@ data = dict(
 
 # settings for qat or calibration - uncomment after doing floating point training
 # also change dataset_repeats in the dataset config to 1 for fast learning
-quantize = True #False #'training' #'calibration'
+quantize = False #'training' #'calibration'
 initial_learning_rate = 4e-2
 if quantize:
   load_from = './work_dirs/ssd_resnet_fpn/latest.pth'
