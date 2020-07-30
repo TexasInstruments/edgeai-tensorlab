@@ -122,7 +122,7 @@ test_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=4, #8,
+    samples_per_gpu=8,
     workers_per_gpu=0,
     train=dict(dataset=dict(pipeline=train_pipeline)),
     val=dict(pipeline=test_pipeline),
