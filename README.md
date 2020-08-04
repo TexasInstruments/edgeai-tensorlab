@@ -8,7 +8,7 @@ Kindly take time to read through the documentation of the original [mmdetection]
 
 ## License
 
-Please see [LICENSE](./LICENSE) and [LICENSE.SPDX](./LICENSE.SPDX)
+Please see [LICENSE](./LICENSE) file.
 
 
 ## Installation
