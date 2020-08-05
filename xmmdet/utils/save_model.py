@@ -7,7 +7,10 @@ from google.protobuf import text_format
 __all__ = ['save_model_proto']
 
 
-def save_model_proto(cfg, model, input_size, output_dir):
+def save_model_proto(cfg, model, input, output_filename):
+    is_cuda = next(model.parameters()).is_cuda
+    input_list = input if isinstance(input, torch.Tensor) else _create_rand_inputs(input, is_cuda)
+    input_size = input.size() if isinstance(input, torch.Tensor) else input
     model = model.module if is_mmdet_quant_module(model) else model
     is_ssd = hasattr(cfg.model, 'bbox_head') and ('SSD' in cfg.model.bbox_head.type)
     is_fcos = hasattr(cfg.model, 'bbox_head') and ('FCOS' in cfg.model.bbox_head.type)
@@ -21,8 +24,8 @@ def save_model_proto(cfg, model, input_size, output_dir):
         for reg_idx, reg in enumerate(model.bbox_head.reg_convs):
             output_names.append(f'reg_convs_{reg_idx}')
         #
-        _save_mmdet_onnx(cfg, model, input_size, output_dir, input_names, output_names)
-        _save_mmdet_proto_ssd(cfg, model, input_size, output_dir, input_names, output_names)
+        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names)
+        _save_mmdet_proto_ssd(cfg, model, input_size, output_filename, input_names, output_names)
     elif is_retinanet:
         input_names = ['input']
         output_names = []
@@ -32,8 +35,8 @@ def save_model_proto(cfg, model, input_size, output_dir):
         for i in range(model.neck.num_outs):
             output_names.append(f'retina_reg_{i}')
         #
-        _save_mmdet_onnx(cfg, model, input_size, output_dir, input_names, output_names)
-        _save_mmdet_proto_retinanet(cfg, model, input_size, output_dir, input_names, output_names)
+        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names)
+        _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_names, output_names)
     elif is_fcos:
         input_names = ['input']
         output_names = []
@@ -46,9 +49,9 @@ def save_model_proto(cfg, model, input_size, output_dir):
         for i in range(model.neck.num_outs):
             output_names.append(f'centerness_convs_{i}')
         #
-        _save_mmdet_onnx(cfg, model, input_size, output_dir, input_names, output_names)
+        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names)
     else:
-        _save_mmdet_onnx(cfg, model, input_size, output_dir)
+        _save_mmdet_onnx(cfg, model, input_list, output_filename)
     #
 
 
@@ -59,23 +62,22 @@ def _create_rand_inputs(input_size, is_cuda=False):
     return x
 
 
-def _save_mmdet_onnx(cfg, model, input_size, output_dir, input_names=None, output_names=None, name='model.onnx'):
+def _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names=None, output_names=None):
     #https://github.com/open-mmlab/mmdetection/pull/1082
     assert hasattr(model, 'forward_dummy'), 'wrting onnx is not supported by this model'
     model.eval()
-    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(os.path.dirname(output_filename), exist_ok=True)
     forward_backup = model.forward #backup forward
     model.forward = model.forward_dummy #set dummy forward
-    is_cuda = next(model.parameters()).is_cuda
-    input_list = _create_rand_inputs(input_size, is_cuda)
     opset_version = 9
-    torch.onnx.export(model, input_list, os.path.join(output_dir, name), input_names=input_names,
+    torch.onnx.export(model, input_list, output_filename, input_names=input_names,
                       output_names=output_names, export_params=True, verbose=False, opset_version=opset_version)
     model.forward = forward_backup #restore forward
 
 
 ###########################################################
-def _save_mmdet_proto_ssd(cfg, model, input_size, output_dir, input_names=None, output_names=None, name='model.prototxt'):
+def _save_mmdet_proto_ssd(cfg, model, input_size, output_filename, input_names=None, output_names=None):
+    output_filename = os.path.splitext(output_filename)[0] + '.prototxt'
     num_output_names = len(output_names)//2
     cls_output_names = output_names[:num_output_names]
     reg_output_names = output_names[num_output_names:]
@@ -105,13 +107,14 @@ def _save_mmdet_proto_ssd(cfg, model, input_size, output_dir, input_names=None, 
 
     arch = mmdet_meta_arch_pb2.TIDLMetaArch(name='ssd',  caffe_ssd=[ssd])
 
-    with open(os.path.join(output_dir, name), 'wt') as pfile:
+    with open(output_filename, 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)
         pfile.write(txt_message)
 
 
 ###########################################################
-def _save_mmdet_proto_retinanet(cfg, model, input_size, output_dir, input_names=None, output_names=None, name='model.prototxt'):
+def _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_names=None, output_names=None, name='model.prototxt'):
+    output_filename = os.path.splitext(output_filename)[0] + '.prototxt'
     num_output_names = len(output_names)//2
     cls_output_names = output_names[:num_output_names]
     reg_output_names = output_names[num_output_names:]
@@ -139,6 +142,6 @@ def _save_mmdet_proto_retinanet(cfg, model, input_size, output_dir, input_names=
 
     arch = mmdet_meta_arch_pb2.TIDLMetaArch(name='retinanet',  tidl_retinanet=[retinanet])
 
-    with open(os.path.join(output_dir, name), 'wt') as pfile:
+    with open(output_filename, 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)
         pfile.write(txt_message)

@@ -30,32 +30,31 @@ We shall add support for additional low complexity models as mmdetection adds su
 - Test on COCO 2017 Validation Set
 
 
-###### Single Shot Mult-Box Detector (SSD) 
+###### Single Shot Mult-Box Detector (SSD) trained on COCO dataset
 Please see the reference [1] for algorithmic details of the detector.
 
-|Model Arch       |Backbone Model|Resolution |Giga MACS |AP [0.5:0.95]%|Model Config File                |Download |
-|----------       |--------------|-----------|----------|--------------|---------------------------------|---------|
-|SSDLite+FPN      |RegNetX800MF  |512x512    |**6.03**  |**29.9**      |ssd-lite_regnet_fpn.py           |[link](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/pytorch/vision/object_detection/xmmdet/coco/ssd-lite_regnet_fpn_bgr) |
-|SSDLite+FPN      |RegNetX1.6GF  |768x768    |          |              |ssd-lite_regnet_fpn.py           |         |
+|Model Arch       |Backbone Model|Resolution |Complexity (Giga MACS) |AP [0.5:0.95]%|Model Config File                |Download |
+|----------       |--------------|-----------|-----------------------|--------------|---------------------------------|---------|
+|SSDLite+FPN      |RegNetX800MF  |512x512    |**6.03**               |**29.9**      |ssd-lite_regnet_fpn.py           |[location](pytorch/vision/od/xmmdet/coco/ssd) |
+|SSDLite+FPN      |RegNetX1.6GF  |768x768    |                       |              |ssd-lite_regnet_fpn.py           |         |
 |.
-|SSD+FPN          |ResNet50      |512x512    |**30.77** |**31.2**      |ssd_resnet_fpn.py                |[link](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/pytorch/vision/object_detection/xmmdet/coco/ssd_resnet_fpn) |
+|SSD+FPN          |ResNet50      |512x512    |**30.77**              |**31.2**      |ssd_resnet_fpn.py                |         |
 |.
-|SSD*             |VGG16         |512x512    |**98.81** |**29.34**     |                                 |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/ssd) |
+|SSD*             |VGG16         |512x512    |**98.81**              |**29.34**     |                                 |[external](https://github.com/open-mmlab/mmdetection/tree/master/configs/ssd) |
 
 
-###### RetinaNet Detector
+###### RetinaNet Detector trained on COCO dataset
 Please see the reference [2] for algorithmic details of the detector.
 
-|Model Arch       |Backbone Model|Resolution |Giga MACS |AP [0.5:0.95]%|Model Config File                |Download |
-|----------       |--------------|-----------|----------|--------------|---------------------------------|---------|
-|RetinaNetLite+FPN|RegNetX800MF  |512x512    |**6.04**  |              |retinanet-lite_regnet_fpn_bgr.py |         |
-|RetinaNetLite+FPN|RegNetX1.6GF  |768x768    |          |              |retinanet-lite_regnet_fpn.py     |         |
+|Model Arch       |Backbone Model|Resolution |Complexity (Giga MACS) |AP [0.5:0.95]%|Model Config File                |Download |
+|----------       |--------------|-----------|-----------------------|--------------|---------------------------------|---------|
+|RetinaNetLite+FPN|RegNetX800MF  |512x512    |**11.08**              |**31.6**      |retinanet-lite_regnet_fpn_bgr.py |[location](pytorch/vision/od/xmmdet/coco/retinanet) |
+|RetinaNetLite+FPN|RegNetX1.6GF  |768x768    |                       |              |retinanet-lite_regnet_fpn.py     |         |
 |.
-|RetinaNet+FPN*   |ResNet50      |512x512    |**68.88** |**29.7**      |                                 |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
-|RetinaNet+FPN*   |ResNet50      |768x768    |**137.75**|**34.0**      |                                 |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
-|RetinaNet+FPN*   |ResNet50      |(1536,768) |**275.5** |**37.0**      |                                 |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
+|RetinaNet+FPN*   |ResNet50      |512x512    |**68.88**              |**29.0**      |                                 |[location](pytorch/vision/od/mmdet/coco/retinanet), [external](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
+|RetinaNet+FPN*   |ResNet50      |768x768    |**137.75**             |**34.0**      |                                 |[external](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
+|RetinaNet+FPN*   |ResNet50      |(1536,768) |**275.5**              |**37.0**      |                                 |[external](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
 <br>
-
 
 - A resolution range in the tables is indicated with comma (1536,768) or dash (1536-768) - it means that images are resized to fit within this maximum and minimum size - and the aspect ratio of the original image is preserved (keep_ratio=True in config files). Due to this, each resized image may have a different size depending on the aspect ratio of the original image.
 

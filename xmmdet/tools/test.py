@@ -141,15 +141,6 @@ def main(args=None):
     else:
         model.CLASSES = dataset.CLASSES
 
-    if hasattr(cfg, 'save_model_proto') and cfg.save_model_proto:
-        if args.out:
-            input_size = (1, 3, *cfg.input_size) if isinstance(cfg.input_size, (list, tuple)) \
-                else (1, 3, cfg.input_size, cfg.input_size)
-            onnx_dir = os.path.dirname(args.out)
-            save_model_proto(cfg, model, input_size, onnx_dir)
-        else:
-            assert False, '--out must be provided to for onnx/proto write out'
-
     if not distributed:
         model = MMDataParallel(model, device_ids=[0])
         outputs = single_gpu_test(model, data_loader, args.show, args.show_dir,

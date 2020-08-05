@@ -3,7 +3,6 @@
 import sys
 import os
 import datetime
-from torch.distributed import launch as distributed_launch
 
 ########################################################################
 # config
@@ -30,34 +29,21 @@ config='./configs/retinanet/retinanet-lite_regnet_bifpn_bgr.py'
 config='./configs/ssd/ssd-lite_regnet_fpn_bgr.py'
 
 ########################################################################
-# other settings
-distributed = 1
-gpus = 4
-dataset_style = 'coco' #'voc' #'coco'
-master_port = 29501
+
 
 ########################################################################
-metric = ('bbox' if dataset_style=='coco' else 'mAP')
 
 base_path = os.path.splitext(os.path.basename(config))[0]
 work_dir = os.path.join('./work_dirs', base_path)
 checkpoint = f'{work_dir}/latest.pth'
-outfile = os.path.join(work_dir,'result.pkl')
+outfile = os.path.join(work_dir,'model.onnx')
 date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+shape = [512, 512]
 
-print(f'Testing with: {config} @ {date}')
+print(f'Exporting ONNX with: {config} @ {date}')
 
-if distributed:
-    sys.argv = [sys.argv[0], f'--nproc_per_node={gpus}', f'--master_port={master_port}',
-                './xmmdet/tools/test.py', f'--eval={metric}',
-                f'--out={outfile}', '--launcher=pytorch',
-                config, checkpoint]
-    distributed_launch.main()
-else:
-    from xmmdet.tools import test as test_mmdet
-    sys.argv = [sys.argv[0], f'--eval={metric}',
-                f'--out={outfile}',
-                f'{config}', f'{checkpoint}']
-    args = test_mmdet.parse_args()
-    test_mmdet.main(args)
-#
+from xmmdet.tools import pytorch2onnx
+sys.argv = [sys.argv[0], f'{config}', f'{checkpoint}', f'--out={outfile}', f'--shape', f'{shape[0]}', f'{shape[1]}']
+args = pytorch2onnx.parse_args()
+pytorch2onnx.main(args)
+
