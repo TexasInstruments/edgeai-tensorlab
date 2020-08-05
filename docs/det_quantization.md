@@ -69,9 +69,9 @@ Please see the reference [3] for algorithmic details of the detector.
 |RetinaNetLite+FPN|RegNetX800MF  |512x512    |**11.08** |**31.6**            |**30.3**                |         |
 |RetinaNetLite+FPN|RegNetX1.6GF  |768x768    |          |                    |                        |         |
 |.
-|RetinaNet+FPN*   |ResNet50      |512x512    |**68.88** |**29.7**            |                        |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
-|RetinaNet+FPN*   |ResNet50      |768x768    |**137.75**|**34.0**            |                        |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
-|RetinaNet+FPN*   |ResNet50      |(1536,768) |**275.5** |**37.0**            |                        |[link](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
+|RetinaNet+FPN*   |ResNet50      |512x512    |**68.88** |**29.0*             |                        |[external](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
+|RetinaNet+FPN*   |ResNet50      |768x768    |**137.75**|**34.0**            |                        |[external](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
+|RetinaNet+FPN*   |ResNet50      |(1536,768) |**275.5** |**37.0**            |                        |[external](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
 <br>
 
 - Float AP [0.5:0.95]% : COCO Mean Average Precision metric in percentage for IoU range [0.5:0.95], with the floating point model.
