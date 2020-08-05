@@ -35,7 +35,7 @@ Please see the reference [1] for algorithmic details of the detector.
 
 |Model Arch       |Backbone Model|Resolution |Complexity (Giga MACS) |AP [0.5:0.95]%|Model Config File                |Download |
 |----------       |--------------|-----------|-----------------------|--------------|---------------------------------|---------|
-|SSDLite+FPN      |RegNetX800MF  |512x512    |**6.03**               |**29.9**      |ssd-lite_regnet_fpn.py           |[location](pytorch/vision/od/xmmdet/coco/ssd) |
+|SSDLite+FPN      |RegNetX800MF  |512x512    |**6.03**               |**29.9**      |ssd-lite_regnet_fpn.py           |         |
 |SSDLite+FPN      |RegNetX1.6GF  |768x768    |                       |              |ssd-lite_regnet_fpn.py           |         |
 |.
 |SSD+FPN          |ResNet50      |512x512    |**30.77**              |**31.2**      |ssd_resnet_fpn.py                |         |
@@ -48,10 +48,10 @@ Please see the reference [2] for algorithmic details of the detector.
 
 |Model Arch       |Backbone Model|Resolution |Complexity (Giga MACS) |AP [0.5:0.95]%|Model Config File                |Download |
 |----------       |--------------|-----------|-----------------------|--------------|---------------------------------|---------|
-|RetinaNetLite+FPN|RegNetX800MF  |512x512    |**11.08**              |**31.6**      |retinanet-lite_regnet_fpn_bgr.py |[location](pytorch/vision/od/xmmdet/coco/retinanet) |
+|RetinaNetLite+FPN|RegNetX800MF  |512x512    |**11.08**              |**31.6**      |retinanet-lite_regnet_fpn_bgr.py |         |
 |RetinaNetLite+FPN|RegNetX1.6GF  |768x768    |                       |              |retinanet-lite_regnet_fpn.py     |         |
 |.
-|RetinaNet+FPN*   |ResNet50      |512x512    |**68.88**              |**29.0**      |                                 |[location](pytorch/vision/od/mmdet/coco/retinanet), [external](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
+|RetinaNet+FPN*   |ResNet50      |512x512    |**68.88**              |**29.0**      |                                 |[external](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
 |RetinaNet+FPN*   |ResNet50      |768x768    |**137.75**             |**34.0**      |                                 |[external](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
 |RetinaNet+FPN*   |ResNet50      |(1536,768) |**275.5**              |**37.0**      |                                 |[external](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
 <br>

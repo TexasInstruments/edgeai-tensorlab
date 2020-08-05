@@ -1,2 +1,0 @@
-mmcv-full==latest+torch1.5.0+cu102 -f https://openmmlab.oss-accelerate.aliyuncs.com/mmcv/dist/index.html
-git+https://github.com/open-mmlab/mmdetection.git

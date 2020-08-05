@@ -4,18 +4,24 @@ Additional scripts are provided on top of mmdetection to ease the training and t
 
 
 #### Training
-- Select the appropriate config file in [train_detection_main.py](../scripts/train_detection_main.py). Start the training by running [run_detection_train.sh](../run_detection_train.sh) 
+- Select the appropriate config file in [detection_configs.py](../scripts/detection_configs.py)
+
+- Start the training by running [run_detection_train.sh](../run_detection_train.sh) 
 
 - After doing the floating point training, it is possible to run Qunatization Aware Training (QAT) starting from the trained checkpoint. For this, set quantize = True in the config file (see the line where it is set to False and change it to True) and run the training again. This will run a small number epochs of fine tuning with QAT at a lower learning rate.
 
 
 ## Evaluation/Testing
-- Select the appropriate config file in [test_detection_main.py](../scripts/test_detection_main.py). Start evaluation by running [run_detection_test.sh](../run_detection_test.sh).
+- Make sure that the appropriate config file is selected in [detection_configs.py](../scripts/detection_configs.py)
+
+- Start evaluation by running [run_detection_test.sh](../run_detection_test.sh).
 
 - Note: If you did QAT, then the flag quantize in teh config file must be set to True even at this stage. 
 
 
 ## ONNX & Prototxt Export
-- Select the appropriate config file in [export_pytorch2onnx.py](../scripts/export_pytorch2onnx.py). Start export by running [run_detection_export.sh](../run_detection_export.sh).
+- Make sure that the appropriate config file is selected in [detection_configs.py](../scripts/detection_configs.py)
+
+- Start export by running [run_detection_export.sh](../run_detection_export.sh).
 
 - Note: If you did QAT, then the flag quantize in the config file must be set to True even at this stage. 

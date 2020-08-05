@@ -15,14 +15,15 @@ Please see [LICENSE](./LICENSE) file.
 
 ## Installation
 
-This repository requires **mmdet** Python package from mmdetection to be installed. 
+This repository requires [**mmdetection**](https://github.com/open-mmlab/mmdetection) and [**mmcv**](https://github.com/open-mmlab/mmcv) to be installed. 
 
-Please refer to [installation instructions for mmdetection](https://github.com/open-mmlab/mmdetection/blob/master/docs/install.md) for installation instructions and also for dataset preparation. If you get any issues with the master branch of mmdetection, please try after checking out the latest release tag. 
+Please refer to [installation instructions for mmdetection](https://github.com/open-mmlab/mmdetection/blob/master/docs/install.md) for installation instructions. If you get any issues with the master branch of mmdetection, please try after checking out the latest release tag. After installation, a python package called "mmdet" will be listed if you do *pip list*
 
-Note: mmdetection also requreis **mmcv** and several other dependencies to be installed as described in the above URL.
+To install mmcv, browse to the github page of [mmcv](https://github.com/open-mmlab/mmcv), and see the section that says "**Install with pip**". Install the full version of mmcv using the instruction given there. Please check your CUDA version and PyTorch version and select the appropriate installation instructions.
 
-After installing **mmdet**, please clone and install [**PyTorch-Jacinto-AI-DevKit**](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/) using the link given in [jacinto-ai-devkit](https://github.com/TexasInstruments/jacinto-ai-devkit) as this repository uses several components from there - especially to define low complexity models and to do Quantization Aware Training (QAT) or Calibration.
+After installing **mmdetection** and **mmcv**, please clone and install [**PyTorch-Jacinto-AI-DevKit**](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/) using the link given in [jacinto-ai-devkit](https://github.com/TexasInstruments/jacinto-ai-devkit) as this repository uses several components from there - especially to define low complexity models and to do Quantization Aware Training (QAT) or Calibration.
 
+Please see our minimal installation script [setup.sh](./setup.sh) and modify for your system.
 
 ## Get Started
 
@@ -33,13 +34,13 @@ Please see [Usage](./docs/det_usage.md) for training and testing with this repos
 
 ## Benchmark and Model Zoo
 
-Several trained models with accuracy report is available at [Jacinto-AI-Detection Model Zoo](./docs/det_modelzoo.md) 
+Accuracy report of several trained models is available at the [Model Zoo](./docs/det_modelzoo.md) 
 
-Note: This Model Zoo is not publicly available yet - we shall make this available shortly.
 
 ## Quantization
 
-This tutorial explaines how to do [Quantization Aware Training](./docs/det_quantization.md) of detection models. We also provide sample QAT models.
+This tutorial explains how to do [Quantization Aware Training (QAT)](./docs/det_quantization.md) of detection models.
+
 
 ## ONNX & Prototxt Export
 - **Export of ONNX model (.onnx) and additional meta information (.prototxt)** is supported. The .prototxt contains meta information specified in **[TIDL](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/psdk_rtos_auto/docs/user_guide/sdk_components.html#ti-deep-learning-library-tidl)** for object detectors. 
@@ -47,6 +48,7 @@ This tutorial explaines how to do [Quantization Aware Training](./docs/det_quant
 - The export of meta information is now supported for **SSD** and **RetinaNet** detectors.
 
 - For more information please see [Usage](./docs/det_usage.md)
+
 
 ## Acknowledgement
 
