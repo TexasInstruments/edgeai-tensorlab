@@ -19,7 +19,7 @@ quantize = False #'training' #'calibration'
 initial_learning_rate = 2e-2
 if quantize:
   load_from = './work_dirs/retinanet_resnet_fpn_bgr/latest.pth'
-  optimizer = dict(type='SGD', lr=initial_learning_rate/100.0, momentum=0.9, weight_decay=1e-4)
+  optimizer = dict(type='SGD', lr=initial_learning_rate/10.0, momentum=0.9, weight_decay=1e-4)
   total_epochs = 1 if quantize == 'calibration' else 6
 else:
   optimizer = dict(type='SGD', lr=initial_learning_rate, momentum=0.9, weight_decay=1e-4)
