@@ -8,7 +8,7 @@ MMDetection has a huge Model Zoo, supporting a lot of models. Many of them are h
 |                             | ResNet   | RegNetX  | MobileNet|
 |-----------------------------|:--------:|:--------:|:--------:|
 | SSD                         | ✓        | ✓        | ☐        |
-| RetinaNet                   | ☐        | ☐        | ☐        |
+| RetinaNet                   | ☐        | ✓        | ☐        |
 | CenterNet(Objects As Points)| ✗        | ✗        | ✗        |
 | EfficientDet                | ✗        | ✗        | ✗        |
 | YOLOv3                      | ✗        | ✗        | ✗        |

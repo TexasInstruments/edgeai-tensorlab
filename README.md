@@ -34,7 +34,7 @@ Please see [Usage](./docs/det_usage.md) for training and testing with this repos
 
 ## Benchmark and Model Zoo
 
-Accuracy report of several trained models is available at the [Model Zoo](./docs/det_modelzoo.md) 
+Accuracy report of several trained models is available at the [Detection Model Zoo](./docs/det_modelzoo.md) 
 
 
 ## Quantization
