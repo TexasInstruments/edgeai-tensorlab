@@ -27,14 +27,17 @@ else:
 
 ######################################################
 backbone_type = 'RegNet'
-backbone_arch = 'regnetx_800mf' #'regnetx_800mf' #'regnetx_1.6gf'
+backbone_arch = 'regnetx_800mf' #'regnetx_800mf' #'regnetx_1.6gf' #'regnetx_3.2gf'
 to_rgb = False                  #pycls regnet backbones are trained with bgr
 
 regnet_settings = {
     'regnetx_800mf':{'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
-                     'fpn_out_channels':256, 'pretrained':'open-mmlab://regnetx_800mf'},
+                     'fpn_out_channels':128, 'pretrained':'open-mmlab://regnetx_800mf'},
     'regnetx_1.6gf':{'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
-                     'fpn_out_channels':264, 'pretrained':'open-mmlab://regnetx_1.6gf'}}
+                     'fpn_out_channels':192, 'pretrained':'open-mmlab://regnetx_1.6gf'},
+    'regnetx_3.2gf':{'bacbone_out_channels':[96, 192, 432, 1008], 'group_size_dw':48,
+                     'fpn_out_channels':240, 'pretrained':'open-mmlab://regnetx_3.2gf'}
+}
 
 regnet_cfg = regnet_settings[backbone_arch]
 pretrained=regnet_cfg['pretrained']
