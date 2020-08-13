@@ -27,16 +27,24 @@ else:
 
 ######################################################
 backbone_type = 'RegNet'
-backbone_arch = 'regnetx_800mf' #'regnetx_800mf' #'regnetx_1.6gf' #'regnetx_3.2gf'
-to_rgb = False                  #pycls regnet backbones are trained with bgr
+backbone_arch = 'regnetx_800mf'                  # 'regnetx_800mf' #'regnetx_1.6gf' #'regnetx_3.2gf'
+to_rgb = False                                   # pycls regnet backbones are trained with bgr
+
+decoder_fpn_type = 'FPNLite'                    # 'FPNLite' #'BiFPNLite' #'FPN'
+decoder_conv_type = 'ConvDWSep'                 # 'ConvDWSep' #'ConvDWTripletRes' #'ConvDWTripletAlwaysRes'
+decoder_width_fact = 2 #4
+decoder_depth_fact = 4
 
 regnet_settings = {
     'regnetx_800mf':{'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
-                     'fpn_out_channels':128, 'pretrained':'open-mmlab://regnetx_800mf'},
+                     'fpn_out_channels':64*decoder_width_fact, 'fpn_num_blocks':decoder_depth_fact,
+                     'pretrained':'open-mmlab://regnetx_800mf'},
     'regnetx_1.6gf':{'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
-                     'fpn_out_channels':192, 'pretrained':'open-mmlab://regnetx_1.6gf'},
+                     'fpn_out_channels':96*decoder_width_fact, 'fpn_num_blocks':decoder_depth_fact,
+                     'pretrained':'open-mmlab://regnetx_1.6gf'},
     'regnetx_3.2gf':{'bacbone_out_channels':[96, 192, 432, 1008], 'group_size_dw':48,
-                     'fpn_out_channels':240, 'pretrained':'open-mmlab://regnetx_3.2gf'}
+                     'fpn_out_channels':120*decoder_width_fact, 'fpn_num_blocks':decoder_depth_fact,
+                     'pretrained':'open-mmlab://regnetx_3.2gf'}
 }
 
 regnet_cfg = regnet_settings[backbone_arch]
@@ -50,10 +58,13 @@ fpn_start_level = 1
 fpn_num_outs = 6
 fpn_upsample_mode = 'bilinear' #'nearest' #'bilinear'
 fpn_upsample_cfg = dict(scale_factor=2, mode=fpn_upsample_mode)
+fpn_num_blocks = regnet_cfg['fpn_num_blocks']
+fpn_bifpn_cfg = dict(num_blocks=fpn_num_blocks) if decoder_fpn_type == 'BiFPNLite' else dict()
 
 basesize_ratio_range = (0.1, 0.9)
+input_size_divisor = 128 if decoder_fpn_type == 'BiFPNLite' else 32
 
-conv_cfg = dict(type='ConvDWSep', group_size_dw=regnet_cfg['group_size_dw'])
+conv_cfg = dict(type=decoder_conv_type, group_size_dw=regnet_cfg['group_size_dw']) #None
 norm_cfg = dict(type='BN')
 
 model = dict(
@@ -66,7 +77,7 @@ model = dict(
         norm_eval=False,
         style='pytorch'),
     neck=dict(
-        type='FPNLite',
+        type=decoder_fpn_type,
         in_channels=fpn_in_channels,
         out_channels=fpn_out_channels,
         start_level=fpn_start_level,
@@ -77,7 +88,7 @@ model = dict(
         norm_cfg=norm_cfg),
     bbox_head=dict(
         type='SSDLiteHead',
-        in_channels=[fpn_out_channels for _ in range(6)],
+        in_channels=[fpn_out_channels for _ in range(fpn_num_outs)],
         num_classes=num_classes,
         conv_cfg=conv_cfg,
         anchor_generator=dict(
@@ -114,6 +125,7 @@ train_pipeline = [
     dict(type='Resize', img_scale=input_size, keep_ratio=False),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='RandomFlip', flip_ratio=0.5),
+    dict(type='Pad', size_divisor=input_size_divisor),
     dict(type='DefaultFormatBundle'),
     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
 ]
@@ -128,6 +140,7 @@ test_pipeline = [
             dict(type='Resize', keep_ratio=False),
             dict(type='RandomFlip'),
             dict(type='Normalize', **img_norm_cfg),
+            dict(type='Pad', size_divisor=input_size_divisor),
             dict(type='ImageToTensor', keys=['img']),
             dict(type='Collect', keys=['img']),
         ])

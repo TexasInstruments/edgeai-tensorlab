@@ -26,22 +26,26 @@ else:
 #
 
 ######################################################
+backbone_type = 'RegNet'
+backbone_arch = 'regnetx_800mf'                  # 'regnetx_800mf' #'regnetx_1.6gf' #'regnetx_3.2gf'
+to_rgb = False                                   # pycls regnet backbones are trained with bgr
+
 decoder_fpn_type = 'FPNLite'                    # 'FPNLite' #'BiFPNLite' #'FPN'
 decoder_conv_type = 'ConvDWSep'                 # 'ConvDWSep' #'ConvDWTripletRes' #'ConvDWTripletAlwaysRes'
-decoder_width_fact = (2 if decoder_fpn_type == 'BiFPNLite' else 4)
+decoder_width_fact = 2 #4
 decoder_depth_fact = 4
-
-backbone_type = 'RegNet'
-backbone_arch = 'regnetx_800mf'                  # 'regnetx_800mf' #'regnetx_1.6gf'
-to_rgb = False                                   # pycls regnet backbones are trained with bgr
 
 regnet_settings = {
     'regnetx_800mf':{'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
-                      'fpn_out_channels':min(64*decoder_width_fact,256), 'head_stacked_convs':decoder_depth_fact,
+                      'fpn_out_channels':64*decoder_width_fact, 'head_stacked_convs':decoder_depth_fact,
                       'fpn_num_blocks':decoder_depth_fact, 'pretrained':'open-mmlab://regnetx_800mf'},
     'regnetx_1.6gf':{'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
-                     'fpn_out_channels':min(96*decoder_width_fact,256), 'head_stacked_convs':decoder_depth_fact,
-                     'fpn_num_blocks':decoder_depth_fact, 'pretrained':'open-mmlab://regnetx_1.6gf'}}
+                     'fpn_out_channels':96*decoder_width_fact, 'head_stacked_convs':decoder_depth_fact,
+                     'fpn_num_blocks':decoder_depth_fact, 'pretrained':'open-mmlab://regnetx_1.6gf'},
+    'regnetx_3.2gf':{'bacbone_out_channels':[96, 192, 432, 1008], 'group_size_dw':48,
+                     'fpn_out_channels':120*decoder_width_fact,  'head_stacked_convs':decoder_depth_fact,
+                     'fpn_num_blocks':decoder_depth_fact, 'pretrained': 'open-mmlab://regnetx_3.2gf'}
+}
 
 regnet_cfg = regnet_settings[backbone_arch]
 pretrained=regnet_cfg['pretrained']
