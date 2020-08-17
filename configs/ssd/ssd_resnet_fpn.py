@@ -17,6 +17,7 @@ _base_ = [
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
 initial_learning_rate = 2e-2
+samples_per_gpu = 8
 if quantize:
   load_from = './work_dirs/ssd_resnet_fpn/latest.pth'
   optimizer = dict(type='SGD', lr=initial_learning_rate/10.0, momentum=0.9, weight_decay=1e-4)
@@ -122,7 +123,7 @@ test_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=8,
+    samples_per_gpu=samples_per_gpu,
     workers_per_gpu=0,
     train=dict(dataset=dict(pipeline=train_pipeline)),
     val=dict(pipeline=test_pipeline),

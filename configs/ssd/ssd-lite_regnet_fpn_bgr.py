@@ -1,5 +1,5 @@
 ######################################################
-input_size = (512,512)                          #(512,512) #(768,768) #(1024,1024)
+input_size = (512,512)                          #(512,512) #(640,640) #(768,768) #(1024,1024)
 dataset_type = 'CocoDataset'
 num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8}
 num_classes = num_classes_dict[dataset_type]
@@ -17,6 +17,7 @@ _base_ = [
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
 initial_learning_rate = 2e-2
+samples_per_gpu = 8
 if quantize:
   load_from = './work_dirs/ssd-lite_regnet_fpn_bgr/latest.pth'
   optimizer = dict(type='SGD', lr=initial_learning_rate/10.0, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
@@ -147,7 +148,7 @@ test_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=8,
+    samples_per_gpu=samples_per_gpu,
     workers_per_gpu=0,
     train=dict(dataset=dict(pipeline=train_pipeline)),
     val=dict(pipeline=test_pipeline),
