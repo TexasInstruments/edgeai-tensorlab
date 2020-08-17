@@ -1,5 +1,5 @@
 ######################################################
-input_size = (512,512)                          #(512,512) #(768,768) #(1024,1024)
+input_size = (512,512)                          #(512,512) #(640,640) #(768,768) #(1024,1024)
 dataset_type = 'CocoDataset'
 num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8}
 num_classes = num_classes_dict[dataset_type]
@@ -28,7 +28,7 @@ else:
 
 ######################################################
 backbone_type = 'RegNet'
-backbone_arch = 'regnetx_800mf'                  # 'regnetx_800mf' #'regnetx_1.6gf'
+backbone_arch = 'regnetx_800mf'                  # 'regnetx_800mf' #'regnetx_1.6gf' #'regnetx_3.2gf'
 to_rgb = False                                   # pycls regnet backbones are trained with bgr
 
 decoder_fpn_type = 'BiFPNLite'                  # 'FPNLite' #'BiFPNLite' #'FPN'
