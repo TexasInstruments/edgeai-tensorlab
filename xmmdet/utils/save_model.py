@@ -15,6 +15,7 @@ def save_model_proto(cfg, model, input, output_filename):
     is_ssd = hasattr(cfg.model, 'bbox_head') and ('SSD' in cfg.model.bbox_head.type)
     is_fcos = hasattr(cfg.model, 'bbox_head') and ('FCOS' in cfg.model.bbox_head.type)
     is_retinanet = hasattr(cfg.model, 'bbox_head') and ('Retina' in cfg.model.bbox_head.type)
+    is_yolov3 = hasattr(cfg.model, 'bbox_head') and ('YOLOV3Head' in cfg.model.bbox_head.type)
     if is_ssd:
         input_names = ['input']
         output_names = []
@@ -37,6 +38,14 @@ def save_model_proto(cfg, model, input, output_filename):
         #
         _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names)
         _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_names, output_names)
+    elif is_yolov3:
+        input_names = ['input']
+        output_names = []
+        for i in range(model.neck.num_scales):
+            output_names.append(f'convs_pred_{i}')
+        #
+        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names)
+        _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_names, output_names)
     elif is_fcos:
         input_names = ['input']
         output_names = []
@@ -113,7 +122,7 @@ def _save_mmdet_proto_ssd(cfg, model, input_size, output_filename, input_names=N
 
 
 ###########################################################
-def _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_names=None, output_names=None, name='model.prototxt'):
+def _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_names=None, output_names=None):
     output_filename = os.path.splitext(output_filename)[0] + '.prototxt'
     num_output_names = len(output_names)//2
     cls_output_names = output_names[:num_output_names]
@@ -141,6 +150,43 @@ def _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_n
                                               detection_output_param=detection_output_param)
 
     arch = mmdet_meta_arch_pb2.TIDLMetaArch(name='retinanet',  tidl_retinanet=[retinanet])
+
+    with open(output_filename, 'wt') as pfile:
+        txt_message = text_format.MessageToString(arch)
+        pfile.write(txt_message)
+
+
+###########################################################
+def _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_names=None, output_names=None):
+    output_filename = os.path.splitext(output_filename)[0] + '.prototxt'
+    #num_output_names = len(output_names)
+    bbox_head = model.bbox_head
+    anchor_generator = bbox_head.anchor_generator
+    base_sizes = anchor_generator.base_sizes
+
+    background_label_id = -1
+    num_classes = bbox_head.num_classes
+    #score_converter = mmdet_meta_arch_pb2.SIGMOID
+
+    yolo_params = []
+    for base_size_id, base_size in enumerate(reversed(base_sizes)):
+        yolo_param = mmdet_meta_arch_pb2.TIDLYoloParams(input=output_names[base_size_id],
+                                                        anchor_width=[b[0] for b in base_size],
+                                                        anchor_height=[b[1] for b in base_size])
+        yolo_params.append(yolo_param)
+
+    nms_param = mmdet_meta_arch_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=100)
+    detection_output_param = mmdet_meta_arch_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
+                                            background_label_id=background_label_id, nms_param=nms_param,
+                                            code_type=mmdet_meta_arch_pb2.CENTER_SIZE, keep_top_k=100,
+                                            confidence_threshold=0.5)
+
+    yolov3 = mmdet_meta_arch_pb2.TidlYoloOd(name='yolo_v3',
+                                            in_width=input_size[3], in_height=input_size[2],
+                                            yolo_param=yolo_params,
+                                            detection_output_param=detection_output_param)
+
+    arch = mmdet_meta_arch_pb2.TIDLMetaArch(name='yolo_v3',  tidl_yolo=[yolov3])
 
     with open(output_filename, 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)

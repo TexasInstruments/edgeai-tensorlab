@@ -1,5 +1,5 @@
 ######################################################
-input_size = (608,608)                          #(320,320) #(416,416) #(608,608)
+input_size = (416,416)                          #(320,320) #(416,416) #(608,608)
 dataset_type = 'CocoDataset'
 num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8}
 num_classes = num_classes_dict[dataset_type]
@@ -123,5 +123,4 @@ data = dict(
     train=dict(dataset=dict(pipeline=train_pipeline)),
     val=dict(pipeline=test_pipeline),
     test=dict(pipeline=test_pipeline))
-
 
