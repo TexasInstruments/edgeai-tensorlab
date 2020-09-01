@@ -65,6 +65,8 @@ def parse_args():
     parser.add_argument(
         '--out', type=str, required=True, help='output ONNX filename')
     parser.add_argument(
+        '--opset_version', type=int, default=9, help='ONNX Opset version')
+    parser.add_argument(
         '--shape',
         type=int,
         nargs='+',
@@ -128,7 +130,7 @@ def main(args=None):
     #print(f'saving model in {args.out}')
     #onnx.save(onnx_model, args.out)
 
-    save_model_proto(cfg, model, input_data, output_filename=args.out)
+    save_model_proto(cfg, model, input_data, output_filename=args.out, opset_version=args.opset_version)
 
 
 if __name__ == '__main__':

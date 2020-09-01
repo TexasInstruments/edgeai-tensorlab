@@ -7,7 +7,7 @@ from google.protobuf import text_format
 __all__ = ['save_model_proto']
 
 
-def save_model_proto(cfg, model, input, output_filename):
+def save_model_proto(cfg, model, input, output_filename, opset_version=9):
     is_cuda = next(model.parameters()).is_cuda
     input_list = input if isinstance(input, torch.Tensor) else _create_rand_inputs(input, is_cuda)
     input_size = input.size() if isinstance(input, torch.Tensor) else input
@@ -25,7 +25,7 @@ def save_model_proto(cfg, model, input, output_filename):
         for reg_idx, reg in enumerate(model.bbox_head.reg_convs):
             output_names.append(f'reg_convs_{reg_idx}')
         #
-        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names)
+        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names, opset_version=opset_version)
         _save_mmdet_proto_ssd(cfg, model, input_size, output_filename, input_names, output_names)
     elif is_retinanet:
         input_names = ['input']
@@ -36,7 +36,7 @@ def save_model_proto(cfg, model, input, output_filename):
         for i in range(model.neck.num_outs):
             output_names.append(f'retina_reg_{i}')
         #
-        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names)
+        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names, opset_version=opset_version)
         _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_names, output_names)
     elif is_yolov3:
         input_names = ['input']
@@ -44,7 +44,7 @@ def save_model_proto(cfg, model, input, output_filename):
         for i in range(model.neck.num_scales):
             output_names.append(f'convs_pred_{i}')
         #
-        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names)
+        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names, opset_version=opset_version)
         _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_names, output_names)
     elif is_fcos:
         input_names = ['input']
@@ -58,9 +58,9 @@ def save_model_proto(cfg, model, input, output_filename):
         for i in range(model.neck.num_outs):
             output_names.append(f'centerness_convs_{i}')
         #
-        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names)
+        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names, opset_version=opset_version)
     else:
-        _save_mmdet_onnx(cfg, model, input_list, output_filename)
+        _save_mmdet_onnx(cfg, model, input_list, output_filename, opset_version=opset_version)
     #
 
 
@@ -71,14 +71,13 @@ def _create_rand_inputs(input_size, is_cuda=False):
     return x
 
 
-def _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names=None, output_names=None):
+def _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names=None, output_names=None, opset_version=9):
     #https://github.com/open-mmlab/mmdetection/pull/1082
     assert hasattr(model, 'forward_dummy'), 'wrting onnx is not supported by this model'
     model.eval()
     os.makedirs(os.path.dirname(output_filename), exist_ok=True)
     forward_backup = model.forward #backup forward
     model.forward = model.forward_dummy #set dummy forward
-    opset_version = 9
     torch.onnx.export(model, input_list, output_filename, input_names=input_names,
                       output_names=output_names, export_params=True, verbose=False, opset_version=opset_version)
     model.forward = forward_backup #restore forward
