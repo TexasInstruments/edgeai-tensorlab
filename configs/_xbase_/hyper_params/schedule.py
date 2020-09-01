@@ -17,6 +17,6 @@ warmup_cfg = dict(warmup='linear', warmup_iters=1000, warmup_ratio=1e-3)
 lr_config = dict(policy='CosineAnnealing', min_lr_ratio=1e-4, **warmup_cfg)
 
 # runtime settings
-total_epochs = 60
+total_epochs = 120 #60 #30
 
 
