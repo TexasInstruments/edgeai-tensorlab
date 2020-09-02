@@ -14,7 +14,6 @@ from xmmdet.core import wrap_fp16_model
 from xmmdet.datasets import build_dataloader, build_dataset
 from xmmdet.models import build_detector
 from xmmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint
-from xmmdet.tools.fuse_conv_bn import fuse_module
 
 from pytorch_jacinto_ai import xnn
 
