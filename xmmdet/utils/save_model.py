@@ -168,7 +168,7 @@ def _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_name
     #score_converter = mmdet_meta_arch_pb2.SIGMOID
 
     yolo_params = []
-    for base_size_id, base_size in enumerate(reversed(base_sizes)):
+    for base_size_id, base_size in enumerate(base_sizes):
         yolo_param = mmdet_meta_arch_pb2.TIDLYoloParams(input=output_names[base_size_id],
                                                         anchor_width=[b[0] for b in base_size],
                                                         anchor_height=[b[1] for b in base_size])
