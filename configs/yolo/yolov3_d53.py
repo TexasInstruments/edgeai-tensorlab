@@ -68,10 +68,9 @@ model = dict(
         loss_wh=dict(type='MSELoss', loss_weight=2.0, reduction='sum')))
 
 # training and testing settings
-train_cfg = dict(
-    assigner=dict(
-        type='GridAssigner', pos_iou_thr=0.5, neg_iou_thr=0.5, min_pos_iou=0))
-test_cfg = dict(
+train_cfg = dict(_delete_=True,
+    assigner=dict(type='GridAssigner', pos_iou_thr=0.5, neg_iou_thr=0.5, min_pos_iou=0))
+test_cfg = dict(_delete_=True,
     nms_pre=1000,
     min_bbox_size=0,
     score_thr=0.05,
