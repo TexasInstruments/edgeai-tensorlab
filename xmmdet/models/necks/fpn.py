@@ -118,6 +118,7 @@ class FPNLite(nn.Module):
 
         self.lateral_convs = nn.ModuleList()
         self.fpn_convs = nn.ModuleList()
+        self.adds = nn.ModuleList()
 
         for i in range(self.start_level, self.backbone_end_level):
             l_conv = ConvModuleWrapper(
@@ -140,6 +141,7 @@ class FPNLite(nn.Module):
 
             self.lateral_convs.append(l_conv)
             self.fpn_convs.append(fpn_conv)
+            self.adds.append(xnn.layers.AddBlock())
 
         # add extra conv layers (e.g., RetinaNet)
         extra_levels = num_outs - self.backbone_end_level + self.start_level
@@ -185,15 +187,14 @@ class FPNLite(nn.Module):
         # build top-down path
         used_backbone_levels = len(laterals)
         for i in range(used_backbone_levels - 1, 0, -1):
+            add_block = self.adds[i - 1]
             # In some cases, fixing `scale factor` (e.g. 2) is preferred, but
             #  it cannot co-exist with `size` in `F.interpolate`.
             if 'scale_factor' in self.upsample_cfg:
-                laterals[i - 1] += interpolate_fn(laterals[i],
-                                                 **self.upsample_cfg)
+                laterals[i - 1] = add_block((laterals[i - 1], interpolate_fn(laterals[i],**self.upsample_cfg)))
             else:
                 prev_shape = laterals[i - 1].shape[2:]
-                laterals[i - 1] += interpolate_fn(
-                    laterals[i], size=prev_shape, **self.upsample_cfg)
+                laterals[i - 1] = add_block((laterals[i - 1], interpolate_fn(laterals[i], size=prev_shape, **self.upsample_cfg)))
 
         # build outputs
         # part 1: from original levels
@@ -370,9 +371,11 @@ class BiFPNLiteBlock(nn.Module):
         self.ups = nn.ModuleList()
         self.up_convs = nn.ModuleList()
         self.up_acts = nn.ModuleList()
+        self.up_adds = nn.ModuleList()
         self.downs = nn.ModuleList()
         self.down_convs = nn.ModuleList()
         self.down_acts = nn.ModuleList()
+        self.down_adds = nn.ModuleList()
         for i in range(self.num_outs-1):
             # up modules
             up = UpsampleType(**self.upsample_cfg)
@@ -384,6 +387,7 @@ class BiFPNLiteBlock(nn.Module):
             self.ups.append(up)
             self.up_convs.append(up_conv)
             self.up_acts.append(up_act)
+            self.up_adds.append(xnn.layers.AddBlock())
             # down modules
             down = DownsampleType(kernel_size=3, stride=2, padding=1)
             down_conv = ConvModuleWrapper(out_channels,
@@ -394,6 +398,7 @@ class BiFPNLiteBlock(nn.Module):
             self.downs.append(down)
             self.down_convs.append(down_conv)
             self.down_acts.append(down_act)
+            self.down_adds.append(xnn.layers.AddBlock())
 
     def init_weights(self):
         for m in self.modules():
@@ -417,13 +422,20 @@ class BiFPNLiteBlock(nn.Module):
         ups = [None] * self.num_outs
         ups[-1] = ins[-1]
         for i in range(self.num_outs-2, -1, -1):
-            ups[i] = self.up_convs[i](self.up_acts[i](ins[i] + self.ups[i](ups[i+1])))
+            add_block = self.up_adds[i]
+            ups[i] = self.up_convs[i](self.up_acts[i](
+                    add_block((ins[i], self.ups[i](ups[i+1])))
+            ))
         #
         # down convs
         outs = [None] * self.num_outs
         outs[0] = ups[0]
         for i in range(0, self.num_outs-1):
-            outs[i+1] = self.down_convs[i](self.down_acts[i](ins[i+1] + ups[i+1] + self.downs[i](ups[i])))
+            add_block = self.down_adds[i]
+            res = add_block((ins[i+1], ups[i+1])) if (ins[i+1] is not ups[i+1]) else ins[i+1]
+            outs[i+1] = self.down_convs[i](self.down_acts[i](
+                add_block((res,self.downs[i](ups[i])))
+            ))
         #
         return tuple(outs)
 
