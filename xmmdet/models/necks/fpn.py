@@ -375,7 +375,8 @@ class BiFPNLiteBlock(nn.Module):
         self.downs = nn.ModuleList()
         self.down_convs = nn.ModuleList()
         self.down_acts = nn.ModuleList()
-        self.down_adds = nn.ModuleList()
+        self.down_adds1 = nn.ModuleList()
+        self.down_adds2 = nn.ModuleList()
         for i in range(self.num_outs-1):
             # up modules
             up = UpsampleType(**self.upsample_cfg)
@@ -398,7 +399,8 @@ class BiFPNLiteBlock(nn.Module):
             self.downs.append(down)
             self.down_convs.append(down_conv)
             self.down_acts.append(down_act)
-            self.down_adds.append(xnn.layers.AddBlock())
+            self.down_adds1.append(xnn.layers.AddBlock())
+            self.down_adds2.append(xnn.layers.AddBlock())
 
     def init_weights(self):
         for m in self.modules():
@@ -431,10 +433,11 @@ class BiFPNLiteBlock(nn.Module):
         outs = [None] * self.num_outs
         outs[0] = ups[0]
         for i in range(0, self.num_outs-1):
-            add_block = self.down_adds[i]
-            res = add_block((ins[i+1], ups[i+1])) if (ins[i+1] is not ups[i+1]) else ins[i+1]
+            add_block1 = self.down_adds1[i]
+            res = add_block1((ins[i+1], ups[i+1])) if (ins[i+1] is not ups[i+1]) else ins[i+1]
+            add_block2 = self.down_adds2[i]
             outs[i+1] = self.down_convs[i](self.down_acts[i](
-                add_block((res,self.downs[i](ups[i])))
+                add_block2((res,self.downs[i](ups[i])))
             ))
         #
         return tuple(outs)
