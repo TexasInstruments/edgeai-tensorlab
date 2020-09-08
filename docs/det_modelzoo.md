@@ -5,15 +5,15 @@ MMDetection has a huge Model Zoo, supporting a lot of models. Many of them are h
 
 ## Features
 
-|                             | ResNet   | RegNetX  | MobileNet|
-|-----------------------------|:--------:|:--------:|:--------:|
-| SSD                         | ✓        | ✓        | ☐        |
-| RetinaNet                   | ☐        | ✓        | ☐        |
-| CenterNet(Objects As Points)| ✗        | ✗        | ✗        |
-| EfficientDet                | ✗        | ✗        | ✗        |
-| YOLOv3                      | ✗        | ✗        | ✗        |
-| Faster R-CNN                | ✗        | ✗        | ✗        |
-| Mask R-CNN                  | ✗        | ✗        | ✗        |
+|                             | ResNet   | RegNetX  | MobileNet| Other    |
+|-----------------------------|:--------:|:--------:|:--------:|:--------:|
+| SSD                         | ✓        | ✓        | ☐        |          |
+| RetinaNet                   | ☐        | ✓        | ☐        |          |
+| CenterNet(Objects As Points)| ✗        | ✗        | ✗        |          |
+| EfficientDet                | ✗        | ✗        | ✗        |          |
+| YOLOv3                      | ✗        | ✗        | ✗        |☐         |
+| Faster R-CNN                | ✗        | ✗        | ✗        |          |
+| Mask R-CNN                  | ✗        | ✗        | ✗        |          |
 
 ✓ Available, ☐ In progress or partially available, ✗ TBD
 
@@ -56,6 +56,17 @@ Please see the reference [2] for algorithmic details of the detector.
 |RetinaNet+FPN*   |ResNet50      |(1536,768) |**275.5**              |**37.0**      |                                 |[external](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
 <br>
 
+###### YOLOv3 Detector trained on COCO dataset
+Please see the reference [9] for algorithmic details of the detector.
+
+|Model Arch       |Backbone Model|Resolution |Complexity (Giga MACS) |AP [0.5:0.95]%|Model Config File                |Download |
+|----------       |--------------|-----------|-----------------------|--------------|---------------------------------|---------|
+|YOLOV3           |DarkNet53     |416x416    |**33**                 |**29.6**      |yolov3_d53.py                    |         |
+
+The YOLOV3 pretrained weights are obtained from the [MMDetection ModelZoo](https://github.com/open-mmlab/mmdetection/blob/master/configs/yolo/README.md) and validation accuracy is calculated with fixed resolution of 416x416 (keep_ratio=False). (Note that the original config in MMDetection used keep_ratio=True which will need different input size for different aspect ratio images and hence not suitable for embedded inference).  
+<br>
+
+
 - A resolution range in the tables is indicated with comma (1536,768) or dash (1536-768) - it means that images are resized to fit within this maximum and minimum size - and the aspect ratio of the original image is preserved (keep_ratio=True in config files). Due to this, each resized image may have a different size depending on the aspect ratio of the original image.
 
 - A fixed resolution in the tables is indicated by *width x height* and it means that the inputs are to be resized to that resolution without preserving the aspect ratio of the image (keep_ratio=False in config files). The resolution after resize can be square (example: 512x512) or non-square (example: 768x384).  Detectors such as SSD [1] and EfficientDet (arXiv:1911.09070) [3] uses this kind of fixed resizing. **It is preferable to use this kind of fixed resolution resize for embedded inference** - at least from an accuracy evaluation point of view (where the actual dataset with variable size images may need to be evaluated upon). <br>
@@ -83,3 +94,5 @@ MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Applicatio
 [7] Designing Network Design Spaces, https://arxiv.org/abs/2003.13678, Ilija Radosavovic, Raj Prateek Kosaraju, Ross Girshick, Kaiming He, Piotr Dollár
 
 [8] ONNX Runtime cross-platform inferencing software, https://github.com/microsoft/onnxruntime
+
+[9] Yolov3: An incremental improvement, J Redmon, A Farhadi - arXiv preprint arXiv:1804.02767, 2018
