@@ -229,11 +229,10 @@ class FPNLite(nn.Module):
 
 @NECKS.register_module()
 class BiFPNLite(nn.Module):
-    def __init__(self, *args, num_blocks=None, **kwargs):
+    def __init__(self, in_channels=None, out_channels=None, num_outs=None, intermediate_channels=None,
+                 add_extra_convs='on_output', extra_convs_on_inputs=False, num_blocks=None, **kwargs):
         super().__init__()
-        add_extra_convs = kwargs.pop('add_extra_convs', False)
-        extra_convs_on_inputs = kwargs.pop('extra_convs_on_inputs', True)
-
+        intermediate_channels = out_channels if intermediate_channels is None else intermediate_channels
         self.add_extra_convs = add_extra_convs
         assert isinstance(add_extra_convs, (str, bool))
         if isinstance(add_extra_convs, str):
@@ -249,11 +248,9 @@ class BiFPNLite(nn.Module):
             #
         #
 
-        assert 'num_outs' in kwargs, 'num_outs must be passed a kw argument'
-        self.num_outs = kwargs.pop('num_outs',None) or args[2]
-
-        self.in_channels = kwargs.get('in_channels',None) or args[0]
-        self.out_channels = kwargs.get('out_channels',None) or args[1]
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.num_outs = num_outs
 
         conv_cfg = kwargs.get('conv_cfg', None)
         norm_cfg = kwargs.get('norm_cfg', None)
@@ -261,8 +258,19 @@ class BiFPNLite(nn.Module):
 
         blocks = []
         for i in range(num_blocks):
-            bi_fpn = BiFPNLiteBlock(*args, block_id=i, num_outs=self.num_outs_bifpn, \
-                                    add_extra_convs=None, extra_convs_on_inputs=None, **kwargs)
+            if i<(num_blocks-1):
+                block_id = i
+                bi_fpn = BiFPNLiteBlock(block_id=block_id, in_channels=in_channels, out_channels=intermediate_channels,
+                                        num_outs=self.num_outs_bifpn, add_extra_convs=None, extra_convs_on_inputs=None,
+                                        **kwargs)
+            else:
+                block_id = 0 if (out_channels != intermediate_channels) else i
+                last_in_channels = [intermediate_channels for _ in in_channels]
+                # last block can be complex if the intermediate channels are lower - so do up_only
+                bi_fpn = BiFPNLiteBlock(block_id=block_id, up_only=True, in_channels=last_in_channels, out_channels=out_channels,
+                                        num_outs=self.num_outs_bifpn, add_extra_convs=None, extra_convs_on_inputs=None,
+                                        **kwargs)
+            #
             blocks.append(bi_fpn)
         #
         self.bifpn_blocks = nn.Sequential(*blocks)
@@ -306,16 +314,17 @@ class BiFPNLite(nn.Module):
 
 
 class BiFPNLiteBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, num_outs=5, start_level=0, end_level=-1,
+    def __init__(self, block_id=None, up_only=False, in_channels=None, out_channels=None, num_outs=5, start_level=0, end_level=-1,
                  add_extra_convs=None, extra_convs_on_inputs=None, relu_before_extra_convs=False,
                  no_norm_on_lateral=False, conv_cfg=None, norm_cfg=None, act_cfg=dict(type='ReLU'),
-                 upsample_cfg=dict(scale_factor=2,mode='nearest'), block_id=None):
+                 upsample_cfg=dict(scale_factor=2,mode='nearest')):
         super(BiFPNLiteBlock, self).__init__()
         assert isinstance(in_channels, list)
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.num_ins = len(in_channels)
         self.num_outs = num_outs
+        self.up_only = up_only
         self.relu_before_extra_convs = relu_before_extra_convs
         self.no_norm_on_lateral = no_norm_on_lateral
         self.fp16_enabled = False
@@ -372,23 +381,27 @@ class BiFPNLiteBlock(nn.Module):
         self.up_convs = nn.ModuleList()
         self.up_acts = nn.ModuleList()
         self.up_adds = nn.ModuleList()
-        self.downs = nn.ModuleList()
-        self.down_convs = nn.ModuleList()
-        self.down_acts = nn.ModuleList()
-        self.down_adds1 = nn.ModuleList()
-        self.down_adds2 = nn.ModuleList()
+        if not up_only:
+            self.downs = nn.ModuleList()
+            self.down_convs = nn.ModuleList()
+            self.down_acts = nn.ModuleList()
+            self.down_adds1 = nn.ModuleList()
+            self.down_adds2 = nn.ModuleList()
+        #
         for i in range(self.num_outs-1):
             # up modules
-            up = UpsampleType(**self.upsample_cfg)
-            up_conv = ConvModuleWrapper(out_channels,
-                    out_channels, 3, padding=1,
-                    conv_cfg=conv_cfg, norm_cfg=norm_cfg,
-                    act_cfg=None, inplace=False)
-            up_act = ActType()
-            self.ups.append(up)
-            self.up_convs.append(up_conv)
-            self.up_acts.append(up_act)
-            self.up_adds.append(xnn.layers.AddBlock())
+            if not up_only:
+                up = UpsampleType(**self.upsample_cfg)
+                up_conv = ConvModuleWrapper(out_channels,
+                        out_channels, 3, padding=1,
+                        conv_cfg=conv_cfg, norm_cfg=norm_cfg,
+                        act_cfg=None, inplace=False)
+                up_act = ActType()
+                self.ups.append(up)
+                self.up_convs.append(up_conv)
+                self.up_acts.append(up_act)
+                self.up_adds.append(xnn.layers.AddBlock())
+            #
             # down modules
             down = DownsampleType(kernel_size=3, stride=2, padding=1)
             down_conv = ConvModuleWrapper(out_channels,
@@ -429,18 +442,21 @@ class BiFPNLiteBlock(nn.Module):
                     add_block((ins[i], self.ups[i](ups[i+1])))
             ))
         #
-        # down convs
-        outs = [None] * self.num_outs
-        outs[0] = ups[0]
-        for i in range(0, self.num_outs-1):
-            add_block1 = self.down_adds1[i]
-            res = add_block1((ins[i+1], ups[i+1])) if (ins[i+1] is not ups[i+1]) else ins[i+1]
-            add_block2 = self.down_adds2[i]
-            outs[i+1] = self.down_convs[i](self.down_acts[i](
-                add_block2((res,self.downs[i](ups[i])))
-            ))
-        #
-        return tuple(outs)
+        if self.up_only:
+            return tuple(ups)
+        else:
+            # down convs
+            outs = [None] * self.num_outs
+            outs[0] = ups[0]
+            for i in range(0, self.num_outs-1):
+                add_block1 = self.down_adds1[i]
+                res = add_block1((ins[i+1], ups[i+1])) if (ins[i+1] is not ups[i+1]) else ins[i+1]
+                add_block2 = self.down_adds2[i]
+                outs[i+1] = self.down_convs[i](self.down_acts[i](
+                    add_block2((res,self.downs[i](ups[i])))
+                ))
+            #
+            return tuple(outs)
 
 
 def build_downsample_module(in_channels, out_channels, kernel_size, stride,

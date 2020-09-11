@@ -33,19 +33,26 @@ to_rgb = False                                   # pycls regnet backbones are tr
 
 decoder_fpn_type = 'FPNLite'                    # 'FPNLite' #'BiFPNLite' #'FPN'
 decoder_conv_type = 'ConvDWSep'                 # 'ConvDWSep' #'ConvDWTripletRes' #'ConvDWTripletAlwaysRes'
-decoder_width_fact = 2 if decoder_fpn_type == 'BiFPNLite' else 4
+fpn_width_fact = 2 if decoder_fpn_type == 'BiFPNLite' else 4
+decoder_width_fact = 4
 decoder_depth_fact = 4
 
 regnet_settings = {
     'regnetx_800mf':{'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
-                     'fpn_out_channels':min(64*decoder_width_fact,256), 'fpn_num_blocks':decoder_depth_fact,
+                     'fpn_intermediate_channels':min(64*fpn_width_fact,256),
+                     'fpn_out_channels':min(64*decoder_width_fact,256),
+                     'fpn_num_blocks':decoder_depth_fact,
                      'pretrained':'open-mmlab://regnetx_800mf'},
     'regnetx_1.6gf':{'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
-                     'fpn_out_channels':min(96*decoder_width_fact,264), 'fpn_num_blocks':decoder_depth_fact,
+                     'fpn_intermediate_channels':min(96*fpn_width_fact,264),
+                     'fpn_out_channels':min(96*decoder_width_fact,264),
+                     'fpn_num_blocks':decoder_depth_fact,
                      'pretrained':'open-mmlab://regnetx_1.6gf'},
     'regnetx_3.2gf':{'bacbone_out_channels':[96, 192, 432, 1008], 'group_size_dw':48,
-                     'fpn_out_channels':min(120*decoder_width_fact,288), 'fpn_num_blocks':decoder_depth_fact,
-                     'pretrained':'open-mmlab://regnetx_3.2gf'}
+                     'fpn_intermediate_channels':min(120*fpn_width_fact,288),
+                     'fpn_out_channels':min(120*decoder_width_fact,288),
+                     'fpn_num_blocks':decoder_depth_fact,
+                     'pretrained': 'open-mmlab://regnetx_3.2gf'}
 }
 
 regnet_cfg = regnet_settings[backbone_arch]
@@ -60,7 +67,9 @@ fpn_num_outs = 6
 fpn_upsample_mode = 'bilinear' #'nearest' #'bilinear'
 fpn_upsample_cfg = dict(scale_factor=2, mode=fpn_upsample_mode)
 fpn_num_blocks = regnet_cfg['fpn_num_blocks']
-fpn_bifpn_cfg = dict(num_blocks=fpn_num_blocks) if decoder_fpn_type == 'BiFPNLite' else dict()
+fpn_intermediate_channels = regnet_cfg['fpn_intermediate_channels']
+fpn_bifpn_cfg = dict(num_blocks=fpn_num_blocks, intermediate_channels=fpn_intermediate_channels) \
+    if decoder_fpn_type == 'BiFPNLite' else dict()
 fpn_add_extra_convs = 'on_output' if decoder_fpn_type == 'BiFPNLite' else 'on_input'
 
 basesize_ratio_range = (0.1, 0.9)
