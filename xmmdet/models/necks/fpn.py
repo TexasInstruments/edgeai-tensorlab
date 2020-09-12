@@ -1,5 +1,6 @@
 import warnings
 import functools
+import copy
 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -230,23 +231,12 @@ class FPNLite(nn.Module):
 @NECKS.register_module()
 class BiFPNLite(nn.Module):
     def __init__(self, in_channels=None, out_channels=None, num_outs=None, intermediate_channels=None,
-                 add_extra_convs='on_output', extra_convs_on_inputs=False, num_blocks=None, **kwargs):
+                 add_extra_convs='on_input', extra_convs_on_inputs=True, num_blocks=None, **kwargs):
         super().__init__()
+        assert add_extra_convs == 'on_input', 'add_extra_convs must be on_input'
+        assert extra_convs_on_inputs == True, 'extra_convs_on_inputs must be True'
         intermediate_channels = out_channels if intermediate_channels is None else intermediate_channels
         self.add_extra_convs = add_extra_convs
-        assert isinstance(add_extra_convs, (str, bool))
-        if isinstance(add_extra_convs, str):
-            # Extra_convs_source choices: 'on_input', 'on_lateral', 'on_output'
-            assert add_extra_convs in ('on_input', 'on_lateral', 'on_output')
-        elif add_extra_convs:  # True
-            if extra_convs_on_inputs:
-                # For compatibility with previous release
-                # TODO: deprecate `extra_convs_on_inputs`
-                self.add_extra_convs = 'on_input'
-            else:
-                self.add_extra_convs = 'on_output'
-            #
-        #
 
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -258,17 +248,17 @@ class BiFPNLite(nn.Module):
 
         blocks = []
         for i in range(num_blocks):
+            last_in_channels = [intermediate_channels for _ in self.num_outs_bifpn] if i > 0 else in_channels
             if i<(num_blocks-1):
                 block_id = i
-                bi_fpn = BiFPNLiteBlock(block_id=block_id, in_channels=in_channels, out_channels=intermediate_channels,
-                                        num_outs=self.num_outs_bifpn, add_extra_convs=None, extra_convs_on_inputs=None,
+                bi_fpn = BiFPNLiteBlock(block_id=block_id, in_channels=last_in_channels, out_channels=intermediate_channels,
+                                        num_outs=self.num_outs_bifpn, add_extra_convs=add_extra_convs, extra_convs_on_inputs=extra_convs_on_inputs,
                                         **kwargs)
             else:
                 block_id = 0 if (out_channels != intermediate_channels) else i
-                last_in_channels = [intermediate_channels for _ in in_channels]
                 # last block can be complex if the intermediate channels are lower - so do up_only
                 bi_fpn = BiFPNLiteBlock(block_id=block_id, up_only=True, in_channels=last_in_channels, out_channels=out_channels,
-                                        num_outs=self.num_outs_bifpn, add_extra_convs=None, extra_convs_on_inputs=None,
+                                        num_outs=self.num_outs_bifpn, add_extra_convs=add_extra_convs, extra_convs_on_inputs=extra_convs_on_inputs,
                                         **kwargs)
             #
             blocks.append(bi_fpn)
@@ -315,12 +305,12 @@ class BiFPNLite(nn.Module):
 
 class BiFPNLiteBlock(nn.Module):
     def __init__(self, block_id=None, up_only=False, in_channels=None, out_channels=None, num_outs=5, start_level=0, end_level=-1,
-                 add_extra_convs=None, extra_convs_on_inputs=None, relu_before_extra_convs=False,
+                 add_extra_convs='on_input', extra_convs_on_inputs=True, relu_before_extra_convs=False,
                  no_norm_on_lateral=False, conv_cfg=None, norm_cfg=None, act_cfg=dict(type='ReLU'),
-                 upsample_cfg=dict(scale_factor=2,mode='nearest')):
+                 upsample_cfg=dict(scale_factor=2,mode='bilinear')):
         super(BiFPNLiteBlock, self).__init__()
         assert isinstance(in_channels, list)
-        self.in_channels = in_channels
+
         self.out_channels = out_channels
         self.num_ins = len(in_channels)
         self.num_outs = num_outs
@@ -331,7 +321,7 @@ class BiFPNLiteBlock(nn.Module):
         self.upsample_cfg = upsample_cfg.copy()
 
         if end_level == -1:
-            self.backbone_end_level = self.num_ins
+            self.backbone_end_level = num_outs #self.num_ins
             assert num_outs >= self.num_ins - start_level
         else:
             # if end_level < inputs, no extra level is allowed
@@ -346,8 +336,8 @@ class BiFPNLiteBlock(nn.Module):
         assert num_outs<=5, 'this block handles only upto 5 outputs. remaining has to be handled outside.'
         assert upsample_cfg is not None, 'upsample_cfg must not be None'
         assert upsample_cfg.scale_factor == 2, 'scale_factor of 2 is recommended'
-        assert extra_convs_on_inputs == None, 'this blocks ignores  add_extra_convs'
-        assert add_extra_convs == None, 'this blocks ignores  add_extra_convs'
+        assert extra_convs_on_inputs == True, 'extra_convs_on_inputs must be True'
+        assert add_extra_convs == 'on_input', 'add_extra_convs must be on_input'
         assert self.relu_before_extra_convs == False, 'this blocks ignores  add_extra_convs'
         assert block_id is not None, f'block_id must be valid: {block_id}'
 
@@ -358,6 +348,7 @@ class BiFPNLiteBlock(nn.Module):
 
         # add extra conv layers (e.g., RetinaNet)
         if block_id == 0:
+            self.in_channels = []
             self.num_backbone_convs = (self.backbone_end_level - self.start_level)
             self.extra_levels = num_outs - self.num_backbone_convs
             self.in_convs = nn.ModuleList()
@@ -369,6 +360,7 @@ class BiFPNLiteBlock(nn.Module):
                 else:
                     in_ch = out_channels
                 #
+                self.in_channels.append(in_ch)
                 stride = 1 if i < self.num_backbone_convs else 2
                 in_conv = build_downsample_module(in_ch, out_channels, kernel_size=3, stride=stride,
                                                             conv_cfg=conv_cfg, norm_cfg=norm_cfg, act_cfg=None,
