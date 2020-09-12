@@ -33,7 +33,7 @@ to_rgb = False                                   # pycls regnet backbones are tr
 
 decoder_fpn_type = 'FPNLite'                    # 'FPNLite' #'BiFPNLite' #'FPN'
 decoder_conv_type = 'ConvDWSep'                 # 'ConvDWSep' #'ConvDWTripletRes' #'ConvDWTripletAlwaysRes'
-fpn_width_fact = 1 if decoder_fpn_type == 'BiFPNLite' else 4
+fpn_width_fact = 2 if decoder_fpn_type == 'BiFPNLite' else 4
 decoder_width_fact = 4
 decoder_depth_fact = 4
 
