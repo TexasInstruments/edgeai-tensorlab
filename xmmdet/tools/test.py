@@ -11,7 +11,8 @@ from mmcv.runner import get_dist_info, init_dist, load_checkpoint
 
 from xmmdet.apis import multi_gpu_test, single_gpu_test
 from xmmdet.core import wrap_fp16_model
-from xmmdet.datasets import build_dataloader, build_dataset
+from xmmdet.datasets import (build_dataloader, build_dataset,
+                            replace_ImageToTensor)
 from xmmdet.models import build_detector
 from xmmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint
 
@@ -156,11 +157,14 @@ def main(args=None):
         init_dist(args.launcher, **cfg.dist_params)
 
     # build the dataloader
-    # TODO: support multiple images per gpu (only minor changes are needed)
+    samples_per_gpu = cfg.data.test.pop('samples_per_gpu', 1)
+    if samples_per_gpu > 1:
+        # Replace 'ImageToTensor' to 'DefaultFormatBundle'
+        cfg.data.test.pipeline = replace_ImageToTensor(cfg.data.test.pipeline)
     dataset = build_dataset(cfg.data.test)
     data_loader = build_dataloader(
         dataset,
-        samples_per_gpu=1,
+        samples_per_gpu=samples_per_gpu,
         workers_per_gpu=cfg.data.workers_per_gpu,
         dist=distributed,
         shuffle=False)
