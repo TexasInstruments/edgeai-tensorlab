@@ -257,7 +257,8 @@ class BiFPNLite(nn.Module):
             else:
                 block_id = 0 if (out_channels != intermediate_channels) else i
                 # last block can be complex if the intermediate channels are lower - so do up_only
-                bi_fpn = BiFPNLiteBlock(block_id=block_id, up_only=True, in_channels=last_in_channels, out_channels=out_channels,
+                up_only = (out_channels != intermediate_channels)
+                bi_fpn = BiFPNLiteBlock(block_id=block_id, up_only=up_only, in_channels=last_in_channels, out_channels=out_channels,
                                         num_outs=self.num_outs_bifpn, add_extra_convs=add_extra_convs, extra_convs_on_inputs=extra_convs_on_inputs,
                                         **kwargs)
             #
@@ -445,7 +446,7 @@ class BiFPNLiteBlock(nn.Module):
                 res = add_block1((ins[i+1], ups[i+1])) if (ins[i+1] is not ups[i+1]) else ins[i+1]
                 add_block2 = self.down_adds2[i]
                 outs[i+1] = self.down_convs[i](self.down_acts[i](
-                    add_block2((res,self.downs[i](ups[i])))
+                    add_block2((res,self.downs[i](outs[i])))
                 ))
             #
             return tuple(outs)
