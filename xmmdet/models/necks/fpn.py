@@ -244,19 +244,20 @@ class BiFPNLite(nn.Module):
 
         conv_cfg = kwargs.get('conv_cfg', None)
         norm_cfg = kwargs.get('norm_cfg', None)
-        self.num_outs_bifpn = min(self.num_outs, 5)
+        self.num_outs_bifpn = num_outs
 
         blocks = []
         for i in range(num_blocks):
-            last_in_channels = [intermediate_channels for _ in self.num_outs_bifpn] if i > 0 else in_channels
+            last_in_channels = [intermediate_channels for _ in range(self.num_outs_bifpn)] if i>0 else in_channels
             if i<(num_blocks-1):
+                # the initial bifpn blocks can operate with fewer number of channels
                 block_id = i
                 bi_fpn = BiFPNLiteBlock(block_id=block_id, in_channels=last_in_channels, out_channels=intermediate_channels,
                                         num_outs=self.num_outs_bifpn, add_extra_convs=add_extra_convs, extra_convs_on_inputs=extra_convs_on_inputs,
                                         **kwargs)
             else:
-                block_id = 0 if (out_channels != intermediate_channels) else i
-                # last block can be complex if the intermediate channels are lower - so do up_only
+                # last block can be complex if the intermediate channels are lower - so do up_only			
+                block_id = 0 if ((num_blocks == 1) or (out_channels != intermediate_channels)) else i
                 up_only = (out_channels != intermediate_channels)
                 bi_fpn = BiFPNLiteBlock(block_id=block_id, up_only=up_only, in_channels=last_in_channels, out_channels=out_channels,
                                         num_outs=self.num_outs_bifpn, add_extra_convs=add_extra_convs, extra_convs_on_inputs=extra_convs_on_inputs,
@@ -322,7 +323,7 @@ class BiFPNLiteBlock(nn.Module):
         self.upsample_cfg = upsample_cfg.copy()
 
         if end_level == -1:
-            self.backbone_end_level = num_outs #self.num_ins
+            self.backbone_end_level = self.num_ins
             assert num_outs >= self.num_ins - start_level
         else:
             # if end_level < inputs, no extra level is allowed
