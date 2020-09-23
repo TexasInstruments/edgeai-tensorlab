@@ -335,7 +335,6 @@ class BiFPNLiteBlock(nn.Module):
         self.add_extra_convs = add_extra_convs
         self.block_id = block_id
 
-        assert num_outs<=5, 'this block handles only upto 5 outputs. remaining has to be handled outside.'
         assert upsample_cfg is not None, 'upsample_cfg must not be None'
         assert upsample_cfg.scale_factor == 2, 'scale_factor of 2 is recommended'
         assert extra_convs_on_inputs == True, 'extra_convs_on_inputs must be True'
