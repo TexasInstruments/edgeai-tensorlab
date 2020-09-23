@@ -70,7 +70,7 @@ fpn_num_blocks = regnet_cfg['fpn_num_blocks']
 fpn_intermediate_channels = regnet_cfg['fpn_intermediate_channels']
 fpn_bifpn_cfg = dict(num_blocks=fpn_num_blocks, intermediate_channels=fpn_intermediate_channels) \
     if decoder_fpn_type == 'BiFPNLite' else dict()
-fpn_add_extra_convs = 'on_output' if decoder_fpn_type == 'BiFPNLite' else 'on_input'
+fpn_add_extra_convs = 'on_input'
 
 basesize_ratio_range = (0.1, 0.9)
 input_size_divisor = 128 if decoder_fpn_type == 'BiFPNLite' else 32
