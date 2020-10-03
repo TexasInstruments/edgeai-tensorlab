@@ -38,9 +38,9 @@ decoder_width_fact = 2 if decoder_fpn_type == 'BiFPNLite' else 4
 decoder_depth_fact = 4
 
 regnet_settings = {
-    'regnetx_400mf': {'bacbone_out_channels': [64, 64, 160, 384], 'group_size_dw': 16,
+    'regnetx_400mf': {'bacbone_out_channels': [32, 64, 160, 384], 'group_size_dw': 16,
                       'fpn_intermediate_channels': min(64 * fpn_width_fact, 256),
-                      'fpn_out_channels': min(64 * decoder_width_fact, 256),
+                      'fpn_out_channels': min(32*decoder_width_fact,256),
                       'fpn_num_blocks': decoder_depth_fact,
                       'head_stacked_convs': decoder_depth_fact,
                       'pretrained': 'open-mmlab://regnetx_400mf'},
@@ -52,7 +52,7 @@ regnet_settings = {
                      'pretrained':'open-mmlab://regnetx_800mf'},
     'regnetx_1.6gf':{'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
                      'fpn_intermediate_channels':min(96*fpn_width_fact,264),
-                     'fpn_out_channels':min(72*decoder_width_fact,264),
+                     'fpn_out_channels':min(84*decoder_width_fact,264),
                      'fpn_num_blocks':decoder_depth_fact,
                      'head_stacked_convs':decoder_depth_fact,
                      'pretrained':'open-mmlab://regnetx_1.6gf'},
