@@ -1,5 +1,5 @@
 ######################################################
-input_size = (512,512)                          #(512,512) #(768,384) #(768,768) #(1024,512) #(1024,1024)
+input_size = (512,512)                          #(320,320) #(384,384) #(512,512) #(768,384) #(768,768) #(1024,512) #(1024,1024)
 dataset_type = 'CocoDataset'
 num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8}
 num_classes = num_classes_dict[dataset_type]
@@ -38,8 +38,13 @@ decoder_width_fact = 2 if decoder_fpn_type == 'BiFPNLite' else 4
 decoder_depth_fact = 4
 
 regnet_settings = {
-    'regnetx_400mf': {'bacbone_out_channels': [32, 64, 160, 384], 'group_size_dw': 16,
+    'regnetx_200mf': {'bacbone_out_channels': [32, 56, 152, 368], 'group_size_dw': 8,
                       'fpn_intermediate_channels': min(64 * fpn_width_fact, 256),
+                      'fpn_out_channels': min(28*decoder_width_fact,256),
+                      'fpn_num_blocks': decoder_depth_fact,
+                      'pretrained': 'open-mmlab://regnetx_200mf'},
+    'regnetx_400mf': {'bacbone_out_channels': [32, 64, 160, 384], 'group_size_dw': 16,
+                      'fpn_intermediate_channels': min(64*fpn_width_fact,256),
                       'fpn_out_channels': min(32*decoder_width_fact,256),
                       'fpn_num_blocks': decoder_depth_fact,
                       'head_stacked_convs': decoder_depth_fact,
