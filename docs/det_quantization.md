@@ -1,15 +1,13 @@
 # Quantization Aware Training of Object Detection Models
 
-Post Training Calibration for Quantization (Calibration/PTQ) or Quantization Aware Training (QAT) are often required to achieve the best acuracy for inference in fixed point. This repository can do QAT and/or Calibration on object detection models trained here. PTQ can easily be performed on the inference engine itself, it need not be done using a training framework like this. While PTQ is fast, QAT provides the best accuracy. Due to these reasons, we shall focus on QAT in this repository. However this repository also supports a mechanism to aid PTQ which we refer to as Calibration/PTQ.
+Quantization (especially 8-bit Quantization) is important to get best throughput for inference. Quantization can be done using either **Post Training Quantization (PTQ)** or **Quantization Aware Training (QAT)**.
 
-Although  repository does QAT, the data is still kept as discrete floating point values. Activation range information is inserted into the model using Clip functions, wherever appropriate.  
+Quantized inference can be done using [TI Deep Learning Library (TIDL)](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/psdk_rtos_auto/docs/user_guide/sdk_components.html#ti-deep-learning-library-tidl) that is part of the [Processor SDK RTOS for Jacinto7](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/psdk_rtos_auto/docs/user_guide/index.html). **TIDL natively supports PTQ**. There is no need for QAT as long as the PTQ in TIDL gives good results.
 
-The foundational components for Quantization are provided in [PyTorch-Jacinto-AI-DevKit](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/pytorch-jacinto-ai-devkit/browse/). This repository uses Quantization tools from there. 
-
-Please consult the [documentation on Quantization](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/docs/Quantization.md) to understand the internals of our implementation of QAT and Calibration/PTQ. There are several guidelines provided there to help you set the right parameters to get best accuracy with quantization.
+For the models that have significant accuracy drop, it is possible to improve the accuracy using **Quantization Aware Training (QAT)**. Please read more about QAT at [pytorch-jacinto-ai-devkit](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about) and its **[quantization documentation](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/docs/Quantization.md)**. Although the repository does QAT, the data is still kept as discrete floating point values. Activation range information is inserted into the model using Clip functions, wherever appropriate. There are several guidelines provided there to help you set the right parameters to get best accuracy with quantization.
 
 
-## Features
+## Features in this repository
 
 |                                                              | Float    | 16 bit   | 8bit     |
 |--------------------                                          |:--------:|:--------:|:--------:|
@@ -28,12 +26,12 @@ Please consult the [documentation on Quantization](https://git.ti.com/cgit/jacin
 - Please see [Usage](./docs/usage.md) for training and testing in floating point with this repository.
 
 
-#### How to do Quantization
+#### How to do Quantization Aware Training
 
 Everything required for quantization is already done in this repository and the only thing that user needs to be do is to set a **quantize** flag appropriately in the config file. If quantize flag is not set, the usual floating point training of evaluation will happen. These are the values of the quantize flag and their meanings:
 - False: Conventional floating point training (default).
 - True or 'training': Quantization Aware Training (QAT)
-- 'calibration': Post Training Calibration for Quantization (Calibration/PTQ).
+- 'calibration': Post Training Calibration for Quantization (denoted as Calibration/PTQ) - this is an intermediate method that is close to PTQ - fast, but not as accurate as QAT.
 
 Accuracy Evaluation with Quantization: If quantize flag is set in the config file when test script is invoked, accuracy evalatuon with quantization is being done.
 
@@ -47,35 +45,6 @@ Accuracy Evaluation with Quantization: If quantize flag is set in the config fil
 - Training with QuantTrainModule is just like any other training. However using QuantCalibrateModule is a bit different in that it doesn't need backpropagation - so backpropagation is disabled when using Calibration/PTQ.
 
 All this has been taken care already in the code and the description in this section is for information only. 
-
-#### Results for COCO 2017 Dataset
-
-###### Single Shot Mult-Box Detector (SSD) 
-Please see the reference [2] for algorithmic details of the detector.
-
-|Model Arch       |Backbone Model|Resolution |Giga MACS |Float AP [0.5:0.95]%|8-bit QAT AP [0.5:0.95]%|Download |
-|----------       |--------------|-----------|----------|--------------------|------------------------|---------|
-|SSDLite+FPN      |RegNetX800MF  |512x512    |**6.03**  |**29.9**            |**29.4**                |         |
-|SSDLite+FPN      |RegNetX1.6GF  |768x768    |          |                    |                        |         |
-|.
-|SSD+FPN          |ResNet50      |512x512    |**30.77** |**31.2**            |                        |         |
-
-
-###### RetinaNet Detector
-Please see the reference [3] for algorithmic details of the detector.
-
-|Model Arch       |Backbone Model|Resolution |Giga MACS |Float AP [0.5:0.95]%|8-bit QAT AP [0.5:0.95]%|Download |
-|----------       |--------------|-----------|----------|--------------------|------------------------|---------|
-|RetinaNetLite+FPN|RegNetX800MF  |512x512    |**11.08** |**31.6**            |**30.3**                |         |
-|RetinaNetLite+FPN|RegNetX1.6GF  |768x768    |          |                    |                        |         |
-|.
-|RetinaNet+FPN*   |ResNet50      |512x512    |**68.88** |**29.0*             |                        |[external](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
-|RetinaNet+FPN*   |ResNet50      |768x768    |**137.75**|**34.0**            |                        |[external](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
-|RetinaNet+FPN*   |ResNet50      |(1536,768) |**275.5** |**37.0**            |                        |[external](https://github.com/open-mmlab/mmdetection/tree/master/configs/retinanet) |
-<br>
-
-- Float AP [0.5:0.95]% : COCO Mean Average Precision metric in percentage for IoU range [0.5:0.95], with the floating point model.
-- 8-bit QAT AP [0.5:0.95]% : COCO Mean Average Precision metric in percentage for IoU range [0.5:0.95], with the the 8-bit Quantization Aware Trained Model.
 
 
 ## References
