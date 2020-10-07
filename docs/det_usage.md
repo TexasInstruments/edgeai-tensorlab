@@ -1,6 +1,6 @@
 # Jacinto-AI-MMDetection Usage
 
-#### Installation
+## Installation
 First please install mmcv and mmdet following the instructions given int he main README page of this repository. Those packages have additional requirements which can be understood by going to their respective websites. 
 
 We provide a package called xmmdet which is an extension of mmdet. xmmdet is used from the local folder (without installation). In order to use a local folder as a repository, your PYTHONPATH must start with a : or a .: 
@@ -11,11 +11,11 @@ export PYTHONPATH=:$PYTHONPATH
 ```
 Make sure to close your current terminal or start a new one for the change in .bashrc to take effect or one can do *source ~/.bashrc* after the update. 
 
-#### Scripts
+## Scripts
 Additional scripts are provided on top of mmdetection to ease the training and testing process. Several complexity optimized configurations are provided in the folder [configs](../configs). Scripts for training or evaluation with these configs are given in the [scripts](../scripts) folder. They can be executed by running the shell scripts provided. 
 
 
-#### Training
+## Training
 - Select the appropriate config file in [detection_configs.py](../scripts/detection_configs.py)
 
 - Start the training by running [run_detection_train.sh](../run_detection_train.sh) 
