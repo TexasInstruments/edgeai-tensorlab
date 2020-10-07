@@ -1,16 +1,10 @@
 # Jacinto-AI-Detection
 
-
 This repository is an extension of the popular [mmdetection](https://github.com/open-mmlab/mmdetection) open source repository for object detection training. While mmdetection focuses on a wide variety of models, typically at high complexity, we focus on models that are optimized for speed and accuracy so that they run efficiently on embedded devices. 
 
 Kindly take time to read through the documentation of the original [mmdetection](https://github.com/open-mmlab/mmdetection) before attempting to use this repository.
 
 Also, please read the documentation at our landing page [jacinto-ai-devkit](https://github.com/TexasInstruments/jacinto-ai-devkit) before using this repository.
-
-
-## License
-
-Please see [LICENSE](./LICENSE) file.
 
 
 ## Installation
@@ -43,11 +37,11 @@ This tutorial explains how to do [Quantization Aware Training (QAT)](./docs/det_
 
 
 ## ONNX & Prototxt Export
-- **Export of ONNX model (.onnx) and additional meta information (.prototxt)** is supported. The .prototxt contains meta information specified in **[TIDL](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/psdk_rtos_auto/docs/user_guide/sdk_components.html#ti-deep-learning-library-tidl)** for object detectors. 
+**Export of ONNX model (.onnx) and additional meta information (.prototxt)** is supported. The .prototxt contains meta information specified in **[TIDL](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/psdk_rtos_auto/docs/user_guide/sdk_components.html#ti-deep-learning-library-tidl)** for object detectors. 
 
-- The export of meta information is now supported for **SSD** and **RetinaNet** detectors.
+The export of meta information is now supported for **SSD** and **RetinaNet** detectors.
 
-- For more information please see [Usage](./docs/det_usage.md)
+For more information please see [Usage](./docs/det_usage.md)
 
 
 ## Acknowledgement
@@ -82,6 +76,11 @@ This package/toolbox is an extension of mmdetection (https://github.com/open-mml
   year={2019}
 }
 ```
+
+
+## License
+
+Please see [LICENSE](./LICENSE) file.
 
 
 ## Contact
