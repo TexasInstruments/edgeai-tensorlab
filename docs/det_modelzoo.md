@@ -41,7 +41,7 @@ We shall add support for additional low complexity models as mmdetection adds su
 |COCO    |RegNetX800MF+FPN+SSDLite      |512x512    |**6.03**  |**32.8**, 52.8 |ssd-lite_regnet_fpn_bgr.py  |
 |COCO    |RegNetX1.6GF+FPN+SSDLite      |768x768    |**24.19** |**37.0**, 57.3 |ssd-lite_regnet_fpn_bgr.py  |
 |-
-|COCO    |MobileNetV2+SDLite            |512x512    |**1.74**  |**22.2**       |ssd-lite_mobilenet.py  |
+|COCO    |MobileNetV2+SSDLite           |512x512    |**1.74**  |**22.2**       |ssd-lite_mobilenet.py  |
 |COCO    |MobileNetV2+FPN+SSDLite       |512x512    |**2.29**  |**26.0**       |ssd-lite_mobilenet_fpn.py  |
 |-
 |COCO    |ResNet50+FPN+SSD              |512x512    |**30.77** |**31.2**, 52.2 |ssd_resnet_fpn.py |
