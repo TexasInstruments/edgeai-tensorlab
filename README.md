@@ -4,8 +4,13 @@ This repository is an extension of the popular [mmdetection](https://github.com/
 
 Kindly take time to read through the documentation of the original [mmdetection](https://github.com/open-mmlab/mmdetection) before attempting to use this repository.
 
-Also, please read the documentation at our landing page [jacinto-ai-devkit](https://github.com/TexasInstruments/jacinto-ai-devkit) before using this repository.
+Also, please read the documentation at our landing page [jacinto-ai-devkit](https://github.com/TexasInstruments/jacinto-ai-devkit) before using this repository. Please also read the documentation of [pytorch-jacinto-ai-devkit](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about) and its **[quantization documentation](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/docs/Quantization.md)** for **guidelines** on how to get best accuracy with quantization. 
 
+The models trained with this repository can be inferred using [TI Deep Learning Library (TIDL)](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/psdk_rtos_auto/docs/user_guide/sdk_components.html#ti-deep-learning-library-tidl) that is part of the [Processor SDK RTOS for Jacinto7](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/psdk_rtos_auto/docs/user_guide/index.html). TIDL natively supports Post Training Quantization (PTQ) to quantize these models. 
+
+However, in case there is more than expected accuracy degradation with PTQ even after making sure that the guidelines are followed, this repository provides instructions and functionality required to do Quantization Aware Training (QAT).
+
+This repository also provides a description of trained models with their accuracy and complexity. Recommendations on models friendly for embedded inference with quantization are also provided.
 
 ## Installation
 
@@ -26,14 +31,14 @@ Please see [Getting Started with MMDetection](https://github.com/open-mmlab/mmde
 Please see [Usage](./docs/det_usage.md) for training and testing with this repository.
 
 
-## Benchmark and Model Zoo
+## Object Detection Model Zoo
 
-Accuracy report of several trained models is available at the [Detection Model Zoo](./docs/det_modelzoo.md) 
+Complexity and Accuracy report of several trained models is available at the [Detection Model Zoo](./docs/det_modelzoo.md) 
 
 
 ## Quantization
 
-This tutorial explains how to do [Quantization Aware Training (QAT)](./docs/det_quantization.md) of detection models.
+This tutorial explains more about quantization and how to do [Quantization Aware Training (QAT)](./docs/det_quantization.md) of detection models.
 
 
 ## ONNX & Prototxt Export

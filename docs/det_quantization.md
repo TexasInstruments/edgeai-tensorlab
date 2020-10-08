@@ -1,10 +1,12 @@
 # Quantization Aware Training of Object Detection Models
 
-Quantization (especially 8-bit Quantization) is important to get best throughput for inference. Quantization can be done using either **Post Training Quantization (PTQ)** or **Quantization Aware Training (QAT)**.
+Quantization (especially 8-bit Quantization) is important to get best throughput for inference. Quantization can be done using either **Post Training Quantization (PTQ)** or **Quantization Aware Training (QAT)**. TIDL natively supports PTQ to quantize floating point models. 
 
-Quantized inference can be done using [TI Deep Learning Library (TIDL)](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/psdk_rtos_auto/docs/user_guide/sdk_components.html#ti-deep-learning-library-tidl) that is part of the [Processor SDK RTOS for Jacinto7](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/psdk_rtos_auto/docs/user_guide/index.html). **TIDL natively supports PTQ**. There is no need for QAT as long as the PTQ in TIDL gives good results.
+The guidelines provided in the **[quantization documentation](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/docs/Quantization.md)** are important to get best accuracy with quantization. This repository also suggests quantization friendly models in the "Object Detection Model Zoo" page. It is unlikely that there will be quantization accuracy issues with PTQ if you use the recommended models.
 
-For the models that have significant accuracy drop, it is possible to improve the accuracy using **Quantization Aware Training (QAT)**. Please read more about QAT at [pytorch-jacinto-ai-devkit](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about) and its **[quantization documentation](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/docs/Quantization.md)**. Although the repository does QAT, the data is still kept as discrete floating point values. Activation range information is inserted into the model using Clip functions, wherever appropriate. There are several guidelines provided there to help you set the right parameters to get best accuracy with quantization.
+However, in case there is significant accuracy drop, it is possible to improve the accuracy using QAT. Please read more about QAT at [pytorch-jacinto-ai-devkit](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about) and its [quantization documentation](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/docs/Quantization.md). 
+
+Although the repository does QAT, the quantized weights are still kept as discrete floating point values. Activation range information is inserted into the model using Clip functions, wherever appropriate. TIDL will convert these QAT models to fixed point using these ranges and the discrete weights.
 
 
 ## Features in this repository
