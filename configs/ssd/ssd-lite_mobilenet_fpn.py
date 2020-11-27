@@ -35,11 +35,17 @@ bacbone_out_channels=[24,32,96,320] if backbone_type == 'MobileNetV2' else [128,
 backbone_out_indices = (1, 2, 3, 4)
 
 fpn_in_channels = bacbone_out_channels
-fpn_out_channels = 256
 fpn_start_level = 1
 fpn_num_outs = 6
 fpn_upsample_mode = 'bilinear' #'nearest' #'bilinear'
 fpn_upsample_cfg = dict(scale_factor=2, mode=fpn_upsample_mode)
+decoder_fpn_type = 'FPNLite'       # 'FPNLite' #'BiFPNLite' #'FPN'
+fpn_num_blocks = 4
+fpn_width_fact = 2 if decoder_fpn_type == 'BiFPNLite' else 4
+fpn_intermediate_channels = 64*fpn_width_fact
+fpn_out_channels = 64*fpn_width_fact
+fpn_bifpn_cfg = dict(num_blocks=fpn_num_blocks, intermediate_channels=fpn_intermediate_channels) \
+    if decoder_fpn_type == 'BiFPNLite' else dict()
 
 basesize_ratio_range = (0.1, 0.9)
 
@@ -60,7 +66,7 @@ model = dict(
         out_feature_indices=None,
         l2_norm_scale=None),
     neck=dict(
-        type='FPNLite',
+        type=decoder_fpn_type,
         in_channels=fpn_in_channels,
         out_channels=fpn_out_channels,
         start_level=fpn_start_level,
@@ -68,7 +74,8 @@ model = dict(
         add_extra_convs='on_input',
         upsample_cfg=fpn_upsample_cfg,
         conv_cfg=conv_cfg,
-        norm_cfg=norm_cfg),
+        norm_cfg=norm_cfg,
+        **fpn_bifpn_cfg),
     bbox_head=dict(
         type='SSDLiteHead',
         in_channels=[fpn_out_channels for _ in range(6)],
