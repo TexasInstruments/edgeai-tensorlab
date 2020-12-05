@@ -70,18 +70,14 @@ class SSDAnchorGenerator(AnchorGenerator):
             else:
                 raise ValueError('basesize_ratio_range[0] should be either 0.1'
                                  'or 0.15 when input_size is 512, got'
-                                 ' {basesize_ratio_range[0]}.')
+                                 f' {basesize_ratio_range[0]}.')
         else:
             if basesize_ratio_range[0] == 0.1:  # SSD512 COCO
                 min_sizes.insert(0, int(self.input_size * 4 / 100))
                 max_sizes.insert(0, int(self.input_size * 10 / 100))
-            elif basesize_ratio_range[0] == 0.15:  # SSD512 VOC
-                min_sizes.insert(0, int(self.input_size * 7 / 100))
-                max_sizes.insert(0, int(self.input_size * 15 / 100))
             else:
-                raise ValueError('basesize_ratio_range[0] should be either 0.1'
-                                 'or 0.15 when input_size is 512, got'
-                                 ' {basesize_ratio_range[0]}.')
+                min_sizes.insert(0, int(self.input_size * basesize_ratio_range[0] * 0.4))
+                max_sizes.insert(0, int(self.input_size * basesize_ratio_range[0]))
 
         anchor_ratios = []
         anchor_scales = []
@@ -104,6 +100,12 @@ class SSDAnchorGenerator(AnchorGenerator):
         self.max_sizes = max_sizes
 
     def gen_base_anchors(self):
+        """Generate base anchors.
+
+        Returns:
+            list(torch.Tensor): Base anchors of a feature grid in multiple \
+                feature levels.
+        """
         multi_level_base_anchors = []
         for i, base_size in enumerate(self.base_sizes):
             base_anchors = self.gen_single_level_base_anchors(
