@@ -65,7 +65,7 @@ def parse_args():
     parser.add_argument(
         '--out', type=str, required=True, help='output ONNX filename')
     parser.add_argument(
-        '--opset_version', type=int, default=9, help='ONNX Opset version')
+        '--opset_version', type=int, default=11, help='ONNX Opset version')
     parser.add_argument(
         '--shape',
         type=int,

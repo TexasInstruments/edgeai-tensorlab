@@ -15,7 +15,7 @@ checkpoint = f'{work_dir}/latest.pth'
 outfile = os.path.join(work_dir,'model.onnx')
 date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 shape = [512, 512]
-opset_version = 9
+opset_version = 11
 
 print(f'Exporting ONNX with: {config} @ {date}')
 
