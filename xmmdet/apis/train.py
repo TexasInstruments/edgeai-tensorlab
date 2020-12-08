@@ -83,19 +83,22 @@ def train_detector(model,
             model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
 
     # build runner
+    quantize = cfg.get('quantize', False)
+    freeze_range = bool(quantize)
     optimizer = build_optimizer(model, cfg.optimizer)
     runner = XMMDetEpochBasedRunner(
         model,
         optimizer=optimizer,
         work_dir=cfg.work_dir,
         logger=logger,
-        meta=meta)
+        meta=meta,
+        freeze_range=freeze_range)
     # an ugly workaround to make .log and .log.json filenames the same
     runner.timestamp = timestamp
 
     # fp16 setting
     fp16_cfg = cfg.get('fp16', None)
-    if hasattr(cfg, 'quantize') and cfg.quantize == 'calibration':
+    if quantize == 'calibration':
         optimizer_config = XMMDetNoOptimizerHook()
     elif fp16_cfg is not None:
         optimizer_config = Fp16OptimizerHook(

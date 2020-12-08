@@ -2,6 +2,7 @@ import torch
 import mmcv
 from mmcv.runner import EpochBasedRunner
 from mmcv.runner import OptimizerHook
+from pytorch_jacinto_ai import xnn
 from .quantize import is_mmdet_quant_module
 
 
@@ -20,6 +21,27 @@ def mmdet_save_checkpoint(model, *args, **kwargs):
 
 
 class XMMDetEpochBasedRunner(EpochBasedRunner):
+    def __init__(self, *args, **kwargs):
+        freeze_range = kwargs.pop('freeze_range', False)
+        super().__init__(*args, **kwargs)
+        self.freeze_range = freeze_range
+
+    def train(self, data_loader, **kwargs):
+        if self.freeze_range:
+            # currently we don't have a parameter that indicates whether we are doing QAT or not.
+            # Let us do it for all cases of training for the time being.
+            freeze_bn_epoch = (self.max_epochs//2)-1
+            freeze_range_epoch = (self.max_epochs//2)+1
+            if self.epoch > 0 and self.epoch >= freeze_bn_epoch:
+                xnn.utils.freeze_bn(self.model)
+            #
+            if self.epoch > 1 and self.epoch >= freeze_range_epoch:
+                xnn.layers.freeze_quant_range(self.model)
+            #
+        #
+        super().train(data_loader, **kwargs)
+
+
     def _get_model_orig(self):
         model_orig = self.model
         is_model_orig = True
