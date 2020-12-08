@@ -10,7 +10,7 @@ from mmcv.utils import build_from_cfg
 from mmdet.core import DistEvalHook, EvalHook
 from mmdet.datasets import build_dataloader, build_dataset
 from ..utils import (get_root_logger, XMMDetEpochBasedRunner, XMMDetNoOptimizerHook, \
-                XMMDetDataParallel)
+                XMMDetDataParallel, FreezeRangeHook)
 
 
 def set_random_seed(seed, deterministic=False):
@@ -84,15 +84,13 @@ def train_detector(model,
 
     # build runner
     quantize = cfg.get('quantize', False)
-    freeze_range = bool(quantize)
     optimizer = build_optimizer(model, cfg.optimizer)
     runner = XMMDetEpochBasedRunner(
         model,
         optimizer=optimizer,
         work_dir=cfg.work_dir,
         logger=logger,
-        meta=meta,
-        freeze_range=freeze_range)
+        meta=meta)
     # an ugly workaround to make .log and .log.json filenames the same
     runner.timestamp = timestamp
 
@@ -114,6 +112,12 @@ def train_detector(model,
                                    cfg.get('momentum_config', None))
     if distributed:
         runner.register_hook(DistSamplerSeedHook())
+
+    # register train hooks
+    freeze_range = bool(quantize)
+    if freeze_range:
+        runner.register_hook(FreezeRangeHook())
+    #
 
     # register eval hooks
     if validate:
