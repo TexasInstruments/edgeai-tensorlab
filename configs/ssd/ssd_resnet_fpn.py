@@ -20,8 +20,8 @@ initial_learning_rate = 8e-2
 samples_per_gpu = 16
 if quantize:
   load_from = './work_dirs/ssd_resnet_fpn/latest.pth'
-  optimizer = dict(type='SGD', lr=initial_learning_rate/10.0, momentum=0.9, weight_decay=1e-4)
-  total_epochs = 1 if quantize == 'calibration' else 6
+  optimizer = dict(type='SGD', lr=initial_learning_rate/100.0, momentum=0.9, weight_decay=1e-4)
+  total_epochs = 1 if quantize == 'calibration' else 12
 else:
   optimizer = dict(type='SGD', lr=initial_learning_rate, momentum=0.9, weight_decay=1e-4)
 #
