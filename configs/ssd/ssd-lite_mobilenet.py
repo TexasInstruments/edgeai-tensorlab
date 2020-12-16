@@ -16,7 +16,7 @@ _base_ = [
 # settings for qat or calibration - uncomment after doing floating point training
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
-initial_learning_rate = 8e-2
+initial_learning_rate = 4e-2 #8e-2
 samples_per_gpu = 16
 if quantize:
   load_from = './work_dirs/ssd-lite_mobilenet/latest.pth'
@@ -31,7 +31,7 @@ backbone_type = 'MobileNetV2' #'MobileNetV2' #'MobileNetV1'
 mobilenetv2_pretrained='torchvision://mobilenet_v2'
 mobilenetv1_pretrained='./data/modelzoo/pytorch/image_classification/imagenet1k/jacinto_ai/mobilenet_v1_2019-09-06_17-15-44.pth'
 pretrained=(mobilenetv2_pretrained if backbone_type == 'MobileNetV2' else mobilenetv1_pretrained)
-bacbone_out_channels=(32, 96, 320, 512, 256, 256) if backbone_type == 'MobileNetV2' else (256, 512, 1024, 512, 256, 256)
+bacbone_out_channels=(96, 320, 512, 256, 256, 256) if backbone_type == 'MobileNetV2' else (512, 1024, 512, 256, 256, 256)
 backbone_out_indices = (1, 2, 3, 4)
 basesize_ratio_range = (0.1, 0.9)
 
@@ -47,8 +47,8 @@ model = dict(
         depth=None,
         with_last_pool=False,
         ceil_mode=True,
-        need_extra=3,
-        out_indices=backbone_out_indices[-3:],
+        need_extra=4,
+        out_indices=backbone_out_indices[-2:],
         out_feature_indices=None,
         l2_norm_scale=None),
     neck=None,
@@ -62,7 +62,7 @@ model = dict(
             scale_major=False,
             input_size=input_size,
             basesize_ratio_range=basesize_ratio_range,
-            strides=[8, 16, 32, 64, 128, 256],
+            strides=[16, 32, 64, 128, 256, 512],
             ratios=[[2], [2, 3], [2, 3], [2, 3], [2, 3], [2]]),
         bbox_coder=dict(
             type='DeltaXYWHBBoxCoder',
