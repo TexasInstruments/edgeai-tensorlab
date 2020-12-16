@@ -1,3 +1,4 @@
+import warnings
 import mmcv
 import numpy as np
 import torch
@@ -56,8 +57,10 @@ class SSDAnchorGenerator(AnchorGenerator):
                 min_sizes.insert(0, int(self.input_size * 10 / 100))
                 max_sizes.insert(0, int(self.input_size * 20 / 100))
             else:
-                raise ValueError(
-                    'basesize_ratio_range[0] should be either 0.15'
+                min_sizes.insert(0, int(self.input_size * basesize_ratio_range[0] * 0.4))
+                max_sizes.insert(0, int(self.input_size * basesize_ratio_range[0]))
+                warnings.warn(
+                    'according to original SSD, basesize_ratio_range[0] should be either 0.15'
                     'or 0.2 when input_size is 300, got '
                     f'{basesize_ratio_range[0]}.')
         elif self.input_size == 512:
@@ -68,7 +71,9 @@ class SSDAnchorGenerator(AnchorGenerator):
                 min_sizes.insert(0, int(self.input_size * 7 / 100))
                 max_sizes.insert(0, int(self.input_size * 15 / 100))
             else:
-                raise ValueError('basesize_ratio_range[0] should be either 0.1'
+                min_sizes.insert(0, int(self.input_size * basesize_ratio_range[0] * 0.4))
+                max_sizes.insert(0, int(self.input_size * basesize_ratio_range[0]))
+                warnings.warn('according to original SSD, basesize_ratio_range[0] should be either 0.1'
                                  'or 0.15 when input_size is 512, got'
                                  f' {basesize_ratio_range[0]}.')
         else:

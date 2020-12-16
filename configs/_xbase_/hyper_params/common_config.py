@@ -18,3 +18,5 @@ resume_from = None
 workflow = [('train', 1)]
 print_model_complexity = True
 
+# fp16 settings
+#fp16 = dict(loss_scale=512.)
