@@ -98,7 +98,7 @@ class ModelConfig(xnn.utils.ConfigNode):
         self.out_indices = None
         self.shortcut_channels = (32,128,256,512,1024)
         self.frozen_stages = 0
-        self.need_extra = 0
+        self.extra_channels = None
         self.act_cfg = None
 
     @property
@@ -194,14 +194,13 @@ class MobileNetV1(MobileNetV1Base):
         for key, value in kwargs.items():
             if key == 'model_config':
                 model_config = model_config.merge_from(value)
-            elif key in ('out_indices', 'strides', 'need_extra', 'frozen_stages', 'act_cfg'):
+            elif key in ('out_indices', 'strides', 'extra_channels', 'frozen_stages', 'act_cfg'):
                 setattr(model_config, key, value)
         #
         super().__init__(xnn.layers.ConvDWSepNormAct2d, model_config)
 
-        outplanes=(512, 256, 256, 256, 256)
-        self.extra = self._make_extra_layers(1024, outplanes[:self.model_config.need_extra]) \
-            if self.model_config.need_extra else None
+        self.extra = self._make_extra_layers(1024, self.model_config.extra_channels) \
+            if self.model_config.extra_channels else None
 
         # weights init
         xnn.utils.module_weights_init(self)
