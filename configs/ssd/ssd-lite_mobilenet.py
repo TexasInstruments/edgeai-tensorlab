@@ -1,5 +1,5 @@
 ######################################################
-input_size = (512,512)                          #(512,512) #(768,768) #(1024,1024)
+input_size = (320,320)                          #(512,512) #(768,768) #(1024,1024)
 dataset_type = 'CocoDataset'
 num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8}
 num_classes = num_classes_dict[dataset_type]
@@ -31,7 +31,7 @@ backbone_type = 'MobileNetV2' #'MobileNetV2' #'MobileNetV1'
 mobilenetv2_pretrained='torchvision://mobilenet_v2'
 mobilenetv1_pretrained='./data/modelzoo/pytorch/image_classification/imagenet1k/jacinto_ai/mobilenet_v1_2019-09-06_17-15-44.pth'
 pretrained=(mobilenetv2_pretrained if backbone_type == 'MobileNetV2' else mobilenetv1_pretrained)
-bacbone_out_channels=(96, 320, 512, 256, 256, 256) if backbone_type == 'MobileNetV2' else (512, 1024, 512, 256, 256, 256)
+bacbone_out_channels=(96, 320, 512, 512, 512, 512) if backbone_type == 'MobileNetV2' else (512, 1024, 512, 512, 512, 512)
 backbone_out_indices = (1, 2, 3, 4)
 basesize_ratio_range = (0.1, 0.9)
 
