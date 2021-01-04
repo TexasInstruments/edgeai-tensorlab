@@ -19,4 +19,6 @@ lr_config = dict(policy='CosineAnnealing', min_lr_ratio=1e-4, **warmup_cfg)
 # runtime settings
 total_epochs = 240 #120 #60
 
+# enable fp16 - optional
+#fp16 = dict(loss_scale=512.0)
 
