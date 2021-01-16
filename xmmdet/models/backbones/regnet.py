@@ -62,6 +62,9 @@ class RegNet(ResNet):
         (1, 432, 2, 2)
         (1, 1008, 1, 1)
     """
+    # added regnetx_200mf setting from pycls, which was missing here in mmdetection
+    # source: https://github.com/facebookresearch/pycls,
+    # license: https://github.com/facebookresearch/pycls/blob/master/LICENSE
     arch_settings = {
         'regnetx_200mf':
         dict(w0=24, wa=36.44, wm=2.49, group_w=8, depth=13, bot_mul=1.0),
