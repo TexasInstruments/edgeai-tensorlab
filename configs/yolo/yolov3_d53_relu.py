@@ -16,8 +16,8 @@ _base_ = [
 # settings for qat or calibration - uncomment after doing floating point training
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
-initial_learning_rate = 4e-4 #4e-2
-samples_per_gpu = 8
+initial_learning_rate = 8e-2
+samples_per_gpu = 16
 
 if quantize:
   load_from = './work_dirs/yolov3_d53_relu/latest.pth'
@@ -26,9 +26,6 @@ if quantize:
 else:
   optimizer = dict(type='SGD', lr=initial_learning_rate, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
 #
-
-load_from = './work_dirs/yolov3_d53_relu/latest.pth'
-total_epochs = 12
 
 input_size_divisor = 32
 act_cfg=dict(type='ReLU')
