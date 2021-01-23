@@ -90,7 +90,7 @@ def ConvModuleWrapper(*args, **kwargs):
     kernel_size = kernel_size or args[2]
     assert kernel_size is not None, 'kernel_size must be specified'
 
-    is_dw_conv = conv_cfg is not None and conv_cfg.type in ('ConvDWSep', 'ConvDWTripletRes')
+    is_dw_conv = conv_cfg is not None and conv_cfg.type in ('ConvDWSep', 'ConvDWTripletRes', 'ConvDWTripletAlwaysRes')
     if not has_type:
         return mmcv.cnn.ConvModule(*args, **kwargs)
     elif conv_cfg.type == 'ConvNormAct' or (is_dw_conv and kernel_size == 1):
