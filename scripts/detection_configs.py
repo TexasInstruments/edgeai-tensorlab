@@ -16,7 +16,7 @@ config='./configs/retinanet/retinanet-lite_regnet_fpn_bgr.py'
 
 config='./configs/yolo/yolov3_d53.py'
 config='./configs/yolo/yolov3_d53_relu.py'
-config='./configs/yolo/yolov3-lite_d53.py'
+config='./configs/yolo/yolov3-lite_regnet_bgr.py'
 '''
 
 config='./configs/ssd/ssd-lite_regnet_fpn_bgr.py'

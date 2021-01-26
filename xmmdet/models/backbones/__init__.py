@@ -4,5 +4,3 @@ from .mobilenetv2 import MobileNetV2
 from .resnet import ResNet
 from .regnet import RegNet
 from .resnext import ResNeXt
-from .darknet import DarknetLite
-

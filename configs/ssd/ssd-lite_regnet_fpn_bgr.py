@@ -65,6 +65,7 @@ regnet_settings = {
                      'pretrained': 'open-mmlab://regnetx_3.2gf'}
 }
 
+######################################################
 regnet_cfg = regnet_settings[backbone_arch]
 pretrained=regnet_cfg['pretrained']
 bacbone_out_channels=regnet_cfg['bacbone_out_channels']
