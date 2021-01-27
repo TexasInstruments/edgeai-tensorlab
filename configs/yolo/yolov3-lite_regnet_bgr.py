@@ -20,7 +20,7 @@ initial_learning_rate = 8e-2
 samples_per_gpu = 16
 if quantize:
   load_from = './work_dirs/yolov3-lite_regnet/latest.pth'
-  optimizer = dict(type='SGD', lr=initial_learning_rate/1000.0, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
+  optimizer = dict(type='SGD', lr=initial_learning_rate/100.0, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   total_epochs = 1 if quantize == 'calibration' else 12
 else:
   optimizer = dict(type='SGD', lr=initial_learning_rate, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5

@@ -40,4 +40,4 @@ class XMMDetQuantTestModule(xnn.quantize.QuantTestModule):
 
 
 def is_mmdet_quant_module(model):
-    return isinstance(model, (XMMDetQuantTrainModule, XMMDetQuantTestModule))
+    return isinstance(model, (XMMDetQuantCalibrateModule, XMMDetQuantTrainModule, XMMDetQuantTestModule))
