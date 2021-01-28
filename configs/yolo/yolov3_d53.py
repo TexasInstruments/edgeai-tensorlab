@@ -16,8 +16,8 @@ _base_ = [
 # settings for qat or calibration - uncomment after doing floating point training
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
-initial_learning_rate = 8e-2
-samples_per_gpu = 16
+initial_learning_rate = 4e-2 #8e-2
+samples_per_gpu = 8 #16
 
 if quantize:
   load_from = './work_dirs/yolov3_d53/latest.pth'

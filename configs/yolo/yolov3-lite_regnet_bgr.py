@@ -16,8 +16,8 @@ _base_ = [
 # settings for qat or calibration - uncomment after doing floating point training
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
-initial_learning_rate = 8e-2
-samples_per_gpu = 16
+initial_learning_rate = 4e-2 #8e-2
+samples_per_gpu = 8 #16
 if quantize:
   load_from = './work_dirs/yolov3-lite_regnet/latest.pth'
   optimizer = dict(type='SGD', lr=initial_learning_rate/100.0, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
@@ -28,52 +28,34 @@ else:
 
 ######################################################
 backbone_type = 'RegNet'
-backbone_arch = 'regnetx_1.6gf'                  # 'regnetx_800mf' #'regnetx_1.6gf' #'regnetx_3.2gf'
+backbone_arch = 'regnetx_800mf'                  # 'regnetx_800mf' #'regnetx_1.6gf' #'regnetx_3.2gf'
 to_rgb = False                                   # pycls regnet backbones are trained with bgr
-
-decoder_fpn_type = 'FPNLite'                    # 'FPNLite' #'BiFPNLite' #'FPN'
 decoder_conv_type = 'ConvDWSep'                 # 'ConvDWSep' #'ConvDWTripletRes' #'ConvDWTripletAlwaysRes'
-fpn_width_fact = 2 if decoder_fpn_type == 'BiFPNLite' else 4
-decoder_width_fact = 2 if decoder_fpn_type == 'BiFPNLite' else 4
-decoder_depth_fact = 4
 
 regnet_settings = {
     'regnetx_200mf': {'bacbone_out_channels': [32, 56, 152, 368], 'group_size_dw': 8,
-                      'fpn_intermediate_channels': min(28*fpn_width_fact,256),
-                      'fpn_out_channels': min(28*decoder_width_fact,256),
-                      'fpn_num_blocks': decoder_depth_fact,
                       'pretrained': './checkpoints/RegNetX-200MF_dds_8gpu_mmdet-converted.pyth'},
     'regnetx_400mf': {'bacbone_out_channels': [32, 64, 160, 384], 'group_size_dw': 16,
-                      'fpn_intermediate_channels': min(32*fpn_width_fact,256),
-                      'fpn_out_channels': min(32*decoder_width_fact,256),
-                      'fpn_num_blocks': decoder_depth_fact,
                       'pretrained': 'open-mmlab://regnetx_400mf'},
     'regnetx_800mf':{'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
-                     'fpn_intermediate_channels':min(64*fpn_width_fact,256),
-                     'fpn_out_channels':min(64*decoder_width_fact,256),
-                     'fpn_num_blocks':decoder_depth_fact,
                      'pretrained':'open-mmlab://regnetx_800mf'},
     'regnetx_1.6gf':{'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
-                     'fpn_intermediate_channels':min(84*fpn_width_fact,264),
-                     'fpn_out_channels':min(84*decoder_width_fact,264),
-                     'fpn_num_blocks':decoder_depth_fact,
                      'pretrained':'open-mmlab://regnetx_1.6gf'},
     'regnetx_3.2gf':{'bacbone_out_channels':[96, 192, 432, 1008], 'group_size_dw':48,
-                     'fpn_intermediate_channels':min(96*fpn_width_fact,288),
-                     'fpn_out_channels':min(96*decoder_width_fact,288),
-                     'fpn_num_blocks':decoder_depth_fact,
                      'pretrained': 'open-mmlab://regnetx_3.2gf'}
 }
 
 ######################################################
 regnet_cfg = regnet_settings[backbone_arch]
 pretrained=regnet_cfg['pretrained']
-bacbone_out_channels=regnet_cfg['bacbone_out_channels']
-backbone_out_indices = (0, 1, 2, 3)
-
+bacbone_out_channels=regnet_cfg['bacbone_out_channels'][1:][::-1]
+backbone_out_indices = (1, 2, 3)
+group_size_dw=regnet_cfg['group_size_dw']
+fpn_in_channels = bacbone_out_channels
+fpn_out_channels = regnet_cfg['bacbone_out_channels'][:-1][::-1]
 
 input_size_divisor = 32
-conv_cfg = dict(type='ConvDWSep', group_size_dw=16)
+conv_cfg = dict(type=decoder_conv_type, group_size_dw=group_size_dw)
 norm_cfg = dict(type='BN')
 act_cfg=dict(type='ReLU')
 
@@ -89,16 +71,16 @@ model = dict(
     neck=dict(
         type='YOLOV3LiteNeck',
         num_scales=3,
-        in_channels=bacbone_out_channels[-3:][::-1],
-        out_channels=[512, 256, 128],
+        in_channels=fpn_in_channels,
+        out_channels=fpn_out_channels,
         conv_cfg=conv_cfg,
         norm_cfg=norm_cfg,
         act_cfg=act_cfg),
     bbox_head=dict(
         type='YOLOV3LiteHead',
         num_classes=80,
-        in_channels=[512, 256, 128],
-        out_channels=[1024, 512, 256],
+        in_channels=fpn_out_channels,
+        out_channels=fpn_in_channels,
         conv_cfg=conv_cfg,
         norm_cfg=norm_cfg,
         act_cfg=act_cfg,
