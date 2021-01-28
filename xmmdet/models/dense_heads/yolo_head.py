@@ -47,6 +47,6 @@ class YOLOV3LiteHead(YOLOV3Head):
         """Initialize weights of the head."""
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                kaiming_init(m)
+                normal_init(m, std=0.01)
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 constant_init(m, 1)

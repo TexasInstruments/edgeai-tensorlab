@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from mmcv.cnn import ConvModule
-from mmcv.cnn import constant_init, kaiming_init
+from mmcv.cnn import constant_init, normal_init
 
 from mmdet.models.builder import NECKS
 from mmdet.models.necks.yolo_neck import DetectionBlock
@@ -89,7 +89,7 @@ class YOLOV3Neck(nn.Module):
         """Initialize weights of the head."""
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                kaiming_init(m)
+                normal_init(m, std=0.01)
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 constant_init(m, 1)
 
@@ -220,6 +220,6 @@ class YOLOV3LiteNeck(nn.Module):
         """Initialize weights of the head."""
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                kaiming_init(m)
+                normal_init(m, std=0.01)
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 constant_init(m, 1)
