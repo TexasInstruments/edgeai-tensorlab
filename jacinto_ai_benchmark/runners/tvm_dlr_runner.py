@@ -1,0 +1,78 @@
+import os
+import datetime
+import shutil
+from memory_tempfile import MemoryTempfile
+import onnx
+from tvm import relay
+from tvm.relay.backend.contrib import tidl
+from dlr import DLRModel
+from .base_runner import *
+
+
+class TVMDLRRunner(BaseRunner):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.dlr_model = None
+
+    def import_model(self, **calib_data):
+        super().import_model(**calib_data)
+        model_path = self.kwargs['model_path']
+        input_shape = self.kwargs['input_shape']
+
+        calib_dict = []
+        for c_data in calib_data:
+            c_dict = {d_name:d for d_name, d in zip(list(input_shape.keys()),c_data)}
+            calib_dict.append(c_dict)
+
+        build_target = 'llvm'
+        cross_cc_args = {}
+
+        # Create the TIDL compiler with appropriate parameters
+        compiler = tidl.TIDLCompiler(
+            platform=self.kwargs['platform'],
+            version=self.kwargs['version'],
+            num_tidl_subgraphs=self.kwargs['num_tidl_subgraphs'],
+            data_layout=self.kwargs['data_layout'],
+            artifacts_folder=self.artifacts_folder,
+            tidl_tools_path=os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools'),
+            tidl_tensor_bits=self.kwargs['tidl_tensor_bits'],
+            tidl_calibration_options=self.kwargs['tidl_calibration_options'])
+
+        onnx_model = onnx.load(model_path)
+        tvm_model, params = relay.frontend.from_onnx(onnx_model, shape=input_shape)
+
+        # partition the graph into TIDL operations and TVM operations
+        tvm_model, status = compiler.enable(tvm_model, params, calib_dict)
+
+        # build the relay module into deployables
+        with tidl.build_config(tidl_compiler=compiler):
+            graph, lib, params = relay.build_module.build(tvm_model, target=build_target, params=params)
+
+        # remove nodes / params not needed for inference
+        tidl.remove_tidl_params(params)
+
+        # save the deployables
+        path_lib = os.path.join(self.artifacts_folder, 'deploy_lib.so')
+        path_graph = os.path.join(self.artifacts_folder, 'deploy_graph.json')
+        path_params = os.path.join(self.artifacts_folder, 'deploy_params.params')
+        lib.export_library(path_lib, **cross_cc_args)
+        with open(path_graph, "w") as fo:
+            fo.write(graph)
+        with open(path_params, "wb") as fo:
+            fo.write(relay.save_param_dict(params))
+
+        # create inference model
+        self.dlr_model = DLRModel(self.artifacts_folder, 'cpu')
+
+    def infer_frame(self, **kwargs):
+        super().infer_frame(**kwargs)
+        self.dlr_model.run(kwargs)
+
+    def __del__(self):
+        for t in self.tempfiles:
+            if os.path.exists(t):
+                shutil.rmtree(t)
+
+
+if __name__ == '__main__':
+    tvm_model = TVMDLRRunner()

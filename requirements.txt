@@ -1,0 +1,7 @@
+numpy
+memory-tempfile
+opencv-python
+onnxruntime-gpu
+onnx
+mmpycocotools
+progiter
