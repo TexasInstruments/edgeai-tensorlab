@@ -9,6 +9,21 @@ import zipfile
 import progiter
 
 
+def download_model(url, root=None, filename=None, md5=None):
+    root = os.path.abspath('./') if root is None else root
+    if url.endswith('.link'):
+        with open(url) as fp:
+            url = fp.read().rstrip()
+        #
+    #
+    if isinstance(url, str) and (url.startswith('http://') or url.startswith('https://')):
+        fpath = download_and_extract_archive(url, root, filename, md5)
+    else:
+        fpath = url
+    #
+    return fpath
+
+
 def calculate_md5(fpath, chunk_size=1024 * 1024):
     md5 = hashlib.md5()
     with open(fpath, 'rb') as f:

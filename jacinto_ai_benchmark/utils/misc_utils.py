@@ -20,3 +20,16 @@ def dict_merge(target_dict, **src_dict):
         #
     #
     return target_dict
+
+
+def as_tuple(arg):
+    return arg if isinstance(arg, tuple) else (arg,)
+
+
+def as_list(arg):
+    return arg if isinstance(arg, list) else [arg]
+
+
+def as_list_or_tuple(arg):
+    return arg if isinstance(arg, (list,tuple)) else (arg,)
+

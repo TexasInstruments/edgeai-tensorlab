@@ -1,28 +1,32 @@
 import os
-import datetime
 import shutil
-from memory_tempfile import MemoryTempfile
 import onnx
 from tvm import relay
 from tvm.relay.backend.contrib import tidl
 from dlr import DLRModel
-from .base_runner import *
+from .base_rt_session import BaseRTSession
+from ..import utils
 
 
-class TVMDLRRunner(BaseRunner):
+class TVMDLRSession(BaseRTSession):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.kwargs['data_layout'] = self.kwargs.get('data_layout', 'NCHW')
+        self.kwargs['tidl_calibration_options'] = self._get_calibration_options(
+            **self.kwargs['tidl_calibration_options'])
         self.dlr_model = None
 
-    def import_model(self, **calib_data):
-        super().import_model(**calib_data)
+    def import_model(self, calib_data):
+        super().import_model(calib_data)
         model_path = self.kwargs['model_path']
         input_shape = self.kwargs['input_shape']
+        input_keys = list(input_shape.keys())
 
-        calib_dict = []
+        calib_list = []
         for c_data in calib_data:
-            c_dict = {d_name:d for d_name, d in zip(list(input_shape.keys()),c_data)}
-            calib_dict.append(c_dict)
+            c_data = utils.as_tuple(c_data)
+            c_dict = {d_name:d for d_name, d in zip(input_keys,c_data)}
+            calib_list.append(c_dict)
 
         build_target = 'llvm'
         cross_cc_args = {}
@@ -42,7 +46,7 @@ class TVMDLRRunner(BaseRunner):
         tvm_model, params = relay.frontend.from_onnx(onnx_model, shape=input_shape)
 
         # partition the graph into TIDL operations and TVM operations
-        tvm_model, status = compiler.enable(tvm_model, params, calib_dict)
+        tvm_model, status = compiler.enable(tvm_model, params, calib_list)
 
         # build the relay module into deployables
         with tidl.build_config(tidl_compiler=compiler):
@@ -63,16 +67,30 @@ class TVMDLRRunner(BaseRunner):
 
         # create inference model
         self.dlr_model = DLRModel(self.artifacts_folder, 'cpu')
+        self.import_done = True
 
-    def infer_frame(self, **kwargs):
-        super().infer_frame(**kwargs)
-        self.dlr_model.run(kwargs)
+    def infer_frame(self, input):
+        super().infer_frame(input)
+        input_shape = self.kwargs['input_shape']
+        input_keys = list(input_shape.keys())
+        in_data = utils.as_tuple(input)
+        input_dict = {d_name:d for d_name, d in zip(input_keys,in_data)}
+        output = self.dlr_model.run(input_dict)
+        return output
 
     def __del__(self):
         for t in self.tempfiles:
             if os.path.exists(t):
                 shutil.rmtree(t)
 
+    def _get_calibration_options(self, **kwargs_calib):
+        kwargs_calib['activation_range'] = kwargs_calib.get('activation_range', 'on')
+        kwargs_calib['weight_range'] = kwargs_calib.get('weight_range', 'on')
+        kwargs_calib['bias_calibration'] = kwargs_calib.get('bias_calibration', 'on')
+        kwargs_calib['per_channel_weight'] = kwargs_calib.get('per_channel_weight', 'off')
+        kwargs_calib['iterations'] = kwargs_calib.get('iterations', 50)
+        return kwargs_calib
+
 
 if __name__ == '__main__':
-    tvm_model = TVMDLRRunner()
+    tvm_model = TVMDLRSession()

@@ -37,10 +37,10 @@ if __name__ == '__main__':
         author_email='jacinto-ai-devkit@list.ti.com',
         classifiers=[
             'Development Status :: 4 - Beta'
-            'Programming Language :: Pyuthon :: 3.7'
+            'Programming Language :: Python :: 3.7'
         ],
         keywords = 'artifical intelligence, deep learning, image classification, object detection, semantic segmentation, quantization',
-        python_requires='>=3.7',
+        python_requires='>=3.6',
         packages=find_packages(),
         include_package_data=True,
         install_requires=[],

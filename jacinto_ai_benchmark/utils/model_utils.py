@@ -4,7 +4,7 @@ import numpy as np
 from . import data_utils
 
 
-def get_data_list(input, base_dir=None, image_formats=None):
+def get_data_list(input, dest_dir=None, image_formats=None):
     image_formats = ('.png', '.jpg', '.jpeg', '.gif', '.bmp') \
         if image_formats is None else image_formats
 
@@ -37,8 +37,8 @@ def get_data_list(input, base_dir=None, image_formats=None):
         #
         in_files = [os.path.join(path, f) for f in in_files]
     elif isinstance(input, np.ndarray):
-        assert base_dir is not None, 'base_dir should be provided to save ndarray and return it in a list'
-        input_dir = os.path.join(base_dir, 'in_data')
+        assert dest_dir is not None, 'dest_dir should be provided to save ndarray and return it in a list'
+        input_dir = os.path.join(dest_dir, 'in_data')
         os.makedirs(input_dir, exist_ok=True)
         image_name = os.path.join(input_dir, '0.png')
         input = input.astype(np.uint8)

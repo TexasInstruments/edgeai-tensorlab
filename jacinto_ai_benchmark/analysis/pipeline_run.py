@@ -36,7 +36,8 @@ def _run_pipelines_parallel(pipeline_configs, perfsim=True, devices=None):
             model_idx = set_idx*num_devices + device_idx
             if model_idx < num_configs:
                 os.chdir(cwd)
-                pipeline_config = copy.deepcopy(pipeline_configs[model_idx])
+                pipeline_config = pipeline_configs[model_idx]
+                # pipeline_config = copy.deepcopy(pipeline_config)
                 run_pipeline_bound_func = functools.partial(_run_pipeline_with_log, pipeline_config,
                                                                   perfsim, device=device)
                 parallel_exec.queue(run_pipeline_bound_func)
@@ -50,19 +51,19 @@ def _run_pipeline_with_log(pipeline_config, perfsim=True, device=None):
     if device is not None:
         os.environ['CUDA_VISIBLE_DEVICES'] = str(device)
     #
-    model = pipeline_config['model']
-    work_dir = model.get_work_dir()
+    session = pipeline_config['session']
+    work_dir = session.get_work_dir()
     os.makedirs(work_dir, exist_ok=True)
     logger = utils.TeeLogger(os.path.join(work_dir, 'run.log'))
 
     results = perfsim_dict = None
     try:
-        results, model = run_pipeline(pipeline_config)
+        results = run_pipeline(pipeline_config)
     except Exception as e:
         print(f'\n{str(e)}')
     #
     try:
-        perfsim_dict = model.perfsim_data() if perfsim else None
+        perfsim_dict = session.perfsim_data() if perfsim else None
     except Exception as e:
         print(f'\n{str(e)}')
     #
@@ -75,12 +76,8 @@ def _run_pipeline_with_log(pipeline_config, perfsim=True, device=None):
 
 
 def run_pipeline(pipeline_config):
-    print(f'\n\n{pipeline_config["inputNetFile"]}')
     print('pipeline_config=', pipeline_config)
-
-    model = pipeline_config['model']
     results = pipeline_core.run(pipeline_config)
-
-    return results, model
+    return results
 
 

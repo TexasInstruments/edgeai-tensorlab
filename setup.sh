@@ -1,9 +1,9 @@
 #!/bin/bash
 
 ######################################################################
-version_match=`python -c 'import sys;r=0 if sys.version_info >= (3,7) and sys.version_info < (3,8) else 1;print(r)'`
+version_match=`python -c 'import sys;r=0 if sys.version_info >= (3,6) else 1;print(r)'`
 if [ $version_match -ne 0 ]; then
-echo 'python version must be 3.7'
+echo 'python version must be >= 3.6'
 exit 1
 fi
 
