@@ -23,4 +23,8 @@ input_scale_imagenet = (0.017125, 0.017507, 0.017429)
 input_mean_127p5 = (127.5, 127.5, 127.5)
 input_scale_127p5 = (1/127.5, 1/127.5, 1/127.5)
 
+tidl_calibration_options_tvm={"iterations":defaults.bias_calibration_iterations}
+
+tidl_calibration_options_tflite={"tidl_calibration_options:num_frames_calibration":defaults.num_frames_calibration,
+                                 "tidl_calibration_options:bias_calibration_iterations":defaults.bias_calibration_iterations}
 

@@ -22,11 +22,6 @@ preprocess_tvm_dlr = (preprocess.ImageRead(), preprocess.ImageResize(256),
 
 postprocess_classification = (postprocess.IndexArray(), postprocess.ArgMax())
 
-tidl_calibration_options_tvm={"iterations":defaults.bias_calibration_iterations}
-
-tidl_calibration_options_tflite={"tidl_calibration_options:num_frames_calibration":defaults.num_frames_calibration,
-                                 "tidl_calibration_options:bias_calibration_iterations":defaults.bias_calibration_iterations}
-
 pipeline_cfg = dict(
     type='accuracy',
     calibration_dataset=datasets.ImageNetClassification(**defaults.imagenet_train_cfg),
@@ -45,13 +40,15 @@ pipeline_configs = [
         preprocess=preprocess_tflite_rt,
         session=sessions.TFLiteRTSession(**session_cfg,
              model_path=f'{defaults.modelzoo_path}/mlperf/edge/mlperf_mobilenet_v1_1.0_224.tflite',
-             tidl_calibration_options=tidl_calibration_options_tflite, input_shape={'input': (1, 224, 224, 3)}),
+             tidl_calibration_options=defaults.tidl_calibration_options_tflite,
+             input_shape={'input': (1, 224, 224, 3)}),
         metric=dict(label_offset_pred=-1)),
     utils.dict_update(pipeline_cfg,  # mobilenet_v2_2019-12-24_15-32-12 72.13% top-1 accuracy
         preprocess=preprocess_tvm_dlr,
         session=sessions.TVMDLRSession(**session_cfg,
             model_path=f'./dependencies/examples/models/mobilenet_v2_2019-12-24_15-32-12_opset9.onnx',
-            tidl_calibration_options=tidl_calibration_options_tvm, input_shape = {'input.1':(1, 3, 224, 224)}))
+            tidl_calibration_options=defaults.tidl_calibration_options_tvm,
+            input_shape = {'input.1':(1, 3, 224, 224)}))
 ]
 
 ################################################################################################
