@@ -1,58 +1,64 @@
 import os
-from jacinto_ai_benchmark import analysis, datasets, preprocess, sessions, postprocess, metrics, utils
+from jacinto_ai_benchmark import *
 
 # the cwd must be the root of the respository
 if os.path.split(os.getcwd())[-1] == 'scripts':
     os.chdir('../')
 #
 
-################################################################################################
-# set common configuration params
-num_frames = 10 #50000
-num_frames_calibration = 100
-modelzoo_path = './dependencies/modelzoo/jai-modelzoo'
-datasets_path = f'./dependencies/datasets'
-cuda_devices = None #[0,1,2,3] #None
-tidl_dir = './dependencies/c7x-mma-tidl'
-tidl_tensor_bits = 32
-tidl_calibration_iterations = 50
 work_dir = os.path.join('./work_dirs', os.path.splitext(os.path.basename(__file__))[0])
-imagenet_train_cfg = dict(path=f'{datasets_path}/imagenet/train', split=f'{datasets_path}/imagenet/train.txt',
-                          shuffle=True,num_frames=num_frames_calibration)
-imagenet_val_cfg = dict(path=f'{datasets_path}/imagenet/val', split=f'{datasets_path}/imagenet/val.txt',
-                        shuffle=True,num_frames=num_frames)
-imagenet_mean = (123.675, 116.28, 103.53)
-imagenet_scale = (0.017125, 0.017507, 0.017429)
-
-utils.setup_environment(tidl_dir=tidl_dir)
 
 ################################################################################################
 # setup parameters for each model
 
-common_cfg = dict(
-    calibration_dataset=datasets.ImageNetClassification(**imagenet_train_cfg),
-    input_dataset=datasets.ImageNetClassification(**imagenet_val_cfg),
-    preprocess=(preprocess.ImageRead(), preprocess.ImageResize(256),
+preprocess_tflite_rt = (preprocess.ImageRead(), preprocess.ImageResize(256),
+                preprocess.ImageCenterCrop(224), preprocess.ImageToNumpyTensor4D(data_layout=constants.NHWC),
+                preprocess.ImageNormMeanScale(mean=defaults.input_mean_127p5, scale=defaults.input_scale_127p5,
+                                              data_layout=constants.NHWC))
+
+preprocess_tvm_dlr = (preprocess.ImageRead(), preprocess.ImageResize(256),
                 preprocess.ImageCenterCrop(224), preprocess.ImageToNumpyTensor4D(),
-                preprocess.ImageNormMeanScale(mean=imagenet_mean, scale=imagenet_scale)),
-    postprocess=(postprocess.IndexArray(),postprocess.ArgMax())
+                preprocess.ImageNormMeanScale(mean=defaults.input_mean_imagenet, scale=defaults.input_scale_imagenet))
+
+postprocess_classification = (postprocess.IndexArray(), postprocess.ArgMax())
+
+tidl_calibration_options_tvm={"iterations":defaults.bias_calibration_iterations}
+
+tidl_calibration_options_tflite={"tidl_calibration_options:num_frames_calibration":defaults.num_frames_calibration,
+                                 "tidl_calibration_options:bias_calibration_iterations":defaults.bias_calibration_iterations}
+
+pipeline_cfg = dict(
+    type='accuracy',
+    calibration_dataset=datasets.ImageNetClassification(**defaults.imagenet_train_cfg),
+    input_dataset=datasets.ImageNetClassification(**defaults.imagenet_val_cfg),
+    postprocess=postprocess_classification
 )
 
+session_cfg = dict(work_dir=work_dir,
+                   tidl_tensor_bits=defaults.tidl_tensor_bits)
+
+################################################################################################
+# configs for each model pipeline
+
 pipeline_configs = [
-    utils.dict_update(common_cfg,  # mobilenet_v2_2019-12-24_15-32-12 72.13% top-1 accuracy
-        session=sessions.TVMDLRSession(work_dir=work_dir,
-            tidl_tensor_bits=tidl_tensor_bits, tidl_calibration_options=dict(iterations=tidl_calibration_iterations),
-            model_path='./dependencies/examples/models/mobilenet_v2_2019-12-24_15-32-12_opset9.onnx',
-            input_shape = {'input.1':(1, 3, 224, 224)}
-        )
-    )
+    utils.dict_update(pipeline_cfg,  # mlperf_mobilenet_v1_1.0_224 71.646% top-1 accuracy
+        preprocess=preprocess_tflite_rt,
+        session=sessions.TFLiteRTSession(**session_cfg,
+             model_path=f'{defaults.modelzoo_path}/mlperf/edge/mlperf_mobilenet_v1_1.0_224.tflite',
+             tidl_calibration_options=tidl_calibration_options_tflite, input_shape={'input': (1, 224, 224, 3)}),
+        metric=dict(label_offset_pred=-1)),
+    utils.dict_update(pipeline_cfg,  # mobilenet_v2_2019-12-24_15-32-12 72.13% top-1 accuracy
+        preprocess=preprocess_tvm_dlr,
+        session=sessions.TVMDLRSession(**session_cfg,
+            model_path=f'./dependencies/examples/models/mobilenet_v2_2019-12-24_15-32-12_opset9.onnx',
+            tidl_calibration_options=tidl_calibration_options_tvm, input_shape = {'input.1':(1, 3, 224, 224)}))
 ]
 
 ################################################################################################
 # execute each model
 if __name__ == '__main__':
-    analysis.run_pipelines(pipeline_configs, devices=cuda_devices)
-    results = analysis.collect_results(work_dir)
+    pipelines.run(pipeline_configs, devices=defaults.cuda_devices)
+    results = pipelines.collect_results(work_dir)
     print(*results, sep='\n')
 
 

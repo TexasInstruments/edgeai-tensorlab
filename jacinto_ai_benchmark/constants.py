@@ -1,0 +1,2 @@
+NCHW = 'NCHW'
+NHWC = 'NHWC'

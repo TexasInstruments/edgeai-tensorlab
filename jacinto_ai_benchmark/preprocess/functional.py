@@ -34,7 +34,7 @@ def _is_numpy_image(img: Any) -> bool:
     return img.ndim in {2, 3}
 
 
-def to_numpy_tensor(img):
+def to_numpy_tensor(img, data_layout):
     """Convert a ``PIL Image`` to a tensor of the same type.
 
     See ``AsTensor`` for more details.
@@ -45,6 +45,7 @@ def to_numpy_tensor(img):
     Returns:
         Tensor: Converted image.
     """
+    assert data_layout in ('NCHW', 'NHWC'), f'invalid data_layout {data_layout}'
     if F_pil._is_pil_image(img):
         # handle PIL Image
         img = np.asarray(img)
@@ -52,20 +53,22 @@ def to_numpy_tensor(img):
     if img.ndim == 2:
         img = img[:, :, None]
     #
-    # put it from HWC to CHW format
-    img = img.transpose((2, 0, 1))
+    if data_layout == 'NCHW':
+        # put it from HWC to CHW format
+        img = img.transpose((2, 0, 1))
+    #
     return img
 
 
-def to_numpy_tensor_4d(img):
-    img = to_numpy_tensor(img)
+def to_numpy_tensor_4d(img, data_layout):
+    img = to_numpy_tensor(img, data_layout)
     if img.ndim == 3:
         img = img[None, :, :, :]
     #
     return img
 
 
-def normalize(tensor, mean, std, inplace=False):
+def normalize(tensor, mean, std, data_layout, inplace):
     """Normalize a tensor image with mean and standard deviation.
 
     .. note::
@@ -77,37 +80,21 @@ def normalize(tensor, mean, std, inplace=False):
         tensor (Tensor): Tensor image of size (C, H, W) to be normalized.
         mean (sequence): Sequence of means for each channel.
         std (sequence): Sequence of standard deviations for each channel.
+        data_layout (str): 'NCHW' or 'NHCW'
         inplace(bool,optional): Bool to make this operation inplace.
 
     Returns:
         Tensor: Normalized Tensor image.
     """
-
-    if not inplace:
-        tensor = copy.deepcopy(tensor)
-
-    mean = [mean] if isinstance(mean, numbers.Number) else mean
-    std = [std] if isinstance(std, numbers.Number) else std
-
-    mean = np.array(mean, dtype=np.float32)
-    std = np.array(std, dtype=np.float32)
     if (std == 0).any():
         raise ValueError('std evaluated to zero after conversion, leading to division by zero.')
-    if mean.ndim == 1:
-        mean = mean[:, None, None]
     #
-    if std.ndim == 1:
-        std = std[:, None, None]
-    #
-    if tensor.ndim < std.ndim:
-        mean = mean[None, :, None, None]
-        scale = std[None, :, None, None]
-    #
-    tensor = (tensor - mean) / (std)
+    mean, std = _normalize_pre(tensor, mean, std, data_layout, inplace)
+    tensor = (tensor - mean) / std
     return tensor
 
 
-def normalize_mean_scale(tensor, mean, scale, inplace=False):
+def normalize_mean_scale(tensor, mean, scale, data_layout, inplace):
     """Normalize a tensor image with mean and standard deviation.
 
     .. note::
@@ -119,31 +106,39 @@ def normalize_mean_scale(tensor, mean, scale, inplace=False):
         tensor (Tensor): Tensor image of size (C, H, W) to be normalized.
         mean (sequence): Sequence of means for each channel.
         scale (sequence): Sequence of scaling values for each channel.
+        data_layout (str): 'NCHW' or 'NHCW'
         inplace(bool,optional): Bool to make this operation inplace.
 
     Returns:
         Tensor: Normalized Tensor image.
     """
 
-    if not inplace:
-        tensor = copy.deepcopy(tensor)
-
-    mean = [mean] if isinstance(mean, numbers.Number) else mean
-    scale = [scale] if isinstance(scale, numbers.Number) else scale
-    mean = np.array(mean, dtype=np.float32)
-    scale = np.array(scale, dtype=np.float32)
-    if mean.ndim == 1:
-        mean = mean[:, None, None]
-    #
-    if scale.ndim == 1:
-        scale = scale[:, None, None]
-    #
-    if tensor.ndim < scale.ndim:
-        mean = mean[None, :, None, None]
-        scale = scale[None, :, None, None]
-    #
+    mean, scale = _normalize_pre(tensor, mean, scale, data_layout, inplace)
     tensor = (tensor - mean) * scale
     return tensor
+
+
+def _normalize_pre(tensor, mean, s, data_layout, inplace=False):
+    assert data_layout in ('NCHW', 'NHWC'), f'invalid data_layout {data_layout}'
+    if not inplace:
+        tensor = copy.deepcopy(tensor)
+    #
+    mean = [mean] if isinstance(mean, numbers.Number) else mean
+    s = [s] if isinstance(s, numbers.Number) else s
+    mean = np.array(mean, dtype=np.float32)
+    s = np.array(s, dtype=np.float32)
+    if data_layout == 'NCHW':
+        mean = mean[:, None, None] if mean.ndim == 1 else mean
+        s = s[:, None, None] if s.ndim == 1 else s
+    else:
+        mean = mean[None, None, :] if mean.ndim == 1 else mean
+        s = s[None, None, :] if s.ndim == 1 else s
+    #
+    if tensor.ndim < s.ndim:
+        mean = mean[None, ...]
+        s = s[None, ...]
+    #
+    return mean, s
 
 
 def resize(img, size, interpolation: int = Image.BILINEAR):

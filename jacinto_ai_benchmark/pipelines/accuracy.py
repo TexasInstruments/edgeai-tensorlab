@@ -49,11 +49,18 @@ def infer_frames(session, pipeline_config):
 
 def evaluate(session, pipeline_config, output_list):
     # if metric is not given use input_dataset
-    metric = pipeline_config.get('metric',None) or pipeline_config['input_dataset']
+    if 'metric' in pipeline_config and callable(pipeline_config['metric']):
+        metric = pipeline_config['metric']
+        metric_options = {}
+    else:
+        metric = pipeline_config['input_dataset']
+        metric_options = pipeline_config.get('metric', {})
+    #
     metric = utils.as_tuple(metric)
+    metric_options = utils.as_tuple(metric_options)
     output_dict = {}
-    for m in metric:
-        output = m(output_list)
+    for m, m_options in zip(metric, metric_options):
+        output = m(output_list, **m_options)
         output_dict.update(output)
     #
     return output_dict

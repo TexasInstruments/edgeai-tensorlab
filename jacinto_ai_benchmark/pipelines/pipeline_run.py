@@ -4,10 +4,10 @@ import math
 import copy
 
 from .. import utils
-from . import pipeline_core
+from . import accuracy
 
 
-def run_pipelines(pipeline_configs, perfsim=True, devices=None):
+def run(pipeline_configs, perfsim=True, devices=None):
     if devices is not None:
         _run_pipelines_parallel(pipeline_configs, perfsim, devices)
     else:
@@ -77,7 +77,12 @@ def _run_pipeline_with_log(pipeline_config, perfsim=True, device=None):
 
 def run_pipeline(pipeline_config):
     print('pipeline_config=', pipeline_config)
-    results = pipeline_core.run(pipeline_config)
+    pipeline_type = pipeline_config['type']
+    if pipeline_type == 'accuracy':
+        results = accuracy.run(pipeline_config)
+    else:
+        assert False, f'unknown pipeline: {pipeline_type}'
+    #
     return results
 
 

@@ -11,10 +11,8 @@ from ..import utils
 class TVMDLRSession(BaseRTSession):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.kwargs['data_layout'] = self.kwargs.get('data_layout', 'NCHW')
-        self.kwargs['tidl_calibration_options'] = self._get_calibration_options(
-            **self.kwargs['tidl_calibration_options'])
-        self.dlr_model = None
+        self._set_default_options()
+        self.interpreter = None
 
     def import_model(self, calib_data):
         super().import_model(calib_data)
@@ -37,7 +35,7 @@ class TVMDLRSession(BaseRTSession):
             version=self.kwargs['version'],
             num_tidl_subgraphs=self.kwargs['num_tidl_subgraphs'],
             data_layout=self.kwargs['data_layout'],
-            artifacts_folder=self.artifacts_folder,
+            artifacts_folder=self.kwargs['artifacts_folder'],
             tidl_tools_path=os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools'),
             tidl_tensor_bits=self.kwargs['tidl_tensor_bits'],
             tidl_calibration_options=self.kwargs['tidl_calibration_options'])
@@ -56,9 +54,9 @@ class TVMDLRSession(BaseRTSession):
         tidl.remove_tidl_params(params)
 
         # save the deployables
-        path_lib = os.path.join(self.artifacts_folder, 'deploy_lib.so')
-        path_graph = os.path.join(self.artifacts_folder, 'deploy_graph.json')
-        path_params = os.path.join(self.artifacts_folder, 'deploy_params.params')
+        path_lib = os.path.join(self.kwargs['artifacts_folder'], 'deploy_lib.so')
+        path_graph = os.path.join(self.kwargs['artifacts_folder'], 'deploy_graph.json')
+        path_params = os.path.join(self.kwargs['artifacts_folder'], 'deploy_params.params')
         lib.export_library(path_lib, **cross_cc_args)
         with open(path_graph, "w") as fo:
             fo.write(graph)
@@ -66,7 +64,7 @@ class TVMDLRSession(BaseRTSession):
             fo.write(relay.save_param_dict(params))
 
         # create inference model
-        self.dlr_model = DLRModel(self.artifacts_folder, 'cpu')
+        self.interpreter = DLRModel(self.kwargs['artifacts_folder'], 'cpu')
         self.import_done = True
 
     def infer_frame(self, input):
@@ -75,21 +73,14 @@ class TVMDLRSession(BaseRTSession):
         input_keys = list(input_shape.keys())
         in_data = utils.as_tuple(input)
         input_dict = {d_name:d for d_name, d in zip(input_keys,in_data)}
-        output = self.dlr_model.run(input_dict)
+        output = self.interpreter.run(input_dict)
         return output
 
-    def __del__(self):
-        for t in self.tempfiles:
-            if os.path.exists(t):
-                shutil.rmtree(t)
-
-    def _get_calibration_options(self, **kwargs_calib):
-        kwargs_calib['activation_range'] = kwargs_calib.get('activation_range', 'on')
-        kwargs_calib['weight_range'] = kwargs_calib.get('weight_range', 'on')
-        kwargs_calib['bias_calibration'] = kwargs_calib.get('bias_calibration', 'on')
-        kwargs_calib['per_channel_weight'] = kwargs_calib.get('per_channel_weight', 'off')
-        kwargs_calib['iterations'] = kwargs_calib.get('iterations', 50)
-        return kwargs_calib
+    def _set_default_options(self):
+        # calibration options
+        self.kwargs['data_layout'] = self.kwargs.get('data_layout', 'NCHW')
+        given_tidl_calibration_options = self.kwargs.get('tidl_calibration_options', {})
+        self.kwargs["tidl_calibration_options"] = self.kwargs.get("tidl_calibration_options", {})
 
 
 if __name__ == '__main__':

@@ -17,11 +17,11 @@ _pil_interpolation_to_str = {
 }
 
 class ImageRead(object):
-    def __init__(self, backend='pillow'):
+    def __init__(self, backend='pil'):
         self.backend = backend
 
     def __call__(self, path):
-        if self.backend == 'pillow':
+        if self.backend == 'pil':
             img = PIL.Image.open(path)
         elif self.backend == 'opencv':
             img = cv2.imread(path)
@@ -48,9 +48,10 @@ class ImageNorm(object):
 
     """
 
-    def __init__(self, mean, std, inplace=False):
+    def __init__(self, mean, std, data_layout='NCHW', inplace=False):
         self.mean = mean
         self.std = std
+        self.data_layout = data_layout
         self.inplace = inplace
 
     def __call__(self, tensor):
@@ -62,10 +63,10 @@ class ImageNorm(object):
             Tensor: Normalized Tensor image.
         """
         if isinstance(tensor, (list,tuple)):
-            tensor = [F.normalize(t, self.mean, self.std) for t in tensor]
+            tensor = [F.normalize(t, self.mean, self.std, self.data_layout, self.inplace) for t in tensor]
         else:
-            tensor = F.normalize(tensor, self.mean, self.std)
-
+            tensor = F.normalize(tensor, self.mean, self.std, self.data_layout, self.inplace)
+        #
         return tensor
 
     def __repr__(self):
@@ -88,9 +89,10 @@ class ImageNormMeanScale(object):
 
     """
 
-    def __init__(self, mean, scale, inplace=False):
+    def __init__(self, mean, scale, data_layout='NCHW', inplace=False):
         self.mean = mean
         self.scale = scale
+        self.data_layout = data_layout
         self.inplace = inplace
 
     def __call__(self, tensor):
@@ -102,10 +104,10 @@ class ImageNormMeanScale(object):
             Tensor: Normalized Tensor image.
         """
         if isinstance(tensor, (list,tuple)):
-            tensor = [F.normalize_mean_scale(t, self.mean, self.scale) for t in tensor]
+            tensor = [F.normalize_mean_scale(t, self.mean, self.scale, self.data_layout, self.inplace) for t in tensor]
         else:
-            tensor = F.normalize_mean_scale(tensor, self.mean, self.scale)
-
+            tensor = F.normalize_mean_scale(tensor, self.mean, self.scale, self.data_layout, self.inplace)
+        #
         return tensor
 
     def __repr__(self):
@@ -197,6 +199,9 @@ class ImageToNumpyTensor(object):
     Converts a PIL Image or numpy array (H x W x C) to a numpy Tensor of shape (C x H x W).
     """
 
+    def __init__(self, data_layout='NCHW'):
+        self.data_layout = data_layout
+
     def __call__(self, pic):
         """
         Args:
@@ -205,7 +210,7 @@ class ImageToNumpyTensor(object):
         Returns:
             Tensor: Converted image.
         """
-        return F.to_numpy_tensor(pic)
+        return F.to_numpy_tensor(pic, self.data_layout)
 
     def __repr__(self):
         return self.__class__.__name__ + '()'
@@ -217,6 +222,9 @@ class ImageToNumpyTensor4D(object):
     Converts a PIL Image or numpy array (H x W x C) to a numpy Tensor of shape (C x H x W).
     """
 
+    def __init__(self, data_layout='NCHW'):
+        self.data_layout = data_layout
+
     def __call__(self, pic):
         """
         Args:
@@ -225,7 +233,7 @@ class ImageToNumpyTensor4D(object):
         Returns:
             Tensor: Converted image.
         """
-        return F.to_numpy_tensor_4d(pic)
+        return F.to_numpy_tensor_4d(pic, self.data_layout)
 
     def __repr__(self):
         return self.__class__.__name__ + '()'

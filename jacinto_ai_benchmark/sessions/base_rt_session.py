@@ -6,21 +6,26 @@ from .. import utils
 
 class BaseRTSession():
     def __init__(self, **kwargs):
-        self.kwargs = kwargs.copy()
+        self.kwargs = kwargs
+        self.import_done = False
+        self.kwargs['work_dir'] = self._get_or_make_work_dir()
+        # options related to the underlying runtime
         self.kwargs['platform'] = self.kwargs.get('platform', 'J7')
         self.kwargs['version'] = self.kwargs.get('version', (7,0))
         self.kwargs['tidl_tensor_bits'] = self.kwargs.get('tidl_tensor_bits', 32)
         self.kwargs['num_tidl_subgraphs'] = self.kwargs.get('num_tidl_subgraphs', 16)
-        self.kwargs['work_dir'] = self._get_or_make_work_dir()
-        self.artifacts_folder = os.path.join(self.kwargs['work_dir'], 'artifacts')
-        self.kwargs['model_path'] = os.path.normpath(self.kwargs.get('model_path',None))
+        artifacts_folder_default = os.path.join(self.kwargs['work_dir'], 'artifacts')
+        self.kwargs['artifacts_folder'] = self.kwargs.get('artifacts_folder', artifacts_folder_default)
+        self.kwargs['model_path'] = os.path.abspath(self.kwargs.get('model_path',None))
         self.kwargs['input_shape'] = self.kwargs.get('input_shape', None)
-        self.import_done = False
 
     def import_model(self, calib_data):
         os.makedirs(self.kwargs['work_dir'], exist_ok=True)
-        self.kwargs['model_path'] = utils.download_model(self.kwargs['model_path'],
-            root=os.path.join(self.kwargs['work_dir'],'model'))
+        os.makedirs(self.kwargs['artifacts_folder'], exist_ok=True)
+        model_root_default = os.path.join(self.kwargs['work_dir'], 'model')
+        model_path = utils.download_model(self.kwargs['model_path'], root=model_root_default)
+        model_path = os.path.abspath(model_path)
+        self.kwargs['model_path'] = model_path
 
     def __call__(self, input):
         return self.infer_frame(input)
@@ -60,12 +65,13 @@ class BaseRTSession():
             root_dir = os.path.join(temp_dir, date)
             self.tempfiles.append(root_dir)
         #
-        self.kwargs['work_dir'] = os.path.normpath(self.kwargs['work_dir'])
+        self.kwargs['work_dir'] = os.path.abspath(self.kwargs['work_dir'])
         model_name = self.kwargs['model_path']
         model_name = os.path.splitext(model_name)[0]
         model_name = '_'.join(model_name.split(os.sep)[-dir_tree_depth:])
         work_dir = os.path.join(self.kwargs['work_dir'], model_name)
         return work_dir
+
 
 if __name__ == '__main__':
     import_model = BaseRTSession()
