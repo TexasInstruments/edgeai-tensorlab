@@ -3,6 +3,9 @@
 ##################################################################
 # setup the environment
 
+# make sure current directory is visible for python import
+export PYTHONPATH=:${PYTHONPATH}
+
 #set LD_LIBRARY_PATHS
 echo "Setting TIDL_BASE_PATH"
 export TIDL_BASE_PATH='./dependencies/c7x-mma-tidl'

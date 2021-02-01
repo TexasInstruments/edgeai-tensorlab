@@ -1,9 +1,14 @@
 import os
 from jacinto_ai_benchmark import *
+import default_settings as defaults
 
 # the cwd must be the root of the respository
 if os.path.split(os.getcwd())[-1] == 'scripts':
     os.chdir('../')
+#
+# make sure current directory is visible for python import
+if not os.environ['PYTHONPATH'].startswith(':'):
+    os.environ['PYTHONPATH'] = ':' + os.environ['PYTHONPATH']
 #
 
 work_dir = os.path.join('./work_dirs', os.path.splitext(os.path.basename(__file__))[0])
@@ -29,26 +34,21 @@ pipeline_cfg = dict(
     postprocess=postprocess_classification
 )
 
-session_cfg = dict(work_dir=work_dir,
-                   tidl_tensor_bits=defaults.tidl_tensor_bits)
-
 ################################################################################################
 # configs for each model pipeline
 
 pipeline_configs = [
-    utils.dict_update(pipeline_cfg,  # mlperf_mobilenet_v1_1.0_224 71.646% top-1 accuracy
-        preprocess=preprocess_tflite_rt,
-        session=sessions.TFLiteRTSession(**session_cfg,
-             model_path=f'{defaults.modelzoo_path}/mlperf/edge/mlperf_mobilenet_v1_1.0_224.tflite',
-             tidl_calibration_options=defaults.tidl_calibration_options_tflite,
-             input_shape={'input': (1, 224, 224, 3)}),
-        metric=dict(label_offset_pred=-1)),
     utils.dict_update(pipeline_cfg,  # mobilenet_v2_2019-12-24_15-32-12 72.13% top-1 accuracy
         preprocess=preprocess_tvm_dlr,
-        session=sessions.TVMDLRSession(**session_cfg,
+        session=sessions.TVMDLRSession(**defaults.session_tvm_dlr_cfg, work_dir=work_dir,
             model_path=f'./dependencies/examples/models/mobilenet_v2_2019-12-24_15-32-12_opset9.onnx',
-            tidl_calibration_options=defaults.tidl_calibration_options_tvm,
-            input_shape = {'input.1':(1, 3, 224, 224)}))
+            input_shape={'input.1': (1, 3, 224, 224)})),
+    utils.dict_update(pipeline_cfg,  # mlperf_mobilenet_v1_1.0_224 71.646% top-1 accuracy
+        preprocess=preprocess_tflite_rt,
+        session=sessions.TFLiteRTSession(**defaults.session_tflite_rt_cfg, work_dir=work_dir,
+            model_path=f'{defaults.modelzoo_path}/mlperf/edge/mlperf_mobilenet_v1_1.0_224.tflite',
+            input_shape={'input': (1, 224, 224, 3)}),
+        metric=dict(label_offset_pred=-1))
 ]
 
 ################################################################################################

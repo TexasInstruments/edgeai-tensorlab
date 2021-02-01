@@ -6,6 +6,9 @@ def run(pipeline_config):
     import_model(session, pipeline_config)
     output_list = infer_frames(session, pipeline_config)
     result = evaluate(session, pipeline_config, output_list)
+    # clear the memory occupied by session
+    pipeline_config['session'] = None
+    del session
     return result
 
 
