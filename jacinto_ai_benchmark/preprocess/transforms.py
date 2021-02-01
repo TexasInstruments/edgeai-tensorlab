@@ -18,15 +18,14 @@ _pil_interpolation_to_str = {
 
 class ImageRead(object):
     def __init__(self, backend='pil'):
+        assert backend in ('pil', 'cv2'), f'backend must be one of pil or cv2. got {backend}'
         self.backend = backend
 
     def __call__(self, path):
         if self.backend == 'pil':
             img = PIL.Image.open(path)
-        elif self.backend == 'opencv':
+        elif self.backend == 'cv2':
             img = cv2.imread(path)
-        else:
-            assert False, f'image backend is not supported: {self.backend}'
         #
         return img
 
@@ -132,14 +131,11 @@ class ImageResize():
             and ``PIL.Image.BICUBIC`` are supported.
     """
 
-    def __init__(self, size, interpolation=Image.BILINEAR):
+    def __init__(self, size, *args, **kwargs):
         super().__init__()
-        if not isinstance(size, (int, Sequence)):
-            raise TypeError("Size should be int or sequence. Got {}".format(type(size)))
-        if isinstance(size, Sequence) and len(size) not in (1, 2):
-            raise ValueError("If size is a sequence, it should have 1 or 2 values")
         self.size = size
-        self.interpolation = interpolation
+        self.args = args
+        self.kwargs = kwargs
 
     def __call__(self, img):
         """
@@ -149,11 +145,10 @@ class ImageResize():
         Returns:
             PIL Image or Tensor: Rescaled image.
         """
-        return F.resize(img, self.size, self.interpolation)
+        return F.resize(img, self.size, *self.args, **self.kwargs)
 
     def __repr__(self):
-        interpolate_str = _pil_interpolation_to_str[self.interpolation]
-        return self.__class__.__name__ + '(size={0}, interpolation={1})'.format(self.size, interpolate_str)
+        return self.__class__.__name__ + f'{self.size}, {self.args}, {self.kwargs}'
 
 
 class ImageCenterCrop():
@@ -199,8 +194,9 @@ class ImageToNumpyTensor(object):
     Converts a PIL Image or numpy array (H x W x C) to a numpy Tensor of shape (C x H x W).
     """
 
-    def __init__(self, data_layout='NCHW'):
+    def __init__(self, data_layout='NCHW', reverse_channels=False):
         self.data_layout = data_layout
+        self.reverse_channels = reverse_channels
 
     def __call__(self, pic):
         """
@@ -210,7 +206,7 @@ class ImageToNumpyTensor(object):
         Returns:
             Tensor: Converted image.
         """
-        return F.to_numpy_tensor(pic, self.data_layout)
+        return F.to_numpy_tensor(pic, self.data_layout, self.reverse_channels)
 
     def __repr__(self):
         return self.__class__.__name__ + '()'
@@ -222,8 +218,9 @@ class ImageToNumpyTensor4D(object):
     Converts a PIL Image or numpy array (H x W x C) to a numpy Tensor of shape (C x H x W).
     """
 
-    def __init__(self, data_layout='NCHW'):
+    def __init__(self, data_layout='NCHW', reverse_channels=False):
         self.data_layout = data_layout
+        self.reverse_channels = reverse_channels
 
     def __call__(self, pic):
         """
@@ -233,7 +230,7 @@ class ImageToNumpyTensor4D(object):
         Returns:
             Tensor: Converted image.
         """
-        return F.to_numpy_tensor_4d(pic, self.data_layout)
+        return F.to_numpy_tensor_4d(pic, self.data_layout, self.reverse_channels)
 
     def __repr__(self):
         return self.__class__.__name__ + '()'

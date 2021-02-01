@@ -16,14 +16,17 @@ work_dir = os.path.join('./work_dirs', os.path.splitext(os.path.basename(__file_
 ################################################################################################
 # setup parameters for each model
 
-preprocess_tflite_rt = (preprocess.ImageRead(), preprocess.ImageResize(256),
-                preprocess.ImageCenterCrop(224), preprocess.ImageToNumpyTensor4D(data_layout=constants.NHWC),
-                preprocess.ImageNormMeanScale(mean=defaults.input_mean_127p5, scale=defaults.input_scale_127p5,
-                                              data_layout=constants.NHWC))
+preprocess_tvm_dlr = (preprocess.ImageRead(backend='pil'),
+                      preprocess.ImageResize(256),
+                      preprocess.ImageCenterCrop(224),
+                      preprocess.ImageToNumpyTensor4D(),
+                      preprocess.ImageNormMeanScale(mean=defaults.input_mean_imagenet, scale=defaults.input_scale_imagenet))
 
-preprocess_tvm_dlr = (preprocess.ImageRead(), preprocess.ImageResize(256),
-                preprocess.ImageCenterCrop(224), preprocess.ImageToNumpyTensor4D(),
-                preprocess.ImageNormMeanScale(mean=defaults.input_mean_imagenet, scale=defaults.input_scale_imagenet))
+preprocess_tflite_rt = (preprocess.ImageRead(backend='pil'),
+                        preprocess.ImageResize(256),
+                        preprocess.ImageCenterCrop(224),
+                        preprocess.ImageToNumpyTensor4D(data_layout=constants.NHWC),
+                        preprocess.ImageNormMeanScale(mean=defaults.input_mean_127p5, scale=defaults.input_scale_127p5, data_layout=constants.NHWC))
 
 postprocess_classification = (postprocess.IndexArray(), postprocess.ArgMax())
 

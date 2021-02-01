@@ -140,7 +140,7 @@ def crop(img: Image.Image, top: int, left: int, height: int, width: int) -> Imag
     return img.crop((left, top, left + width, top + height))
 
 
-def resize(img, size, interpolation=Image.BILINEAR):
+def resize(img, size, resample=Image.BILINEAR):
     r"""Resize the input PIL Image to the given size.
 
     Args:
@@ -157,6 +157,7 @@ def resize(img, size, interpolation=Image.BILINEAR):
     Returns:
         PIL Image: Resized image.
     """
+    # resample = Image.BILINEAR if resample is None else resample
     if not _is_pil_image(img):
         raise TypeError('img should be PIL Image. Got {}'.format(type(img)))
     if not (isinstance(size, int) or (isinstance(size, Sequence) and len(size) in (1, 2))):
@@ -171,13 +172,13 @@ def resize(img, size, interpolation=Image.BILINEAR):
         if w < h:
             ow = size
             oh = int(size * h / w)
-            return img.resize((ow, oh), interpolation)
+            return img.resize((ow, oh), resample=resample)
         else:
             oh = size
             ow = int(size * w / h)
-            return img.resize((ow, oh), interpolation)
+            return img.resize((ow, oh), resample=resample)
     else:
-        return img.resize(size[::-1], interpolation)
+        return img.resize(size[::-1], resample=resample)
 
 
 def _parse_fill(fill, img, min_pil_version, name="fillcolor"):

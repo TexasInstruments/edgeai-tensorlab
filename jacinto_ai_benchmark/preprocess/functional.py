@@ -13,6 +13,7 @@ except ImportError:
     accimage = None
 
 from . import functional_pil as F_pil
+from . import functional_cv2 as F_cv2
 
 
 _is_pil_image = F_pil._is_pil_image
@@ -22,8 +23,10 @@ _parse_fill = F_pil._parse_fill
 def _get_image_size(img):
     """Returns image sizea as (w, h)
     """
+    if _is_pil_image(img):
+        return F_pil._get_image_size(img)
 
-    return F_pil._get_image_size(img)
+    return (img.shape[1], img.shape[0])
 
 
 def _is_numpy(img: Any) -> bool:
@@ -34,13 +37,15 @@ def _is_numpy_image(img: Any) -> bool:
     return img.ndim in {2, 3}
 
 
-def to_numpy_tensor(img, data_layout):
+def to_numpy_tensor(img, data_layout, reverse_channels):
     """Convert a ``PIL Image`` to a tensor of the same type.
 
     See ``AsTensor`` for more details.
 
     Args:
         img (PIL Image): Image to be converted to tensor.
+        data_layout (str): NCHW or NHWC
+        reverse_channels (bool): True or False
 
     Returns:
         Tensor: Converted image.
@@ -53,6 +58,9 @@ def to_numpy_tensor(img, data_layout):
     if img.ndim == 2:
         img = img[:, :, None]
     #
+    if reverse_channels:
+        img = img[:,:,::-1]
+    #
     if data_layout == 'NCHW':
         # put it from HWC to CHW format
         img = img.transpose((2, 0, 1))
@@ -60,8 +68,8 @@ def to_numpy_tensor(img, data_layout):
     return img
 
 
-def to_numpy_tensor_4d(img, data_layout):
-    img = to_numpy_tensor(img, data_layout)
+def to_numpy_tensor_4d(img, data_layout, reverse_channels):
+    img = to_numpy_tensor(img, data_layout, reverse_channels)
     if img.ndim == 3:
         img = img[None, :, :, :]
     #
@@ -134,14 +142,16 @@ def _normalize_pre(tensor, mean, s, data_layout, inplace=False):
         mean = mean[None, None, :] if mean.ndim == 1 else mean
         s = s[None, None, :] if s.ndim == 1 else s
     #
-    if tensor.ndim < s.ndim:
+    if mean.ndim < tensor.ndim:
         mean = mean[None, ...]
+    #
+    if s.ndim < tensor.ndim:
         s = s[None, ...]
     #
     return mean, s
 
 
-def resize(img, size, interpolation: int = Image.BILINEAR):
+def resize(img, size, *args, **kwargs):
     r"""Resize the input image to the given size.
     The image can be a PIL Image or a torch Tensor, in which case it is expected
     to have [..., H, W] shape, where ... means an arbitrary number of leading dimensions
@@ -163,9 +173,9 @@ def resize(img, size, interpolation: int = Image.BILINEAR):
         PIL Image or Tensor: Resized image.
     """
     if _is_pil_image(img):
-        return F_pil.resize(img, size=size, interpolation=interpolation)
+        return F_pil.resize(img, size, *args, **kwargs)
 
-    return F_np.resize(img, size=size, interpolation=interpolation)
+    return F_cv2.resize(img, size, *args, **kwargs)
 
 
 def pad(img, padding, fill = 0, padding_mode = "constant"):
@@ -207,7 +217,7 @@ def pad(img, padding, fill = 0, padding_mode = "constant"):
     if _is_pil_image(img):
         return F_pil.pad(img, padding=padding, fill=fill, padding_mode=padding_mode)
 
-    return F_np.pad(img, padding=padding, fill=fill, padding_mode=padding_mode)
+    return F_cv2.pad(img, padding=padding, fill=fill, padding_mode=padding_mode)
 
 
 def crop(img, top, left, height, width):
@@ -230,7 +240,7 @@ def crop(img, top, left, height, width):
     if _is_pil_image(img):
         return F_pil.crop(img, top, left, height, width)
 
-    return F_np.crop(img, top, left, height, width)
+    return F_cv2.crop(img, top, left, height, width)
 
 
 def center_crop(img, output_size):
