@@ -16,6 +16,10 @@ class TVMDLRSession(BaseRTSession):
 
     def import_model(self, calib_data):
         super().import_model(calib_data)
+
+        tvm_dlr_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tvm-dlr')
+        os.chdir(tvm_dlr_folder)
+
         model_path = self.kwargs['model_path']
         input_shape = self.kwargs['input_shape']
         input_keys = list(input_shape.keys())
@@ -65,6 +69,7 @@ class TVMDLRSession(BaseRTSession):
 
         # create inference model
         self.interpreter = DLRModel(self.kwargs['artifacts_folder'], 'cpu')
+        os.chdir(self.cwd)
         self.import_done = True
 
     def infer_frame(self, input):

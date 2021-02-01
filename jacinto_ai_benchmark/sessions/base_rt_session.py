@@ -26,6 +26,7 @@ class BaseRTSession():
         model_path = utils.download_model(self.kwargs['model_path'], root=model_root_default)
         model_path = os.path.abspath(model_path)
         self.kwargs['model_path'] = model_path
+        self.cwd = os.getcwd()
 
     def __call__(self, input):
         return self.infer_frame(input)

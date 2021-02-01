@@ -12,6 +12,10 @@ class TFLiteRTSession(BaseRTSession):
         
     def import_model(self, calib_data):
         super().import_model(calib_data)
+
+        tflite_rt_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tflrt')
+        os.chdir(tflite_rt_folder)
+
         self.interpreter = self._create_interpreter(is_import=True)
 
         # check if the shape of data being proved matches with what model expects
@@ -35,6 +39,7 @@ class TFLiteRTSession(BaseRTSession):
 
         # now create the interpreter for inference
         self.interpreter = self._create_interpreter(is_import=False)
+        os.chdir(self.cwd)
         self.import_done = True
 
     def infer_frame(self, input):
