@@ -95,35 +95,35 @@ pipeline_configs = [
     utils.dict_update(pipeline_cfg, preprocess=defaults.get_preproc_tvm_dlr(),
         session=sessions.TVMDLRSession(**defaults.session_tvm_dlr_cfg, work_dir=work_dir,
         model_path=f'{defaults.modelzoo_path}/edge/classification/imagenet1k/tf_tpu/efficientnet-lite0.link',
-        input_shape={'input.1': (1, 3, 224, 224)}, outDataNamesList='efficientnet-lite0/model/head/dense/BiasAdd')),
+        input_shape={'images': (1, 3, 224, 224)}, outDataNamesList='efficientnet-lite0/model/head/dense/BiasAdd')),
     # tensorflow/tpu: classification efficinetnet-lite2_260x260 expected_metric: 77.6% top-1 accuracy
-    utils.dict_update(pipeline_cfg, preprocess=defaults.get_preproc_tvm_dlr(260),
+    utils.dict_update(pipeline_cfg, preprocess=defaults.get_preproc_tvm_dlr(297, 260),
         session=sessions.TVMDLRSession(**defaults.session_tvm_dlr_cfg, work_dir=work_dir,
         model_path=f'{defaults.modelzoo_path}/edge/classification/imagenet1k/tf_tpu/efficientnet-lite2.link',
-        input_shape={'input.1': (1, 3, 224, 224)}, outDataNamesList='efficientnet-lite2/model/head/dense/BiasAdd')),
+        input_shape={'images': (1, 3, 224, 260)}, outDataNamesList='efficientnet-lite2/model/head/dense/BiasAdd')),
     # tensorflow/tpu: classification efficinetnet-lite4_300x300 expected_metric: 81.5% top-1 accuracy
-    utils.dict_update(pipeline_cfg, preprocess=defaults.get_preproc_tvm_dlr(300),
+    utils.dict_update(pipeline_cfg, preprocess=defaults.get_preproc_tvm_dlr(343, 300),
         session=sessions.TVMDLRSession(**defaults.session_tvm_dlr_cfg, work_dir=work_dir,
         model_path=f'{defaults.modelzoo_path}/edge/classification/imagenet1k/tf_tpu/efficientnet-lite4.link',
-        input_shape={'input.1': (1, 3, 224, 224)}, outDataNamesList='efficientnet-lite4/model/head/dense/BiasAdd')),
+        input_shape={'images': (1, 3, 224, 300)}, outDataNamesList='efficientnet-lite4/model/head/dense/BiasAdd')),
     ##################tensorflow models#########################
     # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 70.9% top-1 accuracy
     utils.dict_update(pipeline_cfg, preprocess=defaults.get_preproc_tflite_rt(),
         session=sessions.TFLiteRTSession(**defaults.session_tflite_rt_cfg, work_dir=work_dir,
         model_path=f'{defaults.modelzoo_path}/edge/classification/imagenet1k/tf1_models/mobilenet_v1_float_1.0_224.link',
-        input_shape={'input.1': (1, 3, 224, 224)}, outDataNamesList='MobilenetV1/Logits/Conv2d_1c_1x1/BiasAdd'),
+        input_shape={'input': (1, 3, 224, 224)}, outDataNamesList='MobilenetV1/Logits/Conv2d_1c_1x1/BiasAdd'),
         metric=dict(label_offset_pred=-1)),
     # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 71.9% top-1 accuracy
     utils.dict_update(pipeline_cfg, preprocess=defaults.get_preproc_tflite_rt(),
         session=sessions.TFLiteRTSession(**defaults.session_tflite_rt_cfg, work_dir=work_dir,
         model_path=f'{defaults.modelzoo_path}/edge/classification/imagenet1k/tf1_models/mobilenet_v2_float_1.0_224.link',
-        input_shape={'input.1': (1, 3, 224, 224)}, outDataNamesList='MobilenetV2/Logits/Conv2d_1c_1x1/BiasAdd'),
+        input_shape={'input': (1, 3, 224, 224)}, outDataNamesList='MobilenetV2/Logits/Conv2d_1c_1x1/BiasAdd'),
         metric=dict(label_offset_pred=-1)),
     # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 75.0% top-1 accuracy
     utils.dict_update(pipeline_cfg, preprocess=defaults.get_preproc_tflite_rt(),
         session=sessions.TFLiteRTSession(**defaults.session_tflite_rt_cfg, work_dir=work_dir,
         model_path=f'{defaults.modelzoo_path}/edge/classification/imagenet1k/tf1_models/mobilenet_v2_float_1.4_224.link',
-        input_shape={'input.1': (1, 3, 224, 224)}, outDataNamesList='MobilenetV2/Logits/Conv2d_1c_1x1/BiasAdd'),
+        input_shape={'input': (1, 3, 224, 224)}, outDataNamesList='MobilenetV2/Logits/Conv2d_1c_1x1/BiasAdd'),
         metric=dict(label_offset_pred=-1)),
 ]
 
