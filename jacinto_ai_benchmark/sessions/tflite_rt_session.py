@@ -5,8 +5,8 @@ from .. import utils
 from .base_rt_session import BaseRTSession
 
 class TFLiteRTSession(BaseRTSession):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, session_name='tflite-rt', **kwargs):
+        super().__init__(session_name=session_name, **kwargs)
         self._set_default_options()
         self.interpreter = None
         

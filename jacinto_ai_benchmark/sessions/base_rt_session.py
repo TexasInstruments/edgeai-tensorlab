@@ -70,7 +70,9 @@ class BaseRTSession():
         model_name = self.kwargs['model_path']
         model_name = os.path.splitext(model_name)[0]
         model_name = '_'.join(model_name.split(os.sep)[-dir_tree_depth:])
-        work_dir = os.path.join(self.kwargs['work_dir'], model_name)
+        session_name = self.kwargs['session_name']
+        tidl_tensor_bits = self.kwargs['tidl_tensor_bits']
+        work_dir = os.path.join(self.kwargs['work_dir'], f'{session_name}_{model_name}_{tidl_tensor_bits}bits')
         return work_dir
 
 
