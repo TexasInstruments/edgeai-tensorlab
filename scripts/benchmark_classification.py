@@ -30,7 +30,7 @@ pipeline_configs = [
         preprocess=settings.get_preproc_tvm_dlr(),
         session=sessions.TVMDLRSession(**settings.session_tvm_dlr_cfg, work_dir=work_dir,
             model_path=f'{settings.modelzoo_path}/edge/classification/imagenet1k/pytorch-jacinto-ai-devkit/mobilenet_v1_2019-09-06_17-15-44_opset9.onnx',
-            input_shape={'input.1': (1, 3, 224, 224)})
+            input_shape={'0': (1, 3, 224, 224)})
     ),
     # jai-devkit: classification mobilenetv2_224x224 expected_metric: 72.13% top-1 accuracy
     utils.dict_update(pipeline_cfg,
@@ -44,7 +44,7 @@ pipeline_configs = [
         preprocess=settings.get_preproc_tvm_dlr(),
         session=sessions.TVMDLRSession(**settings.session_tvm_dlr_cfg_qat, work_dir=work_dir,
             model_path=f'{settings.modelzoo_path}/edge/classification/imagenet1k/pytorch-jacinto-ai-devkit/mobilenet_v2_qat-jai_2020-12-13_16-53-07_opset9.onnx',
-            input_shape={'input.1': (1, 3, 224, 224)})
+            input_shape={'x.1': (1, 3, 224, 224)})
     ),
     #################pycls regnetx models#########################
     # pycls: classification regnetx200mf_224x224 expected_metric: 68.9% top-1 accuracy
@@ -95,7 +95,7 @@ pipeline_configs = [
         preprocess=settings.get_preproc_tvm_dlr(),
         session=sessions.TVMDLRSession(**settings.session_tvm_dlr_cfg_qat, work_dir=work_dir,
             model_path=f'{settings.modelzoo_path}/edge/classification/imagenet1k/torchvision/mobilenet_v2_tv_x1_qat-jai_opset9.onnx',
-            input_shape={'input.1': (1, 3, 224, 224)})
+            input_shape={'x.1': (1, 3, 224, 224)})
     ),
     # torchvision: classification resnet18_224x224 expected_metric: 69.76% top-1 accuracy
     utils.dict_update(pipeline_cfg,
