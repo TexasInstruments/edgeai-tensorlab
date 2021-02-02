@@ -59,8 +59,8 @@ def evaluate(session, pipeline_config, output_list):
         metric = pipeline_config['input_dataset']
         metric_options = pipeline_config.get('metric', {})
     #
-    metric = utils.as_tuple(metric)
-    metric_options = utils.as_tuple(metric_options)
+    metric = utils.as_list(metric)
+    metric_options = utils.as_list(metric_options)
     output_dict = {}
     for m, m_options in zip(metric, metric_options):
         output = m(output_list, **m_options)
@@ -71,7 +71,7 @@ def evaluate(session, pipeline_config, output_list):
 
 def _sequential_pipeline(pipeline, data):
     if pipeline is not None:
-        pipeline = utils.as_tuple(pipeline)
+        pipeline = utils.as_list(pipeline)
         for p in pipeline:
             data = p(data)
         #

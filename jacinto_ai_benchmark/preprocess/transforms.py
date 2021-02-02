@@ -26,6 +26,8 @@ class ImageRead(object):
             img = PIL.Image.open(path)
         elif self.backend == 'cv2':
             img = cv2.imread(path)
+            # always return in RGB format
+            img = img[:,:,::-1]
         #
         return img
 
@@ -188,7 +190,7 @@ class ImageCenterCrop():
         return self.__class__.__name__ + '(size={0})'.format(self.size)
 
 
-class ImageToNumpyTensor(object):
+class ImageToNPTensor(object):
     """Convert a ``Image`` to a tensor of the same type.
 
     Converts a PIL Image or numpy array (H x W x C) to a numpy Tensor of shape (C x H x W).
@@ -212,7 +214,7 @@ class ImageToNumpyTensor(object):
         return self.__class__.__name__ + '()'
 
 
-class ImageToNumpyTensor4D(object):
+class ImageToNPTensor4D(object):
     """Convert a ``Image`` to a tensor of the same type.
 
     Converts a PIL Image or numpy array (H x W x C) to a numpy Tensor of shape (C x H x W).
@@ -235,3 +237,29 @@ class ImageToNumpyTensor4D(object):
     def __repr__(self):
         return self.__class__.__name__ + '()'
 
+
+class NPTensor4DChanReverse(object):
+    """Convert a ``Image`` to a tensor of the same type.
+
+    Converts a PIL Image or numpy array (H x W x C) to a numpy Tensor of shape (C x H x W).
+    """
+
+    def __init__(self, data_layout='NCHW'):
+        assert data_layout in ('NCHW', 'NHWC'), f'invalid data_layout {data_layout}'
+        self.data_layout = data_layout
+
+    def __call__(self, pic):
+        """
+        Args:
+            pic (np.ndarray): Image to be converted to tensor.
+
+        Returns:
+            Tensor: Converted tensor.
+        """
+        if self.data_layout == 'NCHW':
+            return pic[:,::-1,...]
+        else:
+            return pic[...,::-1]
+
+    def __repr__(self):
+        return self.__class__.__name__ + '()'

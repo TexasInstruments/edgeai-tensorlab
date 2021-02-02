@@ -4,7 +4,7 @@ import PIL
 from .. import utils
 
 
-class ImageClassification():
+class ImageCls():
     def __init__(self, dest_dir=None, label_offset=0, **kwargs):
         self.kwargs = kwargs
         self.imgs = utils.get_data_list(input=kwargs, dest_dir=dest_dir)

@@ -1,4 +1,4 @@
-from .image_classification import *
+from .image_cls import *
 
 ''' ImageNet Synset description from http://image-net.org
     Citation:
@@ -7,7 +7,7 @@ from .image_classification import *
     Andrej Karpathy, Aditya Khosla, Michael Bernstein, Alexander C. Berg and Li Fei-Fei. (* = equal contribution)
     International Journal of Computer Vision, 2015.
 '''
-class ImageNetClassification(ImageClassification):
+class ImageNetCls(ImageCls):
     class_mapping = {
         "n0144076": "tench, Tinca tinca",
         "n0144353": "goldfish, Carassius auratus",
