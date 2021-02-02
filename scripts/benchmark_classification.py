@@ -99,20 +99,17 @@ pipeline_configs = [
     utils.dict_update(pipeline_cfg, preprocess=settings.get_preproc_tflite_rt(),
         session=sessions.TFLiteRTSession(**settings.session_tflite_rt_cfg, work_dir=work_dir,
         model_path=f'{settings.modelzoo_path}/edge/classification/imagenet1k/tf_tpu/efficientnet-lite0-fp32.tflite',
-        input_shape={'images': (1, 3, 224, 224)}, outDataNamesList='efficientnet-lite0/model/head/dense/BiasAdd'),
-        metric=dict(label_offset_pred=-1)),
+        input_shape={'images': (1, 3, 224, 224)}, outDataNamesList='efficientnet-lite0/model/head/dense/BiasAdd')),
     # tensorflow/tpu: classification efficinetnet-lite2_260x260 expected_metric: 77.6% top-1 accuracy
     utils.dict_update(pipeline_cfg, preprocess=settings.get_preproc_tflite_rt(297, 260),
         session=sessions.TFLiteRTSession(**settings.session_tflite_rt_cfg, work_dir=work_dir,
         model_path=f'{settings.modelzoo_path}/edge/classification/imagenet1k/tf_tpu/efficientnet-lite2-fp32.tflite',
-        input_shape={'images': (1, 3, 224, 260)}, outDataNamesList='efficientnet-lite2/model/head/dense/BiasAdd'),
-        metric=dict(label_offset_pred=-1)),
+        input_shape={'images': (1, 3, 224, 260)}, outDataNamesList='efficientnet-lite2/model/head/dense/BiasAdd')),
     # tensorflow/tpu: classification efficinetnet-lite4_300x300 expected_metric: 81.5% top-1 accuracy
     utils.dict_update(pipeline_cfg, preprocess=settings.get_preproc_tflite_rt(343, 300),
         session=sessions.TFLiteRTSession(**settings.session_tflite_rt_cfg, work_dir=work_dir,
         model_path=f'{settings.modelzoo_path}/edge/classification/imagenet1k/tf_tpu/efficientnet-lite4-fp32.tflite',
-        input_shape={'images': (1, 3, 224, 300)}, outDataNamesList='efficientnet-lite4/model/head/dense/BiasAdd'),
-        metric=dict(label_offset_pred=-1)),
+        input_shape={'images': (1, 3, 224, 300)}, outDataNamesList='efficientnet-lite4/model/head/dense/BiasAdd')),
     # tensorflow/tpu: classification efficientnet-edgetpu-S expected_metric: 77.23% top-1 accuracy
     utils.dict_update(pipeline_cfg, preprocess=settings.get_preproc_tflite_rt(),
         session=sessions.TFLiteRTSession(**settings.session_tflite_rt_cfg, work_dir=work_dir,

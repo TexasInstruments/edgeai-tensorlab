@@ -3,12 +3,12 @@ from jacinto_ai_benchmark.defaults import *
 
 ############################################################
 # common settings
-num_frames = 2000 #1000 #10 #50000
-num_frames_calibration = 25 #100 #10 #100
+num_frames = 10000 #50000
+num_frames_calibration = 100 #10 #100
 bias_calibration_iterations = 50 #10 #50
 modelzoo_path = '../jacinto-ai-modelzoo/models'
 datasets_path = f'./dependencies/datasets'
-cuda_devices = [0,1,2,3] #None
+cuda_devices = [0,1,2,3,0,1,2,3] #None
 tidl_dir = './dependencies/c7x-mma-tidl'
 tidl_tensor_bits = 32 #8 #32
 
