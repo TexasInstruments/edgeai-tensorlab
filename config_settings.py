@@ -2,14 +2,14 @@ from jacinto_ai_benchmark import preprocess, postprocess, constants
 from jacinto_ai_benchmark.defaults import *
 
 ############################################################
-# define a few commonly used defautls here
+# define a few commonly used defaults here
 
-num_frames = 10 #1000 #10 #50000
-num_frames_calibration = 10 #100 #10 #100
+num_frames = 2000 #1000 #10 #50000
+num_frames_calibration = 25 #100 #10 #100
 bias_calibration_iterations = 50 #10 #50
 modelzoo_path = '../jacinto-ai-modelzoo/models'
 datasets_path = f'./dependencies/datasets'
-cuda_devices = None #[0,1,2,3]
+cuda_devices = [0,1,2,3] #None
 tidl_dir = './dependencies/c7x-mma-tidl'
 tidl_tensor_bits = 32 #8 #32
 
