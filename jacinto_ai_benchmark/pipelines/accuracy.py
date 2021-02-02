@@ -1,3 +1,4 @@
+import os
 import progiter
 from .. import utils
 
@@ -15,10 +16,11 @@ def run(pipeline_config):
 def import_model(session, pipeline_config):
     calibration_dataset = pipeline_config['calibration_dataset']
     preprocess = pipeline_config['preprocess']
+    description = os.path.split(session.get_work_dir())[-1]
 
     calib_data = []
     num_frames = len(calibration_dataset)
-    progress_bar = progiter.ProgIter(desc='data reading for calibration', total=num_frames, verbose=1)
+    progress_bar = progiter.ProgIter(desc='data reading for calibration: ' + description, total=num_frames, verbose=1)
     progress_bar.begin()
     for data_index in range(num_frames):
         data = calibration_dataset[data_index]
@@ -26,7 +28,7 @@ def import_model(session, pipeline_config):
         calib_data.append(data)
         progress_bar.step(inc=1)
 
-    print('model import and calibration in progress...')
+    print('model import & calibration: ' + description)
     session.import_model(calib_data)
 
 
@@ -34,10 +36,11 @@ def infer_frames(session, pipeline_config):
     input_dataset = pipeline_config['input_dataset']
     preprocess = pipeline_config['preprocess']
     postprocess = pipeline_config['postprocess']
+    description = os.path.split(session.get_work_dir())[-1]
 
     output_list = []
     num_frames = len(input_dataset)
-    progress_bar = progiter.ProgIter(desc='model inference in progress', total=num_frames, verbose=1)
+    progress_bar = progiter.ProgIter(desc='model inference: ' + description, total=num_frames, verbose=1)
     progress_bar.begin()
     for data_index in range(num_frames):
         data = input_dataset[data_index]
