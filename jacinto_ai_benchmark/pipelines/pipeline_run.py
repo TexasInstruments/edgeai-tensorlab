@@ -28,24 +28,17 @@ def _run_pipelines_parallel(pipeline_configs, perfsim=True, devices=None):
     # get the cwd so that we can continue even if exception occurs
     cwd = os.getcwd()
     num_devices = len(devices)
-    num_configs = len(pipeline_configs)
-    num_sets = math.ceil(num_configs/num_devices)
-    for set_idx in range(num_sets):
-        parallel_exec = utils.Parallel()
-        for device_idx, device in enumerate(devices):
-            model_idx = set_idx*num_devices + device_idx
-            if model_idx < num_configs:
-                os.chdir(cwd)
-                pipeline_config = pipeline_configs[model_idx]
-                # pipeline_config = copy.deepcopy(pipeline_config)
-                run_pipeline_bound_func = functools.partial(_run_pipeline_with_log, pipeline_config,
-                                                                  perfsim, device=device)
-                parallel_exec.queue(run_pipeline_bound_func)
-            #
-        #
-        parallel_exec.start()
-        parallel_exec.wait()
+    parallel_exec = utils.Parallel(len(devices))
+    for model_idx, pipeline_config in enumerate(pipeline_configs):
+        os.chdir(cwd)
+        device = devices[model_idx % num_devices]
+        # pipeline_config = copy.deepcopy(pipeline_config)
+        run_pipeline_bound_func = functools.partial(_run_pipeline_with_log, pipeline_config,
+                                                    perfsim, device=device)
+        parallel_exec.enqueue(run_pipeline_bound_func)
     #
+    parallel_exec.start()
+    parallel_exec.wait()
 
 def _run_pipeline_with_log(pipeline_config, perfsim=True, device=None):
     if device is not None:
