@@ -25,16 +25,20 @@ pipeline_cfg = dict(
 
 pipeline_configs = [
     # mobilenet_v2_2019-12-24_15-32-12 72.13% top-1 accuracy
-    utils.dict_update(pipeline_cfg, preprocess=settings.get_preproc_tvm_dlr(),
+    utils.dict_update(pipeline_cfg,
+        preprocess=settings.get_preproc_tvm_dlr(),
         session=sessions.TVMDLRSession(**settings.session_tvm_dlr_cfg, work_dir=work_dir,
             model_path=f'./dependencies/examples/models/mobilenet_v2_2019-12-24_15-32-12_opset9.onnx',
-            input_shape={'input.1': (1, 3, 224, 224)})),
+            input_shape={'input.1': (1, 3, 224, 224)})
+    ),
     # mlperf_mobilenet_v1_1.0_224 71.646% top-1 accuracy
-    utils.dict_update(pipeline_cfg, preprocess=settings.get_preproc_tflite_rt(),
+    utils.dict_update(pipeline_cfg,
+        preprocess=settings.get_preproc_tflite_rt(),
         session=sessions.TFLiteRTSession(**settings.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{settings.modelzoo_path}/mlperf/edge/mlperf_mobilenet_v1_1.0_224.tflite',
             input_shape={'input': (1, 224, 224, 3)}),
-        metric=dict(label_offset_pred=-1))
+        metric=dict(label_offset_pred=-1)
+    )
 ]
 
 
