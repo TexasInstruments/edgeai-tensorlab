@@ -18,7 +18,7 @@ def get_preproc_tvm_dlr(resize=256, crop=224, data_layout=constants.NCHW, revers
 
 
 def get_preproc_tflite_rt(resize=256, crop=224, data_layout=constants.NHWC, reverse_channels=False, backend='pil',
-                          mean=(127.0, 127.0, 127.0), scale=(1/128.0, 1/128.0, 1/128.0)):
+                          mean=(128.0, 128.0, 128.0), scale=(1/128.0, 1/128.0, 1/128.0)):
     preprocess_tflite_rt = [
         preprocess.ImageRead(backend=backend),
         preprocess.ImageResize(resize),
