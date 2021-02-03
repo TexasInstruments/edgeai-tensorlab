@@ -15,6 +15,7 @@ def collect_results(workDir):
             results.append(f'{log_dir}, {acc}, {perf}')
         #
     #
+    results = sorted(results)
     with open(f'{workDir}/results.log','w') as writer_fp:
         for rline in results:
             writer_fp.write(f'{rline}\n')

@@ -11,7 +11,8 @@ if not os.environ['PYTHONPATH'].startswith(':'):
 #
 
 import config_settings as settings
-work_dir = os.path.join('./work_dirs', os.path.splitext(os.path.basename(__file__))[0])
+work_dir = os.path.join('./work_dirs', os.path.splitext(os.path.basename(__file__))[0], f'{settings.tidl_tensor_bits}bits')
+print(f'work_dir = {work_dir}')
 
 
 ################################################################################################
