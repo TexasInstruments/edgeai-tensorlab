@@ -1,9 +1,13 @@
 import copy
 
 
-def dict_update(target_dict, **src_dict):
-    new_dict = copy.deepcopy(target_dict)
-    new_dict.update(src_dict)
+def dict_update(src_dict, *args, **kwargs):
+    new_dict = copy.deepcopy(src_dict)
+    for arg in args:
+        assert isinstance(arg, dict), 'arguments must be dict or keywords'
+        new_dict.update(arg)
+    #
+    new_dict.update(kwargs)
     return new_dict
 
 

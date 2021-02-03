@@ -53,7 +53,6 @@ def infer_frames(session, pipeline_config):
         output = session.infer_frame(data)
         output = _sequential_pipeline(postprocess, output)
         output_list.append(output)
-        progress_bar.step(inc=1)
         if (data_index>0) and (data_index % progress_bar_step) == 0:
             progress_bar.step(inc=progress_bar_step)
         #
