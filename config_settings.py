@@ -1,6 +1,7 @@
 from jacinto_ai_benchmark import preprocess, postprocess, constants
 from jacinto_ai_benchmark.defaults import *
 
+
 ############################################################
 # common settings
 num_frames = 10000 #50000
@@ -13,24 +14,16 @@ tidl_dir = './dependencies/c7x-mma-tidl'
 tidl_tensor_bits = 32 #8 #16 #32
 
 
-session_tvm_dlr_cfg = {
-    'tidl_tensor_bits': tidl_tensor_bits,
-    'tidl_calibration_options': get_calib_options_tvm(tidl_tensor_bits, max_frames_calib, max_calib_iterations)
-}
-session_tvm_dlr_cfg_qat = {
-    'tidl_tensor_bits': tidl_tensor_bits,
-    'tidl_calibration_options': get_calib_options_tvm('qat', max_frames_calib, max_calib_iterations)
-}
+############################################################
+# quantization params & session config
+quantization_params = QuantizationParams(tidl_tensor_bits, max_frames_calib, max_calib_iterations)
+session_tvm_dlr_cfg = quantization_params.get_calib_options_tvm()
+session_tflite_rt_cfg = quantization_params.get_calib_options_tflite_rt()
 
 
-session_tflite_rt_cfg = {
-    'tidl_tensor_bits': tidl_tensor_bits,
-    'tidl_calibration_options': get_calib_options_tflite_rt(tidl_tensor_bits, max_frames_calib, max_calib_iterations)
-}
-session_tflite_rt_cfg_qat = {
-    'tidl_tensor_bits': tidl_tensor_bits,
-    'tidl_calibration_options': get_calib_options_tflite_rt('qat', max_frames_calib, max_calib_iterations)
-}
+quantization_params_qat = QuantizationParams('qat', max_frames_calib, max_calib_iterations)
+session_tvm_dlr_cfg_qat = quantization_params_qat.get_calib_options_tvm()
+session_tflite_rt_cfg_qat = quantization_params_qat.get_session_tflite_rt_cfg()
 
 
 ############################################################
@@ -38,7 +31,7 @@ session_tflite_rt_cfg_qat = {
 imagenet_train_cfg = dict(
     path=f'{datasets_path}/imagenet/train',
     split=f'{datasets_path}/imagenet/train.txt',
-    shuffle=True,num_frames=get_num_frames_calib(tidl_tensor_bits, max_frames_calib))
+    shuffle=True,num_frames=quantization_params.get_num_frames_calib())
 imagenet_val_cfg = dict(
     path=f'{datasets_path}/imagenet/val',
     split=f'{datasets_path}/imagenet/val.txt',

@@ -17,6 +17,7 @@ def import_model(session, pipeline_config):
     calibration_dataset = pipeline_config['calibration_dataset']
     preprocess = pipeline_config['preprocess']
     description = os.path.split(session.get_work_dir())[-1]
+    progress_bar_step = 100
 
     calib_data = []
     num_frames = len(calibration_dataset)
@@ -26,8 +27,11 @@ def import_model(session, pipeline_config):
         data = calibration_dataset[data_index]
         data = _sequential_pipeline(preprocess, data)
         calib_data.append(data)
-        progress_bar.step(inc=1)
-
+        if (data_index>0) and (data_index % progress_bar_step) == 0:
+            progress_bar.step(inc=progress_bar_step)
+        #
+    #
+    progress_bar.close()
     print('model import & calibration: ' + description)
     session.import_model(calib_data)
 
@@ -37,6 +41,7 @@ def infer_frames(session, pipeline_config):
     preprocess = pipeline_config['preprocess']
     postprocess = pipeline_config['postprocess']
     description = os.path.split(session.get_work_dir())[-1]
+    progress_bar_step = 100
 
     output_list = []
     num_frames = len(input_dataset)
@@ -49,7 +54,11 @@ def infer_frames(session, pipeline_config):
         output = _sequential_pipeline(postprocess, output)
         output_list.append(output)
         progress_bar.step(inc=1)
-
+        if (data_index>0) and (data_index % progress_bar_step) == 0:
+            progress_bar.step(inc=progress_bar_step)
+        #
+    #
+    progress_bar.close()
     return output_list
 
 
