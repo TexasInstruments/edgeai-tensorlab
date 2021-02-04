@@ -12,6 +12,7 @@ datasets_path = f'./dependencies/datasets'
 cuda_devices = [0,1,2,3,0,1,2,3] #None
 tidl_dir = './dependencies/c7x-mma-tidl'
 tidl_tensor_bits = 32 #8 #16 #32
+run_inference = True #False #True
 
 
 ############################################################
