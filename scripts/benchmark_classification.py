@@ -123,6 +123,31 @@ pipeline_configs = [
     }),
     #################################################################
     #       TFLITE MODELS
+    ##################tensorflow models##############################
+    # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 70.9% top-1 accuracy
+    utils.dict_update(pipeline_cfg, {
+        'preprocess':config.get_preproc_tflite_rt(),
+        'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
+            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf1_models/mobilenet_v1_float_1.0_224.tflite',
+            input_shape={'input': (1, 3, 224, 224)}),
+        'metric':dict(label_offset_pred=-1)
+    }),
+    # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 71.9% top-1 accuracy
+    utils.dict_update(pipeline_cfg, {
+        'preprocess':config.get_preproc_tflite_rt(),
+        'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
+            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf1_models/mobilenet_v2_float_1.0_224.tflite',
+            input_shape={'input': (1, 3, 224, 224)}),
+        'metric':dict(label_offset_pred=-1)
+    }),
+    # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 75.0% top-1 accuracy
+    utils.dict_update(pipeline_cfg, {
+        'preprocess':config.get_preproc_tflite_rt(),
+        'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
+            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf1_models/mobilenet_v2_float_1.4_224.tflite',
+            input_shape={'input': (1, 3, 224, 224)}),
+        'metric':dict(label_offset_pred=-1)
+    }),
     #################gen-efficinetnet models#########################
     # tensorflow/tpu: classification efficinetnet-lite0_224x224 expected_metric: 75.1% top-1 accuracy
     utils.dict_update(pipeline_cfg, {
@@ -167,31 +192,6 @@ pipeline_configs = [
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf_tpu/efficientnet-edgetpu-L_float.tflite',
             input_shape={'images': (1, 3, 300, 300)}),
-        'metric':dict(label_offset_pred=-1)
-    }),
-    ##################tensorflow models#########################
-    # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 70.9% top-1 accuracy
-    utils.dict_update(pipeline_cfg, {
-        'preprocess':config.get_preproc_tflite_rt(),
-        'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
-            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf1_models/mobilenet_v1_float_1.0_224.tflite',
-            input_shape={'input': (1, 3, 224, 224)}),
-        'metric':dict(label_offset_pred=-1)
-    }),
-    # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 71.9% top-1 accuracy
-    utils.dict_update(pipeline_cfg, {
-        'preprocess':config.get_preproc_tflite_rt(),
-        'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
-            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf1_models/mobilenet_v2_float_1.0_224.tflite',
-            input_shape={'input': (1, 3, 224, 224)}),
-        'metric':dict(label_offset_pred=-1)
-    }),
-    # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 75.0% top-1 accuracy
-    utils.dict_update(pipeline_cfg, {
-        'preprocess':config.get_preproc_tflite_rt(),
-        'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
-            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf1_models/mobilenet_v2_float_1.4_224.tflite',
-            input_shape={'input': (1, 3, 224, 224)}),
         'metric':dict(label_offset_pred=-1)
     }),
 ]
