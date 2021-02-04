@@ -10,7 +10,6 @@ def run(pipeline_config):
     if run_import:
         import_model(session, pipeline_config)
     #
-    session.start_infer()
     if run_inference:
         output_list = infer_frames(session, pipeline_config)
         result = evaluate(session, pipeline_config, output_list)
@@ -47,6 +46,8 @@ def infer_frames(session, pipeline_config):
     postprocess = pipeline_config['postprocess']
     description = os.path.split(session.get_work_dir())[-1]
     progress_bar_step = 100
+
+    session.start_infer()
 
     output_list = []
     num_frames = len(input_dataset)
