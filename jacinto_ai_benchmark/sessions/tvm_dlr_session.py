@@ -13,12 +13,11 @@ class TVMDLRSession(BaseRTSession):
         super().__init__(session_name=session_name, **kwargs)
         self._set_default_options()
         self.interpreter = None
+        self.interpreter_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tvm-dlr')
 
     def import_model(self, calib_data):
         super().import_model(calib_data)
-
-        tvm_dlr_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tvm-dlr')
-        os.chdir(tvm_dlr_folder)
+        os.chdir(self.interpreter_folder)
 
         model_path = self.kwargs['model_path']
         input_shape = self.kwargs['input_shape']
@@ -64,10 +63,15 @@ class TVMDLRSession(BaseRTSession):
         lib.export_library(path_lib, **cross_cc_args)
         with open(path_graph, "w") as fo:
             fo.write(graph)
+        #
         with open(path_params, "wb") as fo:
             fo.write(relay.save_param_dict(params))
+        #
+        os.chdir(self.cwd)
 
+    def start_infer(self):
         # create inference model
+        os.chdir(self.interpreter_folder)
         self.interpreter = DLRModel(self.kwargs['artifacts_folder'], 'cpu')
         os.chdir(self.cwd)
         self.import_done = True

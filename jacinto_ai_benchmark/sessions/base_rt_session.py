@@ -18,6 +18,7 @@ class BaseRTSession():
         self.kwargs['artifacts_folder'] = self.kwargs.get('artifacts_folder', artifacts_folder_default)
         self.kwargs['model_path'] = os.path.abspath(self.kwargs.get('model_path',None))
         self.kwargs['input_shape'] = self.kwargs.get('input_shape', None)
+        self.cwd = os.getcwd()
 
     def import_model(self, calib_data):
         os.makedirs(self.kwargs['work_dir'], exist_ok=True)
@@ -26,13 +27,12 @@ class BaseRTSession():
         model_path = utils.download_model(self.kwargs['model_path'], root=model_root_default)
         model_path = os.path.abspath(model_path)
         self.kwargs['model_path'] = model_path
-        self.cwd = os.getcwd()
 
     def __call__(self, input):
         return self.infer_frame(input)
 
     def infer_frame(self, input):
-        pass
+        assert self.import_done == True, 'the given model must be an imported one.'
 
     def __del__(self):
         for t in self.tempfiles:

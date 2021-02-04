@@ -3,13 +3,18 @@ import progiter
 from .. import utils
 
 def run(pipeline_config):
+    result = {}
     session = pipeline_config['session']
-    import_model(session, pipeline_config)
-    output_list = infer_frames(session, pipeline_config)
-    result = evaluate(session, pipeline_config, output_list)
-    # clear the memory occupied by session
-    pipeline_config['session'] = None
-    del session
+    run_import = pipeline_config['run_import']
+    run_inference = pipeline_config['run_inference']
+    if run_import:
+        import_model(session, pipeline_config)
+    #
+    session.start_infer()
+    if run_inference:
+        output_list = infer_frames(session, pipeline_config)
+        result = evaluate(session, pipeline_config, output_list)
+    #
     return result
 
 

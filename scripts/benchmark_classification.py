@@ -19,6 +19,8 @@ print(f'work_dir = {work_dir}')
 # configs for each model pipeline
 pipeline_cfg = {
     'type':'accuracy',
+    'run_import':config.run_import,
+    'run_inference':config.run_inference,
     'calibration_dataset':datasets.ImageNetCls(**config.imagenet_train_cfg),
     'input_dataset':datasets.ImageNetCls(**config.imagenet_val_cfg),
     'postprocess':config.get_postproc_classification()
@@ -295,7 +297,7 @@ pipeline_configs = [
 ################################################################################################
 # execute each model
 if __name__ == '__main__':
-    if config.run_inference:
+    if config.run_import or config.run_inference:
         pipelines.run(pipeline_configs, devices=config.cuda_devices)
     #
     results = pipelines.collect_results(work_dir)
