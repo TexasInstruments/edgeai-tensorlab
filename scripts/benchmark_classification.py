@@ -128,8 +128,7 @@ pipeline_configs = [
         'preprocess':config.get_preproc_vgg(),
         'session':sessions.TVMDLRSession(**config.session_tvm_dlr_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/github_onnx/resnet18-v2-7.onnx',
-            input_shape={'images': (1, 3, 224, 224)}),
-        'metric':dict(label_offset_pred=-1)
+            input_shape={'data': (1, 3, 224, 224)}),
     }),
     #################################################################
     #       TFLITE MODELS
@@ -224,7 +223,7 @@ pipeline_configs = [
         'preprocess':config.get_preproc_inception(),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf_hosted_models/densenet.tflite',
-            input_shape={'images': (1, 3, 224, 224)}),
+            input_shape={'Placeholder': (1, 3, 224, 224)}),
         'metric':dict(label_offset_pred=-1)
     }),
     # tf hosted models: classification inception_v1_224_quant expected_metric: 69.63% top-1 accuracy
@@ -232,7 +231,7 @@ pipeline_configs = [
         'preprocess':config.get_preproc_inception(),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf_hosted_models/inception_v1_224_quant.tflite',
-            input_shape={'images': (1, 3, 224, 224)}),
+            input_shape={'input': (1, 3, 224, 224)}),
         'metric':dict(label_offset_pred=-1)
     }),
     # tf hosted models: classification inception_v3 expected_metric: 78% top-1 accuracy
@@ -240,23 +239,7 @@ pipeline_configs = [
         'preprocess':config.get_preproc_inception(),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf_hosted_models/inception_v3.tflite',
-            input_shape={'images': (1, 3, 224, 224)}),
-        'metric':dict(label_offset_pred=-1)
-    }),
-    # tf hosted models: classification inception_v3 expected_metric: 78% top-1 accuracy
-    utils.dict_update(pipeline_cfg, {
-        'preprocess':config.get_preproc_inception(),
-        'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
-            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf_hosted_models/inception_v3.tflite',
-            input_shape={'images': (1, 3, 224, 224)}),
-        'metric':dict(label_offset_pred=-1)
-    }),
-    # tf hosted models: classification resnet_50 expected_metric: 75.2% top-1 accuracy
-    utils.dict_update(pipeline_cfg, {
-        'preprocess':config.get_preproc_inception(),
-        'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
-            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf_hosted_models/resnet_50_classification_1.tflite',
-            input_shape={'images': (1, 3, 224, 224)}),
+            input_shape={'input': (1, 3, 224, 224)}),
         'metric':dict(label_offset_pred=-1)
     }),
     # tf hosted models: classification mnasnet expected_metric: 74.08% top-1 accuracy
@@ -264,23 +247,22 @@ pipeline_configs = [
         'preprocess':config.get_preproc_inception(),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf_hosted_models/mnasnet_1.0_224.tflite',
-            input_shape={'images': (1, 3, 224, 224)}),
+            input_shape={'input': (1, 3, 224, 224)}),
         'metric':dict(label_offset_pred=-1)
     }),
     # mlperf model: classification resnet50_v1 expected_metric: 75.2% top-1 accuracy
     utils.dict_update(pipeline_cfg, {
         'preprocess':config.get_preproc_inception(),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
-            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tfhub_tensorflow/resnet_50_classification_1.tflite',
-            input_shape={'images': (1, 3, 224, 224)}),
-        'metric':dict(label_offset_pred=-1)
+            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf1_models/resnet50_v1.tflite',
+            input_shape={'input': (1, 3, 224, 224)})
     }),
     # tf1_models: classification resnet_v2_50 expected_metric: 75.6% top-1 accuracy
     utils.dict_update(pipeline_cfg, {
         'preprocess':config.get_preproc_inception(342, 299),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf1_models/resnet50_v2.tflite',
-            input_shape={'images': (1, 3, 299, 299)}),
+            input_shape={'input': (1, 3, 299, 299)}),
         'metric':dict(label_offset_pred=-1)
     }),
     # mlperf model: classification resnet50_v1.5 expected_metric: 76.456% top-1 accuracy
@@ -288,7 +270,7 @@ pipeline_configs = [
         'preprocess':config.get_preproc_inception(),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/mlperf/edge/mlperf_resnet50_v1.5.tflite',
-            input_shape={'images': (1, 3, 224, 224)}),
+            input_shape={'input_tensor': (1, 3, 224, 224)}),
         'metric':dict(label_offset_pred=-1)
     }),
 ]
