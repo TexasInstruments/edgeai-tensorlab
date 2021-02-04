@@ -37,6 +37,7 @@ class TFLiteRTSession(BaseRTSession):
         #
 
     def start_infer(self):
+        super().start_infer()
         # now create the interpreter for inference
         os.chdir(self.interpreter_folder)
         self.interpreter = self._create_interpreter(is_import=False)

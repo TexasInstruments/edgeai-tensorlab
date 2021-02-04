@@ -70,6 +70,7 @@ class TVMDLRSession(BaseRTSession):
         os.chdir(self.cwd)
 
     def start_infer(self):
+        super().start_infer()
         # create inference model
         os.chdir(self.interpreter_folder)
         self.interpreter = DLRModel(self.kwargs['artifacts_folder'], 'cpu')

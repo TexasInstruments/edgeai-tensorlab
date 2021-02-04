@@ -28,6 +28,9 @@ class BaseRTSession():
         model_path = os.path.abspath(model_path)
         self.kwargs['model_path'] = model_path
 
+    def start_infer(self):
+        pass
+
     def __call__(self, input):
         return self.infer_frame(input)
 
