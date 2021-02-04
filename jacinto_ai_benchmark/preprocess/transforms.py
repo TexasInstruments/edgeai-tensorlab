@@ -31,6 +31,9 @@ class ImageRead(object):
         #
         return img
 
+    def __repr__(self):
+        return self.__class__.__name__ + f'(backend={self.backend})'
+
 
 class ImageNorm(object):
     """Normalize a tensor image with mean and standard deviation.
@@ -150,7 +153,15 @@ class ImageResize():
         return F.resize(img, self.size, *self.args, **self.kwargs)
 
     def __repr__(self):
-        return self.__class__.__name__ + f'{self.size}, {self.args}, {self.kwargs}'
+        repr_str = self.__class__.__name__ + f'({self.size}'
+        for arg in self.args:
+            repr_str += f', {arg}'
+        #
+        for k, v in self.kwargs.items():
+            repr_str += f', {k}={v}'
+        #
+        repr_str += ')'
+        return repr_str
 
 
 class ImageCenterCrop():
@@ -211,7 +222,7 @@ class ImageToNPTensor(object):
         return F.to_numpy_tensor(pic, self.data_layout, self.reverse_channels)
 
     def __repr__(self):
-        return self.__class__.__name__ + '()'
+        return self.__class__.__name__ + f'({self.data_layout}, {self.reverse_channels})'
 
 
 class ImageToNPTensor4D(object):
@@ -235,7 +246,7 @@ class ImageToNPTensor4D(object):
         return F.to_numpy_tensor_4d(pic, self.data_layout, self.reverse_channels)
 
     def __repr__(self):
-        return self.__class__.__name__ + '()'
+        return self.__class__.__name__ + f'({self.data_layout}, {self.reverse_channels})'
 
 
 class NPTensor4DChanReverse(object):
@@ -262,4 +273,4 @@ class NPTensor4DChanReverse(object):
             return pic[...,::-1]
 
     def __repr__(self):
-        return self.__class__.__name__ + '()'
+        return self.__class__.__name__ + f'({self.data_layout})'
