@@ -156,6 +156,13 @@ pipeline_configs = [
             model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf_tpu/efficientnet-lite0-fp32.tflite',
             input_shape={'images': (1, 3, 224, 224)})
     }),
+    # tensorflow/tpu: classification efficinetnet-lite1_240x240 expected_metric: 76.7% top-1 accuracy
+    utils.dict_update(pipeline_cfg, {
+        'preprocess':config.get_preproc_tflite_rt(274, 240),
+        'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
+            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/tf_tpu/efficientnet-lite1-fp32.tflite',
+            input_shape={'images': (1, 3, 240, 240)})
+    }),
     # tensorflow/tpu: classification efficinetnet-lite2_260x260 expected_metric: 77.6% top-1 accuracy
     utils.dict_update(pipeline_cfg, {
         'preprocess':config.get_preproc_tflite_rt(297, 260),
