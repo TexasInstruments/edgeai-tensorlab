@@ -1,7 +1,7 @@
 import os
-import random
+import PIL
 import numpy as np
-from . import data_utils
+from . import download_utils
 
 
 def get_data_list(input, dest_dir=None, image_formats=None):
@@ -126,7 +126,7 @@ def write_list_to_file(input_list, file_name, root=None):
         for inp in input_list:
             if is_weblink(inp):
                 assert root is not None, 'root must be provided to accept http links'
-                inp = data_utils.download_url(inp, os.path.join(root, 'in_data'))
+                inp = download_utils.download_url(inp, os.path.join(root, 'in_data'))
             #
             if isinstance(inp, (list,tuple)):
                 list_file_fp.write(' '.join(inp) + '\n')
