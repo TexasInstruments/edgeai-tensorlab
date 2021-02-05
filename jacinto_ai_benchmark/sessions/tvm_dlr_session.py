@@ -96,10 +96,14 @@ class TVMDLRSession(BaseRTSession):
         self.kwargs["tidl_calibration_options"] = self.kwargs.get("tidl_calibration_options", {})
 
     def _get_input_shape(self, onnx_model):
-        input0 = onnx_model.graph.input[0]
-        name = input0.name
-        shape = [dim.dim_value for dim in input0.type.tensor_type.shape.dim]
-        input_shape = {name:shape}
+        input_shape = {}
+        num_inputs = self.kwargs['num_inputs']
+        for input_idx in range(num_inputs):
+            input_i = onnx_model.graph.input[input_idx]
+            name = input_i.name
+            shape = [dim.dim_value for dim in input_i.type.tensor_type.shape.dim]
+            input_shape.update({name:shape})
+        #
         return input_shape
 
 if __name__ == '__main__':

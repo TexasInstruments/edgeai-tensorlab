@@ -19,6 +19,7 @@ class BaseRTSession():
         self.kwargs['artifacts_folder'] = self.kwargs.get('artifacts_folder', artifacts_folder_default)
         self.kwargs['model_path'] = os.path.abspath(self.kwargs.get('model_path',None))
         self.kwargs['input_shape'] = self.kwargs.get('input_shape', None)
+        self.kwargs['num_inputs'] = self.kwargs.get('num_inputs', 1)
         self.cwd = os.getcwd()
 
     def import_model(self, calib_data):
