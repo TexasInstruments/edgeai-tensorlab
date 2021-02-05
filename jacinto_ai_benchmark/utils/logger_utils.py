@@ -6,6 +6,7 @@ class TeeLogger:
         assert log_level == logging.INFO, 'for now we support only INFO logging level'
         mode = "a" if append else "w"
         self.term = sys.stdout
+        self.filename = filename
         self.file = open(filename, mode)
         sys.stdout = self
         self.count = 0

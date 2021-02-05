@@ -40,6 +40,7 @@ def _run_pipelines_parallel(pipeline_configs, perfsim=True, devices=None):
     parallel_exec.start()
     parallel_exec.wait()
 
+
 def _run_pipeline_with_log(pipeline_config, perfsim=True, device=None):
     if device is not None:
         os.environ['CUDA_VISIBLE_DEVICES'] = str(device)
