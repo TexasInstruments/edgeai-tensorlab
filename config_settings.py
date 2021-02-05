@@ -23,7 +23,7 @@ session_tvm_dlr_cfg = quantization_params.get_session_tvm_dlr_cfg()
 session_tflite_rt_cfg = quantization_params.get_session_tflite_rt_cfg()
 
 
-quantization_params_qat = QuantizationParams('qat', max_frames_calib, max_calib_iterations)
+quantization_params_qat = QuantizationParams(tidl_tensor_bits, max_frames_calib, max_calib_iterations, is_qat=True)
 session_tvm_dlr_cfg_qat = quantization_params_qat.get_session_tvm_dlr_cfg()
 session_tflite_rt_cfg_qat = quantization_params_qat.get_session_tflite_rt_cfg()
 

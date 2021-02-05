@@ -39,10 +39,11 @@ def get_postproc_classification():
 ############################################################
 # quantization / calibration params
 class QuantizationParams():
-    def __init__(self, tidl_tensor_bits, max_frames_calib, max_calib_iterations):
+    def __init__(self, tidl_tensor_bits, max_frames_calib, max_calib_iterations, is_qat=False):
         self.tidl_tensor_bits = tidl_tensor_bits
         self.max_frames_calib = max_frames_calib
         self.max_calib_iterations = max_calib_iterations
+        self.is_qat = is_qat
 
     def get_num_frames_calib(self):
         return self.max_frames_calib if self.tidl_tensor_bits == 8 else 1
@@ -81,7 +82,9 @@ class QuantizationParams():
                     'iterations': self.get_num_calib_iterations(),
                  }
         }
-        return calib_options_tvm_dict[self.tidl_tensor_bits]
+        calib_opt = (calib_options_tvm_dict['qat'] if self.is_qat else \
+                         calib_options_tvm_dict[self.tidl_tensor_bits])
+        return calib_opt
 
     def get_session_tvm_dlr_cfg(self):
         session_tvm_dlr_cfg = {
@@ -109,7 +112,9 @@ class QuantizationParams():
                     "tidl_calibration_options:bias_calibration_iterations": self.get_num_calib_iterations()
             }
         }
-        return calib_options_tflite_rt_dict[self.tidl_tensor_bits]
+        calib_opt = (calib_options_tflite_rt_dict['qat'] if self.is_qat else \
+                         calib_options_tflite_rt_dict[self.tidl_tensor_bits])
+        return calib_opt
 
     def get_session_tflite_rt_cfg(self):
         session_tflite_rt_cfg = {
