@@ -84,6 +84,21 @@ class BaseRTSession():
         work_dir = os.path.join(self.kwargs['work_dir'], f'{model_name}_{session_name}')
         return work_dir
 
+    def _dict_equal(self, shape1, shape2):
+        for k1, v1 in shape1.items():
+            if k1 not in shape2:
+                return False
+            #
+            v2 = shape2[k1]
+            if isinstance(v1, (list,tuple)) or isinstance(v2, (list,tuple)):
+                if any(v1 != v2):
+                    return False
+                #
+            elif v1 != v2:
+                return False
+            #
+        #
+        return True
 
 if __name__ == '__main__':
     import_model = BaseRTSession()

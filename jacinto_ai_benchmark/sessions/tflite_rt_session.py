@@ -1,5 +1,5 @@
 import os
-import numpy as np
+import warnings
 import tflite_runtime.interpreter as tflitert_interpreter
 from .. import utils
 from .base_rt_session import BaseRTSession
@@ -17,23 +17,20 @@ class TFLiteRTSession(BaseRTSession):
         self.interpreter = self._create_interpreter(is_import=True)
 
         # check if the shape of data being proved matches with what model expects
-        data_input_shape = self.kwargs['input_shape']
-        model_input_details = self.interpreter.get_input_details()
-        model_output_details = self.interpreter.get_output_details()
-        for model_input_idx, model_input in enumerate(model_input_details):
-            model_input_name = model_input['name']
-            model_input_shape = model_input['shape']
-            assert model_input_name in data_input_shape, f'could not find {model_input_name} in the keys of input_shape dict provided {data_input_shape}'
-            tensor_input_shape = data_input_shape[model_input_name]
-            assert any(model_input_shape == tensor_input_shape), f'invalid input tensor height: expected {model_input_shape} obtained {data_input_shape}'
+        input_shape = self._get_input_shape()
+        if (self.kwargs['input_shape'] is not None) and (not self._dict_equal(input_shape, self.kwargs['input_shape'])):
+            warnings.warn('model input shape must match the provided shape')
+        #
 
+        input_details = self.interpreter.get_input_details()
+        output_details = self.interpreter.get_output_details()
         for c_data in calib_data:
             c_data = utils.as_tuple(c_data)
             for c_data_entry_idx, c_data_entry in enumerate(c_data):
-                self.interpreter.set_tensor(model_input_details[c_data_entry_idx]['index'], c_data_entry)
+                self.interpreter.set_tensor(input_details[c_data_entry_idx]['index'], c_data_entry)
             #
             self.interpreter.invoke()
-            outputs = [self.interpreter.get_tensor(output_detail['index']) for output_detail in model_output_details]
+            outputs = [self.interpreter.get_tensor(output_detail['index']) for output_detail in output_details]
         #
 
     def start_infer(self):
@@ -46,14 +43,14 @@ class TFLiteRTSession(BaseRTSession):
 
     def infer_frame(self, input):
         super().infer_frame(input)
-        model_input_details = self.interpreter.get_input_details()
-        model_output_details = self.interpreter.get_output_details()
+        input_details = self.interpreter.get_input_details()
+        output_details = self.interpreter.get_output_details()
         c_data = utils.as_tuple(input)
         for c_data_entry_idx, c_data_entry in enumerate(c_data):
-            self.interpreter.set_tensor(model_input_details[c_data_entry_idx]['index'], c_data_entry)
+            self.interpreter.set_tensor(input_details[c_data_entry_idx]['index'], c_data_entry)
         #
         self.interpreter.invoke()
-        outputs = [self.interpreter.get_tensor(output_detail['index']) for output_detail in model_output_details]
+        outputs = [self.interpreter.get_tensor(output_detail['index']) for output_detail in output_details]
         return outputs
 
     def _create_interpreter(self, is_import):
@@ -87,3 +84,13 @@ class TFLiteRTSession(BaseRTSession):
         delegate_options.update(required_options)
         delegate_options.update(optional_options)
         self.kwargs["delegate_options"] = delegate_options
+
+    def _get_input_shape(self):
+        input_shape = {}
+        model_input_details = self.interpreter.get_input_details()
+        for model_input in model_input_details:
+            name = model_input['name']
+            shape = model_input['shape']
+            input_shape.update({name:shape})
+        #
+        return input_shape

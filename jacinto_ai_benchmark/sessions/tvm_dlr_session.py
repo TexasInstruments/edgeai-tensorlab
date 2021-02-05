@@ -1,5 +1,5 @@
 import os
-import shutil
+import warnings
 import onnx
 from tvm import relay
 from tvm.relay.backend.contrib import tidl
@@ -20,8 +20,15 @@ class TVMDLRSession(BaseRTSession):
         os.chdir(self.interpreter_folder)
 
         model_path = self.kwargs['model_path']
+        onnx_model = onnx.load(model_path)
+
+        if self.kwargs['input_shape'] is None:
+            self.kwargs['input_shape'] = self._get_input_shape(onnx_model)
+        #
         input_shape = self.kwargs['input_shape']
         input_keys = list(input_shape.keys())
+
+        tvm_model, params = relay.frontend.from_onnx(onnx_model, shape=input_shape)
 
         calib_list = []
         for c_data in calib_data:
@@ -42,9 +49,6 @@ class TVMDLRSession(BaseRTSession):
             tidl_tools_path=os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools'),
             tidl_tensor_bits=self.kwargs['tidl_tensor_bits'],
             tidl_calibration_options=self.kwargs['tidl_calibration_options'])
-
-        onnx_model = onnx.load(model_path)
-        tvm_model, params = relay.frontend.from_onnx(onnx_model, shape=input_shape)
 
         # partition the graph into TIDL operations and TVM operations
         tvm_model, status = compiler.enable(tvm_model, params, calib_list)
@@ -89,9 +93,14 @@ class TVMDLRSession(BaseRTSession):
     def _set_default_options(self):
         # calibration options
         self.kwargs['data_layout'] = self.kwargs.get('data_layout', 'NCHW')
-        given_tidl_calibration_options = self.kwargs.get('tidl_calibration_options', {})
         self.kwargs["tidl_calibration_options"] = self.kwargs.get("tidl_calibration_options", {})
 
+    def _get_input_shape(self, onnx_model):
+        input0 = onnx_model.graph.input[0]
+        name = input0.name
+        shape = [dim.dim_value for dim in input0.type.tensor_type.shape.dim]
+        input_shape = {name:shape}
+        return input_shape
 
 if __name__ == '__main__':
     tvm_model = TVMDLRSession()
