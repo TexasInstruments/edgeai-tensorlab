@@ -267,7 +267,7 @@ pipeline_configs = [
     }),
     # mlperf model: classification resnet50_v1.5 expected_metric: 76.456% top-1 accuracy
     utils.dict_update(pipeline_cfg, {
-        'preprocess':config.get_preproc_inception(),
+        'preprocess':config.get_preproc_vgg(scale=(1.0, 1.0, 1.0)),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/mlperf/edge/mlperf_resnet50_v1.5.tflite',
             input_shape={'input_tensor': (1, 3, 224, 224)}),
