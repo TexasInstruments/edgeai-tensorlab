@@ -1,5 +1,6 @@
 import os
 import warnings
+import numpy as np
 import tflite_runtime.interpreter as tflitert_interpreter
 from .. import utils
 from .base_rt_session import BaseRTSession
@@ -27,10 +28,10 @@ class TFLiteRTSession(BaseRTSession):
         for c_data in calib_data:
             c_data = utils.as_tuple(c_data)
             for c_data_entry_idx, c_data_entry in enumerate(c_data):
-                self.interpreter.set_tensor(input_details[c_data_entry_idx]['index'], c_data_entry)
+                self._set_tensor(input_details[c_data_entry_idx], c_data_entry)
             #
             self.interpreter.invoke()
-            outputs = [self.interpreter.get_tensor(output_detail['index']) for output_detail in output_details]
+            outputs = [self._get_tensor(output_detail) for output_detail in output_details]
         #
 
     def start_infer(self):
@@ -47,10 +48,10 @@ class TFLiteRTSession(BaseRTSession):
         output_details = self.interpreter.get_output_details()
         c_data = utils.as_tuple(input)
         for c_data_entry_idx, c_data_entry in enumerate(c_data):
-            self.interpreter.set_tensor(input_details[c_data_entry_idx]['index'], c_data_entry)
+            self._set_tensor(input_details[c_data_entry_idx], c_data_entry)
         #
         self.interpreter.invoke()
-        outputs = [self.interpreter.get_tensor(output_detail['index']) for output_detail in output_details]
+        outputs = [self._get_tensor(output_detail) for output_detail in output_details]
         return outputs
 
     def _create_interpreter(self, is_import):
@@ -94,3 +95,25 @@ class TFLiteRTSession(BaseRTSession):
             input_shape.update({name:shape})
         #
         return input_shape
+
+    def _set_tensor(self, model_input, tensor):
+        if model_input['dtype'] == np.int8:
+            scale, zero_point = model_input['quantization']
+            tensor = np.clip(np.round(tensor/scale + zero_point), -128, 127)
+            tensor = np.array(tensor, dtype=np.int8)
+        elif model_input['dtype']  == np.uint8:
+            scale, zero_point = model_input['quantization']
+            tensor = np.clip(np.round(tensor/scale + zero_point), 0, 255)
+            tensor = np.array(tensor, dtype=np.uint8)
+        #
+        self.interpreter.set_tensor(model_input['index'], tensor)
+
+
+    def _get_tensor(self, model_output):
+        tensor = self.interpreter.get_tensor(model_output['index'])
+        if model_output['dtype'] == np.int8 or model_output['dtype']  == np.uint8:
+            scale, zero_point = model_output['quantization']
+            tensor = np.array(tensor, dtype=np.float32)
+            tensor = (tensor - zero_point) / scale
+        #
+        return tensor

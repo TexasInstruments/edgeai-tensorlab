@@ -209,7 +209,7 @@ pipeline_configs = [
     }),
     # tf hosted models: classification inception_v3 expected_metric: 78% top-1 accuracy
     utils.dict_update(common_cfg, {
-        'preprocess':config.get_preproc_inception(),
+        'preprocess':config.get_preproc_inception(342, 299),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/inception_v3.tflite'),
         'metric':dict(label_offset_pred=-1)
