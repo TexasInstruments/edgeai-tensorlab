@@ -19,6 +19,7 @@ class BaseRTSession():
         self.kwargs['model_path'] = os.path.abspath(self.kwargs.get('model_path',None))
         self.kwargs['input_shape'] = self.kwargs.get('input_shape', None)
         self.cwd = os.getcwd()
+        self.dir_tree_depth = 4
 
     def import_model(self, calib_data):
         os.makedirs(self.kwargs['work_dir'], exist_ok=True)
@@ -52,13 +53,13 @@ class BaseRTSession():
     def layer_names(self):
         return None
 
-    def get_detections(self, output_array, inResizeType=0):
+    def get_detections(self, **kwargs):
         return None
 
     def get_work_dir(self):
         return self.kwargs['work_dir']
 
-    def _get_or_make_work_dir(self, dir_tree_depth=3):
+    def _get_or_make_work_dir(self):
         self.tempfiles = []
         # MemoryTempfile() creates a file in RAM, which should be really fast.
         if self.kwargs['work_dir'] is None:
@@ -73,7 +74,11 @@ class BaseRTSession():
         model_name = self.kwargs['model_path']
         model_name, model_ext = os.path.splitext(model_name)
         model_ext = model_ext[1:]
-        model_name = '_'.join(model_name.split(os.sep)[-dir_tree_depth:] + [model_ext])
+        model_name_splits = model_name.split(os.sep)
+        if len(model_name_splits) > self.dir_tree_depth:
+            model_name_splits = model_name_splits[-self.dir_tree_depth:]
+        #
+        model_name = '_'.join(model_name_splits + [model_ext])
         session_name = self.kwargs['session_name']
         tidl_tensor_bits = self.kwargs['tidl_tensor_bits']
         work_dir = os.path.join(self.kwargs['work_dir'], f'{model_name}_{session_name}')
