@@ -85,21 +85,21 @@ pipeline_configs = [
     utils.dict_update(pipeline_cfg, {
         'preprocess':config.get_preproc_vgg(),
         'session':sessions.TVMDLRSession(**config.session_tvm_dlr_cfg, work_dir=work_dir,
-            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/torchvision/shufflenetv2_x1.0_opset9.onnx',
+            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/torchvision/shufflenet_v2_x1.0_opset9.onnx',
             input_shape={'input.1': (1, 3, 224, 224)})
     }),
     # torchvision: classification mobilenetv2_224x224 expected_metric: 71.88% top-1 accuracy
     utils.dict_update(pipeline_cfg, {
         'preprocess':config.get_preproc_vgg(),
         'session':sessions.TVMDLRSession(**config.session_tvm_dlr_cfg, work_dir=work_dir,
-            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/torchvision/mobilenetv2_tv_x1_opset9.onnx',
+            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/torchvision/mobilenet_v2_tv_opset9.onnx',
             input_shape={'input.1': (1, 3, 224, 224)})
     }),
     # torchvision: classification mobilenetv2_224x224 expected_metric: 71.88% top-1 accuracy, QAT: 71.31%
     utils.dict_update(pipeline_cfg, {
         'preprocess':config.get_preproc_vgg(),
         'session':sessions.TVMDLRSession(**config.session_tvm_dlr_cfg_qat, work_dir=work_dir,
-            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/torchvision/mobilenet_v2_tv_x1_qat-jai_opset9.onnx',
+            model_path=f'{config.modelzoo_path}/edge/classification/imagenet1k/torchvision/mobilenet_v2_tv_qat-jai_opset9.onnx',
             input_shape={'x.1': (1, 3, 224, 224)})
     }),
     # torchvision: classification resnet18_224x224 expected_metric: 69.76% top-1 accuracy
