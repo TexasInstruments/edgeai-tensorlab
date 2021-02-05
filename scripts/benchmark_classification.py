@@ -119,11 +119,18 @@ pipeline_configs = [
     #################################################################
     #       TFLITE MODELS
     ##################tensorflow models##############################
-    # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 70.9% top-1 accuracy
+    # tensorflow/models: classification mobilenetv1_224x224 expected_metric: 70.9% top-1 accuracy
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_inception(),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v1_1.0_224.tflite'),
+        'metric':dict(label_offset_pred=-1)
+    }),
+    # tensorflow/models: classification mobilenetv1_224x224 quant expected_metric: 70.0% top-1 accuracy
+    utils.dict_update(common_cfg, {
+        'preprocess':config.get_preproc_inception(),
+        'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v1_1.0_224_quant.tflite'),
         'metric':dict(label_offset_pred=-1)
     }),
     # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 71.9% top-1 accuracy
@@ -131,6 +138,13 @@ pipeline_configs = [
         'preprocess':config.get_preproc_inception(),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_1.0_224.tflite'),
+        'metric':dict(label_offset_pred=-1)
+    }),
+    # tensorflow/models: classification mobilenetv2_224x224 quant expected_metric: 70.8% top-1 accuracy
+    utils.dict_update(common_cfg, {
+        'preprocess':config.get_preproc_inception(),
+        'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_1.0_224_quant.tflite'),
         'metric':dict(label_offset_pred=-1)
     }),
     # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 75.0% top-1 accuracy
