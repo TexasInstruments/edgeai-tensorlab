@@ -34,19 +34,19 @@ pipeline_configs = [
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_vgg(),
         'session':sessions.TVMDLRSession(**config.session_tvm_dlr_cfg, work_dir=work_dir,
-            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/pytorch-jai-devkit/mobilenet_v1_2019-09-06_17-15-44_opset9.onnx')
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/pytorch-jai-devkit/mobilenet_v1_20190906-171544_opset9.onnx')
     }),
     # jai-devkit: classification mobilenetv2_224x224 expected_metric: 72.13% top-1 accuracy
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_vgg(),
         'session':sessions.TVMDLRSession(**config.session_tvm_dlr_cfg, work_dir=work_dir,
-            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/pytorch-jai-devkit/mobilenet_v2_2019-12-24_15-32-12_opset9.onnx')
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/pytorch-jai-devkit/mobilenet_v2_20191224-153212_opset9.onnx')
     }),
     # jai-devkit: classification mobilenetv2_224x224 expected_metric: 72.13% top-1 accuracy, QAT: 71.73%
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_vgg(),
         'session':sessions.TVMDLRSession(**config.session_tvm_dlr_cfg_qat, work_dir=work_dir,
-            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/pytorch-jai-devkit/mobilenet_v2_qat-jai_2020-12-13_16-53-07_opset9.onnx')
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/pytorch-jai-devkit/mobilenet_v2_qat-jai_20201213-165307_opset9.onnx')
     }),
     #################pycls regnetx models#########################
     # pycls: classification regnetx200mf_224x224 expected_metric: 68.9% top-1 accuracy
