@@ -1,7 +1,8 @@
 import os
 import random
 import json
-import tempfile
+import shutil
+from memory_tempfile import MemoryTempfile
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
@@ -64,6 +65,7 @@ class COCODetection():
             random.seed(int(shuffle))
             random.shuffle(self.imgs)
         #
+        self.tempfiles = []
 
     def __getitem__(self, idx):
         return self.imgs[idx]
@@ -71,14 +73,26 @@ class COCODetection():
     def __len__(self):
         return self.num_frames
 
-    def __call__(self, predictions, label_offset=0, result_dir=None):
-        return self.evaluate(predictions, label_offset, result_dir)
+    def __del__(self):
+        for t in self.tempfiles:
+            if os.path.exists(t):
+                shutil.rmtree(t)
+
+    def __call__(self, predictions, **kwargs):
+        return self.evaluate(predictions, **kwargs)
 
     def get_imgs(self):
         return self.imgs
 
-    def evaluate(self, predictions, label_offset=0, result_dir=None):
-        result_dir = tempfile.TemporaryDirectory().name if result_dir is None else result_dir
+    def evaluate(self, predictions, **kwargs):
+        label_offset=kwargs.get('label_offset_pred', 0)
+        result_dir=kwargs.get('result_dir', None)
+        if result_dir is None:
+            temp_dir_mem = MemoryTempfile()
+            result_dir = temp_dir_mem.tempdir if hasattr(temp_dir_mem, 'tempdir') else temp_dir_mem.name
+            self.tempfiles.append(result_dir)
+        #
+        os.makedirs(result_dir, exist_ok=True)
         detections_formatted_list = []
         for frame_idx, det_frame in enumerate(predictions):
             for det_id, det in enumerate(det_frame):
@@ -103,7 +117,8 @@ class COCODetection():
         else:
             coco_ap = 0.0
         #
-        return coco_ap
+        accuracy = {'COCO Det AP[.5:.95]%': coco_ap}
+        return accuracy
 
     def _format_detections(self, det_bbox_label_score, idx, format='json_serializable', label_offset=0, class_map=None):
         if class_map is not None:

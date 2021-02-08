@@ -1,6 +1,8 @@
 import os
 from jacinto_ai_benchmark import *
 
+import benchmark_detection_helper as det_helper
+
 # the cwd must be the root of the respository
 if os.path.split(os.getcwd())[-1] == 'scripts':
     os.chdir('../')
@@ -28,13 +30,14 @@ common_cfg = {
 
 pipeline_configs = [
     #################################################################
-    #       ONNX MODELS
-    #################jai-devkit models##############################
-    # jai-devkit: classification mobilenetv1_224x224 expected_metric: 71.82% top-1 accuracy
+    #       TFLITE MODELS
+    #################mlperf models##############################
+    # mlperf: detection ssd_mobilenet_v1_coco_2018_01_28 expected_metric: 23.0% ap[0.5:0.95] accuracy
     utils.dict_update(common_cfg, {
-        'preprocess':config.get_preproc_vgg(),
-        'session':sessions.TFLiteRTSession(**config.session_tvm_dlr_cfg, work_dir=work_dir,
-            model_path=f'{config.modelzoo_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite')
+        'preprocess':config.get_preproc_inception(300, 300),
+        'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
+            model_path=f'{config.modelzoo_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
+        'metric':dict(label_offset_pred=det_helper.coco_91class_label_offset)
     }),
 ]
 

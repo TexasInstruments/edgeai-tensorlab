@@ -37,7 +37,7 @@ def get_postproc_classification():
 
 
 def get_postproc_detection():
-    postprocess_detection = None
+    postprocess_detection = [postprocess.Concat(axis=-1, end_index=3), postprocess.IndexArray()]
     return postprocess_detection
 
 

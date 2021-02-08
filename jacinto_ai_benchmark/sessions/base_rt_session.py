@@ -67,7 +67,7 @@ class BaseRTSession():
         if self.kwargs['work_dir'] is None:
             temp_dir_mem = MemoryTempfile()
             # if MemoryTempfile fails it returns a file using tempfile - so we need to check
-            temp_dir = temp_dir_mem.tempdir if hasattr(temp_dir_mem, 'temp_dir') else temp_dir_mem.name
+            temp_dir = temp_dir_mem.tempdir if hasattr(temp_dir_mem, 'tempdir') else temp_dir_mem.name
             date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S.%f")
             root_dir = os.path.join(temp_dir, date)
             self.tempfiles.append(root_dir)
