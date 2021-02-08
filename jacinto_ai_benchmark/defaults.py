@@ -36,6 +36,11 @@ def get_postproc_classification():
     return postprocess_classification
 
 
+def get_postproc_detection():
+    postprocess_detection = None
+    return postprocess_detection
+
+
 ############################################################
 # quantization / calibration params
 class QuantizationParams():

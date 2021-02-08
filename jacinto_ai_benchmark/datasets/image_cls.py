@@ -3,7 +3,7 @@ from .. import utils
 
 
 class ImageCls():
-    def __init__(self, dest_dir=None, label_offset=0, **kwargs):
+    def __init__(self, dest_dir=None, **kwargs):
         self.kwargs = kwargs
         self.imgs = utils.get_data_list(input=kwargs, dest_dir=dest_dir)
         self.num_frames = kwargs.get('num_frames',len(self.imgs))

@@ -21,8 +21,8 @@ common_cfg = {
     'type':'accuracy',
     'run_import':config.run_import,
     'run_inference':config.run_inference,
-    'calibration_dataset':datasets.ImageNetCls(**config.imagenet_train_cfg),
-    'input_dataset':datasets.ImageNetCls(**config.imagenet_val_cfg),
+    'calibration_dataset':datasets.ImageNetCls(**config.imagenet_cls_train_cfg),
+    'input_dataset':datasets.ImageNetCls(**config.imagenet_cls_val_cfg),
     'postprocess':config.get_postproc_classification()
 }
 
