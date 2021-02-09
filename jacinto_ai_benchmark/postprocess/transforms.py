@@ -1,4 +1,8 @@
+import os
+import copy
 import numpy as np
+import cv2
+from PIL import ImageDraw
 
 class IndexArray():
     def __init__(self, index=0):
@@ -44,3 +48,94 @@ class Concat():
             tensor = tensor_list
         #
         return tensor
+
+
+class DetectionResize():
+    def __init__(self):
+        self.image_shape = None
+
+    def __call__(self, bbox):
+        bbox[...,0] *= self.image_shape[1]
+        bbox[...,1] *= self.image_shape[0]
+        bbox[...,2] *= self.image_shape[1]
+        bbox[...,3] *= self.image_shape[0]
+        return bbox
+
+    def set_info(self, info_dict):
+        self.image_shape = info_dict['preprocess']['image_shape']
+
+
+class DetectionFilter():
+    def __init__(self, score_thr=0.5):
+        self.score_thr = score_thr
+
+    def __call__(self, bbox):
+        if self.score_thr is not None:
+            bbox_score = bbox[:,5]
+            bbox_selected = bbox_score >= self.score_thr
+            bbox = bbox[bbox_selected,...]
+        #
+        return bbox
+
+
+class DetectionXYXY2XYWH():
+    def __call__(self, bbox):
+        w = bbox[...,2] - bbox[...,0]
+        h = bbox[...,3] - bbox[...,1]
+        bbox[...,2] = w
+        bbox[...,3] = h
+        return bbox
+
+
+class DetectionXYWH2XYXY():
+    def __call__(self, bbox):
+        x2 = bbox[...,0] + bbox[...,2]
+        y2 = bbox[...,1] + bbox[...,3]
+        bbox[...,2] = x2
+        bbox[...,3] = y2
+        return bbox
+
+
+class DetectionImageSave():
+    def __init__(self):
+        self.save_path = None
+        self.color = (0,255,0)
+        self.outline = 'green'
+        self.thickness = 2
+
+    def __call__(self, bbox):
+        img = copy.deepcopy(self.image)
+        if isinstance(img, np.ndarray):
+            img = img[:,:,::-1] #to BGR
+            for bbox_one in bbox:
+                self.draw_bbox_cv2(img, bbox_one)
+            #
+        else:
+            img_rect = ImageDraw.Draw(img)
+            for bbox_one in bbox:
+                self.draw_bbox_pil(img_rect, bbox_one)
+            #
+        #
+        if isinstance(self.image, np.ndarray):
+            cv2.imwrite(self.save_path, img)
+        else:
+            img.save(self.save_path)
+        #
+        return bbox
+
+    def draw_bbox_cv2(self, img, bbox_one):
+        cv2.rectangle(img, bbox_one[:2], bbox_one[2:4], color=self.color, thickness=self.thickness)
+        return img
+
+    def draw_bbox_pil(self, img, bbox_one):
+        img.rectangle(bbox_one[:4], outline=self.outline, width=self.thickness)
+        return img
+
+    def set_info(self, info_dict):
+        image_path = info_dict['preprocess']['image_path']
+        self.image = info_dict['preprocess']['image']
+        image_name = os.path.split(image_path)[-1]
+        work_dir = info_dict['session']['work_dir']
+        save_dir = os.path.join(work_dir, 'detections')
+        os.makedirs(save_dir, exist_ok=True)
+        self.save_path = os.path.join(save_dir, image_name)

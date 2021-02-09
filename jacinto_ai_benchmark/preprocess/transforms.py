@@ -20,16 +20,25 @@ class ImageRead(object):
     def __init__(self, backend='pil'):
         assert backend in ('pil', 'cv2'), f'backend must be one of pil or cv2. got {backend}'
         self.backend = backend
+        self.info = {'preprocess':{}}
 
     def __call__(self, path):
+
         if self.backend == 'pil':
             img = PIL.Image.open(path)
+            self.info['preprocess']['image_shape'] = img.size[1], img.size[0], len(img.getbands())
         elif self.backend == 'cv2':
             img = cv2.imread(path)
             # always return in RGB format
             img = img[:,:,::-1]
+            self.info['preprocess']['image_shape'] = img.shape
         #
+        self.info['preprocess']['image'] = img
+        self.info['preprocess']['image_path'] = path
         return img
+
+    def get_info(self):
+        return self.info
 
     def __repr__(self):
         return self.__class__.__name__ + f'(backend={self.backend})'
@@ -175,17 +184,19 @@ class ImageCenterCrop():
             made. If provided a tuple or list of length 1, it will be interpreted as (size[0], size[0]).
     """
 
-    def __init__(self, size):
+    def __init__(self, size=None):
         super().__init__()
         if isinstance(size, numbers.Number):
             self.size = (int(size), int(size))
         elif isinstance(size, Sequence) and len(size) == 1:
             self.size = (size[0], size[0])
+        elif size is None:
+            self.size = size
         else:
             if len(size) != 2:
                 raise ValueError("Please provide only two dimensions (h, w) for size.")
-
             self.size = size
+        #
 
     def __call__(self, img):
         """
@@ -195,10 +206,13 @@ class ImageCenterCrop():
         Returns:
             PIL Image or Tensor: Cropped image.
         """
-        return F.center_crop(img, self.size)
+        return F.center_crop(img, self.size) if self.size is not None else img
 
     def __repr__(self):
-        return self.__class__.__name__ + '(size={0})'.format(self.size)
+        if self.size is not None:
+            return self.__class__.__name__ + '(size={0})'.format(self.size)
+        else:
+            return self.__class__.__name__ + '()'
 
 
 class ImageToNPTensor(object):

@@ -1,3 +1,5 @@
+import os
+import cv2
 from . import preprocess, postprocess, constants
 
 
@@ -36,8 +38,14 @@ def get_postproc_classification():
     return postprocess_classification
 
 
-def get_postproc_detection():
-    postprocess_detection = [postprocess.Concat(axis=-1, end_index=3), postprocess.IndexArray()]
+def get_postproc_detection(save_detections=True):
+    postprocess_detection = [postprocess.Concat(axis=-1, end_index=3),
+                             postprocess.IndexArray(),
+                             postprocess.DetectionFilter(),
+                             postprocess.DetectionResize()]
+    if save_detections:
+        postprocess_detection += [postprocess.DetectionImageSave()]
+    #
     return postprocess_detection
 
 

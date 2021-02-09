@@ -60,6 +60,11 @@ class BaseRTSession():
     def get_work_dir(self):
         return self.kwargs['work_dir']
 
+    def get_info(self):
+        info_dict = {'session':{}}
+        info_dict['session']['work_dir'] = self.get_work_dir()
+        return info_dict
+
     def _get_or_make_work_dir(self):
         dir_tree_depth = self.kwargs['dir_tree_depth']
         self.tempfiles = []

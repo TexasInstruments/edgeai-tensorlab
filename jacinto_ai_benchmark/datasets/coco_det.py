@@ -86,13 +86,13 @@ class COCODetection():
 
     def evaluate(self, predictions, **kwargs):
         label_offset=kwargs.get('label_offset_pred', 0)
-        result_dir=kwargs.get('result_dir', None)
-        if result_dir is None:
+        work_dir=kwargs.get('work_dir', None)
+        if work_dir is None:
             temp_dir_mem = MemoryTempfile()
-            result_dir = temp_dir_mem.tempdir if hasattr(temp_dir_mem, 'tempdir') else temp_dir_mem.name
-            self.tempfiles.append(result_dir)
+            work_dir = temp_dir_mem.tempdir if hasattr(temp_dir_mem, 'tempdir') else temp_dir_mem.name
+            self.tempfiles.append(work_dir)
         #
-        os.makedirs(result_dir, exist_ok=True)
+        os.makedirs(work_dir, exist_ok=True)
         detections_formatted_list = []
         for frame_idx, det_frame in enumerate(predictions):
             for det_id, det in enumerate(det_frame):
@@ -103,8 +103,9 @@ class COCODetection():
                 #
             #
         #
+        coco_ap = 0.0
         if len(detections_formatted_list) > 0:
-            detection_file = os.path.join(result_dir, 'detection_results.json')
+            detection_file = os.path.join(work_dir, 'detection_results.json')
             with open(detection_file, 'w') as det_fp:
                 json.dump(detections_formatted_list, det_fp)
             #
@@ -114,31 +115,26 @@ class COCODetection():
             cocoEval.accumulate()
             cocoEval.summarize()
             coco_ap = cocoEval.stats[0]
-        else:
-            coco_ap = 0.0
         #
         accuracy = {'COCO Det AP[.5:.95]%': coco_ap}
         return accuracy
 
-    def _format_detections(self, det_bbox_label_score, idx, format='json_serializable', label_offset=0, class_map=None):
+    def _format_detections(self, bbox_label_score, image_id, label_offset=0, class_map=None):
         if class_map is not None:
-            if det_bbox_label_score[4] in class_map.keys():
-                det_bbox_label_score[4] = class_map[det_bbox_label_score[4]]
-            else:
-                print("Prediction of other classes")
-            #
+            assert bbox_label_score[4] in class_map, 'invalid prediction label or class_map'
+            bbox_label_score[4] = class_map[bbox_label_score[4]]
         #
-        det_bbox_label_score[4] = self._detection_label_to_catid(det_bbox_label_score[4], label_offset)
-        if format == 'json_serializable':
-            output_dict = dict()
-            image_id = self.img_ids[idx]
-            output_dict['image_id'] = image_id
-            output_dict['bbox'] = self._xyxy2xywh(det_bbox_label_score[:4])
-            output_dict['category_id'] = int(det_bbox_label_score[4])
-            output_dict['score'] = float(det_bbox_label_score[5])
-            return output_dict
-        else:
-            return det_bbox_label_score
+        bbox_label_score[4] = self._detection_label_to_catid(bbox_label_score[4], label_offset)
+        output_dict = dict()
+        image_id = self.img_ids[image_id]
+        output_dict['image_id'] = image_id
+        det_bbox = bbox_label_score[:4]      # json is not support for ndarray - convert to list
+        det_bbox = self._xyxy2xywh(det_bbox) # can also be done in postprocess pipeline
+        det_bbox = self._to_list(det_bbox)
+        output_dict['bbox'] = det_bbox
+        output_dict['category_id'] = int(bbox_label_score[4])
+        output_dict['score'] = float(bbox_label_score[5])
+        return output_dict
 
     def _detection_label_to_catid(self, label, label_offset):
         if isinstance(label_offset, (list,tuple)):
@@ -147,7 +143,7 @@ class COCODetection():
             label = label_offset[label]
         elif isinstance(label_offset, dict):
             label = int(label)
-            assert label in label_offset.keys(), 'label_offset is a dict, but the detected label was not one of its keys'
+            assert label in label_offset.keys(), f'label_offset is a dict, but the detected label {label} was not one of its keys'
             label = label_offset[label]
         else:
             label = int(label - label_offset)
@@ -157,8 +153,11 @@ class COCODetection():
         #
         return label
 
-    def _xyxy2xywh(self, bbox):
+    def _to_list(self, bbox):
         bbox = [float(x) for x in bbox]
+        return bbox
+
+    def _xyxy2xywh(self, bbox):
         bbox = [bbox[0], bbox[1], bbox[2] - bbox[0], bbox[3] - bbox[1]]
         return bbox
 

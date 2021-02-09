@@ -25,7 +25,7 @@ common_cfg = {
     'run_inference':config.run_inference,
     'calibration_dataset':datasets.COCODetection(**config.coco_det_train_cfg),
     'input_dataset':datasets.COCODetection(**config.coco_det_val_cfg),
-    'postprocess':config.get_postproc_detection()
+    'postprocess':config.get_postproc_detection(work_dir)
 }
 
 pipeline_configs = [
@@ -34,7 +34,7 @@ pipeline_configs = [
     #################mlperf models##############################
     # mlperf: detection ssd_mobilenet_v1_coco_2018_01_28 expected_metric: 23.0% ap[0.5:0.95] accuracy
     utils.dict_update(common_cfg, {
-        'preprocess':config.get_preproc_inception(300, 300),
+        'preprocess':config.get_preproc_inception((300,300), (300,300)),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
         'metric':dict(label_offset_pred=det_helper.coco_91class_label_offset)

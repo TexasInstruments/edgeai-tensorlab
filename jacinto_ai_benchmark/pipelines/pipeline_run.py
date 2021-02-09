@@ -1,10 +1,8 @@
 import os
 import functools
-import math
-import copy
 
+from .accuracy_pipeline import *
 from .. import utils
-from . import accuracy
 
 
 def run(pipeline_configs, perfsim=True, devices=None):
@@ -73,7 +71,8 @@ def run_pipeline(pipeline_config):
     print('pipeline_config=', pipeline_config)
     pipeline_type = pipeline_config['type']
     if pipeline_type == 'accuracy':
-        results = accuracy.run(pipeline_config)
+        accuracy_pipeline = AccuracyPipeline()
+        results = accuracy_pipeline.run(pipeline_config)
     else:
         assert False, f'unknown pipeline: {pipeline_type}'
     #
