@@ -26,7 +26,7 @@ def _run_pipelines_parallel(pipeline_configs, perfsim=True, devices=None):
     # get the cwd so that we can continue even if exception occurs
     cwd = os.getcwd()
     num_devices = len(devices)
-    parallel_exec = utils.Parallel(len(devices))
+    parallel_exec = utils.ParallelRun(len(devices))
     for model_idx, pipeline_config in enumerate(pipeline_configs):
         os.chdir(cwd)
         device = devices[model_idx % num_devices]

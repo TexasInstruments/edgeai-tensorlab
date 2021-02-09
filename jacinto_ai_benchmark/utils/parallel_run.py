@@ -1,11 +1,13 @@
 from multiprocessing import Process
 from collections import deque
 
-class Parallel:
+
+class ParallelRun:
     def __init__(self, num_processes):
         self.num_processes = num_processes
         self.queued_tasks = deque()
         self.running_processes = [None for _ in range(self.num_processes)]
+        self.total_queued = 0
 
     def __del__(self):
         for proc_idx, proc in enumerate(self.running_processes):
@@ -19,12 +21,19 @@ class Parallel:
         self.queued_tasks.append(task)
 
     def start(self):
-        self._run()
+        self.total_queued = len(self.queued_tasks)
+        assert self.total_queued > 0, f'atleast one task must be queued, got {self.total_queued}'
+        if self.total_queued == 1:
+            task = self.queued_tasks.popleft()
+            task()
+        else:
+            self._run_parallel()
+        #
 
     def wait(self):
         pass
 
-    def _run(self):
+    def _run_parallel(self):
         while (self._num_running() > 0) or (self._num_queued() > 0):
             if (self._num_running() < self.num_processes) and (self._num_queued() > 0):
                 slot_idx = self._empty_slot()
