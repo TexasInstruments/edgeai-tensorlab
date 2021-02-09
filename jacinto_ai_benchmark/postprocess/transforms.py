@@ -66,7 +66,7 @@ class DetectionResize():
 
 
 class DetectionFilter():
-    def __init__(self, score_thr=0.5):
+    def __init__(self, score_thr):
         self.score_thr = score_thr
 
     def __call__(self, bbox):
@@ -76,6 +76,22 @@ class DetectionFilter():
             bbox = bbox[bbox_selected,...]
         #
         return bbox
+
+
+class DetectionFormatting():
+    def __init__(self, dst_indices=(0,1,2,3), src_indices=(1,0,3,2)):
+        self.src_indices = src_indices
+        self.dst_indices = dst_indices
+
+    def __call__(self, bbox):
+        bbox_copy = copy.deepcopy(bbox)
+        bbox_copy[...,self.dst_indices] = bbox[...,self.src_indices]
+        return bbox_copy
+
+
+DetectionXYXY2YXYX = DetectionFormatting
+DetectionYXYX2XYXY = DetectionFormatting
+DetectionYXHW2XYWH = DetectionFormatting
 
 
 class DetectionXYXY2XYWH():

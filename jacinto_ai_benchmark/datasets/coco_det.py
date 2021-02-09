@@ -22,7 +22,7 @@ class COCODetection():
         image_base_dir = os.path.join(kwargs['path'], image_base_dir)
         image_split_dirs = os.listdir(image_base_dir)
         assert kwargs['split'] in image_split_dirs, f'invalid path to coco dataset images/split {kwargs["split"]}'
-        image_dir = os.path.join(image_base_dir, kwargs['split'])
+        self.image_dir = os.path.join(image_base_dir, kwargs['split'])
 
         self.coco_dataset = COCO(os.path.join(annotations_dir, f'instances_{kwargs["split"]}.json'))
 
@@ -47,28 +47,27 @@ class COCODetection():
             self.coco_dataset.imgs = {k: self.coco_dataset.imgs[k] for k in sel_keys}
         #
 
+        max_frames = len(self.coco_dataset.imgs)
         num_frames = kwargs.get('num_frames', None)
-        if num_frames is not None:
-            orig_keys = list(self.coco_dataset.imgs)[:num_frames]
-            self.coco_dataset.imgs = {k:self.coco_dataset.imgs[k] for k in orig_keys}
-        #
-        self.cat_ids = self.coco_dataset.getCatIds()
-        self.img_ids = self.coco_dataset.getImgIds()
-        imgs = []
-        for img_id in self.img_ids:
-            img = self.coco_dataset.loadImgs([img_id])[0]
-            imgs.append(os.path.join(image_dir, img['file_name']))
-        #
-        self.imgs = imgs
-        self.num_frames = min(num_frames, len(self.imgs)) if (num_frames is not None) else len(self.imgs)
+        num_frames = min(num_frames, max_frames) if num_frames is not None else max_frames
+
+        imgs_list = list(self.coco_dataset.imgs.items())
         if shuffle:
             random.seed(int(shuffle))
-            random.shuffle(self.imgs)
+            random.shuffle(imgs_list)
         #
+        self.coco_dataset.imgs = {k:v for k,v in imgs_list[:num_frames]}
+
+        self.cat_ids = self.coco_dataset.getCatIds()
+        self.img_ids = self.coco_dataset.getImgIds()
+        self.num_frames = num_frames
         self.tempfiles = []
 
     def __getitem__(self, idx):
-        return self.imgs[idx]
+        img_id = self.img_ids[idx]
+        img = self.coco_dataset.loadImgs([img_id])[0]
+        image_path = os.path.join(self.image_dir, img['file_name'])
+        return image_path
 
     def __len__(self):
         return self.num_frames
@@ -81,12 +80,9 @@ class COCODetection():
     def __call__(self, predictions, **kwargs):
         return self.evaluate(predictions, **kwargs)
 
-    def get_imgs(self):
-        return self.imgs
-
     def evaluate(self, predictions, **kwargs):
-        label_offset=kwargs.get('label_offset_pred', 0)
-        work_dir=kwargs.get('work_dir', None)
+        label_offset = kwargs.get('label_offset_pred', 0)
+        work_dir = kwargs.get('work_dir', None)
         if work_dir is None:
             temp_dir_mem = MemoryTempfile()
             work_dir = temp_dir_mem.tempdir if hasattr(temp_dir_mem, 'tempdir') else temp_dir_mem.name

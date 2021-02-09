@@ -25,8 +25,10 @@ common_cfg = {
     'run_inference':config.run_inference,
     'calibration_dataset':datasets.COCODetection(**config.coco_det_train_cfg),
     'input_dataset':datasets.COCODetection(**config.coco_det_val_cfg),
-    'postprocess':config.get_postproc_detection(work_dir)
 }
+
+postproc_detection_onnx = config.get_postproc_detection_onnx(score_thr=config.detection_thr, save_detections=config.detection_save)
+postproc_detection_tflite = config.get_postproc_detection_tflite(score_thr=config.detection_thr, save_detections=config.detection_save)
 
 pipeline_configs = [
     #################################################################
@@ -37,7 +39,8 @@ pipeline_configs = [
         'preprocess':config.get_preproc_inception((300,300), (300,300)),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
-        'metric':dict(label_offset_pred=det_helper.coco_91class_label_offset)
+        'postprocess': postproc_detection_tflite,
+        'metric':dict(label_offset_pred=det_helper.coco_label_offset_91class())
     }),
 ]
 

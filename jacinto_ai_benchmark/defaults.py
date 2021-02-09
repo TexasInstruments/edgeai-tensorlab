@@ -38,15 +38,28 @@ def get_postproc_classification():
     return postprocess_classification
 
 
-def get_postproc_detection(save_detections=True):
+def get_postproc_detection(score_thr=None, save_detections=True, formatter=None):
     postprocess_detection = [postprocess.Concat(axis=-1, end_index=3),
-                             postprocess.IndexArray(),
-                             postprocess.DetectionFilter(),
-                             postprocess.DetectionResize()]
+                             postprocess.IndexArray()]
+    if formatter is not None:
+        postprocess_detection += [formatter]
+    #
+    postprocess_detection += [postprocess.DetectionResize()]
+    if score_thr is not None:
+        postprocess_detection += [postprocess.DetectionFilter(score_thr=score_thr)]
+    #
     if save_detections:
         postprocess_detection += [postprocess.DetectionImageSave()]
     #
     return postprocess_detection
+
+
+def get_postproc_detection_onnx(score_thr=None, save_detections=True, formatter=None):
+    return get_postproc_detection(score_thr=score_thr, save_detections=save_detections, formatter=formatter)
+
+
+def get_postproc_detection_tflite(score_thr=None, save_detections=True, formatter=postprocess.DetectionYXYX2XYXY()):
+    return get_postproc_detection(score_thr=score_thr, save_detections=save_detections, formatter=formatter)
 
 
 ############################################################

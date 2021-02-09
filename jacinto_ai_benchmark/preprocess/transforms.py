@@ -23,7 +23,6 @@ class ImageRead(object):
         self.info = {'preprocess':{}}
 
     def __call__(self, path):
-
         if self.backend == 'pil':
             img = PIL.Image.open(path)
             self.info['preprocess']['image_shape'] = img.size[1], img.size[0], len(img.getbands())

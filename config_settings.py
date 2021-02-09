@@ -14,6 +14,8 @@ tidl_dir = './dependencies/c7x-mma-tidl'
 tidl_tensor_bits = 32 #8 #16 #32
 run_import = True #False #True
 run_inference = True #False #True
+detection_thr = 0.05
+detection_save = True
 
 
 ############################################################
@@ -43,7 +45,8 @@ imagenet_cls_val_cfg = dict(
 coco_det_train_cfg = dict(
     path=f'{datasets_path}/coco',
     split='train2017',
-    shuffle=True,num_frames=quantization_params.get_num_frames_calib())
+    shuffle=True,
+    num_frames=quantization_params.get_num_frames_calib())
 coco_det_val_cfg = dict(
     path=f'{datasets_path}/coco',
     split='val2017',

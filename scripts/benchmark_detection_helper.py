@@ -1,9 +1,16 @@
 
-# for tensorflow object detection api models that are trained with 1+90 classes.
-# Note: typically other training frameworks use 1+80 classes - because only 80 classes are annotated in coco.
-coco_91class_background_label_id = 0
-coco_91class_background_label_offset = (0 if coco_91class_background_label_id == 0 else 1)
-coco_91class_label_offset = {i:(coco_91class_background_label_offset+i) for i in range(91)}
+# convert from 90 class index (typical output of a tensorflow detector) to 91 class
+# (original labels of coco starts from 1, and 0 is background)
+def coco_label_offset_91class(label_offset=1):
+    label_offset_dict = {i:(label_offset+i) for i in range(91)}
+    return label_offset_dict
+
+
+# convert from 80 class index (typical output of a mmdetection detector) to 81 class
+# (original labels of coco starts from 1, and 0 is background)
+# the evalation/metric script will convert from 80 class to coco's 90 class.
+def coco_label_offset_81class(label_offset=1):
+    return label_offset
 
 
 # for github.com/google/automl models (tensorflow) that are trained with 90 classes.
