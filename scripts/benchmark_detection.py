@@ -36,7 +36,7 @@ pipeline_configs = [
     #################mlperf models##############################
     # mlperf: detection ssd_mobilenet_v1_coco_2018_01_28 expected_metric: 23.0% ap[0.5:0.95] accuracy
     utils.dict_update(common_cfg, {
-        'preprocess':config.get_preproc_inception((300,300), (300,300)),
+        'preprocess':config.get_preproc_inception((300,300), (300,300), backend='cv2'),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
         'postprocess': postproc_detection_tflite,

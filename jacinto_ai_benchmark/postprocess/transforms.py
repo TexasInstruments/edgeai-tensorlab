@@ -26,6 +26,7 @@ class ArgMax():
         output = output[0]
         return output
 
+
 class Concat():
     def __init__(self, axis=-1, start_inxdex=0, end_index=-1):
         self.axis = axis
@@ -115,37 +116,28 @@ class DetectionXYWH2XYXY():
 class DetectionImageSave():
     def __init__(self):
         self.save_path = None
-        self.color = (0,255,0)
-        self.outline = 'green'
+        self.colors = [(r,g,b) for r in range(0,256,32) for g in range(0,256,32) for b in range(0,256,32)]
         self.thickness = 2
 
     def __call__(self, bbox):
         img = copy.deepcopy(self.image)
         if isinstance(img, np.ndarray):
-            img = img[:,:,::-1] #to BGR
             for bbox_one in bbox:
-                self.draw_bbox_cv2(img, bbox_one)
+                label = int(bbox_one[4])
+                label_color = self.colors[label % len(self.colors)]
+                cv2.rectangle(img, tuple(bbox_one[:2]), tuple(bbox_one[2:4]), color=label_color, thickness=self.thickness)
             #
+            cv2.imwrite(self.save_path, img[:,:,::-1])
         else:
             img_rect = ImageDraw.Draw(img)
             for bbox_one in bbox:
-                self.draw_bbox_pil(img_rect, bbox_one)
+                label = int(bbox_one[4])
+                label_color = self.colors[label % len(self.colors)]
+                img_rect.rectangle(bbox_one[:4], outline=label_color, width=self.thickness)
             #
-        #
-        if isinstance(self.image, np.ndarray):
-            cv2.imwrite(self.save_path, img)
-        else:
             img.save(self.save_path)
         #
         return bbox
-
-    def draw_bbox_cv2(self, img, bbox_one):
-        cv2.rectangle(img, bbox_one[:2], bbox_one[2:4], color=self.color, thickness=self.thickness)
-        return img
-
-    def draw_bbox_pil(self, img, bbox_one):
-        img.rectangle(bbox_one[:4], outline=self.outline, width=self.thickness)
-        return img
 
     def set_info(self, info_dict):
         image_path = info_dict['preprocess']['image_path']
