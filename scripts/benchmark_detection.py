@@ -40,7 +40,7 @@ pipeline_configs = [
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
         'postprocess': postproc_detection_tflite,
-        'metric':dict(label_offset_pred=det_helper.coco_label_offset_91class())
+        'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
     }),
 ]
 

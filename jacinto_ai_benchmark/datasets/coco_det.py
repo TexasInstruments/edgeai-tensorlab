@@ -1,3 +1,4 @@
+import numbers
 import os
 import random
 import json
@@ -141,8 +142,10 @@ class COCODetection():
             label = int(label)
             assert label in label_offset.keys(), f'label_offset is a dict, but the detected label {label} was not one of its keys'
             label = label_offset[label]
+        elif isinstance(label_offset, numbers.Number):
+            label = int(label + label_offset)
         else:
-            label = int(label - label_offset)
+            label = int(label)
             assert label<len(self.cat_ids), \
                 'the detected label could not be mapped to the 90 COCO categories using the default COCO.getCatIds()'
             label = self.cat_ids[label]
