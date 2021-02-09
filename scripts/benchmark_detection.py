@@ -34,13 +34,29 @@ pipeline_configs = [
     #################################################################
     #       TFLITE MODELS
     #################mlperf models##############################
-    # mlperf: detection ssd_mobilenet_v1_coco_2018_01_28 expected_metric: 23.0% ap[0.5:0.95] accuracy
+    # mlperf edge: detection - ssd_mobilenet_v1_coco_2018_01_28 expected_metric: 23.0% ap[0.5:0.95] accuracy
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_inception((300,300), (300,300), backend='cv2'),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
             model_path=f'{config.modelzoo_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
         'postprocess': postproc_detection_tflite,
         'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
+    }),
+    # mlperf mobile: detection - ssd_mobilenet_v2_coco_300x300 - expected_metric: 22.0% COCO AP[0.5-0.95]
+    utils.dict_update(common_cfg, {
+        'preprocess':config.get_preproc_inception((300,300), (300,300), backend='cv2'),
+        'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
+            model_path=f'{config.modelzoo_path}/vision/detection/coco/mlperf/ssd_mobilenet_v2_300_float.tflite'),
+        'postprocess': postproc_detection_tflite,
+        'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
+    }),
+    # mlperf edge: detection - coco_ssd-resnet34_1200x1200 - expected_metric: 20.0% COCO AP[0.5-0.95]
+    utils.dict_update(common_cfg, {
+        'preprocess':config.get_preproc_inception((1200,1200), (1200,1200), backend='cv2'),
+        'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
+            model_path=f'{config.modelzoo_path}/vision/detection/coco/mlperf/ssd_resnet34-ssd1200.onnx'),
+        'postprocess': postproc_detection_tflite,
+        'metric':dict(label_offset_pred=det_helper.coco_label_offset_80to90())
     }),
 ]
 

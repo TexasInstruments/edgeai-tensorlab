@@ -36,6 +36,7 @@ imagenet_cls_train_cfg = dict(
     path=f'{datasets_path}/imagenet/train',
     split=f'{datasets_path}/imagenet/train.txt',
     shuffle=True,num_frames=quantization_params.get_num_frames_calib())
+
 imagenet_cls_val_cfg = dict(
     path=f'{datasets_path}/imagenet/val',
     split=f'{datasets_path}/imagenet/val.txt',
@@ -47,6 +48,7 @@ coco_det_train_cfg = dict(
     split='train2017',
     shuffle=True,
     num_frames=quantization_params.get_num_frames_calib())
+
 coco_det_val_cfg = dict(
     path=f'{datasets_path}/coco',
     split='val2017',
