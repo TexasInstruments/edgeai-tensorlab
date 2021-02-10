@@ -31,9 +31,6 @@ class ImageCls():
     def __call__(self, predictions, **kwargs):
         return self.evaluate(predictions, **kwargs)
 
-    def get_imgs(self):
-        return self.imgs
-
     def evaluate(self, predictions, **kwargs):
         metric_tracker = utils.AverageMeter(name='accuracy-top1%')
         in_lines = self.imgs

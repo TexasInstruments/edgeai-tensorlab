@@ -4,6 +4,8 @@ import numpy as np
 import cv2
 from PIL import ImageDraw
 
+
+##############################################################################
 class IndexArray():
     def __init__(self, index=0):
         self.index = index
@@ -28,10 +30,10 @@ class ArgMax():
 
 
 class Concat():
-    def __init__(self, axis=-1, start_inxdex=0, end_index=-1):
+    def __init__(self, axis=-1, start_index=0, end_index=-1):
         self.axis = axis
-        self.start_inxdex = start_inxdex
-        self.end_index =end_index
+        self.start_index = start_index
+        self.end_index = end_index
 
     def __call__(self, tensor_list):
         if isinstance(tensor_list, (list,tuple)):
@@ -44,13 +46,53 @@ class Concat():
                     tensor_list[t_idx] = t[...,np.newaxis]
                 #
             #
-            tensor = np.concatenate(tensor_list[self.start_inxdex:self.end_index], axis=self.axis)
+            tensor = np.concatenate(tensor_list[self.start_index:self.end_index], axis=self.axis)
         else:
             tensor = tensor_list
         #
         return tensor
 
 
+##############################################################################
+class SegmentationImageResize():
+    def __init__(self):
+        self.image_shape = None
+
+    def __call__(self, label):
+        cv2.resize(label, dsize=(self.image_shape[1],self.image_shape[0]), interpolation=cv2.INTER_NEAREST)
+        return label
+
+    def set_info(self, info_dict):
+        self.image_shape = info_dict['preprocess']['image_shape']
+
+
+class SegmentationImageSave():
+    def __init__(self):
+        self.save_path = None
+        self.colors = [(r,g,b) for r in range(0,256,32) for g in range(0,256,32) for b in range(0,256,32)]
+
+    def __call__(self, bbox):
+        img = copy.deepcopy(self.image)
+        if isinstance(img, np.ndarray):
+            # add fill code here
+            cv2.imwrite(self.save_path, img[:,:,::-1])
+        else:
+            # add fill code here
+            img.save(self.save_path)
+        #
+        return bbox
+
+    def set_info(self, info_dict):
+        image_path = info_dict['preprocess']['image_path']
+        self.image = info_dict['preprocess']['image']
+        image_name = os.path.split(image_path)[-1]
+        work_dir = info_dict['session']['work_dir']
+        save_dir = os.path.join(work_dir, 'detections')
+        os.makedirs(save_dir, exist_ok=True)
+        self.save_path = os.path.join(save_dir, image_name)
+
+
+##############################################################################
 class DetectionResize():
     def __init__(self):
         self.image_shape = None

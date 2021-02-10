@@ -5,11 +5,12 @@ from . import preprocess, postprocess, constants
 
 ###############################################################
 # some utility functions to easily create the pipeline
-def get_preproc_vgg(resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False, backend='pil',
-                        mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429)):
+def get_preproc_onnx(resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
+                     backend='pil', interpolation=None,
+                     mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429)):
     preprocess_tvm_dlr = [
         preprocess.ImageRead(backend=backend),
-        preprocess.ImageResize(resize),
+        preprocess.ImageResize(resize, interpolation=interpolation),
         preprocess.ImageCenterCrop(crop),
         preprocess.ImageToNPTensor4D(data_layout=data_layout),
         preprocess.ImageNormMeanScale(mean=mean, scale=scale, data_layout=data_layout)]
@@ -19,11 +20,19 @@ def get_preproc_vgg(resize=256, crop=224, data_layout=constants.NCHW, reverse_ch
     return preprocess_tvm_dlr
 
 
-def get_preproc_inception(resize=256, crop=224, data_layout=constants.NHWC, reverse_channels=False, backend='pil',
+def get_preproc_jai(resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
+                    backend='cv2', interpolation=cv2.INTER_AREA,
+                    mean=(128.0, 128.0, 128.0), scale=(1/64.0, 1/64.0, 1/64.0)):
+    return get_preproc_onnx(resize=resize, crop=crop, data_layout=data_layout, reverse_channels=reverse_channels,
+                            backend=backend, interpolation=interpolation, mean=mean, scale=scale)
+
+
+def get_preproc_tflite(resize=256, crop=224, data_layout=constants.NHWC, reverse_channels=False,
+                          backend='pil', interpolation=None,
                           mean=(128.0, 128.0, 128.0), scale=(1/128.0, 1/128.0, 1/128.0)):
     preprocess_tflite_rt = [
         preprocess.ImageRead(backend=backend),
-        preprocess.ImageResize(resize),
+        preprocess.ImageResize(resize, interpolation=interpolation),
         preprocess.ImageCenterCrop(crop),
         preprocess.ImageToNPTensor4D(data_layout=data_layout),
         preprocess.ImageNormMeanScale(mean=mean, scale=scale, data_layout=data_layout)]
@@ -38,7 +47,7 @@ def get_postproc_classification():
     return postprocess_classification
 
 
-def get_postproc_detection(score_thr=None, save_detections=True, formatter=None):
+def get_postproc_detection(score_thr=None, save_output=True, formatter=None):
     postprocess_detection = [postprocess.Concat(axis=-1, end_index=3),
                              postprocess.IndexArray()]
     if formatter is not None:
@@ -48,18 +57,37 @@ def get_postproc_detection(score_thr=None, save_detections=True, formatter=None)
     if score_thr is not None:
         postprocess_detection += [postprocess.DetectionFilter(score_thr=score_thr)]
     #
-    if save_detections:
+    if save_output:
         postprocess_detection += [postprocess.DetectionImageSave()]
     #
     return postprocess_detection
 
 
-def get_postproc_detection_onnx(score_thr=None, save_detections=True, formatter=None):
-    return get_postproc_detection(score_thr=score_thr, save_detections=save_detections, formatter=formatter)
+def get_postproc_detection_onnx(score_thr=None, save_output=True, formatter=None):
+    return get_postproc_detection(score_thr=score_thr, save_output=save_output, formatter=formatter)
 
 
-def get_postproc_detection_tflite(score_thr=None, save_detections=True, formatter=postprocess.DetectionYXYX2XYXY()):
-    return get_postproc_detection(score_thr=score_thr, save_detections=save_detections, formatter=formatter)
+def get_postproc_detection_tflite(score_thr=None, save_output=True, formatter=postprocess.DetectionYXYX2XYXY()):
+    return get_postproc_detection(score_thr=score_thr, save_output=save_output, formatter=formatter)
+
+
+def get_postproc_segmentation(data_layout, save_output):
+    channel_axis = -1 if data_layout == constants.NHWC else 1
+    postprocess_detection = [postprocess.ArgMax(axis=channel_axis),
+                             postprocess.IndexArray()]
+    postprocess_detection += [postprocess.SegmentationImageResize()]
+    if save_output:
+        postprocess_detection += [postprocess.SegmentationImageSave()]
+    #
+    return postprocess_detection
+
+
+def get_postproc_segmentation_onnx(data_layout=constants.NCHW, save_output=True):
+    return get_postproc_segmentation(data_layout=data_layout, save_output=save_output)
+
+
+def get_postproc_segmentation_tflite(data_layout=constants.NHWC, save_output=True):
+    return get_postproc_segmentation(data_layout=data_layout, save_output=save_output)
 
 
 ############################################################

@@ -9,10 +9,10 @@ from .. import utils
 __all__ = ['CityscapesSegmentation']
 
 class CityscapesSegmentation():
-    def __init__(self, inData, num_imgs=None):
-        assert isinstance(inData, dict) and 'path' in list(inData.keys()) and 'split' in list(inData.keys()), \
-            'inData must be a dict'
-        #
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+        assert 'path' in kwargs and 'split' in kwargs, 'path and split must provided'
+        self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
 
         # mapping for cityscapes 19 class segmentation
         self.num_classes = 19
@@ -22,49 +22,42 @@ class CityscapesSegmentation():
                      30:255, 31:16, 32:17, 33:18, 255:255}
         self.label_lut = self._create_lut()
 
-        image_dir = os.path.join(inData['path'], 'leftImg8bit', inData['split'])
+        image_dir = os.path.join(self.kwargs['path'], 'leftImg8bit', self.kwargs['split'])
         images_pattern = os.path.join(image_dir, '*', '*.png')
         images = glob.glob(images_pattern)
         self.imgs = sorted(images)
         #
-        label_dir = os.path.join(inData['path'], 'gtFine', inData['split'])
+        label_dir = os.path.join(self.kwargs['path'], 'gtFine', self.kwargs['split'])
         labels_pattern = os.path.join(label_dir, '*', '*_labelIds.png')
         labels = glob.glob(labels_pattern)
         self.labels = sorted(labels)
         #
         assert len(self.imgs) == len(self.labels), 'length of images must be equal to the length of labels'
 
-        shuffle = inData['shuffle'] if (isinstance(inData, dict) and 'shuffle' in inData) else False
+        shuffle = self.kwargs['shuffle'] if (isinstance(self.kwargs, dict) and 'shuffle' in self.kwargs) else False
         if shuffle:
             random.seed(int(shuffle))
             random.shuffle(self.imgs)
             random.seed(int(shuffle))
             random.shuffle(self.labels)
         #
-        self.num_imgs = min(num_imgs, len(self.imgs)) if (num_imgs is not None) else len(self.imgs)
+        self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
+            if (self.kwargs['num_frames'] is not None) else len(self.imgs)
 
     def __getitem__(self, idx, with_label=False):
         if with_label:
             image_file = self.imgs[idx]
-            image = PIL.Image.open(image_file)
             label_file = self.labels[idx]
-            label_img = PIL.Image.open(label_file)
-            label_img = label_img.convert('L')
-            label_img = np.array(label_img)
-            label_img = self.label_lut[label_img]
-            return image, label_img
+            return image_file, label_file
         else:
             return self.imgs[idx]
         #
 
     def __len__(self):
-        return self.num_imgs
+        return self.num_frames
 
     def __call__(self, predictions):
         return self.evaluate(predictions)
-
-    def get_imgs(self):
-        return self.imgs
 
     def _create_lut(self):
         if self.label_dict:
@@ -80,21 +73,21 @@ class CityscapesSegmentation():
 
     def evaluate(self, predictions):
         cmatrix = None
-        for n in range(self.num_imgs):
-            image, label_img = self.__getitem__(n, with_label=True)
-            gtHeight, gtWidth = label_img.shape[:2]
+        for n in range(self.num_frames):
+            image_file, label_file = self.__getitem__(n, with_label=True)
+            # image = PIL.Image.open(image_file)
+            label_img = PIL.Image.open(label_file)
+            label_img = label_img.convert('L')
+            label_img = np.array(label_img)
+            label_img = self.label_lut[label_img]
 
             output = predictions[n]
             output = output.astype(np.uint8)
             output = output[0] if (output.ndim > 2 and output.shape[0] == 1) else output
             output = output[:2] if (output.ndim > 2 and output.shape[2] == 1) else output
 
-            resample_type = cv2.INTER_NEAREST if isinstance(output, np.ndarray) else PIL.Image.NEAREST
-            output = utils.resize_pad_crop_image(output, resize_w=gtWidth, resize_h=gtHeight, inResizeType=0,
-                                                 resample_type=resample_type)
             cmatrix = utils.confusion_matrix(cmatrix, output, label_img, self.num_classes)
         #
-
         accuracy = utils.segmentation_accuracy(cmatrix)
         return accuracy
 

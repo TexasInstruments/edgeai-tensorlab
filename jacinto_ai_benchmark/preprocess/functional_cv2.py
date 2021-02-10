@@ -22,7 +22,7 @@ def crop(img, top: int, left, height, width):
     return img[top:(top + height), left:(left + width), ...]
 
 
-def resize(img, size, interpolation=cv2.INTER_LINEAR):
+def resize(img, size, **kwargs):
     r"""Resize the input PIL Image to the given size.
 
     Args:
@@ -39,7 +39,8 @@ def resize(img, size, interpolation=cv2.INTER_LINEAR):
     Returns:
         PIL Image: Resized image.
     """
-    # interpolation = cv2.INTER_LINEAR if interpolation is None else interpolation
+    interpolation = kwargs.get('interpolation', None) or cv2.INTER_LINEAR
+
     if not isinstance(img, np.ndarray):
         raise TypeError('img should be numpy array. Got {}'.format(type(img)))
     if not (isinstance(size, int) or (isinstance(size, Sequence) and len(size) in (1, 2))):

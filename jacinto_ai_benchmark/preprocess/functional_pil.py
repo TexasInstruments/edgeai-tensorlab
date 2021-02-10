@@ -140,7 +140,7 @@ def crop(img: Image.Image, top: int, left: int, height: int, width: int) -> Imag
     return img.crop((left, top, left + width, top + height))
 
 
-def resize(img, size, resample=Image.BILINEAR):
+def resize(img, size, **kwargs):
     r"""Resize the input PIL Image to the given size.
 
     Args:
@@ -157,7 +157,8 @@ def resize(img, size, resample=Image.BILINEAR):
     Returns:
         PIL Image: Resized image.
     """
-    # resample = Image.BILINEAR if resample is None else resample
+    resample = kwargs.get('interpolation', None) or Image.BILINEAR
+
     if not _is_pil_image(img):
         raise TypeError('img should be PIL Image. Got {}'.format(type(img)))
     if not (isinstance(size, int) or (isinstance(size, Sequence) and len(size) in (1, 2))):

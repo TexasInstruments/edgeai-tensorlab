@@ -10,13 +10,13 @@ max_frames_calib = 50 #100
 max_calib_iterations = 50
 modelzoo_path = '../jacinto-ai-modelzoo/models'
 datasets_path = f'./dependencies/datasets'
-cuda_devices = [0,1,2,3,0,1,2,3] #None
+cuda_devices = None #[0,1,2,3,0,1,2,3] #None
 tidl_dir = './dependencies/c7x-mma-tidl'
 tidl_tensor_bits = 32 #8 #16 #32
 run_import = True #False #True
 run_inference = True #False #True
 detection_thr = 0.05
-detection_save = True
+save_output = True
 
 
 ############################################################
@@ -55,5 +55,16 @@ coco_det_val_cfg = dict(
     split='val2017',
     num_frames=min(num_frames,5000))
 
+
+cityscapes_seg_train_cfg = dict(
+    path=f'{datasets_path}/cityscapes',
+    split='val',
+    shuffle=True,
+    num_frames=quantization_params.get_num_frames_calib())
+
+cityscapes_seg_val_cfg = dict(
+    path=f'{datasets_path}/cityscapes',
+    split='val',
+    num_frames=min(num_frames,500))
 
 
