@@ -101,7 +101,7 @@ class COCOSegmentation():
     def __len__(self):
         return self.num_imgs
 
-    def evaluate(self, outputs):
+    def evaluate(self, outputs, **kwargs):
         cmatrix = None
         for n in range(self.num_imgs):
             image, label_img = self.__getitem__(n, with_label=True)

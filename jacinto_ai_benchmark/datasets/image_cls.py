@@ -45,7 +45,8 @@ class ImageCls():
         #
         return {metric_tracker.name:metric_tracker.avg}
 
-    def classification_accuracy(self, prediction, target, label_offset_pred=0, label_offset_gt=0, multiplier=100.0):
+    def classification_accuracy(self, prediction, target, label_offset_pred=0, label_offset_gt=0,
+                                multiplier=100.0, **kwargs):
         prediction = prediction + label_offset_pred
         target = target + label_offset_gt
         accuracy = 1.0 if (prediction == target) else 0.0

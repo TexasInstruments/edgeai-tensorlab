@@ -26,7 +26,7 @@ def coco_label_offset_80to90(label_offset=1):
 # convert from 90 class index (typical output of a tensorflow detector) to 90 or 91 class
 # (original labels of coco starts from 1, and 0 is background)
 def coco_label_offset_90to90(label_offset=1):
-    coco_label_table = range(1,90)
+    coco_label_table = range(1,91)
     if label_offset == 1:
         # 0 => 1, 1 => 2, .. 90 => 91
         coco_label_offset = {k:v for k,v in enumerate(coco_label_table)}

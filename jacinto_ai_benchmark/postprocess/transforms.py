@@ -56,6 +56,9 @@ class DetectionResize():
         self.image_shape = None
 
     def __call__(self, bbox):
+        # avoid accidental overflow
+        bbox = bbox.clip(-1e6, 1e6)
+        # apply scaling
         bbox[...,0] *= self.image_shape[1]
         bbox[...,1] *= self.image_shape[0]
         bbox[...,2] *= self.image_shape[1]
@@ -125,7 +128,9 @@ class DetectionImageSave():
             for bbox_one in bbox:
                 label = int(bbox_one[4])
                 label_color = self.colors[label % len(self.colors)]
-                cv2.rectangle(img, tuple(bbox_one[:2]), tuple(bbox_one[2:4]), color=label_color, thickness=self.thickness)
+                pt1 = (int(bbox_one[0]),int(bbox_one[1]))
+                pt2 = (int(bbox_one[2]),int(bbox_one[3]))
+                cv2.rectangle(img, pt1, pt2, color=label_color, thickness=self.thickness)
             #
             cv2.imwrite(self.save_path, img[:,:,::-1])
         else:
@@ -133,7 +138,8 @@ class DetectionImageSave():
             for bbox_one in bbox:
                 label = int(bbox_one[4])
                 label_color = self.colors[label % len(self.colors)]
-                img_rect.rectangle(bbox_one[:4], outline=label_color, width=self.thickness)
+                rect = (int(bbox_one[0]),int(bbox_one[1]),int(bbox_one[2]),int(bbox_one[3]))
+                img_rect.rectangle(rect, outline=label_color, width=self.thickness)
             #
             img.save(self.save_path)
         #
