@@ -5,7 +5,7 @@ from jacinto_ai_benchmark.defaults import *
 ############################################################
 # common settings
 num_frames = 10000 #50000
-max_frames_calib = 100
+max_frames_calib = 50 #100
 max_calib_iterations = 50
 modelzoo_path = '../jacinto-ai-modelzoo/models'
 datasets_path = f'./dependencies/datasets'
@@ -33,8 +33,8 @@ session_tflite_rt_cfg_qat = quantization_params_qat.get_session_tflite_rt_cfg()
 ############################################################
 # dataset settings
 imagenet_cls_train_cfg = dict(
-    path=f'{datasets_path}/imagenet/train',
-    split=f'{datasets_path}/imagenet/train.txt',
+    path=f'{datasets_path}/imagenet/val',
+    split=f'{datasets_path}/imagenet/val.txt',
     shuffle=True,num_frames=quantization_params.get_num_frames_calib())
 
 imagenet_cls_val_cfg = dict(
@@ -45,7 +45,7 @@ imagenet_cls_val_cfg = dict(
 
 coco_det_train_cfg = dict(
     path=f'{datasets_path}/coco',
-    split='train2017',
+    split='val2017',
     shuffle=True,
     num_frames=quantization_params.get_num_frames_calib())
 

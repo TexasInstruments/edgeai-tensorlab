@@ -66,10 +66,7 @@ def _run_pipeline_with_log(pipeline_config, perfsim=False, device=None):
     # #
 
     print('BenchmarkResults: ', results)
-
-    if logger is not None:
-        logger.close()
-    #
+    del logger
 
 
 def run_pipeline(pipeline_config):

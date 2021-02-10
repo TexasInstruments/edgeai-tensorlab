@@ -24,6 +24,7 @@ echo "TIDL_RT_PERFSTATS=" ${TIDL_RT_PERFSTATS}
 
 ##################################################################
 python ./scripts/benchmark_classification.py
+python ./scripts/benchmark_detection.py
 #python ./scripts/example_classification.py
 
 

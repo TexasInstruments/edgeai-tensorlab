@@ -82,6 +82,11 @@ class TVMDLRSession(BaseRTSession):
         self.import_done = True
 
     def infer_frame(self, input):
+        if self.kwargs['input_shape'] is None:
+            model_path = self.kwargs['model_path']
+            onnx_model = onnx.load(model_path)
+            self.kwargs['input_shape'] = self._get_input_shape(onnx_model)
+        #
         super().infer_frame(input)
         input_shape = self.kwargs['input_shape']
         input_keys = list(input_shape.keys())
