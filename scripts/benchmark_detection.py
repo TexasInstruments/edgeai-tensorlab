@@ -21,6 +21,7 @@ print(f'work_dir = {work_dir}')
 # configs for each model pipeline
 common_cfg = {
     'type':'accuracy',
+    'verbose_mode': config.verbose_mode,
     'run_import':config.run_import,
     'run_inference':config.run_inference,
     'calibration_dataset':datasets.COCODetection(**config.coco_det_train_cfg),

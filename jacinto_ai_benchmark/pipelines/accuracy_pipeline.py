@@ -25,7 +25,9 @@ class AccuracyPipeline():
         calibration_dataset = pipeline_config['calibration_dataset']
         preprocess = pipeline_config['preprocess']
         description = os.path.split(session.get_work_dir())[-1]
-        print('import & calibration: ' + description)
+        if pipeline_config['verbose_mode']:
+            print('import & calibration: ' + description)
+        #
         calib_data = []
         num_frames = len(calibration_dataset)
         for data_index in range(num_frames):
@@ -42,7 +44,8 @@ class AccuracyPipeline():
         postprocess = pipeline_config['postprocess']
         description = os.path.split(session.get_work_dir())[-1]
 
-        session.start_infer()
+        is_ok = session.start_infer()
+        assert is_ok, f'start_infer() did not succeed for {description}'
 
         output_list = []
         num_frames = len(input_dataset)

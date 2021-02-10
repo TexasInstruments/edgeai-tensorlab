@@ -74,12 +74,16 @@ class TVMDLRSession(BaseRTSession):
         os.chdir(self.cwd)
 
     def start_infer(self):
+        if not os.path.exists(self.kwargs['artifacts_folder']):
+            return False
+        #
         super().start_infer()
         # create inference model
         os.chdir(self.interpreter_folder)
         self.interpreter = DLRModel(self.kwargs['artifacts_folder'], 'cpu')
         os.chdir(self.cwd)
         self.import_done = True
+        return True
 
     def infer_frame(self, input):
         if self.kwargs['input_shape'] is None:

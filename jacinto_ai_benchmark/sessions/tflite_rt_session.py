@@ -35,12 +35,16 @@ class TFLiteRTSession(BaseRTSession):
         #
 
     def start_infer(self):
+        if not os.path.exists(self.kwargs['artifacts_folder']):
+            return False
+        #
         super().start_infer()
         # now create the interpreter for inference
         os.chdir(self.interpreter_folder)
         self.interpreter = self._create_interpreter(is_import=False)
         os.chdir(self.cwd)
         self.import_done = True
+        return True
 
     def infer_frame(self, input):
         super().infer_frame(input)

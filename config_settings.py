@@ -4,6 +4,7 @@ from jacinto_ai_benchmark.defaults import *
 
 ############################################################
 # common settings
+verbose_mode = False
 num_frames = 10000 #50000
 max_frames_calib = 50 #100
 max_calib_iterations = 50

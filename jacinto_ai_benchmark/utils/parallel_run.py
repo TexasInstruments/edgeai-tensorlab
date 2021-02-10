@@ -59,13 +59,13 @@ class ParallelRun:
         qsize_prev = len(self.queued_tasks)
         num_next = 0
         while queue.qsize() > 0:
+            time.sleep(1.0)
             qsize = queue.qsize()
             for step in range(qsize, qsize_prev):
                 next(pbar)
                 num_next += 1
             #
-            qsize_prev = queue.qsize()
-            time.sleep(1.0)
+            qsize_prev = qsize
         #
         for step in range(num_next, len(self.queued_tasks)):
             next(pbar)
