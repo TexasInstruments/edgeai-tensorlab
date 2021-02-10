@@ -7,12 +7,9 @@ def collect_results(workDir):
     for log in logs:
         with open(log) as log_fp:
             log_data = [line for line in log_fp]
-            perf = log_data[-2].rstrip()
-            perf = perf if 'Performance' in perf else None
-            acc = log_data[-1].rstrip()
-            acc = acc if 'Accuracy' in acc else None
-            log_dir = '/'.join(os.path.split(log)[:-1])
-            results.append(f'{log_dir}, {acc}, {perf}')
+            result = log_data[-1].rstrip()
+            result = result if 'BenchmarkResults' in result else ''
+            results.append(result)
         #
     #
     results = sorted(results)

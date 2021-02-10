@@ -16,7 +16,7 @@ def run(pipeline_configs, perfsim=True, devices=None):
 def _run_pipelines_sequential(pipeline_configs, perfsim=True):
     # get the cwd so that we can continue even if exception occurs
     cwd = os.getcwd()
-    for pipeline_config in pipeline_configs:
+    for pipeline_config in atpbar.atpbar(pipeline_configs, name='tasks'):
         os.chdir(cwd)
         _run_pipeline_with_log(pipeline_config, perfsim)
     #
@@ -25,11 +25,11 @@ def _run_pipelines_sequential(pipeline_configs, perfsim=True):
 def _run_pipelines_parallel(pipeline_configs, perfsim=True, devices=None):
     # get the cwd so that we can continue even if exception occurs
     cwd = os.getcwd()
-    num_devices = len(devices)
-    parallel_exec = utils.ParallelRun(len(devices))
+    num_devices = len(devices) if devices is not None else 0
+    parallel_exec = utils.ParallelRun(num_processes=num_devices)
     for model_idx, pipeline_config in enumerate(pipeline_configs):
         os.chdir(cwd)
-        device = devices[model_idx % num_devices]
+        device = devices[model_idx % num_devices] if devices is not None else 0
         # pipeline_config = copy.deepcopy(pipeline_config)
         run_pipeline_bound_func = functools.partial(_run_pipeline_with_log, pipeline_config,
                                                     perfsim, device=device)
@@ -39,7 +39,7 @@ def _run_pipelines_parallel(pipeline_configs, perfsim=True, devices=None):
     parallel_exec.wait()
 
 
-def _run_pipeline_with_log(pipeline_config, perfsim=True, device=None):
+def _run_pipeline_with_log(pipeline_config, perfsim=False, device=None):
     if device is not None:
         os.environ['CUDA_VISIBLE_DEVICES'] = str(device)
     #
@@ -48,19 +48,24 @@ def _run_pipeline_with_log(pipeline_config, perfsim=True, device=None):
     os.makedirs(work_dir, exist_ok=True)
     logger = utils.TeeLogger(os.path.join(work_dir, 'run.log'))
 
-    results = perfsim_dict = None
+    results = None
     try:
         results = run_pipeline(pipeline_config)
     except Exception as e:
         print(f'\n{str(e)}')
     #
-    try:
-        perfsim_dict = session.perfsim_data() if perfsim else None
-    except Exception as e:
-        print(f'\n{str(e)}')
-    #
-    print('\nPerformance Estimate: ', perfsim_dict)
-    print('Accuracy Benchmark: ', results)
+
+    # perfsim_dict = None
+    # try:
+    #     perfsim_dict = session.perfsim_data() if perfsim else None
+    # except Exception as e:
+    #     print(f'\n{str(e)}')
+    # #
+    # if perfsim_dict is not None:
+    #     results.update(perfsim_dict)
+    # #
+
+    print('BenchmarkResults: ', results)
 
     if logger is not None:
         logger.close()

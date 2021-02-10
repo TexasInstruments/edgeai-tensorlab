@@ -1,32 +1,21 @@
-from multiprocessing import Process
+from multiprocessing import Process, JoinableQueue
 from collections import deque
-import progiter
+import time
+import atpbar
 
 
 class ParallelRun:
     def __init__(self, num_processes):
         self.num_processes = num_processes
         self.queued_tasks = deque()
-        self.running_processes = [None for _ in range(self.num_processes)]
-        self.total_queued = 0
-
-    def __del__(self):
-        for proc_idx, proc in enumerate(self.running_processes):
-            if proc is not None:
-                proc.terminate()
-                proc.join()
-            #
-        #
 
     def enqueue(self, task):
         self.queued_tasks.append(task)
 
     def start(self):
-        self.total_queued = len(self.queued_tasks)
-        assert self.total_queued > 0, f'atleast one task must be queued, got {self.total_queued}'
-        if self.total_queued == 1:
-            task = self.queued_tasks.popleft()
-            task()
+        assert len(self.queued_tasks) > 0, f'at least one task must be queued, got {len(self.queued_tasks)}'
+        if len(self.queued_tasks) == 1 or self.num_processes <= 1:
+            self._run_sequential()
         else:
             self._run_parallel()
         #
@@ -34,38 +23,57 @@ class ParallelRun:
     def wait(self):
         pass
 
+    def worker(self, reporter, queue):
+        atpbar.register_reporter(reporter)
+        while True:
+            task = queue.get()
+            if task is None:
+                queue.task_done()
+                break
+            else:
+                task()
+            #
+            queue.task_done()
+        #
+
+    def _run_sequential(self):
+        for task_id, task in atpbar.atpbar(self.queued_tasks, name='tasks'):
+            task()
+        #
+
     def _run_parallel(self):
-        progress_bar = progiter.ProgIter(desc='running models: ', total=self.total_queued, verbose=1)
-        progress_bar.begin()
-        while (self._num_running() > 0) or (self._num_queued() > 0):
-            if (self._num_running() < self.num_processes) and (self._num_queued() > 0):
-                slot_idx = self._empty_slot()
-                assert (slot_idx is not None), 'empty slot expected, but found none'
-                task = self.queued_tasks.popleft()
-                proc = Process(target=task)
-                self.running_processes[slot_idx] = proc
-                proc.start()
-            #
-            for slot_idx, proc in enumerate(self.running_processes):
-                if (proc is not None) and (not proc.is_alive()):
-                    self.running_processes[slot_idx] = None
-                    proc.join()
-                    progress_bar.step(1)
-                #
-            #
+        reporter = atpbar.find_reporter()
+        queue = JoinableQueue()
+        # start the processes
+        for proc_id in range(self.num_processes):
+            proc = Process(target=self.worker, args=(reporter, queue))
+            proc.start()
         #
-        progress_bar.close()
-
-    def _num_queued(self):
-        return len(self.queued_tasks)
-
-    def _num_running(self):
-        return sum([1 if proc is not None else 0 for proc in self.running_processes])
-
-    def _empty_slot(self):
-        for proc_idx, proc in enumerate(self.running_processes):
-            if proc is None:
-                return proc_idx
-            #
+        # provide the processes something to chew
+        for task in self.queued_tasks:
+            queue.put(task)
         #
-        return None
+        # monitor the progress
+        pbar = atpbar.atpbar(range(len(self.queued_tasks)), name='tasks')
+        pbar = iter(pbar)
+        qsize_prev = len(self.queued_tasks)
+        num_next = 0
+        while queue.qsize() > 0:
+            qsize = queue.qsize()
+            for step in range(qsize, qsize_prev):
+                next(pbar)
+                num_next += 1
+            #
+            qsize_prev = queue.qsize()
+            time.sleep(1.0)
+        #
+        for step in range(num_next, len(self.queued_tasks)):
+            next(pbar)
+            num_next += 1
+        #
+        # join the process as they finish
+        for proc_id in range(self.num_processes):
+            queue.put(None)
+            queue.join()
+        #
+        atpbar.flush()

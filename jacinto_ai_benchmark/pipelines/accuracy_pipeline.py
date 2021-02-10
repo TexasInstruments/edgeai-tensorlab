@@ -1,5 +1,5 @@
 import os
-import progiter
+import atpbar
 from .. import utils
 
 class AccuracyPipeline():
@@ -11,6 +11,7 @@ class AccuracyPipeline():
         session = pipeline_config['session']
         run_import = pipeline_config['run_import']
         run_inference = pipeline_config['run_inference']
+
         if run_import:
             self.import_model(session, pipeline_config)
         #
@@ -24,22 +25,15 @@ class AccuracyPipeline():
         calibration_dataset = pipeline_config['calibration_dataset']
         preprocess = pipeline_config['preprocess']
         description = os.path.split(session.get_work_dir())[-1]
-        progress_bar_step = 100
-
+        print('import & calibration: ' + description)
         calib_data = []
         num_frames = len(calibration_dataset)
-        progress_bar = progiter.ProgIter(desc='data reading for calibration: ' + description, total=num_frames, verbose=1)
-        progress_bar.begin()
         for data_index in range(num_frames):
             data = calibration_dataset[data_index]
             data = self._sequential_pipeline(preprocess, data)
             calib_data.append(data)
-            if (data_index>0) and (data_index % progress_bar_step) == 0:
-                progress_bar.step(inc=progress_bar_step)
-            #
         #
-        progress_bar.close()
-        print('model import & calibration: ' + description)
+
         session.import_model(calib_data)
 
     def infer_frames(self, session, pipeline_config):
@@ -47,25 +41,18 @@ class AccuracyPipeline():
         preprocess = pipeline_config['preprocess']
         postprocess = pipeline_config['postprocess']
         description = os.path.split(session.get_work_dir())[-1]
-        progress_bar_step = 100
 
         session.start_infer()
 
         output_list = []
         num_frames = len(input_dataset)
-        progress_bar = progiter.ProgIter(desc='model inference: ' + description, total=num_frames, verbose=1)
-        progress_bar.begin()
-        for data_index in range(num_frames):
+        for data_index in atpbar.atpbar(range(num_frames), name='inference: ' + description):
             data = input_dataset[data_index]
             data = self._sequential_pipeline(preprocess, data)
             output = self._run_session(session, data)
             output = self._sequential_pipeline(postprocess, output)
             output_list.append(output)
-            if (data_index>0) and (data_index % progress_bar_step) == 0:
-                progress_bar.step(inc=progress_bar_step)
-            #
         #
-        progress_bar.close()
         return output_list
 
     def evaluate(self, session, pipeline_config, output_list):
@@ -77,7 +64,8 @@ class AccuracyPipeline():
             metric = pipeline_config['input_dataset']
             metric_options = pipeline_config.get('metric', {})
         #
-        metric_options['work_dir'] = session.get_work_dir()
+        work_dir = session.get_work_dir()
+        metric_options['work_dir'] = work_dir
         metric = utils.as_list(metric)
         metric_options = utils.as_list(metric_options)
         output_dict = {}
@@ -85,6 +73,8 @@ class AccuracyPipeline():
             output = m(output_list, **m_options)
             output_dict.update(output)
         #
+        session_name = os.path.split(work_dir)[-1]
+        output_dict.update({'session_name':session_name})
         return output_dict
 
     def _run_session(self, session, data):
