@@ -1,5 +1,6 @@
 from multiprocessing import Process
 from collections import deque
+import progiter
 
 
 class ParallelRun:
@@ -34,6 +35,8 @@ class ParallelRun:
         pass
 
     def _run_parallel(self):
+        progress_bar = progiter.ProgIter(desc='running models: ', total=self.total_queued, verbose=1)
+        progress_bar.begin()
         while (self._num_running() > 0) or (self._num_queued() > 0):
             if (self._num_running() < self.num_processes) and (self._num_queued() > 0):
                 slot_idx = self._empty_slot()
@@ -47,9 +50,11 @@ class ParallelRun:
                 if (proc is not None) and (not proc.is_alive()):
                     self.running_processes[slot_idx] = None
                     proc.join()
+                    progress_bar.step(1)
                 #
             #
         #
+        progress_bar.close()
 
     def _num_queued(self):
         return len(self.queued_tasks)

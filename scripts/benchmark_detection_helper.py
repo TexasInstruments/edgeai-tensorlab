@@ -30,11 +30,11 @@ def coco_label_offset_90to90(label_offset=1):
     if label_offset == 1:
         # 0 => 1, 1 => 2, .. 90 => 91
         coco_label_offset = {k:v for k,v in enumerate(coco_label_table)}
-        coco_label_offset.update({90:91})
+        coco_label_offset.update({-1:0,90:91})
     elif label_offset == 0:
         # 0 => 0, 1 => 1, .. 90 => 90
         coco_label_offset = {(k+1):v for k,v in enumerate(coco_label_table)}
-        coco_label_offset.update({0:0})
+        coco_label_offset.update({-1:-1,0:0})
     else:
         assert False, f'unsupported value for label_offset {label_offset}'
     #
