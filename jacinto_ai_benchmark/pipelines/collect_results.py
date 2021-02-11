@@ -11,9 +11,8 @@ def collect_results(workDir):
                 log_data = [line for line in log_fp]
                 result = log_data[-1].rstrip()
                 result = result if 'Benchmark' in result else None
-                if result is not None and 'session' not in results:
-                    result = f'{result} : {log_file}'
-                    results.append(result)
+                if result is not None and 'inference_path' not in results:
+                    results.append(f"{result}, 'inference_path': {log_file}")
                 #
             #
         #
