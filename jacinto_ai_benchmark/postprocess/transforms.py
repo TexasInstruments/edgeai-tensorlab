@@ -87,7 +87,7 @@ class SegmentationImageSave():
         self.image = info_dict['preprocess']['image']
         image_name = os.path.split(image_path)[-1]
         work_dir = info_dict['session']['work_dir']
-        save_dir = os.path.join(work_dir, 'detections')
+        save_dir = os.path.join(work_dir, 'segmentation')
         os.makedirs(save_dir, exist_ok=True)
         self.save_path = os.path.join(save_dir, image_name)
 
@@ -192,6 +192,6 @@ class DetectionImageSave():
         self.image = info_dict['preprocess']['image']
         image_name = os.path.split(image_path)[-1]
         work_dir = info_dict['session']['work_dir']
-        save_dir = os.path.join(work_dir, 'detections')
+        save_dir = os.path.join(work_dir, 'detection')
         os.makedirs(save_dir, exist_ok=True)
         self.save_path = os.path.join(save_dir, image_name)

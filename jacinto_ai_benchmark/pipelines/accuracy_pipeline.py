@@ -76,8 +76,8 @@ class AccuracyPipeline():
             output = m(output_list, **m_options)
             output_dict.update(output)
         #
-        session_path = os.path.split(work_dir)[-1]
-        output_dict.update({'session_path':session_name})
+        session_id = os.path.split(work_dir)[-1]
+        output_dict.update({'session_path':session_id})
         return output_dict
 
     def _run_session(self, session, data):

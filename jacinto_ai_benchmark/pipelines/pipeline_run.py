@@ -5,7 +5,7 @@ from .accuracy_pipeline import *
 from .. import utils
 
 
-def run(pipeline_configs, perfsim=True, devices=None):
+def run(pipeline_configs, perfsim=False, devices=None):
     if devices is not None:
         _run_pipelines_parallel(pipeline_configs, perfsim, devices)
     else:
@@ -13,7 +13,7 @@ def run(pipeline_configs, perfsim=True, devices=None):
     #
 
 
-def _run_pipelines_sequential(pipeline_configs, perfsim=True):
+def _run_pipelines_sequential(pipeline_configs, perfsim=False):
     # get the cwd so that we can continue even if exception occurs
     cwd = os.getcwd()
     for pipeline_config in atpbar.atpbar(pipeline_configs, name='tasks'):
@@ -22,7 +22,7 @@ def _run_pipelines_sequential(pipeline_configs, perfsim=True):
     #
 
 
-def _run_pipelines_parallel(pipeline_configs, perfsim=True, devices=None):
+def _run_pipelines_parallel(pipeline_configs, perfsim=False, devices=None):
     # get the cwd so that we can continue even if exception occurs
     cwd = os.getcwd()
     num_devices = len(devices) if devices is not None else 0
