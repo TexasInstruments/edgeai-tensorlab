@@ -1,5 +1,5 @@
-from multiprocessing import Process, JoinableQueue
-from collections import deque
+import multiprocessing
+import collections
 import time
 import atpbar
 
@@ -7,7 +7,7 @@ import atpbar
 class ParallelRun:
     def __init__(self, num_processes):
         self.num_processes = num_processes
-        self.queued_tasks = deque()
+        self.queued_tasks = collections.deque()
 
     def enqueue(self, task):
         self.queued_tasks.append(task)
@@ -23,57 +23,24 @@ class ParallelRun:
     def wait(self):
         pass
 
-    def worker(self, reporter, queue):
-        atpbar.register_reporter(reporter)
-        while True:
-            task = queue.get()
-            if task is None:
-                queue.task_done()
-                break
-            else:
-                task()
-            #
-            queue.task_done()
-        #
-
     def _run_sequential(self):
         for task_id, task in atpbar.atpbar(self.queued_tasks, name='tasks'):
             task()
         #
 
+    def _worker(self, task):
+        result = task()
+        return result
+
     def _run_parallel(self):
-        reporter = atpbar.find_reporter()
-        queue = JoinableQueue()
-        # start the processes
-        for proc_id in range(self.num_processes):
-            proc = Process(target=self.worker, args=(reporter, queue))
-            proc.start()
-        #
-        # provide the processes something to chew
-        for task in self.queued_tasks:
-            queue.put(task)
-        #
+        num_tasks = len(self.queued_tasks)
+        # create process pool and queue the tasks
+        process_pool = multiprocessing.Pool(self.num_processes)
+        results = process_pool.imap_unordered(self._worker, self.queued_tasks)
+
         # monitor the progress
-        pbar = atpbar.atpbar(range(len(self.queued_tasks)), name='tasks')
-        pbar = iter(pbar)
-        qsize_prev = len(self.queued_tasks)
-        num_next = 0
-        while queue.qsize() > 0:
-            time.sleep(1.0)
-            qsize = queue.qsize()
-            for step in range(qsize, qsize_prev):
-                next(pbar)
-                num_next += 1
-            #
-            qsize_prev = qsize
+        progress_bar = atpbar.atpbar(range(num_tasks), name='tasks')
+        pbar_iter = iter(progress_bar)
+        for result in results:
+            next(pbar_iter)
         #
-        for step in range(num_next, len(self.queued_tasks)):
-            next(pbar)
-            num_next += 1
-        #
-        # join the process as they finish
-        for proc_id in range(self.num_processes):
-            queue.put(None)
-            queue.join()
-        #
-        atpbar.flush()
