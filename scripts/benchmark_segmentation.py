@@ -55,7 +55,9 @@ if __name__ == '__main__':
     if config.run_import or config.run_inference:
         pipelines.run(pipeline_configs, parallel_devices=config.parallel_devices)
     #
-    results = pipelines.collect_results(work_dir)
-    print(*results, sep='\n')
+    if config.collect_results:
+        results = pipelines.collect_results(work_dir)
+        print(*results, sep='\n')
+    #
 
 

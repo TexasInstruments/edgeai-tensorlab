@@ -14,6 +14,7 @@ parallel_devices = None #[0,1,2,3,0,1,2,3] #None
 tidl_tensor_bits = 32 #8 #16 #32
 run_import = True #False #True
 run_inference = True #False #True
+collect_results = True
 detection_thr = 0.05
 save_output = True
 
