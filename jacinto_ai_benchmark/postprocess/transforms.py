@@ -24,9 +24,11 @@ class ArgMax():
         else:
             axis = self.axis
         #
-        output = tensor.argmax(axis=axis)
-        output = output[0]
-        return output
+        if tensor.shape[axis] > 1:
+            tensor = tensor.argmax(axis=axis)
+            tensor = tensor[0]
+        #
+        return tensor
 
 
 class Concat():
@@ -59,7 +61,7 @@ class SegmentationImageResize():
         self.image_shape = None
 
     def __call__(self, label):
-        cv2.resize(label, dsize=(self.image_shape[1],self.image_shape[0]), interpolation=cv2.INTER_NEAREST)
+        label = cv2.resize(label, dsize=(self.image_shape[1],self.image_shape[0]), interpolation=cv2.INTER_NEAREST)
         return label
 
     def set_info(self, info_dict):
@@ -71,16 +73,17 @@ class SegmentationImageSave():
         self.save_path = None
         self.colors = [(r,g,b) for r in range(0,256,32) for g in range(0,256,32) for b in range(0,256,32)]
 
-    def __call__(self, bbox):
-        img = copy.deepcopy(self.image)
+    def __call__(self, img):
+        # TODO: convert label to color here
         if isinstance(img, np.ndarray):
-            # add fill code here
-            cv2.imwrite(self.save_path, img[:,:,::-1])
+            # convert image to BGR
+            img = img[:,:,::-1] if img.ndim > 2 else img
+            cv2.imwrite(self.save_path, img)
         else:
             # add fill code here
             img.save(self.save_path)
         #
-        return bbox
+        return img
 
     def set_info(self, info_dict):
         image_path = info_dict['preprocess']['image_path']
@@ -195,3 +198,23 @@ class DetectionImageSave():
         save_dir = os.path.join(work_dir, 'detection')
         os.makedirs(save_dir, exist_ok=True)
         self.save_path = os.path.join(save_dir, image_name)
+
+
+##############################################################################
+class NPTensorToImage(object):
+    def __init__(self, data_layout='NCHW'):
+        self.data_layout = data_layout
+
+    def __call__(self, tensor):
+        assert isinstance(tensor, np.ndarray), 'input tensor must be an array'
+        if tensor.ndim ==4 and tensor.shape[0] == 1:
+            tensor = tensor[0]
+        #
+        assert tensor.ndim == 3, 'could not convert to image'
+        tensor = np.transpose(tensor, (1,2,0)) if self.data_layout == 'NCHW' else tensor
+        assert tensor.shape[2] in (1,3), 'invalid number of channels'
+        return tensor
+
+
+    def __repr__(self):
+        return self.__class__.__name__ + f'({self.data_layout})'

@@ -47,6 +47,7 @@ def get_postproc_classification():
     return postprocess_classification
 
 
+############################################################
 def get_postproc_detection(score_thr=None, save_output=True, formatter=None):
     postprocess_detection = [postprocess.Concat(axis=-1, end_index=3),
                              postprocess.IndexArray()]
@@ -71,11 +72,13 @@ def get_postproc_detection_tflite(score_thr=None, save_output=True, formatter=po
     return get_postproc_detection(score_thr=score_thr, save_output=save_output, formatter=formatter)
 
 
+############################################################
 def get_postproc_segmentation(data_layout, save_output):
     channel_axis = -1 if data_layout == constants.NHWC else 1
-    postprocess_detection = [postprocess.ArgMax(axis=channel_axis),
-                             postprocess.IndexArray()]
-    postprocess_detection += [postprocess.SegmentationImageResize()]
+    postprocess_detection = [postprocess.IndexArray(),
+                             postprocess.ArgMax(axis=channel_axis)]
+    postprocess_detection += [postprocess.NPTensorToImage(data_layout=data_layout),
+                              postprocess.SegmentationImageResize()]
     if save_output:
         postprocess_detection += [postprocess.SegmentationImageSave()]
     #

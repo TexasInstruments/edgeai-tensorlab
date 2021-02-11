@@ -8,7 +8,7 @@ class BaseRTSession():
     def __init__(self, **kwargs):
         self.kwargs = kwargs
         self.import_done = False
-        self.kwargs['dir_tree_depth'] = self.kwargs.get('dir_tree_depth', 3)
+        self.kwargs['dir_tree_depth'] = self.kwargs.get('dir_tree_depth', 4)
         self.kwargs['work_dir'] = self._get_or_make_work_dir()
         # options related to the underlying runtime
         self.kwargs['platform'] = self.kwargs.get('platform', 'J7')

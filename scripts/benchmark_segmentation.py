@@ -43,7 +43,7 @@ pipeline_configs = [
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         'session':sessions.TVMDLRSession(**common_session_cfg, **config.session_tvm_dlr_cfg,
-            model_path=f'{config.modelzoo_path}/vision/seg/cityscapes/jai-pytorch/deeplabv3lite_mobilenetv2_tv_768x384_2019-06-26_08-59-32_opset9.onnx'),
+            model_path=f'{config.modelzoo_path}/vision/seg/cityscapes/jai-pytorch/deeplabv3lite_mobilenetv2_tv_768x384_20190626-085932_opset9.onnx'),
         'postprocess': postproc_segmentation_onnx
     }),
 ]

@@ -56,22 +56,10 @@ class CityscapesSegmentation():
     def __len__(self):
         return self.num_frames
 
-    def __call__(self, predictions):
-        return self.evaluate(predictions)
+    def __call__(self, predictions, **kwargs):
+        return self.evaluate(predictions, **kwargs)
 
-    def _create_lut(self):
-        if self.label_dict:
-            lut = np.zeros(256, dtype=np.uint8)
-            for k in range(256):
-                lut[k] = k
-            for k in self.label_dict.keys():
-                lut[k] = self.label_dict[k]
-            return lut
-        else:
-            return None
-        #
-
-    def evaluate(self, predictions):
+    def evaluate(self, predictions, **kwargs):
         cmatrix = None
         for n in range(self.num_frames):
             image_file, label_file = self.__getitem__(n, with_label=True)
@@ -91,4 +79,14 @@ class CityscapesSegmentation():
         accuracy = utils.segmentation_accuracy(cmatrix)
         return accuracy
 
-
+    def _create_lut(self):
+        if self.label_dict:
+            lut = np.zeros(256, dtype=np.uint8)
+            for k in range(256):
+                lut[k] = k
+            for k in self.label_dict.keys():
+                lut[k] = self.label_dict[k]
+            return lut
+        else:
+            return None
+        #

@@ -41,5 +41,5 @@ def segmentation_accuracy(cmatrix, multiplier=100.0):
     union = np.sum(cmatrix, axis=0) + np.sum(cmatrix, axis=1) - intersection
     iou = intersection / (union + eps)
     mean_iou = np.nanmean(iou)
-    metric = {'metric':mean_iou*multiplier, 'metric_unit':'MeanIoU%'}
+    metric = {'accuracy-mean-iou%':mean_iou*multiplier}
     return metric
