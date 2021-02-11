@@ -39,7 +39,7 @@ pipeline_configs = [
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite((300,300), (300,300), backend='cv2'),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
-            model_path=f'{config.modelzoo_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
+            model_path=f'{config.modelzoo_path}/vision/det/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
         'postprocess': postproc_detection_tflite,
         'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
     }),
@@ -47,7 +47,7 @@ pipeline_configs = [
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite((300,300), (300,300), backend='cv2'),
         'session':sessions.TFLiteRTSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
-            model_path=f'{config.modelzoo_path}/vision/detection/coco/mlperf/ssd_mobilenet_v2_300_float.tflite'),
+            model_path=f'{config.modelzoo_path}/vision/det/coco/mlperf/ssd_mobilenet_v2_300_float.tflite'),
         'postprocess': postproc_detection_tflite,
         'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
     }),
@@ -55,7 +55,7 @@ pipeline_configs = [
     # utils.dict_update(common_cfg, {
     #     'preprocess':config.get_preproc_tflite((1200,1200), (1200,1200), backend='cv2'),
     #     'session':sessions.TVMDLRSession(**config.session_tflite_rt_cfg, work_dir=work_dir,
-    #         model_path=f'{config.modelzoo_path}/vision/detection/coco/mlperf/ssd_resnet34-ssd1200.onnx'),
+    #         model_path=f'{config.modelzoo_path}/vision/det/coco/mlperf/ssd_resnet34-ssd1200.onnx'),
     #     'postprocess': postproc_detection_tflite,
     #     'metric':dict(label_offset_pred=det_helper.coco_label_offset_80to90())
     # }),
