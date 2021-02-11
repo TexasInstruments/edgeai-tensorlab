@@ -48,7 +48,9 @@ class TeeLogger:
 
     def flush(self):
         self.term.flush()
-        self.file.flush()
+        if self.file is not None:
+            self.file.flush()
+        #
 
     def fileno(self):
         return self.term.fileno()

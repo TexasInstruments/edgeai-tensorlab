@@ -71,7 +71,7 @@ def _run_pipeline_with_log(pipeline_config, perfsim=False, parallel_device=None)
         logger.write_file(results_message)
     #
     logger.close()
-    del logger
+    logger = None
 
 
 def run_pipeline(pipeline_config):

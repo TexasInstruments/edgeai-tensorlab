@@ -12,13 +12,14 @@ def collect_results(work_dir):
                 log_data = [line for line in log_fp]
                 if len(log_data) > 0:
                     result = log_data[-1].rstrip()
-                    result = result if 'Benchmark' in result else None
-                    if result is not None and 'inference_path' not in results:
-                        results.append(f"{result}, 'inference_path': {log_file}")
+                    result = result if 'Benchmark' in result else 'BenchmarkResults: None'
+                    if 'inference_path' not in result:
+                        result = f"{result}, 'inference_path': {log_file}"
                     #
                 else:
-                    results.append(f"BenchmarkResults: None, 'inference_path': {log_file}")
+                    result = f"BenchmarkResults: None, 'inference_path': {log_file}"
                 #
+                results.append(result)
             #
         #
     #
