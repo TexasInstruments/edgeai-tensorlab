@@ -26,7 +26,7 @@ common_cfg = {
     'target_device': config.target_device,
     'run_import':config.run_import,
     'run_inference':config.run_inference,
-    'calibration_dataset':datasets.CityscapesSegmentation(**config.cityscapes_seg_train_cfg),
+    'calibration_dataset':datasets.CityscapesSegmentation(**config.cityscapes_seg_calib_cfg),
     'input_dataset':datasets.CityscapesSegmentation(**config.cityscapes_seg_val_cfg),
 }
 

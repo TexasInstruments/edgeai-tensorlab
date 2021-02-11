@@ -22,7 +22,7 @@ common_cfg = {
     'verbose_mode': config.verbose_mode,
     'run_import': config.run_import,
     'run_inference': config.run_inference,
-    'calibration_dataset': datasets.ImageNetCls(**config.imagenet_cls_train_cfg),
+    'calibration_dataset': datasets.ImageNetCls(**config.imagenet_cls_calib_cfg),
     'input_dataset': datasets.ImageNetCls(**config.imagenet_cls_val_cfg),
     'postprocess': config.get_postproc_classification()
 }

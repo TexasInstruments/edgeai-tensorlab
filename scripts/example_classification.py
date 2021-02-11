@@ -19,7 +19,7 @@ work_dir = os.path.join('./work_dirs', os.path.splitext(os.path.basename(__file_
 common_cfg = {
     'type':'accuracy',
     'target_device': config.target_device,
-    'calibration_dataset':datasets.ImageNetCls(**config.imagenet_cls_train_cfg),
+    'calibration_dataset':datasets.ImageNetCls(**config.imagenet_cls_calib_cfg),
     'input_dataset':datasets.ImageNetCls(**config.imagenet_cls_val_cfg),
     'postprocess':config.get_postproc_classification()
 }

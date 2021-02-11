@@ -32,7 +32,7 @@ session_tflite_rt_cfg_qat = quantization_params_qat.get_session_tflite_rt_cfg()
 
 ############################################################
 # dataset settings
-imagenet_cls_train_cfg = dict(
+imagenet_cls_calib_cfg = dict(
     path=f'{datasets_path}/imagenet/val',
     split=f'{datasets_path}/imagenet/val.txt',
     shuffle=True,
@@ -45,7 +45,7 @@ imagenet_cls_val_cfg = dict(
     num_frames=min(num_frames,50000))
 
 
-coco_det_train_cfg = dict(
+coco_det_calib_cfg = dict(
     path=f'{datasets_path}/coco',
     split='val2017',
     shuffle=True,
@@ -58,7 +58,7 @@ coco_det_val_cfg = dict(
     num_frames=min(num_frames,5000))
 
 
-cityscapes_seg_train_cfg = dict(
+cityscapes_seg_calib_cfg = dict(
     path=f'{datasets_path}/cityscapes',
     split='val',
     shuffle=True,
