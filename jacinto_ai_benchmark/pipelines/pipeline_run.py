@@ -5,9 +5,9 @@ from .accuracy_pipeline import *
 from .. import utils
 
 
-def run(pipeline_configs, perfsim=False, devices=None):
-    if devices is not None:
-        _run_pipelines_parallel(pipeline_configs, perfsim, devices)
+def run(pipeline_configs, perfsim=False, parallel_devices=None):
+    if parallel_devices is not None:
+        _run_pipelines_parallel(pipeline_configs, perfsim, parallel_devices)
     else:
         _run_pipelines_sequential(pipeline_configs, perfsim)
     #
@@ -22,26 +22,26 @@ def _run_pipelines_sequential(pipeline_configs, perfsim=False):
     #
 
 
-def _run_pipelines_parallel(pipeline_configs, perfsim=False, devices=None):
+def _run_pipelines_parallel(pipeline_configs, perfsim=False, parallel_devices=None):
     # get the cwd so that we can continue even if exception occurs
     cwd = os.getcwd()
-    num_devices = len(devices) if devices is not None else 0
+    num_devices = len(parallel_devices) if parallel_devices is not None else 0
     parallel_exec = utils.ParallelRun(num_processes=num_devices)
     for model_idx, pipeline_config in enumerate(pipeline_configs):
         os.chdir(cwd)
-        device = devices[model_idx % num_devices] if devices is not None else 0
+        parallel_device = parallel_devices[model_idx % num_devices] if parallel_devices is not None else 0
         # pipeline_config = copy.deepcopy(pipeline_config)
         run_pipeline_bound_func = functools.partial(_run_pipeline_with_log, pipeline_config,
-                                                    perfsim, device=device)
+                                                    perfsim, parallel_device=parallel_device)
         parallel_exec.enqueue(run_pipeline_bound_func)
     #
     parallel_exec.start()
     parallel_exec.wait()
 
 
-def _run_pipeline_with_log(pipeline_config, perfsim=False, device=None):
-    if device is not None:
-        os.environ['CUDA_VISIBLE_DEVICES'] = str(device)
+def _run_pipeline_with_log(pipeline_config, perfsim=False, parallel_device=None):
+    if parallel_device is not None:
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
     #
     session = pipeline_config['session']
     work_dir = session.get_work_dir()
