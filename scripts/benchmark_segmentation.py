@@ -69,16 +69,16 @@ pipeline_configs = [
     }),
     # jai-pytorch: segmentation - fpnlite_aspp_regnetx1.6gf_1024x512_20200914-132016 expected_metric: 75.84% mean-iou
     utils.dict_update(common_cfg, {
-        'preprocess':config.get_preproc_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
+        'preprocess':config.get_preproc_jai((512,1024), (512,1024), backend='cv2', interpolation=cv2.INTER_AREA),
         'session':sessions.TVMDLRSession(**common_session_cfg, **config.session_tvm_dlr_cfg,
             model_path=f'{config.modelzoo_path}/vision/seg/cityscapes/jai-pytorch/fpnlite_aspp_regnetx1.6gf_1024x512_20200914-132016_opset9.onnx'),
         'postprocess': postproc_segmentation_onnx
     }),
-    # jai-pytorch: segmentation - fpnlite_aspp_regnetx3.2gf_1024x512_20200916-090003 expected_metric: 78.90% mean-iou
+    # jai-pytorch: segmentation - fpnlite_aspp_regnetx3.2gf_1536x768_20200915-092738 expected_metric: 78.90% mean-iou
     utils.dict_update(common_cfg, {
-        'preprocess':config.get_preproc_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
+        'preprocess':config.get_preproc_jai((768,1536), (768,1536), backend='cv2', interpolation=cv2.INTER_AREA),
         'session':sessions.TVMDLRSession(**common_session_cfg, **config.session_tvm_dlr_cfg,
-            model_path=f'{config.modelzoo_path}/vision/seg/cityscapes/jai-pytorch/fpnlite_aspp_regnetx3.2gf_1024x512_20200916-090003_opset9.onnx'),
+            model_path=f'{config.modelzoo_path}/vision/seg/cityscapes/jai-pytorch/fpnlite_aspp_regnetx3.2gf_1536x768_20200915-092738_opset9.onnx'),
         'postprocess': postproc_segmentation_onnx
     }),
 ]
