@@ -1,4 +1,3 @@
-from jacinto_ai_benchmark import preprocess, postprocess, constants
 from jacinto_ai_benchmark.defaults import *
 
 
@@ -66,5 +65,6 @@ cityscapes_seg_val_cfg = dict(
     path=f'{datasets_path}/cityscapes',
     split='val',
     num_frames=min(num_frames,500))
+
 
 

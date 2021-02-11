@@ -24,7 +24,7 @@ common_cfg = {
     'postprocess':config.get_postproc_classification()
 }
 
-common_session_cfg = utils.dict_update(work_dir=work_dir, target_device=config.target_device)
+common_session_cfg = dict(work_dir=work_dir, target_device=config.target_device)
 
 pipeline_configs = [
     # mobilenet_v2_2019-12-24_15-32-12 72.13% top-1 accuracy

@@ -30,7 +30,7 @@ common_cfg = {
     'input_dataset':datasets.CityscapesSegmentation(**config.cityscapes_seg_val_cfg),
 }
 
-common_session_cfg = utils.dict_update(work_dir=work_dir, target_device=config.target_device)
+common_session_cfg = dict(work_dir=work_dir, target_device=config.target_device)
 
 postproc_segmentation_onnx = config.get_postproc_segmentation_onnx(save_output=config.save_output)
 postproc_segmenation_tflite = config.get_postproc_segmentation_tflite(save_output=config.save_output)

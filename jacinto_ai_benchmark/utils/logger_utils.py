@@ -9,7 +9,9 @@ class TeeLogger:
         self.filename = filename
         self.file = open(filename, mode)
         sys.stdout = self
-        self.count = 0
+        # avoid an error related to isatty
+        sys.stdout.isatty = lambda: False
+        sys.stdout.encoding = sys.getdefaultencoding()
 
     def __del__(self):
         self.close()

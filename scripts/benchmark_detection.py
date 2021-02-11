@@ -29,7 +29,7 @@ common_cfg = {
     'input_dataset':datasets.COCODetection(**config.coco_det_val_cfg),
 }
 
-common_session_cfg = utils.dict_update(work_dir=work_dir, target_device=config.target_device)
+common_session_cfg = dict(work_dir=work_dir, target_device=config.target_device)
 
 postproc_detection_onnx = config.get_postproc_detection_onnx(score_thr=config.detection_thr, save_output=config.save_output)
 postproc_detection_tflite = config.get_postproc_detection_tflite(score_thr=config.detection_thr, save_output=config.save_output)

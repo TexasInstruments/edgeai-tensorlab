@@ -35,9 +35,7 @@ class TVMDLRSession(BaseRTSession):
             c_data = utils.as_tuple(c_data)
             c_dict = {d_name:d for d_name, d in zip(input_keys,c_data)}
             calib_list.append(c_dict)
-
-        build_target = 'llvm'
-        cross_cc_args = {}
+        #
 
         # Create the TIDL compiler with appropriate parameters
         compiler = tidl.TIDLCompiler(
@@ -50,31 +48,50 @@ class TVMDLRSession(BaseRTSession):
             tidl_tensor_bits=self.kwargs['tidl_tensor_bits'],
             tidl_calibration_options=self.kwargs['tidl_calibration_options'])
 
-        # partition the graph into TIDL operations and TVM operations
-        tvm_model, status = compiler.enable(tvm_model, params, calib_list)
+        supported_devices = self.kwargs['supported_devices'] if (self.kwargs['supported_devices'] is not None) \
+            else (self.kwargs['target_device'],)
 
-        # build the relay module into deployables
-        with tidl.build_config(tidl_compiler=compiler):
-            graph, lib, params = relay.build_module.build(tvm_model, target=build_target, params=params)
+        for target_device in supported_devices:
+            if target_device == 'j7':
+                build_target = 'llvm -device=arm_cpu -mtriple=aarch64-linux-gnu'
+                cross_cc_args = {'cc' : os.path.join(os.environ['ARM64_GCC_PATH'], 'bin', 'aarch64-none-linux-gnu-gcc')}
+            elif target_device == 'pc':
+                build_target = 'llvm'
+                cross_cc_args = {}
+            else:
+                assert False, f'unsupported target device {target_device}'
+            #
 
-        # remove nodes / params not needed for inference
-        tidl.remove_tidl_params(params)
+            generate_artifacts_folder = self._get_target_artifacts_folder(target_device)
+            os.makedirs(generate_artifacts_folder, exist_ok=True)
 
-        # save the deployables
-        path_lib = os.path.join(self.kwargs['artifacts_folder'], 'deploy_lib.so')
-        path_graph = os.path.join(self.kwargs['artifacts_folder'], 'deploy_graph.json')
-        path_params = os.path.join(self.kwargs['artifacts_folder'], 'deploy_params.params')
-        lib.export_library(path_lib, **cross_cc_args)
-        with open(path_graph, "w") as fo:
-            fo.write(graph)
-        #
-        with open(path_params, "wb") as fo:
-            fo.write(relay.save_param_dict(params))
+            # partition the graph into TIDL operations and TVM operations
+            tvm_model, status = compiler.enable(tvm_model, params, calib_list)
+
+            # build the relay module into deployables
+            with tidl.build_config(tidl_compiler=compiler):
+                graph, lib, params = relay.build_module.build(tvm_model, target=build_target, params=params)
+
+            # remove nodes / params not needed for inference
+            tidl.remove_tidl_params(params)
+
+            # save the deployables
+            path_lib = os.path.join(generate_artifacts_folder, 'deploy_lib.so')
+            path_graph = os.path.join(generate_artifacts_folder, 'deploy_graph.json')
+            path_params = os.path.join(generate_artifacts_folder, 'deploy_params.params')
+            lib.export_library(path_lib, **cross_cc_args)
+            with open(path_graph, "w") as fo:
+                fo.write(graph)
+            #
+            with open(path_params, "wb") as fo:
+                fo.write(relay.save_param_dict(params))
+            #
         #
         os.chdir(self.cwd)
 
     def start_infer(self):
-        if not os.path.exists(self.kwargs['artifacts_folder']):
+        target_artifacts_folder = self._get_target_artifacts_folder(self.kwargs['target_device'])
+        if not os.path.exists(target_artifacts_folder):
             return False
         #
         if self.kwargs['input_shape'] is None:
@@ -85,7 +102,7 @@ class TVMDLRSession(BaseRTSession):
         super().start_infer()
         # create inference model
         os.chdir(self.interpreter_folder)
-        self.interpreter = DLRModel(self.kwargs['artifacts_folder'], 'cpu')
+        self.interpreter = DLRModel(target_artifacts_folder, 'cpu')
         os.chdir(self.cwd)
         self.import_done = True
         return True
@@ -114,6 +131,15 @@ class TVMDLRSession(BaseRTSession):
             input_shape.update({name:shape})
         #
         return input_shape
+
+    def _get_target_artifacts_folder(self, target_device):
+        target_artifacts_folder = self.kwargs['artifacts_folder']
+        # we need to create multiple artifacts folder only if supported devices is specified.
+        if self.kwargs['supported_devices'] is not None:
+            target_artifacts_folder = os.path.join(target_artifacts_folder, target_device)
+        #
+        return target_artifacts_folder
+
 
 if __name__ == '__main__':
     tvm_model = TVMDLRSession()

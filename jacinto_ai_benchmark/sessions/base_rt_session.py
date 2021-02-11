@@ -20,6 +20,13 @@ class BaseRTSession():
         self.kwargs['model_path'] = os.path.abspath(self.kwargs.get('model_path',None))
         self.kwargs['input_shape'] = self.kwargs.get('input_shape', None)
         self.kwargs['num_inputs'] = self.kwargs.get('num_inputs', 1)
+        self.kwargs['supported_devices'] = self.kwargs.get('supported_devices', None) #TODO: change to => ('j7', 'pc')
+        if self.kwargs['supported_devices'] is not None:
+            assert isinstance(self.kwargs['supported_devices'], (list,tuple)), \
+                f'supported_device must be a list or tuple'
+            assert self.kwargs['target_device'] in self.kwargs['supported_devices'], \
+                f"unsupported target device, must be one of {self.kwargs['supported_devices']}"
+        #
         self.cwd = os.getcwd()
 
     def import_model(self, calib_data):
