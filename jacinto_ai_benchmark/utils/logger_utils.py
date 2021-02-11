@@ -14,6 +14,7 @@ class TeeLogger:
         sys.stdout.encoding = sys.getdefaultencoding()
 
     def __del__(self):
+        self.flush()
         self.close()
 
     def close(self):
@@ -25,6 +26,16 @@ class TeeLogger:
 
     def write(self, message):
         self.term.write(message)
+        self.file.write(message)
+        self.flush()
+
+    def write_term(self, message):
+        self.flush()
+        self.term.write(message)
+        self.flush()
+
+    def write_file(self, message):
+        self.flush()
         self.file.write(message)
         self.flush()
 

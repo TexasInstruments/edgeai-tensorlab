@@ -64,12 +64,13 @@ def _run_pipeline_with_log(pipeline_config, perfsim=False, parallel_device=None)
     #     results.update(perfsim_dict)
     # #
 
-    results_message = f'BenchmarkResults: {results}'
+    results_message = f'\nBenchmarkResults: {results}'
     if pipeline_config['verbose_mode']:
         print(results_message)
     else:
-        logger.file.write(results_message)
+        logger.write_file(results_message)
     #
+    logger.close()
     del logger
 
 
