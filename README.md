@@ -31,9 +31,9 @@ from jacinto_ai_benchmark import *
 
 ## Datasets
 This benchmark uses several datasets. They should be available at the following locations - create the symbolic links as necessary:
-- ImageNet dataset should be available in the path dependencies/datasets/imagenet
-- Cityscapes dataset should be available in the path dependencies/datasets/cityscpaes
-- COCO dataset should be available in the path dependencies/datasets/coco
+- ImageNet dataset should be available in the path *dependencies/datasets/imagenet*
+- Cityscapes dataset should be available in the path *dependencies/datasets/cityscpaes*
+- COCO dataset should be available in the path *dependencies/datasets/coco*
 
 
 ## Usage
