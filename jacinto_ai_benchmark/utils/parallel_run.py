@@ -36,21 +36,10 @@ class ParallelRun:
         # create process pool and queue the tasks
         process_pool = multiprocessing.Pool(self.num_processes)
         results = process_pool.imap_unordered(self._worker, self.queued_tasks)
-        # results does not have len - explicitly give it, so that tqdm can use it
-        results = IterableWithLength(results, num_tasks)
         # monitor the progress
-        for result in progress_step(results, desc='tasks'):
+        # results does not have len - explicitly give total
+        for result in progress_step(results, desc='tasks', total=num_tasks):
             pass
         #
 
 
-class IterableWithLength:
-    def __init__(self, iterable, length):
-        self.iterable = iterable
-        self.length = length
-
-    def __iter__(self):
-        return self.iterable.__iter__()
-
-    def __len__(self):
-        return self.length
