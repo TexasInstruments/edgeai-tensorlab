@@ -49,21 +49,13 @@ class AccuracyPipeline():
 
         output_list = []
         num_frames = len(input_dataset)
-        # tqdm sometimes has issues in following miniters - enforce it here.
-        pbar_step = max(num_frames//100, 1)
-        pbar = utils.progress_indicator(range(num_frames), desc='inference: '+description)
-        for data_index in range(num_frames):
+        for data_index in utils.progress_indicator(range(num_frames), desc='inference: '+description):
             data = input_dataset[data_index]
             data = self._sequential_pipeline(preprocess, data)
             output = self._run_session(session, data)
             output = self._sequential_pipeline(postprocess, output)
             output_list.append(output)
-            if data_index > 0 and (data_index % pbar_step) == 0:
-                pbar.update(pbar_step)
-            #
         #
-        pbar.update(data_index % pbar_step)
-        pbar.close()
         return output_list
 
     def evaluate(self, session, pipeline_config, output_list):
