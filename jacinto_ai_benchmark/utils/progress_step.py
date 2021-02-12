@@ -5,17 +5,19 @@ from colorama import Fore
 __all__ = ['progress_step']
 
 
-def progress_step(iterable, desc, desc_len=80, miniters=None, bar_format=None, file=sys.stdout, leave=True, **kwargs):
+def progress_step(iterable, desc, desc_len=80, total=None, miniters=None, bar_format=None, file=sys.stdout,
+                  leave=True, **kwargs):
     desc = desc[:desc_len] if (desc_len is not None and len(desc) > desc_len) else desc
     if miniters is None:
-        miniters = max(len(iterable)//100, 1)
+        iter_length = len(iterable) if hasattr(iterable, '__len__') else total
+        miniters = max(iter_length//100, 1) if iter_length is not None else 1
     #
     if bar_format is None:
         format_arg = (Fore.GREEN, desc_len, Fore.WHITE, Fore.YELLOW, Fore.CYAN, Fore.RESET)
         bar_format = '%s{desc:%s}|%s{percentage:4.0f}%%|%s{bar:10}|%s{r_bar}%s' % format_arg
     #
-    return tqdm_step(iterable=iterable, desc=desc, bar_format=bar_format, file=file,
-                miniters=miniters, leave=leave, **kwargs)
+    return tqdm_step(iterable=iterable, desc=desc, total=total, miniters=miniters, bar_format=bar_format, file=file,
+                leave=leave, **kwargs)
 
 
 class tqdm_step(tqdm):
