@@ -8,6 +8,10 @@ exit 1
 fi
 
 ######################################################################
+echo "pycocotools need cython has to be installed from conda, if this is conda python"
+conda install -y cython
+
+######################################################################
 # Installing dependencies
 echo 'Installing python packages...'
 pip install -r ./requirements.txt
