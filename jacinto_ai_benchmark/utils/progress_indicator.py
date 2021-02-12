@@ -8,7 +8,7 @@ from colorama import Fore
 
 
 def progress_indicator(iterable, desc):
-    desc_len = 75
+    desc_len = 80
     desc = desc[:desc_len] if len(desc) > desc_len else desc
     miniters = max(len(iterable)//100, 1)
     colors = (Fore.GREEN, Fore.WHITE, Fore.YELLOW, Fore.CYAN, Fore.RESET)
