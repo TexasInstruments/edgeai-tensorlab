@@ -1,7 +1,6 @@
 import multiprocessing
 import collections
-import time
-import atpbar
+from .progress_indicator import *
 
 
 class ParallelRun:
@@ -24,7 +23,7 @@ class ParallelRun:
         pass
 
     def _run_sequential(self):
-        for task_id, task in atpbar.atpbar(self.queued_tasks, name='tasks', time_track=True):
+        for task_id, task in progress_indicator(self.queued_tasks, desc='tasks'):
             task()
         #
 
@@ -37,15 +36,15 @@ class ParallelRun:
         # create process pool and queue the tasks
         process_pool = multiprocessing.Pool(self.num_processes)
         results = process_pool.imap_unordered(self._worker, self.queued_tasks)
-        # results does not have len - explicitly give it
-        results = ItrableWithLength(results, num_tasks)
+        # results does not have len - explicitly give it, so that tqdm can use it
+        results = IterableWithLength(results, num_tasks)
         # monitor the progress
-        for result in atpbar.atpbar(results, name='tasks', time_track=True):
+        for result in progress_indicator(results, desc='tasks'):
             pass
         #
 
 
-class ItrableWithLength:
+class IterableWithLength:
     def __init__(self, iterable, length):
         self.iterable = iterable
         self.length = length

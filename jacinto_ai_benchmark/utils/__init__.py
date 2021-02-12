@@ -6,3 +6,4 @@ from .parallel_run import ParallelRun
 from .environ_utils import *
 from .timer_utils import *
 from .metric_utils import *
+from .progress_indicator import *

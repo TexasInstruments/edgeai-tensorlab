@@ -3,6 +3,6 @@ pillow
 memory-tempfile
 opencv-python
 pycocotools
-atpbar
+tqdm
 onnx
 tflite
