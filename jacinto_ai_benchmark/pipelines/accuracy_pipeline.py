@@ -49,7 +49,7 @@ class AccuracyPipeline():
 
         output_list = []
         num_frames = len(input_dataset)
-        for data_index in utils.progress_indicator(range(num_frames), desc='inference: '+description):
+        for data_index in utils.progress_step(range(num_frames), desc='inference: '+description):
             data = input_dataset[data_index]
             data = self._sequential_pipeline(preprocess, data)
             output = self._run_session(session, data)

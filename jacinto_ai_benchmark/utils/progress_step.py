@@ -2,10 +2,10 @@ import sys
 from tqdm.auto import tqdm
 from colorama import Fore
 
-__all__ = ['progress_indicator']
+__all__ = ['progress_step']
 
 
-def progress_indicator(iterable, desc, desc_len=80, miniters=None, bar_format=None, file=sys.stdout, leave=True, **kwargs):
+def progress_step(iterable, desc, desc_len=80, miniters=None, bar_format=None, file=sys.stdout, leave=True, **kwargs):
     desc = desc[:desc_len] if (desc_len is not None and len(desc) > desc_len) else desc
     if miniters is None:
         miniters = max(len(iterable)//100, 1)

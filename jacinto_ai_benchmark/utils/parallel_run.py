@@ -1,6 +1,6 @@
 import multiprocessing
 import collections
-from .progress_indicator import *
+from .progress_step import *
 
 
 class ParallelRun:
@@ -23,7 +23,7 @@ class ParallelRun:
         pass
 
     def _run_sequential(self):
-        for task_id, task in progress_indicator(self.queued_tasks, desc='tasks'):
+        for task_id, task in progress_step(self.queued_tasks, desc='tasks'):
             task()
         #
 
@@ -39,7 +39,7 @@ class ParallelRun:
         # results does not have len - explicitly give it, so that tqdm can use it
         results = IterableWithLength(results, num_tasks)
         # monitor the progress
-        for result in progress_indicator(results, desc='tasks'):
+        for result in progress_step(results, desc='tasks'):
             pass
         #
 

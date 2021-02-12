@@ -15,7 +15,7 @@ def run(pipeline_configs, perfsim=False, parallel_devices=None):
 def _run_pipelines_sequential(pipeline_configs, perfsim=False):
     # get the cwd so that we can continue even if exception occurs
     cwd = os.getcwd()
-    for pipeline_config in utils.progress_indicator(pipeline_configs, desc='tasks'):
+    for pipeline_config in utils.progress_step(pipeline_configs, desc='tasks'):
         os.chdir(cwd)
         _run_pipeline_with_log(pipeline_config, perfsim)
     #
