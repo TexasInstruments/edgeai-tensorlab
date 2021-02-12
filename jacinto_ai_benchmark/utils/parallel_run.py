@@ -24,7 +24,7 @@ class ParallelRun:
         pass
 
     def _run_sequential(self):
-        for task_id, task in atpbar.atpbar(self.queued_tasks, name='tasks'):
+        for task_id, task in atpbar.atpbar(self.queued_tasks, name='tasks', time_track=True):
             task()
         #
 
@@ -37,10 +37,21 @@ class ParallelRun:
         # create process pool and queue the tasks
         process_pool = multiprocessing.Pool(self.num_processes)
         results = process_pool.imap_unordered(self._worker, self.queued_tasks)
-
+        # results does not have len - explicitly give it
+        results = ItrableWithLength(results, num_tasks)
         # monitor the progress
-        progress_bar = atpbar.atpbar(range(num_tasks), name='tasks')
-        pbar_iter = iter(progress_bar)
-        for result in results:
-            next(pbar_iter)
+        for result in atpbar.atpbar(results, name='tasks', time_track=True):
+            pass
         #
+
+
+class ItrableWithLength:
+    def __init__(self, iterable, length):
+        self.iterable = iterable
+        self.length = length
+
+    def __iter__(self):
+        return self.iterable.__iter__()
+
+    def __len__(self):
+        return self.length

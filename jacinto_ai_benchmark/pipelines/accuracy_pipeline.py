@@ -49,7 +49,7 @@ class AccuracyPipeline():
 
         output_list = []
         num_frames = len(input_dataset)
-        for data_index in atpbar.atpbar(range(num_frames), name='inference: ' + description):
+        for data_index in atpbar.atpbar(range(num_frames), name='inference: ' + description, time_track=True):
             data = input_dataset[data_index]
             data = self._sequential_pipeline(preprocess, data)
             output = self._run_session(session, data)
