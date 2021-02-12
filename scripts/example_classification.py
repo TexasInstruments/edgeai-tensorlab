@@ -38,7 +38,7 @@ pipeline_configs = [
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite(),
         'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-            model_path=f'{config.modelzoo_path}/vision/cls/imagenet1k/tf1-models/mobilenet_v1_1.0_224.tflite',
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v1_1.0_224.tflite',
             input_shape={'input': (1, 224, 224, 3)}),
         'metric':dict(label_offset_pred=-1)
     })

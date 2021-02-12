@@ -42,7 +42,7 @@ pipeline_configs = [
     # utils.dict_update(common_cfg, {
     #     'preprocess':config.get_preproc_tflite((1200,1200), (1200,1200), backend='cv2'),
     #     'session':sessions.TVMDLRSession(**common_session_cfg, **config.session_tvm_dlr_cfg,
-    #         model_path=f'{config.modelzoo_path}/vision/det/coco/mlperf/ssd_resnet34-ssd1200.onnx'),
+    #         model_path=f'{config.modelzoo_path}/vision/detection/coco/mlperf/ssd_resnet34-ssd1200.onnx'),
     #     'postprocess': postproc_detection_tflite,
     #     'metric':dict(label_offset_pred=det_helper.coco_label_offset_80to90())
     # }),
@@ -52,7 +52,7 @@ pipeline_configs = [
     #     'preprocess':config.get_preproc_onnx((416,416), (416,416), backend='cv2',
     #         mean=(0.0, 0.0, 0.0), scale=(1/255.0, 1/255.0, 1/255.0)),
     #     'session':sessions.TVMDLRSession(**common_session_cfg, **config.session_tvm_dlr_cfg,
-    #         model_path=f'{config.modelzoo_path}/vision/det/coco/onnx-models/yolov3-10.onnx',
+    #         model_path=f'{config.modelzoo_path}/vision/detection/coco/onnx-models/yolov3-10.onnx',
     #         input_shape=dict(input_1=(1,3,416,416), image_shape=(1,2))),
     #     'postprocess': postproc_detection_onnx,
     #     'metric':dict(label_offset_pred=det_helper.coco_label_offset_80to90())
@@ -64,7 +64,7 @@ pipeline_configs = [
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite((300,300), (300,300), backend='cv2'),
         'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-            model_path=f'{config.modelzoo_path}/vision/det/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
+            model_path=f'{config.modelzoo_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
         'postprocess': postproc_detection_tflite,
         'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
     }),
@@ -72,7 +72,7 @@ pipeline_configs = [
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite((300,300), (300,300), backend='cv2'),
         'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-            model_path=f'{config.modelzoo_path}/vision/det/coco/mlperf/ssd_mobilenet_v2_300_float.tflite'),
+            model_path=f'{config.modelzoo_path}/vision/detection/coco/mlperf/ssd_mobilenet_v2_300_float.tflite'),
         'postprocess': postproc_detection_tflite,
         'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
     }),
@@ -81,7 +81,7 @@ pipeline_configs = [
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite((320,320), (320,320), backend='cv2'),
         'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-            model_path=f'{config.modelzoo_path}/vision/det/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_2020_05_19.tflite'),
+            model_path=f'{config.modelzoo_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_2020_05_19.tflite'),
         'postprocess': postproc_detection_tflite,
         'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
     }),
@@ -89,7 +89,7 @@ pipeline_configs = [
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite((320,320), (320,320), backend='cv2'),
         'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-            model_path=f'{config.modelzoo_path}/vision/det/coco/tf1-models/ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19.tflite'),
+            model_path=f'{config.modelzoo_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19.tflite'),
         'postprocess': postproc_detection_tflite,
         'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
     }),
@@ -97,7 +97,7 @@ pipeline_configs = [
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite((300,300), (300,300), backend='cv2'),
         'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-            model_path=f'{config.modelzoo_path}/vision/det/coco/tf1-models/ssdlite_mobilenet_v2_coco_2018_05_09.tflite'),
+            model_path=f'{config.modelzoo_path}/vision/detection/coco/tf1-models/ssdlite_mobilenet_v2_coco_2018_05_09.tflite'),
         'postprocess': postproc_detection_tflite,
         'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
     }),
@@ -105,7 +105,7 @@ pipeline_configs = [
     # utils.dict_update(common_cfg, {
     #     'preprocess':config.get_preproc_tflite((640,640), (640,640), backend='cv2'),
     #     'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-    #         model_path=f'{config.modelzoo_path}/vision/det/coco/tf1-models/ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03.tflite'),
+    #         model_path=f'{config.modelzoo_path}/vision/detection/coco/tf1-models/ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03.tflite'),
     #     'postprocess': postproc_detection_tflite,
     #     'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
     # }),
@@ -113,7 +113,7 @@ pipeline_configs = [
     # utils.dict_update(common_cfg, {
     #     'preprocess':config.get_preproc_tflite((320,320), (320,320), backend='cv2'),
     #     'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-    #         model_path=f'{config.modelzoo_path}/vision/det/coco/tf1-models/ssd_mobilenet_v2_mnasfpn_shared_box_predictor_320x320_coco_sync_2020_05_18.tflite'),
+    #         model_path=f'{config.modelzoo_path}/vision/detection/coco/tf1-models/ssd_mobilenet_v2_mnasfpn_shared_box_predictor_320x320_coco_sync_2020_05_18.tflite'),
     #     'postprocess': postproc_detection_tflite,
     #     'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
     # }),
@@ -122,7 +122,7 @@ pipeline_configs = [
     # utils.dict_update(common_cfg, {
     #     'preprocess':config.get_preproc_tflite((640,640), (640,640), backend='cv2'),
     #     'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-    #         model_path=f'{config.modelzoo_path}/vision/det/coco/tf2-models/ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8.tflite'),
+    #         model_path=f'{config.modelzoo_path}/vision/detection/coco/tf2-models/ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8.tflite'),
     #     'postprocess': postproc_detection_tflite,
     #     'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
     # }),
@@ -130,7 +130,7 @@ pipeline_configs = [
     # utils.dict_update(common_cfg, {
     #     'preprocess':config.get_preproc_tflite((640,640), (640,640), backend='cv2'),
     #     'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-    #         model_path=f'{config.modelzoo_path}/vision/det/coco/tf2-models/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tflite'),
+    #         model_path=f'{config.modelzoo_path}/vision/detection/coco/tf2-models/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tflite'),
     #     'postprocess': postproc_detection_tflite,
     #     'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
     # }),
@@ -138,7 +138,7 @@ pipeline_configs = [
     # utils.dict_update(common_cfg, {
     #     'preprocess':config.get_preproc_tflite((1024,1024), (1024,1024), backend='cv2'),
     #     'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-    #         model_path=f'{config.modelzoo_path}/vision/det/coco/tf2-models/ssd_resnet50_v1_fpn_1024x1024_coco17_tpu-8.tflite'),
+    #         model_path=f'{config.modelzoo_path}/vision/detection/coco/tf2-models/ssd_resnet50_v1_fpn_1024x1024_coco17_tpu-8.tflite'),
     #     'postprocess': postproc_detection_tflite,
     #     'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
     # }),
@@ -147,7 +147,7 @@ pipeline_configs = [
     # utils.dict_update(common_cfg, {
     #     'preprocess':config.get_preproc_tflite((512,512), (512,512), backend='cv2'),
     #     'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-    #         model_path=f'{config.modelzoo_path}/vision/det/coco/google-automl/efficientdet-lite0_bifpn_maxpool2x2_relu.tflite'),
+    #         model_path=f'{config.modelzoo_path}/vision/detection/coco/google-automl/efficientdet-lite0_bifpn_maxpool2x2_relu.tflite'),
     #     'postprocess': postproc_detection_tflite,
     #     'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
     # }),
