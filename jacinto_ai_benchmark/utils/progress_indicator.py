@@ -1,10 +1,8 @@
-
-__all__ = ['progress_indicator']
-
 import sys
-import warnings
 from tqdm.auto import tqdm
 from colorama import Fore
+
+__all__ = ['progress_indicator']
 
 
 def progress_indicator(iterable, desc):
