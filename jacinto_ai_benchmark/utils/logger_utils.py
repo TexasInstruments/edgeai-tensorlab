@@ -11,7 +11,7 @@ class TeeLogger:
         # avoid an error related to isatty
         # self.isatty = sys.stdout.isatty
         # self.encoding = sys.stdout.getdefaultencoding()
-        #stdout and stderr to file and to term
+        # stdout and stderr to file and to term
         sys.stdout = self
 
     def __del__(self):

@@ -67,21 +67,13 @@ def _run_pipeline_with_log(pipeline_config, perfsim=False, parallel_device=None)
     #     results.update(perfsim_dict)
     # #
 
-    results_message = f'\nBenchmarkResults: {result}'
-    if pipeline_config['verbose_mode']:
-        print(results_message)
-    else:
-        logger.write_file(results_message)
-    #
     logger.close()
     logger = None
     return result
 
 
 def run_pipeline(pipeline_config):
-    if pipeline_config['verbose_mode']:
-        print('pipeline_config=', pipeline_config)
-    #
+    print('\npipeline_config=', pipeline_config)
     pipeline_type = pipeline_config['type']
     if pipeline_type == 'accuracy':
         accuracy_pipeline = AccuracyPipeline()
@@ -89,6 +81,7 @@ def run_pipeline(pipeline_config):
     else:
         assert False, f'unknown pipeline: {pipeline_type}'
     #
+    print(f'\nBenchmarkResults: {result}')
     return result
 
 
