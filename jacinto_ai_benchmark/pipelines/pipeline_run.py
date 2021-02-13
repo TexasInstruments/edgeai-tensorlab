@@ -48,7 +48,10 @@ def _run_pipeline_with_log(pipeline_config, perfsim=False, parallel_device=None)
     session = pipeline_config['session']
     work_dir = session.get_work_dir()
     os.makedirs(work_dir, exist_ok=True)
+    # after the logger is created, print is supposed to write to file and term
+    # but sometimes it doesn't work - so use logger.write() to enforce it wherever needed.
     logger = utils.TeeLogger(os.path.join(work_dir, 'run.log'))
+    logger.write(f'\npipeline_config: {pipeline_config}')
 
     result = None
     try:
@@ -67,21 +70,20 @@ def _run_pipeline_with_log(pipeline_config, perfsim=False, parallel_device=None)
     #     results.update(perfsim_dict)
     # #
 
+    logger.write(f'\nBenchmarkResults: {result}')
     logger.close()
-    logger = None
+    del logger
     return result
 
 
 def run_pipeline(pipeline_config):
-    print('\npipeline_config=', pipeline_config)
     pipeline_type = pipeline_config['type']
     if pipeline_type == 'accuracy':
-        accuracy_pipeline = AccuracyPipeline()
-        result = accuracy_pipeline.run(pipeline_config)
+        accuracy_pipeline = AccuracyPipeline(pipeline_config)
+        result = accuracy_pipeline.run()
     else:
         assert False, f'unknown pipeline: {pipeline_type}'
     #
-    print(f'\nBenchmarkResults: {result}')
     return result
 
 

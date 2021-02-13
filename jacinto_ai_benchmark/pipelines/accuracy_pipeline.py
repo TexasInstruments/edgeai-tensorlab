@@ -3,29 +3,31 @@ import tqdm
 from .. import utils
 
 class AccuracyPipeline():
-    def __init__(self):
+    def __init__(self, pipeline_config):
         self.info_dict = dict()
+        self.pipeline_config = pipeline_config
 
-    def run(self, pipeline_config):
+    def run(self):
         result = {}
-        session = pipeline_config['session']
-        run_import = pipeline_config['run_import']
-        run_inference = pipeline_config['run_inference']
+
+        run_import = self.pipeline_config['run_import']
+        run_inference = self.pipeline_config['run_inference']
 
         if run_import:
-            self.import_model(session, pipeline_config)
+            self.import_model()
         #
         if run_inference:
-            output_list = self.infer_frames(session, pipeline_config)
-            result = self.evaluate(session, pipeline_config, output_list)
+            output_list = self.infer_frames()
+            result = self.evaluate(output_list)
         #
         return result
 
-    def import_model(self, session, pipeline_config):
-        calibration_dataset = pipeline_config['calibration_dataset']
-        preprocess = pipeline_config['preprocess']
+    def import_model(self):
+        session = self.pipeline_config['session']
+        calibration_dataset = self.pipeline_config['calibration_dataset']
+        preprocess = self.pipeline_config['preprocess']
         description = os.path.split(session.get_work_dir())[-1]
-        if pipeline_config['verbose_mode']:
+        if self.pipeline_config['verbose_mode']:
             print('import & calibration: ' + description)
         #
         calib_data = []
@@ -38,10 +40,11 @@ class AccuracyPipeline():
 
         session.import_model(calib_data)
 
-    def infer_frames(self, session, pipeline_config):
-        input_dataset = pipeline_config['input_dataset']
-        preprocess = pipeline_config['preprocess']
-        postprocess = pipeline_config['postprocess']
+    def infer_frames(self):
+        session = self.pipeline_config['session']
+        input_dataset = self.pipeline_config['input_dataset']
+        preprocess = self.pipeline_config['preprocess']
+        postprocess = self.pipeline_config['postprocess']
         description = os.path.split(session.get_work_dir())[-1]
 
         is_ok = session.start_infer()
@@ -49,23 +52,24 @@ class AccuracyPipeline():
 
         output_list = []
         num_frames = len(input_dataset)
-        for data_index in utils.progress_step(range(num_frames), desc='inference: '+description):
+        for data_index in utils.progress_step(range(num_frames), desc='infer: '+description):
             data = input_dataset[data_index]
             data = self._sequential_pipeline(preprocess, data)
-            output = self._run_session(session, data)
+            output = self._run_session_with_data(session, data)
             output = self._sequential_pipeline(postprocess, output)
             output_list.append(output)
         #
         return output_list
 
-    def evaluate(self, session, pipeline_config, output_list):
+    def evaluate(self, output_list):
+        session = self.pipeline_config['session']
         # if metric is not given use input_dataset
-        if 'metric' in pipeline_config and callable(pipeline_config['metric']):
-            metric = pipeline_config['metric']
+        if 'metric' in self.pipeline_config and callable(self.pipeline_config['metric']):
+            metric = self.pipeline_config['metric']
             metric_options = {}
         else:
-            metric = pipeline_config['input_dataset']
-            metric_options = pipeline_config.get('metric', {})
+            metric = self.pipeline_config['input_dataset']
+            metric_options = self.pipeline_config.get('metric', {})
         #
         work_dir = session.get_work_dir()
         metric_options['work_dir'] = work_dir
@@ -80,7 +84,7 @@ class AccuracyPipeline():
         output_dict.update({'inference_path':inference_path})
         return output_dict
 
-    def _run_session(self, session, data):
+    def _run_session_with_data(self, session, data):
         if hasattr(session, 'set_info') and callable(session.set_info):
             session.set_info(self.info_dict)
         #
