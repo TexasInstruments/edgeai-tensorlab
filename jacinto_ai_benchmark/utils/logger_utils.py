@@ -6,7 +6,6 @@ class TeeLogger:
         assert log_level == logging.INFO, 'for now we support only INFO logging level'
         mode = "a" if append else "w"
         self.term = sys.stdout
-        self.termerr = sys.stderr
         self.filename = filename
         self.file = open(filename, mode)
         # avoid an error related to isatty
@@ -14,8 +13,6 @@ class TeeLogger:
         # self.encoding = sys.stdout.getdefaultencoding()
         #stdout and stderr to file and to term
         sys.stdout = self
-        sys.stderr = self
-
 
     def __del__(self):
         self.flush()
@@ -24,7 +21,6 @@ class TeeLogger:
     def close(self):
         if self.file is not None:
             sys.stdout = self.term
-            sys.stderr = self.termerr
             self.file.close()
             self.file = None
         #
