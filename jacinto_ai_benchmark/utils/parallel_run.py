@@ -44,11 +44,11 @@ class ParallelRun:
 
     def _run_monitor(self, results_iterator):
         results_list = []
-        start_time = 0.0
         it_per_sec = 0.0
+        num_completed = 0
         time_taken_str = eta_str = ''
         num_tasks = len(self.queued_tasks)
-        num_completed = 0
+        start_time = time.time()
         while num_completed < num_tasks:
             # check if a result is available
             try:
@@ -73,13 +73,13 @@ class ParallelRun:
         return results_list
 
     def _delta_time_string(self, seconds):
-        days = int(seconds//(60*60*24))
-        seconds = int(seconds%(60*60*24))
-        hours = int(seconds//(60*60))
-        seconds = int(seconds%(60*60))
-        minutes = int(seconds//(60))
-        return f'{days}d,{hours:02d}:{minutes:02d}' if days > 0 \
-            else f'{hours:02d}:{minutes:02d}'
+        days, seconds = divmod(seconds,(60*60*24))
+        hours, seconds = divmod(seconds,(60*60))
+        minutes, seconds = divmod(seconds,60)
+        time_str = f'{minutes:02.0f}:{seconds:02.0f}'
+        time_str = f'{hours:02.0f}:{time_str}' if hours > 0 else time_str
+        time_str = f'{days:1.0f}d,{time_str}' if days > 0 else time_str
+        return time_str
 
     def _worker(self, task):
         return task()
