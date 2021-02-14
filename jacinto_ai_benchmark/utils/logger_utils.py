@@ -25,8 +25,10 @@ class TeeLogger:
             self.file = None
         #
 
-    def write(self, message):
-        self.term.write(message)
+    def write(self, message, verobse=True):
+        if verobse:
+            self.term.write(message)
+        #
         self.file.write(message)
         self.flush()
 

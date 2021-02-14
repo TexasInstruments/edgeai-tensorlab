@@ -6,6 +6,12 @@ class AccuracyPipeline():
     def __init__(self, pipeline_config):
         self.info_dict = dict()
         self.pipeline_config = pipeline_config
+        work_dir = self.pipeline_config['session'].get_work_dir()
+        os.makedirs(work_dir, exist_ok=True)
+        # after the logger is created, print is supposed to write to file and term
+        # but sometimes it doesn't work - so use logger.write() to enforce it wherever needed.
+        self.logger = utils.TeeLogger(os.path.join(work_dir, 'run.log'))
+        self.logger.write(f'\npipeline_config: {self.pipeline_config}')
 
     def run(self):
         result = {}
@@ -14,22 +20,23 @@ class AccuracyPipeline():
         run_inference = self.pipeline_config['run_inference']
 
         if run_import:
-            self.import_model()
+            self._import_model()
         #
         if run_inference:
-            output_list = self.infer_frames()
-            result = self.evaluate(output_list)
+            output_list = self._infer_frames()
+            result = self._evaluate(output_list)
         #
+
+        self.logger.write(f'\nBenchmarkResults: {result}')
         return result
 
-    def import_model(self):
+    def _import_model(self):
         session = self.pipeline_config['session']
         calibration_dataset = self.pipeline_config['calibration_dataset']
         preprocess = self.pipeline_config['preprocess']
         description = os.path.split(session.get_work_dir())[-1]
-        if self.pipeline_config['verbose_mode']:
-            print('import & calibration: ' + description)
-        #
+        self.logger.write('import & calibration: ' + description)
+
         calib_data = []
         num_frames = len(calibration_dataset)
         for data_index in range(num_frames):
@@ -40,7 +47,7 @@ class AccuracyPipeline():
 
         session.import_model(calib_data)
 
-    def infer_frames(self):
+    def _infer_frames(self):
         session = self.pipeline_config['session']
         input_dataset = self.pipeline_config['input_dataset']
         preprocess = self.pipeline_config['preprocess']
@@ -52,7 +59,7 @@ class AccuracyPipeline():
 
         output_list = []
         num_frames = len(input_dataset)
-        for data_index in utils.progress_step(range(num_frames), desc='infer: '+description):
+        for data_index in utils.progress_step(range(num_frames), desc='infer: '+description, file=self.logger):
             data = input_dataset[data_index]
             data = self._sequential_pipeline(preprocess, data)
             output = self._run_session_with_data(session, data)
@@ -61,7 +68,7 @@ class AccuracyPipeline():
         #
         return output_list
 
-    def evaluate(self, output_list):
+    def _evaluate(self, output_list):
         session = self.pipeline_config['session']
         # if metric is not given use input_dataset
         if 'metric' in self.pipeline_config and callable(self.pipeline_config['metric']):

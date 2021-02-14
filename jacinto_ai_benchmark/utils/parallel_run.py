@@ -4,6 +4,7 @@ import collections
 import time
 from colorama import Fore
 from .progress_step import *
+from .timer_utils import delta_time_string
 
 
 class ParallelRun:
@@ -62,24 +63,17 @@ class ParallelRun:
             if num_completed > 0:
                 end_time = time.time()
                 delta_time = end_time - start_time
-                time_taken_str = self._delta_time_string(delta_time)
-                eta_str = self._delta_time_string(delta_time*(num_tasks-num_completed)/num_completed)
+                time_taken_str = delta_time_string(delta_time)
+                eta_str = delta_time_string(delta_time*(num_tasks-num_completed)/num_completed)
                 it_per_sec = (num_completed / delta_time)
             #
             # display the progress
-            print(f" {Fore.RED}{self.desc}: {num_completed}/{num_tasks} |"
-                  f" {Fore.YELLOW}[{time_taken_str}<{eta_str} {it_per_sec:5.2f}it/s]{Fore.RESET}", end=None)
+            display_str = f"\r {Fore.RED}{self.desc}: {num_completed}/{num_tasks} |" \
+                          f" {Fore.YELLOW}[{time_taken_str}<{eta_str} {it_per_sec:5.2f}it/s]{Fore.RESET}"
+            print(display_str, end='')
+            sys.stdout.flush()
         #
         return results_list
-
-    def _delta_time_string(self, seconds):
-        days, seconds = divmod(seconds,(60*60*24))
-        hours, seconds = divmod(seconds,(60*60))
-        minutes, seconds = divmod(seconds,60)
-        time_str = f'{minutes:02.0f}:{seconds:02.0f}'
-        time_str = f'{hours:02.0f}:{time_str}' if hours > 0 else time_str
-        time_str = f'{days:1.0f}d,{time_str}' if days > 0 else time_str
-        return time_str
 
     def _worker(self, task):
         return task()
