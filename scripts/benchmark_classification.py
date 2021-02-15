@@ -19,7 +19,7 @@ print(f'work_dir = {work_dir}')
 # configs for each model pipeline
 common_cfg = {
     'type': 'accuracy',
-    'verbose_mode': config.verbose_mode,
+    'verbose': config.verbose,
     'run_import': config.run_import,
     'run_inference': config.run_inference,
     'calibration_dataset': datasets.ImageNetCls(**config.imagenet_cls_calib_cfg),
@@ -122,14 +122,7 @@ pipeline_configs = [
     #################################################################
     #       TFLITE MODELS
     ##################tensorflow models##############################
-    # mlperf model: classification resnet50_v1.5 expected_metric: 76.456% top-1 accuracy
-    utils.dict_update(common_cfg, {
-        'preprocess':config.get_preproc_tflite(mean=(123.675, 116.28, 103.53), scale=(1.0, 1.0, 1.0)),
-        'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/mlperf/resnet50-v1.5.tflite'),
-        'metric':dict(label_offset_pred=-1)
-    }),
-    # mlperf/tf1 model: classification mobilenet_v1_224x224 expected_metric: 71.0 or 71.676 (differnet numbers at mlperf vs tf1 models)% top-1 accuracy
+    # mlperf/tf1 model: classification mobilenet_v1_224x224 expected_metric: 71.676 top-1 accuracy
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite(),
         'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
@@ -143,8 +136,15 @@ pipeline_configs = [
             model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/mlperf/mobilenet_edgetpu_224_1.0_float.tflite'),
         'metric':dict(label_offset_pred=-1)
     }),
+    # mlperf model: classification resnet50_v1.5 expected_metric: 76.456% top-1 accuracy
+    utils.dict_update(common_cfg, {
+        'preprocess':config.get_preproc_tflite(mean=(123.675, 116.28, 103.53), scale=(1.0, 1.0, 1.0)),
+        'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/mlperf/resnet50-v1.5.tflite'),
+        'metric':dict(label_offset_pred=-1)
+    }),
 
-    # # tensorflow/models: classification mobilenetv1_224x224 quant expected_metric: 71.0% top-1 accuracy - this is same as the mlperf model
+    # # tensorflow/models: classification mobilenetv1_224x224 quant expected_metric: 71.0% top-1 accuracy (or is it 71.676% as this seems same as mlperf model)
     # utils.dict_update(common_cfg, {
     #     'preprocess':config.get_preproc_tflite(),
     #     'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,

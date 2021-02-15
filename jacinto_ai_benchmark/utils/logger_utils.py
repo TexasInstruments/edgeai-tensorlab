@@ -1,59 +1,62 @@
+import os
 import sys
-import logging
+
 
 class TeeLogger:
-    def __init__(self, filename, log_level=logging.INFO, append=False):
-        assert log_level == logging.INFO, 'for now we support only INFO logging level'
-        mode = "a" if append else "w"
-        self.term = sys.stdout
-        self.filename = filename
-        self.file = open(filename, mode)
-        # avoid an error related to isatty
-        # self.isatty = sys.stdout.isatty
-        # self.encoding = sys.stdout.getdefaultencoding()
-        # stdout and stderr to file and to term
-        sys.stdout = self
+    def __init__(self, file, stream=sys.stdout, with_tee=True):
+        super().__init__()
+        self.file = file
+        self.stream = stream
+        self.with_tee = with_tee
+        self.is_open = False
+        self._start()
 
     def __del__(self):
-        self.flush()
         self.close()
 
     def close(self):
-        if self.file is not None:
-            sys.stdout = self.term
-            self.file.close()
-            self.file = None
+        if self.is_open:
+            self._finish()
         #
 
-    def write(self, message, verobse=True):
-        if verobse:
-            self.term.write(message)
+    def flush(self):
+        self.stream.flush()
+        if not self.file.closed:
+            self.file.flush()
         #
-        self.file.write(message)
-        self.flush()
 
-    def write_term(self, message):
-        self.flush()
-        self.term.write(message)
-        self.flush()
-
-    def write_file(self, message):
-        self.flush()
-        self.file.write(message)
-        self.flush()
+    def write(self, message):
+        self.stream.write(message)
 
     def info(self, message):
         self.write(message)
 
     def debug(self, message):
-        self.file.write(message)
-        self.flush()
-
-    def flush(self):
-        self.term.flush()
-        if self.file is not None:
-            self.file.flush()
-        #
+        self.write(message)
 
     def fileno(self):
-        return self.term.fileno()
+        return self.file.fileno()
+
+    def _start(self):
+        # save a copy of stdout
+        self.stdout_fileno_orig = self.stream.fileno()
+        # duplicate stdout if needed
+        if self.with_tee:
+            self.stdout_fileno_new = os.dup(self.stdout_fileno_orig)
+        else:
+            self.stdout_fileno_new = self.stdout_fileno_orig
+        #
+        # redirect the stdout duplicate
+        os.dup2(self.file.fileno(), self.stdout_fileno_new)
+        self.is_open = True
+
+    def _finish(self):
+        # reset stdout
+        self.file.flush()
+        self.stream.flush()
+        if self.with_tee:
+            os.close(self.stdout_fileno_new)
+        else:
+            os.dup2(self.stdout_fileno_new, self.stdout_fileno_orig)
+        #
+        self.is_open = False
