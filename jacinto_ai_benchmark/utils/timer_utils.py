@@ -39,7 +39,8 @@ def delta_time_string(seconds):
     return time_str
 
 
-def display_timing_stats(desc, num_completed, total, start_time, end_time, file=sys.stdout, step_size=1):
+def display_timing_stats(desc, num_completed, total, start_time, end_time, file=sys.stdout, step_size=1,
+                         colors=(Fore.GREEN, Fore.WHITE, Fore.YELLOW, Fore.CYAN)):
     item_index = num_completed - 1
     time_taken_str = eta_str = it_per_sec = ''
     if num_completed > 1 and total is not None:
@@ -54,8 +55,8 @@ def display_timing_stats(desc, num_completed, total, start_time, end_time, file=
         num_bars = int(num_completed*10.0/total) if total is not None else 0
         percentage = f'{num_completed*100.0/total:5.0f}%' if total is not None else '    '
         bar_string = f"{'_'*num_bars + ' '*(10-num_bars)}"
-        file.write(f'\r{Fore.GREEN}{desc} {Fore.WHITE}{percentage} |'
-                   f'{Fore.YELLOW}{bar_string}| {Fore.CYAN}{num_completed}/{total} | '
+        file.write(f'\r{colors[0]}{desc} {colors[1]}{percentage} |'
+                   f'{colors[2]}{bar_string}| {colors[3]}{num_completed}/{total} | '
                    f'[{time_taken_str}<{eta_str} {it_per_sec}]{Fore.RESET}')
         file.flush()
     #
