@@ -1,4 +1,5 @@
 import os
+import contextlib
 from .. import utils
 
 
@@ -9,22 +10,19 @@ class AccuracyPipeline():
         # create work directory
         work_dir = self.pipeline_config['session'].get_work_dir()
         os.makedirs(work_dir, exist_ok=True)
+        verbose = self.pipeline_config['verbose']
+        file_name = os.path.join(work_dir, 'run.log')
+        self.logger = utils.TeeLogger(file_name)
+
+    def __del__(self):
+        self.logger.close()
+        self.logger = None
 
     def run(self):
-        verbose = self.pipeline_config['verbose']
-        work_dir = self.pipeline_config['session'].get_work_dir()
-        file = open(os.path.join(work_dir, 'run.log'), 'w')
-        # create logger - if with_tee (verbose) is set, prints will be duplicated in file and stdout
-        logger = utils.TeeLogger(file, with_tee=verbose)
-
         # run the actual model
-        print(f'\npipeline_config: {self.pipeline_config}')
+        self.logger.write(f'\npipeline_config: {self.pipeline_config}')
         result = self._run_stages()
-        print(f'\nBenchmarkResults: {result}')
-
-        # cleanup
-        logger.close()
-        file.close()
+        self.logger.write(f'\nBenchmarkResults: {result}')
         return result
 
     def _run_stages(self):
@@ -46,7 +44,7 @@ class AccuracyPipeline():
         calibration_dataset = self.pipeline_config['calibration_dataset']
         preprocess = self.pipeline_config['preprocess']
         description = os.path.split(session.get_work_dir())[-1]
-        print('import & calibration: ' + description)
+        self.logger.write('import & calibration: ' + description)
 
         calib_data = []
         num_frames = len(calibration_dataset)
@@ -70,7 +68,7 @@ class AccuracyPipeline():
 
         output_list = []
         num_frames = len(input_dataset)
-        for data_index in utils.progress_step(range(num_frames), desc='infer: '+description):
+        for data_index in utils.progress_step(range(num_frames), desc='infer: '+description, file=self.logger):
             data = input_dataset[data_index]
             data = self._sequential_pipeline(preprocess, data)
             output = self._run_session_with_data(session, data)

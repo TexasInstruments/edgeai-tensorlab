@@ -1,62 +1,70 @@
 import os
 import sys
 
-
 class TeeLogger:
-    def __init__(self, file, stream=sys.stdout, with_tee=True):
+    def __init__(self, file_name):
         super().__init__()
-        self.file = file
-        self.stream = stream
-        self.with_tee = with_tee
-        self.is_open = False
-        self._start()
+        self.src_stream = sys.stdout
+        self.dst_file = open(file_name, 'w')
+        sys.stdout = self
 
     def __del__(self):
         self.close()
 
-    def close(self):
-        if self.is_open:
-            self._finish()
-        #
+    def write(self, message):
+        self.src_stream.write(message)
+        self.dst_file.write(message)
+        self.flush()
 
     def flush(self):
-        self.stream.flush()
-        if not self.file.closed:
-            self.file.flush()
+        self.src_stream.flush()
+        if self.dst_file is not None:
+            self.dst_file.flush()
         #
 
-    def write(self, message):
-        self.stream.write(message)
+    def isatty(self):
+        return self.src_stream.isatty()
 
-    def info(self, message):
-        self.write(message)
-
-    def debug(self, message):
-        self.write(message)
-
-    def fileno(self):
-        return self.file.fileno()
-
-    def _start(self):
-        # save a copy of stdout
-        self.stdout_fileno_orig = self.stream.fileno()
-        # duplicate stdout if needed
-        if self.with_tee:
-            self.stdout_fileno_new = os.dup(self.stdout_fileno_orig)
-        else:
-            self.stdout_fileno_new = self.stdout_fileno_orig
+    def close(self):
+        if self.dst_file is not None:
+            self.dst_file.close()
+            self.dst_file = None
+            sys.stdout = self.src_stream
         #
-        # redirect the stdout duplicate
-        os.dup2(self.file.fileno(), self.stdout_fileno_new)
-        self.is_open = True
 
-    def _finish(self):
-        # reset stdout
-        self.file.flush()
-        self.stream.flush()
-        if self.with_tee:
-            os.close(self.stdout_fileno_new)
-        else:
-            os.dup2(self.stdout_fileno_new, self.stdout_fileno_orig)
+
+class RedirectLogger:
+    """
+    Redirect the outputs of current process and subprocesses into a file
+    """
+    def __init__(self, file_name):
+        super().__init__()
+        self.src_stream = sys.stdout
+        self.dst_file = open(file_name, 'w')
+        # save a copy of stdout fd
+        self.src_fd_orig = self.src_stream.fileno()
+        self.src_fd_copy = os.dup(self.src_fd_orig)
+        # connect file fd to stdout
+        os.dup2(self.dst_file.fileno(), self.src_fd_orig)
+
+    def __del__(self):
+        self.close()
+
+    def flush(self):
+        self.src_stream.flush()
+        if self.dst_file is not None:
+            self.dst_file.flush()
         #
-        self.is_open = False
+
+    def close(self):
+        if self.dst_file is not None:
+            self.dst_file.flush()
+            self.src_stream.flush()
+            # restore original stdout
+            os.dup2(self.src_fd_copy, self.src_fd_orig)
+            # cleanup
+            os.close(self.src_fd_copy)
+            self.dst_file.close()
+            self.dst_file = None
+        #
+
