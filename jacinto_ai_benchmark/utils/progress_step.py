@@ -1,7 +1,7 @@
 import sys
 import time
 from colorama import Fore
-from .timer_utils import delta_time_string
+from .timer_utils import display_timing_stats
 
 try:
     from tqdm.auto import tqdm
@@ -63,32 +63,15 @@ else:
                 desc + ' '*(desc_len-len(desc))
             self.total = iterable.__len__() if hasattr(iterable, '__len__') else total
             self.file = file if file is not None else sys.stdout
-            if hasattr(self.iterable, '__len__'):
-                self.__len__ = self.iterable.__len__
-            #
 
         def __iter__(self):
             start_time = time.time()
-            eta_str = '<'
-            for index, item in enumerate(self.iterable):
-                num_completed = (index+1)
-                if index > 0 and self.total is not None:
-                    end_time = time.time()
-                    delta_time = end_time - start_time
-                    time_taken_str = delta_time_string(delta_time)
-                    eta_str = delta_time_string(delta_time*(self.total-num_completed)/num_completed)
-                    it_per_sec = (num_completed/delta_time)
-                    eta_str = f"{time_taken_str}<{eta_str} {it_per_sec:5.2f}it/s"
-                #
-                if (index * self.step_size) == 0 or (self.total is not None and index == (self.total-1)):
-                    num_bars = int(num_completed*10.0/self.total) if self.total is not None else 0
-                    percentage = f'{num_completed*100.0/self.total:5.0f}%' if self.total is not None else '    '
-                    bar_string = f"{'_'*num_bars + ' '*(10-num_bars)}"
-                    self.file.write(f'\r{Fore.GREEN}{self.desc} {Fore.WHITE}{percentage} |'
-                                    f'{Fore.YELLOW}{bar_string}| {Fore.CYAN}{index+1}/{self.total} | '
-                                    f'[{eta_str}]{Fore.RESET}')
-                    self.file.flush()
-                #
+            for item_id, item in enumerate(self.iterable):
+                end_time = time.time()
+                num_completed = item_id + 1
+                display_timing_stats(self.desc, num_completed, total=self.total,
+                                     start_time=start_time, end_time=end_time,
+                                     file=self.file)
                 yield item
 
 #
