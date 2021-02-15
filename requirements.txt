@@ -1,8 +1,8 @@
 numpy
+onnx
+tflite
 pillow
-memory-tempfile
 opencv-python
 pycocotools
 tqdm
-onnx
-tflite
+memory-tempfile
