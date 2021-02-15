@@ -107,12 +107,12 @@ pipeline_configs = [
         'session':sessions.TVMDLRSession(**common_session_cfg, **config.session_tvm_dlr_cfg,
             model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/torchvision/resnet50_opset9.onnx')
     }),
-    # # torchvision: classification vgg16_224x224 expected_metric: 71.59% top-1 accuracy - too slow inference
-    # utils.dict_update(common_cfg, {
-    #     'preprocess':config.get_preproc_onnx(),
-    #     'session':sessions.TVMDLRSession(**common_session_cfg, **config.session_tvm_dlr_cfg,
-    #         model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/torchvision/vgg16_opset9.onnx')
-    # }),
+    # torchvision: classification vgg16_224x224 expected_metric: 71.59% top-1 accuracy - too slow inference
+    utils.dict_update(common_cfg, {
+        'preprocess':config.get_preproc_onnx(),
+        'session':sessions.TVMDLRSession(**common_session_cfg, **config.session_tvm_dlr_cfg,
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/torchvision/vgg16_opset9.onnx')
+    }),
     # github onnx model: classification resnet18_v2 expected_metric: 69.70% top-1 accuracy
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_onnx(),
@@ -122,20 +122,35 @@ pipeline_configs = [
     #################################################################
     #       TFLITE MODELS
     ##################tensorflow models##############################
-    # tensorflow/models: classification mobilenetv1_224x224 expected_metric: 70.9% top-1 accuracy
+    # mlperf model: classification resnet50_v1.5 expected_metric: 76.456% top-1 accuracy
+    utils.dict_update(common_cfg, {
+        'preprocess':config.get_preproc_tflite(mean=(123.675, 116.28, 103.53), scale=(1.0, 1.0, 1.0)),
+        'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/mlperf/resnet50-v1.5.tflite'),
+        'metric':dict(label_offset_pred=-1)
+    }),
+    # mlperf/tf1 model: classification mobilenet_v1_224x224 expected_metric: 71.0 or 71.676 (differnet numbers at mlperf vs tf1 models)% top-1 accuracy
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite(),
         'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v1_1.0_224.tflite'),
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/mlperf/mobilenet_v1_1.0_224.tflite'),
         'metric':dict(label_offset_pred=-1)
     }),
-    # tensorflow/models: classification mobilenetv1_224x224 quant expected_metric: 70.0% top-1 accuracy
+    # mlperf/tf-edge model: classification mobilenet_edgetpu_224 expected_metric: 75.6% top-1 accuracy
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite(),
         'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v1_1.0_224_quant.tflite'),
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/mlperf/mobilenet_edgetpu_224_1.0_float.tflite'),
         'metric':dict(label_offset_pred=-1)
     }),
+
+    # # tensorflow/models: classification mobilenetv1_224x224 quant expected_metric: 71.0% top-1 accuracy - this is same as the mlperf model
+    # utils.dict_update(common_cfg, {
+    #     'preprocess':config.get_preproc_tflite(),
+    #     'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
+    #         model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v1_1.0_224_quant.tflite'),
+    #     'metric':dict(label_offset_pred=-1)
+    # }),
     # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 71.9% top-1 accuracy
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite(),
@@ -176,12 +191,12 @@ pipeline_configs = [
         'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
             model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite2-fp32.tflite')
     }),
-    # # tensorflow/tpu: classification efficinetnet-lite4_300x300 expected_metric: 81.5% top-1 accuracy
-    # utils.dict_update(common_cfg, {
-    #     'preprocess':config.get_preproc_tflite(343, 300),
-    #     'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-    #         model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite4-fp32.tflite')
-    # }),
+    # tensorflow/tpu: classification efficinetnet-lite4_300x300 expected_metric: 81.5% top-1 accuracy
+    utils.dict_update(common_cfg, {
+        'preprocess':config.get_preproc_tflite(343, 300),
+        'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite4-fp32.tflite')
+    }),
     # tensorflow/tpu: classification efficientnet-edgetpu-S expected_metric: 77.23% top-1 accuracy
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite(),
@@ -196,27 +211,27 @@ pipeline_configs = [
             model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-edgetpu-M_float.tflite'),
         'metric':dict(label_offset_pred=-1)
     }),
-    # # tensorflow/tpu: classification efficientnet-edgetpu-L expected_metric: 80.62% top-1 accuracy
-    # utils.dict_update(common_cfg, {
-    #     'preprocess':config.get_preproc_tflite(343, 300),
-    #     'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-    #         model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-edgetpu-L_float.tflite'),
-    #     'metric':dict(label_offset_pred=-1)
-    # }),
-    # # tf hosted models: classification squeezenet_1 expected_metric: 49.0% top-1 accuracy
-    # utils.dict_update(common_cfg, {
-    #     'preprocess':config.get_preproc_tflite(),
-    #     'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-    #         model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/squeezenet.tflite'),
-    #     'metric':dict(label_offset_pred=-1)
-    # }),
-    # # tf hosted models: classification densenet expected_metric: 74.98% top-1 accuracy (from publication)
-    # utils.dict_update(common_cfg, {
-    #     'preprocess':config.get_preproc_tflite(),
-    #     'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-    #         model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/densenet.tflite'),
-    #     'metric':dict(label_offset_pred=-1)
-    # }),
+    # tensorflow/tpu: classification efficientnet-edgetpu-L expected_metric: 80.62% top-1 accuracy
+    utils.dict_update(common_cfg, {
+        'preprocess':config.get_preproc_tflite(343, 300),
+        'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-edgetpu-L_float.tflite'),
+        'metric':dict(label_offset_pred=-1)
+    }),
+    # tf hosted models: classification squeezenet_1 expected_metric: 49.0% top-1 accuracy
+    utils.dict_update(common_cfg, {
+        'preprocess':config.get_preproc_tflite(),
+        'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/squeezenet.tflite'),
+        'metric':dict(label_offset_pred=-1)
+    }),
+    # tf hosted models: classification densenet expected_metric: 74.98% top-1 accuracy (from publication)
+    utils.dict_update(common_cfg, {
+        'preprocess':config.get_preproc_tflite(),
+        'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/densenet.tflite'),
+        'metric':dict(label_offset_pred=-1)
+    }),
     # tf hosted models: classification inception_v1_224_quant expected_metric: 69.63% top-1 accuracy
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite(),
@@ -224,13 +239,13 @@ pipeline_configs = [
             model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/inception_v1_224_quant.tflite'),
         'metric':dict(label_offset_pred=-1)
     }),
-    # # tf hosted models: classification inception_v3 expected_metric: 78% top-1 accuracy
-    # utils.dict_update(common_cfg, {
-    #     'preprocess':config.get_preproc_tflite(342, 299),
-    #     'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-    #         model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/inception_v3.tflite'),
-    #     'metric':dict(label_offset_pred=-1)
-    # }),
+    # tf hosted models: classification inception_v3 expected_metric: 78% top-1 accuracy
+    utils.dict_update(common_cfg, {
+        'preprocess':config.get_preproc_tflite(342, 299),
+        'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/inception_v3.tflite'),
+        'metric':dict(label_offset_pred=-1)
+    }),
     # tf hosted models: classification mnasnet expected_metric: 74.08% top-1 accuracy
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite(),
@@ -245,31 +260,24 @@ pipeline_configs = [
             model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/nasnet_mobile.tflite'),
         'metric':dict(label_offset_pred=-1)
     }),
-    # # mlperf model: classification resnet50_v1 (BGR input, caffe preproc) expected_metric: 74.9% top-1 accuracy
-    # utils.dict_update(common_cfg, {
-    #     'preprocess':config.get_preproc_tflite(mean=(123.675, 116.28, 103.53), scale=(1.0, 1.0, 1.0), reverse_channels=True),
-    #     'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-    #         model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf2-models/resnet50.tflite')
-    # }),
-    # mlperf model: classification resnet50_v2 expected_metric: 76.0% top-1 accuracy
+    # tf2 model: classification resnet50_v1 (BGR input, caffe preproc) expected_metric: 74.9% top-1 accuracy
+    utils.dict_update(common_cfg, {
+        'preprocess':config.get_preproc_tflite(mean=(123.675, 116.28, 103.53), scale=(1.0, 1.0, 1.0), reverse_channels=True),
+        'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf2-models/resnet50.tflite')
+    }),
+    # tf2 model: classification resnet50_v2 expected_metric: 76.0% top-1 accuracy
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite(),
         'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
             model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf2-models/resnet50v2.tflite'),
         'metric':dict(label_offset_pred=-1)
     }),
-    # # tf1_models: classification xception expected_metric: 79.0% top-1 accuracy
-    # utils.dict_update(common_cfg, {
-    #     'preprocess':config.get_preproc_tflite(342, 299),
-    #     'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-    #         model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf2-models/xception.tflite')
-    # }),
-    # mlperf model: classification resnet50_v1.5 expected_metric: 76.456% top-1 accuracy
+    # tf1_models: classification xception expected_metric: 79.0% top-1 accuracy
     utils.dict_update(common_cfg, {
-        'preprocess':config.get_preproc_tflite(mean=(123.675, 116.28, 103.53), scale=(1.0, 1.0, 1.0)),
+        'preprocess':config.get_preproc_tflite(342, 299),
         'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/mlperf/resnet50-v1.5.tflite'),
-        'metric':dict(label_offset_pred=-1)
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf2-models/xception.tflite')
     }),
 ]
 
