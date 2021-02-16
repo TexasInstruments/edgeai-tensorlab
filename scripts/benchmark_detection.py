@@ -101,14 +101,6 @@ pipeline_configs = [
         'postprocess': postproc_detection_tflite,
         'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
     }),
-    # tensorflow1.0 models: detection - ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03 expected_metric: 32.0% ap[0.5:0.95] accuracy
-    utils.dict_update(common_cfg, {
-        'preprocess':config.get_preproc_tflite((640,640), (640,640), backend='cv2'),
-        'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-            model_path=f'{config.modelzoo_path}/vision/detection/coco/tf1-models/ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03.tflite'),
-        'postprocess': postproc_detection_tflite,
-        'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
-    }),
     # tensorflow1.0 models: detection - ssd_mobilenet_v2_mnasfpn_shared_box_predictor_320x320_coco_sync_2020_05_18 expected_metric: 26.6% ap[0.5:0.95] accuracy
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite((320,320), (320,320), backend='cv2'),
@@ -117,6 +109,15 @@ pipeline_configs = [
         'postprocess': postproc_detection_tflite,
         'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
     }),
+    # tensorflow1.0 models: detection - ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03 expected_metric: 32.0% ap[0.5:0.95] accuracy
+    utils.dict_update(common_cfg, {
+        'preprocess':config.get_preproc_tflite((640,640), (640,640), backend='cv2'),
+        'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
+            model_path=f'{config.modelzoo_path}/vision/detection/coco/tf1-models/ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03.tflite'),
+        'postprocess': postproc_detection_tflite,
+        'metric':dict(label_offset_pred=det_helper.coco_label_offset_90to90())
+    }),
+
     #################################################################
     # tensorflow2.0 models: detection - ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8 expected_metric: 28.2% ap[0.5:0.95] accuracy
     # utils.dict_update(common_cfg, {
