@@ -4,5 +4,6 @@ tflite
 pillow
 opencv-python
 pycocotools
+colorama
 tqdm
 memory-tempfile
