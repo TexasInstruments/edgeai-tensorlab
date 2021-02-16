@@ -88,10 +88,10 @@ pipeline_configs = [
 # execute each model
 if __name__ == '__main__':
     if config.run_import or config.run_inference:
-        pipelines.run(pipeline_configs, parallel_devices=config.parallel_devices)
+        pipelines.run(config, pipeline_configs, parallel_devices=config.parallel_devices)
     #
     if config.collect_results:
-        results = pipelines.collect_results(work_dir)
+        results = pipelines.collect_results(config, work_dir)
         print(*results, sep='\n')
     #
 
