@@ -2,7 +2,7 @@ import os
 import glob
 
 
-def collect_results(work_dir):
+def collect_results(config, work_dir):
     results = []
     logs_dirs = glob.glob(f'{work_dir}/*')
     for log_dir in logs_dirs:

@@ -262,7 +262,7 @@ pipeline_configs = [
     }),
     # tf1 models: classification resnet50_v1 (BGR input, caffe preproc) expected_metric: 74.9% top-1 accuracy TODO: confirm accuracy
     utils.dict_update(common_cfg, {
-        'preprocess':config.get_preproc_tflite(mean=(123.675, 116.28, 103.53), scale=(1.0, 1.0, 1.0), reverse_channels=True),
+        'preprocess':config.get_preproc_tflite(),
         'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
             model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/resnet50_v1.tflite')
     }),
@@ -286,10 +286,10 @@ pipeline_configs = [
 # execute each model
 if __name__ == '__main__':
     if config.run_import or config.run_inference:
-        pipelines.run(pipeline_configs, parallel_devices=config.parallel_devices)
+        pipelines.run(config, pipeline_configs, parallel_devices=config.parallel_devices)
     #
     if config.collect_results:
-        results = pipelines.collect_results(work_dir)
+        results = pipelines.collect_results(config, work_dir)
         print(*results, sep='\n')
     #
 
