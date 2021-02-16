@@ -81,6 +81,20 @@ pipeline_configs = [
             model_path=f'{config.modelzoo_path}/vision/segmentation/cityscapes/jai-pytorch/fpnlite_aspp_regnetx3.2gf_1536x768_20200915-092738_opset9.onnx'),
         'postprocess': postproc_segmentation_onnx
     }),
+    # torchvision: segmentation - torchvision deeplabv3-resnet50 - expected_metric: 73.5% MeanIoU.
+    utils.dict_update(common_cfg, {
+        'preprocess':config.get_preproc_onnx((520,1040), (520,1040), backend='cv2'),
+        'session':sessions.TVMDLRSession(**common_session_cfg, **config.session_tvm_dlr_cfg,
+            model_path=f'{config.modelzoo_path}/vision/segmentation/cityscapes/torchvision/deeplabv3_resnet50_1040x520_2020-09-01_21-35-17_opset9.onnx'),
+        'postprocess': postproc_segmentation_onnx
+    }),
+    # torchvision: segmentation - torchvision fcn-resnet50 - expected_metric: 71.6% MeanIoU.
+    utils.dict_update(common_cfg, {
+        'preprocess':config.get_preproc_onnx((520,1040), (520,1040), backend='cv2'),
+        'session':sessions.TVMDLRSession(**common_session_cfg, **config.session_tvm_dlr_cfg,
+            model_path=f'{config.modelzoo_path}/vision/segmentation/cityscapes/torchvision/fcn_resnet50_1040x520_2020-09-02_15-34-44_opset9.onnx'),
+        'postprocess': postproc_segmentation_onnx
+    }),
     #################################################################
     #       TFLITE MODELS
     #################mlperf models###################################
