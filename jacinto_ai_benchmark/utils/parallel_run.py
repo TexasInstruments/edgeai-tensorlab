@@ -2,7 +2,6 @@ import sys
 import multiprocessing
 import collections
 import time
-from colorama import Fore
 from .progress_step import *
 from .timer_utils import display_timing_stats
 

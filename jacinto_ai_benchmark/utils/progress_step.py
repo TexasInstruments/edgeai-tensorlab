@@ -3,6 +3,7 @@ import time
 from colorama import Fore
 from .timer_utils import display_timing_stats
 
+# use a custom progress indicator if tqdm is not available
 try:
     from tqdm.auto import tqdm
     has_tqdm = True
@@ -25,13 +26,13 @@ def progress_step(iterable, desc, desc_len=60, total=None, miniters=None, bar_fo
         format_arg = (Fore.GREEN, desc_len, Fore.WHITE, Fore.YELLOW, Fore.CYAN, Fore.RESET)
         bar_format = '%s{desc:%s}|%s{percentage:4.0f}%%|%s{bar:10}|%s{r_bar}%s' % format_arg
     #
-    return tqdm_step(iterable=iterable, desc=desc, total=total, miniters=miniters, bar_format=bar_format, file=file,
+    return ProgStep(iterable=iterable, desc=desc, total=total, miniters=miniters, bar_format=bar_format, file=file,
                 leave=leave, **kwargs)
 
 
 if has_tqdm:
     # use tqdm if its is available
-    class tqdm_step(tqdm):
+    class ProgStep(tqdm):
         def __init__(self, iterable, *args, **kwargs):
             super().__init__(iterable, *args, **kwargs)
             assert 'miniters' in kwargs, 'miniters must be used as keyword argument'
@@ -53,8 +54,8 @@ if has_tqdm:
             self.iter_index += n
 
 else:
-    # simple implementation to be used only if tqdm is not available
-    class tqdm_step:
+    # a simple progress indicator that can be used instead of tqdm
+    class ProgStep:
         def __init__(self, iterable, desc, desc_len=70, miniters=1, total=None, file=None, **kwargs):
             super().__init__()
             self.step_size = miniters
@@ -73,5 +74,4 @@ else:
                                      start_time=start_time, end_time=end_time,
                                      file=self.file)
                 yield item
-
 #
