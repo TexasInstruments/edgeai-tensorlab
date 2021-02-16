@@ -11,17 +11,20 @@ if not os.environ['PYTHONPATH'].startswith(':'):
 #
 
 import config_settings as config
-work_dir = os.path.join('./work_dirs', os.path.splitext(os.path.basename(__file__))[0])
+work_dir = os.path.join('./work_dirs', os.path.splitext(os.path.basename(__file__))[0], f'{config.tidl_tensor_bits}bits')
+print(f'work_dir = {work_dir}')
 
 
 ################################################################################################
 # configs for each model pipeline
 common_cfg = {
-    'type':'accuracy',
-    'target_device': config.target_device,
-    'calibration_dataset':datasets.ImageNetCls(**config.imagenet_cls_calib_cfg),
-    'input_dataset':datasets.ImageNetCls(**config.imagenet_cls_val_cfg),
-    'postprocess':config.get_postproc_classification()
+    'type': 'accuracy',
+    'verbose': config.verbose,
+    'run_import': config.run_import,
+    'run_inference': config.run_inference,
+    'calibration_dataset': datasets.ImageNetCls(**config.imagenet_cls_calib_cfg),
+    'input_dataset': datasets.ImageNetCls(**config.imagenet_cls_val_cfg),
+    'postprocess': config.get_postproc_classification()
 }
 
 common_session_cfg = dict(work_dir=work_dir, target_device=config.target_device)
