@@ -30,8 +30,8 @@ export TIDL_RT_PERFSTATS="1"
 echo "TIDL_RT_PERFSTATS=${TIDL_RT_PERFSTATS}"
 
 ##################################################################
-python ./scripts/benchmark_classification.py
-python ./scripts/benchmark_segmentation.py
-python ./scripts/benchmark_detection.py
+python3 ./scripts/benchmark_classification.py
+python3 ./scripts/benchmark_segmentation.py
+python3 ./scripts/benchmark_detection.py
 
 

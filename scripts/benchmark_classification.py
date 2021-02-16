@@ -260,13 +260,14 @@ pipeline_configs = [
             model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/nasnet_mobile.tflite'),
         'metric':dict(label_offset_pred=-1)
     }),
-    # tf1 models: classification resnet50_v1 (BGR input, caffe preproc) expected_metric: 74.9% top-1 accuracy TODO: confirm accuracy
+    # tf1 models: classification resnet50_v1 expected_metric: 75.2% top-1 accuracy
     utils.dict_update(common_cfg, {
-        'preprocess':config.get_preproc_tflite(),
+        'preprocess':config.get_preproc_tflite(mean=(123.675, 116.28, 103.53), scale=(1.0, 1.0, 1.0)),
         'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
             model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/resnet50_v1.tflite')
     }),
-    # tf1 models: classification resnet50_v2 expected_metric: 76.0% top-1 accuracy TODO: confirm accuracy
+    # TODO: is this model's input correct? shouldn't it be 299 according to the slim page?
+    # tf1 models: classification resnet50_v2 expected_metric: 75.6% top-1 accuracy
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite(),
         'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
