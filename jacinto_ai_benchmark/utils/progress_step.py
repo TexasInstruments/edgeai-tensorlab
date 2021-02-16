@@ -13,7 +13,7 @@ except:
 __all__ = ['progress_step']
 
 
-def progress_step(iterable, desc, desc_len=70, total=None, miniters=None, bar_format=None, file=sys.stdout,
+def progress_step(iterable, desc, desc_len=60, total=None, miniters=None, bar_format=None, file=sys.stdout,
                   leave=True, **kwargs):
     desc = desc[:desc_len] if (desc_len is not None and len(desc) > desc_len) else \
         desc + ' '*(desc_len-len(desc))
