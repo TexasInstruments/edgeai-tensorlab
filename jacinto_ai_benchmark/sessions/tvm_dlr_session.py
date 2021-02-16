@@ -1,9 +1,7 @@
 import os
-import warnings
-import onnx
-from tvm import relay
-from tvm.relay.backend.contrib import tidl
+
 from dlr import DLRModel
+
 from .base_rt_session import BaseRTSession
 from ..import utils
 
@@ -16,6 +14,12 @@ class TVMDLRSession(BaseRTSession):
         self.interpreter_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tvm-dlr')
 
     def import_model(self, calib_data):
+        # onnx and tvm are required only for model import
+        # so import inside the function so that inference can be done without it
+        import onnx
+        from tvm import relay
+        from tvm.relay.backend.contrib import tidl
+        # prepare for actual model import
         super().import_model(calib_data)
         os.chdir(self.interpreter_folder)
 
@@ -23,7 +27,7 @@ class TVMDLRSession(BaseRTSession):
         onnx_model = onnx.load(model_path)
 
         if self.kwargs['input_shape'] is None:
-            self.kwargs['input_shape'] = self._get_input_shape(onnx_model)
+            self.kwargs['input_shape'] = self._get_input_shape_onnx(onnx_model)
         #
         input_shape = self.kwargs['input_shape']
         input_keys = list(input_shape.keys())
@@ -94,15 +98,17 @@ class TVMDLRSession(BaseRTSession):
         if not os.path.exists(target_artifacts_folder):
             return False
         #
-        if self.kwargs['input_shape'] is None:
-            model_path = self.kwargs['model_path']
-            onnx_model = onnx.load(model_path)
-            self.kwargs['input_shape'] = self._get_input_shape(onnx_model)
-        #
         super().start_infer()
         # create inference model
         os.chdir(self.interpreter_folder)
         self.interpreter = DLRModel(target_artifacts_folder, 'cpu')
+        if self.kwargs['input_shape'] is None:
+            # get the input names from DLR model
+            # don't know how to get the input shape from dlr model, but that's not requried.
+            input_names = self.interpreter.get_input_names()
+            input_names = utils.as_list_or_tuple(input_names)
+            self.kwargs['input_shape'] = {n:None for n in input_names}
+        #
         os.chdir(self.cwd)
         self.import_done = True
         return True
@@ -121,7 +127,7 @@ class TVMDLRSession(BaseRTSession):
         self.kwargs['data_layout'] = self.kwargs.get('data_layout', 'NCHW')
         self.kwargs["tidl_calibration_options"] = self.kwargs.get("tidl_calibration_options", {})
 
-    def _get_input_shape(self, onnx_model):
+    def _get_input_shape_onnx(self, onnx_model):
         input_shape = {}
         num_inputs = self.kwargs['num_inputs']
         for input_idx in range(num_inputs):

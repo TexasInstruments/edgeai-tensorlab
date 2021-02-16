@@ -18,7 +18,7 @@ class TFLiteRTSession(BaseRTSession):
         self.interpreter = self._create_interpreter(is_import=True)
 
         # check if the shape of data being proved matches with what model expects
-        input_shape = self._get_input_shape()
+        input_shape = self._get_input_shape_tflite()
         if (self.kwargs['input_shape'] is not None) and (not self._dict_equal(input_shape, self.kwargs['input_shape'])):
             warnings.warn('model input shape must match the provided shape')
         #
@@ -90,7 +90,7 @@ class TFLiteRTSession(BaseRTSession):
         delegate_options.update(optional_options)
         self.kwargs["delegate_options"] = delegate_options
 
-    def _get_input_shape(self):
+    def _get_input_shape_tflite(self):
         input_shape = {}
         model_input_details = self.interpreter.get_input_details()
         for model_input in model_input_details:
