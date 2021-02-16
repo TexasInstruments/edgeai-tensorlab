@@ -48,7 +48,7 @@ def _run_pipeline(pipeline_config, parallel_device=None):
     try:
         pipeline_type = pipeline_config['type']
         if pipeline_type == 'accuracy':
-            # use with statement, so that the logger and other file resources are cleanedup
+            # use with statement, so that the logger and other file resources are cleaned up
             with AccuracyPipeline(pipeline_config) as accuracy_pipeline:
                 result = accuracy_pipeline.run()
             #

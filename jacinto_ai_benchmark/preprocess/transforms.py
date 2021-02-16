@@ -25,9 +25,15 @@ class ImageRead(object):
     def __call__(self, path):
         if self.backend == 'pil':
             img = PIL.Image.open(path)
+            img = img.convert('RGB')
             self.info['preprocess']['image_shape'] = img.size[1], img.size[0], len(img.getbands())
         elif self.backend == 'cv2':
             img = cv2.imread(path)
+            if img.shape[3] == 1:
+                img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+            elif img.shape[3] == 4:
+                img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+            #
             # always return in RGB format
             img = img[:,:,::-1]
             self.info['preprocess']['image_shape'] = img.shape

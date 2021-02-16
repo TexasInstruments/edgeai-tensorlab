@@ -34,15 +34,13 @@ pipeline_configs = [
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_onnx(),
         'session':sessions.TVMDLRSession(**common_session_cfg, **config.session_tvm_dlr_cfg,
-            model_path=f'./dependencies/examples/models/mobilenet_v2_2019-12-24_15-32-12_opset9.onnx',
-            input_shape={'input.1': (1, 3, 224, 224)})
+            model_path=f'./dependencies/examples/models/mobilenet_v2_2019-12-24_15-32-12_opset9.onnx')
     }),
     # mlperf_mobilenet_v1_1.0_224 71.646% top-1 accuracy
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_tflite(),
         'session':sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
-            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v1_1.0_224.tflite',
-            input_shape={'input': (1, 224, 224, 3)}),
+            model_path=f'{config.modelzoo_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v1_1.0_224.tflite'),
         'metric':dict(label_offset_pred=-1)
     })
 ]
