@@ -37,8 +37,8 @@ postproc_segmenation_tflite = config.get_postproc_segmentation_tflite(save_outpu
 
 pipeline_configs = [
     #################################################################
-    #       TFLITE MODELS
-    #################mlperf models##############################
+    #       ONNX MODELS
+    #################mlperf models###################################
     # jai-pytorch: segmentation - deeplabv3lite_mobilenetv2_tv_768x384_20190626-085932 expected_metric: 69.13% mean-iou
     utils.dict_update(common_cfg, {
         'preprocess':config.get_preproc_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
@@ -81,6 +81,10 @@ pipeline_configs = [
             model_path=f'{config.modelzoo_path}/vision/segmentation/cityscapes/jai-pytorch/fpnlite_aspp_regnetx3.2gf_1536x768_20200915-092738_opset9.onnx'),
         'postprocess': postproc_segmentation_onnx
     }),
+    #################################################################
+    #       TFLITE MODELS
+    #################mlperf models###################################
+    # To be added
 ]
 
 
