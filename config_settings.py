@@ -3,7 +3,6 @@ from jacinto_ai_benchmark.defaults import *
 
 ############################################################
 # common settings
-verbose = True
 num_frames = 10000 #50000
 max_frames_calib = 50 #100
 max_calib_iterations = 50
@@ -11,12 +10,13 @@ modelzoo_path = '../jacinto-ai-modelzoo/models'
 datasets_path = f'./dependencies/datasets'
 target_device = 'pc' #'j7' #'pc'
 parallel_devices = [0,1,2,3,0,1,2,3] #None
-tidl_tensor_bits = 32 #8 #16 #32
+tidl_tensor_bits = 8 #8 #16 #32
 run_import = True #False #True
 run_inference = True #False #True
 collect_results = True
 detection_thr = 0.05
 save_output = False
+verbose = False
 
 
 ############################################################
