@@ -2,7 +2,7 @@ import sys
 from colorama import Fore
 from tqdm.auto import tqdm
 
-__all__ = ['progress_step']
+__all__ = ['progress_step', 'progress_step2']
 
 
 def progress_step(iterable, desc, desc_len=60, total=None, miniters=None, bar_format=None, file=sys.stdout,
@@ -19,6 +19,16 @@ def progress_step(iterable, desc, desc_len=60, total=None, miniters=None, bar_fo
     #
     return TqdmStep(iterable=iterable, desc=desc, total=total, miniters=miniters, bar_format=bar_format, file=file,
                 leave=leave, **kwargs)
+
+
+# progress_step with different default colors, but minimal displays
+def progress_step2(iterable, desc, desc_len=60, bar_format=None,
+                   colors=(Fore.YELLOW, Fore.BLUE, Fore.MAGENTA, Fore.CYAN), **kwargs):
+    if bar_format is None:
+        format_arg = (colors[0], desc_len, colors[1], colors[2], colors[3], Fore.RESET)
+        bar_format = '%s{desc:%s}|%s{percentage:4.0f}%%|%s{bar:10}|%s{r_bar}%s' % format_arg
+    #
+    return progress_step(iterable, desc, bar_format=bar_format, colors=colors, **kwargs)
 
 
 class TqdmStep(tqdm):

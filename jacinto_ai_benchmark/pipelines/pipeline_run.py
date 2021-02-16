@@ -16,7 +16,7 @@ def _run_pipelines_sequential(config, pipeline_configs):
     # get the cwd so that we can continue even if exception occurs
     cwd = os.getcwd()
     results_list = []
-    for pipeline_config in utils.progress_step(pipeline_configs, desc='tasks'):
+    for pipeline_config in utils.progress_step2(pipeline_configs, desc='TASKS'):
         if _check_model_selection(config, pipeline_config):
             os.chdir(cwd)
             result = _run_pipeline(pipeline_config)
