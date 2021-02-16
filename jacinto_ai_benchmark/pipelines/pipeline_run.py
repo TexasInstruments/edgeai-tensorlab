@@ -16,7 +16,8 @@ def _run_pipelines_sequential(config, pipeline_configs):
     # get the cwd so that we can continue even if exception occurs
     cwd = os.getcwd()
     results_list = []
-    for pipeline_config in utils.progress_step2(pipeline_configs, desc='TASKS'):
+    desc = ' '*120 + 'TASKS'
+    for pipeline_config in utils.progress_step2(pipeline_configs, desc=desc):
         if _check_model_selection(config, pipeline_config):
             os.chdir(cwd)
             result = _run_pipeline(pipeline_config)
@@ -30,7 +31,8 @@ def _run_pipelines_parallel(config, pipeline_configs, parallel_devices=None):
     # get the cwd so that we can continue even if exception occurs
     cwd = os.getcwd()
     num_devices = len(parallel_devices) if parallel_devices is not None else 0
-    parallel_exec = utils.ParallelRun(num_processes=num_devices)
+    desc = ' '*120 + 'TASKS'
+    parallel_exec = utils.ParallelRun(num_processes=num_devices, desc=desc)
     for model_idx, pipeline_config in enumerate(pipeline_configs):
         if _check_model_selection(config, pipeline_config):
             os.chdir(cwd)
