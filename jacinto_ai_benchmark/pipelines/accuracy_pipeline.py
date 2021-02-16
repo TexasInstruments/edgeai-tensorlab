@@ -15,8 +15,19 @@ class AccuracyPipeline():
         self.logger = utils.TeeLogger(file_name)
 
     def __del__(self):
-        self.logger.close()
-        self.logger = None
+        if self.logger is not None:
+            self.logger.close()
+            self.logger = None
+        #
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.logger is not None:
+            self.logger.close()
+            self.logger = None
+        #
 
     def run(self):
         # run the actual model

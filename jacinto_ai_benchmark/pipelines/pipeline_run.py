@@ -48,8 +48,10 @@ def _run_pipeline(pipeline_config, parallel_device=None):
     try:
         pipeline_type = pipeline_config['type']
         if pipeline_type == 'accuracy':
-            accuracy_pipeline = AccuracyPipeline(pipeline_config)
-            result = accuracy_pipeline.run()
+            # use with statement, so that the logger and other file resources are cleanedup
+            with AccuracyPipeline(pipeline_config) as accuracy_pipeline:
+                result = accuracy_pipeline.run()
+            #
         else:
             assert False, f'unknown pipeline: {pipeline_type}'
         #
