@@ -33,7 +33,7 @@ class BaseRTSession():
         os.makedirs(self.kwargs['work_dir'], exist_ok=True)
         os.makedirs(self.kwargs['artifacts_folder'], exist_ok=True)
         model_root_default = os.path.join(self.kwargs['work_dir'], 'model')
-        model_path = utils.download_model(self.kwargs['model_path'], root=model_root_default)
+        model_path = utils.download_file(self.kwargs['model_path'], root=model_root_default)
         model_path = os.path.abspath(model_path)
         self.kwargs['model_path'] = model_path
 
