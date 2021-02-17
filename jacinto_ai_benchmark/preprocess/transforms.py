@@ -16,34 +16,31 @@ _pil_interpolation_to_str = {
     Image.BOX: 'PIL.Image.BOX',
 }
 
+
 class ImageRead(object):
     def __init__(self, backend='pil'):
         assert backend in ('pil', 'cv2'), f'backend must be one of pil or cv2. got {backend}'
         self.backend = backend
-        self.info = {'preprocess':{}}
 
-    def __call__(self, path):
+    def __call__(self, path, info_dict):
         if self.backend == 'pil':
-            img = PIL.Image.open(path)
-            img = img.convert('RGB')
-            self.info['preprocess']['image_shape'] = img.size[1], img.size[0], len(img.getbands())
+            img_data = PIL.Image.open(path)
+            img_data = img_data.convert('RGB')
+            info_dict['data_shape'] = img_data.size[1], img_data.size[0], len(img_data.getbands())
         elif self.backend == 'cv2':
-            img = cv2.imread(path)
-            if img.shape[-1] == 1:
-                img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-            elif img.shape[-1] == 4:
-                img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+            img_data = cv2.imread(path)
+            if img_data.shape[-1] == 1:
+                img_data = cv2.cvtColor(img_data, cv2.COLOR_GRAY2BGR)
+            elif img_data.shape[-1] == 4:
+                img_data = cv2.cvtColor(img_data, cv2.COLOR_BGRA2BGR)
             #
             # always return in RGB format
-            img = img[:,:,::-1]
-            self.info['preprocess']['image_shape'] = img.shape
+            img_data = img_data[:,:,::-1]
+            info_dict['data_shape'] = img_data.shape
         #
-        self.info['preprocess']['image'] = img
-        self.info['preprocess']['image_path'] = path
-        return img
-
-    def get_info(self):
-        return self.info
+        info_dict['data'] = img_data
+        info_dict['data_path'] = path
+        return img_data, info_dict
 
     def __repr__(self):
         return self.__class__.__name__ + f'(backend={self.backend})'
@@ -72,7 +69,7 @@ class ImageNorm(object):
         self.data_layout = data_layout
         self.inplace = inplace
 
-    def __call__(self, tensor):
+    def __call__(self, tensor, info_dict):
         """
         Args:
             tensor (Tensor): Tensor image of size (C, H, W) to be normalized.
@@ -85,7 +82,7 @@ class ImageNorm(object):
         else:
             tensor = F.normalize(tensor, self.mean, self.std, self.data_layout, self.inplace)
         #
-        return tensor
+        return tensor, info_dict
 
     def __repr__(self):
         return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
@@ -113,7 +110,7 @@ class ImageNormMeanScale(object):
         self.data_layout = data_layout
         self.inplace = inplace
 
-    def __call__(self, tensor):
+    def __call__(self, tensor, info_dict):
         """
         Args:
             tensor (Tensor): Tensor image of size (C, H, W) to be normalized.
@@ -126,7 +123,7 @@ class ImageNormMeanScale(object):
         else:
             tensor = F.normalize_mean_scale(tensor, self.mean, self.scale, self.data_layout, self.inplace)
         #
-        return tensor
+        return tensor, info_dict
 
     def __repr__(self):
         return self.__class__.__name__ + '(mean={0}, scale={1})'.format(self.mean, self.scale)
@@ -156,7 +153,7 @@ class ImageResize():
         self.args = args
         self.kwargs = kwargs
 
-    def __call__(self, img):
+    def __call__(self, img, info_dict):
         """
         Args:
             img (PIL Image or Tensor): Image to be scaled.
@@ -164,7 +161,7 @@ class ImageResize():
         Returns:
             PIL Image or Tensor: Rescaled image.
         """
-        return F.resize(img, self.size, *self.args, **self.kwargs)
+        return F.resize(img, self.size, *self.args, **self.kwargs), info_dict
 
     def __repr__(self):
         repr_str = self.__class__.__name__ + f'({self.size}'
@@ -203,7 +200,7 @@ class ImageCenterCrop():
             self.size = size
         #
 
-    def __call__(self, img):
+    def __call__(self, img, info_dict):
         """
         Args:
             img (PIL Image or Tensor): Image to be cropped.
@@ -211,7 +208,7 @@ class ImageCenterCrop():
         Returns:
             PIL Image or Tensor: Cropped image.
         """
-        return F.center_crop(img, self.size) if self.size is not None else img
+        return F.center_crop(img, self.size) if self.size is not None else img, info_dict
 
     def __repr__(self):
         if self.size is not None:
@@ -230,7 +227,7 @@ class ImageToNPTensor(object):
         self.data_layout = data_layout
         self.reverse_channels = reverse_channels
 
-    def __call__(self, pic):
+    def __call__(self, pic, info_dict):
         """
         Args:
             pic (PIL Image): Image to be converted to tensor.
@@ -238,7 +235,7 @@ class ImageToNPTensor(object):
         Returns:
             Tensor: Converted image.
         """
-        return F.to_numpy_tensor(pic, self.data_layout, self.reverse_channels)
+        return F.to_numpy_tensor(pic, self.data_layout, self.reverse_channels), info_dict
 
     def __repr__(self):
         return self.__class__.__name__ + f'({self.data_layout}, {self.reverse_channels})'
@@ -254,7 +251,7 @@ class ImageToNPTensor4D(object):
         self.data_layout = data_layout
         self.reverse_channels = reverse_channels
 
-    def __call__(self, pic):
+    def __call__(self, pic, info_dict):
         """
         Args:
             pic (PIL Image): Image to be converted to tensor.
@@ -262,7 +259,7 @@ class ImageToNPTensor4D(object):
         Returns:
             Tensor: Converted image.
         """
-        return F.to_numpy_tensor_4d(pic, self.data_layout, self.reverse_channels)
+        return F.to_numpy_tensor_4d(pic, self.data_layout, self.reverse_channels), info_dict
 
     def __repr__(self):
         return self.__class__.__name__ + f'({self.data_layout}, {self.reverse_channels})'
@@ -278,7 +275,7 @@ class NPTensor4DChanReverse(object):
         assert data_layout in ('NCHW', 'NHWC'), f'invalid data_layout {data_layout}'
         self.data_layout = data_layout
 
-    def __call__(self, pic):
+    def __call__(self, pic, info_dict):
         """
         Args:
             pic (np.ndarray): Image to be converted to tensor.
@@ -287,9 +284,9 @@ class NPTensor4DChanReverse(object):
             Tensor: Converted tensor.
         """
         if self.data_layout == 'NCHW':
-            return pic[:,::-1,...]
+            return pic[:,::-1,...], info_dict
         else:
-            return pic[...,::-1]
+            return pic[...,::-1], info_dict
 
     def __repr__(self):
         return self.__class__.__name__ + f'({self.data_layout})'

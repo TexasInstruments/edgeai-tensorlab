@@ -9,18 +9,21 @@ from ..import utils
 class TVMDLRSession(BaseRTSession):
     def __init__(self, session_name='tvm-dlr', **kwargs):
         super().__init__(session_name=session_name, **kwargs)
-        self._set_default_options()
         self.interpreter = None
         self.interpreter_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tvm-dlr')
 
-    def import_model(self, calib_data):
+    def start(self):
+        super().start()
+        self._set_default_options()
+        
+    def import_model(self, calib_data, info_dict=None):
         # onnx and tvm are required only for model import
         # so import inside the function so that inference can be done without it
         import onnx
         from tvm import relay
         from tvm.relay.backend.contrib import tidl
         # prepare for actual model import
-        super().import_model(calib_data)
+        super().import_model(calib_data, info_dict)
         os.chdir(self.interpreter_folder)
 
         model_path = self.kwargs['model_path']
@@ -92,6 +95,7 @@ class TVMDLRSession(BaseRTSession):
             #
         #
         os.chdir(self.cwd)
+        return info_dict
 
     def start_infer(self):
         target_artifacts_folder = self._get_target_artifacts_folder(self.kwargs['target_device'])
@@ -113,14 +117,14 @@ class TVMDLRSession(BaseRTSession):
         self.import_done = True
         return True
 
-    def infer_frame(self, input):
-        super().infer_frame(input)
+    def infer_frame(self, input, info_dict=None):
+        super().infer_frame(input, info_dict)
         input_shape = self.kwargs['input_shape']
         input_keys = list(input_shape.keys())
         in_data = utils.as_tuple(input)
         input_dict = {d_name:d for d_name, d in zip(input_keys,in_data)}
         output = self.interpreter.run(input_dict)
-        return output
+        return output, info_dict
 
     def _set_default_options(self):
         # calibration options

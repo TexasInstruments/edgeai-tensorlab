@@ -1,6 +1,5 @@
-import os
 import cv2
-from . import preprocess, postprocess, constants
+from . import utils, preprocess, postprocess, constants
 
 
 ###############################################################
@@ -17,7 +16,11 @@ def get_preproc_onnx(resize=256, crop=224, data_layout=constants.NCHW, reverse_c
     if reverse_channels:
         preprocess_tvm_dlr = preprocess_tvm_dlr + [preprocess.NPTensor4DChanReverse(data_layout=data_layout)]
     #
-    return preprocess_tvm_dlr
+    transforms = utils.TransformsCompose(preprocess_tvm_dlr, resize=resize, crop=crop,
+                                         data_layout=data_layout, reverse_channels=reverse_channels,
+                                         backend=backend, interpolation=interpolation,
+                                         mean=mean, scale=scale)
+    return transforms
 
 
 def get_preproc_jai(resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
@@ -39,37 +42,44 @@ def get_preproc_tflite(resize=256, crop=224, data_layout=constants.NHWC, reverse
     if reverse_channels:
         preprocess_tflite_rt = preprocess_tflite_rt + [preprocess.NPTensor4DChanReverse(data_layout=data_layout)]
     #
-    return preprocess_tflite_rt
+    transforms = utils.TransformsCompose(preprocess_tflite_rt, resize=resize, crop=crop,
+                                         data_layout=data_layout, reverse_channels=reverse_channels,
+                                         backend=backend, interpolation=interpolation,
+                                         mean=mean, scale=scale)
+    return transforms
 
 
 def get_postproc_classification():
     postprocess_classification = [postprocess.IndexArray(), postprocess.ArgMax()]
-    return postprocess_classification
+    transforms = utils.TransformsCompose(postprocess_classification)
+    return transforms
 
 
 ############################################################
-def get_postproc_detection(score_thr=None, save_output=True, formatter=None):
+def get_postproc_detection(detection_thr=None, save_output=True, formatter=None):
     postprocess_detection = [postprocess.Concat(axis=-1, end_index=3),
                              postprocess.IndexArray()]
     if formatter is not None:
         postprocess_detection += [formatter]
     #
     postprocess_detection += [postprocess.DetectionResize()]
-    if score_thr is not None:
-        postprocess_detection += [postprocess.DetectionFilter(score_thr=score_thr)]
+    if detection_thr is not None:
+        postprocess_detection += [postprocess.DetectionFilter(detection_thr=detection_thr)]
     #
     if save_output:
         postprocess_detection += [postprocess.DetectionImageSave()]
     #
-    return postprocess_detection
+    transforms = utils.TransformsCompose(postprocess_detection, detection_thr=detection_thr,
+                                         save_output=save_output, formatter=formatter)
+    return transforms
 
 
-def get_postproc_detection_onnx(score_thr=None, save_output=True, formatter=None):
-    return get_postproc_detection(score_thr=score_thr, save_output=save_output, formatter=formatter)
+def get_postproc_detection_onnx(detection_thr=None, save_output=True, formatter=None):
+    return get_postproc_detection(detection_thr=detection_thr, save_output=save_output, formatter=formatter)
 
 
-def get_postproc_detection_tflite(score_thr=None, save_output=True, formatter=postprocess.DetectionYXYX2XYXY()):
-    return get_postproc_detection(score_thr=score_thr, save_output=save_output, formatter=formatter)
+def get_postproc_detection_tflite(detection_thr=None, save_output=True, formatter=postprocess.DetectionYXYX2XYXY()):
+    return get_postproc_detection(detection_thr=detection_thr, save_output=save_output, formatter=formatter)
 
 
 ############################################################
@@ -78,12 +88,15 @@ def get_postproc_segmentation(data_layout, save_output, with_argmax=True):
     postprocess_segmentation = [postprocess.IndexArray()]
     if with_argmax:
         postprocess_segmentation += [postprocess.ArgMax(axis=channel_axis)]
+    #
     postprocess_segmentation += [postprocess.NPTensorToImage(data_layout=data_layout),
-                              postprocess.SegmentationImageResize()]
+                                 postprocess.SegmentationImageResize()]
     if save_output:
         postprocess_segmentation += [postprocess.SegmentationImageSave()]
     #
-    return postprocess_segmentation
+    transforms = utils.TransformsCompose(postprocess_segmentation, data_layout=data_layout,
+                                         save_output=save_output, with_argmax=with_argmax)
+    return transforms
 
 
 def get_postproc_segmentation_onnx(data_layout=constants.NCHW, save_output=True, with_argmax=True):

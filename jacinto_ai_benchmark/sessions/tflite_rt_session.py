@@ -5,14 +5,18 @@ import tflite_runtime.interpreter as tflitert_interpreter
 from .. import utils
 from .base_rt_session import BaseRTSession
 
+
 class TFLiteRTSession(BaseRTSession):
     def __init__(self, session_name='tflite-rt', **kwargs):
         super().__init__(session_name=session_name, **kwargs)
-        self._set_default_options()
         self.interpreter = None
         self.interpreter_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tflrt')
 
-    def import_model(self, calib_data):
+    def start(self):
+        super().start()
+        self._set_default_options()
+
+    def import_model(self, calib_data, info_dict=None):
         super().import_model(calib_data)
         os.chdir(self.interpreter_folder)
         self.interpreter = self._create_interpreter(is_import=True)
@@ -33,6 +37,7 @@ class TFLiteRTSession(BaseRTSession):
             self.interpreter.invoke()
             outputs = [self._get_tensor(output_detail) for output_detail in output_details]
         #
+        return info_dict
 
     def start_infer(self):
         if not os.path.exists(self.kwargs['artifacts_folder']):
@@ -46,8 +51,8 @@ class TFLiteRTSession(BaseRTSession):
         self.import_done = True
         return True
 
-    def infer_frame(self, input):
-        super().infer_frame(input)
+    def infer_frame(self, input, info_dict=None):
+        super().infer_frame(input, info_dict)
         input_details = self.interpreter.get_input_details()
         output_details = self.interpreter.get_output_details()
         c_data = utils.as_tuple(input)
@@ -56,7 +61,7 @@ class TFLiteRTSession(BaseRTSession):
         #
         self.interpreter.invoke()
         outputs = [self._get_tensor(output_detail) for output_detail in output_details]
-        return outputs
+        return outputs, info_dict
 
     def _create_interpreter(self, is_import):
         self.kwargs["delegate_options"]["import"] = "yes" if is_import else "no"

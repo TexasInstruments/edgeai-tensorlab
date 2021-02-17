@@ -4,22 +4,25 @@ import shutil
 from memory_tempfile import MemoryTempfile
 from .. import utils
 
+
 class BaseRTSession():
     def __init__(self, **kwargs):
         self.kwargs = kwargs
+        self.tempfiles = []
         self.import_done = False
+
+        self.kwargs['work_dir'] = self.kwargs.get('work_dir', None)
+        self.kwargs['model_id'] = self.kwargs.get('model_id', None)
         self.kwargs['dir_tree_depth'] = self.kwargs.get('dir_tree_depth', 3)
-        self.kwargs['work_dir'] = self._get_or_make_work_dir()
         # options related to the underlying runtime
         self.kwargs['platform'] = self.kwargs.get('platform', 'J7')
         self.kwargs['version'] = self.kwargs.get('version', (7,0))
         self.kwargs['tidl_tensor_bits'] = self.kwargs.get('tidl_tensor_bits', 32)
         self.kwargs['num_tidl_subgraphs'] = self.kwargs.get('num_tidl_subgraphs', 16)
-        artifacts_folder_default = os.path.join(self.kwargs['work_dir'], 'artifacts')
-        self.kwargs['artifacts_folder'] = self.kwargs.get('artifacts_folder', artifacts_folder_default)
         self.kwargs['model_path'] = os.path.abspath(self.kwargs.get('model_path',None))
         self.kwargs['input_shape'] = self.kwargs.get('input_shape', None)
         self.kwargs['num_inputs'] = self.kwargs.get('num_inputs', 1)
+
         self.kwargs['supported_devices'] = self.kwargs.get('supported_devices', None) #TODO: change to => ('j7', 'pc')
         if self.kwargs['supported_devices'] is not None:
             assert isinstance(self.kwargs['supported_devices'], (list,tuple)), \
@@ -29,7 +32,16 @@ class BaseRTSession():
         #
         self.cwd = os.getcwd()
 
-    def import_model(self, calib_data):
+    def set_param(self, param_name, param):
+        self.kwargs[param_name] = param
+
+    def start(self):
+        self.kwargs['work_dir'] = self._get_or_make_work_dir()
+        artifacts_folder_default = os.path.join(self.kwargs['work_dir'], 'artifacts')
+        self.kwargs['artifacts_folder'] = self.kwargs.get('artifacts_folder', artifacts_folder_default)
+        os.makedirs(self.kwargs['work_dir'], exist_ok=True)
+
+    def import_model(self, calib_data, info_dict=None):
         os.makedirs(self.kwargs['work_dir'], exist_ok=True)
         os.makedirs(self.kwargs['artifacts_folder'], exist_ok=True)
         model_root_default = os.path.join(self.kwargs['work_dir'], 'model')
@@ -40,11 +52,14 @@ class BaseRTSession():
     def start_infer(self):
         pass
 
-    def __call__(self, input):
-        return self.infer_frame(input)
+    def __call__(self, input, info_dict):
+        return self.infer_frame(input, info_dict)
 
-    def infer_frame(self, input):
+    def infer_frame(self, input, info_dict=None):
         assert self.import_done == True, 'the given model must be an imported one.'
+        if info_dict is not None:
+            info_dict['work_dir'] = self.get_work_dir()
+        #
 
     def __del__(self):
         for t in self.tempfiles:
@@ -67,14 +82,8 @@ class BaseRTSession():
     def get_work_dir(self):
         return self.kwargs['work_dir']
 
-    def get_info(self):
-        info_dict = {'session':{}}
-        info_dict['session']['work_dir'] = self.get_work_dir()
-        return info_dict
-
     def _get_or_make_work_dir(self):
         dir_tree_depth = self.kwargs['dir_tree_depth']
-        self.tempfiles = []
         # MemoryTempfile() creates a file in RAM, which should be really fast.
         if self.kwargs['work_dir'] is None:
             temp_dir_mem = MemoryTempfile()
@@ -92,9 +101,10 @@ class BaseRTSession():
         if len(model_name_splits) > dir_tree_depth:
             model_name_splits = model_name_splits[-dir_tree_depth:]
         #
+        model_id = self.kwargs['model_id']
         model_name = '_'.join(model_name_splits + [model_ext])
         session_name = self.kwargs['session_name']
-        work_dir = os.path.join(self.kwargs['work_dir'], f'{model_name}_{session_name}')
+        work_dir = os.path.join(self.kwargs['work_dir'], f'{model_id}_{model_name}_{session_name}')
         return work_dir
 
     def _dict_equal(self, shape1, shape2):
@@ -112,6 +122,7 @@ class BaseRTSession():
             #
         #
         return True
+
 
 if __name__ == '__main__':
     import_model = BaseRTSession()
