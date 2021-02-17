@@ -8,7 +8,7 @@ export PYTHONPATH=:${PYTHONPATH}
 echo "PYTHONPATH=${PYTHONPATH}"
 
 echo "Setting PSDK_BASE_PATH"
-export PSDK_BASE_PATH="/user/a0393608/files/work/ti/bitbucket/processor-sdk-vision/ti-processor-sdk-rtos-j721e-evm-07_02_00_06"
+export PSDK_BASE_PATH="/user/a0393608/work/code/ti/processor-sdk-vision/ti-processor-sdk-rtos-j721e-evm-07_02_00_06"
 echo "PSDK_BASE_PATH=${PSDK_BASE_PATH}"
 
 echo "Setting TIDL_BASE_PATH"
@@ -33,5 +33,7 @@ echo "TIDL_RT_PERFSTATS=${TIDL_RT_PERFSTATS}"
 python3 ./scripts/benchmark_classification.py
 python3 ./scripts/benchmark_segmentation.py
 python3 ./scripts/benchmark_detection.py
+
+
 
 

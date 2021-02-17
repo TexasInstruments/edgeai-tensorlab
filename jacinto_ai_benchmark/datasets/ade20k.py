@@ -66,7 +66,7 @@ class ADE20KSegmentation():
             label_img = PIL.Image.open(label_file)
             label_img = label_img.convert('L')
             label_img = np.array(label_img)
-            label_img = self.label_lut[label_img]
+            # label_img = self.label_lut[label_img]
 
             output = predictions[n]
             output = output.astype(np.uint8)

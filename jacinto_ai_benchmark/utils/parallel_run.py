@@ -7,7 +7,7 @@ from .timer_utils import display_timing_stats
 
 
 class ParallelRun:
-    def __init__(self, num_processes, desc='tasks', blocking=True, maxinterval=60.0):
+    def __init__(self, num_processes, desc='tasks', blocking=True, maxinterval=10.0):
         self.desc = desc
         self.num_processes = num_processes
         self.queued_tasks = collections.deque()
