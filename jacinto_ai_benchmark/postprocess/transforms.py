@@ -207,9 +207,14 @@ class NPTensorToImage(object):
 
     def __call__(self, tensor):
         assert isinstance(tensor, np.ndarray), 'input tensor must be an array'
-        if tensor.ndim ==4 and tensor.shape[0] == 1:
+        if tensor.ndim >= 3 and tensor.shape[0] == 1:
             tensor = tensor[0]
         #
+        if tensor.ndim==2:
+            if self.data_layout=='NHWC':
+                tensor = tensor[..., np.newaxis]
+            else:
+                tensor = tensor[np.newaxis, ...]
         assert tensor.ndim == 3, 'could not convert to image'
         tensor = np.transpose(tensor, (1,2,0)) if self.data_layout == 'NCHW' else tensor
         assert tensor.shape[2] in (1,3), 'invalid number of channels'

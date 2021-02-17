@@ -73,24 +73,25 @@ def get_postproc_detection_tflite(score_thr=None, save_output=True, formatter=po
 
 
 ############################################################
-def get_postproc_segmentation(data_layout, save_output):
+def get_postproc_segmentation(data_layout, save_output, with_argmax=True):
     channel_axis = -1 if data_layout == constants.NHWC else 1
-    postprocess_detection = [postprocess.IndexArray(),
-                             postprocess.ArgMax(axis=channel_axis)]
-    postprocess_detection += [postprocess.NPTensorToImage(data_layout=data_layout),
+    postprocess_segmentation = [postprocess.IndexArray()]
+    if with_argmax:
+        postprocess_segmentation += [postprocess.ArgMax(axis=channel_axis)]
+    postprocess_segmentation += [postprocess.NPTensorToImage(data_layout=data_layout),
                               postprocess.SegmentationImageResize()]
     if save_output:
-        postprocess_detection += [postprocess.SegmentationImageSave()]
+        postprocess_segmentation += [postprocess.SegmentationImageSave()]
     #
-    return postprocess_detection
+    return postprocess_segmentation
 
 
-def get_postproc_segmentation_onnx(data_layout=constants.NCHW, save_output=True):
-    return get_postproc_segmentation(data_layout=data_layout, save_output=save_output)
+def get_postproc_segmentation_onnx(data_layout=constants.NCHW, save_output=True, with_argmax=True):
+    return get_postproc_segmentation(data_layout=data_layout, save_output=save_output, with_argmax=with_argmax)
 
 
-def get_postproc_segmentation_tflite(data_layout=constants.NHWC, save_output=True):
-    return get_postproc_segmentation(data_layout=data_layout, save_output=save_output)
+def get_postproc_segmentation_tflite(data_layout=constants.NHWC, save_output=True, with_argmax=True):
+    return get_postproc_segmentation(data_layout=data_layout, save_output=save_output, with_argmax=with_argmax)
 
 
 ############################################################

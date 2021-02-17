@@ -44,7 +44,7 @@ ade20k_cfg = {
 common_session_cfg = dict(work_dir=work_dir, target_device=config.target_device)
 
 postproc_segmentation_onnx = config.get_postproc_segmentation_onnx(save_output=config.save_output)
-postproc_segmenation_tflite = config.get_postproc_segmentation_tflite(save_output=config.save_output)
+postproc_segmenation_tflite = config.get_postproc_segmentation_tflite(save_output=config.save_output, with_argmax=False)
 
 pipeline_configs = [
     #################################################################
@@ -114,12 +114,9 @@ pipeline_configs = [
         'preprocess': config.get_preproc_tflite((512, 512), (512, 512), mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429), backend='cv2'),
         'session': sessions.TFLiteRTSession(**common_session_cfg, **config.session_tflite_rt_cfg,
              model_path=f'{config.modelzoo_path}/vision/segmentation/ade20k/tf1-models/deeplabv3_mnv2_ade20k_train_2018_12_03_512x512.tflite'),
-        'postprocess': postproc_segmentation_onnx
+        'postprocess': postproc_segmenation_tflite
     }),
-
 ]
-
-
 
 
 ################################################################################################

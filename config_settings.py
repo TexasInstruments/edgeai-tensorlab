@@ -95,13 +95,13 @@ cityscapes_seg_val_cfg = dict(
 
 ade20k_seg_calib_cfg = dict(
     path=f'{datasets_path}/ADEChallengeData2016',
-    split='val',
+    split='validation',
     shuffle=True,
     num_frames=quantization_params.get_num_frames_calib())
 
 ade20k_seg_val_cfg = dict(
     path=f'{datasets_path}/ADEChallengeData2016',
-    split='val',
+    split='validation',
     shuffle=True,
     num_frames=min(num_frames, 2000))
 

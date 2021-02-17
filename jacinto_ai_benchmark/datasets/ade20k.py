@@ -21,12 +21,12 @@ class ADE20KSegmentation():
         #self.label_lut = self._create_lut()
 
         image_dir = os.path.join(self.kwargs['path'], 'images', self.kwargs['split'])
-        images_pattern = os.path.join(image_dir, '*', '*.png')
+        images_pattern = os.path.join(image_dir, '*.jpg')
         images = glob.glob(images_pattern)
         self.imgs = sorted(images)
         #
         label_dir = os.path.join(self.kwargs['path'], 'annotations', self.kwargs['split'])
-        labels_pattern = os.path.join(label_dir, '*', '*.png')
+        labels_pattern = os.path.join(label_dir, '*.png')
         labels = glob.glob(labels_pattern)
         self.labels = sorted(labels)
         #
