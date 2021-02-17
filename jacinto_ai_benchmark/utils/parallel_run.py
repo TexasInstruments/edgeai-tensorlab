@@ -60,6 +60,7 @@ class ParallelRun:
             display_timing_stats(self.desc, num_completed, total=num_tasks,
                                  start_time=start_time, end_time=end_time)
         #
+        print('\n')
         return results_list
 
     def _worker(self, task):

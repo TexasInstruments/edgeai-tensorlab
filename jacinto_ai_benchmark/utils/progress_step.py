@@ -23,7 +23,7 @@ def progress_step(iterable, desc, desc_len=60, total=None, miniters=None, bar_fo
 
 # progress_step with different default colors, but minimal displays
 def progress_step2(iterable, desc, desc_len=60, bar_format=None,
-                   colors=(Fore.YELLOW, Fore.BLUE, Fore.MAGENTA, Fore.CYAN), **kwargs):
+                   colors=(Fore.BLUE, Fore.MAGENTA, Fore.YELLOW, Fore.CYAN), **kwargs):
     if bar_format is None:
         format_arg = (colors[0], desc_len, colors[1], colors[2], colors[3], Fore.RESET)
         bar_format = '%s{desc:%s}|%s{percentage:4.0f}%%|%s{bar:10}|%s{r_bar}%s' % format_arg

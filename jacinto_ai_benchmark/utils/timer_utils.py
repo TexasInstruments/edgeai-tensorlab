@@ -40,7 +40,7 @@ def delta_time_string(seconds):
 
 
 def display_timing_stats(desc, num_completed, total, start_time, end_time, file=sys.stdout, step_size=1,
-                         colors=(Fore.YELLOW, Fore.BLUE, Fore.MAGENTA, Fore.CYAN)):
+                         colors=(Fore.BLUE, Fore.MAGENTA, Fore.YELLOW, Fore.CYAN)):
     item_index = num_completed - 1
     time_taken_str = eta_str = it_per_sec = ''
     time_delta = end_time - start_time
