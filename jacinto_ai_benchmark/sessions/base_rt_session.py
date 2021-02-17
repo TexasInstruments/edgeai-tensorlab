@@ -13,7 +13,7 @@ class BaseRTSession():
 
         self.kwargs['work_dir'] = self.kwargs.get('work_dir', None)
         self.kwargs['model_id'] = self.kwargs.get('model_id', None)
-        self.kwargs['dir_tree_depth'] = self.kwargs.get('dir_tree_depth', 3)
+        self.kwargs['dir_tree_depth'] = self.kwargs.get('dir_tree_depth', 2)
         # options related to the underlying runtime
         self.kwargs['platform'] = self.kwargs.get('platform', 'J7')
         self.kwargs['version'] = self.kwargs.get('version', (7,0))

@@ -22,7 +22,7 @@ if __name__ == '__main__':
     pipeline_configs.update(configs.classification.get_configs(settings, work_dir))
     pipeline_configs.update(configs.detection.get_configs(settings, work_dir))
     pipeline_configs.update(configs.segmentation.get_configs(settings, work_dir))
-    
+
     if settings.run_import or settings.run_inference:
         pipelines.run(settings, pipeline_configs, parallel_devices=settings.parallel_devices)
     #
