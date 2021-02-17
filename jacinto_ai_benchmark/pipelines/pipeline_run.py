@@ -46,7 +46,7 @@ def _run_pipelines_parallel(config, pipeline_configs, parallel_devices=None):
 
 
 def _check_model_selection(config, pipeline_config):
-    selected_model = True
+    selected_model = False
     if config.model_selection is not None:
         model_path = pipeline_config['session'].kwargs['model_path']
         model_selection = utils.as_list(config.model_selection)
