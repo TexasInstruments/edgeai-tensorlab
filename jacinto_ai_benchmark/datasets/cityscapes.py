@@ -3,12 +3,11 @@ import glob
 import random
 import numpy as np
 import PIL
-import cv2
 from .. import utils
 
 __all__ = ['CityscapesSegmentation']
 
-class CityscapesSegmentation():
+class CityscapesSegmentation(utils.AttrBase):
     def __init__(self, **kwargs):
         self.kwargs = kwargs
         assert 'path' in kwargs and 'split' in kwargs, 'path and split must provided'

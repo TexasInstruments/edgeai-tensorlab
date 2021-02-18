@@ -6,10 +6,11 @@ import shutil
 from memory_tempfile import MemoryTempfile
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
+from .. import utils
 
 __all__ = ['COCODetection']
 
-class COCODetection():
+class COCODetection(utils.AttrBase):
     def __init__(self, **kwargs):
         self.kwargs = kwargs
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'

@@ -5,7 +5,7 @@ from memory_tempfile import MemoryTempfile
 from .. import utils
 
 
-class BaseRTSession():
+class BaseRTSession(utils.AttrBase):
     def __init__(self, **kwargs):
         self.kwargs = kwargs
         self.tempfiles = []
@@ -31,9 +31,6 @@ class BaseRTSession():
                 f"unsupported target device, must be one of {self.kwargs['supported_devices']}"
         #
         self.cwd = os.getcwd()
-
-    def get_param(self, param_name):
-        return self.kwargs[param_name]
 
     def set_param(self, param_name, param):
         self.kwargs[param_name] = param
@@ -61,7 +58,7 @@ class BaseRTSession():
     def infer_frame(self, input, info_dict=None):
         assert self.import_done == True, 'the given model must be an imported one.'
         if info_dict is not None:
-            info_dict['work_dir'] = self.get_work_dir()
+            info_dict['work_dir'] = self.get_param('work_dir')
         #
 
     def __del__(self):
@@ -81,9 +78,6 @@ class BaseRTSession():
 
     def get_detections(self, **kwargs):
         return None
-
-    def get_work_dir(self):
-        return self.kwargs['work_dir']
 
     def _get_or_make_work_dir(self):
         dir_tree_depth = self.kwargs['dir_tree_depth']

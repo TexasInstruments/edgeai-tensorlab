@@ -35,7 +35,7 @@ class AccuracyPipeline():
         session.start()
 
         # logger can be created after start
-        work_dir = self.pipeline_config['session'].get_work_dir()
+        work_dir = self.pipeline_config['session'].get_param('work_dir')
         # verbose = self.pipeline_config['verbose']
         file_name = os.path.join(work_dir, 'run.log')
         self.logger = utils.TeeLogger(file_name)
@@ -55,7 +55,7 @@ class AccuracyPipeline():
         session = self.pipeline_config['session']
         calibration_dataset = self.pipeline_config['calibration_dataset']
         preprocess = self.pipeline_config['preprocess']
-        description = os.path.split(session.get_work_dir())[-1]
+        description = os.path.split(session.get_param('work_dir'))[-1]
         self.logger.write('import & calibration: ' + description)
 
         calib_data = []
@@ -73,7 +73,7 @@ class AccuracyPipeline():
         input_dataset = self.pipeline_config['input_dataset']
         preprocess = self.pipeline_config['preprocess']
         postprocess = self.pipeline_config['postprocess']
-        description = os.path.split(session.get_work_dir())[-1]
+        description = os.path.split(session.get_param('work_dir'))[-1]
 
         is_ok = session.start_infer()
         assert is_ok, f'start_infer() did not succeed for {description}'
@@ -100,7 +100,7 @@ class AccuracyPipeline():
             metric = self.pipeline_config['input_dataset']
             metric_options = self.pipeline_config.get('metric', {})
         #
-        work_dir = session.get_work_dir()
+        work_dir = session.get_param('work_dir')
         metric_options['work_dir'] = work_dir
         metric = utils.as_list(metric)
         metric_options = utils.as_list(metric_options)

@@ -3,12 +3,11 @@ import glob
 import random
 import numpy as np
 import PIL
-import cv2
 from .. import utils
 
 __all__ = ['ADE20KSegmentation']
 
-class ADE20KSegmentation():
+class ADE20KSegmentation(utils.AttrBase):
     def __init__(self, num_classes=151, **kwargs):
         self.kwargs = kwargs
         assert 'path' in kwargs and 'split' in kwargs, 'path, split must be provided'
@@ -41,7 +40,6 @@ class ADE20KSegmentation():
         #
         self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
-
 
     def __getitem__(self, idx, with_label=False):
         if with_label:

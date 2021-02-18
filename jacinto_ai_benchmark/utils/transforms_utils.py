@@ -1,14 +1,10 @@
-from .misc_utils import *
+from .attr_base import *
 
 
-class TransformsCompose:
+class TransformsCompose(AttrBase):
     def __init__(self, transforms, **kwargs):
         self.transforms = transforms
-        # the keyword arguments passed to this class are set as attributes
-        # so that they are easily accessible from outside
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-        #
+        self.kwargs = kwargs
 
     def __call__(self, tensor, info_dict):
         for t in self.transforms:
@@ -19,7 +15,6 @@ class TransformsCompose:
     def append(self, t):
         self.transforms.append(t)
 
-    def get_param(self, param_name):
-        return self.__dict__[param_name]
+
 
 

@@ -2,7 +2,7 @@ import random
 from .. import utils
 
 
-class ImageCls():
+class ImageCls(utils.AttrBase):
     def __init__(self, dest_dir=None, **kwargs):
         self.kwargs = kwargs
         self.imgs = utils.get_data_list(input=kwargs, dest_dir=dest_dir)
