@@ -110,7 +110,7 @@ class TFLiteRTSession(BaseRTSession):
             scale, zero_point = model_input['quantization']
             tensor = np.clip(np.round(tensor/scale + zero_point), -128, 127)
             tensor = np.array(tensor, dtype=np.int8)
-        elif model_input['dtype']  == np.uint8:
+        elif model_input['dtype'] == np.uint8:
             scale, zero_point = model_input['quantization']
             tensor = np.clip(np.round(tensor/scale + zero_point), 0, 255)
             tensor = np.array(tensor, dtype=np.uint8)

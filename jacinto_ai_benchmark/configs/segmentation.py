@@ -94,7 +94,7 @@ def get_configs(settings, work_dir):
         #       TFLITE MODELS
         #################mlperf models###################################
         #tensorflow-deeplab-ade20k-segmentation- deeplabv3_mnv2_ade20k_train_2018_12_03 - expected_metric: 32.04% MeanIoU.
-        'vsegcity-40-30':utils.dict_update(ade20k_cfg,
+        'vsegade-40-40':utils.dict_update(ade20k_cfg,
             preprocess= settings.get_preproc_tflite((512, 512), (512, 512), mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429), backend='cv2'),
             session= sessions.TFLiteRTSession(**common_session_cfg, **settings.session_tflite_rt_cfg,
                  model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k/tf1-models/deeplabv3_mnv2_ade20k_train_2018_12_03_512x512.tflite'),
