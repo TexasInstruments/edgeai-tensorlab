@@ -1,6 +1,8 @@
 from jacinto_ai_benchmark.defaults import *
 
 ############################################################
+# execution pipeline type - currently only accuracy pipeline is defined
+type = 'accuracy'
 # number of frames for inference
 num_frames = 10000 #50000
 # number of frames to be used for post training quantization / calibration
@@ -18,14 +20,14 @@ target_device = 'pc' #'j7' #'pc'
 # for parallel execution on cpu or gpu. if you don't have gpu, these actual numbers don't matter,
 # but the size of teh list determines the number of parallel processes
 # if you have gpu's these entries can be gpu ids which will be used to set CUDA_VISIBLE_DEVICES
-parallel_devices = None #[0,1,2,3,0,1,2,3] #None
+parallel_devices = None #[0,1,2,3,0,1,2,3]
 # quantization bit precision
 tidl_tensor_bits = 8 #8 #16 #32
 # run import of the model - only to be used in pc - set this to False for j7 evm
 # for pc this can be True or False
-run_import = True #False #True
+run_import = True
 # run inference - for inferene in j7 evm, it is assumed that the artifaacts folders are already available
-run_inference = True #False #True
+run_inference = True
 # collect final accuracy results
 collect_results = True
 # detection threshold

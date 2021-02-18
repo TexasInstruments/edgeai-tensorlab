@@ -12,7 +12,7 @@ class BaseRTSession():
         self.import_done = False
 
         self.kwargs['work_dir'] = self.kwargs.get('work_dir', None)
-        self.kwargs['model_id'] = self.kwargs.get('model_id', None)
+        self.kwargs['model_id'] = self.kwargs.get('model_id', '')
         self.kwargs['dir_tree_depth'] = self.kwargs.get('dir_tree_depth', 2)
         # options related to the underlying runtime
         self.kwargs['platform'] = self.kwargs.get('platform', 'J7')
@@ -31,6 +31,9 @@ class BaseRTSession():
                 f"unsupported target device, must be one of {self.kwargs['supported_devices']}"
         #
         self.cwd = os.getcwd()
+
+    def get_param(self, param_name):
+        return self.kwargs[param_name]
 
     def set_param(self, param_name, param):
         self.kwargs[param_name] = param
