@@ -21,16 +21,6 @@ def progress_step(iterable, desc, desc_len=60, total=None, miniters=None, bar_fo
                 leave=leave, **kwargs)
 
 
-# progress_step with different default colors, but minimal displays
-def progress_step2(iterable, desc, desc_len=60, bar_format=None,
-                   colors=(Fore.BLUE, Fore.MAGENTA, Fore.YELLOW, Fore.CYAN), **kwargs):
-    if bar_format is None:
-        format_arg = (colors[0], desc_len, colors[1], colors[2], colors[3], Fore.RESET)
-        bar_format = '%s{desc:%s}|%s{percentage:4.0f}%%|%s{bar:10}|%s{r_bar}%s' % format_arg
-    #
-    return progress_step(iterable, desc, bar_format=bar_format, colors=colors, **kwargs)
-
-
 class TqdmStep(tqdm):
     def __init__(self, iterable, *args, miniters=None, **kwargs):
         super().__init__(iterable, *args, miniters=miniters, **kwargs)
@@ -56,6 +46,13 @@ class TqdmStep(tqdm):
 import time
 from .timer_utils import display_timing_stats
 
+
+# a lighter version of progress_step (uses different default colors)
+# this prints the iteration descriptor before the iteration starts (not after it)
+def progress_step2(iterable, desc, desc_len=60, colors=(Fore.BLUE, Fore.MAGENTA, Fore.YELLOW, Fore.CYAN), **kwargs):
+    return ProgStep(iterable, desc, desc_len=desc_len, colors=colors, **kwargs)
+
+
 class ProgStep:
     """
     a simple progress indicator that can be used instead of tqdm
@@ -70,13 +67,21 @@ class ProgStep:
             desc + ' '*(desc_len-len(desc))
         self.total = iterable.__len__() if hasattr(iterable, '__len__') else total
         self.file = file if file is not None else sys.stdout
+        self.num_completed = 0
 
     def __iter__(self):
         start_time = time.time()
         for item_id, item in enumerate(self.iterable):
             end_time = time.time()
-            num_completed = item_id + 1
-            display_timing_stats(self.desc, num_completed, total=self.total,
+            display_timing_stats(self.desc, self.num_completed, total=self.total,
                                  start_time=start_time, end_time=end_time,
                                  file=self.file)
             yield item
+            self.num_completed = item_id + 1
+            # only at the last iteration, print the final stat
+            if self.num_completed == self.total:
+                display_timing_stats(self.desc, self.num_completed, total=self.total,
+                     start_time=start_time, end_time=end_time,
+                     file=self.file)
+            #
+

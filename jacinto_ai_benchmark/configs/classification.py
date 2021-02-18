@@ -268,12 +268,12 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-edgetpu-L_float.tflite'),
             metric=dict(label_offset_pred=-1)
         ),
-        ##################tf2-models#####################################################
-        # tf2_models: classification xception expected_metric: 79.0% top-1 accuracy
-        'vclsimg-42-10':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_tflite(342, 299),
-            session=sessions.TFLiteRTSession(**common_session_cfg, **settings.session_tflite_rt_cfg,
-                model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/tf2-models/xception.tflite')
-        ),
+        # ##################tf2-models#####################################################
+        # # tf2_models: classification xception expected_metric: 79.0% top-1 accuracy
+        # 'vclsimg-42-10':utils.dict_update(common_cfg,
+        #     preprocess=settings.get_preproc_tflite(342, 299),
+        #     session=sessions.TFLiteRTSession(**common_session_cfg, **settings.session_tflite_rt_cfg,
+        #         model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/tf2-models/xception.tflite')
+        # ),
     }
     return pipeline_configs

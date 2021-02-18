@@ -1,17 +1,22 @@
 import functools
+from colorama import Fore
 
 from .accuracy_pipeline import *
 from .. import utils
 
 
 def run(config, pipeline_configs, parallel_devices=None):
+    pipelines_selected = {}
     for model_id, pipeline_config in pipeline_configs.items():
         pipeline_config['session'].set_param('model_id', model_id)
+        if _check_model_selection(config, pipeline_config):
+            pipelines_selected.update({model_id:pipeline_config})
+        #
     #
     if parallel_devices is not None:
-        _run_pipelines_parallel(config, pipeline_configs, parallel_devices)
+        _run_pipelines_parallel(config, pipelines_selected, parallel_devices)
     else:
-        _run_pipelines_sequential(config, pipeline_configs)
+        _run_pipelines_sequential(config, pipelines_selected)
     #
 
 
@@ -20,12 +25,10 @@ def _run_pipelines_sequential(config, pipeline_configs):
     cwd = os.getcwd()
     results_list = []
     desc = ' '*120 + 'TASKS'
-    for pipeline_config in utils.progress_step2(pipeline_configs.values(), desc=desc):
-        if _check_model_selection(config, pipeline_config):
-            os.chdir(cwd)
-            result = _run_pipeline(pipeline_config)
-            results_list.append(result)
-        #
+    for pipeline_config in utils.progress_step(pipeline_configs.values(), desc=desc):
+        os.chdir(cwd)
+        result = _run_pipeline(pipeline_config)
+        results_list.append(result)
     #
     return results_list
 
@@ -37,12 +40,10 @@ def _run_pipelines_parallel(config, pipeline_configs, parallel_devices=None):
     desc = ' '*120 + 'TASKS'
     parallel_exec = utils.ParallelRun(num_processes=num_devices, desc=desc)
     for pipeline_index, pipeline_config in enumerate(pipeline_configs.values()):
-        if _check_model_selection(config, pipeline_config):
-            os.chdir(cwd)
-            parallel_device = parallel_devices[pipeline_index % num_devices] if parallel_devices is not None else 0
-            run_pipeline_bound_func = functools.partial(_run_pipeline, pipeline_config, parallel_device=parallel_device)
-            parallel_exec.enqueue(run_pipeline_bound_func)
-        #
+        os.chdir(cwd)
+        parallel_device = parallel_devices[pipeline_index % num_devices] if parallel_devices is not None else 0
+        run_pipeline_bound_func = functools.partial(_run_pipeline, pipeline_config, parallel_device=parallel_device)
+        parallel_exec.enqueue(run_pipeline_bound_func)
     #
     results_list = parallel_exec.run()
     return results_list
@@ -75,6 +76,10 @@ def _run_pipeline(pipeline_config, parallel_device=None):
     result = {}
     pipeline_types = utils.as_list(pipeline_config['type'])
     try:
+        model_info = pipeline_config['session'].get_param('model_path').split(os.sep)
+        model_info = model_info[-4:] if len(model_info) >= 4 else model_info
+        model_info = os.path.join(*model_info)
+        print(f'\n{Fore.CYAN}running model: {Fore.YELLOW}{model_info}{Fore.RESET}')
         for pipeline_type in pipeline_types:
             if pipeline_type == 'accuracy':
                 # use with statement, so that the logger and other file resources are cleaned up
