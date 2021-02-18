@@ -131,7 +131,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=-1)
         ),
         #########################tensorflow1.0 models##################################
-        # tensorflow/models: classification mobilenetv1_224x224 quant expected_metric: 71.0% top-1 accuracy (or is it 71.676% as this seems same as mlperf model)
+        # tensorflow/models: classification mobilenetv1_224x224 expected_metric: 71.0% top-1 accuracy (or is it 71.676% as this seems same as mlperf model)
         'vclsimg-40-00':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=sessions.TFLiteRTSession(**common_session_cfg, **settings.session_tflite_rt_cfg,
