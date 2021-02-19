@@ -12,10 +12,6 @@ class TFLiteRTSession(BaseRTSession):
         self.interpreter = None
         self.interpreter_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tflrt')
 
-    def start(self):
-        super().start()
-        self._set_default_options()
-
     def import_model(self, calib_data, info_dict=None):
         super().import_model(calib_data)
         os.chdir(self.interpreter_folder)
@@ -23,7 +19,7 @@ class TFLiteRTSession(BaseRTSession):
 
         # check if the shape of data being proved matches with what model expects
         input_shape = self._get_input_shape_tflite()
-        if (self.kwargs['input_shape'] is not None) and (not self._dict_equal(input_shape, self.kwargs['input_shape'])):
+        if (self.kwargs['input_shape'] is not None) and (not utils.dict_equal(input_shape, self.kwargs['input_shape'])):
             warnings.warn('model input shape must match the provided shape')
         #
 
@@ -48,7 +44,7 @@ class TFLiteRTSession(BaseRTSession):
         os.chdir(self.interpreter_folder)
         self.interpreter = self._create_interpreter(is_import=False)
         os.chdir(self.cwd)
-        self.import_done = True
+        self.is_imported = True
         return True
 
     def infer_frame(self, input, info_dict=None):

@@ -12,10 +12,6 @@ class TVMDLRSession(BaseRTSession):
         self.interpreter = None
         self.interpreter_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tvm-dlr')
 
-    def start(self):
-        super().start()
-        self._set_default_options()
-        
     def import_model(self, calib_data, info_dict=None):
         # onnx and tvm are required only for model import
         # so import inside the function so that inference can be done without it
@@ -114,7 +110,7 @@ class TVMDLRSession(BaseRTSession):
             self.kwargs['input_shape'] = {n:None for n in input_names}
         #
         os.chdir(self.cwd)
-        self.import_done = True
+        self.is_imported = True
         return True
 
     def infer_frame(self, input, info_dict=None):

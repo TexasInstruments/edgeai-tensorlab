@@ -4,6 +4,7 @@ from .. import utils
 
 class ImageCls(utils.AttrBase):
     def __init__(self, dest_dir=None, **kwargs):
+        super().__init__()
         self.kwargs = kwargs
         self.imgs = utils.get_data_list(input=kwargs, dest_dir=dest_dir)
         self.num_frames = kwargs.get('num_frames',len(self.imgs))
@@ -12,6 +13,7 @@ class ImageCls(utils.AttrBase):
             random.seed(int(shuffle))
             random.shuffle(self.imgs)
         #
+        super().initialize()
 
     def __getitem__(self, idx):
         with_label = self.kwargs.get('with_label', False)

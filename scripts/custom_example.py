@@ -50,9 +50,12 @@ pipeline_configs = {
 ################################################################################################
 # execute each model
 if __name__ == '__main__':
-    if settings.run_inference:
-        pipelines.run(settings, pipeline_configs, parallel_devices=settings.parallel_devices)
+    pipeline_runner = pipelines.PipelineRunner(settings, pipeline_configs)
+    
+    if settings.run_import or settings.run_inference:
+        pipeline_runner.run()
     #
+
     if settings.collect_results:
         results = pipelines.collect_results(work_dir)
         print(*results, sep='\n')

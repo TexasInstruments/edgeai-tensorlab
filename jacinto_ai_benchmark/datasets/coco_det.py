@@ -12,6 +12,7 @@ __all__ = ['COCODetection']
 
 class COCODetection(utils.AttrBase):
     def __init__(self, **kwargs):
+        super().__init__()
         self.kwargs = kwargs
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
 
@@ -64,6 +65,7 @@ class COCODetection(utils.AttrBase):
         self.img_ids = self.coco_dataset.getImgIds()
         self.num_frames = num_frames
         self.tempfiles = []
+        super().initialize()
 
     def __getitem__(self, idx):
         img_id = self.img_ids[idx]
@@ -84,13 +86,13 @@ class COCODetection(utils.AttrBase):
 
     def evaluate(self, predictions, **kwargs):
         label_offset = kwargs.get('label_offset_pred', 0)
-        work_dir = kwargs.get('work_dir', None)
-        if work_dir is None:
+        run_dir = kwargs.get('run_dir', None)
+        if run_dir is None:
             temp_dir_mem = MemoryTempfile()
-            work_dir = temp_dir_mem.tempdir if hasattr(temp_dir_mem, 'tempdir') else temp_dir_mem.name
-            self.tempfiles.append(work_dir)
+            run_dir = temp_dir_mem.tempdir if hasattr(temp_dir_mem, 'tempdir') else temp_dir_mem.name
+            self.tempfiles.append(run_dir)
         #
-        os.makedirs(work_dir, exist_ok=True)
+        os.makedirs(run_dir, exist_ok=True)
         detections_formatted_list = []
         for frame_idx, det_frame in enumerate(predictions):
             for det_id, det in enumerate(det_frame):
@@ -103,7 +105,7 @@ class COCODetection(utils.AttrBase):
         #
         coco_ap = 0.0
         if len(detections_formatted_list) > 0:
-            detection_file = os.path.join(work_dir, 'detection_results.json')
+            detection_file = os.path.join(run_dir, 'detection_results.json')
             with open(detection_file, 'w') as det_fp:
                 json.dump(detections_formatted_list, det_fp)
             #

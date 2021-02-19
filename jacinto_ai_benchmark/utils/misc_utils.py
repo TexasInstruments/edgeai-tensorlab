@@ -29,6 +29,23 @@ def dict_merge(target_dict, src_dict, inplace=False):
     return target_dict
 
 
+def dict_equal(self, shape1, shape2):
+    for k1, v1 in shape1.items():
+        if k1 not in shape2:
+            return False
+        #
+        v2 = shape2[k1]
+        if isinstance(v1, (list,tuple)) or isinstance(v2, (list,tuple)):
+            if any(v1 != v2):
+                return False
+            #
+        elif v1 != v2:
+            return False
+        #
+    #
+    return True
+
+
 def as_tuple(arg):
     return arg if isinstance(arg, tuple) else (arg,)
 

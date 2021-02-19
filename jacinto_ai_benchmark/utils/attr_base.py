@@ -1,6 +1,13 @@
 
 class AttrBase:
+    def __init__(self):
+        self.is_initialized = False
+
+    def initialize(self):
+        self.is_initialized = True
+
     def get_param(self, param_name):
+        assert self.is_initialized, 'initialize must be called before get_param() can be done'
         if hasattr(self, param_name):
             return getattr(self, param_name)
         elif param_name in self.kwargs:

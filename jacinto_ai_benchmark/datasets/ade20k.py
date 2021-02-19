@@ -9,6 +9,7 @@ __all__ = ['ADE20KSegmentation']
 
 class ADE20KSegmentation(utils.AttrBase):
     def __init__(self, num_classes=151, **kwargs):
+        super().__init__()
         self.kwargs = kwargs
         assert 'path' in kwargs and 'split' in kwargs, 'path, split must be provided'
         #assert self.kwargs['split'] in ['training', 'validation']
@@ -40,6 +41,7 @@ class ADE20KSegmentation(utils.AttrBase):
         #
         self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
+        super().initialize()
 
     def __getitem__(self, idx, with_label=False):
         if with_label:

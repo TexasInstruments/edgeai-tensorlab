@@ -9,6 +9,7 @@ __all__ = ['CityscapesSegmentation']
 
 class CityscapesSegmentation(utils.AttrBase):
     def __init__(self, **kwargs):
+        super().__init__()
         self.kwargs = kwargs
         assert 'path' in kwargs and 'split' in kwargs, 'path and split must provided'
         self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
@@ -42,6 +43,7 @@ class CityscapesSegmentation(utils.AttrBase):
         #
         self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
+        super().initialize()
 
     def __getitem__(self, idx, with_label=False):
         if with_label:

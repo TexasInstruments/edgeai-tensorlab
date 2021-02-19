@@ -1,5 +1,5 @@
 import os
-import contextlib
+from colorama import Fore
 from .. import utils
 
 
@@ -24,38 +24,40 @@ class AccuracyPipeline():
             self.logger = None
         #
 
-    def run(self):
+    def run(self, description=''):
         # run the actual model
         result = {}
         run_import = self.pipeline_config['run_import']
         run_inference = self.pipeline_config['run_inference']
         session = self.pipeline_config['session']
 
-        # start must be called to create the work directory
+        # start() must be called to create the required directories
         session.start()
 
         # logger can be created after start
-        work_dir = self.pipeline_config['session'].get_param('work_dir')
+        run_dir = session.get_param('run_dir')
         # verbose = self.pipeline_config['verbose']
-        file_name = os.path.join(work_dir, 'run.log')
+        file_name = os.path.join(run_dir, 'run.log')
         self.logger = utils.TeeLogger(file_name)
+        self.logger.write(f'\nrunning: {Fore.BLUE}{os.path.basename(run_dir)}{Fore.RESET}')
         self.logger.write(f'\npipeline_config: {self.pipeline_config}')
 
         if run_import:
-            self._import_model()
+            self._import_model(description)
         #
         if run_inference:
-            output_list = self._infer_frames()
+            output_list = self._infer_frames(description)
             result = self._evaluate(output_list)
         #
+
         self.logger.write(f'\nBenchmarkResults: {result}')
         return result
 
-    def _import_model(self):
+    def _import_model(self, description=''):
         session = self.pipeline_config['session']
         calibration_dataset = self.pipeline_config['calibration_dataset']
         preprocess = self.pipeline_config['preprocess']
-        description = os.path.split(session.get_param('work_dir'))[-1]
+        description = os.path.split(session.get_param('run_dir'))[-1]
         self.logger.write('import & calibration: ' + description)
 
         calib_data = []
@@ -68,19 +70,20 @@ class AccuracyPipeline():
         #
         session.import_model(calib_data)
 
-    def _infer_frames(self):
+    def _infer_frames(self, description=''):
         session = self.pipeline_config['session']
         input_dataset = self.pipeline_config['input_dataset']
         preprocess = self.pipeline_config['preprocess']
         postprocess = self.pipeline_config['postprocess']
-        description = os.path.split(session.get_param('work_dir'))[-1]
+        run_desc = os.path.split(session.get_param('run_dir'))[-1]
 
         is_ok = session.start_infer()
-        assert is_ok, f'start_infer() did not succeed for {description}'
+        assert is_ok, f'start_infer() did not succeed for {run_desc}'
 
         output_list = []
         num_frames = len(input_dataset)
-        for data_index in utils.progress_step(range(num_frames), desc='infer: '+description, file=self.logger):
+        pbar_desc = f'infer {description}: {run_desc}'
+        for data_index in utils.progress_step(range(num_frames), desc=pbar_desc, file=self.logger):
             info_dict = {}
             data = input_dataset[data_index]
             data, info_dict = preprocess(data, info_dict)
@@ -100,8 +103,8 @@ class AccuracyPipeline():
             metric = self.pipeline_config['input_dataset']
             metric_options = self.pipeline_config.get('metric', {})
         #
-        work_dir = session.get_param('work_dir')
-        metric_options['work_dir'] = work_dir
+        run_dir = session.get_param('run_dir')
+        metric_options['run_dir'] = run_dir
         metric = utils.as_list(metric)
         metric_options = utils.as_list(metric_options)
         output_dict = {}
@@ -109,6 +112,6 @@ class AccuracyPipeline():
             output = m(output_list, **m_options)
             output_dict.update(output)
         #
-        inference_path = os.path.split(work_dir)[-1]
+        inference_path = os.path.split(run_dir)[-1]
         output_dict.update({'inference_path':inference_path})
         return output_dict

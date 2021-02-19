@@ -7,11 +7,16 @@ from .. import utils
 
 class BaseRTSession(utils.AttrBase):
     def __init__(self, **kwargs):
+        super().__init__()
         self.kwargs = kwargs
         self.tempfiles = []
-        self.import_done = False
-
+        self.is_initialized = False
+        self.is_started = False
+        self.is_imported = False
+        # work_dir at top level
         self.kwargs['work_dir'] = self.kwargs.get('work_dir', None)
+        # run_dir for individual model
+        self.kwargs['run_dir'] = self.kwargs.get('run_dir', None)
         self.kwargs['model_id'] = self.kwargs.get('model_id', '')
         self.kwargs['dir_tree_depth'] = self.kwargs.get('dir_tree_depth', 2)
         # options related to the underlying runtime
@@ -22,7 +27,7 @@ class BaseRTSession(utils.AttrBase):
         self.kwargs['model_path'] = os.path.abspath(self.kwargs.get('model_path',None))
         self.kwargs['input_shape'] = self.kwargs.get('input_shape', None)
         self.kwargs['num_inputs'] = self.kwargs.get('num_inputs', 1)
-
+        # check the target_device
         self.kwargs['supported_devices'] = self.kwargs.get('supported_devices', None) #TODO: change to => ('j7', 'pc')
         if self.kwargs['supported_devices'] is not None:
             assert isinstance(self.kwargs['supported_devices'], (list,tuple)), \
@@ -30,21 +35,27 @@ class BaseRTSession(utils.AttrBase):
             assert self.kwargs['target_device'] in self.kwargs['supported_devices'], \
                 f"unsupported target device, must be one of {self.kwargs['supported_devices']}"
         #
+        # store the current directory so that we can go back there any time
         self.cwd = os.getcwd()
 
-    def set_param(self, param_name, param):
-        self.kwargs[param_name] = param
+    def initialize(self):
+        # make run_dir path
+        self.kwargs['run_dir'] = self._make_run_dir()
+        artifacts_folder_default = os.path.join(self.kwargs['run_dir'], 'artifacts')
+        self.kwargs['artifacts_folder'] = self.kwargs.get('artifacts_folder', artifacts_folder_default)
+        self._set_default_options()
+        super().initialize()
 
     def start(self):
-        self.kwargs['work_dir'] = self._get_or_make_work_dir()
-        artifacts_folder_default = os.path.join(self.kwargs['work_dir'], 'artifacts')
-        self.kwargs['artifacts_folder'] = self.kwargs.get('artifacts_folder', artifacts_folder_default)
-        os.makedirs(self.kwargs['work_dir'], exist_ok=True)
+        assert self.is_initialized, 'initialize() must be called before start_import()'
+        os.makedirs(self.kwargs['run_dir'], exist_ok=True)
+        os.makedirs(self.kwargs['artifacts_folder'], exist_ok=True)
+        self.is_started = True
 
     def import_model(self, calib_data, info_dict=None):
-        os.makedirs(self.kwargs['work_dir'], exist_ok=True)
-        os.makedirs(self.kwargs['artifacts_folder'], exist_ok=True)
-        model_root_default = os.path.join(self.kwargs['work_dir'], 'model')
+        assert self.is_initialized, 'initialize() must be called before import_model()'
+        assert self.is_started, 'start() must be called before import_model()'
+        model_root_default = os.path.join(self.kwargs['run_dir'], 'model')
         model_path = utils.download_file(self.kwargs['model_path'], root=model_root_default)
         model_path = os.path.abspath(model_path)
         self.kwargs['model_path'] = model_path
@@ -56,9 +67,11 @@ class BaseRTSession(utils.AttrBase):
         return self.infer_frame(input, info_dict)
 
     def infer_frame(self, input, info_dict=None):
-        assert self.import_done == True, 'the given model must be an imported one.'
+        assert self.is_initialized, 'initialize() must be called before before infer_frame()'
+        assert self.is_started, 'start() must be called before before infer_frame()'
+        assert self.is_imported, 'import_model() and start_infer() must be called before infer_frame()'
         if info_dict is not None:
-            info_dict['work_dir'] = self.get_param('work_dir')
+            info_dict['run_dir'] = self.get_param('run_dir')
         #
 
     def __del__(self):
@@ -67,7 +80,7 @@ class BaseRTSession(utils.AttrBase):
                 shutil.rmtree(t)
 
     def perfsim_data(self):
-        assert self.import_done == True, 'the given model must be an imported one.'
+        assert self.is_imported == True, 'the given model must be an imported one.'
         return None
 
     def infer_layers(self, **kwargs):
@@ -79,46 +92,37 @@ class BaseRTSession(utils.AttrBase):
     def get_detections(self, **kwargs):
         return None
 
-    def _get_or_make_work_dir(self):
-        dir_tree_depth = self.kwargs['dir_tree_depth']
+    def _make_run_dir(self):
+        if self.kwargs['run_dir'] is not None:
+            return self.kwargs['run_dir']
+        #
         # MemoryTempfile() creates a file in RAM, which should be really fast.
-        if self.kwargs['work_dir'] is None:
+        work_dir = self.kwargs['work_dir']
+        if work_dir is None:
             temp_dir_mem = MemoryTempfile()
             # if MemoryTempfile fails it returns a file using tempfile - so we need to check
             temp_dir = temp_dir_mem.tempdir if hasattr(temp_dir_mem, 'tempdir') else temp_dir_mem.name
             date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S.%f")
-            root_dir = os.path.join(temp_dir, date)
-            self.tempfiles.append(root_dir)
+            work_dir = os.path.join(temp_dir, date)
+            self.tempfiles.append(work_dir)
         #
-        self.kwargs['work_dir'] = os.path.abspath(self.kwargs['work_dir'])
+        work_dir = os.path.abspath(work_dir)
         model_name = self.kwargs['model_path']
         model_name, model_ext = os.path.splitext(model_name)
         model_ext = model_ext[1:]
         model_name_splits = model_name.split(os.sep)
+        dir_tree_depth = self.kwargs['dir_tree_depth']
         if len(model_name_splits) > dir_tree_depth:
             model_name_splits = model_name_splits[-dir_tree_depth:]
         #
         model_id = self.kwargs['model_id']
-        model_name = '_'.join(model_name_splits + [model_ext])
         session_name = self.kwargs['session_name']
-        work_dir = os.path.join(self.kwargs['work_dir'], f'{model_id}_{model_name}_{session_name}')
-        return work_dir
+        run_name = '_'.join([model_id] + model_name_splits + [model_ext, session_name])
+        run_dir = os.path.join(work_dir, f'{run_name}')
+        return run_dir
 
-    def _dict_equal(self, shape1, shape2):
-        for k1, v1 in shape1.items():
-            if k1 not in shape2:
-                return False
-            #
-            v2 = shape2[k1]
-            if isinstance(v1, (list,tuple)) or isinstance(v2, (list,tuple)):
-                if any(v1 != v2):
-                    return False
-                #
-            elif v1 != v2:
-                return False
-            #
-        #
-        return True
+    def _set_default_options(self):
+        assert False, 'this function must be overridden in the derived class'
 
 
 if __name__ == '__main__':

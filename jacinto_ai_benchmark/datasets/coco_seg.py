@@ -44,6 +44,7 @@ import PIL
 import cv2
 class COCOSegmentation(utils.AttrBase):
     def __init__(self, inData, num_imgs=None, num_classes=21, **kwargs):
+        super().__init__()
         self.kwargs = kwargs
         self.categories = [0, 5, 2, 16, 9, 44, 6, 3, 17, 62, 21, 67, 18, 19, 4, 1, 64, 20, 63, 7, 72] \
             if num_classes == 21 else None
@@ -85,6 +86,7 @@ class COCOSegmentation(utils.AttrBase):
         #
         self.imgs = imgs
         self.num_imgs = len(self.imgs)
+        super().initialize()
 
     def __getitem__(self, idx, with_label=False):
         if with_label:
