@@ -47,7 +47,7 @@ def get_configs(settings, work_dir, onnx_session_type=sessions.TVMDLRSession,
         #       TFLITE MODELS
         #################tflite models###################################
         # mlperf edge: detection - ssd_mobilenet_v1_coco_2018_01_28 expected_metric: 23.0% ap[0.5:0.95] accuracy
-        'vdetcoco-20200-00':utils.dict_update(common_cfg,
+        'vdetcoco-20201-00':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((300,300), (300,300), backend='cv2'),
             session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
@@ -55,7 +55,7 @@ def get_configs(settings, work_dir, onnx_session_type=sessions.TVMDLRSession,
             metric=dict(label_offset_pred=coco_label_offset_90to90())
         ),
         # mlperf mobile: detection - ssd_mobilenet_v2_coco_300x300 - expected_metric: 22.0% COCO AP[0.5-0.95]
-        'vdetcoco-20201-00':utils.dict_update(common_cfg,
+        'vdetcoco-20202-00':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((300,300), (300,300), backend='cv2'),
             session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/detection/coco/mlperf/ssd_mobilenet_v2_300_float.tflite'),
