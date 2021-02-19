@@ -7,7 +7,7 @@ from ..import utils
 
 
 class TVMDLRSession(BaseRTSession):
-    def __init__(self, session_name='tvm-dlr', **kwargs):
+    def __init__(self, session_name='tvmdlr', **kwargs):
         super().__init__(session_name=session_name, **kwargs)
         self.interpreter = None
         self.interpreter_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tvm-dlr')
