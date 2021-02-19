@@ -57,9 +57,9 @@ class AccuracyPipeline():
         session = self.pipeline_config['session']
         calibration_dataset = self.pipeline_config['calibration_dataset']
         preprocess = self.pipeline_config['preprocess']
-        description = os.path.split(session.get_param('run_dir'))[-1]
-        self.logger.write('import & calibration: ' + description)
+        run_dir_base = os.path.split(session.get_param('run_dir'))[-1]
 
+        self.logger.write(f'\nimport & calibration {description}:' + run_dir_base)
         calib_data = []
         num_frames = len(calibration_dataset)
         for data_index in range(num_frames):
@@ -69,20 +69,22 @@ class AccuracyPipeline():
             calib_data.append(data)
         #
         session.import_model(calib_data)
+        self.logger.write(f'\nimport & calibration {description}: {run_dir_base} - done.')
 
     def _infer_frames(self, description=''):
         session = self.pipeline_config['session']
         input_dataset = self.pipeline_config['input_dataset']
         preprocess = self.pipeline_config['preprocess']
         postprocess = self.pipeline_config['postprocess']
-        run_desc = os.path.split(session.get_param('run_dir'))[-1]
+        run_dir_base = os.path.split(session.get_param('run_dir'))[-1]
 
         is_ok = session.start_infer()
-        assert is_ok, f'start_infer() did not succeed for {run_desc}'
+        assert is_ok, f'start_infer() did not succeed for {run_dir_base}'
 
+        self.logger.write(f'\ninfer {description}:' + run_dir_base)
         output_list = []
         num_frames = len(input_dataset)
-        pbar_desc = f'infer {description}: {run_desc}'
+        pbar_desc = f'infer {description}: {run_dir_base}'
         for data_index in utils.progress_step(range(num_frames), desc=pbar_desc, file=self.logger):
             info_dict = {}
             data = input_dataset[data_index]
@@ -91,6 +93,7 @@ class AccuracyPipeline():
             output, info_dict = postprocess(output, info_dict)
             output_list.append(output)
         #
+        self.logger.write(f'\ninfer {description}: {run_dir_base} - done.')
         return output_list
 
     def _evaluate(self, output_list):
