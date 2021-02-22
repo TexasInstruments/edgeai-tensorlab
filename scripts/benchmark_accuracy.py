@@ -17,19 +17,8 @@ if __name__ == '__main__':
     work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tidl_tensor_bits}bits')
     print(f'work_dir = {work_dir}')
 
-    pipeline_configs = {}
-    # merge all the config dictionaries
-    for task in utils.as_list(settings.task_selection):
-        if task in ('classification', None):
-            pipeline_configs.update(configs.classification.get_configs(settings, work_dir))
-        #
-        if task in ('detection', None):
-            pipeline_configs.update(configs.detection.get_configs(settings, work_dir))
-        #
-        if task in ('segmentation', None):
-            pipeline_configs.update(configs.segmentation.get_configs(settings, work_dir))
-        #
-    #
+    # get the default configs available
+    pipeline_configs = configs.get_configs(settings, work_dir)
 
     # create the pipeline_runner which will manage the sessions.
     pipeline_runner = pipelines.PipelineRunner(settings, pipeline_configs)

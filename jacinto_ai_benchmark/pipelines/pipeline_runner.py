@@ -1,4 +1,5 @@
 import functools
+import itertools
 from .. import constants
 from .accuracy_pipeline import *
 from .. import utils
@@ -21,6 +22,9 @@ class PipelineRunner():
             if self._check_model_selection(self.settings, pipeline_config):
                 pipelines_selected.update({model_id: pipeline_config})
             #
+        #
+        if settings.config_range is not None:
+            pipelines_selected = dict(itertools.islice(pipelines_selected.items(), *settings.config_range))
         #
         self.pipeline_configs = pipelines_selected
 

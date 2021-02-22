@@ -71,5 +71,7 @@ class ConfigDict(dict):
         # example: ['classification', 'detection', 'segmentation']
         # example: ['classification']
         self.task_selection = None
+        # which configs to run from the default list. example [0,10] [10,null] etc.
+        self.config_range = None
         # verbose mode - print out more information
         self.verbose = False

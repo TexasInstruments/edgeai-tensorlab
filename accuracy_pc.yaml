@@ -34,12 +34,16 @@ save_output : False
 # wild card list to match against the model_path - only matching models will be run
 # examples: ['classification'] ['imagenet1k'] ['torchvision']
 # examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
-# example: 'null' (Note: null means no filter - run all the models)
+# example: null (Note: null means no filter - run all the models)
 model_selection : null
 # wild card list to match against the tasks. it null, all tasks will be run
 # example: ['classification', 'detection', 'segmentation']
 # example: 'classification'
 # example: 'null' (Note: null means no filter - run all the tasks)
 task_selection : null
+# which configs to run from the default list. example [0,10] [10,null] etc.
+# this range will be applied after applying model_selection and short-listing
+# null will run all the configs
+config_range : null
 # verbose mode - print out more information
 verbose : False
