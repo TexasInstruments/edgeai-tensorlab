@@ -19,14 +19,17 @@ if __name__ == '__main__':
 
     pipeline_configs = {}
     # merge all the config dictionaries
-    if settings.task_selection in ('classification', None):
-        pipeline_configs.update(configs.classification.get_configs(settings, work_dir))
-    #
-    if settings.task_selection in ('detection', None):
-        pipeline_configs.update(configs.detection.get_configs(settings, work_dir))
-    #
-    if settings.task_selection in ('segmentation', None):
-        pipeline_configs.update(configs.segmentation.get_configs(settings, work_dir))
+    task_selection = utils.as_list(settings.task_selection)
+    for task in task_selection:
+        if settings.task_selection in ('classification', None):
+            pipeline_configs.update(configs.classification.get_configs(settings, work_dir))
+        #
+        if settings.task_selection in ('detection', None):
+            pipeline_configs.update(configs.detection.get_configs(settings, work_dir))
+        #
+        if settings.task_selection in ('segmentation', None):
+            pipeline_configs.update(configs.segmentation.get_configs(settings, work_dir))
+        #
     #
 
     # create the pipeline_runner which will manage the sessions.

@@ -170,14 +170,14 @@ def get_configs(settings, work_dir,
         ),
         # tf hosted models: classification squeezenet_1 expected_metric: 49.0% top-1 accuracy
         'vcls-10-403-0':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_tflite(),
+            preprocess=settings.get_preproc_tflite(mean=(123.68, 116.78, 103.94), scale=(1/255, 1/255, 1/255)),
             session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/tf1-models/squeezenet.tflite'),
             metric=dict(label_offset_pred=-1)
         ),
         # tf hosted models: classification densenet expected_metric: 74.98% top-1 accuracy (from publication)
         'vcls-10-404-0':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_tflite(),
+            preprocess=settings.get_preproc_tflite(mean=(123.68, 116.78, 103.94), scale=(1/255, 1/255, 1/255)),
             session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/tf1-models/densenet.tflite'),
             metric=dict(label_offset_pred=-1)
