@@ -1,52 +1,12 @@
 import cv2
 from . import utils, preprocess, postprocess, constants
+from . import config_dict
 
 
-class ConfigSettings(utils.ConfigDict):
+class ConfigSettings(config_dict.ConfigDict):
     def __init__(self, input):
-        # execution pipeline type - currently only accuracy pipeline is defined
-        self.type = 'accuracy'
-        # number of frames for inference
-        self.num_frames = 10000 #50000
-        # number of frames to be used for post training quantization / calibration
-        self.max_frames_calib = 50 #100
-        # number of itrations to be used for post training quantization / calibration
-        self.max_calib_iterations = 50
-        # clone the modelzoo repo and make sure this folder is available.
-        self.modelzoo_path = '../jacinto-ai-modelzoo/models'
-        # create your datasets under this folder
-        self.datasets_path = f'./dependencies/datasets'
-        # important parameter. set this to 'pc' to do import and inference in pc
-        # set this to 'j7' to run inference in device. for inference on device run_import
-        # below should be switched off and it is assumed that the artifacts are already created.
-        self.target_device = 'pc' #'j7' #'pc'
-        # for parallel execution on cpu or gpu. if you don't have gpu, these actual numbers don't matter,
-        # but the size of teh list determines the number of parallel processes
-        # if you have gpu's these entries can be gpu ids which will be used to set CUDA_VISIBLE_DEVICES
-        self.parallel_devices = [0,1,2,3,0,1,2,3] #None
-        # quantization bit precision
-        self.tidl_tensor_bits = 8 #8 #16 #32
-        # run import of the model - only to be used in pc - set this to False for j7 evm
-        # for pc this can be True or False
-        self.run_import = True
-        # run inference - for inferene in j7 evm, it is assumed that the artifaacts folders are already available
-        self.run_inference = True #True
-        # collect final accuracy results
-        self.collect_results = True #True
-        # detection threshold
-        self.detection_thr = 0.05
-        # save detection, segmentation output
-        self.save_output = False
-        # wild card list to match against the model_path - only matching models will be run
-        # examples: ['classification'] ['imagenet1k'] ['torchvision']
-        # examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
-        self.model_selection = None
-        # verbose mode - print out more information
-        self.verbose = False
         super().__init__(input)
-        self.initialize()
 
-    def initialize(self):
         ############################################################
         # quantization params & session config
         ###############################################################
@@ -130,13 +90,11 @@ class ConfigSettings(utils.ConfigDict):
                                              mean=mean, scale=scale)
         return transforms
 
-
     def get_preproc_jai(self, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
                         backend='cv2', interpolation=cv2.INTER_AREA,
                         mean=(128.0, 128.0, 128.0), scale=(1/64.0, 1/64.0, 1/64.0)):
         return self.get_preproc_onnx(resize=resize, crop=crop, data_layout=data_layout, reverse_channels=reverse_channels,
                                 backend=backend, interpolation=interpolation, mean=mean, scale=scale)
-
 
     def get_preproc_tflite(self, resize=256, crop=224, data_layout=constants.NHWC, reverse_channels=False,
                               backend='pil', interpolation=None,
@@ -161,7 +119,6 @@ class ConfigSettings(utils.ConfigDict):
         transforms = utils.TransformsCompose(postprocess_classification)
         return transforms
 
-
     ###############################################################
     # post process transforms for detection
     ###############################################################
@@ -183,11 +140,10 @@ class ConfigSettings(utils.ConfigDict):
         return transforms
 
     def get_postproc_detection_onnx(self, detection_thr=None, save_output=True, formatter=None):
-        return ConfigSettings.get_postproc_detection(detection_thr=detection_thr, save_output=save_output, formatter=formatter)
+        return self.get_postproc_detection(detection_thr=detection_thr, save_output=save_output, formatter=formatter)
 
     def get_postproc_detection_tflite(self, detection_thr=None, save_output=True, formatter=postprocess.DetectionYXYX2XYXY()):
-        return ConfigSettings.get_postproc_detection(detection_thr=detection_thr, save_output=save_output, formatter=formatter)
-
+        return self.get_postproc_detection(detection_thr=detection_thr, save_output=save_output, formatter=formatter)
 
     ###############################################################
     # post process transforms for segmentation
@@ -208,10 +164,10 @@ class ConfigSettings(utils.ConfigDict):
         return transforms
 
     def get_postproc_segmentation_onnx(self, data_layout=constants.NCHW, save_output=True, with_argmax=True):
-        return ConfigSettings.get_postproc_segmentation(data_layout=data_layout, save_output=save_output, with_argmax=with_argmax)
+        return self.get_postproc_segmentation(data_layout=data_layout, save_output=save_output, with_argmax=with_argmax)
 
     def get_postproc_segmentation_tflite(self, data_layout=constants.NHWC, save_output=True, with_argmax=True):
-        return ConfigSettings.get_postproc_segmentation(data_layout=data_layout, save_output=save_output, with_argmax=with_argmax)
+        return self.get_postproc_segmentation(data_layout=data_layout, save_output=save_output, with_argmax=with_argmax)
 
 
 ############################################################

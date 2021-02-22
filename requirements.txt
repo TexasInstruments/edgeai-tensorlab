@@ -7,3 +7,4 @@ pycocotools
 colorama
 tqdm
 memory-tempfile
+pyyaml

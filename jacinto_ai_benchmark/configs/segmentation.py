@@ -17,7 +17,7 @@ def get_configs(settings, work_dir,
     }
 
     ade20k_cfg = {
-        'type': settings.type,
+        'pipeline_type': settings.pipeline_type,
         'verbose': settings.verbose,
         'target_device': settings.target_device,
         'run_import': settings.run_import,
@@ -27,7 +27,7 @@ def get_configs(settings, work_dir,
     }
 
     ade20k_cfg_class32 = {
-        'type': settings.type,
+        'pipeline_type': settings.pipeline_type,
         'verbose': settings.verbose,
         'target_device': settings.target_device,
         'run_import': settings.run_import,

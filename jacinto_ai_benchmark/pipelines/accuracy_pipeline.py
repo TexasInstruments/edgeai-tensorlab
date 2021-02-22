@@ -1,4 +1,6 @@
 import os
+import pickle
+import time
 from colorama import Fore
 from .. import utils
 
@@ -8,6 +10,7 @@ class AccuracyPipeline():
         self.info_dict = dict()
         self.pipeline_config = pipeline_config
         self.logger = None
+        self.avg_inference_time = None
 
     def __del__(self):
         if self.logger is not None:
@@ -37,8 +40,8 @@ class AccuracyPipeline():
         # logger can be created after start
         run_dir = session.get_param('run_dir')
         # verbose = self.pipeline_config['verbose']
-        file_name = os.path.join(run_dir, 'run.log')
-        self.logger = utils.TeeLogger(file_name)
+        log_filename = os.path.join(run_dir, 'run.log')
+        self.logger = utils.TeeLogger(log_filename)
         self.logger.write(f'\nrunning: {Fore.BLUE}{os.path.basename(run_dir)}{Fore.RESET}')
         self.logger.write(f'\npipeline_config: {self.pipeline_config}')
 
@@ -48,9 +51,15 @@ class AccuracyPipeline():
         if run_inference:
             output_list = self._infer_frames(description)
             result = self._evaluate(output_list)
+            result.update({'avg-inference-time (ms)':self.avg_inference_time*1000})
         #
 
         self.logger.write(f'\nBenchmarkResults: {result}')
+
+        pkl_filename = os.path.join(run_dir, 'run.pkl')
+        with open('pkl_filename', 'wb') as fp:
+            pickle.dump(result, fp)
+        #
         return result
 
     def _import_model(self, description=''):
@@ -82,6 +91,7 @@ class AccuracyPipeline():
         assert is_ok, f'start_infer() did not succeed for {run_dir_base}'
 
         self.logger.write(f'\ninfer {description}:' + run_dir_base)
+        elapsed_time = 0
         output_list = []
         num_frames = len(input_dataset)
         pbar_desc = f'infer {description}: {run_dir_base}'
@@ -89,10 +99,15 @@ class AccuracyPipeline():
             info_dict = {}
             data = input_dataset[data_index]
             data, info_dict = preprocess(data, info_dict)
+
+            start_time = time.time()
             output, info_dict = session.infer_frame(data, info_dict)
+            elapsed_time += (time.time() - start_time)
+
             output, info_dict = postprocess(output, info_dict)
             output_list.append(output)
         #
+        self.avg_inference_time = elapsed_time / num_frames
         self.logger.write(f'\ninfer {description}: {run_dir_base} - done.')
         return output_list
 
