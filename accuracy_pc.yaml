@@ -1,0 +1,39 @@
+# execution pipeline type - currently only accuracy pipeline is defined
+type : 'accuracy'
+# number of frames for inference
+num_frames : 10000 #50000
+# number of frames to be used for post training quantization / calibration
+max_frames_calib : 50 #100
+# number of itrations to be used for post training quantization / calibration
+max_calib_iterations : 50
+# clone the modelzoo repo and make sure this folder is available.
+modelzoo_path : '../jacinto-ai-modelzoo/models'
+# create your datasets under this folder
+datasets_path : f'./dependencies/datasets'
+# important parameter. set this to 'pc' to do import and inference in pc
+# set this to 'j7' to run inference in device. for inference on device run_import
+# below should be switched off and it is assumed that the artifacts are already created.
+target_device : 'pc' #'j7' #'pc'
+# for parallel execution on cpu or gpu. if you don't have gpu, these actual numbers don't matter,
+# but the size of teh list determines the number of parallel processes
+# if you have gpu's these entries can be gpu ids which will be used to set CUDA_VISIBLE_DEVICES
+parallel_devices : [0,1,2,3,0,1,2,3] #None
+# quantization bit precision
+tidl_tensor_bits : 8 #8 #16 #32
+# run import of the model - only to be used in pc - set this to False for j7 evm
+# for pc this can be True or False
+run_import : True
+# run inference - for inferene in j7 evm, it is assumed that the artifaacts folders are already available
+run_inference : True
+# collect final accuracy results
+collect_results : True
+# detection threshold
+detection_thr : 0.05
+# save detection, segmentation output
+save_output : False
+# wild card list to match against the model_path - only matching models will be run
+# examples: ['classification'] ['imagenet1k'] ['torchvision']
+# examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
+model_selection : None
+# verbose mode - print out more information
+verbose : False

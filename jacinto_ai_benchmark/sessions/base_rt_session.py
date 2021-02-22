@@ -5,7 +5,7 @@ from memory_tempfile import MemoryTempfile
 from .. import utils
 
 
-class BaseRTSession(utils.AttrBase):
+class BaseRTSession(utils.ParamsBase):
     def __init__(self, **kwargs):
         super().__init__()
         self.kwargs = kwargs

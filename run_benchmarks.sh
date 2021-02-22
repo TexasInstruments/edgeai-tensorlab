@@ -30,7 +30,7 @@ export TIDL_RT_PERFSTATS="1"
 echo "TIDL_RT_PERFSTATS=${TIDL_RT_PERFSTATS}"
 
 ##################################################################
-python3 ./scripts/benchmark_accuracy.py
+python3 ./scripts/benchmark_accuracy.py accuracy_pc.yaml
 
 
 
