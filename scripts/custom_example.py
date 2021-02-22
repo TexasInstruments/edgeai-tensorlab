@@ -20,7 +20,7 @@ if __name__ == '__main__':
     ################################################################################################
     # configs for each model pipeline
     common_cfg = {
-        'type': settings.type,
+        'pipeline_type': settings.pipeline_type,
         'verbose': settings.verbose,
         'run_import': settings.run_import,
         'run_inference': settings.run_inference,

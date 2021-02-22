@@ -1,5 +1,5 @@
 # execution pipeline type - currently only accuracy pipeline is defined
-type : 'accuracy'
+pipeline_type : 'accuracy'
 # number of frames for inference
 num_frames : 10000 #50000
 # number of frames to be used for post training quantization / calibration

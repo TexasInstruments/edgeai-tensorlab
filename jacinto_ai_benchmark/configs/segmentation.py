@@ -7,7 +7,7 @@ def get_configs(settings, work_dir,
                 tflite_session_type=sessions.TFLiteRTSession):
     # configs for each model pipeline
     cityscapes_cfg = {
-        'type': settings.type,
+        'pipeline_type': settings.pipeline_type,
         'verbose': settings.verbose,
         'target_device': settings.target_device,
         'run_import': settings.run_import,

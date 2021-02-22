@@ -1,4 +1,5 @@
 import functools
+from .. import constants
 from .accuracy_pipeline import *
 from .. import utils
 
@@ -68,16 +69,16 @@ class PipelineRunner():
             os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
         #
         result = {}
-        pipeline_types = utils.as_list(pipeline_config['type'])
+        pipeline_types = utils.as_list(pipeline_config['pipeline_type'])
         try:
             for pipeline_type in pipeline_types:
-                if pipeline_type == 'accuracy':
+                if pipeline_type == constants.PIPELINE_ACCURACY:
                     # use with statement, so that the logger and other file resources are cleaned up
                     with AccuracyPipeline(pipeline_config) as accuracy_pipeline:
                         accuracy_result = accuracy_pipeline.run(description)
                         result.update(accuracy_result)
                     #
-                elif pipeline_type == 'something':
+                elif pipeline_type == constants.PIPELINE_SOMETHING:
                     # this is just an example of how other pipelines can be implemented.
                     # 'something' used here is not real and it is not supported
                     with SomethingPipeline(pipeline_config) as something_pipeline:
