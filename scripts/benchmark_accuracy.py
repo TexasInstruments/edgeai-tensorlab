@@ -34,12 +34,19 @@ if __name__ == '__main__':
     # create the pipeline_runner which will manage the sessions.
     pipeline_runner = pipelines.PipelineRunner(settings, pipeline_configs)
 
+    ############################################################################
     # at this point, pipeline_runner.pipeline_configs is a dictionary that has the selected configs
-    # some examples of accessing param from it - here 0th entry is used an example.
+
+    # Note: to manually slice and select a subset of configs, slice it this way (just an example)
+    # import itertools
+    # pipeline_runner.pipeline_configs = dict(itertools.islice(pipeline_runner.pipeline_configs.items(), 10, 20))
+
+    # some examples of accessing params from it - here 0th entry is used an example.
     # pipeline_config = pipeline_runner.pipeline_configs.values()[0]
     # pipeline_config['preprocess'].get_param('resize') gives the resize dimension
     # pipeline_config['preprocess'].get_param('crop') gives the crop dimension
     # pipeline_config['session'].get_param('run_dir') gives the folder where artifacts are located
+    ############################################################################
 
     # now actually run the configs
     if settings.run_import or settings.run_inference:
