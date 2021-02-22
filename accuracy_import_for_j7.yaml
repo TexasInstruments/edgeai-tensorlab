@@ -35,5 +35,9 @@ save_output : False
 # examples: ['classification'] ['imagenet1k'] ['torchvision']
 # examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
 model_selection : null
+# wild card list to match against the tasks. it null, all tasks will be run
+# example: ['classification', 'detection', 'segmentation']
+# example: ['classification']
+task_selection : null
 # verbose mode - print out more information
 verbose : False

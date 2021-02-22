@@ -63,9 +63,13 @@ class ConfigDict(dict):
         self.detection_thr = 0.05
         # save detection, segmentation output
         self.save_output = False
-        # wild card list to match against the model_path - only matching models will be run
+        # wild card list to match against the model_path - if null, all models wil be run
         # examples: ['classification'] ['imagenet1k'] ['torchvision']
         # examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
         self.model_selection = None
+        # wild card list to match against the tasks. it null, all tasks will be run
+        # example: ['classification', 'detection', 'segmentation']
+        # example: ['classification']
+        self.task_selection = None
         # verbose mode - print out more information
         self.verbose = False
