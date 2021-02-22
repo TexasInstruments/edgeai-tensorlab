@@ -19,7 +19,7 @@ def collect_results(settings, work_dir):
             #
         #
     #
-    results = sorted(results)
+    results = sorted(results, key=lambda item: item['inference_path'])
     with open(f'{work_dir}/results.log','w') as writer_fp:
         for rline in results:
             writer_fp.write(f'{rline}\n')

@@ -22,7 +22,7 @@ parallel_devices : [0,1,2,3,0,1,2,3] #null
 tidl_tensor_bits : 8 #8 #16 #32
 # run import of the model - only to be used in pc - set this to False for j7 evm
 # for pc this can be True or False
-run_import : False
+run_import : True
 # run inference - for inference in j7 evm, it is assumed that the artifacts folders are already available
 run_inference : True
 # collect final accuracy results
