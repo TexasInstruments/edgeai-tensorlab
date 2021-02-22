@@ -10,7 +10,7 @@ from .. import utils
 
 __all__ = ['COCODetection']
 
-class COCODetection(utils.AttrBase):
+class COCODetection(utils.ParamsBase):
     def __init__(self, **kwargs):
         super().__init__()
         self.kwargs = kwargs

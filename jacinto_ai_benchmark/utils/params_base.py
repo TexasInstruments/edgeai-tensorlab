@@ -1,5 +1,5 @@
 
-class AttrBase:
+class ParamsBase:
     def __init__(self):
         self.is_initialized = False
 

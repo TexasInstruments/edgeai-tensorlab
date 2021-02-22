@@ -1,10 +1,11 @@
-from .attr_base import *
+from .params_base import *
 
 
-class TransformsCompose(AttrBase):
+class TransformsCompose(ParamsBase):
     def __init__(self, transforms, **kwargs):
         self.transforms = transforms
         self.kwargs = kwargs
+        super().__init__()
 
     def __call__(self, tensor, info_dict):
         for t in self.transforms:

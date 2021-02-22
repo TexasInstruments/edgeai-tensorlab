@@ -42,7 +42,7 @@ import copy
 import numpy as np
 import PIL
 import cv2
-class COCOSegmentation(utils.AttrBase):
+class COCOSegmentation(utils.ParamsBase):
     def __init__(self, inData, num_imgs=None, num_classes=21, **kwargs):
         super().__init__()
         self.kwargs = kwargs

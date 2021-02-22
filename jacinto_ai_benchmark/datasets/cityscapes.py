@@ -7,7 +7,7 @@ from .. import utils
 
 __all__ = ['CityscapesSegmentation']
 
-class CityscapesSegmentation(utils.AttrBase):
+class CityscapesSegmentation(utils.ParamsBase):
     def __init__(self, **kwargs):
         super().__init__()
         self.kwargs = kwargs

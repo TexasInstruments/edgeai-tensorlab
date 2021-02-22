@@ -7,7 +7,7 @@ from .. import utils
 
 __all__ = ['ADE20KSegmentation']
 
-class ADE20KSegmentation(utils.AttrBase):
+class ADE20KSegmentation(utils.ParamsBase):
     def __init__(self, num_classes=151, **kwargs):
         super().__init__()
         self.kwargs = kwargs
