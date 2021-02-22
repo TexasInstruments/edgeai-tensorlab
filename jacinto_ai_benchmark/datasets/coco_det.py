@@ -116,7 +116,7 @@ class COCODetection(utils.ParamsBase):
             cocoEval.summarize()
             coco_ap = cocoEval.stats[0]
         #
-        accuracy = {'accuracy-ap[.5:.95]%': coco_ap*100.0}
+        accuracy = {'accuracy_ap[.5:.95]%': coco_ap*100.0}
         return accuracy
 
     def _format_detections(self, bbox_label_score, image_id, label_offset=0, class_map=None):

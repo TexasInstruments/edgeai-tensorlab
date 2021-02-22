@@ -8,10 +8,14 @@ def collect_results(settings, work_dir):
     logs_dirs = glob.glob(f'{work_dir}/*')
     for log_dir in logs_dirs:
         if os.path.isdir(log_dir):
-            pkl_filename = f'{log_dir}/run.pkl'
-            with open(pkl_filename, 'rb') as pkl_fp:
-                result = pickle.load(pkl_fp)
-                results.append(result)
+            pkl_filename = f'{log_dir}/result.pkl'
+            try:
+                with open(pkl_filename, 'rb') as pkl_fp:
+                    result = pickle.load(pkl_fp)
+                    results.append(result)
+                #
+            except:
+                pass
             #
         #
     #

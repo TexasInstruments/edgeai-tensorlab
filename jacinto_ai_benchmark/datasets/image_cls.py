@@ -34,7 +34,7 @@ class ImageCls(utils.ParamsBase):
         return self.evaluate(predictions, **kwargs)
 
     def evaluate(self, predictions, **kwargs):
-        metric_tracker = utils.AverageMeter(name='accuracy-top1%')
+        metric_tracker = utils.AverageMeter(name='accuracy_top1%')
         in_lines = self.imgs
         for n in range(self.num_frames):
             words = in_lines[n].split(' ')

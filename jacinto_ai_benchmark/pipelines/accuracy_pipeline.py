@@ -51,13 +51,13 @@ class AccuracyPipeline():
         if run_inference:
             output_list = self._infer_frames(description)
             result = self._evaluate(output_list)
-            result.update({'avg-inference-time (ms)':self.avg_inference_time*1000})
+            result.update({'avg_inference_time (ms)':self.avg_inference_time*1000})
         #
 
         self.logger.write(f'\nBenchmarkResults: {result}')
 
-        pkl_filename = os.path.join(run_dir, 'run.pkl')
-        with open('pkl_filename', 'wb') as fp:
+        pkl_filename = os.path.join(run_dir, 'result.pkl')
+        with open(pkl_filename, 'wb') as fp:
             pickle.dump(result, fp)
         #
         return result
