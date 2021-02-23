@@ -36,6 +36,16 @@ def get_configs(settings, work_dir,
         'input_dataset': datasets.ADE20KSegmentation(**settings.ade20k_seg_val_cfg, num_classes=32) if settings.dataset_loading else None,
     }
 
+    pascal_voc_cfg = {
+        'pipeline_type': settings.pipeline_type,
+        'verbose': settings.verbose,
+        'target_device': settings.target_device,
+        'run_import': settings.run_import,
+        'run_inference': settings.run_inference,
+        'calibration_dataset': datasets.PASCALVOCSegmentation(**settings.voc_seg_calib_cfg),
+        'input_dataset': datasets.PASCALVOCSegmentation(**settings.voc_seg_val_cfg),
+    }
+
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
 
     postproc_segmentation_onnx = settings.get_postproc_segmentation_onnx(save_output=settings.save_output)
@@ -119,7 +129,27 @@ def get_configs(settings, work_dir,
                  model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k/tf1-models/deeplabv3_mnv2_ade20k_train_2018_12_03_512x512.tflite'),
             postprocess=postproc_segmenation_tflite
         ),
-
+        # tensorflow-deeplab-ade20k-segmentation- deeplabv3_mnv2_ade20k_train_2018_12_03 - expected_metric: 32.04% MeanIoU. #cityscapes deeplab
+        'vseg-16-400-0': utils.dict_update(cityscapes_cfg,
+            preprocess=settings.get_preproc_tflite((512, 512), (512, 512), mean=(127.5, 127.5, 127.5), scale=(1/127.5, 1/127.5, 1/127.5), backend='cv2'),
+            session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
+                model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k/tf1-models/deeplabv3_mnv2_ade20k_train_2018_12_03_512x512.tflite'),
+            postprocess=postproc_segmenation_tflite
+        ),
+        # tensorflow-deeplab-ade20k-segmentation- deeplabv3_mnv2_ade20k_train_2018_12_03 - expected_metric: 32.04% MeanIoU.
+        'vseg-18-400-0': utils.dict_update(pascal_voc_cfg, #pascalvoc2012 deeplab
+            preprocess=settings.get_preproc_tflite((512, 512), (512, 512), mean=(127.5, 127.5, 127.5), scale=(1/127.5, 1/127.5, 1/127.5), backend='cv2'),
+            session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
+                model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k/tf1-models/deeplabv3_mnv2_ade20k_train_2018_12_03_512x512.tflite'),
+            postprocess=postproc_segmenation_tflite
+       ),
+        # tensorflow-deeplab-ade20k-segmentation- deeplabv3_mnv2_ade20k_train_2018_12_03 - expected_metric: 32.04% MeanIoU.
+        'vseg-18-400-0': utils.dict_update(pascal_voc_cfg,  # pascalvoc2012 deeplab
+            preprocess=settings.get_preproc_tflite((512, 512), (512, 512), mean=(127.5, 127.5, 127.5), scale=(1/127.5, 1/127.5, 1/127.5), backend='cv2'),
+            session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
+               model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k/tf1-models/deeplabv3_mnv2_ade20k_train_2018_12_03_512x512.tflite'),
+            postprocess=postproc_segmenation_tflite
+        ),
     }
     return pipeline_configs
 

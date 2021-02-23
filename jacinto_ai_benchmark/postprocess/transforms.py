@@ -70,7 +70,7 @@ class SegmentationImageSave():
     def __call__(self, tensor, info_dict):
         data_path = info_dict['data_path']
         # img_data = info_dict['data']
-        image_name = os.path.split(data_path)[-1]
+        image_name = os.path.split(data_path)[-1].split('.')[0] + '.png'
         run_dir = info_dict['run_dir']
         save_dir = os.path.join(run_dir, 'segmentation')
         os.makedirs(save_dir, exist_ok=True)

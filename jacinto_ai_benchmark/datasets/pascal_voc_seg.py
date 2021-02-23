@@ -3,32 +3,29 @@ import glob
 import random
 import numpy as np
 import PIL
+import cv2
 from .. import utils
 
-__all__ = ['ADE20KSegmentation']
+__all__ = ['PASCALVOCSegmentation']
 
-class ADE20KSegmentation(utils.ParamsBase):
-    def __init__(self, num_classes=151, ignore_label=0, **kwargs):
-        super().__init__()
+class PASCALVOCSegmentation():
+    def __init__(self, num_classes=21, ignore_label=255, **kwargs):
         self.kwargs = kwargs
-        assert 'path' in kwargs and 'split' in kwargs, 'path, split must be provided'
-        #assert self.kwargs['split'] in ['training', 'validation']
+        assert 'path' in kwargs and 'split' in kwargs, 'path and split must provided'
         self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
-        self.name = "ADE20K"
+
+        # mapping for voc 21 class segmentation
         self.num_classes = num_classes
         self.ignore_label = ignore_label
-        self.load_classes() # mlperf model is trained only for 32 classes
+        list_txt = os.path.join(self.kwargs['path'], 'ImageSets', 'Segmentation', self.kwargs['split']+'.txt')
+        file_indexes = list(open(list_txt))
 
-        #self.label_lut = self._create_lut()
-
-        image_dir = os.path.join(self.kwargs['path'], 'images', self.kwargs['split'])
-        images_pattern = os.path.join(image_dir, '*.jpg')
-        images = glob.glob(images_pattern)
+        base_path_images = os.path.join(self.kwargs['path'], 'JPEGImages')
+        images = [base_path_images + '/' +file_index.rstrip() + '.jpg' for file_index in file_indexes]
         self.imgs = sorted(images)
         #
-        label_dir = os.path.join(self.kwargs['path'], 'annotations', self.kwargs['split'])
-        labels_pattern = os.path.join(label_dir, '*.png')
-        labels = glob.glob(labels_pattern)
+        base_path_labels = os.path.join(self.kwargs['path'], 'SegmentationClassRaw')
+        labels = [base_path_labels + '/' +file_index.rstrip() + '.png' for file_index in file_indexes]
         self.labels = sorted(labels)
         #
         assert len(self.imgs) == len(self.labels), 'length of images must be equal to the length of labels'
@@ -42,7 +39,6 @@ class ADE20KSegmentation(utils.ParamsBase):
         #
         self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
-        super().initialize()
 
     def __getitem__(self, idx, with_label=False):
         if with_label:
@@ -67,8 +63,7 @@ class ADE20KSegmentation(utils.ParamsBase):
             label_img = PIL.Image.open(label_file)
             label_img = label_img.convert('L')
             label_img = np.array(label_img)
-            label_img[self.ignore_label] = 255
-            # label_img = self.label_lut[label_img]
+            #label_img = self.label_lut[label_img]
 
             output = predictions[n]
             output = output.astype(np.uint8)
@@ -80,7 +75,7 @@ class ADE20KSegmentation(utils.ParamsBase):
         accuracy = utils.segmentation_accuracy(cmatrix)
         return accuracy
 
-    # def _create_lut(self):  #reverse class should happen here
+    # def _create_lut(self):
     #     if self.label_dict:
     #         lut = np.zeros(256, dtype=np.uint8)
     #         for k in range(256):
@@ -90,12 +85,4 @@ class ADE20KSegmentation(utils.ParamsBase):
     #         return lut
     #     else:
     #         return None
-
-
-    def load_classes(self):
-        #ade20k_150_classes_url = "https://raw.githubusercontent.com/CSAILVision/sceneparsing/master/objectInfo150.csv"
-        label_dir_txt = os.path.join(self.kwargs['path'], 'objectInfo150.txt')
-        with open(label_dir_txt) as f:
-            list_ade20k_classes = list(map(lambda x: x.split("\t")[-1], f.read().split("\n")))[1:self.num_classes+1]
-            self.classes_reverse = dict(zip([i for i in range(1,self.num_classes+1)],list_ade20k_classes))
-            self.classes = dict(zip(list_ade20k_classes,[i for i in range(1,self.num_classes+1)]))
+    #     #
