@@ -6,6 +6,7 @@ class TransformsCompose(ParamsBase):
         self.transforms = transforms
         self.kwargs = kwargs
         super().__init__()
+        self.initialize()
 
     def __call__(self, tensor, info_dict):
         for t in self.transforms:
