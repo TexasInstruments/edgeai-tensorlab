@@ -12,8 +12,8 @@ def get_configs(settings, work_dir,
         'target_device': settings.target_device,
         'run_import': settings.run_import,
         'run_inference': settings.run_inference,
-        'calibration_dataset': datasets.CityscapesSegmentation(**settings.cityscapes_seg_calib_cfg),
-        'input_dataset': datasets.CityscapesSegmentation(**settings.cityscapes_seg_val_cfg),
+        'calibration_dataset': datasets.CityscapesSegmentation(**settings.cityscapes_seg_calib_cfg) if settings.dataset_loading else None,
+        'input_dataset': datasets.CityscapesSegmentation(**settings.cityscapes_seg_val_cfg) if settings.dataset_loading else None,
     }
 
     ade20k_cfg = {
@@ -22,8 +22,8 @@ def get_configs(settings, work_dir,
         'target_device': settings.target_device,
         'run_import': settings.run_import,
         'run_inference': settings.run_inference,
-        'calibration_dataset': datasets.ADE20KSegmentation(**settings.ade20k_seg_calib_cfg),
-        'input_dataset': datasets.ADE20KSegmentation(**settings.ade20k_seg_val_cfg),
+        'calibration_dataset': datasets.ADE20KSegmentation(**settings.ade20k_seg_calib_cfg) if settings.dataset_loading else None,
+        'input_dataset': datasets.ADE20KSegmentation(**settings.ade20k_seg_val_cfg) if settings.dataset_loading else None,
     }
 
     ade20k_cfg_class32 = {
@@ -32,8 +32,8 @@ def get_configs(settings, work_dir,
         'target_device': settings.target_device,
         'run_import': settings.run_import,
         'run_inference': settings.run_inference,
-        'calibration_dataset': datasets.ADE20KSegmentation(**settings.ade20k_seg_calib_cfg, num_classes=32),
-        'input_dataset': datasets.ADE20KSegmentation(**settings.ade20k_seg_val_cfg, num_classes=32),
+        'calibration_dataset': datasets.ADE20KSegmentation(**settings.ade20k_seg_calib_cfg, num_classes=32) if settings.dataset_loading else None,
+        'input_dataset': datasets.ADE20KSegmentation(**settings.ade20k_seg_val_cfg, num_classes=32) if settings.dataset_loading else None,
     }
 
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)

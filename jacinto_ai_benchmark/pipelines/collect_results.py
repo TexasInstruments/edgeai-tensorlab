@@ -1,9 +1,10 @@
 import os
 import glob
 import pickle
+from .. import utils
 
 
-def collect_results(settings, work_dir):
+def collect_results(settings, work_dir, print_results=True):
     results = []
     logs_dirs = glob.glob(f'{work_dir}/*')
     for log_dir in logs_dirs:
@@ -20,9 +21,15 @@ def collect_results(settings, work_dir):
         #
     #
     results = sorted(results, key=lambda item: item['inference_path'])
-    with open(f'{work_dir}/results.log','w') as writer_fp:
-        for rline in results:
-            writer_fp.write(f'{rline}\n')
+    result_file = f'{work_dir}/results.log'
+    with open(result_file,'w') as writer_fp:
+        for result in results:
+            writer_fp.write(f'\n{utils.round_dict(result)}')
+        #
+    #
+    if print_results:
+        for result in results:
+            print(utils.round_dict(result))
         #
     #
     return results

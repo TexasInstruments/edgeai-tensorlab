@@ -5,13 +5,14 @@ def get_configs(settings, work_dir,
                 onnx_session_type=sessions.TVMDLRSession,
                 tflite_session_type=sessions.TFLiteRTSession):
     # configs for each model pipeline
+
     common_cfg = {
         'pipeline_type': settings.pipeline_type,
         'verbose': settings.verbose,
         'run_import': settings.run_import,
         'run_inference': settings.run_inference,
-        'calibration_dataset': datasets.ImageNetCls(**settings.imagenet_cls_calib_cfg),
-        'input_dataset': datasets.ImageNetCls(**settings.imagenet_cls_val_cfg),
+        'calibration_dataset': datasets.ImageNetCls(**settings.imagenet_cls_calib_cfg) if settings.dataset_loading else None,
+        'input_dataset': datasets.ImageNetCls(**settings.imagenet_cls_val_cfg) if settings.dataset_loading else None,
         'postprocess': settings.get_postproc_classification()
     }
 

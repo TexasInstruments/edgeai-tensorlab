@@ -53,8 +53,7 @@ class AccuracyPipeline():
             result = self._evaluate(output_list)
             result.update({'avg_inference_time (ms)':self.avg_inference_time*1000})
         #
-
-        self.logger.write(f'\nBenchmarkResults: {result}')
+        self.logger.write(f'\nBenchmarkResults: {utils.round_dict(result)}\n')
 
         pkl_filename = os.path.join(run_dir, 'result.pkl')
         with open(pkl_filename, 'wb') as fp:
@@ -126,10 +125,10 @@ class AccuracyPipeline():
         metric = utils.as_list(metric)
         metric_options = utils.as_list(metric_options)
         output_dict = {}
+        inference_path = os.path.split(run_dir)[-1]
+        output_dict.update({'inference_path':inference_path})
         for m, m_options in zip(metric, metric_options):
             output = m(output_list, **m_options)
             output_dict.update(output)
         #
-        inference_path = os.path.split(run_dir)[-1]
-        output_dict.update({'inference_path':inference_path})
         return output_dict

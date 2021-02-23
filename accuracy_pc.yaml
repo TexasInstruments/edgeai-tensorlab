@@ -17,6 +17,7 @@ target_device : 'pc' #'j7' #'pc'
 # for parallel execution on cpu or gpu. if you don't have gpu, these actual numbers don't matter,
 # but the size of teh list determines the number of parallel processes
 # if you have gpu's these entries can be gpu ids which will be used to set CUDA_VISIBLE_DEVICES
+# null will run the models sequentially.
 parallel_devices : [0,1,2,3,0,1,2,3] #null
 # quantization bit precision
 tidl_tensor_bits : 8 #8 #16 #32
@@ -45,5 +46,7 @@ task_selection : null
 # this range will be applied after applying model_selection and short-listing
 # null will run all the configs
 config_range : null
+# whether to load the datasets or not
+dataset_loading : True
 # verbose mode - print out more information
 verbose : False

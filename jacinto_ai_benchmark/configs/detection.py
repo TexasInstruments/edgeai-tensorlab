@@ -11,8 +11,8 @@ def get_configs(settings, work_dir, onnx_session_type=sessions.TVMDLRSession,
         'target_device': settings.target_device,
         'run_import': settings.run_import,
         'run_inference': settings.run_inference,
-        'calibration_dataset': datasets.COCODetection(**settings.coco_det_calib_cfg),
-        'input_dataset': datasets.COCODetection(**settings.coco_det_val_cfg),
+        'calibration_dataset': datasets.COCODetection(**settings.coco_det_calib_cfg) if settings.dataset_loading else None,
+        'input_dataset': datasets.COCODetection(**settings.coco_det_val_cfg) if settings.dataset_loading else None,
     }
 
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
