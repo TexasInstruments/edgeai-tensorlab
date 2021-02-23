@@ -44,6 +44,5 @@ if __name__ == '__main__':
 
     # collect the logs and display it
     if settings.collect_results:
-        results = pipelines.collect_results(settings, work_dir)
-        print(*results, sep='\n')
+        results = pipelines.collect_results(settings, work_dir, print_results=True)
     #

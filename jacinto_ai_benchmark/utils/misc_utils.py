@@ -1,4 +1,5 @@
 import copy
+import numpy as np
 
 
 def dict_update(src_dict, *args, inplace=False, **kwargs):
@@ -57,3 +58,13 @@ def as_list(arg):
 def as_list_or_tuple(arg):
     return arg if isinstance(arg, (list,tuple)) else (arg,)
 
+
+def round_dict(d, precision=2):
+    d_copy = {}
+    for k, v in d.items():
+        if isinstance(v, (float, np.float32, np.float64)):
+            v = round(v, precision)
+        #
+        d_copy.update({k:v})
+    #
+    return d_copy
