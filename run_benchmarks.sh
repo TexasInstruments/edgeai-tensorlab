@@ -29,7 +29,10 @@ echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
 export TIDL_RT_PERFSTATS="1"
 echo "TIDL_RT_PERFSTATS=${TIDL_RT_PERFSTATS}"
 
-##################################################################
+# increase the stack size as it can help in some models
+ulimit -s 32768
+
+# run the script
 python3 ./scripts/benchmark_accuracy.py accuracy_pc.yaml
 
 
