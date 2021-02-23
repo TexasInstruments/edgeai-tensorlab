@@ -33,13 +33,13 @@ if __name__ == '__main__':
 
     pipeline_configs = {
         # mobilenet_v2_2019-12-24_15-32-12 72.13% top-1 accuracy
-        'eg1':utils.dict_update(common_cfg,
+        'example1':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=sessions.TVMDLRSession(**common_session_cfg, **settings.session_tvm_dlr_cfg,
                 model_path=f'./dependencies/examples/models/mobilenet_v2_20191224-153212_opset9.onnx')
         ),
         # tensorflow/models: classification mobilenetv1_224x224 expected_metric: 71.0% top-1 accuracy
-        'eg2':utils.dict_update(common_cfg,
+        'example2':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=sessions.TFLiteRTSession(**common_session_cfg, **settings.session_tflite_rt_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v1_1.0_224.tflite'),
@@ -51,13 +51,14 @@ if __name__ == '__main__':
     # create runner and run the pipeline
     pipeline_runner = pipelines.PipelineRunner(settings, pipeline_configs)
     
+    # now actually run the configs
     if settings.run_import or settings.run_inference:
         pipeline_runner.run()
     #
 
+    # collect the logs and display it
     if settings.collect_results:
-        results = pipelines.collect_results(work_dir)
-        print(*results, sep='\n')
+        results = pipelines.collect_results(settings, work_dir, print_results=True)
     #
 
 
