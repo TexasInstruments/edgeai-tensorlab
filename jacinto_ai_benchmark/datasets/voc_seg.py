@@ -6,9 +6,9 @@ import PIL
 import cv2
 from .. import utils
 
-__all__ = ['PASCALVOCSegmentation']
+__all__ = ['VOC2012Segmentation']
 
-class PASCALVOCSegmentation():
+class VOC2012Segmentation():
     def __init__(self, num_classes=21, ignore_label=255, **kwargs):
         self.kwargs = kwargs
         assert 'path' in kwargs and 'split' in kwargs, 'path and split must provided'

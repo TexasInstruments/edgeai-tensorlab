@@ -26,10 +26,10 @@ def get_configs(settings, work_dir, onnx_session_type=sessions.TVMDLRSession,
         #################onnx models#####################################
         # # mlperf edge: detection - coco_ssd-resnet34_1200x1200 - expected_metric: 20.0% COCO AP[0.5-0.95]
         # 'vdet-12-012-0':utils.dict_update(common_cfg,
-        #     preprocess=settings.get_preproc_tflite((1200,1200), (1200,1200), backend='cv2'),
+        #     preprocess=settings.get_preproc_onnx((1200,1200), (1200,1200), backend='cv2'),
         #     session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
         #         model_path=f'{settings.modelzoo_path}/vision/detection/coco/mlperf/ssd_resnet34-ssd1200.onnx'),
-        #     postprocess=postproc_detection_tflite,
+        #     postprocess=postproc_detection_onnx,
         #     metric=dict(label_offset_pred=det_helper.coco_label_offset_80to90())
         # ),
         #################################################################
@@ -138,6 +138,17 @@ def get_configs(settings, work_dir, onnx_session_type=sessions.TVMDLRSession,
         #     postprocess=postproc_detection_tflite,
         #     metric=dict(label_offset_pred=coco_label_offset_90to90())
         # ),
+        #################################################################
+        # mxnet : gluon model : detection - yolo3_mobilenet1.0_coco
+        'vdet-12-050-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx((416,416), (416,416), backend='cv2'),
+            session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
+                model_path=[f'{settings.modelzoo_path}/vision/detection/coco/gluoncv/yolo3_mobilenet1.0_coco-symbol.json'
+                            f'{settings.modelzoo_path}/vision/detection/coco/gluoncv/yolo3_mobilenet1.0_coco-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,2,416,416)}),
+            postprocess=postproc_detection_onnx,
+            metric=dict(label_offset_pred=coco_label_offset_90to90())
+        ),
     }
     return pipeline_configs
 

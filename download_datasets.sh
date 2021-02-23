@@ -37,3 +37,11 @@ mkdir -p $downloads_folder/ADEChallengeData2016
 wget http://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip -O $downloads_folder/ADEChallengeData2016.zip
 unzip -q $downloads_folder/ADEChallengeData2016.zip -d $downloads_folder/ADEChallengeData2016
 
+#######################################################
+# Pascal VOC 2012 dataset
+mkdir -p $downloads_folder/VOCdevkit/VOC2012
+wget http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCdevkit_18-May-2011.tar -o $downloads_folder/VOCdevkit_18-May-2011.tar
+tar -xf $downloads_folder/VOCdevkit_18-May-2011.tar -C $downloads_folder/VOCdevkit
+wget http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar -o $downloads_folder/VOCtrainval_11-May-2012.tar
+tar -xf $downloads_folder/VOCtrainval_11-May-2012.tar -C $downloads_folder/VOCdevkit/VOC2012
+

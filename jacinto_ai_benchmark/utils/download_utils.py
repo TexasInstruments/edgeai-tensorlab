@@ -12,6 +12,9 @@ from tqdm.auto import tqdm
 
 
 def download_file(url, root=None, filename=None, md5=None):
+    if not isinstance(url, str):
+        return url
+    #
     root = os.path.abspath('./') if root is None else root
     if url.endswith('.link'):
         with open(url) as fp:

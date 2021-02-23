@@ -17,14 +17,18 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['work_dir'] = self.kwargs.get('work_dir', None)
         # run_dir for individual model
         self.kwargs['run_dir'] = self.kwargs.get('run_dir', None)
-        self.kwargs['model_id'] = self.kwargs.get('model_id', '')
         self.kwargs['dir_tree_depth'] = self.kwargs.get('dir_tree_depth', 2)
         # options related to the underlying runtime
         self.kwargs['platform'] = self.kwargs.get('platform', 'J7')
         self.kwargs['version'] = self.kwargs.get('version', (7,0))
         self.kwargs['tidl_tensor_bits'] = self.kwargs.get('tidl_tensor_bits', 32)
         self.kwargs['num_tidl_subgraphs'] = self.kwargs.get('num_tidl_subgraphs', 16)
-        self.kwargs['model_path'] = os.path.abspath(self.kwargs.get('model_path',None))
+        self.kwargs['model_id'] = self.kwargs.get('model_id', '')
+        # convert model_path to abspath
+        model_path = self.kwargs.get('model_path', None)
+        model_path = [os.path.abspath(m) for m in model_path] if isinstance(model_path, (list,tuple)) else model_path
+        self.kwargs['model_path'] = os.path.abspath(model_path) if isinstance(model_path, str) else model_path
+        self.kwargs['model_type'] = self.kwargs.get('model_type',None)
         self.kwargs['input_shape'] = self.kwargs.get('input_shape', None)
         self.kwargs['num_inputs'] = self.kwargs.get('num_inputs', 1)
         # check the target_device
@@ -56,8 +60,8 @@ class BaseRTSession(utils.ParamsBase):
         assert self.is_initialized, 'initialize() must be called before import_model()'
         assert self.is_started, 'start() must be called before import_model()'
         model_root_default = os.path.join(self.kwargs['run_dir'], 'model')
+        model_root_default = os.path.abspath(model_root_default)
         model_path = utils.download_file(self.kwargs['model_path'], root=model_root_default)
-        model_path = os.path.abspath(model_path)
         self.kwargs['model_path'] = model_path
 
     def start_infer(self):
@@ -107,9 +111,15 @@ class BaseRTSession(utils.ParamsBase):
             self.tempfiles.append(work_dir)
         #
         work_dir = os.path.abspath(work_dir)
-        model_name = self.kwargs['model_path']
-        model_name, model_ext = os.path.splitext(model_name)
-        model_ext = model_ext[1:]
+        model_path = self.kwargs['model_path']
+        model_type = self.kwargs['model_type']
+        if model_type is not None:
+            model_name = model_path[0] if isinstance(model_path, (list,tuple)) else model_path
+            model_ext = model_type
+        else:
+            model_name, model_ext = os.path.splitext(model_path)
+            model_ext = model_ext[1:]
+        #
         model_name_splits = model_name.split(os.sep)
         dir_tree_depth = self.kwargs['dir_tree_depth']
         if len(model_name_splits) > dir_tree_depth:

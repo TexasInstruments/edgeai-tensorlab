@@ -70,13 +70,13 @@ class ConfigSettings(config_dict.ConfigDict):
             num_frames=min(self.num_frames, 2000))
 
         self.voc_seg_calib_cfg = dict(
-            path=f'{self.datasets_path}/pascal_voc_seg/VOC2012',
+            path=f'{self.datasets_path}/VOCdevkit/VOC2012',
             split='val',
             shuffle=True,
             num_frames=self.quantization_params.get_num_frames_calib())
 
         self.voc_seg_val_cfg = dict(
-            path=f'{self.datasets_path}/pascal_voc_seg/VOC2012',
+            path=f'{self.datasets_path}/VOCdevkit/VOC2012',
             split='val',
             shuffle=True,
             num_frames=min(self.num_frames, 1449))

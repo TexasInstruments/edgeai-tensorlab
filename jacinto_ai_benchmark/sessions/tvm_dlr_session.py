@@ -23,15 +23,21 @@ class TVMDLRSession(BaseRTSession):
         os.chdir(self.interpreter_folder)
 
         model_path = self.kwargs['model_path']
-        onnx_model = onnx.load(model_path)
-
-        if self.kwargs['input_shape'] is None:
-            self.kwargs['input_shape'] = self._get_input_shape_onnx(onnx_model)
+        if self.kwargs['model_type'] == 'mxnet':
+            model_json, arg_params, aux_params = self._load_mxnet_model(model_path)
+            assert self.kwargs['input_shape'] is not None, 'input_shape must be given'
+            input_shape = self.kwargs['input_shape']
+            input_keys = list(input_shape.keys())
+            mod, params = relay.frontend.from_mxnet(model_json, input_shape, arg_params=arg_params, aux_params=aux_params)
+        else:
+            onnx_model = onnx.load(model_path)
+            if self.kwargs['input_shape'] is None:
+                self.kwargs['input_shape'] = self._get_input_shape_onnx(onnx_model)
+            #
+            input_shape = self.kwargs['input_shape']
+            input_keys = list(input_shape.keys())
+            tvm_model, params = relay.frontend.from_onnx(onnx_model, shape=input_shape)
         #
-        input_shape = self.kwargs['input_shape']
-        input_keys = list(input_shape.keys())
-
-        tvm_model, params = relay.frontend.from_onnx(onnx_model, shape=input_shape)
 
         calib_list = []
         for c_data in calib_data:
@@ -145,6 +151,23 @@ class TVMDLRSession(BaseRTSession):
             target_artifacts_folder = os.path.join(target_artifacts_folder, target_device)
         #
         return target_artifacts_folder
+
+    def _load_mxnet_model(self, model_path):
+        import mxnet
+        assert isinstance(model_path, list) and len(model_path) == 2, 'mxnet model path must be a list of size 2'
+        model_json = mxnet.symbol.load(model_path[0])
+        save_dict = mxnet.ndarray.load(model_path[1])
+        arg_params = {}
+        aux_params = {}
+        for key, param in save_dict.items():
+            tp, name = key.split(':', 1)
+            if tp == 'arg':
+                arg_params[name] = param
+            elif tp == 'aux':
+                aux_params[name] = param
+            #
+        #
+        return model_json, arg_params, aux_params
 
 
 if __name__ == '__main__':
