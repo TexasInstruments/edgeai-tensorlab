@@ -158,6 +158,7 @@ class TVMDLRSession(BaseRTSession):
     def _load_mxnet_model(self, model_path):
         import mxnet
         assert isinstance(model_path, list) and len(model_path) == 2, 'mxnet model path must be a list of size 2'
+
         model_json = mxnet.symbol.load(model_path[0])
         save_dict = mxnet.ndarray.load(model_path[1])
         arg_params = {}

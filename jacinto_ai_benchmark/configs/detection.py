@@ -150,6 +150,16 @@ def get_configs(settings, work_dir, onnx_session_type=sessions.TVMDLRSession,
             postprocess=postproc_detection_mxnet,
             metric=dict(label_offset_pred=coco_label_offset_80to90())
         ),
+        # mxnet : gluoncv model : detection - ssd_512_mobilenet1.0_coco
+        'vdet-12-061-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx((512,512), (512,512), backend='cv2'),
+            session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
+                model_path=[f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-symbol.json',
+                            f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,3,512,512)}),
+            postprocess=postproc_detection_mxnet,
+            metric=dict(label_offset_pred=coco_label_offset_80to90())
+        ),
     }
     return pipeline_configs
 
