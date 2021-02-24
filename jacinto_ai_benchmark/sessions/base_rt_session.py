@@ -112,15 +112,10 @@ class BaseRTSession(utils.ParamsBase):
         #
         work_dir = os.path.abspath(work_dir)
         model_path = self.kwargs['model_path']
-        model_type = self.kwargs['model_type']
         model_name = model_path[0] if isinstance(model_path, (list,tuple)) else model_path
-        if model_type is not None:
-            model_name = os.path.splitext(model_name)[0]
-            model_ext = model_type
-        else:
-            model_name, model_ext = os.path.splitext(model_name)
-            model_ext = model_ext[1:]
-        #
+        model_name, model_ext = os.path.splitext(model_name)
+        model_ext = model_ext[1:] if len(model_ext)>0 else model_ext
+
         model_name_splits = model_name.split(os.sep)
         dir_tree_depth = self.kwargs['dir_tree_depth']
         if len(model_name_splits) > dir_tree_depth:
@@ -128,7 +123,7 @@ class BaseRTSession(utils.ParamsBase):
         #
         model_id = self.kwargs['model_id']
         session_name = self.kwargs['session_name']
-        run_name = '_'.join([model_id] + model_name_splits + [model_ext, session_name])
+        run_name = '_'.join([model_id] + model_name_splits + [model_ext] + [session_name])
         run_dir = os.path.join(work_dir, f'{run_name}')
         return run_dir
 
