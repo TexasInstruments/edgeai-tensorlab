@@ -19,6 +19,7 @@ def get_configs(settings, work_dir, onnx_session_type=sessions.TVMDLRSession,
 
     postproc_detection_onnx = settings.get_postproc_detection_onnx(detection_thr=settings.detection_thr, save_output=settings.save_output)
     postproc_detection_tflite = settings.get_postproc_detection_tflite(detection_thr=settings.detection_thr, save_output=settings.save_output)
+    postproc_detection_mxnet = settings.get_postproc_detection_mxnet(detection_thr=settings.detection_thr, save_output=settings.save_output)
 
     pipeline_configs = {
         #################################################################
@@ -143,11 +144,11 @@ def get_configs(settings, work_dir, onnx_session_type=sessions.TVMDLRSession,
         'vdet-12-050-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx((416,416), (416,416), backend='cv2'),
             session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
-                model_path=[f'{settings.modelzoo_path}/vision/detection/coco/gluoncv/yolo3_mobilenet1.0_coco-symbol.json'
-                            f'{settings.modelzoo_path}/vision/detection/coco/gluoncv/yolo3_mobilenet1.0_coco-0000.params'],
-                model_type='mxnet', input_shape={'data':(1,2,416,416)}),
-            postprocess=postproc_detection_onnx,
-            metric=dict(label_offset_pred=coco_label_offset_90to90())
+                model_path=[f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-symbol.json',
+                            f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,3,416,416)}),
+            postprocess=postproc_detection_mxnet,
+            metric=dict(label_offset_pred=coco_label_offset_80to90())
         ),
     }
     return pipeline_configs
@@ -166,7 +167,7 @@ def coco_label_offset_80to90(label_offset=1):
                          81, 82, 84, 85, 86, 87, 88, 89, 90]
 
     if label_offset == 1:
-        # 0 => 1, 1 => 2, .. 80 => 91
+        # 0 => 1, 1 => 2, .. 79 -> 90, 80 => 91
         coco_label_offset = {k:v for k,v in enumerate(coco_label_table)}
         coco_label_offset.update({80:91})
     elif label_offset == 0:

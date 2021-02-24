@@ -136,13 +136,17 @@ class ConfigSettings(config_dict.ConfigDict):
     ###############################################################
     # post process transforms for detection
     ###############################################################
-    def get_postproc_detection(self, detection_thr=None, save_output=True, formatter=None):
-        postprocess_detection = [postprocess.Concat(axis=-1, end_index=3),
+    def get_postproc_detection(self, detection_thr=None, save_output=True, formatter=None,
+                               resize_detections=True, shuffle_indices=None):
+        postprocess_detection = [postprocess.ShuffleList(indices=shuffle_indices),
+                                 postprocess.Concat(axis=-1, end_index=3),
                                  postprocess.IndexArray()]
         if formatter is not None:
             postprocess_detection += [formatter]
         #
-        postprocess_detection += [postprocess.DetectionResize()]
+        if resize_detections:
+            postprocess_detection += [postprocess.DetectionResize()]
+        #
         if detection_thr is not None:
             postprocess_detection += [postprocess.DetectionFilter(detection_thr=detection_thr)]
         #
@@ -158,6 +162,12 @@ class ConfigSettings(config_dict.ConfigDict):
 
     def get_postproc_detection_tflite(self, detection_thr=None, save_output=True, formatter=postprocess.DetectionYXYX2XYXY()):
         return self.get_postproc_detection(detection_thr=detection_thr, save_output=save_output, formatter=formatter)
+
+    def get_postproc_detection_mxnet(self, detection_thr=None, save_output=True, formatter=None,
+                                     resize_detections=False, shuffle_indices=(2,0,1)):
+        return self.get_postproc_detection(detection_thr=detection_thr, save_output=save_output,
+                                           formatter=formatter, resize_detections=resize_detections,
+                                           shuffle_indices=shuffle_indices)
 
     ###############################################################
     # post process transforms for segmentation

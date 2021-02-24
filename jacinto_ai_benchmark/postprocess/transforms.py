@@ -55,6 +55,21 @@ class Concat():
         return tensor, info_dict
 
 
+class ShuffleList():
+    def __init__(self, indices=None):
+        self.indices = indices
+
+    def __call__(self, tensor_list, info_dict):
+        if self.indices is not None:
+            tensor_list_orig = tensor_list
+            tensor_list = []
+            for ind in self.indices:
+                tensor_list.append(tensor_list_orig[ind])
+            #
+        #
+        return tensor_list, info_dict
+
+
 ##############################################################################
 class SegmentationImageResize():
     def __call__(self, label, info_dict):
@@ -72,7 +87,7 @@ class SegmentationImageSave():
         # img_data = info_dict['data']
         image_name = os.path.split(data_path)[-1].split('.')[0] + '.png'
         run_dir = info_dict['run_dir']
-        save_dir = os.path.join(run_dir, 'segmentation')
+        save_dir = os.path.join(run_dir, 'outputs')
         os.makedirs(save_dir, exist_ok=True)
         save_path = os.path.join(save_dir, image_name)
 
@@ -158,7 +173,7 @@ class DetectionImageSave():
         img_data = info_dict['data']
         image_name = os.path.split(data_path)[-1]
         run_dir = info_dict['run_dir']
-        save_dir = os.path.join(run_dir, 'detection')
+        save_dir = os.path.join(run_dir, 'outputs')
         os.makedirs(save_dir, exist_ok=True)
         save_path = os.path.join(save_dir, image_name)
 

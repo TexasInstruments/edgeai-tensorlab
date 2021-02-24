@@ -23,7 +23,7 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['version'] = self.kwargs.get('version', (7,0))
         self.kwargs['tidl_tensor_bits'] = self.kwargs.get('tidl_tensor_bits', 32)
         self.kwargs['num_tidl_subgraphs'] = self.kwargs.get('num_tidl_subgraphs', 16)
-        self.kwargs['model_id'] = self.kwargs.get('model_id', '')
+        self.kwargs['model_id'] = self.kwargs.get('model_id', None)
         # convert model_path to abspath
         model_path = self.kwargs.get('model_path', None)
         model_path = [os.path.abspath(m) for m in model_path] if isinstance(model_path, (list,tuple)) else model_path
@@ -113,11 +113,12 @@ class BaseRTSession(utils.ParamsBase):
         work_dir = os.path.abspath(work_dir)
         model_path = self.kwargs['model_path']
         model_type = self.kwargs['model_type']
+        model_name = model_path[0] if isinstance(model_path, (list,tuple)) else model_path
         if model_type is not None:
-            model_name = model_path[0] if isinstance(model_path, (list,tuple)) else model_path
+            model_name = os.path.splitext(model_name)[0]
             model_ext = model_type
         else:
-            model_name, model_ext = os.path.splitext(model_path)
+            model_name, model_ext = os.path.splitext(model_name)
             model_ext = model_ext[1:]
         #
         model_name_splits = model_name.split(os.sep)

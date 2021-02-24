@@ -23,13 +23,14 @@ class TVMDLRSession(BaseRTSession):
         os.chdir(self.interpreter_folder)
 
         model_path = self.kwargs['model_path']
-        if self.kwargs['model_type'] == 'mxnet':
+        model_type = self.kwargs['model_type'] or os.path.splitext(model_path)[1][1:]
+        if model_type == 'mxnet':
             model_json, arg_params, aux_params = self._load_mxnet_model(model_path)
             assert self.kwargs['input_shape'] is not None, 'input_shape must be given'
             input_shape = self.kwargs['input_shape']
             input_keys = list(input_shape.keys())
-            mod, params = relay.frontend.from_mxnet(model_json, input_shape, arg_params=arg_params, aux_params=aux_params)
-        else:
+            tvm_model, params = relay.frontend.from_mxnet(model_json, input_shape, arg_params=arg_params, aux_params=aux_params)
+        elif model_type == 'onnx':
             onnx_model = onnx.load(model_path)
             if self.kwargs['input_shape'] is None:
                 self.kwargs['input_shape'] = self._get_input_shape_onnx(onnx_model)
@@ -37,6 +38,8 @@ class TVMDLRSession(BaseRTSession):
             input_shape = self.kwargs['input_shape']
             input_keys = list(input_shape.keys())
             tvm_model, params = relay.frontend.from_onnx(onnx_model, shape=input_shape)
+        else:
+            assert False, f'unrecognized model type {model_type}'
         #
 
         calib_list = []
