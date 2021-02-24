@@ -6,9 +6,10 @@ from .. import utils
 
 
 class AccuracyPipeline():
-    def __init__(self, pipeline_config):
+    def __init__(self, pipeline_config, enable_logging=True):
         self.info_dict = dict()
         self.pipeline_config = pipeline_config
+        self.enable_logging = enable_logging
         self.logger = None
         self.avg_inference_time = None
 
@@ -40,7 +41,7 @@ class AccuracyPipeline():
         # logger can be created after start
         run_dir = session.get_param('run_dir')
         # verbose = self.pipeline_config['verbose']
-        log_filename = os.path.join(run_dir, 'run.log')
+        log_filename = os.path.join(run_dir, 'run.log') if self.enable_logging else None
         self.logger = utils.TeeLogger(log_filename)
         self.logger.write(f'\nrunning: {Fore.BLUE}{os.path.basename(run_dir)}{Fore.RESET}')
         self.logger.write(f'\npipeline_config: {self.pipeline_config}')
@@ -55,9 +56,11 @@ class AccuracyPipeline():
         #
         self.logger.write(f'\nBenchmarkResults: {utils.round_dict(result)}\n')
 
-        pkl_filename = os.path.join(run_dir, 'result.pkl')
-        with open(pkl_filename, 'wb') as fp:
-            pickle.dump(result, fp)
+        if self.enable_logging:
+            pkl_filename = os.path.join(run_dir, 'result.pkl')
+            with open(pkl_filename, 'wb') as fp:
+                pickle.dump(result, fp)
+            #
         #
         return result
 

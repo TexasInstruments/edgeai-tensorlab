@@ -21,10 +21,12 @@ def collect_results(settings, work_dir, print_results=True):
         #
     #
     results = sorted(results, key=lambda item: item['inference_path'])
-    result_file = f'{work_dir}/results.log'
-    with open(result_file,'w') as writer_fp:
-        for result in results:
-            writer_fp.write(f'\n{utils.round_dict(result)}')
+    if settings.enable_logging:
+        result_file = f'{work_dir}/results.log'
+        with open(result_file,'w') as writer_fp:
+            for result in results:
+                writer_fp.write(f'\n{utils.round_dict(result)}')
+            #
         #
     #
     if print_results:

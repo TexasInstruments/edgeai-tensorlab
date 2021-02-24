@@ -5,19 +5,25 @@ class TeeLogger:
     def __init__(self, file_name):
         super().__init__()
         self.src_stream = sys.stdout
-        self.dst_file = open(file_name, 'w')
+        self.dst_file = open(file_name, 'w') if file_name is not None else None
         sys.stdout = self
 
     def __del__(self):
         self.close()
 
     def write(self, message):
-        self.src_stream.write(message)
-        self.dst_file.write(message)
+        if self.src_stream is not None:
+            self.src_stream.write(message)
+        #
+        if self.dst_file is not None:
+            self.dst_file.write(message)
+        #
         self.flush()
 
     def flush(self):
-        self.src_stream.flush()
+        if self.src_stream is not None:
+            self.src_stream.flush()
+        #
         if self.dst_file is not None:
             self.dst_file.flush()
         #
@@ -26,10 +32,13 @@ class TeeLogger:
         return self.src_stream.isatty()
 
     def close(self):
+        if self.src_stream is not None:
+            sys.stdout = self.src_stream
+            self.src_stream = None
+        #
         if self.dst_file is not None:
             self.dst_file.close()
             self.dst_file = None
-            sys.stdout = self.src_stream
         #
 
 
