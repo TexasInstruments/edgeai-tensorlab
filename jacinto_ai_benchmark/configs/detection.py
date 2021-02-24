@@ -140,8 +140,8 @@ def get_configs(settings, work_dir, onnx_session_type=sessions.TVMDLRSession,
         #     metric=dict(label_offset_pred=coco_label_offset_90to90())
         # ),
         #################################################################
-        # mxnet : gluon model : detection - yolo3_mobilenet1.0_coco
-        'vdet-12-050-0':utils.dict_update(common_cfg,
+        # mxnet : gluoncv model : detection - yolo3_mobilenet1.0_coco
+        'vdet-12-060-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx((416,416), (416,416), backend='cv2'),
             session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
                 model_path=[f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-symbol.json',
