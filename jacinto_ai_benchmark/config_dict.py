@@ -3,7 +3,7 @@ import yaml
 
 
 class ConfigDict(dict):
-    def __init__(self, input=None):
+    def __init__(self, input=None, **kwargs):
         # initialize with default values
         self._initialize()
         # read the given settings file
@@ -20,6 +20,10 @@ class ConfigDict(dict):
             input_dict = input
         elif input is not None:
             assert False, 'got invalid input'
+        #
+        # override the entries with kwargs
+        for k, v in kwargs.items():
+            input_dict[k] = v
         #
         super().__init__(input_dict)
 

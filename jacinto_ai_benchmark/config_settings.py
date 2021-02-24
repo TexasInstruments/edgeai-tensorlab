@@ -4,8 +4,8 @@ from . import config_dict
 
 
 class ConfigSettings(config_dict.ConfigDict):
-    def __init__(self, input):
-        super().__init__(input)
+    def __init__(self, input, **kwargs):
+        super().__init__(input, **kwargs)
 
         ############################################################
         # quantization params & session config
