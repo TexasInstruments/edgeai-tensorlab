@@ -1,6 +1,6 @@
 import numbers
-from typing import Tuple, List, Optional
 from collections.abc import Sequence
+import numpy as np
 import PIL
 import cv2
 
@@ -23,23 +23,33 @@ class ImageRead(object):
         self.backend = backend
 
     def __call__(self, path, info_dict):
-        if self.backend == 'pil':
-            img_data = PIL.Image.open(path)
-            img_data = img_data.convert('RGB')
-            info_dict['data_shape'] = img_data.size[1], img_data.size[0], len(img_data.getbands())
-        elif self.backend == 'cv2':
-            img_data = cv2.imread(path)
-            if img_data.shape[-1] == 1:
-                img_data = cv2.cvtColor(img_data, cv2.COLOR_GRAY2BGR)
-            elif img_data.shape[-1] == 4:
-                img_data = cv2.cvtColor(img_data, cv2.COLOR_BGRA2BGR)
+        if isinstance(path, str):
+            img_data = None
+            if self.backend == 'pil':
+                img_data = PIL.Image.open(path)
+                img_data = img_data.convert('RGB')
+                info_dict['data_shape'] = img_data.size[1], img_data.size[0], len(img_data.getbands())
+            elif self.backend == 'cv2':
+                img_data = cv2.imread(path)
+                if img_data.shape[-1] == 1:
+                    img_data = cv2.cvtColor(img_data, cv2.COLOR_GRAY2BGR)
+                elif img_data.shape[-1] == 4:
+                    img_data = cv2.cvtColor(img_data, cv2.COLOR_BGRA2BGR)
+                #
+                # always return in RGB format
+                img_data = img_data[:,:,::-1]
+                info_dict['data_shape'] = img_data.shape
             #
-            # always return in RGB format
-            img_data = img_data[:,:,::-1]
+            info_dict['data'] = img_data
+            info_dict['data_path'] = path
+        elif isinstance(path, np.ndarray):
+            img_data = path
             info_dict['data_shape'] = img_data.shape
+            info_dict['data'] = img_data
+            info_dict['data_path'] = './'
+        else:
+            assert False, 'invalid input'
         #
-        info_dict['data'] = img_data
-        info_dict['data_path'] = path
         return img_data, info_dict
 
     def __repr__(self):

@@ -48,5 +48,7 @@ task_selection : null
 config_range : null
 # whether to load the datasets or not
 dataset_loading : True
+# logging of the import, infer and the accuracy. set to False to disable it.
+enable_logging : True
 # verbose mode - print out more information
 verbose : False
