@@ -104,17 +104,56 @@ class SegmentationImageSave():
 
 
 ##############################################################################
-class DetectionResize():
+class DetectionResizeOnlyNormalized():
     def __call__(self, bbox, info_dict):
+        img_data = info_dict['data']
+        assert isinstance(img_data, np.ndarray), 'only supports np array for now'
         data_shape = info_dict['data_shape']
+        data_height, data_width, _ = data_shape
         # avoid accidental overflow
         bbox = bbox.clip(-1e6, 1e6)
-        # apply scaling
-        bbox[...,0] *= data_shape[1]
-        bbox[...,1] *= data_shape[0]
-        bbox[...,2] *= data_shape[1]
-        bbox[...,3] *= data_shape[0]
+        # scale the detections from normalized shape (0-1) to data shape
+        bbox[...,0] = (bbox[...,0]*data_width).clip(0, data_width)
+        bbox[...,1] = (bbox[...,1]*data_height).clip(0, data_height)
+        bbox[...,2] = (bbox[...,2]*data_width).clip(0, data_width)
+        bbox[...,3] = (bbox[...,3]*data_height).clip(0, data_height)
         return bbox, info_dict
+
+
+class DetectionResizePad():
+    def __init__(self, resize_with_pad=False, normalized_detections=True):
+        self.resize_with_pad = resize_with_pad
+        self.normalized_detections = normalized_detections
+
+    def __call__(self, bbox, info_dict):
+        img_data = info_dict['data']
+        assert isinstance(img_data, np.ndarray), 'only supports np array for now'
+        # avoid accidental overflow
+        bbox = bbox.clip(-1e6, 1e6)
+        # img size without pad
+        data_shape = info_dict['data_shape']
+        data_height, data_width, _ = data_shape
+        resize_shape = info_dict['resize_shape']
+        resize_height, resize_width, _ = resize_shape
+        if self.resize_with_pad:
+            # account for padding
+            border = info_dict['resize_border']
+            left, top, right, bottom = border
+            bbox[...,0] -= left
+            bbox[...,1] -= top
+            bbox[...,2] -= left
+            bbox[...,3] -= top
+            resize_height, resize_width = (resize_height - top - bottom), (resize_width - left - right)
+        #
+        # scale the detections from the input shape to data shape
+        sh = data_height / (1.0 if self.normalized_detections else resize_height)
+        sw = data_width / (1.0 if self.normalized_detections else resize_width)
+        bbox[...,0] = (bbox[...,0] * sw).clip(0, data_width)
+        bbox[...,1] = (bbox[...,1] * sh).clip(0, data_height)
+        bbox[...,2] = (bbox[...,2] * sw).clip(0, data_width)
+        bbox[...,3] = (bbox[...,3] * sh).clip(0, data_height)
+        return bbox, info_dict
+
 
 class DetectionFilter():
     def __init__(self, detection_thr):

@@ -87,11 +87,11 @@ class ConfigSettings(config_dict.ConfigDict):
     # preprocess transforms
     ###############################################################
     def get_preproc_onnx(self, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
-                         backend='pil', interpolation=None,
+                         backend='pil', interpolation=None, resize_with_pad=False,
                          mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429)):
         preprocess_tvm_dlr = [
             preprocess.ImageRead(backend=backend),
-            preprocess.ImageResize(resize, interpolation=interpolation),
+            preprocess.ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad),
             preprocess.ImageCenterCrop(crop),
             preprocess.ImageToNPTensor4D(data_layout=data_layout),
             preprocess.ImageNormMeanScale(mean=mean, scale=scale, data_layout=data_layout)]
@@ -105,17 +105,25 @@ class ConfigSettings(config_dict.ConfigDict):
         return transforms
 
     def get_preproc_jai(self, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
-                        backend='cv2', interpolation=cv2.INTER_AREA,
+                        backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False,
                         mean=(128.0, 128.0, 128.0), scale=(1/64.0, 1/64.0, 1/64.0)):
         return self.get_preproc_onnx(resize=resize, crop=crop, data_layout=data_layout, reverse_channels=reverse_channels,
-                                backend=backend, interpolation=interpolation, mean=mean, scale=scale)
+                                backend=backend, interpolation=interpolation, resize_with_pad=resize_with_pad,
+                                mean=mean, scale=scale)
+
+    def get_preproc_mxnet(self, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
+                        backend='cv2', interpolation=None, resize_with_pad=False,
+                        mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429)):
+        return self.get_preproc_onnx(resize=resize, crop=crop, data_layout=data_layout, reverse_channels=reverse_channels,
+                                backend=backend, interpolation=interpolation, resize_with_pad=resize_with_pad,
+                                mean=mean, scale=scale)
 
     def get_preproc_tflite(self, resize=256, crop=224, data_layout=constants.NHWC, reverse_channels=False,
-                              backend='pil', interpolation=None,
+                              backend='pil', interpolation=None, resize_with_pad=False,
                               mean=(128.0, 128.0, 128.0), scale=(1/128.0, 1/128.0, 1/128.0)):
         preprocess_tflite_rt = [
             preprocess.ImageRead(backend=backend),
-            preprocess.ImageResize(resize, interpolation=interpolation),
+            preprocess.ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad),
             preprocess.ImageCenterCrop(crop),
             preprocess.ImageToNPTensor4D(data_layout=data_layout),
             preprocess.ImageNormMeanScale(mean=mean, scale=scale, data_layout=data_layout)]
@@ -137,16 +145,15 @@ class ConfigSettings(config_dict.ConfigDict):
     # post process transforms for detection
     ###############################################################
     def get_postproc_detection(self, detection_thr=None, save_output=True, formatter=None,
-                               resize_detections=True, shuffle_indices=None):
+                               resize_with_pad=False, normalized_detections=True, shuffle_indices=None):
         postprocess_detection = [postprocess.ShuffleList(indices=shuffle_indices),
                                  postprocess.Concat(axis=-1, end_index=3),
                                  postprocess.IndexArray()]
         if formatter is not None:
             postprocess_detection += [formatter]
         #
-        if resize_detections:
-            postprocess_detection += [postprocess.DetectionResize()]
-        #
+        postprocess_detection += [postprocess.DetectionResizePad(resize_with_pad=resize_with_pad,
+                                                    normalized_detections=normalized_detections)]
         if detection_thr is not None:
             postprocess_detection += [postprocess.DetectionFilter(detection_thr=detection_thr)]
         #
@@ -164,9 +171,9 @@ class ConfigSettings(config_dict.ConfigDict):
         return self.get_postproc_detection(detection_thr=detection_thr, save_output=save_output, formatter=formatter)
 
     def get_postproc_detection_mxnet(self, detection_thr=None, save_output=True, formatter=None,
-                                     resize_detections=False, shuffle_indices=(2,0,1)):
-        return self.get_postproc_detection(detection_thr=detection_thr, save_output=save_output,
-                                           formatter=formatter, resize_detections=resize_detections,
+                                     resize_with_pad=False, normalized_detections=False, shuffle_indices=(2,0,1)):
+        return self.get_postproc_detection(detection_thr=detection_thr, save_output=save_output, formatter=formatter,
+                                           resize_with_pad=resize_with_pad, normalized_detections=normalized_detections,
                                            shuffle_indices=shuffle_indices)
 
     ###############################################################

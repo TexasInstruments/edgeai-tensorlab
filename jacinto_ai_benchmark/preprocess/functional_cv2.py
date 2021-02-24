@@ -47,18 +47,55 @@ def resize(img, size, **kwargs):
         raise TypeError('Got inappropriate size arg: {}'.format(size))
 
     if isinstance(size, int) or len(size) == 1:
-        if isinstance(size, Sequence):
-            size = size[0]
-        w, h = img.shape[1], img.shape[0]
-        if (w <= h and w == size) or (h <= w and h == size):
-            return img
-        if w < h:
-            ow = size
-            oh = int(size * h / w)
-            return cv2.resize(img, (ow, oh), interpolation=interpolation)
+        resize_with_pad = kwargs.get('resize_with_pad', False)
+        if resize_with_pad:
+            if isinstance(size, Sequence):
+                size = size[0]
+            #
+            w, h = img.shape[1], img.shape[0]
+            if (w >= h and w == size) or (h >= w and h == size):
+                ow = w
+                oh = h
+            elif w > h:
+                ow = size
+                oh = int(size * h / w)
+                img = cv2.resize(img, (ow, oh), interpolation=interpolation)
+            else:
+                oh = size
+                ow = int(size * w / h)
+                img = cv2.resize(img, (ow, oh), interpolation=interpolation)
+            #
+            # pad if necessary
+            wpad = (size - ow)
+            hpad = (size - oh)
+            top = hpad // 2
+            bottom = hpad - top
+            left = wpad // 2
+            right = wpad - left
+            img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, 0)
+            border=(left,top,right,bottom)
+            return img, border
         else:
-            oh = size
-            ow = int(size * w / h)
-            return cv2.resize(img, (ow, oh), interpolation=interpolation)
+            if isinstance(size, Sequence):
+                size = size[0]
+            #
+            w, h = img.shape[1], img.shape[0]
+            if (w <= h and w == size) or (h <= w and h == size):
+                pass
+            if w < h:
+                ow = size
+                oh = int(size * h / w)
+                img = cv2.resize(img, (ow, oh), interpolation=interpolation)
+            else:
+                oh = size
+                ow = int(size * w / h)
+                img = cv2.resize(img, (ow, oh), interpolation=interpolation)
+            #
+            border = (0,0,0,0)
+            return img, border
+        #
     else:
-        return cv2.resize(img, dsize=size[::-1], interpolation=interpolation)
+        border = (0,0,0,0)
+        img = cv2.resize(img, dsize=size[::-1], interpolation=interpolation)
+        return img, border
+    #

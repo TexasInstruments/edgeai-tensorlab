@@ -171,7 +171,14 @@ class ImageResize():
         Returns:
             PIL Image or Tensor: Rescaled image.
         """
-        return F.resize(img, self.size, *self.args, **self.kwargs), info_dict
+        img, border = F.resize(img, self.size, *self.args, **self.kwargs)
+        if isinstance(img, np.ndarray):
+            info_dict['resize_shape'] = img.shape
+        else:
+            info_dict['resize_shape'] = img.size[1], img.size[0], len(img.getbands())
+        #
+        info_dict['resize_border'] = border
+        return img, info_dict
 
     def __repr__(self):
         repr_str = self.__class__.__name__ + f'({self.size}'

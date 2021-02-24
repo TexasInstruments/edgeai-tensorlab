@@ -165,21 +165,56 @@ def resize(img, size, **kwargs):
         raise TypeError('Got inappropriate size arg: {}'.format(size))
 
     if isinstance(size, int) or len(size) == 1:
+        resize_with_pad = kwargs.get('resize_with_pad', False)
+        assert resize_with_pad == False, 'resize with pad is not yet supported for pil backed. please use cv2 backend for now'
         if isinstance(size, Sequence):
             size = size[0]
-        w, h = img.size
-        if (w <= h and w == size) or (h <= w and h == size):
-            return img
-        if w < h:
-            ow = size
-            oh = int(size * h / w)
-            return img.resize((ow, oh), resample=resample)
+        #
+        if resize_with_pad:
+            w, h = img.size
+            if (w >= h and w == size) or (h >= w and h == size):
+                ow = w
+                oh = h
+            if w > h:
+                ow = size
+                oh = int(size * h / w)
+                img = img.resize((ow, oh), resample=resample)
+            else:
+                oh = size
+                ow = int(size * w / h)
+                img = img.resize((ow, oh), resample=resample)
+            #
+            wpad = (size - ow)
+            hpad = (size - oh)
+            top = hpad // 2
+            bottom = hpad - top
+            left = wpad // 2
+            right = wpad - left
+            border=(left,top,right,bottom)
+            img = ImageOps.expand(img, border=border, fill=0)
+            return img, border
+        #
         else:
-            oh = size
-            ow = int(size * w / h)
-            return img.resize((ow, oh), resample=resample)
+            w, h = img.size
+            if (w <= h and w == size) or (h <= w and h == size):
+                pass
+            if w < h:
+                ow = size
+                oh = int(size * h / w)
+                img = img.resize((ow, oh), resample=resample)
+            else:
+                oh = size
+                ow = int(size * w / h)
+                img = img.resize((ow, oh), resample=resample)
+            #
+            border = (0,0,0,0)
+            return img, border
+        #
     else:
-        return img.resize(size[::-1], resample=resample)
+        border = (0,0,0,0)
+        img = img.resize(size[::-1], resample=resample)
+        return img, border
+    #
 
 
 def _parse_fill(fill, img, min_pil_version, name="fillcolor"):
