@@ -223,7 +223,7 @@ class BaseRTSession(utils.ParamsBase):
         #
         model_id = self.kwargs['model_id']
         session_name = self.kwargs['session_name']
-        run_name = '_'.join([model_id] + model_name_splits + [model_ext] + [session_name])
+        run_name = '_'.join([model_id] + [session_name] + model_name_splits + [model_ext])
         run_dir = os.path.join(work_dir, f'{run_name}')
         return run_dir
 
