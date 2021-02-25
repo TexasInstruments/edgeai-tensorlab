@@ -20,7 +20,7 @@ def collect_results(settings, work_dir, print_results=True):
             #
         #
     #
-    results = sorted(results, key=lambda item: item['inference_path'])
+    results = sorted(results, key=lambda item: item['infer_path'])
     if settings.enable_logging:
         result_filename = os.path.join(work_dir, 'results.log')
         with open(result_filename,'w') as writer_fp:
