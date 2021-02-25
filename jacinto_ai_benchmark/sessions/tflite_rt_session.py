@@ -1,4 +1,5 @@
 import os
+import time
 import warnings
 import numpy as np
 import tflite_runtime.interpreter as tflitert_interpreter
@@ -55,7 +56,11 @@ class TFLiteRTSession(BaseRTSession):
         for c_data_entry_idx, c_data_entry in enumerate(c_data):
             self._set_tensor(input_details[c_data_entry_idx], c_data_entry)
         #
+        # measure the time across only interpreter.run
+        # time for setting the tensor and other overheads would be optimized out in c-api
+        start_time = time.time()
         self.interpreter.invoke()
+        info_dict['session_invoke_time'] = (time.time() - start_time)
         outputs = [self._get_tensor(output_detail) for output_detail in output_details]
         return outputs, info_dict
 

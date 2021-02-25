@@ -94,8 +94,9 @@ class AccuracyPipeline():
 
         self.logger.write(f'\ninfer {description}:' + run_dir_base)
 
-        elapsed_time = 0.0
-        copy_time = 0.0
+        invoke_time = 0.0
+        core_time = 0.0
+        subgraph_time = 0.0
         ddr_transfer = 0.0
 
         output_list = []
@@ -106,24 +107,24 @@ class AccuracyPipeline():
             data = input_dataset[data_index]
             data, info_dict = preprocess(data, info_dict)
 
-            start_time = time.time()
             output, info_dict = session.infer_frame(data, info_dict)
-            elapsed_time += (time.time() - start_time)
+            invoke_time += info_dict['session_invoke_time']
 
             stats_dict = session.infer_stats()
-            copy_time += stats_dict['copy_time']
+            core_time += stats_dict['core_time']
+            subgraph_time += stats_dict['subgraph_time']
             ddr_transfer += (stats_dict['write_total'] + stats_dict['read_total'])
 
             output, info_dict = postprocess(output, info_dict)
             output_list.append(output)
         #
-        # multiplication by 1000 is to convert seconds to milliseconds
-        MILLI_CONST = 1e3
-        # convert raw data to mega : example bytes to mega bytes (MB)
-        MEGA_CONST = 1e6
+        MILLI_CONST = 1e3 # multiplication by 1000 is to convert seconds to milliseconds
+        MEGA_CONST = 1e6  # convert raw data to mega : example bytes to mega bytes (MB)
         self.infer_stats_dict = {
-            'infer_time_full_ms': elapsed_time * MILLI_CONST / num_frames,
-            'infer_time_proc_ms': (elapsed_time - copy_time) * MILLI_CONST / num_frames,
+            'num_subgraphs': stats_dict['num_subgraphs'],
+            #'infer_time_invoke_ms': invoke_time * MILLI_CONST / num_frames,
+            'infer_time_core_ms': core_time * MILLI_CONST / num_frames,
+            'infer_time_subgraph_ms': subgraph_time * MILLI_CONST / num_frames,
             'ddr_transfer_mb': ddr_transfer / num_frames / MEGA_CONST
         }
         self.logger.write(f'\ninfer {description}: {run_dir_base} - done.')
@@ -145,7 +146,7 @@ class AccuracyPipeline():
         metric_options = utils.as_list(metric_options)
         output_dict = {}
         inference_path = os.path.split(run_dir)[-1]
-        output_dict.update({'inference_path':inference_path})
+        output_dict.update({'infer_path':inference_path})
         for m, m_options in zip(metric, metric_options):
             output = m(output_list, **m_options)
             output_dict.update(output)

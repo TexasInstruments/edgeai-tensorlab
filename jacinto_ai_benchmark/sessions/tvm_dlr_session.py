@@ -1,5 +1,5 @@
 import os
-
+import time
 from dlr import DLRModel
 
 from .base_rt_session import BaseRTSession
@@ -128,7 +128,11 @@ class TVMDLRSession(BaseRTSession):
         input_keys = list(input_shape.keys())
         in_data = utils.as_tuple(input)
         input_dict = {d_name:d for d_name, d in zip(input_keys,in_data)}
+        # measure the time across only interpreter.run
+        # time for setting the tensor and other overheads would be optimized out in c-api
+        start_time = time.time()
         output = self.interpreter.run(input_dict)
+        info_dict['session_invoke_time'] = (time.time() - start_time)
         return output, info_dict
 
     def _set_default_options(self):

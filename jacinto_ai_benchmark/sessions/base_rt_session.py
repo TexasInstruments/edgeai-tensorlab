@@ -82,7 +82,7 @@ class BaseRTSession(utils.ParamsBase):
 
     def infer_stats(self):
         benchmark_dict = self.interpreter.get_TI_benchmark_data()
-        subproc_time = copy_time = 0
+        subgraph_time = copy_time = 0
         cp_in_time = cp_out_time = 0
         subgraphIds = []
         for stat in benchmark_dict.keys():
@@ -91,26 +91,25 @@ class BaseRTSession(utils.ParamsBase):
             #
         #
         for i in range(len(subgraphIds)):
-            subproc_time += benchmark_dict['ts:subgraph_'+str(subgraphIds[i])+'_proc_end'] - benchmark_dict['ts:subgraph_'+str(subgraphIds[i])+'_proc_start']
+            subgraph_time += benchmark_dict['ts:subgraph_'+str(subgraphIds[i])+'_proc_end'] - benchmark_dict['ts:subgraph_'+str(subgraphIds[i])+'_proc_start']
             cp_in_time += benchmark_dict['ts:subgraph_'+str(subgraphIds[i])+'_copy_in_end'] - benchmark_dict['ts:subgraph_'+str(subgraphIds[i])+'_copy_in_start']
             cp_out_time += benchmark_dict['ts:subgraph_'+str(subgraphIds[i])+'_copy_out_end'] - benchmark_dict['ts:subgraph_'+str(subgraphIds[i])+'_copy_out_start']
         #
         copy_time = cp_in_time + cp_out_time
         copy_time = copy_time if len(subgraphIds) == 1 else 0
-        total_time   = benchmark_dict['ts:run_end'] - benchmark_dict['ts:run_start']
-        write_total  = benchmark_dict['ddr:read_end'] - benchmark_dict['ddr:read_start']
-        read_total   = benchmark_dict['ddr:write_end'] - benchmark_dict['ddr:write_start']
+        total_time = benchmark_dict['ts:run_end'] - benchmark_dict['ts:run_start']
+        write_total = benchmark_dict['ddr:read_end'] - benchmark_dict['ddr:read_start']
+        read_total = benchmark_dict['ddr:write_end'] - benchmark_dict['ddr:write_start']
         # change units
         total_time = total_time/constants.PROCESSOR_FREQ
         copy_time = copy_time/constants.PROCESSOR_FREQ
-        subproc_time = subproc_time/constants.PROCESSOR_FREQ
-
-        # do this to get time excluding the copy
-        # total_time = total_time - copy_time
-
+        subgraph_time = subgraph_time/constants.PROCESSOR_FREQ
+        # core time excluding the copy overhead
+        core_time = total_time - copy_time
         stats = {
-            'total_time':total_time, 'copy_time':copy_time, 'subproc_time':subproc_time,
-            'write_total':write_total, 'read_total':read_total
+            'num_subgraphs': len(subgraphIds),
+            'total_time': total_time, 'core_time': core_time, 'subgraph_time': subgraph_time,
+            'write_total': write_total, 'read_total': read_total
         }
         return stats
 
