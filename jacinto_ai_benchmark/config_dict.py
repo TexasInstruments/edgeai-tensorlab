@@ -75,6 +75,8 @@ class ConfigDict(dict):
         # example: ['classification', 'detection', 'segmentation']
         # example: ['classification']
         self.task_selection = None
+        # session types to use for each model type
+        self.session_type_dict = {'onnx':'tvmdlr', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
         # whether to load the datasets or not
         self.dataset_loading = True
         # which configs to run from the default list. example [0,10] [10,null] etc.

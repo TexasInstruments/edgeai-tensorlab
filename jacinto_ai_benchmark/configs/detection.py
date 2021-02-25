@@ -1,8 +1,12 @@
-from jacinto_ai_benchmark import *
+from .. import utils, datasets, preprocess, sessions, postprocess, metrics
 
 
-def get_configs(settings, work_dir, onnx_session_type=sessions.TVMDLRSession,
-                tflite_session_type=sessions.TFLiteRTSession):
+def get_configs(settings, work_dir):
+    # get the sessions types to use for each model type
+    session_type_dict = sessions.convert_session_names_to_types(settings.session_type_dict)
+    onnx_session_type = session_type_dict['onnx']
+    tflite_session_type = session_type_dict['tflite']
+    mxnet_session_type = session_type_dict['mxnet']
 
     # configs for each model pipeline
     common_cfg = {
@@ -143,7 +147,7 @@ def get_configs(settings, work_dir, onnx_session_type=sessions.TVMDLRSession,
         # mxnet : gluoncv model : detection - yolo3_mobilenet1.0_coco
         'vdet-12-060-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx((416,416), (416,416), backend='cv2'),
-            session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
+            session=mxnet_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
                 model_path=[f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-symbol.json',
                             f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,416,416)}),
@@ -153,7 +157,7 @@ def get_configs(settings, work_dir, onnx_session_type=sessions.TVMDLRSession,
         # mxnet : gluoncv model : detection - ssd_512_mobilenet1.0_coco
         'vdet-12-061-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
+            session=mxnet_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
                 model_path=[f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-symbol.json',
                             f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,512,512)}),
