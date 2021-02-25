@@ -52,7 +52,7 @@ class AccuracyPipeline():
         if run_inference:
             output_list = self._infer_frames(description)
             result = self._evaluate(output_list)
-            result.update({'avg_inference_time (ms)':self.avg_inference_time*1000})
+            result.update(self.infer_stats_dict)
         #
         self.logger.write(f'\nBenchmarkResults: {utils.round_dict(result)}\n')
 
@@ -93,7 +93,11 @@ class AccuracyPipeline():
         assert is_ok, f'start_infer() did not succeed for {run_dir_base}'
 
         self.logger.write(f'\ninfer {description}:' + run_dir_base)
-        elapsed_time = 0
+
+        elapsed_time = 0.0
+        copy_time = 0.0
+        ddr_transfer = 0.0
+
         output_list = []
         num_frames = len(input_dataset)
         pbar_desc = f'infer {description}: {run_dir_base}'
@@ -106,10 +110,22 @@ class AccuracyPipeline():
             output, info_dict = session.infer_frame(data, info_dict)
             elapsed_time += (time.time() - start_time)
 
+            stats_dict = session.infer_stats()
+            copy_time += stats_dict['copy_time']
+            ddr_transfer += (stats_dict['write_total'] + stats_dict['read_total'])
+
             output, info_dict = postprocess(output, info_dict)
             output_list.append(output)
         #
-        self.avg_inference_time = elapsed_time / num_frames
+        # multiplication by 1000 is to convert seconds to milliseconds
+        MILLI_CONST = 1e3
+        # convert raw data to mega : example bytes to mega bytes (MB)
+        MEGA_CONST = 1e6
+        self.infer_stats_dict = {
+            'infer_time_full_ms': elapsed_time * MILLI_CONST / num_frames,
+            'infer_time_proc_ms': (elapsed_time - copy_time) * MILLI_CONST / num_frames,
+            'ddr_transfer_mb': ddr_transfer / num_frames / MEGA_CONST
+        }
         self.logger.write(f'\ninfer {description}: {run_dir_base} - done.')
         return output_list
 
