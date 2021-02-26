@@ -43,8 +43,7 @@ class PipelineRunner():
         for pipeline_id, pipeline_config in enumerate(self.pipeline_configs.values()):
             os.chdir(cwd)
             description = f'{pipeline_id+1}/{total}'
-            result = self._run_pipeline(pipeline_config, description=description,
-                                        enable_logging=self.settings.enable_logging)
+            result = self._run_pipeline(self.settings, pipeline_config, description=description)
             results_list.append(result)
         #
         return results_list
@@ -59,9 +58,8 @@ class PipelineRunner():
             os.chdir(cwd)
             parallel_device = self.settings.parallel_devices[pipeline_index % num_devices] \
                 if self.settings.parallel_devices is not None else 0
-            run_pipeline_bound_func = functools.partial(self._run_pipeline, pipeline_config,
-                                                        parallel_device=parallel_device, description='',
-                                                        enable_logging=self.settings.enable_logging)
+            run_pipeline_bound_func = functools.partial(self._run_pipeline, self.settings, pipeline_config,
+                                                        parallel_device=parallel_device, description='')
             parallel_exec.enqueue(run_pipeline_bound_func)
         #
         results_list = parallel_exec.run()
@@ -70,7 +68,7 @@ class PipelineRunner():
     # this function cannot be an instance method of PipelineRunner, as it causes an
     # error during pickling, involved in the launch of a process is parallel run. make it classmethod
     @classmethod
-    def _run_pipeline(cls, pipeline_config, parallel_device=None, description='', enable_logging=True):
+    def _run_pipeline(cls, settings, pipeline_config, parallel_device=None, description=''):
         if parallel_device is not None:
             os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
         #
@@ -80,14 +78,14 @@ class PipelineRunner():
             for pipeline_type in pipeline_types:
                 if pipeline_type == constants.PIPELINE_ACCURACY:
                     # use with statement, so that the logger and other file resources are cleaned up
-                    with AccuracyPipeline(pipeline_config, enable_logging=enable_logging) as accuracy_pipeline:
+                    with AccuracyPipeline(settings, pipeline_config) as accuracy_pipeline:
                         accuracy_result = accuracy_pipeline.run(description)
                         result.update(accuracy_result)
                     #
                 elif pipeline_type == constants.PIPELINE_SOMETHING:
                     # this is just an example of how other pipelines can be implemented.
                     # 'something' used here is not real and it is not supported
-                    with SomethingPipeline(pipeline_config) as something_pipeline:
+                    with SomethingPipeline(settings, pipeline_config) as something_pipeline:
                         something_result = something_pipeline.run()
                         result.update(something_result)
                     #

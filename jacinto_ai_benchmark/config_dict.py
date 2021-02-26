@@ -27,11 +27,19 @@ class ConfigDict(dict):
         #
         super().__init__(input_dict)
 
-    def __getattr__(self, item):
-        return self[item]
+    def __getattr__(self, key):
+        return self[key]
 
     def __setattr__(self, key, value):
         self[key] = value
+
+    # pickling used by multiprocessing did not work without defining __getstate__
+    def __getstate__(self):
+        self.__dict__.copy()
+
+    # this seems to be not required by multiprocessing
+    def __setstate__(self, state):
+        self.__dict__.update(state)
 
     def _initialize(self):
         # execution pipeline type - currently only accuracy pipeline is defined
