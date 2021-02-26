@@ -129,6 +129,9 @@ class AccuracyPipeline():
         if 'perfsim_time' in stats_dict:
             self.infer_stats_dict.update({'perfsim_time_ms': stats_dict['perfsim_time'] * constants.MILLI_CONST})
         #
+        if 'perfsim_ddr_transfer' in stats_dict:
+            self.infer_stats_dict.update({'perfsim_ddr_transfer_mb': stats_dict['perfsim_ddr_transfer'] / constants.MEGA_CONST})
+        #
         if 'perfsim_macs' in stats_dict:
             self.infer_stats_dict.update({'perfsim_gmacs': stats_dict['perfsim_macs'] / constants.GIGA_CONST})
         #

@@ -59,7 +59,7 @@ def as_list_or_tuple(arg):
     return arg if isinstance(arg, (list,tuple)) else (arg,)
 
 
-def round_dict(d, precision=2):
+def round_dict(d, precision=3):
     d_copy = {}
     for k, v in d.items():
         if isinstance(v, (float, np.float32, np.float64)):

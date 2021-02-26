@@ -172,18 +172,27 @@ class BaseRTSession(utils.ParamsBase):
         with open(perfsim_csv) as perfsim_fp:
             perfsim_reader = csv.reader(perfsim_fp)
             perfsim_data = [data for data in perfsim_reader]
+
             # perfsim time - read from file
             perfsim_time = [row for row in perfsim_data if 'total network time (us)' in row[0].lower()][0][0]
             perfsim_time = float(perfsim_time.split('=')[1])
             # change units - convert from ultrasec to seconds
             perfsim_time = perfsim_time / constants.ULTRA_CONST
             subgraph_perfsim_dict.update({'perfsim_time': perfsim_time})
+
             # perfsim cycles - read from file
             # perfsim_cycles = [row for row in perfsim_data if 'total network cycles (mega)' in row[0].lower()][0][0]
             # perfsim_cycles = float(perfsim_cycles.split('=')[1])
             # change units - convert from mega cycles to cycles
             # perfsim_cycles = perfsim_cycles * constants.MEGA_CONST
             # subgraph_perfsim_dict.update({'perfsim_cycles': perfsim_cycles})
+
+            # perfsim ddr transfer - read from file
+            perfsim_ddr_transfer = [row for row in perfsim_data if 'ddr bw (mega bytes) : total' in row[0].lower()][0][0]
+            perfsim_ddr_transfer = float(perfsim_ddr_transfer.split('=')[1])
+            # change units - convert from megabytes to bytes
+            perfsim_ddr_transfer = perfsim_ddr_transfer * constants.MEGA_CONST
+            subgraph_perfsim_dict.update({'perfsim_ddr_transfer': perfsim_ddr_transfer})
         #
         return subgraph_perfsim_dict
 
