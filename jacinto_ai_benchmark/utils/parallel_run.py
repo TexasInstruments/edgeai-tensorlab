@@ -3,7 +3,6 @@ import multiprocessing
 import collections
 import time
 from .progress_step import *
-from .timer_utils import display_timing_stats
 
 
 class ParallelRun:
@@ -44,22 +43,22 @@ class ParallelRun:
 
     def _run_monitor(self, results_iterator):
         results_list = []
-        num_completed = 0
+        num_completed = num_completed_prev = 0
         num_tasks = len(self.queued_tasks)
-        start_time = end_time = time.time()
+        pbar_tasks = progress_step(iterable=range(num_tasks), desc=self.desc, position=1)
         while num_completed < num_tasks:
             # check if a result is available
             try:
                 result = results_iterator.__next__(timeout=self.maxinterval)
                 results_list.append(result)
                 num_completed = len(results_list)
-                end_time = time.time()
             except multiprocessing.TimeoutError as e:
                 pass
             #
-            display_timing_stats(self.desc, num_completed, total=num_tasks,
-                                 start_time=start_time, end_time=end_time)
+            pbar_tasks.update(num_completed-num_completed_prev)
+            num_completed_prev = num_completed
         #
+        pbar_tasks.close()
         print('\n')
         return results_list
 

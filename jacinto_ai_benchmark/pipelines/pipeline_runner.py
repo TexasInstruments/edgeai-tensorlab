@@ -52,7 +52,7 @@ class PipelineRunner():
         # get the cwd so that we can continue even if exception occurs
         cwd = os.getcwd()
         num_devices = len(self.settings.parallel_devices) if self.settings.parallel_devices is not None else 0
-        description = ' '*120 + 'TASKS'
+        description = 'TASKS'
         parallel_exec = utils.ParallelRun(num_processes=num_devices, desc=description)
         for pipeline_index, pipeline_config in enumerate(self.pipeline_configs.values()):
             os.chdir(cwd)

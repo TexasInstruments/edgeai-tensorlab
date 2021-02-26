@@ -39,9 +39,8 @@ def delta_time_string(seconds):
     return time_str
 
 
-def display_timing_stats(desc, num_completed, total, start_time, end_time, file=sys.stdout, step_size=1,
-                         colors=(Fore.BLUE, Fore.MAGENTA, Fore.YELLOW, Fore.CYAN)):
-    item_index = num_completed - 1
+def display_time_bar(desc, num_completed, total, start_time, end_time, file=None, colors=None):
+    file = file if file is not None else sys.stdout
     time_taken_str = eta_str = it_per_sec = ''
     time_delta = end_time - start_time
     if num_completed > 0 and time_delta > 0 and total is not None:
@@ -50,13 +49,19 @@ def display_timing_stats(desc, num_completed, total, start_time, end_time, file=
         it_per_sec = f'{(time_delta/num_completed):5.2f}s/it' if (time_delta > num_completed) \
             else f'{(num_completed/time_delta):5.2f}it/s'
     #
-    if num_completed == 0 or (item_index * step_size) == 0 or (total is not None and num_completed == total):
-        num_bars = int(num_completed*10.0/total) if total is not None else 0
-        percentage = f'{num_completed*100.0/total:5.0f}%' if total is not None else '    '
-        bar_string = f"{'#'*num_bars + ' '*(10-num_bars)}"
+    num_bars = int(num_completed*10.0/total) if total is not None else 0
+    percentage = f'{num_completed*100.0/total:5.0f}%' if total is not None else '    '
+    bar_string = f"{'#'*num_bars + ' '*(10-num_bars)}"
+    if colors is not None:
+        assert len(colors) == 4, f'colors must have length 4'
         file.write(f'\r{colors[0]}{desc}|'
                    f'{colors[1]}{bar_string}| '
                    f'{colors[2]}{percentage} {num_completed}/{total}| '
                    f'{colors[3]}[{time_taken_str}<{eta_str} {it_per_sec}]{Fore.RESET}')
-        file.flush()
+    else:
+        file.write(f'\r{desc}|'
+                   f'{bar_string}| '
+                   f'{percentage} {num_completed}/{total}| '
+                   f'[{time_taken_str}<{eta_str} {it_per_sec}]')
     #
+    file.flush()

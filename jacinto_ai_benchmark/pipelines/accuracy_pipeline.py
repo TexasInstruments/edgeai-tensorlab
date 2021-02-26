@@ -102,7 +102,7 @@ class AccuracyPipeline():
         output_list = []
         num_frames = len(input_dataset)
         pbar_desc = f'infer {description}: {run_dir_base}'
-        for data_index in utils.progress_step(range(num_frames), desc=pbar_desc, file=self.logger):
+        for data_index in utils.progress_step(range(num_frames), desc=pbar_desc, file=self.logger, position=0):
             info_dict = {}
             data = input_dataset[data_index]
             data, info_dict = preprocess(data, info_dict)
