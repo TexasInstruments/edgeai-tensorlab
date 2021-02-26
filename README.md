@@ -39,22 +39,11 @@ This benchmark uses several datasets. They should be available at the following 
 ## Usage
 
 #### Accuracy Benchmarking
-- Look at the example script [run_benchmarks.h](../run_benchmarks.h) to understand how to run these benchmarks. It sets up some environment variables then runs the scripts provided in [scripts](../scripts). 
-- Parameters for the accuracy benchmark are specified in [config_settings.py](../config_settings.py). Change these parameters appropriately - for example to get int8 accuracy, int16 accuracy etc.
-- *target_device = 'pc'* is to run accuracy benchmark simulation on PC. *target_device = 'j7'* is to run the accuracy benchmark on the target Jacinto 7 device.
-- Parallel execution is supported on PC and can be enabled by providing a list of integers to the argument *parallel_devices* as seen in config_settings.py. 
-
-#### Low Level Usage (Optional)
-TODO
-
-###### Intermediate Layer Outputs (Optional)
-TODO
-
-###### Examples
-TODO
-
-###### Tutorials
-TODO
+- Accuracy benchmark can be done by running [run_benchmarks.sh](./run_benchmarks.sh)
+- [run_benchmarks.sh](../run_benchmarks.sh) sets up some environment variables then runs the benchmark code provided in [scripts/benchmark_accuracy.py](./scripts/benchmark_accuracy.py) using the settings defined in [accuracy_pc.yaml](accuracy_pc.yaml) - this is to run it on PC. 
+- Change the yaml settings file appropriately to run on J7 EVM. [accuracy_import_for_j7.yaml](./accuracy_import_for_j7.yaml) can be used to run the import/calibration of the models on PC, but targeted for the J7 platform. This will create the imported/calibrated artifacts corresponding to the models. Finally [accuracy_infer_on_j7.yaml](./accuracy_infer_on_j7.yaml) can be used when running the benchmark on the J7 EVM (this step will use the imported/calibrated artifacts).
+- By default, the accuracy benchmark script uses our pre-defined models, defined in [jacinto_ai_benchmark/configs](./jacinto_ai_benchmark/configs).
+- If you would like to do accuracy benchmark for your own custom model, then please look at the example given in [scripts/custom_example.py](./scripts/custom_example.py).
 
 
 ## References
