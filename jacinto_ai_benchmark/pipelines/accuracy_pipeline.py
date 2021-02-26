@@ -2,7 +2,7 @@ import os
 import pickle
 import time
 from colorama import Fore
-from .. import utils
+from .. import utils, constants
 
 
 class AccuracyPipeline():
@@ -118,15 +118,20 @@ class AccuracyPipeline():
             output, info_dict = postprocess(output, info_dict)
             output_list.append(output)
         #
-        MILLI_CONST = 1e3 # multiplication by 1000 is to convert seconds to milliseconds
-        MEGA_CONST = 1e6  # convert raw data to mega : example bytes to mega bytes (MB)
+        # compute and populate final stats so that it can be used in result
         self.infer_stats_dict = {
             'num_subgraphs': stats_dict['num_subgraphs'],
-            #'infer_time_invoke_ms': invoke_time * MILLI_CONST / num_frames,
-            'infer_time_core_ms': core_time * MILLI_CONST / num_frames,
-            'infer_time_subgraph_ms': subgraph_time * MILLI_CONST / num_frames,
-            'ddr_transfer_mb': ddr_transfer / num_frames / MEGA_CONST
+            #'infer_time_invoke_ms': invoke_time * constants.MILLI_CONST / num_frames,
+            'infer_time_core_ms': core_time * constants.MILLI_CONST / num_frames,
+            'infer_time_subgraph_ms': subgraph_time * constants.MILLI_CONST / num_frames,
+            'ddr_transfer_mb': ddr_transfer / num_frames / constants.MEGA_CONST
         }
+        if 'perfsim_time' in stats_dict:
+            self.infer_stats_dict.update({'perfsim_time_ms': stats_dict['perfsim_time'] * constants.MILLI_CONST})
+        #
+        if 'perfsim_macs' in stats_dict:
+            self.infer_stats_dict.update({'perfsim_gmacs': stats_dict['perfsim_macs'] / constants.GIGA_CONST})
+        #
         self.logger.write(f'\ninfer {description}: {run_dir_base} - done.')
         return output_list
 

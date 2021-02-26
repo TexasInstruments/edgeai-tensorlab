@@ -3,9 +3,9 @@ import datetime
 import shutil
 from memory_tempfile import MemoryTempfile
 import re
+import csv
 from .. import utils
 from .. import constants
-
 
 class BaseRTSession(utils.ParamsBase):
     def __init__(self, **kwargs):
@@ -80,7 +80,13 @@ class BaseRTSession(utils.ParamsBase):
             info_dict['run_dir'] = self.get_param('run_dir')
         #
 
+    def __del__(self):
+        for t in self.tempfiles:
+            if os.path.exists(t):
+                shutil.rmtree(t)
+
     def infer_stats(self):
+        assert self.is_imported == True, 'the given model must be an imported one.'
         benchmark_dict = self.interpreter.get_TI_benchmark_data()
         subgraph_time = copy_time = 0
         cp_in_time = cp_out_time = 0
@@ -101,9 +107,11 @@ class BaseRTSession(utils.ParamsBase):
         write_total = benchmark_dict['ddr:read_end'] - benchmark_dict['ddr:read_start']
         read_total = benchmark_dict['ddr:write_end'] - benchmark_dict['ddr:write_start']
         # change units
-        total_time = total_time/constants.PROCESSOR_FREQ
-        copy_time = copy_time/constants.PROCESSOR_FREQ
-        subgraph_time = subgraph_time/constants.PROCESSOR_FREQ
+        total_time = total_time / constants.DSP_FREQ
+        copy_time = copy_time / constants.DSP_FREQ
+        subgraph_time = subgraph_time / constants.DSP_FREQ
+        write_total = write_total
+        read_total = read_total
         # core time excluding the copy overhead
         core_time = total_time - copy_time
         stats = {
@@ -111,25 +119,73 @@ class BaseRTSession(utils.ParamsBase):
             'total_time': total_time, 'core_time': core_time, 'subgraph_time': subgraph_time,
             'write_total': write_total, 'read_total': read_total
         }
+        try:
+            perfsim_stats = self._infer_perfsim_stats()
+            stats.update(perfsim_stats)
+        except:
+            pass
+        #
         return stats
 
-    def __del__(self):
-        for t in self.tempfiles:
-            if os.path.exists(t):
-                shutil.rmtree(t)
-
-    def perfsim_data(self):
+    def _infer_perfsim_stats(self):
         assert self.is_imported == True, 'the given model must be an imported one.'
-        return None
+        artifacts_folder = self.kwargs['artifacts_folder']
+        subgraph_root = os.path.join(artifacts_folder, 'tempDir') \
+            if os.path.isdir(os.path.join(artifacts_folder, 'tempDir')) else artifacts_folder
+        perfsim_folders = [os.path.join(subgraph_root, d) for d in os.listdir(subgraph_root)]
+        perfsim_folders = [d for d in perfsim_folders if os.path.isdir(d)]
+        perfsim_dict = {}
+        for perfsim_folder in perfsim_folders:
+            subgraph_stats = self._subgraph_perfsim_stats(perfsim_folder)
+            for k, v in subgraph_stats.items():
+                if k in perfsim_dict:
+                    perfsim_dict[k] += v
+                else:
+                    perfsim_dict[k] = v
+                #
+            #
+        #
+        return perfsim_dict
+    #
 
-    def infer_layers(self, **kwargs):
-        return None
-
-    def layer_names(self):
-        return None
-
-    def get_detections(self, **kwargs):
-        return None
+    def _subgraph_perfsim_stats(self, perfsim_folder):
+        perfsim_files = os.listdir(perfsim_folder)
+        if len(perfsim_files) == 0:
+            return None
+        #
+        subgraph_perfsim_dict = {}
+        # get the gmac number from netLog file
+        netlog_file = perfsim_folder + '.bin_netLog.txt'
+        with open(netlog_file) as netlog_fp:
+            netlog_reader = csv.reader(netlog_fp)
+            netlog_data = [data for data in netlog_reader]
+            perfsim_macs = [row for row in netlog_data if 'total giga macs' in row[0].lower()][0][0]
+            perfsim_macs = float(perfsim_macs.split(':')[1])
+            # change units - convert gmacs to macs
+            perfsim_macs = perfsim_macs * constants.GIGA_CONST
+            subgraph_perfsim_dict.update({'perfsim_macs': perfsim_macs})
+        #
+        # get the perfsim cycles
+        graph_name = os.path.basename(perfsim_folder)
+        perfsim_csv = [p for p in perfsim_files if graph_name in p and os.path.splitext(p)[1] == '.csv' and not p.startswith('.')][0]
+        perfsim_csv = os.path.join(perfsim_folder, perfsim_csv)
+        with open(perfsim_csv) as perfsim_fp:
+            perfsim_reader = csv.reader(perfsim_fp)
+            perfsim_data = [data for data in perfsim_reader]
+            # perfsim time - read from file
+            perfsim_time = [row for row in perfsim_data if 'total network time (us)' in row[0].lower()][0][0]
+            perfsim_time = float(perfsim_time.split('=')[1])
+            # change units - convert from ultrasec to seconds
+            perfsim_time = perfsim_time / constants.ULTRA_CONST
+            subgraph_perfsim_dict.update({'perfsim_time': perfsim_time})
+            # perfsim cycles - read from file
+            # perfsim_cycles = [row for row in perfsim_data if 'total network cycles (mega)' in row[0].lower()][0][0]
+            # perfsim_cycles = float(perfsim_cycles.split('=')[1])
+            # change units - convert from mega cycles to cycles
+            # perfsim_cycles = perfsim_cycles * constants.MEGA_CONST
+            # subgraph_perfsim_dict.update({'perfsim_cycles': perfsim_cycles})
+        #
+        return subgraph_perfsim_dict
 
     def _make_run_dir(self):
         if self.kwargs['run_dir'] is not None:
@@ -164,7 +220,6 @@ class BaseRTSession(utils.ParamsBase):
 
     def _set_default_options(self):
         assert False, 'this function must be overridden in the derived class'
-
 
 if __name__ == '__main__':
     import_model = BaseRTSession()
