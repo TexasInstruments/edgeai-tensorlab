@@ -104,6 +104,7 @@ class COCODetection(utils.ParamsBase):
             #
         #
         coco_ap = 0.0
+        coco_ap50 = 0.0
         if len(detections_formatted_list) > 0:
             detection_file = os.path.join(run_dir, 'detection_results.json')
             with open(detection_file, 'w') as det_fp:
@@ -115,8 +116,9 @@ class COCODetection(utils.ParamsBase):
             cocoEval.accumulate()
             cocoEval.summarize()
             coco_ap = cocoEval.stats[0]
+            coco_ap50 = cocoEval.stats[1]
         #
-        accuracy = {'accuracy_ap[.5:.95]%': coco_ap*100.0}
+        accuracy = {'accuracy_ap[.5:.95]%': coco_ap*100.0, 'accuracy_ap50%': coco_ap50*100.0}
         return accuracy
 
     def _format_detections(self, bbox_label_score, image_id, label_offset=0, class_map=None):
