@@ -52,8 +52,8 @@ def get_configs(settings, work_dir):
 
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
 
-    postproc_segmentation_onnx = settings.get_postproc_segmentation_onnx(save_output=settings.save_output)
-    postproc_segmenation_tflite = settings.get_postproc_segmentation_tflite(save_output=settings.save_output, with_argmax=False)
+    postproc_segmentation_onnx = settings.get_postproc_segmentation_onnx()
+    postproc_segmenation_tflite = settings.get_postproc_segmentation_tflite(with_argmax=False)
 
     pipeline_configs = {
         #################################################################

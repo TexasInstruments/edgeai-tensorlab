@@ -82,59 +82,54 @@ class ConfigSettings(config_dict.ConfigDict):
             num_frames=min(self.num_frames, 1449))
 
 
-
     ###############################################################
     # preprocess transforms
     ###############################################################
-    def get_preproc_onnx(self, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
-                         backend='pil', interpolation=None, resize_with_pad=False,
-                         mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429)):
-        preprocess_tvm_dlr = [
+    def _get_preproc_base(self, resize, crop, data_layout, reverse_channels,
+                         backend, interpolation, resize_with_pad, mean, scale):
+        transforms_list = [
             preprocess.ImageRead(backend=backend),
             preprocess.ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad),
             preprocess.ImageCenterCrop(crop),
             preprocess.ImageToNPTensor4D(data_layout=data_layout),
             preprocess.ImageNormMeanScale(mean=mean, scale=scale, data_layout=data_layout)]
         if reverse_channels:
-            preprocess_tvm_dlr = preprocess_tvm_dlr + [preprocess.NPTensor4DChanReverse(data_layout=data_layout)]
+            transforms_list = transforms_list + [preprocess.NPTensor4DChanReverse(data_layout=data_layout)]
         #
-        transforms = utils.TransformsCompose(preprocess_tvm_dlr, resize=resize, crop=crop,
+        transforms = utils.TransformsCompose(transforms_list, resize=resize, crop=crop,
                                              data_layout=data_layout, reverse_channels=reverse_channels,
                                              backend=backend, interpolation=interpolation,
                                              mean=mean, scale=scale)
         return transforms
 
+    def get_preproc_onnx(self, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
+                         backend='pil', interpolation=None, resize_with_pad=False,
+                         mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429)):
+        transforms = self._get_preproc_base(resize=resize, crop=crop, data_layout=data_layout,
+                                      reverse_channels=reverse_channels, backend=backend, interpolation=interpolation,
+                                      resize_with_pad=resize_with_pad, mean=mean, scale=scale)
+        return transforms
+
     def get_preproc_jai(self, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
                         backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False,
                         mean=(128.0, 128.0, 128.0), scale=(1/64.0, 1/64.0, 1/64.0)):
-        return self.get_preproc_onnx(resize=resize, crop=crop, data_layout=data_layout, reverse_channels=reverse_channels,
+        return self._get_preproc_base(resize=resize, crop=crop, data_layout=data_layout, reverse_channels=reverse_channels,
                                 backend=backend, interpolation=interpolation, resize_with_pad=resize_with_pad,
                                 mean=mean, scale=scale)
 
     def get_preproc_mxnet(self, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
                         backend='cv2', interpolation=None, resize_with_pad=False,
                         mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429)):
-        return self.get_preproc_onnx(resize=resize, crop=crop, data_layout=data_layout, reverse_channels=reverse_channels,
+        return self._get_preproc_base(resize=resize, crop=crop, data_layout=data_layout, reverse_channels=reverse_channels,
                                 backend=backend, interpolation=interpolation, resize_with_pad=resize_with_pad,
                                 mean=mean, scale=scale)
 
     def get_preproc_tflite(self, resize=256, crop=224, data_layout=constants.NHWC, reverse_channels=False,
                               backend='pil', interpolation=None, resize_with_pad=False,
                               mean=(128.0, 128.0, 128.0), scale=(1/128.0, 1/128.0, 1/128.0)):
-        preprocess_tflite_rt = [
-            preprocess.ImageRead(backend=backend),
-            preprocess.ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad),
-            preprocess.ImageCenterCrop(crop),
-            preprocess.ImageToNPTensor4D(data_layout=data_layout),
-            preprocess.ImageNormMeanScale(mean=mean, scale=scale, data_layout=data_layout)]
-        if reverse_channels:
-            preprocess_tflite_rt = preprocess_tflite_rt + [preprocess.NPTensor4DChanReverse(data_layout=data_layout)]
-        #
-        transforms = utils.TransformsCompose(preprocess_tflite_rt, resize=resize, crop=crop,
-                                             data_layout=data_layout, reverse_channels=reverse_channels,
-                                             backend=backend, interpolation=interpolation,
-                                             mean=mean, scale=scale)
-        return transforms
+        return self._get_preproc_base(resize=resize, crop=crop, data_layout=data_layout, reverse_channels=reverse_channels,
+                                backend=backend, interpolation=interpolation, resize_with_pad=resize_with_pad,
+                                mean=mean, scale=scale)
 
     def get_postproc_classification(self):
         postprocess_classification = [postprocess.IndexArray(), postprocess.ArgMax()]
@@ -144,8 +139,8 @@ class ConfigSettings(config_dict.ConfigDict):
     ###############################################################
     # post process transforms for detection
     ###############################################################
-    def get_postproc_detection(self, detection_thr=None, detection_max=None, save_output=True, formatter=None,
-                               resize_with_pad=False, normalized_detections=True, shuffle_indices=None):
+    def _get_postproc_detection_base(self, formatter=None, resize_with_pad=False,
+                               normalized_detections=True, shuffle_indices=None):
         postprocess_detection = [postprocess.ShuffleList(indices=shuffle_indices),
                                  postprocess.Concat(axis=-1, end_index=3),
                                  postprocess.IndexArray()]
@@ -154,32 +149,32 @@ class ConfigSettings(config_dict.ConfigDict):
         #
         postprocess_detection += [postprocess.DetectionResizePad(resize_with_pad=resize_with_pad,
                                                     normalized_detections=normalized_detections)]
-        if detection_thr is not None:
-            postprocess_detection += [postprocess.DetectionFilter(detection_thr=detection_thr, detection_max=detection_max)]
+        if self.detection_thr is not None:
+            postprocess_detection += [postprocess.DetectionFilter(detection_thr=self.detection_thr,
+                                                                  detection_max=self.detection_max)]
         #
-        if save_output:
+        if self.save_output:
             postprocess_detection += [postprocess.DetectionImageSave()]
         #
-        transforms = utils.TransformsCompose(postprocess_detection, detection_thr=detection_thr,
-                                             save_output=save_output, formatter=formatter)
+        transforms = utils.TransformsCompose(postprocess_detection, detection_thr=self.detection_thr,
+                                             save_output=self.save_output, formatter=formatter)
         return transforms
 
-    def get_postproc_detection_onnx(self, detection_thr=None, detection_max=None, save_output=True, formatter=None):
-        return self.get_postproc_detection(detection_thr=detection_thr, detection_max=detection_max, save_output=save_output, formatter=formatter)
+    def get_postproc_detection_onnx(self, formatter=None):
+        return self._get_postproc_detection_base(formatter=formatter)
 
-    def get_postproc_detection_tflite(self, detection_thr=None, detection_max=None, save_output=True, formatter=postprocess.DetectionYXYX2XYXY()):
-        return self.get_postproc_detection(detection_thr=detection_thr, detection_max=detection_max, save_output=save_output, formatter=formatter)
+    def get_postproc_detection_tflite(self, formatter=postprocess.DetectionYXYX2XYXY()):
+        return self._get_postproc_detection_base(formatter=formatter)
 
-    def get_postproc_detection_mxnet(self, detection_thr=None, detection_max=None, save_output=True, formatter=None,
-                                     resize_with_pad=False, normalized_detections=False, shuffle_indices=(2,0,1)):
-        return self.get_postproc_detection(detection_thr=detection_thr, detection_max=detection_max, save_output=save_output, formatter=formatter,
-                                           resize_with_pad=resize_with_pad, normalized_detections=normalized_detections,
-                                           shuffle_indices=shuffle_indices)
+    def get_postproc_detection_mxnet(self, formatter=None, resize_with_pad=False,
+                                normalized_detections=False, shuffle_indices=(2,0,1)):
+        return self._get_postproc_detection_base(formatter=formatter, resize_with_pad=resize_with_pad,
+                        normalized_detections=normalized_detections, shuffle_indices=shuffle_indices)
 
     ###############################################################
     # post process transforms for segmentation
     ###############################################################
-    def get_postproc_segmentation(self, data_layout, save_output, with_argmax=True):
+    def _get_postproc_segmentation_base(self, data_layout, with_argmax=True):
         channel_axis = -1 if data_layout == constants.NHWC else 1
         postprocess_segmentation = [postprocess.IndexArray()]
         if with_argmax:
@@ -187,18 +182,18 @@ class ConfigSettings(config_dict.ConfigDict):
         #
         postprocess_segmentation += [postprocess.NPTensorToImage(data_layout=data_layout),
                                      postprocess.SegmentationImageResize()]
-        if save_output:
+        if self.save_output:
             postprocess_segmentation += [postprocess.SegmentationImageSave()]
         #
         transforms = utils.TransformsCompose(postprocess_segmentation, data_layout=data_layout,
-                                             save_output=save_output, with_argmax=with_argmax)
+                                             save_output=self.save_output, with_argmax=with_argmax)
         return transforms
 
-    def get_postproc_segmentation_onnx(self, data_layout=constants.NCHW, save_output=True, with_argmax=True):
-        return self.get_postproc_segmentation(data_layout=data_layout, save_output=save_output, with_argmax=with_argmax)
+    def get_postproc_segmentation_onnx(self, data_layout=constants.NCHW, with_argmax=True):
+        return self._get_postproc_segmentation_base(data_layout=data_layout, with_argmax=with_argmax)
 
-    def get_postproc_segmentation_tflite(self, data_layout=constants.NHWC, save_output=True, with_argmax=True):
-        return self.get_postproc_segmentation(data_layout=data_layout, save_output=save_output, with_argmax=with_argmax)
+    def get_postproc_segmentation_tflite(self, data_layout=constants.NHWC, with_argmax=True):
+        return self._get_postproc_segmentation_base(data_layout=data_layout, with_argmax=with_argmax)
 
 
 ############################################################
