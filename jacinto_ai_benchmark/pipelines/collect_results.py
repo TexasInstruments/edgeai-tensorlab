@@ -13,6 +13,7 @@ def collect_results(settings, work_dir, print_results=True):
             try:
                 with open(pkl_filename, 'rb') as pkl_fp:
                     result = pickle.load(pkl_fp)
+                    result = correct_result(result)
                     results.append(result)
                 #
             except:
@@ -39,3 +40,11 @@ def collect_results(settings, work_dir, print_results=True):
         #
     #
     return results
+
+
+def correct_result(result):
+    if 'inference_path' in result:
+        result['infer_path'] = result['inference_path']
+        del result['inference_path']
+    #
+    return result
