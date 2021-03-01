@@ -144,7 +144,7 @@ class ConfigSettings(config_dict.ConfigDict):
     ###############################################################
     # post process transforms for detection
     ###############################################################
-    def get_postproc_detection(self, detection_thr=None, save_output=True, formatter=None,
+    def get_postproc_detection(self, detection_thr=None, detection_max=None, save_output=True, formatter=None,
                                resize_with_pad=False, normalized_detections=True, shuffle_indices=None):
         postprocess_detection = [postprocess.ShuffleList(indices=shuffle_indices),
                                  postprocess.Concat(axis=-1, end_index=3),
@@ -155,7 +155,7 @@ class ConfigSettings(config_dict.ConfigDict):
         postprocess_detection += [postprocess.DetectionResizePad(resize_with_pad=resize_with_pad,
                                                     normalized_detections=normalized_detections)]
         if detection_thr is not None:
-            postprocess_detection += [postprocess.DetectionFilter(detection_thr=detection_thr)]
+            postprocess_detection += [postprocess.DetectionFilter(detection_thr=detection_thr, detection_max=detection_max)]
         #
         if save_output:
             postprocess_detection += [postprocess.DetectionImageSave()]
@@ -164,15 +164,15 @@ class ConfigSettings(config_dict.ConfigDict):
                                              save_output=save_output, formatter=formatter)
         return transforms
 
-    def get_postproc_detection_onnx(self, detection_thr=None, save_output=True, formatter=None):
-        return self.get_postproc_detection(detection_thr=detection_thr, save_output=save_output, formatter=formatter)
+    def get_postproc_detection_onnx(self, detection_thr=None, detection_max=None, save_output=True, formatter=None):
+        return self.get_postproc_detection(detection_thr=detection_thr, detection_max=detection_max, save_output=save_output, formatter=formatter)
 
-    def get_postproc_detection_tflite(self, detection_thr=None, save_output=True, formatter=postprocess.DetectionYXYX2XYXY()):
-        return self.get_postproc_detection(detection_thr=detection_thr, save_output=save_output, formatter=formatter)
+    def get_postproc_detection_tflite(self, detection_thr=None, detection_max=None, save_output=True, formatter=postprocess.DetectionYXYX2XYXY()):
+        return self.get_postproc_detection(detection_thr=detection_thr, detection_max=detection_max, save_output=save_output, formatter=formatter)
 
-    def get_postproc_detection_mxnet(self, detection_thr=None, save_output=True, formatter=None,
+    def get_postproc_detection_mxnet(self, detection_thr=None, detection_max=None, save_output=True, formatter=None,
                                      resize_with_pad=False, normalized_detections=False, shuffle_indices=(2,0,1)):
-        return self.get_postproc_detection(detection_thr=detection_thr, save_output=save_output, formatter=formatter,
+        return self.get_postproc_detection(detection_thr=detection_thr, detection_max=detection_max, save_output=save_output, formatter=formatter,
                                            resize_with_pad=resize_with_pad, normalized_detections=normalized_detections,
                                            shuffle_indices=shuffle_indices)
 

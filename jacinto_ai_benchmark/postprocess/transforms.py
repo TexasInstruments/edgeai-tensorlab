@@ -156,14 +156,19 @@ class DetectionResizePad():
 
 
 class DetectionFilter():
-    def __init__(self, detection_thr):
+    def __init__(self, detection_thr, detection_max=None):
         self.detection_thr = detection_thr
+        self.detection_max = detection_max
 
     def __call__(self, bbox, info_dict):
         if self.detection_thr is not None:
             bbox_score = bbox[:,5]
-            bbox_selected = bbox_score >= self.detection_thr
+            bbox_selected = (bbox_score >= self.detection_thr)
             bbox = bbox[bbox_selected,...]
+        #
+        if self.detection_num is not None:
+            bbox = sorted(bbox, key=lambda b:b[5])
+            bbox = bbox[range(self.detection_max),...]
         #
         return bbox, info_dict
 

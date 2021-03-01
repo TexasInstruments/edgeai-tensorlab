@@ -21,9 +21,12 @@ def get_configs(settings, work_dir):
 
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
 
-    postproc_detection_onnx = settings.get_postproc_detection_onnx(detection_thr=settings.detection_thr, save_output=settings.save_output)
-    postproc_detection_tflite = settings.get_postproc_detection_tflite(detection_thr=settings.detection_thr, save_output=settings.save_output)
-    postproc_detection_mxnet = settings.get_postproc_detection_mxnet(detection_thr=settings.detection_thr, save_output=settings.save_output)
+    postproc_detection_onnx = settings.get_postproc_detection_onnx(detection_thr=settings.detection_thr,
+                                detection_max=settings.detection_max, save_output=settings.save_output)
+    postproc_detection_tflite = settings.get_postproc_detection_tflite(detection_thr=settings.detection_thr,
+                                detection_max=settings.detection_max, save_output=settings.save_output)
+    postproc_detection_mxnet = settings.get_postproc_detection_mxnet(detection_thr=settings.detection_thr,
+                                detection_max=settings.detection_max, save_output=settings.save_output)
 
     pipeline_configs = {
         #################################################################

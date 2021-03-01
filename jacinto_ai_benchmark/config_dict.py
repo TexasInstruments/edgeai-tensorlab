@@ -73,6 +73,8 @@ class ConfigDict(dict):
         self.collect_results = True #True
         # detection threshold
         self.detection_thr = 0.05
+        # max number of detections
+        self.detection_max = None
         # save detection, segmentation output
         self.save_output = False
         # wild card list to match against the model_path - if null, all models wil be run
