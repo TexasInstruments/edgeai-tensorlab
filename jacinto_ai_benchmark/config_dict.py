@@ -79,6 +79,8 @@ class ConfigDict(dict):
         # examples: ['classification'] ['imagenet1k'] ['torchvision']
         # examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
         self.model_selection = None
+        # exclude the models that matches with this
+        self.model_exclusion = None
         # wild card list to match against the tasks. it null, all tasks will be run
         # example: ['classification', 'detection', 'segmentation']
         # example: ['classification']

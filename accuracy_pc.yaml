@@ -37,6 +37,8 @@ save_output : False
 # examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
 # example: null (Note: null means no filter - run all the models)
 model_selection : null
+# exclude from running, these models
+model_exclusion: null
 # wild card list to match against the tasks. it null, all tasks will be run
 # example: ['classification', 'detection', 'segmentation']
 # example: 'classification'

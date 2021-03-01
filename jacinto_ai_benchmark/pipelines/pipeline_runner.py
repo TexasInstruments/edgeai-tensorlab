@@ -98,10 +98,10 @@ class PipelineRunner():
         return result
 
     def _check_model_selection(self, config, pipeline_config):
+        model_path = pipeline_config['session'].get_param('model_path')
+        model_id = pipeline_config['session'].get_param('model_id')
         if config.model_selection is not None:
             selected_model = False
-            model_path = pipeline_config['session'].get_param('model_path')
-            model_id = pipeline_config['session'].get_param('model_id')
             model_selection = utils.as_list(config.model_selection)
             for keyword in model_selection:
                 if keyword in model_path:
@@ -113,6 +113,17 @@ class PipelineRunner():
             #
         else:
             selected_model = True
+        #
+        if config.model_exclusion is not None:
+            model_exclusion = utils.as_list(config.model_exclusion)
+            for keyword in model_exclusion:
+                if keyword in model_path:
+                    selected_model = False
+                #
+                if keyword in model_id:
+                    selected_model = False
+                #
+            #
         #
         return selected_model
 
