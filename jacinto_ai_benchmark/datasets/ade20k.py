@@ -8,10 +8,17 @@ from .. import utils
 __all__ = ['ADE20KSegmentation']
 
 class ADE20KSegmentation(utils.ParamsBase):
-    def __init__(self, num_classes=151, ignore_label=0, **kwargs):
+    def __init__(self, num_classes=151, ignore_label=0, download=False, **kwargs):
         super().__init__()
         self.kwargs = kwargs
+
         assert 'path' in kwargs and 'split' in kwargs, 'path, split must be provided'
+        path = kwargs['path']
+        split = kwargs['split']
+        if download:
+            self.download(path, split)
+        #
+
         #assert self.kwargs['split'] in ['training', 'validation']
         self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
         self.name = "ADE20K"
@@ -43,6 +50,18 @@ class ADE20KSegmentation(utils.ParamsBase):
         self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
         super().initialize()
+
+    def download(self, path, split):
+        root = path
+        images_folder = os.path.join(path, 'images')
+        annotations_folder = os.path.join(path, 'annotations')
+        if os.path.exists(path) and os.path.exists(images_folder) and os.path.exists(annotations_folder):
+            return
+        #
+        dataset_url = 'http://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip'
+        root = root.rstrip('/')
+        dataset_path = utils.download_file(dataset_url, root=root, extract_root=os.path.split(root)[0])
+        return
 
     def __getitem__(self, idx, with_label=False):
         if with_label:

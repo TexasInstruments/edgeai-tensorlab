@@ -16,8 +16,8 @@ def get_configs(settings, work_dir):
         'target_device': settings.target_device,
         'run_import': settings.run_import,
         'run_inference': settings.run_inference,
-        'calibration_dataset': datasets.CityscapesSegmentation(**settings.cityscapes_seg_calib_cfg) if settings.dataset_loading else None,
-        'input_dataset': datasets.CityscapesSegmentation(**settings.cityscapes_seg_val_cfg) if settings.dataset_loading else None,
+        'calibration_dataset': settings.dataset_cache['cityscapes']['calibration_dataset'],
+        'input_dataset': settings.dataset_cache['cityscapes']['input_dataset'],
     }
 
     ade20k_cfg = {
@@ -26,8 +26,8 @@ def get_configs(settings, work_dir):
         'target_device': settings.target_device,
         'run_import': settings.run_import,
         'run_inference': settings.run_inference,
-        'calibration_dataset': datasets.ADE20KSegmentation(**settings.ade20k_seg_calib_cfg) if settings.dataset_loading else None,
-        'input_dataset': datasets.ADE20KSegmentation(**settings.ade20k_seg_val_cfg) if settings.dataset_loading else None,
+        'calibration_dataset': settings.dataset_cache['ade20k']['calibration_dataset'],
+        'input_dataset': settings.dataset_cache['ade20k']['input_dataset'],
     }
 
     ade20k_cfg_class32 = {
@@ -36,8 +36,8 @@ def get_configs(settings, work_dir):
         'target_device': settings.target_device,
         'run_import': settings.run_import,
         'run_inference': settings.run_inference,
-        'calibration_dataset': datasets.ADE20KSegmentation(**settings.ade20k_seg_calib_cfg, num_classes=32) if settings.dataset_loading else None,
-        'input_dataset': datasets.ADE20KSegmentation(**settings.ade20k_seg_val_cfg, num_classes=32) if settings.dataset_loading else None,
+        'calibration_dataset': settings.dataset_cache['ade20k_class32']['calibration_dataset'],
+        'input_dataset': settings.dataset_cache['ade20k_class32']['input_dataset'],
     }
 
     pascal_voc_cfg = {
@@ -46,8 +46,8 @@ def get_configs(settings, work_dir):
         'target_device': settings.target_device,
         'run_import': settings.run_import,
         'run_inference': settings.run_inference,
-        'calibration_dataset': datasets.VOC2012Segmentation(**settings.voc_seg_calib_cfg) if settings.dataset_loading else None,
-        'input_dataset': datasets.VOC2012Segmentation(**settings.voc_seg_val_cfg) if settings.dataset_loading else None,
+        'calibration_dataset': settings.dataset_cache['voc2012']['calibration_dataset'],
+        'input_dataset': settings.dataset_cache['voc2012']['input_dataset'],
     }
 
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)

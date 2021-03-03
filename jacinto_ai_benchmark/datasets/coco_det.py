@@ -10,11 +10,17 @@ from .. import utils
 
 __all__ = ['COCODetection']
 
+
 class COCODetection(utils.ParamsBase):
-    def __init__(self, **kwargs):
+    def __init__(self, download=False, **kwargs):
         super().__init__()
         self.kwargs = kwargs
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
+        path = kwargs['path']
+        split = kwargs['split']
+        if download:
+            self.download(path, split)
+        #
 
         dataset_folders = os.listdir(kwargs['path'])
         assert 'annotations' in dataset_folders, 'invalid path to coco dataset annotations'
@@ -66,6 +72,24 @@ class COCODetection(utils.ParamsBase):
         self.num_frames = num_frames
         self.tempfiles = []
         super().initialize()
+
+    def download(self, path, split):
+        root = path
+        images_folder = os.path.join(path, split)
+        annotations_folder = os.path.join(path, 'annotations')
+        if os.path.exists(path) and os.path.exists(images_folder) and os.path.exists(annotations_folder):
+            return
+        #
+        dataset_url = 'http://images.cocodataset.org/zips/val2017.zip'
+        extra_url = 'http://images.cocodataset.org/annotations/annotations_trainval2017.zip'
+        dataset_path = utils.download_file(dataset_url, root=root)
+        extra_path = utils.download_file(extra_url, root=root)
+        return
+
+    def _get_root(self, path):
+        path = path.rstrip('/')
+        root = os.sep.join(os.path.split(path)[:-1])
+        return root
 
     def __getitem__(self, idx):
         img_id = self.img_ids[idx]

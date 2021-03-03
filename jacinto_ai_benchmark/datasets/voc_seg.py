@@ -9,9 +9,15 @@ from .. import utils
 __all__ = ['VOC2012Segmentation']
 
 class VOC2012Segmentation():
-    def __init__(self, num_classes=21, ignore_label=255, **kwargs):
+    def __init__(self, num_classes=21, ignore_label=255, download=False, **kwargs):
         self.kwargs = kwargs
-        assert 'path' in kwargs and 'split' in kwargs, 'path and split must provided'
+        assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
+        path = kwargs['path']
+        split = kwargs['split']
+        if download:
+            self.download(path, split)
+        #
+
         self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
 
         # mapping for voc 21 class segmentation
@@ -39,6 +45,20 @@ class VOC2012Segmentation():
         #
         self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
+
+    def download(self, path, split):
+        root = path
+        images_folder = os.path.join(path, 'images')
+        annotations_folder = os.path.join(path, 'annotations')
+        if os.path.exists(path) and os.path.exists(images_folder) and os.path.exists(annotations_folder):
+            return
+        #
+        dataset_url = 'http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCdevkit_18-May-2011.tar'
+        extra_url = 'http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar'
+        extract_root = os.sep.join(root.split(os.sep)[:-2])
+        dataset_path = utils.download_file(dataset_url, root=root, extract_root=extract_root)
+        extra_path = utils.download_file(extra_url, root=root, extract_root=extract_root)
+        return
 
     def __getitem__(self, idx, with_label=False):
         if with_label:

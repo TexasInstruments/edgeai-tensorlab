@@ -67,6 +67,7 @@ class AccuracyPipeline():
     def _import_model(self, description=''):
         session = self.pipeline_config['session']
         calibration_dataset = self.pipeline_config['calibration_dataset']
+        assert calibration_dataset is not None, f'got input_dataset={calibration_dataset}. please check settings.dataset_loading'
         preprocess = self.pipeline_config['preprocess']
         run_dir_base = os.path.split(session.get_param('run_dir'))[-1]
 
@@ -85,6 +86,7 @@ class AccuracyPipeline():
     def _infer_frames(self, description=''):
         session = self.pipeline_config['session']
         input_dataset = self.pipeline_config['input_dataset']
+        assert input_dataset is not None, f'got input_dataset={input_dataset}. please check settings.dataset_loading'
         preprocess = self.pipeline_config['preprocess']
         postprocess = self.pipeline_config['postprocess']
         run_dir_base = os.path.split(session.get_param('run_dir'))[-1]

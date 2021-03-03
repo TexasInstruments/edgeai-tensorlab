@@ -1,6 +1,6 @@
 import functools
 import itertools
-from .. import constants
+import warnings
 from .accuracy_pipeline import *
 from .. import utils
 
@@ -97,12 +97,12 @@ class PipelineRunner():
         #
         return result
 
-    def _check_model_selection(self, config, pipeline_config):
+    def _check_model_selection(self, settings, pipeline_config):
         model_path = pipeline_config['session'].get_param('model_path')
         model_id = pipeline_config['session'].get_param('model_id')
-        if config.model_selection is not None:
+        if settings.model_selection is not None:
             selected_model = False
-            model_selection = utils.as_list(config.model_selection)
+            model_selection = utils.as_list(settings.model_selection)
             for keyword in model_selection:
                 if keyword in model_path:
                     selected_model = True
@@ -114,8 +114,8 @@ class PipelineRunner():
         else:
             selected_model = True
         #
-        if config.model_exclusion is not None:
-            model_exclusion = utils.as_list(config.model_exclusion)
+        if settings.model_exclusion is not None:
+            model_exclusion = utils.as_list(settings.model_exclusion)
             for keyword in model_exclusion:
                 if keyword in model_path:
                     selected_model = False
@@ -124,6 +124,16 @@ class PipelineRunner():
                     selected_model = False
                 #
             #
+        #
+        calibration_dataset = pipeline_config['calibration_dataset']
+        if settings.run_import and calibration_dataset is None:
+            warnings.warn(f'settings.run_import was set, but calibration_dataset={calibration_dataset}, removing model {model_id}:{model_path}')
+            selected_model = False
+        #
+        input_dataset = pipeline_config['input_dataset']
+        if settings.run_inference and input_dataset is None:
+            warnings.warn(f'settings.run_inference was set, but input_dataset={input_dataset}, removing model {model_id}:{model_path}')
+            selected_model = False
         #
         return selected_model
 

@@ -89,7 +89,9 @@ class ConfigDict(dict):
         self.task_selection = None
         # session types to use for each model type
         self.session_type_dict = {'onnx':'tvmdlr', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
-        # whether to load the datasets or not
+        # whether to load the datasets or not. set to False to load no datasets
+        # set to True to try and load all datasets (the dataset folders must be available in ./dependencies/datasets).
+        # for selective loading, provide a list of dataset names such as ['imagenet', 'coco', 'cityscapes', 'ade20k', 'voc2012']
         self.dataset_loading = True
         # which configs to run from the default list. example [0,10] [10,null] etc.
         self.config_range = None
@@ -97,3 +99,8 @@ class ConfigDict(dict):
         self.enable_logging = True
         # verbose mode - print out more information
         self.verbose = False
+
+        ###########################################################
+        # internal state information
+        ###########################################################
+        self.dataset_cache = None

@@ -11,7 +11,7 @@ import zipfile
 from tqdm.auto import tqdm
 
 
-def download_file(url, root=None, filename=None, md5=None):
+def download_file(url, root=None, extract_root=None, filename=None, md5=None):
     if not isinstance(url, str):
         return url
     #
@@ -22,7 +22,7 @@ def download_file(url, root=None, filename=None, md5=None):
         #
     #
     if isinstance(url, str) and (url.startswith('http://') or url.startswith('https://')):
-        fpath = download_and_extract_archive(url, root, filename, md5)
+        fpath = download_and_extract_archive(url, root, extract_root=extract_root, filename=filename, md5=md5)
     else:
         fpath = url
     #
@@ -89,7 +89,7 @@ def _get_google_drive_file_id(url: str) -> Optional[str]:
 
 
 def download_url(
-    url: str, root: str, filename: Optional[str] = None, md5: Optional[str] = None, max_redirect_hops: int = 3
+    url: str, root: str, filename: Optional[str] = None, md5: Optional[str] = None, max_redirect_hops: int = 0
 ) -> None:
     """Download a file from a url and place it in root.
 
@@ -98,24 +98,28 @@ def download_url(
         root (str): Directory to place downloaded file in
         filename (str, optional): Name to save the file under. If None, use the basename of the URL
         md5 (str, optional): MD5 checksum of the download. If None, do not check
-        max_redirect_hops (int, optional): Maximum number of redirect hops allowed
+        max_redirect_hops (int, optional): Maximum number of redirect hops allowed. eg: 3
     """
     import urllib
 
     root = os.path.expanduser(root)
     if not filename:
         filename = os.path.basename(url)
+    #
     fpath = os.path.join(root, filename)
-
-    os.makedirs(root, exist_ok=True)
 
     # check if file is already present locally
     if check_integrity(fpath, md5):
         print('Using downloaded and verified file: ' + fpath)
         return fpath
+    #
+
+    os.makedirs(root, exist_ok=True)
 
     # expand redirect chain if needed
-    url = _get_redirect_url(url, max_hops=max_redirect_hops)
+    if max_redirect_hops > 0:
+        url = _get_redirect_url(url, max_hops=max_redirect_hops)
+    #
 
     # check if file is located on Google Drive
     file_id = _get_google_drive_file_id(url)
@@ -140,10 +144,12 @@ def download_url(
             )
         else:
             raise e
+        #
+    #
     # check integrity of downloaded file
     if not check_integrity(fpath, md5):
         raise RuntimeError("File not found or corrupted.")
-
+    #
     return fpath
 
 

@@ -8,10 +8,16 @@ from .. import utils
 __all__ = ['CityscapesSegmentation']
 
 class CityscapesSegmentation(utils.ParamsBase):
-    def __init__(self, **kwargs):
+    def __init__(self, download=False, **kwargs):
         super().__init__()
         self.kwargs = kwargs
         assert 'path' in kwargs and 'split' in kwargs, 'path and split must provided'
+        path = kwargs['path']
+        if not (os.path.exists(path) or os.path.isdir(path)) and download:
+            print(f'Cityscapes dataset can be obtained by registering in the followig website: ' \
+                          f'https://www.cityscapes-dataset.com/')
+            assert False, f'input path {path} must contain the dataset'
+        #
         self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
 
         # mapping for cityscapes 19 class segmentation

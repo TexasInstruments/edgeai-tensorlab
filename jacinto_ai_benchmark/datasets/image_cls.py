@@ -1,3 +1,4 @@
+import os
 import random
 from .. import utils
 
@@ -5,6 +6,9 @@ from .. import utils
 class ImageCls(utils.ParamsBase):
     def __init__(self, dest_dir=None, **kwargs):
         super().__init__()
+        assert 'path' in kwargs and 'split' in kwargs, 'path and split must be provided in kwargs'
+        path = kwargs['path']
+        assert os.path.exists(path) and os.path.isdir(path), f'input path {path} must contain the dataset'
         self.kwargs = kwargs
         self.imgs = utils.get_data_list(input=kwargs, dest_dir=dest_dir)
         self.num_frames = kwargs.get('num_frames',len(self.imgs))

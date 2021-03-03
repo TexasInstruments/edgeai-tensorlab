@@ -33,7 +33,7 @@ echo "TIDL_RT_PERFSTATS=${TIDL_RT_PERFSTATS}"
 ulimit -s 32768
 
 # run the script
-python3 ./scripts/benchmark_accuracy.py accuracy_pc.yaml
+python3 ./scripts/benchmark_accuracy.py accuracy_minimal_pc.yaml
 
 
 

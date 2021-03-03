@@ -1,4 +1,9 @@
+#######################################################
+echo "NOTICE: this script is deprecated. Please use configs.download_datasets(settings)"
+exit
+#######################################################
 
+#######################################################
 downloads_folder=./dependencies/downloads
 
 #######################################################
@@ -6,9 +11,10 @@ downloads_folder=./dependencies/downloads
 echo "To download ImageNet dataset, please visit http://image-net.org/ and request permission."
 read -p "After that press [ENTER]:"
 
+imagenet_folder=$downloads_folder/imagenet
 mkdir -p $imagenet_folder
 
-imagenet_folder=$downloads_folder/imagenet
+
 
 imagenet_tar=$downloads_folder/ILSVRC2012_img_val.tar
 wget --show-progress http://www.image-net.org/challenges/LSVRC/2012/dd31405981ef5f776aa17412e1f0c112/ILSVRC2012_img_val.tar -O $imagenet_tar

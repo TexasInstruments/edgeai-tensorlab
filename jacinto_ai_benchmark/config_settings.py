@@ -81,6 +81,21 @@ class ConfigSettings(config_dict.ConfigDict):
             shuffle=True,
             num_frames=min(self.num_frames, 1449))
 
+    ###############################################################
+    # utility functions
+    ###############################################################
+    def in_dataset_loading(self, dataset_name):
+        if self.dataset_loading is False:
+            return False
+        #
+        if self.dataset_loading is True or self.dataset_loading is None:
+            return True
+        #
+        dataset_loading = utils.as_list(self.dataset_loading)
+        if dataset_name in dataset_loading:
+            return True
+        #
+        return False
 
     ###############################################################
     # preprocess transforms

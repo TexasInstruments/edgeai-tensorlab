@@ -17,6 +17,10 @@ if __name__ == '__main__':
     work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tidl_tensor_bits}bits')
     print(f'work_dir = {work_dir}')
 
+    # check the datasets and download if they are missing
+    download_ok = configs.download_datasets(settings)
+    print(f'download_ok = {download_ok}')
+
     # get the default configs available
     pipeline_configs = configs.get_configs(settings, work_dir)
 

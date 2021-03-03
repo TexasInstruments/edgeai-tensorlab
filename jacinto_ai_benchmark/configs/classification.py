@@ -14,8 +14,8 @@ def get_configs(settings, work_dir):
         'verbose': settings.verbose,
         'run_import': settings.run_import,
         'run_inference': settings.run_inference,
-        'calibration_dataset': datasets.ImageNetCls(**settings.imagenet_cls_calib_cfg) if settings.dataset_loading else None,
-        'input_dataset': datasets.ImageNetCls(**settings.imagenet_cls_val_cfg) if settings.dataset_loading else None,
+        'calibration_dataset': settings.dataset_cache['imagenet']['calibration_dataset'],
+        'input_dataset': settings.dataset_cache['imagenet']['input_dataset'],
         'postprocess': settings.get_postproc_classification()
     }
 
