@@ -144,7 +144,7 @@ def get_configs(settings, work_dir):
         #     metric=dict(label_offset_pred=coco_label_offset_90to90())
         # ),
         #################################################################
-        # mxnet : gluoncv model : detection - yolo3_mobilenet1.0_coco
+        # mxnet : gluoncv model : detection - yolo3_mobilenet1.0_coco - accuracy: 28.6% ap[0.5:0.95], 48.9% ap50
         'vdet-12-060-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx((416,416), (416,416), backend='cv2'),
             session=mxnet_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
@@ -154,7 +154,7 @@ def get_configs(settings, work_dir):
             postprocess=postproc_detection_mxnet,
             metric=dict(label_offset_pred=coco_label_offset_80to90())
         ),
-        # mxnet : gluoncv model : detection - ssd_512_mobilenet1.0_coco
+        # mxnet : gluoncv model : detection - ssd_512_mobilenet1.0_coco - accuracy: 21.7% ap[0.5:0.95], 39.2% ap50
         'vdet-12-061-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx((512,512), (512,512), backend='cv2'),
             session=mxnet_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
