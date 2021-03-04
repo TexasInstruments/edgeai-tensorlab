@@ -15,11 +15,11 @@ if __name__ == '__main__':
 
     expt_name = os.path.splitext(os.path.basename(__file__))[0]
     work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tidl_tensor_bits}bits')
-    print(f'work_dir = {work_dir}')
+    print(f'work_dir: {work_dir}')
 
     # check the datasets and download if they are missing
     download_ok = configs.download_datasets(settings)
-    print(f'download_ok = {download_ok}')
+    print(f'download_ok: {download_ok}')
 
     # get the default configs available
     pipeline_configs = configs.get_configs(settings, work_dir)
@@ -40,6 +40,13 @@ if __name__ == '__main__':
     # pipeline_config['preprocess'].get_param('crop') gives the crop dimension
     # pipeline_config['session'].get_param('run_dir') gives the folder where artifacts are located
     ############################################################################
+
+    # print some info
+    run_dirs = [pipeline_config['session'].get_param('run_dir') for model_key, pipeline_config \
+                in pipeline_runner.pipeline_configs.items()]
+    run_dirs = [os.path.basename(run_dir) for run_dir in run_dirs]
+    print(f'configs to run: {run_dirs}')
+    print(f'number of configs: {len(pipeline_runner.pipeline_configs)}')
 
     # now actually run the configs
     if settings.run_import or settings.run_inference:
