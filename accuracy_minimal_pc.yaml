@@ -38,9 +38,6 @@ save_output : False
 # example: null (Note: null means no filter - run all the models)
 model_selection : ['jai-pytorch/mobilenet_v1_20190906-171544_opset9.onnx',
                    'torchvision/mobilenet_v2_tv_opset9.onnx',
-                    'mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite',
-                    'tf1-models/deeplabv3_mnv2_ade20k_train_2018_12_03_512x512.tflite',
-                    'tf1-models/deeplabv3_mnv2_dm05_pascal_trainaug_512x512.tflite'
                   ]
 # exclude from running, these models
 model_exclusion: null
@@ -58,7 +55,7 @@ config_range : null
 # whether to load the datasets or not. set to False to load no datasets
 # set to True to try and load all datasets (the dataset folders must be available in ./dependencies/datasets).
 # for selective loading, provide a list of dataset names such as ['imagenet', 'coco', 'cityscapes', 'ade20k', 'voc2012']
-dataset_loading : ['imagenet', 'coco', 'ade20k', 'voc2012']
+dataset_loading : ['imagenet']
 # logging of the import, infer and the accuracy. set to False to disable it.
 enable_logging : True
 # verbose mode - print out more information
