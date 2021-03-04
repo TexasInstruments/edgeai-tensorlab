@@ -18,7 +18,6 @@ def _progress_miniters(iterable, total=None):
 def _progress_format(desc_len=60, colors=None):
     if colors is not None:
         assert len(colors) == 4, f'colors must have length 4'
-        colors = (Fore.GREEN, Fore.YELLOW, Fore.BLUE, Fore.CYAN) if colors is None else colors
         format_arg = (colors[0], desc_len, colors[1], colors[2], colors[3], Fore.RESET)
         bar_format = '%s{desc:%s}|%s{percentage:4.0f}%%|%s{bar:10}|%s{r_bar}%s' % format_arg
     else:
@@ -34,44 +33,36 @@ def _progress_desc(desc, desc_len=60):
 
 
 ######################################################################
-def progress_step_tqdm(iterable, desc, desc_len=60, total=None, miniters=None, maxinterval=10.0, bar_format=None,
-                       file=sys.stdout, leave=True, colors=None, **kwargs):
+def progress_step_tqdm(iterable, desc, total=None, miniters=None, mininterval=10.0, bar_format=None,
+                       desc_len=60, file=sys.stdout, leave=True, colors=None, **kwargs):
     """
-    Uses a tqdm variant that updates only once in miniters steps
+    Uses a tqdm variant that updates only once in a while
     """
-    desc = _progress_desc(desc, desc_len)
-    miniters = _progress_miniters(iterable, total) if miniters is None else miniters
-    bar_format = _progress_format(desc_len, colors) if bar_format is None else bar_format
-    return TqdmStep(iterable=iterable, desc=desc, total=total, miniters=miniters, bar_format=bar_format, file=file,
-                maxinterval=maxinterval, leave=leave, **kwargs)
+    return TqdmStep(iterable=iterable, desc=desc, total=total, miniters=miniters, mininterval=mininterval,
+                bar_format=bar_format, file=file, leave=leave, desc_len=desc_len, colors=colors, **kwargs)
 
 
 class TqdmStep(tqdm):
     """
     A tqdm variant that updates even before the first iteration,
-    and also updates only once in miniters
+    and also updates only once in a while
     """
-    def __init__(self, iterable, *args, miniters=None, maxinterval=10.0, **kwargs):
-        super().__init__(iterable, *args, miniters=miniters, maxinterval=maxinterval, **kwargs)
-        assert 'miniters' is not None, 'miniters must be provided'
-        self.step_size = miniters
-        self.iter_index = 0
-        self.num_completed = 0
-        # display bar even before the first iteration
-        # useful if the first iteration itself  takes some time
-        display_time_bar(self.desc, self.num_completed, total=self.total, start_time=0,
-                         end_time=0, file=self.fp)
+    def __init__(self, iterable, desc=None, total=None, bar_format=None, miniters=None, mininterval=10.0,
+                 desc_len=60, colors=None, **kwargs):
+        desc = _progress_desc(desc, desc_len)
+        # somehow controlling update interval with miniters doesn't work (gets overwritten to 1)
+        # miniters = _progress_miniters(iterable, total) if miniters is None else miniters
+        bar_format = _progress_format(desc_len, colors) if bar_format is None else bar_format
+        super().__init__(iterable, desc=desc, total=total, bar_format=bar_format, miniters=miniters, mininterval=mininterval, **kwargs)
+        # display bar even before the first iteration. useful if the first iteration itself  takes some time
+        display_time_bar(desc, num_completed=0, total=self.total, start_time=0, end_time=0, file=self.fp)
 
 
 ######################################################################
 # a lighter version of progress_step that doesn't use tqdm
 # this prints the iteration descriptor even before the first iteration
-
 def progress_step_lite(iterable, desc, desc_len=60, total=None, miniters=None, colors=None, **kwargs):
-    desc = _progress_desc(desc, desc_len)
-    miniters = _progress_miniters(iterable, total) if miniters is None else miniters
-    colors = (Fore.GREEN, Fore.YELLOW, Fore.BLUE, Fore.CYAN) if colors is None else colors
-    return ProgressStepLite(iterable, desc, miniters=miniters, colors=colors, **kwargs)
+    return ProgressStepLite(iterable, desc, total=total, miniters=miniters, colors=colors, desc_len=desc_len, **kwargs)
 
 
 class ProgressStepLite:
@@ -82,13 +73,14 @@ class ProgressStepLite:
     Author: Manu Mathew
     2021 Feb 16
     """
-    def __init__(self, iterable, desc, miniters=1, total=None, file=None,
-                 colors=None, position=0, **kwargs):
+    def __init__(self, iterable, desc, total=None, miniters=1, file=None,
+                 desc_len=60, colors=None, position=0, **kwargs):
         super().__init__()
-        self.iterable = iterable
-        self.desc = desc
-        self.step_size = miniters
         self.total = iterable.__len__() if hasattr(iterable, '__len__') else total
+        miniters = _progress_miniters(iterable, total) if miniters is None else miniters
+        self.iterable = iterable
+        self.desc = _progress_desc(desc, desc_len)
+        self.step_size = miniters
         self.file = file if file is not None else sys.stdout
         self.colors = colors
         self.position = position
