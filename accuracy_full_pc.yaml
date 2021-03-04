@@ -35,9 +35,9 @@ save_output : False
 # wild card list to match against the model_path - only matching models will be run
 # examples: ['classification'] ['imagenet1k'] ['torchvision']
 # examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
+# examples: ['jai-pytorch/mobilenet_v1_20190906-171544_opset9.onnx', 'torchvision/mobilenet_v2_tv_opset9.onnx']
 # example: null (Note: null means no filter - run all the models)
-model_selection : ['jai-pytorch/mobilenet_v1_20190906-171544_opset9.onnx',
-                   'torchvision/mobilenet_v2_tv_opset9.onnx']
+model_selection : null
 # exclude from running, these models
 model_exclusion: null
 # wild card list to match against the tasks. it null, all tasks will be run
