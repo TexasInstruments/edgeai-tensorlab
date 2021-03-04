@@ -11,11 +11,14 @@ class TFLiteRTSession(BaseRTSession):
     def __init__(self, session_name='tflitert', **kwargs):
         super().__init__(session_name=session_name, **kwargs)
         self.interpreter = None
-        self.interpreter_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tflrt')
 
     def import_model(self, calib_data, info_dict=None):
         super().import_model(calib_data)
-        os.chdir(self.interpreter_folder)
+        
+        # this chdir() is required for the import to work.
+        interpreter_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tflrt')
+        os.chdir(interpreter_folder)
+
         self.interpreter = self._create_interpreter(is_import=True)
 
         # check if the shape of data being proved matches with what model expects
@@ -42,7 +45,6 @@ class TFLiteRTSession(BaseRTSession):
         #
         super().start_infer()
         # now create the interpreter for inference
-        os.chdir(self.interpreter_folder)
         self.interpreter = self._create_interpreter(is_import=False)
         os.chdir(self.cwd)
         self.is_imported = True

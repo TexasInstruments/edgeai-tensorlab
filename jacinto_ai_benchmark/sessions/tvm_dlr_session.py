@@ -10,7 +10,6 @@ class TVMDLRSession(BaseRTSession):
     def __init__(self, session_name='tvmdlr', **kwargs):
         super().__init__(session_name=session_name, **kwargs)
         self.interpreter = None
-        self.interpreter_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tvm-dlr')
 
     def import_model(self, calib_data, info_dict=None):
         # onnx and tvm are required only for model import
@@ -20,7 +19,10 @@ class TVMDLRSession(BaseRTSession):
         from tvm.relay.backend.contrib import tidl
         # prepare for actual model import
         super().import_model(calib_data, info_dict)
-        os.chdir(self.interpreter_folder)
+
+        # this chdir() is required for the import to work.
+        interpreter_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tvm-dlr')
+        os.chdir(interpreter_folder)
 
         model_path = self.kwargs['model_path']
         model_type = self.kwargs['model_type'] or os.path.splitext(model_path)[1][1:]
@@ -109,7 +111,6 @@ class TVMDLRSession(BaseRTSession):
         #
         super().start_infer()
         # create inference model
-        os.chdir(self.interpreter_folder)
         self.interpreter = DLRModel(target_artifacts_folder, 'cpu')
         if self.kwargs['input_shape'] is None:
             # get the input names from DLR model
