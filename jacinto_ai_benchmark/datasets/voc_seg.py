@@ -46,11 +46,14 @@ class VOC2012Segmentation():
         self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
 
-    def download(self, path, split):
+    def download(self, path, split=None):
         root = path
-        images_folder = os.path.join(path, 'images')
-        annotations_folder = os.path.join(path, 'annotations')
-        if os.path.exists(path) and os.path.exists(images_folder) and os.path.exists(annotations_folder):
+        images_folder = os.path.join(path, 'JPEGImages')
+        imagesets_folder = os.path.join(path, 'ImageSets')
+        segmentations_folder = os.path.join(path, 'SegmentationClassRaw')
+        annotations_folder = os.path.join(path, 'Annotations') # not really required for segmentation
+        if os.path.exists(path) and os.path.exists(imagesets_folder) and os.path.exists(images_folder) \
+                and os.path.exists(segmentations_folder) and os.path.exists(annotations_folder):
             return
         #
         dataset_url = 'http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCdevkit_18-May-2011.tar'
@@ -58,6 +61,7 @@ class VOC2012Segmentation():
         extract_root = os.sep.join(root.split(os.sep)[:-2])
         dataset_path = utils.download_file(dataset_url, root=root, extract_root=extract_root)
         extra_path = utils.download_file(extra_url, root=root, extract_root=extract_root)
+        self.convert_dataset(root)
         return
 
     def __getitem__(self, idx, with_label=False):
@@ -95,14 +99,42 @@ class VOC2012Segmentation():
         accuracy = utils.segmentation_accuracy(cmatrix)
         return accuracy
 
-    # def _create_lut(self):
-    #     if self.label_dict:
-    #         lut = np.zeros(256, dtype=np.uint8)
-    #         for k in range(256):
-    #             lut[k] = k
-    #         for k in self.label_dict.keys():
-    #             lut[k] = self.label_dict[k]
-    #         return lut
-    #     else:
-    #         return None
-    #     #
+    ############################################################
+    # converts the PASCALVOC segmentation groundtruth from color format to raw format.
+    # Source: https://github.com/tensorflow/models/blob/master/research/deeplab/datasets/remove_gt_colormap.py
+    ###########################################################
+    def _remove_colormap(self, filename):
+      """Removes the color map from the annotation.
+      Args:
+        filename: Ground truth annotation filename.
+      Returns:
+        Annotation without color map.
+      """
+      return np.array(PIL.Image.open(filename))
+
+    def _save_annotation(self, annotation, filename):
+      """Saves the annotation as png file.
+      Args:
+        annotation: Segmentation annotation.
+        filename: Output filename.
+      """
+      pil_image = PIL.Image.fromarray(annotation.astype(dtype=np.uint8))
+      pil_image.save(filename)
+
+    def _convert_segmentation_to_raw(self, original_gt_folder, output_dir, segmentation_format='png'):
+      # Create the output directory if not exists.
+      if not os.path.isdir(output_dir):
+        os.makedirs(output_dir)
+      #
+      annotations = glob.glob(os.path.join(original_gt_folder, '*.' + segmentation_format))
+      for annotation in annotations:
+        raw_annotation = self._remove_colormap(annotation)
+        filename = os.path.basename(annotation)[:-4]
+        self._save_annotation(raw_annotation, os.path.join(output_dir, filename + '.' + segmentation_format))
+      #
+
+    def convert_dataset(self, root_folder):
+        original_gt_folder = os.path.join(root_folder, 'SegmentationClass')
+        output_dir = os.path.join(root_folder, 'SegmentationClassRaw')
+        self._convert_segmentation_to_raw(original_gt_folder, output_dir)
+
