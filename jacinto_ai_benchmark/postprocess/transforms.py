@@ -166,7 +166,7 @@ class DetectionFilter():
             bbox_selected = (bbox_score >= self.detection_thr)
             bbox = bbox[bbox_selected,...]
         #
-        if self.detection_num is not None:
+        if self.detection_max is not None:
             bbox = sorted(bbox, key=lambda b:b[5])
             bbox = bbox[range(self.detection_max),...]
         #
