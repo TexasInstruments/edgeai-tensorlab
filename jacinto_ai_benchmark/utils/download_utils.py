@@ -90,7 +90,7 @@ def _get_google_drive_file_id(url: str) -> Optional[str]:
 
 def download_url(
     url: str, root: str, filename: Optional[str] = None, md5: Optional[str] = None, max_redirect_hops: int = 0
-) -> None:
+):
     """Download a file from a url and place it in root.
 
     Args:
@@ -114,6 +114,8 @@ def download_url(
         return fpath
     #
 
+    print('Downloading ' + url + ' to ' + fpath + ' This may take some time. Please wait...')
+
     os.makedirs(root, exist_ok=True)
 
     # expand redirect chain if needed
@@ -124,11 +126,13 @@ def download_url(
     # check if file is located on Google Drive
     file_id = _get_google_drive_file_id(url)
     if file_id is not None:
-        return download_file_from_google_drive(file_id, root, filename, md5)
+        fpath = download_file_from_google_drive(file_id, root, filename, md5)
+        print('done.')
+        return fpath
+    #
 
     # download the file
     try:
-        print('Downloading ' + url + ' to ' + fpath)
         urllib.request.urlretrieve(
             url, fpath,
             reporthook=gen_bar_updater()
@@ -150,6 +154,7 @@ def download_url(
     if not check_integrity(fpath, md5):
         raise RuntimeError("File not found or corrupted.")
     #
+    print('done.')
     return fpath
 
 
@@ -282,7 +287,8 @@ def _is_zip(filename: str) -> bool:
     return filename.endswith(".zip")
 
 
-def extract_archive(from_path: str, to_path: Optional[str] = None, remove_finished: bool = False) -> None:
+def extract_archive(from_path: str, to_path: Optional[str] = None, remove_finished: bool = False):
+    print(f'Extracting {from_path} to {to_path}' + ' This may take some time. Please wait...')
     if to_path is None:
         to_path = os.path.dirname(from_path)
 
@@ -308,6 +314,7 @@ def extract_archive(from_path: str, to_path: Optional[str] = None, remove_finish
     if remove_finished:
         os.remove(from_path)
     #
+    print('done.')
     return to_path
 
 
@@ -318,7 +325,7 @@ def download_and_extract_archive(
     filename: Optional[str] = None,
     md5: Optional[str] = None,
     remove_finished: bool = False,
-) -> None:
+):
     url_files = url.split(' ')
     url = url_files[0]
     download_root = os.path.expanduser(download_root)
@@ -329,7 +336,6 @@ def download_and_extract_archive(
         filename = os.path.basename(url).split('?')[0]
     #
     fpath = download_url(url, download_root, filename, md5)
-    print("Extracting {} to {}".format(fpath, extract_root))
     if _is_archive(fpath):
         fpath = extract_archive(fpath, extract_root, remove_finished)
     #
