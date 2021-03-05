@@ -50,25 +50,30 @@ from .. import utils
 __all__ = ['ADE20KSegmentation']
 
 class ADE20KSegmentation(utils.ParamsBase):
-    def __init__(self, num_classes=151, ignore_label=0, download=False, **kwargs):
+    def __init__(self, num_classes=151, ignore_label=None, download=False, **kwargs):
         super().__init__()
+        assert 'path' in kwargs and 'split' in kwargs, 'path and split must be provided'
+        assert num_classes <= 151, 'maximum 151 classes (including background) are supported'
+        #assert self.kwargs['split'] in ['training', 'validation']		
         self.kwargs = kwargs
 
-        assert 'path' in kwargs and 'split' in kwargs, 'path, split must be provided'
         path = kwargs['path']
         split = kwargs['split']
         if download:
             self.download(path, split)
         #
 
-        #assert self.kwargs['split'] in ['training', 'validation']
         self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
         self.name = "ADE20K"
-        self.num_classes = num_classes
+        self.num_classes_ = num_classes
         self.ignore_label = ignore_label
-        self.load_classes() # mlperf model is trained only for 32 classes
+        self.label_dir_txt = os.path.join(self.kwargs['path'], 'objectInfo150.txt')
+        self.load_classes()
 
-        #self.label_lut = self._create_lut()
+        # if a color representation is needed
+        delta_color = (256*256*256)//self.num_classes_
+        colors24bit = [delta_color*c for c in range(self.num_classes_)]
+        self.colors = [[(c)//(256*256), (c//256)%(256), c%(256*256)] for c in colors24bit]
 
         image_dir = os.path.join(self.kwargs['path'], 'images', self.kwargs['split'])
         images_pattern = os.path.join(image_dir, '*.jpg')
@@ -91,7 +96,7 @@ class ADE20KSegmentation(utils.ParamsBase):
         #
         self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
-        super().initialize()
+
 
     def download(self, path, split):
         root = path
@@ -126,43 +131,57 @@ class ADE20KSegmentation(utils.ParamsBase):
     def __call__(self, predictions, **kwargs):
         return self.evaluate(predictions, **kwargs)
 
+    def num_classes(self):
+        return [self.num_classes_]
+
+    def decode_segmap(self, seg_img):
+        r = seg_img.copy()
+        g = seg_img.copy()
+        b = seg_img.copy()
+        for l in range(0, self.num_classes_):
+            r[seg_img == l] = self.colors[l][0]
+            g[seg_img == l] = self.colors[l][1]
+            b[seg_img == l] = self.colors[l][2]
+
+        rgb = np.zeros((seg_img.shape[0], seg_img.shape[1], 3))
+        rgb[:, :, 0] = r / 255.0
+        rgb[:, :, 1] = g / 255.0
+        rgb[:, :, 2] = b / 255.0
+        return rgb
+
+    def encode_segmap(self, label_img):
+        label_img = label_img.convert('L')
+        label_img = np.array(label_img)
+        if self.ignore_label is not None:
+            label_img[self.ignore_label] = 255
+        #
+        if self.num_classes_ < 151:
+            label_img[label_img >= self.num_classes_] = 0
+        #
+        return label_img
+
     def evaluate(self, predictions, **kwargs):
         cmatrix = None
         for n in range(self.num_frames):
             image_file, label_file = self.__getitem__(n, with_label=True)
-            # image = PIL.Image.open(image_file)
             label_img = PIL.Image.open(label_file)
-            label_img = label_img.convert('L')
-            label_img = np.array(label_img)
-            label_img[self.ignore_label] = 255
-            # label_img = self.label_lut[label_img]
-
+            label_img = self.encode_segmap(label_img)
+            # reshape prediction is needed
             output = predictions[n]
             output = output.astype(np.uint8)
             output = output[0] if (output.ndim > 2 and output.shape[0] == 1) else output
             output = output[:2] if (output.ndim > 2 and output.shape[2] == 1) else output
-
-            cmatrix = utils.confusion_matrix(cmatrix, output, label_img, self.num_classes)
+            # compute metric
+            cmatrix = utils.confusion_matrix(cmatrix, output, label_img, self.num_classes_)
         #
         accuracy = utils.segmentation_accuracy(cmatrix)
         return accuracy
 
-    # def _create_lut(self):  #reverse class should happen here
-    #     if self.label_dict:
-    #         lut = np.zeros(256, dtype=np.uint8)
-    #         for k in range(256):
-    #             lut[k] = k
-    #         for k in self.label_dict.keys():
-    #             lut[k] = self.label_dict[k]
-    #         return lut
-    #     else:
-    #         return None
-
-
     def load_classes(self):
         #ade20k_150_classes_url = "https://raw.githubusercontent.com/CSAILVision/sceneparsing/master/objectInfo150.csv"
-        label_dir_txt = os.path.join(self.kwargs['path'], 'objectInfo150.txt')
-        with open(label_dir_txt) as f:
-            list_ade20k_classes = list(map(lambda x: x.split("\t")[-1], f.read().split("\n")))[1:self.num_classes+1]
-            self.classes_reverse = dict(zip([i for i in range(1,self.num_classes+1)],list_ade20k_classes))
-            self.classes = dict(zip(list_ade20k_classes,[i for i in range(1,self.num_classes+1)]))
+        with open(self.label_dir_txt) as f:
+            list_ade20k_classes = list(map(lambda x: x.split("\t")[-1], f.read().split("\n")))[1:self.num_classes_+1]
+            self.classes_reverse = dict(zip([i for i in range(1,self.num_classes_+1)],list_ade20k_classes))
+            self.classes = dict(zip(list_ade20k_classes,[i for i in range(1,self.num_classes_+1)]))
+        #
+
