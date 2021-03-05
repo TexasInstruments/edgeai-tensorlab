@@ -71,9 +71,7 @@ class ADE20KSegmentation(utils.ParamsBase):
         self.load_classes()
 
         # if a color representation is needed
-        delta_color = (256*256*256)//self.num_classes_
-        colors24bit = [delta_color*c for c in range(self.num_classes_)]
-        self.colors = [[(c)//(256*256), (c//256)%(256), c%(256*256)] for c in colors24bit]
+        self.colors = self.find_colors()
 
         image_dir = os.path.join(self.kwargs['path'], 'images', self.kwargs['split'])
         images_pattern = os.path.join(image_dir, '*.jpg')
@@ -142,6 +140,7 @@ class ADE20KSegmentation(utils.ParamsBase):
             r[seg_img == l] = self.colors[l][0]
             g[seg_img == l] = self.colors[l][1]
             b[seg_img == l] = self.colors[l][2]
+        #
 
         rgb = np.zeros((seg_img.shape[0], seg_img.shape[1], 3))
         rgb[:, :, 0] = r / 255.0
@@ -159,6 +158,31 @@ class ADE20KSegmentation(utils.ParamsBase):
             label_img[label_img >= self.num_classes_] = 0
         #
         return label_img
+
+    def find_colors(self):
+        num_classes_3 = np.power(self.num_classes_, 1.0/3)
+        delta_color = int(256/num_classes_3)
+        colors = [(r, g, b) for r in range(0,256,delta_color)
+                            for g in range(0,256,delta_color)
+                            for b in range(0,256,delta_color)]
+        # spread the colors list to self.num_classes_
+        color_step = len(colors) / self.num_classes_
+        colors_list = []
+        to_idx = 0
+        while len(colors_list) < self.num_classes_:
+            from_idx = round(color_step * to_idx)
+            if from_idx < len(colors):
+                colors_list.append(colors[from_idx])
+            else:
+                break
+            #
+            to_idx = to_idx + 1
+        #
+        shortage = self.num_classes_-len(colors_list)
+        if shortage > 0:
+            colors_list += colors[-shortage:]
+        #
+        return colors_list
 
     def evaluate(self, predictions, **kwargs):
         cmatrix = None
