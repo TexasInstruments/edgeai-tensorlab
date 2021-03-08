@@ -82,6 +82,13 @@ if __name__ == '__main__':
     #
 
     # collect the logs and display it
+    # requires enable_logging to be True to write results to file
     if settings.collect_results:
         results = pipelines.collect_results(settings, work_dir, print_results=True)
+    #
+
+    # save params in a yaml file - also requires enable_logging to be set.
+    # if enable_logging is False, nothing will be written to file
+    if settings.save_params and settings.enable_logging:
+        pipelines.save_params(settings, pipeline_runner.pipeline_configs)
     #

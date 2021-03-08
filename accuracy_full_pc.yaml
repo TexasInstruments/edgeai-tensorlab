@@ -39,6 +39,9 @@ save_output : False
 # example: null (Note: null means no filter - run all the models)
 model_selection : null
 # exclude from running, these models
+# example: ['voc']
+# example: ['cityscapes']
+# example: ['vcls-10-306-0', 'vcls-10-404-0', 'vcls-10-434-0', 'vcls-10-442-0', 'vseg-16-300-0', 'vseg-16-301-0', 'vseg-16-400-0']
 model_exclusion: null
 # wild card list to match against the tasks. it null, all tasks will be run
 # example: ['classification', 'detection', 'segmentation']
@@ -57,5 +60,7 @@ config_range : null
 dataset_loading : True
 # logging of the import, infer and the accuracy. set to False to disable it.
 enable_logging : True
+# save the params of each pipeline_config in a yaml file
+save_params : True
 # verbose mode - print out more information
 verbose : False

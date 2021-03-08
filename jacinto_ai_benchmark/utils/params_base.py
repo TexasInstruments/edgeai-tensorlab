@@ -31,6 +31,8 @@ class ParamsBase:
         self.is_initialized = False
 
     def initialize(self):
+        assert hasattr(self, 'kwargs') and isinstance(self.kwargs, dict), \
+            'the child class must have a dict called kwargs'
         self.is_initialized = True
 
     def get_param(self, param_name):
@@ -38,6 +40,8 @@ class ParamsBase:
         return self.peek_param(param_name)
 
     def set_param(self, param_name, value):
+        assert hasattr(self, 'kwargs') and isinstance(self.kwargs, dict), \
+            'the child class must have a dict called kwargs'
         if hasattr(self, param_name):
             setattr(self, param_name, value)
         elif param_name in self.kwargs:
@@ -47,6 +51,8 @@ class ParamsBase:
         #
 
     def peek_param(self, param_name):
+        assert hasattr(self, 'kwargs') and isinstance(self.kwargs, dict), \
+            'the child class must have a dict called kwargs'
         # param may not be final yet - use get_param instead to be sure
         if hasattr(self, param_name):
             return getattr(self, param_name)
@@ -55,3 +61,7 @@ class ParamsBase:
         else:
             assert False, f'param {param_name} could not be found in object {self.__class__.__name__}'
         #
+
+    def get_params(self):
+        assert self.is_initialized, 'initialize must be called before get_param() can be done'
+        return self.kwargs

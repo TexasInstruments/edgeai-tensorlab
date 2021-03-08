@@ -58,5 +58,7 @@ config_range : null
 dataset_loading : ['imagenet']
 # logging of the import, infer and the accuracy. set to False to disable it.
 enable_logging : True
+# save the params of each pipeline_config in a yaml file
+save_params : True
 # verbose mode - print out more information
 verbose : False

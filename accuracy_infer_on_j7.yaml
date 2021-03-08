@@ -43,5 +43,13 @@ task_selection : null
 # this range will be applied after applying model_selection and short-listing
 # null will run all the configs
 config_range : null
+# whether to load the datasets or not. set to False to load no datasets
+# set to True to try and load all datasets (the dataset folders must be available in ./dependencies/datasets).
+# for selective loading, provide a list of dataset names such as ['imagenet', 'coco', 'cityscapes', 'ade20k', 'voc2012']
+dataset_loading : True
+# logging of the import, infer and the accuracy. set to False to disable it.
+enable_logging : True
+# save the params of each pipeline_config in a yaml file
+save_params : True
 # verbose mode - print out more information
 verbose : False

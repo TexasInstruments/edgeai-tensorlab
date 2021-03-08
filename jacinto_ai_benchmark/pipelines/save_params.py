@@ -26,6 +26,39 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from .pipeline_runner import *
-from .collect_results import *
-from .save_params import *
+import os
+import yaml
+
+
+def save_params(settings, pipeline_configs):
+    pipeline_params = []
+    for pipeline_id, pipeline_config in enumerate(pipeline_configs.values()):
+        try:
+            pipeline_param = save_config(settings, pipeline_config)
+            pipeline_params.append(pipeline_param)
+        except:
+            pass
+        #
+    #
+    return pipeline_params
+
+
+def save_config(settings, pipeline_config):
+    pipeline_param = {}
+    run_dir = pipeline_config['session'].get_param('run_dir')
+    with open(os.path.join(run_dir, 'param.yaml'), 'w') as fp:
+        for pipeline_stage_name, pipeline_stage in pipeline_config.items():
+            kwargs = None
+            if hasattr(pipeline_stage, 'get_params'):
+                kwargs = pipeline_stage.get_params()
+            elif isinstance(pipeline_stage, dict):
+                kwargs = pipeline_stage
+            #
+            if kwargs is not None:
+                pipeline_param.update({pipeline_stage_name:kwargs})
+            #
+        #
+        yaml.safe_dump(pipeline_param, fp)
+    #
+    return pipeline_param
+
