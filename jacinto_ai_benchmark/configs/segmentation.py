@@ -93,7 +93,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/segmentation/cityscapes/jai-pytorch/deeplabv3lite_mobilenetv2_tv_768x384_20190626-085932_opset9.onnx'),
             postprocess=postproc_segmentation_onnx,
-            model_info={'metric_traget':{'accuracy_mean_iou%':69.13}}
+            model_info=dict(metric_reference={'accuracy_mean_iou%':69.13})
         ),
         # jai-pytorch: segmentation - fpnlite_aspp_mobilenetv2_tv_768x384_20200120-135701 expected_metric: 70.48% mean-iou
         'vseg-16-101-0':utils.dict_update(cityscapes_cfg,
@@ -101,7 +101,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/segmentation/cityscapes/jai-pytorch/fpnlite_aspp_mobilenetv2_tv_768x384_20200120-135701_opset9.onnx'),
             postprocess=postproc_segmentation_onnx,
-            model_info={'metric_traget':{'accuracy_mean_iou%':70.48}}
+            model_info=dict(metric_reference={'accuracy_mean_iou%':70.48})
         ),
         # jai-pytorch: segmentation - unetlite_aspp_mobilenetv2_tv_768x384_20200129-164340 expected_metric: 68.97% mean-iou
         'vseg-16-102-0':utils.dict_update(cityscapes_cfg,
@@ -109,7 +109,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/segmentation/cityscapes/jai-pytorch/unetlite_aspp_mobilenetv2_tv_768x384_20200129-164340_opset9.onnx'),
             postprocess=postproc_segmentation_onnx,
-            model_info={'metric_traget':{'accuracy_mean_iou%':68.97}}
+            model_info=dict(metric_reference={'accuracy_mean_iou%':68.97})
         ),
         # jai-pytorch: segmentation - fpnlite_aspp_regnetx800mf_768x384_20200911-144003 expected_metric: 72.01% mean-iou
         'vseg-16-103-0':utils.dict_update(cityscapes_cfg,
@@ -117,7 +117,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/segmentation/cityscapes/jai-pytorch/fpnlite_aspp_regnetx800mf_768x384_20200911-144003_opset9.onnx'),
             postprocess=postproc_segmentation_onnx,
-            model_info={'metric_traget':{'accuracy_mean_iou%':72.01}}
+            model_info=dict(metric_reference={'accuracy_mean_iou%':72.01})
         ),
         # jai-pytorch: segmentation - fpnlite_aspp_regnetx1.6gf_1024x512_20200914-132016 expected_metric: 75.84% mean-iou
         'vseg-16-104-0':utils.dict_update(cityscapes_cfg,
@@ -125,7 +125,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/segmentation/cityscapes/jai-pytorch/fpnlite_aspp_regnetx1.6gf_1024x512_20200914-132016_opset9.onnx'),
             postprocess=postproc_segmentation_onnx,
-            model_info={'metric_traget':{'accuracy_mean_iou%':75.84}}
+            model_info=dict(metric_reference={'accuracy_mean_iou%':75.84})
         ),
         # jai-pytorch: segmentation - fpnlite_aspp_regnetx3.2gf_1536x768_20200915-092738 expected_metric: 78.90% mean-iou
         'vseg-16-105-0':utils.dict_update(cityscapes_cfg,
@@ -133,7 +133,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/segmentation/cityscapes/jai-pytorch/fpnlite_aspp_regnetx3.2gf_1536x768_20200915-092738_opset9.onnx'),
             postprocess=postproc_segmentation_onnx,
-            model_info={'metric_traget':{'accuracy_mean_iou%':78.90}}
+            model_info=dict(metric_reference={'accuracy_mean_iou%':78.90})
         ),
         # torchvision: segmentation - torchvision deeplabv3-resnet50 - expected_metric: 73.5% MeanIoU.
         'vseg-16-300-0':utils.dict_update(cityscapes_cfg,
@@ -141,7 +141,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/segmentation/cityscapes/torchvision/deeplabv3_resnet50_1040x520_20200901-213517_opset9.onnx'),
             postprocess=postproc_segmentation_onnx,
-            model_info={'metric_traget':{'accuracy_mean_iou%':73.5}}
+            model_info=dict(metric_reference={'accuracy_mean_iou%':73.5})
         ),
         # torchvision: segmentation - torchvision fcn-resnet50 - expected_metric: 71.6% MeanIoU.
         'vseg-16-301-0':utils.dict_update(cityscapes_cfg,
@@ -149,7 +149,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/segmentation/cityscapes/torchvision/fcn_resnet50_1040x520_20200902-153444_opset9.onnx'),
             postprocess=postproc_segmentation_onnx,
-            model_info={'metric_traget':{'accuracy_mean_iou%':71.6}}
+            model_info=dict(metric_reference={'accuracy_mean_iou%':71.6})
         ),
         #################################################################
         #       TFLITE MODELS
@@ -160,7 +160,7 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
                  model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k/mlperf/deeplabv3_mnv2_ade20k_float.tflite'),
             postprocess=postproc_segmenation_tflite,
-            model_info={'metric_traget':{'accuracy_mean_iou%':54.8}}
+            model_info=dict(metric_reference={'accuracy_mean_iou%':54.8})
         ),
         #################tensorflow models###################################
         #tensorflow-deeplab-ade20k-segmentation- deeplabv3_mnv2_ade20k_train_2018_12_03 - expected_metric: 32.04% MeanIoU.
@@ -169,7 +169,7 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
                  model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k/tf1-models/deeplabv3_mnv2_ade20k_train_2018_12_03_512x512.tflite'),
             postprocess=postproc_segmenation_tflite,
-            model_info={'metric_traget':{'accuracy_mean_iou%':32.04}}
+            model_info=dict(metric_reference={'accuracy_mean_iou%':32.04})
         ),
         # tensorflow-deeplab-cityscapes-segmentation- deeplabv3_mnv2_cityscapes_train - expected_metric: 73.57% MeanIoU.
         'vseg-16-400-0': utils.dict_update(cityscapes_cfg,
@@ -177,7 +177,7 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/segmentation/cityscapes/tf1-models/deeplabv3_mnv2_cityscapes_train_1024x2048.tflite'),
             postprocess=postproc_segmenation_tflite,
-            model_info={'metric_traget':{'accuracy_mean_iou%':73.57}}
+            model_info=dict(metric_reference={'accuracy_mean_iou%':73.57})
         ),
         # tensorflow-deeplab-pascal-voc-segmentation- deeplabv3_mnv2_dm05_pascal_trainaug - expected_metric: 70.19% MeanIoU.
         'vseg-18-400-0': utils.dict_update(pascal_voc_cfg, #pascalvoc2012 deeplab
@@ -185,7 +185,7 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/segmentation/voc2012/tf1-models/deeplabv3_mnv2_dm05_pascal_trainaug_512x512.tflite'),
             postprocess=postproc_segmenation_tflite,
-            model_info={'metric_traget':{'accuracy_mean_iou%':70.19}}
+            model_info=dict(metric_reference={'accuracy_mean_iou%':70.19})
        ),
         # tensorflow-deeplab-pascal-voc-segmentation- deeplabv3_mnv2_pascal_train_aug - expected_metric: 77.33% MeanIoU.
         'vseg-18-401-0': utils.dict_update(pascal_voc_cfg,  # pascalvoc2012 deeplab
@@ -193,7 +193,7 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
                model_path=f'{settings.modelzoo_path}/vision/segmentation/voc2012/tf1-models/deeplabv3_mnv2_pascal_train_aug_512x512.tflite'),
             postprocess=postproc_segmenation_tflite,
-            model_info={'metric_traget':{'accuracy_mean_iou%':77.33}}
+            model_info=dict(metric_reference={'accuracy_mean_iou%':77.33})
         ),
     }
     return pipeline_configs
