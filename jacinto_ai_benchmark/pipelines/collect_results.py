@@ -72,22 +72,28 @@ def collect_result(settings, pipeline_config):
         return result
     #
     result = None
-    try:
-        yaml_filename = f'{run_dir}/result.yaml'
-        with open(yaml_filename, 'rb') as yaml_fp:
-            result = yaml.safe_load(yaml_fp)
-        #
-    except:
-        pass
-    #
-    # TODO: deprecate this pkl file format later
     if result is None:
         try:
+            # TODO: deprecate this pkl file format later
             pkl_filename = f'{run_dir}/result.pkl'
             with open(pkl_filename, 'rb') as pkl_fp:
                 result = pickle.load(pkl_fp)
             #
         except:
+            pass
+        #
+    #
+    if result is None:
+        try:
+            yaml_filename = f'{run_dir}/result.yaml'
+            with open(yaml_filename, 'r') as yaml_fp:
+                result = yaml.safe_load(yaml_fp)
+            #
+        except:
+            # yaml_filename = f'{run_dir}/result.yaml'
+            # with open(yaml_filename, 'w') as yaml_fp:
+            #     yaml.safe_dump(utils.round_dict(result), yaml_fp)
+            # #
             pass
         #
     #
