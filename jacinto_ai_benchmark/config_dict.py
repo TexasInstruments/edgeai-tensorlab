@@ -125,8 +125,6 @@ class ConfigDict(dict):
         self.config_range = None
         # logging of the import, infer and the accuracy. set to False to disable it.
         self.enable_logging = True
-        # save the params of each pipeline_config in a yaml file
-        self.save_params = True
         # verbose mode - print out more information
         self.verbose = False
 

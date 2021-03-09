@@ -36,15 +36,28 @@ from .. import utils
 def collect_results(settings, work_dir, pipeline_configs, print_results=True):
     results = {}
     for pipeline_id, pipeline_config in pipeline_configs.items():
-        result = collect_result(settings, pipeline_config)
-        results.update({pipeline_id:result})
+        # collect the result of the pipeline
+        param_result = collect_result(settings, pipeline_config)
+        # print the result if necessary
+        if print_results:
+            print(f'{pipeline_id}: {utils.safe_object(get_result(param_result))}')
+        #
+        if not (isinstance(param_result, dict) and 'result' in param_result):
+            # if this dict has param, then result will be an entry in it
+            # if this doesn't have param, insert param
+            param_dict = collect_param(settings, pipeline_config)
+            param_dict.update({'result':param_result})
+        else:
+            param_dict = param_result
+        #
+        results.update({pipeline_id: param_dict})
     #
 
     # sort the results
-    results = {k:v for k,v in sorted(results.items())}
+    results = {k: v for k, v in sorted(results.items())}
 
-    # for logging and printing
-    results = utils.round_dicts(results)
+    # for logging
+    results = utils.safe_object(results)
     if settings.enable_logging:
         results_yaml_filename = os.path.join(work_dir, 'results.yaml')
         with open(results_yaml_filename, 'w') as fp:
@@ -57,55 +70,84 @@ def collect_results(settings, work_dir, pipeline_configs, print_results=True):
             pickle.dump(list(results.values()), fp)
         #
     #
-    if print_results:
-        for result_id, result in results.items():
-            print(f'{result_id}:{result}')
-        #
-    #
     return results
 
 
+def collect_param(settings, pipeline_config):
+    pipeline_param = {}
+    for pipeline_stage_name, pipeline_stage in pipeline_config.items():
+        if hasattr(pipeline_stage, 'get_params'):
+            kwargs = pipeline_stage.get_params()
+        else:
+            kwargs = pipeline_stage
+        #
+        if kwargs is not None:
+            pipeline_param.update({pipeline_stage_name:kwargs})
+        #
+    #
+    return pipeline_param
+
+
 def collect_result(settings, pipeline_config):
-    result = None
+    param_result = None
     run_dir = pipeline_config['session'].get_param('run_dir')
     if not (os.path.exists(run_dir) and os.path.isdir(run_dir)):
-        return result
+        return param_result
     #
-    result = None
-    if result is None:
+    param_result = None
+    if param_result is None:
         try:
             # TODO: deprecate this pkl file format later
             pkl_filename = f'{run_dir}/result.pkl'
             with open(pkl_filename, 'rb') as pkl_fp:
-                result = pickle.load(pkl_fp)
+                param_result = pickle.load(pkl_fp)
             #
         except:
             pass
         #
     #
-    if result is None:
+    if param_result is None:
         try:
             yaml_filename = f'{run_dir}/result.yaml'
             with open(yaml_filename, 'r') as yaml_fp:
-                result = yaml.safe_load(yaml_fp)
+                param_result = yaml.safe_load(yaml_fp)
             #
         except:
             # yaml_filename = f'{run_dir}/result.yaml'
             # with open(yaml_filename, 'w') as yaml_fp:
-            #     yaml.safe_dump(utils.round_dict(result), yaml_fp)
+            #     yaml.safe_dump(utils.safe_object(param_result), yaml_fp)
             # #
             pass
         #
     #
-    if result is not None:
-        result = correct_result(result)
+    if param_result is not None:
+        if isinstance(param_result, dict) and 'result' in param_result:
+            param_result['result'] = correct_result(param_result['result'])
+        else:
+            param_result = correct_result(param_result)
+        #
+    #
+    return param_result
+
+
+def correct_result(param_result):
+    result = get_result(param_result)
+    if 'inference_path' in result:
+        result['infer_path'] = result['inference_path']
+        del result['inference_path']
+    #
+    if isinstance(param_result, dict) and 'result' in param_result:
+        param_result['result'] = result
     #
     return result
 
 
-def correct_result(result):
-    if 'inference_path' in result:
-        result['infer_path'] = result['inference_path']
-        del result['inference_path']
+def get_result(param_result):
+    if isinstance(param_result, dict) and 'result' in param_result:
+        # if this dict has param, then result will be an entry in it
+        result = param_result['result']
+    else:
+        # else this whole dict is the result
+        result = param_result
     #
     return result

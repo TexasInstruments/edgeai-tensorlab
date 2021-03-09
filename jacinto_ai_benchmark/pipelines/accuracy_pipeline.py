@@ -82,20 +82,28 @@ class AccuracyPipeline():
             result = self._evaluate(output_list)
             result.update(self.infer_stats_dict)
         #
-        self.logger.write(f'\nBenchmarkResults: {utils.round_dict(result)}\n')
+        self.logger.write(f'\nBenchmarkResults: {utils.safe_object(result)}\n')
+
+        param_result = self._collect_param()
+        param_result.update({'result': result})
+
+        # make it savable by yaml.safe_dump()
+        param_result = utils.safe_object(param_result)
 
         if self.settings.enable_logging:
             # TODO: deprecate this pkl file format later
             pkl_filename = os.path.join(run_dir, 'result.pkl')
             with open(pkl_filename, 'wb') as fp:
-                pickle.dump(result, fp)
+                pickle.dump(param_result, fp)
             #
             yaml_filename = os.path.join(run_dir, 'result.yaml')
             with open(yaml_filename, 'w') as fp:
-                yaml.safe_dump(utils.round_dict(result), fp)
+                # round_dict make the output pretty and also
+                # converts numpy float to float so that it can be saved to yaml
+                yaml.safe_dump(param_result, fp)
             #
         #
-        return result
+        return param_result
 
     def _import_model(self, description=''):
         session = self.pipeline_config['session']
@@ -195,3 +203,17 @@ class AccuracyPipeline():
             output_dict.update(output)
         #
         return output_dict
+
+    def _collect_param(self):
+        pipeline_param = {}
+        for pipeline_stage_name, pipeline_stage in self.pipeline_config.items():
+            if hasattr(pipeline_stage, 'get_params'):
+                kwargs = pipeline_stage.get_params()
+            else:
+                kwargs = pipeline_stage
+            #
+            if kwargs is not None:
+                pipeline_param.update({pipeline_stage_name:kwargs})
+            #
+        #
+        return pipeline_param

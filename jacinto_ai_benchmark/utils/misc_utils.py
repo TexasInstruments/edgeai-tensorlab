@@ -28,6 +28,7 @@
 
 import copy
 import numpy as np
+import yaml
 
 
 def dict_update(src_dict, *args, inplace=False, **kwargs):
@@ -87,36 +88,34 @@ def as_list_or_tuple(arg):
     return arg if isinstance(arg, (list,tuple)) else (arg,)
 
 
-def round_dict(d, precision=3):
-    d_copy = {}
-    for k, v in d.items():
+# convert to something that can be saved by yaml.safe_dump
+def safe_object(d, precision=3):
+    pass_through_types = (str, int)
+    if d is None:
+        d_out = d
+    elif isinstance(d, pass_through_types):
+        d_out = d
+    elif isinstance(d, (np.float32, np.float64)):
         # numpy objects cannot be serialized with yaml - convert to float
-        if isinstance(v, (np.float32, np.float64)):
-            v = float(v)
-        #
+        d_out = round(float(d), precision)
+    elif isinstance(d, float):
         # round to the given precision
-        if isinstance(v, float):
-            v = round(v, precision)
-        #
-        d_copy.update({k:v})
-    #
-    return d_copy
-
-
-def round_dicts(d_in, precision=3):
-    if isinstance(d_in, (list,tuple)):
-        r_out = []
-        for d_idx, d in enumerate(d_in):
-            d = round_dict(d, precision) if isinstance(d, dict) else d
-            r_out.append(d)
-        #
-    elif isinstance(d_in, dict):
-        r_out = {}
-        for d_key, d in d_in.items():
-            d = round_dict(d, precision) if isinstance(d, dict) else d
-            r_out.update({d_key:d})
-        #
+        d_out = round(d, precision)
+    elif isinstance(d, dict):
+        d_out = {k: safe_object(v) for k , v in d.items()}
+    elif isinstance(d, (list,tuple)):
+        d_out = [safe_object(di) for di in d]
+    elif isinstance(d, pass_through_types):
+        d_out = d
+    elif hasattr(d, '__dict__'):
+        # other unrecognized objects - just grab the attributes as a dict
+        d_out = safe_object(d.__dict__)
     else:
-        r_out = d_in
+        d_out = None
     #
-    return r_out
+    return d_out
+
+
+
+
+
