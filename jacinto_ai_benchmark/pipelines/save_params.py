@@ -30,14 +30,20 @@ import os
 import yaml
 
 
-def save_params(settings, pipeline_configs):
-    pipeline_params = []
-    for pipeline_id, pipeline_config in enumerate(pipeline_configs.values()):
+def save_params(settings, work_dir, pipeline_configs):
+    pipeline_params = {}
+    for pipeline_id, pipeline_config in pipeline_configs.items():
         try:
             pipeline_param = save_config(settings, pipeline_config)
-            pipeline_params.append(pipeline_param)
+            pipeline_params.update({pipeline_id:pipeline_param})
         except:
             pass
+        #
+    #
+    if settings.enable_logging:
+        params_yaml_filename = os.path.join(work_dir, 'params.yaml')
+        with open(params_yaml_filename, 'w') as fp:
+            yaml.safe_dump(pipeline_params, fp)
         #
     #
     return pipeline_params
@@ -48,10 +54,9 @@ def save_config(settings, pipeline_config):
     run_dir = pipeline_config['session'].get_param('run_dir')
     with open(os.path.join(run_dir, 'param.yaml'), 'w') as fp:
         for pipeline_stage_name, pipeline_stage in pipeline_config.items():
-            kwargs = None
             if hasattr(pipeline_stage, 'get_params'):
                 kwargs = pipeline_stage.get_params()
-            elif isinstance(pipeline_stage, dict):
+            else:
                 kwargs = pipeline_stage
             #
             if kwargs is not None:

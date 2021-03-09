@@ -29,45 +29,72 @@
 import os
 import glob
 import pickle
+import yaml
 from .. import utils
 
 
-def collect_results(settings, work_dir, print_results=True):
-    results = []
-    logs_dirs = glob.glob(f'{work_dir}/*')
-    for log_dir in logs_dirs:
-        if os.path.isdir(log_dir):
-            pkl_filename = f'{log_dir}/result.pkl'
-            try:
-                with open(pkl_filename, 'rb') as pkl_fp:
-                    result = pickle.load(pkl_fp)
-                    result = correct_result(result)
-                    results.append(result)
-                #
-            except:
-                pass
-            #
-        #
+def collect_results(settings, work_dir, pipeline_configs, print_results=True):
+    results = {}
+    for pipeline_id, pipeline_config in pipeline_configs.items():
+        result = collect_result(settings, pipeline_config)
+        results.update({pipeline_id:result})
     #
-    results = sorted(results, key=lambda item: item['infer_path'])
+
+    # sort the results
+    results = {k:v for k,v in sorted(results.items())}
+
+    # for logging and printing
+    results = utils.round_dicts(results)
     if settings.enable_logging:
-        result_filename = os.path.join(work_dir, 'results.log')
-        with open(result_filename,'w') as writer_fp:
-            for result in results:
-                writer_fp.write(f'\n{utils.round_dict(result)}')
-            #
+        results_yaml_filename = os.path.join(work_dir, 'results.yaml')
+        with open(results_yaml_filename, 'w') as fp:
+            yaml.safe_dump(results, fp)
         #
-        pkl_filename = os.path.join(work_dir, 'results.pkl')
-        with open(pkl_filename, 'wb') as fp:
-            pickle.dump(results, fp)
+        # TODO: deprecate this pkl file format later
+        results_pkl_filename = os.path.join(work_dir, 'results.pkl')
+        with open(results_pkl_filename, 'wb') as fp:
+            # for backward compatibility, the pkl file has a list instead of dict
+            pickle.dump(list(results.values()), fp)
         #
     #
     if print_results:
-        for result in results:
-            print(utils.round_dict(result))
+        for result_id, result in results.items():
+            print(f'{result_id}:{result}')
         #
     #
     return results
+
+
+def collect_result(settings, pipeline_config):
+    result = None
+    run_dir = pipeline_config['session'].get_param('run_dir')
+    if not (os.path.exists(run_dir) and os.path.isdir(run_dir)):
+        return result
+    #
+    result = None
+    try:
+        yaml_filename = f'{run_dir}/result.yaml'
+        with open(yaml_filename, 'rb') as yaml_fp:
+            result = yaml.safe_load(yaml_fp)
+        #
+    except:
+        pass
+    #
+    # TODO: deprecate this pkl file format later
+    if result is None:
+        try:
+            pkl_filename = f'{run_dir}/result.pkl'
+            with open(pkl_filename, 'rb') as pkl_fp:
+                result = pickle.load(pkl_fp)
+            #
+        except:
+            pass
+        #
+    #
+    if result is not None:
+        result = correct_result(result)
+    #
+    return result
 
 
 def correct_result(result):

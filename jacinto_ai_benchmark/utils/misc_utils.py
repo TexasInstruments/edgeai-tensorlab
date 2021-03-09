@@ -90,9 +90,33 @@ def as_list_or_tuple(arg):
 def round_dict(d, precision=3):
     d_copy = {}
     for k, v in d.items():
-        if isinstance(v, (float, np.float32, np.float64)):
+        # numpy objects cannot be serialized with yaml - convert to float
+        if isinstance(v, (np.float32, np.float64)):
+            v = float(v)
+        #
+        # round to the given precision
+        if isinstance(v, float):
             v = round(v, precision)
         #
         d_copy.update({k:v})
     #
     return d_copy
+
+
+def round_dicts(d_in, precision=3):
+    if isinstance(d_in, (list,tuple)):
+        r_out = []
+        for d_idx, d in enumerate(d_in):
+            d = round_dict(d, precision) if isinstance(d, dict) else d
+            r_out.append(d)
+        #
+    elif isinstance(d_in, dict):
+        r_out = {}
+        for d_key, d in d_in.items():
+            d = round_dict(d, precision) if isinstance(d, dict) else d
+            r_out.update({d_key:d})
+        #
+    else:
+        r_out = d_in
+    #
+    return r_out
