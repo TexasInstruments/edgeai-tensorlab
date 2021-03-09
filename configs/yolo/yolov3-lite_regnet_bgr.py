@@ -1,5 +1,5 @@
 ######################################################
-input_size = (416,416)                          #(320,320) #(416,416) #(512,512) #(608,608)
+input_size = (512,512)                          #(320,320) #(416,416) #(512,512) #(608,608)
 dataset_type = 'CocoDataset'
 num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8}
 num_classes = num_classes_dict[dataset_type]
@@ -16,7 +16,7 @@ _base_ = [
 # settings for qat or calibration - uncomment after doing floating point training
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
-initial_learning_rate = 4e-2 #8e-2
+initial_learning_rate = 1e-2 #8e-2
 samples_per_gpu = 8 #16
 if quantize:
   load_from = './work_dirs/yolov3-lite_regnet/latest.pth'
