@@ -63,7 +63,8 @@ def get_configs(settings, work_dir):
         #     session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
         #         model_path=f'{settings.modelzoo_path}/vision/detection/coco/mlperf/ssd_resnet34-ssd1200.onnx'),
         #     postprocess=postproc_detection_onnx,
-        #     metric=dict(label_offset_pred=det_helper.coco_label_offset_80to90())
+        #     metric=dict(label_offset_pred=det_helper.coco_label_offset_80to90()),
+        #     model_info={'metric_traget':{'accuracy_ap[.5:.95]%':20.0}}
         # ),
         #################################################################
         # # yolov3: detection - yolov3 416x416 - expected_metric: 31.0% COCO AP[0.5-0.95]
@@ -74,7 +75,8 @@ def get_configs(settings, work_dir):
         #         model_path=f'{settings.modelzoo_path}/vision/detection/coco/onnx-models/yolov3-10.onnx',
         #         input_shape=dict(input_1=(1,3,416,416), image_shape=(1,2))),
         #     postprocess=postproc_detection_onnx,
-        #     metric=dict(label_offset_pred=det_helper.coco_label_offset_80to90())
+        #     metric=dict(label_offset_pred=det_helper.coco_label_offset_80to90()),
+        #     model_info={'metric_traget':{'accuracy_ap[.5:.95]%':31.0}}
         # ),
         #################################################################
         #       TFLITE MODELS
@@ -85,7 +87,8 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
             postprocess=postproc_detection_tflite,
-            metric=dict(label_offset_pred=coco_label_offset_90to90())
+            metric=dict(label_offset_pred=coco_label_offset_90to90()),
+            model_info={'metric_traget':{'accuracy_ap[.5:.95]%':23.0}}
         ),
         # mlperf mobile: detection - ssd_mobilenet_v2_coco_300x300 - expected_metric: 22.0% COCO AP[0.5-0.95]
         'vdet-12-011-0':utils.dict_update(common_cfg,
@@ -93,7 +96,8 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/detection/coco/mlperf/ssd_mobilenet_v2_300_float.tflite'),
             postprocess=postproc_detection_tflite,
-            metric=dict(label_offset_pred=coco_label_offset_90to90())
+            metric=dict(label_offset_pred=coco_label_offset_90to90()),
+            model_info={'metric_traget':{'accuracy_ap[.5:.95]%':22.0}}
         ),
         #################################################################
         # tensorflow1.0 models: detection - ssdlite_mobiledet_dsp_320x320_coco_2020_05_19 expected_metric: 28.9% ap[0.5:0.95] accuracy
@@ -102,7 +106,8 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_2020_05_19.tflite'),
             postprocess=postproc_detection_tflite,
-            metric=dict(label_offset_pred=coco_label_offset_90to90())
+            metric=dict(label_offset_pred=coco_label_offset_90to90()),
+            model_info={'metric_traget':{'accuracy_ap[.5:.95]%':28.9}}
         ),
         # tensorflow1.0 models: detection - ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19 expected_metric: 25.9% ap[0.5:0.95] accuracy
         'vdet-12-401-0':utils.dict_update(common_cfg,
@@ -110,7 +115,8 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19.tflite'),
             postprocess=postproc_detection_tflite,
-            metric=dict(label_offset_pred=coco_label_offset_90to90())
+            metric=dict(label_offset_pred=coco_label_offset_90to90()),
+            model_info={'metric_traget':{'accuracy_ap[.5:.95]%':25.9}}
         ),
         # tensorflow1.0 models: detection - ssdlite_mobilenet_v2_coco_2018_05_09 expected_metric: 22.0% ap[0.5:0.95] accuracy
         'vdet-12-402-0':utils.dict_update(common_cfg,
@@ -118,7 +124,8 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
                 model_path=f'{settings.modelzoo_path}/vision/detection/coco/tf1-models/ssdlite_mobilenet_v2_coco_2018_05_09.tflite'),
             postprocess=postproc_detection_tflite,
-            metric=dict(label_offset_pred=coco_label_offset_90to90())
+            metric=dict(label_offset_pred=coco_label_offset_90to90()),
+            model_info={'metric_traget':{'accuracy_ap[.5:.95]%':22.0}}
         ),
         # # tensorflow1.0 models: detection - ssd_mobilenet_v2_mnasfpn_shared_box_predictor_320x320_coco_sync_2020_05_18 expected_metric: 26.6% ap[0.5:0.95] accuracy
         # 'vdet-12-403-0':utils.dict_update(common_cfg,
@@ -126,7 +133,8 @@ def get_configs(settings, work_dir):
         #     session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
         #         model_path=f'{settings.modelzoo_path}/vision/detection/coco/tf1-models/ssd_mobilenet_v2_mnasfpn_shared_box_predictor_320x320_coco_sync_2020_05_18.tflite'),
         #     postprocess=postproc_detection_tflite,
-        #     metric=dict(label_offset_pred=coco_label_offset_90to90())
+        #     metric=dict(label_offset_pred=coco_label_offset_90to90()),
+        #     model_info={'metric_traget':{'accuracy_ap[.5:.95]%':26.6}}
         # ),
         # # tensorflow1.0 models: detection - ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03 expected_metric: 32.0% ap[0.5:0.95] accuracy
         # 'vdet-12-404-0':utils.dict_update(common_cfg,
@@ -134,7 +142,8 @@ def get_configs(settings, work_dir):
         #     session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
         #         model_path=f'{settings.modelzoo_path}/vision/detection/coco/tf1-models/ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03.tflite'),
         #     postprocess=postproc_detection_tflite,
-        #     metric=dict(label_offset_pred=coco_label_offset_90to90())
+        #     metric=dict(label_offset_pred=coco_label_offset_90to90()),
+        #     model_info={'metric_traget':{'accuracy_ap[.5:.95]%':32.0}}
         # ),
 
         #################################################################
@@ -144,7 +153,8 @@ def get_configs(settings, work_dir):
         #     session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
         #         model_path=f'{settings.modelzoo_path}/vision/detection/coco/tf2-models/ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8.tflite'),
         #     postprocess=postproc_detection_tflite,
-        #     metric=dict(label_offset_pred=coco_label_offset_90to90())
+        #     metric=dict(label_offset_pred=coco_label_offset_90to90()),
+        #     model_info={'metric_traget':{'accuracy_ap[.5:.95]%':28.2}}
         # ),
         # # tensorflow2.0 models: detection - ssd_resnet50_v1_fpn_640x640_coco17_tpu-8 expected_metric: 34.3% ap[0.5:0.95] accuracy
         # 'vdet-12-451-0':utils.dict_update(common_cfg,
@@ -152,7 +162,8 @@ def get_configs(settings, work_dir):
         #     session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
         #         model_path=f'{settings.modelzoo_path}/vision/detection/coco/tf2-models/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tflite'),
         #     postprocess=postproc_detection_tflite,
-        #     metric=dict(label_offset_pred=coco_label_offset_90to90())
+        #     metric=dict(label_offset_pred=coco_label_offset_90to90()),
+        #     model_info={'metric_traget':{'accuracy_ap[.5:.95]%':34.3}}
         # ),
         # # tensorflow2.0 models: detection - ssd_resnet50_v1_fpn_1024x1024_coco17_tpu-8 expected_metric: 38.3% ap[0.5:0.95] accuracy
         # 'vdet-12-452-0':utils.dict_update(common_cfg,
@@ -160,7 +171,8 @@ def get_configs(settings, work_dir):
         #     session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
         #         model_path=f'{settings.modelzoo_path}/vision/detection/coco/tf2-models/ssd_resnet50_v1_fpn_1024x1024_coco17_tpu-8.tflite'),
         #     postprocess=postproc_detection_tflite,
-        #     metric=dict(label_offset_pred=coco_label_offset_90to90())
+        #     metric=dict(label_offset_pred=coco_label_offset_90to90()),
+        #     model_info={'metric_traget':{'accuracy_ap[.5:.95]%':38.3}}
         # ),
         #################################################################
         # # google automl: detection - efficientdet-lite0_bifpn_maxpool2x2_relu expected_metric: 33.5% ap[0.5:0.95] accuracy
@@ -169,7 +181,8 @@ def get_configs(settings, work_dir):
         #     session=tflite_session_type(**common_session_cfg, **settings.session_tflite_rt_cfg,
         #         model_path=f'{settings.modelzoo_path}/vision/detection/coco/google-automl/efficientdet-lite0_bifpn_maxpool2x2_relu.tflite'),
         #     postprocess=postproc_detection_tflite,
-        #     metric=dict(label_offset_pred=coco_label_offset_90to90())
+        #     metric=dict(label_offset_pred=coco_label_offset_90to90()),
+        #     model_info={'metric_traget':{'accuracy_ap[.5:.95]%':33.5}}
         # ),
         #################################################################
         # mxnet : gluoncv model : detection - yolo3_mobilenet1.0_coco - accuracy: 28.6% ap[0.5:0.95], 48.9% ap50
@@ -180,7 +193,8 @@ def get_configs(settings, work_dir):
                             f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,416,416)}),
             postprocess=postproc_detection_mxnet,
-            metric=dict(label_offset_pred=coco_label_offset_80to90())
+            metric=dict(label_offset_pred=coco_label_offset_80to90()),
+            model_info={'metric_traget':{'accuracy_ap[.5:.95]%':28.6}}
         ),
         # mxnet : gluoncv model : detection - ssd_512_mobilenet1.0_coco - accuracy: 21.7% ap[0.5:0.95], 39.2% ap50
         'vdet-12-061-0':utils.dict_update(common_cfg,
@@ -190,7 +204,8 @@ def get_configs(settings, work_dir):
                             f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,512,512)}),
             postprocess=postproc_detection_mxnet,
-            metric=dict(label_offset_pred=coco_label_offset_80to90())
+            metric=dict(label_offset_pred=coco_label_offset_80to90()),
+            model_info={'metric_traget':{'accuracy_ap[.5:.95]%':21.7}}
         ),
     }
     return pipeline_configs
