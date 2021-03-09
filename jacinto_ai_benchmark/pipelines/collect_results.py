@@ -132,7 +132,7 @@ def collect_result(settings, pipeline_config):
 
 def correct_result(param_result):
     result = get_result(param_result)
-    if 'inference_path' in result:
+    if result is not None and 'inference_path' in result:
         result['infer_path'] = result['inference_path']
         del result['inference_path']
     #
