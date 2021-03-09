@@ -85,14 +85,14 @@ class AccuracyPipeline():
         self.logger.write(f'\nBenchmarkResults: {utils.round_dict(result)}\n')
 
         if self.settings.enable_logging:
-            yaml_filename = os.path.join(run_dir, 'result.yaml')
-            with open(yaml_filename, 'w') as fp:
-                yaml.safe_dump(result, fp)
-            #
             # TODO: deprecate this pkl file format later
             pkl_filename = os.path.join(run_dir, 'result.pkl')
             with open(pkl_filename, 'wb') as fp:
                 pickle.dump(result, fp)
+            #
+            yaml_filename = os.path.join(run_dir, 'result.yaml')
+            with open(yaml_filename, 'w') as fp:
+                yaml.safe_dump(utils.round_dict(result), fp)
             #
         #
         return result

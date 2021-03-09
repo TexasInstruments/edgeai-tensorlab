@@ -34,7 +34,7 @@ def save_params(settings, work_dir, pipeline_configs):
     pipeline_params = {}
     for pipeline_id, pipeline_config in pipeline_configs.items():
         try:
-            pipeline_param = save_config(settings, pipeline_config)
+            pipeline_param = save_param(settings, pipeline_config)
             pipeline_params.update({pipeline_id:pipeline_param})
         except:
             pass
@@ -49,7 +49,7 @@ def save_params(settings, work_dir, pipeline_configs):
     return pipeline_params
 
 
-def save_config(settings, pipeline_config):
+def save_param(settings, pipeline_config):
     pipeline_param = {}
     run_dir = pipeline_config['session'].get_param('run_dir')
     with open(os.path.join(run_dir, 'param.yaml'), 'w') as fp:
