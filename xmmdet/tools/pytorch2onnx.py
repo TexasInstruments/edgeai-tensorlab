@@ -1,136 +1,205 @@
 import argparse
-import io
+import os.path as osp
 
-import mmcv
+import numpy as np
 import onnx
+import onnxruntime as rt
 import torch
-from mmcv.ops import RoIAlign, RoIPool
-from mmcv.runner import load_checkpoint
-from onnx import optimizer
-from torch.onnx import OperatorExportTypes
 
-from xmmdet.models import build_detector
-
-from xmmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint
+from xmmdet.core import (build_model_from_cfg, generate_inputs_and_wrap_model,
+                        preprocess_example_input)
 
 
-def export_onnx_model(model, inputs, passes):
-    """Trace and export a model to onnx format. Modified from
-    https://github.com/facebookresearch/detectron2/
+def pytorch2onnx(config_path,
+                 checkpoint_path,
+                 input_img,
+                 input_shape,
+                 opset_version=11,
+                 show=False,
+                 output_file='tmp.onnx',
+                 verify=False,
+                 normalize_cfg=None,
+                 dataset='coco',
+                 test_img=None):
 
-    Args:
-        model (nn.Module):
-        inputs (tuple[args]): the model will be called by `model(*inputs)`
-        passes (None or list[str]): the optimization passed for ONNX model
+    input_config = {
+        'input_shape': input_shape,
+        'input_path': input_img,
+        'normalize_cfg': normalize_cfg
+    }
 
-    Returns:
-        an onnx model
-    """
-    assert isinstance(model, torch.nn.Module)
+    # prepare original model and meta for verifying the onnx model
+    orig_model = build_model_from_cfg(config_path, checkpoint_path)
+    one_img, one_meta = preprocess_example_input(input_config)
+    model, tensor_data = generate_inputs_and_wrap_model(
+        config_path, checkpoint_path, input_config)
+    output_names = ['boxes']
+    if model.with_bbox:
+        output_names.append('labels')
+    if model.with_mask:
+        output_names.append('masks')
 
-    # make sure all modules are in eval mode, onnx may change the training
-    # state of the module if the states are not consistent
-    def _check_eval(module):
-        assert not module.training
+    torch.onnx.export(
+        model,
+        tensor_data,
+        output_file,
+        input_names=['input'],
+        output_names=output_names,
+        export_params=True,
+        keep_initializers_as_inputs=True,
+        do_constant_folding=True,
+        verbose=show,
+        opset_version=opset_version)
 
-    model.apply(_check_eval)
+    model.forward = orig_model.forward
+    print(f'Successfully exported ONNX model: {output_file}')
+    if verify:
+        from xmmdet.core import get_classes
+        from xmmdet.apis import show_result_pyplot
+        model.CLASSES = get_classes(dataset)
+        num_classes = len(model.CLASSES)
+        # check by onnx
+        onnx_model = onnx.load(output_file)
+        onnx.checker.check_model(onnx_model)
+        if test_img is not None:
+            input_config['input_path'] = test_img
+            one_img, one_meta = preprocess_example_input(input_config)
+            tensor_data = [one_img]
+        # check the numerical value
+        # get pytorch output
+        pytorch_results = model(tensor_data, [[one_meta]], return_loss=False)
+        pytorch_results = pytorch_results[0]
+        # get onnx output
+        input_all = [node.name for node in onnx_model.graph.input]
+        input_initializer = [
+            node.name for node in onnx_model.graph.initializer
+        ]
+        net_feed_input = list(set(input_all) - set(input_initializer))
+        assert (len(net_feed_input) == 1)
+        sess = rt.InferenceSession(output_file)
+        from xmmdet.core import bbox2result
+        onnx_outputs = sess.run(None,
+                                {net_feed_input[0]: one_img.detach().numpy()})
+        output_names = [_.name for _ in sess.get_outputs()]
+        output_shapes = [_.shape for _ in onnx_outputs]
+        print(f'onnxruntime output names: {output_names}, \
+            output shapes: {output_shapes}')
+        nrof_out = len(onnx_outputs)
+        assert nrof_out > 0, 'Must have output'
+        with_mask = nrof_out == 3
+        if nrof_out == 1:
+            onnx_results = onnx_outputs[0]
+        else:
+            det_bboxes, det_labels = onnx_outputs[:2]
+            onnx_results = bbox2result(det_bboxes, det_labels, num_classes)
+            if with_mask:
+                segm_results = onnx_outputs[2].squeeze(1)
+                cls_segms = [[] for _ in range(num_classes)]
+                for i in range(det_bboxes.shape[0]):
+                    cls_segms[det_labels[i]].append(segm_results[i])
+                onnx_results = (onnx_results, cls_segms)
+        # visualize predictions
 
-    # Export the model to ONNX
-    with torch.no_grad():
-        with io.BytesIO() as f:
-            torch.onnx.export(
+        if show:
+            show_result_pyplot(
                 model,
-                inputs,
-                f,
-                operator_export_type=OperatorExportTypes.ONNX_ATEN_FALLBACK,
-                # verbose=True,  # NOTE: uncomment this for debugging
-                # export_params=True,
-            )
-            onnx_model = onnx.load_from_string(f.getvalue())
+                one_meta['show_img'],
+                pytorch_results,
+                title='Pytorch',
+                block=False)
+            show_result_pyplot(
+                model, one_meta['show_img'], onnx_results, title='ONNX')
 
-    # Apply ONNX's Optimization
-    if passes is not None:
-        all_passes = optimizer.get_available_passes()
-        assert all(p in all_passes for p in passes), \
-            f'Only {all_passes} are supported'
-    onnx_model = optimizer.optimize(onnx_model, passes)
-    return onnx_model
+        # compare a part of result
+
+        if with_mask:
+            compare_pairs = list(zip(onnx_results, pytorch_results))
+        else:
+            compare_pairs = [(onnx_results, pytorch_results)]
+        for onnx_res, pytorch_res in compare_pairs:
+            for o_res, p_res in zip(onnx_res, pytorch_res):
+                np.testing.assert_allclose(
+                    o_res,
+                    p_res,
+                    rtol=1e-03,
+                    atol=1e-05,
+                )
+        print('The numerical values are the same between Pytorch and ONNX')
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description='MMDet pytorch model conversion to ONNX')
+        description='Convert MMDetection models to ONNX')
     parser.add_argument('config', help='test config file path')
     parser.add_argument('checkpoint', help='checkpoint file')
+    parser.add_argument('--input-img', type=str, help='Images for input')
+    parser.add_argument('--show', action='store_true', help='show onnx graph')
+    parser.add_argument('--output-file', type=str, default='tmp.onnx')
+    parser.add_argument('--opset-version', '--opset_version', type=int, default=11)
     parser.add_argument(
-        '--out', type=str, required=True, help='output ONNX filename')
+        '--test-img', type=str, default=None, help='Images for test')
     parser.add_argument(
-        '--opset_version', type=int, default=11, help='ONNX Opset version')
+        '--dataset', type=str, default='coco', help='Dataset name')
+    parser.add_argument(
+        '--verify',
+        action='store_true',
+        help='verify the onnx model output against pytorch output')
     parser.add_argument(
         '--shape',
         type=int,
         nargs='+',
-        default=[1280, 800],
+        default=[800, 1216],
         help='input image size')
     parser.add_argument(
-        '--passes', type=str, nargs='+', help='ONNX optimization passes')
+        '--mean',
+        type=float,
+        nargs='+',
+        default=[123.675, 116.28, 103.53],
+        help='mean value used for preprocess input data')
+    parser.add_argument(
+        '--std',
+        type=float,
+        nargs='+',
+        default=[58.395, 57.12, 57.375],
+        help='variance value used for preprocess input data')
     args = parser.parse_args()
     return args
 
 
 def main(args=None):
-    args = args if args is None else parse_args()
+    args = parse_args() if args is None else args
 
-    if not args.out.endswith('.onnx'):
-        raise ValueError('The output file must be a onnx file.')
+    assert args.opset_version == 11, 'MMDet only support opset 11 now'
+
+    if not args.input_img:
+        args.input_img = osp.join(
+            osp.dirname(__file__), '../../tests/data/color.jpg')
 
     if len(args.shape) == 1:
-        input_shape = (3, args.shape[0], args.shape[0])
+        input_shape = (1, 3, args.shape[0], args.shape[0])
     elif len(args.shape) == 2:
-        input_shape = (3, ) + tuple(args.shape)
+        input_shape = (1, 3) + tuple(args.shape)
     else:
         raise ValueError('invalid input shape')
 
-    cfg = mmcv.Config.fromfile(args.config)
-    cfg.model.pretrained = None
+    assert len(args.mean) == 3
+    assert len(args.std) == 3
 
-    # build the model and load checkpoint
-    model = build_detector(cfg.model, train_cfg=None, test_cfg=cfg.test_cfg)
+    normalize_cfg = {'mean': args.mean, 'std': args.std}
 
-    # Only support CPU mode for now
-    model.cpu().eval()
-    # Customized ops are not supported, use torchvision ops instead.
-    for m in model.modules():
-        if isinstance(m, (RoIPool, RoIAlign)):
-            # set use_torchvision on-the-fly
-            m.use_torchvision = True
-
-    # TODO: a better way to override forward function
-    if hasattr(model, 'forward_dummy'):
-        model.forward = model.forward_dummy
-    else:
-        raise NotImplementedError(
-            'ONNX conversion is currently not currently supported with '
-            f'{model.__class__.__name__}')
-
-    input_data = torch.empty((1, *input_shape),
-                             dtype=next(model.parameters()).dtype,
-                             device=next(model.parameters()).device)
-
-    if hasattr(cfg, 'quantize') and cfg.quantize:
-        model = XMMDetQuantTestModule(model, input_data)
-
-    # load weights
-    mmdet_load_checkpoint(model, args.checkpoint, map_location='cpu')
-
-    #TODO: revisit this later - right now using the save_model_proto function that we already have
-    #onnx_model = export_onnx_model(model, (input_data, ), args.passes)
-    ## Print a human readable representation of the graph
-    #onnx.helper.printable_graph(onnx_model.graph)
-    #print(f'saving model in {args.out}')
-    #onnx.save(onnx_model, args.out)
-
-    save_model_proto(cfg, model, input_data, output_filename=args.out, opset_version=args.opset_version)
+    # convert model to onnx file
+    pytorch2onnx(
+        args.config,
+        args.checkpoint,
+        args.input_img,
+        input_shape,
+        opset_version=args.opset_version,
+        show=args.show,
+        output_file=args.output_file,
+        verify=args.verify,
+        normalize_cfg=normalize_cfg,
+        dataset=args.dataset,
+        test_img=args.test_img)
 
 
 if __name__ == '__main__':
