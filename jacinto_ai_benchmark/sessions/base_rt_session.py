@@ -114,6 +114,19 @@ class BaseRTSession(utils.ParamsBase):
                 shutil.rmtree(t)
 
     def infer_stats(self):
+        if hasattr(self.interpreter, 'get_TI_benchmark_data'):
+            stats_dict = self._tidl_infer_stats()
+        else:
+            stats_dict = dict()
+            stats_dict['num_subgraphs'] = 0
+            stats_dict['core_time'] = 0.0
+            stats_dict['subgraph_time'] = 0.0
+            stats_dict['read_total'] = 0.0
+            stats_dict['write_total'] = 0.0
+        #
+        return stats_dict
+
+    def _tidl_infer_stats(self):
         assert self.is_imported == True, 'the given model must be an imported one.'
         benchmark_dict = self.interpreter.get_TI_benchmark_data()
         subgraph_time = copy_time = 0

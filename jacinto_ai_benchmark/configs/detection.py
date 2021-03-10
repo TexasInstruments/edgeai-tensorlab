@@ -26,12 +26,13 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import numpy as np
 from .. import utils, datasets, preprocess, sessions, postprocess, metrics
 
 
 def get_configs(settings, work_dir):
     # get the sessions types to use for each model type
-    session_type_dict = sessions.convert_session_names_to_types(settings.session_type_dict)
+    session_type_dict = sessions.get_session_types(settings.session_type_dict)
     onnx_session_type = session_type_dict['onnx']
     tflite_session_type = session_type_dict['tflite']
     mxnet_session_type = session_type_dict['mxnet']
@@ -63,7 +64,7 @@ def get_configs(settings, work_dir):
         #     session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
         #         model_path=f'{settings.modelzoo_path}/vision/detection/coco/mlperf/ssd_resnet34-ssd1200.onnx'),
         #     postprocess=postproc_detection_onnx,
-        #     metric=dict(label_offset_pred=det_helper.coco_label_offset_80to90()),
+        #     metric=dict(label_offset_pred=coco_label_offset_80to90(label_offset=0)),
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':20.0})
         # ),
         #################################################################
@@ -73,9 +74,10 @@ def get_configs(settings, work_dir):
         #         mean=(0.0, 0.0, 0.0), scale=(1/255.0, 1/255.0, 1/255.0)),
         #     session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
         #         model_path=f'{settings.modelzoo_path}/vision/detection/coco/onnx-models/yolov3-10.onnx',
-        #         input_shape=dict(input_1=(1,3,416,416), image_shape=(1,2))),
+        #         input_shape=dict(input_1=(1,3,416,416), image_shape=(1,2)),
+        #         extra_inputs=dict(image_shape=np.array([416,416], dtype=np.float32)[np.newaxis,...])),
         #     postprocess=postproc_detection_onnx,
-        #     metric=dict(label_offset_pred=det_helper.coco_label_offset_80to90()),
+        #     metric=dict(label_offset_pred=coco_label_offset_80to90()),
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':31.0})
         # ),
         #################################################################

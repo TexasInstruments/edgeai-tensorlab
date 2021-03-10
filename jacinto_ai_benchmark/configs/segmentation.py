@@ -32,7 +32,7 @@ from .. import utils, datasets, preprocess, sessions, postprocess, metrics
 
 def get_configs(settings, work_dir):
     # get the sessions types to use for each model type
-    session_type_dict = sessions.convert_session_names_to_types(settings.session_type_dict)
+    session_type_dict = sessions.get_session_types(settings.session_type_dict)
     onnx_session_type = session_type_dict['onnx']
     tflite_session_type = session_type_dict['tflite']
     mxnet_session_type = session_type_dict['mxnet']

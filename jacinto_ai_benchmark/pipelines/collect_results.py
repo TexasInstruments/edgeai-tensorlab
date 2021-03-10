@@ -45,6 +45,10 @@ def collect_results(settings, work_dir, pipeline_configs, print_results=True):
         if isinstance(result_dict, dict) and 'result' in result_dict:
             # if the result is an an entry in this dict, then this is already the full dict
             param_result = result_dict
+            # if you want to override the params fetched from run_dir with new params
+            # param_result = {'result': result_dict['result']}
+            # param_dict = collect_param(settings, pipeline_config)
+            # param_result.update(param_dict)
         else:
             param_result = {'result': result_dict}
             param_dict = collect_param(settings, pipeline_config)
