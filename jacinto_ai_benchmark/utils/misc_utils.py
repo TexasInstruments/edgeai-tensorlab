@@ -89,9 +89,12 @@ def as_list_or_tuple(arg):
 
 
 # convert to something that can be saved by yaml.safe_dump
-def safe_object(d, precision=3):
+def pretty_object(d, precision=3, depth=5):
+    depth = depth - 1
     pass_through_types = (str, int)
-    if d is None:
+    if depth < 0:
+        d_out = None
+    elif d is None:
         d_out = d
     elif isinstance(d, pass_through_types):
         d_out = d
@@ -102,14 +105,16 @@ def safe_object(d, precision=3):
         # round to the given precision
         d_out = round(d, precision)
     elif isinstance(d, dict):
-        d_out = {k: safe_object(v) for k , v in d.items()}
+        d_out = {k: pretty_object(v, depth) for k , v in d.items()}
     elif isinstance(d, (list,tuple)):
-        d_out = [safe_object(di) for di in d]
+        d_out = [pretty_object(di, depth) for di in d]
     elif isinstance(d, pass_through_types):
         d_out = d
+    elif isinstance(d, np.ndarray):
+        d_out = pretty_object(d.tolist(), depth)
     elif hasattr(d, '__dict__'):
         # other unrecognized objects - just grab the attributes as a dict
-        d_out = safe_object(d.__dict__)
+        d_out = pretty_object(d.__dict__, depth)
     else:
         d_out = None
     #

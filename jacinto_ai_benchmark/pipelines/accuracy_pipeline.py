@@ -82,13 +82,14 @@ class AccuracyPipeline():
             result = self._evaluate(output_list)
             result.update(self.infer_stats_dict)
         #
-        self.logger.write(f'\nBenchmarkResults: {utils.safe_object(result)}\n')
+        self.logger.write(f'\nBenchmarkResults: {utils.pretty_object(result)}\n')
 
-        param_result = self._collect_param()
-        param_result.update({'result': result})
+        param_result = {'result': result}
+        param_dict = self._collect_param()
+        param_result.update(param_dict)
 
         # make it savable by yaml.safe_dump()
-        param_result = utils.safe_object(param_result)
+        param_result = utils.pretty_object(param_result)
 
         if self.settings.enable_logging:
             # TODO: deprecate this pkl file format later
@@ -100,7 +101,7 @@ class AccuracyPipeline():
             with open(yaml_filename, 'w') as fp:
                 # round_dict make the output pretty and also
                 # converts numpy float to float so that it can be saved to yaml
-                yaml.safe_dump(param_result, fp)
+                yaml.safe_dump(param_result, fp, sort_keys=False)
             #
         #
         return param_result

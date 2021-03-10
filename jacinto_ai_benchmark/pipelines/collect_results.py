@@ -37,31 +37,32 @@ def collect_results(settings, work_dir, pipeline_configs, print_results=True):
     results = {}
     for pipeline_id, pipeline_config in pipeline_configs.items():
         # collect the result of the pipeline
-        param_result = collect_result(settings, pipeline_config)
+        result_dict = collect_result(settings, pipeline_config)
         # print the result if necessary
         if print_results:
-            print(f'{pipeline_id}: {utils.safe_object(get_result(param_result))}')
+            print(f'{pipeline_id}: {utils.pretty_object(get_result(result_dict))}')
         #
-        if not (isinstance(param_result, dict) and 'result' in param_result):
-            # if this dict has param, then result will be an entry in it
-            # if this doesn't have param, insert param
-            param_dict = collect_param(settings, pipeline_config)
-            param_dict.update({'result':param_result})
+        if isinstance(result_dict, dict) and 'result' in result_dict:
+            # if the result is an an entry in this dict, then this is already the full dict
+            param_result = result_dict
         else:
-            param_dict = param_result
+            param_result = {'result': result_dict}
+            param_dict = collect_param(settings, pipeline_config)
+            param_result.update(param_dict)
         #
-        results.update({pipeline_id: param_dict})
+        results.update({pipeline_id: param_result})
     #
 
-    # sort the results
-    results = {k: v for k, v in sorted(results.items())}
+    # sort the results based on keys
+    results_keys = sorted(results.keys())
+    results = {k: results[k] for k in results_keys}
 
     # for logging
-    results = utils.safe_object(results)
+    results = utils.pretty_object(results)
     if settings.enable_logging:
         results_yaml_filename = os.path.join(work_dir, 'results.yaml')
         with open(results_yaml_filename, 'w') as fp:
-            yaml.safe_dump(results, fp)
+            yaml.safe_dump(results, fp, sort_keys=False)
         #
         # TODO: deprecate this pkl file format later
         results_pkl_filename = os.path.join(work_dir, 'results.pkl')
@@ -115,7 +116,7 @@ def collect_result(settings, pipeline_config):
         except:
             # yaml_filename = f'{run_dir}/result.yaml'
             # with open(yaml_filename, 'w') as yaml_fp:
-            #     yaml.safe_dump(utils.safe_object(param_result), yaml_fp)
+            #     yaml.safe_dump(utils.pretty_object(param_result), yaml_fp)
             # #
             pass
         #
