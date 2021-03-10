@@ -15,7 +15,7 @@ def save_model_proto(cfg, model, input, output_filename, opset_version=9):
     is_ssd = hasattr(cfg.model, 'bbox_head') and ('SSD' in cfg.model.bbox_head.type)
     is_fcos = hasattr(cfg.model, 'bbox_head') and ('FCOS' in cfg.model.bbox_head.type)
     is_retinanet = hasattr(cfg.model, 'bbox_head') and ('Retina' in cfg.model.bbox_head.type)
-    is_yolov3 = hasattr(cfg.model, 'bbox_head') and ('YOLOV3Head' in cfg.model.bbox_head.type)
+    is_yolov3 = hasattr(cfg.model, 'bbox_head') and ('YOLOV3' in cfg.model.bbox_head.type)
     if is_ssd:
         input_names = ['input']
         output_names = []
