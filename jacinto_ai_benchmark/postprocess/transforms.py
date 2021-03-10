@@ -235,6 +235,16 @@ class DetectionXYWH2XYXY():
         return bbox, info_dict
 
 
+class DetectionBoxSL2BoxLS():
+    def __call__(self, bbox, info_dict):
+        score = bbox[...,4]
+        label = bbox[...,5]
+        bbox_copy = copy.deepcopy(bbox)
+        bbox_copy[...,4] = label
+        bbox_copy[...,5] = score
+        return bbox_copy, info_dict
+
+
 class DetectionImageSave():
     def __init__(self):
         self.colors = [(r,g,b) for r in range(0,256,32) for g in range(0,256,32) for b in range(0,256,32)]

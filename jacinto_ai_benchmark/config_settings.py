@@ -182,11 +182,14 @@ class ConfigSettings(config_dict.ConfigDict):
     ###############################################################
     # post process transforms for detection
     ###############################################################
-    def _get_postproc_detection_base(self, formatter=None, resize_with_pad=False,
-                               normalized_detections=True, shuffle_indices=None):
+    def _get_postproc_detection_base(self, formatter=None, resize_with_pad=False, normalized_detections=True,
+                                     shuffle_indices=None, squeeze_axis=0):
         postprocess_detection = [postprocess.ShuffleList(indices=shuffle_indices),
-                                 postprocess.Concat(axis=-1, end_index=3),
-                                 postprocess.IndexArray()]
+                                 postprocess.Concat(axis=-1, end_index=3)]
+        if squeeze_axis is not None:
+            #  TODO make this more generic to squeeze any axis
+            postprocess_detection += [postprocess.IndexArray()]
+        #
         if formatter is not None:
             postprocess_detection += [formatter]
         #
@@ -203,16 +206,16 @@ class ConfigSettings(config_dict.ConfigDict):
                                              save_output=self.save_output, formatter=formatter)
         return transforms
 
-    def get_postproc_detection_onnx(self, formatter=None):
-        return self._get_postproc_detection_base(formatter=formatter)
+    def get_postproc_detection_onnx(self, formatter=None, **kwargs):
+        return self._get_postproc_detection_base(formatter=formatter, **kwargs)
 
-    def get_postproc_detection_tflite(self, formatter=postprocess.DetectionYXYX2XYXY()):
-        return self._get_postproc_detection_base(formatter=formatter)
+    def get_postproc_detection_tflite(self, formatter=postprocess.DetectionYXYX2XYXY(), **kwargs):
+        return self._get_postproc_detection_base(formatter=formatter, **kwargs)
 
     def get_postproc_detection_mxnet(self, formatter=None, resize_with_pad=False,
-                                normalized_detections=False, shuffle_indices=(2,0,1)):
+                        normalized_detections=False, shuffle_indices=(2,0,1), **kwargs):
         return self._get_postproc_detection_base(formatter=formatter, resize_with_pad=resize_with_pad,
-                        normalized_detections=normalized_detections, shuffle_indices=shuffle_indices)
+                        normalized_detections=normalized_detections, shuffle_indices=shuffle_indices, **kwargs)
 
     ###############################################################
     # post process transforms for segmentation
