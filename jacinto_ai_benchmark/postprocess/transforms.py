@@ -202,7 +202,7 @@ class DetectionFilter():
 
 
 class DetectionFormatting():
-    def __init__(self, dst_indices=(0,1,2,3), src_indices=(1,0,3,2)):
+    def __init__(self, dst_indices, src_indices):
         self.src_indices = src_indices
         self.dst_indices = dst_indices
 
@@ -212,9 +212,19 @@ class DetectionFormatting():
         return bbox_copy, info_dict
 
 
-DetectionXYXY2YXYX = DetectionFormatting
-DetectionYXYX2XYXY = DetectionFormatting
-DetectionYXHW2XYWH = DetectionFormatting
+class DetectionXYXY2YXYX(DetectionFormatting):
+    def __init__(self, dst_indices=(0,1,2,3), src_indices=(1,0,3,2)):
+        super().__init__(dst_indices, src_indices)
+
+
+class DetectionYXYX2XYXY(DetectionFormatting):
+    def __init__(self, dst_indices=(0,1,2,3), src_indices=(1,0,3,2)):
+        super().__init__(dst_indices, src_indices)
+
+
+class DetectionYXHW2XYWH(DetectionFormatting):
+    def __init__(self, dst_indices=(0,1,2,3), src_indices=(1,0,3,2)):
+        super().__init__(dst_indices, src_indices)
 
 
 class DetectionXYXY2XYWH():
@@ -235,14 +245,9 @@ class DetectionXYWH2XYXY():
         return bbox, info_dict
 
 
-class DetectionBoxSL2BoxLS():
-    def __call__(self, bbox, info_dict):
-        score = bbox[...,4]
-        label = bbox[...,5]
-        bbox_copy = copy.deepcopy(bbox)
-        bbox_copy[...,4] = label
-        bbox_copy[...,5] = score
-        return bbox_copy, info_dict
+class DetectionBoxSL2BoxLS(DetectionFormatting):
+    def __init__(self, dst_indices=(4,5), src_indices=(5,4)):
+        super().__init__(dst_indices, src_indices)
 
 
 class DetectionImageSave():
