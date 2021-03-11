@@ -75,7 +75,7 @@ class TqdmStep(tqdm):
     A tqdm variant that updates even before the first iteration,
     and also updates only once in a while
     """
-    def __init__(self, iterable, desc=None, total=None, bar_format=None, miniters=None, mininterval=10.0,
+    def __init__(self, iterable, desc=None, total=None, bar_format=None, miniters=None, mininterval=30.0,
                  desc_len=60, colors=None, **kwargs):
         desc = _progress_desc(desc, desc_len)
         # somehow controlling update interval with miniters doesn't work (gets overwritten to 1)
