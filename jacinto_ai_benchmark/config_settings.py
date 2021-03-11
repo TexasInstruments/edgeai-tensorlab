@@ -296,7 +296,8 @@ class QuantizationParams():
     def get_session_tvmdlr_cfg(self):
         session_tvmdlr_cfg = {
             'tidl_tensor_bits': self.tidl_tensor_bits,
-            'tidl_calibration_options': self._get_calib_options_tvmdlr()
+            'tidl_calibration_options': self.get_calib_options_tvmdlr(),
+            'power_of_2_quantization': 'on' if self.is_qat else 'off'
         }
         return session_tvmdlr_cfg
 
@@ -326,7 +327,8 @@ class QuantizationParams():
     def get_session_tflitert_cfg(self):
         session_tflitert_cfg = {
             'tidl_tensor_bits': self.tidl_tensor_bits,
-            'tidl_calibration_options': self._get_calib_options_tflitert()
+            'tidl_calibration_options': self.get_calib_options_tflitert(),
+            'power_of_2_quantization': 'yes' if self.is_qat else 'no'
         }
         return session_tflitert_cfg
 

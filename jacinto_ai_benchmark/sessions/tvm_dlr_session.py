@@ -88,7 +88,8 @@ class TVMDLRSession(BaseRTSession):
             artifacts_folder=self.kwargs['artifacts_folder'],
             tidl_tools_path=os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools'),
             tidl_tensor_bits=self.kwargs['tidl_tensor_bits'],
-            tidl_calibration_options=self.kwargs['tidl_calibration_options'])
+            tidl_calibration_options=self.kwargs['tidl_calibration_options'],
+            power_of_2_quantization=self.kwargs['power_of_2_quantization'],)
 
         supported_devices = self.kwargs['supported_devices'] if (self.kwargs['supported_devices'] is not None) \
             else (self.kwargs['target_device'],)

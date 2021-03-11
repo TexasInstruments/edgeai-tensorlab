@@ -36,11 +36,12 @@ export PYTHONPATH=:${PYTHONPATH}
 echo "PYTHONPATH=${PYTHONPATH}"
 
 echo "Setting PSDK_BASE_PATH"
-export PSDK_BASE_PATH="/user/a0393608/work/code/ti/processor-sdk-vision/ti-processor-sdk-rtos-j721e-evm-07_02_00_06"
+export PSDK_BASE_PATH="/data/hdd/a0875091/files/work/misc/sdk/ti-processor-sdk-rtos-j721e-evm-07_02_00_06"
 echo "PSDK_BASE_PATH=${PSDK_BASE_PATH}"
 
 echo "Setting TIDL_BASE_PATH"
-export TIDL_BASE_PATH="${PSDK_BASE_PATH}/tidl_j7_01_04_00_08"
+export TIDL_BASE_PATH="${PSDK_BASE_PATH}/c7x-mma-tidl_ti_cloud_7_2"
+#export TIDL_BASE_PATH="${PSDK_BASE_PATH}/tidl_j7_01_04_00_08"
 echo "TIDL_BASE_PATH=${TIDL_BASE_PATH}"
 
 echo "Setting ARM64_GCC_PATH"
