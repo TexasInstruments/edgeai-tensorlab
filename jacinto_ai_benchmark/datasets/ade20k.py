@@ -94,7 +94,8 @@ class ADE20KSegmentation(utils.ParamsBase):
         #
         self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
-
+        # call the utils.ParamsBase.initialize()
+        super().initialize()
 
     def download(self, path, split):
         root = path

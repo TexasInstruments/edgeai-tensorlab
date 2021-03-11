@@ -45,6 +45,7 @@ class ImageCls(utils.ParamsBase):
             random.seed(int(shuffle))
             random.shuffle(self.imgs)
         #
+        # call the utils.ParamsBase.initialize()
         super().initialize()
 
     def __getitem__(self, idx):

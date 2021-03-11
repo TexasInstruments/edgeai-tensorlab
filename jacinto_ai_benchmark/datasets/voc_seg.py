@@ -46,8 +46,9 @@ from .. import utils
 
 __all__ = ['VOC2012Segmentation']
 
-class VOC2012Segmentation():
+class VOC2012Segmentation(utils.ParamsBase):
     def __init__(self, num_classes=21, ignore_label=255, download=False, **kwargs):
+        super().__init__()
         self.kwargs = kwargs
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
         path = kwargs['path']
@@ -83,6 +84,8 @@ class VOC2012Segmentation():
         #
         self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
+        # call the utils.ParamsBase.initialize()
+        super().initialize()
 
     def download(self, path, split=None):
         root = path

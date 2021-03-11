@@ -177,6 +177,7 @@ class COCODetection(utils.ParamsBase):
         self.img_ids = self.coco_dataset.getImgIds()
         self.num_frames = num_frames
         self.tempfiles = []
+        # call the utils.ParamsBase.initialize()
         super().initialize()
 
     def download(self, path, split):

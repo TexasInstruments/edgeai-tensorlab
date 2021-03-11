@@ -170,6 +170,7 @@ class COCOSegmentation(utils.ParamsBase):
         #
         self.imgs = imgs
         self.num_imgs = len(self.imgs)
+        # call the utils.ParamsBase.initialize()
         super().initialize()
 
     def download(self, path, split):
