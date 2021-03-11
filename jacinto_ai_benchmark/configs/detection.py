@@ -84,7 +84,7 @@ def get_configs(settings, work_dir):
         # 'vdet-12-100-0':utils.dict_update(common_cfg,
         #     preprocess=settings.get_preproc_onnx((512,512), (512,512), backend='cv2'),
         #     session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
-        #         model_path=f'/user/a0393608/work/code/ti/jacinto-ai/pytorch-mmdetection/work_dirs/20200919-105718_ssd-lite_regnetx-800mf_fpn_bgr_512x512_epochs120+120_bs16x5_lr8e-2+4e-2_(32.8%)/model.onnx'),
+        #         model_path=f'{settings.modelzoo_path}/vision/detection/coco/jai-mmdetection/ssd-lite_regnetx-800mf_fpn_bgr_512x512_20200919_105718_model.onnx'),
         #     postprocess=settings.get_postproc_detection_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
         #     metric=dict(label_offset_pred=coco_label_offset_80to90(label_offset=1)),
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.8})
