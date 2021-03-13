@@ -9,8 +9,8 @@ Although this package itself may not run in realtime, we have hooks to measure p
 **Important Note**: This repository is being made available for experimentation, analysis and research - this is not meant for final production.
 
 
-## Notice
-- This is part of Jacinto-AI-DevKit, which is a collection of repositories providing Training & Quantization scripts, Model Zoo and Accuracy Benchmarks. If you have not visited the landing page of [**Jacinto-AI-Devkit**](https://github.com/TexasInstruments/jacinto-ai-devkit) please do so before attempting to use this repository.
+#### Notice
+- This repository is part of Jacinto-AI-DevKit, which is a collection of repositories providing Training & Quantization scripts, Model Zoo and Accuracy Benchmarks. If you have not visited the landing page of [**Jacinto-AI-Devkit**](https://github.com/TexasInstruments/jacinto-ai-devkit) please do so before attempting to use this repository.
 
 
 ## Requirements 
