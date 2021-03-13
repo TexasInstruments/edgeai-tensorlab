@@ -55,7 +55,7 @@ class ConfigDict(dict):
         for k, v in kwargs.items():
             input_dict[k] = v
         #
-        for key, value in input_dict:
+        for key, value in input_dict.items():
             if key == 'include_files':
                 idict = self._parse_include_files(value)
                 self.update(idict)
