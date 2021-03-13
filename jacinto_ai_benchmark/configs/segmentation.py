@@ -203,7 +203,7 @@ def get_configs(settings, work_dir):
         'vseg-19-401-0': utils.dict_update(pascal_voc_cfg,  # pascalvoc2012 deeplab
             preprocess=settings.get_preproc_tflite((512, 512), (512, 512), mean=(127.5, 127.5, 127.5), scale=(1/127.5, 1/127.5, 1/127.5), backend='cv2'),
             session=tflite_session_type(**common_session_cfg, **tflite_session_cfg,
-               model_path=f'{settings.modelzoo_path}/vision/segmentation/voc2012/tf1-models/deeplabv3_mnv2_pascal_train_aug_512x512.tflite'),
+               model_path=f'{settings.modelzoo_path}/vision/segmentation/voc2012/tf1-models/deeplabv3_mnv2_pascal_trainaug_512x512.tflite'),
             postprocess=postproc_segmenation_tflite,
             model_info=dict(metric_reference={'accuracy_mean_iou%':77.33})
         ),
