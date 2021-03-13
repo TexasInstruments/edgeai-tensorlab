@@ -27,8 +27,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import glob
-import pickle
 import yaml
 from .. import utils
 
@@ -90,25 +88,9 @@ def collect_result(settings, pipeline_config):
         param_result = None
     #
     if param_result is not None:
-        if 'result' in param_result:
-            param_result['result'] = correct_result(param_result['result'])
-        else:
-            param_result = correct_result(param_result)
-        #
+        param_result = correct_result(param_result)
     #
     return param_result
-
-
-def correct_result(param_result):
-    result = get_result(param_result)
-    if result is not None and 'inference_path' in result:
-        result['infer_path'] = result['inference_path']
-        del result['inference_path']
-    #
-    if isinstance(param_result, dict) and 'result' in param_result:
-        param_result['result'] = result
-    #
-    return result
 
 
 def get_result(param_result):
@@ -120,3 +102,17 @@ def get_result(param_result):
         result = param_result
     #
     return result
+
+
+def correct_result(param_result):
+    if param_result is not None:
+        result = get_result(param_result)
+        if result is not None and 'inference_path' in result:
+            result['infer_path'] = result['inference_path']
+            del result['inference_path']
+        #
+        if isinstance(param_result, dict) and 'result' in param_result:
+            param_result['result'] = result
+        #
+    #
+    return param_result
