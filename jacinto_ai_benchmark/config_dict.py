@@ -28,10 +28,12 @@
 
 import os
 import yaml
+from . import utils
 
 
 class ConfigDict(dict):
     def __init__(self, input=None, **kwargs):
+        super().__init__()
         # initialize with default values
         self._initialize()
         # read the given settings file
@@ -53,7 +55,14 @@ class ConfigDict(dict):
         for k, v in kwargs.items():
             input_dict[k] = v
         #
-        super().__init__(input_dict)
+        for key, value in input_dict:
+            if key == 'include_files':
+                idict = self._parse_include_files(value)
+                self.update(idict)
+            else:
+                self.__setattr__(key, value)
+            #
+        #
 
     def __getattr__(self, key):
         return self[key]
@@ -70,6 +79,8 @@ class ConfigDict(dict):
         self.__dict__.update(state)
 
     def _initialize(self):
+        # include additional files and merge with this dict
+        self.include_files = None
         # execution pipeline type - currently only accuracy pipeline is defined
         self.pipeline_type = 'accuracy'
         # number of frames for inference
@@ -132,3 +143,15 @@ class ConfigDict(dict):
         # internal state information
         ###########################################################
         self.dataset_cache = None
+
+    def _parse_include_files(self, include_files):
+        input_dict = {}
+        include_files = utils.as_list(include_files)
+        for include_file in include_files:
+            with open(include_file) as ifp:
+                idict = yaml.safe_load(ifp)
+                input_dict.update(idict)
+            #
+        #
+        return input_dict
+
