@@ -34,48 +34,30 @@ from .. import utils
 
 
 def collect_results(settings, work_dir, pipeline_configs, print_results=True):
-    results = {}
+    param_results = {}
     for pipeline_id, pipeline_config in pipeline_configs.items():
         # collect the result of the pipeline
-        result_dict = collect_result(settings, pipeline_config)
+        param_result = collect_result(settings, pipeline_config)
         # print the result if necessary
         if print_results:
-            print(f'{pipeline_id}: {utils.pretty_object(get_result(result_dict))}')
+            print(f'{pipeline_id}: {utils.pretty_object(get_result(param_result))}')
         #
-        if isinstance(result_dict, dict) and 'result' in result_dict:
-            # if the result is an an entry in this dict, then this is already the full dict
-            param_result = result_dict
-            # if you want to override the params fetched from run_dir with new params
-            # param_result = {'result': result_dict['result']}
-            # param_dict = collect_param(settings, pipeline_config)
-            # param_result.update(param_dict)
-        else:
-            param_result = {'result': result_dict}
-            param_dict = collect_param(settings, pipeline_config)
-            param_result.update(param_dict)
-        #
-        results.update({pipeline_id: param_result})
+        # if needed the params in result can be updated here
+        # param_dict = collect_param(settings, pipeline_config)
+        # param_result.update(param_dict)
+        param_results.update({pipeline_id: param_result})
     #
-
     # sort the results based on keys
-    results_keys = sorted(results.keys())
-    results = {k: results[k] for k in results_keys}
-
+    param_results_keys = sorted(param_results.keys())
+    param_results = {k: param_results[k] for k in param_results_keys}
     # for logging
-    results = utils.pretty_object(results)
+    param_results = utils.pretty_object(param_results)
     if settings.enable_logging:
-        results_yaml_filename = os.path.join(work_dir, 'results.yaml')
-        with open(results_yaml_filename, 'w') as fp:
-            yaml.safe_dump(results, fp, sort_keys=False)
-        #
-        # TODO: deprecate this pkl file format later
-        results_pkl_filename = os.path.join(work_dir, 'results.pkl')
-        with open(results_pkl_filename, 'wb') as fp:
-            # for backward compatibility, the pkl file has a list instead of dict
-            pickle.dump(list(results.values()), fp)
+        with open(os.path.join(work_dir, 'results.yaml'), 'w') as fp:
+            yaml.safe_dump(param_results, fp, sort_keys=False)
         #
     #
-    return results
+    return param_results
 
 
 def collect_param(settings, pipeline_config):
@@ -99,34 +81,16 @@ def collect_result(settings, pipeline_config):
     if not (os.path.exists(run_dir) and os.path.isdir(run_dir)):
         return param_result
     #
-    param_result = None
-    if param_result is None:
-        try:
-            # TODO: deprecate this pkl file format later
-            pkl_filename = f'{run_dir}/result.pkl'
-            with open(pkl_filename, 'rb') as pkl_fp:
-                param_result = pickle.load(pkl_fp)
-            #
-        except:
-            pass
+    try:
+        yaml_filename = f'{run_dir}/result.yaml'
+        with open(yaml_filename, 'r') as yaml_fp:
+            param_result = yaml.safe_load(yaml_fp)
         #
-    #
-    if param_result is None:
-        try:
-            yaml_filename = f'{run_dir}/result.yaml'
-            with open(yaml_filename, 'r') as yaml_fp:
-                param_result = yaml.safe_load(yaml_fp)
-            #
-        except:
-            # yaml_filename = f'{run_dir}/result.yaml'
-            # with open(yaml_filename, 'w') as yaml_fp:
-            #     yaml.safe_dump(utils.pretty_object(param_result), yaml_fp)
-            # #
-            pass
-        #
+    except:
+        param_result = None
     #
     if param_result is not None:
-        if isinstance(param_result, dict) and 'result' in param_result:
+        if 'result' in param_result:
             param_result['result'] = correct_result(param_result['result'])
         else:
             param_result = correct_result(param_result)

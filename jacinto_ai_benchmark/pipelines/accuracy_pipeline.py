@@ -57,50 +57,40 @@ class AccuracyPipeline():
         #
 
     def run(self, description=''):
+        # initialize result as empty
+        result_dict = {}
         # run the actual model
-        result = {}
         run_import = self.pipeline_config['run_import']
         run_inference = self.pipeline_config['run_inference']
         session = self.pipeline_config['session']
-
         # start() must be called to create the required directories
         session.start()
-
-        # logger can be created after start
+        # run_dir has been created after start
         run_dir = session.get_param('run_dir')
-        # verbose = self.pipeline_config['verbose']
+        # collect the input params
+        param_dict = self._collect_param()
+        # create logger
         log_filename = os.path.join(run_dir, 'run.log') if self.settings.enable_logging else None
         self.logger = utils.TeeLogger(log_filename)
         self.logger.write(f'\nrunning: {Fore.BLUE}{os.path.basename(run_dir)}{Fore.RESET}')
         self.logger.write(f'\npipeline_config: {self.pipeline_config}')
-
+        # import
         if run_import:
             self._import_model(description)
         #
+        # inference
         if run_inference:
             output_list = self._infer_frames(description)
-            result = self._evaluate(output_list)
-            result.update(self.infer_stats_dict)
+            result_dict = self._evaluate(output_list)
+            result_dict.update(self.infer_stats_dict)
         #
-        self.logger.write(f'\nBenchmarkResults: {utils.pretty_object(result)}\n')
-
-        param_result = {'result': result}
-        param_dict = self._collect_param()
+        self.logger.write(f'\nBenchmarkResults: {utils.pretty_object(result_dict)}\n')
+        # dump the results
+        param_result = dict({'result': result_dict})
         param_result.update(param_dict)
-
-        # make it savable by yaml.safe_dump()
         param_result = utils.pretty_object(param_result)
-
         if self.settings.enable_logging:
-            # TODO: deprecate this pkl file format later
-            pkl_filename = os.path.join(run_dir, 'result.pkl')
-            with open(pkl_filename, 'wb') as fp:
-                pickle.dump(param_result, fp)
-            #
-            yaml_filename = os.path.join(run_dir, 'result.yaml')
-            with open(yaml_filename, 'w') as fp:
-                # round_dict make the output pretty and also
-                # converts numpy float to float so that it can be saved to yaml
+            with open(os.path.join(run_dir, 'result.yaml'), 'w') as fp:
                 yaml.safe_dump(param_result, fp, sort_keys=False)
             #
         #
