@@ -177,11 +177,11 @@ def get_configs(settings, work_dir):
         ),
         # mxnet : gluoncv model : classification - xception - accuracy: 79.56% top1
         'vcls-10-062-0':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx(backend='cv2'),
+            preprocess=settings.get_preproc_onnx(342, 299, backend='cv2'),
             session=mxnet_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
-                model_path=[f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/resnet50_v1d-symbol.json',
-                            f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/resnet50_v1d-0000.params'],
-                model_type='mxnet', input_shape={'data':(1,3,224,224)}),
+                model_path=[f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/xception-symbol.json',
+                            f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/xception-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,3,299,299)}),
             model_info=dict(metric_reference={'accuracy_top1%':79.56})
         ),
         #################################################################
