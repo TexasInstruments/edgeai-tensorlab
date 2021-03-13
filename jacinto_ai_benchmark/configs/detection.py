@@ -90,6 +90,31 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.8})
         # ),
         #################################################################
+        #       MXNET MODELS
+        #################################################################
+        # mxnet : gluoncv model : detection - yolo3_mobilenet1.0_coco - accuracy: 28.6% ap[0.5:0.95], 48.9% ap50
+        'vdet-12-060-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx((416,416), (416,416), backend='cv2'),
+            session=mxnet_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
+                model_path=[f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-symbol.json',
+                            f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,3,416,416)}),
+            postprocess=postproc_detection_mxnet,
+            metric=dict(label_offset_pred=coco_label_offset_80to90()),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.6})
+        ),
+        # mxnet : gluoncv model : detection - ssd_512_mobilenet1.0_coco - accuracy: 21.7% ap[0.5:0.95], 39.2% ap50
+        'vdet-12-061-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx((512,512), (512,512), backend='cv2'),
+            session=mxnet_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
+                model_path=[f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-symbol.json',
+                            f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,3,512,512)}),
+            postprocess=postproc_detection_mxnet,
+            metric=dict(label_offset_pred=coco_label_offset_80to90()),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':21.7})
+        ),
+        #################################################################
         #       TFLITE MODELS
         #################tflite models###################################
         # mlperf edge: detection - ssd_mobilenet_v1_coco_2018_01_28 expected_metric: 23.0% ap[0.5:0.95] accuracy
@@ -195,29 +220,6 @@ def get_configs(settings, work_dir):
         #     metric=dict(label_offset_pred=coco_label_offset_90to90()),
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':33.5})
         # ),
-        #################################################################
-        # mxnet : gluoncv model : detection - yolo3_mobilenet1.0_coco - accuracy: 28.6% ap[0.5:0.95], 48.9% ap50
-        'vdet-12-060-0':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx((416,416), (416,416), backend='cv2'),
-            session=mxnet_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
-                model_path=[f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-symbol.json',
-                            f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-0000.params'],
-                model_type='mxnet', input_shape={'data':(1,3,416,416)}),
-            postprocess=postproc_detection_mxnet,
-            metric=dict(label_offset_pred=coco_label_offset_80to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.6})
-        ),
-        # mxnet : gluoncv model : detection - ssd_512_mobilenet1.0_coco - accuracy: 21.7% ap[0.5:0.95], 39.2% ap50
-        'vdet-12-061-0':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx((512,512), (512,512), backend='cv2'),
-            session=mxnet_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
-                model_path=[f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-symbol.json',
-                            f'{settings.modelzoo_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-0000.params'],
-                model_type='mxnet', input_shape={'data':(1,3,512,512)}),
-            postprocess=postproc_detection_mxnet,
-            metric=dict(label_offset_pred=coco_label_offset_80to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':21.7})
-        ),
     }
     return pipeline_configs
 

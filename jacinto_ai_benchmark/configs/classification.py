@@ -155,6 +155,36 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':69.70})
         ),
         #################################################################
+        #       MXNet MODELS
+        #################################################################
+        # mxnet : gluoncv model : classification - mobilenetv2_1.0 - accuracy: 72.04% top1
+        'vdet-10-060-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(backend='cv2'),
+            session=mxnet_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
+                model_path=[f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-symbol.json',
+                            f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,3,224,224)}),
+            model_info=dict(metric_reference={'accuracy_top1%':72.04})
+        ),
+        # mxnet : gluoncv model : classification - resnet50_v1d - accuracy: 79.15% top1
+        'vdet-10-061-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(backend='cv2'),
+            session=mxnet_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
+                model_path=[f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/resnet50_v1d-symbol.json',
+                            f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/resnet50_v1d-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,3,224,224)}),
+            model_info=dict(metric_reference={'accuracy_top1%':79.15})
+        ),
+        # mxnet : gluoncv model : classification - xception - accuracy: 79.56% top1
+        'vdet-10-062-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(backend='cv2'),
+            session=mxnet_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
+                model_path=[f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/resnet50_v1d-symbol.json',
+                            f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/resnet50_v1d-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,3,224,224)}),
+            model_info=dict(metric_reference={'accuracy_top1%':79.56})
+        ),
+        #################################################################
         #       TFLITE MODELS
         ##################tensorflow models##############################
         # mlperf/tf1 model: classification mobilenet_v1_224x224 expected_metric: 71.676 top-1 accuracy
