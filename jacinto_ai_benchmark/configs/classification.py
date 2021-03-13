@@ -158,7 +158,7 @@ def get_configs(settings, work_dir):
         #       MXNet MODELS
         #################################################################
         # mxnet : gluoncv model : classification - mobilenetv2_1.0 - accuracy: 72.04% top1
-        'vdet-10-060-0':utils.dict_update(common_cfg,
+        'vcls-10-060-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(backend='cv2'),
             session=mxnet_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
                 model_path=[f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-symbol.json',
@@ -167,7 +167,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':72.04})
         ),
         # mxnet : gluoncv model : classification - resnet50_v1d - accuracy: 79.15% top1
-        'vdet-10-061-0':utils.dict_update(common_cfg,
+        'vcls-10-061-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(backend='cv2'),
             session=mxnet_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
                 model_path=[f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/resnet50_v1d-symbol.json',
@@ -176,7 +176,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':79.15})
         ),
         # mxnet : gluoncv model : classification - xception - accuracy: 79.56% top1
-        'vdet-10-062-0':utils.dict_update(common_cfg,
+        'vcls-10-062-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(backend='cv2'),
             session=mxnet_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg,
                 model_path=[f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/resnet50_v1d-symbol.json',
