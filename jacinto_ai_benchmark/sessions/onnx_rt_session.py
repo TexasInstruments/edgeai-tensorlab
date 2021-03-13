@@ -3,10 +3,12 @@ import time
 import numpy as np
 import onnxruntime
 from .. import utils
+from .. import constants
 from .base_rt_session import BaseRTSession
 
+
 class ONNXRTSession(BaseRTSession):
-    def __init__(self, session_name='onnxrt', **kwargs):
+    def __init__(self, session_name=constants.SESSION_NAME_ONNXRT, **kwargs):
         super().__init__(session_name=session_name, **kwargs)
         self.kwargs['output_shape'] = self.kwargs.get('output_shape', None)
         self.interpreter = None

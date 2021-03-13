@@ -29,13 +29,13 @@
 import os
 import time
 from dlr import DLRModel
-
+from .. import constants
 from .base_rt_session import BaseRTSession
 from ..import utils
 
 
 class TVMDLRSession(BaseRTSession):
-    def __init__(self, session_name='tvmdlr', **kwargs):
+    def __init__(self, session_name=constants.SESSION_NAME_TVMDLR, **kwargs):
         super().__init__(session_name=session_name, **kwargs)
         self.interpreter = None
 

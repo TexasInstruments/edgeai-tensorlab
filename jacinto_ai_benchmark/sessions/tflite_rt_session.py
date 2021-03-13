@@ -31,12 +31,13 @@ import time
 import warnings
 import numpy as np
 import tflite_runtime.interpreter as tflitert_interpreter
+from .. import constants
 from .. import utils
 from .base_rt_session import BaseRTSession
 
 
 class TFLiteRTSession(BaseRTSession):
-    def __init__(self, session_name='tflitert', **kwargs):
+    def __init__(self, session_name=constants.SESSION_NAME_TFLITERT, **kwargs):
         super().__init__(session_name=session_name, **kwargs)
         self.interpreter = None
 

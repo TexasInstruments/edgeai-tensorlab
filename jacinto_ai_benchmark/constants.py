@@ -45,3 +45,11 @@ MEGA_CONST = 1e6  # convert raw data to mega : example bytes to mega bytes (MB)
 GIGA_CONST = 1e9
 ULTRA_CONST = 1e6
 
+SESSION_NAME_TVMDLR = 'tvmdlr'
+SESSION_NAME_TFLITERT = 'tflitert'
+SESSION_NAME_ONNXRT = 'onnxrt'
+
+MODEL_TYPE_ONNX = 'onnx'
+MODEL_TYPE_TFLITE = 'tflite'
+MODEL_TYPE_MXNET = 'mxnet'
+

@@ -35,20 +35,13 @@ class ConfigSettings(config_dict.ConfigDict):
     def __init__(self, input, **kwargs):
         super().__init__(input, **kwargs)
 
-        ############################################################
-        # quantization params & session config
-        ###############################################################
-        self.quantization_params = QuantizationParams(self.tidl_tensor_bits, self.max_frames_calib, self.max_calib_iterations)
-        self.session_tvm_dlr_cfg = self.quantization_params.get_session_tvm_dlr_cfg()
-        self.session_tflite_rt_cfg = self.quantization_params.get_session_tflite_rt_cfg()
+        # quantization params
+        self.quantization_params = QuantizationParams(self.tidl_tensor_bits, self.max_frames_calib,
+                                                 self.max_calib_iterations, is_qat=False)
+        self.quantization_params_qat = QuantizationParams(self.tidl_tensor_bits, self.max_frames_calib,
+                                                 self.max_calib_iterations, is_qat=True)
 
-        self.quantization_params_qat = QuantizationParams(self.tidl_tensor_bits, self.max_frames_calib, self.max_calib_iterations, is_qat=True)
-        self.session_tvm_dlr_cfg_qat = self.quantization_params_qat.get_session_tvm_dlr_cfg()
-        self.session_tflite_rt_cfg_qat = self.quantization_params_qat.get_session_tflite_rt_cfg()
-
-        ############################################################
         # dataset settings
-        ###############################################################
         self.imagenet_cls_calib_cfg = dict(
             path=f'{self.datasets_path}/imagenet/val',
             split=f'{self.datasets_path}/imagenet/val.txt',
@@ -108,6 +101,14 @@ class ConfigSettings(config_dict.ConfigDict):
             split='val',
             shuffle=True,
             num_frames=min(self.num_frames, 1449))
+
+    def get_session_name_to_cfg_dict(self, is_qat):
+        quantization_params = self.quantization_params_qat if is_qat else self.quantization_params
+        session_name_to_cfg_dict = dict()
+        session_name_to_cfg_dict[constants.SESSION_NAME_TVMDLR] = quantization_params.get_session_tvmdlr_cfg()
+        session_name_to_cfg_dict[constants.SESSION_NAME_TFLITERT] = quantization_params.get_session_tflitert_cfg()
+        session_name_to_cfg_dict[constants.SESSION_NAME_ONNXRT] = quantization_params.get_session_onnxrt_cfg()
+        return session_name_to_cfg_dict
 
     ###############################################################
     # utility functions
@@ -257,7 +258,7 @@ class QuantizationParams():
     def get_num_calib_iterations(self):
         return self.max_calib_iterations if self.tidl_tensor_bits == 8 else 1
 
-    def get_calib_options_tvm(self):
+    def _get_calib_options_tvmdlr(self):
         calib_options_tvm_dict = {
             8:  {
                     'activation_range': 'on',
@@ -292,15 +293,15 @@ class QuantizationParams():
                          calib_options_tvm_dict[self.tidl_tensor_bits])
         return calib_opt
 
-    def get_session_tvm_dlr_cfg(self):
-        session_tvm_dlr_cfg = {
+    def get_session_tvmdlr_cfg(self):
+        session_tvmdlr_cfg = {
             'tidl_tensor_bits': self.tidl_tensor_bits,
-            'tidl_calibration_options': self.get_calib_options_tvm()
+            'tidl_calibration_options': self._get_calib_options_tvmdlr()
         }
-        return session_tvm_dlr_cfg
+        return session_tvmdlr_cfg
 
-    def get_calib_options_tflite_rt(self):
-        calib_options_tflite_rt_dict = {
+    def _get_calib_options_tflitert(self):
+        calib_options_tflitert_dict = {
             8: {
                     "tidl_calibration_options:num_frames_calibration": self.get_num_frames_calib(),
                     "tidl_calibration_options:bias_calibration_iterations": self.get_num_calib_iterations()
@@ -318,13 +319,25 @@ class QuantizationParams():
                     "tidl_calibration_options:bias_calibration_iterations": self.get_num_calib_iterations()
             }
         }
-        calib_opt = (calib_options_tflite_rt_dict['qat'] if self.is_qat else \
-                         calib_options_tflite_rt_dict[self.tidl_tensor_bits])
+        calib_opt = (calib_options_tflitert_dict['qat'] if self.is_qat else \
+                         calib_options_tflitert_dict[self.tidl_tensor_bits])
         return calib_opt
 
-    def get_session_tflite_rt_cfg(self):
-        session_tflite_rt_cfg = {
+    def get_session_tflitert_cfg(self):
+        session_tflitert_cfg = {
             'tidl_tensor_bits': self.tidl_tensor_bits,
-            'tidl_calibration_options': self.get_calib_options_tflite_rt()
+            'tidl_calibration_options': self._get_calib_options_tflitert()
         }
-        return session_tflite_rt_cfg
+        return session_tflitert_cfg
+
+    def _get_calib_options_onnxrt(self):
+        #TODO: implement this
+        return None
+
+    def get_session_onnxrt_cfg(self):
+        session_onnxrt_cfg = {
+            'tidl_tensor_bits': self.tidl_tensor_bits,
+            'tidl_calibration_options': self._get_calib_options_onnxrt()
+        }
+        return session_onnxrt_cfg
+

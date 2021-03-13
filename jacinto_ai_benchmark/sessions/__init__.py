@@ -26,34 +26,25 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import copy
+
+from .. import constants
 from .tvm_dlr_session import TVMDLRSession
 from .tflite_rt_session import TFLiteRTSession
 from .onnx_rt_session import ONNXRTSession
 
 
 session_name_to_type_dict = {
-    'tvmdlr' : TVMDLRSession,
-    'tflitert': TFLiteRTSession,
-    'onnxrt': ONNXRTSession
+    constants.SESSION_NAME_TVMDLR : TVMDLRSession,
+    constants.SESSION_NAME_TFLITERT: TFLiteRTSession,
+    constants.SESSION_NAME_ONNXRT: ONNXRTSession
 }
 
 
 session_type_to_name_dict = {
-    TVMDLRSession : 'tvmdlr',
-    TFLiteRTSession : 'tflitert',
-    ONNXRTSession: 'onnxrt'
+    TVMDLRSession : constants.SESSION_NAME_TVMDLR,
+    TFLiteRTSession : constants.SESSION_NAME_TFLITERT,
+    ONNXRTSession: constants.SESSION_NAME_ONNXRT
 }
-
-
-def get_session_types(session_type_dict):
-    session_type_out = copy.deepcopy(session_type_dict)
-    for k, v in session_type_dict.items():
-        if isinstance(v, str):
-            session_type_out[k] = get_session_type(v)
-        #
-    #
-    return session_type_out
 
 
 def get_session_name(session_type):
@@ -64,4 +55,8 @@ def get_session_name(session_type):
 def get_session_type(session_name):
     assert session_name in session_name_to_type_dict, f'unrecognized session_name: {session_name}'
     return session_name_to_type_dict[session_name]
+
+
+def get_session_name_to_type_dict():
+    return session_name_to_type_dict
 
