@@ -40,7 +40,7 @@ if os.path.split(os.getcwd())[-1] == 'scripts':
 #
 
 
-def modify_transforms(cmds, pipeline_configs):
+def modify_pipelines(cmds, pipeline_configs):
     if cmds.input_size is not None:
         # modify a pipeline so that all the models use fixed input size
         # other modifications can also be defined here.
@@ -82,5 +82,5 @@ if __name__ == '__main__':
     work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tidl_tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
-    modify_transforms_func = functools.partial(modify_transforms, cmds)
-    benchmark_accuracy.main(settings, work_dir, modify_transforms_func=modify_transforms_func)
+    modify_pipelines_func = functools.partial(modify_pipelines, cmds)
+    benchmark_accuracy.main(settings, work_dir, modify_pipelines_func=modify_pipelines_func)

@@ -31,7 +31,7 @@ import argparse
 from jacinto_ai_benchmark import *
 
 
-def main(settings, work_dir, modify_transforms_func=None):
+def main(settings, work_dir, modify_pipelines_func=None):
     # capture cwd - to set it later
     cwd = os.getcwd()
 
@@ -59,8 +59,8 @@ def main(settings, work_dir, modify_transforms_func=None):
     # pipeline_config['session'].get_param('run_dir') gives the folder where artifacts are located
     ############################################################################
 
-    if modify_transforms_func is not None:
-        pipeline_runner.pipeline_configs = modify_transforms_func(pipeline_runner.pipeline_configs)
+    if modify_pipelines_func is not None:
+        pipeline_runner.pipeline_configs = modify_pipelines_func(pipeline_runner.pipeline_configs)
     #
 
     # print some info
