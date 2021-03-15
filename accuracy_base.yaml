@@ -16,9 +16,9 @@ model_selection : [# imagenet classification models
                    'vdet-12-012-0','vdet-12-020-0','vdet-12-060-0','vdet-12-061-0',
                    'vdet-12-010-0','vdet-12-400-0','vdet-12-401-0','vdet-12-402-0','vdet-12-403-0','vdet-12-404-0',
                    # ade20k segmentation models
-                   'vseg-17-400-0','vseg-18-010-0',
+                   'vseg-17-400-0',
                    # ade20k 32 class segmentation models
-                   'vseg-18-100-0','vseg-18-101-0','vseg-18-102-0','vseg-18-111-0',
+                   'vseg-18-010-0','vseg-18-100-0','vseg-18-101-0','vseg-18-102-0','vseg-18-111-0',
                    # pascal voc2012 models
                    'vseg-19-400-0','vseg-19-401-0']
 # execution pipeline type - currently only accuracy pipeline is defined
