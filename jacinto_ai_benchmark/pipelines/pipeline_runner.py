@@ -128,11 +128,12 @@ class PipelineRunner():
     def _check_model_selection(self, settings, pipeline_config):
         model_path = pipeline_config['session'].get_param('model_path')
         model_id = pipeline_config['session'].get_param('model_id')
+        model_path_to_match = model_path[0] if isinstance(model_path, (list,tuple)) else model_path
         if settings.model_selection is not None:
             selected_model = False
             model_selection = utils.as_list(settings.model_selection)
             for keyword in model_selection:
-                if keyword in model_path:
+                if keyword in model_path_to_match:
                     selected_model = True
                 #
                 if keyword in model_id:
@@ -145,7 +146,7 @@ class PipelineRunner():
         if settings.model_exclusion is not None:
             model_exclusion = utils.as_list(settings.model_exclusion)
             for keyword in model_exclusion:
-                if keyword in model_path:
+                if keyword in model_path_to_match:
                     selected_model = False
                 #
                 if keyword in model_id:
@@ -155,12 +156,12 @@ class PipelineRunner():
         #
         calibration_dataset = pipeline_config['calibration_dataset']
         if settings.run_import and calibration_dataset is None:
-            warnings.warn(f'settings.run_import was set, but calibration_dataset={calibration_dataset}, removing model {model_id}:{model_path}')
+            warnings.warn(f'settings.run_import was set, but calibration_dataset={calibration_dataset}, removing model {model_id}:{model_path_to_match}')
             selected_model = False
         #
         input_dataset = pipeline_config['input_dataset']
         if settings.run_inference and input_dataset is None:
-            warnings.warn(f'settings.run_inference was set, but input_dataset={input_dataset}, removing model {model_id}:{model_path}')
+            warnings.warn(f'settings.run_inference was set, but input_dataset={input_dataset}, removing model {model_id}:{model_path_to_match}')
             selected_model = False
         #
         return selected_model

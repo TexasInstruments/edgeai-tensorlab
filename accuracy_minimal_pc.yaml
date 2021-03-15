@@ -4,9 +4,10 @@ include_files : ['accuracy_base.yaml']
 # examples: ['classification'] ['imagenet1k'] ['torchvision']
 # examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
 # example: null (Note: null means no filter - run all the models)
-model_selection : ['jai-pytorch/mobilenet_v1_20190906-171544_opset9.onnx',
-                   'torchvision/mobilenet_v2_tv_opset9.onnx',
-                  ]
+model_selection : ['imagenet1k/torchvision/mobilenet_v2_tv_opset9.onnx',
+                   'imagenet1k/tf1-models/mobilenet_v2_1.0_224.tflite',
+                   'imagenet1k/gluoncv-mxnet/mobilenetv2_1.0'
+                   ]
 # number of frames for inference
 num_frames : 1000 #50000
 # number of frames to be used for post training quantization / calibration
