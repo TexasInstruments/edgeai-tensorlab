@@ -89,8 +89,9 @@ def get_configs(settings, work_dir):
         # jai-devkit: classification mobilenetv2_1p4_224x224 expected_metric: 75.22% top-1 accuracy, QAT: 75.22%
         'vcls-10-102-8':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
-            session=onnx_session_type(**common_session_cfg, **settings.session_tvm_dlr_cfg_qat,
-                model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/jai-pytorch/mobilenet_v2_1p4_qat-jai_20210112-093313_opset9.onnx')
+            session=onnx_session_type(**common_session_cfg, **onnx_session_cfg_qat,
+                model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/jai-pytorch/mobilenet_v2_1p4_qat-jai_20210112-093313_opset9.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':75.22})
         ),
         #################torchvision models#########################
         # torchvision: classification shufflenetv2_224x224 expected_metric: 69.36% top-1 accuracy

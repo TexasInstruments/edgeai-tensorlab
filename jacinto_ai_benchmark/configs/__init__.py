@@ -75,6 +75,12 @@ def download_datasets(settings):
     settings.dataset_cache = get_datasets(settings, download=True)
     return True
 
+def print_all_configs(pipeline_configs=None, enable_print=False):
+    if enable_print:
+        for k, v in sorted(pipeline_configs.items()):
+            v['session'].kwargs['session_name']
+            print(k + '-' + v['session'].kwargs['session_name'])
+    return
 
 def get_configs(settings, work_dir):
     # load the datasets - it is done only once and re-used for all configs

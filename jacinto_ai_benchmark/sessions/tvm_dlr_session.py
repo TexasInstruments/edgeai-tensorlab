@@ -89,7 +89,9 @@ class TVMDLRSession(BaseRTSession):
             tidl_tools_path=os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools'),
             tidl_tensor_bits=self.kwargs['tidl_tensor_bits'],
             tidl_calibration_options=self.kwargs['tidl_calibration_options'],
-            power_of_2_quantization=self.kwargs['power_of_2_quantization'],)
+            power_of_2_quantization=self.kwargs['power_of_2_quantization'],
+            reserved_compile_constraints_flag=self.kwargs.get('reserved_compile_constraints_flag',0),
+            )
 
         supported_devices = self.kwargs['supported_devices'] if (self.kwargs['supported_devices'] is not None) \
             else (self.kwargs['target_device'],)

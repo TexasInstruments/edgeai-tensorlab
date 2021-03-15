@@ -179,6 +179,64 @@ def get_configs(settings, work_dir):
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':53.29})
         ),
+        ################# jacinto-ai ONNX models : ADE20k-Class32 ###################################
+        'vseg-18-100-0':utils.dict_update(ade20k_cfg_class32,
+            preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
+            session=onnx_session_type(**common_session_cfg, **onnx_session_cfg,
+                model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k_class32/jai-pytorch/deeplabv3lite_mobilenetv2_tv_512x512_ade20k_class32_20210308-092104.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':51.22})
+        ),
+        'vseg-18-100-8':utils.dict_update(ade20k_cfg_class32,
+            preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
+            session=onnx_session_type(**common_session_cfg, **onnx_session_cfg_qat,
+                model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k_class32/jai-pytorch/deeplabv3lite_mobilenetv2_tv_512x512_ade20k_class32_20210308-092104_qat.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':51.61})
+        ),
+        'vseg-18-101-0':utils.dict_update(ade20k_cfg_class32,
+            preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
+            session=onnx_session_type(**common_session_cfg, **onnx_session_cfg,
+                model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k_class32/jai-pytorch/unetlite_pixel2pixel_aspp_mobilenetv2_tv_512x512_ade20k_class32_20210306_174005.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':50.08})
+        ),
+        'vseg-18-101-8':utils.dict_update(ade20k_cfg_class32,
+            preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
+            session=onnx_session_type(**common_session_cfg, **onnx_session_cfg_qat,
+                model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k_class32/jai-pytorch/unetlite_pixel2pixel_aspp_mobilenetv2_tv_512x512_ade20k_class32_20210306_174005_qat.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':49.98})
+        ),
+        'vseg-18-102-0':utils.dict_update(ade20k_cfg_class32,
+            preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
+            session=onnx_session_type(**common_session_cfg, **onnx_session_cfg,
+                model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k_class32/jai-pytorch/fpnlite_pixel2pixel_aspp_mobilenetv2_tv_512x512_ade20k_class32_20210306_174205.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':50.78})
+        ),
+        'vseg-18-102-8':utils.dict_update(ade20k_cfg_class32,
+            preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
+            session=onnx_session_type(**common_session_cfg, **onnx_session_cfg_qat,
+                model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k_class32/jai-pytorch/fpnlite_pixel2pixel_aspp_mobilenetv2_tv_512x512_ade20k_class32_20210306_174205_qat.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':50.93})
+        ),
+        'vseg-18-103-0':utils.dict_update(ade20k_cfg_class32,
+            preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
+            session=onnx_session_type(**common_session_cfg, **onnx_session_cfg,
+                model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k_class32/jai-pytorch/fpnlite_pixel2pixel_aspp_mobilenetv2_1p4_tv_512x512_ade20k_class32_20210307_233626.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':53.10})
+        ),
+        'vseg-18-103-8':utils.dict_update(ade20k_cfg_class32,
+            preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
+            session=onnx_session_type(**common_session_cfg, **onnx_session_cfg_qat,
+                model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k_class32/jai-pytorch/fpnlite_pixel2pixel_aspp_mobilenetv2_1p4_tv_512x512_ade20k_class32_20210307_233626_qat.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':53.01})
+        ),
+
         #################################################################
         #       TFLITE MODELS
         #################mlperf models###################################
