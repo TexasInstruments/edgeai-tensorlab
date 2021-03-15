@@ -33,7 +33,7 @@ import numpy as np
 import tflite_runtime.interpreter as tflitert_interpreter
 from .. import constants
 from .. import utils
-from .base_rt_session import BaseRTSession
+from .basert_session import BaseRTSession
 
 
 class TFLiteRTSession(BaseRTSession):

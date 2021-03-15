@@ -4,7 +4,7 @@ import numpy as np
 import onnxruntime
 from .. import utils
 from .. import constants
-from .base_rt_session import BaseRTSession
+from .basert_session import BaseRTSession
 
 
 class ONNXRTSession(BaseRTSession):

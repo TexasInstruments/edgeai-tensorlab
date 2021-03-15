@@ -28,9 +28,9 @@
 
 
 from .. import constants
-from .tvm_dlr_session import TVMDLRSession
-from .tflite_rt_session import TFLiteRTSession
-from .onnx_rt_session import ONNXRTSession
+from .tvmdlr_session import TVMDLRSession
+from .tflitert_session import TFLiteRTSession
+from .onnxrt_session import ONNXRTSession
 
 
 session_name_to_type_dict = {
