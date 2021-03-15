@@ -57,7 +57,9 @@ class ConfigDict(dict):
         #
         for key, value in input_dict.items():
             if key == 'include_files':
-                idict = self._parse_include_files(value)
+                settings_file = input_dict['settings_file']
+                include_base_path = os.path.dirname(settings_file) if settings_file is not None else './'
+                idict = self._parse_include_files(value, include_base_path)
                 self.update(idict)
             else:
                 self.__setattr__(key, value)
@@ -144,10 +146,12 @@ class ConfigDict(dict):
         ###########################################################
         self.dataset_cache = None
 
-    def _parse_include_files(self, include_files):
+    def _parse_include_files(self, include_files, include_base_path):
         input_dict = {}
         include_files = utils.as_list(include_files)
         for include_file in include_files:
+            append_base = not (include_file.startswith('/') and include_file.startswith('./'))
+            include_file = os.path.join(include_base_path, include_file) if append_base else include_file
             with open(include_file) as ifp:
                 idict = yaml.safe_load(ifp)
                 input_dict.update(idict)
