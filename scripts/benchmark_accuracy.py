@@ -36,6 +36,9 @@ if os.path.split(os.getcwd())[-1] == 'scripts':
 #
 
 if __name__ == '__main__':
+    # capture cwd - to set it later
+    cwd = os.getcwd()
+
     parser = argparse.ArgumentParser()
     parser.add_argument('settings_file', type=str)
     cmds = parser.parse_args()
@@ -80,6 +83,9 @@ if __name__ == '__main__':
     if settings.run_import or settings.run_inference:
         pipeline_runner.run()
     #
+
+    # make sure we are in cwd.
+    os.chdir(cwd)
 
     # collect the logs and display it
     # requires enable_logging to be True to write results to file
