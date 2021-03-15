@@ -147,6 +147,22 @@ def get_configs(settings, work_dir):
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':78.90})
         ),
+        # jai-pytorch: segmentation - fpnlite_pixel2pixel_aspp_regnetx400mf_ade20k_class32_384x384_20210314-205347 expected_metric: 51.03% mean-iou
+        'vseg-18-110-0':utils.dict_update(ade20k_cfg_class32,
+            preprocess=settings.get_preproc_jai((384,384), (384,384), backend='cv2', interpolation=cv2.INTER_AREA),
+            session=onnx_session_type(**common_session_cfg, **onnx_session_cfg,
+                model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k_class32/jai-pytorch/fpnlite_pixel2pixel_aspp_regnetx400mf_ade20k_class32_384x384_20210314-205347.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':51.03})
+        ),
+        # jai-pytorch: segmentation - fpnlite_pixel2pixel_aspp_regnetx800mf_ade20k_class32_512x512_20210312-150048 expected_metric: 53.29% mean-iou
+        'vseg-18-111-0':utils.dict_update(ade20k_cfg_class32,
+            preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
+            session=onnx_session_type(**common_session_cfg, **onnx_session_cfg,
+                model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k_class32/jai-pytorch/fpnlite_pixel2pixel_aspp_regnetx800mf_ade20k_class32_512x512_20210312-150048.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':53.29})
+        ),
         # torchvision: segmentation - torchvision deeplabv3-resnet50 - expected_metric: 73.5% MeanIoU.
         'vseg-16-300-0':utils.dict_update(cityscapes_cfg,
             preprocess=settings.get_preproc_onnx((520,1040), (520,1040), backend='cv2'),
