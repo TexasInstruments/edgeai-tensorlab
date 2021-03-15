@@ -119,6 +119,7 @@ class TFLiteRTSession(BaseRTSession):
             "num_tidl_subgraphs": self.kwargs.get("num_tidl_subgraphs", 16),
             "tidl_denylist": self.kwargs.get("tidl_denylist", ""),
             "tidl_calibration_method": self.kwargs.get("tidl_calibration_method", "advanced"),
+            'power_of_2_quantization': self.kwargs.get("power_of_2_quantization",'no'),
         }
 
         tidl_calibration_options = self.kwargs.get("tidl_calibration_options", {})
