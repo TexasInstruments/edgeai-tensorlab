@@ -1,26 +1,29 @@
 # Accuracy Benchmark for Jacinto 7
 
 
-## Introduction
-This package does accuracy benchmarking for Jacinto 7 family of devices using TI Deep Learning Library (TIDL) and its open source front ends. Open source runtime front ends of TIDL such as TVM+DLR and TFLRT (TFLite Runtime) are supported. ONNXRuntime is also expected to supported soon as TIDL adds support for it.
+#### Notice
+This repository is part of Jacinto-AI-DevKit, which is a collection of repositories providing Training & Quantization scripts, Model Zoo and Accuracy Benchmarks. If you have not visited the landing page of [**Jacinto-AI-Devkit**](https://github.com/TexasInstruments/jacinto-ai-devkit) please do so before attempting to use this repository.
 
-Although this package itself may not run in realtime, we have hooks to measure performance on the EVM. 
+
+## Introduction
+This repository provides a collection of example Deep Learning Models for various image recognition tasks such as classification, segmentation and detection. Scripts are provided for Model Import/Calibration, Inference and Accuracy benchmarking. 
+
+The models in this repository are expected to run on the Jacinto7 family of SoCs. RTOS SDK for Jacinto 7 is required to run these. Please visit **[Processor SDK for Jacinto 7 TDA4x](https://www.ti.com/tool/PROCESSOR-SDK-J721E)** and from there navigate to **[RTOS SDK for Jacinto 7 TDA4x](https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E)** to download and untar/extract the RTOS SDK on your Ubuntu desktop machine. RTOS SDK for Jacinto 7 TDA4x provides TI Deep Learning Library (TIDL) which is an optimized library that can run Neural Networks. TIDL can directly accept the models using its config files. TIDL can also accept these models through some of the popular open source runtimes such as TVM+DLR, TFLite and ONNXRuntime. For more information how to obtain and use these runtimes that offload to TIDL, please go through the TIDL documentation in the RTOS SDK.
+
+This repository is generic and can be used with a variety of runtimes and models supported by TIDL. We also provide several Deep Learning Models ready to be used for this benchmark in the repository **[Jacinto-AI-ModelZoo](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse)**. Please clone that repository. That repository uses git-lfs, so please install git-lfs before cloning. After cloning, **jacinto-ai-benchmark** and **jacinto-ai-modelzoo** must be in the same parent folder. 
 
 **Important Note**: This repository is being made available for experimentation, analysis and research - this is not meant for final production.
 
 
-#### Notice
-- This repository is part of Jacinto-AI-DevKit, which is a collection of repositories providing Training & Quantization scripts, Model Zoo and Accuracy Benchmarks. If you have not visited the landing page of [**Jacinto-AI-Devkit**](https://github.com/TexasInstruments/jacinto-ai-devkit) please do so before attempting to use this repository.
-
-
 ## Requirements 
 - We have tested this on Ubuntu 18.04 PC with Anaconda Python 3.6. This is the recommended environment. Create a Python 3.6 environment if you don't have it and activate it.
-- RTOS SDK for Jacinto 7 is required to run this package. Please visit **[Processor SDK for Jacinto 7 TDA4x](https://www.ti.com/tool/PROCESSOR-SDK-J721E)** and from there navigate to **[RTOS SDK for Jacinto 7 TDA4x](https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E)** to download and untar/extract the RTOS SDK on your Ubuntu desktop machine.
+- Models used for this benchmark are provided in the repository Jacinto-AI-ModelZoo as explained earlier. Please clone that repository.
+- RTOS SDK for Jacinto 7 is required to run this package. Please visit the linsk given above to download and untar/extract the RTOS SDK on your Ubuntu desktop machine.
 - After extracting, follow the instructions in the RTOS package to download the dependencies required for it. Especially the following 3 steps are required:
 - (1) Install PSDK-RTOS dependencies - especially graphviz and gcc-arm: Change directory to **psdk_rtos/scripts** inside the extracted SDK and run **setup_psdk_rtos.sh**
 - (2) In the extracted SDK, change directory to tidl folder (it has the form tidl_j7_xx_xx_xx_xx). Inside the tidl folder, change directory to **ti_dl/test/tvm-dlr** and run **prepare_model_compliation_env.sh** to install TVM Deep Learning compiler, DLR Deep Learning Runtime and their dependencies. In our SDK, we have support to use TVM+DLR to offload part of the graph into the underlying TIDL backend running on the C7x+MMA DSP, while keeping the unsupported layers running on the main ARM processor. 
 - (3) Inside the tidl folder, change directory to **ti_dl/test/tflrt** and run **prepare_model_compliation_env.sh** to install TFLite Runtime and its dependencies. In our SDK, we have support to use TFLite Runtime to offload part of the graph into the underlying TIDL backend running on the C7x+MMA DSP, while keeping the unsupported layers running on the main ARM processor.
-- Models used for this benchmark are provided in the repository **[Jacinto-AI-ModelZoo](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse)**. Please clone that repository - after cloning, **jacinto-ai-benchmark** and **jacinto-ai-modelzoo** must be in the same parent folder.
+
 
 ## Installation Instructions
 After cloning this repository, install it as a Python package by running:
