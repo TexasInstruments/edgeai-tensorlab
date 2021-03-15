@@ -31,37 +31,40 @@
 ##################################################################
 # setup the environment
 
-echo "###################################################################"
+echo "==================================================================="
 echo "IMPORTANT: make sure that these environment variables are correct."
-echo "###################################################################"
+echo "-------------------------------------------------------------------"
 
 # make sure current directory is visible for python import
+#echo "Setting PYTHONPATH"
 export PYTHONPATH=:${PYTHONPATH}
 echo "PYTHONPATH=${PYTHONPATH}"
 
-echo "Setting PSDK_BASE_PATH"
+#echo "Setting PSDK_BASE_PATH"
 export PSDK_BASE_PATH="./dependencies/ti-processor-sdk-rtos"
 echo "PSDK_BASE_PATH=${PSDK_BASE_PATH}"
 
 # Note: if the following fails to find the correct tidl path, assign it explicitly
 # To know if the correct tidl path is found, see what is printed from the following echo
-echo "Setting TIDL_BASE_PATH"
+#echo "Setting TIDL_BASE_PATH"
 export TIDL_BASE_PATH=$(find "${PSDK_BASE_PATH}/" -maxdepth 1 -type d |grep "tidl_")
 echo "TIDL_BASE_PATH=${TIDL_BASE_PATH}"
 
-echo "Setting ARM64_GCC_PATH"
+#echo "Setting TIDL_RT_PERFSTATS"
+export TIDL_RT_PERFSTATS="1"
+echo "TIDL_RT_PERFSTATS=${TIDL_RT_PERFSTATS}"
+
+#echo "Setting ARM64_GCC_PATH"
 export ARM64_GCC_PATH=$(find "${PSDK_BASE_PATH}/" -maxdepth 1 -type d |grep "gcc-arm-")
 echo "ARM64_GCC_PATH=${ARM64_GCC_PATH}"
 
-echo "Setting LD_LIBRARY_PATH"
+#echo "Setting LD_LIBRARY_PATH"
 import_path="${TIDL_BASE_PATH}/ti_dl/utils/tidlModelImport/out"
 rt_path="${TIDL_BASE_PATH}/ti_dl/rt/out/PC/x86_64/LINUX/release"
 tfl_delegate_path="${TIDL_BASE_PATH}/ti_dl/tfl_delegate/out/PC/x86_64/LINUX/release"
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${import_path}:${rt_path}:${tfl_delegate_path}"
 echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
-
-export TIDL_RT_PERFSTATS="1"
-echo "TIDL_RT_PERFSTATS=${TIDL_RT_PERFSTATS}"
+echo "==================================================================="
 
 sleep 3
 
