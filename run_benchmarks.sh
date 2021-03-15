@@ -71,6 +71,10 @@ sleep 3
 # increase the stack size as it can help in some models
 ulimit -s 32768
 
-# run the script
+# run the accuracy and performance benchmark script
 python3 ./scripts/benchmark_accuracy.py accuracy_minimal_pc.yaml
+
+# run the script for measuring performance at a fixed resolution
+# accuracy reported may not be correct as the input_size is changed
+#python3 ./scripts/benchmark_fixedres.py accuracy_minimal_pc.yaml --input_size 1024
 
