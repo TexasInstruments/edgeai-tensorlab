@@ -30,23 +30,10 @@ import os
 import argparse
 from jacinto_ai_benchmark import *
 
-# the cwd must be the root of the respository
-if os.path.split(os.getcwd())[-1] == 'scripts':
-    os.chdir('../')
-#
 
-if __name__ == '__main__':
+def main(settings, work_dir, modify_transforms_func=None):
     # capture cwd - to set it later
     cwd = os.getcwd()
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('settings_file', type=str)
-    cmds = parser.parse_args()
-    settings = config_settings.ConfigSettings(cmds.settings_file)
-
-    expt_name = os.path.splitext(os.path.basename(__file__))[0]
-    work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tidl_tensor_bits}bits')
-    print(f'work_dir: {work_dir}')
 
     # check the datasets and download if they are missing
     download_ok = configs.download_datasets(settings)
@@ -72,6 +59,10 @@ if __name__ == '__main__':
     # pipeline_config['session'].get_param('run_dir') gives the folder where artifacts are located
     ############################################################################
 
+    if modify_transforms_func is not None:
+        pipeline_runner.pipeline_configs = modify_transforms_func(pipeline_runner.pipeline_configs)
+    #
+
     # print some info
     run_dirs = [pipeline_config['session'].get_param('run_dir') for model_key, pipeline_config \
                 in pipeline_runner.pipeline_configs.items()]
@@ -93,3 +84,20 @@ if __name__ == '__main__':
         results = pipelines.collect_results(settings, work_dir, pipeline_runner.pipeline_configs, print_results=True)
     #
 
+
+if __name__ == '__main__':
+    # the cwd must be the root of the respository
+    if os.path.split(os.getcwd())[-1] == 'scripts':
+        os.chdir('../')
+    #
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('settings_file', type=str)
+    cmds = parser.parse_args()
+    settings = config_settings.ConfigSettings(cmds.settings_file)
+
+    expt_name = os.path.splitext(os.path.basename(__file__))[0]
+    work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tidl_tensor_bits}bits')
+    print(f'work_dir: {work_dir}')
+
+    main(settings, work_dir)
