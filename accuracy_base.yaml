@@ -3,7 +3,24 @@
 # examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
 # examples: ['jai-pytorch/mobilenet_v1_20190906-171544_opset9.onnx', 'torchvision/mobilenet_v2_tv_opset9.onnx']
 # example: null (Note: null means no filter - run all the models)
-model_selection : null
+model_selection : [# imagenet classification models
+                   'vcls-10-010-0','vcls-10-011-0','vcls-10-012-0',
+                   'vcls-10-030-0','vcls-10-031-0','vcls-10-032-0','vcls-10-033-0',
+                   'vcls-10-100-0','vcls-10-101-0','vcls-10-101-8',
+                   'vcls-10-301-0','vcls-10-302-0','vcls-10-302-8','vcls-10-304-0','vcls-10-305-0',
+                   'vcls-10-401-0','vcls-10-403-0','vcls-10-404-0','vcls-10-405-8','vcls-10-406-0','vcls-10-407-0','vcls-10-408-0','vcls-10-409-0','vcls-10-410-0',
+                   'vcls-10-400-0','vcls-10-400-8','vcls-10-401-8','vcls-10-402-0',
+                   'vcls-10-430-0','vcls-10-431-0','vcls-10-434-0',
+                   'vcls-10-440-0','vcls-10-441-0','vcls-10-442-0','vcls-10-450-0',
+                   # coco detection models
+                   'vdet-12-012-0','vdet-12-020-0','vdet-12-060-0','vdet-12-061-0',
+                   'vdet-12-010-0','vdet-12-400-0','vdet-12-401-0','vdet-12-402-0','vdet-12-403-0','vdet-12-404-0',
+                   # ade20k segmentation models
+                   'vseg-17-400-0','vseg-18-010-0',
+                   # ade20k 32 class segmentation models
+                   'vseg-18-100-0','vseg-18-101-0','vseg-18-102-0','vseg-18-111-0',
+                   # pascal voc2012 models
+                   'vseg-19-400-0','vseg-19-401-0']
 # execution pipeline type - currently only accuracy pipeline is defined
 pipeline_type : 'accuracy'
 # important parameter. set this to 'pc' to do import and inference in pc
