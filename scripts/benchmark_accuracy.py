@@ -32,9 +32,6 @@ from jacinto_ai_benchmark import *
 
 
 def main(settings, work_dir, modify_pipelines_func=None):
-    # capture cwd - to set it later
-    cwd = os.getcwd()
-
     # check the datasets and download if they are missing
     download_ok = configs.download_datasets(settings)
     print(f'download_ok: {download_ok}')
@@ -74,9 +71,6 @@ def main(settings, work_dir, modify_pipelines_func=None):
     if settings.run_import or settings.run_inference:
         pipeline_runner.run()
     #
-
-    # make sure we are in cwd.
-    os.chdir(cwd)
 
     # collect the logs and display it
     # requires enable_logging to be True to write results to file

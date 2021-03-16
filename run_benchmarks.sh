@@ -42,12 +42,14 @@ echo "PYTHONPATH=${PYTHONPATH}"
 
 #echo "Setting PSDK_BASE_PATH"
 export PSDK_BASE_PATH="./dependencies/ti-processor-sdk-rtos"
+export PSDK_BASE_PATH=$(realpath -s ${PSDK_BASE_PATH})
 echo "PSDK_BASE_PATH=${PSDK_BASE_PATH}"
 
 # Note: if the following fails to find the correct tidl path, assign it explicitly
 # To know if the correct tidl path is found, see what is printed from the following echo
 #echo "Setting TIDL_BASE_PATH"
 export TIDL_BASE_PATH=$(find "${PSDK_BASE_PATH}/" -maxdepth 1 -type d |grep "tidl_")
+export TIDL_BASE_PATH=$(realpath -s ${TIDL_BASE_PATH})
 echo "TIDL_BASE_PATH=${TIDL_BASE_PATH}"
 
 #echo "Setting TIDL_RT_PERFSTATS"
@@ -56,6 +58,7 @@ echo "TIDL_RT_PERFSTATS=${TIDL_RT_PERFSTATS}"
 
 #echo "Setting ARM64_GCC_PATH"
 export ARM64_GCC_PATH=$(find "${PSDK_BASE_PATH}/" -maxdepth 1 -type d |grep "gcc-arm-")
+export ARM64_GCC_PATH=$(realpath -s ${ARM64_GCC_PATH})
 echo "ARM64_GCC_PATH=${ARM64_GCC_PATH}"
 
 #echo "Setting LD_LIBRARY_PATH"
@@ -73,6 +76,10 @@ ulimit -s 32768
 
 # run the accuracy and performance benchmark script
 python3 ./scripts/benchmark_accuracy.py accuracy_minimal_pc.yaml
+
+# run the accuracy and performance benchmark script for custom modekls
+#python3 ./scripts/benchmark_custom.py accuracy_minimal_pc.yaml
+
 
 # run the script for measuring performance at a fixed resolution
 # accuracy reported may not be correct as the input_size is changed

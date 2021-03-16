@@ -97,6 +97,9 @@ class PipelineRunner():
     # error during pickling, involved in the launch of a process is parallel run. make it classmethod
     @classmethod
     def _run_pipeline(cls, settings, pipeline_config, parallel_device=None, description=''):
+        # capture cwd - to set it later
+        cwd = os.getcwd()
+
         if parallel_device is not None:
             os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
         #
@@ -123,6 +126,8 @@ class PipelineRunner():
         except Exception as e:
             print(f'\n{str(e)}')
         #
+        # make sure we are in cwd when we return.
+        os.chdir(cwd)
         return result
 
     def _check_model_selection(self, settings, pipeline_config):
