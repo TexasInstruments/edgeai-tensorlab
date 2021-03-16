@@ -1,14 +1,46 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+# Copyright (c) 2018-2021, Texas Instruments
+# All Rights Reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from six import string_types
-from typing import Any, List, Text, Dict, Set
-from onnx import ModelProto, ValueInfoProto
-
+# TI's adaptation of update_model_dims. Original code from onnx.tools.update_model_dims() has bug of iterating through all layers.
+# But this version has less error checking code.
 import onnx.checker
 
+def update_dim(tensor=None, new_dim_value=None, dim_idx=None):
+    dim_proto = tensor.type.tensor_type.shape.dim[dim_idx]
+    new_dim_value
+    if isinstance(new_dim_value, str):
+        dim_proto.dim_param = new_dim_value
+    elif isinstance(new_dim_value, int):
+        if new_dim_value >= 0:
+            assert not (dim_proto.HasField('dim_value') and (dim_proto.dim_value != new_dim_value))
+        else: #new_dim_value is negative. Not handled currently.
+            assert False
+    return
 
 def update_inputs_outputs_dims(model, input_dims, output_dims):  # type: (ModelProto, Dict[Text, List[Any]], Dict[Text, List[Any]]) -> ModelProto
     """
@@ -35,51 +67,16 @@ def update_inputs_outputs_dims(model, input_dims, output_dims):  # type: (ModelP
                 updated_model = update_inputs_outputs_dims(model, input_dims, output_dims)
                 onnx.save(updated_model, 'model.onnx')
     """
-    dim_param_set = set()  # type: Set[Text]
 
-    def init_dim_param_set(dim_param_set, value_infos):  # type: (Set[Text], List[ValueInfoProto]) -> None
-        for info in value_infos:
-            shape = info.type.tensor_type.shape
-            for dim in shape.dim:
-                if dim.HasField('dim_param'):
-                    dim_param_set.add(dim.dim_param)  # type: ignore
+    for input_name, input_dim_arr in input_dims.items():
+        input_layer_tensor = [input_tensor for input_tensor in model.graph.input if input_tensor.name == input_name][0]
+        for dim_idx, new_dim_value in enumerate(input_dim_arr):
+            update_dim(tensor=input_layer_tensor, new_dim_value=new_dim_value, dim_idx=dim_idx)
 
-    init_dim_param_set(dim_param_set, model.graph.input)  # type: ignore
-    init_dim_param_set(dim_param_set, model.graph.output)  # type: ignore
-    init_dim_param_set(dim_param_set, model.graph.value_info)  # type: ignore
-
-    def update_dim(tensor, dim, j, name):  # type: (ValueInfoProto, Any, int, Text) -> None
-        dim_proto = tensor.type.tensor_type.shape.dim[j]
-        if isinstance(dim, int):
-            if dim >= 0:
-                if dim_proto.HasField('dim_value') and dim_proto.dim_value != dim:
-                    raise ValueError('Unable to set dimension value to {} for axis {} of {}. Contradicts existing dimension value {}.'
-                        .format(dim, j, name, dim_proto.dim_value))
-                dim_proto.dim_value = dim
-            else:
-                generated_dim_param = name + '_' + str(j)
-                if generated_dim_param in dim_param_set:
-                    raise ValueError('Unable to generate unique dim_param for axis {} of {}. Please manually provide a dim_param value.'
-                        .format(j, name))
-                dim_proto.dim_param = generated_dim_param
-        elif isinstance(dim, string_types):
-            dim_proto.dim_param = dim
-        else:
-            raise ValueError('Only int or str is accepted as dimension value, incorrect type: {}'.format(type(dim)))
-
-    for input in model.graph.input:
-        input_name = input.name
-        if input_name in input_dims: #Added by SN
-            input_dim_arr = input_dims[input_name]
-            for j, dim in enumerate(input_dim_arr):
-                update_dim(input, dim, j, input_name)
-
-    for output in model.graph.output:
-        output_name = output.name
-        if output_name in output_dims:
-            output_dim_arr = output_dims[output_name]
-            for j, dim in enumerate(output_dim_arr):
-                update_dim(output, dim, j, output_name)
+    for output_name, output_dim_arr in output_dims.items():
+        output_layer_tensor = [output_tensor for output_tensor in model.graph.output if output_tensor.name == output_name][0]
+        for dim_idx, new_dim_value in enumerate(output_dim_arr):
+            update_dim(tensor=output_layer_tensor, new_dim_value=new_dim_value, dim_idx=dim_idx)
 
     onnx.checker.check_model(model)
     return model
