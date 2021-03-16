@@ -75,10 +75,11 @@ def main(settings, work_dir):
         ),
         # mxnet : gluoncv model : classification - mobilenetv2_1.0 - accuracy: 72.04% top1
         'custom-example3': utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_tflite(),
+            preprocess=settings.get_preproc_mxnet(),
             session=sessions.TVMDLRSession(**common_session_cfg, **session_name_to_cfg_dict[constants.SESSION_NAME_TVMDLR],
                 model_path=[f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-symbol.json',
-                            f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-0000.params']),
+                            f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,3,224,224)})
         )
     }
 
