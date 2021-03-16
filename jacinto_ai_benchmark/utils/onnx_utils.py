@@ -26,13 +26,17 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# TI's adaptation of update_model_dims. Original code from onnx.tools.update_model_dims() has bug of iterating through all layers.
+# TI's adaptation of update_model_dims.
+# Original code from onnx.tools.update_model_dims() has bug of iterating through all layers.
 # But this version has less error checking code.
-import onnx.checker
+
+import onnx
+
+__all__ = ['onnx_update_model_dims']
+
 
 def update_dim(tensor=None, new_dim_value=None, dim_idx=None):
     dim_proto = tensor.type.tensor_type.shape.dim[dim_idx]
-    new_dim_value
     if isinstance(new_dim_value, str):
         dim_proto.dim_param = new_dim_value
     elif isinstance(new_dim_value, int):
@@ -42,32 +46,8 @@ def update_dim(tensor=None, new_dim_value=None, dim_idx=None):
             assert False
     return
 
-def update_inputs_outputs_dims(model, input_dims, output_dims):  # type: (ModelProto, Dict[Text, List[Any]], Dict[Text, List[Any]]) -> ModelProto
-    """
-        This function updates the dimension sizes of the model's inputs and outputs to the values
-        provided in input_dims and output_dims. if the dim value provided is negative, a unique dim_param
-        will be set for that dimension.
 
-        Example. if we have the following shape for inputs and outputs:
-                shape(input_1) = ('b', 3, 'w', 'h')
-                shape(input_2) = ('b', 4)
-                and shape(output)  = ('b', 'd', 5)
-
-            The parameters can be provided as:
-                input_dims = {
-                    "input_1": ['b', 3, 'w', 'h'],
-                    "input_2": ['b', 4],
-                }
-                output_dims = {
-                    "output": ['b', -1, 5]
-                }
-
-            Putting it together:
-                model = onnx.load('model.onnx')
-                updated_model = update_inputs_outputs_dims(model, input_dims, output_dims)
-                onnx.save(updated_model, 'model.onnx')
-    """
-
+def onnx_update_model_dims(model, input_dims, output_dims):
     for input_name, input_dim_arr in input_dims.items():
         input_layer_tensor = [input_tensor for input_tensor in model.graph.input if input_tensor.name == input_name][0]
         for dim_idx, new_dim_value in enumerate(input_dim_arr):

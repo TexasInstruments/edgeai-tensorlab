@@ -76,8 +76,7 @@ class BaseRTSession(utils.ParamsBase):
     def initialize(self):
         # make run_dir path
         self.kwargs['run_dir'] = self._make_run_dir()
-        artifacts_folder_default = os.path.join(self.kwargs['run_dir'], 'artifacts')
-        self.kwargs['artifacts_folder'] = self.kwargs.get('artifacts_folder', artifacts_folder_default)
+        self.kwargs['artifacts_folder'] = os.path.join(self.kwargs['run_dir'], 'artifacts')
         self._set_default_options()
         super().initialize()
 
@@ -239,9 +238,6 @@ class BaseRTSession(utils.ParamsBase):
         return subgraph_perfsim_dict
 
     def _make_run_dir(self):
-        if self.kwargs['run_dir'] is not None:
-            return self.kwargs['run_dir']
-        #
         # MemoryTempfile() creates a file in RAM, which should be really fast.
         work_dir = self.kwargs['work_dir']
         if work_dir is None:
