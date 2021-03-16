@@ -83,5 +83,5 @@ python3 ./scripts/benchmark_accuracy.py accuracy_minimal_pc.yaml
 
 # run the script for measuring performance at a fixed resolution
 # accuracy reported may not be correct as the input_size is changed
-#python3 ./scripts/benchmark_fixedres_internal.py accuracy_minimal_pc.yaml --input_size 1024
+#python3 ./scripts/benchmark_fixedres_internal.py accuracy_fixedres_internal.yaml --input_size 1024
 

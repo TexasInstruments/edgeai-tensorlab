@@ -31,6 +31,12 @@ import argparse
 import functools
 from jacinto_ai_benchmark import *
 
+import onnx
+from onnxsim import simplify
+from pathlib import Path
+#instead of onnx.tools import update_model_dims using local copy as there is a bug in orignal update_model_dims()
+import jacinto_ai_benchmark.utils.update_model_dims as update_model_dims
+
 # the PYTHONPATH must start with a : or .: for this line to work
 import benchmark_accuracy
 
@@ -38,6 +44,27 @@ import benchmark_accuracy
 if os.path.split(os.getcwd())[-1] == 'scripts':
     os.chdir('../')
 #
+
+def get_input_shape_onnx(onnx_model, num_inputs=1):
+    input_shape = {}
+    for input_idx in range(num_inputs):
+        input_i = onnx_model.graph.input[input_idx]
+        name = input_i.name
+        shape = [dim.dim_value for dim in input_i.type.tensor_type.shape.dim]
+        input_shape.update({name: shape})
+    #
+    return input_shape
+
+def get_output_shape_onnx(onnx_model, num_outputs=1):
+    output_shape = {}
+    num_outputs = 1
+    for output_idx in range(num_outputs):
+        output_i = onnx_model.graph.output[output_idx]
+        name = output_i.name
+        shape = [dim.dim_value for dim in output_i.type.tensor_type.shape.dim]
+        output_shape.update({name:shape})
+    #
+    return output_shape
 
 
 def modify_pipelines(cmds, pipeline_configs):
@@ -58,6 +85,34 @@ def modify_pipelines(cmds, pipeline_configs):
                 #
                 preproc_transforms[tidx] = trans
             #
+            #generate temporay ONNX  model based on fixed resolution
+            model_path = pipeline_config['session'].kwargs['model_path']
+            print("=" * 64)
+            print("src model path :{}".format(model_path))
+            onnx_model = onnx.load(model_path)
+            input_name_shapes = get_input_shape_onnx(onnx_model)
+            assert len(input_name_shapes) == 1
+            for k, v in input_name_shapes.items():
+                input_name = k
+            out_name_shapes = get_output_shape_onnx(onnx_model)
+
+            # variable shape model
+            input_var_shapes = {input_name: ['b', 3, 'w', 'h']}
+
+            #create first varibale shape model
+            onnx_model = update_model_dims.update_inputs_outputs_dims(onnx_model, input_var_shapes, out_name_shapes)
+            input_name_shapes[input_name] = [1, 3, cmds.input_size, cmds.input_size]
+            # Change to fixed shape model
+            onnx_model, check = simplify(onnx_model, skip_shape_inference=True, input_shapes=input_name_shapes)
+
+            #save model in artifcats path
+            artifacts_folder = pipeline_config['session'].kwargs['artifacts_folder']
+            op_model_path = os.path.join(artifacts_folder, 'tempDir', Path(model_path).name)
+            op_model_path = op_model_path.replace(".onnx", "_{}_{}.onnx".format(cmds.input_size, cmds.input_size))
+            os.makedirs(os.path.dirname(op_model_path), exist_ok=True)
+            print("saving modified model :{}".format(op_model_path))
+            onnx.save(onnx_model, op_model_path)
+            pipeline_config['session'].kwargs['model_path'] = op_model_path
         #
     #
     return pipeline_configs
