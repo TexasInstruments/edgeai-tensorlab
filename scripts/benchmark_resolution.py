@@ -125,7 +125,7 @@ def modify_pipelines(cmds, pipeline_configs_in):
             os.makedirs(os.path.dirname(op_model_path), exist_ok=True)
             print("saving modified model :{}".format(op_model_path))
             onnx.save(onnx_model, op_model_path)
-            pipeline_configs_out.update({model_id: pipeline_config})
+            pipeline_configs_out.update({new_model_id: pipeline_config})
         #
     #
     return pipeline_configs_out
