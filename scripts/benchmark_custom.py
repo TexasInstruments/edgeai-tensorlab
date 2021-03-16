@@ -32,27 +32,50 @@ from jacinto_ai_benchmark import *
 
 
 def main(settings, work_dir):
-    ################################################################################################
-    # configs for each model pipeline
-    # - calibration_dataset: dataset to be used for import - should support __len__ and __getitem__.
-    # - input_dataset: dataset to be used for inference - should support __len__ and __getitem__
-    #   Output of __getitem__ should be understood by the preprocess stage.
-    #   For example, if the dataset returns image filenames, the first entry in the preprocess can be an image read class.
-    # - preprocess is just a list of transforms wrapped in utils.TransformsCompose.
-    #   It depends on what the dataset class outputs and what the model expects.
-    #   We have some default transforms defined in settings.
-    # - postprocess is also a list of transforms wrapped in utils.TransformsCompose
-    #   It depends on what the model outputs and what the metric evaluation expects.
-    # - metric - evaluation metric (eg. accuracy). If metric is not defined in the pipeline,
-    #   evaluate() function of the dataset will be called.
+    '''
+    configs for each model pipeline
+    - calibration_dataset: dataset to be used for import - should support __len__ and __getitem__.
+    - input_dataset: dataset to be used for inference - should support __len__ and __getitem__
+      Output of __getitem__ should be understood by the preprocess stage.
+      For example, if the dataset returns image filenames, the first entry in the preprocess can be an image read class.
+    - preprocess is just a list of transforms wrapped in utils.TransformsCompose.
+      It depends on what the dataset class outputs and what the model expects.
+      We have some default transforms defined in settings.
+    - postprocess is also a list of transforms wrapped in utils.TransformsCompose
+      It depends on what the model outputs and what the metric evaluation expects.
+    - metric - evaluation metric (eg. accuracy). If metric is not defined in the pipeline,
+      evaluate() function of the dataset will be called.
+
+    dataset parameters for calibration
+    - path: folder containing images
+    - split: provide a .txt file containing two entries in each line
+      first entry is image file name (starting from path above),
+      second entry is class id (just set to 0 if you don't know what it is)
+    example:
+    image10.jpg 0
+    tomato/image2.jpg 9
+    '''
+
+    dataset_calib_cfg = dict(
+        path=f'{settings.datasets_path}/imagenet/val',
+        split=f'{settings.datasets_path}/imagenet/val.txt',
+        shuffle=True,
+        num_frames=settings.quantization_params.get_num_frames_calib())
+
+    # dataset parameters for actual inference
+    dataset_val_cfg = dict(
+        path=f'{settings.datasets_path}/imagenet/val',
+        split=f'{settings.datasets_path}/imagenet/val.txt',
+        shuffle=True,
+        num_frames=min(settings.num_frames,50000))
 
     common_cfg = {
         'pipeline_type': settings.pipeline_type,
         'verbose': settings.verbose,
         'run_import': settings.run_import,
         'run_inference': settings.run_inference,
-        'calibration_dataset': datasets.ImageNetCls(**settings.imagenet_cls_calib_cfg),
-        'input_dataset': datasets.ImageNetCls(**settings.imagenet_cls_val_cfg),
+        'calibration_dataset': datasets.ImageCls(**dataset_calib_cfg),
+        'input_dataset': datasets.ImageCls(**dataset_val_cfg),
         'postprocess': settings.get_postproc_classification()
     }
 
