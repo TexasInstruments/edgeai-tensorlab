@@ -55,21 +55,22 @@ def main():
     results_16bits = results_collection['16bits']
     results_32bits = results_collection['32bits']
     results_collection = list()
-    title_line = ['model_id', 'metric_8bits', 'metric_16bits', 'metric_float', 'metric_reference'] + result_keys + ['run_dir']
+    title_line = ['model_id', 'metric_name', 'metric_8bits', 'metric_16bits', 'metric_float', 'metric_reference'] + result_keys + ['run_dir']
     results_collection.append(title_line)
     for pipeline_id, pipeline_params_8bits in results_8bits.items():
         results_line_dict = {title_key:None for title_key in title_line}
         results_line_dict['model_id'] = pipeline_id
 
-        metric_8bits, metric_reference = get_metric(pipeline_params_8bits)
+        metric_name, metric_8bits, metric_reference = get_metric(pipeline_params_8bits)
+        results_line_dict['metric_name'] = metric_name
         results_line_dict['metric_8bits'] = metric_8bits
 
         pipeline_params_16bits = results_16bits[pipeline_id] if pipeline_id in results_16bits else None
-        metric_16bits, _ = get_metric(pipeline_params_16bits)
+        _, metric_16bits, _ = get_metric(pipeline_params_16bits)
         results_line_dict['metric_16bits'] = metric_16bits
 
         pipeline_params_32bits = results_32bits[pipeline_id] if pipeline_id in results_32bits else None
-        metric_32bits, _ = get_metric(pipeline_params_32bits)
+        _, metric_32bits, _ = get_metric(pipeline_params_32bits)
         results_line_dict['metric_float'] = metric_32bits
 
         results_line_dict['metric_reference'] = metric_reference
@@ -95,6 +96,7 @@ def main():
 
 def get_metric(pipeline_params):
     global metric_keys
+    metric_name = None
     metric = None
     metric_reference = None
     if pipeline_params is not None:
@@ -103,6 +105,7 @@ def get_metric(pipeline_params):
             for metric_key in metric_keys:
                 if metric_key in result:
                     metric = result[metric_key]
+                    metric_name = metric_key
                 #
             #
         #
@@ -116,7 +119,7 @@ def get_metric(pipeline_params):
             #
         #
     #
-    return metric, metric_reference
+    return metric_name, metric, metric_reference
 
 
 def get_performance(pipeline_params):
