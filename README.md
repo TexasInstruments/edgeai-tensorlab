@@ -12,7 +12,7 @@ The models in this repository are expected to run on the Jacinto7 family of SoCs
 
 This repository is generic and can be used with a variety of runtimes and models supported by TIDL. We also provide several Deep Learning Models ready to be used for this benchmark in the repository **[Jacinto-AI-ModelZoo](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse)**. Please clone that repository. That repository uses git-lfs, so please install git-lfs before cloning. After cloning, **jacinto-ai-benchmark** and **jacinto-ai-modelzoo** must be in the same parent folder. 
 
-**Important Note**: This repository is being made available for experimentation, analysis and research - this is not meant for final production.
+**Important Note**: This repository is being made available for experimentation, analysis and research - this is not meant for deployment in production.  We do not own the datasets that are used to train or evaluate the models used in this benchmark and some of these datasets have restrictions on how they can be used.
 
 
 ## Requirements 
