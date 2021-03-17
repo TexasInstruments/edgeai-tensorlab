@@ -147,22 +147,22 @@ def get_configs(settings, work_dir):
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':78.90})
         ),
-        # torchvision: segmentation - torchvision deeplabv3-resnet50 - expected_metric: 73.5% MeanIoU.
-        'vseg-16-300-0':utils.dict_update(cityscapes_cfg,
-            preprocess=settings.get_preproc_onnx((520,1040), (520,1040), backend='cv2'),
-            session=onnx_session_type(**common_session_cfg, **onnx_session_cfg,
-                model_path=f'{settings.modelzoo_path}/vision/segmentation/cityscapes/torchvision/deeplabv3_resnet50_1040x520_20200901-213517_opset11.onnx'),
-            postprocess=postproc_segmentation_onnx,
-            model_info=dict(metric_reference={'accuracy_mean_iou%':73.5})
-        ),
-        # torchvision: segmentation - torchvision fcn-resnet50 - expected_metric: 71.6% MeanIoU.
-        'vseg-16-301-0':utils.dict_update(cityscapes_cfg,
-            preprocess=settings.get_preproc_onnx((520,1040), (520,1040), backend='cv2'),
-            session=onnx_session_type(**common_session_cfg, **onnx_session_cfg,
-                model_path=f'{settings.modelzoo_path}/vision/segmentation/cityscapes/torchvision/fcn_resnet50_1040x520_20200902-153444_opset11.onnx'),
-            postprocess=postproc_segmentation_onnx,
-            model_info=dict(metric_reference={'accuracy_mean_iou%':71.6})
-        ),
+        # # torchvision: segmentation - torchvision deeplabv3-resnet50 - expected_metric: 73.5% MeanIoU.
+        # 'vseg-16-300-0':utils.dict_update(cityscapes_cfg,
+        #     preprocess=settings.get_preproc_onnx((520,1040), (520,1040), backend='cv2'),
+        #     session=onnx_session_type(**common_session_cfg, **onnx_session_cfg,
+        #         model_path=f'{settings.modelzoo_path}/vision/segmentation/cityscapes/torchvision/deeplabv3_resnet50_1040x520_20200901-213517_opset11.onnx'),
+        #     postprocess=postproc_segmentation_onnx,
+        #     model_info=dict(metric_reference={'accuracy_mean_iou%':73.5})
+        # ),
+        # # torchvision: segmentation - torchvision fcn-resnet50 - expected_metric: 71.6% MeanIoU.
+        # 'vseg-16-301-0':utils.dict_update(cityscapes_cfg,
+        #     preprocess=settings.get_preproc_onnx((520,1040), (520,1040), backend='cv2'),
+        #     session=onnx_session_type(**common_session_cfg, **onnx_session_cfg,
+        #         model_path=f'{settings.modelzoo_path}/vision/segmentation/cityscapes/torchvision/fcn_resnet50_1040x520_20200902-153444_opset11.onnx'),
+        #     postprocess=postproc_segmentation_onnx,
+        #     model_info=dict(metric_reference={'accuracy_mean_iou%':71.6})
+        # ),
         # jai-pytorch: segmentation - fpnlite_pixel2pixel_aspp_regnetx400mf_ade20k_class32_384x384_20210314-205347 expected_metric: 51.03% mean-iou
         'vseg-18-110-0':utils.dict_update(ade20k_cfg_class32,
             preprocess=settings.get_preproc_jai((384,384), (384,384), backend='cv2', interpolation=cv2.INTER_AREA),

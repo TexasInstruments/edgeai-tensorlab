@@ -129,13 +129,13 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/torchvision/resnet50_opset9.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':76.15})
         ),
-        # torchvision: classification vgg16_224x224 expected_metric: 71.59% top-1 accuracy - too slow inference
-        'vcls-10-306-0':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx(),
-            session=onnx_session_type(**common_session_cfg, **onnx_session_cfg,
-                model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/torchvision/vgg16_opset9.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':71.59})
-        ),
+        # # torchvision: classification vgg16_224x224 expected_metric: 71.59% top-1 accuracy - too slow inference
+        # 'vcls-10-306-0':utils.dict_update(common_cfg,
+        #     preprocess=settings.get_preproc_onnx(),
+        #     session=onnx_session_type(**common_session_cfg, **onnx_session_cfg,
+        #         model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/torchvision/vgg16_opset9.onnx'),
+        #     model_info=dict(metric_reference={'accuracy_top1%':71.59})
+        # ),
         #################pycls regnetx models#########################
         # pycls: classification regnetx200mf_224x224 expected_metric: 68.9% top-1 accuracy
         'vcls-10-030-0':utils.dict_update(common_cfg,
@@ -311,14 +311,14 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':74.08})
         ),
-        # tf hosted models: classification nasnet mobile expected_metric: 73.9% top-1 accuracy
-        'vcls-10-408-0':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_tflite(),
-            session=tflite_session_type(**common_session_cfg, **tflite_session_cfg,
-                model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/tf1-models/nasnet_mobile.tflite'),
-            metric=dict(label_offset_pred=-1),
-            model_info=dict(metric_reference={'accuracy_top1%':73.9})
-        ),
+        # # tf hosted models: classification nasnet mobile expected_metric: 73.9% top-1 accuracy
+        # 'vcls-10-408-0':utils.dict_update(common_cfg,
+        #     preprocess=settings.get_preproc_tflite(),
+        #     session=tflite_session_type(**common_session_cfg, **tflite_session_cfg,
+        #         model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/tf1-models/nasnet_mobile.tflite'),
+        #     metric=dict(label_offset_pred=-1),
+        #     model_info=dict(metric_reference={'accuracy_top1%':73.9})
+        # ),
         # tf1 models: classification resnet50_v1 expected_metric: 75.2% top-1 accuracy
         'vcls-10-409-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(mean=(123.675, 116.28, 103.53), scale=(1.0, 1.0, 1.0)),
