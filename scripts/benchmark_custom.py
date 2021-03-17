@@ -71,6 +71,7 @@ def main(settings, work_dir):
 
     common_cfg = {
         'pipeline_type': settings.pipeline_type,
+        'task_type': 'classification',
         'verbose': settings.verbose,
         'run_import': settings.run_import,
         'run_inference': settings.run_inference,
