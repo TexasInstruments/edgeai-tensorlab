@@ -52,6 +52,7 @@ def get_configs(settings, work_dir):
     # configs for each model pipeline
     cityscapes_cfg = {
         'pipeline_type': settings.pipeline_type,
+        'task_type': 'segmentation',
         'verbose': settings.verbose,
         'target_device': settings.target_device,
         'run_import': settings.run_import,
@@ -62,6 +63,7 @@ def get_configs(settings, work_dir):
 
     ade20k_cfg = {
         'pipeline_type': settings.pipeline_type,
+        'task_type': 'segmentation',
         'verbose': settings.verbose,
         'target_device': settings.target_device,
         'run_import': settings.run_import,
@@ -72,6 +74,7 @@ def get_configs(settings, work_dir):
 
     ade20k_cfg_class32 = {
         'pipeline_type': settings.pipeline_type,
+        'task_type': 'segmentation',
         'verbose': settings.verbose,
         'target_device': settings.target_device,
         'run_import': settings.run_import,
@@ -82,6 +85,7 @@ def get_configs(settings, work_dir):
 
     pascal_voc_cfg = {
         'pipeline_type': settings.pipeline_type,
+        'task_type': 'segmentation',
         'verbose': settings.verbose,
         'target_device': settings.target_device,
         'run_import': settings.run_import,

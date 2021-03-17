@@ -159,6 +159,12 @@ class PipelineRunner():
                 #
             #
         #
+        if settings.task_selection is not None:
+            task_selection = utils.as_list(settings.task_selection)
+            if pipeline_config['task_type'] not in task_selection:
+                selected_model = False
+            #
+        #
         calibration_dataset = pipeline_config['calibration_dataset']
         if settings.run_import and calibration_dataset is None:
             warnings.warn(f'settings.run_import was set, but calibration_dataset={calibration_dataset}, removing model {model_id}:{model_path_to_match}')

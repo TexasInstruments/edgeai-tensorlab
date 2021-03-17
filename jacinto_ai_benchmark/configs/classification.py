@@ -51,6 +51,7 @@ def get_configs(settings, work_dir):
     # configs for each model pipeline
     common_cfg = {
         'pipeline_type': settings.pipeline_type,
+        'task_type': 'classification',
         'verbose': settings.verbose,
         'run_import': settings.run_import,
         'run_inference': settings.run_inference,

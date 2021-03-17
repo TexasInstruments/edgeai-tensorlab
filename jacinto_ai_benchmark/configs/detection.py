@@ -52,6 +52,7 @@ def get_configs(settings, work_dir):
     # configs for each model pipeline
     common_cfg = {
         'pipeline_type': settings.pipeline_type,
+        'task_type': 'detection',
         'verbose': settings.verbose,
         'target_device': settings.target_device,
         'run_import': settings.run_import,
