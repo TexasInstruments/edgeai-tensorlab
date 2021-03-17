@@ -55,13 +55,17 @@ def main():
     results_16bits = results_collection['16bits']
     results_32bits = results_collection['32bits']
     results_collection = list()
-    title_line = ['model_id', 'metric_name', 'metric_8bits', 'metric_16bits', 'metric_float', 'metric_reference'] + result_keys + ['run_dir']
+    title_line = ['model_id', 'task_type', 'metric_name', 'metric_8bits',
+                  'metric_16bits', 'metric_float', 'metric_reference'] + \
+                 result_keys + ['run_dir']
     results_collection.append(title_line)
     for pipeline_id, pipeline_params_8bits in results_8bits.items():
         results_line_dict = {title_key:None for title_key in title_line}
         results_line_dict['model_id'] = pipeline_id
 
         metric_name, metric_8bits, metric_reference = get_metric(pipeline_params_8bits)
+        results_line_dict['task_type'] = pipeline_params_8bits['task_type'] \
+            if pipeline_params_8bits is not None and 'task_type' in pipeline_params_8bits else None
         results_line_dict['metric_name'] = metric_name
         results_line_dict['metric_8bits'] = metric_8bits
 
