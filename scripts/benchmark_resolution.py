@@ -152,7 +152,7 @@ if __name__ == '__main__':
 
     # for performance measurement, we need to use only one frame
     settings = config_settings.ConfigSettings(cmds.settings_file,
-            num_frames=1, num_frames_calib=1, max_calib_iterations=1,
+            num_frames=1, max_frames_calib=1, max_calib_iterations=1,
             model_selection=model_selection)
 
     expt_name = os.path.splitext(os.path.basename(__file__))[0]
