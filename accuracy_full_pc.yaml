@@ -5,3 +5,14 @@ include_files : ['accuracy_base.yaml']
 # if you have gpu's these entries can be gpu ids which will be used to set CUDA_VISIBLE_DEVICES
 # null will run the models sequentially.
 parallel_devices : [0,1,2,3,0,1,2,3] #null
+# wild card list to match against the model_path - only matching models will be run
+# examples: ['classification'] ['imagenet1k'] ['torchvision']
+# examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
+# examples: ['jai-pytorch/mobilenet_v1_20190906-171544_opset9.onnx', 'torchvision/mobilenet_v2_tv_opset9.onnx']
+# example: null (Note: null means no filter - run all the models
+model_selection : null
+# run import of the model - only to be used in pc - set this to False for j7 evm
+# for pc this can be True or False
+run_import : True
+# run inference - for inference in j7 evm, it is assumed that the artifacts folders are already available
+run_inference : True
