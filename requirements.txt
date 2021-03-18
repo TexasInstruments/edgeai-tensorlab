@@ -6,7 +6,6 @@ opencv-python
 pycocotools
 colorama
 tqdm
-tempfile
 pyyaml
 mxnet
 onnx-simplifier
