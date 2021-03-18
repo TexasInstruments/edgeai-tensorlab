@@ -35,7 +35,7 @@ import argparse
 from jacinto_ai_benchmark import *
 
 
-def package_artifact(pipeline_config, package_dir, make_package_dir=True, make_package_tar=True):
+def package_artifact(pipeline_config, package_dir, make_package_tar=True, make_package_dir=False):
     input_files = []
     packaged_files = []
 
@@ -125,13 +125,33 @@ def package_artifact(pipeline_config, package_dir, make_package_dir=True, make_p
             tfp.add(inpf, arcname=outpf)
         #
         tfp.close()
+    else:
+        tarfile_name = None
     #
+    return pipeline_param, tarfile_name
 
 
 def package_artifacts(settings, work_dir, out_dir, pipeline_configs):
     print(f'packaging artifacts to {out_dir} please wait...')
+    tarfile_names = []
     for pipeline_id, pipeline_config in pipeline_configs.items():
-        package_artifact(pipeline_config, out_dir)
+        pipeline_param, tarfile_name = package_artifact(pipeline_config, out_dir)
+        task_type = pipeline_config['task_type']
+        tarfile_name = os.path.basename(tarfile_name)
+        # model_name = tarfile_name.replace('.tar.gz','').split('_')
+        # model_name = model_name[2:] if len(model_name)>2 else model_name
+        # model_name = '_'.join(model_name)
+        model_path = pipeline_param['session']['model_path']
+        model_path = model_path[0] if isinstance(model_path, (list,tuple)) else model_path
+        model_name = os.path.basename(model_path)
+        tarfile_names.append(','.join([task_type, tarfile_name, model_name]))
+    #
+    model_list = '\n'.join(tarfile_names)
+    with open(os.path.join(out_dir,'model.list'), 'w') as fp:
+        fp.write(model_list)
+    #
+    with open(os.path.join(out_dir, 'extract.sh'), 'w') as fp:
+        fp.write('find . -name "*.tar.gz" -exec tar --one-top-level -zxvf "{}" \; -exec rm -f "{}" \;')
     #
 
 
