@@ -79,7 +79,8 @@ def print_all_configs(pipeline_configs=None, enable_print=False):
     if enable_print:
         for k, v in sorted(pipeline_configs.items()):
             v['session'].kwargs['session_name']
-            print(k + '-' + v['session'].kwargs['session_name'])
+            model_name = k + '-' + v['session'].kwargs['session_name']
+            print("'{}',".format(model_name))
     return
 
 def get_configs(settings, work_dir):
