@@ -33,7 +33,7 @@ import glob
 
 
 metric_keys = ['accuracy_top1%', 'accuracy_mean_iou%', 'accuracy_ap[.5:.95]%']
-result_keys = ['num_subgraphs', 'infer_time_core_ms', 'perfsim_ddr_transfer_mb', 'perfsim_gmacs']
+result_keys = ['num_subgraphs', 'infer_time_core_ms', 'ddr_transfer_mb', 'perfsim_ddr_transfer_mb', 'perfsim_gmacs']
 
 
 def main():
@@ -55,12 +55,13 @@ def main():
     results_16bits = results_collection['16bits']
     results_32bits = results_collection['32bits']
     results_collection = list()
-    title_line = ['model_id', 'run_time', 'task_type', 'input_resolution', 'model_path', 'metric_name',
+    title_line = ['serial_num', 'model_id', 'run_time', 'task_type', 'input_resolution', 'model_path', 'metric_name',
                   'metric_8bits', 'metric_16bits', 'metric_float', 'metric_reference'] + \
                  result_keys + ['run_dir']
     results_collection.append(title_line)
-    for pipeline_id, pipeline_params_8bits in results_8bits.items():
+    for serial_num, (pipeline_id, pipeline_params_8bits) in enumerate(results_8bits.items()):
         results_line_dict = {title_key:None for title_key in title_line}
+        results_line_dict['serial_num'] = serial_num
         results_line_dict['model_id'] = pipeline_id
 
         metric_name, metric_8bits, metric_reference = get_metric(pipeline_params_8bits)

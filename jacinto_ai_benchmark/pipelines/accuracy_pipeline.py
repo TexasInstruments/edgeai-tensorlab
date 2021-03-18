@@ -31,6 +31,7 @@ import pickle
 import yaml
 from colorama import Fore
 from .. import utils, constants
+from . import pipeline_utils
 
 
 class AccuracyPipeline():
@@ -68,7 +69,7 @@ class AccuracyPipeline():
         # run_dir has been created after start
         run_dir = session.get_param('run_dir')
         # collect the input params
-        param_dict = self._collect_param()
+        param_dict = pipeline_utils.collect_param(self.pipeline_config)
         # create logger
         log_filename = os.path.join(run_dir, 'run.log') if self.settings.enable_logging else None
         self.logger = utils.TeeLogger(log_filename)
@@ -194,17 +195,3 @@ class AccuracyPipeline():
             output_dict.update(output)
         #
         return output_dict
-
-    def _collect_param(self):
-        pipeline_param = {}
-        for pipeline_stage_name, pipeline_stage in self.pipeline_config.items():
-            if hasattr(pipeline_stage, 'get_params'):
-                kwargs = pipeline_stage.get_params()
-            else:
-                kwargs = pipeline_stage
-            #
-            if kwargs is not None:
-                pipeline_param.update({pipeline_stage_name:kwargs})
-            #
-        #
-        return pipeline_param

@@ -312,14 +312,14 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':74.08})
         ),
-        # # tf hosted models: classification nasnet mobile expected_metric: 73.9% top-1 accuracy
-        # 'vcls-10-408-0':utils.dict_update(common_cfg,
-        #     preprocess=settings.get_preproc_tflite(),
-        #     session=tflite_session_type(**common_session_cfg, **tflite_session_cfg,
-        #         model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/tf1-models/nasnet_mobile.tflite'),
-        #     metric=dict(label_offset_pred=-1),
-        #     model_info=dict(metric_reference={'accuracy_top1%':73.9})
-        # ),
+        # tf hosted models: classification nasnet mobile expected_metric: 73.9% top-1 accuracy
+        'vcls-10-408-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_tflite(),
+            session=tflite_session_type(**common_session_cfg, **tflite_session_cfg,
+                model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/tf1-models/nasnet_mobile.tflite'),
+            metric=dict(label_offset_pred=-1),
+            model_info=dict(metric_reference={'accuracy_top1%':73.9})
+        ),
         # tf1 models: classification resnet50_v1 expected_metric: 75.2% top-1 accuracy
         'vcls-10-409-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(mean=(123.675, 116.28, 103.53), scale=(1.0, 1.0, 1.0)),

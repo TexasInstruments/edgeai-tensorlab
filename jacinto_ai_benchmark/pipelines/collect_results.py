@@ -29,9 +29,9 @@
 import os
 import yaml
 from .. import utils
+from . import pipeline_utils
 
-
-def collect_results(settings, work_dir, pipeline_configs, print_results=True):
+def collect_results(settings, work_dir, pipeline_configs, print_results=True, update_params=False):
     param_results = {}
     for pipeline_id, pipeline_config in pipeline_configs.items():
         # collect the result of the pipeline
@@ -41,8 +41,10 @@ def collect_results(settings, work_dir, pipeline_configs, print_results=True):
             print(f'{pipeline_id}: {utils.pretty_object(get_result(param_result))}')
         #
         # if needed the params in result can be updated here
-        # param_dict = collect_param(settings, pipeline_config)
-        # param_result.update(param_dict)
+        if update_params and param_result is not None:
+            param_dict = pipeline_utils.collect_param(pipeline_config)
+            param_result.update(param_dict)
+        #
         param_results.update({pipeline_id: param_result})
     #
     # sort the results based on keys
@@ -56,21 +58,6 @@ def collect_results(settings, work_dir, pipeline_configs, print_results=True):
         #
     #
     return param_results
-
-
-def collect_param(settings, pipeline_config):
-    pipeline_param = {}
-    for pipeline_stage_name, pipeline_stage in pipeline_config.items():
-        if hasattr(pipeline_stage, 'get_params'):
-            kwargs = pipeline_stage.get_params()
-        else:
-            kwargs = pipeline_stage
-        #
-        if kwargs is not None:
-            pipeline_param.update({pipeline_stage_name:kwargs})
-        #
-    #
-    return pipeline_param
 
 
 def collect_result(settings, pipeline_config):
