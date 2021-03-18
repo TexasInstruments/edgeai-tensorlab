@@ -100,15 +100,16 @@ model_selection : [# imagenet classification models
                    'vcls-10-442-0', #tf-tpu/efficientnet-edgetpu-L_float.tflite
                    # coco detection models
                    'vdet-12-010-0', #mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite
-                   'vdet-12-012-0', #mlperf/ssd_resnet34-ssd1200.onnx
-                   'vdet-12-020-0', #coco/onnx-models/yolov3-10.onnx
+                   'vdet-12-011-0', #mlperf/ssd_mobilenet_v2_300_float.tflite
+                   #'vdet-12-012-0', #mlperf/ssd_resnet34-ssd1200.onnx
+                   #'vdet-12-020-0', #coco/onnx-models/yolov3-10.onnx
                    'vdet-12-060-0', #gluoncv-mxnet/yolo3_mobilenet1.0_coco-symbol.json
                    'vdet-12-061-0', #gluoncv-mxnet/ssd_512_mobilenet1.0_coco-symbol.json
                    'vdet-12-400-0', #tf1-models/ssdlite_mobiledet_dsp_320x320_coco_2020_05_19.tflite
                    'vdet-12-401-0', #tf1-models/ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19.tflite
                    'vdet-12-402-0', #tf1-models/ssdlite_mobilenet_v2_coco_2018_05_09.tflite
-                   'vdet-12-403-0', #tf1-models/ssd_mobilenet_v2_mnasfpn_shared_box_predictor_320x320_coco_sync_2020_05_18.tflite
-                   'vdet-12-404-0', #tf1-models/ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03.tflite
+                   #'vdet-12-403-0', #tf1-models/ssd_mobilenet_v2_mnasfpn_shared_box_predictor_320x320_coco_sync_2020_05_18.tflite
+                   #'vdet-12-404-0', #tf1-models/ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03.tflite
                    # ade20k segmentation models
                    'vseg-17-400-0', #tf1-models/deeplabv3_mnv2_ade20k_train_2018_12_03_512x512.tflite
                    # ade20k 32 class segmentation models
