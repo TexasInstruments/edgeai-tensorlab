@@ -31,7 +31,7 @@ import argparse
 from jacinto_ai_benchmark import *
 
 
-def main(settings, work_dir):
+def create_configs(settings, work_dir):
     '''
     configs for each model pipeline
     - calibration_dataset: dataset to be used for import - should support __len__ and __getitem__.
@@ -106,27 +106,7 @@ def main(settings, work_dir):
                 model_type='mxnet', input_shape={'data':(1,3,224,224)})
         )
     }
-
-    ################################################################################################
-    # create runner and run the pipeline
-    pipeline_runner = pipelines.PipelineRunner(settings, pipeline_configs)
-
-    # print some info
-    run_dirs = [pipeline_config['session'].get_param('run_dir') for model_key, pipeline_config \
-                in pipeline_runner.pipeline_configs.items()]
-    run_dirs = [os.path.basename(run_dir) for run_dir in run_dirs]
-    print(f'configs to run: {run_dirs}')
-    print(f'number of configs: {len(pipeline_runner.pipeline_configs)}')
-
-    # now actually run the configs
-    if settings.run_import or settings.run_inference:
-        pipeline_runner.run()
-    #
-
-    # collect the logs and display it
-    if settings.collect_results:
-        results = pipelines.collect_results(settings, work_dir, pipeline_runner.pipeline_configs, print_results=True)
-    #
+    return pipeline_configs
 
 
 if __name__ == '__main__':
@@ -144,4 +124,8 @@ if __name__ == '__main__':
     work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tidl_tensor_bits}bits')
     print(f'work_dir = {work_dir}')
 
-    main(settings, work_dir)
+    # now run the actual pipeline
+    pipeline_configs = create_configs(settings, work_dir)
+
+    # run the accuracy pipeline
+    tools.run_accuracy(settings, work_dir, pipeline_configs)

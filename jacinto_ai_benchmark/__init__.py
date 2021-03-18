@@ -26,7 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from . import pipelines, datasets, preprocess, sessions, postprocess, metrics, utils
+from . import pipelines, datasets, preprocess, sessions, postprocess, metrics, utils, tools
 from . import constants
 from . import config_settings
 from . import configs

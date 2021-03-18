@@ -33,11 +33,8 @@ import copy
 import onnx
 from onnxsim import simplify
 from pathlib import Path
-
 from jacinto_ai_benchmark import *
 
-# the PYTHONPATH must start with a : or .: for this line to work
-import benchmark_accuracy
 
 # the cwd must be the root of the respository
 if os.path.split(os.getcwd())[-1] == 'scripts':
@@ -162,5 +159,8 @@ if __name__ == '__main__':
     work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tidl_tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
+    # pass a function to modify the pipelines to add the various resolutions
     modify_pipelines_func = functools.partial(modify_pipelines, cmds)
-    benchmark_accuracy.main(settings, work_dir, modify_pipelines_func=modify_pipelines_func)
+
+    # run the accuracy pipeline
+    tools.run_accuracy(settings, work_dir, modify_pipelines_func=modify_pipelines_func)
