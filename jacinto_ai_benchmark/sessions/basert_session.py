@@ -73,10 +73,7 @@ class BaseRTSession(utils.ParamsBase):
         # store the current directory so that we can go back there any time
         self.cwd = os.getcwd()
 
-    def initialize(self, force=False):
-        if self.is_initialized and (not force):
-            return
-        #
+    def initialize(self):
         # make run_dir path
         self.kwargs['run_dir'] = self._make_run_dir()
         self.kwargs['artifacts_folder'] = os.path.join(self.kwargs['run_dir'], 'artifacts')
