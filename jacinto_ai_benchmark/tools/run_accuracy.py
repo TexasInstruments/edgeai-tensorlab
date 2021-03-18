@@ -76,10 +76,6 @@ def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_fun
         results = pipelines.collect_results(settings, work_dir, pipeline_runner.pipeline_configs, print_results=True)
     #
 
-    if settings.package_artifacts and settings.enable_logging:
-        pipelines.package_artifacts(settings, work_dir, pipeline_runner.pipeline_configs)
-    #
-
 
 def main():
     # the cwd must be the root of the respository

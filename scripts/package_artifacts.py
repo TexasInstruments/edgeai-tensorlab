@@ -31,19 +31,8 @@ import os
 import shutil
 import tarfile
 import yaml
-from . import pipeline_utils
-from .. import utils
-
-__all__ = ['package_artifacts']
-
-
-def package_artifacts(settings, work_dir, pipeline_configs):
-    out_dir = work_dir + '_package'
-    print(f'packaging artifacts to {out_dir} please wait...')
-
-    for pipeline_id, pipeline_config in pipeline_configs.items():
-        package_artifact(pipeline_config, out_dir)
-    #
+import argparse
+from jacinto_ai_benchmark import *
 
 
 def package_artifact(pipeline_config, package_dir, make_package_dir=True, make_package_tar=True):
@@ -84,7 +73,7 @@ def package_artifact(pipeline_config, package_dir, make_package_dir=True, make_p
 
     # create the param file in source folder with relative paths
     param_file = os.path.join(run_dir, 'param.yaml')
-    pipeline_param = pipeline_utils.collect_param(pipeline_config)
+    pipeline_param = pipelines.collect_param(pipeline_config)
     pipeline_param = copy.deepcopy(pipeline_param)
     pipeline_param = utils.pretty_object(pipeline_param)
     pipeline_param['session']['run_dir'] = os.path.basename(run_dir)
@@ -137,3 +126,43 @@ def package_artifact(pipeline_config, package_dir, make_package_dir=True, make_p
         #
         tfp.close()
     #
+
+
+def package_artifacts(settings, work_dir, out_dir, pipeline_configs):
+    print(f'packaging artifacts to {out_dir} please wait...')
+    for pipeline_id, pipeline_config in pipeline_configs.items():
+        package_artifact(pipeline_config, out_dir)
+    #
+
+
+def main(settings, work_dir, out_dir, pipeline_configs=None):
+    # get the default configs if pipeline_configs is not given from outside
+    pipeline_configs = configs.get_configs(settings, work_dir) if pipeline_configs is None else pipeline_configs
+
+    # create the pipeline_runner which will manage the sessions.
+    pipeline_runner = pipelines.PipelineRunner(settings, pipeline_configs)
+
+    # now write out the package
+    package_artifacts(settings, work_dir, out_dir, pipeline_runner.pipeline_configs)
+
+
+if __name__ == '__main__':
+    # the cwd must be the root of the respository
+    if os.path.split(os.getcwd())[-1] == 'scripts':
+        os.chdir('../')
+    #
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('settings_file', type=str)
+    cmds = parser.parse_args()
+    settings = config_settings.ConfigSettings(cmds.settings_file)
+
+    work_dir = os.path.join('./work_dirs/benchmark_accuracy', f'{settings.tidl_tensor_bits}bits')
+    print(f'work_dir: {work_dir}')
+
+    expt_name = os.path.splitext(os.path.basename(__file__))[0]
+    out_dir = os.path.join('./work_dirs', expt_name, f'{settings.tidl_tensor_bits}bits')
+    print(f'work_dir: {work_dir}')
+
+    main(settings, work_dir, out_dir)
+
