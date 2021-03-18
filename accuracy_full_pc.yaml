@@ -10,9 +10,9 @@ parallel_devices : [0,1,2,3,0,1,2,3] #null
 # examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
 # examples: ['jai-pytorch/mobilenet_v1_20190906-171544_opset9.onnx', 'torchvision/mobilenet_v2_tv_opset9.onnx']
 # example: null (Note: null means no filter - run all the models
-model_selection : null
+#model_selection : null
 # run import of the model - only to be used in pc - set this to False for j7 evm
 # for pc this can be True or False
-run_import : True
+#run_import : True
 # run inference - for inference in j7 evm, it is assumed that the artifacts folders are already available
-run_inference : True
+#run_inference : True
