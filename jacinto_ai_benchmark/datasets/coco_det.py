@@ -108,7 +108,7 @@ import os
 import random
 import json
 import shutil
-from memory_tempfile import MemoryTempfile
+import tempfile
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
@@ -213,8 +213,8 @@ class COCODetection(utils.ParamsBase):
 
     def __del__(self):
         for t in self.tempfiles:
-            if os.path.exists(t):
-                shutil.rmtree(t)
+            t.cleanup()
+        #
 
     def __call__(self, predictions, **kwargs):
         return self.evaluate(predictions, **kwargs)
@@ -223,9 +223,9 @@ class COCODetection(utils.ParamsBase):
         label_offset = kwargs.get('label_offset_pred', 0)
         run_dir = kwargs.get('run_dir', None)
         if run_dir is None:
-            temp_dir_mem = MemoryTempfile()
-            run_dir = temp_dir_mem.tempdir if hasattr(temp_dir_mem, 'tempdir') else temp_dir_mem.name
-            self.tempfiles.append(run_dir)
+            temp_dir = tempfile.TemporaryDirectory()
+            run_dir = temp_dir.name
+            self.tempfiles.append(temp_dir)
         #
         os.makedirs(run_dir, exist_ok=True)
         detections_formatted_list = []

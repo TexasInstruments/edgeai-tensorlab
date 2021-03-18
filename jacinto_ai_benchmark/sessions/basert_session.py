@@ -29,7 +29,7 @@
 import os
 import datetime
 import shutil
-from memory_tempfile import MemoryTempfile
+import tempfile
 import re
 import csv
 from .. import utils
@@ -108,8 +108,8 @@ class BaseRTSession(utils.ParamsBase):
 
     def __del__(self):
         for t in self.tempfiles:
-            if os.path.exists(t):
-                shutil.rmtree(t)
+            t.cleanup()
+        #
 
     def infer_stats(self):
         if hasattr(self.interpreter, 'get_TI_benchmark_data'):
@@ -239,12 +239,10 @@ class BaseRTSession(utils.ParamsBase):
         # MemoryTempfile() creates a file in RAM, which should be really fast.
         work_dir = self.kwargs['work_dir']
         if work_dir is None:
-            temp_dir_mem = MemoryTempfile()
-            # if MemoryTempfile fails it returns a file using tempfile - so we need to check
-            temp_dir = temp_dir_mem.tempdir if hasattr(temp_dir_mem, 'tempdir') else temp_dir_mem.name
+            temp_dir = tempfile.TemporaryDirectory()
             date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S.%f")
-            work_dir = os.path.join(temp_dir, date)
-            self.tempfiles.append(work_dir)
+            work_dir = os.path.join(temp_dir.name, date)
+            self.tempfiles.append(temp_dir)
         #
         work_dir = os.path.abspath(work_dir)
         model_path = self.kwargs['model_path']
