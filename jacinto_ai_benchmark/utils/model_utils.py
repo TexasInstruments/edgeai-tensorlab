@@ -26,16 +26,37 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from .params_base import *
-from .misc_utils import *
-from .download_utils import *
-from .file_utils import *
-from .logger_utils import *
-from .parallel_run import ParallelRun
-from .environ_utils import *
-from .timer_utils import *
-from .metric_utils import *
-from .progress_step import *
-from .transforms_utils import *
-from .onnx_utils import *
-from .model_utils import *
+
+import os
+import shutil
+from . import misc_utils
+
+
+def get_local_path(file_path, dest_dir):
+    if isinstance(file_path, (list,tuple)):
+        file_path_local = [os.path.join(dest_dir, os.path.basename(m)) for m in file_path]
+    else:
+        file_path_local = os.path.join(dest_dir, os.path.basename(file_path))
+    #
+    return file_path_local
+
+
+def copy_files(file_path, file_path_local):
+    file_paths = misc_utils.as_list(file_path)
+    file_paths_local = misc_utils.as_list(file_path_local)
+    for m, lm in zip(file_paths, file_paths_local):
+        os.makedirs(os.path.dirname(lm), exist_ok=True)
+        shutil.copy2(m, lm)
+    #
+
+
+def file_exists(file_path):
+    has_file = True
+    if isinstance(file_path, (list,tuple)):
+        for f in file_path:
+            has_file = has_file and os.path.exists(f)
+        #
+    else:
+        has_file = os.path.exists(file_path)
+    #
+    return has_file

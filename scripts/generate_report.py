@@ -40,6 +40,7 @@ def main():
     benchmark_dir = './work_dirs/benchmark_accuracy'
     work_dirs = glob.glob(f'{benchmark_dir}/*')
     work_dirs = [f for f in work_dirs if os.path.isdir(f)]
+    work_dirs = [d for d in work_dirs if os.path.basename(d) in ['8bits', '16bits', '32bits']]
 
     results_collection = dict()
     for work_dir in work_dirs:

@@ -180,3 +180,19 @@ def get_indata_list(indata_file):
         frame_list = [f.rstrip() for f in frame_list]
         return frame_list
 
+
+def list_dir(d, only_files=False, basename=False):
+    files = os.listdir(d)
+    files = [os.path.join(d, f) for f in files]
+    if only_files:
+        files = [f for f in files if os.path.isfile(f)]
+    #
+    if basename:
+        files = [os.path.basename(f) for f in files]
+    #
+    return files
+
+
+def list_files(d, basename=False):
+    return list_dir(d, only_files=True, basename=basename)
+

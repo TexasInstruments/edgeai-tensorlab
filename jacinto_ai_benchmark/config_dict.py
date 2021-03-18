@@ -140,6 +140,8 @@ class ConfigDict(dict):
         self.enable_logging = True
         # verbose mode - print out more information
         self.verbose = False
+        # package the artifacts
+        self.package_artifacts = False
 
         ###########################################################
         # internal state information

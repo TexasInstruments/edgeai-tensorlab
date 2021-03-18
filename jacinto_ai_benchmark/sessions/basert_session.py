@@ -77,6 +77,7 @@ class BaseRTSession(utils.ParamsBase):
         # make run_dir path
         self.kwargs['run_dir'] = self._make_run_dir()
         self.kwargs['artifacts_folder'] = os.path.join(self.kwargs['run_dir'], 'artifacts')
+        self.kwargs['model_folder'] = os.path.join(self.kwargs['run_dir'], 'model')
         self._set_default_options()
         super().initialize()
 
@@ -84,15 +85,12 @@ class BaseRTSession(utils.ParamsBase):
         assert self.is_initialized, 'initialize() must be called before start_import()'
         os.makedirs(self.kwargs['run_dir'], exist_ok=True)
         os.makedirs(self.kwargs['artifacts_folder'], exist_ok=True)
+        self._get_model()
         self.is_started = True
 
     def import_model(self, calib_data, info_dict=None):
         assert self.is_initialized, 'initialize() must be called before import_model()'
         assert self.is_started, 'start() must be called before import_model()'
-        model_root_default = os.path.join(self.kwargs['run_dir'], 'model')
-        model_root_default = os.path.abspath(model_root_default)
-        model_path = utils.download_file(self.kwargs['model_path'], root=model_root_default)
-        self.kwargs['model_path'] = model_path
 
     def start_infer(self):
         pass
@@ -265,8 +263,20 @@ class BaseRTSession(utils.ParamsBase):
         run_dir = os.path.join(work_dir, f'{run_name}')
         return run_dir
 
+    def _get_model(self):
+        # download the file if it is an http or https link
+        model_folder = self.kwargs['model_folder']
+        model_path = utils.download_file(self.kwargs['model_path'], root=model_folder)
+        # make a local copy
+        model_path_local = utils.get_local_path(model_path, model_folder)
+        if not utils.file_exists(model_path_local):
+            utils.copy_files(model_path, model_path_local)
+        #
+        self.kwargs['model_path'] = model_path_local
+
     def _set_default_options(self):
         assert False, 'this function must be overridden in the derived class'
+
 
 if __name__ == '__main__':
     import_model = BaseRTSession()

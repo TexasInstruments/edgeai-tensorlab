@@ -31,6 +31,7 @@ import yaml
 from .. import utils
 from . import pipeline_utils
 
+
 def collect_results(settings, work_dir, pipeline_configs, print_results=True, update_params=False):
     param_results = {}
     for pipeline_id, pipeline_config in pipeline_configs.items():
