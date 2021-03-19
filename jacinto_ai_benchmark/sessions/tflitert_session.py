@@ -69,14 +69,10 @@ class TFLiteRTSession(BaseRTSession):
         return info_dict
 
     def start_infer(self):
-        if not os.path.exists(self.kwargs['artifacts_folder']):
-            return False
-        #
         super().start_infer()
         # now create the interpreter for inference
         self.interpreter = self._create_interpreter(is_import=False)
         os.chdir(self.cwd)
-        self.is_imported = True
         return True
 
     def infer_frame(self, input, info_dict=None):
@@ -98,6 +94,11 @@ class TFLiteRTSession(BaseRTSession):
     def _create_interpreter(self, is_import):
         if is_import:
             self.kwargs["delegate_options"]["import"] = "yes"
+            # make sure that the artifacts_folder is cleaneup
+            for root, dirs, files in os.walk(self.kwargs["delegate_options"]['artifacts_folder'], topdown=False):
+                [os.remove(os.path.join(root, f)) for f in files]
+                [os.rmdir(os.path.join(root, d)) for d in dirs]
+            #
             tidl_delegate = [tflitert_interpreter.load_delegate('tidl_model_import_tflite.so', self.kwargs["delegate_options"])]
             interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_path'], experimental_delegates=tidl_delegate)
         else:
