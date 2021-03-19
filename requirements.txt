@@ -8,4 +8,3 @@ colorama
 tqdm
 pyyaml
 mxnet
-onnx-simplifier

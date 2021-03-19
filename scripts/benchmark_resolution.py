@@ -29,11 +29,16 @@
 import os
 import argparse
 import functools
+import warnings
 import copy
 import onnx
-from onnxsim import simplify
 from pathlib import Path
 from jacinto_ai_benchmark import *
+
+try:
+    from onnxsim import simplify
+except:
+    assert False, 'onnx-simplifier is required for this script. please install using: pip install onnx-simplifier'
 
 
 # the cwd must be the root of the respository
