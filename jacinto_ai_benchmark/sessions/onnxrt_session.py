@@ -19,9 +19,6 @@ class ONNXRTSession(BaseRTSession):
         return info_dict
 
     def start_infer(self):
-        if not os.path.exists(self.kwargs['artifacts_folder']):
-            return False
-        #
         super().start_infer()
         # now create the interpreter for inference
         self.interpreter = onnxruntime.InferenceSession(self.kwargs['model_path'], None)
@@ -34,7 +31,6 @@ class ONNXRTSession(BaseRTSession):
             self.kwargs['output_shape'] = output_shape
         #
         os.chdir(self.cwd)
-        self.is_imported = True
         return True
 
     def infer_frame(self, input, info_dict=None):

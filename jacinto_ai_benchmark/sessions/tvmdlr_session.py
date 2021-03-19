@@ -151,7 +151,6 @@ class TVMDLRSession(BaseRTSession):
             self.kwargs['input_shape'] = {n:None for n in input_names}
         #
         os.chdir(self.cwd)
-        self.is_imported = True
         return True
 
     def infer_frame(self, input, info_dict=None):

@@ -44,6 +44,7 @@ class BaseRTSession(utils.ParamsBase):
         self.is_initialized = False
         self.is_started = False
         self.is_imported = False
+        self.is_start_infer_done = False
         # work_dir at top level
         self.kwargs['work_dir'] = self.kwargs.get('work_dir', None)
         # run_dir for individual model
@@ -82,26 +83,36 @@ class BaseRTSession(utils.ParamsBase):
         super().initialize()
 
     def start(self):
-        assert self.is_initialized, 'initialize() must be called before start_import()'
+        if not self.is_initialized:
+            self.initialize()
+        #
         os.makedirs(self.kwargs['run_dir'], exist_ok=True)
         os.makedirs(self.kwargs['artifacts_folder'], exist_ok=True)
         self._get_model()
         self.is_started = True
 
     def import_model(self, calib_data, info_dict=None):
-        assert self.is_initialized, 'initialize() must be called before import_model()'
-        assert self.is_started, 'start() must be called before import_model()'
+        if not self.is_initialized:
+            self.initialize()
+        #
+        if not self.is_started:
+            self.start()
+        #
+        self.is_imported = True
 
     def start_infer(self):
-        pass
+        artifacts_folder = self.kwargs['artifacts_folder']
+        assert os.path.exists(artifacts_folder), f'artifacts_folder: {artifacts_folder} does not exist'
+        self.is_start_infer_done = True
 
     def __call__(self, input, info_dict):
         return self.infer_frame(input, info_dict)
 
     def infer_frame(self, input, info_dict=None):
-        assert self.is_initialized, 'initialize() must be called before before infer_frame()'
-        assert self.is_started, 'start() must be called before before infer_frame()'
-        assert self.is_imported, 'import_model() and start_infer() must be called before infer_frame()'
+        assert self.is_imported, 'import_model() must be called before infer_frame()'
+        if not self.is_start_infer_done:
+            self.start_infer()
+        #
         if info_dict is not None:
             info_dict['run_dir'] = self.get_param('run_dir')
         #
