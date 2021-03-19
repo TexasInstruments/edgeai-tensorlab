@@ -258,7 +258,7 @@ class QuantizationParams():
     def get_num_calib_iterations(self):
         return self.max_calib_iterations if self.tidl_tensor_bits == 8 else 1
 
-    def _get_calib_options_tvmdlr(self):
+    def get_session_tvmdlr_cfg(self):
         calib_options_tvm_dict = {
             8:  {
                     'activation_range': 'on',
@@ -291,17 +291,14 @@ class QuantizationParams():
         }
         calib_opt = (calib_options_tvm_dict['qat'] if self.is_qat else \
                          calib_options_tvm_dict[self.tidl_tensor_bits])
-        return calib_opt
-
-    def get_session_tvmdlr_cfg(self):
         session_tvmdlr_cfg = {
             'tidl_tensor_bits': self.tidl_tensor_bits,
-            'tidl_calibration_options': self._get_calib_options_tvmdlr(),
+            'tidl_calibration_options': calib_opt,
             'power_of_2_quantization': 'on' if self.is_qat else 'off',
         }
         return session_tvmdlr_cfg
 
-    def _get_calib_options_tflitert(self):
+    def get_session_tflitert_cfg(self):
         calib_options_tflitert_dict = {
             8: {
                     "tidl_calibration_options:num_frames_calibration": self.get_num_frames_calib(),
@@ -322,24 +319,39 @@ class QuantizationParams():
         }
         calib_opt = (calib_options_tflitert_dict['qat'] if self.is_qat else \
                          calib_options_tflitert_dict[self.tidl_tensor_bits])
-        return calib_opt
-
-    def get_session_tflitert_cfg(self):
         session_tflitert_cfg = {
             'tidl_tensor_bits': self.tidl_tensor_bits,
-            'tidl_calibration_options': self._get_calib_options_tflitert(),
+            'tidl_calibration_options': calib_opt,
             'power_of_2_quantization': 'yes' if self.is_qat else 'no',
         }
         return session_tflitert_cfg
 
-    def _get_calib_options_onnxrt(self):
-        #TODO: implement this
-        return None
-
     def get_session_onnxrt_cfg(self):
+        calib_options_onnxrt_dict = {
+            8: {
+                    "tidl_calibration_options:num_frames_calibration": self.get_num_frames_calib(),
+                    "tidl_calibration_options:bias_calibration_iterations": self.get_num_calib_iterations()
+            },
+            16: {
+                    "tidl_calibration_options:num_frames_calibration": self.get_num_frames_calib(),
+                    "tidl_calibration_options:bias_calibration_iterations": self.get_num_calib_iterations()
+            },
+            32: {
+                    "tidl_calibration_options:num_frames_calibration": self.get_num_frames_calib(),
+                    "tidl_calibration_options:bias_calibration_iterations": self.get_num_calib_iterations()
+            },
+            'qat': {
+                    "tidl_calibration_options:num_frames_calibration": self.get_num_frames_calib(),
+                    "tidl_calibration_options:bias_calibration_iterations": self.get_num_calib_iterations()
+            }
+        }
+        calib_opt = (calib_options_onnxrt_dict['qat'] if self.is_qat else \
+                         calib_options_onnxrt_dict[self.tidl_tensor_bits])
+
         session_onnxrt_cfg = {
             'tidl_tensor_bits': self.tidl_tensor_bits,
-            'tidl_calibration_options': self._get_calib_options_onnxrt()
+            'tidl_calibration_options': calib_opt,
+            'power_of_2_quantization': 'on' if self.is_qat else 'off',
         }
         return session_onnxrt_cfg
 

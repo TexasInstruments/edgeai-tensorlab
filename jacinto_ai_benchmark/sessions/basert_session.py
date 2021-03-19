@@ -62,7 +62,9 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['model_path'] = os.path.abspath(model_path) if isinstance(model_path, str) else model_path
         self.kwargs['model_type'] = self.kwargs.get('model_type',None)
         self.kwargs['input_shape'] = self.kwargs.get('input_shape', None)
+        self.kwargs['output_shape'] = self.kwargs.get('output_shape', None)
         self.kwargs['num_inputs'] = self.kwargs.get('num_inputs', 1)
+        self.kwargs['extra_inputs'] = self.kwargs.get('extra_inputs', None)
         # check the target_device
         self.kwargs['supported_devices'] = self.kwargs.get('supported_devices', None) #TODO: change to => ('j7', 'pc')
         if self.kwargs['supported_devices'] is not None:
@@ -88,6 +90,7 @@ class BaseRTSession(utils.ParamsBase):
         #
         os.makedirs(self.kwargs['run_dir'], exist_ok=True)
         os.makedirs(self.kwargs['artifacts_folder'], exist_ok=True)
+        os.makedirs(self.kwargs['model_folder'], exist_ok=True)
         self._get_model()
         self.is_started = True
 
@@ -143,7 +146,13 @@ class BaseRTSession(utils.ParamsBase):
         subgraphIds = []
         for stat in benchmark_dict.keys():
             if 'proc_start' in stat:
-                subgraphIds.append(int(re.sub("[^0-9]", "", stat)))
+                if self.kwargs['session_name'] == 'onnxrt':
+                    value = stat.split("ts:subgraph_")
+                    value = value[1].split("_proc_start")
+                    subgraphIds.append(value[0])
+                else:
+                    subgraphIds.append(int(re.sub("[^0-9]", "", stat)))
+                #
             #
         #
         for i in range(len(subgraphIds)):
@@ -285,6 +294,13 @@ class BaseRTSession(utils.ParamsBase):
 
     def _set_default_options(self):
         assert False, 'this function must be overridden in the derived class'
+
+    def _cleanup_artifacts(self):
+        # make sure that the artifacts_folder is cleaneup
+        for root, dirs, files in os.walk(self.kwargs['artifacts_folder'], topdown=False):
+            [os.remove(os.path.join(root, f)) for f in files]
+            [os.rmdir(os.path.join(root, d)) for d in dirs]
+        #
 
 
 if __name__ == '__main__':

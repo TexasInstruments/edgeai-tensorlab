@@ -50,12 +50,6 @@ class TFLiteRTSession(BaseRTSession):
 
         self.interpreter = self._create_interpreter(is_import=True)
 
-        # check if the shape of data being proved matches with what model expects
-        input_shape = self._get_input_shape_tflite()
-        if (self.kwargs['input_shape'] is not None) and (not utils.dict_equal(input_shape, self.kwargs['input_shape'])):
-            warnings.warn('model input shape must match the provided shape')
-        #
-
         input_details = self.interpreter.get_input_details()
         output_details = self.interpreter.get_output_details()
         for c_data in calib_data:
@@ -95,10 +89,7 @@ class TFLiteRTSession(BaseRTSession):
         if is_import:
             self.kwargs["delegate_options"]["import"] = "yes"
             # make sure that the artifacts_folder is cleaneup
-            for root, dirs, files in os.walk(self.kwargs["delegate_options"]['artifacts_folder'], topdown=False):
-                [os.remove(os.path.join(root, f)) for f in files]
-                [os.rmdir(os.path.join(root, d)) for d in dirs]
-            #
+            self._cleanup_artifacts()
             tidl_delegate = [tflitert_interpreter.load_delegate('tidl_model_import_tflite.so', self.kwargs["delegate_options"])]
             interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_path'], experimental_delegates=tidl_delegate)
         else:
@@ -128,11 +119,13 @@ class TFLiteRTSession(BaseRTSession):
             "tidl_calibration_accuracy_level": self.kwargs.get("tidl_calibration_accuracy_level", 1),
             "power_of_2_quantization": self.kwargs.get("power_of_2_quantization",'no'),
             "enable_high_resolution_optimization": self.kwargs.get("enable_high_resolution_optimization",'no'),
-            "pre_batchnorm_fold": self.kwargs.get("pre_batchnorm_fold",'no'),
+            "pre_batchnorm_fold": self.kwargs.get("pre_batchnorm_fold",1),
         }
 
         tidl_calibration_options = self.kwargs.get("tidl_calibration_options", {})
-        delegate_options.update(tidl_calibration_options)
+        if tidl_calibration_options is not None:
+            delegate_options.update(tidl_calibration_options)
+        #
         delegate_options.update(required_options)
         delegate_options.update(optional_options)
         self.kwargs["delegate_options"] = delegate_options
@@ -158,7 +151,6 @@ class TFLiteRTSession(BaseRTSession):
             tensor = np.array(tensor, dtype=np.uint8)
         #
         self.interpreter.set_tensor(model_input['index'], tensor)
-
 
     def _get_tensor(self, model_output):
         tensor = self.interpreter.get_tensor(model_output['index'])

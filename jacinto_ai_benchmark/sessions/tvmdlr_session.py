@@ -42,7 +42,6 @@ class TVMDLRSession(BaseRTSession):
     def import_model(self, calib_data, info_dict=None):
         # onnx and tvm are required only for model import
         # so import inside the function so that inference can be done without it
-        import onnx
         from tvm import relay
         from tvm.relay.backend.contrib import tidl
         # prepare for actual model import
@@ -61,6 +60,7 @@ class TVMDLRSession(BaseRTSession):
             input_keys = list(input_shape.keys())
             tvm_model, params = relay.frontend.from_mxnet(model_json, input_shape, arg_params=arg_params, aux_params=aux_params)
         elif model_type == 'onnx':
+            import onnx
             onnx_model = onnx.load(model_path)
             if self.kwargs['input_shape'] is None:
                 self.kwargs['input_shape'] = self._get_input_shape_onnx(onnx_model)
@@ -68,6 +68,18 @@ class TVMDLRSession(BaseRTSession):
             input_shape = self.kwargs['input_shape']
             input_keys = list(input_shape.keys())
             tvm_model, params = relay.frontend.from_onnx(onnx_model, shape=input_shape)
+        elif model_type == 'tflite':
+            import tflite
+            if self.kwargs['input_shape'] is None:
+                self.kwargs['input_shape'] = self._get_input_shape_tflite()
+            #
+            input_shape = self.kwargs['input_shape']
+            input_keys = list(input_shape.keys())
+            with open(model_path, 'rb') as fp:
+                tflite_model = tflite.Model.GetRootAsModel(fp.read(), 0)
+            #
+            tvm_model, params = relay.frontend.from_tflite(tflite_model, shape_dict=input_shape,
+                                                   dtype_dict={k:'float32' for k in input_shape})
         else:
             assert False, f'unrecognized model type {model_type}'
         #
@@ -180,6 +192,19 @@ class TVMDLRSession(BaseRTSession):
             shape = [dim.dim_value for dim in input_i.type.tensor_type.shape.dim]
             input_shape.update({name:shape})
         #
+        return input_shape
+
+    def _get_input_shape_tflite(self):
+        import tflite_runtime.interpreter as tflitert_interpreter
+        interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_path'])
+        input_shape = {}
+        model_input_details = interpreter.get_input_details()
+        for model_input in model_input_details:
+            name = model_input['name']
+            shape = list(model_input['shape'])
+            input_shape.update({name:shape})
+        #
+        del interpreter
         return input_shape
 
     def _get_target_artifacts_folder(self, target_device):
