@@ -96,9 +96,15 @@ class TFLiteRTSession(BaseRTSession):
         return outputs, info_dict
 
     def _create_interpreter(self, is_import):
-        self.kwargs["delegate_options"]["import"] = "yes" if is_import else "no"
-        tidl_delegate = [tflitert_interpreter.load_delegate('libtidl_tfl_delegate.so.1.0', self.kwargs["delegate_options"])]
-        interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_path'], experimental_delegates=tidl_delegate)
+        if is_import:
+            self.kwargs["delegate_options"]["import"] = "yes"
+            tidl_delegate = [tflitert_interpreter.load_delegate('tidl_model_import_tflite.so', self.kwargs["delegate_options"])]
+            interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_path'], experimental_delegates=tidl_delegate)
+        else:
+            self.kwargs["delegate_options"]["import"] = "no"
+            tidl_delegate = [tflitert_interpreter.load_delegate('libtidl_tfl_delegate.so', self.kwargs["delegate_options"])]
+            interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_path'], experimental_delegates=tidl_delegate)
+        #
         interpreter.allocate_tensors()
         return interpreter
 
@@ -118,8 +124,10 @@ class TFLiteRTSession(BaseRTSession):
             "debug_level": self.kwargs.get("debug_level", 0),
             "num_tidl_subgraphs": self.kwargs.get("num_tidl_subgraphs", 16),
             "tidl_denylist": self.kwargs.get("tidl_denylist", ""),
-            "tidl_calibration_method": self.kwargs.get("tidl_calibration_method", "advanced"),
-            'power_of_2_quantization': self.kwargs.get("power_of_2_quantization",'no'),
+            "tidl_calibration_accuracy_level": self.kwargs.get("tidl_calibration_accuracy_level", 1),
+            "power_of_2_quantization": self.kwargs.get("power_of_2_quantization",'no'),
+            "enable_high_resolution_optimization": self.kwargs.get("enable_high_resolution_optimization",'no'),
+            "pre_batchnorm_fold": self.kwargs.get("pre_batchnorm_fold",'no'),
         }
 
         tidl_calibration_options = self.kwargs.get("tidl_calibration_options", {})
