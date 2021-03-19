@@ -51,7 +51,7 @@ if __name__ == '__main__':
     version_str = get_version()
 
     long_description = ''
-    with open('README.md') as readme:
+    with open('README.md',  encoding="utf8") as readme:
         long_description = readme.read()
 
     setup(
