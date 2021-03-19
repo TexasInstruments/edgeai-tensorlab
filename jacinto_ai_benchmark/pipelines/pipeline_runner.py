@@ -167,12 +167,16 @@ class PipelineRunner():
         #
         calibration_dataset = pipeline_config['calibration_dataset']
         if settings.run_import and calibration_dataset is None:
-            warnings.warn(f'settings.run_import was set, but calibration_dataset={calibration_dataset}, removing model {model_id}:{model_path_to_match}')
+            if settings.verbose:
+                warnings.warn(f'settings.run_import was set, but calibration_dataset={calibration_dataset}, removing model {model_id}:{model_path_to_match}')
+            #
             selected_model = False
         #
         input_dataset = pipeline_config['input_dataset']
         if settings.run_inference and input_dataset is None:
-            warnings.warn(f'settings.run_inference was set, but input_dataset={input_dataset}, removing model {model_id}:{model_path_to_match}')
+            if settings.verbose:
+                warnings.warn(f'settings.run_inference was set, but input_dataset={input_dataset}, removing model {model_id}:{model_path_to_match}')
+            #
             selected_model = False
         #
         return selected_model

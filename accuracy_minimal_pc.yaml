@@ -12,5 +12,5 @@ model_selection : ['imagenet1k/torchvision/mobilenet_v2_tv_opset9.onnx',
 num_frames : 1000 #50000
 # number of frames to be used for post training quantization / calibration
 max_frames_calib : 10 #100
-# number of itrations to be used for post training quantization / calibration
+# number of iterations to be used for post training quantization / calibration
 max_calib_iterations : 10
