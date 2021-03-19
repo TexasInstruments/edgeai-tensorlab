@@ -161,7 +161,8 @@ def package_artifacts(settings, work_dir, out_dir, pipeline_configs):
         fp.write(model_list)
     #
     with open(os.path.join(out_dir, 'extract.sh'), 'w') as fp:
-        fp.write('find . -name "*.tar.gz" -exec tar --one-top-level -zxvf "{}" \; -exec rm -f "{}" \;')
+        # Note: append '-exec rm -f "{}" \;' to delete the original .tar.gz files
+        fp.write('find . -name "*.tar.gz" -exec tar --one-top-level -zxvf "{}" \;')
     #
 
 
