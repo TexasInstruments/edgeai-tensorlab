@@ -52,7 +52,8 @@ class TVMDLRSession(BaseRTSession):
         os.chdir(interpreter_folder)
 
         model_path = self.kwargs['model_path']
-        model_type = self.kwargs['model_type'] or os.path.splitext(model_path)[1][1:]
+        model_path0 = model_path[0] if isinstance(model_path, (list,tuple)) else model_path
+        model_type = self.kwargs['model_type'] or os.path.splitext(model_path0)[1][1:]
         if model_type == 'mxnet':
             model_json, arg_params, aux_params = self._load_mxnet_model(model_path)
             assert self.kwargs['input_shape'] is not None, 'input_shape must be given'
