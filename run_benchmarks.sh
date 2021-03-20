@@ -70,8 +70,6 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${import_path}:${rt_path}:${tfl_deleg
 echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
 echo "==================================================================="
 
-sleep 3
-
 # increase the stack size as it can help in some models
 ulimit -s 32768
 

@@ -29,6 +29,7 @@
 import functools
 import itertools
 import warnings
+import copy
 from .accuracy_pipeline import *
 from .. import utils
 
@@ -96,7 +97,10 @@ class PipelineRunner():
     # this function cannot be an instance method of PipelineRunner, as it causes an
     # error during pickling, involved in the launch of a process is parallel run. make it classmethod
     @classmethod
-    def _run_pipeline(cls, settings, pipeline_config, parallel_device=None, description=''):
+    def _run_pipeline(cls, settings, pipeline_config_in, parallel_device=None, description=''):
+        # create a copy to avoid issues due to running multiple models
+        pipeline_config = copy.deepcopy(pipeline_config_in)
+
         # capture cwd - to set it later
         cwd = os.getcwd()
 

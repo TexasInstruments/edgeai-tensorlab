@@ -26,13 +26,11 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import copy
 import numpy as np
-import yaml
 
 
 def dict_update(src_dict, *args, inplace=False, **kwargs):
-    new_dict = src_dict if inplace else copy.deepcopy(src_dict)
+    new_dict = src_dict if inplace else src_dict.copy()
     for arg in args:
         assert isinstance(arg, dict), 'arguments must be dict or keywords'
         new_dict.update(arg)
@@ -42,7 +40,7 @@ def dict_update(src_dict, *args, inplace=False, **kwargs):
 
 
 def dict_merge(target_dict, src_dict, inplace=False):
-    target_dict = target_dict if inplace else copy.deepcopy(target_dict)
+    target_dict = target_dict if inplace else target_dict.copy()
     assert isinstance(target_dict, dict), 'destination must be a dict'
     assert isinstance(src_dict, dict), 'source must be a dict'
     for key, value in src_dict.items():
