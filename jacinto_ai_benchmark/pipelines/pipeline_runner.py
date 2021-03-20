@@ -134,6 +134,19 @@ class PipelineRunner():
         os.chdir(cwd)
         return result
 
+    def _str_match_any(self, k, x_list):
+        match_any = any([(k in x) for x in x_list])
+        return match_any
+
+    def _str_match_plus(self, ks, x_list):
+        ks = ks.split('+')
+        match_fully = all([self._str_match_any(k,x_list) for k in ks])
+        return match_fully
+
+    def _str_match_plus_any(self, keywords, search_list):
+        any_match_fully = any([self._str_match_plus(kw, search_list) for kw in keywords])
+        return any_match_fully
+
     def _check_model_selection(self, settings, pipeline_config):
         model_path = pipeline_config['session'].get_param('model_path')
         model_id = pipeline_config['session'].get_param('model_id')
@@ -142,49 +155,21 @@ class PipelineRunner():
         model_type = model_type or os.path.splitext(model_path0)[1][1:]
         shortlist_model = True
         if settings.model_shortlist is not None:
-            shortlist_model = False
             model_shortlist = utils.as_list(settings.model_shortlist)
-            for keyword in model_shortlist:
-                if keyword in model_path0:
-                    shortlist_model = True
-                #
-                if keyword in model_id:
-                    shortlist_model = True
-                #
-                if keyword in model_type:
-                    shortlist_model = True
-                #
-            #
+            shortlist_model = self._str_match_plus_any(model_shortlist, (model_path0,model_id,model_type))
         #
         if not shortlist_model:
             return False
         #
         selected_model = True
         if settings.model_selection is not None:
-            selected_model = False
             model_selection = utils.as_list(settings.model_selection)
-            for keyword in model_selection:
-                if keyword in model_path0:
-                    selected_model = True
-                #
-                if keyword in model_id:
-                    selected_model = True
-                #
-                if keyword in model_type:
-                    selected_model = True
-                #
-            #
+            selected_model = self._str_match_plus_any(model_selection, (model_path0,model_id,model_type))
         #
         if settings.model_exclusion is not None:
             model_exclusion = utils.as_list(settings.model_exclusion)
-            for keyword in model_exclusion:
-                if keyword in model_path0:
-                    selected_model = False
-                #
-                if keyword in model_id:
-                    selected_model = False
-                #
-            #
+            excluded_model = self._str_match_plus_any(model_exclusion, (model_path0,model_id,model_type))
+            selected_model = selected_model and (not excluded_model)
         #
         if settings.task_selection is not None:
             task_selection = utils.as_list(settings.task_selection)

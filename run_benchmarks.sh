@@ -89,7 +89,7 @@ python3 ./scripts/benchmark_accuracy.py ${settings_file} \
 # run few selected models with these settings
 python3 ./scripts/benchmark_accuracy.py ${settings_file} \
         --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
-        --model_selection onnx
+        --model_selection classification+onnx segmentation+onnx
 
 
 # run all the supported models with default settings
