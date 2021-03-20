@@ -82,7 +82,8 @@ settings_file=accuracy_full_pc.yaml
 
 
 # run all the supported models with default settings
-python3 ./scripts/benchmark_accuracy.py ${settings_file}
+python3 ./scripts/benchmark_accuracy.py ${settings_file} \
+        --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'}
 
 
 # run few selected models with these additional settings
