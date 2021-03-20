@@ -45,18 +45,16 @@ class BaseRTSession(utils.ParamsBase):
         self.is_started = False
         self.is_imported = False
         self.is_start_infer_done = False
+
         # work_dir at top level
         self.kwargs['work_dir'] = self.kwargs.get('work_dir', None)
         # run_dir for individual model
         self.kwargs['run_dir'] = self.kwargs.get('run_dir', None)
         self.kwargs['dir_tree_depth'] = self.kwargs.get('dir_tree_depth', 2)
-        # options related to the underlying runtime
-        self.kwargs['platform'] = self.kwargs.get('platform', 'J7')
-        self.kwargs['version'] = self.kwargs.get('version', (7,0))
-        self.kwargs['tidl_tensor_bits'] = self.kwargs.get('tidl_tensor_bits', 32)
+
+        # parameters related to models
         self.kwargs['num_tidl_subgraphs'] = self.kwargs.get('num_tidl_subgraphs', 16)
         self.kwargs['model_id'] = self.kwargs.get('model_id', None)
-        # convert model_path to abspath
         model_path = self.kwargs.get('model_path', None)
         model_path = [os.path.abspath(m) for m in model_path] if isinstance(model_path, (list,tuple)) else model_path
         self.kwargs['model_path'] = os.path.abspath(model_path) if isinstance(model_path, str) else model_path
@@ -65,6 +63,10 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['output_shape'] = self.kwargs.get('output_shape', None)
         self.kwargs['num_inputs'] = self.kwargs.get('num_inputs', 1)
         self.kwargs['extra_inputs'] = self.kwargs.get('extra_inputs', None)
+
+        # other parameters
+        self.kwargs['tidl_tensor_bits'] = self.kwargs.get('tidl_tensor_bits', 8)
+
         # check the target_device
         self.kwargs['supported_devices'] = self.kwargs.get('supported_devices', None) #TODO: change to => ('j7', 'pc')
         if self.kwargs['supported_devices'] is not None:
@@ -81,6 +83,8 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['run_dir'] = self._make_run_dir()
         self.kwargs['artifacts_folder'] = os.path.join(self.kwargs['run_dir'], 'artifacts')
         self.kwargs['model_folder'] = os.path.join(self.kwargs['run_dir'], 'model')
+        # _set_default_options requires artifacts folder
+        # that's why this done in initialize instead of the constructor
         self._set_default_options()
         super().initialize()
 

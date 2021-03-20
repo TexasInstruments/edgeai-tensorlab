@@ -123,27 +123,23 @@ class ONNXRTSession(BaseRTSession):
             "artifacts_folder": self.kwargs['artifacts_folder'],
             "import": self.kwargs.get("import", 'no')
         }
-
         optional_options = {
             "tidl_platform": "J7",
             "tidl_version": "7.2",
-            "tidl_tensor_bits": self.kwargs.get("tidl_tensor_bits", 32),
+            "tidl_tensor_bits": self.kwargs.get("tidl_tensor_bits", 8),
             "debug_level": self.kwargs.get("debug_level", 0),
             "num_tidl_subgraphs": self.kwargs.get("num_tidl_subgraphs", 16),
             "tidl_denylist": self.kwargs.get("tidl_denylist", ""),
-            "tidl_calibration_accuracy_level": self.kwargs.get("tidl_calibration_accuracy_level", 1),
             "power_of_2_quantization": self.kwargs.get("power_of_2_quantization",'off'),
-            "enable_high_resolution_optimization": self.kwargs.get("enable_high_resolution_optimization",'no'),
             "pre_batchnorm_fold": self.kwargs.get("pre_batchnorm_fold",1),
+            "enable_high_resolution_optimization": self.kwargs.get("enable_high_resolution_optimization",'no'),
             "output_feature_16bit_names_list": self.kwargs.get("output_feature_16bit_names_list",''),
             "params_16bit_names_list": self.kwargs.get("params_16bit_names_list",''),
+            "tidl_calibration_accuracy_level": self.kwargs.get("tidl_calibration_accuracy_level", 1),
             "reserved_compile_constraints_flag": self.kwargs.get("reserved_compile_constraints_flag",1601),
         }
-
-        tidl_calibration_options = self.kwargs.get("tidl_calibration_options", {})
-        if tidl_calibration_options is not None:
-            delegate_options.update(tidl_calibration_options)
-        #
+        tidl_calibration_options = {k:v for k,v in self.kwargs.items() if k.startswith('tidl_calibration_options:')}
+        delegate_options.update(tidl_calibration_options)
         delegate_options.update(required_options)
         delegate_options.update(optional_options)
         self.kwargs["delegate_options"] = delegate_options

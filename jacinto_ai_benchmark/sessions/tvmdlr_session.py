@@ -93,18 +93,7 @@ class TVMDLRSession(BaseRTSession):
         #
 
         # Create the TIDL compiler with appropriate parameters
-        compiler = tidl.TIDLCompiler(
-            platform=self.kwargs['platform'],
-            version=self.kwargs['version'],
-            num_tidl_subgraphs=self.kwargs['num_tidl_subgraphs'],
-            data_layout=self.kwargs['data_layout'],
-            artifacts_folder=self.kwargs['artifacts_folder'],
-            tidl_tools_path=os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools'),
-            tidl_tensor_bits=self.kwargs['tidl_tensor_bits'],
-            tidl_calibration_options=self.kwargs['tidl_calibration_options'],
-            power_of_2_quantization=self.kwargs['power_of_2_quantization'],
-            reserved_compile_constraints_flag=self.kwargs.get('reserved_compile_constraints_flag',0),
-            )
+        compiler = tidl.TIDLCompiler(**self.kwargs['compiler_options'])
 
         supported_devices = self.kwargs['supported_devices'] if (self.kwargs['supported_devices'] is not None) \
             else (self.kwargs['target_device'],)
@@ -149,13 +138,9 @@ class TVMDLRSession(BaseRTSession):
         return info_dict
 
     def start_infer(self):
-        target_artifacts_folder = self._get_target_artifacts_folder(self.kwargs['target_device'])
-        if not os.path.exists(target_artifacts_folder):
-            return False
-        #
         super().start_infer()
         # create inference model
-        self.interpreter = DLRModel(target_artifacts_folder, 'cpu')
+        self.interpreter = self._create_interpreter()
         if self.kwargs['input_shape'] is None:
             # get the input names from DLR model
             # don't know how to get the input shape from dlr model, but that's not requried.
@@ -179,10 +164,34 @@ class TVMDLRSession(BaseRTSession):
         info_dict['session_invoke_time'] = (time.time() - start_time)
         return output, info_dict
 
+    def _create_interpreter(self, is_import=False):
+        target_artifacts_folder = self._get_target_artifacts_folder(self.kwargs['target_device'])
+        if not os.path.exists(target_artifacts_folder):
+            return False
+        #
+        interpreter = DLRModel(target_artifacts_folder, 'cpu')
+        return interpreter
+
     def _set_default_options(self):
-        # calibration options
-        self.kwargs['data_layout'] = self.kwargs.get('data_layout', 'NCHW')
-        self.kwargs["tidl_calibration_options"] = self.kwargs.get("tidl_calibration_options", {})
+        compiler_options = self.kwargs.get("compiler_options", {})
+        default_options = {
+            'platform':self.kwargs.get('platform', 'J7'),
+            'version':self.kwargs.get('version', (7,0)),
+            'num_tidl_subgraphs':self.kwargs.get('num_tidl_subgraphs', 16),
+            'data_layout':self.kwargs.get('data_layout', constants.NCHW),
+            'artifacts_folder':self.kwargs.get('artifacts_folder', None),
+            'tidl_tools_path':os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools'),
+            'tidl_tensor_bits':self.kwargs.get('tidl_tensor_bits', 8),
+            'power_of_2_quantization':self.kwargs.get('power_of_2_quantization', 'off'),
+            'pre_batchnorm_fold':self.kwargs.get('pre_batchnorm_fold', 1),
+            'enable_high_resolution_optimization':self.kwargs.get('enable_high_resolution_optimization', 'no'),
+            'tidl_calibration_accuracy_level':self.kwargs.get('tidl_calibration_accuracy_level', 1),
+            'tidl_calibration_options':self.kwargs.get('tidl_calibration_options', {}),
+            'reserved_compile_constraints_flag':self.kwargs.get('reserved_compile_constraints_flag', 0),
+            'debug_level':self.kwargs.get('debug_level', 0)
+        }
+        compiler_options.update(default_options)
+        self.kwargs['compiler_options'] = compiler_options
 
     def _get_input_shape_onnx(self, onnx_model):
         input_shape = {}
