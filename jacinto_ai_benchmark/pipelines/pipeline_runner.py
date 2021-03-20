@@ -143,8 +143,8 @@ class PipelineRunner():
         shortlist_model = True
         if settings.model_shortlist is not None:
             shortlist_model = False
-            model_selection = utils.as_list(settings.model_selection)
-            for keyword in model_selection:
+            model_shortlist = utils.as_list(settings.model_shortlist)
+            for keyword in model_shortlist:
                 if keyword in model_path0:
                     shortlist_model = True
                 #
