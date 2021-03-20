@@ -39,8 +39,13 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('settings_file', type=str)
+    parser.add_argument('--model_selection', type=str, nargs='*')
+    parser.add_argument('--session_type_dict', type=str, nargs='*')
     cmds = parser.parse_args()
-    settings = config_settings.ConfigSettings(cmds.settings_file)
+    cmds.session_type_dict = utils.str_to_dict(cmds.session_type_dict)
+
+    settings = config_settings.ConfigSettings(cmds.settings_file, model_selection=cmds.model_selection,
+                                              session_type_dict=cmds.session_type_dict)
 
     expt_name = os.path.splitext(os.path.basename(__file__))[0]
     work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tidl_tensor_bits}bits')

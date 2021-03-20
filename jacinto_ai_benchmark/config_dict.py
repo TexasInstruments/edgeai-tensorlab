@@ -118,6 +118,9 @@ class ConfigDict(dict):
         self.detection_max = None
         # save detection, segmentation output
         self.save_output = False
+        # wild card list to match against the model_path, model_type
+        # only models matching these criteria will be considered - even for model_selection
+        self.model_shortlist = None
         # wild card list to match against the model_path - if null, all models wil be run
         # examples: ['classification'] ['imagenet1k'] ['torchvision']
         # examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']

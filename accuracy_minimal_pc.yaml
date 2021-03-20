@@ -1,10 +1,8 @@
 # include_files is a special keyword - other files that need to be merged with this dict
 include_files : ['accuracy_base.yaml']
-# wild card list to match against the model_path - only matching models will be run
-# examples: ['classification'] ['imagenet1k'] ['torchvision']
-# examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
-# example: null (Note: null means no filter - run all the models)
-model_selection : ['imagenet1k/torchvision/mobilenet_v2_tv_opset9.onnx',
+# wild card list to match against the model_path, model_type, model_id
+# only models matching these criteria will be considered - even for model_selection
+model_shortlist : ['imagenet1k/torchvision/mobilenet_v2_tv_opset9.onnx',
                    'imagenet1k/tf1-models/mobilenet_v2_1.0_224.tflite',
                    'imagenet1k/gluoncv-mxnet/mobilenetv2_1.0'
                    ]

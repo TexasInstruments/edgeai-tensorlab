@@ -56,12 +56,9 @@ verbose : False
 detection_thr : 0.05
 # save detection, segmentation output
 save_output : False
-# wild card list to match against the model_path - only matching models will be run
-# examples: ['classification'] ['imagenet1k'] ['torchvision']
-# examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
-# examples: ['jai-pytorch/mobilenet_v1_20190906-171544_opset9.onnx', 'torchvision/mobilenet_v2_tv_opset9.onnx']
-# example: null (Note: null means no filter - run all the models
-model_selection : [# imagenet classification models
+# wild card list to match against the model_path, model_type, model_id
+# only models matching these criteria will be considered - even for model_selection
+model_shortlist : [# imagenet classification models
                    'vcls-10-010-0', #mlperf/mobilenet_v1_1.0_224.tflite
                    'vcls-10-011-0', #mlperf/mobilenet_edgetpu_224_1.0_float.tflite
                    'vcls-10-012-0', #mlperf/resnet50_v1.5.tflite

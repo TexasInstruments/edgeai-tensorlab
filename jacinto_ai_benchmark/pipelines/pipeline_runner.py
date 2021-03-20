@@ -140,6 +140,26 @@ class PipelineRunner():
         model_path0 = model_path[0] if isinstance(model_path, (list,tuple)) else model_path
         model_type = pipeline_config['session'].get_param('model_type')
         model_type = model_type or os.path.splitext(model_path0)[1][1:]
+        shortlist_model = True
+        if settings.model_shortlist is not None:
+            shortlist_model = False
+            model_selection = utils.as_list(settings.model_selection)
+            for keyword in model_selection:
+                if keyword in model_path0:
+                    shortlist_model = True
+                #
+                if keyword in model_id:
+                    shortlist_model = True
+                #
+                if keyword in model_type:
+                    shortlist_model = True
+                #
+            #
+        #
+        if not shortlist_model:
+            return False
+        #
+        selected_model = True
         if settings.model_selection is not None:
             selected_model = False
             model_selection = utils.as_list(settings.model_selection)
@@ -154,8 +174,6 @@ class PipelineRunner():
                     selected_model = True
                 #
             #
-        else:
-            selected_model = True
         #
         if settings.model_exclusion is not None:
             model_exclusion = utils.as_list(settings.model_exclusion)

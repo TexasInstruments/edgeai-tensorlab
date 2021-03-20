@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import numpy as np
+import yaml
 
 
 def dict_update(src_dict, *args, inplace=False, **kwargs):
@@ -119,6 +120,9 @@ def pretty_object(d, precision=3, depth=5):
     return d_out
 
 
-
-
-
+def str_to_dict(input):
+    if isinstance(input, list):
+        input = ' '.join(input)
+    #
+    d = yaml.safe_load(input)
+    return d
