@@ -177,18 +177,18 @@ class TVMDLRSession(BaseRTSession):
         default_options = {
             'platform':self.kwargs.get('platform', 'J7'),
             'version':self.kwargs.get('version', (7,0)),
-            'num_tidl_subgraphs':self.kwargs.get('num_tidl_subgraphs', 16),
             'data_layout':self.kwargs.get('data_layout', constants.NCHW),
             'artifacts_folder':self.kwargs.get('artifacts_folder', None),
             'tidl_tools_path':os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools'),
             'tidl_tensor_bits':self.kwargs.get('tidl_tensor_bits', 8),
+            'num_tidl_subgraphs':self.kwargs.get('num_tidl_subgraphs', 16),
+            'debug_level':self.kwargs.get('debug_level', 0),
             'power_of_2_quantization':self.kwargs.get('power_of_2_quantization', 'off'),
             'pre_batchnorm_fold':self.kwargs.get('pre_batchnorm_fold', 1),
             'enable_high_resolution_optimization':self.kwargs.get('enable_high_resolution_optimization', 'no'),
             'tidl_calibration_accuracy_level':self.kwargs.get('tidl_calibration_accuracy_level', 1),
             'tidl_calibration_options':self.kwargs.get('tidl_calibration_options', {}),
             'reserved_compile_constraints_flag':self.kwargs.get('reserved_compile_constraints_flag', 0),
-            'debug_level':self.kwargs.get('debug_level', 0)
         }
         compiler_options.update(default_options)
         self.kwargs['compiler_options'] = compiler_options
