@@ -81,14 +81,14 @@ ulimit -s 32768
 settings_file=accuracy_full_pc.yaml
 
 
-# run all the supported models with default settings
+# run all the shortlisted models with these settings
 python3 ./scripts/benchmark_accuracy.py ${settings_file} \
-        --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'}
+        --session_type_dict {'onnx': 'onnxrt', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'}
 
 
-# run few selected models with these additional settings
+# run few selected models with these settings
 python3 ./scripts/benchmark_accuracy.py ${settings_file} \
-        --session_type_dict {'onnx': 'onnxrt', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
+        --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
         --model_selection onnx
 
 
