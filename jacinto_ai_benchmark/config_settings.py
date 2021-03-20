@@ -261,39 +261,21 @@ class QuantizationParams():
     def get_session_tvmdlr_cfg(self):
         calib_options_tvm_dict = {
             8:  {
-                    'activation_range': 'on',
-                    'weight_range': 'on',
-                    'bias_calibration': 'on',
-                    'per_channel_weight': 'off',
-                    'iterations': self.get_num_calib_iterations(),
+                    'tidl_calibration_accuracy_level': (0 if self.is_qat else 1),
+                    'bias_calibration_iterations': self.get_num_calib_iterations(),
                  },
             16: {
-                    'activation_range': 'off',
-                    'weight_range': 'off',
-                    'bias_calibration': 'off',
-                    'per_channel_weight': 'off',
-                    'iterations': self.get_num_calib_iterations(),
+                    'tidl_calibration_accuracy_level': 0,
+                    'bias_calibration_iterations': self.get_num_calib_iterations(),
                  },
             32: {
-                    'activation_range': 'off',
-                    'weight_range': 'off',
-                    'bias_calibration': 'off',
-                    'per_channel_weight': 'off',
-                    'iterations': self.get_num_calib_iterations(),
+                    'tidl_calibration_accuracy_level': 0,
+                    'bias_calibration_iterations': self.get_num_calib_iterations(),
                  },
-            'qat': {
-                    'activation_range': 'off',
-                    'weight_range': 'off',
-                    'bias_calibration': 'off',
-                    'per_channel_weight': 'off',
-                    'iterations': self.get_num_calib_iterations(),
-                 }
         }
-        calib_opt = (calib_options_tvm_dict['qat'] if self.is_qat else \
-                         calib_options_tvm_dict[self.tidl_tensor_bits])
         session_tvmdlr_cfg = {
             'tidl_tensor_bits': self.tidl_tensor_bits,
-            'tidl_calibration_options': calib_opt,
+            'tidl_calibration_options': calib_options_tvm_dict[self.tidl_tensor_bits],
             'power_of_2_quantization': 'on' if self.is_qat else 'off',
         }
         return session_tvmdlr_cfg
@@ -301,27 +283,24 @@ class QuantizationParams():
     def get_session_tflitert_cfg(self):
         calib_options_tflitert_dict = {
             8: {
-                    "tidl_calibration_options:num_frames_calibration": self.get_num_frames_calib(),
-                    "tidl_calibration_options:bias_calibration_iterations": self.get_num_calib_iterations()
+                    'tidl_calibration_accuracy_level': (0 if self.is_qat else 1),
+                    'tidl_calibration_options:num_frames_calibration': self.get_num_frames_calib(),
+                    'tidl_calibration_options:bias_calibration_iterations': self.get_num_calib_iterations()
             },
             16: {
-                    "tidl_calibration_options:num_frames_calibration": self.get_num_frames_calib(),
-                    "tidl_calibration_options:bias_calibration_iterations": self.get_num_calib_iterations()
+                    'tidl_calibration_accuracy_level': 0,
+                    'tidl_calibration_options:num_frames_calibration': self.get_num_frames_calib(),
+                    'tidl_calibration_options:bias_calibration_iterations': self.get_num_calib_iterations()
             },
             32: {
-                    "tidl_calibration_options:num_frames_calibration": self.get_num_frames_calib(),
-                    "tidl_calibration_options:bias_calibration_iterations": self.get_num_calib_iterations()
+                    'tidl_calibration_accuracy_level': 0,
+                    'tidl_calibration_options:num_frames_calibration': self.get_num_frames_calib(),
+                    'tidl_calibration_options:bias_calibration_iterations': self.get_num_calib_iterations()
             },
-            'qat': {
-                    "tidl_calibration_options:num_frames_calibration": self.get_num_frames_calib(),
-                    "tidl_calibration_options:bias_calibration_iterations": self.get_num_calib_iterations()
-            }
         }
-        calib_opt = (calib_options_tflitert_dict['qat'] if self.is_qat else \
-                         calib_options_tflitert_dict[self.tidl_tensor_bits])
         session_tflitert_cfg = {
             'tidl_tensor_bits': self.tidl_tensor_bits,
-            'tidl_calibration_options': calib_opt,
+            'tidl_calibration_options': calib_options_tflitert_dict[self.tidl_tensor_bits],
             'power_of_2_quantization': 'yes' if self.is_qat else 'no',
         }
         return session_tflitert_cfg
@@ -329,29 +308,29 @@ class QuantizationParams():
     def get_session_onnxrt_cfg(self):
         calib_options_onnxrt_dict = {
             8: {
-                    "tidl_calibration_options:num_frames_calibration": self.get_num_frames_calib(),
-                    "tidl_calibration_options:bias_calibration_iterations": self.get_num_calib_iterations()
+                    'tidl_calibration_accuracy_level': (0 if self.is_qat else 1),
+                    'tidl_calibration_options:num_frames_calibration': self.get_num_frames_calib(),
+                    'tidl_calibration_options:bias_calibration_iterations': self.get_num_calib_iterations()
             },
             16: {
-                    "tidl_calibration_options:num_frames_calibration": self.get_num_frames_calib(),
-                    "tidl_calibration_options:bias_calibration_iterations": self.get_num_calib_iterations()
+                    'tidl_calibration_accuracy_level': 0,
+                    'tidl_calibration_options:num_frames_calibration': self.get_num_frames_calib(),
+                    'tidl_calibration_options:bias_calibration_iterations': self.get_num_calib_iterations()
             },
             32: {
-                    "tidl_calibration_options:num_frames_calibration": self.get_num_frames_calib(),
-                    "tidl_calibration_options:bias_calibration_iterations": self.get_num_calib_iterations()
+                    'tidl_calibration_accuracy_level': 0,
+                    'tidl_calibration_options:num_frames_calibration': self.get_num_frames_calib(),
+                    'tidl_calibration_options:bias_calibration_iterations': self.get_num_calib_iterations()
             },
             'qat': {
-                    "tidl_calibration_options:num_frames_calibration": self.get_num_frames_calib(),
-                    "tidl_calibration_options:bias_calibration_iterations": self.get_num_calib_iterations()
+                    'tidl_calibration_accuracy_level': 0,
+                    'tidl_calibration_options:num_frames_calibration': self.get_num_frames_calib(),
+                    'tidl_calibration_options:bias_calibration_iterations': self.get_num_calib_iterations()
             }
         }
-        calib_opt = (calib_options_onnxrt_dict['qat'] if self.is_qat else \
-                         calib_options_onnxrt_dict[self.tidl_tensor_bits])
-
         session_onnxrt_cfg = {
             'tidl_tensor_bits': self.tidl_tensor_bits,
-            'tidl_calibration_options': calib_opt,
+            'tidl_calibration_options': calib_options_onnxrt_dict[self.tidl_tensor_bits],
             'power_of_2_quantization': 'on' if self.is_qat else 'off',
         }
         return session_onnxrt_cfg
-
