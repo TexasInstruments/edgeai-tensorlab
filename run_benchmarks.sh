@@ -78,7 +78,7 @@ ulimit -s 32768
 # accuracy_minimal_pc.yaml
 # accuracy_import_for_j7.yaml
 # accuracy_infer_on_j7.yaml
-settings_file=accuracy_full_pc.yaml
+settings_file=accuracy_minimal_pc.yaml
 
 
 # run all the shortlisted models with these settings
