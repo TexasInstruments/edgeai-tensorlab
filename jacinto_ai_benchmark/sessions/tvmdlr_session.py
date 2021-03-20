@@ -185,7 +185,7 @@ class TVMDLRSession(BaseRTSession):
             'debug_level':self.kwargs.get('debug_level', 0),
             'power_of_2_quantization':self.kwargs.get('power_of_2_quantization', 'off'),
             'pre_batchnorm_fold':self.kwargs.get('pre_batchnorm_fold', 1),
-            'enable_high_resolution_optimization':self.kwargs.get('enable_high_resolution_optimization', 'no'),
+            'enable_high_resolution_optimization':self.kwargs.get('enable_high_resolution_optimization', 'off'),
             'tidl_calibration_accuracy_level':self.kwargs.get('tidl_calibration_accuracy_level', 1),
             'tidl_calibration_options':self.kwargs.get('tidl_calibration_options', {}),
             'reserved_compile_constraints_flag':self.kwargs.get('reserved_compile_constraints_flag', 0),

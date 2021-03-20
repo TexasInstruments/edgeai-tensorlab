@@ -263,6 +263,7 @@ class QuantizationParams():
 
     def get_tidl_calibration_options(self):
         tidl_calibration_options = {
+            'num_frames_calibration': self.get_num_frames_calib(),
             'bias_calibration_iterations': self.get_num_calib_iterations(),
         }
         return tidl_calibration_options
