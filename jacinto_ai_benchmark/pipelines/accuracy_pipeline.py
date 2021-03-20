@@ -64,10 +64,15 @@ class AccuracyPipeline():
         run_import = self.pipeline_config['run_import']
         run_inference = self.pipeline_config['run_inference']
         session = self.pipeline_config['session']
+        # run_dir is assigned after initialize is called in PipelineRunner
+        # but it has not been created - it will be created in start
+        run_dir = session.get_param('run_dir')
+        # if run_dir exists, import will be skipped
+        # this is to avoid accidentally overwriting the artifacts
+        # clear the run_dir to import once again
+        run_import = run_import and (not os.path.exists(run_dir))
         # start() must be called to create the required directories
         session.start()
-        # run_dir has been created after start
-        run_dir = session.get_param('run_dir')
         # collect the input params
         param_dict = pipeline_utils.collect_param(self.pipeline_config)
         # create logger
@@ -75,7 +80,7 @@ class AccuracyPipeline():
         self.logger = utils.TeeLogger(log_filename)
         self.logger.write(f'\nrunning: {Fore.BLUE}{os.path.basename(run_dir)}{Fore.RESET}')
         self.logger.write(f'\npipeline_config: {self.pipeline_config}')
-        # import
+        # import.
         if run_import:
             self._import_model(description)
         #
