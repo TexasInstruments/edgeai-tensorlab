@@ -29,7 +29,7 @@
 #################################################################################
 
 #mapping from artifacts id to readable model names
-#ver:10-2021-03-19
+#ver:11-2021-03-21
 model_id_artifacts_pair = {
     # TFLite CL
     'vcls-10-010-0_tflitert': 'TFL-CL-000-mobileNetV1-mlperf',
@@ -88,7 +88,7 @@ model_id_artifacts_pair = {
     'vcls-10-032-0_tvmdlr': 'TVM-CL-313-regNetX-800mf',
     'vcls-10-033-0_tvmdlr': 'TVM-CL-314-regNetX-1.6gf',
     'vcls-10-102-8_tvmdlr': 'TVM-CL-315-mobileNetV2-1p4-qat',
-
+    
     #512x512
     'vcls-10-100-1_tvmdlr': 'TVM-CL-316-mobileNetV1-512x512',
     'vcls-10-101-1_tvmdlr': 'TVM-CL-317-mobileNetV2-512x512',
@@ -112,6 +112,7 @@ model_id_artifacts_pair = {
     'vcls-10-032-2_tvmdlr': 'TVM-CL-333-regNetX-800mf-1024x1024',
     'vcls-10-033-2_tvmdlr': 'TVM-CL-334-regNetX-1.6gf-1024x1024',
     'vcls-10-102-2_tvmdlr': 'TVM-CL-335-mobileNetV2-1p4-qat-1024x1024',
+    ########
     
     'vcls-10-030-0_tvmdlr': 'TVM-CL-336-regNetx-200mf',
     'vcls-10-306-0_tvmdlr': 'TVM-CL-337-vgg16',
@@ -120,6 +121,11 @@ model_id_artifacts_pair = {
     'vcls-10-060-0_tvmdlr': 'TVM-CL-341-gluoncv-mxnet-mobv2',
     'vcls-10-061-0_tvmdlr': 'TVM-CL-342-gluoncv-mxnet-resNet50-v1',
     'vcls-10-062-0_tvmdlr': 'TVM-CL-343-gluoncv-xception',
+    # HarD Net
+    'vcls-10-900-0_tvmdlr': 'TVM-CL-344-harDNet68',
+    'vcls-10-901-0_tvmdlr': 'TVM-CL-345-harDNet85',
+    'vcls-10-902-0_tvmdlr': 'TVM-CL-346-harDNet68ds',
+    'vcls-10-903-0_tvmdlr': 'TVM-CL-347-harDNet39ds',
     
     # TVM - OD
     'vdet-12-012-0_tvmdlr': 'TVM-OD-500-ssd1200-resNet34-mlperf-1200x1200',
@@ -148,7 +154,7 @@ model_id_artifacts_pair = {
     'vseg-18-102-8_tvmdlr': 'TVM-SS-566-fpnlite-aspp-mobv2-ade20k32-qat-512x512', 
     'vseg-18-103-0_tvmdlr': 'TVM-SS-567-fpnlite-aspp-mobv2-1p4-ade20k32-512x512',
     'vseg-18-103-8_tvmdlr': 'TVM-SS-568-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512',
-    'vseg-18-110-0_tvmdlr': 'TVM-SS-569-fpnlite-aspp-regnetx400mf-ade20k32-512x512',
+    'vseg-18-110-0_tvmdlr': 'TVM-SS-569-fpnlite-aspp-regnetx400mf-ade20k32-384x384',
     'vseg-18-111-0_tvmdlr': 'TVM-SS-570-fpnlite-aspp-regnetx800mf-ade20k32-512x512',
 }
 
@@ -177,18 +183,15 @@ removed_model_list = {
     'vseg-16-400-0_tflitert': 'TFL-SS-255-deeplabv3-mobv2_cs-2048x1024',  # Kumar removed model, 
 
     #########################
-    'vseg-18-101-8_tvmdlr': 'TVM-SS-564-unetlite-aspp-mobv2-tv-ade20k32-qat-512x512', # import fails
-    'vseg-18-103-8_tvmdlr': 'TVM-SS-568-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512', # import fails
-    'vseg-18-100-8_tvmdlr': 'TVM-SS-562-deeplabv3lite-mobv2-ade20k32-qat-512x512', # PTQ accuracy is good QAT not needed
-    'vseg-18-102-8_tvmdlr': 'TVM-SS-566-fpnlite-aspp-mobv2-ade20k32-qat-512x512', # PTQ accuracy is good QAT not needed
     'vseg-17-010-0_tflitert': 'TFL-SS-250-deeplab-mobV2-ade20k-512x512', # Manu said incorrect model ID removed. vseg-17-010 is replaced with vseg-18-010
     'vcls-10-408-0_tvmdlr': 'TVM-CL-304-nasNet-mobile-tflite', # not part of benchmarking script yet. tflite model with TVM.
     'vcls-10-450-0_tflitert': 'TFL-CL-025-xceptionNet-tflite', # mxnet model replaced with with tflite model now. Eventually removed as size is quite big.
 
     #ADE20k32 models
-    'vseg-18-100-8_tvmdlr': 'TVM-SS-562-deeplabv3lite-mobv2-ade20k32-qat-512x512', # PTQ itself is good
-    'vseg-18-102-8_tvmdlr': 'TVM-SS-566-fpnlite-aspp-mobv2-ade20k32-qat-512x512', # PTQ itself is good
-    'vseg-18-103-8_tvmdlr': 'TVM-SS-568-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512', # PTQ itself is good
+    'vseg-18-100-8_tvmdlr': 'TVM-SS-562-deeplabv3lite-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
+    'vseg-18-101-8_tvmdlr': 'TVM-SS-564-unetlite-aspp-mobv2-tv-ade20k32-qat-512x512', # import fails
+    'vseg-18-102-8_tvmdlr': 'TVM-SS-566-fpnlite-aspp-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
+    'vseg-18-103-8_tvmdlr': 'TVM-SS-568-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
 
     #512x512 (Only for performance)
     'vcls-10-100-1_tvmdlr': 'TVM-CL-316-mobileNetV1-512x512',
