@@ -163,6 +163,9 @@ if __name__ == '__main__':
     parser.add_argument('--session_type_dict', type=str, nargs='*', default=None)
     cmds = parser.parse_args()
 
+    # this update condition is so that settings is not changed
+    # if an empty string is given from the commandline
+    # this makes it easy to select a suitable setting in the shell script
     dict_update_condition = lambda x:(x not in (None,''))
     kwargs = utils.dict_update_conditional({}, condition_fn=dict_update_condition,
                 configs_path=cmds.configs_path, modelzoo_path=cmds.modelzoo_path,
