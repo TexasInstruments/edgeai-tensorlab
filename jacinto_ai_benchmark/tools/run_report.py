@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import datetime
 import yaml
 import glob
 
@@ -127,7 +128,8 @@ def run_report(benchmark_dir, rewrite_results=True):
         results_collection.append(list(results_line_dict.values()))
     #
 
-    report_csv = os.path.join(benchmark_dir, 'report.csv')
+    date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    report_csv = os.path.join(benchmark_dir, f'report_{date}.csv')
     with open(report_csv, 'w') as wfp:
         for results_line in results_collection:
             results_line = [str(r) for r in results_line]
