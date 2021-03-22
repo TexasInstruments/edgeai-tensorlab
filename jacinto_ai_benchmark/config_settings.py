@@ -41,67 +41,6 @@ class ConfigSettings(config_dict.ConfigDict):
         self.quantization_params_qat = QuantizationParams(self.tidl_tensor_bits, self.max_frames_calib,
                                                  self.max_calib_iterations, is_qat=True)
 
-        # dataset settings
-        self.imagenet_cls_calib_cfg = dict(
-            path=f'{self.datasets_path}/imagenet/val',
-            split=f'{self.datasets_path}/imagenet/val.txt',
-            shuffle=True,
-            num_frames=self.quantization_params.get_num_frames_calib())
-
-        self.imagenet_cls_val_cfg = dict(
-            path=f'{self.datasets_path}/imagenet/val',
-            split=f'{self.datasets_path}/imagenet/val.txt',
-            shuffle=True,
-            num_frames=min(self.num_frames,50000))
-
-        self.coco_det_calib_cfg = dict(
-            path=f'{self.datasets_path}/coco',
-            split='val2017',
-            shuffle=True,
-            num_frames=self.quantization_params.get_num_frames_calib())
-
-        self.coco_det_val_cfg = dict(
-            path=f'{self.datasets_path}/coco',
-            split='val2017',
-            shuffle=False, #TODO: need to make COCODetection.evaluate() work with shuffle
-            num_frames=min(self.num_frames,5000))
-
-        self.cityscapes_seg_calib_cfg = dict(
-            path=f'{self.datasets_path}/cityscapes',
-            split='val',
-            shuffle=True,
-            num_frames=self.quantization_params.get_num_frames_calib())
-
-        self.cityscapes_seg_val_cfg = dict(
-            path=f'{self.datasets_path}/cityscapes',
-            split='val',
-            shuffle=True,
-            num_frames=min(self.num_frames,500))
-
-        self.ade20k_seg_calib_cfg = dict(
-            path=f'{self.datasets_path}/ADEChallengeData2016',
-            split='validation',
-            shuffle=True,
-            num_frames=self.quantization_params.get_num_frames_calib())
-
-        self.ade20k_seg_val_cfg = dict(
-            path=f'{self.datasets_path}/ADEChallengeData2016',
-            split='validation',
-            shuffle=True,
-            num_frames=min(self.num_frames, 2000))
-
-        self.voc_seg_calib_cfg = dict(
-            path=f'{self.datasets_path}/VOCdevkit/VOC2012',
-            split='val',
-            shuffle=True,
-            num_frames=self.quantization_params.get_num_frames_calib())
-
-        self.voc_seg_val_cfg = dict(
-            path=f'{self.datasets_path}/VOCdevkit/VOC2012',
-            split='val',
-            shuffle=True,
-            num_frames=min(self.num_frames, 1449))
-
     def get_session_name_to_cfg_dict(self, is_qat):
         quantization_params = self.quantization_params_qat if is_qat else self.quantization_params
         session_name_to_cfg_dict = dict()
@@ -131,23 +70,6 @@ class ConfigSettings(config_dict.ConfigDict):
     def get_session_type(self, model_type_or_session_name):
         session_name = self.get_session_name(model_type_or_session_name)
         return sessions.get_session_name_to_type_dict()[session_name]
-
-
-    ###############################################################
-    # utility functions
-    ###############################################################
-    def in_dataset_loading(self, dataset_name):
-        if self.dataset_loading is False:
-            return False
-        #
-        if self.dataset_loading is True or self.dataset_loading is None:
-            return True
-        #
-        dataset_loading = utils.as_list(self.dataset_loading)
-        if dataset_name in dataset_loading:
-            return True
-        #
-        return False
 
     ###############################################################
     # preprocess transforms

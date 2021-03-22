@@ -42,31 +42,110 @@ def get_datasets(settings, download=False):
                      'ade20k_class32':{'calibration_dataset':None, 'input_dataset':None},
                      'voc2012':{'calibration_dataset':None, 'input_dataset':None},
                      }
-    if settings.in_dataset_loading('imagenet'):
-        dataset_cache['imagenet']['calibration_dataset'] = datasets.ImageNetCls(**settings.imagenet_cls_calib_cfg, download=download)
-        dataset_cache['imagenet']['input_dataset'] = datasets.ImageNetCls(**settings.imagenet_cls_val_cfg, download=download)
+
+    if in_dataset_loading(settings, 'imagenet'):
+        # dataset settings
+        imagenet_cls_calib_cfg = dict(
+            path=f'{settings.datasets_path}/imagenet/val',
+            split=f'{settings.datasets_path}/imagenet/val.txt',
+            shuffle=True,
+            num_frames=settings.quantization_params.get_num_frames_calib())
+        imagenet_cls_val_cfg = dict(
+            path=f'{settings.datasets_path}/imagenet/val',
+            split=f'{settings.datasets_path}/imagenet/val.txt',
+            shuffle=True,
+            num_frames=min(settings.num_frames,50000))
+        dataset_cache['imagenet']['calibration_dataset'] = datasets.ImageNetCls(**imagenet_cls_calib_cfg, download=download)
+        dataset_cache['imagenet']['input_dataset'] = datasets.ImageNetCls(**imagenet_cls_val_cfg, download=download)
     #
-    if settings.in_dataset_loading('coco'):
-        dataset_cache['coco']['calibration_dataset'] = datasets.COCODetection(**settings.coco_det_calib_cfg, download=download)
-        dataset_cache['coco']['input_dataset'] = datasets.COCODetection(**settings.coco_det_val_cfg, download=download)
+    if in_dataset_loading(settings, 'coco'):
+        coco_det_calib_cfg = dict(
+            path=f'{settings.datasets_path}/coco',
+            split='val2017',
+            shuffle=True,
+            num_frames=settings.quantization_params.get_num_frames_calib())
+        coco_det_val_cfg = dict(
+            path=f'{settings.datasets_path}/coco',
+            split='val2017',
+            shuffle=False, #TODO: need to make COCODetection.evaluate() work with shuffle
+            num_frames=min(settings.num_frames,5000))
+        dataset_cache['coco']['calibration_dataset'] = datasets.COCODetection(**coco_det_calib_cfg, download=download)
+        dataset_cache['coco']['input_dataset'] = datasets.COCODetection(**coco_det_val_cfg, download=download)
     #
-    if settings.in_dataset_loading('cityscapes'):
-        dataset_cache['cityscapes']['calibration_dataset'] = datasets.CityscapesSegmentation(**settings.cityscapes_seg_calib_cfg, download=False)
-        dataset_cache['cityscapes']['input_dataset'] = datasets.CityscapesSegmentation(**settings.cityscapes_seg_val_cfg, download=False)
+    if in_dataset_loading(settings, 'cityscapes'):
+        cityscapes_seg_calib_cfg = dict(
+            path=f'{settings.datasets_path}/cityscapes',
+            split='val',
+            shuffle=True,
+            num_frames=settings.quantization_params.get_num_frames_calib())
+
+        cityscapes_seg_val_cfg = dict(
+            path=f'{settings.datasets_path}/cityscapes',
+            split='val',
+            shuffle=True,
+            num_frames=min(settings.num_frames,500))
+        dataset_cache['cityscapes']['calibration_dataset'] = datasets.CityscapesSegmentation(**cityscapes_seg_calib_cfg, download=False)
+        dataset_cache['cityscapes']['input_dataset'] = datasets.CityscapesSegmentation(**cityscapes_seg_val_cfg, download=False)
     #
-    if settings.in_dataset_loading('ade20k'):
-        dataset_cache['ade20k']['calibration_dataset'] = datasets.ADE20KSegmentation(**settings.ade20k_seg_calib_cfg, download=download)
-        dataset_cache['ade20k']['input_dataset'] = datasets.ADE20KSegmentation(**settings.ade20k_seg_val_cfg, download=download)
+    if in_dataset_loading(settings, 'ade20k'):
+        ade20k_seg_calib_cfg = dict(
+            path=f'{settings.datasets_path}/ADEChallengeData2016',
+            split='validation',
+            shuffle=True,
+            num_frames=settings.quantization_params.get_num_frames_calib())
+
+        ade20k_seg_val_cfg = dict(
+            path=f'{settings.datasets_path}/ADEChallengeData2016',
+            split='validation',
+            shuffle=True,
+            num_frames=min(settings.num_frames, 2000))
+        dataset_cache['ade20k']['calibration_dataset'] = datasets.ADE20KSegmentation(**ade20k_seg_calib_cfg, download=download)
+        dataset_cache['ade20k']['input_dataset'] = datasets.ADE20KSegmentation(**ade20k_seg_val_cfg, download=download)
     #
-    if settings.in_dataset_loading('ade20k_class32'):
-        dataset_cache['ade20k_class32']['calibration_dataset'] = datasets.ADE20KSegmentation(**settings.ade20k_seg_calib_cfg, num_classes=32, download=download)
-        dataset_cache['ade20k_class32']['input_dataset'] = datasets.ADE20KSegmentation(**settings.ade20k_seg_val_cfg, num_classes=32, download=download)
+    if in_dataset_loading(settings, 'ade20k_class32'):
+        ade20k_seg_calib_cfg = dict(
+            path=f'{settings.datasets_path}/ADEChallengeData2016',
+            split='validation',
+            shuffle=True,
+            num_frames=settings.quantization_params.get_num_frames_calib())
+
+        ade20k_seg_val_cfg = dict(
+            path=f'{settings.datasets_path}/ADEChallengeData2016',
+            split='validation',
+            shuffle=True,
+            num_frames=min(settings.num_frames, 2000))
+        dataset_cache['ade20k_class32']['calibration_dataset'] = datasets.ADE20KSegmentation(**ade20k_seg_calib_cfg, num_classes=32, download=download)
+        dataset_cache['ade20k_class32']['input_dataset'] = datasets.ADE20KSegmentation(**ade20k_seg_val_cfg, num_classes=32, download=download)
     #
-    if settings.in_dataset_loading('voc2012'):
-        dataset_cache['voc2012']['calibration_dataset'] = datasets.VOC2012Segmentation(**settings.voc_seg_calib_cfg, download=download)
-        dataset_cache['voc2012']['input_dataset'] = datasets.VOC2012Segmentation(**settings.voc_seg_val_cfg, download=download)
+    if in_dataset_loading(settings, 'voc2012'):
+        voc_seg_calib_cfg = dict(
+            path=f'{settings.datasets_path}/VOCdevkit/VOC2012',
+            split='val',
+            shuffle=True,
+            num_frames=settings.quantization_params.get_num_frames_calib())
+        voc_seg_val_cfg = dict(
+            path=f'{settings.datasets_path}/VOCdevkit/VOC2012',
+            split='val',
+            shuffle=True,
+            num_frames=min(settings.num_frames, 1449))
+        dataset_cache['voc2012']['calibration_dataset'] = datasets.VOC2012Segmentation(**voc_seg_calib_cfg, download=download)
+        dataset_cache['voc2012']['input_dataset'] = datasets.VOC2012Segmentation(**voc_seg_val_cfg, download=download)
     #
     return dataset_cache
+
+
+def in_dataset_loading(settings, dataset_name):
+    if settings.dataset_loading is False:
+        return False
+    #
+    if settings.dataset_loading is True or settings.dataset_loading is None:
+        return True
+    #
+    dataset_loading = utils.as_list(settings.dataset_loading)
+    if dataset_name in dataset_loading:
+        return True
+    #
+    return False
 
 
 def download_datasets(settings):
