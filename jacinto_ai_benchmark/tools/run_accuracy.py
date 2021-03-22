@@ -28,14 +28,17 @@
 
 import os
 import argparse
-from .. import configs, pipelines, config_settings
+from .. import utils, pipelines, config_settings
 
 __all__ = ['run_accuracy']
 
 
 def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_func=None):
     # get the default configs if pipeline_configs is not given from outside
-    pipeline_configs = configs.get_configs(settings, work_dir) if pipeline_configs is None else pipeline_configs
+    if pipeline_configs is None:
+        benchmark_configs = utils.import_folder(settings.configs_path)
+        pipeline_configs = benchmark_configs.get_configs(settings, work_dir)
+    #
 
     # create the pipeline_runner which will manage the sessions.
     pipeline_runner = pipelines.PipelineRunner(settings, pipeline_configs)
@@ -91,10 +94,6 @@ def main():
     expt_name = os.path.splitext(os.path.basename(__file__))[0]
     work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tidl_tensor_bits}bits')
     print(f'work_dir: {work_dir}')
-
-    # check the datasets and download if they are missing
-    download_ok = configs.download_datasets(settings)
-    print(f'download_ok: {download_ok}')
 
     run_accuracy(settings, work_dir)
 

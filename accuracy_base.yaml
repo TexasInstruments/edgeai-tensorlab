@@ -19,9 +19,9 @@ max_frames_calib : 50 #100
 max_calib_iterations : 50
 # folder where benchmark configs are defined. this should be python importable
 # # if this is None, the internally defined minimal set of configs will be used
-configs_path : null
+configs_path : './examples/configs'
 # clone the modelzoo repo and make sure this folder is available.
-modelzoo_path : './dependencies/examples/models'
+modelzoo_path : './examples/models'
 # create your datasets under this folder
 datasets_path : './dependencies/datasets'
 # quantization bit precision

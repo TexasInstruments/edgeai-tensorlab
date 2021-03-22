@@ -92,10 +92,10 @@ class ConfigDict(dict):
         # number of itrations to be used for post training quantization / calibration
         self.max_calib_iterations = 50
         # folder where benchmark configs are defined. this should be python importable
-        # if this is None, the internally defined minimal set of configs will be used
-        self.configs_path = None
+        # by default, the internally defined minimal set of configs will be used
+        self.configs_path = './examples/configs'
         # clone the modelzoo repo and make sure this folder is available.
-        self.modelzoo_path = './dependencies/examples/models'
+        self.modelzoo_path = './examples/models'
         # create your datasets under this folder
         self.datasets_path = f'./dependencies/datasets'
         # important parameter. set this to 'pc' to do import and inference in pc
