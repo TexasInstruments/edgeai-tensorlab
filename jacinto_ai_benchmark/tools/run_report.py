@@ -35,15 +35,39 @@ metric_keys = ['accuracy_top1%', 'accuracy_mean_iou%', 'accuracy_ap[.5:.95]%']
 result_keys = ['num_subgraphs', 'infer_time_core_ms', 'ddr_transfer_mb', 'perfsim_ddr_transfer_mb', 'perfsim_gmacs']
 
 
-def run_report(benchmark_dir):
+def run_rewrite_results(work_dir, results_yaml):
+    run_dirs = glob.glob(f'{work_dir}/*')
+    results = {}
+    for run_dir in run_dirs:
+        if os.path.isdir(run_dir):
+            try:
+                result_yaml = os.path.join(run_dir, 'result.yaml')
+                with open(result_yaml) as fp:
+                    result = yaml.safe_load(fp)
+                    model_id = result['session']['model_id']
+                    results[model_id] = result
+                #
+            except:
+                pass
+        #
+    #
+    with open(results_yaml, 'w') as rfp:
+        yaml.safe_dump(results, rfp)
+    #
+
+
+def run_report(benchmark_dir, rewrite_results=True):
     work_dirs = glob.glob(f'{benchmark_dir}/*')
     work_dirs = [f for f in work_dirs if os.path.isdir(f)]
     work_dirs = [d for d in work_dirs if os.path.basename(d) in ['8bits', '16bits', '32bits']]
 
     results_collection = dict()
     for work_dir in work_dirs:
-        tidl_tensor_bits = os.path.split(work_dir)[-1]
         results_yaml = os.path.join(work_dir, 'results.yaml')
+        if rewrite_results:
+            run_rewrite_results(work_dir, results_yaml)
+        #
+        tidl_tensor_bits = os.path.split(work_dir)[-1]
         with open(results_yaml) as rfp:
             results = yaml.safe_load(rfp)
             results_collection[tidl_tensor_bits] = results

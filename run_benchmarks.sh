@@ -74,11 +74,10 @@ echo "==================================================================="
 ulimit -s 32768
 
 # use one of the several predefined settings files
-# accuracy_full_pc.yaml
-# accuracy_minimal_pc.yaml
 # accuracy_import_for_j7.yaml
 # accuracy_infer_on_j7.yaml
-settings_file=accuracy_minimal_pc.yaml
+# accuracy_import_infer_pc.yaml
+settings_file=accuracy_import_infer_pc.yaml
 
 
 # run all the shortlisted models with these settings
@@ -89,7 +88,8 @@ python3 ./scripts/benchmark_accuracy.py ${settings_file} \
 # run few selected models with these settings
 python3 ./scripts/benchmark_accuracy.py ${settings_file} \
         --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
-        --model_selection classification+onnx segmentation+onnx
+        --task_selection classification segmentation \
+        --model_selection onnx
 
 
 # run all the supported models with default settings

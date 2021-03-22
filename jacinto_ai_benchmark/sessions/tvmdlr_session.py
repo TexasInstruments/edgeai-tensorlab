@@ -173,7 +173,6 @@ class TVMDLRSession(BaseRTSession):
         return interpreter
 
     def _set_default_options(self):
-        compiler_options = self.kwargs.get("compiler_options", {})
         default_options = {
             'platform':self.kwargs.get('platform', 'J7'),
             'version':self.kwargs.get('version', (7,0)),
@@ -188,9 +187,10 @@ class TVMDLRSession(BaseRTSession):
             'enable_high_resolution_optimization':self.kwargs.get('enable_high_resolution_optimization', 'off'),
             'tidl_calibration_accuracy_level':self.kwargs.get('tidl_calibration_accuracy_level', 1),
             'tidl_calibration_options':self.kwargs.get('tidl_calibration_options', {}),
-            'reserved_compile_constraints_flag':self.kwargs.get('reserved_compile_constraints_flag', 0),
+            'reserved_compile_constraints_flag':self.kwargs.get('reserved_compile_constraints_flag', None)
         }
-        compiler_options.update(default_options)
+        compiler_options = self.kwargs.get("compiler_options", {})
+        compiler_options = utils.dict_update_conditional(compiler_options, default_options, inplace=True)
         self.kwargs['compiler_options'] = compiler_options
 
     def _get_input_shape_onnx(self, onnx_model):

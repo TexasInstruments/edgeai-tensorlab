@@ -40,6 +40,19 @@ def dict_update(src_dict, *args, inplace=False, **kwargs):
     return new_dict
 
 
+def dict_update_conditional(src_dict, *args, inplace=False, **kwargs):
+    def _update_conditional(new_dict, arg):
+        conditional_arg = {k: v for k,v in arg.items() if v is not None}
+        new_dict.update(conditional_arg)
+    #
+    new_dict = src_dict if inplace else src_dict.copy()
+    for arg in args:
+        assert isinstance(arg, dict), 'arguments must be dict or keywords'
+        _update_conditional(new_dict, arg)
+    #
+    _update_conditional(new_dict, kwargs)
+    return new_dict
+
 def dict_merge(target_dict, src_dict, inplace=False):
     target_dict = target_dict if inplace else target_dict.copy()
     assert isinstance(target_dict, dict), 'destination must be a dict'

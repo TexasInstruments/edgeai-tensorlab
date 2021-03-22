@@ -1,0 +1,64 @@
+# execution pipeline type - currently only accuracy pipeline is defined
+pipeline_type : 'accuracy'
+# important parameter. set this to 'pc' to do import and inference in pc
+# set this to 'j7' to run inference in device. for inference on device run_import
+# below should be switched off and it is assumed that the artifacts are already created.
+target_device : 'pc' #'j7' #'pc'
+# run import of the model - only to be used in pc - set this to False for j7 evm
+# for pc this can be True or False
+run_import : True
+# run inference - for inference in j7 evm, it is assumed that the artifacts folders are already available
+run_inference : True
+# collect final accuracy results
+collect_results : True
+# number of frames for inference
+num_frames : 1000 #10000 #50000
+# number of frames to be used for post training quantization / calibration
+max_frames_calib : 10 #50 #100
+# number of itrations to be used for post training quantization / calibration
+max_calib_iterations : 10 #50
+# folder where benchmark configs are defined. this should be python importable
+# # if this is None, the internally defined minimal set of configs will be used
+configs_path : null
+# clone the modelzoo repo and make sure this folder is available.
+modelzoo_path : './dependencies/examples/models'
+# create your datasets under this folder
+datasets_path : './dependencies/datasets'
+# quantization bit precision
+tidl_tensor_bits : 8 #8 #16 #32
+# for parallel execution on pc only (cpu or gpu(. if you don't have gpu, these actual numbers don't matter,
+# but the size of teh list determines the number of parallel processes
+# if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
+# null will run the models sequentially.
+parallel_devices : null
+# exclude from running, these models
+# example: ['voc']
+# example: ['cityscapes']
+# example: ['vcls-10-306-0', 'vcls-10-404-0', 'vcls-10-434-0', 'vcls-10-442-0', 'vseg-16-300-0', 'vseg-16-301-0', 'vseg-16-400-0']
+model_exclusion: null
+# wild card list to match against the tasks. it null, all tasks will be run
+# example: ['classification', 'detection', 'segmentation']
+# example: 'classification'
+# example: null (Note: null means no filter - run all the tasks)
+task_selection : null
+# session types to use for each model type
+session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
+# which configs to run from the default list. example [0,10] [10,null] etc.
+# this range will be applied after applying model_selection and short-listing
+# null will run all the configs
+config_range : null
+# whether to load the datasets or not. set to False to load no datasets
+# set to True to try and load all datasets (the dataset folders must be available in ./dependencies/datasets).
+# for selective loading, provide a list of dataset names such as ['imagenet', 'coco', 'cityscapes', 'ade20k', 'voc2012']
+dataset_loading : True
+# logging of the import, infer and the accuracy. set to False to disable it.
+enable_logging : True
+# verbose mode - print out more information
+verbose : False
+### detection threshold
+detection_thr : 0.05
+# save detection, segmentation output
+save_output : False
+# wild card list to match against the model_path, model_type, model_id
+# only models matching these criteria will be considered - even for model_selection
+model_shortlist : null

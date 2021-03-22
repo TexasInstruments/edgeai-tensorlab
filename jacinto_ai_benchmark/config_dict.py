@@ -91,17 +91,20 @@ class ConfigDict(dict):
         self.max_frames_calib = 50 #100
         # number of itrations to be used for post training quantization / calibration
         self.max_calib_iterations = 50
+        # folder where benchmark configs are defined. this should be python importable
+        # if this is None, the internally defined minimal set of configs will be used
+        self.configs_path = None
         # clone the modelzoo repo and make sure this folder is available.
-        self.modelzoo_path = '../jacinto-ai-modelzoo/models'
+        self.modelzoo_path = './dependencies/examples/models'
         # create your datasets under this folder
         self.datasets_path = f'./dependencies/datasets'
         # important parameter. set this to 'pc' to do import and inference in pc
         # set this to 'j7' to run inference in device. for inference on device run_import
         # below should be switched off and it is assumed that the artifacts are already created.
         self.target_device = 'pc' #'j7' #'pc'
-        # for parallel execution on pc (cpu or gpu). if you don't have gpu, these actual numbers don't matter,
+        # for parallel execution on pc only (cpu or gpu(. if you don't have gpu, these actual numbers don't matter,
         # but the size of teh list determines the number of parallel processes
-        # if you have gpu's these entries can be gpu ids which will be used to set CUDA_VISIBLE_DEVICES
+        # if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
         self.parallel_devices = None #[0,1,2,3,0,1,2,3]
         # quantization bit precision
         self.tidl_tensor_bits = 8 #8 #16 #32

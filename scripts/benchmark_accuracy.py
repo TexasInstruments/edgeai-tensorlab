@@ -39,11 +39,15 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('settings_file', type=str)
+    parser.add_argument('--task_selection', type=str, nargs='*')
     parser.add_argument('--model_selection', type=str, nargs='*')
     parser.add_argument('--session_type_dict', type=str, nargs='*')
     cmds = parser.parse_args()
 
     kwargs = dict()
+    if cmds.task_selection is not None:
+        kwargs.update({'task_selection':cmds.task_selection})
+    #
     if cmds.model_selection is not None:
         kwargs.update({'model_selection':cmds.model_selection})
     #
@@ -61,5 +65,12 @@ if __name__ == '__main__':
     download_ok = configs.download_datasets(settings)
     print(f'download_ok: {download_ok}')
 
+    if settings.configs_path is not None:
+        benchmark_configs = utils.import_folder(settings.configs_path)
+        pipeline_configs = benchmark_configs.get_configs(settings, work_dir)
+    else:
+        pipeline_configs = None
+    #
+
     # run the accuracy pipeline
-    tools.run_accuracy(settings, work_dir)
+    tools.run_accuracy(settings, work_dir, pipeline_configs)

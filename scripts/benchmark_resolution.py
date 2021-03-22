@@ -164,8 +164,15 @@ if __name__ == '__main__':
     work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tidl_tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
+    if settings.configs_path is not None:
+        benchmark_configs = utils.import_folder(settings.configs_path)
+        pipeline_configs = benchmark_configs.get_configs(settings, work_dir)
+    else:
+        pipeline_configs = None
+    #
+
     # pass a function to modify the pipelines to add the various resolutions
     modify_pipelines_func = functools.partial(modify_pipelines, cmds)
 
     # run the accuracy pipeline
-    tools.run_accuracy(settings, work_dir, modify_pipelines_func=modify_pipelines_func)
+    tools.run_accuracy(settings, work_dir, pipeline_configs, modify_pipelines_func=modify_pipelines_func)

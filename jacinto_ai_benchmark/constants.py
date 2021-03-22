@@ -45,11 +45,14 @@ MEGA_CONST = 1e6  # convert raw data to mega : example bytes to mega bytes (MB)
 GIGA_CONST = 1e9
 ULTRA_CONST = 1e6
 
-SESSION_NAME_TVMDLR = 'tvmdlr'
-SESSION_NAME_TFLITERT = 'tflitert'
-SESSION_NAME_ONNXRT = 'onnxrt'
-
+# supported model types
 MODEL_TYPE_ONNX = 'onnx'
 MODEL_TYPE_TFLITE = 'tflite'
 MODEL_TYPE_MXNET = 'mxnet'
+MODEL_TYPES = [MODEL_TYPE_ONNX, MODEL_TYPE_TFLITE, MODEL_TYPE_MXNET]
 
+# supported session names
+SESSION_NAME_TVMDLR = 'tvmdlr'
+SESSION_NAME_TFLITERT = 'tflitert'
+SESSION_NAME_ONNXRT = 'onnxrt'
+SESSION_NAMES = [SESSION_NAME_TVMDLR, SESSION_NAME_TFLITERT, SESSION_NAME_ONNXRT]

@@ -119,12 +119,12 @@ class TFLiteRTSession(BaseRTSession):
             "pre_batchnorm_fold": self.kwargs.get("pre_batchnorm_fold",1),
             "enable_high_resolution_optimization": self.kwargs.get("enable_high_resolution_optimization",'no'),
             "tidl_calibration_accuracy_level": self.kwargs.get("tidl_calibration_accuracy_level", 1),
-            "reserved_compile_constraints_flag": self.kwargs.get("reserved_compile_constraints_flag",0),
+            'reserved_compile_constraints_flag':self.kwargs.get('reserved_compile_constraints_flag', None)
         }
         tidl_calibration_options = {k:v for k,v in self.kwargs.items() if k.startswith('tidl_calibration_options:')}
         delegate_options.update(tidl_calibration_options)
         delegate_options.update(required_options)
-        delegate_options.update(optional_options)
+        delegate_options = utils.dict_update_conditional(delegate_options, optional_options, inplace=True)
         self.kwargs["delegate_options"] = delegate_options
 
     def _get_input_shape_tflite(self):

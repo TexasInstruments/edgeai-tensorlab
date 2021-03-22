@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import cv2
-from . import utils, preprocess, postprocess, constants
+from . import utils, preprocess, postprocess, constants, sessions
 from . import config_dict
 
 
@@ -109,6 +109,29 @@ class ConfigSettings(config_dict.ConfigDict):
         session_name_to_cfg_dict[constants.SESSION_NAME_TFLITERT] = quantization_params.get_session_tflitert_cfg()
         session_name_to_cfg_dict[constants.SESSION_NAME_ONNXRT] = quantization_params.get_session_onnxrt_cfg()
         return session_name_to_cfg_dict
+
+    def get_session_name(self, model_type_or_session_name):
+        assert model_type_or_session_name in constants.MODEL_TYPES + constants.SESSION_NAMES, \
+            f'get_session_cfg: input must be one of model_types: {constants.MODEL_TYPES} ' \
+            f'or session_names: {constants.SESSION_NAMES}'
+        if model_type_or_session_name in constants.MODEL_TYPES:
+            model_type = model_type_or_session_name
+            session_name = self.session_type_dict[model_type]
+        else:
+            session_name = model_type_or_session_name
+        #
+        assert session_name in constants.SESSION_NAMES, \
+            f'get_session_cfg: invalid session_name: {session_name}'
+        return session_name
+
+    def get_session_cfg(self, model_type_or_session_name, is_qat):
+        session_name = self.get_session_name(model_type_or_session_name)
+        return self.get_session_name_to_cfg_dict(is_qat)[session_name]
+
+    def get_session_type(self, model_type_or_session_name):
+        session_name = self.get_session_name(model_type_or_session_name)
+        return sessions.get_session_name_to_type_dict()[session_name]
+
 
     ###############################################################
     # utility functions
@@ -295,3 +318,5 @@ class QuantizationParams():
         }
         session_onnxrt_cfg.update({'tidl_calibration_options:'+k:v for k,v in self.get_tidl_calibration_options().items()})
         return session_onnxrt_cfg
+
+

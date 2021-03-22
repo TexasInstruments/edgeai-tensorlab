@@ -31,45 +31,40 @@ import os
 import shutil
 import tarfile
 import yaml
+import glob
 from .. import configs, pipelines, utils
 
 
-def run_package(settings, work_dir, out_dir, pipeline_configs=None):
-    # get the default configs if pipeline_configs is not given from outside
-    pipeline_configs = configs.get_configs(settings, work_dir) if pipeline_configs is None else pipeline_configs
-
-    # create the pipeline_runner which will manage the sessions.
-    pipeline_runner = pipelines.PipelineRunner(settings, pipeline_configs)
-
+def run_package(settings, work_dir, out_dir):
     # now write out the package
-    package_artifacts(settings, work_dir, out_dir, pipeline_runner.pipeline_configs)
+    package_artifacts(settings, work_dir, out_dir)
 
 
-def package_artifact(pipeline_config, package_dir, make_package_tar=True, make_package_dir=False):
+def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, make_package_dir=False):
     input_files = []
     packaged_files = []
 
-    run_dir = pipeline_config['session'].get_param('run_dir')
+    run_dir = pipeline_param['session']['run_dir']
     if not os.path.exists(run_dir):
         print(f'could not find: {run_dir}')
-        return
+        return None
     #
 
-    artifacts_folder = pipeline_config['session'].get_param('artifacts_folder')
+    artifacts_folder = pipeline_param['session']['artifacts_folder']
     if not os.path.exists(artifacts_folder):
         print(f'could not find: {artifacts_folder}')
-        return
+        return None
     #
 
-    # make the top level package_dir
-    os.makedirs(package_dir, exist_ok=True)
+    # make the top level out_dir
+    os.makedirs(out_dir, exist_ok=True)
 
     # the output run folder
-    package_run_dir = os.path.join(package_dir, os.path.basename(run_dir))
+    package_run_dir = os.path.join(out_dir, os.path.basename(run_dir))
 
     # local model folder
-    model_folder = pipeline_config['session'].get_param('model_folder')
-    model_path = pipeline_config['session'].get_param('model_path')
+    model_folder = pipeline_param['session']['model_folder']
+    model_path = pipeline_param['session']['model_path']
     relative_model_dir = os.path.basename(model_folder)
     if isinstance(model_path, (list,tuple)):
         relative_model_path = [os.path.join(relative_model_dir, os.path.basename(m)) for m in model_path]
@@ -78,12 +73,11 @@ def package_artifact(pipeline_config, package_dir, make_package_tar=True, make_p
     #
 
     # local artifacts folder
-    artifacts_folder = pipeline_config['session'].get_param('artifacts_folder')
+    artifacts_folder = pipeline_param['session']['artifacts_folder']
     relative_artifacts_dir = os.path.basename(artifacts_folder)
 
     # create the param file in source folder with relative paths
     param_file = os.path.join(run_dir, 'param.yaml')
-    pipeline_param = pipelines.collect_param(pipeline_config)
     pipeline_param = copy.deepcopy(pipeline_param)
     pipeline_param = utils.pretty_object(pipeline_param)
     pipeline_param['session']['run_dir'] = os.path.basename(run_dir)
@@ -136,25 +130,37 @@ def package_artifact(pipeline_config, package_dir, make_package_tar=True, make_p
         #
         tfp.close()
     else:
-        tarfile_name = None
+        package_run_dir = None
     #
-    return pipeline_param, tarfile_name
+    return package_run_dir
 
 
-def package_artifacts(settings, work_dir, out_dir, pipeline_configs):
+def package_artifacts(settings, work_dir, out_dir):
     print(f'packaging artifacts to {out_dir} please wait...')
+    run_dirs = glob.glob(f'{work_dir}/*')
+
     tarfile_names = []
-    for pipeline_id, pipeline_config in pipeline_configs.items():
-        pipeline_param, tarfile_name = package_artifact(pipeline_config, out_dir)
-        task_type = pipeline_config['task_type']
-        tarfile_name = os.path.basename(tarfile_name)
-        # model_name = tarfile_name.replace('.tar.gz','').split('_')
-        # model_name = model_name[2:] if len(model_name)>2 else model_name
-        # model_name = '_'.join(model_name)
-        model_path = pipeline_param['session']['model_path']
-        model_path = model_path[0] if isinstance(model_path, (list,tuple)) else model_path
-        model_name = os.path.basename(model_path)
-        tarfile_names.append(','.join([task_type, tarfile_name, model_name]))
+    for run_dir in run_dirs:
+        if not os.path.isdir(run_dir):
+            continue
+        #
+        try:
+            result_yaml = os.path.join(run_dir, 'result.yaml')
+            with open(result_yaml) as fp:
+                pipeline_param = yaml.safe_load(fp)
+            #
+            package_run_dir = package_artifact(pipeline_param, work_dir, out_dir)
+            if package_run_dir is not None:
+                task_type = pipeline_param['task_type']
+                package_run_dir = os.path.basename(package_run_dir)
+                model_path = pipeline_param['session']['model_path']
+                model_path = model_path[0] if isinstance(model_path, (list,tuple)) else model_path
+                model_name = os.path.basename(model_path)
+                tarfile_names.append(','.join([task_type, package_run_dir, model_name]))
+            #
+        except:
+            print(f'could not package: {run_dir}')
+        #
     #
     model_list = '\n'.join(tarfile_names)
     with open(os.path.join(out_dir,'model.list'), 'w') as fp:
