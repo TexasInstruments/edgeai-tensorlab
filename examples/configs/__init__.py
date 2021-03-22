@@ -159,10 +159,8 @@ def print_all_configs(pipeline_configs=None, enable_print=False):
 
 def get_configs(settings, work_dir):
     # load the datasets - it is done only once and re-used for all configs
-    if settings.dataset_cache is None:
-        settings.dataset_cache = get_datasets(settings, download=True)
-        print(f'datasets_ok: {True}')
-    #
+    settings.dataset_cache = get_datasets(settings, download=True)
+    print(f'datasets_ok: {True}')
 
     pipeline_configs = {}
     # merge all the config dictionaries
