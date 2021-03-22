@@ -27,34 +27,32 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import sys
 import argparse
 from jacinto_ai_benchmark import *
 
 
 if __name__ == '__main__':
+    print(sys.argv)
     # the cwd must be the root of the respository
     if os.path.split(os.getcwd())[-1] == 'scripts':
         os.chdir('../')
     #
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('settings_file', type=str)
-    parser.add_argument('--task_selection', type=str, nargs='*')
-    parser.add_argument('--model_selection', type=str, nargs='*')
-    parser.add_argument('--session_type_dict', type=str, nargs='*')
+    parser.add_argument('settings_file', type=str, default=None)
+    parser.add_argument('--configs_path', type=str, default=None)
+    parser.add_argument('--modelzoo_path', type=str, default=None)
+    parser.add_argument('--task_selection', type=str, nargs='*', default=None)
+    parser.add_argument('--model_selection', type=str, nargs='*', default=None)
+    parser.add_argument('--session_type_dict', type=str, nargs='*', default=None)
     cmds = parser.parse_args()
 
-    kwargs = dict()
-    if cmds.task_selection is not None:
-        kwargs.update({'task_selection':cmds.task_selection})
-    #
-    if cmds.model_selection is not None:
-        kwargs.update({'model_selection':cmds.model_selection})
-    #
-    if cmds.session_type_dict is not None:
-        cmds.session_type_dict = utils.str_to_dict(cmds.session_type_dict)
-        kwargs.update({'session_type_dict':cmds.session_type_dict})
-    #
+    dict_update_condition = lambda x:(x not in (None,''))
+    kwargs = utils.dict_update_conditional({}, condition_fn=dict_update_condition,
+                configs_path=cmds.configs_path, modelzoo_path=cmds.modelzoo_path,
+                task_selection=cmds.task_selection, model_selection=cmds.model_selection,
+                session_type_dict=utils.str_to_dict(cmds.session_type_dict))
     settings = config_settings.ConfigSettings(cmds.settings_file, **kwargs)
 
     expt_name = os.path.splitext(os.path.basename(__file__))[0]

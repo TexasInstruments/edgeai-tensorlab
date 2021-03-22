@@ -74,19 +74,31 @@ echo "==================================================================="
 ulimit -s 32768
 
 # use one of the several predefined settings files
-# accuracy_import_for_j7.yaml
-# accuracy_infer_on_j7.yaml
-# accuracy_import_infer_pc.yaml
+# settings_file=accuracy_import_for_j7.yaml
+# settings_file=accuracy_infer_on_j7.yaml
+# settings_file=accuracy_import_infer_pc.yaml
 settings_file=accuracy_import_infer_pc.yaml
+
+# use one of the following
+# configs_path=""
+# configs_path=../jacinto-ai-modelzoo/configs
+configs_path=""
+
+# use one of the following
+# modelzoo_path=""
+# modelzoo_path=../jacinto-ai-modelzoo/models
+modelzoo_path=""
 
 
 # run all the shortlisted models with these settings
 python3 ./scripts/benchmark_accuracy.py ${settings_file} \
+        --configs_path=${configs_path} --modelzoo_path=${modelzoo_path} \
         --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'}
 
 
 # run few selected models with these settings
 python3 ./scripts/benchmark_accuracy.py ${settings_file} \
+        --configs_path=${configs_path} --modelzoo_path=${modelzoo_path} \
         --session_type_dict {'onnx': 'onnxrt', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
         --task_selection classification segmentation \
         --model_selection onnx

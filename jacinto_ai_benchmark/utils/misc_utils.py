@@ -40,9 +40,10 @@ def dict_update(src_dict, *args, inplace=False, **kwargs):
     return new_dict
 
 
-def dict_update_conditional(src_dict, *args, inplace=False, **kwargs):
+def dict_update_conditional(src_dict, *args, inplace=False, condition_fn=None, **kwargs):
+    condition_fn = condition_fn if condition_fn is not None else lambda x: (x is not None)
     def _update_conditional(new_dict, arg):
-        conditional_arg = {k: v for k,v in arg.items() if v is not None}
+        conditional_arg = {k: v for k,v in arg.items() if condition_fn(v)}
         new_dict.update(conditional_arg)
     #
     new_dict = src_dict if inplace else src_dict.copy()
@@ -134,6 +135,9 @@ def pretty_object(d, precision=3, depth=5):
 
 
 def str_to_dict(input):
+    if input is None:
+        return None
+    #
     if isinstance(input, list):
         input = ' '.join(input)
     #

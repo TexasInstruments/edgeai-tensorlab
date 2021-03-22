@@ -19,9 +19,9 @@ max_frames_calib : 50 #100
 max_calib_iterations : 50
 # folder where benchmark configs are defined. this should be python importable
 # # if this is None, the internally defined minimal set of configs will be used
-configs_path :  './jacinto-ai-modelzoo/configs'
+configs_path : null
 # clone the modelzoo repo and make sure this folder is available.
-modelzoo_path : './jacinto-ai-modelzoo/models'
+modelzoo_path : './dependencies/examples/models'
 # create your datasets under this folder
 datasets_path : './dependencies/datasets'
 # quantization bit precision
@@ -31,6 +31,10 @@ tidl_tensor_bits : 8 #8 #16 #32
 # if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
 # null will run the models sequentially.
 parallel_devices : null
+# wild card list to match against the model_path - if null, all models wil be run
+# examples: ['classification'] ['imagenet1k'] ['torchvision']
+# examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
+model_selection : null
 # exclude from running, these models
 # example: ['voc']
 # example: ['cityscapes']

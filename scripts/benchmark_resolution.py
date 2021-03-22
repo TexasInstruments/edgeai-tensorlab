@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import sys
 import argparse
 import functools
 import warnings
@@ -134,17 +135,15 @@ def modify_pipelines(cmds, pipeline_configs_in):
 
 
 if __name__ == '__main__':
+    print(f'argv={sys.argv}')
     # the cwd must be the root of the respository
     if os.path.split(os.getcwd())[-1] == 'scripts':
         os.chdir('../')
     #
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('settings_file', type=str)
-    parser.add_argument('--input_sizes', nargs='*', type=int, default=[512, 1024])
-    cmds = parser.parse_args()
-
-    model_selection = [
+    configs_path_default = '../jacinto-ai-modelzoo/configs'
+    modelzoo_path_default = '../jacinto-ai-modelzoo/models'
+    model_selection_default = [
                        'jai-pytorch/mobilenet_v1_20190906-171544_opset9.onnx',
                        'jai-pytorch/mobilenet_v2_20191224-153212_opset9.onnx',
                        'jai-pytorch/mobilenet_v2_1p4_qat-jai_20210112-093313_opset9.onnx',
@@ -155,10 +154,23 @@ if __name__ == '__main__':
                        'pycls/RegNetX-1.6GF_dds_8gpu_opset9.onnx'
                       ]
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('settings_file', type=str, default=None)
+    parser.add_argument('--configs_path', type=str, default=configs_path_default)
+    parser.add_argument('--modelzoo_path', type=str, default=modelzoo_path_default)
+    parser.add_argument('--task_selection', type=str, nargs='*', default=None)
+    parser.add_argument('--model_selection', type=str, nargs='*', default=model_selection_default)
+    parser.add_argument('--session_type_dict', type=str, nargs='*', default=None)
+    cmds = parser.parse_args()
+
+    dict_update_condition = lambda x:(x not in (None,''))
+    kwargs = utils.dict_update_conditional({}, condition_fn=dict_update_condition,
+                configs_path=cmds.configs_path, modelzoo_path=cmds.modelzoo_path,
+                task_selection=cmds.task_selection, model_selection=cmds.model_selection,
+                session_type_dict=utils.str_to_dict(cmds.session_type_dict))
     # for performance measurement, we need to use only one frame
     settings = config_settings.ConfigSettings(cmds.settings_file,
-            num_frames=1, max_frames_calib=1, max_calib_iterations=1,
-            model_selection=model_selection)
+        num_frames=1, max_frames_calib=1, max_calib_iterations=1, **kwargs)
 
     expt_name = os.path.splitext(os.path.basename(__file__))[0]
     work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tidl_tensor_bits}bits')
