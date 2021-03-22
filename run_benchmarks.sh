@@ -73,21 +73,20 @@ echo "==================================================================="
 # increase the stack size as it can help in some models
 ulimit -s 32768
 
-# use one of the several predefined settings files
+# uncomment only one of the following
 # settings_file=accuracy_import_for_j7.yaml
 # settings_file=accuracy_infer_on_j7.yaml
-# settings_file=accuracy_import_infer_pc.yaml
 settings_file=accuracy_import_infer_pc.yaml
 
-# use one of the following
-# configs_path=""
-# configs_path=../jacinto-ai-modelzoo/configs
-configs_path=""
 
-# use one of the following
+# uncomment only one of the following
+# configs_path=""
+configs_path=../jacinto-ai-modelzoo/configs
+# configs_path=""
+
+# uncomment only one of the following
+modelzoo_path=../jacinto-ai-modelzoo/models
 # modelzoo_path=""
-# modelzoo_path=../jacinto-ai-modelzoo/models
-modelzoo_path=""
 
 
 # run all the shortlisted models with these settings
