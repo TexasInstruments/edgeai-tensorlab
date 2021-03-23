@@ -6,13 +6,25 @@ This repository is part of Jacinto-AI-DevKit, which is a collection of repositor
 
 
 ## Introduction
-This repository provides a collection of example Deep Learning Models for various image recognition tasks such as classification, segmentation and detection. Scripts are provided for Model Import/Calibration, Inference and Accuracy benchmarking. 
+This repository provides a collection of scripts for various image recognition tasks such as classification, segmentation and detection. Scripts are provided for Model Import/Calibration, Inference and Accuracy benchmarking of Deep Learning Models. 
 
-The models in this repository are expected to run on the Jacinto7 family of SoCs. RTOS SDK for Jacinto 7 is required to run these. Please visit **[Processor SDK for Jacinto 7 TDA4x](https://www.ti.com/tool/PROCESSOR-SDK-J721E)** and from there navigate to **[RTOS SDK for Jacinto 7 TDA4x](https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E)** to download and untar/extract the RTOS SDK on your Ubuntu desktop machine. RTOS SDK for Jacinto 7 TDA4x provides TI Deep Learning Library (TIDL) which is an optimized library that can run Neural Networks. TIDL can directly accept the models using its config files. TIDL can also accept these models through some of the popular open source runtimes such as TVM+DLR, TFLite and ONNXRuntime. For more information how to obtain and use these runtimes that offload to TIDL, please go through the TIDL documentation in the RTOS SDK.
+Deep Learning models can be run using RTOS SDK for Jacinto 7 (PROCESSOR-SDK-RTOS-J721E), which can be downloaded from the page for Processor SDK for Jacinto 7 TDA4x a.k.a. **[PROCESSOR-SDK-J721E](https://www.ti.com/tool/PROCESSOR-SDK-J721E)**. 
 
-This repository is generic and can be used with a variety of runtimes and models supported by TIDL. We also provide several Deep Learning Models ready to be used for this benchmark in the repository **[Jacinto-AI-ModelZoo](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse)**. Please clone that repository. That repository uses git-lfs, so please install git-lfs before cloning. After cloning, **jacinto-ai-benchmark** and **jacinto-ai-modelzoo** must be in the same parent folder. 
+RTOS SDK for Jacinto 7 TDA4x provides TI Deep Learning Library (TIDL) which is an optimized library that can run Deep Neural Networks. TIDL provides several familiar interfaces for model inference - such as onnxruntime, tflite_runtime and tvm/dlr. All these runtimes that are provided as part of TIDL have extensions on top of public domain runtimes that allow us to offload model execution into our high performance C7x+MMA DSP. For more information how to obtain and use these runtimes, please go through the TIDL documentation in the RTOS SDK. The documentation of TIDL can be seen if you click on the "SDK Documentation" link in the download page for [PROCESSOR-SDK-RTOS-J721E)](https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E)
 
 **Important Note**: This repository is being made available for experimentation, analysis and research - this is not meant for deployment in production.  We do not own the datasets that are used to train or evaluate the models used in this benchmark and some of these datasets have restrictions on how they can be used.
+
+
+### Components of this repository
+This repository is generic and can be used with a variety of runtimes and models supported by TIDL. This repository contains three parts:
+- [jacinto_ai_benchmark](./jacinto_ai_benchmark): Core scritps for core import/calibration, inference and accuracy benchmark scripts provided as a python package (that can be imported using: import jacinto_ai_benchmark or using: from jacinto_ai_benchmark import *)
+- [examples/models](./examples//models): a minimal set of Deep Learning models - just for demonstrating the capabilities of jacinto_ai_benchmark
+- [examples/configs](./examples/configs): config files for using the above models
+
+### Additional models and config files (optional)
+- We also provide several additional Deep Learning Models ready to be used in our SoCs the repository **[Jacinto-AI-ModelZoo](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse)**. Please clone that repository. That repository uses git-lfs, so please install git-lfs before cloning. After cloning, **jacinto-ai-benchmark** and **jacinto-ai-modelzoo** must be in the same parent folder. 
+- the models are located in the folder [jacinto-ai-modelzoo/models](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/models)
+- the config files for those models are located in the folder [jacinto-ai-modelzoo/configs](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/models)
 
 
 ## Requirements 
@@ -57,21 +69,31 @@ It you start the download and interrupt it in between, the datasets may be parti
 
 ## Usage
 
+#### Accuracy Benchmarking
+- Accuracy benchmark can be done by running [run_benchmarks.sh](./run_benchmarks.sh)
+- [run_benchmarks.sh](../run_benchmarks.sh) sets up some environment variables and then runs the benchmark code provided in [scripts/benchmark_accuracy.py](./scripts/benchmark_accuracy.py) using one of the yaml settings files.
+- For full fledged benchmarking on pc, you can use the yaml file [accuracy_import_infer_pc.yaml](./accuracy_import_infer_pc.yaml)
+- Change the yaml settings file appropriately to run on J7 EVM. [accuracy_import_for_j7.yaml](./accuracy_import_for_j7.yaml) can be used to run the import/calibration of the models on PC, but targeted for the J7 platform. This will create the imported artifacts corresponding to the models in the folder specified as work_dir in the benchmark script. 
+- Finally [accuracy_infer_on_j7.yaml](./accuracy_infer_on_j7.yaml) can be used when running the benchmark on the J7 EVM. This step will need the folder containing imported artifacts - so copy them over to the EVM or mount that folder via NFS.
+- By default, the accuracy benchmark script uses our pre-defined models and configs, provided in [examples](./examples) folder.
+- If you would like to use the models and configs provided in jacinto-ai-modelzoo, please change the configs_path and modelzoo_path to that location, as shown in [run_benchmarks.sh](../run_benchmarks.sh) 
+- If you would like to do accuracy benchmark for your own custom model, then please look at the example given in [scripts/benchmark_custom.py](./scripts/benchmark_custom.py).
+
+
+#### Generate report
+- A CSV report containing all your benchmarking resutls can be generated by running [scripts/generate_report.py](./scripts/generate_report.py)
+
+
+### Package artifacts
+- The original artifacts folder contains several files that are generated during import/calibration. Only some of the files are needed for final inference. The artifacts and models can be packaged for sharing by running [scripts/package_artifacts.py](./scripts/package_artifacts.py) 
+
+
 #### Tutorial
 - Samples Jupyter Notebook tutorials are in [tutorials](./tutorials)
 - Start the Jupyter Notebook by running [./run_tutorials.sh](./run_tutorials.sh) and then select a notebook in the tutorials folder.
 - Notice how we use settings to limit the benchmark only to a couple of networks and only the 'imagenet' dataset by setting the parameter 'dataset_loading'. 
 - This kind of limiting helps you to focus on the networks and datasets that you are interested in. Such parameters can be set either in the yaml file being used (see the .sh file) or passed as arguments while creating ConfigSettings() in th code.
 - Run that example benchmarking by running the the cells in the Notebook. 
-
-#### Accuracy Benchmarking
-- Accuracy benchmark can be done by running [run_benchmarks.sh](./run_benchmarks.sh)
-- [run_benchmarks.sh](../run_benchmarks.sh) sets up some environment variables and then runs the benchmark code provided in [scripts/benchmark_accuracy.py](./scripts/benchmark_accuracy.py) using the settings defined in [accuracy_minimal_pc.yaml](accuracy_minimal_pc.yaml) - this is to run a sample benchmark on PC. 
-- For full fledged benchmarking, you can use the yaml file [accuracy_full_pc.yaml](./accuracy_full_pc.yaml)
-- Change the yaml settings file appropriately to run on J7 EVM. [accuracy_import_for_j7.yaml](./accuracy_import_for_j7.yaml) can be used to run the import/calibration of the models on PC, but targeted for the J7 platform. This will create the imported artifacts corresponding to the models in the folder specified as work_dir in the benchmark script. 
-- Finally [accuracy_infer_on_j7.yaml](./accuracy_infer_on_j7.yaml) can be used when running the benchmark on the J7 EVM. This step will need the folder containing imported artifacts - so copy them over to the EVM or mount that folder via NFS.
-- By default, the accuracy benchmark script uses our pre-defined models, defined in [jacinto_ai_benchmark/configs](./jacinto_ai_benchmark/configs).
-- If you would like to do accuracy benchmark for your own custom model, then please look at the example given in [scripts/custom_example.py](./scripts/custom_example.py).
 
 
 ## References
