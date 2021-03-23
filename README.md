@@ -1,6 +1,5 @@
 # Accuracy Benchmark for Jacinto 7
 
-
 #### Notice
 This repository is part of Jacinto-AI-DevKit, which is a collection of repositories providing Training & Quantization scripts, Model Zoo and Accuracy Benchmarks. If you have not visited the landing page of [**Jacinto-AI-Devkit**](https://github.com/TexasInstruments/jacinto-ai-devkit) please do so before attempting to use this repository.
 
@@ -15,16 +14,12 @@ RTOS SDK for Jacinto 7 TDA4x provides TI Deep Learning Library (TIDL) which is a
 **Important Note**: This repository is being made available for experimentation, analysis and research - this is not meant for deployment in production.  We do not own the datasets that are used to train or evaluate the models used in this benchmark and some of these datasets have restrictions on how they can be used.
 
 
-### Components of this repository
-This repository is generic and can be used with a variety of runtimes and models supported by TIDL. This repository contains three parts:
+## Components of this repository
+This repository is generic and can be used with a variety of runtimes and models supported by TIDL. This repository contains several parts:
 - [jacinto_ai_benchmark](./jacinto_ai_benchmark): Core scritps for core import/calibration, inference and accuracy benchmark scripts provided as a python package (that can be imported using: import jacinto_ai_benchmark or using: from jacinto_ai_benchmark import *)
 - [examples/models](./examples//models): a minimal set of Deep Learning models - just for demonstrating the capabilities of jacinto_ai_benchmark
 - [examples/configs](./examples/configs): config files for using the above models
-
-### Additional models and config files (optional)
-- We also provide several additional Deep Learning Models ready to be used in our SoCs the repository **[Jacinto-AI-ModelZoo](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse)**. Please clone that repository. That repository uses git-lfs, so please install git-lfs before cloning. After cloning, **jacinto-ai-benchmark** and **jacinto-ai-modelzoo** must be in the same parent folder. 
-- the models are located in the folder [jacinto-ai-modelzoo/models](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/models)
-- the config files for those models are located in the folder [jacinto-ai-modelzoo/configs](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/models)
+- [scripts](./scripts): these are the top level scripts - to import/calibrate models, to infer and do accuracy benchmark, to collect accuracy report and to package the generate artifacts.
 
 
 ## Requirements 
@@ -55,16 +50,14 @@ from jacinto_ai_benchmark import *
 ```
 
 ## Datasets
-This benchmark uses several datasets. They should be available at the following locations - if you have the datasets stored somewhere else, create the symbolic links as necessary:
-- ImageNet dataset validation split should be available in the path *dependencies/datasets/imagenet/val* and a text file describing the list of images and the corresponding ground truth classes must be available in *dependencies/datasets/imagenet/val.txt*
-- Cityscapes dataset should be available in the path *dependencies/datasets/cityscpaes* - we use only the validation split - which should be in the folders *dependencies/datasets/cityscpaes/cityscapes/leftImg8bit/val* and *dependencies/datasets/cityscpaes/cityscapes/gtFine/val*
-- COCO dataset should be available in the path *dependencies/datasets/coco* especially the folders *dependencies/datasets/coco/val2017* and *dependencies/datasets/coco/annotations*
-- ADE20K dataset should be available in the path *dependencies/datasets/ADEChallengeData2016*
-- PascalVOC2012 dataset should be available in the path *dependencies/datasets/VOCdevkit/VOC2012*
-
-We have support to support to download several of these datasets automatically - but the download may take several hours even with a good internet connection - that's why it's important to make the datasets available at the above locations to avoid that download - if you have them already.
-
-It you start the download and interrupt it in between, the datasets may be partially downloaded and it can lead to unexpected failures. If the download of a dataset is interrupted in between, delete that dataset folder manually to start over.
+This benchmark uses several datasets. We have support to support to download several of these datasets automatically. If you start the download and interrupt it in between, the datasets may be partially downloaded and it can lead to unexpected failures. If the download of a dataset is interrupted in between, delete that dataset folder manually to start over. Also, the download may take several hours even with a good internet connection - that's why it may be a good idea to make the datasets manually available at the expected locations to avoid that download - if you have them already.
+ 
+To make the datasets manually available, they should be placed at the following locations - if you have the datasets stored somewhere else, create the symbolic links as necessary:<br>
+- ImageNet dataset validation split should be available in the path *dependencies/datasets/imagenet/val* and a text file describing the list of images and the corresponding ground truth classes must be available in *dependencies/datasets/imagenet/val.txt*<br>
+- COCO dataset should be available in the path *dependencies/datasets/coco* especially the folders *dependencies/datasets/coco/val2017* and *dependencies/datasets/coco/annotations*<br>
+- ADE20K dataset should be available in the path *dependencies/datasets/ADEChallengeData2016*<br>
+- PascalVOC2012 dataset should be available in the path *dependencies/datasets/VOCdevkit/VOC2012*<br>
+- Cityscapes dataset  is not freely available for download, but you can obtain it by registering in the website. Cityscapes dataset (if used) should be available in the path *dependencies/datasets/cityscpaes* - we use only the validation split - which should be in the folders *dependencies/datasets/cityscpaes/cityscapes/leftImg8bit/val* and *dependencies/datasets/cityscpaes/cityscapes/gtFine/val*<br>
 
 
 ## Usage
@@ -84,16 +77,22 @@ It you start the download and interrupt it in between, the datasets may be parti
 - A CSV report containing all your benchmarking resutls can be generated by running [scripts/generate_report.py](./scripts/generate_report.py)
 
 
-### Package artifacts
+#### Package artifacts
 - The original artifacts folder contains several files that are generated during import/calibration. Only some of the files are needed for final inference. The artifacts and models can be packaged for sharing by running [scripts/package_artifacts.py](./scripts/package_artifacts.py) 
 
 
-#### Tutorial
-- Samples Jupyter Notebook tutorials are in [tutorials](./tutorials)
-- Start the Jupyter Notebook by running [./run_tutorials.sh](./run_tutorials.sh) and then select a notebook in the tutorials folder.
-- Notice how we use settings to limit the benchmark only to a couple of networks and only the 'imagenet' dataset by setting the parameter 'dataset_loading'. 
-- This kind of limiting helps you to focus on the networks and datasets that you are interested in. Such parameters can be set either in the yaml file being used (see the .sh file) or passed as arguments while creating ConfigSettings() in th code.
-- Run that example benchmarking by running the the cells in the Notebook. 
+## Additional models and config files in jacinto-ai-modelzoo (optional)
+- This repository provides only a minimal set of example models and configs.
+- We also provide several additional Deep Learning Models ready to be used in our SoCs in the repository **[Jacinto-AI-ModelZoo](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse)**. 
+- Please clone that repository to use it. That repository uses git-lfs, so please install git-lfs before cloning. After cloning, **jacinto-ai-benchmark** and **jacinto-ai-modelzoo** must be in the same parent folder. 
+- Change configs_path and models_path (either by changing run_benchmarks.sh or by changing the yaml settings file that it uses) to use the configs and models provided in that repository. 
+- the models are located in the folder [jacinto-ai-modelzoo/models](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/models)
+- the config files for those models are located in the folder [jacinto-ai-modelzoo/configs](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/configs)
+
+
+## Custom models and configs
+It is easy to benchmark your own models and configs using this repository. Please see the example provided in [scripts/benchmark_custom.py](./scripts/benchmark_custom.py)
+
 
 
 ## References
