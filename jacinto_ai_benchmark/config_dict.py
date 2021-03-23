@@ -94,8 +94,8 @@ class ConfigDict(dict):
         # folder where benchmark configs are defined. this should be python importable
         # by default, the internally defined minimal set of configs will be used
         self.configs_path = './examples/configs'
-        # clone the modelzoo repo and make sure this folder is available.
-        self.modelzoo_path = './examples/models'
+        # folder where models are available
+        self.models_path = './examples/models'
         # create your datasets under this folder
         self.datasets_path = f'./dependencies/datasets'
         # important parameter. set this to 'pc' to do import and inference in pc

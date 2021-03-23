@@ -93,21 +93,21 @@ def create_configs(settings, work_dir):
         'custom-example1': utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=sessions.ONNXRTSession(**common_session_cfg, **session_cfg_onnxrt,
-                model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_opset9.onnx')
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_opset9.onnx')
         ),
         # tensorflow/models: classification mobilenetv1_224x224 expected_metric: 71.0% top-1 accuracy
         'custom-example2': utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=sessions.TFLiteRTSession(**common_session_cfg, **session_cfg_tflitert,
-                model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_1.0_224.tflite'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_1.0_224.tflite'),
             metric=dict(label_offset_pred=-1)
         ),
         # mxnet : gluoncv model : classification - mobilenetv2_1.0 - accuracy: 72.04% top1
         'custom-example3': utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_mxnet(),
             session=sessions.TVMDLRSession(**common_session_cfg, **session_cfg_tvmdlr,
-                model_path=[f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-symbol.json',
-                            f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-0000.params'],
+                model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-symbol.json',
+                            f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,224,224)})
         )
     }

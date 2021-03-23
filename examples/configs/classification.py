@@ -67,7 +67,7 @@ def get_configs(settings, work_dir):
         'vcls-10-302-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, **onnx_session_cfg,
-                model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_opset9.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_opset9.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.88})
         ),
         #################################################################
@@ -77,8 +77,8 @@ def get_configs(settings, work_dir):
         'vcls-10-060-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(backend='cv2'),
             session=mxnet_session_type(**common_session_cfg, **mxnet_session_cfg,
-                model_path=[f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-symbol.json',
-                            f'{settings.modelzoo_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-0000.params'],
+                model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-symbol.json',
+                            f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,224,224)}),
             model_info=dict(metric_reference={'accuracy_top1%':72.04})
         ),
@@ -89,7 +89,7 @@ def get_configs(settings, work_dir):
         'vcls-10-010-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=tflite_session_type(**common_session_cfg, **tflite_session_cfg,
-                model_path=f'{settings.modelzoo_path}/vision/classification/imagenet1k/mlperf/mobilenet_v1_1.0_224.tflite'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/mobilenet_v1_1.0_224.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':71.676})
         ),

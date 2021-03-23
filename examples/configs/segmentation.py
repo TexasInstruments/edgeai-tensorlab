@@ -104,7 +104,7 @@ def get_configs(settings, work_dir):
         'vseg-18-100-0':utils.dict_update(ade20k_cfg_class32,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**common_session_cfg, **onnx_session_cfg,
-                model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k_class32/jai-pytorch/deeplabv3lite_mobilenetv2_tv_512x512_ade20k_class32_20210308-092104.onnx'),
+                model_path=f'{settings.models_path}/vision/segmentation/ade20k_class32/jai-pytorch/deeplabv3lite_mobilenetv2_tv_512x512_ade20k_class32_20210308-092104.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':51.22})
         ),
@@ -115,7 +115,7 @@ def get_configs(settings, work_dir):
         'vseg-18-010-0':utils.dict_update(ade20k_cfg_class32,
             preprocess=settings.get_preproc_tflite((512, 512), (512, 512), mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429), backend='cv2'),
             session=tflite_session_type(**common_session_cfg, **tflite_session_cfg,
-                 model_path=f'{settings.modelzoo_path}/vision/segmentation/ade20k_class32/mlperf/deeplabv3_mnv2_ade20k_float.tflite'),
+                 model_path=f'{settings.models_path}/vision/segmentation/ade20k_class32/mlperf/deeplabv3_mnv2_ade20k_float.tflite'),
             postprocess=postproc_segmenation_tflite,
             model_info=dict(metric_reference={'accuracy_mean_iou%':54.8})
         ),

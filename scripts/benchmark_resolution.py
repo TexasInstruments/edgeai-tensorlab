@@ -142,7 +142,7 @@ if __name__ == '__main__':
     #
 
     configs_path_default = '../jacinto-ai-modelzoo/configs'
-    modelzoo_path_default = '../jacinto-ai-modelzoo/models'
+    models_path_default = '../jacinto-ai-modelzoo/models'
     model_selection_default = [
                        'jai-pytorch/mobilenet_v1_20190906-171544_opset9.onnx',
                        'jai-pytorch/mobilenet_v2_20191224-153212_opset9.onnx',
@@ -157,7 +157,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('settings_file', type=str, default=None)
     parser.add_argument('--configs_path', type=str, default=configs_path_default)
-    parser.add_argument('--modelzoo_path', type=str, default=modelzoo_path_default)
+    parser.add_argument('--models_path', type=str, default=models_path_default)
     parser.add_argument('--task_selection', type=str, nargs='*', default=None)
     parser.add_argument('--model_selection', type=str, nargs='*', default=model_selection_default)
     parser.add_argument('--session_type_dict', type=str, nargs='*', default=None)
@@ -168,7 +168,7 @@ if __name__ == '__main__':
     # this makes it easy to select a suitable setting in the shell script
     dict_update_condition = lambda x:(x not in (None,''))
     kwargs = utils.dict_update_conditional({}, condition_fn=dict_update_condition,
-                configs_path=cmds.configs_path, modelzoo_path=cmds.modelzoo_path,
+                configs_path=cmds.configs_path, models_path=cmds.models_path,
                 task_selection=cmds.task_selection, model_selection=cmds.model_selection,
                 session_type_dict=utils.str_to_dict(cmds.session_type_dict))
     # for performance measurement, we need to use only one frame
