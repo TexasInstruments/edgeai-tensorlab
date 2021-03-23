@@ -81,23 +81,24 @@ settings_file=accuracy_import_infer_pc.yaml
 
 # uncomment only one of the following
 # configs_path=""
-configs_path=../jacinto-ai-modelzoo/configs
-# configs_path=""
+# configs_path=../jacinto-ai-modelzoo/configs
+configs_path=""
+
 
 # uncomment only one of the following
-modelzoo_path=../jacinto-ai-modelzoo/models
-# modelzoo_path=""
+# models_path=../jacinto-ai-modelzoo/models
+models_path=""
 
 
 # run all the shortlisted models with these settings
 python3 ./scripts/benchmark_accuracy.py ${settings_file} \
-        --configs_path=${configs_path} --modelzoo_path=${modelzoo_path} \
+        --configs_path=${configs_path} --models_path=${models_path} \
         --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'}
 
 
 # run few selected models with these settings
 python3 ./scripts/benchmark_accuracy.py ${settings_file} \
-        --configs_path=${configs_path} --modelzoo_path=${modelzoo_path} \
+        --configs_path=${configs_path} --models_path=${models_path} \
         --session_type_dict {'onnx': 'onnxrt', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
         --task_selection classification segmentation \
         --model_selection onnx
