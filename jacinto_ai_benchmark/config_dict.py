@@ -135,7 +135,7 @@ class ConfigDict(dict):
         # example: ['classification']
         self.task_selection = None
         # session types to use for each model type
-        self.session_type_dict = {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'}
+        self.session_type_dict = {'onnx': 'onnxrt', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'}
         # whether to load the datasets or not. set to False to load no datasets
         # set to True to try and load all datasets (the dataset folders must be available in ./dependencies/datasets).
         # for selective loading, provide a list of dataset names such as ['imagenet', 'coco', 'cityscapes', 'ade20k', 'voc2012']

@@ -46,7 +46,7 @@ model_exclusion: null
 # example: null (Note: null means no filter - run all the tasks)
 task_selection : null
 # session types to use for each model type
-session_type_dict : {'onnx':'tvmdlr', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
+session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
 # which configs to run from the default list. example [0,10] [10,null] etc.
 # this range will be applied after applying model_selection and short-listing
 # null will run all the configs
