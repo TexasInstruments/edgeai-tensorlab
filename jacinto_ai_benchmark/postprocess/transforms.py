@@ -102,6 +102,9 @@ class ShuffleList():
 class SegmentationImageResize():
     def __call__(self, label, info_dict):
         image_shape = info_dict['data_shape']
+        if label.dtype in (np.int32, np.int64):
+            label = label.astype(np.float32)
+        #
         label = cv2.resize(label, dsize=(image_shape[1],image_shape[0]), interpolation=cv2.INTER_NEAREST)
         return label, info_dict
 
