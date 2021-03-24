@@ -108,11 +108,11 @@ class ONNXRTSession(BaseRTSession):
         else:
             self.kwargs["runtime_options"]["import"] = "no"
         #
-        onnxruntime.capi._pybind_state.set_TIDLOnnxDelegate_options(self.kwargs["runtime_options"])
+        runtime_options = self.kwargs["runtime_options"]
         sess_options = onnxruntime.SessionOptions()
         ep_list = ['TIDLExecutionProvider','CPUExecutionProvider'] #['CPUExecutionProvider']
         interpreter = onnxruntime.InferenceSession(self.kwargs['model_path'], providers=ep_list,
-                                                   sess_options=sess_options)
+                                provider_options=[runtime_options, {}], sess_options=sess_options)
         return interpreter
 
     def _set_default_options(self):
