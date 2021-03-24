@@ -222,18 +222,21 @@ class QuantizationParams():
         return tidl_advanced_options
 
     def get_session_tvmdlr_cfg(self):
-        session_tvmdlr_cfg = self.get_tidl_basic_options()
-        session_tvmdlr_cfg.update({'advanced_options':self.get_tidl_advanced_options()})
+        runtime_options = self.get_tidl_basic_options()
+        runtime_options.update({'advanced_options':self.get_tidl_advanced_options()})
+        session_tvmdlr_cfg = {'runtime_options': runtime_options}
         return session_tvmdlr_cfg
 
     def get_session_tflitert_cfg(self):
-        session_tflitert_cfg = self.get_tidl_basic_options()
-        session_tflitert_cfg.update({'advanced_options:'+k:v for k,v in self.get_tidl_advanced_options().items()})
+        runtime_options = self.get_tidl_basic_options()
+        runtime_options.update({'advanced_options:'+k:v for k,v in self.get_tidl_advanced_options().items()})
+        session_tflitert_cfg = {'runtime_options': runtime_options}
         return session_tflitert_cfg
 
     def get_session_onnxrt_cfg(self):
-        session_onnxrt_cfg = self.get_tidl_basic_options()
-        session_onnxrt_cfg.update({'advanced_options:'+k:v for k,v in self.get_tidl_advanced_options().items()})
+        runtime_options = self.get_tidl_basic_options()
+        runtime_options.update({'advanced_options:'+k:v for k,v in self.get_tidl_advanced_options().items()})
+        session_onnxrt_cfg = {'runtime_options': runtime_options}
         return session_onnxrt_cfg
 
 

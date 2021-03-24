@@ -103,12 +103,12 @@ class ONNXRTSession(BaseRTSession):
     def _create_interpreter(self, is_import):
         # pass options to pybind
         if is_import:
-            self.kwargs["delegate_options"]["import"] = "yes"
+            self.kwargs["runtime_options"]["import"] = "yes"
             self._cleanup_artifacts()
         else:
-            self.kwargs["delegate_options"]["import"] = "no"
+            self.kwargs["runtime_options"]["import"] = "no"
         #
-        onnxruntime.capi._pybind_state.set_TIDLOnnxDelegate_options(self.kwargs["delegate_options"])
+        onnxruntime.capi._pybind_state.set_TIDLOnnxDelegate_options(self.kwargs["runtime_options"])
         sess_options = onnxruntime.SessionOptions()
         ep_list = ['TIDLExecutionProvider','CPUExecutionProvider'] #['CPUExecutionProvider']
         interpreter = onnxruntime.InferenceSession(self.kwargs['model_path'], providers=ep_list,
@@ -116,24 +116,18 @@ class ONNXRTSession(BaseRTSession):
         return interpreter
 
     def _set_default_options(self):
-        delegate_options = self.kwargs.get("delegate_options", {})
+        runtime_options = self.kwargs.get("runtime_options", {})
         tidl_tools_path = os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools')
         default_options = {
             "tidl_platform": "J7",
             "tidl_version": "7.2",
             "tidl_tools_path": self.kwargs.get("tidl_tools_path", tidl_tools_path),
             "artifacts_folder": self.kwargs['artifacts_folder'],
-            "import": self.kwargs.get("import", 'no'),
             "tidl_tensor_bits": self.kwargs.get("tidl_tensor_bits", 8),
-            "debug_level": self.kwargs.get("debug_level", None),
-            "tidl_denylist": self.kwargs.get("tidl_denylist", None),
-            "accuracy_level": self.kwargs.get("accuracy_level", None),
-            "max_num_subgraphs": self.kwargs.get("max_num_subgraphs", None),
+            "import": self.kwargs.get("import", 'no'),
         }
-        delegate_options = utils.dict_update_cond(delegate_options, default_options, inplace=True)
-        advanced_options = {k:v for k,v in self.kwargs.items() if k.startswith('advanced_options:')}
-        delegate_options.update(advanced_options)
-        self.kwargs["delegate_options"] = delegate_options
+        default_options.update(runtime_options)
+        self.kwargs["runtime_options"] = default_options
 
     def _get_input_shape_onnxrt(self):
         input_details = self.interpreter.get_inputs()

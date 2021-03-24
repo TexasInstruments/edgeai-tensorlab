@@ -93,7 +93,7 @@ class TVMDLRSession(BaseRTSession):
         #
 
         # Create the TIDL compiler with appropriate parameters
-        compiler = tidl.TIDLCompiler(**self.kwargs['compiler_options'])
+        compiler = tidl.TIDLCompiler(**self.kwargs['runtime_options'])
 
         supported_devices = self.kwargs['supported_devices'] if (self.kwargs['supported_devices'] is not None) \
             else (self.kwargs['target_device'],)
@@ -173,7 +173,7 @@ class TVMDLRSession(BaseRTSession):
         return interpreter
 
     def _set_default_options(self):
-        compiler_options = self.kwargs.get("compiler_options", {})
+        runtime_options = self.kwargs.get("runtime_options", {})
         tidl_tools_path = os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools')
         default_options = {
             'platform':self.kwargs.get('platform', 'J7'),
@@ -182,15 +182,9 @@ class TVMDLRSession(BaseRTSession):
             "tidl_tools_path": self.kwargs.get("tidl_tools_path", tidl_tools_path),
             'artifacts_folder':self.kwargs.get('artifacts_folder', None),
             'tidl_tensor_bits':self.kwargs.get('tidl_tensor_bits', 8),
-            "debug_level": self.kwargs.get("debug_level", None),
-            "tidl_denylist": self.kwargs.get("tidl_denylist", None),
-            "accuracy_level": self.kwargs.get("accuracy_level", None),
-            "max_num_subgraphs": self.kwargs.get("max_num_subgraphs", None),
         }
-        compiler_options = utils.dict_update_cond(compiler_options, default_options, inplace=True)
-        advanced_options = self.kwargs.get("advanced_options", {})
-        compiler_options = utils.dict_update_cond(compiler_options, advanced_options, inplace=True)
-        self.kwargs['compiler_options'] = compiler_options
+        default_options.update(runtime_options)
+        self.kwargs["runtime_options"] = default_options
 
     def _get_input_shape_onnx(self, onnx_model):
         input_shape = {}
