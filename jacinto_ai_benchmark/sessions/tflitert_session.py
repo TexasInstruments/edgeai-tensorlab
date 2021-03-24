@@ -103,28 +103,21 @@ class TFLiteRTSession(BaseRTSession):
     def _set_default_options(self):
         delegate_options = self.kwargs.get("delegate_options", {})
         tidl_tools_path = os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools')
-        required_options = {
-            "tidl_tools_path": self.kwargs.get("tidl_tools_path", tidl_tools_path),
-            "artifacts_folder": self.kwargs['artifacts_folder'],
-            "import": self.kwargs.get("import", 'no')
-        }
-        optional_options = {
+        default_options = {
             "tidl_platform": "J7",
             "tidl_version": "7.2",
+            "tidl_tools_path": self.kwargs.get("tidl_tools_path", tidl_tools_path),
+            "artifacts_folder": self.kwargs['artifacts_folder'],
+            "import": self.kwargs.get("import", 'no'),
             "tidl_tensor_bits": self.kwargs.get("tidl_tensor_bits", 8),
-            "num_tidl_subgraphs": self.kwargs.get("num_tidl_subgraphs", 16),
-            "debug_level": self.kwargs.get("debug_level", 0),
-            "tidl_denylist": self.kwargs.get("tidl_denylist", ""),
-            "power_of_2_quantization": self.kwargs.get("power_of_2_quantization",'no'),
-            "pre_batchnorm_fold": self.kwargs.get("pre_batchnorm_fold",1),
-            "enable_high_resolution_optimization": self.kwargs.get("enable_high_resolution_optimization",'no'),
-            "tidl_calibration_accuracy_level": self.kwargs.get("tidl_calibration_accuracy_level", 1),
-            'reserved_compile_constraints_flag':self.kwargs.get('reserved_compile_constraints_flag', None)
+            "debug_level": self.kwargs.get("debug_level", None),
+            "tidl_denylist": self.kwargs.get("tidl_denylist", None),
+            "accuracy_level": self.kwargs.get("accuracy_level", None),
+            "max_num_subgraphs": self.kwargs.get("max_num_subgraphs", None),
         }
-        tidl_calibration_options = {k:v for k,v in self.kwargs.items() if k.startswith('tidl_calibration_options:')}
-        delegate_options.update(tidl_calibration_options)
-        delegate_options.update(required_options)
-        delegate_options = utils.dict_update_conditional(delegate_options, optional_options, inplace=True)
+        delegate_options = utils.dict_update_cond(delegate_options, default_options, inplace=True)
+        advanced_options = {k:v for k,v in self.kwargs.items() if k.startswith('advanced_options:')}
+        delegate_options.update(advanced_options)
         self.kwargs["delegate_options"] = delegate_options
 
     def _get_input_shape_tflite(self):

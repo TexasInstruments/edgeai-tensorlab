@@ -206,39 +206,34 @@ class QuantizationParams():
     def get_tidl_calibration_accuracy_level(self):
         return 0 if self.tidl_tensor_bits != 8 or self.is_qat else 1
 
-    def get_tidl_calibration_options(self):
-        tidl_calibration_options = {
-            'num_frames_calibration': self.get_num_frames_calib(),
-            'bias_calibration_iterations': self.get_num_calib_iterations(),
+    def get_tidl_basic_options(self):
+        tidl_basic_options = {
+            'tidl_tensor_bits': self.tidl_tensor_bits,
+            'accuracy_level': self.get_tidl_calibration_accuracy_level(),
         }
-        return tidl_calibration_options
+        return tidl_basic_options
+
+    def get_tidl_advanced_options(self):
+        tidl_advanced_options = {
+            'calibration_frames': self.get_num_frames_calib(),
+            'calibration_iterations': self.get_num_calib_iterations(),
+            'quantization_scale_type': 1 if self.is_qat else 0
+        }
+        return tidl_advanced_options
 
     def get_session_tvmdlr_cfg(self):
-        session_tvmdlr_cfg = {
-            'tidl_tensor_bits': self.tidl_tensor_bits,
-            'power_of_2_quantization': 'on' if self.is_qat else 'off',
-            'tidl_calibration_accuracy_level': self.get_tidl_calibration_accuracy_level(),
-        }
-        session_tvmdlr_cfg.update({'tidl_calibration_options':self.get_tidl_calibration_options()})
+        session_tvmdlr_cfg = self.get_tidl_basic_options()
+        session_tvmdlr_cfg.update({'advanced_options':self.get_tidl_advanced_options()})
         return session_tvmdlr_cfg
 
     def get_session_tflitert_cfg(self):
-        session_tflitert_cfg = {
-            'tidl_tensor_bits': self.tidl_tensor_bits,
-            # TODO: is this correct
-            'power_of_2_quantization': 'yes' if self.is_qat else 'no',
-            'tidl_calibration_accuracy_level': self.get_tidl_calibration_accuracy_level(),
-        }
-        session_tflitert_cfg.update({'tidl_calibration_options:'+k:v for k,v in self.get_tidl_calibration_options().items()})
+        session_tflitert_cfg = self.get_tidl_basic_options()
+        session_tflitert_cfg.update({'advanced_options:'+k:v for k,v in self.get_tidl_advanced_options().items()})
         return session_tflitert_cfg
 
     def get_session_onnxrt_cfg(self):
-        session_onnxrt_cfg = {
-            'tidl_tensor_bits': self.tidl_tensor_bits,
-            'power_of_2_quantization': 'on' if self.is_qat else 'off',
-            'tidl_calibration_accuracy_level': self.get_tidl_calibration_accuracy_level(),
-        }
-        session_onnxrt_cfg.update({'tidl_calibration_options:'+k:v for k,v in self.get_tidl_calibration_options().items()})
+        session_onnxrt_cfg = self.get_tidl_basic_options()
+        session_onnxrt_cfg.update({'advanced_options:'+k:v for k,v in self.get_tidl_advanced_options().items()})
         return session_onnxrt_cfg
 
 

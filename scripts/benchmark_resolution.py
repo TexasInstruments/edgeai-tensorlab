@@ -167,7 +167,7 @@ if __name__ == '__main__':
     # if an empty string is given from the commandline
     # this makes it easy to select a suitable setting in the shell script
     dict_update_condition = lambda x:(x not in (None,''))
-    kwargs = utils.dict_update_conditional({}, condition_fn=dict_update_condition,
+    kwargs = utils.dict_update_cond({}, condition_fn=dict_update_condition,
                 configs_path=cmds.configs_path, models_path=cmds.models_path,
                 task_selection=cmds.task_selection, model_selection=cmds.model_selection,
                 session_type_dict=utils.str_to_dict(cmds.session_type_dict))
