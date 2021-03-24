@@ -210,32 +210,52 @@ class QuantizationParams():
         tidl_basic_options = {
             'tidl_tensor_bits': self.tidl_tensor_bits,
             'accuracy_level': self.get_tidl_calibration_accuracy_level(),
+            # debug level
+            'debug_level': 0,
         }
         return tidl_basic_options
 
     def get_tidl_advanced_options(self):
         tidl_advanced_options = {
+            # model optimization options
+            'high_resolution_optimization': 0,
+            'pre_batchnorm_fold': 1,
+            # quantization/calibration options
             'calibration_frames': self.get_num_frames_calib(),
             'calibration_iterations': self.get_num_calib_iterations(),
-            'quantization_scale_type': 1 if self.is_qat else 0
+            'quantization_scale_type': 1 if self.is_qat else 0,
+            # further quantization/calibration options - these take effect
+            # only if the accuracy_level in basic options is set to 9
+            'activation_clipping': 1,
+            'weight_clipping': 1,
+            'bias_calibration': 1,
+            'channel_wise_quantization': 0,
         }
         return tidl_advanced_options
 
     def get_session_tvmdlr_cfg(self):
         runtime_options = self.get_tidl_basic_options()
-        runtime_options.update({'advanced_options':self.get_tidl_advanced_options()})
+        advanced_options = self.get_tidl_advanced_options()
+        # tvmdlr can accept advanced options as a dictionary
+        runtime_options.update({'advanced_options':advanced_options})
         session_tvmdlr_cfg = {'runtime_options': runtime_options}
         return session_tvmdlr_cfg
 
     def get_session_tflitert_cfg(self):
         runtime_options = self.get_tidl_basic_options()
-        runtime_options.update({'advanced_options:'+k:v for k,v in self.get_tidl_advanced_options().items()})
+        advanced_options = self.get_tidl_advanced_options()
+        # tflitert requires the advanced options to be prefixed with advanced_options:
+        runtime_options.update({'advanced_options:'+k:v for k,v in advanced_options.items()})
         session_tflitert_cfg = {'runtime_options': runtime_options}
         return session_tflitert_cfg
 
     def get_session_onnxrt_cfg(self):
         runtime_options = self.get_tidl_basic_options()
-        runtime_options.update({'advanced_options:'+k:v for k,v in self.get_tidl_advanced_options().items()})
+        advanced_options = self.get_tidl_advanced_options()
+        # these mixed precision features are supported only on onnxrt as of now
+        advanced_options.update({'output_feature_16bit_names_list':'', 'params_16bit_names_list':''})
+        # onnxrt requires the advanced options to be prefixed with advanced_options:
+        runtime_options.update({'advanced_options:'+k:v for k,v in advanced_options.items()})
         session_onnxrt_cfg = {'runtime_options': runtime_options}
         return session_onnxrt_cfg
 
