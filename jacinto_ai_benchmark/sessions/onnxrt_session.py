@@ -110,7 +110,11 @@ class ONNXRTSession(BaseRTSession):
         #
         runtime_options = self.kwargs["runtime_options"]
         sess_options = onnxruntime.SessionOptions()
-        ep_list = ['TIDLExecutionProvider','CPUExecutionProvider'] #['CPUExecutionProvider']
+        if is_import:
+            ep_list = ['TIDLCompilationProvider','CPUExecutionProvider'] #['CPUExecutionProvider']
+        else:
+            ep_list = ['TIDLExecutionProvider','CPUExecutionProvider'] #['CPUExecutionProvider']
+        #
         interpreter = onnxruntime.InferenceSession(self.kwargs['model_path'], providers=ep_list,
                                 provider_options=[runtime_options, {}], sess_options=sess_options)
         return interpreter
