@@ -258,5 +258,3 @@ class QuantizationParams():
         runtime_options.update({'advanced_options:'+k:v for k,v in advanced_options.items()})
         session_onnxrt_cfg = {'runtime_options': runtime_options}
         return session_onnxrt_cfg
-
-
