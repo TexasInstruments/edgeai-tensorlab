@@ -68,10 +68,10 @@ def run_report(benchmark_dir, rewrite_results=True):
         if rewrite_results:
             run_rewrite_results(work_dir, results_yaml)
         #
-        tidl_tensor_bits = os.path.split(work_dir)[-1]
+        tensor_bits = os.path.split(work_dir)[-1]
         with open(results_yaml) as rfp:
             results = yaml.safe_load(rfp)
-            results_collection[tidl_tensor_bits] = results
+            results_collection[tensor_bits] = results
         #
     #
 

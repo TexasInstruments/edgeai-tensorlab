@@ -92,7 +92,7 @@ def main():
     settings = config_settings.ConfigSettings(cmds.settings_file)
 
     expt_name = os.path.splitext(os.path.basename(__file__))[0]
-    work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tidl_tensor_bits}bits')
+    work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
     run_accuracy(settings, work_dir)

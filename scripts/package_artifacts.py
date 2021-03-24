@@ -46,11 +46,11 @@ if __name__ == '__main__':
     cmds = parser.parse_args()
     settings = config_settings.ConfigSettings(cmds.settings_file)
 
-    work_dir = os.path.join('./work_dirs/benchmark_accuracy', f'{settings.tidl_tensor_bits}bits')
+    work_dir = os.path.join('./work_dirs/benchmark_accuracy', f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
     expt_name = os.path.splitext(os.path.basename(__file__))[0]
-    out_dir = os.path.join('./work_dirs', expt_name, f'{settings.tidl_tensor_bits}bits')
+    out_dir = os.path.join('./work_dirs', expt_name, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
     tools.run_package(settings, work_dir, out_dir)

@@ -107,7 +107,7 @@ class ConfigDict(dict):
         # if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
         self.parallel_devices = None #[0,1,2,3,0,1,2,3]
         # quantization bit precision
-        self.tidl_tensor_bits = 8 #8 #16 #32
+        self.tensor_bits = 8 #8 #16 #32
         # run import of the model - only to be used in pc - set this to False for j7 evm
         # for pc this can be True or False
         self.run_import = True

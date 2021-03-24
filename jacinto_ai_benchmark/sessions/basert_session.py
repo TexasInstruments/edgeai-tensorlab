@@ -65,7 +65,7 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['extra_inputs'] = self.kwargs.get('extra_inputs', None)
 
         # other parameters
-        self.kwargs['tidl_tensor_bits'] = self.kwargs.get('tidl_tensor_bits', 8)
+        self.kwargs['tensor_bits'] = self.kwargs.get('tensor_bits', 8)
 
         # check the target_device
         self.kwargs['supported_devices'] = self.kwargs.get('supported_devices', None) #TODO: change to => ('j7', 'pc')

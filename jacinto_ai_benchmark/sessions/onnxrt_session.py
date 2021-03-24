@@ -123,7 +123,7 @@ class ONNXRTSession(BaseRTSession):
             "tidl_version": "7.2",
             "tidl_tools_path": self.kwargs.get("tidl_tools_path", tidl_tools_path),
             "artifacts_folder": self.kwargs['artifacts_folder'],
-            "tidl_tensor_bits": self.kwargs.get("tidl_tensor_bits", 8),
+            "tensor_bits": self.kwargs.get("tensor_bits", 8),
             "import": self.kwargs.get("import", 'no'),
         }
         default_options.update(runtime_options)

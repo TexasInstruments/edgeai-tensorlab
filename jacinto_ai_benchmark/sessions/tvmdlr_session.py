@@ -181,7 +181,7 @@ class TVMDLRSession(BaseRTSession):
             'data_layout':self.kwargs.get('data_layout', constants.NCHW),
             "tidl_tools_path": self.kwargs.get("tidl_tools_path", tidl_tools_path),
             'artifacts_folder':self.kwargs.get('artifacts_folder', None),
-            'tidl_tensor_bits':self.kwargs.get('tidl_tensor_bits', 8),
+            'tensor_bits':self.kwargs.get('tensor_bits', 8),
         }
         default_options.update(runtime_options)
         self.kwargs["runtime_options"] = default_options

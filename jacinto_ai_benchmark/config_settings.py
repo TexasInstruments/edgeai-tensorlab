@@ -36,9 +36,9 @@ class ConfigSettings(config_dict.ConfigDict):
         super().__init__(input, **kwargs)
 
         # quantization params
-        self.quantization_params = QuantizationParams(self.tidl_tensor_bits, self.max_frames_calib,
+        self.quantization_params = QuantizationParams(self.tensor_bits, self.max_frames_calib,
                                                  self.max_calib_iterations, is_qat=False)
-        self.quantization_params_qat = QuantizationParams(self.tidl_tensor_bits, self.max_frames_calib,
+        self.quantization_params_qat = QuantizationParams(self.tensor_bits, self.max_frames_calib,
                                                  self.max_calib_iterations, is_qat=True)
 
     def get_session_name_to_cfg_dict(self, is_qat):
@@ -191,24 +191,24 @@ class ConfigSettings(config_dict.ConfigDict):
 ############################################################
 # quantization / calibration params
 class QuantizationParams():
-    def __init__(self, tidl_tensor_bits, max_frames_calib, max_calib_iterations, is_qat=False):
-        self.tidl_tensor_bits = tidl_tensor_bits
+    def __init__(self, tensor_bits, max_frames_calib, max_calib_iterations, is_qat=False):
+        self.tensor_bits = tensor_bits
         self.max_frames_calib = max_frames_calib
         self.max_calib_iterations = max_calib_iterations
         self.is_qat = is_qat
 
     def get_num_frames_calib(self):
-        return self.max_frames_calib if self.tidl_tensor_bits == 8 else 1
+        return self.max_frames_calib if self.tensor_bits == 8 else 1
 
     def get_num_calib_iterations(self):
-        return self.max_calib_iterations if self.tidl_tensor_bits == 8 else 1
+        return self.max_calib_iterations if self.tensor_bits == 8 else 1
 
     def get_tidl_calibration_accuracy_level(self):
-        return 0 if self.tidl_tensor_bits != 8 or self.is_qat else 1
+        return 0 if self.tensor_bits != 8 or self.is_qat else 1
 
     def get_tidl_basic_options(self):
         tidl_basic_options = {
-            'tidl_tensor_bits': self.tidl_tensor_bits,
+            'tensor_bits': self.tensor_bits,
             'accuracy_level': self.get_tidl_calibration_accuracy_level(),
             # debug level
             'debug_level': 0,

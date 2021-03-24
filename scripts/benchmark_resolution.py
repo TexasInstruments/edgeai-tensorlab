@@ -176,7 +176,7 @@ if __name__ == '__main__':
         num_frames=1, max_frames_calib=1, max_calib_iterations=1, **kwargs)
 
     expt_name = os.path.splitext(os.path.basename(__file__))[0]
-    work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tidl_tensor_bits}bits')
+    work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
     # pass a function to modify the pipelines to add the various resolutions
