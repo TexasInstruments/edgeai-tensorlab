@@ -25,7 +25,7 @@ models_path : '../jacinto-ai-modelzoo/models'
 # create your datasets under this folder
 datasets_path : './dependencies/datasets'
 # quantization bit precision
-tidl_tensor_bits : 8 #8 #16 #32
+tensor_bits : 8 #8 #16 #32
 # for parallel execution on pc only (cpu or gpu(. if you don't have gpu, these actual numbers don't matter,
 # but the size of teh list determines the number of parallel processes
 # if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
