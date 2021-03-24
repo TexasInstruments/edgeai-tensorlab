@@ -114,6 +114,11 @@ def create_configs(settings, work_dir):
     return pipeline_configs
 
 
+def download_datasets():
+    assert False, 'dataset downloading is not yet implemented.'
+    return False
+
+
 if __name__ == '__main__':
     # the cwd must be the root of the respository
     if os.path.split(os.getcwd())[-1] == 'scripts':
@@ -131,6 +136,10 @@ if __name__ == '__main__':
 
     # now run the actual pipeline
     pipeline_configs = create_configs(settings, work_dir)
+
+    # # check the datasets and download if they are missing
+    # download_ok = download_datasets(settings)
+    # print(f'download_ok: {download_ok}')
 
     # run the accuracy pipeline
     tools.run_accuracy(settings, work_dir, pipeline_configs)
