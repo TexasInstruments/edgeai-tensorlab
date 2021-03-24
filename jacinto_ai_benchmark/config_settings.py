@@ -230,6 +230,10 @@ class QuantizationParams():
             'weight_clipping': 1,
             'bias_calibration': 1,
             'channel_wise_quantization': 0,
+            # mixed precision options - this is just a placeholder
+            # output/params names need to be specified according to a particular model
+            'output_feature_16bit_names_list':'',
+            'params_16bit_names_list':''
         }
         return tidl_advanced_options
 
@@ -252,8 +256,6 @@ class QuantizationParams():
     def get_session_onnxrt_cfg(self):
         runtime_options = self.get_tidl_basic_options()
         advanced_options = self.get_tidl_advanced_options()
-        # these mixed precision features are supported only on onnxrt as of now
-        advanced_options.update({'output_feature_16bit_names_list':'', 'params_16bit_names_list':''})
         # onnxrt requires the advanced options to be prefixed with advanced_options:
         runtime_options.update({'advanced_options:'+k:v for k,v in advanced_options.items()})
         session_onnxrt_cfg = {'runtime_options': runtime_options}
