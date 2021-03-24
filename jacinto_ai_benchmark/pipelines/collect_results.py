@@ -35,18 +35,20 @@ from . import pipeline_utils
 def collect_results(settings, work_dir, pipeline_configs, print_results=True, update_params=False):
     param_results = {}
     for pipeline_id, pipeline_config in pipeline_configs.items():
+        session_name = pipeline_config['session']['session_name']
+        artifact_id = f'{pipeline_id}_{session_name}'
         # collect the result of the pipeline
         param_result = collect_result(settings, pipeline_config)
         # print the result if necessary
         if print_results:
-            print(f'{pipeline_id}: {utils.pretty_object(get_result(param_result))}')
+            print(f'{artifact_id}: {utils.pretty_object(get_result(param_result))}')
         #
         # if needed the params in result can be updated here
         if update_params and param_result is not None:
             param_dict = pipeline_utils.collect_param(pipeline_config)
             param_result.update(param_dict)
         #
-        param_results.update({pipeline_id: param_result})
+        param_results.update({artifact_id: param_result})
     #
     # sort the results based on keys
     param_results_keys = sorted(param_results.keys())

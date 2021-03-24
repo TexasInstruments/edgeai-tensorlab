@@ -38,23 +38,26 @@ result_keys = ['num_subgraphs', 'infer_time_core_ms', 'ddr_transfer_mb', 'perfsi
 
 def run_rewrite_results(work_dir, results_yaml):
     run_dirs = glob.glob(f'{work_dir}/*')
+    run_dirs = [f for f in run_dirs if os.path.isdir(f)]
     results = {}
     for run_dir in run_dirs:
-        if os.path.isdir(run_dir):
-            try:
-                result_yaml = os.path.join(run_dir, 'result.yaml')
-                with open(result_yaml) as fp:
-                    result = yaml.safe_load(fp)
-                    model_id = result['session']['model_id']
-                    results[model_id] = result
-                #
-            except:
-                pass
+        try:
+            result_yaml = os.path.join(run_dir, 'result.yaml')
+            with open(result_yaml) as fp:
+                result = yaml.safe_load(fp)
+                model_id = result['session']['model_id']
+                session_name = result['session']['session_name']
+                artifact_id = f'{model_id}_{session_name}'
+                results[artifact_id] = result
+            #
+        except:
+            pass
         #
     #
     with open(results_yaml, 'w') as rfp:
         yaml.safe_dump(results, rfp)
     #
+    return results
 
 
 def run_report(benchmark_dir, rewrite_results=True):
@@ -65,6 +68,8 @@ def run_report(benchmark_dir, rewrite_results=True):
     results_collection = dict()
     for work_dir in work_dirs:
         results_yaml = os.path.join(work_dir, 'results.yaml')
+        # the results.yaml that collect_results() write includes only the artifacts generated in that run
+        # but this rewrite_results will aggregate results from all the artifacts across all work_dirs.
         if rewrite_results:
             run_rewrite_results(work_dir, results_yaml)
         #
@@ -85,10 +90,11 @@ def run_report(benchmark_dir, rewrite_results=True):
                   result_keys + ['run_dir']
 
     results_collection.append(title_line)
-    for serial_num, (pipeline_id, pipeline_params_8bits) in enumerate(results_8bits.items()):
+    for serial_num, (artifact_id, pipeline_params_8bits) in enumerate(results_8bits.items()):
+        model_id = pipeline_params_8bits['session']['model_id']
         results_line_dict = {title_key:None for title_key in title_line}
-        results_line_dict['serial_num'] = serial_num
-        results_line_dict['model_id'] = pipeline_id
+        results_line_dict['serial_num'] = serial_num+1
+        results_line_dict['model_id'] = model_id
 
         metric_name, metric_8bits, metric_reference = get_metric(pipeline_params_8bits)
         if pipeline_params_8bits is not None:
@@ -106,13 +112,13 @@ def run_report(benchmark_dir, rewrite_results=True):
         results_line_dict['metric_8bits'] = metric_8bits
 
         if results_16bits is not None:
-            pipeline_params_16bits = results_16bits[pipeline_id] if pipeline_id in results_16bits else None
+            pipeline_params_16bits = results_16bits[artifact_id] if artifact_id in results_16bits else None
             _, metric_16bits, _ = get_metric(pipeline_params_16bits)
             results_line_dict['metric_16bits'] = metric_16bits
         #
 
         if results_32bits is not None:
-            pipeline_params_32bits = results_32bits[pipeline_id] if pipeline_id in results_32bits else None
+            pipeline_params_32bits = results_32bits[artifact_id] if artifact_id in results_32bits else None
             _, metric_32bits, _ = get_metric(pipeline_params_32bits)
             results_line_dict['metric_float'] = metric_32bits
         #
