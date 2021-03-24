@@ -93,9 +93,9 @@ class ConfigDict(dict):
         self.max_calib_iterations = 50
         # folder where benchmark configs are defined. this should be python importable
         # by default, the internally defined minimal set of configs will be used
-        self.configs_path = './examples/configs'
+        self.configs_path = '../jacinto-ai-modelzoo/configs'
         # folder where models are available
-        self.models_path = './examples/models'
+        self.models_path = '../jacinto-ai-modelzoo/models'
         # create your datasets under this folder
         self.datasets_path = f'./dependencies/datasets'
         # important parameter. set this to 'pc' to do import and inference in pc

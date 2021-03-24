@@ -80,14 +80,13 @@ settings_file=accuracy_import_infer_pc.yaml
 
 
 # uncomment only one of the following
-# configs_path=""
-# configs_path=../jacinto-ai-modelzoo/configs
-configs_path=""
+# configs_path=../jacinto-ai-modelforest/configs
+configs_path=../jacinto-ai-modelzoo/configs
 
 
 # uncomment only one of the following
-# models_path=../jacinto-ai-modelzoo/models
-models_path=""
+# models_path=../jacinto-ai-modelforest/models
+models_path=../jacinto-ai-modelzoo/models
 
 
 # run all the shortlisted models with these settings
