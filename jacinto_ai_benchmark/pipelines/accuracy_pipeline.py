@@ -67,10 +67,6 @@ class AccuracyPipeline():
         # run_dir is assigned after initialize is called in PipelineRunner
         # but it has not been created - it will be created in start
         run_dir = session.get_param('run_dir')
-        # if run_dir exists, import will be skipped
-        # this is to avoid accidentally overwriting the artifacts
-        # clear the run_dir to import once again
-        run_import = run_import and (not os.path.exists(run_dir))
         # start() must be called to create the required directories
         session.start()
         # collect the input params
@@ -81,6 +77,15 @@ class AccuracyPipeline():
         self.logger.write(f'\nrunning: {Fore.BLUE}{os.path.basename(run_dir)}{Fore.RESET}')
         self.logger.write(f'\npipeline_config: {self.pipeline_config}')
         # import.
+        # if run_dir exists, import will be skipped
+        # this is to avoid accidentally overwriting the artifacts
+        # clear the run_dir to import once again
+        if run_import and (os.path.exists(run_dir)):
+            base_run_dir = os.path.basename(run_dir)
+            self.logger.write(f'\n{Fore.RED}import skipped: {Fore.YELLOW}run_import={run_import}, but run_dir={base_run_dir} exists. {Fore.RESET}')
+            self.logger.write(f'\n{Fore.RED}manually delete: {Fore.YELLOW}{base_run_dir} to import again.{Fore.RESET}\n')
+            run_import = False
+        #
         if run_import:
             self._import_model(description)
         #
