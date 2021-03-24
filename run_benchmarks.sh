@@ -79,12 +79,12 @@ ulimit -s 32768
 settings_file=accuracy_import_infer_pc.yaml
 
 
-# uncomment only one of the following
+# uncomment only one of the following - default is from modelzoo, if this argument is not specified
 # configs_path=../jacinto-ai-modelforest/configs
 configs_path=../jacinto-ai-modelzoo/configs
 
 
-# uncomment only one of the following
+# uncomment only one of the following - default is from modelzoo, if this argument is not specified
 # models_path=../jacinto-ai-modelforest/models
 models_path=../jacinto-ai-modelzoo/models
 

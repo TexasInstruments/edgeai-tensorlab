@@ -31,10 +31,6 @@ tidl_tensor_bits : 8 #8 #16 #32
 # if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
 # null will run the models sequentially.
 parallel_devices : null
-# wild card list to match against the model_path - if null, all models wil be run
-# examples: ['classification'] ['imagenet1k'] ['torchvision']
-# examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
-model_selection : null
 # exclude from running, these models
 # example: ['voc']
 # example: ['cityscapes']
@@ -63,7 +59,7 @@ verbose : False
 detection_thr : 0.05
 # save detection, segmentation output
 save_output : False
-# wild card list to match against the model_path, model_type, model_id
+# wild card list to match against model_path, model_id or model_type - if null, all models wil be shortlisted
 # only models matching these criteria will be considered - even for model_selection
 model_shortlist : [# imagenet classification models
                    'vcls-10-010-0', #mlperf/mobilenet_v1_1.0_224.tflite
@@ -127,4 +123,15 @@ model_shortlist : [# imagenet classification models
                    # pascal voc2012 models
                    'vseg-19-400-0', #tf1-models/deeplabv3_mnv2_dm05_pascal_trainaug_512x512.tflite
                    'vseg-19-401-0', #tf1-models/deeplabv3_mnv2_pascal_trainaug_512x512.tflite
+                  ]
+# wild card list to match against model_path, model_id or model_type - if null, all models wil be selected
+# examples: ['classification'] ['imagenet1k'] ['torchvision']
+# examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
+model_selection : ['vcls-10-302-0', #'imagenet1k/torchvision/mobilenet_v2_tv_opset9.onnx',
+                   'vcls-10-060-0', #'imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-symbol.json',
+                   'vcls-10-400-0', #'imagenet1k/mlperf/mobilenet_v1_1.0_224.tflite',
+                   'vdet-12-061-0', #'coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-symbol.json',
+                   'vdet-12-010-0', #'coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite',
+                   'vseg-18-100-0', #'ade20k_class32/jai-pytorch/deeplabv3lite_mobilenetv2_tv_512x512_ade20k_class32_20210308-092104.onnx',
+                   'vseg-18-010-0', #'ade20k_class32/mlperf/deeplabv3_mnv2_ade20k_float.tflite'
                   ]
