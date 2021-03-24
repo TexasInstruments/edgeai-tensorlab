@@ -12,11 +12,11 @@ run_inference : True
 # collect final accuracy results
 collect_results : True
 # number of frames for inference
-num_frames : 10000 #50000
+num_frames : 1000 #10000 #50000
 # number of frames to be used for post training quantization / calibration
-max_frames_calib : 50 #100
+max_frames_calib : 10 #50 #100
 # number of itrations to be used for post training quantization / calibration
-max_calib_iterations : 50
+max_calib_iterations : 10 #50
 # folder where benchmark configs are defined. this should be python importable
 # # if this is None, the internally defined minimal set of configs will be used
 configs_path : '../jacinto-ai-modelzoo/configs'
@@ -31,6 +31,10 @@ tidl_tensor_bits : 8 #8 #16 #32
 # if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
 # null will run the models sequentially.
 parallel_devices : null
+# wild card list to match against model_path, model_id or model_type - if null, all models wil be selected
+# examples: ['classification'] ['imagenet1k'] ['torchvision']
+# examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
+model_selection : null
 # exclude from running, these models
 # example: ['voc']
 # example: ['cityscapes']
@@ -59,75 +63,10 @@ verbose : False
 detection_thr : 0.05
 # save detection, segmentation output
 save_output : False
-# wild card list to match against model_path, model_id or model_type - if null, all models wil be shortlisted
-# only models matching these criteria will be considered - even for model_selection
-model_shortlist : [# imagenet classification models
-                   'vcls-10-010-0', #mlperf/mobilenet_v1_1.0_224.tflite
-                   'vcls-10-011-0', #mlperf/mobilenet_edgetpu_224_1.0_float.tflite
-                   'vcls-10-012-0', #mlperf/resnet50_v1.5.tflite
-                   'vcls-10-030-0', #pycls/RegNetX-200MF_dds_8gpu_opset9.onnx
-                   'vcls-10-031-0', #pycls/RegNetX-400MF_dds_8gpu_opset9.onnx
-                   'vcls-10-032-0', #imagenet1k/pycls/RegNetX-800MF_dds_8gpu_opset9.onnx
-                   'vcls-10-033-0', #imagenet1k/pycls/RegNetX-1.6GF_dds_8gpu_opset9.onnx
-                   'vcls-10-060-0', #gluoncv-mxnet/mobilenetv2_1.0-symbol.json
-                   'vcls-10-061-0', #gluoncv-mxnet/resnet50_v1d-symbol.json
-                   'vcls-10-062-0', #gluoncv-mxnet/xception-symbol.json
-                   'vcls-10-100-0', #jai-pytorch/mobilenet_v1_20190906-171544_opset9.onnx
-                   'vcls-10-101-0', #jai-pytorch/mobilenet_v2_20191224-153212_opset9.onnx
-                   'vcls-10-101-8', #jai-pytorch/mobilenet_v2_qat-jai_20201213-165307_opset9.onnx
-                   'vcls-10-102-8', #jai-pytorch/mobilenet_v2_1p4_qat-jai_20210112-093313_opset9.onnx
-                   'vcls-10-301-0', #torchvision/shufflenet_v2_x1.0_opset9.onnx
-                   'vcls-10-302-0', #torchvision/mobilenet_v2_tv_opset9.onnx
-                   'vcls-10-302-8', #torchvision/mobilenet_v2_tv_qat-jai_opset9.onnx
-                   'vcls-10-304-0', #torchvision/resnet18_opset9.onnx
-                   'vcls-10-305-0', #torchvision/resnet50_opset9.onnx
-                   'vcls-10-400-0', #tf1-models/mobilenet_v1_1.0_224.tflite
-                   'vcls-10-400-8', #tf1-models/mobilenet_v1_1.0_224_quant.tflite
-                   'vcls-10-401-0', #tf1-models/mobilenet_v2_1.0_224.tflite
-                   'vcls-10-402-0', #tf1-models/mobilenet_v2_float_1.4_224.tflite
-                   'vcls-10-403-0', #tf1-models/squeezenet.tflite
-                   'vcls-10-404-0', #tf1-models/densenet.tflite
-                   'vcls-10-405-8', #tf1-models/inception_v1_224_quant.tflite
-                   'vcls-10-406-0', #tf1-models/inception_v3.tflite
-                   'vcls-10-407-0', #tf1-models/mnasnet_1.0_224.tflite
-                   'vcls-10-409-0', #tf1-models/resnet50_v1.tflite
-                   'vcls-10-410-0', #tf1-models/resnet50_v2.tflite
-                   'vcls-10-430-0', #tf-tpu/efficientnet-lite0-fp32.tflite
-                   'vcls-10-431-0', #tf-tpu/efficientnet-lite1-fp32.tflite
-                   'vcls-10-434-0', #tf-tpu/efficientnet-lite4-fp32.tflite
-                   'vcls-10-440-0', #tf-tpu/efficientnet-edgetpu-S_float.tflite
-                   'vcls-10-441-0', #tf-tpu/efficientnet-edgetpu-M_float.tflite
-                   'vcls-10-442-0', #tf-tpu/efficientnet-edgetpu-L_float.tflite
-                   # coco detection models
-                   'vdet-12-010-0', #mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite
-                   'vdet-12-011-0', #mlperf/ssd_mobilenet_v2_300_float.tflite
-                   #'vdet-12-012-0', #mlperf/ssd_resnet34-ssd1200.onnx
-                   #'vdet-12-020-0', #coco/onnx-models/yolov3-10.onnx
-                   'vdet-12-060-0', #gluoncv-mxnet/yolo3_mobilenet1.0_coco-symbol.json
-                   'vdet-12-061-0', #gluoncv-mxnet/ssd_512_mobilenet1.0_coco-symbol.json
-                   'vdet-12-400-0', #tf1-models/ssdlite_mobiledet_dsp_320x320_coco_2020_05_19.tflite
-                   'vdet-12-401-0', #tf1-models/ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19.tflite
-                   'vdet-12-402-0', #tf1-models/ssdlite_mobilenet_v2_coco_2018_05_09.tflite
-                   #'vdet-12-403-0', #tf1-models/ssd_mobilenet_v2_mnasfpn_shared_box_predictor_320x320_coco_sync_2020_05_18.tflite
-                   #'vdet-12-404-0', #tf1-models/ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03.tflite
-                   # ade20k segmentation models
-                   'vseg-17-400-0', #tf1-models/deeplabv3_mnv2_ade20k_train_2018_12_03_512x512.tflite
-                   # ade20k 32 class segmentation models
-                   'vseg-18-010-0', #mlperf/deeplabv3_mnv2_ade20k_float.tflite
-                   'vseg-18-100-0', #jai-pytorch/deeplabv3lite_mobilenetv2_tv_512x512_ade20k_class32_20210308-092104.onnx
-                   'vseg-18-101-0', #jai-pytorch/unetlite_pixel2pixel_aspp_mobilenetv2_tv_512x512_ade20k_class32_20210306_174005.onnx
-                   'vseg-18-102-0', #jai-pytorch/fpnlite_pixel2pixel_aspp_mobilenetv2_tv_512x512_ade20k_class32_20210306_174205.onnx
-                   'vseg-18-103-0', #jai-pytorch/fpnlite_pixel2pixel_aspp_mobilenetv2_1p4_tv_512x512_ade20k_class32_20210307_233626.onnx
-                   'vseg-18-110-0', #jai-pytorch/fpnlite_aspp_regnetx400mf_ade20k_class32_384x384_20210314-205347.onnx
-                   'vseg-18-111-0', #jai-pytorch/fpnlite_aspp_regnetx800mf_ade20k_class32_512x512_20210312-150048.onnx
-                   # pascal voc2012 models
-                   'vseg-19-400-0', #tf1-models/deeplabv3_mnv2_dm05_pascal_trainaug_512x512.tflite
-                   'vseg-19-401-0', #tf1-models/deeplabv3_mnv2_pascal_trainaug_512x512.tflite
-                  ]
 # wild card list to match against model_path, model_id or model_type - if null, all models wil be selected
 # examples: ['classification'] ['imagenet1k'] ['torchvision']
 # examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
-model_selection : ['vcls-10-302-0', #'imagenet1k/torchvision/mobilenet_v2_tv_opset9.onnx',
+model_shortlist : ['vcls-10-302-0', #'imagenet1k/torchvision/mobilenet_v2_tv_opset9.onnx',
                    'vcls-10-060-0', #'imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-symbol.json',
                    'vcls-10-400-0', #'imagenet1k/mlperf/mobilenet_v1_1.0_224.tflite',
                    'vdet-12-061-0', #'coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-symbol.json',
