@@ -118,7 +118,7 @@ class ConfigDict(dict):
         # detection threshold
         self.detection_thr = 0.05
         # max number of detections
-        self.detection_max = None
+        self.detection_max = 1000
         # save detection, segmentation output
         self.save_output = False
         # wild card list to match against model_path, model_id or model_type - if null, all models wil be shortlisted

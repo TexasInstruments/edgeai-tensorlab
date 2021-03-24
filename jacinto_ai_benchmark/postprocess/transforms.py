@@ -197,8 +197,9 @@ class DetectionFilter():
             bbox_selected = (bbox_score >= self.detection_thr)
             bbox = bbox[bbox_selected,...]
         #
-        if self.detection_max is not None:
+        if self.detection_max is not None and bbox.shape[0] > self.detection_max:
             bbox = sorted(bbox, key=lambda b:b[5])
+            bbox = np.stack(bbox, axis=0)
             bbox = bbox[range(self.detection_max),...]
         #
         return bbox, info_dict
