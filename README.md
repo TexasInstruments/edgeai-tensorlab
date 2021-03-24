@@ -19,14 +19,14 @@ Getting the correct functionality and accuracy with Deep Learning Models is not 
 ## Components of this repository
 This repository is generic and can be used with a variety of runtimes and models supported by TIDL. This repository contains several parts:<br>
 - [jacinto_ai_benchmark](./jacinto_ai_benchmark): Core scritps for core import/calibration, inference and accuracy benchmark scripts provided as a python package (that can be imported using: import jacinto_ai_benchmark or using: from jacinto_ai_benchmark import *)<br>
-- [examples/models](./examples//models): a minimal set of Deep Learning models - just for demonstrating the capabilities of jacinto_ai_benchmark<br>
-- [examples/configs](./examples/configs): config files for using the above models<br>
 - [scripts](./scripts): these are the top level scripts - to import/calibrate models, to infer and do accuracy benchmark, to collect accuracy report and to package the generate artifacts.<br>
 
 
 ## Requirements
+#### Environment
 We have tested this on Ubuntu 18.04 PC with Anaconda Python 3.6. This is the recommended environment. Create a Python 3.6 environment if you don't have it and activate it.
 
+#### Requirement: PROCESSOR-SDK-RTOS-J721E
 As explained earlier, RTOS SDK for Jacinto 7 is required to run this package. Please visit the links given above to download and untar/extract the RTOS SDK on your Ubuntu desktop machine.
 
 After extracting, follow the instructions in the RTOS package to download the dependencies required for it. Especially the following 3 steps are required:<br>
@@ -34,7 +34,30 @@ After extracting, follow the instructions in the RTOS package to download the de
 - (2) In the extracted SDK, change directory to tidl folder (it has the form tidl_j7_xx_xx_xx_xx). Inside the tidl folder, change directory to **ti_dl/test/tvm-dlr** and run **prepare_model_compliation_env.sh** to install TVM Deep Learning compiler, DLR Deep Learning Runtime and their dependencies. In our SDK, we have support to use TVM+DLR to offload part of the graph into the underlying TIDL backend running on the C7x+MMA DSP, while keeping the unsupported layers running on the main ARM processor. <br>
 - (3) Inside the tidl folder, change directory to **ti_dl/test/tflrt** and run **prepare_model_compliation_env.sh** to install TFLite Runtime and its dependencies. In our SDK, we have support to use TFLite Runtime to offload part of the graph into the underlying TIDL backend running on the C7x+MMA DSP, while keeping the unsupported layers running on the main ARM processor.<br>
 
-This repository provides a few sample models and the corresponding config files. Additional models and config files that can be used in this benchmark are provided in another repository called **[Jacinto-AI-ModelZoo](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse)** as explained earlier. Please see the documentation of that repository to understand how to clone it. After cloning, jacinto-ai-benchmark and jacinto-ai-modelzoo must be inside the same parent folder for the default settings to work without much effort.
+Please also read the details below for obtaining teh ModelZoo and Datasets - these are also required to do the benchmarking. 
+
+#### Requirement: ModelZoo
+Models and config files that are used in this benchmark are provided in another repository called **[Jacinto-AI-ModelZoo](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse)**. Please see the documentation of that repository to understand how to clone it. After cloning, jacinto-ai-benchmark and jacinto-ai-modelzoo must be inside the same parent folder for the default settings to work.
+
+Please clone that repository to use it. That repository uses git-lfs, so please install git-lfs before cloning. After cloning, **jacinto-ai-benchmark** and **jacinto-ai-modelzoo** must be in the same parent folder. 
+
+The models are located in the folder [models](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/models)
+
+The config files for those models are located in the folder [configs](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/configs)
+
+
+#### Requirement: Datasets
+This benchmark code can use several datasets. In fact, the design of this code is flexible to add support for additional datasets easily.
+
+We already have support to download several of these datasets automatically - but this may not always work because the source URLs may change. For example the ImageNet download URL has changed recently and the automatic download no longer works. 
+
+If you start the download and interrupt it in between, the datasets may be partially downloaded and it can lead to unexpected failures. If the download of a dataset is interrupted in between, delete that dataset folder manually to start over. 
+
+Also, the download may take several hours even with a good internet connection. 
+
+Because of all these reasons **it is a good idea to download datasets manually (especially ImageNet) ane make it available at the expected locations.** To make the datasets manually available, they should be placed at the locations specified for each dataset - if you have the datasets stored somewhere else, create symbolic links as necessary.
+
+The following link explains how to **[Obtain Datasets](./docs/datasets.md)** for benchmarking.
 
 
 ## Installation Instructions
@@ -53,20 +76,6 @@ or
 ```
 from jacinto_ai_benchmark import *
 ```
-
-
-## Datasets
-This benchmark code can use several datasets. In fact, the design of this code is flexible to add support for additional datasets easily.
-
-We already have support to download several of these datasets automatically - but this may not always work because the source URLs may change. For example the ImageNet download URL has changed recently and the automatic download no longer works. 
-
-If you start the download and interrupt it in between, the datasets may be partially downloaded and it can lead to unexpected failures. If the download of a dataset is interrupted in between, delete that dataset folder manually to start over. 
-
-Also, the download may take several hours even with a good internet connection. 
-
-Because of all these reasons **it is a good idea to download datasets manually (especially ImageNet) ane make it available at the expected locations.** To make the datasets manually available, they should be placed at the locations specified for each dataset - if you have the datasets stored somewhere else, create symbolic links as necessary.
-
-The following link explains how to **[Obtain Datasets](./docs/datasets.md)** for benchmarking.
 
 
 ## Usage
@@ -97,23 +106,12 @@ A CSV report containing all your benchmarking resutls can be generated by runnin
 The original artifacts folder contains several files that are generated during import/calibration. Only some of the files are needed for final inference. The artifacts and models can be packaged for sharing by running [scripts/package_artifacts.py](./scripts/package_artifacts.py) 
 
 
-## Additional models and config files in jacinto-ai-modelzoo (optional)
-This repository provides only a minimal set of example models and configs.
-
-We also provide several additional Deep Learning Models ready to be used in our SoCs in the repository **[Jacinto-AI-ModelZoo](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse)**. 
-
-Please clone that repository to use it. That repository uses git-lfs, so please install git-lfs before cloning. After cloning, **jacinto-ai-benchmark** and **jacinto-ai-modelzoo** must be in the same parent folder. 
-
-Change configs_path and models_path (either by changing run_benchmarks.sh or by changing the yaml settings file that it uses) to use the configs and models provided in that repository. 
-
-The models are located in the folder [jacinto-ai-modelzoo/models](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/models)
-
-The config files for those models are located in the folder [jacinto-ai-modelzoo/configs](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/configs)
-
-
-## Custom models and configs
+#### Custom models and configs
 It is easy to benchmark your own models and configs using this repository. Please see the example provided in [scripts/benchmark_custom.py](./scripts/benchmark_custom.py)
 
+
+## LICENSE
+Please see the License under which this repository is made available: [LICENSE](./LICENSE)
 
 
 ## References
