@@ -31,9 +31,10 @@ tensor_bits : 8 #8 #16 #32
 # if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
 # null will run the models sequentially.
 parallel_devices : null
-# wild card list to match against model_path, model_id or model_type - if null, all models wil be selected
-# examples: ['classification'] ['imagenet1k'] ['torchvision']
-# examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
+# wild card list to match against model_path, model_id or model_type - if null, all models wil be shortlisted
+# only models matching these criteria will be considered - even for model_selection
+# examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
+# examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision']
 model_selection : null
 # exclude from running, these models
 # example: ['voc']
@@ -63,8 +64,10 @@ verbose : False
 detection_thr : 0.05
 # save detection, segmentation output
 save_output : False
- wild card list to match against model_path, model_id or model_type - if null, all models wil be shortlisted
- only models matching these criteria will be considered - even for model_selection
+# wild card list to match against model_path, model_id or model_type - if null, all models wil be shortlisted
+# only models matching these criteria will be considered - even for model_selection
+# examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
+# examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision']
 model_shortlist : [# imagenet classification models
                    'vcls-10-010-0', #mlperf/mobilenet_v1_1.0_224.tflite
                    'vcls-10-011-0', #mlperf/mobilenet_edgetpu_224_1.0_float.tflite
