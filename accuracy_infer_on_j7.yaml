@@ -9,5 +9,3 @@ target_device : 'j7' #'j7' #'pc'
 run_import : False
 # run inference - for inference in j7 evm, it is assumed that the artifacts folders are already available
 run_inference : True
-# collect final accuracy results
-collect_results : True

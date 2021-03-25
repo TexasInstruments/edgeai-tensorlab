@@ -113,8 +113,8 @@ class ConfigDict(dict):
         self.run_import = True
         # run inference - for inferene in j7 evm, it is assumed that the artifaacts folders are already available
         self.run_inference = True #True
-        # collect final accuracy results
-        self.collect_results = True #True
+        # collect final accuracy results - not needed, use the script generate_report.py instead
+        self.collect_results = False
         # detection threshold
         self.detection_thr = 0.05
         # max number of detections

@@ -9,8 +9,8 @@ target_device : 'pc' #'j7' #'pc'
 run_import : True
 # run inference - for inference in j7 evm, it is assumed that the artifacts folders are already available
 run_inference : True
-# collect final accuracy results
-collect_results : True
+# collect final accuracy results - not needed, use the script generate_report.py instead
+collect_results : False
 # number of frames for inference
 num_frames : 1000 #10000 #50000
 # number of frames to be used for post training quantization / calibration

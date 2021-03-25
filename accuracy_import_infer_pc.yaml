@@ -9,8 +9,6 @@ target_device : 'pc' #'j7' #'pc'
 run_import : True
 # run inference - for inference in j7 evm, it is assumed that the artifacts folders are already available
 run_inference : True
-# collect final accuracy results
-collect_results : True
 # for parallel execution on pc only (cpu or gpu(. if you don't have gpu, these actual numbers don't matter,
 # but the size of teh list determines the number of parallel processes
 # if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
