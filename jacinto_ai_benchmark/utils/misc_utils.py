@@ -54,6 +54,7 @@ def dict_update_cond(src_dict, *args, inplace=False, condition_fn=None, **kwargs
     _update_conditional(new_dict, kwargs)
     return new_dict
 
+
 def dict_merge(target_dict, src_dict, inplace=False):
     target_dict = target_dict if inplace else target_dict.copy()
     assert isinstance(target_dict, dict), 'destination must be a dict'

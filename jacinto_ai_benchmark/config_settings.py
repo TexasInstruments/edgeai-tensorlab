@@ -36,10 +36,11 @@ class ConfigSettings(config_dict.ConfigDict):
         super().__init__(input, **kwargs)
 
         # quantization params
+        runtime_options = self.runtime_options if 'runtime_options' in self else dict()
         self.quantization_params = QuantizationParams(self.tensor_bits, self.max_frames_calib,
-                                                 self.max_calib_iterations, is_qat=False)
+                            self.max_calib_iterations, is_qat=False, runtime_options=runtime_options)
         self.quantization_params_qat = QuantizationParams(self.tensor_bits, self.max_frames_calib,
-                                                 self.max_calib_iterations, is_qat=True)
+                            self.max_calib_iterations, is_qat=True, runtime_options=runtime_options)
 
     def get_session_name_to_cfg_dict(self, is_qat):
         quantization_params = self.quantization_params_qat if is_qat else self.quantization_params
@@ -191,11 +192,12 @@ class ConfigSettings(config_dict.ConfigDict):
 ############################################################
 # quantization / calibration params
 class QuantizationParams():
-    def __init__(self, tensor_bits, max_frames_calib, max_calib_iterations, is_qat=False):
+    def __init__(self, tensor_bits, max_frames_calib, max_calib_iterations, is_qat=False, runtime_options=None):
         self.tensor_bits = tensor_bits
         self.max_frames_calib = max_frames_calib
         self.max_calib_iterations = max_calib_iterations
         self.is_qat = is_qat
+        self.runtime_options = runtime_options if runtime_options is not None else dict()
 
     def get_num_frames_calib(self):
         return self.max_frames_calib if self.tensor_bits == 8 else 1
@@ -206,57 +208,49 @@ class QuantizationParams():
     def get_tidl_calibration_accuracy_level(self):
         return 0 if self.tensor_bits != 8 or self.is_qat else 1
 
-    def get_tidl_basic_options(self):
-        tidl_basic_options = {
+    def get_runtime_options(self):
+        runtime_options = {
+            ##################################
+            # basic_options
+            #################################
             'tensor_bits': self.tensor_bits,
             'accuracy_level': self.get_tidl_calibration_accuracy_level(),
             # debug level
             'debug_level': 0,
-        }
-        return tidl_basic_options
-
-    def get_tidl_advanced_options(self):
-        tidl_advanced_options = {
+            ##################################
+            # advanced_options
+            #################################
             # model optimization options
-            'high_resolution_optimization': 0,
-            'pre_batchnorm_fold': 1,
+            'advanced_options:high_resolution_optimization': 0,
+            'advanced_options:pre_batchnorm_fold': 1,
             # quantization/calibration options
-            'calibration_frames': self.get_num_frames_calib(),
-            'calibration_iterations': self.get_num_calib_iterations(),
-            'quantization_scale_type': 1 if self.is_qat else 0,
+            'advanced_options:calibration_frames': self.get_num_frames_calib(),
+            'advanced_options:calibration_iterations': self.get_num_calib_iterations(),
+            'advanced_options:quantization_scale_type': 1 if self.is_qat else 0,
             # further quantization/calibration options - these take effect
             # only if the accuracy_level in basic options is set to 9
-            'activation_clipping': 1,
-            'weight_clipping': 1,
-            'bias_calibration': 1,
-            'channel_wise_quantization': 0,
+            'advanced_options:activation_clipping': 1,
+            'advanced_options:weight_clipping': 1,
+            'advanced_options:bias_calibration': 1,
+            'advanced_options:channel_wise_quantization': 0,
             # mixed precision options - this is just a placeholder
             # output/params names need to be specified according to a particular model
-            'output_feature_16bit_names_list':'',
-            'params_16bit_names_list':''
+            'advanced_options:output_feature_16bit_names_list':'',
+            'advanced_options:params_16bit_names_list':''
         }
-        return tidl_advanced_options
+        return runtime_options
 
     def get_session_tvmdlr_cfg(self):
-        runtime_options = self.get_tidl_basic_options()
-        advanced_options = self.get_tidl_advanced_options()
-        # tvmdlr can accept advanced options as a dictionary
-        runtime_options.update({'advanced_options':advanced_options})
+        runtime_options = utils.dict_merge(self.get_runtime_options(), self.runtime_options)
         session_tvmdlr_cfg = {'runtime_options': runtime_options}
         return session_tvmdlr_cfg
 
     def get_session_tflitert_cfg(self):
-        runtime_options = self.get_tidl_basic_options()
-        advanced_options = self.get_tidl_advanced_options()
-        # tflitert requires the advanced options to be prefixed with advanced_options:
-        runtime_options.update({'advanced_options:'+k:v for k,v in advanced_options.items()})
+        runtime_options = utils.dict_merge(self.get_runtime_options(), self.runtime_options)
         session_tflitert_cfg = {'runtime_options': runtime_options}
         return session_tflitert_cfg
 
     def get_session_onnxrt_cfg(self):
-        runtime_options = self.get_tidl_basic_options()
-        advanced_options = self.get_tidl_advanced_options()
-        # onnxrt requires the advanced options to be prefixed with advanced_options:
-        runtime_options.update({'advanced_options:'+k:v for k,v in advanced_options.items()})
+        runtime_options = utils.dict_merge(self.get_runtime_options(), self.runtime_options)
         session_onnxrt_cfg = {'runtime_options': runtime_options}
         return session_onnxrt_cfg

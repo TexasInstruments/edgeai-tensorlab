@@ -182,8 +182,18 @@ class TVMDLRSession(BaseRTSession):
             "tidl_tools_path": self.kwargs.get("tidl_tools_path", tidl_tools_path),
             'artifacts_folder':self.kwargs.get('artifacts_folder', None),
             'tensor_bits':self.kwargs.get('tensor_bits', 8),
+            # note: to add advanced options here, start it with 'advanced_options:'
+            # example 'advanced_options:pre_batchnorm_fold':1
+            # the code below will move those to a dict as required by the runtime interface
         }
         default_options.update(runtime_options)
+        # tvm need advanced options as a dict
+        # convert the entries starting with advanced_options: to a dict
+        advanced_options_prefix = 'advanced_options:'
+        advanced_options = {k.replace(advanced_options_prefix,''):v for k,v in default_options.items() \
+                            if k.startswith(advanced_options_prefix)}
+        default_options = {k:v for k,v in default_options.items() if not k.startswith(advanced_options_prefix)}
+        default_options.update(dict(advanced_options=advanced_options))
         self.kwargs["runtime_options"] = default_options
 
     def _get_input_shape_onnx(self, onnx_model):

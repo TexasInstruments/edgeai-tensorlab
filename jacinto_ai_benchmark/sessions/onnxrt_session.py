@@ -129,6 +129,8 @@ class ONNXRTSession(BaseRTSession):
             "artifacts_folder": self.kwargs['artifacts_folder'],
             "tensor_bits": self.kwargs.get("tensor_bits", 8),
             "import": self.kwargs.get("import", 'no'),
+            # note: to add advanced options here, start it with 'advanced_options:'
+            # example 'advanced_options:pre_batchnorm_fold':1
         }
         default_options.update(runtime_options)
         self.kwargs["runtime_options"] = default_options
