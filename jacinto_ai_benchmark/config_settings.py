@@ -60,12 +60,14 @@ class ConfigSettings(config_dict.ConfigDict):
         session_name = self.get_session_name(model_type_or_session_name)
         return sessions.get_session_name_to_type_dict()[session_name]
 
-    def get_runtime_options(self, model_type_or_session_name=None, is_qat=False):
+    def get_runtime_options(self, model_type_or_session_name=None, is_qat=False,
+                            override_options=None, **kwargs):
         # runtime_params are currently common, so session_name is currently optional
         session_name = self.get_session_name(model_type_or_session_name) if \
                 model_type_or_session_name is not None else None
         quantization_params = self.quantization_params_qat if is_qat else self.quantization_params
-        runtime_options = quantization_params.get_runtime_options(session_name)
+        runtime_options = quantization_params.get_runtime_options(session_name,
+                                        override_options=override_options, **kwargs)
         return runtime_options
 
     ###############################################################
@@ -238,6 +240,12 @@ class QuantizationParams():
         }
         return runtime_options
 
-    def get_runtime_options(self, session_name=None):
-        runtime_options = utils.dict_merge(self.get_runtime_options_default(session_name), self.runtime_options)
+    def get_runtime_options(self, session_name=None, override_options=None, **kwargs):
+        runtime_options = self.get_runtime_options_default(session_name)
+        runtime_options.update(self.runtime_options)
+        if override_options is not None:
+            assert isinstance(override_options, dict), f'override_options must be dict, got {type(override_options)}'
+            runtime_options.update(override_options)
+        #
+        runtime_options.update(kwargs)
         return runtime_options
