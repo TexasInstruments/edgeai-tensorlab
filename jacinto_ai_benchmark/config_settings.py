@@ -42,14 +42,6 @@ class ConfigSettings(config_dict.ConfigDict):
         self.quantization_params_qat = QuantizationParams(self.tensor_bits, self.max_frames_calib,
                             self.max_calib_iterations, is_qat=True, runtime_options=runtime_options)
 
-    def get_session_name_to_cfg_dict(self, is_qat):
-        quantization_params = self.quantization_params_qat if is_qat else self.quantization_params
-        session_name_to_cfg_dict = dict()
-        session_name_to_cfg_dict[constants.SESSION_NAME_TVMDLR] = quantization_params.get_session_tvmdlr_cfg()
-        session_name_to_cfg_dict[constants.SESSION_NAME_TFLITERT] = quantization_params.get_session_tflitert_cfg()
-        session_name_to_cfg_dict[constants.SESSION_NAME_ONNXRT] = quantization_params.get_session_onnxrt_cfg()
-        return session_name_to_cfg_dict
-
     def get_session_name(self, model_type_or_session_name):
         assert model_type_or_session_name in constants.MODEL_TYPES + constants.SESSION_NAMES, \
             f'get_session_cfg: input must be one of model_types: {constants.MODEL_TYPES} ' \
@@ -64,13 +56,17 @@ class ConfigSettings(config_dict.ConfigDict):
             f'get_session_cfg: invalid session_name: {session_name}'
         return session_name
 
-    def get_session_cfg(self, model_type_or_session_name, is_qat):
-        session_name = self.get_session_name(model_type_or_session_name)
-        return self.get_session_name_to_cfg_dict(is_qat)[session_name]
-
     def get_session_type(self, model_type_or_session_name):
         session_name = self.get_session_name(model_type_or_session_name)
         return sessions.get_session_name_to_type_dict()[session_name]
+
+    def get_runtime_options(self, model_type_or_session_name=None, is_qat=False):
+        # runtime_params are currently common, so session_name is currently optional
+        session_name = self.get_session_name(model_type_or_session_name) if \
+                model_type_or_session_name is not None else None
+        quantization_params = self.quantization_params_qat if is_qat else self.quantization_params
+        runtime_options = quantization_params.get_runtime_options(session_name)
+        return runtime_options
 
     ###############################################################
     # preprocess transforms
@@ -208,7 +204,7 @@ class QuantizationParams():
     def get_tidl_calibration_accuracy_level(self):
         return 0 if self.tensor_bits != 8 or self.is_qat else 1
 
-    def get_runtime_options(self):
+    def get_runtime_options_default(self, session_name=None):
         runtime_options = {
             ##################################
             # basic_options
@@ -240,17 +236,6 @@ class QuantizationParams():
         }
         return runtime_options
 
-    def get_session_tvmdlr_cfg(self):
-        runtime_options = utils.dict_merge(self.get_runtime_options(), self.runtime_options)
-        session_tvmdlr_cfg = {'runtime_options': runtime_options}
-        return session_tvmdlr_cfg
-
-    def get_session_tflitert_cfg(self):
-        runtime_options = utils.dict_merge(self.get_runtime_options(), self.runtime_options)
-        session_tflitert_cfg = {'runtime_options': runtime_options}
-        return session_tflitert_cfg
-
-    def get_session_onnxrt_cfg(self):
-        runtime_options = utils.dict_merge(self.get_runtime_options(), self.runtime_options)
-        session_onnxrt_cfg = {'runtime_options': runtime_options}
-        return session_onnxrt_cfg
+    def get_runtime_options(self, session_name=None):
+        runtime_options = utils.dict_merge(self.get_runtime_options_default(session_name), self.runtime_options)
+        return runtime_options
