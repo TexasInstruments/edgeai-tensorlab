@@ -249,11 +249,11 @@ class QuantizationParams():
     def get_runtime_options(self, session_name=None, runtime_options=None):
         # this is the default runtime_options defined above
         runtime_options_new = self.get_runtime_options_default(session_name)
-        # this takes care of overrides in the settings yaml file
-        runtime_options_new.update(self.runtime_options)
         # this takes care of overrides in the code given as runtime_options keyword argument
         if runtime_options is not None:
             assert isinstance(runtime_options, dict), f'runtime_options provided via kwargs must be dict, got {type(runtime_options)}'
             runtime_options_new.update(runtime_options)
         #
+        # this takes care of overrides in the settings yaml file
+        runtime_options_new.update(self.runtime_options)
         return runtime_options_new
