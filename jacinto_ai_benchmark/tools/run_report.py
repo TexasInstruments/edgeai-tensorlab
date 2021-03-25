@@ -81,7 +81,14 @@ def run_report(benchmark_dir, rewrite_results=True):
             results_collection[tensor_bits] = results
         #
     #
-
+    if len(results_collection) == 0:
+        print('no results found - no report to generate.')
+        return
+    #
+    if '8bits' not in results_collection:
+        print('no 8bits result found - cannot generate report.')
+        return
+    #
     results_8bits = results_collection['8bits']
     results_16bits = results_collection['16bits'] if '16bits' in results_collection else None
     results_32bits = results_collection['32bits'] if '32bits' in results_collection else None
