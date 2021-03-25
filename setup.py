@@ -55,9 +55,9 @@ if __name__ == '__main__':
         long_description = readme.read()
 
     setup(
-        name='jacinto_ai_benchmark',
+        name='jai_benchmark',
         version=get_version(),
-        description='Accuracy Benchmarking For Deep Learning',
+        description='AI/Deep Learning Accuracy Benchmarking For Jacinto 7',
         long_description=long_description,
         long_description_content_type='text/markdown',
         url='https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-benchmark/browse',

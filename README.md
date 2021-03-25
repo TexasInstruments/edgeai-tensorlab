@@ -18,7 +18,7 @@ Getting the correct functionality and accuracy with Deep Learning Models is not 
 
 ## Components of this repository
 This repository is generic and can be used with a variety of runtimes and models supported by TIDL. This repository contains several parts:<br>
-- [jacinto_ai_benchmark](./jacinto_ai_benchmark): Core scritps for core import/calibration, inference and accuracy benchmark scripts provided as a python package (that can be imported using: import jacinto_ai_benchmark or using: from jacinto_ai_benchmark import *)<br>
+- [jai_benchmark](./jai_benchmark): Core scritps for core import/calibration, inference and accuracy benchmark scripts provided as a python package (that can be imported using: import jai_benchmark or using: from jai_benchmark import *)<br>
 - [scripts](./scripts): these are the top level scripts - to import/calibrate models, to infer and do accuracy benchmark, to collect accuracy report and to package the generate artifacts.<br>
 
 
@@ -68,13 +68,13 @@ After cloning this repository, install it as a Python package by running:
 
 Open the shell scripts that starts the actual benchmarking [run_benchmarks.sh](./run_benchmarks.sh), [tutorials](./tutorials) and see the environment variables **PSDK_BASE_PATH** and **TIDL_BASE_PATH** being defined. Change these paths appropriately to reflect what is in your PC.
 
-Once installed, the **jacinto_ai_benchmark** will be a available as a package in your Python environment. It can be imported just like any other Python package in a Python script:<br>
+Once installed, the **jai_benchmark** will be a available as a package in your Python environment. It can be imported just like any other Python package in a Python script:<br>
 ```
-import jacinto_ai_benchmark
+import jai_benchmark
 ```
 or
 ```
-from jacinto_ai_benchmark import *
+from jai_benchmark import *
 ```
 
 

@@ -29,7 +29,7 @@
 import os
 import sys
 import argparse
-from jacinto_ai_benchmark import *
+from jai_benchmark import *
 
 
 if __name__ == '__main__':

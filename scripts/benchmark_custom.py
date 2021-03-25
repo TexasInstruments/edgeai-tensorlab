@@ -28,7 +28,7 @@
 
 import os
 import argparse
-from jacinto_ai_benchmark import *
+from jai_benchmark import *
 
 
 def create_configs(settings, work_dir):
@@ -81,7 +81,7 @@ def create_configs(settings, work_dir):
     }
 
     # in these examples, the session types cfgs are hardcoded for simplicity
-    # however, in jacinto_ai_benchmark.configs, they depend on session_type_dict
+    # however, in jai_benchmark.configs, they depend on session_type_dict
 
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
     runtime_options_tvmdlr = settings.get_runtime_options(constants.SESSION_NAME_TVMDLR, is_qat=False)

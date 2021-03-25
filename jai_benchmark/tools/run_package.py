@@ -32,7 +32,7 @@ import shutil
 import tarfile
 import yaml
 import glob
-from jacinto_ai_benchmark import utils
+from jai_benchmark import utils
 
 
 def run_package(settings, work_dir, out_dir):

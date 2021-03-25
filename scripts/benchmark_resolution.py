@@ -34,7 +34,7 @@ import warnings
 import copy
 import onnx
 from pathlib import Path
-from jacinto_ai_benchmark import *
+from jai_benchmark import *
 
 try:
     from onnxsim import simplify

@@ -28,7 +28,7 @@
 
 import os
 import argparse
-from jacinto_ai_benchmark import *
+from jai_benchmark import *
 
 
 
@@ -47,12 +47,12 @@ if __name__ == '__main__':
     cmds = parser.parse_args()
     settings = config_settings.ConfigSettings(cmds.settings_file)
 
-    source_dir = 'benchmark_accuracy'
-    work_dir = os.path.join(cmds.work_dirs, source_dir, f'{settings.tensor_bits}bits')
+    expt_name = 'benchmark_accuracy'
+    work_dir = os.path.join(cmds.work_dirs, expt_name, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
     package_dir = os.path.splitext(os.path.basename(__file__))[0]
     out_dir = os.path.join(cmds.work_dirs, package_dir, f'{settings.tensor_bits}bits')
-    print(f'package_dir: {package_dir}')
+    print(f'package_dir: {out_dir}')
 
-    tools.run_package(settings, work_dir, package_dir)
+    tools.run_package(settings, work_dir, out_dir)
