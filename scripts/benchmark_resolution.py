@@ -173,7 +173,7 @@ if __name__ == '__main__':
                 session_type_dict=utils.str_to_dict(cmds.session_type_dict))
     # for performance measurement, we need to use only one frame
     settings = config_settings.ConfigSettings(cmds.settings_file,
-        num_frames=1, max_frames_calib=1, max_calib_iterations=1, **kwargs)
+        num_frames=1, calibration_frames=1, calibration_iterations=1, **kwargs)
 
     expt_name = os.path.splitext(os.path.basename(__file__))[0]
     work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tensor_bits}bits')

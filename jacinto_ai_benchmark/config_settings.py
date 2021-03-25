@@ -37,10 +37,10 @@ class ConfigSettings(config_dict.ConfigDict):
 
         # quantization params
         runtime_options = self.runtime_options if 'runtime_options' in self else dict()
-        self.quantization_params = QuantizationParams(self.tensor_bits, self.max_frames_calib,
-                            self.max_calib_iterations, is_qat=False, runtime_options=runtime_options)
-        self.quantization_params_qat = QuantizationParams(self.tensor_bits, self.max_frames_calib,
-                            self.max_calib_iterations, is_qat=True, runtime_options=runtime_options)
+        self.quantization_params = QuantizationParams(self.tensor_bits, self.calibration_frames,
+                            self.calibration_iterations, is_qat=False, runtime_options=runtime_options)
+        self.quantization_params_qat = QuantizationParams(self.tensor_bits, self.calibration_frames,
+                            self.calibration_iterations, is_qat=True, runtime_options=runtime_options)
 
     def get_session_name(self, model_type_or_session_name):
         assert model_type_or_session_name in constants.MODEL_TYPES + constants.SESSION_NAMES, \
@@ -190,18 +190,18 @@ class ConfigSettings(config_dict.ConfigDict):
 ############################################################
 # quantization / calibration params
 class QuantizationParams():
-    def __init__(self, tensor_bits, max_frames_calib, max_calib_iterations, is_qat=False, runtime_options=None):
+    def __init__(self, tensor_bits, calibration_frames, calibration_iterations, is_qat=False, runtime_options=None):
         self.tensor_bits = tensor_bits
-        self.max_frames_calib = max_frames_calib
-        self.max_calib_iterations = max_calib_iterations
+        self.calibration_frames = calibration_frames
+        self.calibration_iterations = calibration_iterations
         self.is_qat = is_qat
         self.runtime_options = runtime_options if runtime_options is not None else dict()
 
-    def get_num_frames_calib(self):
-        return self.max_frames_calib if self.tensor_bits == 8 else 1
+    def get_calibration_frames(self):
+        return self.calibration_frames
 
     def get_num_calib_iterations(self):
-        return self.max_calib_iterations if self.tensor_bits == 8 else 1
+        return self.calibration_iterations if self.tensor_bits == 8 else 1
 
     def get_tidl_calibration_accuracy_level(self):
         return 0 if self.tensor_bits != 8 or self.is_qat else 1
@@ -222,7 +222,7 @@ class QuantizationParams():
             'advanced_options:high_resolution_optimization': 0,
             'advanced_options:pre_batchnorm_fold': 1,
             # quantization/calibration options
-            'advanced_options:calibration_frames': self.get_num_frames_calib(),
+            'advanced_options:calibration_frames': self.get_calibration_frames(),
             'advanced_options:calibration_iterations': self.get_num_calib_iterations(),
             # quantization_scale_type iset to 1 for power-of-2-scale quant by default
             # change it to 0 if some network specifically needs non-power-of-2

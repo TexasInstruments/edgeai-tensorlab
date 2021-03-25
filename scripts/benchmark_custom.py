@@ -60,7 +60,7 @@ def create_configs(settings, work_dir):
         path=f'{settings.datasets_path}/imagenet/val',
         split=f'{settings.datasets_path}/imagenet/val.txt',
         shuffle=True,
-        num_frames=settings.quantization_params.get_num_frames_calib())
+        num_frames=settings.quantization_params.get_calibration_frames())
 
     # dataset parameters for actual inference
     dataset_val_cfg = dict(

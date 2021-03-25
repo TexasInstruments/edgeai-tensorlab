@@ -88,9 +88,9 @@ class ConfigDict(dict):
         # number of frames for inference
         self.num_frames = 10000 #50000
         # number of frames to be used for post training quantization / calibration
-        self.max_frames_calib = 50 #100
+        self.calibration_frames = 50 #100
         # number of itrations to be used for post training quantization / calibration
-        self.max_calib_iterations = 50
+        self.calibration_iterations = 50
         # folder where benchmark configs are defined. this should be python importable
         # by default, the internally defined minimal set of configs will be used
         self.configs_path = '../jacinto-ai-modelzoo/configs'
