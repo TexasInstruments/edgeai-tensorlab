@@ -222,7 +222,9 @@ class QuantizationParams():
             # quantization/calibration options
             'advanced_options:calibration_frames': self.get_num_frames_calib(),
             'advanced_options:calibration_iterations': self.get_num_calib_iterations(),
-            'advanced_options:quantization_scale_type': 1 if self.is_qat else 0,
+            # quantization_scale_type iset to 1 for power-of-2-scale quant by default
+            # change it to 0 if some network specifically needs non-power-of-2
+            'advanced_options:quantization_scale_type': 1,
             # further quantization/calibration options - these take effect
             # only if the accuracy_level in basic options is set to 9
             'advanced_options:activation_clipping': 1,
