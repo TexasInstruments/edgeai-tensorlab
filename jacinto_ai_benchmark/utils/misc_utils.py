@@ -89,6 +89,15 @@ def dict_equal(self, shape1, shape2):
     return True
 
 
+def sorted_dict(d, sort_by_value=False):
+    if sort_by_value:
+        ds = {k:d[k] for k in sorted(d.values())}
+    else:
+        ds = {k:d[k] for k in sorted(d.keys())}
+    #
+    return ds
+
+
 def as_tuple(arg):
     return arg if isinstance(arg, tuple) else (arg,)
 

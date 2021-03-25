@@ -31,6 +31,7 @@ import datetime
 import yaml
 import glob
 
+from .. import utils
 
 metric_keys = ['accuracy_top1%', 'accuracy_mean_iou%', 'accuracy_ap[.5:.95]%']
 result_keys = ['num_subgraphs', 'infer_time_core_ms', 'ddr_transfer_mb', 'perfsim_ddr_transfer_mb', 'perfsim_gmacs']
@@ -54,6 +55,7 @@ def run_rewrite_results(work_dir, results_yaml):
             pass
         #
     #
+    results = utils.sorted_dict(results)
     with open(results_yaml, 'w') as rfp:
         yaml.safe_dump(results, rfp)
     #
