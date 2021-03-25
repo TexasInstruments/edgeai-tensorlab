@@ -28,6 +28,7 @@
 
 
 import os
+import argparse
 from jacinto_ai_benchmark import *
 
 
@@ -36,6 +37,11 @@ if __name__ == '__main__':
     if os.path.split(os.getcwd())[-1] == 'scripts':
         os.chdir('../')
     #
-    benchmark_dir = './work_dirs/benchmark_accuracy'
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--benchmark_dir', type=str, default='./work_dirs/benchmark_accuracy')
+    cmds = parser.parse_args()
+
+    benchmark_dir = cmds.benchmark_dir
     tools.run_report(benchmark_dir)
 

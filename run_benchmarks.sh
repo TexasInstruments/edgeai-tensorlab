@@ -103,15 +103,6 @@ python3 ./scripts/benchmark_accuracy.py ${settings_file} \
         --model_selection onnx
 
 
-# run all the supported models with default settings
-#python3 ./scripts/benchmark_accuracy.py ${settings_file}
-
-
-# run the accuracy and performance benchmark script for custom models
-#python3 ./scripts/benchmark_custom.py ${settings_file}
-
-
-# run the script for measuring performance at a fixed resolution
-# accuracy reported may not be correct as the input_size is changed
-#python3 ./scripts/benchmark_resolution.py ${settings_file} --input_sizes 512 1024
+# generate the final report with results for all the artifacts generated
+python3 ./scripts/generate_report.py
 
