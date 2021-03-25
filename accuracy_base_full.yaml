@@ -26,6 +26,8 @@ models_path : '../jacinto-ai-modelzoo/models'
 datasets_path : './dependencies/datasets'
 # quantization bit precision
 tensor_bits : 8 #8 #16 #32
+# runtime_options can be specified as a dict
+runtime_options : null
 # for parallel execution on pc only (cpu or gpu(. if you don't have gpu, these actual numbers don't matter,
 # but the size of teh list determines the number of parallel processes
 # if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]

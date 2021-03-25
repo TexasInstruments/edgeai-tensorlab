@@ -17,6 +17,8 @@ num_frames : 1000 #10000 #50000
 calibration_frames : 50 #100
 # number of itrations to be used for post training quantization / calibration
 calibration_iterations : 50
+# runtime_options can be specified as a dict
+runtime_options : null
 # folder where benchmark configs are defined. this should be python importable
 # # if this is None, the internally defined minimal set of configs will be used
 configs_path : '../jacinto-ai-modelzoo/configs'
