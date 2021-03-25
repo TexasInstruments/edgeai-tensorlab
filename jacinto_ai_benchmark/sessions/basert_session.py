@@ -32,6 +32,7 @@ import shutil
 import tempfile
 import re
 import csv
+from colorama import Fore
 from .. import utils
 from .. import constants
 
@@ -93,7 +94,6 @@ class BaseRTSession(utils.ParamsBase):
             self.initialize()
         #
         os.makedirs(self.kwargs['run_dir'], exist_ok=True)
-        os.makedirs(self.kwargs['artifacts_folder'], exist_ok=True)
         os.makedirs(self.kwargs['model_folder'], exist_ok=True)
         self._get_model()
         self.is_started = True
@@ -105,11 +105,20 @@ class BaseRTSession(utils.ParamsBase):
         if not self.is_started:
             self.start()
         #
+        os.makedirs(self.kwargs['artifacts_folder'], exist_ok=True)
         self.is_imported = True
 
     def start_infer(self):
         artifacts_folder = self.kwargs['artifacts_folder']
-        assert os.path.exists(artifacts_folder), f'artifacts_folder: {artifacts_folder} does not exist'
+        artifacts_folder_missing = not os.path.exists(artifacts_folder)
+        if artifacts_folder_missing:
+            error_message = f'{Fore.RED}ERROR:{Fore.RESET} artifacts_folder - {artifacts_folder} ' \
+                      f'{Fore.YELLOW}does not exist. please run import (on pc). {Fore.RESET}'
+            raise FileNotFoundError(error_message)
+        #
+        # import may not be being done now - but artifacts folder exists,
+        # we assume that it is proper and import is done
+        self.is_imported = True
         self.is_start_infer_done = True
 
     def __call__(self, input, info_dict):
