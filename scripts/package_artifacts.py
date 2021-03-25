@@ -43,15 +43,16 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('settings_file', type=str)
+    parser.add_argument('--work_dirs', type=str, default='./work_dirs')
     cmds = parser.parse_args()
     settings = config_settings.ConfigSettings(cmds.settings_file)
 
-    work_dir = os.path.join('./work_dirs/benchmark_accuracy', f'{settings.tensor_bits}bits')
+    source_dir = 'benchmark_accuracy'
+    work_dir = os.path.join(cmds.work_dirs, source_dir, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
-    expt_name = os.path.splitext(os.path.basename(__file__))[0]
-    out_dir = os.path.join('./work_dirs', expt_name, f'{settings.tensor_bits}bits')
-    print(f'work_dir: {work_dir}')
+    package_dir = os.path.splitext(os.path.basename(__file__))[0]
+    out_dir = os.path.join(cmds.work_dirs, package_dir, f'{settings.tensor_bits}bits')
+    print(f'package_dir: {package_dir}')
 
-    tools.run_package(settings, work_dir, out_dir)
-
+    tools.run_package(settings, work_dir, package_dir)

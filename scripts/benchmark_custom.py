@@ -127,11 +127,12 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('settings_file', type=str)
+    parser.add_argument('--work_dirs', type=str, default='./work_dirs')
     cmds = parser.parse_args()
     settings = config_settings.ConfigSettings(cmds.settings_file, model_selection=None)
 
     expt_name = os.path.splitext(os.path.basename(__file__))[0]
-    work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tensor_bits}bits')
+    work_dir = os.path.join(cmds.work_dirs, expt_name, f'{settings.tensor_bits}bits')
     print(f'work_dir = {work_dir}')
 
     # now run the actual pipeline

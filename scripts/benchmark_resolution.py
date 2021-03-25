@@ -156,6 +156,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('settings_file', type=str, default=None)
+    parser.add_argument('--work_dirs', type=str, default='./work_dirs')
     parser.add_argument('--configs_path', type=str, default=configs_path_default)
     parser.add_argument('--models_path', type=str, default=models_path_default)
     parser.add_argument('--task_selection', type=str, nargs='*', default=None)
@@ -176,7 +177,7 @@ if __name__ == '__main__':
         num_frames=1, calibration_frames=1, calibration_iterations=1, **kwargs)
 
     expt_name = os.path.splitext(os.path.basename(__file__))[0]
-    work_dir = os.path.join('./work_dirs', expt_name, f'{settings.tensor_bits}bits')
+    work_dir = os.path.join(cmds.work_dirs, expt_name, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
     # pass a function to modify the pipelines to add the various resolutions

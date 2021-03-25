@@ -39,9 +39,10 @@ if __name__ == '__main__':
     #
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--benchmark_dir', type=str, default='./work_dirs/benchmark_accuracy')
+    parser.add_argument('--work_dirs', type=str, default='./work_dirs')
     cmds = parser.parse_args()
 
-    benchmark_dir = cmds.benchmark_dir
+    expt_name = 'benchmark_accuracy'
+    benchmark_dir = os.path.join(cmds.work_dirs, expt_name)
     tools.run_report(benchmark_dir)
 
