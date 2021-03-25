@@ -200,8 +200,12 @@ class QuantizationParams():
     def get_calibration_frames(self):
         return self.calibration_frames
 
-    def get_num_calib_iterations(self):
-        return self.calibration_iterations if self.tensor_bits == 8 else 1
+    def get_calibration_iterations(self):
+        # note that calibration_iterations has effect only if accuracy_level>0
+        # accuracy_level is set to >1 only for float 8bit models.
+        # for more information see:get_tidl_calibration_accuracy_level()
+        # so just set it to the max value
+        return self.calibration_iterations
 
     def get_tidl_calibration_accuracy_level(self):
         return 0 if self.tensor_bits != 8 or self.is_qat else 1
@@ -223,7 +227,8 @@ class QuantizationParams():
             'advanced_options:pre_batchnorm_fold': 1,
             # quantization/calibration options
             'advanced_options:calibration_frames': self.get_calibration_frames(),
-            'advanced_options:calibration_iterations': self.get_num_calib_iterations(),
+            # note that calibration_iterations has effect only if accuracy_level>0
+            'advanced_options:calibration_iterations': self.get_calibration_iterations(),
             # quantization_scale_type iset to 1 for power-of-2-scale quant by default
             # change it to 0 if some network specifically needs non-power-of-2
             'advanced_options:quantization_scale_type': 1,
