@@ -61,13 +61,14 @@ class ConfigSettings(config_dict.ConfigDict):
         return sessions.get_session_name_to_type_dict()[session_name]
 
     def get_runtime_options(self, model_type_or_session_name=None, is_qat=False,
-                            override_options=None, **kwargs):
+                            runtime_options=None):
         # runtime_params are currently common, so session_name is currently optional
         session_name = self.get_session_name(model_type_or_session_name) if \
                 model_type_or_session_name is not None else None
         quantization_params = self.quantization_params_qat if is_qat else self.quantization_params
+        # runtime_options given as a keyword argument to the function overrides the default arguments
         runtime_options = quantization_params.get_runtime_options(session_name,
-                                        override_options=override_options, **kwargs)
+                                        runtime_options=runtime_options)
         return runtime_options
 
     ###############################################################
@@ -245,12 +246,14 @@ class QuantizationParams():
         }
         return runtime_options
 
-    def get_runtime_options(self, session_name=None, override_options=None, **kwargs):
-        runtime_options = self.get_runtime_options_default(session_name)
-        runtime_options.update(self.runtime_options)
-        if override_options is not None:
-            assert isinstance(override_options, dict), f'override_options must be dict, got {type(override_options)}'
-            runtime_options.update(override_options)
+    def get_runtime_options(self, session_name=None, runtime_options=None):
+        # this is the default runtime_options defined above
+        runtime_options_new = self.get_runtime_options_default(session_name)
+        # this takes care of overrides in the settings yaml file
+        runtime_options_new.update(self.runtime_options)
+        # this takes care of overrides in the code given as runtime_options keyword argument
+        if runtime_options is not None:
+            assert isinstance(runtime_options, dict), f'runtime_options provided via kwargs must be dict, got {type(runtime_options)}'
+            runtime_options_new.update(runtime_options)
         #
-        runtime_options.update(kwargs)
-        return runtime_options
+        return runtime_options_new
