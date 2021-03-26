@@ -1,15 +1,16 @@
-# Accuracy Benchmark for Jacinto 7
+# Jacinto-AI-Benchmark
+
+This repository provides a collection of scripts for various image recognition tasks such as classification, segmentation and detection. Scripts are provided for Model Import/Calibration, Inference and Accuracy benchmarking of Deep Neural Networks. 
+
 
 #### Notice
 This repository is part of Jacinto-AI-DevKit, which is a collection of repositories providing Training & Quantization scripts, Model Zoo and Accuracy Benchmarks. If you have not visited the landing page of [**Jacinto-AI-Devkit**](https://github.com/TexasInstruments/jacinto-ai-devkit) please do so before attempting to use this repository.
 
 
 ## Introduction
-This repository provides a collection of scripts for various image recognition tasks such as classification, segmentation and detection. Scripts are provided for Model Import/Calibration, Inference and Accuracy benchmarking of Deep Learning Models. 
+Deep Neural Networks (a.k.a. DNNs or Deep Learning Models or simply models) can be run on our SoCs using RTOS SDK for Jacinto 7 (PROCESSOR-SDK-RTOS-J721E). It can be downloaded from the page for Processor SDK for Jacinto 7 TDA4x a.k.a. **[PROCESSOR-SDK-J721E](https://www.ti.com/tool/PROCESSOR-SDK-J721E)**. 
 
-Deep Learning models can be run using RTOS SDK for Jacinto 7 (PROCESSOR-SDK-RTOS-J721E), which can be downloaded from the page for Processor SDK for Jacinto 7 TDA4x a.k.a. **[PROCESSOR-SDK-J721E](https://www.ti.com/tool/PROCESSOR-SDK-J721E)**. 
-
-RTOS SDK for Jacinto 7 TDA4x provides TI Deep Learning Library (TIDL) which is an optimized library that can run Deep Neural Networks. TIDL provides several familiar interfaces for model inference - such as onnxruntime, tflite_runtime and tvm/dlr. All these runtimes that are provided as part of TIDL have extensions on top of public domain runtimes that allow us to offload model execution into our high performance C7x+MMA DSP. For more information how to obtain and use these runtimes, please go through the TIDL documentation in the RTOS SDK. The documentation of TIDL can be seen if you click on the "SDK Documentation" link in the download page for [PROCESSOR-SDK-RTOS-J721E)](https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E)
+RTOS SDK for Jacinto 7 TDA4x provides TI Deep Learning Library (TIDL), which is an optimized library that can run DNNs on our SoCs. TIDL provides several familiar interfaces for model inference - such as onnxruntime, tflite_runtime, tvm/dlr - apart from its own native interface. All these runtimes that are provided as part of TIDL have extensions on top of public domain runtimes that allow us to offload model execution into our high performance C7x+MMA DSP. For more information how to obtain and use these runtimes, please go through the TIDL documentation in the RTOS SDK. The documentation of TIDL can be seen if you click on the "SDK Documentation" link in the download page for [PROCESSOR-SDK-RTOS-J721E)](https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E)
 
 Getting the correct functionality and accuracy with Deep Learning Models is not easy. Several aspects such as dataset loading, pre and post processing operations have to be matched to that of the original training framework to get meaningful functionality and accuracy. There is much difference in these operations across various popular models and much effort is required to match that functionality. **In this repository, we provide high level scripts that help to do inference and accuracy benchmarking on our platform easily, with just a few lines of Python code.** Aspects such dataset loading, pre and post processing as taken care for several popular models.
 
