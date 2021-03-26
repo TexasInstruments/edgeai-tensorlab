@@ -124,6 +124,8 @@ def pretty_object(d, precision=3, depth=5):
     elif isinstance(d, (np.float32, np.float64)):
         # numpy objects cannot be serialized with yaml - convert to float
         d_out = round(float(d), precision)
+    elif isinstance(d, np.int64):
+        d_out = int(d)
     elif isinstance(d, float):
         # round to the given precision
         d_out = round(d, precision)

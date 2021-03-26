@@ -32,12 +32,20 @@ import shutil
 import tarfile
 import yaml
 import glob
+import re
+from colorama import Fore
 from jai_benchmark import utils
 
 
 def run_package(settings, work_dir, out_dir):
     # now write out the package
     package_artifacts(settings, work_dir, out_dir)
+
+
+def match_string(patterns, filename):
+    matches = [re.search(p, filename) for p in patterns]
+    got_match = any(matches)
+    return got_match
 
 
 def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, make_package_dir=False):
@@ -101,9 +109,34 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
     package_artifacts_folder = os.path.join(package_run_dir, relative_artifacts_dir)
     artifacts_files = utils.list_files(artifacts_folder, basename=False)
     package_artifacts_files = [os.path.join(package_artifacts_folder,os.path.basename(f)) for f in artifacts_files]
+    artifacts_patterns = [
+        r'_tidl_net.bin$',
+        r'_tidl_io_\d*.bin$',
+        r'allowedNode.txt',
+        r'_netLog.txt',
+        r'.svg',
+        r'deploy_graph.json',
+        r'deploy_lib.so',
+        r'deploy_params.params']
     for f, pf in zip(artifacts_files, package_artifacts_files):
-        input_files.append(f)
-        packaged_files.append(pf)
+        if match_string(artifacts_patterns, f):
+            input_files.append(f)
+            packaged_files.append(pf)
+        #
+    #
+    artifacts_folder_tempdir = os.path.join(artifacts_folder, 'tempDir')
+    tempfile_patterns = [
+                    r'_netLog.txt',
+                    r'.svg']
+    if os.path.exists(artifacts_folder_tempdir) and os.path.isdir(artifacts_folder_tempdir):
+        tempfiles = utils.list_files(artifacts_folder_tempdir, basename=False)
+        package_tempfiles = [os.path.join(package_artifacts_folder,os.path.basename(f)) for f in tempfiles]
+        for f, pf in zip(tempfiles, package_tempfiles):
+            if match_string(tempfile_patterns, f):
+                input_files.append(f)
+                packaged_files.append(pf)
+            #
+        #
     #
 
     # copy files in run_dir - example result.yaml
@@ -158,8 +191,9 @@ def package_artifacts(settings, work_dir, out_dir):
                 model_name = os.path.basename(model_path)
                 tarfile_names.append(','.join([task_type, package_run_dir, model_name]))
             #
+            print(f'{Fore.GREEN}INFO:{Fore.YELLOW} finished packaging:{Fore.RESET} {run_dir}')
         except:
-            print(f'could not package: {run_dir}')
+            print(f'{Fore.MAGENTA}WARNING:{Fore.YELLOW} could not package:{Fore.RESET} {run_dir}')
         #
     #
     model_list = '\n'.join(tarfile_names)
