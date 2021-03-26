@@ -1,6 +1,6 @@
 # Jacinto-AI-Benchmark
 
-This repository provides a collection of scripts for various image recognition tasks such as classification, segmentation and detection. Scripts are provided for Model Import/Calibration, Inference and Accuracy benchmarking of Deep Neural Networks. 
+This repository provides a collection of scripts for various image recognition tasks such as classification, segmentation and detection. Scripts are provided for Model Import/Calibration, Inference and Accuracy benchmarking of Deep Neural Networks. This benchmarks in this repository can be run either in PC simulation mode or directly in [Jacinto 7](https://training.ti.com/jacinto7) family of SoCs, for example [TDA4VM](https://www.ti.com/product/TDA4VM). 
 
 
 #### Notice
@@ -38,13 +38,9 @@ After extracting, follow the instructions in the RTOS package to download the de
 Please also read the details below for obtaining teh ModelZoo and Datasets - these are also required to do the benchmarking. 
 
 #### Requirement: ModelZoo
-Models and config files that are used in this benchmark are provided in another repository called **[Jacinto-AI-ModelZoo](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse)**. Please see the documentation of that repository to understand how to clone it. After cloning, jacinto-ai-benchmark and jacinto-ai-modelzoo must be inside the same parent folder for the default settings to work.
+DNN Models, config files and pre-imported/calibrated artifacts that are used in this benchmark are provided in another repository called **[Jacinto-AI-ModelZoo](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/about/)**. Please see the documentation of that repository to understand how to clone it. After cloning, jacinto-ai-benchmark and jacinto-ai-modelzoo must be inside the same parent folder for the default settings to work.
 
-Please clone that repository to use it. That repository uses git-lfs, so please install git-lfs before cloning. After cloning, **jacinto-ai-benchmark** and **jacinto-ai-modelzoo** must be in the same parent folder. 
-
-The models are located in the folder [models](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/models)
-
-The config files for those models are located in the folder [configs](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/configs)
+Jacinto-AI-ModelZoo uses git-lfs, so please install git-lfs before cloning. After cloning, **jacinto-ai-benchmark** and **jacinto-ai-modelzoo** must be in the same parent folder. 
 
 
 #### Requirement: Datasets
