@@ -112,12 +112,16 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
     artifacts_patterns = [
         r'_tidl_net.bin$',
         r'_tidl_io_\d*.bin$',
-        r'allowedNode.txt',
-        r'_netLog.txt',
-        r'.svg',
-        r'deploy_graph.json',
-        r'deploy_lib.so',
-        r'deploy_params.params']
+        r'allowedNode.txt$',
+        r'_netLog.txt$',
+        r'.svg$',
+        r'deploy_graph.json$',
+        r'deploy_lib.so$',
+        r'deploy_params.params$',
+        # extra files - for information only
+        r'netLog.txt$',
+        r'layer_info.txt$',
+        r'.svg$']
     for f, pf in zip(artifacts_files, package_artifacts_files):
         if match_string(artifacts_patterns, f):
             input_files.append(f)
@@ -126,8 +130,10 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
     #
     artifacts_folder_tempdir = os.path.join(artifacts_folder, 'tempDir')
     tempfile_patterns = [
-                    r'_netLog.txt',
-                    r'.svg']
+        # extra files - for information only
+        r'netLog.txt$',
+        r'layer_info.txt$',
+        r'.svg$']
     if os.path.exists(artifacts_folder_tempdir) and os.path.isdir(artifacts_folder_tempdir):
         tempfiles = utils.list_files(artifacts_folder_tempdir, basename=False)
         package_tempfiles = [os.path.join(package_artifacts_folder,os.path.basename(f)) for f in tempfiles]
