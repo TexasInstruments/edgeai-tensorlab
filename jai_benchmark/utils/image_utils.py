@@ -26,18 +26,32 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from .params_base import *
-from .misc_utils import *
-from .download_utils import *
-from .file_utils import *
-from .logger_utils import *
-from .parallel_run import ParallelRun
-from .environ_utils import *
-from .timer_utils import *
-from .metric_utils import *
-from .progress_step import *
-from .transforms_utils import *
-from .onnx_utils import *
-from .model_utils import *
-from .import_utils import *
-from .image_utils import *
+import numpy as np
+
+
+# Author: Manu Mathew
+# Date: 2021 March
+def get_color_palette(num_classes):
+    num_classes_3 = np.power(num_classes, 1.0/3)
+    delta_color = int(256/num_classes_3)
+    colors = [(r, g, b) for r in range(0,256,delta_color)
+                        for g in range(0,256,delta_color)
+                        for b in range(0,256,delta_color)]
+    # spread the colors list to num_classes
+    color_step = len(colors) / num_classes
+    colors_list = []
+    to_idx = 0
+    while len(colors_list) < num_classes:
+        from_idx = round(color_step * to_idx)
+        if from_idx < len(colors):
+            colors_list.append(colors[from_idx])
+        else:
+            break
+        #
+        to_idx = to_idx + 1
+    #
+    shortage = num_classes-len(colors_list)
+    if shortage > 0:
+        colors_list += colors[-shortage:]
+    #
+    return colors_list

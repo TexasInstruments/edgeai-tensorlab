@@ -117,10 +117,8 @@ from .. import utils
 __all__ = ['COCOSegmentation']
 
 
-
-
 class COCOSegmentation(utils.ParamsBase):
-    def __init__(self, inData, num_imgs=None, num_classes=21, **kwargs):
+    def __init__(self, inData, num_imgs=None, num_classes=21, download=False, **kwargs):
         super().__init__()
         self.kwargs = kwargs
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
