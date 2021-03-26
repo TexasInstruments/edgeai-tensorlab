@@ -1,65 +1,114 @@
-# Accuracy Benchmark for Jacinto 7
+# Jacinto-AI-Benchmark
+
+This repository provides a collection of scripts for various image recognition tasks such as classification, segmentation and detection. Scripts are provided for Model Import/Calibration, Inference and Accuracy benchmarking of Deep Neural Networks. 
+
+
+#### Notice
+This repository is part of Jacinto-AI-DevKit, which is a collection of repositories providing Training & Quantization scripts, Model Zoo and Accuracy Benchmarks. If you have not visited the landing page of [**Jacinto-AI-Devkit**](https://github.com/TexasInstruments/jacinto-ai-devkit) please do so before attempting to use this repository.
 
 
 ## Introduction
-This repository provides scripts for Accuracy benchmarking for TIDL. Open source runtime front ends of TIDL such as TVM-DLR and TFLRT (TFLite Runtime) are supported.
+Deep Neural Networks (a.k.a. DNNs or Deep Learning Models or simply models) can be run on our SoCs using RTOS SDK for Jacinto 7 (PROCESSOR-SDK-RTOS-J721E). It can be downloaded from the page for Processor SDK for Jacinto 7 TDA4x a.k.a. **[PROCESSOR-SDK-J721E](https://www.ti.com/tool/PROCESSOR-SDK-J721E)**. 
+
+RTOS SDK for Jacinto 7 TDA4x provides TI Deep Learning Library (TIDL), which is an optimized library that can run DNNs on our SoCs. TIDL provides several familiar interfaces for model inference - such as onnxruntime, tflite_runtime, tvm/dlr - apart from its own native interface. All these runtimes that are provided as part of TIDL have extensions on top of public domain runtimes that allow us to offload model execution into our high performance C7x+MMA DSP. For more information how to obtain and use these runtimes, please go through the TIDL documentation in the RTOS SDK. The documentation of TIDL can be seen if you click on the "SDK Documentation" link in the download page for [PROCESSOR-SDK-RTOS-J721E)](https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E)
+
+Getting the correct functionality and accuracy with Deep Learning Models is not easy. Several aspects such as dataset loading, pre and post processing operations have to be matched to that of the original training framework to get meaningful functionality and accuracy. There is much difference in these operations across various popular models and much effort is required to match that functionality. **In this repository, we provide high level scripts that help to do inference and accuracy benchmarking on our platform easily, with just a few lines of Python code.** Aspects such dataset loading, pre and post processing as taken care for several popular models.
+
+**Important Note**: This repository is being made available for experimentation, analysis and research - this is not meant for deployment in production.  We do not own the datasets that are used to train or evaluate the models used in this benchmark and some of these datasets have restrictions on how they can be used.
 
 
-## Requirements 
-- Models used for this benchmark are provided in the repository [Jacinto-AI-ModelZoo](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse). Please clone that repository into the same parent folder where this repository is cloned.
-- We have tested this on Ubuntu 18.04 PC with Anaconda Python 3.6. This is the recommended environment.
-- This package does accuracy benchmarking for Jacinto 7 family of devices using TIDL and its open source front ends. RTOS SDK for Jacinto 7 is required to run this package. Please visit [Processor SDK for Jacinto 7 TDA4x](https://www.ti.com/tool/PROCESSOR-SDK-J721E) and from there navigate to [RTOS SDK for Jacinto 7 TDA4x](https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E) to download and untar/extract the RTOS SDK on your Ubuntu desktop machine.
-- After extracting, follow the instructions in the RTOS package to download the dependencies required for it. Especially the following 3 steps:
-- (1) Install PSDK-RTOS dependencies - some of those dependencies are required in this benchmark code as well - especially graphviz and gcc-arm: Change directory to psdk_rtos/scripts inside the extracted SDK and run setup_psdk_rtos.sh
-- (2) In the extracted SDK, change directory to tidl folder (it has the form tidl_j7_xx_xx_xx_xx). Inside the tidl folder, change directory to ti_dl/test/tvm-dlr and run prepare_model_compliation_env.sh to install TVM Deep Learning compiler, DLR Deep Learning Runtime and their dependencies. In our SDK, we have support to use TVM+DLR to offload part of the graph into the underlying TIDL backend running on the C7x+MMA DSP, while keeping the unsupported layers running on the main ARM processor. 
-- (3) Inside the tidl folder, change directory to ti_dl/test/tflrt and run prepare_model_compliation_env.sh to install TFLite Runtime and its dependencies. In our SDK, we have support to use TFLite Runtime to offload part of the graph into the underlying TIDL backend running on the C7x+MMA DSP, while keeping the unsupported layers running on the main ARM processor. 
+## Components of this repository
+This repository is generic and can be used with a variety of runtimes and models supported by TIDL. This repository contains several parts:<br>
+- [jai_benchmark](./jai_benchmark): Core scritps for core import/calibration, inference and accuracy benchmark scripts provided as a python package (that can be imported using: import jai_benchmark or using: from jai_benchmark import *)<br>
+- [scripts](./scripts): these are the top level scripts - to import/calibrate models, to infer and do accuracy benchmark, to collect accuracy report and to package the generate artifacts.<br>
+
+
+## Requirements
+#### Environment
+We have tested this on Ubuntu 18.04 PC with Anaconda Python 3.6. This is the recommended environment. Create a Python 3.6 environment if you don't have it and activate it.
+
+#### Requirement: PROCESSOR-SDK-RTOS-J721E
+As explained earlier, RTOS SDK for Jacinto 7 is required to run this package. Please visit the links given above to download and untar/extract the RTOS SDK on your Ubuntu desktop machine.
+
+After extracting, follow the instructions in the RTOS package to download the dependencies required for it. Especially the following 3 steps are required:<br>
+- (1) Install PSDK-RTOS dependencies - especially graphviz and gcc-arm: Change directory to **psdk_rtos/scripts** inside the extracted SDK and run **setup_psdk_rtos.sh**<br>
+- (2) In the extracted SDK, change directory to tidl folder (it has the form tidl_j7_xx_xx_xx_xx). Inside the tidl folder, change directory to **ti_dl/test/tvm-dlr** and run **prepare_model_compliation_env.sh** to install TVM Deep Learning compiler, DLR Deep Learning Runtime and their dependencies. In our SDK, we have support to use TVM+DLR to offload part of the graph into the underlying TIDL backend running on the C7x+MMA DSP, while keeping the unsupported layers running on the main ARM processor. <br>
+- (3) Inside the tidl folder, change directory to **ti_dl/test/tflrt** and run **prepare_model_compliation_env.sh** to install TFLite Runtime and its dependencies. In our SDK, we have support to use TFLite Runtime to offload part of the graph into the underlying TIDL backend running on the C7x+MMA DSP, while keeping the unsupported layers running on the main ARM processor.<br>
+
+Please also read the details below for obtaining teh ModelZoo and Datasets - these are also required to do the benchmarking. 
+
+#### Requirement: ModelZoo
+Models and config files that are used in this benchmark are provided in another repository called **[Jacinto-AI-ModelZoo](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse)**. Please see the documentation of that repository to understand how to clone it. After cloning, jacinto-ai-benchmark and jacinto-ai-modelzoo must be inside the same parent folder for the default settings to work.
+
+Please clone that repository to use it. That repository uses git-lfs, so please install git-lfs before cloning. After cloning, **jacinto-ai-benchmark** and **jacinto-ai-modelzoo** must be in the same parent folder. 
+
+The models are located in the folder [models](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/models)
+
+The config files for those models are located in the folder [configs](https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-modelzoo/browse/configs)
+
+
+#### Requirement: Datasets
+This benchmark code can use several datasets. In fact, the design of this code is flexible to add support for additional datasets easily.
+
+We already have support to download several of these datasets automatically - but this may not always work because the source URLs may change. For example the ImageNet download URL has changed recently and the automatic download no longer works. 
+
+If you start the download and interrupt it in between, the datasets may be partially downloaded and it can lead to unexpected failures. If the download of a dataset is interrupted in between, delete that dataset folder manually to start over. 
+
+Also, the download may take several hours even with a good internet connection. 
+
+Because of all these reasons **it is a good idea to download datasets manually (especially ImageNet) ane make it available at the expected locations.** To make the datasets manually available, they should be placed at the locations specified for each dataset - if you have the datasets stored somewhere else, create symbolic links as necessary.
+
+The following link explains how to **[Obtain Datasets](./docs/datasets.md)** for benchmarking.
 
 
 ## Installation Instructions
-This package can be installed by:
+After cloning this repository, install it as a Python package by running:
 ```
 ./setup.sh
 ```
 
-Open the file run_benchmarks.sh and see the shell variables PSDK_BASE_PATH and TIDL_BASE_PATH being defined. Change these paths appropriately to reflect what is in your PC, if needed.
+Open the shell scripts that starts the actual benchmarking [run_benchmarks.sh](./run_benchmarks.sh), [tutorials](./tutorials) and see the environment variables **PSDK_BASE_PATH** and **TIDL_BASE_PATH** being defined. Change these paths appropriately to reflect what is in your PC.
 
-Once installed, the **jacinto-ai-benchmark** will be a available as a package in your Python environment. It can be imported just like any other Python package in a Python script:<br>
+Once installed, the **jai_benchmark** will be a available as a package in your Python environment. It can be imported just like any other Python package in a Python script:<br>
 ```
-import jacinto_ai_benchmark
+import jai_benchmark
 ```
 or
 ```
-from jacinto_ai_benchmark import *
+from jai_benchmark import *
 ```
 
-## Datasets
-This benchmark uses several datasets. They should be available at the following locations - if you have the datasets stored somewhere else, create the symbolic links as necessary:
-- ImageNet dataset validation split should be available in the path *dependencies/datasets/imagenet/val* and a text file describing the list of images and the corresponding ground truth classes must be available in *dependencies/datasets/imagenet/val.txt*
-- Cityscapes dataset should be available in the path *dependencies/datasets/cityscpaes* - we use only the validation split - which should be in the folders *dependencies/datasets/cityscpaes/cityscapes/leftImg8bit/val* and *dependencies/datasets/cityscpaes/cityscapes/gtFine/val*
-- COCO dataset should be available in the path *dependencies/datasets/coco* especially the folders *dependencies/datasets/coco/val2017* and *dependencies/datasets/coco/annotations*
-- ADE20K dataset should be available in the path *dependencies/datasets/ADEChallengeData2016*
-- PascalVOC2012 dataset should be available in the path *dependencies/datasets/VOCdevkit/VOC2012*
-
-We have support to support to download several of these datasets automatically - but the download will take several hours even with a good internet connection - that's why it's important to make the datasets available at the above locations to avoid that download - if you have them already.
-
-It you start the download and interrupt it in between, the datasets may be partially downloaded and it can lead to unexpected failures. If the download of a dataset is interrupted in between, delete that dataset folder manually to start over.
-
-Important Note: If you wish to do benchmarking using only one or some of the datasets above, that dataset(s) can be specified in the yaml file in the parameter dataset_loading. See the help for dataset_loading in the yaml file for more information. 
 
 ## Usage
 
-#### Tutorial
-- Samples Jupyter Notebook tutorials are in [tutorials](./tutorials)
-- Start the Jupyter Notebook by running [./run_tutorials.sh](./run_tutorials.sh) and then select a notebook to open the tutorial.
-- Notice how we use settings to limit the benchmark only to a couple of networks and only the 'imagenet' dataset. This kind of limiting helps you to focus on the networks and datasets that you are interested in.
-- Run that example benchmarking by running the the cells. 
-
 #### Accuracy Benchmarking
-- Accuracy benchmark can be done by running [run_benchmarks.sh](./run_benchmarks.sh)
-- [run_benchmarks.sh](../run_benchmarks.sh) sets up some environment variables then runs the benchmark code provided in [scripts/benchmark_accuracy.py](./scripts/benchmark_accuracy.py) using the settings defined in [accuracy_minimal_pc.yaml](accuracy_minimal_pc.yaml) - this is to run a sample benchmark on PC. 
-- Change the yaml settings file appropriately to run on J7 EVM. [accuracy_import_for_j7.yaml](./accuracy_import_for_j7.yaml) can be used to run the import/calibration of the models on PC, but targeted for the J7 platform. This will create the imported/calibrated artifacts corresponding to the models. Finally [accuracy_infer_on_j7.yaml](./accuracy_infer_on_j7.yaml) can be used when running the benchmark on the J7 EVM (this step will use the imported/calibrated artifacts).
-- By default, the accuracy benchmark script uses our pre-defined models, defined in [jacinto_ai_benchmark/configs](./jacinto_ai_benchmark/configs).
-- If you would like to do accuracy benchmark for your own custom model, then please look at the example given in [scripts/custom_example.py](./scripts/custom_example.py).
+Accuracy benchmark can be done by running [run_benchmarks.sh](./run_benchmarks.sh)
+
+[run_benchmarks.sh](../run_benchmarks.sh) sets up some environment variables and then runs the benchmark code provided in [scripts/benchmark_accuracy.py](./scripts/benchmark_accuracy.py) using one of the yaml settings files.
+
+For full fledged benchmarking on pc, you can use the yaml file [accuracy_import_infer_pc.yaml](./accuracy_import_infer_pc.yaml)
+
+Change the yaml settings file appropriately to run on J7 EVM. [accuracy_import_for_j7.yaml](./accuracy_import_for_j7.yaml) can be used to run the import/calibration of the models on PC, but targeted for the J7 platform. This will create the imported artifacts corresponding to the models in the folder specified as work_dir in the benchmark script. 
+
+Finally [accuracy_infer_on_j7.yaml](./accuracy_infer_on_j7.yaml) can be used when running the benchmark on the J7 EVM. This step will need the folder containing imported artifacts - so copy them over to the EVM or mount that folder via NFS.
+
+By default, the accuracy benchmark script uses our pre-defined models and configs, provided in [examples](./examples) folder.
+
+If you would like to use the models and configs provided in jacinto-ai-modelzoo, please change the configs_path and modelzoo_path to that location, as shown in [run_benchmarks.sh](../run_benchmarks.sh) 
+
+If you would like to do accuracy benchmark for your own custom model, then please look at the example given in [scripts/benchmark_custom.py](./scripts/benchmark_custom.py).
+
+
+#### Generate report
+A CSV report containing all your benchmarking resutls can be generated by running [scripts/generate_report.py](./scripts/generate_report.py)
+
+
+#### Package artifacts
+The original artifacts folder contains several files that are generated during import/calibration. Only some of the files are needed for final inference. The artifacts and models can be packaged for sharing by running [scripts/package_artifacts.py](./scripts/package_artifacts.py) 
+
+
+#### Custom models and configs
+It is easy to benchmark your own models and configs using this repository. Please see the example provided in [scripts/benchmark_custom.py](./scripts/benchmark_custom.py)
 
 
 ## LICENSE
@@ -95,3 +144,4 @@ Please see the License under which this repository is made available: [LICENSE](
 
 [12] **GluonCV**: GluonCV and GluonNLP: Deep Learning in Computer Vision and Natural Language Processing
 Jian Guo, He He, Tong He, Leonard Lausen, Mu Li, Haibin Lin, Xingjian Shi, Chenguang Wang, Junyuan Xie, Sheng Zha, Aston Zhang, Hang Zhang, Zhi Zhang, Zhongyue Zhang, Shuai Zheng, Yi Zhu, https://arxiv.org/abs/1907.04433
+
