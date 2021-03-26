@@ -155,3 +155,11 @@ def str_to_dict(input):
     #
     d = yaml.safe_load(input)
     return d
+
+
+def str_to_int(input):
+    if input in ('', None, 'None'):
+        return None
+    else:
+        return int(input)
+    #

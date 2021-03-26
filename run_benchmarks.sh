@@ -73,36 +73,26 @@ echo "==================================================================="
 # increase the stack size as it can help in some models
 ulimit -s 32768
 
-# uncomment only one of the following
-# settings_file=accuracy_import_for_j7.yaml
-# settings_file=accuracy_infer_on_j7.yaml
+#===================================================
+# specify one of the following - additional options can be changed inside the yaml
+#settings_file=accuracy_import_for_j7.yaml
+#settings_file=accuracy_infer_on_j7.yaml
+#settings_file=accuracy_import_infer_pc.yaml
+#===================================================
 settings_file=accuracy_import_infer_pc.yaml
 
-
-# uncomment only one of the following - default is from modelzoo, if this argument is not specified
-# configs_path=../jacinto-ai-modelforest/configs
-configs_path=../jacinto-ai-modelzoo/configs
-
-
-# uncomment only one of the following - default is from modelzoo, if this argument is not specified
-# models_path=../jacinto-ai-modelforest/models
-models_path=../jacinto-ai-modelzoo/models
-
-
+#===================================================
 # run all the shortlisted models with these settings
 python3 ./scripts/benchmark_accuracy.py ${settings_file} \
-        --configs_path=${configs_path} --models_path=${models_path} \
         --session_type_dict {'onnx': 'onnxrt', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'}
 
-
+#===================================================
 ## run few selected models with these settings
 python3 ./scripts/benchmark_accuracy.py ${settings_file} \
-        --configs_path=${configs_path} --models_path=${models_path} \
         --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
         --task_selection classification segmentation \
         --model_selection onnx
 
-
+#===================================================
 # generate the final report with results for all the artifacts generated
 python3 ./scripts/generate_report.py
-

@@ -33,7 +33,7 @@ from jai_benchmark import *
 
 
 if __name__ == '__main__':
-    print(f'argv={sys.argv}')
+    print(f'argv: {sys.argv}')
     # the cwd must be the root of the respository
     if os.path.split(os.getcwd())[-1] == 'scripts':
         os.chdir('../')
@@ -58,6 +58,7 @@ if __name__ == '__main__':
                 task_selection=cmds.task_selection, model_selection=cmds.model_selection,
                 session_type_dict=utils.str_to_dict(cmds.session_type_dict))
     settings = config_settings.ConfigSettings(cmds.settings_file, **kwargs)
+    print(f'settings: {settings}')
 
     expt_name = os.path.splitext(os.path.basename(__file__))[0]
     work_dir = os.path.join(cmds.work_dirs, expt_name, f'{settings.tensor_bits}bits')
