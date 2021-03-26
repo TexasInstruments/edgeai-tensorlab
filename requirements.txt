@@ -8,3 +8,4 @@ colorama
 tqdm
 pyyaml
 mxnet
+pytest
