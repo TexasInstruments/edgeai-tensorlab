@@ -32,6 +32,13 @@
 # setup the environment
 
 echo "==================================================================="
+DATE_TIME=$(date +'%Y%m%d-%H%M%S')
+LOG_FILE=./work_dirs/run_benchmarks_"$DATE_TIME".log
+exec &> >(tee -a "$LOG_FILE")
+echo Logging output to: "$LOG_FILE"
+echo "-------------------------------------------------------------------"
+
+echo "==================================================================="
 echo "IMPORTANT: make sure that these environment variables are correct."
 echo "-------------------------------------------------------------------"
 
@@ -68,31 +75,32 @@ tfl_delegate_path="${TIDL_BASE_PATH}/ti_dl/tfl_delegate/out/PC/x86_64/LINUX/rele
 onnxrt_ep_path="${TIDL_BASE_PATH}/ti_dl/onnxrt_EP/out/PC/x86_64/LINUX/release"
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${import_path}:${rt_path}:${tfl_delegate_path}:${onnxrt_ep_path}"
 echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
-echo "==================================================================="
+echo "-------------------------------------------------------------------"
 
 # increase the stack size as it can help in some models
 ulimit -s 32768
 
-#===================================================
 # specify one of the following - additional options can be changed inside the yaml
 #settings_file=accuracy_import_for_j7.yaml
 #settings_file=accuracy_infer_on_j7.yaml
 #settings_file=accuracy_import_infer_pc.yaml
-#===================================================
 settings_file=accuracy_import_infer_pc.yaml
 
-#===================================================
+echo "==================================================================="
 # run all the shortlisted models with these settings
 python3 ./scripts/benchmark_accuracy.py ${settings_file} \
         --session_type_dict {'onnx': 'onnxrt', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'}
+echo "-------------------------------------------------------------------"
 
-#===================================================
+echo "==================================================================="
 ## run few selected models with these settings
 python3 ./scripts/benchmark_accuracy.py ${settings_file} \
         --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
         --task_selection classification segmentation \
         --model_selection onnx
+echo "-------------------------------------------------------------------"
 
-#===================================================
+echo "==================================================================="
 # generate the final report with results for all the artifacts generated
 python3 ./scripts/generate_report.py
+echo "-------------------------------------------------------------------"
