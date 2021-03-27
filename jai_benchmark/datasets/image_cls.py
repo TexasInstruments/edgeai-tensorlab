@@ -32,12 +32,17 @@ from .. import utils
 
 
 class ImageCls(utils.ParamsBase):
-    def __init__(self, dest_dir=None, **kwargs):
+    def __init__(self, download=False, dest_dir=None, **kwargs):
         super().__init__()
         assert 'path' in kwargs and 'split' in kwargs, 'path and split must be provided in kwargs'
         path = kwargs['path']
         assert os.path.exists(path) and os.path.isdir(path), f'input path {path} must contain the dataset'
+        # download the data if needed
+        if download:
+            self.download(path)
+        #
         self.kwargs = kwargs
+        # create list of images and classes
         self.imgs = utils.get_data_list(input=kwargs, dest_dir=dest_dir)
         self.num_frames = kwargs.get('num_frames',len(self.imgs))
         shuffle = kwargs.get('shuffle', False)
@@ -47,6 +52,9 @@ class ImageCls(utils.ParamsBase):
         #
         # call the utils.ParamsBase.initialize()
         super().initialize()
+
+    def download(self, path):
+        return None
 
     def __getitem__(self, idx):
         with_label = self.kwargs.get('with_label', False)

@@ -26,73 +26,82 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+"""
+Reference:
+
+Olga Russakovsky*, Jia Deng*, Hao Su, Jonathan Krause, Sanjeev Satheesh, Sean Ma, Zhiheng Huang, Andrej Karpathy,
+Aditya Khosla, Michael Bernstein, Alexander C. Berg and Li Fei-Fei. (* = equal contribution)
+ImageNet Large Scale Visual Recognition Challenge. International Journal of Computer Vision, 2015.
+http://www.image-net.org/
+"""
+
 
 import os
 from .. import utils
-from .image_cls import *
+from .imagenet import *
 
 
-class BaseImageNetCls(ImageCls):
+class TinyImageNetCls(BaseImageNetCls):
     """
     ImageNet Dataset. URL: http://image-net.org
-
     ImageNet Large Scale Visual Recognition Challenge.
     Olga Russakovsky*, Jia Deng*, Hao Su, Jonathan Krause, Sanjeev Satheesh, Sean Ma, Zhiheng Huang,
     Andrej Karpathy, Aditya Khosla, Michael Bernstein, Alexander C. Berg and Li Fei-Fei. (* = equal contribution)
     International Journal of Computer Vision, 2015.
-    """
-    def __init__(self, *args, download=False, **kwargs):
-        self.class_names_dict = None
-        self.class_ids_dict = None
-        super().__init__(*args, download=download, **kwargs)
+    Download page: http://image-net.org/download-images
 
-    def get_notice(self):
-        notice = '''       
-                 ImageNet Dataset, URL: http://image-net.org     
-                 
-                 IMPORTANT: Please visit the urls: http://image-net.org/ http://image-net.org/about-overview and ' \
-                 http://image-net.org/download-faq to understand more about ImageNet dataset ' \
-                 and accept the terms and conditions under which it can be used. ' \
-                 Also, register/signup on that website, request and get permission to download this dataset.              
-                 '''
-        return notice
+    Tiny ImageNet
+    This is a miniature of ImageNet classification Challenge.
+    We thank Fei-Fei Li, Andrej Karpathy, and Justin Johnson for providing this dataset as part of their cs231n course at Stanford university http://cs231n.stanford.edu/
+    https://www.kaggle.com/c/tiny-imagenet
+    http://cs231n.stanford.edu/
+    http://cs231n.stanford.edu/tiny-imagenet-200.zip
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def download(self, path):
-        print(self.get_notice())
-        extra_url = 'http://dl.caffe.berkeleyvision.org/caffe_ilsvrc12.tar.gz'
         root = self._get_root(path)
-        extra_path = utils.download_file(extra_url, root=root)
-        synset_words_file = os.path.join(root, 'synset_words.txt')
-        if os.path.exists(synset_words_file):
-            self.class_names_dict = {}
-            with open(synset_words_file) as fp:
-                for line in fp:
-                    line = line.rstrip()
-                    words = line.split(' ')
-                    key = words[0]
-                    value = ' '.join(words[1:])
-                    self.class_names_dict.update({key:value})
-                #
-            #
-            self.class_names_dict = {k:self.class_names_dict[k] for k in sorted(self.class_names_dict.keys())}
-            self.class_ids_dict = {k:id for id,(k,v) in enumerate(self.class_names_dict)}
-        #
-        return extra_path
-
-    def _get_root(self, path):
-        path = path.rstrip('/')
-        root = os.sep.join(os.path.split(path)[:-1])
-        return root
+        dataset_url = 'http://cs231n.stanford.edu/tiny-imagenet-200.zip'
+        dataset_path = utils.download_file(dataset_url, root=root, extract_root=path)
+        extra_path = super().download()
+        return [dataset_path, extra_path]
 
 
-class ImageNetCls(BaseImageNetCls):
+class ImageNetResized64x64Cls(BaseImageNetCls):
     """
     ImageNet Dataset. URL: http://image-net.org
-    "ImageNet Large Scale Visual Recognition Challenge."
+    ImageNet Large Scale Visual Recognition Challenge.
     Olga Russakovsky*, Jia Deng*, Hao Su, Jonathan Krause, Sanjeev Satheesh, Sean Ma, Zhiheng Huang,
     Andrej Karpathy, Aditya Khosla, Michael Bernstein, Alexander C. Berg and Li Fei-Fei. (* = equal contribution)
     International Journal of Computer Vision, 2015.
     Download page: http://image-net.org/download-images
+
+    This dataset contained ImageNet resized to a smaller size.
+    http://image-net.org/download-images
+    https://www.tensorflow.org/datasets/catalog/imagenet_resized
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def download(self, path):
+        root = self._get_root(path)
+        dataset_url = 'http://image-net.org/data/downsample/Imagenet64_val.zip'
+        dataset_path = utils.download_file(dataset_url, root=root, extract_root=path)
+        extra_path = super().download()
+        return [dataset_path, extra_path]
+
+
+class ImageNetDogsCls(BaseImageNetCls):
+    """
+    ImageNet Dataset. URL: http://image-net.org
+    ImageNet Large Scale Visual Recognition Challenge.
+    Olga Russakovsky*, Jia Deng*, Hao Su, Jonathan Krause, Sanjeev Satheesh, Sean Ma, Zhiheng Huang,
+    Andrej Karpathy, Aditya Khosla, Michael Bernstein, Alexander C. Berg and Li Fei-Fei. (* = equal contribution)
+    International Journal of Computer Vision, 2015.
+    Download page: http://image-net.org/download-images
+
+    Fine-grained classification on 100+ dog categories.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -101,9 +110,8 @@ class ImageNetCls(BaseImageNetCls):
         root = self._get_root(path)
         input_message = '\nplease input the full URL of the following file from ' \
                         '\nhttp://image-net.org/download-images in the page 2012: ' \
-                        '\nValidation images (all tasks). ILSVRC2012_img_val.tar: '
+                        '\nTraining images (Task 3), ILSVRC2012_img_train_t3.tar : '
         dataset_url = input(input_message)
         dataset_path = utils.download_file(dataset_url, root=root, extract_root=path)
         extra_path = super().download()
         return [dataset_path, extra_path]
-
