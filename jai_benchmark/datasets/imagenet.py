@@ -266,6 +266,7 @@ class ImageNetDogs120Cls(BaseImageNetCls):
             self._create_split(path, split_file)
         else:
             print(self.get_notice())
+            extra_path = None
         #
         return [path, extra_path]
 
@@ -308,7 +309,3 @@ class ImageNetPseudo120Cls(ImageNetDogs120Cls):
         split_file = kwargs['split']
         assert os.path.exists(split_file), f'{self.__class__.__name__}: file not found - {split_file}'
         super().__init__(*args, **kwargs)
-
-
-
-

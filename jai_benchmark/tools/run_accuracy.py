@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import sys
 import argparse
 from .. import utils, pipelines, config_settings
 
@@ -72,6 +73,7 @@ def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_fun
     run_dirs = [os.path.basename(run_dir) for run_dir in run_dirs]
     print(f'configs to run: {run_dirs}')
     print(f'number of configs: {len(pipeline_runner.pipeline_configs)}')
+    sys.stdout.flush()
 
     # now actually run the configs
     if settings.run_import or settings.run_inference:

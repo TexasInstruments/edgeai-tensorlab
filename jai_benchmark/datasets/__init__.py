@@ -35,44 +35,17 @@ from .ade20k import *
 from .voc_seg import *
 
 
-imagenetcls_dataset_type_dict = {
-                                 # Original ImageNet
-                                 'imagenet':ImageNetCls,
-                                 # ImageNetV2 as explained in imagenet_v2.py
-                                 'imagenetv2c':ImageNetV2C,
-                                 'imagenetv2b':ImageNetV2B,
-                                 'imagenetv2a':ImageNetV2A,
-                                 # smaller versions of the original ImageNet
-                                 'tiny-imagenet200':TinyImageNet200Cls,
-                                 'imagenet-dogs120':ImageNetDogs120Cls,
-                                 'imagenet-psuedo120':ImageNetPseudo120Cls,
-                                 'imagenet-resized-64x64':ImageNetResized64x64Cls,
-                                 }
+imagenetcls_datasets_dict = {
+                             # Original ImageNet
+                             'imagenet':{'type':ImageNetCls, 'size':50000, 'splits':['train','val']},
+                             # ImageNetV2 as explained in imagenet_v2.py
+                             'imagenetv2c':{'type':ImageNetV2C, 'size':10000, 'splits':['val','val']},
+                             'imagenetv2b':{'type':ImageNetV2B, 'size':10000, 'splits':['val','val']},
+                             'imagenetv2a':{'type':ImageNetV2A, 'size':10000, 'splits':['val','val']},
+                             # smaller versions of the original ImageNet
+                             'tiny-imagenet200':{'type':TinyImageNet200Cls, 'size':10000, 'splits':['train','val']},
+                             'imagenet-dogs120':{'type':ImageNetDogs120Cls, 'size':20580, 'splits':['train','train']},
+                             'imagenet-pseudo120':{'type':ImageNetPseudo120Cls, 'size':20580, 'splits':['train','train']},
+                             'imagenet-resized-64x64':{'type':ImageNetResized64x64Cls, 'size':50000, 'splits':['train','val']},
+                             }
 
-imagecls_dataset_type_dict = {'generic':ImageCls}.update(imagenetcls_dataset_type_dict)
-
-
-imagenetcls_dataset_size_dict = {'imagenet':50000,
-                                 'tiny-imagenet200':10000,
-                                 'imagenet-dogs120':20580,
-                                 'imagenet-psuedo120':20580,
-                                 'imagenet-resized-64x64':50000,
-                                 'imagenetv2a':50000,
-                                 'imagenetv2b':50000,
-                                 'imagenetv2c':50000}
-
-imagecls_dataset_size_dict = {'generic':None}.update(imagenetcls_dataset_size_dict)
-
-
-# imagenet-dogs120 doesn't have val data
-imagenetcls_dataset_splits_dict = {'imagenet':['train','val'],
-                                   'tiny-imagenet200':['train','val'],
-                                   'imagenet-dogs120':['train','train'],
-                                   'imagenet-psuedo120':['train','train'],
-                                   'imagenet-resized-64x64':['train','val'],
-                                   'imagenetv2a':['val','val'],
-                                   'imagenetv2b':['val','val'],
-                                   'imagenetv2c':['val','val']}
-
-
-imagecls_dataset_splits_dict = {'generic':['train','val']}.update(imagenetcls_dataset_splits_dict)
