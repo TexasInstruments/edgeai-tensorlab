@@ -49,16 +49,15 @@ class BaseImageNetCls(ImageCls):
 
     def get_notice(self):
         notice = '\nImageNet Dataset, URL: http://image-net.org' \
-                 '\nIMPORTANT: Please visit the urls: http://image-net.org/ http://image-net.org/about-overview and ' \
-                 '\nhttp://image-net.org/download-faq to understand more about ImageNet dataset ' \
-                 '\nand the terms and conditions under which it can be used. '
+                 '\nPlease visit the urls: http://image-net.org/about-overview and http://image-net.org/download-faq ' \
+                 '\nto understand more about ImageNet dataset.\n'
         return notice
 
     def download(self, path, split_file):
         print(self.get_notice())
         extra_url = 'http://dl.caffe.berkeleyvision.org/caffe_ilsvrc12.tar.gz'
         root = self._get_root(path)
-        extra_root = os.path.join(root, 'extra')
+        extra_root = os.path.join(root, 'rawdata_extra')
         extra_path = utils.download_file(extra_url, root=extra_root)
         synset_words_file = os.path.join(extra_path, 'synset_words.txt')
         if os.path.exists(synset_words_file):
@@ -105,10 +104,9 @@ class ImageNetCls(BaseImageNetCls):
     def download(self, path, split_file):
         root = self._get_root(path)
         input_message = \
-                    f'\nPlease register/signup on that website http://image-net.org and get the URL to download this dataset.' \
+                    f'\nPlease register/signup at http://image-net.org and get the URL to download this dataset.' \
                     f'\nIn the download section, click on the link that says 2012, and copy the URL to download the following file.' \
-                    f'\nPlease enter the full URL of the file - ' \
-                    f'\nValidation images (all tasks). ILSVRC2012_img_val.tar: '
+                    f'\nPlease enter the full URL of the file - Validation images (all tasks). ILSVRC2012_img_val.tar: '
         dataset_url = input(input_message)
         dataset_path = utils.download_file(dataset_url, root=root, extract_root=path)
         extra_path = super().download(path, split_file)
