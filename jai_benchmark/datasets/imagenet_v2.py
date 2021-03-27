@@ -28,6 +28,7 @@
 
 
 import os
+import shutil
 from .image_cls import  ImageCls
 from .. import utils
 
@@ -51,17 +52,37 @@ class ImageNetV2(ImageCls):
 
     def get_notice(self):
         notice = '\nThe ImageNetV2 dataset contains new test data for the ImageNet benchmark.' \
-                 '\nImageNetV2 Reference: http://people.csail.mit.edu/ludwigs/papers/imagenet.pdf' \
+                 '\nImageNetV2 Reference: https://arxiv.org/abs/1902.10811' \
                  '\nImageNetV2 Source Code: https://github.com/modestyachts/ImageNetV2' \
-                 '\nOriginal ImageNet Dataset, URL: http://image-net.org'
+                 '\nOriginal ImageNet Dataset, URL: http://image-net.org\n'
         return notice
 
     def download(self, path, split_file):
         print(self.get_notice())
         root = self._get_root(path)
         extract_root = os.path.join(root, 'rawdata')
-        extract_path = utils.download_file(self.url, root, extract_root=extract_root)
-        return
+        extract_path = utils.download_file(self.url, root, extract_root=extract_root, mode='r')
+
+        folders = utils.list_dir(os.path.join(extract_path, 'imagenetv2-top-images-format-val'))
+        basename_to_int = lambda f:int(os.path.basename(f))
+        folders = sorted(folders, key=basename_to_int)
+        lines = []
+        for folder_id, folder in enumerate(folders):
+            src_files = utils.list_files(folder)
+            files = [os.path.join(os.path.basename(folder), os.path.basename(f)) for f in src_files]
+            dst_files = [os.path.join(path, f) for f in files]
+            for src_f, dst_f in zip(src_files, dst_files):
+                os.makedirs(os.path.dirname(dst_f), exist_ok=True)
+                shutil.copy2(src_f, dst_f)
+            #
+            folder_lines = [f'{f} {folder_id}' for f in files]
+            lines.extend(folder_lines)
+        #
+
+        with open(split_file, 'w') as fp:
+            fp.write('\n'.join(lines))
+        #
+        return extract_path, split_file
 
     def _get_root(self, path):
         path = path.rstrip('/')

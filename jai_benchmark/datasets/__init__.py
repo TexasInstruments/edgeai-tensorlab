@@ -35,14 +35,19 @@ from .ade20k import *
 from .voc_seg import *
 
 
-imagenetcls_dataset_type_dict = {'imagenet':ImageNetCls,
+imagenetcls_dataset_type_dict = {
+                                 # Original ImageNet
+                                 'imagenet':ImageNetCls,
+                                 # ImageNetV2 as explained in imagenet_v2.py
+                                 'imagenetv2c':ImageNetV2C,
+                                 'imagenetv2b':ImageNetV2B,
+                                 'imagenetv2a':ImageNetV2A,
+                                 # smaller versions of the original ImageNet
                                  'tiny-imagenet200':TinyImageNet200Cls,
                                  'imagenet-dogs120':ImageNetDogs120Cls,
                                  'imagenet-psuedo120':ImageNetPseudo120Cls,
                                  'imagenet-resized-64x64':ImageNetResized64x64Cls,
-                                 'imagenetv2a':ImageNetV2A,
-                                 'imagenetv2b':ImageNetV2B,
-                                 'imagenetv2c':ImageNetV2C}
+                                 }
 
 imagecls_dataset_type_dict = {'generic':ImageCls}.update(imagenetcls_dataset_type_dict)
 

@@ -75,7 +75,7 @@ import zipfile
 from tqdm.auto import tqdm
 
 
-def download_file(url, root=None, extract_root=None, filename=None, md5=None):
+def download_file(url, root=None, extract_root=None, filename=None, md5=None, mode=None):
     if not isinstance(url, str):
         return url
     #
@@ -86,7 +86,7 @@ def download_file(url, root=None, extract_root=None, filename=None, md5=None):
         #
     #
     if isinstance(url, str) and (url.startswith('http://') or url.startswith('https://')):
-        fpath = download_and_extract_archive(url, root, extract_root=extract_root, filename=filename, md5=md5)
+        fpath = download_and_extract_archive(url, root, extract_root=extract_root, filename=filename, md5=md5, mode=mode)
     else:
         fpath = url
     #
@@ -355,7 +355,7 @@ def _is_zip(filename: str) -> bool:
     return filename.endswith(".zip")
 
 
-def extract_archive(from_path: str, to_path: Optional[str] = None, remove_finished: bool = False, verbose: bool = True):
+def extract_archive(from_path: str, to_path: Optional[str] = None, remove_finished: bool = False, verbose: bool = True, mode: Optional[str] = None):
     if verbose:
         print(f'Extracting {from_path} to {to_path}' + ' This may take some time. Please wait...')
         sys.stdout.flush()
@@ -364,20 +364,25 @@ def extract_archive(from_path: str, to_path: Optional[str] = None, remove_finish
         to_path = os.path.dirname(from_path)
 
     if _is_tar(from_path):
-        with tarfile.open(from_path, 'r') as tar:
+        mode = 'r' if mode is None else mode
+        with tarfile.open(from_path, mode) as tar:
             tar.extractall(path=to_path)
     elif _is_targz(from_path) or _is_tgz(from_path):
-        with tarfile.open(from_path, 'r:gz') as tar:
+        mode = 'r:gz' if mode is None else mode
+        with tarfile.open(from_path, mode) as tar:
             tar.extractall(path=to_path)
     elif _is_tarxz(from_path):
-        with tarfile.open(from_path, 'r:xz') as tar:
+        mode = 'r:xz' if mode is None else mode
+        with tarfile.open(from_path, mode) as tar:
             tar.extractall(path=to_path)
     elif _is_gzip(from_path):
+        mode = 'r' if mode is None else mode
         to_path = os.path.join(to_path, os.path.splitext(os.path.basename(from_path))[0])
         with open(to_path, "wb") as out_f, gzip.GzipFile(from_path) as zip_f:
             out_f.write(zip_f.read())
     elif _is_zip(from_path):
-        with zipfile.ZipFile(from_path, 'r') as z:
+        mode = 'r' if mode is None else mode
+        with zipfile.ZipFile(from_path, mode) as z:
             z.extractall(to_path)
     else:
         raise ValueError("Extraction of {} not supported".format(from_path))
@@ -399,6 +404,7 @@ def download_and_extract_archive(
     filename: Optional[str] = None,
     md5: Optional[str] = None,
     remove_finished: bool = False,
+    mode: Optional[str] = None
 ):
     url_files = url.split(' ')
     url = url_files[0]
@@ -411,7 +417,7 @@ def download_and_extract_archive(
     #
     fpath = download_url(url, download_root, filename, md5)
     if _is_archive(fpath):
-        fpath = extract_archive(fpath, extract_root, remove_finished)
+        fpath = extract_archive(fpath, extract_root, remove_finished, mode=mode)
     #
     if len(url_files) > 1:
         fpath = os.path.join(fpath, url_files[1])
