@@ -35,4 +35,27 @@ from .ade20k import *
 from .voc_seg import *
 
 
+imagenetcls_dataset_type_dict = {'imagenet':ImageNetCls,
+                                 'tiny-imagenet':TinyImageNetCls,
+                                 'imagenet-dogs120':ImageNetDogs120Cls,
+                                 'imagenet-resized-64x64':ImageNetResized64x64Cls}
 
+imagecls_dataset_type_dict = {'generic':ImageCls}.update(imagenetcls_dataset_type_dict)
+
+
+imagenetcls_dataset_size_dict = {'imagenet':50000,
+                                 'tiny-imagenet':10000,
+                                 'imagenet-dogs120':20580,
+                                 'imagenet-resized-64x64':50000}
+
+imagecls_dataset_size_dict = {'generic':None}.update(imagenetcls_dataset_size_dict)
+
+
+# imagenet-dogs120 doesn't have val data
+imagenetcls_dataset_splits_dict = {'imagenet':['train','val'],
+                                   'tiny-imagenet':['train','val'],
+                                   'imagenet-dogs120':['train','train'],
+                                   'imagenet-resized-64x64':['train','val']}
+
+
+imagecls_dataset_splits_dict = {'generic':['train','val']}.update(imagenetcls_dataset_splits_dict)

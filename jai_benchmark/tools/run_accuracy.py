@@ -36,12 +36,13 @@ __all__ = ['run_accuracy']
 def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_func=None):
     # get the default configs if pipeline_configs is not given from outside
     if pipeline_configs is None:
+        # import the configs module
         configs_module = utils.import_folder(settings.configs_path)
-        pipeline_configs = configs_module.get_configs(settings, work_dir)
-
         # check the datasets and download if they are missing
         download_ok = configs_module.download_datasets(settings)
         print(f'download_ok: {download_ok}')
+        # get the configs for supported models as a dictionary
+        pipeline_configs = configs_module.get_configs(settings, work_dir)
     #
 
     # create the pipeline_runner which will manage the sessions.

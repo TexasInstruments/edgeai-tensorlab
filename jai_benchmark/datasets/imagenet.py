@@ -28,6 +28,7 @@
 
 
 import os
+import shutil
 from .. import utils
 from .image_cls import *
 
@@ -47,22 +48,19 @@ class BaseImageNetCls(ImageCls):
         super().__init__(*args, download=download, **kwargs)
 
     def get_notice(self):
-        notice = '''       
-                 ImageNet Dataset, URL: http://image-net.org     
-                 
-                 IMPORTANT: Please visit the urls: http://image-net.org/ http://image-net.org/about-overview and ' \
-                 http://image-net.org/download-faq to understand more about ImageNet dataset ' \
-                 and accept the terms and conditions under which it can be used. ' \
-                 Also, register/signup on that website, request and get permission to download this dataset.              
-                 '''
+        notice = '\nImageNet Dataset, URL: http://image-net.org' \
+                 '\nIMPORTANT: Please visit the urls: http://image-net.org/ http://image-net.org/about-overview and ' \
+                 '\nhttp://image-net.org/download-faq to understand more about ImageNet dataset ' \
+                 '\nand the terms and conditions under which it can be used. '
         return notice
 
-    def download(self, path):
+    def download(self, path, split_file):
         print(self.get_notice())
         extra_url = 'http://dl.caffe.berkeleyvision.org/caffe_ilsvrc12.tar.gz'
         root = self._get_root(path)
-        extra_path = utils.download_file(extra_url, root=root)
-        synset_words_file = os.path.join(root, 'synset_words.txt')
+        extra_root = os.path.join(root, 'extra')
+        extra_path = utils.download_file(extra_url, root=extra_root)
+        synset_words_file = os.path.join(extra_path, 'synset_words.txt')
         if os.path.exists(synset_words_file):
             self.class_names_dict = {}
             with open(synset_words_file) as fp:
@@ -75,7 +73,14 @@ class BaseImageNetCls(ImageCls):
                 #
             #
             self.class_names_dict = {k:self.class_names_dict[k] for k in sorted(self.class_names_dict.keys())}
-            self.class_ids_dict = {k:id for id,(k,v) in enumerate(self.class_names_dict)}
+            self.class_ids_dict = {k:id for id,(k,v) in enumerate(self.class_names_dict.items())}
+        #
+        if split_file is not None:
+            if not os.path.exists(split_file):
+                for f in ['train.txt', 'val.txt', 'test.txt']:
+                    shutil.copy2(os.path.join(extra_path, f), os.path.join(root, f))
+                #
+            #
         #
         return extra_path
 
@@ -97,13 +102,15 @@ class ImageNetCls(BaseImageNetCls):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def download(self, path):
+    def download(self, path, split_file):
         root = self._get_root(path)
-        input_message = '\nplease input the full URL of the following file from ' \
-                        '\nhttp://image-net.org/download-images in the page 2012: ' \
-                        '\nValidation images (all tasks). ILSVRC2012_img_val.tar: '
+        input_message = \
+                    f'\nPlease register/signup on that website http://image-net.org and get the URL to download this dataset.' \
+                    f'\nIn the download section, click on the link that says 2012, and copy the URL to download the following file.' \
+                    f'\nPlease enter the full URL of the file - ' \
+                    f'\nValidation images (all tasks). ILSVRC2012_img_val.tar: '
         dataset_url = input(input_message)
         dataset_path = utils.download_file(dataset_url, root=root, extract_root=path)
-        extra_path = super().download()
+        extra_path = super().download(path, split_file)
         return [dataset_path, extra_path]
 

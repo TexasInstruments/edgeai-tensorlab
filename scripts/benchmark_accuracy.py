@@ -61,6 +61,7 @@ if __name__ == '__main__':
                 session_type_dict=utils.str_to_dict(cmds.session_type_dict))
     settings = config_settings.ConfigSettings(cmds.settings_file, **kwargs)
     print(f'settings: {settings}')
+    sys.stdout.flush()
 
     expt_name = os.path.splitext(os.path.basename(__file__))[0]
     work_dir = os.path.join(cmds.work_dirs, expt_name, f'{settings.tensor_bits}bits')

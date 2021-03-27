@@ -64,6 +64,7 @@
 
 import os
 import os.path
+import sys
 import hashlib
 import gzip
 import re
@@ -174,10 +175,12 @@ def download_url(
     # check if file is already present locally
     if check_integrity(fpath, md5):
         print('Using downloaded and verified file: ' + fpath)
+        sys.stdout.flush()
         return fpath
     #
 
     print('Downloading ' + url + ' to ' + fpath + ' This may take some time. Please wait...')
+    sys.stdout.flush()
 
     os.makedirs(root, exist_ok=True)
 
@@ -205,6 +208,7 @@ def download_url(
             url = url.replace('https:', 'http:')
             print('Failed download. Trying https -> http instead.'
                   ' Downloading ' + url + ' to ' + fpath)
+            sys.stdout.flush()
             urllib.request.urlretrieve(
                 url, fpath,
                 reporthook=gen_bar_updater()
@@ -281,6 +285,7 @@ def download_file_from_google_drive(file_id: str, root: str, filename: Optional[
 
     if os.path.isfile(fpath) and check_integrity(fpath, md5):
         print('Using downloaded and verified file: ' + fpath)
+        sys.stdout.flush()
     else:
         session = requests.Session()
 
@@ -350,8 +355,11 @@ def _is_zip(filename: str) -> bool:
     return filename.endswith(".zip")
 
 
-def extract_archive(from_path: str, to_path: Optional[str] = None, remove_finished: bool = False):
-    print(f'Extracting {from_path} to {to_path}' + ' This may take some time. Please wait...')
+def extract_archive(from_path: str, to_path: Optional[str] = None, remove_finished: bool = False, verbose: bool = True):
+    if verbose:
+        print(f'Extracting {from_path} to {to_path}' + ' This may take some time. Please wait...')
+        sys.stdout.flush()
+    #
     if to_path is None:
         to_path = os.path.dirname(from_path)
 
@@ -377,7 +385,10 @@ def extract_archive(from_path: str, to_path: Optional[str] = None, remove_finish
     if remove_finished:
         os.remove(from_path)
     #
-    print('done.')
+    if verbose:
+        print('done.')
+        sys.stdout.flush()
+    #
     return to_path
 
 

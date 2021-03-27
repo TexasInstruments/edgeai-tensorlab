@@ -28,6 +28,7 @@
 
 import os
 import random
+from colorama import Fore
 from .. import utils
 
 
@@ -36,11 +37,16 @@ class ImageCls(utils.ParamsBase):
         super().__init__()
         assert 'path' in kwargs and 'split' in kwargs, 'path and split must be provided in kwargs'
         path = kwargs['path']
-        assert os.path.exists(path) and os.path.isdir(path), f'input path {path} must contain the dataset'
+        split_file = kwargs['split']
         # download the data if needed
         if download:
-            self.download(path)
+            if os.path.exists(path):
+                print(f'{Fore.CYAN}INFO:{Fore.YELLOW} dataset exists - will reuse:{Fore.RESET} {path}')
+            else:
+                self.download(path, split_file)
+            #
         #
+        assert os.path.exists(path) and os.path.isdir(path), f'{Fore.RED}ERROR:{Fore.YELLOW} dataset path is empty:{Fore.RESET} {path}'
         self.kwargs = kwargs
         # create list of images and classes
         self.imgs = utils.get_data_list(input=kwargs, dest_dir=dest_dir)
@@ -53,7 +59,7 @@ class ImageCls(utils.ParamsBase):
         # call the utils.ParamsBase.initialize()
         super().initialize()
 
-    def download(self, path):
+    def download(self, path, split_file):
         return None
 
     def __getitem__(self, idx):
