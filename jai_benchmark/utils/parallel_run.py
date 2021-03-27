@@ -58,8 +58,8 @@ class ParallelRun:
         return result_list
 
     def _run_parallel(self):
-        # create process pool and queue the tasks
-        process_pool = multiprocessing.Pool(self.num_processes)
+        # create process pool and queue the tasks - 'spawn' may be more stable than the default 'fork'
+        process_pool = multiprocessing.get_context('spawn').Pool(self.num_processes)
         results_iterator = process_pool.imap_unordered(self._worker, self.queued_tasks)
         if self.blocking:
             # run a loop to monitor the progress
