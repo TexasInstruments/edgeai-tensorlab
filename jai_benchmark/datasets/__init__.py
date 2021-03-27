@@ -29,7 +29,7 @@
 from .coco_det import *
 from .coco_seg import *
 from .imagenet import *
-from .imagenet_subset import *
+from .imagenet_v2 import *
 from .cityscapes import *
 from .ade20k import *
 from .voc_seg import *
@@ -39,7 +39,10 @@ imagenetcls_dataset_type_dict = {'imagenet':ImageNetCls,
                                  'tiny-imagenet200':TinyImageNet200Cls,
                                  'imagenet-dogs120':ImageNetDogs120Cls,
                                  'imagenet-psuedo120':ImageNetPseudo120Cls,
-                                 'imagenet-resized-64x64':ImageNetResized64x64Cls}
+                                 'imagenet-resized-64x64':ImageNetResized64x64Cls,
+                                 'imagenetv2a':ImageNetV2A,
+                                 'imagenetv2b':ImageNetV2B,
+                                 'imagenetv2c':ImageNetV2C}
 
 imagecls_dataset_type_dict = {'generic':ImageCls}.update(imagenetcls_dataset_type_dict)
 
@@ -48,7 +51,10 @@ imagenetcls_dataset_size_dict = {'imagenet':50000,
                                  'tiny-imagenet200':10000,
                                  'imagenet-dogs120':20580,
                                  'imagenet-psuedo120':20580,
-                                 'imagenet-resized-64x64':50000}
+                                 'imagenet-resized-64x64':50000,
+                                 'imagenetv2a':50000,
+                                 'imagenetv2b':50000,
+                                 'imagenetv2c':50000}
 
 imagecls_dataset_size_dict = {'generic':None}.update(imagenetcls_dataset_size_dict)
 
@@ -58,7 +64,10 @@ imagenetcls_dataset_splits_dict = {'imagenet':['train','val'],
                                    'tiny-imagenet200':['train','val'],
                                    'imagenet-dogs120':['train','train'],
                                    'imagenet-psuedo120':['train','train'],
-                                   'imagenet-resized-64x64':['train','val']}
+                                   'imagenet-resized-64x64':['train','val'],
+                                   'imagenetv2a':['val','val'],
+                                   'imagenetv2b':['val','val'],
+                                   'imagenetv2c':['val','val']}
 
 
 imagecls_dataset_splits_dict = {'generic':['train','val']}.update(imagenetcls_dataset_splits_dict)
