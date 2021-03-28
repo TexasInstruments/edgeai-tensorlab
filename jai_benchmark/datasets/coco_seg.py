@@ -109,6 +109,7 @@ import copy
 import numpy as np
 import PIL
 import cv2
+import tempfile
 from colorama import Fore
 from pycocotools.coco import COCO
 from pycocotools import mask as coco_mask
@@ -119,57 +120,75 @@ __all__ = ['COCOSegmentation']
 
 
 class COCOSegmentation(utils.ParamsBase):
-    def __init__(self, inData, num_imgs=None, num_classes=21, download=False, **kwargs):
+    def __init__(self, num_classes=21, download=False, **kwargs):
         super().__init__()
         self.force_download = True if download == 'always' else False
         self.kwargs = kwargs
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
         path = kwargs['path']
         split = kwargs['split']
+        root = path
         if download:
             self.download(path, split)
         #
+        self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
+        self.name = "coco_seg21"
+        self.tempfiles = []
 
-        self.categories = [0, 5, 2, 16, 9, 44, 6, 3, 17, 62, 21, 67, 18, 19, 4, 1, 64, 20, 63, 7, 72] \
-            if num_classes == 21 else None
+        self.num_classes = 80 if num_classes is None else num_classes
+        if num_classes == 21:
+            self.categories = [0, 5, 2, 16, 9, 44, 6, 3, 17, 62, 21, 67, 18, 19, 4, 1, 64, 20, 63, 7, 72]
+            self.class_names = ['__background__', 'aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus',
+                                'car', 'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse', 'motorbike',
+                                'person', 'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor']
+        else:
+            self.categories = range(num_classes)
+            self.class_names = None
         #
-        self.num_classes = num_classes
-        assert isinstance(inData, dict) and 'path' in list(inData.keys()) and 'split' in list(inData.keys()), 'inData must be a dict'
 
-        dataset_folders = os.listdir(inData['path'])
+        dataset_folders = os.listdir(root)
         assert 'annotations' in dataset_folders, 'invalid path to coco dataset annotations'
-        annotations_dir = os.path.join(inData['path'], 'annotations')
+        annotations_dir = os.path.join(root, 'annotations')
 
-        shuffle = inData['shuffle'] if (isinstance(inData, dict) and 'shuffle' in inData) else False
+        shuffle = kwargs.get('shuffle', False)
         image_base_dir = 'images' if ('images' in dataset_folders) else ''
-        image_base_dir = os.path.join(inData['path'], image_base_dir)
+        image_base_dir = os.path.join(root, image_base_dir)
         image_split_dirs = os.listdir(image_base_dir)
-        assert inData['split'] in image_split_dirs, f'invalid path to coco dataset images/split {inData["split"]}'
-        image_dir = os.path.join(image_base_dir, inData['split'])
+        self.image_dir = os.path.join(image_base_dir, split)
 
-        self.coco_dataset = COCO(os.path.join(annotations_dir, f'instances_{inData["split"]}.json'))
+        self.coco_dataset = COCO(os.path.join(annotations_dir, f'instances_{split}.json'))
 
         self.cat_ids = self.coco_dataset.getCatIds()
         img_ids = self.coco_dataset.getImgIds()
         self.img_ids = self._remove_images_without_annotations(img_ids)
 
+        max_frames = len(self.coco_dataset.imgs)
+        num_frames = kwargs.get('num_frames', None)
+        num_frames = min(num_frames, max_frames) if num_frames is not None else max_frames
+
+        imgs_list = list(self.coco_dataset.imgs.items())
         if shuffle:
             random.seed(int(shuffle))
-            random.shuffle(self.img_ids)
+            random.shuffle(imgs_list)
         #
+        self.coco_dataset.imgs = {k:v for k,v in imgs_list[:num_frames]}
 
-        if num_imgs is not None:
-            self.img_ids = self.img_ids[:num_imgs]
-            self.coco_dataset.imgs = {k:self.coco_dataset.imgs[k] for k in self.img_ids}
-        #
+        max_frames = len(self.coco_dataset.imgs)
+        num_frames = kwargs.get('num_frames', None)
+        num_frames = min(num_frames, max_frames) if num_frames is not None else max_frames
 
-        imgs = []
-        for img_id in self.img_ids:
-            img = self.coco_dataset.loadImgs([img_id])[0]
-            imgs.append(os.path.join(image_dir, img['file_name']))
+        self.cat_ids = self.coco_dataset.getCatIds()
+        self.img_ids = self.coco_dataset.getImgIds()
+        self.num_frames = num_frames
+
+        run_dir = self.kwargs.get('run_dir', None)
+        if run_dir is None:
+            temp_dir = tempfile.TemporaryDirectory()
+            run_dir = temp_dir.name
+            self.tempfiles.append(temp_dir)
         #
-        self.imgs = imgs
-        self.num_imgs = len(self.imgs)
+        self.label_dir = os.path.join(run_dir, 'labels')
+
         # call the utils.ParamsBase.initialize()
         super().initialize()
 
@@ -204,43 +223,57 @@ class COCOSegmentation(utils.ParamsBase):
         return root
 
     def __getitem__(self, idx, with_label=False):
+        img_id = self.img_ids[idx]
+        img = self.coco_dataset.loadImgs([img_id])[0]
+        image_path = os.path.join(self.image_dir, img['file_name'])
         if with_label:
-            image = PIL.Image.open(self.imgs[idx])
-            ann_ids = self.coco_dataset.getAnnIds(imgIds=self.img_ids[idx], iscrowd=None)
+            os.makedirs(self.label_dir, exist_ok=True)
+            ann_ids = self.coco_dataset.getAnnIds(imgIds=img_id, iscrowd=None)
             anno = self.coco_dataset.loadAnns(ann_ids)
+            image = PIL.Image.open(image_path)
             image, anno = self._filter_and_remap_categories(image, anno)
             image, target = self._convert_polys_to_mask(image, anno)
-            return image, target
+            # write the label file to a temorary dir so that it can be used by evaluate()
+            image_basename = os.path.basename(image_path)
+            label_path = os.path.join(self.label_dir, image_basename)
+            label_path = os.path.splitext(label_path)[0] + '.png'
+            cv2.imwrite(label_path, target)
+            return image_path, label_path
         else:
-            return self.imgs[idx]
+            return image_path
         #
 
     def __len__(self):
-        return self.num_imgs
+        return self.num_frames
 
-    def evaluate(self, outputs, **kwargs):
+    def __del__(self):
+        for t in self.tempfiles:
+            t.cleanup()
+        #
+
+    def encode_segmap(self, label_img):
+        # label has already been encoded
+        return label_img
+
+    def __call__(self, predictions, **kwargs):
+        return self.evaluate(predictions, **kwargs)
+
+    def evaluate(self, predictions, **kwargs):
         cmatrix = None
-        for n in range(self.num_imgs):
-            image, label_img = self.__getitem__(n, with_label=True)
-            gtHeight, gtWidth = label_img.shape[:2]
-
-            output = outputs[n]
+        for n in range(self.num_frames):
+            image_file, label_file = self.__getitem__(n, with_label=True)
+            label_img = PIL.Image.open(label_file)
+            label_img = self.encode_segmap(label_img)
+            # reshape prediction is needed
+            output = predictions[n]
             output = output.astype(np.uint8)
             output = output[0] if (output.ndim > 2 and output.shape[0] == 1) else output
             output = output[:2] if (output.ndim > 2 and output.shape[2] == 1) else output
-
-            #convert to pillow image - not necessary
-            #output = PIL.Image.fromarray(output, mode='L') if isinstance(output, np.ndarray) else input
-
-            resample_type = cv2.INTER_NEAREST if isinstance(output, np.ndarray) else PIL.Image.NEAREST
-            output = utils.resize_pad_crop_image(output, resize_w=gtWidth, resize_h=gtHeight, inResizeType=0,
-                                                 resample_type=resample_type)
+            # compute metric
             cmatrix = utils.confusion_matrix(cmatrix, output, label_img, self.num_classes)
         #
-
         accuracy = utils.segmentation_accuracy(cmatrix)
         return accuracy
-
 
     def _remove_images_without_annotations(self, img_ids):
         ids = []

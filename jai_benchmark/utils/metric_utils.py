@@ -53,8 +53,8 @@ class AverageMeter(object):
 
 
 def confusion_matrix(cmatrix, output, target, num_classes):
-    output = output.flatten()
-    target = target.flatten()
+    output = np.array(output).flatten()
+    target = np.array(target).flatten()
     mask = (target>=0) & (target<num_classes)
     merged = target[mask].astype(int) * num_classes + output[mask].astype(int)
     hist = np.bincount(merged, minlength=num_classes**2)
