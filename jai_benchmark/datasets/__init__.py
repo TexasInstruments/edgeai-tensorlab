@@ -35,17 +35,17 @@ from .ade20k import *
 from .voc_seg import *
 
 
-imagenetcls_datasets_dict = {
-                             # Original ImageNet
-                             'imagenet':{'type':ImageNetCls, 'size':50000, 'splits':['train','val']},
-                             # ImageNetV2 as explained in imagenet_v2.py
-                             'imagenetv2c':{'type':ImageNetV2C, 'size':10000, 'splits':['val','val']},
-                             'imagenetv2b':{'type':ImageNetV2B, 'size':10000, 'splits':['val','val']},
-                             'imagenetv2a':{'type':ImageNetV2A, 'size':10000, 'splits':['val','val']},
-                             # smaller versions of the original ImageNet
-                             'tiny-imagenet200':{'type':TinyImageNet200Cls, 'size':10000, 'splits':['train','val']},
-                             'imagenet-dogs120':{'type':ImageNetDogs120Cls, 'size':20580, 'splits':['train','train']},
-                             'imagenet-pseudo120':{'type':ImageNetPseudo120Cls, 'size':20580, 'splits':['train','train']},
-                             'imagenet-resized-64x64':{'type':ImageNetResized64x64Cls, 'size':50000, 'splits':['train','val']},
-                             }
-
+dataset_info_dict = {
+             # Original ImageNet
+             'imagenet':{'type':ImageNetCls, 'size':50000, 'split':'val'},
+             'imagenetv1':{'type':ImageNetCls, 'size':50000, 'split':'val'},
+             # ImageNetV2 as explained in imagenet_v2.py
+             'imagenetv2c':{'type':ImageNetV2C, 'size':10000, 'split':'val'},
+             'imagenetv2b':{'type':ImageNetV2B, 'size':10000, 'split':'val'},
+             'imagenetv2a':{'type':ImageNetV2A, 'size':10000, 'split':'val'},
+             # smaller versions of the original ImageNet
+             'tiny-imagenet200':{'type':TinyImageNet200Cls, 'size':10000, 'split':'val'},
+             'imagenet-dogs120':{'type':ImageNetDogs120Cls, 'size':20580, 'split':'train'},
+             'imagenet-pseudo120':{'type':ImageNetPseudo120Cls, 'size':20580, 'split':'train'},
+             'imagenet-resized-64x64':{'type':ImageNetResized64x64Cls, 'size':50000, 'split':'val'},
+             }
