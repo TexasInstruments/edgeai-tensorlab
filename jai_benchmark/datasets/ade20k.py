@@ -116,7 +116,7 @@ class ADE20KSegmentation(utils.ParamsBase):
               f'\nPlease visit the following urls to know more about ADE20K dataset '
               f'\n      and understand the terms and conditions under which it can be used. '              
               f'\n      http://sceneparsing.csail.mit.edu/ '
-              f'\n      https://groups.csail.mit.edu/vision/datasets/ADE20K/ and '
+              f'\n      https://groups.csail.mit.edu/vision/datasets/ADE20K/ '
               f'{Fore.RESET}\n')
 
         dataset_url = 'http://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip'
