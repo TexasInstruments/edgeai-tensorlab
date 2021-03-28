@@ -132,4 +132,6 @@ model_shortlist : [# imagenet classification models
                    # pascal voc2012 models
                    #'vseg-19-400-0', #tf1-models/deeplabv3_mnv2_dm05_pascal_trainaug_512x512.tflite
                    #'vseg-19-401-0', #tf1-models/deeplabv3_mnv2_pascal_trainaug_512x512.tflite
+                   # coco_seg21 models
+                   #'vseg-21-100-0', #jai-pytorch/deeplabv3lite_mobilenetv2_tv_coco_seg21_512x512_20210327-134223.onnx
                   ]

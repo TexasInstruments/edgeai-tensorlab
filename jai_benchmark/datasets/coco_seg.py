@@ -294,7 +294,6 @@ class COCOSegmentation(utils.ParamsBase):
             return False
         # if more than 1k pixels occupied in the image
         return sum(obj["area"] for obj in anno) > 1000
-    #
 
     def _filter_and_remap_categories(self, image, anno, remap=True):
         anno = [obj for obj in anno if obj["category_id"] in self.categories]
