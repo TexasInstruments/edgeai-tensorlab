@@ -45,6 +45,7 @@ import glob
 import random
 import numpy as np
 import PIL
+from colorama import Fore
 from .. import utils
 
 __all__ = ['ADE20KSegmentation']
@@ -52,6 +53,7 @@ __all__ = ['ADE20KSegmentation']
 class ADE20KSegmentation(utils.ParamsBase):
     def __init__(self, num_classes=151, ignore_label=None, download=False, **kwargs):
         super().__init__()
+        self.force_download = True if download == 'always' else False
         assert 'path' in kwargs and 'split' in kwargs, 'path and split must be provided'
         assert num_classes <= 151, 'maximum 151 classes (including background) are supported'
         #assert self.kwargs['split'] in ['training', 'validation']		
@@ -102,17 +104,26 @@ class ADE20KSegmentation(utils.ParamsBase):
         images_folder = os.path.join(path, 'images')
         annotations_folder = os.path.join(path, 'annotations')
         if os.path.exists(path) and os.path.exists(images_folder) and os.path.exists(annotations_folder):
+            print(f'{Fore.CYAN}INFO:{Fore.YELLOW} dataset exists - will reuse:{Fore.RESET} {path}')
             return
         #
-        print('Important: Please visit the urls http://sceneparsing.csail.mit.edu/ '
-              'https://groups.csail.mit.edu/vision/datasets/ADE20K/ and '
-              'https://groups.csail.mit.edu/vision/datasets/ADE20K/terms/ '
-              'to understand more about the ADE20K dataset '
-              'and accept the terms and conditions under which it can be used. ')
+        print(f'{Fore.YELLOW}'
+              f'\nADE20K Dataset:'
+              f'\n    Scene Parsing through ADE20K Dataset.'
+              f'\n       Bolei Zhou, et.al., Computer Vision and Pattern Recognition (CVPR), 2017. '
+              f'\n    Semantic Understanding of Scenes through ADE20K Dataset.'
+              f'\n        Bolei Zhou, et.al, International Journal on Computer Vision (IJCV).\n'
+              f'\nPlease visit the following urls to know more about ADE20K dataset '
+              f'\n      and understand the terms and conditions under which it can be used. '              
+              f'\n      http://sceneparsing.csail.mit.edu/ '
+              f'\n      https://groups.csail.mit.edu/vision/datasets/ADE20K/ and '
+              f'{Fore.RESET}\n')
 
         dataset_url = 'http://data.csail.mit.edu/places/ADEchallenge/ADEChallengeData2016.zip'
         root = root.rstrip('/')
-        dataset_path = utils.download_file(dataset_url, root=root, extract_root=os.path.split(root)[0])
+        download_root = os.path.join(root, 'download')
+        dataset_path = utils.download_file(dataset_url, root=download_root, extract_root=os.path.split(root)[0],
+                                           force_download=self.force_download)
         return
 
     def __getitem__(self, idx, with_label=False):

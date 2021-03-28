@@ -35,18 +35,20 @@ from .. import utils
 class ImageCls(utils.ParamsBase):
     def __init__(self, download=False, dest_dir=None, **kwargs):
         super().__init__()
+        self.force_download = True if download == 'always' else False
         assert 'path' in kwargs and 'split' in kwargs, 'path and split must be provided in kwargs'
         path = kwargs['path']
         split_file = kwargs['split']
         # download the data if needed
         if download:
-            if os.path.exists(path):
+            if (not self.force_download) and os.path.exists(path):
                 print(f'{Fore.CYAN}INFO:{Fore.YELLOW} dataset exists - will reuse:{Fore.RESET} {path}')
             else:
                 self.download(path, split_file)
             #
         #
-        assert os.path.exists(path) and os.path.isdir(path), f'{Fore.RED}ERROR:{Fore.YELLOW} dataset path is empty:{Fore.RESET} {path}'
+        assert os.path.exists(path) and os.path.isdir(path), \
+            f'{Fore.RED}ERROR:{Fore.YELLOW} dataset path is empty:{Fore.RESET} {path}'
         self.kwargs = kwargs
         # create list of images and classes
         self.imgs = utils.get_data_list(input=kwargs, dest_dir=dest_dir)

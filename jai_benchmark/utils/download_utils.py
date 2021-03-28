@@ -75,7 +75,7 @@ import zipfile
 from tqdm.auto import tqdm
 
 
-def download_file(url, root=None, extract_root=None, filename=None, md5=None, mode=None):
+def download_file(url, root=None, extract_root=None, filename=None, md5=None, mode=None, force_download=False):
     if not isinstance(url, str):
         return url
     #
@@ -86,7 +86,8 @@ def download_file(url, root=None, extract_root=None, filename=None, md5=None, mo
         #
     #
     if isinstance(url, str) and (url.startswith('http://') or url.startswith('https://')):
-        fpath = download_and_extract_archive(url, root, extract_root=extract_root, filename=filename, md5=md5, mode=mode)
+        fpath = download_and_extract_archive(url, root, extract_root=extract_root, filename=filename,
+                                             md5=md5, mode=mode,force_download=force_download)
     else:
         fpath = url
     #
@@ -153,8 +154,8 @@ def _get_google_drive_file_id(url: str) -> Optional[str]:
 
 
 def download_url(
-    url: str, root: str, filename: Optional[str] = None, md5: Optional[str] = None, max_redirect_hops: int = 0
-):
+    url: str, root: str, filename: Optional[str] = None, md5: Optional[str] = None,
+    max_redirect_hops: int = 0, force_download: Optional[bool] = False):
     """Download a file from a url and place it in root.
 
     Args:
@@ -163,6 +164,7 @@ def download_url(
         filename (str, optional): Name to save the file under. If None, use the basename of the URL
         md5 (str, optional): MD5 checksum of the download. If None, do not check
         max_redirect_hops (int, optional): Maximum number of redirect hops allowed. eg: 3
+        force_download (bool): whether to download even if the file exists
     """
     import urllib
 
@@ -173,7 +175,7 @@ def download_url(
     fpath = os.path.join(root, filename)
 
     # check if file is already present locally
-    if check_integrity(fpath, md5):
+    if (not force_download) and check_integrity(fpath, md5):
         print('Using downloaded and verified file: ' + fpath)
         sys.stdout.flush()
         return fpath
@@ -355,7 +357,8 @@ def _is_zip(filename: str) -> bool:
     return filename.endswith(".zip")
 
 
-def extract_archive(from_path: str, to_path: Optional[str] = None, remove_finished: bool = False, verbose: bool = True, mode: Optional[str] = None):
+def extract_archive(from_path: str, to_path: Optional[str] = None, remove_finished: bool = False,
+                    verbose: bool = True, mode: Optional[str] = None):
     if verbose:
         print(f'Extracting {from_path} to {to_path}' + ' This may take some time. Please wait...')
         sys.stdout.flush()
@@ -404,7 +407,8 @@ def download_and_extract_archive(
     filename: Optional[str] = None,
     md5: Optional[str] = None,
     remove_finished: bool = False,
-    mode: Optional[str] = None
+    mode: Optional[str] = None,
+    force_download: Optional[bool] = False
 ):
     url_files = url.split(' ')
     url = url_files[0]
@@ -415,7 +419,7 @@ def download_and_extract_archive(
         # basename may contain http arguments after a ?. skip them
         filename = os.path.basename(url).split('?')[0]
     #
-    fpath = download_url(url, download_root, filename, md5)
+    fpath = download_url(url, download_root, filename, md5, force_download=force_download)
     if _is_archive(fpath):
         fpath = extract_archive(fpath, extract_root, remove_finished, mode=mode)
     #

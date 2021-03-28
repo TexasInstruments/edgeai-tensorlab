@@ -109,6 +109,7 @@ import copy
 import numpy as np
 import PIL
 import cv2
+from colorama import Fore
 from pycocotools.coco import COCO
 from pycocotools import mask as coco_mask
 
@@ -120,6 +121,7 @@ __all__ = ['COCOSegmentation']
 class COCOSegmentation(utils.ParamsBase):
     def __init__(self, inData, num_imgs=None, num_classes=21, download=False, **kwargs):
         super().__init__()
+        self.force_download = True if download == 'always' else False
         self.kwargs = kwargs
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
         path = kwargs['path']
@@ -175,17 +177,25 @@ class COCOSegmentation(utils.ParamsBase):
         root = path
         images_folder = os.path.join(path, split)
         annotations_folder = os.path.join(path, 'annotations')
-        if os.path.exists(path) and os.path.exists(images_folder) and os.path.exists(annotations_folder):
+        if (not self.force_download) and os.path.exists(path) and \
+                os.path.exists(images_folder) and os.path.exists(annotations_folder):
+            print(f'{Fore.CYAN}INFO:{Fore.YELLOW} dataset exists - will reuse:{Fore.RESET} {path}')
             return
         #
-        print('Important: Please visit the urls: https://cocodataset.org/#home and '
-              'https://cocodataset.org/#termsofuse to understand more about the COCO dataset '
-              'and accept the terms and conditions under which it can be used. ')
+        print(f'{Fore.YELLOW}'
+              f'\nCOCO Dataset:'
+              f'\n    Microsoft COCO: Common Objects in Context, '
+              f'\n        Tsung-Yi Lin, et.al. https://arxiv.org/abs/1405.0312\n'
+              f'\nPlease visit the url: https://cocodataset.org/ and '
+              f'\n    to know more about the COCO dataset and understand '
+              f'\n    the terms and conditions under which it can be used.'
+              f'{Fore.RESET}\n')
 
         dataset_url = 'http://images.cocodataset.org/zips/val2017.zip'
         extra_url = 'http://images.cocodataset.org/annotations/annotations_trainval2017.zip'
-        dataset_path = utils.download_file(dataset_url, root=root)
-        extra_path = utils.download_file(extra_url, root=root)
+        download_root = os.path.join(root, 'download')
+        dataset_path = utils.download_file(dataset_url, root=download_root, extract_root=root)
+        extra_path = utils.download_file(extra_url, root=download_root, extract_root=root)
         return
 
     def _get_root(self, path):

@@ -42,6 +42,7 @@ import random
 import numpy as np
 import PIL
 import cv2
+from colorama import Fore
 from .. import utils
 
 __all__ = ['VOC2012Segmentation']
@@ -49,6 +50,7 @@ __all__ = ['VOC2012Segmentation']
 class VOC2012Segmentation(utils.ParamsBase):
     def __init__(self, num_classes=21, ignore_label=255, download=False, **kwargs):
         super().__init__()
+        self.force_download = True if download == 'always' else False
         self.kwargs = kwargs
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
         path = kwargs['path']
@@ -89,25 +91,33 @@ class VOC2012Segmentation(utils.ParamsBase):
 
     def download(self, path, split=None):
         root = path
+        extract_root = os.sep.join(root.split(os.sep)[:-2])
+        download_root = os.path.join(os.sep.join(root.split(os.sep)[:-1]), 'download')
         images_folder = os.path.join(path, 'JPEGImages')
         imagesets_folder = os.path.join(path, 'ImageSets')
         segmentations_folder = os.path.join(path, 'SegmentationClassRaw')
         annotations_folder = os.path.join(path, 'Annotations') # not really required for segmentation
-        if os.path.exists(path) and os.path.exists(imagesets_folder) and os.path.exists(images_folder) \
+        if (not self.force_download) and os.path.exists(path) and \
+                os.path.exists(imagesets_folder) and os.path.exists(images_folder) \
                 and os.path.exists(segmentations_folder) and os.path.exists(annotations_folder):
+            print(f'{Fore.CYAN}INFO:{Fore.YELLOW} dataset exists - will reuse:{Fore.RESET} {path}')
             return
         #
 
-        print('Important: Please visit the urls http://host.robots.ox.ac.uk/pascal/VOC/ '
-              'and http://www.flickr.com/terms.gne?legacy=1 '
-              'to understand more about the Pascal VOC dataset '
-              'and accept the terms and conditions under which it can be used. ')
+        print(f'{Fore.YELLOW}'
+              f'\nPascal VOC 2012 Dataset (VOC2012): '
+              f'\n    The PASCAL Visual Object Classes (VOC) Challenge, '
+              f'\n        Everingham, M., Van Gool, L., Williams, C. K. I., Winn, J. and Zisserman, A.,'
+              f'\n        International Journal of Computer Vision, 88(2), 303-338, 2010,\n'
+              f'\nPlease visit: http://host.robots.ox.ac.uk/pascal/VOC/ '
+              f'\nto know more about the Pascal VOC dataset '
+              f'\nand understand the terms and conditions under which it can be used. '
+              f'{Fore.RESET}\n')
 
         dataset_url = 'http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCdevkit_18-May-2011.tar'
         extra_url = 'http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar'
-        extract_root = os.sep.join(root.split(os.sep)[:-2])
-        dataset_path = utils.download_file(dataset_url, root=root, extract_root=extract_root)
-        extra_path = utils.download_file(extra_url, root=root, extract_root=extract_root)
+        dataset_path = utils.download_file(dataset_url, root=download_root, extract_root=extract_root)
+        extra_path = utils.download_file(extra_url, root=download_root, extract_root=extract_root)
         self.convert_dataset(root)
         return
 

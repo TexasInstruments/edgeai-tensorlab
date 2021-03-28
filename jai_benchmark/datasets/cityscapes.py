@@ -76,6 +76,7 @@ import glob
 import random
 import numpy as np
 import PIL
+from colorama import Fore
 from .. import utils
 
 __all__ = ['CityscapesSegmentation']
@@ -87,9 +88,16 @@ class CityscapesSegmentation(utils.ParamsBase):
         assert 'path' in kwargs and 'split' in kwargs, 'path and split must provided'
         path = kwargs['path']
         if not (os.path.exists(path) or os.path.isdir(path)) and download:
-            print('Cityscapes dataset can be downloaded from the following website after registering: '
-                  'https://www.cityscapes-dataset.com/ Also please accept the conditions under which '
-                  'it can be used: https://www.cityscapes-dataset.com/license/')
+            print(f'{Fore.YELLOW}'
+                  f'\nCityscapes dataset:'
+                  f'\n    The Cityscapes Dataset for Semantic Urban Scene Understanding,'                  
+                  f'\n        M. Cordts, et.al. in Proc. of the IEEE Conference on '
+                  f'\n        Computer Vision and Pattern Recognition (CVPR), 2016.\n'
+                  f'\nCityscapes dataset can be downloaded after registering at: '
+                  f'\n    https://www.cityscapes-dataset.com/ '
+                  f'\nAlso visit: https://www.cityscapes-dataset.com/license/ '
+                  f'\n    to understand the terms and conditions of this dataset.'
+                  f'{Fore.RESET}\n')
             assert False, f'input path {path} must contain the dataset'
         #
         self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)

@@ -29,6 +29,7 @@
 
 import os
 import shutil
+from colorama import Fore
 from .image_cls import  ImageCls
 from .. import utils
 
@@ -51,17 +52,22 @@ class ImageNetV2(ImageCls):
         super().__init__(*args, download=download, **kwargs)
 
     def get_notice(self):
-        notice = '\nThe ImageNetV2 dataset contains new test data for the ImageNet benchmark.' \
-                 '\nImageNetV2 Reference: https://arxiv.org/abs/1902.10811' \
-                 '\nImageNetV2 Source Code: https://github.com/modestyachts/ImageNetV2' \
-                 '\nOriginal ImageNet Dataset, URL: http://image-net.org\n'
+        notice = f'{Fore.YELLOW}' \
+                 f'\nThe ImageNetV2 dataset contains new test data for the ImageNet benchmark.' \
+                 f'\nReference  : Do ImageNet Classifiers Generalize to ImageNet? ' \
+                 f'\n             Benjamin Recht et.al. https://arxiv.org/abs/1902.10811' \
+                 f'\nSource Code: https://github.com/modestyachts/ImageNetV2' \
+                 f'\nOriginal ImageNet Dataset URL: http://image-net.org' \
+                 f'{Fore.RESET}\n'
         return notice
 
     def download(self, path, split_file):
         print(self.get_notice())
         root = self._get_root(path)
-        extract_root = os.path.join(root, 'rawdata')
-        extract_path = utils.download_file(self.url, root, extract_root=extract_root, mode='r')
+        download_root = os.path.join(root, 'download')
+        extract_root = os.path.join(download_root, 'rawdata')
+        extract_path = utils.download_file(self.url, root=download_root, extract_root=extract_root, mode='r',
+                                           force_download=self.force_download)
 
         folders = utils.list_dir(os.path.join(extract_path, 'imagenetv2-top-images-format-val'))
         basename_to_int = lambda f:int(os.path.basename(f))

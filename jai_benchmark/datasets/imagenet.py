@@ -31,6 +31,7 @@ import os
 import shutil
 import cv2
 import pickle
+from colorama import Fore
 from .. import utils
 from .image_cls import *
 
@@ -50,17 +51,21 @@ class BaseImageNetCls(ImageCls):
         super().__init__(*args, download=download, **kwargs)
 
     def get_notice(self):
-        notice = '\nImageNet Dataset, URL: http://image-net.org' \
-                 '\nPlease visit the urls: http://image-net.org/about-overview and http://image-net.org/download-faq ' \
-                 '\nto understand more about ImageNet dataset.\n'
+        notice = f'{Fore.YELLOW}' \
+                 f'\nImageNet Dataset: Please visit the url: http://image-net.org ' \
+                 f'\nto know more about ImageNet dataset and understand ' \
+                 f'\nthe terms and conditions under which it can be used. ' \
+                 f'{Fore.RESET}\n'
         return notice
 
     def download(self, path, split_file):
         print(self.get_notice())
         extra_url = 'http://dl.caffe.berkeleyvision.org/caffe_ilsvrc12.tar.gz'
         root = self._get_root(path)
-        extra_root = os.path.join(root, 'rawdata_extra')
-        extra_path = utils.download_file(extra_url, root=extra_root)
+        download_root = os.path.join(root, 'download')
+        extra_root = os.path.join(download_root, 'rawdata_extra')
+        extra_path = utils.download_file(extra_url, root=download_root, extract_root=extra_root,
+                                         force_download=self.force_download)
         synset_words_file = os.path.join(extra_path, 'synset_words.txt')
         if os.path.exists(synset_words_file):
             self.class_names_dict = {}
@@ -105,12 +110,22 @@ class ImageNetCls(BaseImageNetCls):
 
     def download(self, path, split_file):
         root = self._get_root(path)
-        input_message = \
-                    f'\nPlease register/signup at http://image-net.org and get the URL to download this dataset.' \
-                    f'\nIn the download section, click on the link that says 2012, and copy the URL to download the following file.' \
-                    f'\nPlease enter the full URL of the file - Validation images (all tasks). ILSVRC2012_img_val.tar: '
+        input_message = f'{Fore.YELLOW}' \
+                        f'\nImageNet Dataset: ' \
+                        f'\n    ImageNet Large Scale Visual Recognition Challenge.' \
+                        f'\n        Olga Russakovsky et.al, International Journal of Computer Vision, 2015.\n' \
+                        f'\nPlease visit the url: http://image-net.org ' \
+                        f'\n    to know more about ImageNet dataset and understand ' \
+                        f'\n    the terms and conditions under which it can be used. \n' \
+                        f'\nAfter registering and logging in, click on "Download" and then "2012", ' \
+                        f'\n    and copy the URL to download the following file.\n' \
+                        f'\nPlease enter the full URL of the file - ' \
+                        f'Validation images (all tasks). ILSVRC2012_img_val.tar: ' \
+                        f'{Fore.RESET}\n'
         dataset_url = input(input_message)
-        dataset_path = utils.download_file(dataset_url, root=root, extract_root=path)
+        download_root = os.path.join(root, 'download')
+        dataset_path = utils.download_file(dataset_url, root=download_root, extract_root=path,
+                                           force_download=self.force_download)
         extra_path = super().download(path, split_file)
         return [dataset_path, extra_path]
 
@@ -143,8 +158,10 @@ class TinyImageNet200Cls(BaseImageNetCls):
         root = self._get_root(path)
         extra_path = super().download(path, split_file=None)
         dataset_url = 'http://cs231n.stanford.edu/tiny-imagenet-200.zip'
-        extract_root = os.path.join(root, 'rawdata')
-        dataset_path = utils.download_file(dataset_url, root=root, extract_root=extract_root)
+        download_root = os.path.join(root, 'download')
+        extract_root = os.path.join(download_root, 'rawdata')
+        dataset_path = utils.download_file(dataset_url, root=download_root, extract_root=extract_root,
+                                           force_download=self.force_download)
         extract_path = os.path.join(extract_root, 'tiny-imagenet-200/val/images')
         os.makedirs(path, exist_ok=True)
         for f in os.listdir(extract_path):
@@ -188,10 +205,11 @@ class ImageNetResized64x64Cls(BaseImageNetCls):
 
     def download(self, path, split_file):
         root = self._get_root(path)
-        extra_path = super().download(path, split_file=None)
+        download_root = os.path.join(root, 'download')
         dataset_url = 'http://image-net.org/data/downsample/Imagenet64_val.zip'
-        extract_root = os.path.join(root, 'rawdata')
-        dataset_path = utils.download_file(dataset_url, root=root, extract_root=extract_root)
+        extract_root = os.path.join(download_root, 'rawdata')
+        dataset_path = utils.download_file(dataset_url, root=download_root, extract_root=extract_root,
+                                           force_download=self.force_download)
         with open(os.path.join(dataset_path, 'val_data'), 'rb') as fp:
             val_data = pickle.load(fp)
             data = val_data['data']
@@ -199,7 +217,7 @@ class ImageNetResized64x64Cls(BaseImageNetCls):
         #
         map_clsloc_id_to_torch_labels = None
         if hasattr(self, 'torch_labels') and self.torch_labels:
-            extra_root = os.path.join(root, 'rawdata_extra')
+            extra_root = os.path.join(download_root, 'rawdata_extra')
             map_clsloc_link = 'https://raw.githubusercontent.com/PatrykChrabaszcz/Imagenet32_Scripts/master/map_clsloc.txt'
             map_clsloc_path = utils.download_file(map_clsloc_link, root=extra_root)
             with open(map_clsloc_path) as fp:
@@ -244,16 +262,24 @@ class ImageNetDogs120Cls(BaseImageNetCls):
 
     def download(self, path, split_file):
         root = self._get_root(path)
+        download_root = os.path.join(root, 'download')
         tar_filename = 'ILSVRC2012_img_train_t3.tar'
-        full_tar_filename = os.path.join(root, tar_filename)
-        tmp_extract_root = os.path.join(root, 'rawdata')
-        if not os.path.exists(full_tar_filename):
-            input_message = f'\nPlease register/signup on that website http://image-net.org and get the URL to download this dataset.' \
-                            f'\nIn the download section, click on the link that says 2012, and copy the URL to download the following file.' \
+        full_tar_filename = os.path.join(download_root, tar_filename)
+        tmp_extract_root = os.path.join(download_root, 'rawdata')
+        if self.force_download or (not os.path.exists(full_tar_filename)):
+            input_message = f'\nImageNet Dataset: ' \
+                            f'\n    ImageNet Large Scale Visual Recognition Challenge.' \
+                            f'\n        Olga Russakovsky et.al, International Journal of Computer Vision, 2015.\n' \
+                            f'\nPlease visit the url: http://image-net.org ' \
+                            f'\n    to know more about ImageNet dataset and understand ' \
+                            f'\n    the terms and conditions under which it can be used. \n' \
+                            f'\nAfter registering and logging in, click on "Download" and then "2012", ' \
+                            f'\n    and copy the URL to download the following file.\n' \
                             f'\nPlease enter the full URL of the file - ' \
                             f'Training images (Task 3), {tar_filename} : '
             dataset_url = input(input_message)
-            dataset_path = utils.download_file(dataset_url, root=root, extract_root=tmp_extract_root)
+            dataset_path = utils.download_file(dataset_url, root=download_root, extract_root=tmp_extract_root,
+                                               force_download=self.force_download)
         #
         dataset_path = utils.extract_archive(full_tar_filename, tmp_extract_root)
 
