@@ -54,6 +54,9 @@ class ImageNetV2(ImageCls):
     def get_notice(self):
         notice = f'{Fore.YELLOW}' \
                  f'\nThe ImageNetV2 dataset contains new test data for the ImageNet benchmark.' \
+                 f'\n             It is smaller in size and faster to download - ' \
+                 f'\n             ImageNetV2c closely matches the accuracy obtained with original ImageNet.' \
+                 f'\n             So it is a good choice for quick benchmarking.\n' \
                  f'\nReference  : Do ImageNet Classifiers Generalize to ImageNet? ' \
                  f'\n             Benjamin Recht et.al. https://arxiv.org/abs/1902.10811' \
                  f'\nSource Code: https://github.com/modestyachts/ImageNetV2' \
