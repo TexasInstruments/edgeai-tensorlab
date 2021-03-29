@@ -31,7 +31,6 @@ import pickle
 import yaml
 from colorama import Fore
 from .. import utils, constants
-from . import pipeline_utils
 
 
 class AccuracyPipeline():
@@ -68,7 +67,7 @@ class AccuracyPipeline():
         # check if the result already exists - if so we can return
         result_yaml = os.path.join(run_dir, 'result.yaml')
         if self.settings.run_missing and os.path.exists(result_yaml):
-            print(f'{Fore.BLUE}INFO:{Fore.YELLOW} found results, skipping - {Fore.RESET}{result_yaml}')
+            print(f'{Fore.CYAN}INFO:{Fore.YELLOW} found results, skipping - {Fore.RESET}{result_yaml}')
             with open(result_yaml) as fp:
                 param_result = yaml.safe_load(fp)
             #
@@ -77,12 +76,12 @@ class AccuracyPipeline():
         # start() must be called to create the required directories
         session.start()
         # collect the input params
-        param_dict = pipeline_utils.collect_param(self.pipeline_config)
+        param_dict = utils.pretty_object(self.pipeline_config)
         # create logger
         log_filename = os.path.join(run_dir, 'run.log') if self.settings.enable_logging else None
         self.logger = utils.TeeLogger(log_filename)
-        self.logger.write(f'\nrunning: {Fore.BLUE}{os.path.basename(run_dir)}{Fore.RESET}')
-        self.logger.write(f'\npipeline_config: {self.pipeline_config}')
+        self.logger.write(f'\n{Fore.CYAN}INFO:{Fore.YELLOW} running - {Fore.RESET}{os.path.basename(run_dir)}')
+        self.logger.write(f'\n{Fore.CYAN}INFO:{Fore.YELLOW} pipeline_config - {Fore.RESET}{self.pipeline_config}')
         # import.
         if self.settings.run_import:
             self._import_model(description)
@@ -95,9 +94,9 @@ class AccuracyPipeline():
         #
         self.logger.write(f'\nBenchmarkResults: {utils.pretty_object(result_dict)}\n')
         # dump the results
+        result_dict = utils.pretty_object(result_dict)
         param_result = dict({'result': result_dict})
         param_result.update(param_dict)
-        param_result = utils.pretty_object(param_result)
         if self.settings.enable_logging:
             with open(os.path.join(run_dir, 'result.yaml'), 'w') as fp:
                 yaml.safe_dump(param_result, fp, sort_keys=False)

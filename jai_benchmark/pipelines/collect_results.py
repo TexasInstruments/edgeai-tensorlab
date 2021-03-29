@@ -29,7 +29,6 @@
 import os
 import yaml
 from .. import utils
-from . import pipeline_utils
 
 
 def collect_results(settings, work_dir, pipeline_configs, print_results=True, update_params=False):
@@ -45,7 +44,7 @@ def collect_results(settings, work_dir, pipeline_configs, print_results=True, up
         #
         # if needed the params in result can be updated here
         if update_params and param_result is not None:
-            param_dict = pipeline_utils.collect_param(pipeline_config)
+            param_dict = utils.pretty_object(pipeline_config)
             param_result.update(param_dict)
         #
         param_results.update({artifact_id: param_result})

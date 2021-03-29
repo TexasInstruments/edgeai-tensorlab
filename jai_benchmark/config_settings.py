@@ -70,7 +70,7 @@ class ConfigSettings(config_dict.ConfigDict):
         runtime_options = quantization_params.get_runtime_options(session_name,
                                         runtime_options=runtime_options)
         return runtime_options
-    
+
     ###############################################################
     # preprocess transforms
     ###############################################################

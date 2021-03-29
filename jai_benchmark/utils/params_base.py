@@ -65,3 +65,8 @@ class ParamsBase:
     def get_params(self):
         assert self.is_initialized, 'initialize must be called before get_param() can be done'
         return self.kwargs
+
+    def peek_params(self):
+        assert hasattr(self, 'kwargs') and isinstance(self.kwargs, dict), \
+            'the child class must have a dict called kwargs'
+        return self.kwargs

@@ -28,6 +28,7 @@
 
 import numpy as np
 import yaml
+from .params_base import ParamsBase
 
 
 def dict_update(src_dict, *args, inplace=False, **kwargs):
@@ -133,10 +134,11 @@ def pretty_object(d, precision=3, depth=5):
         d_out = {k: pretty_object(v, depth) for k , v in d.items()}
     elif isinstance(d, (list,tuple)):
         d_out = [pretty_object(di, depth) for di in d]
-    elif isinstance(d, pass_through_types):
-        d_out = d
     elif isinstance(d, np.ndarray):
         d_out = pretty_object(d.tolist(), depth)
+    elif isinstance(d, ParamsBase):
+        # this is a special case
+        d_out = d.peek_params()
     elif hasattr(d, '__dict__'):
         # other unrecognized objects - just grab the attributes as a dict
         d_out = pretty_object(d.__dict__, depth)
