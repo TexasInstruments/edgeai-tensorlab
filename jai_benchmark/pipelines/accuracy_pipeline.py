@@ -63,10 +63,20 @@ class AccuracyPipeline():
         # run the actual model
         run_import = self.pipeline_config['run_import']
         run_inference = self.pipeline_config['run_inference']
+        run_missing = self.pipeline_config['run_missing']
         session = self.pipeline_config['session']
         # run_dir is assigned after initialize is called in PipelineRunner
         # but it has not been created - it will be created in start
         run_dir = session.get_param('run_dir')
+        # check if the result already exists - if so we can return
+        result_yaml = os.path.join(run_dir, 'result.yaml')
+        if run_missing and os.path.exists(result_yaml):
+            print(f'{Fore.BLUE}INFO:{Fore.YELLOW} found results, skipping - {Fore.RESET}{result_yaml}')
+            with open(result_yaml) as fp:
+                param_result = yaml.safe_load(fp)
+            #
+            return param_result
+        #
         # start() must be called to create the required directories
         session.start()
         # collect the input params

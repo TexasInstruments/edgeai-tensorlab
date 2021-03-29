@@ -9,6 +9,8 @@ target_device : 'pc' #'j7' #'pc'
 run_import : True
 # run inference - for inference in j7 evm, it is assumed that the artifacts folders are already available
 run_inference : True
+# run only models for which the results are missing. if this is False, all selected configs will be run
+run_missing : False
 # collect final accuracy results - not needed, use the script generate_report.py instead
 collect_results : False
 # number of frames for inference

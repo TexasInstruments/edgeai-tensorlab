@@ -80,6 +80,15 @@ class ConfigDict(dict):
     def __setstate__(self, state):
         self.__dict__.update(state)
 
+    def get_dict(self):
+        # pipeline_options_list = ['pipeline_type', 'target_device', 'verbose',
+        #                          'run_import', 'run_inference', 'run_missing']
+        # pipeline_options = {k:v for k,v in self.items() if k in pipeline_options_list}
+        # for now just return the whole dict
+        # the base class of this is ConfigDict
+        pipeline_options = {k:v for k,v in self.items()}
+        return pipeline_options
+
     def _initialize(self):
         # include additional files and merge with this dict
         self.include_files = None
@@ -113,7 +122,9 @@ class ConfigDict(dict):
         # for pc this can be True or False
         self.run_import = True
         # run inference - for inferene in j7 evm, it is assumed that the artifaacts folders are already available
-        self.run_inference = True #True
+        self.run_inference = True
+        # run only models for which the results are missing. if this is False, all configs will be run
+        self.run_missing = False
         # collect final accuracy results - not needed, use the script generate_report.py instead
         self.collect_results = False
         # detection threshold

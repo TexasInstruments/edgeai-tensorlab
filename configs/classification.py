@@ -47,16 +47,12 @@ def get_configs(settings, work_dir):
     runtime_options_mxnet_qat = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=True)
 
     # configs for each model pipeline
-    common_cfg = {
-        'pipeline_type': settings.pipeline_type,
+    common_cfg = utils.dict_update(settings.get_dict(), {
         'task_type': 'classification',
-        'verbose': settings.verbose,
-        'run_import': settings.run_import,
-        'run_inference': settings.run_inference,
         'calibration_dataset': settings.dataset_cache['imagenet']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['imagenet']['input_dataset'],
         'postprocess': settings.get_postproc_classification()
-    }
+    })
 
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
 

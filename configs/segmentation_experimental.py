@@ -48,60 +48,35 @@ def get_configs(settings, work_dir):
     runtime_options_mxnet_qat = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=True)
 
     # configs for each model pipeline
-    cityscapes_cfg = {
-        'pipeline_type': settings.pipeline_type,
+    cityscapes_cfg = utils.dict_update(settings.get_dict(), {
         'task_type': 'segmentation',
-        'verbose': settings.verbose,
-        'target_device': settings.target_device,
-        'run_import': settings.run_import,
-        'run_inference': settings.run_inference,
         'calibration_dataset': settings.dataset_cache['cityscapes']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['cityscapes']['input_dataset'],
-    }
+    })
 
-    ade20k_cfg = {
-        'pipeline_type': settings.pipeline_type,
+    ade20k_cfg = utils.dict_update(settings.get_dict(), {
         'task_type': 'segmentation',
-        'verbose': settings.verbose,
-        'target_device': settings.target_device,
-        'run_import': settings.run_import,
-        'run_inference': settings.run_inference,
         'calibration_dataset': settings.dataset_cache['ade20k']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['ade20k']['input_dataset'],
-    }
+    })
 
-    ade20k_cfg_class32 = {
-        'pipeline_type': settings.pipeline_type,
+    ade20k_cfg_class32 = utils.dict_update(settings.get_dict(), {
         'task_type': 'segmentation',
-        'verbose': settings.verbose,
-        'target_device': settings.target_device,
-        'run_import': settings.run_import,
-        'run_inference': settings.run_inference,
         'calibration_dataset': settings.dataset_cache['ade20k_class32']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['ade20k_class32']['input_dataset'],
-    }
+    })
 
-    pascal_voc_cfg = {
-        'pipeline_type': settings.pipeline_type,
+    pascal_voc_cfg = utils.dict_update(settings.get_dict(), {
         'task_type': 'segmentation',
-        'verbose': settings.verbose,
-        'target_device': settings.target_device,
-        'run_import': settings.run_import,
-        'run_inference': settings.run_inference,
         'calibration_dataset': settings.dataset_cache['voc2012']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['voc2012']['input_dataset'],
-    }
+    })
 
-    coco_seg21_cfg = {
-        'pipeline_type': settings.pipeline_type,
+    coco_seg21_cfg = utils.dict_update(settings.get_dict(), {
         'task_type': 'segmentation',
-        'verbose': settings.verbose,
-        'target_device': settings.target_device,
-        'run_import': settings.run_import,
-        'run_inference': settings.run_inference,
         'calibration_dataset': settings.dataset_cache['coco_seg21']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['coco_seg21']['input_dataset'],
-    }
+    })
 
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
 
