@@ -108,25 +108,23 @@ class PipelineRunner():
             os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
         #
         result = {}
-        pipeline_types = utils.as_list(pipeline_config['pipeline_type'])
         try:
-            for pipeline_type in pipeline_types:
-                if pipeline_type == constants.PIPELINE_ACCURACY:
-                    # use with statement, so that the logger and other file resources are cleaned up
-                    with AccuracyPipeline(settings, pipeline_config) as accuracy_pipeline:
-                        accuracy_result = accuracy_pipeline.run(description)
-                        result.update(accuracy_result)
-                    #
-                elif pipeline_type == constants.PIPELINE_SOMETHING:
-                    # this is just an example of how other pipelines can be implemented.
-                    # 'something' used here is not real and it is not supported
-                    with SomethingPipeline(settings, pipeline_config) as something_pipeline:
-                        something_result = something_pipeline.run()
-                        result.update(something_result)
-                    #
-                else:
-                    assert False, f'unknown pipeline: {pipeline_type}'
+            if settings.pipeline_type == constants.PIPELINE_ACCURACY:
+                # use with statement, so that the logger and other file resources are cleaned up
+                with AccuracyPipeline(settings, pipeline_config) as accuracy_pipeline:
+                    accuracy_result = accuracy_pipeline.run(description)
+                    result.update(accuracy_result)
                 #
+            elif settings.pipeline_type == constants.PIPELINE_SOMETHING:
+                # this is just an example of how other pipelines can be implemented.
+                # 'something' used here is not real and it is not supported
+                with SomethingPipeline(settings, pipeline_config) as something_pipeline:
+                    something_result = something_pipeline.run()
+                    result.update(something_result)
+                #
+            else:
+                assert False, f'unknown pipeline: {settings.pipeline_type}'
+            #
         except Exception as e:
             print(f'\n{str(e)}')
         #

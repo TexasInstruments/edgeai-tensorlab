@@ -80,15 +80,6 @@ class ConfigDict(dict):
     def __setstate__(self, state):
         self.__dict__.update(state)
 
-    def get_dict(self):
-        # pipeline_options_list = ['pipeline_type', 'target_device', 'verbose',
-        #                          'run_import', 'run_inference', 'run_missing']
-        # pipeline_options = {k:v for k,v in self.items() if k in pipeline_options_list}
-        # for now just return the whole dict
-        # the base class of this is ConfigDict
-        pipeline_options = {k:v for k,v in self.items()}
-        return pipeline_options
-
     def _initialize(self):
         # include additional files and merge with this dict
         self.include_files = None
