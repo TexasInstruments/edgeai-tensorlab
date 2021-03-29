@@ -92,8 +92,7 @@ class ConfigDict(dict):
         # number of itrations to be used for post training quantization / calibration
         self.calibration_iterations = 50
         # folder where benchmark configs are defined. this should be python importable
-        # by default, the internally defined minimal set of configs will be used
-        self.configs_path = '../jacinto-ai-modelzoo/configs'
+        self.configs_path = './configs'
         # folder where models are available
         self.models_path = '../jacinto-ai-modelzoo/models'
         # create your datasets under this folder
@@ -152,6 +151,8 @@ class ConfigDict(dict):
         self.enable_logging = True
         # verbose mode - print out more information
         self.verbose = False
+        # enable use of experimental models - the actual model files are not available in modelzoo
+        self.experimental_models = False
 
         ###########################################################
         # internal state information
