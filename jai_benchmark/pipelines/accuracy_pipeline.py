@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import sys
 import pickle
 import yaml
 from colorama import Fore
@@ -68,6 +69,7 @@ class AccuracyPipeline():
         result_yaml = os.path.join(run_dir, 'result.yaml')
         if self.settings.run_missing and os.path.exists(result_yaml):
             print(f'{Fore.CYAN}INFO:{Fore.YELLOW} found results, skipping - {Fore.RESET}{result_yaml}')
+            sys.stdout.flush()
             with open(result_yaml) as fp:
                 param_result = yaml.safe_load(fp)
             #
