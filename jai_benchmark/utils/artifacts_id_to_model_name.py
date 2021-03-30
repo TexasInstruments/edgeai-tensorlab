@@ -218,6 +218,11 @@ removed_model_list = {
     'vcls-10-102-2_tvmdlr': 'TVM-CL-335-mobileNetV2-1p4-qat-1024x1024',
 }
 
+removed_models_from_plots = {
+    'vseg-19-400-0_tflitert': 'TFL-SS-259-deeplabv3_mobv2-dm05-pascal-trainaug-512x512', # SS on pascal has only 2 models. So removed from plots.
+    'vseg-19-401-0_tflitert': 'TFL-SS-260-deeplabv3_mobv2-pascal-trainaug-512x512', # # SS on pascal has only 2 models.  So removed from plots.
+}
+
 #sampled on 18th Mar
 super_set = [    
     'vcls-10-010-0_tflitert',
