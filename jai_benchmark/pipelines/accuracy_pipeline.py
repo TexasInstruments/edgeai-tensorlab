@@ -68,7 +68,7 @@ class AccuracyPipeline():
         # check if the result already exists - if so we can return
         result_yaml = os.path.join(run_dir, 'result.yaml')
         if self.settings.run_missing and os.path.exists(result_yaml):
-            print(f'{Fore.CYAN}INFO:{Fore.YELLOW} found results, skipping - {Fore.RESET}{result_yaml}')
+            print(utils.log_color('INFO', 'found results, skipping', result_yaml))
             sys.stdout.flush()
             with open(result_yaml) as fp:
                 param_result = yaml.safe_load(fp)
@@ -82,8 +82,8 @@ class AccuracyPipeline():
         # create logger
         log_filename = os.path.join(run_dir, 'run.log') if self.settings.enable_logging else None
         self.logger = utils.TeeLogger(log_filename)
-        self.logger.write(f'\n{Fore.CYAN}INFO:{Fore.YELLOW} running - {Fore.RESET}{os.path.basename(run_dir)}')
-        self.logger.write(f'\n{Fore.CYAN}INFO:{Fore.YELLOW} pipeline_config - {Fore.RESET}{self.pipeline_config}')
+        self.logger.write(utils.log_color('INFO', 'running', os.path.basename(run_dir)))
+        self.logger.write(utils.log_color('INFO', 'pipeline_config', self.pipeline_config))
         # import.
         if self.settings.run_import:
             self._import_model(description)

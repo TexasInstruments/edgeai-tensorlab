@@ -104,7 +104,7 @@ class ADE20KSegmentation(utils.ParamsBase):
         images_folder = os.path.join(path, 'images')
         annotations_folder = os.path.join(path, 'annotations')
         if (not self.force_download) and os.path.exists(path) and os.path.exists(images_folder) and os.path.exists(annotations_folder):
-            print(f'{Fore.CYAN}INFO:{Fore.YELLOW} dataset exists - will reuse:{Fore.RESET} {path}')
+            print(utils.log_color('INFO', 'dataset exists - will reuse', path))
             return
         #
         print(f'{Fore.YELLOW}'

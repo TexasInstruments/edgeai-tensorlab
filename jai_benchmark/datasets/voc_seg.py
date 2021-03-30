@@ -100,7 +100,7 @@ class VOC2012Segmentation(utils.ParamsBase):
         if (not self.force_download) and os.path.exists(path) and \
                 os.path.exists(imagesets_folder) and os.path.exists(images_folder) \
                 and os.path.exists(segmentations_folder) and os.path.exists(annotations_folder):
-            print(f'{Fore.CYAN}INFO:{Fore.YELLOW} dataset exists - will reuse:{Fore.RESET} {path}')
+            print(utils.log_color('INFO', 'dataset exists - will reuse', path))
             return
         #
 

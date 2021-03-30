@@ -197,9 +197,9 @@ def package_artifacts(settings, work_dir, out_dir):
                 model_name = os.path.basename(model_path)
                 tarfile_names.append(','.join([task_type, package_run_dir, model_name]))
             #
-            print(f'{Fore.GREEN}INFO:{Fore.YELLOW} finished packaging:{Fore.RESET} {run_dir}')
+            print(utils.log_color('INFO', 'finished packaging', run_dir))
         except:
-            print(f'{Fore.MAGENTA}WARNING:{Fore.YELLOW} could not package:{Fore.RESET} {run_dir}')
+            print(utils.log_color('WARNING', 'could not package', run_dir))
         #
     #
     model_list = '\n'.join(tarfile_names)

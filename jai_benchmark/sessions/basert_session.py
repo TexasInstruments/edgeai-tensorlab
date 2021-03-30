@@ -112,8 +112,7 @@ class BaseRTSession(utils.ParamsBase):
         artifacts_folder = self.kwargs['artifacts_folder']
         artifacts_folder_missing = not os.path.exists(artifacts_folder)
         if artifacts_folder_missing:
-            error_message = f'{Fore.RED}ERROR:{Fore.RESET} artifacts_folder - {artifacts_folder} ' \
-                      f'{Fore.YELLOW}does not exist. please run import (on pc). {Fore.RESET}'
+            error_message = utils.log_color('ERROR', f'artifacts_folder is missing, please run import (on pc)', artifacts_folder)
             raise FileNotFoundError(error_message)
         #
         # import may not be being done now - but artifacts folder exists,

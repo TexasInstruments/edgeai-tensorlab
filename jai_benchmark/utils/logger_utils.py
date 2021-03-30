@@ -28,6 +28,8 @@
 
 import os
 import sys
+from colorama import Fore
+
 
 class TeeLogger:
     def __init__(self, file_name):
@@ -105,3 +107,19 @@ class RedirectLogger:
             self.dst_file = None
         #
 
+
+def log_color(tag, title, message):
+    if 'FATAL' in tag:
+        msg = f'{Fore.RED}{tag}: {Fore.YELLOW}{title} - {Fore.RESET}{message}'
+    elif 'ERROR' in tag:
+        msg = f'{Fore.MAGENTA}{tag}: {Fore.YELLOW}{title} - {Fore.RESET}{message}'
+    elif 'WARNING' in tag:
+        msg = f'{Fore.CYAN}{tag}: {Fore.YELLOW}{title} - {Fore.RESET}{message}'
+    elif 'INFO' in tag:
+        msg = f'{Fore.GREEN}{tag}: {Fore.YELLOW}{title} - {Fore.RESET}{message}'
+    elif 'DEBUG' in tag:
+        msg = f'{Fore.BLUE}{tag}: {Fore.YELLOW}{title} - {Fore.RESET}{message}'
+    else:
+        msg = f'{Fore.YELLOW}{tag}: {Fore.YELLOW}{title} - {Fore.RESET}{message}'
+    #
+    return msg

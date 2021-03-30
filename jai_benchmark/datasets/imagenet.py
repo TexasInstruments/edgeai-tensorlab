@@ -287,7 +287,7 @@ class ImageNetDogs120Cls(BaseImageNetCls):
         self.extract_all(tmp_extract_root, path)
         if not os.path.exists(split_file):
             # we don't want the base class to touch or create the split_file this has its own
-            print(f'{Fore.CYAN}INFO:{Fore.YELLOW} split_file exists - will reuse:{Fore.RESET} {path}')
+            print(utils.log_color('INFO',  'split_file exists - will reuse', path))
             extra_path = super().download(path, split_file=None)
             self._create_split(path, split_file)
         else:
