@@ -68,7 +68,7 @@ class AccuracyPipeline():
         # check if the result already exists - if so we can return
         result_yaml = os.path.join(run_dir, 'result.yaml')
         if self.settings.run_missing and os.path.exists(result_yaml):
-            print(utils.log_color('INFO', 'found results, skipping', result_yaml))
+            print(utils.log_color('\nINFO', 'found results, skipping', result_yaml))
             sys.stdout.flush()
             with open(result_yaml) as fp:
                 param_result = yaml.safe_load(fp)
@@ -82,8 +82,8 @@ class AccuracyPipeline():
         # create logger
         log_filename = os.path.join(run_dir, 'run.log') if self.settings.enable_logging else None
         self.logger = utils.TeeLogger(log_filename)
-        self.logger.write(utils.log_color('INFO', 'running', os.path.basename(run_dir)))
-        self.logger.write(utils.log_color('INFO', 'pipeline_config', self.pipeline_config))
+        self.logger.write(utils.log_color('\nINFO', 'running', os.path.basename(run_dir)))
+        self.logger.write(utils.log_color('\nINFO', 'pipeline_config', self.pipeline_config))
         # import.
         if self.settings.run_import:
             self._import_model(description)
@@ -94,7 +94,7 @@ class AccuracyPipeline():
             result_dict = self._evaluate(output_list)
             result_dict.update(self.infer_stats_dict)
         #
-        self.logger.write(f'\nBenchmarkResults: {utils.pretty_object(result_dict)}\n')
+        self.logger.write(utils.log_color('\nSUCCESS', 'benchmark results', f'{utils.pretty_object(result_dict)}\n'))
         # dump the results
         result_dict = utils.pretty_object(result_dict)
         param_result = dict({'result': result_dict})
@@ -113,7 +113,7 @@ class AccuracyPipeline():
         preprocess = self.pipeline_config['preprocess']
         run_dir_base = os.path.split(session.get_param('run_dir'))[-1]
 
-        self.logger.write(f'\nimport & calibration {description}:' + run_dir_base)
+        self.logger.write(utils.log_color('\nINFO', f'import & calibration {description}', run_dir_base))
         calib_data = []
         num_frames = len(calibration_dataset)
         for data_index in range(num_frames):
@@ -123,7 +123,7 @@ class AccuracyPipeline():
             calib_data.append(data)
         #
         session.import_model(calib_data)
-        self.logger.write(f'\nimport & calibration {description}: {run_dir_base} - done.')
+        self.logger.write(utils.log_color('\nINFO', f'import & calibration {description}', f'{run_dir_base} - done'))
 
     def _infer_frames(self, description=''):
         session = self.pipeline_config['session']
@@ -134,9 +134,9 @@ class AccuracyPipeline():
         run_dir_base = os.path.split(session.get_param('run_dir'))[-1]
 
         is_ok = session.start_infer()
-        assert is_ok, f'start_infer() did not succeed for {run_dir_base}'
+        assert is_ok, utils.log_color('\nERROR', f'start_infer() did not succeed for', run_dir_base)
 
-        self.logger.write(f'\ninfer {description}:' + run_dir_base)
+        self.logger.write(utils.log_color('\nINFO', f'infer {description}', run_dir_base))
 
         invoke_time = 0.0
         core_time = 0.0
@@ -179,7 +179,7 @@ class AccuracyPipeline():
         if 'perfsim_macs' in stats_dict:
             self.infer_stats_dict.update({'perfsim_gmacs': stats_dict['perfsim_macs'] / constants.GIGA_CONST})
         #
-        self.logger.write(f'\ninfer {description}: {run_dir_base} - done.')
+        self.logger.write(utils.log_color('\nINFO', f'infer {description}', f'{run_dir_base} - done.'))
         return output_list
 
     def _evaluate(self, output_list):

@@ -272,7 +272,7 @@ class BaseRTSession(utils.ParamsBase):
         work_dir = self.kwargs['work_dir']
         if work_dir is None:
             temp_dir = tempfile.TemporaryDirectory()
-            date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S.%f")
+            date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S.%f")
             work_dir = os.path.join(temp_dir.name, date)
             self.tempfiles.append(temp_dir)
         #

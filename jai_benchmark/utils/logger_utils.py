@@ -28,6 +28,7 @@
 
 import os
 import sys
+import datetime
 from colorama import Fore
 
 
@@ -109,17 +110,18 @@ class RedirectLogger:
 
 
 def log_color(tag, title, message):
-    if 'FATAL' in tag:
-        msg = f'{Fore.RED}{tag}: {Fore.YELLOW}{title} - {Fore.RESET}{message}'
+    date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    if 'FATAL - {date}' in tag:
+        msg = f'{Fore.RED}{tag}:{Fore.YELLOW}{date}: {title} - {Fore.RESET}{message}'
     elif 'ERROR' in tag:
-        msg = f'{Fore.MAGENTA}{tag}: {Fore.YELLOW}{title} - {Fore.RESET}{message}'
+        msg = f'{Fore.MAGENTA}{tag}:{Fore.YELLOW}{date}: {title} - {Fore.RESET}{message}'
     elif 'WARNING' in tag:
-        msg = f'{Fore.CYAN}{tag}: {Fore.YELLOW}{title} - {Fore.RESET}{message}'
+        msg = f'{Fore.CYAN}{tag}:{Fore.YELLOW}{date}: {title} - {Fore.RESET}{message}'
     elif 'INFO' in tag:
-        msg = f'{Fore.GREEN}{tag}: {Fore.YELLOW}{title} - {Fore.RESET}{message}'
-    elif 'DEBUG' in tag:
-        msg = f'{Fore.BLUE}{tag}: {Fore.YELLOW}{title} - {Fore.RESET}{message}'
+        msg = f'{Fore.BLUE}{tag}:{Fore.YELLOW}{date}: {title} - {Fore.RESET}{message}'
+    elif 'SUCCESS' in tag:
+        msg = f'{Fore.GREEN}{tag}:{Fore.YELLOW}{date}: {title} - {Fore.RESET}{message}'
     else:
-        msg = f'{Fore.YELLOW}{tag}: {Fore.YELLOW}{title} - {Fore.RESET}{message}'
+        msg = f'{Fore.YELLOW}{tag}:{Fore.YELLOW}{date}: - {title} - {Fore.RESET}{message}'
     #
     return msg
