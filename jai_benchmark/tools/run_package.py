@@ -206,8 +206,10 @@ def package_artifacts(settings, work_dir, out_dir):
                 artifact_name = '_'.join(run_dir_basename.split('_')[1:]) if artifact_name is None else artifact_name
 
                 tarfile_names.append(','.join([task_type, runtime_name, package_run_dir, artifact_name, str(tarfile_size)]))
+                print(utils.log_color('SUCCESS', 'finished packaging', run_dir))
+            else:
+                print(utils.log_color('WARNING', 'could not package', run_dir))
             #
-            print(utils.log_color('SUCCESS', 'finished packaging', run_dir))
         except:
             print(utils.log_color('WARNING', 'could not package', run_dir))
         #
