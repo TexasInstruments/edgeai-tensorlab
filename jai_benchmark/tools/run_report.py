@@ -94,7 +94,7 @@ def run_report(benchmark_dir, rewrite_results=True):
     results_32bits = results_collection['32bits'] if '32bits' in results_collection else None
 
     results_collection = list()
-    title_line = ['serial_num', 'model_id', 'run_time', 'task_type', 'input_resolution', 'model_path', 'metric_name',
+    title_line = ['serial_num', 'model_id', 'runtime_name', 'task_type', 'input_resolution', 'model_path', 'metric_name',
                   'metric_8bits', 'metric_16bits', 'metric_float', 'metric_reference'] + \
                   result_keys + ['run_dir', 'artifact_name']
 
@@ -107,7 +107,7 @@ def run_report(benchmark_dir, rewrite_results=True):
 
         metric_name, metric_8bits, metric_reference = get_metric(pipeline_params_8bits)
         if pipeline_params_8bits is not None:
-            results_line_dict['run_time'] = pipeline_params_8bits['session']['session_name']
+            results_line_dict['runtime_name'] = pipeline_params_8bits['session']['session_name']
             preprocess_crop = pipeline_params_8bits['preprocess']['crop']
             results_line_dict['input_resolution'] = 'x'.join(map(str, preprocess_crop)) \
                 if isinstance(preprocess_crop, (list,tuple)) else str(preprocess_crop)

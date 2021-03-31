@@ -201,10 +201,11 @@ def package_artifacts(settings, work_dir, out_dir):
                 run_dir = pipeline_param['session']['run_dir']
                 run_dir_basename = os.path.basename(run_dir)
                 artifact_id = '_'.join(run_dir_basename.split('_')[:2])
+                runtime_name = run_dir_basename.split('_')[1]
                 artifact_name = utils.get_artifact_name(artifact_id)
                 artifact_name = '_'.join(run_dir_basename.split('_')[1:]) if artifact_name is None else artifact_name
 
-                tarfile_names.append(','.join([task_type, package_run_dir, artifact_name, str(tarfile_size)]))
+                tarfile_names.append(','.join([task_type, runtime_name, package_run_dir, artifact_name, str(tarfile_size)]))
             #
             print(utils.log_color('SUCCESS', 'finished packaging', run_dir))
         except:
@@ -213,7 +214,7 @@ def package_artifacts(settings, work_dir, out_dir):
         sys.stdout.flush()
     #
     model_list = '\n'.join(tarfile_names)
-    with open(os.path.join(out_dir,'model.list'), 'w') as fp:
+    with open(os.path.join(out_dir,'artifacts.list'), 'w') as fp:
         fp.write(model_list)
     #
     with open(os.path.join(out_dir, 'extract.sh'), 'w') as fp:
