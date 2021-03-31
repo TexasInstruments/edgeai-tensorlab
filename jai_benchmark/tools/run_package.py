@@ -213,6 +213,11 @@ def package_artifacts(settings, work_dir, out_dir):
         #
         sys.stdout.flush()
     #
+    results_yaml = os.path.join(work_dir, 'results.yaml')
+    if os.path.exists(results_yaml):
+        package_results_yaml = os.path.join(out_dir, 'results.yaml')
+        shutil.copy2(results_yaml, package_results_yaml)
+    #
     model_list = '\n'.join(tarfile_names)
     with open(os.path.join(out_dir,'artifacts.list'), 'w') as fp:
         fp.write(model_list)
