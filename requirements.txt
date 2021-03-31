@@ -6,6 +6,6 @@ opencv-python
 pycocotools
 colorama
 tqdm
-memory-tempfile
 pyyaml
 mxnet
+pytest
