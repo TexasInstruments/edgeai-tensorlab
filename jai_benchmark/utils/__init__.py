@@ -41,3 +41,4 @@ from .onnx_utils import *
 from .model_utils import *
 from .import_utils import *
 from .image_utils import *
+from .artifacts_id_to_model_name import *

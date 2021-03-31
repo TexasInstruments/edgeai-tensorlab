@@ -96,7 +96,7 @@ def run_report(benchmark_dir, rewrite_results=True):
     results_collection = list()
     title_line = ['serial_num', 'model_id', 'run_time', 'task_type', 'input_resolution', 'model_path', 'metric_name',
                   'metric_8bits', 'metric_16bits', 'metric_float', 'metric_reference'] + \
-                  result_keys + ['run_dir']
+                  result_keys + ['run_dir', 'artifact_name']
 
     results_collection.append(title_line)
     for serial_num, (artifact_id, pipeline_params_8bits) in enumerate(results_8bits.items()):
@@ -138,7 +138,16 @@ def run_report(benchmark_dir, rewrite_results=True):
         results_line_dict.update(performance_line_dict)
 
         run_dir = pipeline_params_8bits['session']['run_dir'] if pipeline_params_8bits is not None else None
-        results_line_dict['run_dir'] = os.path.basename(run_dir) if run_dir is not None else None
+        run_dir_basename = os.path.basename(run_dir)
+        results_line_dict['run_dir'] = run_dir_basename if run_dir is not None else None
+
+        artifact_id = '_'.join(run_dir_basename.split('_')[:2])
+        artifact_name = utils.get_artifact_name(artifact_id)
+        if artifact_name is None:
+            runtime_name = artifact_id.split('_')[1]
+            artifact_name = f'{runtime_name}_{os.path.basename(model_path)}'
+        #
+        results_line_dict['artifact_name'] = artifact_name
 
         results_collection.append(list(results_line_dict.values()))
     #

@@ -295,16 +295,36 @@ super_set = [
     'vseg-19-401-0_tflitert',
 ]    
 
+
 def test_against_super_set():
     for artifacts_id in super_set:
         if not artifacts_id in model_id_artifacts_pair:
             print("{} is part of super-set but not in model names".format(artifacts_id))
 
+
 def get_selected_models(selected_task=None):
     selected_models_list = [key for key in model_id_artifacts_pair if not key in removed_model_list]                
     selected_models_for_a_task = [model for model in selected_models_list if model.split('-')[0] == selected_task]                
     return selected_models_for_a_task
-                     
+
+
+def get_artifact_name(artifact_id):
+    artifact_name = None
+    if artifact_id in model_id_artifacts_pair:
+        artifact_name = model_id_artifacts_pair[artifact_id]
+    else:
+        model_id, runtime_name = artifact_id.split('_')
+        # create mapping dictionaries
+        model_id_to_model_name_dict = {k.split('_')[0]:'-'.join(v.split('-')[1:]) \
+                for k,v in model_id_artifacts_pair.items()}
+        short_runtime_name_dict = {'tvmdlr':'TVM', 'tflitert':'TFL'}
+        # finally for the artifact name
+        if runtime_name in short_runtime_name_dict and model_id in model_id_to_model_name_dict:
+            artifact_name = f'{short_runtime_name_dict[runtime_name]}-{model_id_to_model_name_dict[model_id]}'
+        
+    return artifact_name
+
+
 if __name__ == '__main__':
 
     test_against_super_set()
