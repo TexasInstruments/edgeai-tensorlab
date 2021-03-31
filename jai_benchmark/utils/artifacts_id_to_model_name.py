@@ -28,7 +28,6 @@
 
 #################################################################################
 import os
-import pandas as pd
 
 #mapping from artifacts id to readable model names
 #ver:12-2021-03-29
@@ -307,29 +306,34 @@ def test_against_super_set():
         if not artifacts_id in model_id_artifacts_pair:
             print("{} is part of super-set but not in model names".format(artifacts_id))
 
-def excel_to_dict(excel_file=None, numeric_cols=None):
-    if os.path.splitext(excel_file)[1] == '.xlsx':
-        df=pd.read_excel( excel_file, engine='openpyxl')
-    elif os.path.splitext(excel_file)[1] == '.csv':    
-        df = pd.read_csv(excel_file, skipinitialspace=True)
-    elif os.path.splitext(excel_file)[1] == '.xls':    
-        df = pd.read_excel(excel_file)
-    else:
-        exit(0)    
+# pandas dependency made optional
+# Note: no warning is thrown if this import fails
+try:
+    import pandas as pd
+    def excel_to_dict(excel_file=None, numeric_cols=None):
+        if os.path.splitext(excel_file)[1] == '.xlsx':
+            df=pd.read_excel( excel_file, engine='openpyxl')
+        elif os.path.splitext(excel_file)[1] == '.csv':
+            df = pd.read_csv(excel_file, skipinitialspace=True)
+        elif os.path.splitext(excel_file)[1] == '.xls':
+            df = pd.read_excel(excel_file)
+        else:
+            exit(0)
 
-    for pick_key in numeric_cols:
-        df[pick_key] = pd.to_numeric(df[pick_key], errors='coerce', downcast='signed').fillna(0.0).astype(float)
+        for pick_key in numeric_cols:
+            df[pick_key] = pd.to_numeric(df[pick_key], errors='coerce', downcast='signed').fillna(0.0).astype(float)
 
-    #models_info_list = df.to_dict('list')
-    models_info_index = df.to_dict('index')
+        #models_info_list = df.to_dict('list')
+        models_info_index = df.to_dict('index')
 
-    #change key form serial number to model_id
-    models_info_dict = dict()
-    for k,v in models_info_index.items():
-        models_info_dict[v['model_id']+'_'+v['run_time']] = v
+        #change key form serial number to model_id
+        models_info_dict = dict()
+        for k,v in models_info_index.items():
+            models_info_dict[v['model_id']+'_'+v['run_time']] = v
 
-    return models_info_dict
-
+        return models_info_dict
+except:
+    pass
 
 def get_missing_models(report_file=None, selected_models_list=None):
     numeric_cols = ['serial_num',	'metric_8bits',	'metric_16bits',	'metric_float',	'metric_reference',	'num_subgraphs',	'infer_time_core_ms',	'ddr_transfer_mb', 'perfsim_ddr_transfer_mb', 'perfsim_gmacs']
