@@ -27,9 +27,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #################################################################################
+import os
+import pandas as pd
 
 #mapping from artifacts id to readable model names
-#ver:11-2021-03-21
+#ver:12-2021-03-29
 model_id_artifacts_pair = {
     # TFLite CL
     'vcls-10-010-0_tflitert': 'TFL-CL-000-mobileNetV1-mlperf',
@@ -186,6 +188,10 @@ removed_model_list = {
     'vseg-17-010-0_tflitert': 'TFL-SS-250-deeplab-mobV2-ade20k-512x512', # Manu said incorrect model ID removed. vseg-17-010 is replaced with vseg-18-010
     'vcls-10-408-0_tvmdlr': 'TVM-CL-304-nasNet-mobile-tflite', # not part of benchmarking script yet. tflite model with TVM.
     'vcls-10-450-0_tflitert': 'TFL-CL-025-xceptionNet-tflite', # mxnet model replaced with with tflite model now. Eventually removed as size is quite big.
+    'vdet-12-020-0_tvmdlr': 'TVM-OD-501-yolov3-416x416', # not supported yet
+    'vdet-12-404-0_tflitert': 'TFL-OD-204-ssd-mobV1-FPN-coco-640x640', # does not run, import crashes. Manu
+    'vdet-12-403-0_tflitert': 'TFL-OD-205-ssd-mobV2-mnas-fpn-coco-320x320', # does not run, import crashes. Manu
+    #'vdet-12-060-0_tvmdlr': 'TVM-OD-502-yolov3-mobv1-gluon-mxnet-416x416', # 3 subgraphs. Takes large time to run on PC. Put it back.
 
     #ADE20k32 models
     'vseg-18-100-8_tvmdlr': 'TVM-SS-562-deeplabv3lite-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
@@ -301,7 +307,47 @@ def test_against_super_set():
         if not artifacts_id in model_id_artifacts_pair:
             print("{} is part of super-set but not in model names".format(artifacts_id))
 
+def excel_to_dict(excel_file=None, numeric_cols=None):
+    if os.path.splitext(excel_file)[1] == '.xlsx':
+        df=pd.read_excel( excel_file, engine='openpyxl')
+    elif os.path.splitext(excel_file)[1] == '.csv':    
+        df = pd.read_csv(excel_file, skipinitialspace=True)
+    elif os.path.splitext(excel_file)[1] == '.xls':    
+        df = pd.read_excel(excel_file)
+    else:
+        exit(0)    
 
+    for pick_key in numeric_cols:
+        df[pick_key] = pd.to_numeric(df[pick_key], errors='coerce', downcast='signed').fillna(0.0).astype(float)
+
+    #models_info_list = df.to_dict('list')
+    models_info_index = df.to_dict('index')
+
+    #change key form serial number to model_id
+    models_info_dict = dict()
+    for k,v in models_info_index.items():
+        models_info_dict[v['model_id']+'_'+v['run_time']] = v
+
+    return models_info_dict
+
+
+def get_missing_models(report_file=None, selected_models_list=None):
+    numeric_cols = ['serial_num',	'metric_8bits',	'metric_16bits',	'metric_float',	'metric_reference',	'num_subgraphs',	'infer_time_core_ms',	'ddr_transfer_mb', 'perfsim_ddr_transfer_mb', 'perfsim_gmacs']
+
+    models_info_dict = excel_to_dict(excel_file=report_file, numeric_cols=numeric_cols) 
+    
+    missing_models_list = [(model, model_id_artifacts_pair[model])for model in selected_models_list if not model in models_info_dict]
+    if len(missing_models_list) > 0:
+        print("#"*32)            
+        print("perf-data missing for the models")
+        for artifact_id, artifacts_name in missing_models_list:
+            model_id  = artifact_id.split('_')[0]
+            #print(model_id,', #', artifact_id, artifacts_name)
+            print("{}, # {:23}, {}".format(model_id, artifact_id, artifacts_name))
+        print("#"*32)               
+
+    return
+    
 def get_selected_models(selected_task=None):
     selected_models_list = [key for key in model_id_artifacts_pair if not key in removed_model_list]                
     selected_models_for_a_task = [model for model in selected_models_list if model.split('-')[0] == selected_task]                
@@ -326,14 +372,15 @@ def get_artifact_name(artifact_id):
 
 
 if __name__ == '__main__':
+    generate_list_mising_models = True
 
     test_against_super_set()
 
     print("Total models : ", len(model_id_artifacts_pair))        
     print("removed models : ", len(removed_model_list))        
     print_selected_models = True
-   
-    selected_models_list = [key for key in model_id_artifacts_pair if not key in removed_model_list]                
+
+    selected_models_list = [key for key in model_id_artifacts_pair if not key in removed_model_list]
     
     print("with runtime prefix")
     print("="*64)
@@ -353,5 +400,10 @@ if __name__ == '__main__':
     selected_models_vcls = [model for model in selected_models_list if model.split('-')[0] == 'vcls']                
     selected_models_vdet = [model for model in selected_models_list if model.split('-')[0] == 'vdet']
     selected_models_vseg = [model for model in selected_models_list if model.split('-')[0] == 'vseg']
-   
+
     print("num_selected_models: {}, vcls:{}, vdet:{}, vseg:{}".format(len(selected_models_list), len(selected_models_vcls), len(selected_models_vdet), len(selected_models_vseg)))        
+
+    #find which models need re-run due to lack of performance data    
+    if generate_list_mising_models:    
+        df = get_missing_models(report_file='./work_dirs/benchmark_accuracy_golden/report_20210327-181808.csv', 
+            selected_models_list=selected_models_list)
