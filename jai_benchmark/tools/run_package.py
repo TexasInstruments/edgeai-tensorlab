@@ -28,12 +28,12 @@
 
 import copy
 import os
+import sys
 import shutil
 import tarfile
 import yaml
 import glob
 import re
-from colorama import Fore
 from jai_benchmark import utils
 
 
@@ -160,6 +160,7 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
         #
     #
 
+    tarfile_size = 0
     if make_package_tar:
         tarfile_name = package_run_dir + '.tar.gz'
         tfp = tarfile.open(tarfile_name, 'w:gz')
@@ -168,10 +169,11 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
             tfp.add(inpf, arcname=outpf)
         #
         tfp.close()
+        tarfile_size = os.path.getsize(tarfile_name)
     else:
         package_run_dir = None
     #
-    return package_run_dir
+    return package_run_dir, tarfile_size
 
 
 def package_artifacts(settings, work_dir, out_dir):
@@ -188,19 +190,27 @@ def package_artifacts(settings, work_dir, out_dir):
             with open(result_yaml) as fp:
                 pipeline_param = yaml.safe_load(fp)
             #
-            package_run_dir = package_artifact(pipeline_param, work_dir, out_dir)
+            package_run_dir, tarfile_size = package_artifact(pipeline_param, work_dir, out_dir)
             if package_run_dir is not None:
                 task_type = pipeline_param['task_type']
                 package_run_dir = os.path.basename(package_run_dir)
                 model_path = pipeline_param['session']['model_path']
                 model_path = model_path[0] if isinstance(model_path, (list,tuple)) else model_path
                 model_name = os.path.basename(model_path)
-                tarfile_names.append(','.join([task_type, package_run_dir, model_name]))
+
+                run_dir = pipeline_param['session']['run_dir']
+                run_dir_basename = os.path.basename(run_dir)
+                artifact_id = '_'.join(run_dir_basename.split('_')[:2])
+                artifact_name = utils.get_artifact_name(artifact_id)
+                artifact_name = '_'.join(run_dir_basename.split('_')[1:]) if artifact_name is None else artifact_name
+
+                tarfile_names.append(','.join([task_type, package_run_dir, artifact_name, str(tarfile_size)]))
             #
             print(utils.log_color('SUCCESS', 'finished packaging', run_dir))
         except:
             print(utils.log_color('WARNING', 'could not package', run_dir))
         #
+        sys.stdout.flush()
     #
     model_list = '\n'.join(tarfile_names)
     with open(os.path.join(out_dir,'model.list'), 'w') as fp:

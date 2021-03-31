@@ -143,10 +143,7 @@ def run_report(benchmark_dir, rewrite_results=True):
 
         artifact_id = '_'.join(run_dir_basename.split('_')[:2])
         artifact_name = utils.get_artifact_name(artifact_id)
-        if artifact_name is None:
-            runtime_name = artifact_id.split('_')[1]
-            artifact_name = f'{runtime_name}_{os.path.basename(model_path)}'
-        #
+        artifact_name = '_'.join(run_dir_basename.split('_')[1:]) if artifact_name is None else artifact_name
         results_line_dict['artifact_name'] = artifact_name
 
         results_collection.append(list(results_line_dict.values()))
