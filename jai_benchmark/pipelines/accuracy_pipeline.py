@@ -75,6 +75,8 @@ class AccuracyPipeline():
             #
             return param_result
         #
+        # collect the input params
+        param_dict = utils.pretty_object(self.pipeline_config)
         # start() must be called to create the required directories
         session.start()
         # create logger
@@ -92,8 +94,7 @@ class AccuracyPipeline():
             result_dict = self._evaluate(output_list)
             result_dict.update(self.infer_stats_dict)
         #
-        # collect the input params and results
-        param_dict = utils.pretty_object(self.pipeline_config)
+        # collect the results
         result_dict = utils.pretty_object(result_dict)
         param_result = dict({'result': result_dict})
         param_result.update(param_dict)
