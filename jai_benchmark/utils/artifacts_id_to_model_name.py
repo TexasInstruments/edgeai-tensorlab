@@ -30,7 +30,7 @@
 import os
 
 #mapping from artifacts id to readable model names
-#ver:12-2021-03-29
+#ver:13-2021-04-01
 model_id_artifacts_pair = {
     # TFLite CL
     'vcls-10-010-0_tflitert': 'TFL-CL-000-mobileNetV1-mlperf',
@@ -294,6 +294,7 @@ removed_model_list = {
 
     'vcls-10-408-0_onnxrt': 'ONR-CL-604-nasNet-mobile-tflite', # not part of benchmarking script yet. tflite model with TVM.
     'vdet-12-020-0_onnxrt': 'ONR-OD-801-yolov3-416x416', # not supported yet
+    'vcls-10-404-0_tflitert': 'TFL-CL-015-denseNet', # too far from optimal pareto line
 
     #ADE20k32 models
     'vseg-18-100-8_tvmdlr': 'TVM-SS-562-deeplabv3lite-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
@@ -436,8 +437,10 @@ def test_against_super_set():
         if not artifacts_id in model_id_artifacts_pair:
             print("{} is part of super-set but not in model names".format(artifacts_id))
 
-def excel_to_dict(excel_file=None, numeric_cols=None):
+try:
     import pandas as pd
+def excel_to_dict(excel_file=None, numeric_cols=None):
+        
     if os.path.splitext(excel_file)[1] == '.xlsx':
         df = pd.read_excel( excel_file, engine='openpyxl')
     elif os.path.splitext(excel_file)[1] == '.csv':    
@@ -461,7 +464,8 @@ def excel_to_dict(excel_file=None, numeric_cols=None):
         models_info_dict[v['model_id']+'_'+run_time] = v
 
     return models_info_dict
-
+except:
+    print("excel_to_dict is not supported, check if 'import pandas' work")
 
 def get_missing_models(report_file=None, selected_models_list=None):
     numeric_cols = ['serial_num',	'metric_8bits',	'metric_16bits',	'metric_float',	'metric_reference',	'num_subgraphs',	'infer_time_core_ms',	'ddr_transfer_mb', 'perfsim_ddr_transfer_mb', 'perfsim_gmacs']
