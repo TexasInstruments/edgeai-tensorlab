@@ -109,6 +109,7 @@ import random
 import json
 import shutil
 import tempfile
+import numpy as np
 from colorama import Fore
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
@@ -289,9 +290,13 @@ class COCODetection(utils.ParamsBase):
             assert label<len(label_offset), 'label_offset is a list/tuple, but its size is smaller than the detected label'
             label = label_offset[label]
         elif isinstance(label_offset, dict):
-            label = int(label)
-            assert label in label_offset.keys(), f'label_offset is a dict, but the detected label {label} was not one of its keys'
-            label = label_offset[label]
+            if np.isnan(label) or int(label) not in label_offset.keys():
+                print(utils.log_color('\nWARNING', 'detection incorrect', f'detected label: {label}'
+                                                                          f' is not in label_offset dict'))
+                label = 0
+            else:
+                label = label_offset[int(label)]
+            #
         elif isinstance(label_offset, numbers.Number):
             label = int(label + label_offset)
         else:
