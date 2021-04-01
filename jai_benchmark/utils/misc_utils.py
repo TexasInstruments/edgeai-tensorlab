@@ -138,7 +138,8 @@ def pretty_object(d, precision=3, depth=5):
         d_out = pretty_object(d.tolist(), depth)
     elif isinstance(d, ParamsBase):
         # this is a special case
-        d_out = d.peek_params()
+        p = d.peek_params()
+        d_out = pretty_object(p)
     elif hasattr(d, '__dict__'):
         # other unrecognized objects - just grab the attributes as a dict
         d_out = pretty_object(d.__dict__, depth)

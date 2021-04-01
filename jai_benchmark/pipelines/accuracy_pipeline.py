@@ -77,8 +77,6 @@ class AccuracyPipeline():
         #
         # start() must be called to create the required directories
         session.start()
-        # collect the input params
-        param_dict = utils.pretty_object(self.pipeline_config)
         # create logger
         log_filename = os.path.join(run_dir, 'run.log') if self.settings.enable_logging else None
         self.logger = utils.TeeLogger(log_filename)
@@ -94,16 +92,18 @@ class AccuracyPipeline():
             result_dict = self._evaluate(output_list)
             result_dict.update(self.infer_stats_dict)
         #
-        self.logger.write(utils.log_color('\nSUCCESS', 'benchmark results', f'{utils.pretty_object(result_dict)}\n'))
-        # dump the results
+        # collect the input params and results
+        param_dict = utils.pretty_object(self.pipeline_config)
         result_dict = utils.pretty_object(result_dict)
         param_result = dict({'result': result_dict})
         param_result.update(param_dict)
+        # dump the results
         if self.settings.enable_logging:
             with open(os.path.join(run_dir, 'result.yaml'), 'w') as fp:
                 yaml.safe_dump(param_result, fp, sort_keys=False)
             #
         #
+        self.logger.write(utils.log_color('\nSUCCESS', 'benchmark results', f'{result_dict}\n'))
         return param_result
 
     def _import_model(self, description=''):
