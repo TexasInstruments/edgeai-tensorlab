@@ -30,7 +30,7 @@
 import os
 
 #mapping from artifacts id to readable model names
-#ver:12-2021-03-29
+#ver:13-2021-04-01
 model_id_artifacts_pair = {
     # TFLite CL
     'vcls-10-010-0_tflitert': 'TFL-CL-000-mobileNetV1-mlperf',
@@ -157,6 +157,90 @@ model_id_artifacts_pair = {
     'vseg-18-103-8_tvmdlr': 'TVM-SS-568-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512',
     'vseg-18-110-0_tvmdlr': 'TVM-SS-569-fpnlite-aspp-regnetx400mf-ade20k32-384x384',
     'vseg-18-111-0_tvmdlr': 'TVM-SS-570-fpnlite-aspp-regnetx800mf-ade20k32-512x512',
+
+
+    # ONNXRT- CL
+    'vcls-10-020-0_onnxrt': 'ONR-CL-600-resNet18V2',
+    'vcls-10-450-0_onnxrt': 'ONR-CL-602-xceptionNet-mxnet',
+    'vcls-10-408-0_onnxrt': 'ONR-CL-604-nasNet-mobile-tflite',
+    'vcls-10-100-0_onnxrt': 'ONR-CL-606-mobileNetV1',
+    'vcls-10-101-0_onnxrt': 'ONR-CL-607-mobileNetV2',
+    'vcls-10-301-0_onnxrt': 'ONR-CL-608-shuffleNetV2',
+    'vcls-10-302-0_onnxrt': 'ONR-CL-609-mobileNetV2-tv',
+    'vcls-10-304-0_onnxrt': 'ONR-CL-610-resNet18',
+    'vcls-10-305-0_onnxrt': 'ONR-CL-611-resNet50',
+    'vcls-10-031-0_onnxrt': 'ONR-CL-612-regNetX-400mf',
+    'vcls-10-032-0_onnxrt': 'ONR-CL-613-regNetX-800mf',
+    'vcls-10-033-0_onnxrt': 'ONR-CL-614-regNetX-1.6gf',
+    'vcls-10-102-8_onnxrt': 'ONR-CL-615-mobileNetV2-1p4-qat',
+    
+    #512x512
+    'vcls-10-100-1_onnxrt': 'ONR-CL-616-mobileNetV1-512x512',
+    'vcls-10-101-1_onnxrt': 'ONR-CL-617-mobileNetV2-512x512',
+    'vcls-10-301-1_onnxrt': 'ONR-CL-618-shuffleNetV2-512x512',
+    'vcls-10-302-1_onnxrt': 'ONR-CL-619-mobileNetV2-tv-512x512',
+    'vcls-10-304-1_onnxrt': 'ONR-CL-620-resNet18-512x512',
+    'vcls-10-305-1_onnxrt': 'ONR-CL-621-resNet50-512x512',
+    'vcls-10-031-1_onnxrt': 'ONR-CL-622-regNetX-400mf-512x512',
+    'vcls-10-032-1_onnxrt': 'ONR-CL-623-regNetX-800mf-512x512',
+    'vcls-10-033-1_onnxrt': 'ONR-CL-624-regNetX-1.6gf-512x512',
+    'vcls-10-102-1_onnxrt': 'ONR-CL-625-mobileNetV2-1p4-qat-512x512',
+
+    #1024x1024
+    'vcls-10-100-2_onnxrt': 'ONR-CL-626-mobileNetV1-1024x1024',
+    'vcls-10-101-2_onnxrt': 'ONR-CL-627-mobileNetV2-1024x1024',
+    'vcls-10-301-2_onnxrt': 'ONR-CL-628-shuffleNetV2-1024x1024',
+    'vcls-10-302-2_onnxrt': 'ONR-CL-629-mobileNetV2-tv-1024x1024',
+    'vcls-10-304-2_onnxrt': 'ONR-CL-630-resNet18-1024x1024',
+    'vcls-10-305-2_onnxrt': 'ONR-CL-631-resNet50-1024x1024',
+    'vcls-10-031-2_onnxrt': 'ONR-CL-632-regNetX-400mf-1024x1024',
+    'vcls-10-032-2_onnxrt': 'ONR-CL-633-regNetX-800mf-1024x1024',
+    'vcls-10-033-2_onnxrt': 'ONR-CL-634-regNetX-1.6gf-1024x1024',
+    'vcls-10-102-2_onnxrt': 'ONR-CL-635-mobileNetV2-1p4-qat-1024x1024',
+    ########
+    
+    'vcls-10-030-0_onnxrt': 'ONR-CL-636-regNetx-200mf',
+    'vcls-10-306-0_onnxrt': 'ONR-CL-637-vgg16',
+    'vcls-10-101-8_onnxrt': 'ONR-CL-638-mobileNetV2-qat',
+    'vcls-10-302-8_onnxrt': 'ONR-CL-640-mobileNetV2-tv-qat',
+    'vcls-10-060-0_onnxrt': 'ONR-CL-641-gluoncv-mxnet-mobv2',
+    'vcls-10-061-0_onnxrt': 'ONR-CL-642-gluoncv-mxnet-resNet50-v1',
+    'vcls-10-062-0_onnxrt': 'ONR-CL-643-gluoncv-xception',
+    # HarD Net
+    'vcls-10-900-0_onnxrt': 'ONR-CL-644-harDNet68',
+    'vcls-10-901-0_onnxrt': 'ONR-CL-645-harDNet85',
+    'vcls-10-902-0_onnxrt': 'ONR-CL-646-harDNet68ds',
+    'vcls-10-903-0_onnxrt': 'ONR-CL-647-harDNet39ds',
+    
+    # ONNX - OD
+    'vdet-12-012-0_onnxrt': 'ONR-OD-800-ssd1200-resNet34-mlperf-1200x1200',
+    'vdet-12-020-0_onnxrt': 'ONR-OD-801-yolov3-416x416',
+    'vdet-12-060-0_onnxrt': 'ONR-OD-802-yolov3-mobv1-gluon-mxnet-416x416',
+    'vdet-12-061-0_onnxrt': 'ONR-OD-803-ssd-mobv1-gluon-mxnet-512x512',
+    # ONNX - SS - CS
+    'vseg-16-100-0_onnxrt': 'ONR-SS-850-deeplabv3lite-mobv2-cs-768x384',
+    'vseg-16-100-8_onnxrt': 'ONR-SS-851-deeplabv3lite-mobv2-cs-qat-768x384',
+    'vseg-16-101-0_onnxrt': 'ONR-SS-852-fpnlite-aspp-mobv2-cs-768x384',
+    'vseg-16-101-8_onnxrt': 'ONR-SS-853-fpnlite-aspp-mobv2-cs-qat-768x384',
+    'vseg-16-102-0_onnxrt': 'ONR-SS-854-unetlite-aspp-mobv2-tv-cs-768x384',
+    'vseg-16-102-8_onnxrt': 'ONR-SS-855-unetlite-aspp-mobv2-tv-cs-qat-768x384',
+    'vseg-16-103-0_onnxrt': 'ONR-SS-856-fpnlite-aspp-regNetx800mf-cs-768x384',
+    'vseg-16-104-0_onnxrt': 'ONR-SS-857-fpnlite-aspp-regNetx1.6gf-cs-1024x512',
+    'vseg-16-105-0_onnxrt': 'ONR-SS-858-fpnlite-aspp-regNetx3.2gf-cs-1536x768',
+    'vseg-16-300-0_onnxrt': 'ONR-SS-859-deeplabv3-res50-1040x520',
+    'vseg-16-301-0_onnxrt': 'ONR-SS-860-fcn-res50-1040x520',
+
+    # ONNX - SS - ADE20k
+    'vseg-18-100-0_onnxrt': 'ONR-SS-861-deeplabv3lite-mobv2-ade20k32-512x512',
+    'vseg-18-100-8_onnxrt': 'ONR-SS-862-deeplabv3lite-mobv2-ade20k32-qat-512x512', 
+    'vseg-18-101-0_onnxrt': 'ONR-SS-863-unetlite-aspp-mobv2-tv-ade20k32-512x512',
+    'vseg-18-101-8_onnxrt': 'ONR-SS-864-unetlite-aspp-mobv2-tv-ade20k32-qat-512x512',
+    'vseg-18-102-0_onnxrt': 'ONR-SS-865-fpnlite-aspp-mobv2-ade20k32-512x512',
+    'vseg-18-102-8_onnxrt': 'ONR-SS-866-fpnlite-aspp-mobv2-ade20k32-qat-512x512', 
+    'vseg-18-103-0_onnxrt': 'ONR-SS-867-fpnlite-aspp-mobv2-1p4-ade20k32-512x512',
+    'vseg-18-103-8_onnxrt': 'ONR-SS-868-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512',
+    'vseg-18-110-0_onnxrt': 'ONR-SS-869-fpnlite-aspp-regnetx400mf-ade20k32-384x384',
+    'vseg-18-111-0_onnxrt': 'ONR-SS-870-fpnlite-aspp-regnetx800mf-ade20k32-512x512',
 }
 
 removed_model_list = {
@@ -173,30 +257,55 @@ removed_model_list = {
     'vseg-16-103-0_tvmdlr': 'TVM-SS-556-fpnlite-aspp-regNetx800mf-cs-768x384', # cityscapes model not part of Model Zoo
     'vseg-16-104-0_tvmdlr': 'TVM-SS-557-fpnlite-aspp-regNetx1.6gf-cs-1024x512', # cityscapes model not part of Model Zoo
     'vseg-16-105-0_tvmdlr': 'TVM-SS-558-fpnlite-aspp-regNetx3.2gf-cs-1536x768', # cityscapes model not part of Model Zoo
+
+    'vseg-16-100-0_onnxrt': 'ONR-SS-850-deeplabv3lite-mobv2-cs-768x384', # cityscapes model not part of Model Zoo
+    'vseg-16-100-8_onnxrt': 'ONR-SS-851-deeplabv3lite-mobv2-cs-qat-768x384', # cityscapes model not part of Model Zoo
+    'vseg-16-101-0_onnxrt': 'ONR-SS-852-fpnlite-aspp-mobv2-cs-768x384', # cityscapes model not part of Model Zoo
+    'vseg-16-101-8_onnxrt': 'ONR-SS-853-fpnlite-aspp-mobv2-cs-qat-768x384', # cityscapes model not part of Model Zoo
+    'vseg-16-102-0_onnxrt': 'ONR-SS-854-unetlite-aspp-mobv2-tv-cs-768x384', # cityscapes model not part of Model Zoo
+    'vseg-16-102-8_onnxrt': 'ONR-SS-855-unetlite-aspp-mobv2-tv-cs-qat-768x384', # cityscapes model not part of Model Zoo
+    'vseg-16-103-0_onnxrt': 'ONR-SS-856-fpnlite-aspp-regNetx800mf-cs-768x384', # cityscapes model not part of Model Zoo
+    'vseg-16-104-0_onnxrt': 'ONR-SS-857-fpnlite-aspp-regNetx1.6gf-cs-1024x512', # cityscapes model not part of Model Zoo
+    'vseg-16-105-0_onnxrt': 'ONR-SS-858-fpnlite-aspp-regNetx3.2gf-cs-1536x768', # cityscapes model not part of Model Zoo
     ################
-    'vcls-10-306-0_tvmdlr': 'TVM-CL-337-vgg16', # Kumar removed model
-    'vcls-10-020-0_tvmdlr': 'TVM-CL-300-resNet18V2', # Kumar removed model
     'vcls-10-408-0_tflitert': 'TFL-CL-024-nasNet-mobile-tflite', # Kumar removed model (Multiple sub-graphs)
     'vcls-10-432-0_tflitert': 'TFL-CL-018-efficientNet-lite2', # Kumar removed model
     'vdet-12-011-0_tflitert': 'TFL-OD-201-ssd-mobV2-coco-300x300-mlperf',  # Kumar removed model
-    'vseg-16-300-0_tvmdlr': 'TVM-SS-559-deeplabv3-res50-1040x520', # Kumar removed model, nc does not have info for this
-    'vseg-16-301-0_tvmdlr': 'TVM-SS-560-fcn-res50-1040x520', # Kumar removed model
     'vseg-16-400-0_tflitert': 'TFL-SS-255-deeplabv3-mobv2_cs-2048x1024',  # Kumar removed model, 
 
+    'vcls-10-306-0_tvmdlr': 'TVM-CL-337-vgg16', # Kumar removed model
+    'vcls-10-020-0_tvmdlr': 'TVM-CL-300-resNet18V2', # Kumar removed model
+    'vseg-16-300-0_tvmdlr': 'TVM-SS-559-deeplabv3-res50-1040x520', # Kumar removed model, nc does not have info for this
+    'vseg-16-301-0_tvmdlr': 'TVM-SS-560-fcn-res50-1040x520', # Kumar removed model
+
+    'vcls-10-306-0_onnxrt': 'ONR-CL-637-vgg16', # Kumar removed model
+    'vcls-10-020-0_onnxrt': 'ONR-CL-600-resNet18V2', # Kumar removed model
+    'vseg-16-300-0_onnxrt': 'ONR-SS-859-deeplabv3-res50-1040x520', # Kumar removed model, nc does not have info for this
+    'vseg-16-301-0_onnxrt': 'ONR-SS-860-fcn-res50-1040x520', # Kumar removed model
+    
     #########################
     'vseg-17-010-0_tflitert': 'TFL-SS-250-deeplab-mobV2-ade20k-512x512', # Manu said incorrect model ID removed. vseg-17-010 is replaced with vseg-18-010
-    'vcls-10-408-0_tvmdlr': 'TVM-CL-304-nasNet-mobile-tflite', # not part of benchmarking script yet. tflite model with TVM.
     'vcls-10-450-0_tflitert': 'TFL-CL-025-xceptionNet-tflite', # mxnet model replaced with with tflite model now. Eventually removed as size is quite big.
-    'vdet-12-020-0_tvmdlr': 'TVM-OD-501-yolov3-416x416', # not supported yet
     'vdet-12-404-0_tflitert': 'TFL-OD-204-ssd-mobV1-FPN-coco-640x640', # does not run, import crashes. Manu
     'vdet-12-403-0_tflitert': 'TFL-OD-205-ssd-mobV2-mnas-fpn-coco-320x320', # does not run, import crashes. Manu
-    #'vdet-12-060-0_tvmdlr': 'TVM-OD-502-yolov3-mobv1-gluon-mxnet-416x416', # 3 subgraphs. Takes large time to run on PC. Put it back.
+
+    'vcls-10-408-0_tvmdlr': 'TVM-CL-304-nasNet-mobile-tflite', # not part of benchmarking script yet. tflite model with TVM.
+    'vdet-12-020-0_tvmdlr': 'TVM-OD-501-yolov3-416x416', # not supported yet
+
+    'vcls-10-408-0_onnxrt': 'ONR-CL-604-nasNet-mobile-tflite', # not part of benchmarking script yet. tflite model with TVM.
+    'vdet-12-020-0_onnxrt': 'ONR-OD-801-yolov3-416x416', # not supported yet
+    'vcls-10-404-0_tflitert': 'TFL-CL-015-denseNet', # too far from optimal pareto line
 
     #ADE20k32 models
     'vseg-18-100-8_tvmdlr': 'TVM-SS-562-deeplabv3lite-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
     'vseg-18-101-8_tvmdlr': 'TVM-SS-564-unetlite-aspp-mobv2-tv-ade20k32-qat-512x512', # import fails
     'vseg-18-102-8_tvmdlr': 'TVM-SS-566-fpnlite-aspp-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
     'vseg-18-103-8_tvmdlr': 'TVM-SS-568-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
+
+    'vseg-18-100-8_onnxrt': 'ONR-SS-862-deeplabv3lite-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
+    'vseg-18-101-8_onnxrt': 'ONR-SS-864-unetlite-aspp-mobv2-tv-ade20k32-qat-512x512', # import fails
+    'vseg-18-102-8_onnxrt': 'ONR-SS-866-fpnlite-aspp-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
+    'vseg-18-103-8_onnxrt': 'ONR-SS-868-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
 
     #512x512 (Only for performance)
     'vcls-10-100-1_tvmdlr': 'TVM-CL-316-mobileNetV1-512x512',
@@ -209,6 +318,18 @@ removed_model_list = {
     'vcls-10-032-1_tvmdlr': 'TVM-CL-323-regNetX-800mf-512x512',
     'vcls-10-033-1_tvmdlr': 'TVM-CL-324-regNetX-1.6gf-512x512',
     'vcls-10-102-1_tvmdlr': 'TVM-CL-325-mobileNetV2-1p4-qat-512x512',
+    
+    'vcls-10-100-1_onnxrt': 'ONR-CL-616-mobileNetV1-512x512',
+    'vcls-10-101-1_onnxrt': 'ONR-CL-617-mobileNetV2-512x512',
+    'vcls-10-301-1_onnxrt': 'ONR-CL-618-shuffleNetV2-512x512',
+    'vcls-10-302-1_onnxrt': 'ONR-CL-619-mobileNetV2-tv-512x512',
+    'vcls-10-304-1_onnxrt': 'ONR-CL-620-resNet18-512x512',
+    'vcls-10-305-1_onnxrt': 'ONR-CL-621-resNet50-512x512',
+    'vcls-10-031-1_onnxrt': 'ONR-CL-622-regNetX-400mf-512x512',
+    'vcls-10-032-1_onnxrt': 'ONR-CL-623-regNetX-800mf-512x512',
+    'vcls-10-033-1_onnxrt': 'ONR-CL-624-regNetX-1.6gf-512x512',
+    'vcls-10-102-1_onnxrt': 'ONR-CL-625-mobileNetV2-1p4-qat-512x512',
+
 
     #1024x1024  (Only for performance)
     'vcls-10-100-2_tvmdlr': 'TVM-CL-326-mobileNetV1-1024x1024',
@@ -221,6 +342,17 @@ removed_model_list = {
     'vcls-10-032-2_tvmdlr': 'TVM-CL-333-regNetX-800mf-1024x1024',
     'vcls-10-033-2_tvmdlr': 'TVM-CL-334-regNetX-1.6gf-1024x1024',
     'vcls-10-102-2_tvmdlr': 'TVM-CL-335-mobileNetV2-1p4-qat-1024x1024',
+
+    'vcls-10-100-2_onnxrt': 'ONR-CL-626-mobileNetV1-1024x1024',
+    'vcls-10-101-2_onnxrt': 'ONR-CL-627-mobileNetV2-1024x1024',
+    'vcls-10-301-2_onnxrt': 'ONR-CL-628-shuffleNetV2-1024x1024',
+    'vcls-10-302-2_onnxrt': 'ONR-CL-629-mobileNetV2-tv-1024x1024',
+    'vcls-10-304-2_onnxrt': 'ONR-CL-630-resNet18-1024x1024',
+    'vcls-10-305-2_onnxrt': 'ONR-CL-631-resNet50-1024x1024',
+    'vcls-10-031-2_onnxrt': 'ONR-CL-632-regNetX-400mf-1024x1024',
+    'vcls-10-032-2_onnxrt': 'ONR-CL-633-regNetX-800mf-1024x1024',
+    'vcls-10-033-2_onnxrt': 'ONR-CL-634-regNetX-1.6gf-1024x1024',
+    'vcls-10-102-2_onnxrt': 'ONR-CL-635-mobileNetV2-1p4-qat-1024x1024',
 }
 
 removed_models_from_plots = {
@@ -300,25 +432,23 @@ super_set = [
     'vseg-19-401-0_tflitert',
 ]    
 
-
 def test_against_super_set():
     for artifacts_id in super_set:
         if not artifacts_id in model_id_artifacts_pair:
             print("{} is part of super-set but not in model names".format(artifacts_id))
 
-# pandas dependency made optional
-# Note: no warning is thrown if this import fails
 try:
     import pandas as pd
     def excel_to_dict(excel_file=None, numeric_cols=None):
+            
         if os.path.splitext(excel_file)[1] == '.xlsx':
-            df=pd.read_excel( excel_file, engine='openpyxl')
-        elif os.path.splitext(excel_file)[1] == '.csv':
+            df = pd.read_excel( excel_file, engine='openpyxl')
+        elif os.path.splitext(excel_file)[1] == '.csv':    
             df = pd.read_csv(excel_file, skipinitialspace=True)
-        elif os.path.splitext(excel_file)[1] == '.xls':
+        elif os.path.splitext(excel_file)[1] == '.xls':    
             df = pd.read_excel(excel_file)
         else:
-            exit(0)
+            exit(0)    
 
         for pick_key in numeric_cols:
             df[pick_key] = pd.to_numeric(df[pick_key], errors='coerce', downcast='signed').fillna(0.0).astype(float)
@@ -329,11 +459,13 @@ try:
         #change key form serial number to model_id
         models_info_dict = dict()
         for k,v in models_info_index.items():
-            models_info_dict[v['model_id']+'_'+v['run_time']] = v
+            #report changed column name from run_time to runtime_name
+            run_time = v['run_time'] if 'run_time' in v else v['runtime_name']
+            models_info_dict[v['model_id']+'_'+run_time] = v
 
         return models_info_dict
 except:
-    pass
+    print("excel_to_dict is not supported, check if 'import pandas' work")
 
 def get_missing_models(report_file=None, selected_models_list=None):
     numeric_cols = ['serial_num',	'metric_8bits',	'metric_16bits',	'metric_float',	'metric_reference',	'num_subgraphs',	'infer_time_core_ms',	'ddr_transfer_mb', 'perfsim_ddr_transfer_mb', 'perfsim_gmacs']
@@ -344,10 +476,10 @@ def get_missing_models(report_file=None, selected_models_list=None):
     if len(missing_models_list) > 0:
         print("#"*32)            
         print("perf-data missing for the models")
-        for artifact_id, artifacts_name in missing_models_list:
+        for artifact_id, artifacts_name in sorted(missing_models_list):
             model_id  = artifact_id.split('_')[0]
             #print(model_id,', #', artifact_id, artifacts_name)
-            print("{}, # {:23}, {}".format(model_id, artifact_id, artifacts_name))
+            print("'{}', # {:23}, {}".format(model_id, artifact_id, artifacts_name))
         print("#"*32)               
 
     return
@@ -367,7 +499,7 @@ def get_artifact_name(artifact_id):
         # create mapping dictionaries
         model_id_to_model_name_dict = {k.split('_')[0]:'-'.join(v.split('-')[1:]) \
                 for k,v in model_id_artifacts_pair.items()}
-        short_runtime_name_dict = {'tvmdlr':'TVM', 'tflitert':'TFL'}
+        short_runtime_name_dict = {'tvmdlr':'TVM', 'tflitert':'TFL', 'onnxrt':'ONR'}
         # finally for the artifact name
         if runtime_name in short_runtime_name_dict and model_id in model_id_to_model_name_dict:
             artifact_name = f'{short_runtime_name_dict[runtime_name]}-{model_id_to_model_name_dict[model_id]}'
@@ -401,7 +533,7 @@ if __name__ == '__main__':
             print("{}{}{}".format("\'", selected_model,"\'" ), end=',')
         print("")    
     print("="*64)
-    selected_models_vcls = [model for model in selected_models_list if model.split('-')[0] == 'vcls']                
+    selected_models_vcls = [model for model in selected_models_list if model.split('-')[0] == 'vcls']
     selected_models_vdet = [model for model in selected_models_list if model.split('-')[0] == 'vdet']
     selected_models_vseg = [model for model in selected_models_list if model.split('-')[0] == 'vseg']
 
@@ -409,5 +541,5 @@ if __name__ == '__main__':
 
     #find which models need re-run due to lack of performance data    
     if generate_list_mising_models:    
-        df = get_missing_models(report_file='./work_dirs/benchmark_accuracy_golden/report_20210327-181808.csv', 
+        df = get_missing_models(report_file='./work_dirs/benchmark_accuracy/report_20210401-102803.csv', 
             selected_models_list=selected_models_list)
