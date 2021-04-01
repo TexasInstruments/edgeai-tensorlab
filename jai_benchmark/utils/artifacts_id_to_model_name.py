@@ -439,31 +439,31 @@ def test_against_super_set():
 
 try:
     import pandas as pd
-def excel_to_dict(excel_file=None, numeric_cols=None):
-        
-    if os.path.splitext(excel_file)[1] == '.xlsx':
-        df = pd.read_excel( excel_file, engine='openpyxl')
-    elif os.path.splitext(excel_file)[1] == '.csv':    
-        df = pd.read_csv(excel_file, skipinitialspace=True)
-    elif os.path.splitext(excel_file)[1] == '.xls':    
-        df = pd.read_excel(excel_file)
-    else:
-        exit(0)    
+    def excel_to_dict(excel_file=None, numeric_cols=None):
+            
+        if os.path.splitext(excel_file)[1] == '.xlsx':
+            df = pd.read_excel( excel_file, engine='openpyxl')
+        elif os.path.splitext(excel_file)[1] == '.csv':    
+            df = pd.read_csv(excel_file, skipinitialspace=True)
+        elif os.path.splitext(excel_file)[1] == '.xls':    
+            df = pd.read_excel(excel_file)
+        else:
+            exit(0)    
 
-    for pick_key in numeric_cols:
-        df[pick_key] = pd.to_numeric(df[pick_key], errors='coerce', downcast='signed').fillna(0.0).astype(float)
+        for pick_key in numeric_cols:
+            df[pick_key] = pd.to_numeric(df[pick_key], errors='coerce', downcast='signed').fillna(0.0).astype(float)
 
-    #models_info_list = df.to_dict('list')
-    models_info_index = df.to_dict('index')
+        #models_info_list = df.to_dict('list')
+        models_info_index = df.to_dict('index')
 
-    #change key form serial number to model_id
-    models_info_dict = dict()
-    for k,v in models_info_index.items():
-        #report changed column name from run_time to runtime_name
-        run_time = v['run_time'] if 'run_time' in v else v['runtime_name']
-        models_info_dict[v['model_id']+'_'+run_time] = v
+        #change key form serial number to model_id
+        models_info_dict = dict()
+        for k,v in models_info_index.items():
+            #report changed column name from run_time to runtime_name
+            run_time = v['run_time'] if 'run_time' in v else v['runtime_name']
+            models_info_dict[v['model_id']+'_'+run_time] = v
 
-    return models_info_dict
+        return models_info_dict
 except:
     print("excel_to_dict is not supported, check if 'import pandas' work")
 
