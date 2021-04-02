@@ -37,11 +37,26 @@ def get_configs(settings, work_dir):
     mxnet_session_type = settings.get_session_type(constants.MODEL_TYPE_MXNET)
 
     # for onnx and mxnet float models, we set non-power-of-2 scale for quant here - optional
-    runtime_options_onnx = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
-                                    runtime_options={'advanced_options:quantization_scale_type': 0})
-    runtime_options_tflite = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False)
-    runtime_options_mxnet = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,
-                                    runtime_options={'advanced_options:quantization_scale_type': 0})
+    # runtime_options_onnx = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
+    #                                 runtime_options={'advanced_options:quantization_scale_type': 1})
+    # runtime_options_tflite = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,
+    #                                 runtime_options={'advanced_options:quantization_scale_type': 0})
+    # runtime_options_mxnet = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,
+    #                                 runtime_options={'advanced_options:quantization_scale_type': 1})
+
+    # Default for ONNX/MXNET Models: Non-Power-2, TFLITE-Power2
+    # For selected model we toggle based on which ever is better from accuracy perspective
+    runtime_options_onnx_p2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
+                                    runtime_options={'advanced_options:quantization_scale_type': 1})
+    runtime_options_tflite_p2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,
+                                    runtime_options={'advanced_options:quantization_scale_type': 1})
+    runtime_options_mxnet_p2 = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,
+                                    runtime_options={'advanced_options:quantization_scale_type': 1})
+
+    runtime_options_onnx_np2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,)
+    runtime_options_tflite_np2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,)
+    runtime_options_mxnet_np2 = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,)
+
 
     runtime_options_onnx_qat = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=True)
     runtime_options_tflite_qat = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=True)
@@ -70,7 +85,7 @@ def get_configs(settings, work_dir):
         # mxnet : gluoncv model : detection - yolo3_mobilenet1.0_coco - accuracy: 28.6% ap[0.5:0.95], 48.9% ap50
         'vdet-12-060-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx((416,416), (416,416), backend='cv2'),
-            session=mxnet_session_type(**common_session_cfg, runtime_options=runtime_options_mxnet,
+            session=mxnet_session_type(**common_session_cfg, runtime_options=runtime_options_mxnet_np2,
                 model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-symbol.json',
                             f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,416,416)}),
@@ -81,7 +96,7 @@ def get_configs(settings, work_dir):
         # mxnet : gluoncv model : detection - ssd_512_mobilenet1.0_coco - accuracy: 21.7% ap[0.5:0.95], 39.2% ap50
         'vdet-12-061-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx((512,512), (512,512), backend='cv2'),
-            session=mxnet_session_type(**common_session_cfg, runtime_options=runtime_options_mxnet,
+            session=mxnet_session_type(**common_session_cfg, runtime_options=runtime_options_mxnet_np2,
                 model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-symbol.json',
                             f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,512,512)}),
@@ -95,7 +110,7 @@ def get_configs(settings, work_dir):
         # mlperf edge: detection - ssd_mobilenet_v1_coco_2018_01_28 expected_metric: 23.0% ap[0.5:0.95] accuracy
         'vdet-12-010-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((300,300), (300,300), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=coco_label_offset_90to90()),
@@ -104,7 +119,7 @@ def get_configs(settings, work_dir):
         # mlperf mobile: detection - ssd_mobilenet_v2_coco_300x300 - expected_metric: 22.0% COCO AP[0.5-0.95]
         'vdet-12-011-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((300,300), (300,300), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v2_300_float.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=coco_label_offset_90to90()),
@@ -114,7 +129,7 @@ def get_configs(settings, work_dir):
         # tensorflow1.0 models: detection - ssdlite_mobiledet_dsp_320x320_coco_2020_05_19 expected_metric: 28.9% ap[0.5:0.95] accuracy
         'vdet-12-400-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((320,320), (320,320), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_2020_05_19.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=coco_label_offset_90to90()),
@@ -123,7 +138,7 @@ def get_configs(settings, work_dir):
         # tensorflow1.0 models: detection - ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19 expected_metric: 25.9% ap[0.5:0.95] accuracy
         'vdet-12-401-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((320,320), (320,320), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=coco_label_offset_90to90()),
@@ -132,7 +147,7 @@ def get_configs(settings, work_dir):
         # tensorflow1.0 models: detection - ssdlite_mobilenet_v2_coco_2018_05_09 expected_metric: 22.0% ap[0.5:0.95] accuracy
         'vdet-12-402-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((300,300), (300,300), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobilenet_v2_coco_2018_05_09.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=coco_label_offset_90to90()),
