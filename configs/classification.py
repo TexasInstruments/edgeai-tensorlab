@@ -42,7 +42,7 @@ def get_configs(settings, work_dir):
     # runtime_options_mxnet = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,
     #                                 runtime_options={'advanced_options:quantization_scale_type': 0})
 
-    # Default for ONNX-RT and TVM : Non-Power-2, TFLITE-Power2
+    # Default for ONNX/MXNET Models: Non-Power-2, TFLITE-Power2
     # For selected model we toggle based on which ever is better from accuracy perspective
     runtime_options_onnx_p2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
                                     runtime_options={'advanced_options:quantization_scale_type': 1})
@@ -83,7 +83,7 @@ def get_configs(settings, work_dir):
         # jai-devkit: classification mobilenetv2_224x224 expected_metric: 72.13% top-1 accuracy
         'vcls-10-101-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/jai-pytorch/mobilenet_v2_20191224-153212_opset9.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.13})
         ),
@@ -141,7 +141,7 @@ def get_configs(settings, work_dir):
         # pycls: classification regnetx200mf_224x224 expected_metric: 68.9% top-1 accuracy
         'vcls-10-030-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(reverse_channels=True),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/pycls/RegNetX-200MF_dds_8gpu_opset9.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':68.9})
         ),
@@ -172,7 +172,7 @@ def get_configs(settings, work_dir):
         # mxnet : gluoncv model : classification - mobilenetv2_1.0 - accuracy: 72.04% top1
         'vcls-10-060-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(backend='cv2'),
-            session=mxnet_session_type(**common_session_cfg, runtime_options=runtime_options_mxnet_np2,
+            session=mxnet_session_type(**common_session_cfg, runtime_options=runtime_options_mxnet_p2,
                 model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-symbol.json',
                             f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,224,224)}),
@@ -181,7 +181,7 @@ def get_configs(settings, work_dir):
         # mxnet : gluoncv model : classification - resnet50_v1d - accuracy: 79.15% top1
         'vcls-10-061-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(backend='cv2'),
-            session=mxnet_session_type(**common_session_cfg, runtime_options=runtime_options_mxnet_np2,
+            session=mxnet_session_type(**common_session_cfg, runtime_options=runtime_options_mxnet_p2,
                 model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/resnet50_v1d-symbol.json',
                             f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/resnet50_v1d-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,224,224)}),
@@ -202,7 +202,7 @@ def get_configs(settings, work_dir):
         # mlperf/tf1 model: classification mobilenet_v1_224x224 expected_metric: 71.676 top-1 accuracy
         'vcls-10-010-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/mobilenet_v1_1.0_224.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':71.676})
@@ -210,7 +210,7 @@ def get_configs(settings, work_dir):
         # mlperf/tf-edge model: classification mobilenet_edgetpu_224 expected_metric: 75.6% top-1 accuracy
         'vcls-10-011-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/mobilenet_edgetpu_224_1.0_float.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':75.6})
@@ -227,7 +227,7 @@ def get_configs(settings, work_dir):
         # tensorflow/models: classification mobilenetv1_224x224 expected_metric: 71.0% top-1 accuracy (or is it 71.676% as this seems same as mlperf model)
         'vcls-10-400-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v1_1.0_224.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':71.0})
@@ -243,7 +243,7 @@ def get_configs(settings, work_dir):
         # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 71.9% top-1 accuracy
         'vcls-10-401-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_1.0_224.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':71.9})
@@ -251,7 +251,7 @@ def get_configs(settings, work_dir):
         # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 75.0% top-1 accuracy
         'vcls-10-402-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_float_1.4_224.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':75.0})
@@ -259,7 +259,7 @@ def get_configs(settings, work_dir):
         # tf hosted models: classification squeezenet_1 expected_metric: 49.0% top-1 accuracy
         'vcls-10-403-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(mean=(123.68, 116.78, 103.94), scale=(1/255, 1/255, 1/255)),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/squeezenet.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':49.0})
@@ -323,14 +323,14 @@ def get_configs(settings, work_dir):
         # tensorflow/tpu: classification efficinetnet-lite1_240x240 expected_metric: 76.7% top-1 accuracy
         'vcls-10-431-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(274, 240),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite1-fp32.tflite'),
             model_info=dict(metric_reference={'accuracy_top1%':76.7})
         ),
         # tensorflow/tpu: classification efficinetnet-lite4_300x300 expected_metric: 81.5% top-1 accuracy
         'vcls-10-434-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(343, 300),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite4-fp32.tflite'),
             model_info=dict(metric_reference={'accuracy_top1%':81.5})
         ),
