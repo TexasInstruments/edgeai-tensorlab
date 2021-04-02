@@ -112,7 +112,7 @@ def get_configs(settings, work_dir):
         # jai-pytorch: segmentation - fpnlite_pixel2pixel_aspp_regnetx800mf_ade20k_class32_512x512_20210312-150048 expected_metric: 53.29% mean-iou
         'vseg-18-111-0':utils.dict_update(ade20k_cfg_class32,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k_class32/jai-pytorch/fpnlite_aspp_regnetx800mf_ade20k_class32_512x512_outsizeby4.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':53.16})
@@ -141,7 +141,7 @@ def get_configs(settings, work_dir):
         ),
         'vseg-18-103-0':utils.dict_update(ade20k_cfg_class32,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k_class32/jai-pytorch/fpnlite_pixel2pixel_aspp_mobilenetv2_1p4_tv_512x512_ade20k_class32_outsizeby4.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':52.90})
@@ -161,7 +161,7 @@ def get_configs(settings, work_dir):
         #mlperf: ade20k-segmentation (32 class) - deeplabv3_mnv2_ade20k_float - expected_metric??
         'vseg-18-010-0':utils.dict_update(ade20k_cfg_class32,
             preprocess=settings.get_preproc_tflite((512, 512), (512, 512), mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                  model_path=f'{settings.models_path}/vision/segmentation/ade20k_class32/mlperf/deeplabv3_mnv2_ade20k_float.tflite'),
             postprocess=postproc_segmenation_tflite,
             model_info=dict(metric_reference={'accuracy_mean_iou%':54.8})
@@ -170,7 +170,7 @@ def get_configs(settings, work_dir):
         #tensorflow-deeplab-ade20k-segmentation- deeplabv3_mnv2_ade20k_train_2018_12_03 - expected_metric: 32.04% MeanIoU.
         'vseg-17-400-0':utils.dict_update(ade20k_cfg,
             preprocess=settings.get_preproc_tflite((512, 512), (512, 512), mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                  model_path=f'{settings.models_path}/vision/segmentation/ade20k/tf1-models/deeplabv3_mnv2_ade20k_train_2018_12_03_512x512.tflite'),
             postprocess=postproc_segmenation_tflite,
             model_info=dict(metric_reference={'accuracy_mean_iou%':32.04})
@@ -186,7 +186,7 @@ def get_configs(settings, work_dir):
         # tensorflow-deeplab-pascal-voc-segmentation- deeplabv3_mnv2_pascal_train_aug - expected_metric: 77.33% MeanIoU.
         'vseg-19-401-0': utils.dict_update(pascal_voc_cfg,  # pascalvoc2012 deeplab
             preprocess=settings.get_preproc_tflite((512, 512), (512, 512), mean=(127.5, 127.5, 127.5), scale=(1/127.5, 1/127.5, 1/127.5), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                model_path=f'{settings.models_path}/vision/segmentation/voc2012/tf1-models/deeplabv3_mnv2_pascal_trainaug_512x512.tflite'),
             postprocess=postproc_segmenation_tflite,
             model_info=dict(metric_reference={'accuracy_mean_iou%':77.33})
