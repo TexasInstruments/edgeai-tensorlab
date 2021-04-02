@@ -30,8 +30,6 @@
 # Original code from onnx.tools.update_model_dims() has bug of iterating through all layers.
 # But this version has less error checking code.
 
-import onnx
-
 __all__ = ['onnx_update_model_dims']
 
 
@@ -58,5 +56,6 @@ def onnx_update_model_dims(model, input_dims, output_dims):
         for dim_idx, new_dim_value in enumerate(output_dim_arr):
             update_dim(tensor=output_layer_tensor, new_dim_value=new_dim_value, dim_idx=dim_idx)
 
+    import onnx
     onnx.checker.check_model(model)
     return model
