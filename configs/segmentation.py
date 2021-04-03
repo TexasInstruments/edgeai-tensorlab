@@ -36,13 +36,6 @@ def get_configs(settings, work_dir):
     tflite_session_type = settings.get_session_type(constants.MODEL_TYPE_TFLITE)
     mxnet_session_type = settings.get_session_type(constants.MODEL_TYPE_MXNET)
 
-    # for onnx and mxnet float models, we set non-power-of-2 scale for quant here - optional
-    # runtime_options_onnx = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
-    #                                 runtime_options={'advanced_options:quantization_scale_type': 0})
-    # runtime_options_tflite = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False)
-    # runtime_options_mxnet = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,
-    #                                 runtime_options={'advanced_options:quantization_scale_type': 0})
-
     # Default for ONNX/MXNET Models: Non-Power-2, TFLITE-Power2
     # For selected model we toggle based on which ever is better from accuracy perspective
     runtime_options_onnx_np2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
@@ -56,6 +49,12 @@ def get_configs(settings, work_dir):
     runtime_options_tflite_p2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,)
     runtime_options_mxnet_p2 = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,)
 
+    #This option should go away after testing
+    use_default_power_2_setting = False
+    if use_default_power_2_setting:
+        runtime_options_onnx_p2 = runtime_options_onnx_np2
+        runtime_options_tflite_np2 = runtime_options_tflite_p2
+        runtime_options_mxnet_p2 = runtime_options_mxnet_np2
 
     runtime_options_onnx_qat = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=True)
     runtime_options_tflite_qat = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=True)
