@@ -45,16 +45,16 @@ def get_configs(settings, work_dir):
 
     # Default for ONNX/MXNET Models: Non-Power-2, TFLITE-Power2
     # For selected model we toggle based on which ever is better from accuracy perspective
-    runtime_options_onnx_p2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
-                                    runtime_options={'advanced_options:quantization_scale_type': 1})
-    runtime_options_tflite_p2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,
-                                    runtime_options={'advanced_options:quantization_scale_type': 1})
-    runtime_options_mxnet_p2 = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,
-                                    runtime_options={'advanced_options:quantization_scale_type': 1})
+    runtime_options_onnx_np2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
+                                    runtime_options={'advanced_options:quantization_scale_type': 0})
+    runtime_options_tflite_np2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,
+                                    runtime_options={'advanced_options:quantization_scale_type': 0})
+    runtime_options_mxnet_np2 = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,
+                                    runtime_options={'advanced_options:quantization_scale_type': 0})
 
-    runtime_options_onnx_np2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,)
-    runtime_options_tflite_np2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,)
-    runtime_options_mxnet_np2 = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,)
+    runtime_options_onnx_p2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,)
+    runtime_options_tflite_p2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,)
+    runtime_options_mxnet_p2 = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,)
 
 
     runtime_options_onnx_qat = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=True)
@@ -127,7 +127,7 @@ def get_configs(settings, work_dir):
         ),
         'vseg-18-101-0':utils.dict_update(ade20k_cfg_class32,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k_class32/jai-pytorch/unetlite_pixel2pixel_aspp_mobilenetv2_tv_512x512_ade20k_class32_outsizeby2.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':50.07})

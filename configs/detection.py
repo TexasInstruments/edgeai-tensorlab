@@ -46,16 +46,16 @@ def get_configs(settings, work_dir):
 
     # Default for ONNX/MXNET Models: Non-Power-2, TFLITE-Power2
     # For selected model we toggle based on which ever is better from accuracy perspective
-    runtime_options_onnx_p2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
-                                    runtime_options={'advanced_options:quantization_scale_type': 1})
-    runtime_options_tflite_p2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,
-                                    runtime_options={'advanced_options:quantization_scale_type': 1})
-    runtime_options_mxnet_p2 = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,
-                                    runtime_options={'advanced_options:quantization_scale_type': 1})
+    runtime_options_onnx_np2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
+                                    runtime_options={'advanced_options:quantization_scale_type': 0})
+    runtime_options_tflite_np2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,
+                                    runtime_options={'advanced_options:quantization_scale_type': 0})
+    runtime_options_mxnet_np2 = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,
+                                    runtime_options={'advanced_options:quantization_scale_type': 0})
 
-    runtime_options_onnx_np2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,)
-    runtime_options_tflite_np2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,)
-    runtime_options_mxnet_np2 = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,)
+    runtime_options_onnx_p2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,)
+    runtime_options_tflite_p2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,)
+    runtime_options_mxnet_p2 = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,)
 
 
     runtime_options_onnx_qat = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=True)
