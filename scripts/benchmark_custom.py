@@ -31,6 +31,30 @@ import argparse
 from jai_benchmark import *
 
 
+def get_dataset_loaders(settings, download=False):
+    dataset_calib_cfg = dict(
+        path=f'{settings.datasets_path}/imagenet/val',
+        split=f'{settings.datasets_path}/imagenet/val.txt',
+        shuffle=True,
+        num_frames=settings.quantization_params.get_calibration_frames())
+
+    # dataset parameters for actual inference
+    dataset_val_cfg = dict(
+        path=f'{settings.datasets_path}/imagenet/val',
+        split=f'{settings.datasets_path}/imagenet/val.txt',
+        shuffle=True,
+        num_frames=min(settings.num_frames,50000))
+
+    calib_dataset = datasets.ImageCls(**dataset_calib_cfg, download=download)
+    val_dataset = datasets.ImageCls(**dataset_val_cfg, download=download)
+    return calib_dataset, val_dataset
+
+
+def download_datasets(settings):
+    get_dataset_loaders(settings, download=True)
+    return True
+
+
 def create_configs(settings, work_dir):
     '''
     configs for each model pipeline
@@ -56,32 +80,23 @@ def create_configs(settings, work_dir):
     tomato/image2.jpg 9
     '''
 
-    dataset_calib_cfg = dict(
-        path=f'{settings.datasets_path}/imagenet/val',
-        split=f'{settings.datasets_path}/imagenet/val.txt',
-        shuffle=True,
-        num_frames=settings.quantization_params.get_calibration_frames())
+    # check the datasets and download if they are missing
+    download_ok = download_datasets(settings)
+    print(f'download_ok: {download_ok}')
+    
+    # get dataset loaders
+    calib_dataset, val_dataset = get_dataset_loaders(settings)
 
-    # dataset parameters for actual inference
-    dataset_val_cfg = dict(
-        path=f'{settings.datasets_path}/imagenet/val',
-        split=f'{settings.datasets_path}/imagenet/val.txt',
-        shuffle=True,
-        num_frames=min(settings.num_frames,50000))
-
+    # configs for each model pipeline
     common_cfg = {
-        'pipeline_type': settings.pipeline_type,
         'task_type': 'classification',
-        'verbose': settings.verbose,
-        'run_import': settings.run_import,
-        'run_inference': settings.run_inference,
-        'calibration_dataset': datasets.ImageCls(**dataset_calib_cfg),
-        'input_dataset': datasets.ImageCls(**dataset_val_cfg),
+        'calibration_dataset': calib_dataset,
+        'input_dataset': val_dataset,
         'postprocess': settings.get_postproc_classification()
     }
 
     # in these examples, the session types cfgs are hardcoded for simplicity
-    # however, in jai_benchmark.configs, they depend on session_type_dict
+    # however, in the configs in the root of this repository, they depend on session_type_dict
 
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
     runtime_options_tvmdlr = settings.get_runtime_options(constants.SESSION_NAME_TVMDLR, is_qat=False)
@@ -102,21 +117,16 @@ def create_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_1.0_224.tflite'),
             metric=dict(label_offset_pred=-1)
         ),
-        # mxnet : gluoncv model : classification - mobilenetv2_1.0 - accuracy: 72.04% top1
-        'custom-example3': utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_mxnet(),
-            session=sessions.TVMDLRSession(**common_session_cfg, runtime_options=runtime_options_tvmdlr,
-                model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-symbol.json',
-                            f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-0000.params'],
-                model_type='mxnet', input_shape={'data':(1,3,224,224)})
-        )
+        # # mxnet : gluoncv model : classification - mobilenetv2_1.0 - accuracy: 72.04% top1
+        # 'custom-example3': utils.dict_update(common_cfg,
+        #     preprocess=settings.get_preproc_mxnet(),
+        #     session=sessions.TVMDLRSession(**common_session_cfg, runtime_options=runtime_options_tvmdlr,
+        #         model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-symbol.json',
+        #                     f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-0000.params'],
+        #         model_type='mxnet', input_shape={'data':(1,3,224,224)})
+        # )
     }
     return pipeline_configs
-
-
-def download_datasets():
-    assert False, 'dataset downloading is not yet implemented.'
-    return False
 
 
 if __name__ == '__main__':
@@ -129,7 +139,7 @@ if __name__ == '__main__':
     parser.add_argument('settings_file', type=str)
     parser.add_argument('--work_dirs', type=str, default='./work_dirs')
     cmds = parser.parse_args()
-    settings = config_settings.ConfigSettings(cmds.settings_file, model_selection=None)
+    settings = config_settings.ConfigSettings(cmds.settings_file, model_shortlist=None)
 
     expt_name = os.path.splitext(os.path.basename(__file__))[0]
     work_dir = os.path.join(cmds.work_dirs, expt_name, f'{settings.tensor_bits}bits')
@@ -137,10 +147,6 @@ if __name__ == '__main__':
 
     # now run the actual pipeline
     pipeline_configs = create_configs(settings, work_dir)
-
-    # # check the datasets and download if they are missing
-    # download_ok = download_datasets(settings)
-    # print(f'download_ok: {download_ok}')
 
     # run the accuracy pipeline
     tools.run_accuracy(settings, work_dir, pipeline_configs)

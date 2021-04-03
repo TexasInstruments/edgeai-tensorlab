@@ -121,7 +121,7 @@ model_id_artifacts_pair = {
     'vcls-10-302-8_tvmdlr': 'TVM-CL-340-mobileNetV2-tv-qat',
     'vcls-10-060-0_tvmdlr': 'TVM-CL-341-gluoncv-mxnet-mobv2',
     'vcls-10-061-0_tvmdlr': 'TVM-CL-342-gluoncv-mxnet-resNet50-v1',
-    'vcls-10-062-0_tvmdlr': 'TVM-CL-343-gluoncv-xception',
+    'vcls-10-062-0_tvmdlr': 'TVM-CL-343-gluoncv-mxnet-xception',
     # HarD Net
     'vcls-10-900-0_tvmdlr': 'TVM-CL-344-harDNet68',
     'vcls-10-901-0_tvmdlr': 'TVM-CL-345-harDNet85',
@@ -161,7 +161,6 @@ model_id_artifacts_pair = {
 
     # ONNXRT- CL
     'vcls-10-020-0_onnxrt': 'ONR-CL-600-resNet18V2',
-    'vcls-10-450-0_onnxrt': 'ONR-CL-602-xceptionNet-mxnet',
     'vcls-10-408-0_onnxrt': 'ONR-CL-604-nasNet-mobile-tflite',
     'vcls-10-100-0_onnxrt': 'ONR-CL-606-mobileNetV1',
     'vcls-10-101-0_onnxrt': 'ONR-CL-607-mobileNetV2',
@@ -205,7 +204,7 @@ model_id_artifacts_pair = {
     'vcls-10-302-8_onnxrt': 'ONR-CL-640-mobileNetV2-tv-qat',
     'vcls-10-060-0_onnxrt': 'ONR-CL-641-gluoncv-mxnet-mobv2',
     'vcls-10-061-0_onnxrt': 'ONR-CL-642-gluoncv-mxnet-resNet50-v1',
-    'vcls-10-062-0_onnxrt': 'ONR-CL-643-gluoncv-xception',
+    'vcls-10-062-0_onnxrt': 'ONR-CL-643-gluoncv-mxnet-xception',
     # HarD Net
     'vcls-10-900-0_onnxrt': 'ONR-CL-644-harDNet68',
     'vcls-10-901-0_onnxrt': 'ONR-CL-645-harDNet85',
@@ -215,8 +214,7 @@ model_id_artifacts_pair = {
     # ONNX - OD
     'vdet-12-012-0_onnxrt': 'ONR-OD-800-ssd1200-resNet34-mlperf-1200x1200',
     'vdet-12-020-0_onnxrt': 'ONR-OD-801-yolov3-416x416',
-    'vdet-12-060-0_onnxrt': 'ONR-OD-802-yolov3-mobv1-gluon-mxnet-416x416',
-    'vdet-12-061-0_onnxrt': 'ONR-OD-803-ssd-mobv1-gluon-mxnet-512x512',
+
     # ONNX - SS - CS
     'vseg-16-100-0_onnxrt': 'ONR-SS-850-deeplabv3lite-mobv2-cs-768x384',
     'vseg-16-100-8_onnxrt': 'ONR-SS-851-deeplabv3lite-mobv2-cs-qat-768x384',
@@ -246,7 +244,8 @@ model_id_artifacts_pair = {
 removed_model_list = {
     'vcls-10-450-0_tvmdlr' : 'TVM-CL-302-xceptionNet-mxnet', # this is replaced with tflite model now (that was also eventually removed)
     'vcls-10-401-8_tflitert': 'TFL-CL-023-mobileNetV2-qat',  # QAT model is not giving good accuracy so keep only float
-    'vdet-12-012-0_tvmdlr': 'TVM-OD-500-ssd1200-resNet34-1200x1200-mlperf', # Not working with TVM. Will need to park it till ONNX RT OD support is available.
+    'vdet-12-012-0_tvmdlr': 'TVM-OD-500-ssd1200-resNet34-mlperf-1200x1200', # Not working with TVM. Will need to park it till ONNX RT OD support is available.
+    'vdet-12-012-0_onnxrt': 'ONR-OD-800-ssd1200-resNet34-mlperf-1200x1200', #ONNX does not support OD yet
     ################ CS models
     'vseg-16-100-0_tvmdlr': 'TVM-SS-550-deeplabv3lite-mobv2-cs-768x384', # cityscapes model not part of Model Zoo
     'vseg-16-100-8_tvmdlr': 'TVM-SS-551-deeplabv3lite-mobv2-cs-qat-768x384', # cityscapes model not part of Model Zoo
@@ -278,10 +277,10 @@ removed_model_list = {
     'vseg-16-300-0_tvmdlr': 'TVM-SS-559-deeplabv3-res50-1040x520', # Kumar removed model, nc does not have info for this
     'vseg-16-301-0_tvmdlr': 'TVM-SS-560-fcn-res50-1040x520', # Kumar removed model
 
-    'vcls-10-306-0_onnxrt': 'ONR-CL-637-vgg16', # Kumar removed model
-    'vcls-10-020-0_onnxrt': 'ONR-CL-600-resNet18V2', # Kumar removed model
-    'vseg-16-300-0_onnxrt': 'ONR-SS-859-deeplabv3-res50-1040x520', # Kumar removed model, nc does not have info for this
-    'vseg-16-301-0_onnxrt': 'ONR-SS-860-fcn-res50-1040x520', # Kumar removed model
+    'vcls-10-306-0_onnxrt': 'ONR-CL-637-vgg16', # Kumar removed model for TVM 
+    'vcls-10-020-0_onnxrt': 'ONR-CL-600-resNet18V2', # Kumar removed model  for TVM 
+    'vseg-16-300-0_onnxrt': 'ONR-SS-859-deeplabv3-res50-1040x520', # Kumar removed model, nc does not have info for this  for TVM 
+    'vseg-16-301-0_onnxrt': 'ONR-SS-860-fcn-res50-1040x520', # Kumar removed model  for TVM 
     
     #########################
     'vseg-17-010-0_tflitert': 'TFL-SS-250-deeplab-mobV2-ade20k-512x512', # Manu said incorrect model ID removed. vseg-17-010 is replaced with vseg-18-010
@@ -295,6 +294,12 @@ removed_model_list = {
     'vcls-10-408-0_onnxrt': 'ONR-CL-604-nasNet-mobile-tflite', # not part of benchmarking script yet. tflite model with TVM.
     'vdet-12-020-0_onnxrt': 'ONR-OD-801-yolov3-416x416', # not supported yet
     'vcls-10-404-0_tflitert': 'TFL-CL-015-denseNet', # too far from optimal pareto line
+    'vdet-12-060-0_tvmdlr': 'TVM-OD-502-yolov3-mobv1-gluon-mxnet-416x416', #segmentation fault while running import
+
+    #removed from ONNX-RT
+    'vcls-10-060-0_onnxrt': 'ONR-CL-641-gluoncv-mxnet-mobv2',
+    'vcls-10-061-0_onnxrt': 'ONR-CL-642-gluoncv-mxnet-resNet50-v1',
+    'vcls-10-062-0_onnxrt': 'ONR-CL-643-gluoncv-mxnet-xception',
 
     #ADE20k32 models
     'vseg-18-100-8_tvmdlr': 'TVM-SS-562-deeplabv3lite-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
@@ -541,5 +546,5 @@ if __name__ == '__main__':
 
     #find which models need re-run due to lack of performance data    
     if generate_list_mising_models:    
-        df = get_missing_models(report_file='./work_dirs/benchmark_accuracy/report_20210401-102803.csv', 
+        df = get_missing_models(report_file='./work_dirs/benchmark_accuracy_golden_p2/report_20210402-094736.csv', 
             selected_models_list=selected_models_list)
