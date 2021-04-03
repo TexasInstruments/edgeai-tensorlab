@@ -104,7 +104,7 @@ The original artifacts folder contains several files that are generated during i
 
 
 #### Custom models and configs
-It is easy to benchmark your own models and configs using this repository. Please see the example provided in [scripts/benchmark_custom.py](./scripts/benchmark_custom.py)
+It is easy to benchmark your custom own models and configs using this repository. Please see the [documentation](./docs/custom_models.md) and example  [scripts/benchmark_custom.py](./scripts/benchmark_custom.py)
 
 
 ## LICENSE
