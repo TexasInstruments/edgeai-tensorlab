@@ -90,7 +90,7 @@ def get_configs(settings, work_dir):
         # 'vdet-12-110-0':utils.dict_update(common_cfg,
         #     preprocess=settings.get_preproc_onnx((512,512), (512,512), backend='cv2'),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx,
-        #         model_path=f'{settings.models_path}/vision/detection/coco/jai-mmdetection/ssd-lite_regnetx-800mf_fpn_bgr_512x512_20200919_105718_model.onnx'),
+        #         model_path=f'{settings.models_path}/vision/detection/coco/jai-mmdetection/ssd-lite_regnetx-800mf_fpn_bgr_512x512_20200919_model.onnx'),
         #     postprocess=settings.get_postproc_detection_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
         #     metric=dict(label_offset_pred=coco_label_offset_80to90(label_offset=1)),
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.8})

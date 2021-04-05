@@ -92,7 +92,7 @@ def get_configs(settings, work_dir):
         # 'vseg-16-100-0':utils.dict_update(cityscapes_cfg,
         #     preprocess=settings.get_preproc_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx,
-        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/jai-pytorch/deeplabv3lite_mobilenetv2_768x384_20190626-085932_opset11.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/jai-pytorch/deeplabv3lite_mobilenetv2_768x384_20190626_opset11.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':69.13})
         # ),
@@ -100,7 +100,7 @@ def get_configs(settings, work_dir):
         # 'vseg-16-101-0':utils.dict_update(cityscapes_cfg,
         #     preprocess=settings.get_preproc_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx,
-        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/jai-pytorch/fpnlite_aspp_mobilenetv2_768x384_20200120-135701_opset11.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/jai-pytorch/fpnlite_aspp_mobilenetv2_768x384_20200120_opset11.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':70.48})
         # ),
@@ -108,7 +108,7 @@ def get_configs(settings, work_dir):
         # 'vseg-16-102-0':utils.dict_update(cityscapes_cfg,
         #     preprocess=settings.get_preproc_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx,
-        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/jai-pytorch/unetlite_aspp_mobilenetv2_768x384_20200129-164340_opset11.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/jai-pytorch/unetlite_aspp_mobilenetv2_768x384_20200129_opset11.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':68.97})
         # ),
@@ -116,7 +116,7 @@ def get_configs(settings, work_dir):
         # 'vseg-16-103-0':utils.dict_update(cityscapes_cfg,
         #     preprocess=settings.get_preproc_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx,
-        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/jai-pytorch/fpnlite_aspp_regnetx800mf_768x384_20200911-144003_opset11.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/jai-pytorch/fpnlite_aspp_regnetx800mf_768x384_20200911_opset11.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':72.01})
         # ),
@@ -124,7 +124,7 @@ def get_configs(settings, work_dir):
         # 'vseg-16-104-0':utils.dict_update(cityscapes_cfg,
         #     preprocess=settings.get_preproc_jai((512,1024), (512,1024), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx,
-        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/jai-pytorch/fpnlite_aspp_regnetx1.6gf_1024x512_20200914-132016_opset11.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/jai-pytorch/fpnlite_aspp_regnetx1.6gf_1024x512_20200914_opset11.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':75.84})
         # ),
@@ -132,7 +132,7 @@ def get_configs(settings, work_dir):
         # 'vseg-16-105-0':utils.dict_update(cityscapes_cfg,
         #     preprocess=settings.get_preproc_jai((768,1536), (768,1536), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx,
-        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/jai-pytorch/fpnlite_aspp_regnetx3.2gf_1536x768_20200915-092738_opset11.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/jai-pytorch/fpnlite_aspp_regnetx3.2gf_1536x768_20200915_opset11.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':78.90})
         # ),
@@ -140,7 +140,7 @@ def get_configs(settings, work_dir):
         # 'vseg-16-300-0':utils.dict_update(cityscapes_cfg,
         #     preprocess=settings.get_preproc_onnx((520,1040), (520,1040), backend='cv2'),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx,
-        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/torchvision/deeplabv3_resnet50_1040x520_20200901-213517_opset11.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/torchvision/deeplabv3_resnet50_1040x520_20200901_opset11.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':73.5})
         # ),
@@ -148,7 +148,7 @@ def get_configs(settings, work_dir):
         # 'vseg-16-301-0':utils.dict_update(cityscapes_cfg,
         #     preprocess=settings.get_preproc_onnx((520,1040), (520,1040), backend='cv2'),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx,
-        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/torchvision/fcn_resnet50_1040x520_20200902-153444_opset11.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/torchvision/fcn_resnet50_1040x520_20200902_opset11.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':71.6})
         # ),
@@ -157,14 +157,14 @@ def get_configs(settings, work_dir):
         # 'vseg-18-100-8':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
-        #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/jai-pytorch/deeplabv3lite_mobilenetv2_512x512_ade20k32_20210308-092104_qat.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/jai-pytorch/deeplabv3lite_mobilenetv2_512x512_ade20k32_20210308_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':51.61})
         # ),
         'vseg-18-101-8':utils.dict_update(ade20k_cfg_class32,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
-                model_path=f'{settings.models_path}/vision/segmentation/ade20k32/jai-pytorch/unetlite_aspp_mobilenetv2_512x512_ade20k32_20210306_174005_qat.onnx'),
+                model_path=f'{settings.models_path}/vision/segmentation/ade20k32/jai-pytorch/unetlite_aspp_mobilenetv2_512x512_ade20k32_20210306_qat.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':49.98})
         ),
@@ -172,7 +172,7 @@ def get_configs(settings, work_dir):
         # 'vseg-18-102-8':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
-        #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/jai-pytorch/fpnlite_aspp_mobilenetv2_512x512_ade20k32_20210306_174205_qat.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/jai-pytorch/fpnlite_aspp_mobilenetv2_512x512_ade20k32_20210306_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':50.93})
         # ),
@@ -180,7 +180,7 @@ def get_configs(settings, work_dir):
         # 'vseg-18-103-8':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
-        #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/jai-pytorch/fpnlite_aspp_mobilenetv2_1p4_512x512_ade20k32_20210307_233626_qat.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/jai-pytorch/fpnlite_aspp_mobilenetv2_1p4_512x512_ade20k32_20210307_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':53.01})
         # ),
