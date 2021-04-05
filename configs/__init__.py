@@ -35,7 +35,7 @@ from . import segmentation
 
 
 def get_datasets(settings, download=False):
-    dataset_names = ['imagenet', 'cityscapes', 'coco', 'ade20k', 'ade20k_class32', 'voc2012', 'coco_seg21']
+    dataset_names = ['imagenet', 'cityscapes', 'coco', 'ade20k', 'ade20k32', 'voc2012', 'coco_seg21']
     dataset_cache = {ds_name:{'calibration_dataset':None, 'input_dataset':None} for ds_name in dataset_names}
 
     if in_dataset_loading(settings, 'imagenet'):
@@ -121,7 +121,7 @@ def get_datasets(settings, download=False):
         dataset_cache['ade20k']['calibration_dataset'] = datasets.ADE20KSegmentation(**ade20k_seg_calib_cfg, download=download)
         dataset_cache['ade20k']['input_dataset'] = datasets.ADE20KSegmentation(**ade20k_seg_val_cfg, download=False)
     #
-    if in_dataset_loading(settings, 'ade20k_class32'):
+    if in_dataset_loading(settings, 'ade20k32'):
         ade20k_seg_calib_cfg = dict(
             path=f'{settings.datasets_path}/ADEChallengeData2016',
             split='validation',
@@ -133,8 +133,8 @@ def get_datasets(settings, download=False):
             split='validation',
             shuffle=True,
             num_frames=min(settings.num_frames, 2000))
-        dataset_cache['ade20k_class32']['calibration_dataset'] = datasets.ADE20KSegmentation(**ade20k_seg_calib_cfg, num_classes=32, download=download)
-        dataset_cache['ade20k_class32']['input_dataset'] = datasets.ADE20KSegmentation(**ade20k_seg_val_cfg, num_classes=32, download=False)
+        dataset_cache['ade20k32']['calibration_dataset'] = datasets.ADE20KSegmentation(**ade20k_seg_calib_cfg, num_classes=32, download=download)
+        dataset_cache['ade20k32']['input_dataset'] = datasets.ADE20KSegmentation(**ade20k_seg_val_cfg, num_classes=32, download=False)
     #
     if in_dataset_loading(settings, 'voc2012'):
         voc_seg_calib_cfg = dict(
