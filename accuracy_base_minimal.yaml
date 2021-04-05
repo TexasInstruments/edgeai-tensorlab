@@ -124,16 +124,16 @@ model_shortlist : [# imagenet classification models
                    # ade20k segmentation models
                    #'vseg-17-400-0', #tf1-models/deeplabv3_mnv2_ade20k_train_2018_12_03_512x512.tflite
                    # ade20k 32 class segmentation models
-                   'vseg-18-010-0', #mlperf/deeplabv3_mnv2_ade20k_float.tflite
-                   'vseg-18-100-0', #jai-pytorch/deeplabv3lite_mobilenetv2_tv_512x512_ade20k_class32_20210308-092104.onnx
-                   #'vseg-18-101-0', #jai-pytorch/unetlite_pixel2pixel_aspp_mobilenetv2_tv_512x512_ade20k_class32_20210306_174005.onnx
-                   #'vseg-18-102-0', #jai-pytorch/fpnlite_pixel2pixel_aspp_mobilenetv2_tv_512x512_ade20k_class32_20210306_174205.onnx
-                   #'vseg-18-103-0', #jai-pytorch/fpnlite_pixel2pixel_aspp_mobilenetv2_1p4_tv_512x512_ade20k_class32_20210307_233626.onnx
-                   #'vseg-18-110-0', #jai-pytorch/fpnlite_aspp_regnetx400mf_ade20k_class32_384x384_20210314-205347.onnx
-                   #'vseg-18-111-0', #jai-pytorch/fpnlite_aspp_regnetx800mf_ade20k_class32_512x512_20210312-150048.onnx
+                   'vseg-18-010-0', #mlperf/deeplabv3_mnv2_ade20k32_float.tflite
+                   'vseg-18-100-0', #jai-pytorch/deeplabv3lite_mobilenetv2_512x512_ade20k32_outby4.onnx
+                   #'vseg-18-101-0', #jai-pytorch/unetlite_aspp_mobilenetv2_512x512_ade20k32_outby2.onnx
+                   #'vseg-18-102-0', #jai-pytorch/fpnlite_aspp_mobilenetv2_512x512_ade20k32_outby4.onnx
+                   #'vseg-18-103-0', #jai-pytorch/fpnlite_aspp_mobilenetv2_1p4_512x512_ade20k32_outby4.onnx
+                   #'vseg-18-110-0', #jai-pytorch/fpnlite_aspp_regnetx400mf_ade20k32_384x384_outby4.onnx
+                   #'vseg-18-111-0', #jai-pytorch/fpnlite_aspp_regnetx800mf_ade20k32_512x512_outby4.onnx
                    # pascal voc2012 models
                    #'vseg-19-400-0', #tf1-models/deeplabv3_mnv2_dm05_pascal_trainaug_512x512.tflite
                    #'vseg-19-401-0', #tf1-models/deeplabv3_mnv2_pascal_trainaug_512x512.tflite
                    # coco_seg21 models
-                   #'vseg-21-100-0', #jai-pytorch/deeplabv3lite_mobilenetv2_tv_coco_seg21_512x512_20210327-134223.onnx
+                   #'vseg-21-100-0', #jai-pytorch/deeplabv3lite_mobilenetv2_cocoseg21_512x512_20210327.onnx
                   ]

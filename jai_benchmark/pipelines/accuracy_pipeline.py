@@ -73,6 +73,15 @@ class AccuracyPipeline():
             with open(result_yaml) as fp:
                 param_result = yaml.safe_load(fp)
             #
+            if self.settings.rewrite_results and self.settings.enable_logging:
+                param_dict = utils.pretty_object(self.pipeline_config)
+                result_dict = param_result['result'] if 'result' in param_result else {}
+                param_result = dict({'result': result_dict})
+                param_result.update(param_dict)
+                with open(os.path.join(run_dir, 'result.yaml'), 'w') as fp:
+                    yaml.safe_dump(param_result, fp, sort_keys=False)
+                #
+            #
             return param_result
         #
         # collect the input params
