@@ -37,9 +37,9 @@ import re
 from jai_benchmark import utils
 
 
-def run_package(settings, work_dir, out_dir):
+def run_package(settings, work_dir, out_dir, include_results=False):
     # now write out the package
-    package_artifacts(settings, work_dir, out_dir)
+    package_artifacts(settings, work_dir, out_dir, include_results=include_results)
 
 
 def match_string(patterns, filename):
@@ -48,7 +48,7 @@ def match_string(patterns, filename):
     return got_match
 
 
-def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, make_package_dir=False):
+def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, make_package_dir=False, include_results=False):
     input_files = []
     packaged_files = []
 
@@ -149,6 +149,9 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
     run_files = utils.list_files(run_dir, basename=False)
     package_run_files = [os.path.join(package_run_dir,os.path.basename(f)) for f in run_files]
     for f, pf in zip(run_files, package_run_files):
+        if (not include_results) and 'result' in f:
+            continue
+        #
         input_files.append(f)
         packaged_files.append(pf)
     #
@@ -176,7 +179,7 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
     return package_run_dir, tarfile_size
 
 
-def package_artifacts(settings, work_dir, out_dir):
+def package_artifacts(settings, work_dir, out_dir, include_results=False):
     print(f'packaging artifacts to {out_dir} please wait...')
     run_dirs = glob.glob(f'{work_dir}/*')
 
@@ -190,7 +193,7 @@ def package_artifacts(settings, work_dir, out_dir):
             with open(result_yaml) as fp:
                 pipeline_param = yaml.safe_load(fp)
             #
-            package_run_dir, tarfile_size = package_artifact(pipeline_param, work_dir, out_dir)
+            package_run_dir, tarfile_size = package_artifact(pipeline_param, work_dir, out_dir, include_results=include_results)
             if package_run_dir is not None:
                 task_type = pipeline_param['task_type']
                 package_run_dir = os.path.basename(package_run_dir)
@@ -215,10 +218,12 @@ def package_artifacts(settings, work_dir, out_dir):
         #
         sys.stdout.flush()
     #
-    results_yaml = os.path.join(work_dir, 'results.yaml')
-    if os.path.exists(results_yaml):
-        package_results_yaml = os.path.join(out_dir, 'results.yaml')
-        shutil.copy2(results_yaml, package_results_yaml)
+    if include_results:
+        results_yaml = os.path.join(work_dir, 'results.yaml')
+        if os.path.exists(results_yaml):
+            package_results_yaml = os.path.join(out_dir, 'results.yaml')
+            shutil.copy2(results_yaml, package_results_yaml)
+        #
     #
     model_list = '\n'.join(tarfile_names)
     with open(os.path.join(out_dir,'artifacts.list'), 'w') as fp:
