@@ -155,6 +155,8 @@ class ConfigDict(dict):
         self.verbose = False
         # enable use of experimental models - the actual model files are not available in modelzoo
         self.experimental_models = False
+        # rewrite results with latest params if the result exists
+        self.rewrite_results = False
 
         ###########################################################
         # internal state information
