@@ -189,11 +189,15 @@ def get_configs(settings, work_dir):
     return pipeline_configs
 
 
-def select_configs(settings, work_dir):
+def select_configs(settings, work_dir, session_name=None):
     task_selection = utils.as_list(settings.task_selection)
     pipeline_configs = get_configs(settings, work_dir)
     pipeline_configs = {pipeline_id:pipeline_config for pipeline_id, pipeline_config in pipeline_configs.items() \
             if pipeline_config['task_type'] in task_selection}
+    if session_name is not None:
+        pipeline_configs = {pipeline_id:pipeline_config for pipeline_id, pipeline_config in pipeline_configs.items() \
+                if pipeline_config['session']['session_name'] == session_name}
+    #
     return pipeline_configs
 
 
