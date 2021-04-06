@@ -51,18 +51,18 @@ class TVMDLRSession(BaseRTSession):
         interpreter_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tvm-dlr')
         os.chdir(interpreter_folder)
 
-        model_path = self.kwargs['model_path']
-        model_path0 = model_path[0] if isinstance(model_path, (list,tuple)) else model_path
-        model_type = self.kwargs['model_type'] or os.path.splitext(model_path0)[1][1:]
+        model_file = self.kwargs['model_file']
+        model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
+        model_type = self.kwargs['model_type'] or os.path.splitext(model_file0)[1][1:]
         if model_type == 'mxnet':
-            model_json, arg_params, aux_params = self._load_mxnet_model(model_path)
+            model_json, arg_params, aux_params = self._load_mxnet_model(model_file)
             assert self.kwargs['input_shape'] is not None, 'input_shape must be given'
             input_shape = self.kwargs['input_shape']
             input_keys = list(input_shape.keys())
             tvm_model, params = relay.frontend.from_mxnet(model_json, input_shape, arg_params=arg_params, aux_params=aux_params)
         elif model_type == 'onnx':
             import onnx
-            onnx_model = onnx.load(model_path)
+            onnx_model = onnx.load(model_file)
             if self.kwargs['input_shape'] is None:
                 self.kwargs['input_shape'] = self._get_input_shape_onnx(onnx_model)
             #
@@ -76,7 +76,7 @@ class TVMDLRSession(BaseRTSession):
             #
             input_shape = self.kwargs['input_shape']
             input_keys = list(input_shape.keys())
-            with open(model_path, 'rb') as fp:
+            with open(model_file, 'rb') as fp:
                 tflite_model = tflite.Model.GetRootAsModel(fp.read(), 0)
             #
             tvm_model, params = relay.frontend.from_tflite(tflite_model, shape_dict=input_shape,
