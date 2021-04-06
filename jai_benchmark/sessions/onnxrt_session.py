@@ -46,9 +46,7 @@ class ONNXRTSession(BaseRTSession):
 
     def import_model(self, calib_data, info_dict=None):
         super().import_model(calib_data)
-        # this chdir() is required for the import to work.
-        interpreter_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/onnxrt')
-        os.chdir(interpreter_folder)
+
         # create the underlying interpreter
         self.interpreter = self._create_interpreter(is_import=True)
         # check if the shape of data being provided matches with what the model expects
@@ -115,13 +113,14 @@ class ONNXRTSession(BaseRTSession):
         else:
             ep_list = ['TIDLExecutionProvider','CPUExecutionProvider'] #['CPUExecutionProvider']
         #
-        interpreter = onnxruntime.InferenceSession(self.kwargs['model_path'], providers=ep_list,
+        interpreter = onnxruntime.InferenceSession(self.kwargs['model_file'], providers=ep_list,
                                 provider_options=[runtime_options, {}], sess_options=sess_options)
         return interpreter
 
     def _set_default_options(self):
         runtime_options = self.kwargs.get("runtime_options", {})
-        tidl_tools_path = os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools')
+        tidl_tools_path = os.environ['TIDL_TOOLS_PATH'] if 'TIDL_TOOLS_PATH' in os.environ else \
+            os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools')
         default_options = {
             "tidl_platform": "J7",
             "tidl_version": "7.2",

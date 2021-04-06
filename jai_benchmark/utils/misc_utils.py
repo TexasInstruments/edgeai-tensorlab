@@ -113,7 +113,7 @@ def as_list_or_tuple(arg):
 
 
 # convert to something that can be saved by yaml.safe_dump
-def pretty_object(d, precision=3, depth=5):
+def pretty_object(d, depth=10, precision=3):
     depth = depth - 1
     pass_through_types = (str, int)
     if depth < 0:
@@ -139,10 +139,14 @@ def pretty_object(d, precision=3, depth=5):
     elif isinstance(d, ParamsBase):
         # this is a special case
         p = d.peek_params()
-        d_out = pretty_object(p)
+        d_out = pretty_object(p, depth)
     elif hasattr(d, '__dict__'):
         # other unrecognized objects - just grab the attributes as a dict
-        d_out = pretty_object(d.__dict__, depth)
+        attrs = d.__dict__.copy()
+        if 'name' not in attrs:
+            attrs.update({'name':d.__class__.__name__})
+        #
+        d_out = pretty_object(attrs, depth)
     else:
         d_out = None
     #

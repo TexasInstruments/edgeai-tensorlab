@@ -84,6 +84,9 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['run_dir'] = self._make_run_dir()
         self.kwargs['artifacts_folder'] = os.path.join(self.kwargs['run_dir'], 'artifacts')
         self.kwargs['model_folder'] = os.path.join(self.kwargs['run_dir'], 'model')
+        model_file = utils.get_local_path(self.kwargs['model_path'], self.kwargs['model_folder'])
+        self.kwargs['model_file'] = model_file
+
         # _set_default_options requires artifacts folder
         # that's why this done in initialize instead of the constructor
         self._set_default_options()
@@ -298,11 +301,10 @@ class BaseRTSession(utils.ParamsBase):
         model_folder = self.kwargs['model_folder']
         model_path = utils.download_file(self.kwargs['model_path'], root=model_folder)
         # make a local copy
-        model_path_local = utils.get_local_path(model_path, model_folder)
-        if not utils.file_exists(model_path_local):
-            utils.copy_files(model_path, model_path_local)
+        model_file = self.kwargs['model_file']
+        if not utils.file_exists(model_file):
+            utils.copy_files(model_path, model_file)
         #
-        self.kwargs['model_path'] = model_path_local
 
     def _set_default_options(self):
         assert False, 'this function must be overridden in the derived class'

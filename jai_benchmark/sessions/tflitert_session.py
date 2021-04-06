@@ -43,11 +43,8 @@ class TFLiteRTSession(BaseRTSession):
 
     def import_model(self, calib_data, info_dict=None):
         super().import_model(calib_data)
-        
-        # this chdir() is required for the import to work.
-        interpreter_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tflrt')
-        os.chdir(interpreter_folder)
 
+        # create the underlying interpreter
         self.interpreter = self._create_interpreter(is_import=True)
 
         input_details = self.interpreter.get_input_details()
@@ -91,18 +88,19 @@ class TFLiteRTSession(BaseRTSession):
             # make sure that the artifacts_folder is cleaneup
             self._cleanup_artifacts()
             tidl_delegate = [tflitert_interpreter.load_delegate('tidl_model_import_tflite.so', self.kwargs["runtime_options"])]
-            interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_path'], experimental_delegates=tidl_delegate)
+            interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_file'], experimental_delegates=tidl_delegate)
         else:
             self.kwargs["runtime_options"]["import"] = "no"
             tidl_delegate = [tflitert_interpreter.load_delegate('libtidl_tfl_delegate.so', self.kwargs["runtime_options"])]
-            interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_path'], experimental_delegates=tidl_delegate)
+            interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_file'], experimental_delegates=tidl_delegate)
         #
         interpreter.allocate_tensors()
         return interpreter
 
     def _set_default_options(self):
         runtime_options = self.kwargs.get("runtime_options", {})
-        tidl_tools_path = os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools')
+        tidl_tools_path = os.environ['TIDL_TOOLS_PATH'] if 'TIDL_TOOLS_PATH' in os.environ else \
+            os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools')
         default_options = {
             "tidl_platform": "J7",
             "tidl_version": "7.2",
