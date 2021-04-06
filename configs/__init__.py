@@ -196,7 +196,7 @@ def select_configs(settings, work_dir, session_name=None):
             if pipeline_config['task_type'] in task_selection}
     if session_name is not None:
         pipeline_configs = {pipeline_id:pipeline_config for pipeline_id, pipeline_config in pipeline_configs.items() \
-                if pipeline_config['session']['session_name'] == session_name}
+                if pipeline_config['session'].peek_param('session_name') == session_name}
     #
     return pipeline_configs
 
