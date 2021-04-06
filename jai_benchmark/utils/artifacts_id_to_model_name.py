@@ -522,11 +522,16 @@ def get_artifact_name(model_id_or_artifact_id, session_name=None, guess_names=Fa
     return artifact_name
 
 
-def get_name_key_pair_list(model_ids, session_name):
+def get_name_key_pair_list(model_ids, session_name, remove_models=True):
+    global removed_model_list
+    removed_model_entries = removed_model_list.keys()
     name_key_pair_list = []
     for model_id in model_ids:
         artifact_name = get_artifact_name(model_id, session_name)
-        name_key_pair_list.append((artifact_name, model_id))
+        if artifact_name is not None and \
+                (not remove_models or artifact_name not in removed_model_entries):
+            name_key_pair_list.append((artifact_name, model_id))
+        #
     #
     return name_key_pair_list
 
