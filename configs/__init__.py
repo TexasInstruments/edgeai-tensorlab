@@ -29,6 +29,7 @@
 import os
 from jai_benchmark import utils
 from jai_benchmark import datasets
+from jai_benchmark import pipelines
 from . import classification
 from . import detection
 from . import segmentation
@@ -182,10 +183,16 @@ def get_configs(settings, work_dir):
         from . import segmentation_experimental
         # now get the experimental configs
         pipeline_configs.update(classification_experimental.get_configs(settings, work_dir))
-        pipeline_configs.update(detectionexperimental.get_configs(settings, work_dir))
+        pipeline_configs.update(detection_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(segmentation_experimental.get_configs(settings, work_dir))
     #
     return pipeline_configs
+
+
+def select_configs(settings, work_dir):
+    pipeline_configs = get_configs(settings, work_dir)
+    pipeline_runner = pipelines.PipelineRunner(pipeline_configs)
+    return pipeline_runner.pipeline_configs
 
 
 def download_datasets(settings, download=True):

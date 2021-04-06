@@ -495,11 +495,21 @@ def get_selected_models(selected_task=None):
     return selected_models_for_a_task
 
 
-def get_artifact_name(artifact_id):
+def get_artifact_name(model_id_or_artifact_id, session_name=None, guess_names=False):
+    # artifact_id is model_id followed by session_name
+    # either pass a model_id and a session_name
+    # or directly pass the artifact_id and don't pass session_name
+    if session_name is None:
+        artifact_id = model_id_or_artifact_id
+    else:
+        model_id = model_id_or_artifact_id
+        artifact_id = f'{model_id}_{session_name}'
+    #
+
     artifact_name = None
     if artifact_id in model_id_artifacts_pair:
         artifact_name = model_id_artifacts_pair[artifact_id]
-    else:
+    elif guess_names:
         model_id, runtime_name = artifact_id.split('_')
         # create mapping dictionaries
         model_id_to_model_name_dict = {k.split('_')[0]:'-'.join(v.split('-')[1:]) \
@@ -510,6 +520,8 @@ def get_artifact_name(artifact_id):
             artifact_name = f'{short_runtime_name_dict[runtime_name]}-{model_id_to_model_name_dict[model_id]}'
         
     return artifact_name
+
+
 
 
 if __name__ == '__main__':
