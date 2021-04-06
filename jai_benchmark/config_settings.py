@@ -149,7 +149,9 @@ class ConfigSettings(config_dict.ConfigDict):
             postprocess_detection += [postprocess.DetectionImageSave()]
         #
         transforms = utils.TransformsCompose(postprocess_detection, detection_thr=self.detection_thr,
-                                             save_output=self.save_output, formatter=formatter)
+                            save_output=self.save_output, formatter=formatter, resize_with_pad=resize_with_pad,
+                            normalized_detections=normalized_detections, shuffle_indices=shuffle_indices,
+                            squeeze_axis=squeeze_axis)
         return transforms
 
     def get_postproc_detection_onnx(self, formatter=None, **kwargs):
