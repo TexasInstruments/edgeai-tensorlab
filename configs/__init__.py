@@ -190,9 +190,11 @@ def get_configs(settings, work_dir):
 
 
 def select_configs(settings, work_dir):
+    task_selection = utils.as_list(settings.task_selection)
     pipeline_configs = get_configs(settings, work_dir)
-    pipeline_runner = pipelines.PipelineRunner(pipeline_configs)
-    return pipeline_runner.pipeline_configs
+    pipeline_configs = {pipeline_id:pipeline_config for pipeline_id, pipeline_config in pipeline_configs.items() \
+            if pipeline_config['task_type'] in task_selection}
+    return pipeline_configs
 
 
 def download_datasets(settings, download=True):
