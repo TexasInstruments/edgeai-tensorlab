@@ -47,10 +47,6 @@ class TVMDLRSession(BaseRTSession):
         # prepare for actual model import
         super().import_model(calib_data, info_dict)
 
-        # this chdir() is required for the import to work.
-        interpreter_folder = os.path.join(os.environ['TIDL_BASE_PATH'], 'ti_dl/test/tvm-dlr')
-        os.chdir(interpreter_folder)
-
         model_file = self.kwargs['model_file']
         model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
         model_type = self.kwargs['model_type'] or os.path.splitext(model_file0)[1][1:]
@@ -174,7 +170,8 @@ class TVMDLRSession(BaseRTSession):
 
     def _set_default_options(self):
         runtime_options = self.kwargs.get("runtime_options", {})
-        tidl_tools_path = os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools')
+        tidl_tools_path = os.environ['TIDL_TOOLS_PATH'] if 'TIDL_TOOLS_PATH' in os.environ else \
+            os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools')
         default_options = {
             'platform':self.kwargs.get('platform', 'J7'),
             'version':self.kwargs.get('version', (7,0)),
