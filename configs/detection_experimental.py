@@ -64,16 +64,6 @@ def get_configs(settings, work_dir):
         #################################################################
         #       ONNX MODELS
         #################onnx models#####################################
-        # # mlperf edge: detection - coco_ssd-resnet34_1200x1200 - expected_metric: 20.0% COCO AP[0.5-0.95]
-        # 'vdet-12-012-0':utils.dict_update(common_cfg,
-        #     preprocess=settings.get_preproc_onnx((1200,1200), (1200,1200), backend='cv2'),
-        #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx,
-        #         model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_resnet34-ssd1200.onnx'),
-        #     postprocess=postproc_detection_onnx,
-        #     metric=dict(label_offset_pred=coco_label_offset_80to90(label_offset=0)),
-        #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':20.0})
-        # ),
-        #################################################################
         # # yolov3: detection - yolov3 416x416 - expected_metric: 31.0% COCO AP[0.5-0.95]
         # 'vdet-12-020-0':utils.dict_update(common_cfg,
         #     preprocess=settings.get_preproc_onnx((416,416), (416,416), backend='cv2',
