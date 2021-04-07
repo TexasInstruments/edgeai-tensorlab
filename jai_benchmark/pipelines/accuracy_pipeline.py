@@ -155,6 +155,7 @@ class AccuracyPipeline():
 
         output_list = []
         num_frames = len(input_dataset)
+        num_frames_ddr = 0
         pbar_desc = f'infer {description}: {run_dir_base}'
         for data_index in utils.progress_step(range(num_frames), desc=pbar_desc, file=self.logger, position=0):
             info_dict = {}
@@ -167,7 +168,9 @@ class AccuracyPipeline():
             stats_dict = session.infer_stats()
             core_time += stats_dict['core_time']
             subgraph_time += stats_dict['subgraph_time']
-            ddr_transfer += (stats_dict['write_total'] + stats_dict['read_total'])
+            if stats_dict['write_total'] >= 0  and stats_dict['read_total'] >= 0 :
+                ddr_transfer += (stats_dict['write_total'] + stats_dict['read_total'])
+                num_frames_ddr += 1
 
             output, info_dict = postprocess(output, info_dict)
             output_list.append(output)
@@ -178,7 +181,7 @@ class AccuracyPipeline():
             #'infer_time_invoke_ms': invoke_time * constants.MILLI_CONST / num_frames,
             'infer_time_core_ms': core_time * constants.MILLI_CONST / num_frames,
             'infer_time_subgraph_ms': subgraph_time * constants.MILLI_CONST / num_frames,
-            'ddr_transfer_mb': ddr_transfer / num_frames / constants.MEGA_CONST
+            'ddr_transfer_mb': (ddr_transfer / num_frames_ddr / constants.MEGA_CONST) if num_frames_ddr > 0 else 0
         }
         if 'perfsim_time' in stats_dict:
             self.infer_stats_dict.update({'perfsim_time_ms': stats_dict['perfsim_time'] * constants.MILLI_CONST})
