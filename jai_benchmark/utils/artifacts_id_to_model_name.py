@@ -245,7 +245,7 @@ removed_model_list = {
     'vcls-10-450-0_tvmdlr' : 'TVM-CL-302-xceptionNet-mxnet', # this is replaced with tflite model now (that was also eventually removed)
     'vcls-10-401-8_tflitert': 'TFL-CL-023-mobileNetV2-qat',  # QAT model is not giving good accuracy so keep only float
     'vdet-12-012-0_tvmdlr': 'TVM-OD-500-ssd1200-resNet34-mlperf-1200x1200', # Not working with TVM. Will need to park it till ONNX RT OD support is available.
-    'vdet-12-012-0_onnxrt': 'ONR-OD-800-ssd1200-resNet34-mlperf-1200x1200', #ONNX does not support OD yet
+    #'vdet-12-012-0_onnxrt': 'ONR-OD-800-ssd1200-resNet34-mlperf-1200x1200', #ONNX does not support OD yet
     ################ CS models
     'vseg-16-100-0_tvmdlr': 'TVM-SS-550-deeplabv3lite-mobv2-cs-768x384', # cityscapes model not part of Model Zoo
     'vseg-16-100-8_tvmdlr': 'TVM-SS-551-deeplabv3lite-mobv2-cs-qat-768x384', # cityscapes model not part of Model Zoo
