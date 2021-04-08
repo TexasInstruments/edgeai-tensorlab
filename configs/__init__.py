@@ -36,14 +36,16 @@ from . import segmentation
 
 
 def get_datasets(settings, download=False):
-    dataset_names = ['imagenet', 'cityscapes', 'coco', 'ade20k', 'ade20k32', 'voc2012', 'coco_seg21']
+    dataset_names = ['imagenet', 'cityscapes', 'coco', 'ade20k', 'ade20k32', 'voc2012', 'cocoseg21']
     dataset_cache = {ds_name:{'calibration_dataset':None, 'input_dataset':None} for ds_name in dataset_names}
+
+    dset_info_dict = datasets.get_dataset_info_dict(settings)
 
     if in_dataset_loading(settings, 'imagenet'):
         dataset_variant = settings.dataset_type_dict['imagenet'] if \
             settings.dataset_type_dict is not None else 'imagenet'
         # dataset settings
-        imagenet_dataset_dict = datasets.dataset_info_dict[dataset_variant]
+        imagenet_dataset_dict = dset_info_dict[dataset_variant]
         ImageNetDataSetType = imagenet_dataset_dict['type']
         imagenet_split = imagenet_dataset_dict['split']
         num_imgs = imagenet_dataset_dict['size']
@@ -83,20 +85,20 @@ def get_datasets(settings, download=False):
         dataset_cache['coco']['input_dataset'] = datasets.COCODetection(**coco_det_val_cfg, download=False)
     #
     if in_dataset_loading(settings, 'cocoseg21'):
-        coco_seg21_calib_cfg = dict(
+        cocoseg21_calib_cfg = dict(
             path=f'{settings.datasets_path}/coco',
             split='val2017',
             shuffle=True,
             num_frames=settings.quantization_params.get_calibration_frames(),
             name='cocoseg21')
-        coco_seg21_val_cfg = dict(
+        cocoseg21_val_cfg = dict(
             path=f'{settings.datasets_path}/coco',
             split='val2017',
             shuffle=True,
             num_frames=min(settings.num_frames,5000),
             name='cocoseg21')
-        dataset_cache['coco_seg21']['calibration_dataset'] = datasets.COCOSegmentation(**coco_seg21_calib_cfg, download=download)
-        dataset_cache['coco_seg21']['input_dataset'] = datasets.COCOSegmentation(**coco_seg21_val_cfg, download=False)
+        dataset_cache['cocoseg21']['calibration_dataset'] = datasets.COCOSegmentation(**cocoseg21_calib_cfg, download=download)
+        dataset_cache['cocoseg21']['input_dataset'] = datasets.COCOSegmentation(**cocoseg21_val_cfg, download=False)
     #
     if in_dataset_loading(settings, 'cityscapes'):
         cityscapes_seg_calib_cfg = dict(
@@ -207,6 +209,20 @@ def download_datasets(settings, download=True):
     # set download='always' to force re-download teh datasets
     settings.dataset_cache = get_datasets(settings, download=download)
     return True
+
+
+def get_dataset_names(settings, task_type=None):
+    dset_info_dict = datasets.get_dataset_info_dict(settings)
+    # we are picking category instead of the actual dataset name/variant.
+    # the actual dataset to be used cal is selected in get_dataset()
+    if task_type is not None:
+        dataset_names = [value['category'] for key,value in dset_info_dict.items() if value['task_type'] == task_type]
+    else:
+        dataset_names = [value['category'] for key,value in dset_info_dict.items()]
+    #
+    # make it unique - set() is unordered - so use dict.fromkeys()
+    dataset_names = list(dict.fromkeys(dataset_names).keys())
+    return dataset_names
 
 
 def is_all_data_loading(settings):

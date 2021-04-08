@@ -72,10 +72,10 @@ def get_configs(settings, work_dir):
         'input_dataset': settings.dataset_cache['voc2012']['input_dataset'],
     }
 
-    coco_seg21_cfg = {
+    cocoseg21_cfg = {
         'task_type': 'segmentation',
-        'calibration_dataset': settings.dataset_cache['coco_seg21']['calibration_dataset'],
-        'input_dataset': settings.dataset_cache['coco_seg21']['input_dataset'],
+        'calibration_dataset': settings.dataset_cache['cocoseg21']['calibration_dataset'],
+        'input_dataset': settings.dataset_cache['cocoseg21']['input_dataset'],
     }
 
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)

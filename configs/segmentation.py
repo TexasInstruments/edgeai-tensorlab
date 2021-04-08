@@ -85,10 +85,10 @@ def get_configs(settings, work_dir):
         'input_dataset': settings.dataset_cache['voc2012']['input_dataset'],
     }
 
-    coco_seg21_cfg = {
+    cocoseg21_cfg = {
         'task_type': 'segmentation',
-        'calibration_dataset': settings.dataset_cache['coco_seg21']['calibration_dataset'],
-        'input_dataset': settings.dataset_cache['coco_seg21']['input_dataset'],
+        'calibration_dataset': settings.dataset_cache['cocoseg21']['calibration_dataset'],
+        'input_dataset': settings.dataset_cache['cocoseg21']['input_dataset'],
     }
 
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
@@ -147,7 +147,7 @@ def get_configs(settings, work_dir):
         ),
 
         #------------------------coco 21 class-----------------------
-        'vseg-21-100-0':utils.dict_update(coco_seg21_cfg,
+        'vseg-21-100-0':utils.dict_update(cocoseg21_cfg,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/jai-pytorch/deeplabv3lite_mobilenetv2_cocoseg21_512x512_20210327.onnx'),

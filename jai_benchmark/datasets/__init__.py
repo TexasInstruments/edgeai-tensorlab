@@ -36,16 +36,38 @@ from .voc_seg import *
 
 
 dataset_info_dict = {
+             #------------------------image classification datasets--------------------------#
              # Original ImageNet
-             'imagenet':{'type':ImageNetCls, 'size':50000, 'split':'val'},
-             'imagenetv1':{'type':ImageNetCls, 'size':50000, 'split':'val'},
+             'imagenet':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetCls, 'size':50000, 'split':'val'},
+             'imagenetv1':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetCls, 'size':50000, 'split':'val'},
              # ImageNetV2 as explained in imagenet_v2.py
-             'imagenetv2c':{'type':ImageNetV2C, 'size':10000, 'split':'val'},
-             'imagenetv2b':{'type':ImageNetV2B, 'size':10000, 'split':'val'},
-             'imagenetv2a':{'type':ImageNetV2A, 'size':10000, 'split':'val'},
+             'imagenetv2c':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetV2C, 'size':10000, 'split':'val'},
+             'imagenetv2b':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetV2B, 'size':10000, 'split':'val'},
+             'imagenetv2a':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetV2A, 'size':10000, 'split':'val'},
              # smaller versions of the original ImageNet
-             'tiny-imagenet200':{'type':TinyImageNet200Cls, 'size':10000, 'split':'val'},
-             'imagenet-dogs120':{'type':ImageNetDogs120Cls, 'size':20580, 'split':'train'},
-             'imagenet-pseudo120':{'type':ImageNetPseudo120Cls, 'size':20580, 'split':'train'},
-             'imagenet-resized-64x64':{'type':ImageNetResized64x64Cls, 'size':50000, 'split':'val'},
+             'tiny-imagenet200':{'task_type':'classification', 'category':'imagenet', 'type':TinyImageNet200Cls, 'size':10000, 'split':'val'},
+             'imagenet-dogs120':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetDogs120Cls, 'size':20580, 'split':'train'},
+             'imagenet-pseudo120':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetPseudo120Cls, 'size':20580, 'split':'train'},
+             'imagenet-resized-64x64':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetResized64x64Cls, 'size':50000, 'split':'val'},
+             #------------------------object detection datasets--------------------------#
+             'coco': {'task_type':'detection', 'category':'coco', 'type':COCODetection, 'size':5000, 'split':'val2017'},
+             #------------------------semantic segmentation datasets--------------------------#
+             'cocoseg21': {'task_type':'segmentation', 'category':'cocoseg21', 'type':COCOSegmentation, 'size':5000, 'split':'val2017'},
+             'ade20k32': {'task_type':'segmentation', 'category':'ade20k32', 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
+             'ade20k': {'task_type':'segmentation', 'category':'ade20k', 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
+             'voc2012': {'task_type':'segmentation', 'category':'voc2012', 'type':VOC2012Segmentation, 'size':1449, 'split':'val'},
              }
+
+
+dataset_info_dict_experimental = {
+             #------------------------semantic segmentation datasets--------------------------#
+             'cityscapes': {'task_type':'segmentation', 'category':'cityscapes', 'type':CityscapesSegmentation, 'size':500, 'split':'val'},
+             }
+
+
+def get_dataset_info_dict(settings):
+    dset_info_dict = dataset_info_dict.copy()
+    if settings.experimental_models:
+        dset_info_dict.update(dataset_info_dict_experimental)
+    #
+    return dset_info_dict

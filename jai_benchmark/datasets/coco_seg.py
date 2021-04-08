@@ -132,7 +132,7 @@ class COCOSegmentation(utils.ParamsBase):
             self.download(path, split)
         #
         self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
-        self.name = "coco_seg21"
+        self.name = "cocoseg21"
         self.tempfiles = []
 
         self.num_classes = 80 if num_classes is None else num_classes
