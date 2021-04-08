@@ -36,33 +36,33 @@ from .voc_seg import *
 
 
 dataset_info_dict = {
-             #------------------------image classification datasets--------------------------#
-             # Original ImageNet
-             'imagenet':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetCls, 'size':50000, 'split':'val'},
-             'imagenetv1':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetCls, 'size':50000, 'split':'val'},
-             # ImageNetV2 as explained in imagenet_v2.py
-             'imagenetv2c':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetV2C, 'size':10000, 'split':'val'},
-             'imagenetv2b':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetV2B, 'size':10000, 'split':'val'},
-             'imagenetv2a':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetV2A, 'size':10000, 'split':'val'},
-             # smaller versions of the original ImageNet
-             'tiny-imagenet200':{'task_type':'classification', 'category':'imagenet', 'type':TinyImageNet200Cls, 'size':10000, 'split':'val'},
-             'imagenet-dogs120':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetDogs120Cls, 'size':20580, 'split':'train'},
-             'imagenet-pseudo120':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetPseudo120Cls, 'size':20580, 'split':'train'},
-             'imagenet-resized-64x64':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetResized64x64Cls, 'size':50000, 'split':'val'},
-             #------------------------object detection datasets--------------------------#
-             'coco': {'task_type':'detection', 'category':'coco', 'type':COCODetection, 'size':5000, 'split':'val2017'},
-             #------------------------semantic segmentation datasets--------------------------#
-             'cocoseg21': {'task_type':'segmentation', 'category':'cocoseg21', 'type':COCOSegmentation, 'size':5000, 'split':'val2017'},
-             'ade20k32': {'task_type':'segmentation', 'category':'ade20k32', 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
-             'ade20k': {'task_type':'segmentation', 'category':'ade20k', 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
-             'voc2012': {'task_type':'segmentation', 'category':'voc2012', 'type':VOC2012Segmentation, 'size':1449, 'split':'val'},
-             }
+    #------------------------image classification datasets--------------------------#
+    # Original ImageNet
+    'imagenet':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetCls, 'size':50000, 'split':'val'},
+    'imagenetv1':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetCls, 'size':50000, 'split':'val'},
+    # ImageNetV2 as explained in imagenet_v2.py
+    'imagenetv2c':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetV2C, 'size':10000, 'split':'val'},
+    'imagenetv2b':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetV2B, 'size':10000, 'split':'val'},
+    'imagenetv2a':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetV2A, 'size':10000, 'split':'val'},
+    # smaller versions of the original ImageNet
+    'tiny-imagenet200':{'task_type':'classification', 'category':'imagenet', 'type':TinyImageNet200Cls, 'size':10000, 'split':'val'},
+    'imagenet-dogs120':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetDogs120Cls, 'size':20580, 'split':'train'},
+    'imagenet-pseudo120':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetPseudo120Cls, 'size':20580, 'split':'train'},
+    'imagenet-resized-64x64':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetResized64x64Cls, 'size':50000, 'split':'val'},
+    #------------------------object detection datasets--------------------------#
+    'coco': {'task_type':'detection', 'category':'coco', 'type':COCODetection, 'size':5000, 'split':'val2017'},
+    #------------------------semantic segmentation datasets--------------------------#
+    'cocoseg21': {'task_type':'segmentation', 'category':'cocoseg21', 'type':COCOSegmentation, 'size':5000, 'split':'val2017'},
+    'ade20k32': {'task_type':'segmentation', 'category':'ade20k32', 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
+    'ade20k': {'task_type':'segmentation', 'category':'ade20k', 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
+    'voc2012': {'task_type':'segmentation', 'category':'voc2012', 'type':VOC2012Segmentation, 'size':1449, 'split':'val'},
+ }
 
 
 dataset_info_dict_experimental = {
-             #------------------------semantic segmentation datasets--------------------------#
-             'cityscapes': {'task_type':'segmentation', 'category':'cityscapes', 'type':CityscapesSegmentation, 'size':500, 'split':'val'},
-             }
+    #------------------------semantic segmentation datasets--------------------------#
+    'cityscapes': {'task_type':'segmentation', 'category':'cityscapes', 'type':CityscapesSegmentation, 'size':500, 'split':'val'},
+ }
 
 
 def get_dataset_info_dict(settings):
@@ -73,7 +73,7 @@ def get_dataset_info_dict(settings):
     return dset_info_dict
 
 
-def get_dataset_names(settings, task_type=None):
+def get_dataset_categories(settings, task_type=None):
     dset_info_dict = get_dataset_info_dict(settings)
     # we are picking category instead of the actual dataset name/variant.
     # the actual dataset to be used cal is selected in get_dataset()
@@ -83,13 +83,20 @@ def get_dataset_names(settings, task_type=None):
         dataset_names = [value['category'] for key,value in dset_info_dict.items()]
     #
     # make it unique - set() is unordered - so use dict.fromkeys()
-    dataset_names = list(dict.fromkeys(dataset_names).keys())
-    return dataset_names
+    dataset_categories = list(dict.fromkeys(dataset_names).keys())
+    return dataset_categories
+
+
+def get_dataset_names(settings, task_type=None):
+    print(utils.log_color('\nWARNING', 'name change', f'please use datasets.get_dataset_categories() '
+                                                      f'instead of datasets.get_dataset_names()'))
+    dataset_categories = get_dataset_categories(settings, task_type)
+    return dataset_categories
 
 
 def get_datasets(settings, download=False):
-    dataset_names = get_dataset_names(settings)
-    dataset_cache = {ds_name:{'calibration_dataset':None, 'input_dataset':None} for ds_name in dataset_names}
+    dataset_categories = get_dataset_categories(settings)
+    dataset_cache = {ds_category:{'calibration_dataset':None, 'input_dataset':None} for ds_category in dataset_categories}
 
     dset_info_dict = get_dataset_info_dict(settings)
 
@@ -232,7 +239,7 @@ def in_dataset_loading(settings, dataset_names):
         return False
     #
     load_all_datasets = (settings.dataset_loading is True or settings.dataset_loading is None)
-    dataset_loading = get_dataset_names(settings) if load_all_datasets else utils.as_list(settings.dataset_loading)
+    dataset_loading = get_dataset_categories(settings) if load_all_datasets else utils.as_list(settings.dataset_loading)
     dataset_names = utils.as_list(dataset_names)
     for dataset_name in dataset_names:
         if dataset_name in dataset_loading:
