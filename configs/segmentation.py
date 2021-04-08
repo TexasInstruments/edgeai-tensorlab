@@ -60,13 +60,6 @@ def get_configs(settings, work_dir):
     runtime_options_tflite_qat = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=True)
     runtime_options_mxnet_qat = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=True)
 
-    # configs for each model pipeline
-    cityscapes_cfg = {
-        'task_type': 'segmentation',
-        'calibration_dataset': settings.dataset_cache['cityscapes']['calibration_dataset'],
-        'input_dataset': settings.dataset_cache['cityscapes']['input_dataset'],
-    }
-
     ade20k_cfg = {
         'task_type': 'segmentation',
         'calibration_dataset': settings.dataset_cache['ade20k']['calibration_dataset'],

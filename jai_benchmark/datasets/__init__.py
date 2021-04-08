@@ -71,3 +71,173 @@ def get_dataset_info_dict(settings):
         dset_info_dict.update(dataset_info_dict_experimental)
     #
     return dset_info_dict
+
+
+def get_dataset_names(settings, task_type=None):
+    dset_info_dict = get_dataset_info_dict(settings)
+    # we are picking category instead of the actual dataset name/variant.
+    # the actual dataset to be used cal is selected in get_dataset()
+    if task_type is not None:
+        dataset_names = [value['category'] for key,value in dset_info_dict.items() if value['task_type'] == task_type]
+    else:
+        dataset_names = [value['category'] for key,value in dset_info_dict.items()]
+    #
+    # make it unique - set() is unordered - so use dict.fromkeys()
+    dataset_names = list(dict.fromkeys(dataset_names).keys())
+    return dataset_names
+
+
+def get_datasets(settings, download=False):
+    dataset_names = get_dataset_names(settings)
+    dataset_cache = {ds_name:{'calibration_dataset':None, 'input_dataset':None} for ds_name in dataset_names}
+
+    dset_info_dict = get_dataset_info_dict(settings)
+
+    if in_dataset_loading(settings, 'imagenet'):
+        dataset_variant = settings.dataset_type_dict['imagenet'] if \
+            settings.dataset_type_dict is not None else 'imagenet'
+        # dataset settings
+        imagenet_dataset_dict = dset_info_dict[dataset_variant]
+        ImageNetDataSetType = imagenet_dataset_dict['type']
+        imagenet_split = imagenet_dataset_dict['split']
+        num_imgs = imagenet_dataset_dict['size']
+        # the cfg to be used to construct the dataset class
+        imagenet_cls_calib_cfg = dict(
+            path=f'{settings.datasets_path}/{dataset_variant}/{imagenet_split}',
+            split=f'{settings.datasets_path}/{dataset_variant}/{imagenet_split}.txt',
+            shuffle=True,
+            num_frames=settings.quantization_params.get_calibration_frames(),
+            name=dataset_variant)
+        imagenet_cls_val_cfg = dict(
+            path=f'{settings.datasets_path}/{dataset_variant}/{imagenet_split}',
+            split=f'{settings.datasets_path}/{dataset_variant}/{imagenet_split}.txt',
+            shuffle=True,
+            num_frames=min(settings.num_frames,num_imgs),
+            name=dataset_variant)
+        # what is provided is mechanism to select one of the imagenet variants
+        # but only one is selected and assigned to the key imagenet
+        # all the imagenet models will use this variant.
+        dataset_cache['imagenet']['calibration_dataset'] = ImageNetDataSetType(**imagenet_cls_calib_cfg, download=download)
+        dataset_cache['imagenet']['input_dataset'] = ImageNetDataSetType(**imagenet_cls_val_cfg, download=False)
+    #
+    if in_dataset_loading(settings, 'coco'):
+        coco_det_calib_cfg = dict(
+            path=f'{settings.datasets_path}/coco',
+            split='val2017',
+            shuffle=True,
+            num_frames=settings.quantization_params.get_calibration_frames(),
+            name='coco')
+        coco_det_val_cfg = dict(
+            path=f'{settings.datasets_path}/coco',
+            split='val2017',
+            shuffle=False, #TODO: need to make COCODetection.evaluate() work with shuffle
+            num_frames=min(settings.num_frames,5000),
+            name='coco')
+        dataset_cache['coco']['calibration_dataset'] = COCODetection(**coco_det_calib_cfg, download=download)
+        dataset_cache['coco']['input_dataset'] = COCODetection(**coco_det_val_cfg, download=False)
+    #
+    if in_dataset_loading(settings, 'cocoseg21'):
+        cocoseg21_calib_cfg = dict(
+            path=f'{settings.datasets_path}/coco',
+            split='val2017',
+            shuffle=True,
+            num_frames=settings.quantization_params.get_calibration_frames(),
+            name='cocoseg21')
+        cocoseg21_val_cfg = dict(
+            path=f'{settings.datasets_path}/coco',
+            split='val2017',
+            shuffle=True,
+            num_frames=min(settings.num_frames,5000),
+            name='cocoseg21')
+        dataset_cache['cocoseg21']['calibration_dataset'] = COCOSegmentation(**cocoseg21_calib_cfg, download=download)
+        dataset_cache['cocoseg21']['input_dataset'] = COCOSegmentation(**cocoseg21_val_cfg, download=False)
+    #
+    if in_dataset_loading(settings, 'cityscapes'):
+        cityscapes_seg_calib_cfg = dict(
+            path=f'{settings.datasets_path}/cityscapes',
+            split='val',
+            shuffle=True,
+            num_frames=settings.quantization_params.get_calibration_frames(),
+            name='cityscapes')
+        cityscapes_seg_val_cfg = dict(
+            path=f'{settings.datasets_path}/cityscapes',
+            split='val',
+            shuffle=True,
+            num_frames=min(settings.num_frames,500),
+            name='cityscapes')
+        dataset_cache['cityscapes']['calibration_dataset'] = CityscapesSegmentation(**cityscapes_seg_calib_cfg, download=False)
+        dataset_cache['cityscapes']['input_dataset'] = CityscapesSegmentation(**cityscapes_seg_val_cfg, download=False)
+    #
+    if in_dataset_loading(settings, 'ade20k'):
+        ade20k_seg_calib_cfg = dict(
+            path=f'{settings.datasets_path}/ADEChallengeData2016',
+            split='validation',
+            shuffle=True,
+            num_frames=settings.quantization_params.get_calibration_frames(),
+            name='ade20k')
+        ade20k_seg_val_cfg = dict(
+            path=f'{settings.datasets_path}/ADEChallengeData2016',
+            split='validation',
+            shuffle=True,
+            num_frames=min(settings.num_frames, 2000),
+            name='ade20k')
+        dataset_cache['ade20k']['calibration_dataset'] = ADE20KSegmentation(**ade20k_seg_calib_cfg, download=download)
+        dataset_cache['ade20k']['input_dataset'] = ADE20KSegmentation(**ade20k_seg_val_cfg, download=False)
+    #
+    if in_dataset_loading(settings, 'ade20k32'):
+        ade20k_seg_calib_cfg = dict(
+            path=f'{settings.datasets_path}/ADEChallengeData2016',
+            split='validation',
+            shuffle=True,
+            num_frames=settings.quantization_params.get_calibration_frames(),
+            name='ade20k32')
+        ade20k_seg_val_cfg = dict(
+            path=f'{settings.datasets_path}/ADEChallengeData2016',
+            split='validation',
+            shuffle=True,
+            num_frames=min(settings.num_frames, 2000),
+            name='ade20k32')
+        dataset_cache['ade20k32']['calibration_dataset'] = ADE20KSegmentation(**ade20k_seg_calib_cfg, num_classes=32, download=download)
+        dataset_cache['ade20k32']['input_dataset'] = ADE20KSegmentation(**ade20k_seg_val_cfg, num_classes=32, download=False)
+    #
+    if in_dataset_loading(settings, 'voc2012'):
+        voc_seg_calib_cfg = dict(
+            path=f'{settings.datasets_path}/VOCdevkit/VOC2012',
+            split='val',
+            shuffle=True,
+            num_frames=settings.quantization_params.get_calibration_frames(),
+            name='voc2012')
+        voc_seg_val_cfg = dict(
+            path=f'{settings.datasets_path}/VOCdevkit/VOC2012',
+            split='val',
+            shuffle=True,
+            num_frames=min(settings.num_frames, 1449),
+            name='voc2012')
+        dataset_cache['voc2012']['calibration_dataset'] = VOC2012Segmentation(**voc_seg_calib_cfg, download=download)
+        dataset_cache['voc2012']['input_dataset'] = VOC2012Segmentation(**voc_seg_val_cfg, download=False)
+    #
+    return dataset_cache
+
+
+def download_datasets(settings, download=True):
+    # just creating the dataset classes with download=True will check of the dataset folders are present
+    # if the dataset folders are missing, it will be downloaded and extracted
+    # set download='always' to force re-download teh datasets
+    settings.dataset_cache = get_datasets(settings, download=download)
+    return True
+
+
+def in_dataset_loading(settings, dataset_names):
+    if settings.dataset_loading is False:
+        return False
+    #
+    load_all_datasets = (settings.dataset_loading is True or settings.dataset_loading is None)
+    dataset_loading = get_dataset_names(settings) if load_all_datasets else utils.as_list(settings.dataset_loading)
+    dataset_names = utils.as_list(dataset_names)
+    for dataset_name in dataset_names:
+        if dataset_name in dataset_loading:
+            return True
+        #
+    #
+    return False
+
