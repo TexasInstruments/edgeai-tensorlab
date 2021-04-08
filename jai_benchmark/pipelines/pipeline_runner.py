@@ -71,7 +71,7 @@ class PipelineRunner():
         total = len(self.pipeline_configs)
         for pipeline_id, pipeline_config in enumerate(self.pipeline_configs.values()):
             os.chdir(cwd)
-            description = f'{pipeline_id+1}/{total}'
+            description = f'{pipeline_id+1}/{total}' if total > 1 else ''
             result = self._run_pipeline(self.settings, pipeline_config, description=description)
             results_list.append(result)
         #
