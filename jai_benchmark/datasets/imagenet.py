@@ -59,6 +59,7 @@ class BaseImageNetCls(ImageCls):
         return notice
 
     def download(self, path, split_file):
+        print(utils.log_color('\nINFO', 'downloading and preparing dataset', path + ' This may take some time.'))
         print(self.get_notice())
         extra_url = 'http://dl.caffe.berkeleyvision.org/caffe_ilsvrc12.tar.gz'
         root = self._get_root(path)
@@ -88,6 +89,7 @@ class BaseImageNetCls(ImageCls):
                 #
             #
         #
+        print(utils.log_color('\nINFO', 'dataset ready', path))
         return extra_path
 
     def _get_root(self, path):
@@ -287,7 +289,7 @@ class ImageNetDogs120Cls(BaseImageNetCls):
         self.extract_all(tmp_extract_root, path)
         if not os.path.exists(split_file):
             # we don't want the base class to touch or create the split_file this has its own
-            print(utils.log_color('INFO',  'split_file exists - will reuse', path))
+            print(utils.log_color('\nINFO',  'split_file exists - will reuse', path))
             extra_path = super().download(path, split_file=None)
             self._create_split(path, split_file)
         else:

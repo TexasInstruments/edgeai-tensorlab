@@ -88,8 +88,8 @@ def get_dataset_categories(settings, task_type=None):
 
 
 def get_dataset_names(settings, task_type=None):
-    print(utils.log_color('\nWARNING', 'name change', f'please use datasets.get_dataset_categories() '
-                                                      f'instead of datasets.get_dataset_names()'))
+    print(utils.log_color('WARNING', 'name change', f'please use datasets.get_dataset_categories() '
+                                                    f'instead of datasets.get_dataset_names()'))
     dataset_categories = get_dataset_categories(settings, task_type)
     return dataset_categories
 

@@ -65,6 +65,7 @@ class ImageNetV2(ImageCls):
         return notice
 
     def download(self, path, split_file):
+        print(utils.log_color('\nINFO', 'downloading and preparing dataset', path + ' This may take some time.'))
         print(self.get_notice())
         root = self._get_root(path)
         download_root = os.path.join(root, 'download')
@@ -91,6 +92,7 @@ class ImageNetV2(ImageCls):
         with open(split_file, 'w') as fp:
             fp.write('\n'.join(lines))
         #
+        print(utils.log_color('\nINFO', 'dataset ready', path))
         return extract_path, split_file
 
     def _get_root(self, path):

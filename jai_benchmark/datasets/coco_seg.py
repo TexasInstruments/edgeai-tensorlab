@@ -198,9 +198,10 @@ class COCOSegmentation(utils.ParamsBase):
         annotations_folder = os.path.join(path, 'annotations')
         if (not self.force_download) and os.path.exists(path) and \
                 os.path.exists(images_folder) and os.path.exists(annotations_folder):
-            print(utils.log_color('INFO', 'dataset exists - will reuse', path))
+            print(utils.log_color('\nINFO', 'dataset exists - will reuse', path))
             return
         #
+        print(utils.log_color('\nINFO', 'downloading and preparing dataset', path + ' This may take some time.'))
         print(f'{Fore.YELLOW}'
               f'\nCOCO Dataset:'
               f'\n    Microsoft COCO: Common Objects in Context, '
@@ -215,6 +216,7 @@ class COCOSegmentation(utils.ParamsBase):
         download_root = os.path.join(root, 'download')
         dataset_path = utils.download_file(dataset_url, root=download_root, extract_root=root)
         extra_path = utils.download_file(extra_url, root=download_root, extract_root=root)
+        print(utils.log_color('\nINFO', 'dataset ready', path))
         return
 
     def _get_root(self, path):

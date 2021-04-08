@@ -42,13 +42,13 @@ class ImageCls(utils.ParamsBase):
         # download the data if needed
         if download:
             if (not self.force_download) and os.path.exists(path):
-                print(utils.log_color('INFO', 'dataset exists - will reuse', path))
+                print(utils.log_color('\nINFO', 'dataset exists - will reuse', path))
             else:
                 self.download(path, split_file)
             #
         #
         assert os.path.exists(path) and os.path.isdir(path), \
-            utils.log_color('ERROR', 'dataset path is empty', path)
+            utils.log_color('\nERROR', 'dataset path is empty', path)
         self.kwargs = kwargs
         # create list of images and classes
         self.imgs = utils.get_data_list(input=kwargs, dest_dir=dest_dir)

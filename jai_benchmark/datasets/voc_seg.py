@@ -100,10 +100,10 @@ class VOC2012Segmentation(utils.ParamsBase):
         if (not self.force_download) and os.path.exists(path) and \
                 os.path.exists(imagesets_folder) and os.path.exists(images_folder) \
                 and os.path.exists(segmentations_folder) and os.path.exists(annotations_folder):
-            print(utils.log_color('INFO', 'dataset exists - will reuse', path))
+            print(utils.log_color('\nINFO', 'dataset exists - will reuse', path))
             return
         #
-
+        print(utils.log_color('\nINFO', 'downloading and preparing dataset', path + ' This may take some time.'))
         print(f'{Fore.YELLOW}'
               f'\nPascal VOC 2012 Dataset (VOC2012): '
               f'\n    The PASCAL Visual Object Classes (VOC) Challenge, '
@@ -119,6 +119,7 @@ class VOC2012Segmentation(utils.ParamsBase):
         dataset_path = utils.download_file(dataset_url, root=download_root, extract_root=extract_root)
         extra_path = utils.download_file(extra_url, root=download_root, extract_root=extract_root)
         self.convert_dataset(root)
+        print(utils.log_color('\nINFO', 'dataset ready', path))
         return
 
     def __getitem__(self, idx, with_label=False):

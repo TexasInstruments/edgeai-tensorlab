@@ -181,7 +181,7 @@ def download_url(
         return fpath
     #
 
-    print('Downloading ' + url + ' to ' + fpath + ' This may take some time. Please wait...')
+    print('Downloading ' + url + ' to ' + fpath)
     sys.stdout.flush()
 
     os.makedirs(root, exist_ok=True)
@@ -195,7 +195,7 @@ def download_url(
     file_id = _get_google_drive_file_id(url)
     if file_id is not None:
         fpath = download_file_from_google_drive(file_id, root, filename, md5)
-        print('done.')
+        #print('done.')
         return fpath
     #
 
@@ -223,7 +223,7 @@ def download_url(
     if not check_integrity(fpath, md5):
         raise RuntimeError("File not found or corrupted.")
     #
-    print('done.')
+    #print('done.')
     return fpath
 
 
@@ -360,7 +360,7 @@ def _is_zip(filename: str) -> bool:
 def extract_archive(from_path: str, to_path: Optional[str] = None, remove_finished: bool = False,
                     verbose: bool = True, mode: Optional[str] = None):
     if verbose:
-        print(f'Extracting {from_path} to {to_path}' + ' This may take some time. Please wait...')
+        print(f'Extracting {from_path} to {to_path}')
         sys.stdout.flush()
     #
     if to_path is None:
@@ -394,7 +394,7 @@ def extract_archive(from_path: str, to_path: Optional[str] = None, remove_finish
         os.remove(from_path)
     #
     if verbose:
-        print('done.')
+        #print('done.')
         sys.stdout.flush()
     #
     return to_path

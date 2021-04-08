@@ -104,9 +104,10 @@ class ADE20KSegmentation(utils.ParamsBase):
         images_folder = os.path.join(path, 'images')
         annotations_folder = os.path.join(path, 'annotations')
         if (not self.force_download) and os.path.exists(path) and os.path.exists(images_folder) and os.path.exists(annotations_folder):
-            print(utils.log_color('INFO', 'dataset exists - will reuse', path))
+            print(utils.log_color('\nINFO', 'dataset exists - will reuse', path))
             return
         #
+        print(utils.log_color('\nINFO', 'downloading and preparing dataset', path + ' This may take some time.'))
         print(f'{Fore.YELLOW}'
               f'\nADE20K Dataset:'
               f'\n    Scene Parsing through ADE20K Dataset.'
@@ -124,6 +125,7 @@ class ADE20KSegmentation(utils.ParamsBase):
         download_root = os.path.join(root, 'download')
         dataset_path = utils.download_file(dataset_url, root=download_root, extract_root=os.path.split(root)[0],
                                            force_download=self.force_download)
+        print(utils.log_color('\nINFO', 'dataset ready', path))
         return
 
     def __getitem__(self, idx, with_label=False):
