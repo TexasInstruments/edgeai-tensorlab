@@ -97,9 +97,12 @@ class PipelineRunner():
     # this function cannot be an instance method of PipelineRunner, as it causes an
     # error during pickling, involved in the launch of a process is parallel run. make it classmethod
     @classmethod
-    def _run_pipeline(cls, settings, pipeline_config_in, parallel_device=None, description=''):
+    def _run_pipeline(cls, settings_in, pipeline_config_in, parallel_device=None, description=''):
         # create a copy to avoid issues due to running multiple models
         pipeline_config = copy.deepcopy(pipeline_config_in)
+        # note that this basic_settings() copies only the basic settings.
+        # sometimes, there is no need to copy the entire settings which includes the dataset_cache
+        settings = settings_in.basic_settings()
 
         # capture cwd - to set it later
         cwd = os.getcwd()

@@ -38,14 +38,14 @@ class ConfigDict(dict):
         self._initialize()
         # read the given settings file
         input_dict = dict()
-        input_dict['settings_file'] = None
+        settings_file = None
         if isinstance(input, str):
             ext = os.path.splitext(input)[1]
             assert ext == '.yaml', f'unrecognized file type for: {input}'
             with open(input) as fp:
                 input_dict = yaml.safe_load(fp)
             #
-            input_dict['settings_file'] = input
+            settings_file = input
         elif isinstance(input, dict):
             input_dict = input
         elif input is not None:
@@ -56,8 +56,7 @@ class ConfigDict(dict):
             input_dict[k] = v
         #
         for key, value in input_dict.items():
-            if key == 'include_files':
-                settings_file = input_dict['settings_file']
+            if key == 'include_files' and input_dict['include_files'] is not None:
                 include_base_path = os.path.dirname(settings_file) if settings_file is not None else './'
                 idict = self._parse_include_files(value, include_base_path)
                 self.update(idict)
@@ -65,7 +64,16 @@ class ConfigDict(dict):
                 self.__setattr__(key, value)
             #
         #
+        # collect basic keys that are added during initialization
+        # only these will be copied during call to basic_settings()
+        self.basic_keys = list(self.keys())
 
+    def basic_settings(self):
+        '''this only returns the basic settings.
+        sometimes, there is no need to copy the entire settings
+        which includes the dataset_cache'''
+        return ConfigDict({k:self[k] for k in self.basic_keys})
+    
     def __getattr__(self, key):
         return self[key]
 
@@ -157,11 +165,6 @@ class ConfigDict(dict):
         self.experimental_models = False
         # rewrite results with latest params if the result exists
         self.rewrite_results = False
-
-        ###########################################################
-        # internal state information
-        ###########################################################
-        self.dataset_cache = None
 
     def _parse_include_files(self, include_files, include_base_path):
         input_dict = {}

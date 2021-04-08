@@ -34,6 +34,9 @@ from . import config_dict
 class ConfigSettings(config_dict.ConfigDict):
     def __init__(self, input, **kwargs):
         super().__init__(input, **kwargs)
+        # variable to pre-load datasets - so that it si not
+        # separately created for each config
+        self.dataset_cache = None
 
         # quantization params
         runtime_options = self.runtime_options if 'runtime_options' in self else dict()
