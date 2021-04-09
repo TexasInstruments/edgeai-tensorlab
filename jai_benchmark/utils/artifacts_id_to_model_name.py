@@ -527,9 +527,10 @@ def get_name_key_pair_list(model_ids, session_name, remove_models=True):
     removed_model_entries = removed_model_list.keys()
     name_key_pair_list = []
     for model_id in model_ids:
-        artifact_name = get_artifact_name(model_id, session_name)
+        artifact_id = f'{model_id}_{session_name}'
+        artifact_name =  model_id_artifacts_pair[artifact_id] if artifact_id in model_id_artifacts_pair else None
         if artifact_name is not None and \
-                (not remove_models or artifact_name not in removed_model_entries):
+                (not remove_models or artifact_id not in removed_model_entries):
             name_key_pair_list.append((artifact_name, model_id))
         #
     #
