@@ -67,13 +67,13 @@ dataset_info_dict_experimental = {
 
 def get_dataset_info_dict(settings):
     dset_info_dict = dataset_info_dict.copy()
-    if settings.experimental_models:
+    if settings is not None and settings.experimental_models:
         dset_info_dict.update(dataset_info_dict_experimental)
     #
     return dset_info_dict
 
 
-def get_dataset_categories(settings, task_type=None):
+def get_dataset_categories(settings=None, task_type=None):
     dset_info_dict = get_dataset_info_dict(settings)
     # we are picking category instead of the actual dataset name/variant.
     # the actual dataset to be used cal is selected in get_dataset()
