@@ -33,10 +33,11 @@ from colorama import Fore
 
 
 class TeeLogger:
-    def __init__(self, file_name):
+    def __init__(self, file_name, append=False):
         super().__init__()
         self.src_stream = sys.stdout
-        self.dst_file = open(file_name, 'w') if file_name is not None else None
+        mode = 'a' if append else 'w'
+        self.dst_file = open(file_name, mode) if file_name is not None else None
         sys.stdout = self
 
     def __del__(self):

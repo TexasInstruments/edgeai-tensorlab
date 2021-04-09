@@ -68,53 +68,57 @@ class AccuracyPipeline():
         # check if the result already exists - if so we can return
         result_yaml = os.path.join(run_dir, 'result.yaml')
         if self.settings.run_missing and os.path.exists(result_yaml):
-            print(utils.log_color('\nINFO', 'found results, skipping', result_yaml))
-            sys.stdout.flush()
+            # create logger in append mode
+            log_filename = os.path.join(run_dir, 'run.log') if self.settings.enable_logging else None
+            self.logger = utils.TeeLogger(log_filename, append=True)
+            self.logger.write(utils.log_color('\nINFO', 'result exists - will reuse', result_yaml))
             with open(result_yaml) as fp:
                 param_result = yaml.safe_load(fp)
+                result_dict = param_result['result'] if 'result' in param_result else {}
             #
             if self.settings.rewrite_results and self.settings.enable_logging:
                 param_dict = utils.pretty_object(self.pipeline_config)
-                result_dict = param_result['result'] if 'result' in param_result else {}
                 param_result = dict({'result': result_dict})
                 param_result.update(param_dict)
                 with open(os.path.join(run_dir, 'result.yaml'), 'w') as fp:
                     yaml.safe_dump(param_result, fp, sort_keys=False)
                 #
             #
+            self.logger.write(utils.log_color('\nSUCCESS', 'benchmark results', f'{result_dict}\n'))
+            return param_result
+        else:
+            # collect the input params
+            param_dict = utils.pretty_object(self.pipeline_config)
+            # start() must be called to create the required directories
+            session.start()
+            # create logger
+            log_filename = os.path.join(run_dir, 'run.log') if self.settings.enable_logging else None
+            self.logger = utils.TeeLogger(log_filename)
+            self.logger.write(utils.log_color('\nINFO', 'running', os.path.basename(run_dir)))
+            self.logger.write(utils.log_color('\nINFO', 'pipeline_config', self.pipeline_config))
+            # import.
+            if self.settings.run_import:
+                self._import_model(description)
+            #
+            # inference
+            if self.settings.run_inference:
+                output_list = self._infer_frames(description)
+                result_dict = self._evaluate(output_list)
+                result_dict.update(self.infer_stats_dict)
+            #
+            # collect the results
+            result_dict = utils.pretty_object(result_dict)
+            param_result = dict({'result': result_dict})
+            param_result.update(param_dict)
+            # dump the results
+            if self.settings.enable_logging:
+                with open(os.path.join(run_dir, 'result.yaml'), 'w') as fp:
+                    yaml.safe_dump(param_result, fp, sort_keys=False)
+                #
+            #
+            self.logger.write(utils.log_color('\nSUCCESS', 'benchmark results', f'{result_dict}\n'))
             return param_result
         #
-        # collect the input params
-        param_dict = utils.pretty_object(self.pipeline_config)
-        # start() must be called to create the required directories
-        session.start()
-        # create logger
-        log_filename = os.path.join(run_dir, 'run.log') if self.settings.enable_logging else None
-        self.logger = utils.TeeLogger(log_filename)
-        self.logger.write(utils.log_color('\nINFO', 'running', os.path.basename(run_dir)))
-        self.logger.write(utils.log_color('\nINFO', 'pipeline_config', self.pipeline_config))
-        # import.
-        if self.settings.run_import:
-            self._import_model(description)
-        #
-        # inference
-        if self.settings.run_inference:
-            output_list = self._infer_frames(description)
-            result_dict = self._evaluate(output_list)
-            result_dict.update(self.infer_stats_dict)
-        #
-        # collect the results
-        result_dict = utils.pretty_object(result_dict)
-        param_result = dict({'result': result_dict})
-        param_result.update(param_dict)
-        # dump the results
-        if self.settings.enable_logging:
-            with open(os.path.join(run_dir, 'result.yaml'), 'w') as fp:
-                yaml.safe_dump(param_result, fp, sort_keys=False)
-            #
-        #
-        self.logger.write(utils.log_color('\nSUCCESS', 'benchmark results', f'{result_dict}\n'))
-        return param_result
 
     def _import_model(self, description=''):
         session = self.pipeline_config['session']

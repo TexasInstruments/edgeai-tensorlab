@@ -123,7 +123,7 @@ class ConfigDict(dict):
         # run inference - for inferene in j7 evm, it is assumed that the artifaacts folders are already available
         self.run_inference = True
         # run only models for which the results are missing. if this is False, all configs will be run
-        self.run_missing = False
+        self.run_missing = True
         # collect final accuracy results - not needed, use the script generate_report.py instead
         self.collect_results = False
         # detection threshold
