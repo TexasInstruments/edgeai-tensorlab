@@ -117,14 +117,6 @@ def create_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_1.0_224.tflite'),
             metric=dict(label_offset_pred=-1)
         ),
-        # # mxnet : gluoncv model : classification - mobilenetv2_1.0 - accuracy: 72.04% top1
-        # 'custom-example3': utils.dict_update(common_cfg,
-        #     preprocess=settings.get_preproc_mxnet(),
-        #     session=sessions.TVMDLRSession(**common_session_cfg, runtime_options=runtime_options_tvmdlr,
-        #         model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-symbol.json',
-        #                     f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-0000.params'],
-        #         model_type='mxnet', input_shape={'data':(1,3,224,224)})
-        # )
     }
     return pipeline_configs
 
