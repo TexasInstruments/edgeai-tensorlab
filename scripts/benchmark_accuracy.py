@@ -39,26 +39,21 @@ if __name__ == '__main__':
         os.chdir('../')
     #
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('settings_file', type=str, default=None)
     parser.add_argument('--work_dirs', type=str, default='./work_dirs')
-    parser.add_argument('--tensor_bits', type=utils.str_to_int, default=None)
-    parser.add_argument('--configs_path', type=str, default=None)
-    parser.add_argument('--models_path', type=str, default=None)
-    parser.add_argument('--task_selection', type=str, nargs='*', default=None)
-    parser.add_argument('--model_selection', type=str, nargs='*', default=None)
-    parser.add_argument('--session_type_dict', type=str, nargs='*', default=None)
+    parser.add_argument('--tensor_bits', type=utils.str_to_int)
+    parser.add_argument('--configs_path', type=str)
+    parser.add_argument('--models_path', type=str)
+    parser.add_argument('--task_selection', type=str, nargs='*')
+    parser.add_argument('--model_selection', type=str, nargs='*')
+    parser.add_argument('--session_type_dict', type=str, nargs='*')
     cmds = parser.parse_args()
 
-    # this update condition is so that settings is not changed
-    # if an empty string is given from the commandline
-    # this makes it easy to select a suitable setting in the shell script
-    dict_update_condition = lambda x:(x not in (None,''))
-    kwargs = utils.dict_update_cond({}, condition_fn=dict_update_condition,
-                tensor_bits=cmds.tensor_bits,
-                configs_path=cmds.configs_path, models_path=cmds.models_path,
-                task_selection=cmds.task_selection, model_selection=cmds.model_selection,
-                session_type_dict=utils.str_to_dict(cmds.session_type_dict))
+    kwargs = vars(cmds)
+    if 'session_type_dict' in kwargs:
+        kwargs['session_type_dict'] = utils.str_to_dict(kwargs['session_type_dict'])
+    #
     settings = config_settings.ConfigSettings(cmds.settings_file, **kwargs)
     print(f'settings: {settings}')
     sys.stdout.flush()
