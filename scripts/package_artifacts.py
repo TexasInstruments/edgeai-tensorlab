@@ -31,10 +31,6 @@ import argparse
 from jai_benchmark import *
 
 
-
-
-
-
 if __name__ == '__main__':
     # the cwd must be the root of the respository
     if os.path.split(os.getcwd())[-1] == 'scripts':

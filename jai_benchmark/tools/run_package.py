@@ -183,7 +183,8 @@ def package_artifacts(settings, work_dir, out_dir, include_results=False):
     print(f'packaging artifacts to {out_dir} please wait...')
     run_dirs = glob.glob(f'{work_dir}/*')
 
-    tarfile_names = []
+    packaged_artifacts_list = []
+    packaged_artifacts_dict = {}
     for run_dir in run_dirs:
         if not os.path.isdir(run_dir):
             continue
@@ -208,7 +209,11 @@ def package_artifacts(settings, work_dir, out_dir, include_results=False):
                 artifact_name = utils.get_artifact_name(artifact_id)
                 artifact_name = '_'.join(run_dir_basename.split('_')[1:]) if artifact_name is None else artifact_name
 
-                tarfile_names.append(','.join([task_type, runtime_name, package_run_dir, artifact_name, str(tarfile_size)]))
+                packaged_artifacts_list.append(','.join([task_type, runtime_name, package_run_dir, artifact_name, str(tarfile_size)]))
+                artifacts_dict = {'task_type': task_type, 'session_name': runtime_name,
+                                  'run_dir': package_run_dir, 'artifact_name': artifact_name,
+                                  'size': tarfile_size}
+                packaged_artifacts_dict.update({artifact_id:artifacts_dict})
                 print(utils.log_color('SUCCESS', 'finished packaging', run_dir))
             else:
                 print(utils.log_color('WARNING', 'could not package', run_dir))
@@ -225,9 +230,12 @@ def package_artifacts(settings, work_dir, out_dir, include_results=False):
             shutil.copy2(results_yaml, package_results_yaml)
         #
     #
-    model_list = '\n'.join(tarfile_names)
+    model_list = '\n'.join(packaged_artifacts_list)
     with open(os.path.join(out_dir,'artifacts.list'), 'w') as fp:
         fp.write(model_list)
+    #
+    with open(os.path.join(out_dir,'artifacts.yaml'), 'w') as fp:
+        yaml.safe_dump(packaged_artifacts_dict, fp)
     #
     with open(os.path.join(out_dir, 'extract.sh'), 'w') as fp:
         # Note: append '-exec rm -f "{}" \;' to delete the original .tar.gz files
