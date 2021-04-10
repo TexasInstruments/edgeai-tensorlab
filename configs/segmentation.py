@@ -142,14 +142,14 @@ def get_configs(settings, work_dir):
         #------------------------coco 21 class-----------------------
         'vseg-21-100-0':utils.dict_update(cocoseg21_cfg,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/jai-pytorch/deeplabv3lite_mobilenetv2_cocoseg21_512x512_20210405.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':57.77})
         ),
         'vseg-21-110-0':utils.dict_update(cocoseg21_cfg,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/jai-pytorch/fpnlite_aspp_regnetx800mf_cocoseg21_512x512_20210405.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':61.09})
