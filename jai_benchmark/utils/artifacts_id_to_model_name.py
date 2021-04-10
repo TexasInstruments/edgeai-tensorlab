@@ -267,10 +267,10 @@ removed_model_list = {
     'vseg-16-104-0_onnxrt': 'ONR-SS-857-fpnlite-aspp-regNetx1.6gf-cs-1024x512', # cityscapes model not part of Model Zoo
     'vseg-16-105-0_onnxrt': 'ONR-SS-858-fpnlite-aspp-regNetx3.2gf-cs-1536x768', # cityscapes model not part of Model Zoo
     ################
-    'vcls-10-408-0_tflitert': 'TFL-CL-024-nasNet-mobile-tflite', # Kumar removed model (Multiple sub-graphs)
-    'vcls-10-432-0_tflitert': 'TFL-CL-018-efficientNet-lite2', # Kumar removed model
-    'vdet-12-011-0_tflitert': 'TFL-OD-201-ssd-mobV2-coco-300x300-mlperf',  # Kumar removed model
-    'vseg-16-400-0_tflitert': 'TFL-SS-255-deeplabv3-mobv2_cs-2048x1024',  # Kumar removed model, 
+    'vcls-10-408-0_tflitert': 'TFL-CL-024-nasNet-mobile-tflite', # Kumar removed model (Multiple sub-graphs) (Accuracy issue)
+    'vcls-10-432-0_tflitert': 'TFL-CL-018-efficientNet-lite2', # Kumar removed model  (Accuracy issue)
+    'vdet-12-011-0_tflitert': 'TFL-OD-201-ssd-mobV2-coco-300x300-mlperf',  # Kumar removed model (Duplocate)
+    'vseg-16-400-0_tflitert': 'TFL-SS-255-deeplabv3-mobv2_cs-2048x1024',  # Kumar removed model, (not in plan)
 
     'vcls-10-306-0_tvmdlr': 'TVM-CL-337-vgg16', # Kumar removed model
     'vcls-10-020-0_tvmdlr': 'TVM-CL-300-resNet18V2', # Kumar removed model
@@ -571,5 +571,5 @@ if __name__ == '__main__':
 
     #find which models need re-run due to lack of performance data    
     if generate_list_mising_models:    
-        df = get_missing_models(report_file='./work_dirs/benchmark_accuracy_golden_p2/report_20210402-094736.csv', 
+        df = get_missing_models(report_file='./work_dirs/benchmark_accuracy/report_20210409-155749.csv', 
             selected_models_list=selected_models_list)
