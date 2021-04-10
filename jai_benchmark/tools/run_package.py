@@ -182,8 +182,8 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
 def package_artifacts(settings, work_dir, out_dir, include_results=False):
     print(f'packaging artifacts to {out_dir} please wait...')
     run_dirs = glob.glob(f'{work_dir}/*')
+    run_dirs = sorted(run_dirs)
 
-    packaged_artifacts_list = []
     packaged_artifacts_dict = {}
     for run_dir in run_dirs:
         if not os.path.isdir(run_dir):
@@ -207,9 +207,8 @@ def package_artifacts(settings, work_dir, out_dir, include_results=False):
                 artifact_id = '_'.join(run_dir_basename.split('_')[:2])
                 runtime_name = run_dir_basename.split('_')[1]
                 artifact_name = utils.get_artifact_name(artifact_id)
-                artifact_name = '_'.join(run_dir_basename.split('_')[1:]) if artifact_name is None else artifact_name
+                #artifact_name = '_'.join(run_dir_basename.split('_')[1:]) if artifact_name is None else artifact_name
 
-                packaged_artifacts_list.append(','.join([task_type, runtime_name, package_run_dir, artifact_name, str(tarfile_size)]))
                 artifacts_dict = {'task_type': task_type, 'session_name': runtime_name,
                                   'run_dir': package_run_dir, 'artifact_name': artifact_name,
                                   'size': tarfile_size}
@@ -230,12 +229,17 @@ def package_artifacts(settings, work_dir, out_dir, include_results=False):
             shutil.copy2(results_yaml, package_results_yaml)
         #
     #
-    model_list = '\n'.join(packaged_artifacts_list)
-    with open(os.path.join(out_dir,'artifacts.list'), 'w') as fp:
-        fp.write(model_list)
-    #
+    # sort artifacts
+    packaged_artifacts_dict = dict(sorted(packaged_artifacts_dict.items(), key=lambda kv:kv[1]['task_type']))
+    # write yaml
     with open(os.path.join(out_dir,'artifacts.yaml'), 'w') as fp:
         yaml.safe_dump(packaged_artifacts_dict, fp)
+    #
+    # write list
+    packaged_artifacts_list = [','.join([str(v or 'null') for v in artifact_entry.values()]) \
+                               for artifact_entry in packaged_artifacts_dict.values()]
+    with open(os.path.join(out_dir,'artifacts.list'), 'w') as fp:
+        fp.write('\n'.join(packaged_artifacts_list))
     #
     with open(os.path.join(out_dir, 'extract.sh'), 'w') as fp:
         # Note: append '-exec rm -f "{}" \;' to delete the original .tar.gz files
