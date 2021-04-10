@@ -85,6 +85,7 @@ class AccuracyPipeline():
                 #
             #
             self.logger.write(utils.log_color('\nSUCCESS', 'benchmark results', f'{result_dict}\n'))
+            self.logger.close()
             return param_result
         else:
             # collect the input params
@@ -117,6 +118,7 @@ class AccuracyPipeline():
                 #
             #
             self.logger.write(utils.log_color('\nSUCCESS', 'benchmark results', f'{result_dict}\n'))
+            self.logger.close()
             return param_result
         #
 
