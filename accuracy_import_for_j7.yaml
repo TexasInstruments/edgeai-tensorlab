@@ -1,5 +1,5 @@
 # include_files is a special keyword - other files that need to be merged with this dict
-include_files : ['accuracy_base_minimal.yaml']
+include_files : ['accuracy_base_full.yaml']
 # important parameter. set this to 'pc' to do import and inference in pc
 # set this to 'j7' to run inference in device. for inference on device run_import
 # below should be switched off and it is assumed that the artifacts are already created.
