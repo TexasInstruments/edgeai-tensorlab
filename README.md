@@ -6,6 +6,12 @@ This repository provides a collection of scripts for various image recognition t
 #### Notice
 This repository is part of Jacinto-AI-DevKit, which is a collection of repositories providing Training & Quantization scripts, Model Zoo and Accuracy Benchmarks. If you have not visited the landing page of [**Jacinto-AI-Devkit**](https://github.com/TexasInstruments/jacinto-ai-devkit) please do so before attempting to use this repository.
 
+Online Documentation [link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-benchmark/about/)
+
+Git clone [URLs](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-benchmark/)
+
+Tree [view](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-benchmark/tree/)
+
 
 ## Introduction
 Deep Neural Networks (a.k.a. DNNs or Deep Learning Models or simply models) can be run on our SoCs using RTOS SDK for Jacinto 7 (PROCESSOR-SDK-RTOS-J721E). It can be downloaded from the page for Processor SDK for Jacinto 7 TDA4x a.k.a. **[PROCESSOR-SDK-J721E](https://www.ti.com/tool/PROCESSOR-SDK-J721E)**. 
@@ -19,8 +25,8 @@ Getting the correct functionality and accuracy with Deep Learning Models is not 
 
 ## Components of this repository
 This repository is generic and can be used with a variety of runtimes and models supported by TIDL. This repository contains several parts:<br>
-- [jai_benchmark](./jai_benchmark): Core scritps for core import/calibration, inference and accuracy benchmark scripts provided as a python package (that can be imported using: import jai_benchmark or using: from jai_benchmark import *)<br>
-- [scripts](./scripts): these are the top level scripts - to import/calibrate models, to infer and do accuracy benchmark, to collect accuracy report and to package the generate artifacts.<br>
+- **jai_benchmark**: Core scritps for core import/calibration, inference and accuracy benchmark scripts provided as a python package (that can be imported using: import jai_benchmark or using: from jai_benchmark import *)<br>
+- **scripts**: these are the top level scripts - to import/calibrate models, to infer and do accuracy benchmark, to collect accuracy report and to package the generate artifacts.<br>
 
 
 ## Requirements
@@ -63,7 +69,7 @@ After cloning this repository, install it as a Python package by running:
 ./setup.sh
 ```
 
-Open the shell scripts that starts the actual benchmarking [run_benchmarks.sh](./run_benchmarks.sh), [tutorials](./tutorials) and see the environment variables **PSDK_BASE_PATH** and **TIDL_BASE_PATH** being defined. Change these paths appropriately to reflect what is in your PC.
+Open the shell scripts that starts the actual benchmarking run_benchmarks.sh and see the environment variables **PSDK_BASE_PATH** and **TIDL_BASE_PATH** being defined. Change these paths appropriately to reflect what is in your PC.
 
 Once installed, the **jai_benchmark** will be a available as a package in your Python environment. It can be imported just like any other Python package in a Python script:<br>
 ```
@@ -77,34 +83,49 @@ from jai_benchmark import *
 
 ## Usage
 
-#### Accuracy Benchmarking
-Accuracy benchmark can be done by running [run_benchmarks.sh](./run_benchmarks.sh)
+#### Import Models & Accuracy Benchmarking
+Import/Calibration of models amd accuracy benchmark can be done by running run_benchmarks_pc.sh
 
-[run_benchmarks.sh](../run_benchmarks.sh) sets up some environment variables and then runs the benchmark code provided in [scripts/benchmark_accuracy.py](./scripts/benchmark_accuracy.py) using one of the yaml settings files.
+**run_benchmarks_pc.sh** sets up some environment variables and then runs the benchmark code provided in **scripts/benchmark_accuracy.py** using one of the yaml settings files.
 
-For full fledged benchmarking on pc, you can use the yaml file [accuracy_import_infer_pc.yaml](./accuracy_import_infer_pc.yaml)
+For full fledged benchmarking on pc, you can use the yaml file **accuracy_import_infer_pc.yaml**
 
-Change the yaml settings file appropriately to run on J7 EVM. [accuracy_import_for_j7.yaml](./accuracy_import_for_j7.yaml) can be used to run the import/calibration of the models on PC, but targeted for the J7 platform. This will create the imported artifacts corresponding to the models in the folder specified as work_dir in the benchmark script. 
+Change the yaml settings file appropriately to run on J7 EVM. **accuracy_import_for_j7.yaml** can be used to run the import/calibration of the models on PC, but targeted for the J7 platform. This will create the imported artifacts corresponding to the models in the folder specified as work_dir in the benchmark script. 
 
-Finally [accuracy_infer_on_j7.yaml](./accuracy_infer_on_j7.yaml) can be used when running the benchmark on the J7 EVM. This step will need the folder containing imported artifacts - so copy them over to the EVM or mount that folder via NFS.
+Finally **accuracy_infer_on_j7.yaml** can be used when running the benchmark on the J7 EVM. This step will need the folder containing imported artifacts - so copy them over to the EVM or mount that folder via NFS.
 
-By default, the accuracy benchmark script uses our pre-defined models and configs, provided in [examples](./examples) folder.
+If you would like to do accuracy benchmark for your own custom model, then please look at the example given in **scripts/benchmark_custom.py**
 
-If you would like to use the models and configs provided in jacinto-ai-modelzoo, please change the configs_path and modelzoo_path to that location, as shown in [run_benchmarks.sh](../run_benchmarks.sh) 
+#### Model Inference on device
+Model inference on device can be done using the script **run_benchmarks_j7.sh**
 
-If you would like to do accuracy benchmark for your own custom model, then please look at the example given in [scripts/benchmark_custom.py](./scripts/benchmark_custom.py).
+This will use the imported model artifacts created using the step above "Import Models & Accuracy Benchmarking". So this repository needs to be cloned (and dependencies installed) on devices the the model artifacts need to be accessible from the device (either copy of do NFS mount). 
+
+Note: *For advance users only - if you are beginner, please ignore this note and focus on onnxrt and tflitert runtimes. For onnxrt and tflitert runtimes, the model artifacts using run_benchmarks_pc.sh can be used to do inference on device - no change required. However this would not work for the case of tvmdlr. For the case of tvmdlr, during import, the target_device has to be set to j7 in the yaml file used the script and also run_inference be set to False. The tvmdlr model artifacts this created would work in this inference step on device.*
 
 
 #### Generate report
-A CSV report containing all your benchmarking resutls can be generated by running [scripts/generate_report.py](./scripts/generate_report.py)
+A CSV report containing all your benchmarking resutls can be generated by running **scripts/generate_report.py**
 
 
 #### Package artifacts
-The original artifacts folder contains several files that are generated during import/calibration. Only some of the files are needed for final inference. The artifacts and models can be packaged for sharing by running [scripts/package_artifacts.py](./scripts/package_artifacts.py) 
+The original artifacts folder contains several files that are generated during import/calibration. Only some of the files are needed for final inference. The artifacts and models can be packaged for sharing by running **scripts/package_artifacts.py**
 
 
-#### Custom models and configs
-It is easy to benchmark your custom own models and configs using this repository. Please see the [documentation](./docs/custom_models.md) and example  [scripts/benchmark_custom.py](./scripts/benchmark_custom.py)
+## **Import Custom Models to create Model artifacts and Benchmark**
+Importing a DNN model using TIDL (or one of its open source front ends) is the process of quantizing and converting the model into a format that can be offloaded into c7x/MMA in. The imported artifacts can then be used to run inference.
+
+Out benchmark tools provide utilities for importing and accuracy benchmark of models. These tools include dataset loaders, pre-processing utilities, post-processing utilities and metric computation utilities.
+
+The following example shows how to perform accuracy benchmark of custom models: **scripts/benchmark_custom.py**
+
+During this accuracy benchmark, import of the model will be performed as the first step. The imported artifacts can be used to run inference on the target device (eg. EVM). 
+
+However, there are a few things to note:
+
+All the step including import, inference and accuracy benchmark can be run on PC (Simulation).
+
+However, the import step cannot be run on the target device (eg. EVM). So that import step has to be run on PC and the resulting artifacts has to be coped to the target device to perform inference or accuracy benchmark.
 
 
 ## LICENSE
