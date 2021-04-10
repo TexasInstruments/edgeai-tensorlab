@@ -108,7 +108,7 @@ It is easy to benchmark your custom own models and configs using this repository
 
 
 ## LICENSE
-Please see the License under which this repository is made available: [LICENSE](./LICENSE)
+Please see the License under which this repository is made available: [LICENSE](./LICENSE.md)
 
 
 ## References

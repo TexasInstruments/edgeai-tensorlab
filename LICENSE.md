@@ -26,7 +26,9 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
 ==============================================================================
+
 Also includes parts from: https://github.com/pytorch/vision
 License: https://github.com/pytorch/vision/blob/master/LICENSE
 
@@ -60,7 +62,9 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
 ==============================================================================
+
 Also includes parts from: https://github.com/cocodataset/cocoapi (pycocotools)
 License: https://github.com/cocodataset/cocoapi/blob/master/license.txt
 
