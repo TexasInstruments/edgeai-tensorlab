@@ -158,6 +158,9 @@ model_id_artifacts_pair = {
     'vseg-18-110-0_tvmdlr': 'TVM-SS-569-fpnlite-aspp-regnetx400mf-ade20k32-384x384',
     'vseg-18-111-0_tvmdlr': 'TVM-SS-570-fpnlite-aspp-regnetx800mf-ade20k32-512x512',
 
+    # TVM -SS - CocoSeg21
+    'vseg-21-100-0_tvmdlr' : 'TVM-SS-571-deeplabv3lite-mobv2-cocoseg21-512x512',
+    'vseg-21-110-0_tvmdlr' : 'TVM-SS-572-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
 
     # ONNXRT- CL
     'vcls-10-020-0_onnxrt': 'ONR-CL-600-resNet18V2',
@@ -239,6 +242,10 @@ model_id_artifacts_pair = {
     'vseg-18-103-8_onnxrt': 'ONR-SS-868-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512',
     'vseg-18-110-0_onnxrt': 'ONR-SS-869-fpnlite-aspp-regnetx400mf-ade20k32-384x384',
     'vseg-18-111-0_onnxrt': 'ONR-SS-870-fpnlite-aspp-regnetx800mf-ade20k32-512x512',
+
+    # ONNX-SS - CocoSeg21
+    'vseg-21-100-0_onnxrt' : 'ONR-SS-871-deeplabv3lite-mobv2-cocoseg21-512x512',
+    'vseg-21-110-0_onnxrt' : 'ONR-SS-872-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
 }
 
 removed_model_list = {
@@ -358,6 +365,14 @@ removed_model_list = {
     'vcls-10-032-2_onnxrt': 'ONR-CL-633-regNetX-800mf-1024x1024',
     'vcls-10-033-2_onnxrt': 'ONR-CL-634-regNetX-1.6gf-1024x1024',
     'vcls-10-102-2_onnxrt': 'ONR-CL-635-mobileNetV2-1p4-qat-1024x1024',
+
+    # ONNX-SS - CocoSeg21 Models are not added yet
+    'vseg-21-100-0_onnxrt' : 'ONR-SS-871-deeplabv3lite-mobv2-cocoseg21-512x512',
+    'vseg-21-110-0_onnxrt' : 'ONR-SS-872-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
+
+    # TVM-SS-CocoSeg21 Models are not added yet
+    'vseg-21-100-0_tvmdlr' : 'TVM-SS-571-deeplabv3lite-mobv2-cocoseg21-512x512',
+    'vseg-21-110-0_tvmdlr' : 'TVM-SS-572-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
 }
 
 removed_models_from_plots = {
