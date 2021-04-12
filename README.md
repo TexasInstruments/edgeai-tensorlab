@@ -8,15 +8,14 @@ This repository is part of Jacinto-AI-DevKit, which is a collection of repositor
 
 Latest stable branch in this repository is v2.0
 
-This repository can be obtained by git clone. Checkout v2.0 to use the stable branch
+This repository can be obtained by git clone. 
 ```
 git clone https://git.ti.com/git/jacinto-ai/jacinto-ai-benchmark.git
-git checkout v2.0
 ```
 
-Online Documentation [link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-benchmark/about/?h=v2.0)
+Online Documentation [link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-benchmark/about/)
 
-Tree [view](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-benchmark/tree/?h=v2.0)
+Tree [view](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-benchmark/tree/)
 
 
 ## Introduction
@@ -50,7 +49,7 @@ After extracting, follow the instructions in the RTOS package to download the de
 Please also read the details below for obtaining the ModelZoo and Datasets - these are also required to do the benchmarking. 
 
 #### Requirement: ModelZoo
-DNN Models, config files and pre-imported/calibrated artifacts that are used in this benchmark are provided in another repository called **[Jacinto-AI-ModelZoo](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/about/?h=v2.0)**. Please see the documentation of that repository to understand how to clone it. After cloning, jacinto-ai-benchmark and jacinto-ai-modelzoo must be inside the same parent folder for the default settings to work.
+DNN Models, config files and pre-imported/calibrated artifacts that are used in this benchmark are provided in another repository called **[Jacinto-AI-ModelZoo](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/about/)**. Please see the documentation of that repository to understand how to clone it. After cloning, jacinto-ai-benchmark and jacinto-ai-modelzoo must be inside the same parent folder for the default settings to work.
 
 Jacinto-AI-ModelZoo uses git-lfs, so please install git-lfs before cloning. After cloning, **jacinto-ai-benchmark** and **jacinto-ai-modelzoo** must be in the same parent folder. 
 
