@@ -373,6 +373,18 @@ removed_model_list = {
     # TVM-SS-CocoSeg21 Models are not added yet
     'vseg-21-100-0_tvmdlr' : 'TVM-SS-571-deeplabv3lite-mobv2-cocoseg21-512x512',
     'vseg-21-110-0_tvmdlr' : 'TVM-SS-572-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
+
+    #removed low accuracy models where drop is more wrt reference accuracy. This will be corrected in the next release.
+    'vseg-17-400-0_tflitert' : 'TFL-SS-254-deeplabv3-mobv2-ade20k-512x512',
+    'vseg-19-400-0_tflitert' : 'TFL-SS-259-deeplabv3_mobv2-dm05-pascal-trainaug-512x512',
+    'vcls-10-410-0_tflitert' : 'TFL-CL-006-resNet50V2',
+    'vseg-19-401-0_tflitert' : 'TFL-SS-260-deeplabv3_mobv2-pascal-trainaug-512x512',
+    'vcls-10-400-8_tflitert' : 'TFL-CL-022-mobileNetV1-qat',
+    'vcls-10-401-0_tflitert' : 'TFL-CL-001-mobileNetV2',
+    'vcls-10-301-0_onnxrt' : 'ONR-CL-608-shuffleNetV2',
+    'vcls-10-402-0_tflitert' : 'TFL-CL-020-mobileNetV2-1p4',
+    'vcls-10-062-0_tvmdlr' : 'TVM-CL-343-gluoncv-mxnet-xception',
+
 }
 
 removed_models_from_plots = {
