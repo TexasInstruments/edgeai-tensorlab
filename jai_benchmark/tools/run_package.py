@@ -92,6 +92,10 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
     pipeline_param['session']['model_folder'] = relative_model_dir
     pipeline_param['session']['model_path'] = relative_model_path
     pipeline_param['session']['artifacts_folder'] = relative_artifacts_dir
+    # result is being excluded from the param.yaml - that will only be in result.yaml
+    if 'result' in pipeline_param:
+        del pipeline_param['result']
+    #
     with open(param_file, 'w') as pfp:
         yaml.safe_dump(pipeline_param, pfp)
     #
