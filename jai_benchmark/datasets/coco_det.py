@@ -233,13 +233,12 @@ class COCODetection(utils.ParamsBase):
 
     def evaluate(self, predictions, **kwargs):
         label_offset = kwargs.get('label_offset_pred', 0)
-        run_dir = kwargs.get('run_dir', None)
-        if run_dir is None:
-            temp_dir = tempfile.TemporaryDirectory()
-            run_dir = temp_dir.name
-            self.tempfiles.append(temp_dir)
-        #
-        os.makedirs(run_dir, exist_ok=True)
+        #run_dir = kwargs.get('run_dir', None)
+        temp_dir_obj = tempfile.TemporaryDirectory()
+        temp_dir = temp_dir_obj.name
+        self.tempfiles.append(temp_dir_obj)
+
+        #os.makedirs(run_dir, exist_ok=True)
         detections_formatted_list = []
         for frame_idx, det_frame in enumerate(predictions):
             for det_id, det in enumerate(det_frame):
@@ -253,7 +252,7 @@ class COCODetection(utils.ParamsBase):
         coco_ap = 0.0
         coco_ap50 = 0.0
         if len(detections_formatted_list) > 0:
-            detection_file = os.path.join(run_dir, 'detection_results.json')
+            detection_file = os.path.join(temp_dir, 'detection_results.json')
             with open(detection_file, 'w') as det_fp:
                 json.dump(detections_formatted_list, det_fp)
             #
@@ -292,8 +291,8 @@ class COCODetection(utils.ParamsBase):
             label = label_offset[label]
         elif isinstance(label_offset, dict):
             if np.isnan(label) or int(label) not in label_offset.keys():
-                print(utils.log_color('\nWARNING', 'detection incorrect', f'detected label: {label}'
-                                                                          f' is not in label_offset dict'))
+                #print(utils.log_color('\nWARNING', 'detection incorrect', f'detected label: {label}'
+                #                                                          f' is not in label_offset dict'))
                 label = 0
             else:
                 label = label_offset[int(label)]
