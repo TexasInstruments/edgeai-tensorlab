@@ -206,9 +206,8 @@ class COCOSegmentation(utils.ParamsBase):
               f'\nCOCO Dataset:'
               f'\n    Microsoft COCO: Common Objects in Context, '
               f'\n        Tsung-Yi Lin, et.al. https://arxiv.org/abs/1405.0312\n'
-              f'\nPlease visit the url: https://cocodataset.org/ and '
-              f'\n    to know more about the COCO dataset and understand '
-              f'\n    the terms and conditions under which it can be used.'
+              f'\n    Visit the following url to know more about the COCO dataset. '
+              f'\n        https://cocodataset.org/ '
               f'{Fore.RESET}\n')
 
         dataset_url = 'http://images.cocodataset.org/zips/val2017.zip'

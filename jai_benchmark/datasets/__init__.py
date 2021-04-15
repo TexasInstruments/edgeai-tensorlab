@@ -229,7 +229,7 @@ def get_datasets(settings, download=False):
 def download_datasets(settings, download=True):
     # just creating the dataset classes with download=True will check of the dataset folders are present
     # if the dataset folders are missing, it will be downloaded and extracted
-    # set download='always' to force re-download teh datasets
+    # set download='always' to force re-download the datasets
     settings.dataset_cache = get_datasets(settings, download=download)
     return True
 

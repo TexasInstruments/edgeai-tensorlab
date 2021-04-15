@@ -110,7 +110,7 @@ class ConfigDict(dict):
         # below should be switched off and it is assumed that the artifacts are already created.
         self.target_device = 'pc' #'j7' #'pc'
         # for parallel execution on pc only (cpu or gpu(. if you don't have gpu, these actual numbers don't matter,
-        # but the size of teh list determines the number of parallel processes
+        # but the size of the list determines the number of parallel processes
         # if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
         self.parallel_devices = None #[0,1,2,3,0,1,2,3]
         # quantization bit precision

@@ -52,9 +52,15 @@ class BaseImageNetCls(ImageCls):
 
     def get_notice(self):
         notice = f'{Fore.YELLOW}' \
-                 f'\nImageNet Dataset: Please visit the url: http://image-net.org ' \
-                 f'\nto know more about ImageNet dataset and understand ' \
-                 f'\nthe terms and conditions under which it can be used. ' \
+                 f'\nImageNet Dataset: ' \
+                 f'\n    ImageNet Large Scale Visual Recognition Challenge, ' \
+                 f'\n        Olga Russakovsky*, Jia Deng*, Hao Su, Jonathan Krause, Sanjeev Satheesh, Sean Ma, ' \
+                 f'\n        Zhiheng Huang, Andrej Karpathy, Aditya Khosla, Michael Bernstein, Alexander C. Berg ' \
+                 f'\n        and Li Fei-Fei. (* = equal contribution), IJCV, 2015, ' \
+                 f'\n        https://arxiv.org/abs/1409.0575 ' \
+                 f'\n    Visit the following url to know more about ImageNet dataset ' \
+                 f'\n        http://image-net.org ' \
+                  f'\n       and also to register and obtain the download links. '  \
                  f'{Fore.RESET}\n'
         return notice
 

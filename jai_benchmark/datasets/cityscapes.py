@@ -93,10 +93,9 @@ class CityscapesSegmentation(utils.ParamsBase):
                   f'\n    The Cityscapes Dataset for Semantic Urban Scene Understanding,'                  
                   f'\n        M. Cordts, et.al. in Proc. of the IEEE Conference on '
                   f'\n        Computer Vision and Pattern Recognition (CVPR), 2016.\n'
-                  f'\nCityscapes dataset can be downloaded after registering at: '
-                  f'\n    https://www.cityscapes-dataset.com/ '
-                  f'\nAlso visit: https://www.cityscapes-dataset.com/license/ '
-                  f'\n    to understand the terms and conditions of this dataset.'
+                  f'\n    Visit the following url to know more about the Cityscapes dataset: '
+                  f'\n        https://www.cityscapes-dataset.com/  '
+                  f'\n        and also to register and obtain the download links. '                  
                   f'{Fore.RESET}\n')
             assert False, f'input path {path} must contain the dataset'
         #

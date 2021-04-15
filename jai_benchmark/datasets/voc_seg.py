@@ -109,9 +109,8 @@ class VOC2012Segmentation(utils.ParamsBase):
               f'\n    The PASCAL Visual Object Classes (VOC) Challenge, '
               f'\n        Everingham, M., Van Gool, L., Williams, C. K. I., Winn, J. and Zisserman, A.,'
               f'\n        International Journal of Computer Vision, 88(2), 303-338, 2010,\n'
-              f'\nPlease visit: http://host.robots.ox.ac.uk/pascal/VOC/ '
-              f'\nto know more about the Pascal VOC dataset '
-              f'\nand understand the terms and conditions under which it can be used. '
+              f'\n    Visit the following url to know more about the Pascal VOC dataset. '
+              f'\n        http://host.robots.ox.ac.uk/pascal/VOC/'
               f'{Fore.RESET}\n')
 
         dataset_url = 'http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCdevkit_18-May-2011.tar'
