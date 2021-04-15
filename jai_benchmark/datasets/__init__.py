@@ -52,10 +52,10 @@ dataset_info_dict = {
     #------------------------object detection datasets--------------------------#
     'coco': {'task_type':'detection', 'category':'coco', 'type':COCODetection, 'size':5000, 'split':'val2017'},
     #------------------------semantic segmentation datasets--------------------------#
-    'cocoseg21': {'task_type':'segmentation', 'category':'cocoseg21', 'type':COCOSegmentation, 'size':5000, 'split':'val2017'},
     'ade20k32': {'task_type':'segmentation', 'category':'ade20k32', 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
     'ade20k': {'task_type':'segmentation', 'category':'ade20k', 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
     'voc2012': {'task_type':'segmentation', 'category':'voc2012', 'type':VOC2012Segmentation, 'size':1449, 'split':'val'},
+    'cocoseg21': {'task_type':'segmentation', 'category':'cocoseg21', 'type':COCOSegmentation, 'size':5000, 'split':'val2017'},
  }
 
 
