@@ -55,9 +55,10 @@ echo "PSDK_BASE_PATH=${PSDK_BASE_PATH}"
 # Note: if the following fails to find the correct tidl path, assign it explicitly
 # To know if the correct tidl path is found, see what is printed from the following echo
 #echo "Setting TIDL_BASE_PATH"
-export TIDL_BASE_PATH=$(find "${PSDK_BASE_PATH}/" -maxdepth 1 |grep "/tidl_")
-export TIDL_BASE_PATH=$(realpath -s ${TIDL_BASE_PATH})
-echo "TIDL_BASE_PATH=${TIDL_BASE_PATH}"
+TIDL_BASE_PATH=$(find "${PSDK_BASE_PATH}/" -maxdepth 1 |grep "/tidl_")
+TIDL_BASE_PATH=$(realpath -s ${TIDL_BASE_PATH})
+export TIDL_TOOLS_PATH=${TIDL_BASE_PATH}/"tidl_tools"
+echo "TIDL_TOOLS_PATH=${TIDL_TOOLS_PATH}"
 
 #echo "Setting TIDL_RT_PERFSTATS"
 export TIDL_RT_PERFSTATS="1"
