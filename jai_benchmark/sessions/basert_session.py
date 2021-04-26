@@ -47,6 +47,11 @@ class BaseRTSession(utils.ParamsBase):
         self.is_imported = False
         self.is_start_infer_done = False
 
+        # tidl_tools_path
+        tidl_tools_path = os.environ['TIDL_TOOLS_PATH'] if 'TIDL_TOOLS_PATH' in os.environ else \
+            os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools')
+        self.kwargs['tidl_tools_path'] = self.kwargs.get('tidl_tools_path', tidl_tools_path)
+
         # work_dir at top level
         self.kwargs['work_dir'] = self.kwargs.get('work_dir', None)
         # run_dir for individual model
@@ -109,6 +114,8 @@ class BaseRTSession(utils.ParamsBase):
             self.start()
         #
         os.makedirs(self.kwargs['artifacts_folder'], exist_ok=True)
+        # it seems change dir to ti_dl/test/tvm-dlr is important for tvm import to work
+        os.chdir(self.kwargs['tidl_tools_path'])
         self.is_imported = True
 
     def start_infer(self):

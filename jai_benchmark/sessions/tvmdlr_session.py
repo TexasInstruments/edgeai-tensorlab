@@ -170,14 +170,12 @@ class TVMDLRSession(BaseRTSession):
 
     def _set_default_options(self):
         runtime_options = self.kwargs.get("runtime_options", {})
-        tidl_tools_path = os.environ['TIDL_TOOLS_PATH'] if 'TIDL_TOOLS_PATH' in os.environ else \
-            os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools')
         default_options = {
             'platform':self.kwargs.get('platform', 'J7'),
             'version':self.kwargs.get('version', (7,0)),
             'data_layout':self.kwargs.get('data_layout', constants.NCHW),
-            "tidl_tools_path": self.kwargs.get("tidl_tools_path", tidl_tools_path),
-            'artifacts_folder':self.kwargs.get('artifacts_folder', None),
+            "tidl_tools_path": self.kwargs["tidl_tools_path"],
+            "artifacts_folder": self.kwargs["artifacts_folder"],
             'tensor_bits':self.kwargs.get('tensor_bits', 8),
             # note: to add advanced options here, start it with 'advanced_options:'
             # example 'advanced_options:pre_batchnorm_fold':1

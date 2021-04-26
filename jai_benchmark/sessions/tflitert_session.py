@@ -99,13 +99,11 @@ class TFLiteRTSession(BaseRTSession):
 
     def _set_default_options(self):
         runtime_options = self.kwargs.get("runtime_options", {})
-        tidl_tools_path = os.environ['TIDL_TOOLS_PATH'] if 'TIDL_TOOLS_PATH' in os.environ else \
-            os.path.join(os.environ['TIDL_BASE_PATH'], 'tidl_tools')
         default_options = {
             "tidl_platform": "J7",
             "tidl_version": "7.2",
-            "tidl_tools_path": self.kwargs.get("tidl_tools_path", tidl_tools_path),
-            "artifacts_folder": self.kwargs['artifacts_folder'],
+            "tidl_tools_path": self.kwargs["tidl_tools_path"],
+            "artifacts_folder": self.kwargs["artifacts_folder"],
             "tensor_bits": self.kwargs.get("tensor_bits", 8),
             "import": self.kwargs.get("import", 'no'),
             # note: to add advanced options here, start it with 'advanced_options:'
