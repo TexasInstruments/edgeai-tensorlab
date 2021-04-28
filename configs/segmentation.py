@@ -177,7 +177,7 @@ def get_configs(settings, work_dir):
         # tensorflow-deeplab-pascal-voc-segmentation- deeplabv3_mnv2_dm05_pascal_trainaug - expected_metric: 70.19% MeanIoU.
         'vseg-19-400-0': utils.dict_update(pascal_voc_cfg, #pascalvoc2012 deeplab
             preprocess=settings.get_preproc_tflite((512, 512), (512, 512), mean=(127.5, 127.5, 127.5), scale=(1/127.5, 1/127.5, 1/127.5), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/segmentation/voc2012/tf1-models/deeplabv3_mnv2_dm05_pascal_trainaug_512x512.tflite'),
             postprocess=postproc_segmenation_tflite,
             model_info=dict(metric_reference={'accuracy_mean_iou%':70.19})
