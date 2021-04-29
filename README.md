@@ -101,10 +101,19 @@ Finally **accuracy_infer_on_j7.yaml** can be used when running the benchmark on 
 
 If you would like to do accuracy benchmark for your own custom model, then please look at the example given in **scripts/benchmark_custom.py**
 
-#### Model Inference on device
-Model inference on device can be done using the script **run_benchmarks_j7.sh**
+#### Model Benchmark/Inference on device
+The model import is supported only on PC - but once model import is done, the resulting artifacts can be used for inference on device. 
 
-This will use the imported model artifacts created using the step above "Import Models & Accuracy Benchmarking". So this repository needs to be cloned (and dependencies installed) on devices the the model artifacts need to be accessible from the device (either copy of do NFS mount). 
+##### Jupyter notebook examples in TIDL
+An example of how this can be done is shown in the [Jupyter notebook examples that are part of TIDL](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/tidl_j7_02_00_00_07/ti_dl/docs/user_guide_html/md_tidl_notebook.html)
+
+This is the recommended approach as of now.
+
+##### run_benchmarks_j7.sh
+
+Another option to run inference on device is to use the script **run_benchmarks_j7.sh** in this repository - however this script is not fully tested - we recommend the Jupyter notebook examples above.
+
+This script will use the imported model artifacts created using the step above "Import Models & Accuracy Benchmarking". So this repository needs to be cloned (and dependencies installed) on devices the the model artifacts need to be accessible from the device (either copy of do NFS mount). 
 
 Note: *For advance users only - if you are beginner, please ignore this note and focus on onnxrt and tflitert runtimes. For onnxrt and tflitert runtimes, the model artifacts using run_benchmarks_pc.sh can be used to do inference on device - no change required. However this would not work for the case of tvmdlr. For the case of tvmdlr, during import, the target_device has to be set to j7 in the yaml file used the script and also run_inference be set to False. The tvmdlr model artifacts this created would work in this inference step on device.*
 
