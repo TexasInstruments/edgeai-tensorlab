@@ -109,6 +109,15 @@ class SegmentationImageResize():
         return label, info_dict
 
 
+class SegmentationImagetoBytes():
+    '''
+    Convert Segmentation image to bytes (uint8) to save space
+    '''
+    def __call__(self, label, info_dict):
+        label = label.astype(np.uint8)
+        return label, info_dict
+
+
 class SegmentationImageSave():
     def __init__(self):
         self.colors = [(r,g,b) for r in range(0,256,32) for g in range(0,256,32) for b in range(0,256,32)]

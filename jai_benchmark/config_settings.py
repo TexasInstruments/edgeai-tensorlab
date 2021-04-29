@@ -178,7 +178,8 @@ class ConfigSettings(config_dict.ConfigDict):
             postprocess_segmentation += [postprocess.ArgMax(axis=channel_axis)]
         #
         postprocess_segmentation += [postprocess.NPTensorToImage(data_layout=data_layout),
-                                     postprocess.SegmentationImageResize()]
+                                     postprocess.SegmentationImageResize(),
+                                     postprocess.SegmentationImagetoBytes()]
         if self.save_output:
             postprocess_segmentation += [postprocess.SegmentationImageSave()]
         #
