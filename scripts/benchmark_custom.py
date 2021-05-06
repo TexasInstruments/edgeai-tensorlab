@@ -46,8 +46,8 @@ def get_imagenetcls_dataset_loaders(settings, download=False):
         shuffle=True,
         num_frames=min(settings.num_frames,50000))
 
-    calib_dataset = datasets.ImageCls(**dataset_calib_cfg, download=download)
-    val_dataset = datasets.ImageCls(**dataset_val_cfg, download=download)
+    calib_dataset = datasets.ImageClassification(**dataset_calib_cfg, download=download)
+    val_dataset = datasets.ImageClassification(**dataset_val_cfg, download=download)
     return calib_dataset, val_dataset
 
 
@@ -67,8 +67,8 @@ def get_cocoseg21_dataset_loaders(settings, download=False):
         num_classes=21,
         num_frames=min(settings.num_frames,5000))
 
-    calib_dataset = datasets.ImageSeg(**dataset_calib_cfg, download=download)
-    val_dataset = datasets.ImageSeg(**dataset_val_cfg, download=download)
+    calib_dataset = datasets.ImageSegmentation(**dataset_calib_cfg, download=download)
+    val_dataset = datasets.ImageSegmentation(**dataset_val_cfg, download=download)
     return calib_dataset, val_dataset
 
 

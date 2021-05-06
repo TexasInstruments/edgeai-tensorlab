@@ -30,7 +30,7 @@
 import os
 import shutil
 from colorama import Fore
-from .image_cls import  ImageCls
+from .image_cls import  ImageClassification
 from .. import utils
 
 
@@ -44,7 +44,7 @@ Download: http://imagenetv2public.s3-website-us-west-2.amazonaws.com/
 '''
 
 
-class ImageNetV2(ImageCls):
+class ImageNetV2(ImageClassification):
     def __init__(self, *args, url=None, download=False, **kwargs):
         self.url = url
         self.class_names_dict = None

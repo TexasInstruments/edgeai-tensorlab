@@ -5,7 +5,7 @@ from .. import utils
 from .image_pix2pix import ImagePixel2Pixel
 
 
-class ImageSeg(ImagePixel2Pixel):
+class ImageSegmentation(ImagePixel2Pixel):
     def __init__(self, download=False, dest_dir=None, **kwargs):
         super().__init__(download=download, dest_dir=dest_dir, **kwargs)
         assert 'num_classes' in kwargs, f'num_classes must be provided while creating {self.__class__.__name__}'

@@ -36,7 +36,7 @@ from .. import utils
 from .image_cls import *
 
 
-class BaseImageNetCls(ImageCls):
+class BaseImageNetCls(ImageClassification):
     """
     ImageNet Dataset. URL: http://image-net.org
 

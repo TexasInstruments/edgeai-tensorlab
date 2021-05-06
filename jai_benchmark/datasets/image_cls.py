@@ -32,7 +32,7 @@ from colorama import Fore
 from .. import utils
 
 
-class ImageCls(utils.ParamsBase):
+class ImageClassification(utils.ParamsBase):
     def __init__(self, download=False, dest_dir=None, **kwargs):
         super().__init__()
         self.force_download = True if download == 'always' else False

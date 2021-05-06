@@ -344,7 +344,7 @@ class COCOSegmentation(utils.ParamsBase):
 
 if __name__ == '__main__':
     # from inside the folder jacinto_ai_benchmark, run the following
-    # to create a converted dataset if you wish to load it using the dataset loader ImageSeg() in image_seg.py
+    # to create a converted dataset if you wish to load it using the dataset loader ImageSegmentation() in image_seg.py
     # to load it using CocoSegmentation dataset in this file, this conversion is not required.
     # python -m jai_benchmark.datasets.coco_seg21_converted
     import shutil
