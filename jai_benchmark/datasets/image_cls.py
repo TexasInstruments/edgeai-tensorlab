@@ -64,8 +64,8 @@ class ImageCls(utils.ParamsBase):
     def download(self, path, split_file):
         return None
 
-    def __getitem__(self, idx):
-        with_label = self.kwargs.get('with_label', False)
+    def __getitem__(self, idx, **kwargs):
+        with_label = kwargs.get('with_label', False)
         words = self.imgs[idx].split(' ')
         image_name = words[0]
         if with_label:

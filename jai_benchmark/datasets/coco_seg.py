@@ -341,3 +341,35 @@ class COCOSegmentation(utils.ParamsBase):
             masks = np.zeros((0, height, width), dtype=np.uint8)
         return masks
 
+
+if __name__ == '__main__':
+    # from inside the folder jacinto_ai_benchmark, run the following
+    # to create a converted dataset if you wish to load it using the dataset loader ImageSeg() in image_seg.py
+    # to load it using CocoSegmentation dataset in this file, this conversion is not required.
+    # python -m jai_benchmark.datasets.coco_seg21_converted
+    import shutil
+    output_folder = './dependencies/datasets/coco-seg21-converted'
+    split = 'val2017'
+    coco_seg = COCOSegmentation(path='./dependencies/datasets/coco', split=split)
+    num_frames = len(coco_seg)
+
+    images_output_folder = os.path.join(output_folder, split, 'images')
+    labels_output_folder = os.path.join(output_folder, split, 'labels')
+    os.makedirs(images_output_folder)
+    os.makedirs(labels_output_folder)
+
+    output_filelist = os.path.join(output_folder, f'{split}.txt')
+    with open(output_filelist, 'w') as list_fp:
+        for n in range(num_frames):
+            image_path, label_path = coco_seg.__getitem__(n, with_label=True)
+            # not needed - encode_segmap doesn't do anything
+            # image = PIL.Image.open(image_path)
+            # label_img = PIL.Image.open(label_path)
+            # label_img = coco_seg.encode_segmap(label_img)
+            image_output_filename = os.path.join(images_output_folder, os.path.basename(image_path))
+            label_output_filename = os.path.join(labels_output_folder, os.path.basename(label_path))
+            shutil.copy2(image_path, image_output_filename)
+            shutil.copy2(label_path, label_output_filename)
+            list_fp.write(f'images/{os.path.basename(image_output_filename)} labels/{os.path.basename(label_output_filename)}\n')
+        #
+    #
