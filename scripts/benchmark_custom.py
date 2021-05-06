@@ -32,10 +32,11 @@ import cv2
 from jai_benchmark import *
 
 
-def get_imagenetcls_dataset_loaders(settings, download=False):
+def get_imagecls_dataset_loaders(settings, download=False):
     dataset_calib_cfg = dict(
         path=f'{settings.datasets_path}/imagenet/val',
         split=f'{settings.datasets_path}/imagenet/val.txt',
+        num_classes=1000,
         shuffle=True,
         num_frames=settings.quantization_params.get_calibration_frames())
 
@@ -43,6 +44,7 @@ def get_imagenetcls_dataset_loaders(settings, download=False):
     dataset_val_cfg = dict(
         path=f'{settings.datasets_path}/imagenet/val',
         split=f'{settings.datasets_path}/imagenet/val.txt',
+        num_classes=1000,
         shuffle=True,
         num_frames=min(settings.num_frames,50000))
 
@@ -51,20 +53,20 @@ def get_imagenetcls_dataset_loaders(settings, download=False):
     return calib_dataset, val_dataset
 
 
-def get_cocoseg21_dataset_loaders(settings, download=False):
+def get_imageseg_dataset_loaders(settings, download=False):
     dataset_calib_cfg = dict(
         path=f'{settings.datasets_path}/coco-seg21-converted/val2017',
         split=f'{settings.datasets_path}/coco-seg21-converted/val2017.txt',
-        shuffle=True,
         num_classes=21,
+        shuffle=True,
         num_frames=settings.quantization_params.get_calibration_frames())
 
     # dataset parameters for actual inference
     dataset_val_cfg = dict(
         path=f'{settings.datasets_path}/coco-seg21-converted/val2017',
         split=f'{settings.datasets_path}/coco-seg21-converted/val2017.txt',
-        shuffle=True,
         num_classes=21,
+        shuffle=True,
         num_frames=min(settings.num_frames,5000))
 
     calib_dataset = datasets.ImageSegmentation(**dataset_calib_cfg, download=download)
@@ -72,20 +74,20 @@ def get_cocoseg21_dataset_loaders(settings, download=False):
     return calib_dataset, val_dataset
 
 
-def get_cocodet_dataset_loaders(settings, download=False):
+def get_imagedet_dataset_loaders(settings, download=False):
     dataset_calib_cfg = dict(
         path=f'{settings.datasets_path}/coco-det-converted/val2017',
         split=f'{settings.datasets_path}/coco-det-converted/val2017.txt',
+        num_classes=90,
         shuffle=True,
-        num_classes=21,
         num_frames=settings.quantization_params.get_calibration_frames())
 
     # dataset parameters for actual inference
     dataset_val_cfg = dict(
         path=f'{settings.datasets_path}/coco-det-converted/val2017',
         split=f'{settings.datasets_path}/coco-det-converted/val2017.txt',
+        num_classes=90,
         shuffle=True,
-        num_classes=21,
         num_frames=min(settings.num_frames,5000))
 
     calib_dataset = datasets.ImageDetection(**dataset_calib_cfg, download=download)
@@ -119,9 +121,9 @@ def create_configs(settings, work_dir):
     '''
 
     # get dataset loaders
-    imagenetcls_calib_dataset, imagenetcls_val_dataset = get_imagenetcls_dataset_loaders(settings)
-    cocoseg21_calib_dataset, cocoseg21_val_dataset = get_cocoseg21_dataset_loaders(settings)
-    cocodet_calib_dataset, cocodet_val_dataset = get_cocodet_dataset_loaders(settings)
+    imagecls_calib_dataset, imagecls_val_dataset = get_imagecls_dataset_loaders(settings)
+    imageseg_calib_dataset, imageseg_val_dataset = get_imageseg_dataset_loaders(settings)
+    imagedet_calib_dataset, imagedet_val_dataset = get_imagedet_dataset_loaders(settings)
 
     # in these examples, the session types cfgs are hardcoded for simplicity
     # however, in the configs in the root of this repository, they depend on session_type_dict
@@ -130,10 +132,10 @@ def create_configs(settings, work_dir):
     runtime_options_onnxrt = settings.get_runtime_options(constants.SESSION_NAME_ONNXRT, is_qat=False)
 
     pipeline_configs = {
-        'imagenetcls-1': dict(
+        'imagecls-1': dict(
             task_type='classification',
-            calibration_dataset=imagenetcls_calib_dataset,
-            input_dataset=imagenetcls_val_dataset,
+            calibration_dataset=imagecls_calib_dataset,
+            input_dataset=imagecls_val_dataset,
             preprocess=settings.get_preproc_onnx(),
             session=sessions.ONNXRTSession(
                 work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_onnxrt,
@@ -141,10 +143,10 @@ def create_configs(settings, work_dir):
             postprocess=settings.get_postproc_classification(),
             model_info=dict(metric_reference={'accuracy_top1%':71.88})
         ),
-        'imagenetcls-2': dict(
+        'imagecls-2': dict(
             task_type='classification',
-            calibration_dataset=imagenetcls_calib_dataset,
-            input_dataset=imagenetcls_val_dataset,
+            calibration_dataset=imagecls_calib_dataset,
+            input_dataset=imagecls_val_dataset,
             preprocess=settings.get_preproc_tflite(),
             session=sessions.TFLiteRTSession(
                 work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_tflitert,
@@ -153,10 +155,10 @@ def create_configs(settings, work_dir):
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':71.9})
         ),
-        'cocoseg21-3': dict(
+        'imageseg-3': dict(
             task_type='segmentation',
-            calibration_dataset=cocoseg21_calib_dataset,
-            input_dataset=cocoseg21_val_dataset,
+            calibration_dataset=imageseg_calib_dataset,
+            input_dataset=imageseg_val_dataset,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
             session=sessions.ONNXRTSession(
                 work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_onnxrt,
@@ -164,10 +166,10 @@ def create_configs(settings, work_dir):
             postprocess=settings.get_postproc_segmentation_onnx(),
             model_info=dict(metric_reference={'accuracy_mean_iou%':57.77})
         ),
-        'cocodet-4': dict(
+        'imagedet-4': dict(
             task_type='detection',
-            calibration_dataset=cocodet_calib_dataset,
-            input_dataset=cocodet_val_dataset,
+            calibration_dataset=imagedet_calib_dataset,
+            input_dataset=imagedet_val_dataset,
             preprocess=settings.get_preproc_tflite((300,300), (300,300), backend='cv2'),
             session=sessions.TFLiteRTSession(
                 work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_tflitert,
