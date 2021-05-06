@@ -103,8 +103,6 @@ def create_configs(settings, work_dir):
 
     # in these examples, the session types cfgs are hardcoded for simplicity
     # however, in the configs in the root of this repository, they depend on session_type_dict
-
-    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
     runtime_options_tvmdlr = settings.get_runtime_options(constants.SESSION_NAME_TVMDLR, is_qat=False)
     runtime_options_tflitert = settings.get_runtime_options(constants.SESSION_NAME_TFLITERT, is_qat=False)
     runtime_options_onnxrt = settings.get_runtime_options(constants.SESSION_NAME_ONNXRT, is_qat=False)
@@ -115,7 +113,8 @@ def create_configs(settings, work_dir):
             calibration_dataset=imagenetcls_calib_dataset,
             input_dataset=imagenetcls_val_dataset,
             preprocess=settings.get_preproc_onnx(),
-            session=sessions.ONNXRTSession(**common_session_cfg, runtime_options=runtime_options_onnxrt,
+            session=sessions.ONNXRTSession(
+                work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_onnxrt,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_opset9.onnx'),
             postprocess=settings.get_postproc_classification(),
             model_info=dict(metric_reference={'accuracy_top1%':71.88})
@@ -125,7 +124,8 @@ def create_configs(settings, work_dir):
             calibration_dataset=imagenetcls_calib_dataset,
             input_dataset=imagenetcls_val_dataset,
             preprocess=settings.get_preproc_tflite(),
-            session=sessions.TFLiteRTSession(**common_session_cfg, runtime_options=runtime_options_tflitert,
+            session=sessions.TFLiteRTSession(
+                work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_tflitert,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_1.0_224.tflite'),
             postprocess=settings.get_postproc_classification(),
             metric=dict(label_offset_pred=-1),
@@ -136,7 +136,8 @@ def create_configs(settings, work_dir):
             calibration_dataset=cocoseg21_calib_dataset,
             input_dataset=cocoseg21_val_dataset,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
-            session=sessions.ONNXRTSession(**common_session_cfg, runtime_options=runtime_options_onnxrt,
+            session=sessions.ONNXRTSession(
+                work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_onnxrt,
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/jai-pytorch/deeplabv3lite_mobilenetv2_cocoseg21_512x512_20210405.onnx'),
             postprocess=settings.get_postproc_segmentation_onnx(),
             model_info=dict(metric_reference={'accuracy_mean_iou%':57.77})
