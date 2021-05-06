@@ -87,7 +87,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_ssd,
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_resnet34-ssd1200.onnx'),
             postprocess=postproc_detection_onnx,
-            metric=dict(label_offset_pred=coco_label_offset_80to90(label_offset=0)),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=0)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':20.0})
         ),
         #################################################################
@@ -101,7 +101,7 @@ def get_configs(settings, work_dir):
                             f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,416,416)}),
             postprocess=postproc_detection_mxnet,
-            metric=dict(label_offset_pred=coco_label_offset_80to90()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.6})
         ),
         # mxnet : gluoncv model : detection - ssd_512_mobilenet1.0_coco - accuracy: 21.7% ap[0.5:0.95], 39.2% ap50
@@ -112,7 +112,7 @@ def get_configs(settings, work_dir):
                             f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,512,512)}),
             postprocess=postproc_detection_mxnet,
-            metric=dict(label_offset_pred=coco_label_offset_80to90()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':21.7})
         ),
         #################################################################
@@ -124,7 +124,7 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
             postprocess=postproc_detection_tflite,
-            metric=dict(label_offset_pred=coco_label_offset_90to90()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':23.0})
         ),
         # mlperf mobile: detection - ssd_mobilenet_v2_coco_300x300 - expected_metric: 22.0% COCO AP[0.5-0.95]
@@ -133,7 +133,7 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v2_300_float.tflite'),
             postprocess=postproc_detection_tflite,
-            metric=dict(label_offset_pred=coco_label_offset_90to90()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':22.0})
         ),
         #################################################################
@@ -143,7 +143,7 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_2020_05_19.tflite'),
             postprocess=postproc_detection_tflite,
-            metric=dict(label_offset_pred=coco_label_offset_90to90()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.9})
         ),
         # tensorflow1.0 models: detection - ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19 expected_metric: 25.9% ap[0.5:0.95] accuracy
@@ -152,7 +152,7 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19.tflite'),
             postprocess=postproc_detection_tflite,
-            metric=dict(label_offset_pred=coco_label_offset_90to90()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':25.9})
         ),
         # tensorflow1.0 models: detection - ssdlite_mobilenet_v2_coco_2018_05_09 expected_metric: 22.0% ap[0.5:0.95] accuracy
@@ -161,52 +161,9 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobilenet_v2_coco_2018_05_09.tflite'),
             postprocess=postproc_detection_tflite,
-            metric=dict(label_offset_pred=coco_label_offset_90to90()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':22.0})
         ),
     }
     return pipeline_configs
 
-
-
-################################################################################################
-# convert from 80 class index (typical output of a mmdetection detector) to 90 or 91 class
-# (original labels of coco starts from 1, and 0 is background)
-# the evalation/metric script will convert from 80 class to coco's 90 class.
-def coco_label_offset_80to90(label_offset=1):
-    coco_label_table = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20,
-                         21, 22, 23, 24, 25, 27, 28, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-                         41, 42, 43, 44, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
-                         61, 62, 63, 64, 65, 67, 70, 72, 73, 74, 75, 76, 77, 78, 79, 80,
-                         81, 82, 84, 85, 86, 87, 88, 89, 90]
-
-    if label_offset == 1:
-        # 0 => 1, 1 => 2, .. 79 -> 90, 80 => 91
-        coco_label_offset = {k:v for k,v in enumerate(coco_label_table)}
-        coco_label_offset.update({80:91})
-    elif label_offset == 0:
-        # 0 => 0, 1 => 1, .. 80 => 90
-        coco_label_offset = {(k+1):v for k,v in enumerate(coco_label_table)}
-        coco_label_offset.update({0:0})
-    else:
-        assert False, f'unsupported value for label_offset {label_offset}'
-    #
-    return coco_label_offset
-
-
-# convert from 90 class index (typical output of a tensorflow detector) to 90 or 91 class
-# (original labels of coco starts from 1, and 0 is background)
-def coco_label_offset_90to90(label_offset=1):
-    coco_label_table = range(1,91)
-    if label_offset == 1:
-        # 0 => 1, 1 => 2, .. 90 => 91
-        coco_label_offset = {k:v for k,v in enumerate(coco_label_table)}
-        coco_label_offset.update({-1:0,90:91})
-    elif label_offset == 0:
-        # 0 => 0, 1 => 1, .. 90 => 90
-        coco_label_offset = {(k+1):v for k,v in enumerate(coco_label_table)}
-        coco_label_offset.update({-1:-1,0:0})
-    else:
-        assert False, f'unsupported value for label_offset {label_offset}'
-    #
-    return coco_label_offset

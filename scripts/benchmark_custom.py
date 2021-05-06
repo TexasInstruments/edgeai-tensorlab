@@ -72,6 +72,27 @@ def get_cocoseg21_dataset_loaders(settings, download=False):
     return calib_dataset, val_dataset
 
 
+def get_cocodet_dataset_loaders(settings, download=False):
+    dataset_calib_cfg = dict(
+        path=f'{settings.datasets_path}/coco-det-converted/val2017',
+        split=f'{settings.datasets_path}/coco-det-converted/val2017.txt',
+        shuffle=True,
+        num_classes=21,
+        num_frames=settings.quantization_params.get_calibration_frames())
+
+    # dataset parameters for actual inference
+    dataset_val_cfg = dict(
+        path=f'{settings.datasets_path}/coco-det-converted/val2017',
+        split=f'{settings.datasets_path}/coco-det-converted/val2017.txt',
+        shuffle=True,
+        num_classes=21,
+        num_frames=min(settings.num_frames,5000))
+
+    calib_dataset = datasets.ImageDetection(**dataset_calib_cfg, download=download)
+    val_dataset = datasets.ImageDetection(**dataset_val_cfg, download=download)
+    return calib_dataset, val_dataset
+
+
 def create_configs(settings, work_dir):
     '''
     configs for each model pipeline
@@ -100,6 +121,7 @@ def create_configs(settings, work_dir):
     # get dataset loaders
     imagenetcls_calib_dataset, imagenetcls_val_dataset = get_imagenetcls_dataset_loaders(settings)
     cocoseg21_calib_dataset, cocoseg21_val_dataset = get_cocoseg21_dataset_loaders(settings)
+    cocodet_calib_dataset, cocodet_val_dataset = get_cocodet_dataset_loaders(settings)
 
     # in these examples, the session types cfgs are hardcoded for simplicity
     # however, in the configs in the root of this repository, they depend on session_type_dict
@@ -141,6 +163,18 @@ def create_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/jai-pytorch/deeplabv3lite_mobilenetv2_cocoseg21_512x512_20210405.onnx'),
             postprocess=settings.get_postproc_segmentation_onnx(),
             model_info=dict(metric_reference={'accuracy_mean_iou%':57.77})
+        ),
+        'cocodet-4': dict(
+            task_type='detection',
+            calibration_dataset=cocodet_calib_dataset,
+            input_dataset=cocodet_val_dataset,
+            preprocess=settings.get_preproc_tflite((300,300), (300,300), backend='cv2'),
+            session=sessions.TFLiteRTSession(
+                work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_tflitert,
+                model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
+            postprocess=settings.get_postproc_detection_tflite(),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':23.0})
         ),
     }
     return pipeline_configs

@@ -116,7 +116,7 @@ from pycocotools.cocoeval import COCOeval
 
 from .. import utils
 
-__all__ = ['COCODetection']
+__all__ = ['COCODetection', 'coco_det_label_offset_80to90', 'coco_det_label_offset_90to90']
 
 
 class COCODetection(utils.ParamsBase):
@@ -214,11 +214,14 @@ class COCODetection(utils.ParamsBase):
         root = os.sep.join(os.path.split(path)[:-1])
         return root
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx, with_label=False):
         img_id = self.img_ids[idx]
         img = self.coco_dataset.loadImgs([img_id])[0]
         image_path = os.path.join(self.image_dir, img['file_name'])
-        return image_path
+        if with_label:
+            return image_path, None
+        else:
+            return image_path
 
     def __len__(self):
         return self.num_frames
@@ -315,3 +318,73 @@ class COCODetection(utils.ParamsBase):
         bbox = [bbox[0], bbox[1], bbox[2] - bbox[0], bbox[3] - bbox[1]]
         return bbox
 
+
+# convert from 80 class index (typical output of a mmdetection detector) to 90 or 91 class
+# (original labels of coco starts from 1, and 0 is background)
+# the evalation/metric script will convert from 80 class to coco's 90 class.
+def coco_det_label_offset_80to90(label_offset=1):
+    coco_label_table = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20,
+                         21, 22, 23, 24, 25, 27, 28, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+                         41, 42, 43, 44, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
+                         61, 62, 63, 64, 65, 67, 70, 72, 73, 74, 75, 76, 77, 78, 79, 80,
+                         81, 82, 84, 85, 86, 87, 88, 89, 90]
+
+    if label_offset == 1:
+        # 0 => 1, 1 => 2, .. 79 -> 90, 80 => 91
+        coco_label_offset = {k:v for k,v in enumerate(coco_label_table)}
+        coco_label_offset.update({80:91})
+    elif label_offset == 0:
+        # 0 => 0, 1 => 1, .. 80 => 90
+        coco_label_offset = {(k+1):v for k,v in enumerate(coco_label_table)}
+        coco_label_offset.update({0:0})
+    else:
+        assert False, f'unsupported value for label_offset {label_offset}'
+    #
+    return coco_label_offset
+
+
+# convert from 90 class index (typical output of a tensorflow detector) to 90 or 91 class
+# (original labels of coco starts from 1, and 0 is background)
+def coco_det_label_offset_90to90(label_offset=1):
+    coco_label_table = range(1,91)
+    if label_offset == 1:
+        # 0 => 1, 1 => 2, .. 90 => 91
+        coco_label_offset = {k:v for k,v in enumerate(coco_label_table)}
+        coco_label_offset.update({-1:0,90:91})
+    elif label_offset == 0:
+        # 0 => 0, 1 => 1, .. 90 => 90
+        coco_label_offset = {(k+1):v for k,v in enumerate(coco_label_table)}
+        coco_label_offset.update({-1:-1,0:0})
+    else:
+        assert False, f'unsupported value for label_offset {label_offset}'
+    #
+    return coco_label_offset
+
+
+################################################################################################
+if __name__ == '__main__':
+    # from inside the folder jacinto_ai_benchmark, run the following
+    # to create a converted dataset if you wish to load it using the dataset loader ImageSegmentation() in image_seg.py
+    # to load it using CocoSegmentation dataset in this file, this conversion is not required.
+    # python -m jai_benchmark.datasets.coco_seg21_converted
+    import shutil
+    output_folder = './dependencies/datasets/coco-det-converted'
+    split = 'val2017'
+    coco_seg = COCODetection(path='./dependencies/datasets/coco', split=split)
+    num_frames = len(coco_seg)
+
+    images_output_folder = os.path.join(output_folder, split, 'images')
+    labels_output_folder = os.path.join(output_folder, split, 'labels')
+    os.makedirs(images_output_folder)
+    os.makedirs(labels_output_folder)
+
+    output_filelist = os.path.join(output_folder, f'{split}.txt')
+    with open(output_filelist, 'w') as list_fp:
+        for n in range(num_frames):
+            image_path, label_path = coco_seg.__getitem__(n, with_label=True)
+            # TODO: labels are not currently written to list file
+            image_output_filename = os.path.join(images_output_folder, os.path.basename(image_path))
+            shutil.copy2(image_path, image_output_filename)
+            list_fp.write(f'images/{os.path.basename(image_output_filename)}\n')
+        #
+    #

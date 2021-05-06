@@ -28,6 +28,7 @@
 
 from .image_cls import *
 from .image_seg import *
+from .image_det import *
 
 from .coco_det import *
 from .coco_seg import *
