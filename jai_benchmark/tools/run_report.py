@@ -85,13 +85,16 @@ def run_report(benchmark_dir, rewrite_results=True):
         print('no results found - no report to generate.')
         return
     #
-    if '8bits' not in results_collection:
-        print('no 8bits result found - cannot generate report.')
-        return
-    #
-    results_8bits = results_collection['8bits']
+
+    results_8bits = results_collection['8bits'] if '8bits' in results_collection else None
     results_16bits = results_collection['16bits'] if '16bits' in results_collection else None
     results_32bits = results_collection['32bits'] if '32bits' in results_collection else None
+    results_anchor = results_8bits or results_16bits or results_32bits
+
+    if results_anchor is None:
+        print('no result found - cannot generate report.')
+        return
+    #
 
     results_collection = list()
     title_line = ['serial_num', 'model_id', 'runtime_name', 'task_type', 'input_resolution', 'model_path', 'metric_name',
@@ -99,26 +102,32 @@ def run_report(benchmark_dir, rewrite_results=True):
                   result_keys + ['run_dir', 'artifact_name']
 
     results_collection.append(title_line)
-    for serial_num, (artifact_id, pipeline_params_8bits) in enumerate(results_8bits.items()):
-        model_id = pipeline_params_8bits['session']['model_id']
+    for serial_num, (artifact_id, pipeline_params_anchor) in enumerate(results_anchor.items()):
+        model_id = pipeline_params_anchor['session']['model_id']
         results_line_dict = {title_key:None for title_key in title_line}
         results_line_dict['serial_num'] = serial_num+1
         results_line_dict['model_id'] = model_id
 
-        metric_name, metric_8bits, metric_reference = get_metric(pipeline_params_8bits)
-        if pipeline_params_8bits is not None:
-            results_line_dict['runtime_name'] = pipeline_params_8bits['session']['session_name']
-            preprocess_crop = pipeline_params_8bits['preprocess']['crop']
+        if pipeline_params_anchor is not None:
+            results_line_dict['runtime_name'] = pipeline_params_anchor['session']['session_name']
+            preprocess_crop = pipeline_params_anchor['preprocess']['crop']
             results_line_dict['input_resolution'] = 'x'.join(map(str, preprocess_crop)) \
                 if isinstance(preprocess_crop, (list,tuple)) else str(preprocess_crop)
-            model_path = pipeline_params_8bits['session']['model_path']
+            model_path = pipeline_params_anchor['session']['model_path']
             model_path = model_path[0] if isinstance(model_path, (list,tuple)) else model_path
             results_line_dict['model_path'] = os.path.basename(model_path)
-            results_line_dict['task_type'] = pipeline_params_8bits['task_type'] \
-                if 'task_type' in pipeline_params_8bits else None
+            results_line_dict['task_type'] = pipeline_params_anchor['task_type'] \
+                if 'task_type' in pipeline_params_anchor else None
         #
+
+        metric_name, _, metric_reference = get_metric(pipeline_params_anchor)
         results_line_dict['metric_name'] = metric_name
-        results_line_dict['metric_8bits'] = metric_8bits
+
+        if results_8bits is not None:
+            pipeline_params_8bits = results_8bits[artifact_id] if artifact_id in results_8bits else None
+            _, metric_8bits, _ = get_metric(pipeline_params_8bits)
+            results_line_dict['metric_8bits'] = metric_8bits
+        #
 
         if results_16bits is not None:
             pipeline_params_16bits = results_16bits[artifact_id] if artifact_id in results_16bits else None
@@ -134,10 +143,10 @@ def run_report(benchmark_dir, rewrite_results=True):
 
         results_line_dict['metric_reference'] = metric_reference
 
-        performance_line_dict = get_performance(pipeline_params_8bits)
+        performance_line_dict = get_performance(pipeline_params_anchor)
         results_line_dict.update(performance_line_dict)
 
-        run_dir = pipeline_params_8bits['session']['run_dir'] if pipeline_params_8bits is not None else None
+        run_dir = pipeline_params_anchor['session']['run_dir'] if pipeline_params_anchor is not None else None
         run_dir_basename = os.path.basename(run_dir)
         results_line_dict['run_dir'] = run_dir_basename if run_dir is not None else None
 
