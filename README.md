@@ -41,7 +41,7 @@ We have tested this on Ubuntu 18.04 PC with Anaconda Python 3.6. This is the rec
 #### Requirement: PROCESSOR-SDK-RTOS-J721E
 As explained earlier, RTOS SDK for Jacinto 7 is required to run this package. Please visit the links given above to download and untar/extract the RTOS SDK on your Ubuntu desktop machine.
 
-After extracting, follow the instructions in the RTOS package to download the dependencies required for it. Especially the following 3 steps are required:<br>
+After extracting, follow the instructions in the RTOS package to download and install the dependencies required for it. The following steps are required:<br>
 
 (1) Install PSDK-RTOS dependencies - especially graphviz and gcc-arm: Change directory to **psdk_rtos/scripts** inside the extracted SDK and run:
 
@@ -64,8 +64,15 @@ After extracting, follow the instructions in the RTOS package to download the de
  ```source prepare_model_compliation_env.sh``` 
  
  to install TI's fork of ONNX Runtime and its dependencies. In our SDK, we have support to use ONNX Runtime to offload part of the graph into the underlying TIDL backend running on the C7x+MMA DSP, while keeping the unsupported layers running on the main ARM processor.<br>
- 
-Also read the details below for obtaining the ModelZoo and Datasets - these are also required to do the benchmarking. 
+
+(5) Finally, create a symbolic link to the SDK inside this code at the path **./dependencies/ti-processor-sdk-rtos** so that this code can find it - for example:
+
+```
+ln -sf ../ti-processor-sdk-rtos-j721e-evm-07_03_00_07 ./dependencies/ti-processor-sdk-rtos
+```
+
+Where *../ti-processor-sdk-rtos-j721e-evm-07_03_00_07* is just an example - **replace it** with the path where the SDK has been extracted.
+
 
 #### Requirement: ModelZoo
 DNN Models, config files and pre-imported/calibrated artifacts that are used in this benchmark are provided in another repository called **[Jacinto-AI-ModelZoo](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/about/)**. Please see the documentation of that repository to understand how to clone it. After cloning, jacinto-ai-benchmark and jacinto-ai-modelzoo must be inside the same parent folder for the default settings to work.
@@ -82,7 +89,7 @@ If you start the download and interrupt it in between, the datasets may be parti
 
 Also, the download may take several hours even with a good internet connection. 
 
-Because of all these reasons **it is a good idea to download datasets manually (especially ImageNet) ane make it available at the expected locations.** To make the datasets manually available, they should be placed at the locations specified for each dataset - if you have the datasets stored somewhere else, create symbolic links as necessary.
+Because of all these reasons **some datasets may need to be manually downloaded (especially ImageNet).** To make the datasets manually available, they should be placed at the locations specified for each dataset inside the folder **./dependencies/datasets/** - if you have the datasets stored somewhere else, create symbolic links as necessary.
 
 The following link explains how to **[Obtain Datasets](./docs/datasets.md)** for benchmarking.
 
