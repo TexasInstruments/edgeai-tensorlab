@@ -115,18 +115,18 @@ from pycocotools.coco import COCO
 from pycocotools import mask as coco_mask
 
 from .. import utils
+from .dataset_base import *
 
 __all__ = ['COCOSegmentation']
 
 
-class COCOSegmentation(utils.ParamsBase):
+class COCOSegmentation(DatasetBase):
     def __init__(self, num_classes=21, download=False, **kwargs):
-        super().__init__()
+        super().__init__(num_classes=num_classes, **kwargs)
         self.force_download = True if download == 'always' else False
-        self.kwargs = kwargs
-        assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
-        path = kwargs['path']
-        split = kwargs['split']
+        assert 'path' in self.kwargs and 'split' in self.kwargs, 'kwargs must have path and split'
+        path = self.kwargs['path']
+        split = self.kwargs['split']
         root = path
         if download:
             self.download(path, split)
@@ -150,7 +150,7 @@ class COCOSegmentation(utils.ParamsBase):
         assert 'annotations' in dataset_folders, 'invalid path to coco dataset annotations'
         annotations_dir = os.path.join(root, 'annotations')
 
-        shuffle = kwargs.get('shuffle', False)
+        shuffle = self.kwargs.get('shuffle', False)
         image_base_dir = 'images' if ('images' in dataset_folders) else ''
         image_base_dir = os.path.join(root, image_base_dir)
         image_split_dirs = os.listdir(image_base_dir)
@@ -163,7 +163,7 @@ class COCOSegmentation(utils.ParamsBase):
         self.img_ids = self._remove_images_without_annotations(img_ids)
 
         max_frames = len(self.coco_dataset.imgs)
-        num_frames = kwargs.get('num_frames', None)
+        num_frames = self.kwargs.get('num_frames', None)
         num_frames = min(num_frames, max_frames) if num_frames is not None else max_frames
 
         imgs_list = list(self.coco_dataset.imgs.items())
@@ -174,7 +174,7 @@ class COCOSegmentation(utils.ParamsBase):
         self.coco_dataset.imgs = {k:v for k,v in imgs_list[:num_frames]}
 
         max_frames = len(self.coco_dataset.imgs)
-        num_frames = kwargs.get('num_frames', None)
+        num_frames = self.kwargs.get('num_frames', None)
         num_frames = min(num_frames, max_frames) if num_frames is not None else max_frames
 
         self.cat_ids = self.coco_dataset.getCatIds()
@@ -188,9 +188,6 @@ class COCOSegmentation(utils.ParamsBase):
             self.tempfiles.append(temp_dir)
         #
         self.label_dir = os.path.join(run_dir, 'labels')
-
-        # call the utils.ParamsBase.initialize()
-        super().initialize()
 
     def download(self, path, split):
         root = path

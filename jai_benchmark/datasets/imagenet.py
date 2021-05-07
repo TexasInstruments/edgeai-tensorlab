@@ -113,8 +113,8 @@ class ImageNetCls(BaseImageNetCls):
     International Journal of Computer Vision, 2015.
     Download page: http://image-net.org/download-images
     """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, num_classes=1000, **kwargs):
+        super().__init__(*args, num_classes=num_classes, **kwargs)
 
     def download(self, path, split_file):
         root = self._get_root(path)
@@ -159,8 +159,8 @@ class TinyImageNet200Cls(BaseImageNetCls):
     http://cs231n.stanford.edu/
     http://cs231n.stanford.edu/tiny-imagenet-200.zip
     """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, num_classes=200, **kwargs):
+        super().__init__(*args, num_classes=num_classes, **kwargs)
 
     def download(self, path, split_file):
         root = self._get_root(path)
@@ -207,9 +207,9 @@ class ImageNetResized64x64Cls(BaseImageNetCls):
     More Information:
         https://www.tensorflow.org/datasets/catalog/imagenet_resized
     """
-    def __init__(self, *args, torch_labels=True, **kwargs):
+    def __init__(self, *args, num_classes=1000, torch_labels=True, **kwargs):
         self.torch_labels = torch_labels
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, num_classes=num_classes, **kwargs)
 
     def download(self, path, split_file):
         root = self._get_root(path)
@@ -265,8 +265,8 @@ class ImageNetDogs120Cls(BaseImageNetCls):
 
     Fine-grained classification on 100+ dog categories.
     """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, num_classes=120, **kwargs):
+        super().__init__(*args, num_classes=num_classes, **kwargs)
 
     def download(self, path, split_file):
         root = self._get_root(path)
@@ -339,7 +339,7 @@ class ImageNetPseudo120Cls(ImageNetDogs120Cls):
     This dataset with a suitable split file can be used to simulate the
     arracy obtained with the full imagenet dataset.
     '''
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, num_classes=120, **kwargs):
         split_file = kwargs['split']
         assert os.path.exists(split_file), f'{self.__class__.__name__}: file not found - {split_file}'
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, num_classes=num_classes, **kwargs)

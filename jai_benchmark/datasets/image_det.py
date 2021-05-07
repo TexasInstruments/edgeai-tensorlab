@@ -4,15 +4,19 @@ import numpy as np
 import PIL
 
 from .. import utils
+from .dataset_base import *
 
 
-class ImageDetection(utils.ParamsBase):
+class ImageDetection(DatasetBase):
     def __init__(self, download=False, dest_dir=None, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self.force_download = True if download == 'always' else False
-        assert 'path' in kwargs and 'split' in kwargs, 'path and split must be provided in kwargs'
-        path = kwargs['path']
-        split_file = kwargs['split']
+        assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must be provided in kwargs'
+        assert 'num_classes' in self.kwargs, f'num_classes must be provided while creating {self.__class__.__name__}'
+
+        path = self.kwargs['path']
+        split_file = self.kwargs['split']
+
         # download the data if needed
         if download:
             if (not self.force_download) and os.path.exists(path):
@@ -23,11 +27,10 @@ class ImageDetection(utils.ParamsBase):
         #
         assert os.path.exists(path) and os.path.isdir(path), \
             utils.log_color('\nERROR', 'dataset path is empty', path)
-        self.kwargs = kwargs
 
         # create list of images and classes
-        path = kwargs.get('path','')
-        list_file = kwargs['split']
+        path = self.kwargs.get('path','')
+        list_file = self.kwargs['split']
         with open(list_file) as list_fp:
             in_files = [row.rstrip().split(' ') for row in list_fp]
             # TODO: currently the list file may not have the labels
@@ -35,14 +38,12 @@ class ImageDetection(utils.ParamsBase):
             self.imgs = in_files
         #
 
-        self.num_frames = kwargs.get('num_frames',len(self.imgs))
-        shuffle = kwargs.get('shuffle', False)
+        self.num_frames = self.kwargs.get('num_frames',len(self.imgs))
+        shuffle = self.kwargs.get('shuffle', False)
         if shuffle:
             random.seed(int(shuffle))
             random.shuffle(self.imgs)
         #
-        # call the utils.ParamsBase.initialize()
-        super().initialize()
 
     def download(self, path, split_file):
         return None

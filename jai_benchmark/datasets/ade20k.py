@@ -47,19 +47,18 @@ import numpy as np
 import PIL
 from colorama import Fore
 from .. import utils
+from .dataset_base import *
 
 __all__ = ['ADE20KSegmentation']
 
-class ADE20KSegmentation(utils.ParamsBase):
+class ADE20KSegmentation(DatasetBase):
     def __init__(self, num_classes=151, ignore_label=None, download=False, **kwargs):
-        super().__init__()
+        super().__init__(num_classes=num_classes, **kwargs)
         self.force_download = True if download == 'always' else False
-        assert 'path' in kwargs and 'split' in kwargs, 'path and split must be provided'
+        assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must be provided'
         assert num_classes <= 151, 'maximum 151 classes (including background) are supported'
-        #assert self.kwargs['split'] in ['training', 'validation']		
-        self.kwargs = kwargs
 
-        path = kwargs['path']
+        path = self.kwargs['path']
         split = kwargs['split']
         if download:
             self.download(path, split)
@@ -96,8 +95,6 @@ class ADE20KSegmentation(utils.ParamsBase):
         #
         self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
-        # call the utils.ParamsBase.initialize()
-        super().initialize()
 
     def download(self, path, split):
         root = path

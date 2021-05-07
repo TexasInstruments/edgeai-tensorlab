@@ -45,11 +45,11 @@ Download: http://imagenetv2public.s3-website-us-west-2.amazonaws.com/
 
 
 class ImageNetV2(ImageClassification):
-    def __init__(self, *args, url=None, download=False, **kwargs):
+    def __init__(self, *args, num_classes=1000, url=None, download=False, **kwargs):
         self.url = url
         self.class_names_dict = None
         self.class_ids_dict = None
-        super().__init__(*args, download=download, **kwargs)
+        super().__init__(*args, num_classes=num_classes, download=download, **kwargs)
 
     def get_notice(self):
         notice = f'{Fore.YELLOW}' \

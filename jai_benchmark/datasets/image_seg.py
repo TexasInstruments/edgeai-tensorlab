@@ -8,8 +8,9 @@ from .image_pix2pix import ImagePixel2Pixel
 class ImageSegmentation(ImagePixel2Pixel):
     def __init__(self, download=False, dest_dir=None, **kwargs):
         super().__init__(download=download, dest_dir=dest_dir, **kwargs)
+        assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must be provided in kwargs'
         assert 'num_classes' in kwargs, f'num_classes must be provided while creating {self.__class__.__name__}'
-        self.num_classes = kwargs['num_classes']
+        self.num_classes = self.kwargs['num_classes']
 
     def __call__(self, predictions, **kwargs):
         return self.evaluate(predictions, **kwargs)

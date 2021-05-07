@@ -115,39 +115,39 @@ from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
 from .. import utils
+from .dataset_base import *
 
 __all__ = ['COCODetection', 'coco_det_label_offset_80to90', 'coco_det_label_offset_90to90']
 
 
-class COCODetection(utils.ParamsBase):
-    def __init__(self, download=False, **kwargs):
-        super().__init__()
+class COCODetection(DatasetBase):
+    def __init__(self, num_classes=90, download=False, **kwargs):
+        super().__init__(num_classes=num_classes, **kwargs)
         self.force_download = True if download == 'always' else False
-        self.kwargs = kwargs
-        assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
-        path = kwargs['path']
-        split = kwargs['split']
+        assert 'path' in self.kwargs and 'split' in self.kwargs, 'kwargs must have path and split'
+        path = self.kwargs['path']
+        split = self.kwargs['split']
         if download:
             self.download(path, split)
         #
 
-        dataset_folders = os.listdir(kwargs['path'])
+        dataset_folders = os.listdir(self.kwargs['path'])
         assert 'annotations' in dataset_folders, 'invalid path to coco dataset annotations'
-        annotations_dir = os.path.join(kwargs['path'], 'annotations')
+        annotations_dir = os.path.join(self.kwargs['path'], 'annotations')
 
-        shuffle = kwargs.get('shuffle', False)
+        shuffle = self.kwargs.get('shuffle', False)
         image_base_dir = 'images' if ('images' in dataset_folders) else ''
-        image_base_dir = os.path.join(kwargs['path'], image_base_dir)
+        image_base_dir = os.path.join(self.kwargs['path'], image_base_dir)
         image_split_dirs = os.listdir(image_base_dir)
-        assert kwargs['split'] in image_split_dirs, f'invalid path to coco dataset images/split {kwargs["split"]}'
-        self.image_dir = os.path.join(image_base_dir, kwargs['split'])
+        assert self.kwargs['split'] in image_split_dirs, f'invalid path to coco dataset images/split {kwargs["split"]}'
+        self.image_dir = os.path.join(image_base_dir, self.kwargs['split'])
 
-        self.coco_dataset = COCO(os.path.join(annotations_dir, f'instances_{kwargs["split"]}.json'))
+        self.coco_dataset = COCO(os.path.join(annotations_dir, f'instances_{self.kwargs["split"]}.json'))
 
-        filter_imgs = kwargs['filter_imgs'] if 'filter_imgs' in kwargs else None
+        filter_imgs = self.kwargs['filter_imgs'] if 'filter_imgs' in self.kwargs else None
         if isinstance(filter_imgs, str):
             # filter images with the given list
-            filter_imgs = os.path.join(kwargs['path'], filter_imgs)
+            filter_imgs = os.path.join(self.kwargs['path'], filter_imgs)
             with open(filter_imgs) as filter_fp:
                 filter = [int(id) for id in list(filter_fp)]
                 orig_keys = list(self.coco_dataset.imgs)
@@ -166,7 +166,7 @@ class COCODetection(utils.ParamsBase):
         #
 
         max_frames = len(self.coco_dataset.imgs)
-        num_frames = kwargs.get('num_frames', None)
+        num_frames = self.kwargs.get('num_frames', None)
         num_frames = min(num_frames, max_frames) if num_frames is not None else max_frames
 
         imgs_list = list(self.coco_dataset.imgs.items())
@@ -180,8 +180,6 @@ class COCODetection(utils.ParamsBase):
         self.img_ids = self.coco_dataset.getImgIds()
         self.num_frames = num_frames
         self.tempfiles = []
-        # call the utils.ParamsBase.initialize()
-        super().initialize()
 
     def download(self, path, split):
         root = path

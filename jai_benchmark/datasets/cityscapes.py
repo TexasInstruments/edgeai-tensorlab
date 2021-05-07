@@ -78,15 +78,15 @@ import numpy as np
 import PIL
 from colorama import Fore
 from .. import utils
+from .dataset_base import *
 
 __all__ = ['CityscapesSegmentation']
 
-class CityscapesSegmentation(utils.ParamsBase):
-    def __init__(self, download=False, **kwargs):
-        super().__init__()
-        self.kwargs = kwargs
-        assert 'path' in kwargs and 'split' in kwargs, 'path and split must provided'
-        path = kwargs['path']
+class CityscapesSegmentation(DatasetBase):
+    def __init__(self, num_classes=19, download=False, **kwargs):
+        super().__init__(num_classes=num_classes, **kwargs)
+        assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must provided'
+        path = self.kwargs['path']
         if not (os.path.exists(path) or os.path.isdir(path)) and download:
             print(f'{Fore.YELLOW}'
                   f'\nCityscapes dataset:'
@@ -102,7 +102,7 @@ class CityscapesSegmentation(utils.ParamsBase):
         self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
 
         # mapping for cityscapes 19 class segmentation
-        self.num_classes = 19
+        self.num_classes = num_classes
         self.label_dict = {0:255, 1:255, 2:255, 3:255, 4:255, 5:255, 6:255, 7:0, 8:1, 9:255,
                      10:255, 11:2, 12:3, 13:4, 14:255, 15:255, 16:255, 17:5, 18:255, 19:6,
                      20:7, 21:8, 22:9, 23:10, 24:11, 25:12, 26:13, 27:14, 28:15, 29:255,
@@ -130,7 +130,6 @@ class CityscapesSegmentation(utils.ParamsBase):
         #
         self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
-        super().initialize()
 
     def __getitem__(self, idx, with_label=False):
         if with_label:
