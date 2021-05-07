@@ -42,11 +42,30 @@ We have tested this on Ubuntu 18.04 PC with Anaconda Python 3.6. This is the rec
 As explained earlier, RTOS SDK for Jacinto 7 is required to run this package. Please visit the links given above to download and untar/extract the RTOS SDK on your Ubuntu desktop machine.
 
 After extracting, follow the instructions in the RTOS package to download the dependencies required for it. Especially the following 3 steps are required:<br>
-- (1) Install PSDK-RTOS dependencies - especially graphviz and gcc-arm: Change directory to **psdk_rtos/scripts** inside the extracted SDK and run **setup_psdk_rtos.sh**<br>
-- (2) In the extracted SDK, change directory to tidl folder (it has the form tidl_j7_xx_xx_xx_xx). Inside the tidl folder, change directory to **ti_dl/test/tvm-dlr** and run **prepare_model_compliation_env.sh** to install TVM Deep Learning compiler, DLR Deep Learning Runtime and their dependencies. In our SDK, we have support to use TVM+DLR to offload part of the graph into the underlying TIDL backend running on the C7x+MMA DSP, while keeping the unsupported layers running on the main ARM processor. <br>
-- (3) Inside the tidl folder, change directory to **ti_dl/test/tflrt** and run **prepare_model_compliation_env.sh** to install TFLite Runtime and its dependencies. In our SDK, we have support to use TFLite Runtime to offload part of the graph into the underlying TIDL backend running on the C7x+MMA DSP, while keeping the unsupported layers running on the main ARM processor.<br>
 
-Please also read the details below for obtaining the ModelZoo and Datasets - these are also required to do the benchmarking. 
+(1) Install PSDK-RTOS dependencies - especially graphviz and gcc-arm: Change directory to **psdk_rtos/scripts** inside the extracted SDK and run:
+
+```setup_psdk_rtos.sh```
+
+(2) In the extracted SDK, change directory to tidl folder (it has the form tidl_j7_xx_xx_xx_xx). Inside the tidl folder, change directory to **ti_dl/test/tvm-dlr** and run:
+
+```source prepare_model_compliation_env.sh```
+ 
+ to install TVM Deep Learning compiler, DLR Deep Learning Runtime and their dependencies. In our SDK, we have support to use TVM+DLR to offload part of the graph into the underlying TIDL backend running on the C7x+MMA DSP, while keeping the unsupported layers running on the main ARM processor. <br>
+
+(3) Inside the tidl folder, change directory to **ti_dl/test/tflrt** and run:
+ 
+ ```source prepare_model_compliation_env.sh``` 
+ 
+ to install TI's fork of TFLite Runtime and its dependencies. In our SDK, we have support to use TFLite Runtime to offload part of the graph into the underlying TIDL backend running on the C7x+MMA DSP, while keeping the unsupported layers running on the main ARM processor.<br>
+
+(4) Inside the tidl folder, change directory to **ti_dl/test/onnxrt** and run:
+ 
+ ```source prepare_model_compliation_env.sh``` 
+ 
+ to install TI's fork of ONNX Runtime and its dependencies. In our SDK, we have support to use ONNX Runtime to offload part of the graph into the underlying TIDL backend running on the C7x+MMA DSP, while keeping the unsupported layers running on the main ARM processor.<br>
+ 
+Also read the details below for obtaining the ModelZoo and Datasets - these are also required to do the benchmarking. 
 
 #### Requirement: ModelZoo
 DNN Models, config files and pre-imported/calibrated artifacts that are used in this benchmark are provided in another repository called **[Jacinto-AI-ModelZoo](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/about/)**. Please see the documentation of that repository to understand how to clone it. After cloning, jacinto-ai-benchmark and jacinto-ai-modelzoo must be inside the same parent folder for the default settings to work.
