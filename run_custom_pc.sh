@@ -95,5 +95,11 @@ echo "-------------------------------------------------------------------"
 
 echo "==================================================================="
 # generate the final report with results for all the artifacts generated
-python3 ./scripts/generate_report.py
+python3 ./scripts/generate_report.py --expt_name benchmark_custom
 echo "-------------------------------------------------------------------"
+
+echo "==================================================================="
+# package the artifacts generated
+python3 ./scripts/package_artifacts.py --expt_name benchmark_custom
+echo "-------------------------------------------------------------------"
+
