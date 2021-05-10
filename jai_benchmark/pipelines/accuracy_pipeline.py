@@ -124,15 +124,19 @@ class AccuracyPipeline():
 
     def _import_model(self, description=''):
         session = self.pipeline_config['session']
-        calibration_dataset = self.pipeline_config['calibration_dataset']
+        calibration_dataset = self.pipeline_config['calibration_dataset'] \
+            if 'calibration_dataset' in self.pipeline_config else None
+        if calibration_dataset is None:
+            calibration_dataset = self.pipeline_config['input_dataset']
+        #
         assert calibration_dataset is not None, f'got input_dataset={calibration_dataset}. please check settings.dataset_loading'
         preprocess = self.pipeline_config['preprocess']
         run_dir_base = os.path.split(session.get_param('run_dir'))[-1]
 
         self.logger.write(utils.log_color('\nINFO', f'import & calibration {description}', run_dir_base))
         calib_data = []
-        num_frames = len(calibration_dataset)
-        for data_index in range(num_frames):
+        calibration_frames = min(len(calibration_dataset), self.settings.calibration_frames)
+        for data_index in range(calibration_frames):
             info_dict = {}
             data = calibration_dataset[data_index]
             data, info_dict = preprocess(data, info_dict)
@@ -158,10 +162,10 @@ class AccuracyPipeline():
         core_time = 0.0
         subgraph_time = 0.0
         ddr_transfer = 0.0
+        num_frames_ddr = 0
 
         output_list = []
-        num_frames = len(input_dataset)
-        num_frames_ddr = 0
+        num_frames = min(len(input_dataset), self.settings.num_frames)
         pbar_desc = f'infer {description}: {run_dir_base}'
         for data_index in utils.progress_step(range(num_frames), desc=pbar_desc, file=self.logger, position=0):
             info_dict = {}

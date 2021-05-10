@@ -38,7 +38,7 @@ def get_imagecls_dataset_loaders(settings, download=False):
         split=f'{settings.datasets_path}/imagenet/val.txt',
         num_classes=1000,
         shuffle=True,
-        num_frames=settings.quantization_params.get_calibration_frames())
+        num_frames=min(settings.calibration_frames,50000))
 
     # dataset parameters for actual inference
     dataset_val_cfg = dict(
@@ -59,7 +59,7 @@ def get_imageseg_dataset_loaders(settings, download=False):
         split=f'{settings.datasets_path}/coco-seg21-converted/val2017.txt',
         num_classes=21,
         shuffle=True,
-        num_frames=settings.quantization_params.get_calibration_frames())
+        num_frames=min(settings.calibration_frames,5000))
 
     # dataset parameters for actual inference
     dataset_val_cfg = dict(
@@ -79,15 +79,15 @@ def get_imagedet_dataset_loaders(settings, download=False):
         path=f'{settings.datasets_path}/coco-det-converted/val2017',
         split=f'{settings.datasets_path}/coco-det-converted/val2017.txt',
         num_classes=90,
-        shuffle=True,
-        num_frames=settings.quantization_params.get_calibration_frames())
+        shuffle=False, # shuffle is currently not supported for detection metric evaluation
+        num_frames=min(settings.calibration_frames,5000))
 
     # dataset parameters for actual inference
     dataset_val_cfg = dict(
         path=f'{settings.datasets_path}/coco-det-converted/val2017',
         split=f'{settings.datasets_path}/coco-det-converted/val2017.txt',
         num_classes=90,
-        shuffle=True,
+        shuffle=False, # shuffle is currently not supported for detection metric evaluation
         num_frames=min(settings.num_frames,5000))
 
     calib_dataset = datasets.ImageDetection(**dataset_calib_cfg, download=download)
@@ -110,14 +110,16 @@ def create_configs(settings, work_dir):
     - metric - evaluation metric (eg. accuracy). If metric is not defined in the pipeline,
       evaluate() function of the dataset will be called.
 
-    dataset parameters for calibration
+    parameters for calibration_dataset and input_dataset
     - path: folder containing images
     - split: provide a .txt file containing two entries in each line
-      first entry is image file name (starting from path above),
-      second entry is class id (just set to 0 if you don't know what it is)
-    example:
-    image10.jpg 0
-    tomato/image2.jpg 9
+      first entry in each line is image file name (starting from path above),
+      for classification, second entry is class id (just set to 0 if you don't know what it is)
+        example:
+          image10.jpg 0
+          tomato/image2.jpg 9
+      for segmentation, second entry is the label image.
+      for detection, second entry is not used right now in this script.
     '''
 
     # get dataset loaders

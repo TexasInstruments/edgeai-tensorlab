@@ -204,9 +204,6 @@ class QuantizationParams():
         self.is_qat = is_qat
         self.runtime_options = runtime_options if runtime_options is not None else dict()
 
-    def get_calibration_frames(self):
-        return self.calibration_frames
-
     def get_calibration_iterations(self):
         # note that calibration_iterations has effect only if accuracy_level>0
         # so we can just set it to the max value here.
@@ -234,7 +231,7 @@ class QuantizationParams():
             'advanced_options:high_resolution_optimization': 0,
             'advanced_options:pre_batchnorm_fold': 1,
             # quantization/calibration options
-            'advanced_options:calibration_frames': self.get_calibration_frames(),
+            'advanced_options:calibration_frames': self.calibration_frames,
             # note that calibration_iterations has effect only if accuracy_level>0
             'advanced_options:calibration_iterations': self.get_calibration_iterations(),
             # quantization_scale_type iset to 1 for power-of-2-scale quant by default
