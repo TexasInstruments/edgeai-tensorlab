@@ -103,5 +103,5 @@ echo "-------------------------------------------------------------------"
 
 echo "==================================================================="
 # generate the final report with results for all the artifacts generated
-python3 ./scripts/generate_report.py
+python3 ./scripts/generate_report.py ${settings_file}
 echo "-------------------------------------------------------------------"

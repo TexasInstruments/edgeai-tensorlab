@@ -40,14 +40,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('settings_file', type=str)
     parser.add_argument('--work_dirs', type=str, default='./work_dirs')
-    parser.add_argument('--expt_name', type=str, default='./benchmark_accuracy')
+    parser.add_argument('--expt_name', type=str, default='benchmark_accuracy')
     cmds = parser.parse_args()
     settings = config_settings.ConfigSettings(cmds.settings_file)
 
     work_dir = os.path.join(cmds.work_dirs, cmds.expt_name, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
-    package_dir = os.path.splitext(os.path.basename(__file__))[0]
+    package_dir = cmds.expt_name + '_package'
     out_dir = os.path.join(cmds.work_dirs, package_dir, f'{settings.tensor_bits}bits')
     print(f'package_dir: {out_dir}')
 
