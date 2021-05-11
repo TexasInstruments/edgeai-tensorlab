@@ -31,6 +31,7 @@ import sys
 import pickle
 import yaml
 from colorama import Fore
+import wurlitzer
 from .. import utils, constants
 
 
@@ -39,25 +40,34 @@ class AccuracyPipeline():
         self.info_dict = dict()
         self.settings = settings
         self.pipeline_config = pipeline_config
-        self.logger = None
         self.avg_inference_time = None
-
-    def __del__(self):
-        if self.logger is not None:
-            self.logger.close()
-            self.logger = None
-        #
+        self.logger = None
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.logger is not None:
-            self.logger.close()
-            self.logger = None
-        #
+        pass
 
-    def run(self, description=''):
+    def __call__(self, description=''):
+        session = self.pipeline_config['session']
+        run_dir = session.get_param('run_dir')
+        # create logfile if required.
+        if self.settings.enable_logging:
+            log_filename = os.path.join(run_dir, 'run.log')
+            os.makedirs(run_dir, exist_ok=True)
+            log_fp = open(log_filename, 'w')
+        else:
+            log_fp = None
+        #
+        # start logger and run the pipeline
+        self.logger = utils.TeeLogger(log_fp)
+        param_result = self._run(description=description)
+        self.logger.close()
+        self.logger = None
+        return param_result
+
+    def _run(self, description=''):
         # initialize result as empty
         result_dict = {}
         # run the actual model
@@ -65,13 +75,10 @@ class AccuracyPipeline():
         # run_dir is assigned after initialize is called in PipelineRunner
         # but it has not been created - it will be created in start
         run_dir = session.get_param('run_dir')
+        run_dir_base = os.path.split(run_dir)[-1]
         # check if the result already exists - if so we can return
         result_yaml = os.path.join(run_dir, 'result.yaml')
         if self.settings.run_missing and os.path.exists(result_yaml):
-            # create logger in append mode
-            log_filename = os.path.join(run_dir, 'run.log') if self.settings.enable_logging else None
-            self.logger = utils.TeeLogger(log_filename, append=True)
-            self.logger.write(utils.log_color('\nINFO', 'result exists - will reuse', result_yaml))
             with open(result_yaml) as fp:
                 param_result = yaml.safe_load(fp)
                 result_dict = param_result['result'] if 'result' in param_result else {}
@@ -84,26 +91,26 @@ class AccuracyPipeline():
                     yaml.safe_dump(param_result, fp, sort_keys=False)
                 #
             #
-            self.logger.write(utils.log_color('\nSUCCESS', 'benchmark results', f'{result_dict}\n'))
-            self.logger.close()
             return param_result
         else:
             # collect the input params
             param_dict = utils.pretty_object(self.pipeline_config)
             # start() must be called to create the required directories
             session.start()
-            # create logger
-            log_filename = os.path.join(run_dir, 'run.log') if self.settings.enable_logging else None
-            self.logger = utils.TeeLogger(log_filename)
+            # log some info
             self.logger.write(utils.log_color('\nINFO', 'running', os.path.basename(run_dir)))
             self.logger.write(utils.log_color('\nINFO', 'pipeline_config', self.pipeline_config))
             # import.
             if self.settings.run_import:
-                self._import_model(description)
+                self.logger.write(utils.log_color('\nINFO', f'import & calibration {description}', run_dir_base))
+                self._run_with_log(self.logger.log_file, self._import_model, description)
+                self.logger.write(utils.log_color('\nINFO', f'import & calibration {description}', f'{run_dir_base} - done'))
             #
             # inference
             if self.settings.run_inference:
-                output_list = self._infer_frames(description)
+                self.logger.write(utils.log_color('\nINFO', f'infer {description}', run_dir_base))
+                output_list = self._run_with_log(self.logger.log_file, self._infer_frames, description)
+                self.logger.write(utils.log_color('\nINFO', f'infer {description}', f'{run_dir_base} - done.'))
                 result_dict = self._evaluate(output_list)
                 result_dict.update(self.infer_stats_dict)
             #
@@ -118,7 +125,6 @@ class AccuracyPipeline():
                 #
             #
             self.logger.write(utils.log_color('\nSUCCESS', 'benchmark results', f'{result_dict}\n'))
-            self.logger.close()
             return param_result
         #
 
@@ -131,9 +137,7 @@ class AccuracyPipeline():
         #
         assert calibration_dataset is not None, f'got input_dataset={calibration_dataset}. please check settings.dataset_loading'
         preprocess = self.pipeline_config['preprocess']
-        run_dir_base = os.path.split(session.get_param('run_dir'))[-1]
 
-        self.logger.write(utils.log_color('\nINFO', f'import & calibration {description}', run_dir_base))
         calib_data = []
         calibration_frames = min(len(calibration_dataset), self.settings.calibration_frames)
         for data_index in range(calibration_frames):
@@ -143,7 +147,6 @@ class AccuracyPipeline():
             calib_data.append(data)
         #
         session.import_model(calib_data)
-        self.logger.write(utils.log_color('\nINFO', f'import & calibration {description}', f'{run_dir_base} - done'))
 
     def _infer_frames(self, description=''):
         session = self.pipeline_config['session']
@@ -155,8 +158,6 @@ class AccuracyPipeline():
 
         is_ok = session.start_infer()
         assert is_ok, utils.log_color('\nERROR', f'start_infer() did not succeed for', run_dir_base)
-
-        self.logger.write(utils.log_color('\nINFO', f'infer {description}', run_dir_base))
 
         invoke_time = 0.0
         core_time = 0.0
@@ -202,7 +203,6 @@ class AccuracyPipeline():
         if 'perfsim_macs' in stats_dict:
             self.infer_stats_dict.update({'perfsim_gmacs': stats_dict['perfsim_macs'] / constants.GIGA_CONST})
         #
-        self.logger.write(utils.log_color('\nINFO', f'infer {description}', f'{run_dir_base} - done.'))
         return output_list
 
     def _evaluate(self, output_list):
@@ -227,3 +227,11 @@ class AccuracyPipeline():
             output_dict.update(output)
         #
         return output_dict
+
+    def _run_with_log(self, log_fp, func, *args, **kwargs):
+        if log_fp is not None:
+            with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
+                return func(*args, **kwargs)
+            #
+        else:
+            return func(*args, **kwargs)

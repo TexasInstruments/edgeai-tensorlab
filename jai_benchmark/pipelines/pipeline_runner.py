@@ -115,14 +115,14 @@ class PipelineRunner():
             if settings.pipeline_type == constants.PIPELINE_ACCURACY:
                 # use with statement, so that the logger and other file resources are cleaned up
                 with AccuracyPipeline(settings, pipeline_config) as accuracy_pipeline:
-                    accuracy_result = accuracy_pipeline.run(description)
+                    accuracy_result = accuracy_pipeline(description)
                     result.update(accuracy_result)
                 #
             elif settings.pipeline_type == constants.PIPELINE_SOMETHING:
                 # this is just an example of how other pipelines can be implemented.
                 # 'something' used here is not real and it is not supported
                 with SomethingPipeline(settings, pipeline_config) as something_pipeline:
-                    something_result = something_pipeline.run()
+                    something_result = something_pipeline(description)
                     result.update(something_result)
                 #
             else:
