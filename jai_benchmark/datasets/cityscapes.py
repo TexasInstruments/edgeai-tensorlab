@@ -152,9 +152,7 @@ class CityscapesSegmentation(DatasetBase):
             image_file, label_file = self.__getitem__(n, with_label=True)
             # image = PIL.Image.open(image_file)
             label_img = PIL.Image.open(label_file)
-            label_img = label_img.convert('L')
-            label_img = np.array(label_img)
-            label_img = self.label_lut[label_img]
+            label_img = self.encode_segmap(label_img)
 
             output = predictions[n]
             output = output.astype(np.uint8)
@@ -165,6 +163,15 @@ class CityscapesSegmentation(DatasetBase):
         #
         accuracy = utils.segmentation_accuracy(cmatrix)
         return accuracy
+
+    def encode_segmap(self, label_img):
+        if not isinstance(label_img, np.ndarray):
+            # assumes it is PIL.Image
+            label_img = label_img.convert('L')
+            label_img = np.array(label_img)
+        #
+        label_img = self.label_lut[label_img]
+        return label_img
 
     def _create_lut(self):
         if self.label_dict:
@@ -177,3 +184,44 @@ class CityscapesSegmentation(DatasetBase):
         else:
             return None
         #
+
+
+if __name__ == '__main__':
+    # from inside the folder jacinto_ai_benchmark, run the following:
+    # python -m jai_benchmark.datasets.cityscapes
+    # to create a converted dataset if you wish to load it using the dataset loader ImageSegmentation() in image_seg.py
+    # to load it using CityscapesSegmentation dataset in this file, this conversion is not required.
+    import shutil
+    output_folder = './dependencies/datasets/cityscapes-converted'
+    path = './dependencies/datasets/cityscapes'
+    split = 'val'
+    cityscapes_seg = CityscapesSegmentation(path=path, split=split)
+    num_frames = len(cityscapes_seg)
+
+    images_output_folder = output_folder
+    labels_output_folder = output_folder
+    os.makedirs(images_output_folder, exist_ok=True)
+    os.makedirs(labels_output_folder, exist_ok=True)
+
+    output_filelist = os.path.join(output_folder, f'{split}.txt')
+    with open(output_filelist, 'w') as list_fp:
+        for n in range(num_frames):
+            image_path, label_path = cityscapes_seg.__getitem__(n, with_label=True)
+            label_img = PIL.Image.open(label_path)
+            label_img = cityscapes_seg.encode_segmap(label_img)
+
+            image_output_filename = image_path.replace(path, images_output_folder)
+            assert image_output_filename != image_path, f'output iamge path is incorrect {image_output_filename}'
+            label_output_filename = label_path.replace(path, labels_output_folder)
+            assert label_output_filename != label_path, f'output label path is incorrect {label_output_filename}'
+
+            os.makedirs(os.path.dirname(image_output_filename), exist_ok=True)
+            os.makedirs(os.path.dirname(label_output_filename), exist_ok=True)
+
+            shutil.copy2(image_path, image_output_filename)
+            label_img = PIL.Image.fromarray(label_img)
+            label_img.save(label_output_filename)
+
+            list_fp.write(f'{image_output_filename} {label_output_filename}\n')
+        #
+    #
