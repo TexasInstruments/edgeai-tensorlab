@@ -31,6 +31,7 @@ import sys
 import pickle
 import yaml
 from colorama import Fore
+import time
 import wurlitzer
 from .. import utils, constants
 
@@ -102,15 +103,19 @@ class AccuracyPipeline():
             self.logger.write(utils.log_color('\nINFO', 'pipeline_config', self.pipeline_config))
             # import.
             if self.settings.run_import:
-                self.logger.write(utils.log_color('\nINFO', f'import & calibration {description}', run_dir_base))
-                self._run_with_log(self.logger.log_file, self._import_model, description)
-                self.logger.write(utils.log_color('\nINFO', f'import & calibration {description}', f'{run_dir_base} - done'))
+                start_time = time.time()
+                self.logger.write(utils.log_color('\nINFO', f'import {description}', run_dir_base))
+                self._import_model(description)
+                elapsed_time = time.time() - start_time
+                self.logger.write(utils.log_color('\nINFO', f'import {description}', f'{run_dir_base} - done: {elapsed_time:.0f} sec'))
             #
             # inference
             if self.settings.run_inference:
+                start_time = time.time()
                 self.logger.write(utils.log_color('\nINFO', f'infer {description}', run_dir_base))
-                output_list = self._run_with_log(self.logger.log_file, self._infer_frames, description)
-                self.logger.write(utils.log_color('\nINFO', f'infer {description}', f'{run_dir_base} - done.'))
+                output_list = self._infer_frames(description)
+                elapsed_time = time.time() - start_time
+                self.logger.write(utils.log_color('\nINFO', f'infer {description}', f'{run_dir_base} - done: {elapsed_time:.0f} sec'))
                 result_dict = self._evaluate(output_list)
                 result_dict.update(self.infer_stats_dict)
             #
@@ -146,7 +151,7 @@ class AccuracyPipeline():
             data, info_dict = preprocess(data, info_dict)
             calib_data.append(data)
         #
-        session.import_model(calib_data)
+        self._run_with_log(self.logger.log_file, session.import_model, calib_data)
 
     def _infer_frames(self, description=''):
         session = self.pipeline_config['session']
@@ -173,7 +178,7 @@ class AccuracyPipeline():
             data = input_dataset[data_index]
             data, info_dict = preprocess(data, info_dict)
 
-            output, info_dict = session.infer_frame(data, info_dict)
+            output, info_dict = self._run_with_log(self.logger.log_file, session.infer_frame, data, info_dict)
             invoke_time += info_dict['session_invoke_time']
 
             stats_dict = session.infer_stats()
