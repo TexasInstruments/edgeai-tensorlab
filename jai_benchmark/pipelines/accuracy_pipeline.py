@@ -230,13 +230,16 @@ class AccuracyPipeline():
         #
         return output_dict
 
-    def _run_with_log(self, log_fp, func, *args, **kwargs):
+    def _run_with_log(self, log_fp, func, *args, logging_mode='wurlitzer', **kwargs):
         if log_fp is None:
             return func(*args, **kwargs)
         #
-        with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
+        if logging_mode == 'wurlitzer':
+            # redirect logs using wurlitzer
+            with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
+                return func(*args, **kwargs)
+            #
+        else:
+            # no logging
             return func(*args, **kwargs)
         #
-
-
-

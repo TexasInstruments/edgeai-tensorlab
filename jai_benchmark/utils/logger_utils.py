@@ -87,3 +87,68 @@ class TeeLogger:
             self.log_file.close()
             self.log_file = None
         #
+
+
+##############################################################################
+# RedirectLogger - Using the method suggested in:
+# "Redirecting All Kinds of stdout in Python"
+# https://dzone.com/articles/redirecting-all-kinds-stdout
+
+import io
+import sys
+import ctypes
+
+libc = ctypes.CDLL(None)
+c_stdout = ctypes.c_void_p.in_dll(libc, 'stdout')
+c_stderr = ctypes.c_void_p.in_dll(libc, 'stderr')
+
+
+class RedirectLogger():
+    def __init__(self, dst_stream):
+        self.original_stream = (sys.stdout, sys.stderr)
+        self.dst_stream = dst_stream
+
+    def __enter__(self):
+        # this is the underlying src_fd
+        self.original_fd = (sys.stdout.fileno(), sys.stderr.fileno())
+        # take a backup of original_fd
+        self.saved_fd = (os.dup(self.original_fd[0]), os.dup(self.original_fd[1]))
+        # redirect original_fd to dst_fd
+        self._redirect_fd()
+        return self
+
+    def __exit__(self, *args):
+        # redirect original_fd to saved_fd
+        self._restore_fd()
+        # is this needed?
+        os.close(self.saved_fd[0])
+        os.close(self.saved_fd[1])
+        return True
+
+    def _redirect_fd(self):
+        to_fd = self.dst_stream.fileno()
+        # flush the c_stdout
+        libc.fflush(c_stdout)
+        libc.fflush(c_stderr)
+        # close stdout and its fd
+        sys.stdout.close()
+        sys.stderr.close()
+        # make original_fd point to to_fd
+        os.dup2(to_fd, self.original_fd[0])
+        os.dup2(to_fd, self.original_fd[1])
+        # make new sys.stdout
+        sys.stdout = io.TextIOWrapper(os.fdopen(self.original_fd[0], 'wb'))
+        sys.stderr = io.TextIOWrapper(os.fdopen(self.original_fd[1], 'wb'))
+
+    def _restore_fd(self):
+        to_fd = self.saved_fd
+        # flush the c_stdout
+        libc.fflush(c_stdout)
+        # close stdout and its fd
+        sys.stdout.close()
+        sys.stderr.close()
+        # make original_fd point to to_fd
+        os.dup2(to_fd[0], self.original_fd[0])
+        os.dup2(to_fd[1], self.original_fd[1])
+        # restore sys.stdout
+        sys.stdout, sys.stderr = self.original_stream
