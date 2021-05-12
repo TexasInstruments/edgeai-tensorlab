@@ -27,10 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import sys
-import pickle
 import yaml
-from colorama import Fore
 import time
 import wurlitzer
 from .. import utils, constants
@@ -234,9 +231,12 @@ class AccuracyPipeline():
         return output_dict
 
     def _run_with_log(self, log_fp, func, *args, **kwargs):
-        if log_fp is not None:
-            with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
-                return func(*args, **kwargs)
-            #
-        else:
+        if log_fp is None:
             return func(*args, **kwargs)
+        #
+        with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
+            return func(*args, **kwargs)
+        #
+
+
+

@@ -26,10 +26,12 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import sys
 import functools
 import itertools
 import warnings
 import copy
+import traceback
 from .accuracy_pipeline import *
 from .. import utils
 
@@ -130,6 +132,7 @@ class PipelineRunner():
             #
         except Exception as e:
             print(f'\n{str(e)}')
+            traceback.print_exc()
         #
         # make sure we are in cwd when we return.
         os.chdir(cwd)

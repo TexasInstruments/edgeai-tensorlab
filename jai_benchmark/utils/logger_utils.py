@@ -32,52 +32,6 @@ import datetime
 from colorama import Fore
 
 
-class TeeLogger:
-    def __init__(self, log_file, append=False):
-        super().__init__()
-        self.log_stream = sys.stdout
-        if isinstance(log_file, str):
-            mode = 'a' if append else 'w'
-            self.log_file = open(log_file, mode)
-        else:
-            self.log_file = log_file
-        #
-        sys.stdout = self
-
-    def __del__(self):
-        self.close()
-
-    def write(self, message):
-        if self.log_stream is not None:
-            self.log_stream.write(message)
-        #
-        if self.log_file is not None:
-            self.log_file.write(message)
-        #
-        self.flush()
-
-    def flush(self):
-        if self.log_stream is not None:
-            self.log_stream.flush()
-        #
-        if self.log_file is not None:
-            self.log_file.flush()
-        #
-
-    def isatty(self):
-        return self.log_stream.isatty()
-
-    def close(self):
-        if self.log_stream is not None:
-            sys.stdout = self.log_stream
-            self.log_stream = None
-        #
-        if self.log_file is not None:
-            self.log_file.close()
-            self.log_file = None
-        #
-
-
 def log_color(tag, title, message):
     date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     if 'FATAL - {date}' in tag:
@@ -94,3 +48,42 @@ def log_color(tag, title, message):
         msg = f'{Fore.YELLOW}{tag}:{Fore.YELLOW}{date}: - {title} - {Fore.RESET}{message}'
     #
     return msg
+
+
+class TeeLogger:
+    def __init__(self, log_file, append=False):
+        super().__init__()
+        if isinstance(log_file, str):
+            mode = 'a' if append else 'w'
+            self.log_file = open(log_file, mode)
+        else:
+            self.log_file = log_file
+        #
+        # self.log_stream = sys.stdout
+        # sys.stdout = self
+
+    def __del__(self):
+        self.close()
+
+    def write(self, message):
+        sys.stdout.write(message)
+        if self.log_file is not None:
+            self.log_file.write(message)
+        #
+        self.flush()
+
+    def flush(self):
+        sys.stdout.flush()
+        if self.log_file is not None:
+            self.log_file.flush()
+        #
+
+    def isatty(self):
+        return sys.stdout.isatty()
+
+    def close(self):
+        # sys.stdout = self.log_stream
+        if self.log_file is not None:
+            self.log_file.close()
+            self.log_file = None
+        #
