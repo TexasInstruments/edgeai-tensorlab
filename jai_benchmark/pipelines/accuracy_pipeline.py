@@ -117,9 +117,9 @@ class AccuracyPipeline():
         if self.settings.run_import and self.settings.run_missing and not os.path.exists(param_yaml):
             start_time = time.time()
             self.logger.write(utils.log_color('\nINFO', f'import {description}', run_dir_base))
-            self._import_model(description)
+            self._run_with_log(self.logger.log_file, self._import_model, description)
             elapsed_time = time.time() - start_time
-            self.logger.write(utils.log_color('\nINFO', f'import {description}', f'{run_dir_base} - done: {elapsed_time:.0f} sec'))
+            self.logger.write(utils.log_color('\nINFO', f'import completed {description}', f'{run_dir_base} - {elapsed_time:.0f} sec'))
             # dump the params
             if self.settings.enable_logging:
                 with open(param_yaml, 'w') as fp:
@@ -133,9 +133,9 @@ class AccuracyPipeline():
         if self.settings.run_inference:
             start_time = time.time()
             self.logger.write(utils.log_color('\nINFO', f'infer {description}', run_dir_base))
-            output_list = self._infer_frames(description)
+            output_list = self._run_with_log(self.logger.log_file, self._infer_frames, description)
             elapsed_time = time.time() - start_time
-            self.logger.write(utils.log_color('\nINFO', f'infer {description}', f'{run_dir_base} - done: {elapsed_time:.0f} sec'))
+            self.logger.write(utils.log_color('\nINFO', f'infer completed {description}', f'{run_dir_base} - {elapsed_time:.0f} sec'))
             result_dict = self._evaluate(output_list)
             result_dict.update(self.infer_stats_dict)
             # collect the results
@@ -171,7 +171,7 @@ class AccuracyPipeline():
             data, info_dict = preprocess(data, info_dict)
             calib_data.append(data)
         #
-        self._run_with_log(self.logger.log_file, session.import_model, calib_data)
+        session.import_model(calib_data)
 
     def _infer_frames(self, description=''):
         session = self.pipeline_config['session']
@@ -198,7 +198,7 @@ class AccuracyPipeline():
             data = input_dataset[data_index]
             data, info_dict = preprocess(data, info_dict)
 
-            output, info_dict = self._run_with_log(self.logger.log_file, session.infer_frame, data, info_dict)
+            output, info_dict = session.infer_frame(data, info_dict)
             invoke_time += info_dict['session_invoke_time']
 
             stats_dict = session.infer_stats()
@@ -259,6 +259,11 @@ class AccuracyPipeline():
         elif logging_mode == 'wurlitzer':
             # redirect logs using wurlitzer
             with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
+                return func(*args, **kwargs)
+            #
+        elif logging_mode == 'redirect_logger':
+            # redirect logs using wurlitzer
+            with utils.RedirectLogger(log_fp):
                 return func(*args, **kwargs)
             #
         else:
