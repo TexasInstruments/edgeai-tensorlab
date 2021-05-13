@@ -13,4 +13,4 @@ run_inference : True
 # but the size of the list determines the number of parallel processes
 # if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
 # null will run the models sequentially.
-parallel_devices : [0,1,2,3,0,1,2,3] #null
+parallel_devices : [0,1,2,3] #null
