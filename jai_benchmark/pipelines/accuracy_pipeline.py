@@ -45,36 +45,34 @@ class AccuracyPipeline():
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
+        self.close()
+
+    def __del__(self):
+        self.close()
+
+    def close(self):
+        if self.logger is not None:
+            self.logger.close()
+            self.logger = None
+        #
 
     def __call__(self, description=''):
-        session = self.pipeline_config['session']
-        run_dir = session.get_param('run_dir')
-        # create logfile if required.
-        if self.settings.enable_logging:
-            log_filename = os.path.join(run_dir, 'run.log')
-            os.makedirs(run_dir, exist_ok=True)
-            log_fp = open(log_filename, 'w')
-        else:
-            log_fp = None
-        #
-        # start logger and run the pipeline
-        self.logger = utils.TeeLogger(log_fp)
         param_result = self._run(description=description)
-        self.logger.close()
-        self.logger = None
         return param_result
 
     def _run(self, description=''):
         # run the actual model
         session = self.pipeline_config['session']
+
         # run_dir is assigned after initialize is called in PipelineRunner
-        # but it has not been created - it will be created in start
+        # if it has not been created, it will be created in start
         run_dir = session.get_param('run_dir')
         run_dir_base = os.path.split(run_dir)[-1]
-        # check if the result already exists - if so we can return
+
+        # these files willbe written after import and inference respectively
         param_yaml = os.path.join(run_dir, 'param.yaml')
         result_yaml = os.path.join(run_dir, 'result.yaml')
+
         ##################################################################
         # check and return if result exists
         if self.settings.run_missing and os.path.exists(result_yaml):
@@ -93,6 +91,7 @@ class AccuracyPipeline():
                     yaml.safe_dump(param_result, fp, sort_keys=False)
                 #
             #
+            print(utils.log_color('\nSUCCESS', 'found results', f'{result_dict}\n'))
             return param_result
         #
 
@@ -101,8 +100,14 @@ class AccuracyPipeline():
         param_dict = utils.pretty_object(self.pipeline_config)
         param_result = param_dict
         result_dict = {}
+
         # start() must be called to create the required directories
         session.start()
+
+        # start logger - run_dir has been created in start() above
+        log_filename = os.path.join(run_dir, 'run.log')
+        self.logger = utils.TeeLogger(log_filename, append=True)
+
         # log some info
         self.logger.write(utils.log_color('\nINFO', 'running', os.path.basename(run_dir)))
         self.logger.write(utils.log_color('\nINFO', 'pipeline_config', self.pipeline_config))
@@ -144,6 +149,8 @@ class AccuracyPipeline():
             #
         #
         self.logger.write(utils.log_color('\nSUCCESS', 'benchmark results', f'{result_dict}\n'))
+        self.logger.close()
+        self.logger = None
         return param_result
 
     def _import_model(self, description=''):
@@ -247,15 +254,13 @@ class AccuracyPipeline():
         return output_dict
 
     def _run_with_log(self, log_fp, func, *args, logging_mode='wurlitzer', **kwargs):
-        if log_fp is None:
+        if log_fp is None or logging_mode is None:
             return func(*args, **kwargs)
-        #
-        if logging_mode == 'wurlitzer':
+        elif logging_mode == 'wurlitzer':
             # redirect logs using wurlitzer
             with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
                 return func(*args, **kwargs)
             #
         else:
-            # no logging
-            return func(*args, **kwargs)
+            assert False, f'_run_with_log: unknown logging_mode {logging_mode}'
         #

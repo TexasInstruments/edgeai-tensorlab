@@ -31,12 +31,12 @@
 ##################################################################
 # setup the environment
 
-echo "==================================================================="
-DATE_TIME=$(date +'%Y%m%d-%H%M%S')
-LOG_FILE=./work_dirs/run_benchmarks_"$DATE_TIME".log
-exec &> >(tee -a "$LOG_FILE")
-echo Logging output to: "$LOG_FILE"
-echo "-------------------------------------------------------------------"
+#echo "==================================================================="
+#DATE_TIME=$(date +'%Y%m%d-%H%M%S')
+#LOG_FILE=./work_dirs/run_benchmarks_"$DATE_TIME".log
+#exec &> >(tee -a "$LOG_FILE")
+#echo Logging output to: "$LOG_FILE"
+#echo "-------------------------------------------------------------------"
 
 echo "==================================================================="
 echo "IMPORTANT: make sure that these environment variables are correct."
