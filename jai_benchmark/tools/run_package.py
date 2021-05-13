@@ -194,8 +194,10 @@ def package_artifacts(settings, work_dir, out_dir, include_results=False):
             continue
         #
         try:
+            param_yaml = os.path.join(run_dir, 'param.yaml')
             result_yaml = os.path.join(run_dir, 'result.yaml')
-            with open(result_yaml) as fp:
+            read_yaml = result_yaml if os.path.exists(result_yaml) else param_yaml
+            with open(read_yaml) as fp:
                 pipeline_param = yaml.safe_load(fp)
             #
             package_run_dir, tarfile_size = package_artifact(pipeline_param, work_dir, out_dir, include_results=include_results)

@@ -66,8 +66,6 @@ class AccuracyPipeline():
         return param_result
 
     def _run(self, description=''):
-        # initialize result as empty
-        result_dict = {}
         # run the actual model
         session = self.pipeline_config['session']
         # run_dir is assigned after initialize is called in PipelineRunner
@@ -75,7 +73,10 @@ class AccuracyPipeline():
         run_dir = session.get_param('run_dir')
         run_dir_base = os.path.split(run_dir)[-1]
         # check if the result already exists - if so we can return
+        param_yaml = os.path.join(run_dir, 'param.yaml')
         result_yaml = os.path.join(run_dir, 'result.yaml')
+        ##################################################################
+        # check and return if result exists
         if self.settings.run_missing and os.path.exists(result_yaml):
             with open(result_yaml) as fp:
                 param_result = yaml.safe_load(fp)
@@ -83,52 +84,67 @@ class AccuracyPipeline():
             #
             if self.settings.rewrite_results and self.settings.enable_logging:
                 param_dict = utils.pretty_object(self.pipeline_config)
+                with open(os.path.join(run_dir, 'param.yaml'), 'w') as fp:
+                    yaml.safe_dump(param_dict, fp, sort_keys=False)
+                #
                 param_result = dict({'result': result_dict})
                 param_result.update(param_dict)
-                with open(os.path.join(run_dir, 'result.yaml'), 'w') as fp:
+                with open(result_yaml, 'w') as fp:
                     yaml.safe_dump(param_result, fp, sort_keys=False)
                 #
             #
-            return param_result
-        else:
-            # collect the input params
-            param_dict = utils.pretty_object(self.pipeline_config)
-            # start() must be called to create the required directories
-            session.start()
-            # log some info
-            self.logger.write(utils.log_color('\nINFO', 'running', os.path.basename(run_dir)))
-            self.logger.write(utils.log_color('\nINFO', 'pipeline_config', self.pipeline_config))
-            # import.
-            if self.settings.run_import:
-                start_time = time.time()
-                self.logger.write(utils.log_color('\nINFO', f'import {description}', run_dir_base))
-                self._import_model(description)
-                elapsed_time = time.time() - start_time
-                self.logger.write(utils.log_color('\nINFO', f'import {description}', f'{run_dir_base} - done: {elapsed_time:.0f} sec'))
-            #
-            # inference
-            if self.settings.run_inference:
-                start_time = time.time()
-                self.logger.write(utils.log_color('\nINFO', f'infer {description}', run_dir_base))
-                output_list = self._infer_frames(description)
-                elapsed_time = time.time() - start_time
-                self.logger.write(utils.log_color('\nINFO', f'infer {description}', f'{run_dir_base} - done: {elapsed_time:.0f} sec'))
-                result_dict = self._evaluate(output_list)
-                result_dict.update(self.infer_stats_dict)
-            #
-            # collect the results
-            result_dict = utils.pretty_object(result_dict)
-            param_result = dict({'result': result_dict})
-            param_result.update(param_dict)
-            # dump the results
-            if self.settings.enable_logging:
-                with open(os.path.join(run_dir, 'result.yaml'), 'w') as fp:
-                    yaml.safe_dump(param_result, fp, sort_keys=False)
-                #
-            #
-            self.logger.write(utils.log_color('\nSUCCESS', 'benchmark results', f'{result_dict}\n'))
             return param_result
         #
+
+        ##################################################################
+        # collect the input params
+        param_dict = utils.pretty_object(self.pipeline_config)
+        param_result = param_dict
+        result_dict = {}
+        # start() must be called to create the required directories
+        session.start()
+        # log some info
+        self.logger.write(utils.log_color('\nINFO', 'running', os.path.basename(run_dir)))
+        self.logger.write(utils.log_color('\nINFO', 'pipeline_config', self.pipeline_config))
+
+        ##################################################################
+        # import.
+        if self.settings.run_import and self.settings.run_missing and not os.path.exists(param_yaml):
+            start_time = time.time()
+            self.logger.write(utils.log_color('\nINFO', f'import {description}', run_dir_base))
+            self._import_model(description)
+            elapsed_time = time.time() - start_time
+            self.logger.write(utils.log_color('\nINFO', f'import {description}', f'{run_dir_base} - done: {elapsed_time:.0f} sec'))
+            # dump the params
+            if self.settings.enable_logging:
+                with open(param_yaml, 'w') as fp:
+                    yaml.safe_dump(param_dict, fp, sort_keys=False)
+                #
+            #
+        #
+
+        ##################################################################
+        # inference
+        if self.settings.run_inference:
+            start_time = time.time()
+            self.logger.write(utils.log_color('\nINFO', f'infer {description}', run_dir_base))
+            output_list = self._infer_frames(description)
+            elapsed_time = time.time() - start_time
+            self.logger.write(utils.log_color('\nINFO', f'infer {description}', f'{run_dir_base} - done: {elapsed_time:.0f} sec'))
+            result_dict = self._evaluate(output_list)
+            result_dict.update(self.infer_stats_dict)
+            # collect the results
+            result_dict = utils.pretty_object(result_dict)
+            param_result = dict(result=result_dict, **param_dict)
+            # dump the results
+            if self.settings.enable_logging:
+                with open(result_yaml, 'w') as fp:
+                    yaml.safe_dump(param_result, fp, sort_keys=False)
+                #
+            #
+        #
+        self.logger.write(utils.log_color('\nSUCCESS', 'benchmark results', f'{result_dict}\n'))
+        return param_result
 
     def _import_model(self, description=''):
         session = self.pipeline_config['session']
