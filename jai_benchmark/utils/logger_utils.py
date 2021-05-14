@@ -51,16 +51,19 @@ def log_color(tag, title, message):
 
 
 class TeeLogger:
-    def __init__(self, log_file, append=False):
+    def __init__(self, log_file, replace_stdout=False, append=False):
         super().__init__()
+        self.replace_stdout = replace_stdout
         if isinstance(log_file, str):
             mode = 'a' if append else 'w'
             self.log_file = open(log_file, mode)
         else:
             self.log_file = log_file
         #
-        # self.log_stream = sys.stdout
-        # sys.stdout = self
+        if self.replace_stdout:
+            self.log_stream = sys.stdout
+            sys.stdout = self
+        #
 
     def __del__(self):
         self.close()
@@ -82,7 +85,9 @@ class TeeLogger:
         return sys.stdout.isatty()
 
     def close(self):
-        # sys.stdout = self.log_stream
+        if self.replace_stdout:
+            sys.stdout = self.log_stream
+        #
         if self.log_file is not None:
             self.log_file.close()
             self.log_file = None
