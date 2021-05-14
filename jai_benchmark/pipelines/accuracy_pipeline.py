@@ -39,7 +39,6 @@ class AccuracyPipeline():
         self.pipeline_config = pipeline_config
         self.avg_inference_time = None
         self.logger = None
-        self.logging_mode = 'redirect_logger'
 
     def __enter__(self):
         return self
@@ -109,14 +108,14 @@ class AccuracyPipeline():
         self.logger = utils.TeeLogger(log_filename, append=True)
 
         # log some info
-        self.logger.write(utils.log_color('\nINFO', 'running', os.path.basename(run_dir)))
+        self.logger.write(utils.log_color('\n\nINFO', 'running', os.path.basename(run_dir)))
         self.logger.write(utils.log_color('\nINFO', 'pipeline_config', self.pipeline_config))
 
         ##################################################################
         # import.
         if self.settings.run_import and self.settings.run_missing and not os.path.exists(param_yaml):
             start_time = time.time()
-            self.logger.write(utils.log_color('\nINFO', f'import {description}', run_dir_base))
+            self.logger.write(utils.log_color('\n\nINFO', f'import {description}', run_dir_base))
             self._import_model(description)
             elapsed_time = time.time() - start_time
             self.logger.write(utils.log_color('\nINFO', f'import completed {description}', f'{run_dir_base} - {elapsed_time:.0f} sec'))
@@ -132,7 +131,7 @@ class AccuracyPipeline():
         # inference
         if self.settings.run_inference:
             start_time = time.time()
-            self.logger.write(utils.log_color('\nINFO', f'infer {description}', run_dir_base))
+            self.logger.write(utils.log_color('\n\nINFO', f'infer {description}', run_dir_base))
             output_list = self._infer_frames(description)
             elapsed_time = time.time() - start_time
             self.logger.write(utils.log_color('\nINFO', f'infer completed {description}', f'{run_dir_base} - {elapsed_time:.0f} sec'))
@@ -148,7 +147,7 @@ class AccuracyPipeline():
                 #
             #
         #
-        self.logger.write(utils.log_color('\nSUCCESS', 'benchmark results', f'{result_dict}\n'))
+        self.logger.write(utils.log_color('\n\nSUCCESS', 'benchmark results', f'{result_dict}\n'))
         self.logger.close()
         self.logger = None
         return param_result
@@ -254,15 +253,16 @@ class AccuracyPipeline():
         return output_dict
 
     def _run_with_log(self, log_fp, func, *args, **kwargs):
-        if log_fp is None or self.logging_mode is None:
+        logging_mode = 'wurlitzer' if self.settings.verbose else None
+        if log_fp is None or logging_mode is None:
             return func(*args, **kwargs)
-        elif self.logging_mode == 'redirect_logger':
+        elif logging_mode == 'redirect_logger':
             # redirect prints to file using os.dup2()
-            # observation: may not work with 'spawn' method of multiprocessing, use 'fork' instead (default)
+            # observation: may not work well with multiprocessing
             with utils.RedirectLogger(log_fp):
                 return func(*args, **kwargs)
             #
-        elif self.logging_mode == 'wurlitzer':
+        elif logging_mode == 'wurlitzer':
             # redirect logs using wurlitzer
             # this works well with multiprocessing, but causes the execution to slow down
             import wurlitzer
@@ -270,5 +270,5 @@ class AccuracyPipeline():
                 return func(*args, **kwargs)
             #
         else:
-            assert False, f'_run_with_log: unknown logging_mode {self.logging_mode}'
+            assert False, f'_run_with_log: unknown logging_level {logging_mode}'
         #
