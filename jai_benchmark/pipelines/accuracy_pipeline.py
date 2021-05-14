@@ -29,7 +29,6 @@
 import os
 import yaml
 import time
-import wurlitzer
 from .. import utils, constants
 
 
@@ -40,6 +39,7 @@ class AccuracyPipeline():
         self.pipeline_config = pipeline_config
         self.avg_inference_time = None
         self.logger = None
+        self.logging_mode = 'redirect_logger'
 
     def __enter__(self):
         return self
@@ -117,7 +117,7 @@ class AccuracyPipeline():
         if self.settings.run_import and self.settings.run_missing and not os.path.exists(param_yaml):
             start_time = time.time()
             self.logger.write(utils.log_color('\nINFO', f'import {description}', run_dir_base))
-            self._run_with_log(self.logger.log_file, self._import_model, description)
+            self._import_model(description)
             elapsed_time = time.time() - start_time
             self.logger.write(utils.log_color('\nINFO', f'import completed {description}', f'{run_dir_base} - {elapsed_time:.0f} sec'))
             # dump the params
@@ -133,7 +133,7 @@ class AccuracyPipeline():
         if self.settings.run_inference:
             start_time = time.time()
             self.logger.write(utils.log_color('\nINFO', f'infer {description}', run_dir_base))
-            output_list = self._run_with_log(self.logger.log_file, self._infer_frames, description)
+            output_list = self._infer_frames(description)
             elapsed_time = time.time() - start_time
             self.logger.write(utils.log_color('\nINFO', f'infer completed {description}', f'{run_dir_base} - {elapsed_time:.0f} sec'))
             result_dict = self._evaluate(output_list)
@@ -171,7 +171,7 @@ class AccuracyPipeline():
             data, info_dict = preprocess(data, info_dict)
             calib_data.append(data)
         #
-        session.import_model(calib_data)
+        self._run_with_log(self.logger.log_file, session.import_model, calib_data)
 
     def _infer_frames(self, description=''):
         session = self.pipeline_config['session']
@@ -198,7 +198,7 @@ class AccuracyPipeline():
             data = input_dataset[data_index]
             data, info_dict = preprocess(data, info_dict)
 
-            output, info_dict = session.infer_frame(data, info_dict)
+            output, info_dict = self._run_with_log(self.logger.log_file, session.infer_frame, data, info_dict)
             invoke_time += info_dict['session_invoke_time']
 
             stats_dict = session.infer_stats()
@@ -253,19 +253,22 @@ class AccuracyPipeline():
         #
         return output_dict
 
-    def _run_with_log(self, log_fp, func, *args, logging_mode='wurlitzer', **kwargs):
-        if log_fp is None or logging_mode is None:
+    def _run_with_log(self, log_fp, func, *args, **kwargs):
+        if log_fp is None or self.logging_mode is None:
             return func(*args, **kwargs)
-        elif logging_mode == 'wurlitzer':
-            # redirect logs using wurlitzer
-            with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
-                return func(*args, **kwargs)
-            #
-        elif logging_mode == 'redirect_logger':
-            # redirect logs using wurlitzer
+        elif self.logging_mode == 'redirect_logger':
+            # redirect prints to file using os.dup2()
+            # observation: may not work with 'spawn' method of multiprocessing, use 'fork' instead (default)
             with utils.RedirectLogger(log_fp):
                 return func(*args, **kwargs)
             #
+        elif self.logging_mode == 'wurlitzer':
+            # redirect logs using wurlitzer
+            # this works well with multiprocessing, but causes the execution to slow down
+            import wurlitzer
+            with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
+                return func(*args, **kwargs)
+            #
         else:
-            assert False, f'_run_with_log: unknown logging_mode {logging_mode}'
+            assert False, f'_run_with_log: unknown logging_mode {self.logging_mode}'
         #

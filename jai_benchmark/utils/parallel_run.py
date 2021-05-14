@@ -59,7 +59,8 @@ class ParallelRun:
 
     def _run_parallel(self):
         # create process pool and queue the tasks - 'spawn' may be more stable than the default 'fork'
-        process_pool = multiprocessing.get_context('spawn').Pool(self.num_processes)
+        # but when using utils.RedirectLogger() to log, 'spawn' causes issues in print
+        process_pool = multiprocessing.get_context('fork').Pool(self.num_processes)
         results_iterator = process_pool.imap_unordered(self._worker, self.queued_tasks)
         if self.blocking:
             # run a loop to monitor the progress

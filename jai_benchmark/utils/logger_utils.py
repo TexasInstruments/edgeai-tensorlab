@@ -95,9 +95,9 @@ class TeeLogger:
 
 
 ##############################################################################
-# RedirectLogger - Using the method suggested in:
-# "Redirecting All Kinds of stdout in Python"
-# https://dzone.com/articles/redirecting-all-kinds-stdout
+# RedirectLogger - Inspired by: "Redirecting All Kinds of stdout in Python",
+#                               https://dzone.com/articles/redirecting-all-kinds-stdout
+# This method is also seen in: https://pypi.org/project/stream-redirect/
 
 import io
 import sys
@@ -108,38 +108,62 @@ c_stdout = ctypes.c_void_p.in_dll(libc, 'stdout')
 c_stderr = ctypes.c_void_p.in_dll(libc, 'stderr')
 
 
-class RedirectLogger():
-    def __init__(self, dst_stream):
-        self.original_stream = (sys.stdout, sys.stderr)
+class RedirectStream():
+    def __init__(self, dst_stream, stream_name='stdout'):
+        self.stream_name = stream_name
+        self.original_stream = getattr(sys, self.stream_name)
         self.dst_stream = dst_stream
 
-    def __enter__(self):
+    def begin(self):
         # this is the underlying src_fd
-        self.original_fd = (sys.stdout.fileno(), sys.stderr.fileno())
+        self.original_fd = getattr(sys, self.stream_name).fileno()
         # take a backup of original_fd
-        self.saved_fd = (os.dup(self.original_fd[0]), os.dup(self.original_fd[1]))
+        self.saved_fd = os.dup(self.original_fd)
+        # flush
+        self._flush()
         # redirect original_fd to dst_fd
         self._redirect_fd(self.dst_stream.fileno())
         return self
 
-    def __exit__(self, *args):
+    def end(self, *args):
+        # flush
+        self._flush()
         # redirect original_fd to saved_fd
         self._redirect_fd(self.saved_fd)
         # is this needed?
-        os.close(self.saved_fd[0])
-        os.close(self.saved_fd[1])
+        os.close(self.saved_fd)
         return True
 
-    def _redirect_fd(self, to_fd):
+    def _flush(self):
         # flush the c_stdout
         libc.fflush(c_stdout)
         libc.fflush(c_stderr)
         # close stdout and its fd
-        # sys.stdout.close()
-        # sys.stderr.close()
+        getattr(sys, self.stream_name).flush()
+
+    def _redirect_fd(self, to_fd):
+        # close original stdout and its fd
+        # observation: those close causes print issues in other process
+        # created using 'spawn' (instead of 'fork')
+        getattr(sys, self.stream_name).close()
         # make original_fd point to to_fd
-        os.dup2(to_fd, self.original_fd[0])
-        os.dup2(to_fd, self.original_fd[1])
+        os.dup2(to_fd, self.original_fd)
         # make new sys.stdout
-        sys.stdout = io.TextIOWrapper(os.fdopen(self.original_fd[0], 'wb'))
-        sys.stderr = io.TextIOWrapper(os.fdopen(self.original_fd[1], 'wb'))
+        new_stream = io.TextIOWrapper(os.fdopen(self.original_fd, 'wb'))
+        setattr(sys, self.stream_name, new_stream)
+
+
+class RedirectLogger():
+    def __init__(self, dst_stream):
+        self.stdout = RedirectStream(dst_stream, 'stdout')
+        self.stderr = RedirectStream(dst_stream, 'stderr')
+
+    def __enter__(self):
+        self.stdout.begin()
+        self.stderr.begin()
+        return self
+
+    def __exit__(self, *args):
+        self.stdout.end()
+        self.stderr.end()
+        return True

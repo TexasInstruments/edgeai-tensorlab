@@ -9,4 +9,3 @@ tqdm
 pyyaml
 mxnet
 pytest
-wurlitzer
