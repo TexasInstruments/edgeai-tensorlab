@@ -70,8 +70,7 @@ def run_report(benchmark_dir, rewrite_results=True):
     results_collection = dict()
     for work_dir in work_dirs:
         results_yaml = os.path.join(work_dir, 'results.yaml')
-        # the results.yaml that collect_results() write includes only the artifacts generated in that run
-        # but this rewrite_results will aggregate results from all the artifacts across all work_dirs.
+        # generate results.yaml, aggregating results from all the artifacts across all work_dirs.
         if rewrite_results:
             run_rewrite_results(work_dir, results_yaml)
         #

@@ -80,12 +80,6 @@ def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_fun
         pipeline_runner.run()
     #
 
-    # collect the logs and display it
-    # requires enable_logging to be True to write results to file
-    if settings.collect_results:
-        results = pipelines.collect_results(settings, work_dir, pipeline_runner.pipeline_configs, print_results=True)
-    #
-
 
 def main():
     # the cwd must be the root of the respository

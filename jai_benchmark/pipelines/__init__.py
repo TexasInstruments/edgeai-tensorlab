@@ -27,4 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from .pipeline_runner import *
-from .collect_results import *
+
+# we are now using generate_report (which is invoked as a separate script)
+# instead of collect_results that was a function.
+#from .collect_results import *

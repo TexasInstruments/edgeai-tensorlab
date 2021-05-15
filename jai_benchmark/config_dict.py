@@ -124,8 +124,6 @@ class ConfigDict(dict):
         self.run_inference = True
         # run only models for which the results are missing. if this is False, all configs will be run
         self.run_missing = True
-        # collect final accuracy results - not needed, use the script generate_report.py instead
-        self.collect_results = False
         # detection threshold
         self.detection_thr = 0.05
         # max number of detections
