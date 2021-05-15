@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # Copyright (c) 2018-2021, Texas Instruments
 # All Rights Reserved.
 #
@@ -31,35 +29,28 @@
 ##################################################################
 
 
-# setup the environment
-source run_setupenv_pc.sh
+# for onnxruntime and tflite_runtime, the artifacts are same for pc and j7 devices
+# however for tvmdlr, there are two sets of artifacts - one for pc and one for j7 device
+# deploy_lib.so.pc is for pc and deploy_lib.so.j7 is for j7 device
+# a symbolic link called deploy_lib.so needs to be created, depending on where we plan to run the inference.
+# this can be done after the import has been done and artifacts generated.
+# by default it points to deploy_lib.so.pc, so nothing needs to be done for inference on pc
 
-# specify one of the following settings - options can be changed inside the yaml
-#settings_file=settings_infer_on_j7.yaml
-#settings_file=settings_import_on_pc.yaml
-settings_file=settings_import_on_pc.yaml
+if [[ $# -ne 1 ]]; then
+  echo "please provide exactly one argument - either pc or j7"
+  exit 1
+fi
 
-echo "==================================================================="
-# run all the shortlisted models with these settings
-python3 ./scripts/benchmark_accuracy.py ${settings_file} \
-        --session_type_dict {'onnx': 'onnxrt', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'}
-echo "-------------------------------------------------------------------"
+# "j7" or "pc"
+target_device=$1
+artifacts_folder="./work_dirs/benchmark_accuracy/8bits"
+artifacts_list=$(find "${artifacts_folder}/" -maxdepth 1 |grep "_tvmdlr_")
+cur_dir=$(pwd)
 
-echo "==================================================================="
-## run few selected models with these settings
-python3 ./scripts/benchmark_accuracy.py ${settings_file} \
-        --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
-        --task_selection classification segmentation \
-        --model_selection onnx
-echo "-------------------------------------------------------------------"
-
-echo "==================================================================="
-# generate the final report with results for all the artifacts generated
-python3 ./scripts/generate_report.py ${settings_file}
-echo "-------------------------------------------------------------------"
-
-echo "==================================================================="
-# package the artifacts generated
-python3 ./scripts/package_artifacts.py ${settings_file} --expt_name benchmark_accuracy
-echo "-------------------------------------------------------------------"
-
+for art in ${artifacts_list}
+do
+echo ${art}
+cd ${art}/"artifacts"
+ln -snf deploy_lib.so.${target_device} deploy_lib.so
+cd ${cur_dir}
+done

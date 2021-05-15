@@ -35,10 +35,9 @@
 source run_setupenv_pc.sh
 
 # specify one of the following - additional options can be changed inside the yaml
-#settings_file=accuracy_import_for_j7.yaml
 #settings_file=accuracy_infer_on_j7.yaml
-#settings_file=accuracy_import_infer_pc.yaml
-settings_file=accuracy_import_infer_pc.yaml
+#settings_file=accuracy_import_on_pc.yaml
+settings_file=accuracy_import_on_pc.yaml
 
 
 echo "==================================================================="

@@ -31,14 +31,17 @@
 ##################################################################
 
 
+# tvmdlr artifacts are different for pc and j7 device
+# point to the right artifact before this script executes
+source set_target_device.sh j7
+
 # setup the environment
 source run_setupenv_j7.sh
 
-# specify one of the following - additional options can be changed inside the yaml
-#settings_file=accuracy_import_for_j7.yaml
-#settings_file=accuracy_infer_on_j7.yaml
-#settings_file=accuracy_import_infer_pc.yaml
-settings_file=accuracy_infer_on_j7.yaml
+# specify one of the following settings - options can be changed inside the yaml
+#settings_file=settings_infer_on_j7.yaml
+#settings_file=settings_import_on_pc.yaml
+settings_file=settings_infer_on_j7.yaml
 
 echo "==================================================================="
 # run all the shortlisted models with these settings

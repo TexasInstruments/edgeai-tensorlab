@@ -3,7 +3,8 @@ pipeline_type : 'accuracy'
 # important parameter. set this to 'pc' to do import and inference in pc
 # set this to 'j7' to run inference in device. for inference on device run_import
 # below should be switched off and it is assumed that the artifacts are already created.
-target_device : 'pc' #'j7' #'pc'
+# supported values: 'j7' 'pc'
+target_device : 'pc'
 # run import of the model - only to be used in pc - set this to False for j7 evm
 # for pc this can be True or False
 run_import : True
@@ -34,7 +35,7 @@ runtime_options : null
 # but the size of the list determines the number of parallel processes
 # if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
 # null will run the models sequentially.
-parallel_devices : null
+parallel_devices : [0,1,2,3] #null
 # wild card list to match against model_path, model_id or model_type - if null, all models wil be shortlisted
 # only models matching these criteria will be considered - even for model_selection
 # examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
