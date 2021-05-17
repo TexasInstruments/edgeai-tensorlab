@@ -108,14 +108,14 @@ class AccuracyPipeline():
         self.logger = utils.TeeLogger(log_filename, append=True)
 
         # log some info
-        self.logger.write(utils.log_color('\n\nINFO', 'running', os.path.basename(run_dir)))
+        self.logger.write(utils.log_color('\nINFO', 'running', os.path.basename(run_dir)))
         self.logger.write(utils.log_color('\nINFO', 'pipeline_config', self.pipeline_config))
 
         ##################################################################
         # import.
         if self.settings.run_import and self.settings.run_missing and not os.path.exists(param_yaml):
             start_time = time.time()
-            self.logger.write(utils.log_color('\n\nINFO', f'import {description}', run_dir_base))
+            self.logger.write(utils.log_color('\nINFO', f'import {description}', run_dir_base))
             self._import_model(description)
             elapsed_time = time.time() - start_time
             self.logger.write(utils.log_color('\nINFO', f'import completed {description}', f'{run_dir_base} - {elapsed_time:.0f} sec'))
@@ -131,7 +131,7 @@ class AccuracyPipeline():
         # inference
         if self.settings.run_inference:
             start_time = time.time()
-            self.logger.write(utils.log_color('\n\nINFO', f'infer {description}', run_dir_base))
+            self.logger.write(utils.log_color('\nINFO', f'infer {description}', run_dir_base))
             output_list = self._infer_frames(description)
             elapsed_time = time.time() - start_time
             self.logger.write(utils.log_color('\nINFO', f'infer completed {description}', f'{run_dir_base} - {elapsed_time:.0f} sec'))

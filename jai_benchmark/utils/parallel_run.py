@@ -26,20 +26,26 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import os
 import sys
 import multiprocessing
 import collections
 import time
+import traceback
 from .progress_step import *
+from .logger_utils import *
 
 
 class ParallelRun:
-    def __init__(self, num_processes, desc='tasks', blocking=True, maxinterval=10.0):
+    def __init__(self, num_processes, parallel_devices=None, desc='tasks', blocking=True, maxinterval=10.0):
         self.desc = desc
         self.num_processes = num_processes
+        self.parallel_devices = parallel_devices
         self.queued_tasks = collections.deque()
         self.maxinterval = maxinterval
         self.blocking = blocking
+        assert self.parallel_devices is None or len(self.parallel_devices) == num_processes, \
+            f'length of parallel_devices {self.parallel_devices} must match num_processes {num_processes}'
 
     def enqueue(self, task):
         self.queued_tasks.append(task)
@@ -83,6 +89,12 @@ class ParallelRun:
                 num_completed = len(results_list)
             except multiprocessing.TimeoutError as e:
                 pass
+            except multiprocessing.ProcessError as e:
+                # looks like a process or task crashed - return empty result for it
+                print(f'\n{str(e)}')
+                traceback.print_exc()
+                results_list.append({})
+                num_completed = len(results_list)
             #
             pbar_tasks.update(num_completed-num_completed_prev)
             num_completed_prev = num_completed
@@ -92,4 +104,15 @@ class ParallelRun:
         return results_list
 
     def _worker(self, task):
+        if self.parallel_devices is not None:
+            current_process = multiprocessing.current_process()
+            process_index = current_process._identity[0] - 1
+            if process_index >= self.num_processes:
+                print(log_color('\nWARNING', f'ParallelRun:_worker process_index {process_index}',
+                                f'expected 0-{self.num_processes-1}'))
+            #
+            parallel_device = self.parallel_devices[process_index%self.num_processes]
+            os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
+            print(log_color('\nINFO', 'starting process on parallel_device', parallel_device))
+        #
         return task()

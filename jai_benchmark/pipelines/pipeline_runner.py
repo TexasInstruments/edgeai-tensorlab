@@ -81,16 +81,18 @@ class PipelineRunner():
 
     def _run_pipelines_parallel(self):
         # get the cwd so that we can continue even if exception occurs
+        assert isinstance(self.settings.parallel_devices, list), \
+            'parallel_devices must be None or a list of integers (GPU/CUDA devices)'
+
         cwd = os.getcwd()
-        num_devices = len(self.settings.parallel_devices) if self.settings.parallel_devices is not None else 0
+        num_devices = len(self.settings.parallel_devices)
         description = 'TASKS'
-        parallel_exec = utils.ParallelRun(num_processes=num_devices, desc=description)
+        parallel_exec = utils.ParallelRun(num_processes=num_devices, parallel_devices=self.settings.parallel_devices,
+                                          desc=description)
         for pipeline_index, pipeline_config in enumerate(self.pipeline_configs.values()):
             os.chdir(cwd)
-            parallel_device = self.settings.parallel_devices[pipeline_index % num_devices] \
-                if self.settings.parallel_devices is not None else 0
             run_pipeline_bound_func = functools.partial(self._run_pipeline, self.settings, pipeline_config,
-                                                        parallel_device=parallel_device, description='')
+                                                        description='')
             parallel_exec.enqueue(run_pipeline_bound_func)
         #
         results_list = parallel_exec.run()
@@ -99,7 +101,7 @@ class PipelineRunner():
     # this function cannot be an instance method of PipelineRunner, as it causes an
     # error during pickling, involved in the launch of a process is parallel run. make it classmethod
     @classmethod
-    def _run_pipeline(cls, settings_in, pipeline_config_in, parallel_device=None, description=''):
+    def _run_pipeline(cls, settings_in, pipeline_config_in, description=''):
         # create a copy to avoid issues due to running multiple models
         pipeline_config = copy.deepcopy(pipeline_config_in)
         # note that this basic_settings() copies only the basic settings.
@@ -109,9 +111,6 @@ class PipelineRunner():
         # capture cwd - to set it later
         cwd = os.getcwd()
 
-        if parallel_device is not None:
-            os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
-        #
         result = {}
         try:
             if settings.pipeline_type == constants.PIPELINE_ACCURACY:
