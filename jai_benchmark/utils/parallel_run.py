@@ -66,7 +66,7 @@ class ParallelRun:
     def _run_parallel(self):
         # create process pool and queue the tasks - 'spawn' may be more stable than the default 'fork'
         # but when using utils.RedirectLogger() to log, 'spawn' causes issues in print
-        process_pool = multiprocessing.get_context('fork').Pool(self.num_processes)
+        process_pool = multiprocessing.get_context('spawn').Pool(self.num_processes)
         results_iterator = process_pool.imap_unordered(self._worker, self.queued_tasks)
         if self.blocking:
             # run a loop to monitor the progress
@@ -77,7 +77,7 @@ class ParallelRun:
         #
 
     def _run_monitor(self, results_iterator):
-        results_list = []
+        result_list = []
         num_completed = num_completed_prev = 0
         num_tasks = len(self.queued_tasks)
         pbar_tasks = progress_step(iterable=range(num_tasks), desc=self.desc, position=1)
@@ -85,32 +85,26 @@ class ParallelRun:
             # check if a result is available
             try:
                 result = results_iterator.__next__(timeout=self.maxinterval)
-                results_list.append(result)
-                num_completed = len(results_list)
+                result_list.append(result)
             except multiprocessing.TimeoutError as e:
                 pass
-            except multiprocessing.ProcessError as e:
-                # looks like a process or task crashed - return empty result for it
-                print(f'\n{str(e)}')
-                traceback.print_exc()
-                results_list.append({})
-                num_completed = len(results_list)
             #
-            pbar_tasks.update(num_completed-num_completed_prev)
-            num_completed_prev = num_completed
+            num_completed = len(result_list)
+            if num_completed > num_completed_prev:
+                pbar_tasks.update(num_completed-num_completed_prev)
+                num_completed_prev = num_completed
+            #
         #
         pbar_tasks.close()
         print('\n')
-        return results_list
+        return result_list
 
     def _worker(self, task):
         if self.parallel_devices is not None:
             current_process = multiprocessing.current_process()
             process_index = current_process._identity[0] - 1
-            if process_index >= self.num_processes:
-                print(log_color('\nWARNING', f'ParallelRun:_worker process_index {process_index}',
-                                f'expected 0-{self.num_processes-1}'))
-            #
+            # if a task crashes, the process will be re-created and will have a new id assigned
+            # hence, the process_index can be higher than num_processes
             parallel_device = self.parallel_devices[process_index%self.num_processes]
             os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
             print(log_color('\nINFO', 'starting process on parallel_device', parallel_device))
