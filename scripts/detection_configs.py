@@ -34,18 +34,17 @@ Usage:
 (4) Recommend to run the first training with voc0712 dataset as it is widely used and reasonably small.
 (5) To convert cityscapes to coco format, run the script: tools/convert_datasets/cityscapes.py
 
-config='./configs/ssd/ssd_resnet_fpn.py'
-config='./configs/ssd/ssd-lite_mobilenet.py'
-config='./configs/ssd/ssd-lite_mobilenet_fpn.py'
 config='./configs/ssd/ssd-lite_regnet_fpn_bgr.py'
+config='./configs/ssd/ssd-lite_mobilenet_fpn.py'
+config='./configs/ssd/ssd-lite_mobilenet.py'
+config='./configs/ssd/ssd_resnet_fpn.py'
 
-config='./configs/retinanet/retinanet_resnet_fpn.py'
 config='./configs/retinanet/retinanet-lite_regnet_fpn_bgr.py'
+config='./configs/retinanet/retinanet_resnet_fpn.py'
 
-config='./configs/yolo/yolov3_d53.py'
-config='./configs/yolo/yolov3_d53_relu.py'
 config='./configs/yolo/yolov3-lite_regnet_bgr.py'
+config='./configs/yolo/yolov3_d53_relu.py'
+config='./configs/yolo/yolov3_d53.py'
 '''
 
 config='./configs/ssd/ssd-lite_regnet_fpn_bgr.py'
-

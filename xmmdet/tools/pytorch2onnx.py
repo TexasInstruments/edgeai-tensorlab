@@ -6,9 +6,12 @@ import onnx
 import onnxruntime as rt
 import torch
 
+import mmcv
+
 from xmmdet.core import (build_model_from_cfg, generate_inputs_and_wrap_model,
                         preprocess_example_input)
-
+from xmmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint
+from .pytorch2proto import *
 
 def pytorch2onnx(config_path,
                  checkpoint_path,
@@ -39,6 +42,15 @@ def pytorch2onnx(config_path,
     if model.with_mask:
         output_names.append('masks')
 
+    cfg = mmcv.Config.fromfile(config_path)
+    quantize = hasattr(cfg, 'quantize') and cfg.quantize
+    if quantize:
+        orig_model = XMMDetQuantTestModule(orig_model, tensor_data)
+        mmdet_load_checkpoint(orig_model, checkpoint_path)
+        model = XMMDetQuantTestModule(model, tensor_data)
+        mmdet_load_checkpoint(model, checkpoint_path)
+    #
+
     torch.onnx.export(
         model,
         tensor_data,
@@ -50,6 +62,9 @@ def pytorch2onnx(config_path,
         do_constant_folding=True,
         verbose=show,
         opset_version=opset_version)
+
+    output_proto_file = osp.splitext(output_file)[0] + '-proto.onnx'
+    pytorch2proto(cfg, model, tensor_data, output_file, output_proto_file, opset_version=opset_version)
 
     model.forward = orig_model.forward
     print(f'Successfully exported ONNX model: {output_file}')

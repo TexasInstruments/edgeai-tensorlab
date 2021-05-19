@@ -1,3 +1,31 @@
+# Copyright (c) 2018-2020, Texas Instruments
+# All Rights Reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 import os
 import torch
 from .quantize import is_mmdet_quant_module
@@ -7,7 +35,7 @@ from google.protobuf import text_format
 __all__ = ['save_model_proto']
 
 
-def save_model_proto(cfg, model, input, output_filename, opset_version=9):
+def save_model_proto(cfg, model, input, output_filename, output_names=None, save_onnx=True, opset_version=11):
     is_cuda = next(model.parameters()).is_cuda
     input_list = input if isinstance(input, torch.Tensor) else _create_rand_inputs(input, is_cuda)
     input_size = input.size() if isinstance(input, torch.Tensor) else input
@@ -18,49 +46,62 @@ def save_model_proto(cfg, model, input, output_filename, opset_version=9):
     is_yolov3 = hasattr(cfg.model, 'bbox_head') and ('YOLOV3' in cfg.model.bbox_head.type)
     if is_ssd:
         input_names = ['input']
-        output_names = []
-        for cls_idx, cls in enumerate(model.bbox_head.cls_convs):
-            output_names.append(f'cls_convs_{cls_idx}')
+        if output_names is None:
+            output_names = []
+            for cls_idx, cls in enumerate(model.bbox_head.cls_convs):
+                output_names.append(f'cls_convs_{cls_idx}')
+            #
+            for reg_idx, reg in enumerate(model.bbox_head.reg_convs):
+                output_names.append(f'reg_convs_{reg_idx}')
+            #
         #
-        for reg_idx, reg in enumerate(model.bbox_head.reg_convs):
-            output_names.append(f'reg_convs_{reg_idx}')
-        #
-        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names, opset_version=opset_version)
+        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names,
+                         opset_version=opset_version, save_onnx=save_onnx)
         _save_mmdet_proto_ssd(cfg, model, input_size, output_filename, input_names, output_names)
     elif is_retinanet:
         input_names = ['input']
-        output_names = []
-        for i in range(model.neck.num_outs):
-            output_names.append(f'retina_cls_{i}')
+        if output_names is None:
+            output_names = []
+            for i in range(model.neck.num_outs):
+                output_names.append(f'retina_cls_{i}')
+            #
+            for i in range(model.neck.num_outs):
+                output_names.append(f'retina_reg_{i}')
+            #
         #
-        for i in range(model.neck.num_outs):
-            output_names.append(f'retina_reg_{i}')
-        #
-        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names, opset_version=opset_version)
+        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names,
+                         opset_version=opset_version, save_onnx=save_onnx)
         _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_names, output_names)
     elif is_yolov3:
         input_names = ['input']
-        output_names = []
-        for i in range(model.neck.num_scales):
-            output_names.append(f'convs_pred_{i}')
+        if output_names is None:
+            output_names = []
+            for i in range(model.neck.num_scales):
+                output_names.append(f'convs_pred_{i}')
+            #
         #
-        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names, opset_version=opset_version)
+        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names,
+                         opset_version=opset_version, save_onnx=save_onnx)
         _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_names, output_names)
     elif is_fcos:
         input_names = ['input']
-        output_names = []
-        for i in range(model.neck.num_outs):
-            output_names.append(f'cls_convs_{i}')
+        if output_names is None:
+            output_names = []
+            for i in range(model.neck.num_outs):
+                output_names.append(f'cls_convs_{i}')
+            #
+            for i in range(model.neck.num_outs):
+                output_names.append(f'reg_convs_{i}')
+            #
+            for i in range(model.neck.num_outs):
+                output_names.append(f'centerness_convs_{i}')
+            #
         #
-        for i in range(model.neck.num_outs):
-            output_names.append(f'reg_convs_{i}')
-        #
-        for i in range(model.neck.num_outs):
-            output_names.append(f'centerness_convs_{i}')
-        #
-        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names, opset_version=opset_version)
+        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, output_names,
+                         opset_version=opset_version, save_onnx=save_onnx)
     else:
-        _save_mmdet_onnx(cfg, model, input_list, output_filename, opset_version=opset_version)
+        _save_mmdet_onnx(cfg, model, input_list, output_filename,
+                         opset_version=opset_version, save_onnx=save_onnx)
     #
 
 
@@ -71,15 +112,28 @@ def _create_rand_inputs(input_size, is_cuda=False):
     return x
 
 
-def _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names=None, output_names=None, opset_version=9):
+def _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names=None, output_names=None,
+                     opset_version=11, save_onnx=True):
+    if not save_onnx:
+        return
+    #
     #https://github.com/open-mmlab/mmdetection/pull/1082
     assert hasattr(model, 'forward_dummy'), 'wrting onnx is not supported by this model'
     model.eval()
     os.makedirs(os.path.dirname(output_filename), exist_ok=True)
     forward_backup = model.forward #backup forward
     model.forward = model.forward_dummy #set dummy forward
-    torch.onnx.export(model, input_list, output_filename, input_names=input_names,
-                      output_names=output_names, export_params=True, verbose=False, opset_version=opset_version)
+    torch.onnx.export(
+        model,
+        input_list,
+        output_filename,
+        input_names=input_names,
+        output_names=output_names,
+        export_params=True,
+        keep_initializers_as_inputs=True,
+        do_constant_folding=True,
+        verbose=False,
+        opset_version=opset_version)
     model.forward = forward_backup #restore forward
 
 

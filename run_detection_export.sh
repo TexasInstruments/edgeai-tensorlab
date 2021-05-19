@@ -4,6 +4,5 @@
 export PYTHONPATH=.:$PYTHONPATH
 
 python ./scripts/export_pytorch2onnx.py
-python ./scripts/export_pytorch2onnx_model_proto.py
 
 echo "Done."
