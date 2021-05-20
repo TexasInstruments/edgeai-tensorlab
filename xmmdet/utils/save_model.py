@@ -231,7 +231,7 @@ def _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_name
     nms_param = mmdet_meta_arch_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=100)
     detection_output_param = mmdet_meta_arch_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
                                             background_label_id=background_label_id, nms_param=nms_param,
-                                            code_type=mmdet_meta_arch_pb2.CENTER_SIZE, keep_top_k=100,
+                                            code_type=mmdet_meta_arch_pb2.CENTER_SIZE_EXP, keep_top_k=100,
                                             confidence_threshold=0.5)
 
     yolov3 = mmdet_meta_arch_pb2.TidlYoloOd(name='yolo_v3',

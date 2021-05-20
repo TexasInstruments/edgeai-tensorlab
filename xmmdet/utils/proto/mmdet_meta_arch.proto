@@ -27,6 +27,9 @@ enum TIDLBoxCodeType {
 CORNER = 1;
 CENTER_SIZE = 2;
 CORNER_SIZE = 3;
+CENTER_SIZE_EXP = 4;
+CENTER_SIZE_YXHW = 5;
+CODE_TYPE_YOLO_V5 = 6;
 } 
 
 enum TIDLScoreConverter {
@@ -35,6 +38,11 @@ SIGMOID = 1;
 SOFTMAX = 2;
 } 
 
+
+enum TIDLAnchorDataLayout {
+SEPARATED = 0;
+INTERLEAVED = 1;
+} 
 
 // Message that store parameters used by PriorBoxLayer
 message PriorBoxParameter {
@@ -145,6 +153,7 @@ message TidlMaSsd {
   optional TIDLScoreConverter score_converter = 7 [default = SOFTMAX];
   repeated PriorBoxParameter prior_box_param = 8;
   optional TIDLOdPostProc detection_output_param = 9;
+  optional TIDLAnchorDataLayout data_layout = 10 [default = SEPARATED];
 }
 
 
@@ -159,6 +168,7 @@ message TidlMaCaffeSsd {
   optional TIDLScoreConverter score_converter = 7 [default = SOFTMAX];
   repeated PriorBoxParameter prior_box_param = 8;
   optional TIDLOdPostProc detection_output_param = 9;
+  optional TIDLAnchorDataLayout data_layout = 10 [default = SEPARATED];
 }
 
 
@@ -214,6 +224,12 @@ message TIDLYoloParams {
 }
 
 
+message RetinaNetAnchorParameter {
+  repeated float aspect_ratio = 1;
+  required float octave_base_scale  = 2;
+  required uint32 scales_per_octave = 3;
+}
+
 // Configuration for retinanet 
 message TidlMaRetinaNet {
   repeated string box_input = 1; 
@@ -222,17 +238,14 @@ message TidlMaRetinaNet {
   optional string name = 4; 
   required uint32 in_width = 5;
   required uint32 in_height = 6;
+  optional uint32 anchorbox_order = 16 [default = 0];
   optional float x_scale = 7 [default = 10.0];
   optional float y_scale = 8 [default = 10.0];
+  optional float x_offset = 14 [default = 0.0];
+  optional float y_offset = 15 [default = 0.0];
   optional float width_scale = 9 [default = 5.0];
   optional float height_scale = 10 [default = 5.0];
   optional TIDLScoreConverter score_converter = 11 [default = SOFTMAX]; 
   required RetinaNetAnchorParameter anchor_param = 12;
   required TIDLOdPostProc detection_output_param = 13;
 }
-message RetinaNetAnchorParameter {
-  repeated float aspect_ratio = 1;
-  required float octave_base_scale  = 2;
-  required uint32 scales_per_octave = 3;
-}
-
