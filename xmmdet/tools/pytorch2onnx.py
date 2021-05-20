@@ -45,9 +45,10 @@ def pytorch2onnx(config_path,
     cfg = mmcv.Config.fromfile(config_path)
     quantize = hasattr(cfg, 'quantize') and cfg.quantize
     if quantize:
-        orig_model = XMMDetQuantTestModule(orig_model, tensor_data)
+        tensor_one = tensor_data[0] if isinstance(tensor_data, (list,tuple)) else tensor_data
+        orig_model = XMMDetQuantTestModule(orig_model, tensor_one)
         mmdet_load_checkpoint(orig_model, checkpoint_path)
-        model = XMMDetQuantTestModule(model, tensor_data)
+        model = XMMDetQuantTestModule(model, tensor_one)
         mmdet_load_checkpoint(model, checkpoint_path)
     #
 
