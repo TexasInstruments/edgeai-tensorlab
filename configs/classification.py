@@ -101,6 +101,27 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/jai-pytorch/mobilenet_v2_1p4_qat-jai_20210112-093313_opset9.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.22})
         ),
+       # jai-devkit: classification mobilenetv3_small_lite expected_metric: 62.688% top-1 accuracy
+        'vcls-10-103-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/jai-pytorch/mobilenet_v3_small_lite_20210429.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':62.688})
+        ),
+        # jai-devkit: classification mobilenetv3_large_lite expected_metric: 72.122% top-1 accuracy
+        'vcls-10-104-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/jai-pytorch/mobilenet_v3_large_lite_20210507.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':72.122})
+        ),
+        # jai-devkit: classification mobilenetv3_large_lite qat expected_metric: 71.614% top-1 accuracy
+        'vcls-10-104-8':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/jai-pytorch/mobilenet_v3_large_lite_qat-jai_20210507.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':71.614})
+        ),
         #################torchvision models#########################
         # torchvision: classification shufflenetv2_224x224 expected_metric: 69.36% top-1 accuracy
         'vcls-10-301-0':utils.dict_update(common_cfg,
@@ -311,6 +332,22 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/resnet50_v2.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':75.6})
+        ),
+        # tensorflow/models: classification mobilenet_v3-large-minimalistic_224_1.0_float expected_metric: 72.3% top-1 accuracy
+        'vcls-10-411-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_tflite(),
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v3-large-minimalistic_224_1.0_float.tflite'),
+            metric=dict(label_offset_pred=-1),
+            model_info=dict(metric_reference={'accuracy_top1%':72.3})
+        ),
+        # tensorflow/models: classification mobilenet_v3-small-minimalistic_224_1.0_float expected_metric: 61.9% top-1 accuracy
+        'vcls-10-412-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_tflite(),
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v3-small-minimalistic_224_1.0_float.tflite'),
+            metric=dict(label_offset_pred=-1),
+            model_info=dict(metric_reference={'accuracy_top1%':61.9})
         ),
         #################efficinetnet & tpu models#########################
         # tensorflow/tpu: classification efficinetnet-lite0_224x224 expected_metric: 75.1% top-1 accuracy
