@@ -28,6 +28,14 @@
 
 import os
 import time
+
+# mxnet is required only for import (and that too for mxnet models)
+# but doing the import inside the code, conditionally is causing an error, so do it here.
+try:
+    import mxnet
+except:
+    pass
+
 from dlr import DLRModel
 from .. import constants
 from .basert_session import BaseRTSession
