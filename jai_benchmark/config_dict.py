@@ -115,7 +115,7 @@ class ConfigDict(dict):
         self.parallel_devices = None #[0,1,2,3,0,1,2,3]
         # quantization bit precision
         self.tensor_bits = 8 #8 #16 #32
-        # runtime_options can be specified as a dict
+        # runtime_options can be specified as a dict. eg {'accuracy_level': 0}
         self.runtime_options = None
         # run import of the model - only to be used in pc - set this to False for j7 evm
         # for pc this can be True or False
