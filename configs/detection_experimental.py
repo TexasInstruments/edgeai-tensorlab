@@ -109,28 +109,6 @@ def get_configs(settings, work_dir):
         #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.0})
         # ),
-        # mxnet : gluoncv model : detection - ssd_512_resnet50_v1_coco - accuracy: 30.6% ap[0.5:0.95], 50.0% ap50
-        'vdet-12-062-0':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx((512,512), (512,512), backend='cv2'),
-            session=mxnet_session_type(**common_session_cfg, runtime_options=runtime_options_mxnet,
-                model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_resnet50_v1_coco-symbol.json',
-                            f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_resnet50_v1_coco-0000.params'],
-                model_type='mxnet', input_shape={'data':(1,3,512,512)}),
-            postprocess=postproc_detection_mxnet,
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':30.6})
-        ),
-        # mxnet : gluoncv model : detection - yolo3_darknet53_coco - accuracy: 36.0% ap[0.5:0.95], 57.2% ap50
-        'vdet-12-063-0':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx((512,512), (512,512), backend='cv2'),
-            session=mxnet_session_type(**common_session_cfg, runtime_options=runtime_options_mxnet,
-                model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/yolo3_darknet53_coco-symbol.json',
-                            f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/yolo3_darknet53_coco-0000.params'],
-                model_type='mxnet', input_shape={'data':(1,3,512,512)}),
-            postprocess=postproc_detection_mxnet,
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':36.0})
-        ),
         # mxnet : gluoncv model : detection - yolo3_darknet53_coco - accuracy: 26.6% ap[0.5:0.95], 28.1% ap50
         'vdet-12-064-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx((512,512), (512,512), backend='cv2'),
