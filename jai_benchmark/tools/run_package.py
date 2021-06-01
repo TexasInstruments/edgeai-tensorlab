@@ -120,9 +120,11 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
         r'_netLog.txt$',
         r'.svg$',
         r'deploy_graph.json$',
+        r'deploy_graph.json.*',
         r'deploy_lib.so$',
         r'deploy_lib.so.*',
         r'deploy_params.params$',
+        r'deploy_params.params.*',
         # extra files - for information only
         r'netLog.txt$',
         r'layer_info.txt$',

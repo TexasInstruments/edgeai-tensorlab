@@ -108,6 +108,11 @@ class TVMDLRSession(BaseRTSession):
         # partition the graph into TIDL operations and TVM operations
         tvm_model, status = compiler.enable(tvm_model, params, calib_list)
 
+        # the artifact files that are generated
+        deploy_lib = 'deploy_lib.so'
+        deploy_graph = 'deploy_graph.json'
+        deploy_params = 'deploy_params.params'
+
         for target_device in self.supported_devices:
             if target_device == 'j7':
                 build_target = 'llvm -device=arm_cpu -mtriple=aarch64-linux-gnu'
@@ -127,9 +132,10 @@ class TVMDLRSession(BaseRTSession):
             tidl.remove_tidl_params(params)
 
             # save the deployables
-            path_lib = os.path.join(artifacts_folder, f'deploy_lib.so.{target_device}')
-            path_graph = os.path.join(artifacts_folder, 'deploy_graph.json')
-            path_params = os.path.join(artifacts_folder, 'deploy_params.params')
+            path_lib = os.path.join(artifacts_folder, f'{deploy_lib}.{target_device}')
+            path_graph = os.path.join(artifacts_folder, f'{deploy_graph}.{target_device}')
+            path_params = os.path.join(artifacts_folder, f'{deploy_params}.{target_device}')
+
             lib.export_library(path_lib, **cross_cc_args)
             with open(path_graph, "w") as fo:
                 fo.write(graph)
@@ -142,9 +148,10 @@ class TVMDLRSession(BaseRTSession):
         # create a symbolic link to the deploy_lib specified in target_device
         os.chdir(artifacts_folder)
         target_device = self.kwargs['target_device']
-        deploy_lib = 'deploy_lib.so'
-        os.symlink(f'{deploy_lib}.{target_device}', deploy_lib)
-
+        artifact_files = [deploy_lib, deploy_graph, deploy_params]
+        for artifact_file in artifact_files:
+            os.symlink(f'{artifact_file}.{target_device}', artifact_file)
+        #
         os.chdir(self.cwd)
         return info_dict
 

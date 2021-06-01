@@ -43,14 +43,22 @@ fi
 
 # "j7" or "pc"
 target_device=$1
-artifacts_folder="./work_dirs/benchmark_accuracy/8bits"
-artifacts_list=$(find "${artifacts_folder}/" -maxdepth 1 |grep "_tvmdlr_")
+artifacts_base="./work_dirs/benchmark_accuracy/8bits"
+artifacts_folders=$(find "${artifacts_base}/" -maxdepth 1 |grep "_tvmdlr_")
 cur_dir=$(pwd)
 
-for art in ${artifacts_list}
+declare -a artifact_files=("deploy_lib.so" "deploy_graph.json" "deploy_params.params")
+
+for artifact_folder in ${artifacts_folders}
 do
-echo ${art}
-cd ${art}/"artifacts"
-ln -snf deploy_lib.so.${target_device} deploy_lib.so
-cd ${cur_dir}
+  echo "Entering: ${artifact_folder}"
+  cd ${artifact_folder}/"artifacts"
+  for artifact_file in "${artifact_files[@]}"
+  do
+    if [[ -f ${artifact_file}.${target_device} ]]; then
+      echo "creating symbolic link to ${artifact_file}.${target_device}"
+      ln -snf ${artifact_file}.${target_device} ${artifact_file}
+    fi
+  done
+  cd ${cur_dir}
 done
