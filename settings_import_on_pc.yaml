@@ -1,20 +1,23 @@
 # execution pipeline type - currently only accuracy pipeline is defined
 pipeline_type : 'accuracy'
+
 # important parameter. set this to 'pc' to do import and inference in pc
 # set this to 'j7' to run inference in device. for inference on device run_import
 # below should be switched off and it is assumed that the artifacts are already created.
 # supported values: 'j7' 'pc'
 target_device : 'pc'
+
 # quantization bit precision
 # options are: 8 16 32
 tensor_bits : 8
+
 # run import of the model - only to be used in pc - set this to False for j7 evm
 # for pc this can be True or False
 run_import : True
+
 # run inference - for inference in j7 evm, it is assumed that the artifacts folders are already available
 run_inference : True
-# run only models for which the results are missing. if this is False, all selected configs will be run
-run_missing : True
+
 # for parallel execution on pc only (cpu or gpu).
 # specify either a list of integers for parallel execution or null for sequentially execution
 # if you are not using cuda compiled tidl on pc, these actual numbers in the list don't matter,
@@ -22,57 +25,63 @@ run_missing : True
 # if you have cuda compiled tidl, these integers wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
 # null will run the models sequentially.
 parallel_devices : null
+
 # number of frames for inference
 num_frames : 10000 #50000
+
 # number of frames to be used for post training quantization / calibration
 calibration_frames : 50 #100
+
 # number of itrations to be used for post training quantization / calibration
 calibration_iterations : 50
+
 # runtime_options to be passed to the core session. default: null or a dict
 # eg. (in next line and with preceding spaces to indicate this is a dict entry) accuracy_level : 0
-runtime_options : null
+#runtime_options :
+#  accuracy_level: 0
+
 # folder where benchmark configs are defined. this should be python importable
 # # if this is None, the internally defined minimal set of configs will be used
 configs_path : './configs'
+
 # folder where models are available
 models_path : '../jacinto-ai-modelzoo/models'
+
 # create your datasets under this folder
 datasets_path : './dependencies/datasets'
-# wild card list to match against model_path, model_id or model_type - if null, all models wil be shortlisted
-# only models matching these criteria will be considered - even for model_selection
-# examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
-# examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision']
-model_selection : null
-# exclude from running, these models
-# example: ['voc']
-# example: ['cityscapes']
-# example: ['vcls-10-306-0', 'vcls-10-404-0', 'vcls-10-434-0', 'vcls-10-442-0', 'vseg-16-300-0', 'vseg-16-301-0', 'vseg-16-400-0']
-model_exclusion: null
-# wild card list to match against the tasks. it null, all tasks will be run
-# example: ['classification', 'detection', 'segmentation']
-# example: 'classification'
-# example: null (Note: null means no filter - run all the tasks)
-task_selection : null
+
 # session types to use for each model type
 session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
-# which configs to run from the default list. example [0,10] [10,null] etc.
-# this range will be applied after applying model_selection and short-listing
-# null will run all the configs
-config_range : null
-# whether to load the datasets or not. set to False to load no datasets
-# set to True to try and load all datasets (the dataset folders must be available in ./dependencies/datasets).
-# for selective loading, provide a list of dataset names such as ['imagenet', 'coco', 'cityscapes', 'ade20k', 'voc2012']
-dataset_loading : True
-# logging of the import, infer and the accuracy. set to False to disable it.
-enable_logging : True
-# verbose mode - print out more information
-verbose : False
-### detection threshold
-detection_thr : 0.05
-# save detection, segmentation output
-save_output : False
+
 # wild card list to match against model_path, model_id or model_type - if null, all models wil be shortlisted
 # only models matching these criteria will be considered - even for model_selection
 # examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
 # examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision']
 model_shortlist : null
+
+# wild card list to match against model_path, model_id or model_type - if null, all models wil be shortlisted
+# only models matching these criteria will be considered - even for model_selection
+# examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
+# examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision']
+model_selection : null
+
+# exclude from running, these models
+# example: ['voc']
+# example: ['cityscapes']
+# example: ['vcls-10-306-0', 'vcls-10-404-0', 'vcls-10-434-0', 'vcls-10-442-0', 'vseg-16-300-0', 'vseg-16-301-0', 'vseg-16-400-0']
+model_exclusion: null
+
+# wild card list to match against the tasks. it null, all tasks will be run
+# example: ['classification', 'detection', 'segmentation']
+# example: 'classification'
+# example: null (Note: null means no filter - run all the tasks)
+task_selection : null
+
+# verbose mode - print out more information
+verbose : False
+
+# detection threshold
+detection_thr : 0.05
+
+# save detection, segmentation output
+save_output : False
