@@ -101,27 +101,6 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/jai-pytorch/mobilenet_v2_1p4_qat-jai_20210112-093313_opset9.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.22})
         ),
-       # jai-devkit: classification mobilenetv3_small_lite expected_metric: 62.688% top-1 accuracy
-        'vcls-10-103-0':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx(),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/jai-pytorch/mobilenet_v3_small_lite_20210429.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':62.688})
-        ),
-        # jai-devkit: classification mobilenetv3_large_lite expected_metric: 72.122% top-1 accuracy
-        'vcls-10-104-0':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx(),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/jai-pytorch/mobilenet_v3_large_lite_20210507.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':72.122})
-        ),
-        # jai-devkit: classification mobilenetv3_large_lite qat expected_metric: 71.614% top-1 accuracy
-        'vcls-10-104-8':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx(),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/jai-pytorch/mobilenet_v3_large_lite_qat-jai_20210507.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':71.614})
-        ),
         #################torchvision models#########################
         # torchvision: classification shufflenetv2_224x224 expected_metric: 69.36% top-1 accuracy
         'vcls-10-301-0':utils.dict_update(common_cfg,
@@ -157,6 +136,34 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet50_opset9.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':76.15})
+        ),
+       # jai-devkit: classification mobilenetv3_small_lite expected_metric: 62.688% top-1 accuracy
+        'vcls-10-310-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v3_lite_small_20210429.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':62.688})
+        ),
+       # jai-devkit: classification mobilenetv3_small_lite expected_metric: 61.836% top-1 accuracy
+        'vcls-10-310-8':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v3_lite_small_qat-jai_20210429.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':61.836})
+        ),
+        # jai-devkit: classification mobilenetv3_large_lite expected_metric: 72.122% top-1 accuracy
+        'vcls-10-311-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v3_lite_large_20210507.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':72.122})
+        ),
+        # jai-devkit: classification mobilenetv3_large_lite qat expected_metric: 71.614% top-1 accuracy
+        'vcls-10-311-8':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v3_lite_large_qat-jai_20210507.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':71.614})
         ),
         #################pycls regnetx models#########################
         # pycls: classification regnetx200mf_224x224 expected_metric: 68.9% top-1 accuracy

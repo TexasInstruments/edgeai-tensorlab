@@ -154,6 +154,20 @@ def get_configs(settings, work_dir):
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':61.09})
         ),
+        'vseg-21-300-0':utils.dict_update(cocoseg21_cfg,
+            preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+                model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/torchvision/deeplabv3_mobilenet_v3_lite_large_512x512_20210527.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':60.80})
+        ),
+        'vseg-21-301-0':utils.dict_update(cocoseg21_cfg,
+            preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+                model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/torchvision/lraspp_mobilenet_v3_lite_large_512x512_20210527.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':59.80})
+        ),
         #################################################################
         #       TFLITE MODELS
         #################mlperf models###################################
