@@ -47,7 +47,12 @@ if __name__ == '__main__':
     parser.add_argument('--models_path', type=str)
     parser.add_argument('--task_selection', type=str, nargs='*')
     parser.add_argument('--model_selection', type=str, nargs='*')
+    parser.add_argument('--model_exclusion', type=str, nargs='*')
     parser.add_argument('--session_type_dict', type=str, nargs='*')
+    parser.add_argument('--num_frames', type=int)
+    parser.add_argument('--calibration_frames', type=int)
+    parser.add_argument('--calibration_iterations', type=int)
+    parser.add_argument('--parallel_devices', type=int, nargs='*')
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)
