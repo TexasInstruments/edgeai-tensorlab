@@ -137,14 +137,14 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet50_opset9.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':76.15})
         ),
-       # jai-devkit: classification mobilenetv3_small_lite expected_metric: 62.688% top-1 accuracy
+        # jai-devkit: classification mobilenetv3_small_lite expected_metric: 62.688% top-1 accuracy
         'vcls-10-310-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v3_lite_small_20210429.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':62.688})
         ),
-       # jai-devkit: classification mobilenetv3_small_lite expected_metric: 61.836% top-1 accuracy
+        # jai-devkit: classification mobilenetv3_small_lite_qat expected_metric: 61.836% top-1 accuracy
         'vcls-10-310-8':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
@@ -164,6 +164,13 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v3_lite_large_qat-jai_20210507.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.614})
+        ),
+        # jai-devkit: classification mobilenetv3_large_lite_x2r expected_metric: 74.160% top-1 accuracy
+        'vcls-10-312-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v3_lite_large_x2r_20210522.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':74.160})
         ),
         #################pycls regnetx models#########################
         # pycls: classification regnetx200mf_224x224 expected_metric: 68.9% top-1 accuracy
