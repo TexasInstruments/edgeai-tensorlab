@@ -164,7 +164,7 @@ def create_configs(settings, work_dir):
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
             session=sessions.ONNXRTSession(
                 work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_onnxrt,
-                model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/jai-pytorch/deeplabv3lite_mobilenetv2_cocoseg21_512x512_20210405.onnx'),
+                model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/ti-edgeai/deeplabv3lite_mobilenetv2_cocoseg21_512x512_20210405.onnx'),
             postprocess=settings.get_postproc_segmentation_onnx(),
             model_info=dict(metric_reference={'accuracy_mean_iou%':57.77})
         ),
