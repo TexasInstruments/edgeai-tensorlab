@@ -172,6 +172,31 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet50_opset9.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':76.15})
         ),
+        #################pingolh-hardnet models#########################
+        'vcls-10-330-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet39ds_opset11.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':72.1})
+        ),
+        'vcls-10-331-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet68ds_opset11.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':74.3})
+        ),
+        'vcls-10-332-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet68_opset11.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':76.5})
+        ),
+        'vcls-10-333-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet85_opset11.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':78.0})
+        ),
         #################pycls regnetx models#########################
         # pycls: classification regnetx200mf_224x224 expected_metric: 68.9% top-1 accuracy
         'vcls-10-030-0':utils.dict_update(common_cfg,
