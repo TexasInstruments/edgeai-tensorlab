@@ -88,6 +88,17 @@ def get_configs(settings, work_dir):
         #################################################################
         #       MXNET MODELS
         #################################################################
+        # mxnet : gluoncv model : detection - yolo3_darknet53_coco - accuracy: 36.0% ap[0.5:0.95], 57.2% ap50
+        'vdet-12-063-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx((416,416), (416,416), backend='cv2'),
+            session=mxnet_session_type(**common_session_cfg, runtime_options=runtime_options_mxnet_p2,
+                model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/yolo3_darknet53_coco-symbol.json',
+                            f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/yolo3_darknet53_coco-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,3,416,416)}),
+            postprocess=postproc_detection_mxnet,
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90()),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':36.0})
+        ),
         #################################################################
         #       TFLITE MODELS
         #################tflite models###################################
