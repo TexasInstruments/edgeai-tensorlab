@@ -144,9 +144,9 @@ if __name__ == '__main__':
     configs_path_default = '../jacinto-ai-modelzoo/configs'
     models_path_default = '../jacinto-ai-modelzoo/models'
     model_selection_default = [
-                       'ti-edgeai/mobilenet_v1_20190906-171544_opset9.onnx',
-                       'ti-edgeai/mobilenet_v2_20191224-153212_opset9.onnx',
-                       'ti-edgeai/mobilenet_v2_1p4_qat-jai_20210112-093313_opset9.onnx',
+                       'edgeai/mobilenet_v1_20190906-171544_opset9.onnx',
+                       'edgeai/mobilenet_v2_20191224-153212_opset9.onnx',
+                       'edgeai/mobilenet_v2_1p4_qat-jai_20210112-093313_opset9.onnx',
                        'torchvision/resnet18_opset9.onnx',
                        'torchvision/resnet50_opset9.onnx',
                        'pycls/RegNetX-400MF_dds_8gpu_opset9.onnx',
