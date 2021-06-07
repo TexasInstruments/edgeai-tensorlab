@@ -78,6 +78,15 @@ def get_configs(settings, work_dir):
         #################################################################
         #       MXNet MODELS
         #################################################################
+        # mxnet : gluoncv model : classification - hrnet_w30_c - - reference accuracy: is from hrnet website, not from gluoncv
+        'vcls-10-064-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(backend='cv2'),
+            session=mxnet_session_type(**common_session_cfg, runtime_options=runtime_options_mxnet_p2,
+                model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/hrnet_w30_c-symbol.json',
+                            f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/hrnet_w30_c-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,3,224,224)}),
+            model_info=dict(metric_reference={'accuracy_top1%':78.2})
+        ),
         #################################################################
         #       TFLITE MODELS
         ##################tensorflow models##############################
