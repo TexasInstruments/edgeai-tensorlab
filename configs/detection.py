@@ -133,7 +133,7 @@ def get_configs(settings, work_dir):
         'vdet-12-010-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((300,300), (300,300), backend='cv2'),
             session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
-                model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
+                model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_20180128.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':23.0})
@@ -152,7 +152,7 @@ def get_configs(settings, work_dir):
         'vdet-12-400-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((320,320), (320,320), backend='cv2'),
             session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
-                model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_2020_05_19.tflite'),
+                model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_20200519.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.9})
@@ -161,7 +161,7 @@ def get_configs(settings, work_dir):
         'vdet-12-401-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((320,320), (320,320), backend='cv2'),
             session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
-                model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19.tflite'),
+                model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_edgetpu_320x320_coco_20200519.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':25.9})
@@ -170,7 +170,7 @@ def get_configs(settings, work_dir):
         'vdet-12-402-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((300,300), (300,300), backend='cv2'),
             session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
-                model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobilenet_v2_coco_2018_05_09.tflite'),
+                model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobilenet_v2_coco_20180509.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':22.0})

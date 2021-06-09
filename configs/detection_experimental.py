@@ -113,7 +113,7 @@ def get_configs(settings, work_dir):
         #################################################################
         #       TFLITE MODELS
         #################tflite models###################################
-        # # tensorflow1.0 models: detection - ssd_mobilenet_v2_mnasfpn_shared_box_predictor_320x320_coco_sync_2020_05_18 expected_metric: 26.6% ap[0.5:0.95] accuracy
+        # # tensorflow1.0 models: detection - ssd_mobilenet_v2_mnasfpn_shared_box_predictor_320x320_coco_sync_20200518 expected_metric: 26.6% ap[0.5:0.95] accuracy
         # 'vdet-12-403-0':utils.dict_update(common_cfg,
         #     preprocess=settings.get_preproc_tflite((320,320), (320,320), backend='cv2'),
         #     session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite,
@@ -122,7 +122,7 @@ def get_configs(settings, work_dir):
         #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':26.6})
         # ),
-        # # tensorflow1.0 models: detection - ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03 expected_metric: 32.0% ap[0.5:0.95] accuracy
+        # # tensorflow1.0 models: detection - ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_20180703 expected_metric: 32.0% ap[0.5:0.95] accuracy
         # 'vdet-12-404-0':utils.dict_update(common_cfg,
         #     preprocess=settings.get_preproc_tflite((640,640), (640,640), backend='cv2'),
         #     session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite,
