@@ -184,7 +184,7 @@ def get_configs(settings, work_dir):
         'vseg-17-400-0':utils.dict_update(ade20k_cfg,
             preprocess=settings.get_preproc_tflite((512, 512), (512, 512), mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429), backend='cv2'),
             session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
-                 model_path=f'{settings.models_path}/vision/segmentation/ade20k/tf1-models/deeplabv3_mnv2_ade20k_train_2018_12_03_512x512.tflite'),
+                 model_path=f'{settings.models_path}/vision/segmentation/ade20k/tf1-models/deeplabv3_mnv2_ade20k_train_20181203_512x512.tflite'),
             postprocess=postproc_segmenation_tflite,
             model_info=dict(metric_reference={'accuracy_mean_iou%':32.04})
         ),
