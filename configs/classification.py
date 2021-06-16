@@ -77,28 +77,28 @@ def get_configs(settings, work_dir):
         'vcls-10-100-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-jai/mobilenet_v1_20190906_opset9.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-jai/mobilenet_v1_20190906.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.82})
         ),
         # jai-devkit: classification mobilenetv2_224x224 expected_metric: 72.13% top-1 accuracy
         'vcls-10-101-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-jai/mobilenet_v2_20191224_opset9.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-jai/mobilenet_v2_20191224.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.13})
         ),
         # jai-devkit: classification mobilenetv2_224x224 expected_metric: 72.13% top-1 accuracy, QAT: 71.73%
         'vcls-10-101-8':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-jai/mobilenet_v2_qat-p2_20201213_opset9.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-jai/mobilenet_v2_qat-p2_20201213.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.13})
         ),
         # jai-devkit: classification mobilenetv2_1p4_224x224 expected_metric: 75.22% top-1 accuracy, QAT: 75.22%
         'vcls-10-102-8':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-jai/mobilenet_v2_1p4_qat-p2_20210112_opset9.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-jai/mobilenet_v2_1p4_qat-p2_20210112.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.22})
         ),
         # jai-devkit: classification mobilenetv3_small_lite expected_metric: 62.688% top-1 accuracy
@@ -141,60 +141,60 @@ def get_configs(settings, work_dir):
         'vcls-10-301-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/shufflenet_v2_x1.0_opset9.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/shufflenet_v2_x1.0.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':69.36})
         ),
         # torchvision: classification mobilenetv2_224x224 expected_metric: 71.88% top-1 accuracy
         'vcls-10-302-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_opset9.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.88})
         ),
         # torchvision: classification mobilenetv2_224x224 expected_metric: 71.88% top-1 accuracy, QAT: 71.31%
         'vcls-10-302-8':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_qat-p2_opset9.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_qat-p2.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.31})
         ),
         # torchvision: classification resnet18_224x224 expected_metric: 69.76% top-1 accuracy
         'vcls-10-304-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet18_opset9.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet18.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':69.76})
         ),
         # torchvision: classification resnet50_224x224 expected_metric: 76.15% top-1 accuracy
         'vcls-10-305-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet50_opset9.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet50.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':76.15})
         ),
         #################pingolh-hardnet models#########################
         'vcls-10-330-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet39ds_opset11.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet39ds.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.1})
         ),
         'vcls-10-331-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet68ds_opset11.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet68ds.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':74.3})
         ),
         'vcls-10-332-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet68_opset11.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet68.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':76.5})
         ),
         'vcls-10-333-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet85_opset11.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet85.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':78.0})
         ),
         #################pycls regnetx models#########################
@@ -202,28 +202,28 @@ def get_configs(settings, work_dir):
         'vcls-10-030-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(reverse_channels=True),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/RegNetX-200MF_opset9.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-200mf.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':68.9})
         ),
         # pycls: classification regnetx400mf_224x224 expected_metric: 72.7% top-1 accuracy
         'vcls-10-031-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(reverse_channels=True),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/RegNetX-400MF_opset9.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-400mf.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.7})
         ),
         # pycls: classification regnetx800mf_224x224 expected_metric: 75.2% top-1 accuracy
         'vcls-10-032-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(reverse_channels=True),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/RegNetX-800MF_opset9.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-800mf.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.2})
         ),
         # pycls: classification regnetx1.6gf_224x224 expected_metric: 77.0% top-1 accuracy
         'vcls-10-033-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(reverse_channels=True),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/RegNetX-1.6GF_opset9.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-1.6gf.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':77.0})
         ),
         #################################################################

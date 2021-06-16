@@ -135,7 +135,7 @@ class ConfigDict(dict):
         self.model_shortlist = None
         # wild card list to match against model_path, model_id or model_type - if null, all models wil be selected
         # examples: ['classification'] ['imagenet1k'] ['torchvision']
-        # examples: ['resnet18_opset9.onnx', 'resnet50_v1.tflite']
+        # examples: ['resnet18.onnx', 'resnet50_v1.tflite']
         self.model_selection = None
         # exclude the models that matches with this
         self.model_exclusion = None

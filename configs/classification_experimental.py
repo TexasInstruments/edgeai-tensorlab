@@ -64,7 +64,7 @@ def get_configs(settings, work_dir):
         # 'vcls-10-306-0':utils.dict_update(common_cfg,
         #     preprocess=settings.get_preproc_onnx(),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx,
-        #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/vgg16_opset9.onnx'),
+        #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/vgg16.onnx'),
         #     model_info=dict(metric_reference={'accuracy_top1%':71.59})
         # ),
         #################github/onnx/models#############################

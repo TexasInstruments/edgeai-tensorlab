@@ -141,7 +141,7 @@ def create_configs(settings, work_dir):
             preprocess=settings.get_preproc_onnx(),
             session=sessions.ONNXRTSession(
                 work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_onnxrt,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_opset9.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv.onnx'),
             postprocess=settings.get_postproc_classification(),
             model_info=dict(metric_reference={'accuracy_top1%':71.88})
         ),

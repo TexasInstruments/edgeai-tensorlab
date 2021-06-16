@@ -144,14 +144,14 @@ if __name__ == '__main__':
     configs_path_default = '../jacinto-ai-modelzoo/configs'
     models_path_default = '../jacinto-ai-modelzoo/models'
     model_selection_default = [
-                       'edgeai-jai/mobilenet_v1_20190906_opset9.onnx',
-                       'edgeai-jai/mobilenet_v2_20191224_opset9.onnx',
-                       'edgeai-jai/mobilenet_v2_1p4_qat-p2_20210112_opset9.onnx',
-                       'torchvision/resnet18_opset9.onnx',
-                       'torchvision/resnet50_opset9.onnx',
-                       'pycls/RegNetX-400MF_dds_8gpu_opset9.onnx',
-                       'pycls/RegNetX-800MF_dds_8gpu_opset9.onnx',
-                       'pycls/RegNetX-1.6GF_dds_8gpu_opset9.onnx'
+                       'edgeai-jai/mobilenet_v1_20190906.onnx',
+                       'edgeai-jai/mobilenet_v2_20191224.onnx',
+                       'edgeai-jai/mobilenet_v2_1p4_qat-p2_20210112.onnx',
+                       'torchvision/resnet18.onnx',
+                       'torchvision/resnet50.onnx',
+                       'pycls/RegNetX-400MF_dds_8gpu.onnx',
+                       'pycls/RegNetX-800MF_dds_8gpu.onnx',
+                       'pycls/RegNetX-1.6GF_dds_8gpu.onnx'
                       ]
 
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
