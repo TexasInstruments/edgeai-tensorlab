@@ -208,12 +208,12 @@ class QuantizationParams():
         # note that calibration_iterations has effect only if accuracy_level>0
         # so we can just set it to the max value here.
         # for more information see: get_tidl_calibration_accuracy_level()
-        return self.calibration_iterations
+        return -1 if (self.tensor_bits != 8 or self.is_qat) else self.calibration_iterations
 
     def get_tidl_calibration_accuracy_level(self):
         # For QAT models, simple calibration is sufficient, so we shall use accuracy_level=0
         # Also if tensor_bits>8 (eg. 16), simple calibration is sufficient, so accuracy_level can be set to 0
-        return 0 if self.tensor_bits != 8 or self.is_qat else 1
+        return 0 if (self.tensor_bits != 8 or self.is_qat) else 1
 
     def get_runtime_options_default(self, session_name=None):
         runtime_options = {
