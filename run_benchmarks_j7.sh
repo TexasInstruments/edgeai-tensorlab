@@ -49,13 +49,13 @@ python3 ./scripts/benchmark_accuracy.py ${settings_file} \
         --session_type_dict {'onnx': 'onnxrt', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'}
 echo "-------------------------------------------------------------------"
 
-echo "==================================================================="
-## run few selected models with these settings
-python3 ./scripts/benchmark_accuracy.py ${settings_file} \
-        --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
-        --task_selection classification segmentation \
-        --model_selection onnx
-echo "-------------------------------------------------------------------"
+#echo "==================================================================="
+### run few selected models with these settings
+#python3 ./scripts/benchmark_accuracy.py ${settings_file} \
+#        --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
+#        --task_selection classification segmentation \
+#        --model_selection onnx
+#echo "-------------------------------------------------------------------"
 
 echo "==================================================================="
 # generate the final report with results for all the artifacts generated
