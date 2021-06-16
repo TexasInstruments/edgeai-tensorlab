@@ -60,7 +60,7 @@ def get_configs(settings, work_dir):
     runtime_options_tflite_qat = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=True)
     runtime_options_mxnet_qat = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=True)
 
-    runtime_options_onnx_ssd = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
+    runtime_options_onnx_ssd_np2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
                                     runtime_options={'advanced_options:quantization_scale_type': 0,
                                                      'deny_list': "Reshape"})
 
@@ -84,7 +84,7 @@ def get_configs(settings, work_dir):
         # mlperf edge: detection - coco_ssd-resnet34_1200x1200 - expected_metric: 20.0% COCO AP[0.5-0.95]
         'vdet-12-012-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx((1200,1200), (1200,1200), backend='cv2'),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_ssd,
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_ssd_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_resnet34-ssd1200.onnx'),
             postprocess=postproc_detection_onnx,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=0)),
@@ -132,7 +132,7 @@ def get_configs(settings, work_dir):
         # mlperf edge: detection - ssd_mobilenet_v1_coco_2018_01_28 expected_metric: 23.0% ap[0.5:0.95] accuracy
         'vdet-12-010-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((300,300), (300,300), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_20180128.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
@@ -141,7 +141,7 @@ def get_configs(settings, work_dir):
         # mlperf mobile: detection - ssd_mobilenet_v2_coco_300x300 - expected_metric: 22.0% COCO AP[0.5-0.95]
         'vdet-12-011-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((300,300), (300,300), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v2_300_float.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
@@ -160,7 +160,7 @@ def get_configs(settings, work_dir):
         # tensorflow1.0 models: detection - ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19 expected_metric: 25.9% ap[0.5:0.95] accuracy
         'vdet-12-401-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((320,320), (320,320), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_edgetpu_320x320_coco_20200519.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
@@ -169,7 +169,7 @@ def get_configs(settings, work_dir):
         # tensorflow1.0 models: detection - ssdlite_mobilenet_v2_coco_2018_05_09 expected_metric: 22.0% ap[0.5:0.95] accuracy
         'vdet-12-402-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((300,300), (300,300), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_p2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobilenet_v2_coco_20180509.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),

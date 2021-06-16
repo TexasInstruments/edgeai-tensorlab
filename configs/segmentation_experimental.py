@@ -36,12 +36,25 @@ def get_configs(settings, work_dir):
     tflite_session_type = settings.get_session_type(constants.MODEL_TYPE_TFLITE)
     mxnet_session_type = settings.get_session_type(constants.MODEL_TYPE_MXNET)
 
-    # for onnx and mxnet float models, we set non-power-of-2 scale for quant here - optional
-    runtime_options_onnx = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
+    # Default for ONNX/MXNET Models: Non-Power-2, TFLITE-Power2
+    # For selected model we toggle based on which ever is better from accuracy perspective
+    runtime_options_onnx_np2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
                                     runtime_options={'advanced_options:quantization_scale_type': 0})
-    runtime_options_tflite = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False)
-    runtime_options_mxnet = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,
+    runtime_options_tflite_np2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,
                                     runtime_options={'advanced_options:quantization_scale_type': 0})
+    runtime_options_mxnet_np2 = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,
+                                    runtime_options={'advanced_options:quantization_scale_type': 0})
+
+    runtime_options_onnx_p2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,)
+    runtime_options_tflite_p2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,)
+    runtime_options_mxnet_p2 = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,)
+
+    #This option should go away after testing
+    use_default_power_2_setting = False
+    if use_default_power_2_setting:
+        runtime_options_onnx_p2 = runtime_options_onnx_np2
+        runtime_options_tflite_np2 = runtime_options_tflite_p2
+        runtime_options_mxnet_p2 = runtime_options_mxnet_np2
 
     runtime_options_onnx_qat = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=True)
     runtime_options_tflite_qat = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=True)
@@ -190,7 +203,7 @@ def get_configs(settings, work_dir):
         # tensorflow-deeplab-cityscapes-segmentation- deeplabv3_mnv2_cityscapes_train - expected_metric: 73.57% MeanIoU.
         'vseg-16-400-0': utils.dict_update(cityscapes_cfg,
             preprocess=settings.get_preproc_tflite((1024, 2048), (1024, 2048), mean=(127.5, 127.5, 127.5), scale=(1/127.5, 1/127.5, 1/127.5), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite,
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/segmentation/cityscapes/tf1-models/deeplabv3_mnv2_cityscapes_train_1024x2048.tflite'),
             postprocess=postproc_segmenation_tflite,
             model_info=dict(metric_reference={'accuracy_mean_iou%':73.57})
