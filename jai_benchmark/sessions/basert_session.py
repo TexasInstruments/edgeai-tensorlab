@@ -321,6 +321,26 @@ class BaseRTSession(utils.ParamsBase):
             [os.rmdir(os.path.join(root, d)) for d in dirs]
         #
 
+    def layer_info(self):
+        assert self.is_imported == True, 'the given model must be an imported one.'
+        artifacts_folder = self.kwargs['artifacts_folder']
+        subgraph_root = os.path.join(artifacts_folder, 'tempDir') \
+            if os.path.isdir(os.path.join(artifacts_folder, 'tempDir')) else artifacts_folder
+        layer_info_files = [os.path.join(subgraph_root, f) for f in os.listdir(subgraph_root)]
+        layer_info_files = [f for f in layer_info_files if os.path.isfile(f) and f.endswith('layer_info.txt')]
+        layer_info_data = []
+        for layer_info_file in layer_info_files:
+            with open(layer_info_file) as fp:
+                for line in fp:
+                    line = line.split(' ')
+                    l_info = {'layer_id': line[0], 'data_id': line[1], 'layer_name': line[2]}
+                    layer_info_data.append(l_info)
+                #
+            #
+        #
+        return layer_info_data
+    #
+
 
 if __name__ == '__main__':
     import_model = BaseRTSession()
