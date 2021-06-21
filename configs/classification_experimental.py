@@ -111,14 +111,14 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':70.8})
         ),
-        # # tf hosted models: classification nasnet mobile expected_metric: 73.9% top-1 accuracy
-        # 'vcls-10-408-0':utils.dict_update(common_cfg,
-        #     preprocess=settings.get_preproc_tflite(),
-        #     session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
-        #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/nasnet_mobile.tflite'),
-        #     metric=dict(label_offset_pred=-1),
-        #     model_info=dict(metric_reference={'accuracy_top1%':73.9})
-        # ),
+        # tf hosted models: classification nasnet mobile expected_metric: 73.9% top-1 accuracy
+        'vcls-10-408-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_tflite(),
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/nasnet_mobile.tflite'),
+            metric=dict(label_offset_pred=-1),
+            model_info=dict(metric_reference={'accuracy_top1%':73.9})
+        ),
         # # tensorflow/tpu: classification efficinetnet-lite2_260x260 expected_metric: 77.6% top-1 accuracy
         # 'vcls-10-432-0':utils.dict_update(common_cfg,
         #     preprocess=settings.get_preproc_tflite(297, 260),
