@@ -113,7 +113,8 @@ class AccuracyPipeline():
 
         ##################################################################
         # import.
-        if self.settings.run_import and self.settings.run_missing and not os.path.exists(param_yaml):
+        run_import = (not os.path.exists(self.param_yaml)) if self.settings.run_missing else self.settings.run_import
+        if run_import:
             start_time = time.time()
             self.logger.write(utils.log_color('\nINFO', f'import {description}', run_dir_base))
             self._import_model(description)
