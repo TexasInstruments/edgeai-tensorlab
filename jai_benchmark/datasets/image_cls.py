@@ -85,9 +85,10 @@ class ImageClassification(DatasetBase):
         return self.evaluate(predictions, **kwargs)
 
     def evaluate(self, predictions, **kwargs):
-        metric_tracker = utils.AverageMeter(name='accuracy_top1%')
         in_lines = self.imgs
-        for n in range(self.num_frames):
+        metric_tracker = utils.AverageMeter(name='accuracy_top1%')
+        num_frames = min(self.num_frames, len(predictions))
+        for n in range(num_frames):
             words = in_lines[n].split(' ')
             gt_label = int(words[1])
             accuracy = self.classification_accuracy(predictions[n], gt_label, **kwargs)

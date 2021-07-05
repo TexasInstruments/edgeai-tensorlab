@@ -45,8 +45,7 @@ settings_file=settings_infer_on_j7.yaml
 
 echo "==================================================================="
 # run all the shortlisted models with these settings
-python3 ./scripts/benchmark_accuracy.py ${settings_file} \
-        --session_type_dict {'onnx': 'onnxrt', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'}
+python3 ./scripts/benchmark_accuracy.py ${settings_file}
 echo "-------------------------------------------------------------------"
 
 #echo "==================================================================="

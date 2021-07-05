@@ -137,7 +137,8 @@ class VOC2012Segmentation(DatasetBase):
 
     def evaluate(self, predictions, **kwargs):
         cmatrix = None
-        for n in range(self.num_frames):
+        num_frames = min(self.num_frames, len(predictions))
+        for n in range(num_frames):
             image_file, label_file = self.__getitem__(n, with_label=True)
             # image = PIL.Image.open(image_file)
             label_img = PIL.Image.open(label_file)

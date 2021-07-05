@@ -29,11 +29,43 @@
 import os
 import sys
 import multiprocessing
+from multiprocessing import pool
 import collections
 import time
 import traceback
 from .progress_step import *
 from .logger_utils import *
+
+
+# 'spawn' may be more stable than the default 'fork'
+# but when using utils.RedirectLogger to log, 'spawn' is seen to mixup logs
+_multiprocessing_default_context_type = 'spawn' #'fork'
+
+
+# daemon processes are not allowed to have children
+# a hack to create non-daemon process in multiprocessing.Pool
+class NoDaemonProcess(multiprocessing.Process):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def _get_daemon(self):
+        return False
+
+    def _set_daemon(self, value):
+        pass
+
+    daemon = property(_get_daemon, _set_daemon)
+
+
+class NoDaeomonPool(pool.Pool):
+    Process = NoDaemonProcess
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    # create process pool and queue the tasks
+    def get_context(self, method=None):
+        return super().get_context(_multiprocessing_default_context_type)
 
 
 class ParallelRun:
@@ -52,7 +84,6 @@ class ParallelRun:
 
     def run(self):
         assert len(self.queued_tasks) > 0, f'at least one task must be queued, got {len(self.queued_tasks)}'
-        self.start_time = time.time()
         return self._run_parallel()
 
     def _run_sequential(self):
@@ -64,40 +95,29 @@ class ParallelRun:
         return result_list
 
     def _run_parallel(self):
-        # create process pool and queue the tasks - 'spawn' may be more stable than the default 'fork'
-        # but when using utils.RedirectLogger() to log, 'spawn' causes issues in print
-        process_pool = multiprocessing.get_context('spawn').Pool(self.num_processes)
-        results_iterator = process_pool.imap_unordered(self._worker, self.queued_tasks)
-        if self.blocking:
-            # run a loop to monitor the progress
-            result_list = self._run_monitor(results_iterator)
+        with NoDaeomonPool(self.num_processes) as process_pool:
+            results_iterator = process_pool.imap_unordered(self._worker, self.queued_tasks)
+            result_list = []
+            num_completed = num_completed_prev = 0
+            num_tasks = len(self.queued_tasks)
+            pbar_tasks = progress_step(iterable=range(num_tasks), desc=self.desc, position=1)
+            while num_completed < num_tasks:
+                # check if a result is available
+                try:
+                    result = results_iterator.__next__(timeout=self.maxinterval)
+                    result_list.append(result)
+                except multiprocessing.TimeoutError as e:
+                    pass
+                #
+                num_completed = len(result_list)
+                if num_completed > num_completed_prev:
+                    pbar_tasks.update(num_completed-num_completed_prev)
+                    num_completed_prev = num_completed
+                #
+            #
+            pbar_tasks.close()
+            print('\n')
             return result_list
-        else:
-            return results_iterator
-        #
-
-    def _run_monitor(self, results_iterator):
-        result_list = []
-        num_completed = num_completed_prev = 0
-        num_tasks = len(self.queued_tasks)
-        pbar_tasks = progress_step(iterable=range(num_tasks), desc=self.desc, position=1)
-        while num_completed < num_tasks:
-            # check if a result is available
-            try:
-                result = results_iterator.__next__(timeout=self.maxinterval)
-                result_list.append(result)
-            except multiprocessing.TimeoutError as e:
-                pass
-            #
-            num_completed = len(result_list)
-            if num_completed > num_completed_prev:
-                pbar_tasks.update(num_completed-num_completed_prev)
-                num_completed_prev = num_completed
-            #
-        #
-        pbar_tasks.close()
-        print('\n')
-        return result_list
 
     def _worker(self, task):
         if self.parallel_devices is not None:
@@ -110,3 +130,20 @@ class ParallelRun:
             print(log_color('\nINFO', 'starting process on parallel_device', parallel_device))
         #
         return task()
+
+
+class MultiProcessingTaskMaker:
+    def __init__(self, func, *args, **kwargs):
+        self.func = func
+        self.args_init = args
+        self.kwargs_init = kwargs
+
+    def __call__(self, *args, **kwargs):
+        return self.func(*self.args_init, **self.kwargs_init)
+
+
+def process_run(func, *args, **kwargs):
+    with multiprocessing.get_context(_multiprocessing_default_context_type).Pool(1) as process_pool:
+        task = MultiProcessingTaskMaker(func, *args, **kwargs)
+        results = process_pool.map(task, [0])
+        return results[0]

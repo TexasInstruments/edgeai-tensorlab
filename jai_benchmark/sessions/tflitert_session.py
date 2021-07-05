@@ -82,11 +82,15 @@ class TFLiteRTSession(BaseRTSession):
         outputs = [self._get_tensor(output_detail) for output_detail in output_details]
         return outputs, info_dict
 
+    def set_runtime_option(self, option, value):
+        self.kwargs["runtime_options"][option] = value
+
+    def get_runtime_option(self, option, default=None):
+        return self.kwargs["runtime_options"].get(option, default)
+
     def _create_interpreter(self, is_import):
         if is_import:
             self.kwargs["runtime_options"]["import"] = "yes"
-            # make sure that the artifacts_folder is cleaneup
-            self._cleanup_artifacts()
             tidl_delegate = [tflitert_interpreter.load_delegate('tidl_model_import_tflite.so', self.kwargs["runtime_options"])]
             interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_file'], experimental_delegates=tidl_delegate)
         else:

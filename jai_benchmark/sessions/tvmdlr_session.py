@@ -182,6 +182,22 @@ class TVMDLRSession(BaseRTSession):
         info_dict['session_invoke_time'] = (time.time() - start_time)
         return output, info_dict
 
+    def set_runtime_option(self, option, value):
+        advanced_options_prefix = 'advanced_options:'
+        if advanced_options_prefix in option:
+            option = option.replace(advanced_options_prefix, '')
+            self.kwargs["runtime_options"]['advanced_options'][option] = value
+        else:
+            self.kwargs["runtime_options"][option] = value
+
+    def get_runtime_option(self, option, default=None):
+        advanced_options_prefix = 'advanced_options:'
+        if advanced_options_prefix in option:
+            option = option.replace(advanced_options_prefix, '')
+            return self.kwargs["runtime_options"]['advanced_options'].get(option, default)
+        else:
+            return self.kwargs["runtime_options"].get(option, default)
+
     def _create_interpreter(self, is_import=False):
         artifacts_folder = self.kwargs['artifacts_folder']
         if not os.path.exists(artifacts_folder):

@@ -141,7 +141,7 @@ def get_datasets(settings, download=False):
         coco_det_val_cfg = dict(
             path=f'{settings.datasets_path}/coco',
             split='val2017',
-            shuffle=False, #TODO: need to make COCODetection.evaluate() work with shuffle
+            shuffle=False, # can be set to True as well, if needed
             num_frames=min(settings.num_frames,5000),
             name='coco')
         dataset_cache['coco']['calibration_dataset'] = COCODetection(**coco_det_calib_cfg, download=download)

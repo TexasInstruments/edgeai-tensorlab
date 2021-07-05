@@ -98,11 +98,16 @@ class ONNXRTSession(BaseRTSession):
         info_dict['session_invoke_time'] = (time.time() - start_time)
         return outputs, info_dict
 
+    def set_runtime_option(self, option, value):
+        self.kwargs["runtime_options"][option] = value
+
+    def get_runtime_option(self, option, default=None):
+        return self.kwargs["runtime_options"].get(option, default)
+
     def _create_interpreter(self, is_import):
         # pass options to pybind
         if is_import:
             self.kwargs["runtime_options"]["import"] = "yes"
-            self._cleanup_artifacts()
         else:
             self.kwargs["runtime_options"]["import"] = "no"
         #

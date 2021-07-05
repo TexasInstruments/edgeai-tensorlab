@@ -32,7 +32,10 @@ import shutil
 import tempfile
 import re
 import csv
+import itertools
+import copy
 from colorama import Fore
+import numpy as np
 from .. import utils
 from .. import constants
 
@@ -114,6 +117,8 @@ class BaseRTSession(utils.ParamsBase):
             self.start()
         #
         os.makedirs(self.kwargs['artifacts_folder'], exist_ok=True)
+
+        self.clear()
         self.is_imported = True
 
     def start_infer(self):
@@ -139,6 +144,23 @@ class BaseRTSession(utils.ParamsBase):
         if info_dict is not None:
             info_dict['run_dir'] = self.get_param('run_dir')
         #
+        # the over-ridden function in super class must return valid outputs
+        return None, None
+
+    def infer_frames(self, inputs, info_dict=None):
+        outputs = []
+        for input in inputs:
+            output, info_dict = self.infer_frame(input, info_dict)
+            outputs.append(output)
+        #
+        return outputs, info_dict
+
+    def run(self, calib_data, inputs, info_dict=None):
+        info_dict = self.import_model(calib_data, info_dict)
+        outputs, info_dict = self.infer_frames(inputs, info_dict)
+        infer_stats_dict = self.infer_stats()
+        info_dict.update(infer_stats_dict)
+        return outputs, info_dict
 
     def __del__(self):
         for t in self.tempfiles:
@@ -155,11 +177,14 @@ class BaseRTSession(utils.ParamsBase):
             stats_dict['subgraph_time'] = 0.0
             stats_dict['read_total'] = 0.0
             stats_dict['write_total'] = 0.0
+            stats_dict['perfsim_macs'] = 0.0
+            stats_dict['perfsim_time'] = 0.0
+            stats_dict['perfsim_ddr_transfer'] = 0.0
         #
         return stats_dict
 
     def _tidl_infer_stats(self):
-        assert self.is_imported == True, 'the given model must be an imported one.'
+        assert self.is_imported is True, 'the given model must be an imported one.'
         benchmark_dict = self.interpreter.get_TI_benchmark_data()
         subgraph_time = copy_time = 0
         cp_in_time = cp_out_time = 0
@@ -196,7 +221,8 @@ class BaseRTSession(utils.ParamsBase):
         stats = {
             'num_subgraphs': len(subgraphIds),
             'total_time': total_time, 'core_time': core_time, 'subgraph_time': subgraph_time,
-            'write_total': write_total, 'read_total': read_total
+            'write_total': write_total, 'read_total': read_total,
+            'perfsim_macs': 0.0, 'perfsim_time': 0.0, 'perfsim_ddr_transfer': 0.0
         }
         try:
             perfsim_stats = self._infer_perfsim_stats()
@@ -314,31 +340,56 @@ class BaseRTSession(utils.ParamsBase):
     def _set_default_options(self):
         assert False, 'this function must be overridden in the derived class'
 
-    def _cleanup_artifacts(self):
-        # make sure that the artifacts_folder is cleaneup
+    def clear(self):
+        # make sure that the artifacts_folder is cleanedup
         for root, dirs, files in os.walk(self.kwargs['artifacts_folder'], topdown=False):
             [os.remove(os.path.join(root, f)) for f in files]
             [os.rmdir(os.path.join(root, d)) for d in dirs]
         #
 
+    def set_runtime_option(self, option, value):
+        assert False, 'this function must be overridden'
+
+    def get_runtime_option(self, option, default=None):
+        assert False, 'this function must be overridden'
+
     def layer_info(self):
-        assert self.is_imported == True, 'the given model must be an imported one.'
+        # assert self.is_imported is True, 'the given model must be an imported one.'
         artifacts_folder = self.kwargs['artifacts_folder']
         subgraph_root = os.path.join(artifacts_folder, 'tempDir') \
             if os.path.isdir(os.path.join(artifacts_folder, 'tempDir')) else artifacts_folder
         layer_info_files = [os.path.join(subgraph_root, f) for f in os.listdir(subgraph_root)]
         layer_info_files = [f for f in layer_info_files if os.path.isfile(f) and f.endswith('layer_info.txt')]
-        layer_info_data = []
-        for layer_info_file in layer_info_files:
-            with open(layer_info_file) as fp:
-                for line in fp:
-                    line = line.split(' ')
-                    l_info = {'layer_id': line[0], 'data_id': line[1], 'layer_name': line[2]}
-                    layer_info_data.append(l_info)
+        model_layer_info = []
+        for subgraph_id, layer_info_file in enumerate(layer_info_files):
+            subgraph_name = os.path.basename(layer_info_file).split('.')[0]
+            perfinfo_dict = self._read_perf_info(os.path.join(subgraph_root, subgraph_name))
+            subgraph_info = []
+            with open(layer_info_file) as layer_info_fp:
+                for layer_info_line_id, layer_info_line in enumerate(layer_info_fp):
+                    layer_info_line = layer_info_line.rstrip().split(' ')
+                    layer_id, data_id, layer_name = layer_info_line[0], layer_info_line[1], layer_info_line[2]
+                    l_info = {'subgraph_name': subgraph_name, 'layer_id': layer_id, 'data_id': data_id, 'layer_name': layer_name}
+                    if perfinfo_dict is not None:
+                        l_info.update(perfinfo_dict[layer_info_line_id])
+                    #
+                    subgraph_info.append(l_info)
                 #
             #
+            model_layer_info.append(subgraph_info)
         #
-        return layer_info_data
+        return model_layer_info
+
+    def _read_perf_info(self, subgraph_path):
+        format_line_dict = lambda d: {k.strip():v.strip() for k,v in d.items() if k is not None and v is not None}
+        perfinfo_files = os.listdir(subgraph_path)
+        perfinfo_csv_file = [f for f in perfinfo_files if f.endswith('.csv') and 'DSP' in f][0]
+        with open(os.path.join(subgraph_path,perfinfo_csv_file)) as perfinfo_csv_fp:
+            perfinfo_data = csv.DictReader(perfinfo_csv_fp, delimiter=',')
+            perfinfo_dict = [format_line_dict(line_dict) for line_dict in perfinfo_data]
+        #
+        return perfinfo_dict
+
     #
 
 

@@ -97,7 +97,7 @@ class ConfigDict(dict):
         self.num_frames = 10000 #50000
         # number of frames to be used for post training quantization / calibration
         self.calibration_frames = 50 #100
-        # number of itrations to be used for post training quantization / calibration
+        # number of iterations to be used for post training quantization / calibration
         self.calibration_iterations = 50
         # folder where benchmark configs are defined. this should be python importable
         self.configs_path = './configs'
