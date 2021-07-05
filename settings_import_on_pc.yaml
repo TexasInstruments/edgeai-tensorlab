@@ -45,7 +45,7 @@ calibration_iterations : 50
 configs_path : './configs'
 
 # folder where models are available
-models_path : '../jacinto-ai-modelzoo/models'
+models_path : '../edgeai-modelzoo/models'
 
 # create your datasets under this folder
 datasets_path : './dependencies/datasets'
