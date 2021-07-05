@@ -80,6 +80,20 @@ def get_configs(settings, work_dir):
         #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/vgg16.onnx'),
         #     model_info=dict(metric_reference={'accuracy_top1%':71.59})
         # ),
+        # jai-devkit: classification mobilenetv3_large_lite qat expected_metric: 71.614% top-1 accuracy
+        'vcls-10-106-8':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_qat-p2_20210507.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':71.614})
+        ),
+        # jai-devkit: classification mobilenetv3_large_lite_x2r expected_metric: 74.160% top-1 accuracy
+        'vcls-10-107-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_x2r_20210522.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':74.160})
+        ),
         #################github/onnx/models#############################
         # github onnx model: classification resnet18_v2 expected_metric: 69.70% top-1 accuracy
         'vcls-10-020-0':utils.dict_update(common_cfg,

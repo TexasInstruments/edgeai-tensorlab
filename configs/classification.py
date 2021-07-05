@@ -104,7 +104,7 @@ def get_configs(settings, work_dir):
         # jai-devkit: classification mobilenetv3_small_lite expected_metric: 62.688% top-1 accuracy
         'vcls-10-105-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':62.688})
         ),
@@ -121,20 +121,6 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.122})
-        ),
-        # jai-devkit: classification mobilenetv3_large_lite qat expected_metric: 71.614% top-1 accuracy
-        'vcls-10-106-8':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx(),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_qat-p2_20210507.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':71.614})
-        ),
-        # jai-devkit: classification mobilenetv3_large_lite_x2r expected_metric: 74.160% top-1 accuracy
-        'vcls-10-107-0':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx(),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_x2r_20210522.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':74.160})
         ),
         #################torchvision models#########################
         # torchvision: classification shufflenetv2_224x224 expected_metric: 69.36% top-1 accuracy
@@ -161,14 +147,14 @@ def get_configs(settings, work_dir):
         # torchvision: classification resnet18_224x224 expected_metric: 69.76% top-1 accuracy
         'vcls-10-304-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet18.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':69.76})
         ),
         # torchvision: classification resnet50_224x224 expected_metric: 76.15% top-1 accuracy
         'vcls-10-305-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_np2,
+            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet50.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':76.15})
         ),
@@ -250,7 +236,7 @@ def get_configs(settings, work_dir):
         # mxnet : gluoncv model : classification - xception - accuracy: 79.56% top1
         'vcls-10-062-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(342, 299, backend='cv2'),
-            session=mxnet_session_type(**common_session_cfg, runtime_options=runtime_options_mxnet_np2,
+            session=mxnet_session_type(**common_session_cfg, runtime_options=runtime_options_mxnet_p2,
                 model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/xception-symbol.json',
                             f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/xception-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,299,299)}),
