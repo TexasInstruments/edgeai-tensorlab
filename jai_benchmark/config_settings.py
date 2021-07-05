@@ -34,7 +34,7 @@ from . import config_dict
 class ConfigSettings(config_dict.ConfigDict):
     def __init__(self, input, **kwargs):
         super().__init__(input, **kwargs)
-        # variable to pre-load datasets - so that it si not
+        # variable to pre-load datasets - so that it is not
         # separately created for each config
         self.dataset_cache = None
 
@@ -78,28 +78,31 @@ class ConfigSettings(config_dict.ConfigDict):
     # preprocess transforms
     ###############################################################
     def _get_preproc_base(self, resize, crop, data_layout, reverse_channels,
-                         backend, interpolation, resize_with_pad, mean, scale):
+                         backend, interpolation, resize_with_pad, mean, scale, 
+                         add_flip_image=False, pad_color=0):
         transforms_list = [
             preprocess.ImageRead(backend=backend),
-            preprocess.ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad),
+            preprocess.ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
             preprocess.ImageCenterCrop(crop),
             preprocess.ImageToNPTensor4D(data_layout=data_layout),
             preprocess.ImageNormMeanScale(mean=mean, scale=scale, data_layout=data_layout)]
         if reverse_channels:
             transforms_list = transforms_list + [preprocess.NPTensor4DChanReverse(data_layout=data_layout)]
+        if add_flip_image:
+            transforms_list += [preprocess.ImageFlipAdd()]
         #
         transforms = utils.TransformsCompose(transforms_list, resize=resize, crop=crop,
                                              data_layout=data_layout, reverse_channels=reverse_channels,
                                              backend=backend, interpolation=interpolation,
-                                             mean=mean, scale=scale)
+                                             mean=mean, scale=scale, add_flip_image=add_flip_image)
         return transforms
 
     def get_preproc_onnx(self, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
                          backend='pil', interpolation=None, resize_with_pad=False,
-                         mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429)):
+                         mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429), add_flip_image=False, pad_color=0):
         transforms = self._get_preproc_base(resize=resize, crop=crop, data_layout=data_layout,
                                       reverse_channels=reverse_channels, backend=backend, interpolation=interpolation,
-                                      resize_with_pad=resize_with_pad, mean=mean, scale=scale)
+                                      resize_with_pad=resize_with_pad, mean=mean, scale=scale, add_flip_image=add_flip_image, pad_color=pad_color)
         return transforms
 
     def get_preproc_jai(self, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
@@ -192,6 +195,26 @@ class ConfigSettings(config_dict.ConfigDict):
 
     def get_postproc_segmentation_tflite(self, data_layout=constants.NHWC, with_argmax=True):
         return self._get_postproc_segmentation_base(data_layout=data_layout, with_argmax=with_argmax)
+
+
+    ###############################################################
+    # post process transforms for human pose estimation
+    ###############################################################
+    def _get_postproc_human_pose_estimation_base(self, data_layout, with_udp=True):
+        # channel_axis = -1 if data_layout == constants.NHWC else 1
+        # postprocess_human_pose_estimation = [postprocess.IndexArray()] #just removes the first axis from output list, final size (c,w,h)
+        postprocess_human_pose_estimation = [postprocess.HumanPoseHeatmapParser(use_udp=with_udp),
+                                             postprocess.KeypointsProject2Image(use_udp=with_udp)]
+
+        if self.save_output:
+            postprocess_human_pose_estimation += [postprocess.HumanPoseImageSave()]
+        #
+        transforms = utils.TransformsCompose(postprocess_human_pose_estimation, data_layout=data_layout,
+                                             save_output=self.save_output)
+        return transforms
+
+    def get_postproc_human_pose_estimation_onnx(self, data_layout=constants.NCHW):
+        return self._get_postproc_human_pose_estimation_base(data_layout=data_layout, with_udp=self.with_udp)
 
 
 ############################################################

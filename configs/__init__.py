@@ -33,7 +33,7 @@ from jai_benchmark import pipelines
 from . import classification
 from . import detection
 from . import segmentation
-
+from . import human_pose_estimation
 
 def get_configs(settings, work_dir):
     # load the datasets - it is done only once and re-used for all configs
@@ -46,6 +46,7 @@ def get_configs(settings, work_dir):
     pipeline_configs.update(classification.get_configs(settings, work_dir))
     pipeline_configs.update(detection.get_configs(settings, work_dir))
     pipeline_configs.update(segmentation.get_configs(settings, work_dir))
+    pipeline_configs.update(human_pose_estimation.get_configs(settings,work_dir))
     if settings.experimental_models:
         from . import classification_experimental
         from . import detection_experimental
