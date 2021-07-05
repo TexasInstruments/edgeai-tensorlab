@@ -132,8 +132,9 @@ class ConfigSettings(config_dict.ConfigDict):
     # post process transforms for detection
     ###############################################################
     def _get_postproc_detection_base(self, formatter=None, resize_with_pad=False, normalized_detections=True,
-                                     shuffle_indices=None, squeeze_axis=0):
-        postprocess_detection = [postprocess.ShuffleList(indices=shuffle_indices),
+                                     shuffle_indices=None, squeeze_axis=0, reshape_list=None):
+        postprocess_detection = [postprocess.ReshapeList(reshape_list=reshape_list),
+                                 postprocess.ShuffleList(indices=shuffle_indices),
                                  postprocess.Concat(axis=-1, end_index=3)]
         if squeeze_axis is not None:
             #  TODO make this more generic to squeeze any axis
@@ -159,6 +160,9 @@ class ConfigSettings(config_dict.ConfigDict):
 
     def get_postproc_detection_onnx(self, formatter=None, **kwargs):
         return self._get_postproc_detection_base(formatter=formatter, **kwargs)
+
+    def get_postproc_detection_mmdet_onnx(self, formatter=None, **kwargs):
+        return self._get_postproc_detection_base(formatter=formatter, reshape_list=[(-1,5), (-1,1)], **kwargs)
 
     def get_postproc_detection_tflite(self, formatter=postprocess.DetectionYXYX2XYXY(), **kwargs):
         return self._get_postproc_detection_base(formatter=formatter, **kwargs)

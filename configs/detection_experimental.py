@@ -89,15 +89,24 @@ def get_configs(settings, work_dir):
         #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90()),
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':31.0})
         # ),
-        # # jai-devkit/pytorch-mmdetection: detection - ssd-lite_regnetx-800mf_fpn_bgr_512x512 - expected_metric: 32.8% COCO AP[0.5-0.95]
-        # 'vdet-12-110-0':utils.dict_update(common_cfg,
-        #     preprocess=settings.get_preproc_onnx((512,512), (512,512), backend='cv2'),
-        #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
-        #         model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd-lite_regnetx-800mf_fpn_bgr_512x512_20200919_model.onnx'),
-        #     postprocess=settings.get_postproc_detection_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
-        #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-        #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.8})
-        # ),
+        'vdet-12-020-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx((640,640), (640,640), backend='cv2'),
+            session=onnx_session_type(**common_session_cfg,
+                runtime_options=utils.dict_update(runtime_options_onnx_np2, {'object_detection:meta_arch_type': 6, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5s6_640_ti_lite_37p4_56p0.onnx'}),
+                model_path=f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5s6_640_ti_lite_37p4_56p0.prototxt'),
+            postprocess=settings.get_postproc_detection_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.4})
+        ),
+        'vdet-12-021-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx((640,640), (640,640), backend='cv2'),
+            session=onnx_session_type(**common_session_cfg,
+                runtime_options=utils.dict_update(runtime_options_onnx_np2, {'object_detection:meta_arch_type': 6, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5m6_640_ti_lite_44p1_62p9.onnx'}),
+                model_path=f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5m6_640_ti_lite_metaarch.prototxt'),
+            postprocess=settings.get_postproc_detection_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':44.1})
+        ),
         #################################################################
         #       MXNET MODELS
         #################################################################
@@ -126,62 +135,14 @@ def get_configs(settings, work_dir):
         #################################################################
         #       TFLITE MODELS
         #################tflite models###################################
-        # # tensorflow1.0 models: detection - ssd_mobilenet_v2_mnasfpn_shared_box_predictor_320x320_coco_sync_20200518 expected_metric: 26.6% ap[0.5:0.95] accuracy
-        # 'vdet-12-403-0':utils.dict_update(common_cfg,
-        #     preprocess=settings.get_preproc_tflite((320,320), (320,320), backend='cv2'),
-        #     session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
-        #         model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssd_mobilenet_v2_mnasfpn_shared_box_predictor_320x320_coco_sync_2020_05_18.tflite'),
-        #     postprocess=postproc_detection_tflite,
-        #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-        #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':26.6})
-        # ),
-        # # tensorflow1.0 models: detection - ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_20180703 expected_metric: 32.0% ap[0.5:0.95] accuracy
-        # 'vdet-12-404-0':utils.dict_update(common_cfg,
-        #     preprocess=settings.get_preproc_tflite((640,640), (640,640), backend='cv2'),
-        #     session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
-        #         model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03.tflite'),
-        #     postprocess=postproc_detection_tflite,
-        #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-        #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.0})
-        # ),
-        #################################################################
-        # tensorflow2.0 models: detection - ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8 expected_metric: 28.2% ap[0.5:0.95] accuracy
-        # 'vdet-12-450-0':utils.dict_update(common_cfg,
-        #     preprocess=settings.get_preproc_tflite((640,640), (640,640), backend='cv2'),
-        #     session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
-        #         model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8.tflite'),
-        #     postprocess=postproc_detection_tflite,
-        #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-        #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.2})
-        # ),
-        # # tensorflow2.0 models: detection - ssd_resnet50_v1_fpn_640x640_coco17_tpu-8 expected_metric: 34.3% ap[0.5:0.95] accuracy
-        # 'vdet-12-451-0':utils.dict_update(common_cfg,
-        #     preprocess=settings.get_preproc_tflite((640,640), (640,640), backend='cv2'),
-        #     session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
-        #         model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tflite'),
-        #     postprocess=postproc_detection_tflite,
-        #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-        #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':34.3})
-        # ),
-        # # tensorflow2.0 models: detection - ssd_resnet50_v1_fpn_1024x1024_coco17_tpu-8 expected_metric: 38.3% ap[0.5:0.95] accuracy
-        # 'vdet-12-452-0':utils.dict_update(common_cfg,
-        #     preprocess=settings.get_preproc_tflite((1024,1024), (1024,1024), backend='cv2'),
-        #     session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
-        #         model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_resnet50_v1_fpn_1024x1024_coco17_tpu-8.tflite'),
-        #     postprocess=postproc_detection_tflite,
-        #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-        #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':38.3})
-        # ),
-        #################################################################
-        # # google automl: detection - efficientdet-lite0_bifpn_maxpool2x2_relu expected_metric: 33.5% ap[0.5:0.95] accuracy
-        # 'vdet-12-040-0':utils.dict_update(common_cfg,
-        #     preprocess=settings.get_preproc_tflite((512,512), (512,512), backend='cv2'),
-        #     session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
-        #         model_path=f'{settings.models_path}/vision/detection/coco/google-automl/efficientdet-lite0_bifpn_maxpool2x2_relu_ti-lite.tflite'),
-        #     postprocess=postproc_detection_tflite,
-        #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-        #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':33.5})
-        # ),
+        'vdet-12-415-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_tflite((1024,1024), (1024,1024), backend='cv2'),
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
+                model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_resnet50_v1_fpn_1024x1024_coco17_tpu-8.tflite'),
+            postprocess=postproc_detection_tflite,
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':38.3})
+        ),
     }
     return pipeline_configs
 
