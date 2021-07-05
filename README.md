@@ -207,3 +207,5 @@ Please see the License under which this repository is made available: [LICENSE](
 [12] **GluonCV**: GluonCV and GluonNLP: Deep Learning in Computer Vision and Natural Language Processing
 Jian Guo, He He, Tong He, Leonard Lausen, Mu Li, Haibin Lin, Xingjian Shi, Chenguang Wang, Junyuan Xie, Sheng Zha, Aston Zhang, Hang Zhang, Zhi Zhang, Zhongyue Zhang, Shuai Zheng, Yi Zhu, https://arxiv.org/abs/1907.04433
 
+[13] **MMPose: Open-source toolbox for pose estimation**, Collection of different models and post processing techniques that can be useful for multi-person pose estimation https://github.com/open-mmlab/mmpose
+

@@ -34,7 +34,6 @@ import time
 import itertools
 from .. import utils, constants
 
-
 class AccuracyPipeline():
     def __init__(self, settings, pipeline_config):
         self.info_dict = dict()
@@ -205,7 +204,6 @@ class AccuracyPipeline():
             info_dict = {}
             data = input_dataset[data_index]
             data, info_dict = preprocess(data, info_dict)
-
             output, info_dict = self._run_with_log(session.infer_frame, data, info_dict)
             invoke_time += info_dict['session_invoke_time']
 
@@ -215,6 +213,20 @@ class AccuracyPipeline():
             if stats_dict['write_total'] >= 0  and stats_dict['read_total'] >= 0 :
                 ddr_transfer += (stats_dict['write_total'] + stats_dict['read_total'])
                 num_frames_ddr += 1
+           
+            if self.settings.flip_test:
+                outputs_flip, info_dict = self._run_with_log(session.infer_frame, info_dict['flip_img'], info_dict)
+                info_dict['outputs_flip'] = outputs_flip
+                invoke_time += info_dict['session_invoke_time']
+
+                stats_dict = session.infer_stats()
+                core_time += stats_dict['core_time']
+                subgraph_time += stats_dict['subgraph_time']
+                if stats_dict['write_total'] >= 0  and stats_dict['read_total'] >= 0 :
+                    ddr_transfer += (stats_dict['write_total'] + stats_dict['read_total'])
+                    num_frames_ddr += 1
+            else:
+                info_dict['outputs_flip'] = None
 
             output, info_dict = postprocess(output, info_dict)
             output_list.append(output)

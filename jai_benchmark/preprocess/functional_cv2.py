@@ -103,6 +103,7 @@ def resize(img, size, **kwargs):
         PIL Image: Resized image.
     """
     interpolation = kwargs.get('interpolation', None) or cv2.INTER_LINEAR
+    pad_color = kwargs.get('pad_color', None) or 0
 
     if not isinstance(img, np.ndarray):
         raise TypeError('img should be numpy array. Got {}'.format(type(img)))
@@ -135,7 +136,7 @@ def resize(img, size, **kwargs):
             bottom = hpad - top
             left = wpad // 2
             right = wpad - left
-            img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, 0)
+            img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=pad_color)
             border=(left,top,right,bottom)
             return img, border
         else:

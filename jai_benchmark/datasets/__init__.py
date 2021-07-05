@@ -32,6 +32,7 @@ from .image_det import *
 
 from .coco_det import *
 from .coco_seg import *
+from .coco_kpts import *
 from .imagenet import *
 from .imagenetv2 import *
 from .cityscapes import *
@@ -60,6 +61,8 @@ dataset_info_dict = {
     'ade20k': {'task_type':'segmentation', 'category':'ade20k', 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
     'voc2012': {'task_type':'segmentation', 'category':'voc2012', 'type':VOC2012Segmentation, 'size':1449, 'split':'val'},
     'cocoseg21': {'task_type':'segmentation', 'category':'cocoseg21', 'type':COCOSegmentation, 'size':5000, 'split':'val2017'},
+    #------------------------pose estimation datasets--------------------------#
+    'cocokpts': {'task_type':'keypoint_detection', 'category':'cocokpts', 'type':COCOKeypoints, 'size':5000, 'split':'val2017'},
  }
 
 
@@ -131,6 +134,26 @@ def get_datasets(settings, download=False):
         dataset_cache['imagenet']['calibration_dataset'] = ImageNetDataSetType(**imagenet_cls_calib_cfg, download=download)
         dataset_cache['imagenet']['input_dataset'] = ImageNetDataSetType(**imagenet_cls_val_cfg, download=False)
     #
+    if in_dataset_loading(settings, 'cocokpts'):
+        filter_imgs = False
+        coco_kpts_calib_cfg = dict(
+            path=f'{settings.datasets_path}/coco',
+            split='val2017',
+            shuffle=True,
+            num_frames=settings.calibration_frames,
+            name='cocokpts',
+            filter_imgs=filter_imgs)
+        coco_kpts_val_cfg = dict(
+            path=f'{settings.datasets_path}/coco',
+            split='val2017',
+            shuffle=False, #TODO: need to make COCODetection.evaluate() work with shuffle
+            num_frames=min(settings.num_frames,5000),
+            name='cocokpts',
+            filter_imgs=filter_imgs)
+
+        dataset_cache['cocokpts']['calibration_dataset'] = COCOKeypoints(**coco_kpts_calib_cfg, download=download)
+        dataset_cache['cocokpts']['input_dataset'] = COCOKeypoints(**coco_kpts_val_cfg, download=False)
+    
     if in_dataset_loading(settings, 'coco'):
         coco_det_calib_cfg = dict(
             path=f'{settings.datasets_path}/coco',

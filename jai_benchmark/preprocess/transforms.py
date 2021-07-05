@@ -371,3 +371,11 @@ class NPTensor4DChanReverse(object):
 
     def __repr__(self):
         return self.__class__.__name__ + f'({self.data_layout})'
+
+class ImageFlipAdd:
+    def __init__(self, flip_axis = 3):
+        self.flip_axis = flip_axis
+
+    def __call__(self, img, info_dict):
+        info_dict['flip_img'] = np.flip(img, axis=[self.flip_axis])
+        return img, info_dict
