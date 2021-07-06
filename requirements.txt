@@ -9,3 +9,6 @@ tqdm
 pyyaml
 mxnet
 pytest
+json_tricks
+xtcocotools
+munkres
