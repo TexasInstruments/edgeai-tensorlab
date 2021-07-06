@@ -92,13 +92,31 @@ class ShuffleList():
 
     def __call__(self, tensor_list, info_dict):
         if self.indices is not None:
-            tensor_list_orig = tensor_list
-            tensor_list = []
+            tensor_list_out = []
             for ind in self.indices:
-                tensor_list.append(tensor_list_orig[ind])
+                tensor_list_out.append(tensor_list[ind])
             #
+        else:
+            tensor_list_out = tensor_list
         #
-        return tensor_list, info_dict
+        return tensor_list_out, info_dict
+
+
+class ReshapeList():
+    def __init__(self, reshape_list=None):
+        self.reshape_list = reshape_list
+
+    def __call__(self, tensor_list, info_dict):
+        if self.reshape_list is not None:
+            tensor_list_out = []
+            for t_orig, t_shape in zip(tensor_list, self.reshape_list):
+                tensor_list_out.append(t_orig.reshape(t_shape))
+            #
+        else:
+            tensor_list_out = tensor_list
+        #
+        return tensor_list_out, info_dict
+
 
 
 ##############################################################################

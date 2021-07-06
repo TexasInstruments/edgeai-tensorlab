@@ -92,9 +92,6 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['run_dir'] = self._make_run_dir()
         self.kwargs['artifacts_folder'] = os.path.join(self.kwargs['run_dir'], 'artifacts')
         self.kwargs['model_folder'] = os.path.join(self.kwargs['run_dir'], 'model')
-        model_file = utils.get_local_path(self.kwargs['model_path'], self.kwargs['model_folder'])
-        self.kwargs['model_file'] = model_file
-
         # _set_default_options requires artifacts folder
         # that's why this done in initialize instead of the constructor
         self._set_default_options()
@@ -328,13 +325,32 @@ class BaseRTSession(utils.ParamsBase):
         return run_dir
 
     def _get_model(self):
-        # download the file if it is an http or https link
         model_folder = self.kwargs['model_folder']
-        model_path = utils.download_file(self.kwargs['model_path'], root=model_folder)
+
+        # download the file if it is an http or https link
+        model_path = self.kwargs['model_path']
+        model_path = utils.download_file(model_path, root=model_folder)
         # make a local copy
-        model_file = self.kwargs['model_file']
+        model_file = utils.get_local_path(model_path, model_folder)
         if not utils.file_exists(model_file):
             utils.copy_files(model_path, model_file)
+        #
+        # self.kwargs['model_file'] is what is used in the session
+        # we could have just used self.kwargs['model_path'], but do this for legacy reasons
+        self.kwargs['model_file'] = model_file
+
+        # meta_file
+        od_meta_names_key = 'object_detection:meta_layers_names_list'
+        meta_path = self.kwargs['runtime_options'].get(od_meta_names_key, None)
+        if meta_path is not None:
+            meta_path = utils.download_file(meta_path, root=model_folder)
+            # make a local copy
+            meta_file = utils.get_local_path(meta_path, model_folder)
+            if not utils.file_exists(meta_file):
+                utils.copy_files(meta_path, meta_file)
+            #
+            # write the local path
+            self.kwargs['runtime_options'][od_meta_names_key] = meta_file
         #
 
     def _set_default_options(self):
