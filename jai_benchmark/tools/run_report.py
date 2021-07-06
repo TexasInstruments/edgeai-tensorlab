@@ -34,7 +34,7 @@ import glob
 from .. import utils
 
 metric_keys = ['accuracy_top1%', 'accuracy_mean_iou%', 'accuracy_ap[.5:.95]%']
-result_keys = ['num_subgraphs', 'infer_time_core_ms', 'ddr_transfer_mb', 'perfsim_time_ms', 'perfsim_ddr_transfer_mb', 'perfsim_gmacs']
+performance_keys = ['num_subgraphs', 'infer_time_core_ms', 'ddr_transfer_mb', 'perfsim_time_ms', 'perfsim_ddr_transfer_mb', 'perfsim_gmacs']
 
 
 def run_rewrite_results(work_dir, results_yaml):
@@ -65,42 +65,50 @@ def run_rewrite_results(work_dir, results_yaml):
 def run_report(benchmark_dir, rewrite_results=True):
     work_dirs = glob.glob(f'{benchmark_dir}/*')
     work_dirs = [f for f in work_dirs if os.path.isdir(f)]
-    work_dirs = [d for d in work_dirs if os.path.basename(d) in ['8bits', '16bits', '32bits']]
+    work_dirs = [d for d in work_dirs if 'bits' in os.path.basename(d)]
+    work_dirs = sorted(work_dirs, reverse=True)
+    work_dirs = [w for w in work_dirs if '32bits' not in w] + [w for w in work_dirs if '32bits' in w]
 
+    settings_names = []
+    results_max_len = 0
+    results_max_id = 0
+    results_max_name = None
     results_collection = dict()
-    for work_dir in work_dirs:
+    for work_id, work_dir in enumerate(work_dirs):
         results_yaml = os.path.join(work_dir, 'results.yaml')
         # generate results.yaml, aggregating results from all the artifacts across all work_dirs.
         if rewrite_results:
             run_rewrite_results(work_dir, results_yaml)
         #
-        tensor_bits = os.path.split(work_dir)[-1]
+        settings_name = os.path.split(work_dir)[-1]
         with open(results_yaml) as rfp:
             results = yaml.safe_load(rfp)
-            results_collection[tensor_bits] = results
+            results_collection[settings_name] = results
+            if len(results) > results_max_len:
+                results_max_len = len(results)
+                results_max_id = work_id
+                results_max_name = settings_name
+            #
         #
+        settings_names.append(settings_name)
     #
     if len(results_collection) == 0:
         print('no results found - no report to generate.')
         return
     #
 
-    results_8bits = results_collection['8bits'] if '8bits' in results_collection else None
-    results_16bits = results_collection['16bits'] if '16bits' in results_collection else None
-    results_32bits = results_collection['32bits'] if '32bits' in results_collection else None
-    results_anchor = results_8bits or results_16bits or results_32bits
-
+    results_anchor = results_collection[results_max_name]
     if results_anchor is None:
         print('no result found - cannot generate report.')
         return
     #
 
-    results_collection = list()
-    title_line = ['serial_num', 'model_id', 'runtime_name', 'task_type', 'input_resolution', 'model_path', 'metric_name',
-                  'metric_8bits', 'metric_16bits', 'metric_float', 'metric_reference'] + \
-                  result_keys + ['run_dir', 'artifact_name']
+    results_table = list()
+    metric_title = ['metric_'+m for m in results_collection.keys()] + ['metric_reference']
+    title_line = ['serial_num', 'model_id', 'runtime_name', 'task_type', 'input_resolution', 'model_path', 'metric_name'] + \
+        metric_title + performance_keys + ['run_dir', 'artifact_name']
 
-    results_collection.append(title_line)
+    results_table.append(title_line)
     for serial_num, (artifact_id, pipeline_params_anchor) in enumerate(results_anchor.items()):
         model_id = pipeline_params_anchor['session']['model_id']
         results_line_dict = {title_key:None for title_key in title_line}
@@ -118,28 +126,15 @@ def run_report(benchmark_dir, rewrite_results=True):
             results_line_dict['task_type'] = pipeline_params_anchor['task_type'] \
                 if 'task_type' in pipeline_params_anchor else None
         #
-
         metric_name, _, metric_reference = get_metric(pipeline_params_anchor)
         results_line_dict['metric_name'] = metric_name
 
-        if results_8bits is not None:
-            pipeline_params_8bits = results_8bits[artifact_id] if artifact_id in results_8bits else None
-            _, metric_8bits, _ = get_metric(pipeline_params_8bits)
-            results_line_dict['metric_8bits'] = metric_8bits
+        # now populate results for each setting/work_id
+        for work_id, (settings_name, param_results) in enumerate(results_collection.items()):
+            param_result = param_results[artifact_id] if artifact_id in param_results else None
+            _, metric_value, _ = get_metric(param_result)
+            results_line_dict[metric_title[work_id]] = metric_value
         #
-
-        if results_16bits is not None:
-            pipeline_params_16bits = results_16bits[artifact_id] if artifact_id in results_16bits else None
-            _, metric_16bits, _ = get_metric(pipeline_params_16bits)
-            results_line_dict['metric_16bits'] = metric_16bits
-        #
-
-        if results_32bits is not None:
-            pipeline_params_32bits = results_32bits[artifact_id] if artifact_id in results_32bits else None
-            _, metric_32bits, _ = get_metric(pipeline_params_32bits)
-            results_line_dict['metric_float'] = metric_32bits
-        #
-
         results_line_dict['metric_reference'] = metric_reference
 
         performance_line_dict = get_performance(pipeline_params_anchor)
@@ -154,13 +149,13 @@ def run_report(benchmark_dir, rewrite_results=True):
         artifact_name = '_'.join(run_dir_basename.split('_')[1:]) if artifact_name is None else artifact_name
         results_line_dict['artifact_name'] = artifact_name
 
-        results_collection.append(list(results_line_dict.values()))
+        results_table.append(list(results_line_dict.values()))
     #
 
     date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     report_csv = os.path.join(benchmark_dir, f'report_{date}.csv')
     with open(report_csv, 'w') as wfp:
-        for results_line in results_collection:
+        for results_line in results_table:
             results_line = [str(r) for r in results_line]
             results_str = ','.join(results_line)
             wfp.write(f'{results_str}\n')
@@ -197,13 +192,13 @@ def get_metric(pipeline_params):
 
 
 def get_performance(pipeline_params):
-    global result_keys
-    performance_line_dict = {result_key:None for result_key in result_keys}
+    global performance_keys
+    performance_line_dict = {result_key:None for result_key in performance_keys}
     if pipeline_params is not None:
         if 'result' in pipeline_params:
             result = pipeline_params['result']
             if result is not None:
-                for result_key in result_keys:
+                for result_key in performance_keys:
                     result_word = result[result_key] if result_key in result else None
                     performance_line_dict[result_key] = result_word
                 #
