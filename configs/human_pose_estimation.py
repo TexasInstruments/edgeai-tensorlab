@@ -42,6 +42,8 @@ def get_configs(settings, work_dir):
     onnx_session_type = settings.get_session_type(constants.MODEL_TYPE_ONNX)
 
     runtime_options_onnx_p2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,)
+    runtime_options_onnx_np2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
+                                    runtime_options={'advanced_options:quantization_scale_type': 0})
     
     # runtime_options_onnx_qat = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=True)
     # runtime_options_tflite_qat = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=True)
@@ -66,10 +68,10 @@ def get_configs(settings, work_dir):
             preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True,
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**common_session_cfg,
-                runtime_options=utils.dict_update(runtime_options_onnx_p2, {
+                runtime_options=utils.dict_update(runtime_options_onnx_np2, {
                     'advanced_options:output_feature_16bit_names_list': first_last_layer['mobilenetv2_fpn_spp_udp']
                     }),
-                model_path=f'{settings.models_path}/vision/human_pose_estimation/onnx-models/mobilenetv2_fpn_spp_udp.onnx'),
+                model_path=f'{settings.models_path}/vision/keypoint-detection/coco/mmpose/mobilenetv2_fpn_spp_udp.onnx'),
             model_info=dict(metric_reference={'AP':35.51})
         ),
         # human pose estimation : resnet50 + fpn_spp, Expected AP : 47.13
@@ -77,10 +79,10 @@ def get_configs(settings, work_dir):
             preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True,
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**common_session_cfg, 
-                runtime_options=utils.dict_update(runtime_options_onnx_p2, {
+                runtime_options=utils.dict_update(runtime_options_onnx_np2, {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['resnet50_fpn_spp_udp']
                         }),
-                model_path=f'{settings.models_path}/vision/human_pose_estimation/onnx-models/resnet50_fpn_spp_udp.onnx'),
+                model_path=f'{settings.models_path}/vision/keypoint-detection/coco/mmpose/resnet50_fpn_spp_udp.onnx'),
             model_info=dict(metric_reference={'AP':47.13})
         ),
         # human pose estimation : mobilenetv2 + pan_spp + udp, Expected AP : 33.91
@@ -88,10 +90,10 @@ def get_configs(settings, work_dir):
             preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True, 
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**common_session_cfg, 
-                runtime_options=utils.dict_update(runtime_options_onnx_p2, {
+                runtime_options=utils.dict_update(runtime_options_onnx_np2, {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['mobilenetv2_pan_spp_udp']
                         }),
-                model_path=f'{settings.models_path}/vision/human_pose_estimation/onnx-models/mobilenetv2_pan_spp_udp.onnx'),
+                model_path=f'{settings.models_path}/vision/keypoint-detection/coco/mmpose/mobilenetv2_pan_spp_udp.onnx'),
             model_info=dict(metric_reference={'AP':33.91})
         ),
         # human pose estimation : resnet50 + pan_spp + udp, Expected AP : 52.16
@@ -99,10 +101,10 @@ def get_configs(settings, work_dir):
             preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True, 
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**common_session_cfg,
-                runtime_options=utils.dict_update(runtime_options_onnx_p2, {
+                runtime_options=utils.dict_update(runtime_options_onnx_np2, {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['resnet50_pan_spp_udp']
                         }),
-                model_path=f'{settings.models_path}/vision/human_pose_estimation/onnx-models/resnet50_pan_spp_udp.onnx'),
+                model_path=f'{settings.models_path}/vision/keypoint-detection/coco/mmpose/resnet50_pan_spp_udp.onnx'),
             model_info=dict(metric_reference={'AP':52.16})
         ),
     }
