@@ -74,6 +74,39 @@ class ConfigSettings(config_dict.ConfigDict):
                                         runtime_options=runtime_options)
         return runtime_options
 
+    def runtime_options_onnx_np2(self):
+        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
+                runtime_options={'advanced_options:quantization_scale_type': 0})
+
+    def runtime_options_tflite_np2(self):
+        return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,
+                runtime_options={'advanced_options:quantization_scale_type': 0})
+
+    def runtime_options_mxnet_np2(self):
+        return self.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,
+                runtime_options={'advanced_options:quantization_scale_type': 0})
+
+    def runtime_options_onnx_p2(self):
+        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
+                runtime_options={'advanced_options:quantization_scale_type': 1})
+
+    def runtime_options_tflite_p2(self):
+        return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,
+                runtime_options={'advanced_options:quantization_scale_type': 1})
+
+    def runtime_options_mxnet_p2(self):
+        return self.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,
+                runtime_options={'advanced_options:quantization_scale_type': 1})
+
+    def runtime_options_onnx_qat(self):
+        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=True)
+
+    def runtime_options_tflite_qat(self):
+        return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=True)
+
+    def runtime_options_mxnet_qat(self):
+        return self.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=True)
+
     ###############################################################
     # preprocess transforms
     ###############################################################
@@ -135,8 +168,9 @@ class ConfigSettings(config_dict.ConfigDict):
     # post process transforms for detection
     ###############################################################
     def _get_postproc_detection_base(self, formatter=None, resize_with_pad=False, normalized_detections=True,
-                                     shuffle_indices=None, squeeze_axis=0):
-        postprocess_detection = [postprocess.ShuffleList(indices=shuffle_indices),
+                                     shuffle_indices=None, squeeze_axis=0, reshape_list=None):
+        postprocess_detection = [postprocess.ReshapeList(reshape_list=reshape_list),
+                                 postprocess.ShuffleList(indices=shuffle_indices),
                                  postprocess.Concat(axis=-1, end_index=3)]
         if squeeze_axis is not None:
             #  TODO make this more generic to squeeze any axis
@@ -162,6 +196,9 @@ class ConfigSettings(config_dict.ConfigDict):
 
     def get_postproc_detection_onnx(self, formatter=None, **kwargs):
         return self._get_postproc_detection_base(formatter=formatter, **kwargs)
+
+    def get_postproc_detection_mmdet_onnx(self, formatter=None, **kwargs):
+        return self._get_postproc_detection_base(formatter=formatter, reshape_list=[(-1,5), (-1,1)], **kwargs)
 
     def get_postproc_detection_tflite(self, formatter=postprocess.DetectionYXYX2XYXY(), **kwargs):
         return self._get_postproc_detection_base(formatter=formatter, **kwargs)
@@ -230,13 +267,17 @@ class QuantizationParams():
     def get_calibration_iterations(self):
         # note that calibration_iterations has effect only if accuracy_level>0
         # so we can just set it to the max value here.
-        # for more information see: get_tidl_calibration_accuracy_level()
+        # for more information see: get_calibration_accuracy_level()
         return -1 if (self.tensor_bits != 8 or self.is_qat) else self.calibration_iterations
 
-    def get_tidl_calibration_accuracy_level(self):
+    def get_calibration_accuracy_level(self):
         # For QAT models, simple calibration is sufficient, so we shall use accuracy_level=0
         # Also if tensor_bits>8 (eg. 16), simple calibration is sufficient, so accuracy_level can be set to 0
         return 0 if (self.tensor_bits != 8 or self.is_qat) else 1
+
+    def get_quantization_scale_type(self):
+        # 0 (non-power of 2, default), 1 (power of 2, might be helpful sometimes, needed for qat models)
+        return 1 if self.is_qat else 0
 
     def get_runtime_options_default(self, session_name=None):
         runtime_options = {
@@ -244,7 +285,7 @@ class QuantizationParams():
             # basic_options
             #################################
             'tensor_bits': self.tensor_bits,
-            'accuracy_level': self.get_tidl_calibration_accuracy_level(),
+            'accuracy_level': self.get_calibration_accuracy_level(),
             # debug level
             'debug_level': 0,
             ##################################
@@ -257,9 +298,8 @@ class QuantizationParams():
             'advanced_options:calibration_frames': self.calibration_frames,
             # note that calibration_iterations has effect only if accuracy_level>0
             'advanced_options:calibration_iterations': self.get_calibration_iterations(),
-            # quantization_scale_type iset to 1 for power-of-2-scale quant by default
-            # change it to 0 if some network specifically needs non-power-of-2
-            'advanced_options:quantization_scale_type': 1,
+            # 0 (non-power of 2, default), 1 (power of 2, might be helpful sometimes, needed for qat models)
+            'advanced_options:quantization_scale_type': self.get_quantization_scale_type(),
             # further quantization/calibration options - these take effect
             # only if the accuracy_level in basic options is set to 9
             'advanced_options:activation_clipping': 1,

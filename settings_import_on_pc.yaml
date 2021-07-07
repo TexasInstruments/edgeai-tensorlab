@@ -99,6 +99,3 @@ with_udp : True
 
 # it will add horizontally flipped images in info_dict and run inference over the flipped image also 
 flip_test : False
-
-# save detection, segmentation, human pose estimation output
-save_output : False
