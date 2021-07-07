@@ -41,12 +41,6 @@ def get_configs(settings, work_dir):
     # get the sessions types to use for each model type
     onnx_session_type = settings.get_session_type(constants.MODEL_TYPE_ONNX)
 
-    runtime_options_onnx_p2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,)
-    
-    # runtime_options_onnx_qat = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=True)
-    # runtime_options_tflite_qat = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=True)
-    # runtime_options_mxnet_qat = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=True)
-
     # configs for each model pipeline
     common_cfg = {
         'task_type': 'human_pose_estimation',
@@ -66,7 +60,7 @@ def get_configs(settings, work_dir):
             preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True,
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**common_session_cfg,
-                runtime_options=utils.dict_update(runtime_options_onnx_p2, {
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), {
                     'advanced_options:output_feature_16bit_names_list': first_last_layer['mobilenetv2_fpn_spp_udp']
                     }),
                 model_path=f'{settings.models_path}/vision/human_pose_estimation/onnx-models/mobilenetv2_fpn_spp_udp.onnx'),
@@ -77,7 +71,7 @@ def get_configs(settings, work_dir):
             preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True,
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**common_session_cfg, 
-                runtime_options=utils.dict_update(runtime_options_onnx_p2, {
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['resnet50_fpn_spp_udp']
                         }),
                 model_path=f'{settings.models_path}/vision/human_pose_estimation/onnx-models/resnet50_fpn_spp_udp.onnx'),
@@ -88,7 +82,7 @@ def get_configs(settings, work_dir):
             preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True, 
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**common_session_cfg, 
-                runtime_options=utils.dict_update(runtime_options_onnx_p2, {
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['mobilenetv2_pan_spp_udp']
                         }),
                 model_path=f'{settings.models_path}/vision/human_pose_estimation/onnx-models/mobilenetv2_pan_spp_udp.onnx'),
@@ -99,7 +93,7 @@ def get_configs(settings, work_dir):
             preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True, 
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**common_session_cfg,
-                runtime_options=utils.dict_update(runtime_options_onnx_p2, {
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['resnet50_pan_spp_udp']
                         }),
                 model_path=f'{settings.models_path}/vision/human_pose_estimation/onnx-models/resnet50_pan_spp_udp.onnx'),

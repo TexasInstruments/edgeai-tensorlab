@@ -36,30 +36,6 @@ def get_configs(settings, work_dir):
     tflite_session_type = settings.get_session_type(constants.MODEL_TYPE_TFLITE)
     mxnet_session_type = settings.get_session_type(constants.MODEL_TYPE_MXNET)
 
-    # Default for ONNX/MXNET Models: Non-Power-2, TFLITE-Power2
-    # For selected model we toggle based on which ever is better from accuracy perspective
-    runtime_options_onnx_np2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
-                                    runtime_options={'advanced_options:quantization_scale_type': 0})
-    runtime_options_tflite_np2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,
-                                    runtime_options={'advanced_options:quantization_scale_type': 0})
-    runtime_options_mxnet_np2 = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,
-                                    runtime_options={'advanced_options:quantization_scale_type': 0})
-
-    runtime_options_onnx_p2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,)
-    runtime_options_tflite_p2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,)
-    runtime_options_mxnet_p2 = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,)
-
-    #This option should go away after testing
-    use_default_power_2_setting = False
-    if use_default_power_2_setting:
-        runtime_options_onnx_p2 = runtime_options_onnx_np2
-        runtime_options_tflite_np2 = runtime_options_tflite_p2
-        runtime_options_mxnet_p2 = runtime_options_mxnet_np2
-
-    runtime_options_onnx_qat = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=True)
-    runtime_options_tflite_qat = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=True)
-    runtime_options_mxnet_qat = settings.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=True)
-
     # configs for each model pipeline
     cityscapes_cfg = {
         'task_type': 'segmentation',
@@ -104,7 +80,7 @@ def get_configs(settings, work_dir):
         # # edgeai: segmentation - deeplabv3lite_mobilenetv2_768x384_20190626-085932 expected_metric: 69.13% mean-iou
         # 'vseg-16-100-0':utils.dict_update(cityscapes_cfg,
         #     preprocess=settings.get_preproc_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
-        #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+        #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-jai/deeplabv3lite_mobilenetv2_768x384_20190626.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':69.13})
@@ -112,7 +88,7 @@ def get_configs(settings, work_dir):
         # # edgeai: segmentation - fpnlite_aspp_mobilenetv2_768x384_20200120-135701 expected_metric: 70.48% mean-iou
         # 'vseg-16-101-0':utils.dict_update(cityscapes_cfg,
         #     preprocess=settings.get_preproc_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
-        #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+        #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-jai/fpnlite_aspp_mobilenetv2_768x384_20200120.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':70.48})
@@ -120,7 +96,7 @@ def get_configs(settings, work_dir):
         # # edgeai: segmentation - unetlite_aspp_mobilenetv2_768x384_20200129-164340 expected_metric: 68.97% mean-iou
         # 'vseg-16-102-0':utils.dict_update(cityscapes_cfg,
         #     preprocess=settings.get_preproc_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
-        #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+        #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-jai/unetlite_aspp_mobilenetv2_768x384_20200129.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':68.97})
@@ -128,7 +104,7 @@ def get_configs(settings, work_dir):
         # # edgeai: segmentation - fpnlite_aspp_regnetx800mf_768x384_20200911-144003 expected_metric: 72.01% mean-iou
         # 'vseg-16-103-0':utils.dict_update(cityscapes_cfg,
         #     preprocess=settings.get_preproc_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
-        #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+        #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-jai/fpnlite_aspp_regnetx800mf_768x384_20200911.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':72.01})
@@ -136,7 +112,7 @@ def get_configs(settings, work_dir):
         # # edgeai: segmentation - fpnlite_aspp_regnetx1.6gf_1024x512_20200914-132016 expected_metric: 75.84% mean-iou
         # 'vseg-16-104-0':utils.dict_update(cityscapes_cfg,
         #     preprocess=settings.get_preproc_jai((512,1024), (512,1024), backend='cv2', interpolation=cv2.INTER_AREA),
-        #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+        #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-jai/fpnlite_aspp_regnetx1.6gf_1024x512_20200914.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':75.84})
@@ -144,7 +120,7 @@ def get_configs(settings, work_dir):
         # # edgeai: segmentation - fpnlite_aspp_regnetx3.2gf_1536x768_20200915-092738 expected_metric: 78.90% mean-iou
         # 'vseg-16-105-0':utils.dict_update(cityscapes_cfg,
         #     preprocess=settings.get_preproc_jai((768,1536), (768,1536), backend='cv2', interpolation=cv2.INTER_AREA),
-        #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+        #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-jai/fpnlite_aspp_regnetx3.2gf_1536x768_20200915.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':78.90})
@@ -152,7 +128,7 @@ def get_configs(settings, work_dir):
         # # torchvision: segmentation - torchvision deeplabv3-resnet50 - expected_metric: 73.5% MeanIoU.
         # 'vseg-16-300-0':utils.dict_update(cityscapes_cfg,
         #     preprocess=settings.get_preproc_onnx((520,1040), (520,1040), backend='cv2'),
-        #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+        #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/torchvision/deeplabv3_resnet50_1040x520_20200901.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':73.5})
@@ -160,7 +136,7 @@ def get_configs(settings, work_dir):
         # # torchvision: segmentation - torchvision fcn-resnet50 - expected_metric: 71.6% MeanIoU.
         # 'vseg-16-301-0':utils.dict_update(cityscapes_cfg,
         #     preprocess=settings.get_preproc_onnx((520,1040), (520,1040), backend='cv2'),
-        #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_p2,
+        #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/torchvision/fcn_resnet50_1040x520_20200902.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':71.6})
@@ -169,14 +145,14 @@ def get_configs(settings, work_dir):
         #  PTQ accuracy is good. Will remove in future.
         # 'vseg-18-100-8':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
-        #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
+        #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-jai/deeplabv3lite_mobilenetv2_512x512_ade20k32_20210308_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':51.61})
         # ),
         'vseg-18-101-8':utils.dict_update(ade20k_cfg_class32,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
+            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-jai/unetlite_aspp_mobilenetv2_512x512_ade20k32_20210306_qat.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':49.98})
@@ -184,7 +160,7 @@ def get_configs(settings, work_dir):
         #  PTQ accuracy is good. Will remove in future.
         # 'vseg-18-102-8':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
-        #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
+        #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-jai/fpnlite_aspp_mobilenetv2_512x512_ade20k32_20210306_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':50.93})
@@ -192,7 +168,7 @@ def get_configs(settings, work_dir):
         #  PTQ accuracy is good. Will remove in future.
         # 'vseg-18-103-8':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
-        #     session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_qat,
+        #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-jai/fpnlite_aspp_mobilenetv2_1p4_512x512_ade20k32_20210307_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':53.01})
@@ -203,7 +179,7 @@ def get_configs(settings, work_dir):
         # tensorflow-deeplab-cityscapes-segmentation- deeplabv3_mnv2_cityscapes_train - expected_metric: 73.57% MeanIoU.
         'vseg-16-400-0': utils.dict_update(cityscapes_cfg,
             preprocess=settings.get_preproc_tflite((1024, 2048), (1024, 2048), mean=(127.5, 127.5, 127.5), scale=(1/127.5, 1/127.5, 1/127.5), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
+            session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/segmentation/cityscapes/tf1-models/deeplabv3_mnv2_cityscapes_train_1024x2048.tflite'),
             postprocess=postproc_segmenation_tflite,
             model_info=dict(metric_reference={'accuracy_mean_iou%':73.57})
