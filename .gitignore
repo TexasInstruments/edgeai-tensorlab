@@ -11,7 +11,6 @@ datasets/*
 dependencies/*
 !dependencies/examples
 work_dirs/*
-modelzoo/*
 backup/*
 
 .vscode/

@@ -51,8 +51,8 @@ models_path : '../edgeai-modelzoo/models'
 # create your datasets under this folder
 datasets_path : './dependencies/datasets'
 
-# path where compiled_models are placed
-compiled_models_path: './work_dirs/compiled_models'
+# path where precompiled modelartifacts are placed
+modelartifacts_path: './work_dirs/modelartifacts'
 
 # session types to use for each model type
 session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
