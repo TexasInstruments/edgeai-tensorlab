@@ -68,18 +68,18 @@ def get_configs(settings, work_dir):
         'vdet-12-020-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx((640,640), (640,640), backend='cv2'),
             session=onnx_session_type(**common_session_cfg,
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {'object_detection:meta_arch_type': 6, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5s6_640_ti_lite_37p4_56p0.onnx'}),
-                model_path=f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5s6_640_ti_lite_37p4_56p0.prototxt'),
-            postprocess=settings.get_postproc_detection_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {'object_detection:meta_arch_type': 6, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5s6_640_ti_lite_metaarch.prototxt'}),
+                model_path=f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5s6_640_ti_lite_37p4_56p0.onnx'),
+            postprocess=settings.get_postproc_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.4})
         ),
         'vdet-12-021-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx((640,640), (640,640), backend='cv2'),
             session=onnx_session_type(**common_session_cfg,
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {'object_detection:meta_arch_type': 6, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5m6_640_ti_lite_44p1_62p9.onnx'}),
-                model_path=f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5m6_640_ti_lite_metaarch.prototxt'),
-            postprocess=settings.get_postproc_detection_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {'object_detection:meta_arch_type': 6, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5m6_640_ti_lite_metaarch.prototxt'}),
+                model_path=f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5m6_640_ti_lite_44p1_62p9.onnx'),
+            postprocess=settings.get_postproc_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':44.1})
         ),

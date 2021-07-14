@@ -200,6 +200,9 @@ class ConfigSettings(config_dict.ConfigDict):
     def get_postproc_detection_mmdet_onnx(self, formatter=None, **kwargs):
         return self._get_postproc_detection_base(formatter=formatter, reshape_list=[(-1,5), (-1,1)], **kwargs)
 
+    def get_postproc_detection_yolov5_onnx(self, formatter=None, **kwargs):
+        return self._get_postproc_detection_base(formatter=formatter, reshape_list=[(-1,6)], **kwargs)
+
     def get_postproc_detection_tflite(self, formatter=postprocess.DetectionYXYX2XYXY(), **kwargs):
         return self._get_postproc_detection_base(formatter=formatter, **kwargs)
 
