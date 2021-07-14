@@ -28,6 +28,7 @@
 
 
 import os
+import sys
 import argparse
 from jai_benchmark import *
 
@@ -40,11 +41,12 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('settings_file', type=str)
-    parser.add_argument('--work_dirs', type=str, default='./work_dirs')
-    parser.add_argument('--expt_name', type=str, default='benchmark_accuracy')
     cmds = parser.parse_args()
 
-    benchmark_dir = os.path.join(cmds.work_dirs, cmds.expt_name)
-    tools.run_report(benchmark_dir)
-    print("Report generated at {}".format(benchmark_dir))
+    kwargs = vars(cmds)
+    settings = config_settings.ConfigSettings(cmds.settings_file, **kwargs)
+    print(f'settings: {settings}')
+    sys.stdout.flush()
 
+    tools.run_report(settings.compiled_models_path)
+    print("Report generated at {}".format(settings.compiled_models_path))

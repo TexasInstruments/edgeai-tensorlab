@@ -32,6 +32,7 @@ import copy
 import yaml
 import time
 import itertools
+import tarfile
 from .. import utils, constants
 
 class AccuracyPipeline():
@@ -66,6 +67,17 @@ class AccuracyPipeline():
         #
 
     def __call__(self, description=''):
+        ##################################################################
+        # if the run_dir doesn't exist, check if tarfile exists
+        if not os.path.exists(self.run_dir):
+            tarfile_name = self.run_dir + '.tar.gz'
+            if os.path.exists(tarfile_name):
+                tfp = tarfile.open(tarfile_name)
+                tfp.extractall(self.run_dir)
+                tfp.close()
+            #
+        #
+
         ##################################################################
         # check and return if result exists
         if self.settings.run_missing and os.path.exists(self.result_yaml):

@@ -163,6 +163,8 @@ class ConfigDict(dict):
         self.experimental_models = False
         # rewrite results with latest params if the result exists
         self.rewrite_results = False
+        # path where compiled_models are placed
+        self.compiled_models_path = './work_dirs/compiled_models'
 
     def _parse_include_files(self, include_files, include_base_path):
         input_dict = {}

@@ -53,12 +53,18 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
     packaged_files = []
 
     run_dir = pipeline_param['session']['run_dir']
+    if os.sep not in run_dir:
+        run_dir = os.path.join(work_dir, run_dir)
+    #
     if not os.path.exists(run_dir):
         print(f'could not find: {run_dir}')
         return None
     #
 
     artifacts_folder = pipeline_param['session']['artifacts_folder']
+    if os.sep not in artifacts_folder:
+        artifacts_folder = os.path.join(run_dir, artifacts_folder)
+    #
     if not os.path.exists(artifacts_folder):
         print(f'could not find: {artifacts_folder}')
         return None
@@ -72,6 +78,9 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
 
     # local model folder
     model_folder = pipeline_param['session']['model_folder']
+    if os.sep not in model_folder:
+        model_folder = os.path.join(run_dir, model_folder)
+    #
     model_path = pipeline_param['session']['model_path']
     relative_model_dir = os.path.basename(model_folder)
     if isinstance(model_path, (list,tuple)):
@@ -81,7 +90,6 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
     #
 
     # local artifacts folder
-    artifacts_folder = pipeline_param['session']['artifacts_folder']
     relative_artifacts_dir = os.path.basename(artifacts_folder)
 
     # create the param file in source folder with relative paths
