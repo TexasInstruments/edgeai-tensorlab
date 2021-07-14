@@ -173,6 +173,13 @@ def get_configs(settings, work_dir):
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':53.01})
         # ),
+        'vseg-21-105-0':utils.dict_update(cocoseg21_cfg,
+            preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
+            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
+                model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/lraspp_mobilenet_v3_lite_large_512x512_20210527.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':59.80})
+        ),
         #################################################################
         #       TFLITE MODELS
         #################mlperf models###################################
