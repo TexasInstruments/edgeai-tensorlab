@@ -63,7 +63,7 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
                     'advanced_options:output_feature_16bit_names_list': first_last_layer['mobilenetv2_fpn_spp_udp']
                     }),
-                model_path=f'{settings.models_path}/vision/keypoint-detection/coco/mmpose/mobilenetv2_fpn_spp_udp_512_20210610.onnx'),
+                model_path=f'{settings.models_path}/vision/keypoint-detection/coco/edgeai-mmpose/mobilenetv2_fpn_spp_udp_512_20210610.onnx'),
             model_info=dict(metric_reference={'AP':43.28})
         ),
         # human pose estimation : resnet50 + fpn_spp, Expected AP : 50.58
@@ -74,7 +74,7 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['resnet50_fpn_spp_udp']
                         }),
-                model_path=f'{settings.models_path}/vision/keypoint-detection/coco/mmpose/resnet50_fpn_spp_udp_512_20210610.onnx'),
+                model_path=f'{settings.models_path}/vision/keypoint-detection/coco/edgeai-mmpose/resnet50_fpn_spp_udp_512_20210610.onnx'),
             model_info=dict(metric_reference={'AP':50.58})
         ),
         # human pose estimation : mobilenetv2 + pan_spp + udp, Expected AP : 44.27
@@ -85,7 +85,7 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['mobilenetv2_pan_spp_udp']
                         }),
-                model_path=f'{settings.models_path}/vision/keypoint-detection/coco/mmpose/mobilenetv2_pan_spp_udp_512_20210617.onnx'),
+                model_path=f'{settings.models_path}/vision/keypoint-detection/coco/edgeai-mmpose/mobilenetv2_pan_spp_udp_512_20210617.onnx'),
             model_info=dict(metric_reference={'AP':44.27})
         ),
         # human pose estimation : resnet50 + pan_spp + udp, Expected AP : 52.16
@@ -96,7 +96,7 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['resnet50_pan_spp_udp']
                         }),
-                model_path=f'{settings.models_path}/vision/keypoint-detection/coco/mmpose/resnet50_pan_spp_udp_512_20210616.onnx'),
+                model_path=f'{settings.models_path}/vision/keypoint-detection/coco/edgeai-mmpose/resnet50_pan_spp_udp_512_20210616.onnx'),
             model_info=dict(metric_reference={'AP':52.16})
         ),
     }
