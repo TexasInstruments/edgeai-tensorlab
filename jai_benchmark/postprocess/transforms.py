@@ -496,7 +496,7 @@ class HumanPoseHeatmapParser:
         """Get the corresponding values from "a" matrix along the "dim" dimension according to "index" array 
         """
         expanded_index = [index if dim==i else np.arange(a.shape[i]).reshape([-1 if i==j else 1 for j in range(a.ndim)]) for i in range(a.ndim)]
-        return a[expanded_index]
+        return a[tuple(expanded_index)]
 
     def nms(self, heatmaps):
         """Non-Maximum Suppression for heatmaps.
