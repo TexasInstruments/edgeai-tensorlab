@@ -66,23 +66,46 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':31.0})
         # ),
         'vdet-12-020-0':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx((640,640), (640,640), backend='cv2'),
+            preprocess=settings.get_preproc_onnx(640, 640,  resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**common_session_cfg,
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {'object_detection:meta_arch_type': 6, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5s6_640_ti_lite_metaarch.prototxt'}),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {'object_detection:meta_arch_type': 6, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5s6_640_ti_lite_metaarch.prototxt',
+                                                                                        'advanced_options:output_feature_16bit_names_list':'370, 680, 990, 1300'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5s6_640_ti_lite_37p4_56p0.onnx'),
-            postprocess=settings.get_postproc_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
+            postprocess=settings.get_postproc_detection_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.4})
         ),
         'vdet-12-021-0':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx((640,640), (640,640), backend='cv2'),
+            preprocess=settings.get_preproc_onnx(384, 384,  resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**common_session_cfg,
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {'object_detection:meta_arch_type': 6, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5m6_640_ti_lite_metaarch.prototxt'}),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {'object_detection:meta_arch_type': 6, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5s6_384_ti_lite_metaarch.prototxt',
+                                                                                        'advanced_options:output_feature_16bit_names_list':'168, 370, 680, 990, 1300'}),
+                model_path=f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5s6_384_ti_lite_32p8_51p2.onnx'),
+            postprocess=settings.get_postproc_detection_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.8})
+        ),
+        'vdet-12-022-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(640, 640, resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
+            session=onnx_session_type(**common_session_cfg,
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {'object_detection:meta_arch_type': 6, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5m6_640_ti_lite_metaarch.prototxt',
+                                                                                        'advanced_options:output_feature_16bit_names_list':'228, 498, 808, 1118, 1428'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5m6_640_ti_lite_44p1_62p9.onnx'),
-            postprocess=settings.get_postproc_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
+            postprocess=settings.get_postproc_detection_onnx(squeeze_axis=None, normalized_detections=False,  resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':44.1})
         ),
+           'vdet-12-023-0':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(640, 640, resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
+            session=onnx_session_type(**common_session_cfg,
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {'object_detection:meta_arch_type': 6, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5l6_640_ti_lite_metaarch.prototxt',
+                                                                                        'advanced_options:output_feature_16bit_names_list':'288, 626, 936, 1246, 1556'}),
+                model_path=f'{settings.models_path}/vision/detection/coco/ultralytics-yolov5/yolov5l6_640_ti_lite_47p1_65p6.onnx'),
+            postprocess=settings.get_postproc_detection_onnx(squeeze_axis=None, normalized_detections=False,  resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':47.1})
+        ),
+
         #################################################################
         #       MXNET MODELS
         #################################################################
