@@ -50,6 +50,9 @@ def get_configs(settings, work_dir):
 
     postproc_detection_onnx = settings.get_postproc_detection_onnx()
     postproc_detection_tflite = settings.get_postproc_detection_tflite()
+    postproc_detection_efficientdet_ti_lite_tflite = settings.get_postproc_detection_tflite(normalized_detections=False, ignore_detection_element=0,
+                                                            formatter=postprocess.DetectionFormatting(dst_indices=(0,1,2,3,4,5), src_indices=(1,0,3,2,5,4)),
+                                                            )
     postproc_detection_mxnet = settings.get_postproc_detection_mxnet()
 
     pipeline_configs = {
@@ -279,11 +282,12 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':34.3})
         ),
         'vdet-12-420-0':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_tflite((512,512), (512,512), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
+            preprocess=settings.get_preproc_tflite((512,512), (512,512), backend='cv2',mean=(123.675, 116.28, 103.53), scale=(0.01712475, 0.017507, 0.01742919)),
+            session=tflite_session_type(**common_session_cfg,
+                runtime_options=utils.dict_update(settings.runtime_options_tflite_np2(), {'object_detection:meta_arch_type': 5, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/google-automl/efficientdet-lite0_bifpn_maxpool2x2_relu_ti-lite.prototxt'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/google-automl/efficientdet-lite0_bifpn_maxpool2x2_relu_ti-lite.tflite'),
-            postprocess=postproc_detection_tflite,
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
+            postprocess=postproc_detection_efficientdet_ti_lite_tflite,
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':33.61})
         ),
     }

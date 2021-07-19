@@ -118,6 +118,19 @@ class ReshapeList():
         return tensor_list_out, info_dict
 
 
+class IgnoreDetectionElement():
+    def __init__(self, indice=None):
+        self.indice = indice
+
+    def __call__(self, tensor, info_dict):
+        if self.indice is not None:
+            tensor_out = np.concatenate((tensor[...,:self.indice], tensor[...,self.indice+1:]) ,-1)
+        #
+        else:
+            tensor_out = tensor
+        #
+        return tensor_out, info_dict
+
 
 ##############################################################################
 class SegmentationImageResize():
