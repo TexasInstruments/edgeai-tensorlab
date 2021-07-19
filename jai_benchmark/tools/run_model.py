@@ -28,44 +28,40 @@
 
 import os
 import sys
-import argparse
+import tarfile
+import yaml
 from .. import utils, pipelines, config_settings, datasets
 
-__all__ = ['run_accuracy']
+__all__ = ['run_model']
 
 
-def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_func=None):
+def run_model(settings, run_dir, pipeline_configs=None):
+    # if the run_dir doesn't exist, check if tarfile exists
+    tarfile_name = run_dir if run_dir.endswith('.tar.gz') else run_dir+'.tar.gz'
+    run_dir = os.path.splitext(os.path.splitext(run_dir)[0])[0] if run_dir.endswith('.tar.gz') else run_dir
+    if not os.path.exists(run_dir):
+        if os.path.exists(tarfile_name):
+            tfp = tarfile.open(tarfile_name)
+            tfp.extractall(run_dir)
+            tfp.close()
+        #
+    #
+    assert os.path.exists(run_dir), f'could not find run_dir: {run_dir}'
+    run_dir_base = os.path.basename(run_dir)
+
     # get the default configs if pipeline_configs is not given from outside
     if pipeline_configs is None:
-        # import the configs module
-        configs_module = utils.import_folder(settings.configs_path)
-        # check the datasets and download if they are missing
-        download_ok = datasets.download_datasets(settings)
-        print(f'download_ok: {download_ok}')
-        # get the configs for supported models as a dictionary
-        pipeline_configs = configs_module.get_configs(settings, work_dir)
+        param_file = os.path.join(run_dir, 'param.yaml')
+        with open(param_file, 'r') as rfp:
+            pipeline_params = yaml.safe_load(rfp)
+            pipeline_config = pipelines.create_config(pipeline_params, run_dir_base)
+            model_id, session_name = run_dir_base.split('_')[:2]
+            pipeline_configs = {model_id: pipeline_config}
+        #
     #
 
     # create the pipeline_runner which will manage the sessions.
     pipeline_runner = pipelines.PipelineRunner(settings, pipeline_configs)
-
-    ############################################################################
-    # at this point, pipeline_runner.pipeline_configs is a dictionary that has the selected configs
-
-    # Note: to manually slice and select a subset of configs, slice it this way (just an example)
-    # import itertools
-    # pipeline_runner.pipeline_configs = dict(itertools.islice(pipeline_runner.pipeline_configs.items(), 10, 20))
-
-    # some examples of accessing params from it - here 0th entry is used an example.
-    # pipeline_config = pipeline_runner.pipeline_configs.values()[0]
-    # pipeline_config['preprocess'].get_param('resize') gives the resize dimension
-    # pipeline_config['preprocess'].get_param('crop') gives the crop dimension
-    # pipeline_config['session'].get_param('run_dir') gives the folder where artifacts are located
-    ############################################################################
-
-    if modify_pipelines_func is not None:
-        pipeline_runner.pipeline_configs = modify_pipelines_func(pipeline_runner.pipeline_configs)
-    #
 
     # print some info
     run_dirs = [pipeline_config['session'].get_param('run_dir') for model_key, pipeline_config \
@@ -79,5 +75,3 @@ def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_fun
     if settings.run_import or settings.run_inference:
         pipeline_runner.run()
     #
-
-
