@@ -102,7 +102,7 @@ class ConfigDict(dict):
         # folder where benchmark configs are defined. this should be python importable
         self.configs_path = './configs'
         # folder where models are available
-        self.models_path = '../jacinto-ai-modelzoo/models'
+        self.models_path = '../edgeai-modelzoo/models'
         # path where compiled model artifacts are placed
         self.modelartifacts_path = './work_dirs/modelartifacts'
         # create your datasets under this folder
