@@ -171,7 +171,7 @@ if __name__ == '__main__':
     settings = config_settings.ConfigSettings(cmds.settings_file,
         num_frames=1, calibration_frames=1, calibration_iterations=1, **kwargs)
 
-    work_dir = os.path.join(settings.compiled_models_path, f'{settings.tensor_bits}bits')
+    work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
     # pass a function to modify the pipelines to add the various resolutions

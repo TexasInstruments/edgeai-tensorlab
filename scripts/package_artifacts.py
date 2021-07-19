@@ -42,10 +42,10 @@ if __name__ == '__main__':
     cmds = parser.parse_args()
     settings = config_settings.ConfigSettings(cmds.settings_file)
 
-    work_dir = os.path.join(settings.compiled_models_path, f'{settings.tensor_bits}bits')
+    work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
-    package_dir = settings.compiled_models_path + '_package'
+    package_dir = settings.modelartifacts_path + '_package'
     out_dir = os.path.join(package_dir, f'{settings.tensor_bits}bits')
     print(f'package_dir: {out_dir}')
 

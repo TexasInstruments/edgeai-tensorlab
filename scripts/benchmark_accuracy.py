@@ -62,7 +62,7 @@ if __name__ == '__main__':
     print(f'settings: {settings}')
     sys.stdout.flush()
 
-    work_dir = os.path.join(settings.compiled_models_path, f'{settings.tensor_bits}bits')
+    work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
     # run the accuracy pipeline
