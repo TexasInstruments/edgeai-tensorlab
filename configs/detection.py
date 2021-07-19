@@ -36,8 +36,9 @@ def get_configs(settings, work_dir):
     tflite_session_type = settings.get_session_type(constants.MODEL_TYPE_TFLITE)
     mxnet_session_type = settings.get_session_type(constants.MODEL_TYPE_MXNET)
 
+    # for this model, layer 43 is forced to ddr - this is a temporary fix
     runtime_options_onnx_ssd_np2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
-                runtime_options={'advanced_options:quantization_scale_type': 0, 'deny_list': "Reshape"})
+                runtime_options={'ti_internal_reserved_1': 43})
 
     # configs for each model pipeline
     common_cfg = {
