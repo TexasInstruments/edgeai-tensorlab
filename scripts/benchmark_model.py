@@ -63,10 +63,10 @@ if __name__ == '__main__':
     print(f'settings: {settings}')
     sys.stdout.flush()
 
-    run_dir = kwargs['run_dir']
+    run_dir = kwargs.get('run_dir', None)
     print(f'run_dir: {run_dir}')
 
-    model_selection = kwargs['model_selection']
+    model_selection = kwargs.get('model_selection', None)
     print(f'model_selection: {model_selection}')
 
     if model_selection is None:
