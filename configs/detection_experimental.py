@@ -36,6 +36,9 @@ def get_configs(settings, work_dir):
     tflite_session_type = settings.get_session_type(constants.MODEL_TYPE_TFLITE)
     mxnet_session_type = settings.get_session_type(constants.MODEL_TYPE_MXNET)
 
+    runtime_options_tflite_np2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,
+                runtime_options={'object_detection:score_threshold': settings.detection_thr})
+
     # configs for each model pipeline
     common_cfg = {
         'task_type': 'detection',
@@ -136,7 +139,7 @@ def get_configs(settings, work_dir):
         #################tflite models###################################
         'vdet-12-415-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((1024,1024), (1024,1024), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_resnet50_v1_fpn_1024x1024_coco17_tpu-8.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
