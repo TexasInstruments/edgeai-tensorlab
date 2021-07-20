@@ -36,6 +36,19 @@ __all__ = ['run_model']
 
 
 def run_model(settings, run_dir, pipeline_configs=None):
+    work_dir = os.path.split(run_dir)[0]
+
+    # get the default configs if pipeline_configs is not given from outside
+    if pipeline_configs is None:
+        # import the configs module
+        configs_module = utils.import_folder(settings.configs_path)
+        # check the datasets and download if they are missing
+        download_ok = datasets.download_datasets(settings)
+        print(f'download_ok: {download_ok}')
+        # get the configs for supported models as a dictionary
+        pipeline_configs = configs_module.get_configs(settings, work_dir)
+    #
+
     # if the run_dir doesn't exist, check if tarfile exists
     tarfile_name = run_dir if run_dir.endswith('.tar.gz') else run_dir+'.tar.gz'
     run_dir = os.path.splitext(os.path.splitext(run_dir)[0])[0] if run_dir.endswith('.tar.gz') else run_dir
@@ -47,18 +60,32 @@ def run_model(settings, run_dir, pipeline_configs=None):
         #
     #
     assert os.path.exists(run_dir), f'could not find run_dir: {run_dir}'
+    model_folder = os.path.join(run_dir, 'model')
     run_dir_base = os.path.basename(run_dir)
 
-    # get the default configs if pipeline_configs is not given from outside
-    if pipeline_configs is None:
-        param_file = os.path.join(run_dir, 'param.yaml')
-        with open(param_file, 'r') as rfp:
-            pipeline_params = yaml.safe_load(rfp)
-            pipeline_config = pipelines.create_config(pipeline_params, run_dir_base)
-            model_id, session_name = run_dir_base.split('_')[:2]
-            pipeline_configs = {model_id: pipeline_config}
+    model_id, session_name = run_dir_base.split('_')[:2]
+    pipeline_config = pipeline_configs[model_id]
+    if os.path.exists(run_dir):
+        param_yaml = os.path.join(run_dir, 'param.yaml')
+        with open(param_yaml) as fp:
+            pipeline_param = yaml.safe_load(fp)
+        #
+        model_path = os.path.join(run_dir, pipeline_param['session']['model_path'])
+        model_path = utils.get_local_path(model_path, model_folder)
+        pipeline_config['session'].set_param('model_path', model_path)
+
+        # meta_file
+        od_meta_names_key = 'object_detection:meta_layers_names_list'
+        runtime_options = pipeline_config['session'].peek_param('runtime_options')
+        meta_path = runtime_options.get(od_meta_names_key, None)
+        if meta_path is not None:
+            meta_file = utils.get_local_path(meta_path, model_folder)
+            # write the local path
+            runtime_options[od_meta_names_key] = meta_file
         #
     #
+    pipeline_config['session'].set_param('run_dir', run_dir)
+    pipeline_configs = {model_id: pipeline_config}
 
     # create the pipeline_runner which will manage the sessions.
     pipeline_runner = pipelines.PipelineRunner(settings, pipeline_configs)

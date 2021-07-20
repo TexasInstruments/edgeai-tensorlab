@@ -44,12 +44,12 @@ settings_file=settings_import_on_pc.yaml
 
 echo "==================================================================="
 # run all the shortlisted models with these settings
-python3 ./scripts/benchmark_accuracy.py ${settings_file}
+python3 ./scripts/benchmark_modelzoo.py ${settings_file}
 echo "-------------------------------------------------------------------"
 
 #echo "==================================================================="
 ### run few selected models with other runtimes
-#python3 ./scripts/benchmark_accuracy.py ${settings_file} \
+#python3 ./scripts/benchmark_modelzoo.py ${settings_file} \
 #        --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
 #        --task_selection classification segmentation \
 #        --model_selection onnx

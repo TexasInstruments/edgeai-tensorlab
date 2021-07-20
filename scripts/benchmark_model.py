@@ -47,12 +47,12 @@ if __name__ == '__main__':
     parser.add_argument('--models_path', type=str)
     parser.add_argument('--task_selection', type=str, nargs='*')
     parser.add_argument('--model_selection', type=str, nargs='*')
-    parser.add_argument('--model_exclusion', type=str, nargs='*')
     parser.add_argument('--session_type_dict', type=str, nargs='*')
     parser.add_argument('--num_frames', type=int)
     parser.add_argument('--calibration_frames', type=int)
     parser.add_argument('--calibration_iterations', type=int)
     parser.add_argument('--parallel_devices', type=int, nargs='*')
+    parser.add_argument('--experimental_models', type=int, default=1)
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)
@@ -65,7 +65,12 @@ if __name__ == '__main__':
 
     run_dir = kwargs['run_dir']
     print(f'run_dir: {run_dir}')
-    assert run_dir is not None, 'run_dir must be provided'
+
+    model_selection = kwargs['model_selection']
+    print(f'model_selection: {model_selection}')
+
+    if model_selection is None:
+        assert run_dir is not None, 'run_dir must be provided when model_selection is None'
 
     # run the accuracy pipeline
     tools.run_model(settings, run_dir)
