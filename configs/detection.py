@@ -40,8 +40,12 @@ def get_configs(settings, work_dir):
     runtime_options_onnx_ssd_np2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
                 runtime_options={'ti_internal_reserved_1': 43})
 
+    # use a large top_k, keep_top_k and low confidence_threshold for accuracy measurement
     runtime_options_tflite_np2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,
-                runtime_options={'object_detection:score_threshold': settings.detection_thr})
+                runtime_options={'object_detection:confidence_threshold': settings.detection_thr,
+                                 'object_detection:keep_top_k': 200,
+                                 'object_detection:nms_threshold': 0.45,
+                                 'object_detection:top_k': 500})
 
     # configs for each model pipeline
     common_cfg = {
