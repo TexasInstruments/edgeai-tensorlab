@@ -1,0 +1,15 @@
+*.pyc
+*.so
+*.o
+
+.idea/*
+.eggs/*
+*.egg-info/*
+*/*.egg-info/*
+
+artifacts
+exports
+downloads
+
+docs/doctrees
+docs/html
