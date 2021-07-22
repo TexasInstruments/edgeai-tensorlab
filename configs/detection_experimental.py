@@ -39,7 +39,7 @@ def get_configs(settings, work_dir):
     # use a large top_k, keep_top_k and low confidence_threshold for accuracy measurement
     runtime_options_tflite_np2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,
                 runtime_options={'object_detection:confidence_threshold': settings.detection_thr,
-                                 'object_detection:keep_top_k': 200,
+                                 'object_detection:keep_top_k': 100,
                                  'object_detection:nms_threshold': 0.45,
                                  'object_detection:top_k': 500})
 
