@@ -55,7 +55,7 @@ def get_configs(settings, work_dir):
         #################################################################
         #       ONNX MODELS
         ################# onnx models ###############################
-        # human pose estimation : mobilenetv2 + fpn_spp + udp, Expected AP : 43.28
+        # human pose estimation : mobilenetv2 + fpn_spp + udp, Expected AP : 42.31
         'vkpdet-25-101-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True,
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
@@ -63,10 +63,10 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
                     'advanced_options:output_feature_16bit_names_list': first_last_layer['mobilenetv2_fpn_spp_udp']
                     }),
-                model_path=f'{settings.models_path}/vision/keypoint-detection/coco/edgeai-mmpose/mobilenetv2_fpn_spp_udp_512_20210610.onnx'),
-            model_info=dict(metric_reference={'AP':43.28})
+                model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/mobilenetv2_fpn_spp_udp_512_20210610.onnx'),
+            model_info=dict(metric_reference={'AP':42.31})
         ),
-        # human pose estimation : resnet50 + fpn_spp, Expected AP : 50.58
+        # human pose estimation : resnet50 + fpn_spp, Expected AP : 50.4
         'vkpdet-25-102-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True,
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
@@ -74,10 +74,10 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['resnet50_fpn_spp_udp']
                         }),
-                model_path=f'{settings.models_path}/vision/keypoint-detection/coco/edgeai-mmpose/resnet50_fpn_spp_udp_512_20210610.onnx'),
-            model_info=dict(metric_reference={'AP':50.58})
+                model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/resnet50_fpn_spp_udp_512_20210610.onnx'),
+            model_info=dict(metric_reference={'AP':50.4})
         ),
-        # human pose estimation : mobilenetv2 + pan_spp + udp, Expected AP : 44.27
+        # human pose estimation : mobilenetv2 + pan_spp + udp, Expected AP : 45.41
         'vkpdet-25-103-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True, 
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
@@ -85,10 +85,10 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['mobilenetv2_pan_spp_udp']
                         }),
-                model_path=f'{settings.models_path}/vision/keypoint-detection/coco/edgeai-mmpose/mobilenetv2_pan_spp_udp_512_20210617.onnx'),
-            model_info=dict(metric_reference={'AP':44.27})
+                model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/mobilenetv2_pan_spp_udp_512_20210617.onnx'),
+            model_info=dict(metric_reference={'AP':45.41})
         ),
-        # human pose estimation : resnet50 + pan_spp + udp, Expected AP : 52.16
+        # human pose estimation : resnet50 + pan_spp + udp, Expected AP : 51.62
         'vkpdet-25-104-0':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True, 
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
@@ -96,8 +96,8 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['resnet50_pan_spp_udp']
                         }),
-                model_path=f'{settings.models_path}/vision/keypoint-detection/coco/edgeai-mmpose/resnet50_pan_spp_udp_512_20210616.onnx'),
-            model_info=dict(metric_reference={'AP':52.16})
+                model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/resnet50_pan_spp_udp_512_20210616.onnx'),
+            model_info=dict(metric_reference={'AP':51.62})
         ),
     }
     return pipeline_configs
