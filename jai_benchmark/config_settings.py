@@ -168,13 +168,16 @@ class ConfigSettings(config_dict.ConfigDict):
     # post process transforms for detection
     ###############################################################
     def _get_postproc_detection_base(self, formatter=None, resize_with_pad=False, normalized_detections=True,
-                                     shuffle_indices=None, squeeze_axis=0, reshape_list=None):
+                                     shuffle_indices=None, squeeze_axis=0, reshape_list=None, ignore_detection_element=None):
         postprocess_detection = [postprocess.ReshapeList(reshape_list=reshape_list),
                                  postprocess.ShuffleList(indices=shuffle_indices),
                                  postprocess.Concat(axis=-1, end_index=3)]
         if squeeze_axis is not None:
             #  TODO make this more generic to squeeze any axis
             postprocess_detection += [postprocess.IndexArray()]
+        #
+        if ignore_detection_element is not None:
+            postprocess_detection += [postprocess.IgnoreDetectionElement(ignore_detection_element)]
         #
         if formatter is not None:
             postprocess_detection += [formatter]

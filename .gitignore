@@ -11,7 +11,6 @@ datasets/*
 dependencies/*
 !dependencies/examples
 work_dirs/*
-!work_dirs/compiled_models
 backup/*
 
 .vscode/

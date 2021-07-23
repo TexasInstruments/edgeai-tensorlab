@@ -598,5 +598,5 @@ if __name__ == '__main__':
 
     #find which models need re-run due to lack of performance data    
     if generate_list_mising_models:    
-        df = get_missing_models(report_file='./work_dirs/benchmark_accuracy/report_20210409-155749.csv', 
+        df = get_missing_models(report_file='./work_dirs/modelartifacts/report_20210409-155749.csv',
             selected_models_list=selected_models_list)

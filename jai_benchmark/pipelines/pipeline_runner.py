@@ -34,7 +34,7 @@ import copy
 import traceback
 from .accuracy_pipeline import *
 from .. import utils
-
+from prototxt_parser.prototxt import parse as prototxt_parse
 
 class PipelineRunner():
     def __init__(self, settings, pipeline_configs):
@@ -46,6 +46,15 @@ class PipelineRunner():
             # call initialize() on each pipeline_config so that run_dir,
             # artifacts folder and such things are initialized
             session.initialize()
+            # get the meta params if it is present
+            od_meta_names_key = 'object_detection:meta_layers_names_list'
+            runtime_options = session.get_param('runtime_options')
+            meta_path = runtime_options.get(od_meta_names_key, None)
+            if meta_path is not None and isinstance(meta_path, str) and os.path.splitext(meta_path)[-1] == '.prototxt':
+                meta_info = self._parse_prototxt(meta_path)
+                model_info = pipeline_config.get('model_info', {})
+                model_info[od_meta_names_key] = meta_info
+            #
         #
         # short list a set of models based on the wild card given in model_selection
         pipelines_selected = {}
@@ -196,3 +205,28 @@ class PipelineRunner():
         #
         return selected_model
 
+    def _parse_prototxt(self, prototxt_filename):
+        try:
+            with open(prototxt_filename) as fp:
+                file_lines = fp.readlines()
+                prototxt_lines = []
+                for line in file_lines:
+                    line = line.rstrip()
+                    # prototxt_parser doesnt line comments - remove them
+                    line_out = ''
+                    for c in line:
+                        if c == '#':
+                            break
+                        else:
+                            line_out += c
+                        #
+                    #
+                    prototxt_lines.append(line_out)
+                #
+                prototxt_str = '\n'.join(prototxt_lines)
+                meta_info = prototxt_parse(prototxt_str)
+            #
+        except:
+            meta_info = None
+        #
+        return meta_info

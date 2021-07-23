@@ -140,18 +140,15 @@ if __name__ == '__main__':
     if os.path.split(os.getcwd())[-1] == 'scripts':
         os.chdir('../')
     #
-
-    configs_path_default = '../jacinto-ai-modelzoo/configs'
-    models_path_default = '../jacinto-ai-modelzoo/models'
     model_selection_default = [
                        'edgeai-tv/mobilenet_v1_20190906.onnx',
                        'edgeai-tv/mobilenet_v2_20191224.onnx',
                        'edgeai-tv/mobilenet_v2_1p4_qat-p2_20210112.onnx',
                        'torchvision/resnet18.onnx',
                        'torchvision/resnet50.onnx',
-                       'pycls/RegNetX-400MF_dds_8gpu.onnx',
-                       'pycls/RegNetX-800MF_dds_8gpu.onnx',
-                       'pycls/RegNetX-1.6GF_dds_8gpu.onnx'
+                       'fbr-pycls/regnetx-400mf.onnx',
+                       'fbr-pycls/regnetx-800mf.onnx',
+                       'fbr-pycls/regnetx-1.6gf.onnx'
                       ]
 
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
@@ -159,7 +156,7 @@ if __name__ == '__main__':
     parser.add_argument('--configs_path', type=str)
     parser.add_argument('--models_path', type=str)
     parser.add_argument('--task_selection', type=str, nargs='*')
-    parser.add_argument('--model_selection', type=str, nargs='*')
+    parser.add_argument('--model_selection', default=model_selection_default, type=str, nargs='*')
     parser.add_argument('--session_type_dict', type=str, nargs='*')
     cmds = parser.parse_args()
 
@@ -171,7 +168,7 @@ if __name__ == '__main__':
     settings = config_settings.ConfigSettings(cmds.settings_file,
         num_frames=1, calibration_frames=1, calibration_iterations=1, **kwargs)
 
-    work_dir = os.path.join(settings.compiled_models_path, f'{settings.tensor_bits}bits')
+    work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
     # pass a function to modify the pipelines to add the various resolutions

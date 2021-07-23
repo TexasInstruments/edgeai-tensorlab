@@ -299,6 +299,10 @@ class BaseRTSession(utils.ParamsBase):
         return subgraph_perfsim_dict
 
     def _make_run_dir(self):
+        run_dir_candidate = self.kwargs.get('run_dir', None)
+        if run_dir_candidate is not None:
+            return run_dir_candidate
+        #
         # MemoryTempfile() creates a file in RAM, which should be really fast.
         work_dir = self.kwargs['work_dir']
         if work_dir is None:

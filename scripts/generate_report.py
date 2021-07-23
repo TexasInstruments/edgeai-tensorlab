@@ -48,5 +48,5 @@ if __name__ == '__main__':
     print(f'settings: {settings}')
     sys.stdout.flush()
 
-    tools.run_report(settings.compiled_models_path)
-    print("Report generated at {}".format(settings.compiled_models_path))
+    tools.run_report(settings.modelartifacts_path)
+    print("Report generated at {}".format(settings.modelartifacts_path))

@@ -28,13 +28,16 @@
 
 import os
 import sys
-import argparse
+import tarfile
+import yaml
 from .. import utils, pipelines, config_settings, datasets
 
-__all__ = ['run_accuracy']
+__all__ = ['run_model']
 
 
-def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_func=None):
+def run_model(settings, run_dir, pipeline_configs=None):
+    work_dir = os.path.split(run_dir)[0]
+
     # get the default configs if pipeline_configs is not given from outside
     if pipeline_configs is None:
         # import the configs module
@@ -46,26 +49,46 @@ def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_fun
         pipeline_configs = configs_module.get_configs(settings, work_dir)
     #
 
+    # if the run_dir doesn't exist, check if tarfile exists
+    tarfile_name = run_dir if run_dir.endswith('.tar.gz') else run_dir+'.tar.gz'
+    run_dir = os.path.splitext(os.path.splitext(run_dir)[0])[0] if run_dir.endswith('.tar.gz') else run_dir
+    if not os.path.exists(run_dir):
+        if os.path.exists(tarfile_name):
+            tfp = tarfile.open(tarfile_name)
+            tfp.extractall(run_dir)
+            tfp.close()
+        #
+    #
+    assert os.path.exists(run_dir), f'could not find run_dir: {run_dir}'
+    model_folder = os.path.join(run_dir, 'model')
+    run_dir_base = os.path.basename(run_dir)
+
+    model_id, session_name = run_dir_base.split('_')[:2]
+    pipeline_config = pipeline_configs[model_id]
+    if os.path.exists(run_dir):
+        param_yaml = os.path.join(run_dir, 'param.yaml')
+        with open(param_yaml) as fp:
+            pipeline_param = yaml.safe_load(fp)
+        #
+        model_path = os.path.join(run_dir, pipeline_param['session']['model_path'])
+        model_path = utils.get_local_path(model_path, model_folder)
+        pipeline_config['session'].set_param('model_path', model_path)
+
+        # meta_file
+        od_meta_names_key = 'object_detection:meta_layers_names_list'
+        runtime_options = pipeline_config['session'].peek_param('runtime_options')
+        meta_path = runtime_options.get(od_meta_names_key, None)
+        if meta_path is not None:
+            meta_file = utils.get_local_path(meta_path, model_folder)
+            # write the local path
+            runtime_options[od_meta_names_key] = meta_file
+        #
+    #
+    pipeline_config['session'].set_param('run_dir', run_dir)
+    pipeline_configs = {model_id: pipeline_config}
+
     # create the pipeline_runner which will manage the sessions.
     pipeline_runner = pipelines.PipelineRunner(settings, pipeline_configs)
-
-    ############################################################################
-    # at this point, pipeline_runner.pipeline_configs is a dictionary that has the selected configs
-
-    # Note: to manually slice and select a subset of configs, slice it this way (just an example)
-    # import itertools
-    # pipeline_runner.pipeline_configs = dict(itertools.islice(pipeline_runner.pipeline_configs.items(), 10, 20))
-
-    # some examples of accessing params from it - here 0th entry is used an example.
-    # pipeline_config = pipeline_runner.pipeline_configs.values()[0]
-    # pipeline_config['preprocess'].get_param('resize') gives the resize dimension
-    # pipeline_config['preprocess'].get_param('crop') gives the crop dimension
-    # pipeline_config['session'].get_param('run_dir') gives the folder where artifacts are located
-    ############################################################################
-
-    if modify_pipelines_func is not None:
-        pipeline_runner.pipeline_configs = modify_pipelines_func(pipeline_runner.pipeline_configs)
-    #
 
     # print some info
     run_dirs = [pipeline_config['session'].get_param('run_dir') for model_key, pipeline_config \
@@ -79,5 +102,3 @@ def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_fun
     if settings.run_import or settings.run_inference:
         pipeline_runner.run()
     #
-
-

@@ -117,7 +117,7 @@ from jai_benchmark import *
 #### Import Models & Accuracy Benchmarking
 Import/Calibration of models amd accuracy benchmark can be done by running run_benchmarks_pc.sh
 
-**run_benchmarks_pc.sh** sets up some environment variables and then runs the benchmark code provided in **scripts/benchmark_accuracy.py** using one of the yaml settings files.
+**run_benchmarks_pc.sh** sets up some environment variables and then runs the benchmark code provided in **scripts/benchmark_modelzoo.py** using one of the yaml settings files.
 
 For full fledged benchmarking on pc, you can use the yaml file **accuracy_import_infer_pc.yaml**
 

@@ -217,18 +217,19 @@ def package_artifacts(settings, work_dir, out_dir, include_results=False):
                 package_run_dir = os.path.basename(package_run_dir)
                 model_path = pipeline_param['session']['model_path']
                 model_path = model_path[0] if isinstance(model_path, (list,tuple)) else model_path
-                model_name = os.path.basename(model_path)
 
                 run_dir = pipeline_param['session']['run_dir']
                 run_dir_basename = os.path.basename(run_dir)
                 artifact_id = '_'.join(run_dir_basename.split('_')[:2])
                 runtime_name = run_dir_basename.split('_')[1]
+                model_name = '_'.join(os.path.normpath(model_path).split(os.sep)[-2:])
                 artifact_name = utils.get_artifact_name(artifact_id)
-                #artifact_name = '_'.join(run_dir_basename.split('_')[1:]) if artifact_name is None else artifact_name
+                recommended = (artifact_name is not None)
 
                 artifacts_dict = {'task_type': task_type, 'session_name': runtime_name,
-                                  'run_dir': package_run_dir, 'artifact_name': artifact_name,
-                                  'size': tarfile_size}
+                                  'run_dir': package_run_dir, 'model_name': model_name,
+                                  'size': tarfile_size,
+                                  'recommended': recommended}
                 packaged_artifacts_dict.update({artifact_id:artifacts_dict})
                 print(utils.log_color('SUCCESS', 'finished packaging', run_dir))
             else:
@@ -253,9 +254,12 @@ def package_artifacts(settings, work_dir, out_dir, include_results=False):
         yaml.safe_dump(packaged_artifacts_dict, fp)
     #
     # write list
-    packaged_artifacts_list = [','.join([str(v or 'null') for v in artifact_entry.values()]) \
+    packaged_artifacts_keys = list(packaged_artifacts_dict.values())[0].keys()
+    packaged_artifacts_list = [','.join([str(v) for v in artifact_entry.values()]) \
                                for artifact_entry in packaged_artifacts_dict.values()]
     with open(os.path.join(out_dir,'artifacts.list'), 'w') as fp:
+        fp.write(','.join(packaged_artifacts_keys))
+        fp.write('\n')
         fp.write('\n'.join(packaged_artifacts_list))
     #
     with open(os.path.join(out_dir, 'extract.sh'), 'w') as fp:

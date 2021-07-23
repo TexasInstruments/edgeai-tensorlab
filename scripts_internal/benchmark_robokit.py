@@ -127,7 +127,7 @@ if __name__ == '__main__':
     settings = config_settings.ConfigSettings(cmds.settings_file, model_shortlist=None,
                                               models_path='../edgeai-modelforest/models')
 
-    work_dir = os.path.join(settings.compiled_models_path, f'{settings.tensor_bits}bits')
+    work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir = {work_dir}')
 
     # now run the actual pipeline
