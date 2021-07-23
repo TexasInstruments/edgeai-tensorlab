@@ -89,14 +89,17 @@ class TFLiteRTSession(BaseRTSession):
         return self.kwargs["runtime_options"].get(option, default)
 
     def _create_interpreter(self, is_import):
-        if is_import:
-            self.kwargs["runtime_options"]["import"] = "yes"
-            tidl_delegate = [tflitert_interpreter.load_delegate('tidl_model_import_tflite.so', self.kwargs["runtime_options"])]
+        if self.kwargs['tidl_offload']:
+            if is_import:
+                self.kwargs["runtime_options"]["import"] = "yes"
+                tidl_delegate = [tflitert_interpreter.load_delegate('tidl_model_import_tflite.so', self.kwargs["runtime_options"])]
+            else:
+                self.kwargs["runtime_options"]["import"] = "no"
+                tidl_delegate = [tflitert_interpreter.load_delegate('libtidl_tfl_delegate.so', self.kwargs["runtime_options"])]
+            #
             interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_file'], experimental_delegates=tidl_delegate)
         else:
-            self.kwargs["runtime_options"]["import"] = "no"
-            tidl_delegate = [tflitert_interpreter.load_delegate('libtidl_tfl_delegate.so', self.kwargs["runtime_options"])]
-            interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_file'], experimental_delegates=tidl_delegate)
+            interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_file'])
         #
         interpreter.allocate_tensors()
         return interpreter

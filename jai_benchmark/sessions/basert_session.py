@@ -50,6 +50,9 @@ class BaseRTSession(utils.ParamsBase):
         self.is_imported = False
         self.is_start_infer_done = False
 
+        # set tidl_offload to False to disable offloading to TIDL
+        self.kwargs['tidl_offload'] = self.kwargs.get('tidl_offload', True)
+
         # tidl_tools_path
         assert 'TIDL_TOOLS_PATH' in os.environ, 'TIDL_TOOLS_PATH must be set in environemnt variable'
         tidl_tools_path = os.environ['TIDL_TOOLS_PATH']
