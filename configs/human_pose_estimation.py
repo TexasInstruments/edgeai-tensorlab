@@ -64,7 +64,7 @@ def get_configs(settings, work_dir):
                     'advanced_options:output_feature_16bit_names_list': first_last_layer['mobilenetv2_fpn_spp_udp']
                     }),
                 model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/mobilenetv2_fpn_spp_udp_512_20210610.onnx'),
-            model_info=dict(metric_reference={'AP':42.31})
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':42.31})
         ),
         # human pose estimation : resnet50 + fpn_spp, Expected AP : 50.4
         'vkpdet-25-102-0':utils.dict_update(common_cfg,
@@ -75,7 +75,7 @@ def get_configs(settings, work_dir):
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['resnet50_fpn_spp_udp']
                         }),
                 model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/resnet50_fpn_spp_udp_512_20210610.onnx'),
-            model_info=dict(metric_reference={'AP':50.4})
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':50.4})
         ),
         # human pose estimation : mobilenetv2 + pan_spp + udp, Expected AP : 45.41
         'vkpdet-25-103-0':utils.dict_update(common_cfg,
@@ -86,7 +86,7 @@ def get_configs(settings, work_dir):
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['mobilenetv2_pan_spp_udp']
                         }),
                 model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/mobilenetv2_pan_spp_udp_512_20210617.onnx'),
-            model_info=dict(metric_reference={'AP':45.41})
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':45.41})
         ),
         # human pose estimation : resnet50 + pan_spp + udp, Expected AP : 51.62
         'vkpdet-25-104-0':utils.dict_update(common_cfg,
@@ -97,7 +97,7 @@ def get_configs(settings, work_dir):
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['resnet50_pan_spp_udp']
                         }),
                 model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/resnet50_pan_spp_udp_512_20210616.onnx'),
-            model_info=dict(metric_reference={'AP':51.62})
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':51.62})
         ),
     }
     return pipeline_configs
