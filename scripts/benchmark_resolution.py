@@ -33,13 +33,15 @@ import functools
 import warnings
 import copy
 import onnx
-from pathlib import Path
+import warnings
 from jai_benchmark import *
 
 try:
     from onnxsim import simplify
 except:
-    assert False, 'onnx-simplifier is required for this script. please install using: pip install onnx-simplifier'
+    warnings.warn('onnx-simplifier is required to do model import with for this script. '
+                  'if you are doing model import, please install it using: '
+                  'pip install onnx-simplifier')
 
 
 # the cwd must be the root of the respository
@@ -98,36 +100,44 @@ def modify_pipelines(cmds, pipeline_configs_in):
             onnx_model = onnx.load(model_path)
             input_name_shapes = get_input_shape_onnx(onnx_model)
             assert len(input_name_shapes) == 1
+            input_name = None
             for k, v in input_name_shapes.items():
                 input_name = k
+            #
             out_name_shapes = get_output_shape_onnx(onnx_model)
 
             # variable shape model
             input_var_shapes = {input_name: ['b', 3, 'w', 'h']}
 
-            # create first varibale shape model
-            onnx_model = utils.onnx_update_model_dims(onnx_model, input_var_shapes, out_name_shapes)
-            input_name_shapes[input_name] = [1, 3, input_size, input_size]
-            # change to fixed shape model
-            onnx_model, check = simplify(onnx_model, skip_shape_inference=False, input_shapes=input_name_shapes)
-
             # create a new model_id for the modified model
             model_id = pipeline_config['session'].get_param('model_id')
             new_model_id = model_id[:-1] + str(1+size_id)
             pipeline_config['session'].set_param('model_id', new_model_id)
+            # run_dir needs to be changed in initialize() according to the new model_id, set to None here
+            pipeline_config['session'].set_param('run_dir', None)
 
             # initialize must be called to re-create run_dir and artifacts_folder for this new model_id
             pipeline_config['session'].initialize()
 
-            # save model in artifcats path
-            artifacts_folder = pipeline_config['session'].get_param('artifacts_folder')
-            op_model_path = os.path.join(artifacts_folder, 'tempDir', Path(model_path).name)
+            # set model_path
+            model_base_name = os.path.basename(model_path)
+            model_folder = pipeline_config['session'].get_param('model_folder')
+            op_model_path = os.path.join(model_folder, model_base_name)
             op_model_path = op_model_path.replace(".onnx", "_{}_{}.onnx".format(input_size, input_size))
             pipeline_config['session'].set_param('model_path', op_model_path)
 
-            os.makedirs(os.path.dirname(op_model_path), exist_ok=True)
-            print("saving modified model :{}".format(op_model_path))
-            onnx.save(onnx_model, op_model_path)
+            run_dir = pipeline_config['session'].get_param('run_dir')
+            if not os.path.exists(run_dir):
+                # create first varibale shape model
+                onnx_model = utils.onnx_update_model_dims(onnx_model, input_var_shapes, out_name_shapes)
+                input_name_shapes[input_name] = [1, 3, input_size, input_size]
+                # change to fixed shape model
+                onnx_model, check = simplify(onnx_model, skip_shape_inference=False, input_shapes=input_name_shapes)
+                # save model in model_folder
+                os.makedirs(os.path.dirname(op_model_path), exist_ok=True)
+                print("saving modified model :{}".format(op_model_path))
+                onnx.save(onnx_model, op_model_path)
+            #
             pipeline_configs_out.update({new_model_id: pipeline_config})
         #
     #
@@ -165,9 +175,11 @@ if __name__ == '__main__':
     if 'session_type_dict' in kwargs:
         kwargs['session_type_dict'] = utils.str_to_dict(kwargs['session_type_dict'])
     #
-    # for performance measurement, we need to use only one frame
+    # these artifacts are meant for only performance measurement
+    # just do a quick import with simple calibration
+    runtime_options = {'accuracy_level': 0}
     settings = config_settings.ConfigSettings(cmds.settings_file,
-        num_frames=1, calibration_frames=1, calibration_iterations=1, **kwargs)
+        num_frames=100, calibration_iterations=1, runtime_options=runtime_options, **kwargs)
 
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')

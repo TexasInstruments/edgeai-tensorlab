@@ -95,15 +95,16 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['run_dir'] = self._make_run_dir()
         self.kwargs['artifacts_folder'] = os.path.join(self.kwargs['run_dir'], 'artifacts')
         self.kwargs['model_folder'] = os.path.join(self.kwargs['run_dir'], 'model')
-        # _set_default_options requires artifacts folder
-        # that's why this done in initialize instead of the constructor
-        self._set_default_options()
         super().initialize()
 
     def start(self):
         if not self.is_initialized:
             self.initialize()
         #
+        # _set_default_options requires to know the artifacts_folder
+        # that's why this is not done in the constructor
+        self._set_default_options()
+        # create run_dir
         os.makedirs(self.kwargs['run_dir'], exist_ok=True)
         os.makedirs(self.kwargs['model_folder'], exist_ok=True)
         self._get_model()
