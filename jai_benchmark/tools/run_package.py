@@ -224,7 +224,10 @@ def package_artifacts(settings, work_dir, out_dir, include_results=False):
                 runtime_name = run_dir_basename.split('_')[1]
                 model_name = '_'.join(os.path.normpath(model_path).split(os.sep)[-2:])
                 artifact_name = utils.get_artifact_name(artifact_id)
-                recommended = (artifact_name is not None)
+                # artifacts generated using scripts/benchmark_resolution.py will not produce good accuracy
+                # that is only for performance test
+                artifact_highres = ('-1_' in artifact_id) or ('-2_' in artifact_id)
+                recommended = (artifact_name is not None) and (not artifact_highres)
 
                 artifacts_dict = {'task_type': task_type, 'session_name': runtime_name,
                                   'run_dir': package_run_dir, 'model_name': model_name,
