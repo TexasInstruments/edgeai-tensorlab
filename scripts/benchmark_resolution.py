@@ -109,7 +109,7 @@ def modify_pipelines(cmds, pipeline_configs_in):
             onnx_model = utils.onnx_update_model_dims(onnx_model, input_var_shapes, out_name_shapes)
             input_name_shapes[input_name] = [1, 3, input_size, input_size]
             # change to fixed shape model
-            onnx_model, check = simplify(onnx_model, skip_shape_inference=True, input_shapes=input_name_shapes)
+            onnx_model, check = simplify(onnx_model, skip_shape_inference=False, input_shapes=input_name_shapes)
 
             # create a new model_id for the modified model
             model_id = pipeline_config['session'].get_param('model_id')
@@ -158,6 +158,7 @@ if __name__ == '__main__':
     parser.add_argument('--task_selection', type=str, nargs='*')
     parser.add_argument('--model_selection', default=model_selection_default, type=str, nargs='*')
     parser.add_argument('--session_type_dict', type=str, nargs='*')
+    parser.add_argument('--input_sizes', default=[512, 1024], type=int, nargs='*')
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)
