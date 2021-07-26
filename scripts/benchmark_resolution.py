@@ -127,7 +127,8 @@ def modify_pipelines(cmds, pipeline_configs_in):
             pipeline_config['session'].set_param('model_path', op_model_path)
 
             run_dir = pipeline_config['session'].get_param('run_dir')
-            if not os.path.exists(run_dir):
+            tarfile_name = run_dir + '.tar.gz'
+            if (not os.path.exists(run_dir)) and (not os.path.exists(tarfile_name)):
                 # create first varibale shape model
                 onnx_model = utils.onnx_update_model_dims(onnx_model, input_var_shapes, out_name_shapes)
                 input_name_shapes[input_name] = [1, 3, input_size, input_size]
