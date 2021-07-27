@@ -337,12 +337,12 @@ class BaseRTSession(utils.ParamsBase):
 
         # download the file if it is an http or https link
         model_path = self.kwargs['model_path']
-        model_path = utils.download_file(model_path, root=model_folder)
         # make a local copy
         model_file = utils.get_local_path(model_path, model_folder)
         print(utils.log_color('INFO', 'model_path', model_path))
         print(utils.log_color('INFO', 'model_file', model_file))
         if not utils.file_exists(model_file):
+            model_path = utils.download_file(model_path, root=model_folder)
             utils.copy_files(model_path, model_file)
         #
         # self.kwargs['model_file'] is what is used in the session
@@ -353,10 +353,10 @@ class BaseRTSession(utils.ParamsBase):
         od_meta_names_key = 'object_detection:meta_layers_names_list'
         meta_path = self.kwargs['runtime_options'].get(od_meta_names_key, None)
         if meta_path is not None:
-            meta_path = utils.download_file(meta_path, root=model_folder)
             # make a local copy
             meta_file = utils.get_local_path(meta_path, model_folder)
             if not utils.file_exists(meta_file):
+                meta_path = utils.download_file(meta_path, root=model_folder)
                 utils.copy_files(meta_path, meta_file)
             #
             # write the local path
