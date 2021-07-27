@@ -80,9 +80,10 @@ def modify_pipelines(cmds, pipeline_configs_in):
                          f'The accuracies reported may be wrong as input_size is changed from the default value.'
         print(warning_string)
 
-        # start with fresh set of configs - not the one modified in earlier iteration
-        pipeline_configs = copy.deepcopy(pipeline_configs_in)
-        for pipeline_id, pipeline_config in pipeline_configs.items():
+        for pipeline_id, pipeline_config_in in pipeline_configs_in.items():
+            # start with fresh set of configs - not the one modified in earlier iteration
+            pipeline_config = copy.deepcopy(pipeline_config_in)
+            # start modifying the model for the given input resolution
             preproc_stge = pipeline_config['preprocess']
             preproc_transforms = preproc_stge.transforms
             for tidx, trans in enumerate(preproc_transforms):
@@ -94,7 +95,7 @@ def modify_pipelines(cmds, pipeline_configs_in):
                 preproc_transforms[tidx] = trans
             #
             # generate temporay ONNX  model based on fixed resolution
-            model_path = pipeline_config['session'].get_param('model_path')
+            model_path = pipeline_config['session'].peek_param('model_path')
             print("=" * 64)
             print("src model path :{}".format(model_path))
             onnx_model = onnx.load(model_path)
@@ -110,34 +111,45 @@ def modify_pipelines(cmds, pipeline_configs_in):
             input_var_shapes = {input_name: ['b', 3, 'w', 'h']}
 
             # create a new model_id for the modified model
-            model_id = pipeline_config['session'].get_param('model_id')
-            new_model_id = model_id[:-1] + str(1+size_id)
+            new_model_id = pipeline_id[:-1] + str(1+size_id)
             pipeline_config['session'].set_param('model_id', new_model_id)
-            # run_dir needs to be changed in initialize() according to the new model_id, set to None here
-            pipeline_config['session'].set_param('run_dir', None)
+
+            # set model_path with the desired size so that the run_dir also will have that size
+            # this step is just dummy - the model with the modified name doesn't exist at this point
+            model_path_tmp = model_path.replace(".onnx", "_{}x{}.onnx".format(input_size, input_size))
+            pipeline_config['session'].set_param('model_path', model_path_tmp)
 
             # initialize must be called to re-create run_dir and artifacts_folder for this new model_id
+            # it is possible that initialize() must have been called before - we need to set run_dir to None to re-create it
+            pipeline_config['session'].set_param('run_dir', None)
             pipeline_config['session'].initialize()
 
-            # set model_path
-            model_base_name = os.path.basename(model_path)
-            model_folder = pipeline_config['session'].get_param('model_folder')
-            op_model_path = os.path.join(model_folder, model_base_name)
-            op_model_path = op_model_path.replace(".onnx", "_{}_{}.onnx".format(input_size, input_size))
-            pipeline_config['session'].set_param('model_path', op_model_path)
-
+            # run_dir must have been created now
             run_dir = pipeline_config['session'].get_param('run_dir')
+            model_folder = pipeline_config['session'].get_param('model_folder')
+
+            # now set the final model_path
+            model_path_out = os.path.join(model_folder, os.path.basename(model_path_tmp))
+            pipeline_config['session'].set_param('model_path', model_path_out)
+
+            # create the modified onnx model with the required input size
+            # if the run_dir or the packaged (.tar.gz) artifact is available, this will be skipped
             tarfile_name = run_dir + '.tar.gz'
             if (not os.path.exists(run_dir)) and (not os.path.exists(tarfile_name)):
                 # create first varibale shape model
                 onnx_model = utils.onnx_update_model_dims(onnx_model, input_var_shapes, out_name_shapes)
                 input_name_shapes[input_name] = [1, 3, input_size, input_size]
                 # change to fixed shape model
-                onnx_model, check = simplify(onnx_model, skip_shape_inference=False, input_shapes=input_name_shapes)
+                try:
+                    onnx_model, check = simplify(onnx_model, skip_shape_inference=False, input_shapes=input_name_shapes)
+                except:
+                    warnings.warn(f'changing the size of {model_path} did not work - skipping')
+                    continue
+                #
                 # save model in model_folder
-                os.makedirs(os.path.dirname(op_model_path), exist_ok=True)
-                print("saving modified model :{}".format(op_model_path))
-                onnx.save(onnx_model, op_model_path)
+                os.makedirs(model_folder, exist_ok=True)
+                print("saving modified model :{}".format(model_path_out))
+                onnx.save(onnx_model, model_path_out)
             #
             pipeline_configs_out.update({new_model_id: pipeline_config})
         #
