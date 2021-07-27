@@ -10,9 +10,13 @@ build/*
 datasets/*
 dependencies/*
 !dependencies/examples
-work_dirs/*
+work_dirs/*/*/*
+!work_dirs/modelartifacts/8bits/*
 backup/*
 
 .vscode/
 *.npy
 *.jpg
+*.csv
+*.ods
+*.zip

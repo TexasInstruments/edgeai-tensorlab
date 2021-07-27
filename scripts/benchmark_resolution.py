@@ -135,7 +135,8 @@ def modify_pipelines(cmds, pipeline_configs_in):
             # create the modified onnx model with the required input size
             # if the run_dir or the packaged (.tar.gz) artifact is available, this will be skipped
             tarfile_name = run_dir + '.tar.gz'
-            if (not os.path.exists(run_dir)) and (not os.path.exists(tarfile_name)):
+            linkfile_name = run_dir + '.tar.gz.link'
+            if (not os.path.exists(run_dir)) and (not os.path.exists(tarfile_name)) and (not os.path.exists(linkfile_name)):
                 # create first varibale shape model
                 onnx_model = utils.onnx_update_model_dims(onnx_model, input_var_shapes, out_name_shapes)
                 input_name_shapes[input_name] = [1, 3, input_size, input_size]
