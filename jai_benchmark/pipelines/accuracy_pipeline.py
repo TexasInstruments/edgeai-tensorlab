@@ -70,14 +70,16 @@ class AccuracyPipeline():
         ##################################################################
         # if the run_dir doesn't exist, check if tarfile exists
         if not os.path.exists(self.run_dir):
+            work_dir = os.path.dirname(self.run_dir)
             tarfile_name = self.run_dir + '.tar.gz'
             linkfile_name = tarfile_name + '.link'
             # download the link file
             if (not os.path.exists(tarfile_name)) and os.path.exists(linkfile_name):
-                tarfile_name = utils.download_file(linkfile_name, self.settings.modelartifacts_path)
+                tarfile_name = utils.download_file(linkfile_name, work_dir)
             #
             # extract the tar file
             if os.path.exists(tarfile_name):
+                os.makedirs(self.run_dir, exist_ok=True)
                 tfp = tarfile.open(tarfile_name)
                 tfp.extractall(self.run_dir)
                 tfp.close()

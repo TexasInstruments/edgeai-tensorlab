@@ -1,0 +1,707 @@
+vcls-10-010-0_tflitert:
+  model_name: mlperf_mobilenet_v1_1.0_224.tflite
+  recommended: true
+  run_dir: vcls-10-010-0_tflitert_mlperf_mobilenet_v1_1.0_224_tflite
+  session_name: tflitert
+  size: 18472709
+  task_type: classification
+vcls-10-011-0_tflitert:
+  model_name: mlperf_mobilenet_edgetpu_224_1.0_float.tflite
+  recommended: true
+  run_dir: vcls-10-011-0_tflitert_mlperf_mobilenet_edgetpu_224_1.0_float_tflite
+  session_name: tflitert
+  size: 18331410
+  task_type: classification
+vcls-10-012-0_tflitert:
+  model_name: mlperf_resnet50_v1.5.tflite
+  recommended: true
+  run_dir: vcls-10-012-0_tflitert_mlperf_resnet50_v1.5_tflite
+  session_name: tflitert
+  size: 111186939
+  task_type: classification
+vcls-10-030-0_onnxrt:
+  model_name: fbr-pycls_regnetx-200mf.onnx
+  recommended: true
+  run_dir: vcls-10-030-0_onnxrt_fbr-pycls_regnetx-200mf_onnx
+  session_name: onnxrt
+  size: 11800601
+  task_type: classification
+vcls-10-031-0_onnxrt:
+  model_name: fbr-pycls_regnetx-400mf.onnx
+  recommended: true
+  run_dir: vcls-10-031-0_onnxrt_fbr-pycls_regnetx-400mf_onnx
+  session_name: onnxrt
+  size: 22914039
+  task_type: classification
+vcls-10-031-1_onnxrt:
+  model_name: model_regnetx-400mf_512x512.onnx
+  recommended: false
+  run_dir: vcls-10-031-1_onnxrt_fbr-pycls_regnetx-400mf_512x512_onnx
+  session_name: onnxrt
+  size: 22713054
+  task_type: classification
+vcls-10-031-2_onnxrt:
+  model_name: model_regnetx-400mf_1024x1024.onnx
+  recommended: false
+  run_dir: vcls-10-031-2_onnxrt_fbr-pycls_regnetx-400mf_1024x1024_onnx
+  session_name: onnxrt
+  size: 22713216
+  task_type: classification
+vcls-10-032-0_onnxrt:
+  model_name: fbr-pycls_regnetx-800mf.onnx
+  recommended: true
+  run_dir: vcls-10-032-0_onnxrt_fbr-pycls_regnetx-800mf_onnx
+  session_name: onnxrt
+  size: 31982840
+  task_type: classification
+vcls-10-032-1_onnxrt:
+  model_name: model_regnetx-800mf_512x512.onnx
+  recommended: false
+  run_dir: vcls-10-032-1_onnxrt_fbr-pycls_regnetx-800mf_512x512_onnx
+  session_name: onnxrt
+  size: 31776370
+  task_type: classification
+vcls-10-032-2_onnxrt:
+  model_name: model_regnetx-800mf_1024x1024.onnx
+  recommended: false
+  run_dir: vcls-10-032-2_onnxrt_fbr-pycls_regnetx-800mf_1024x1024_onnx
+  session_name: onnxrt
+  size: 31776768
+  task_type: classification
+vcls-10-033-0_onnxrt:
+  model_name: fbr-pycls_regnetx-1.6gf.onnx
+  recommended: true
+  run_dir: vcls-10-033-0_onnxrt_fbr-pycls_regnetx-1.6gf_onnx
+  session_name: onnxrt
+  size: 40466212
+  task_type: classification
+vcls-10-033-1_onnxrt:
+  model_name: model_regnetx-1.6gf_512x512.onnx
+  recommended: false
+  run_dir: vcls-10-033-1_onnxrt_fbr-pycls_regnetx-1.6gf_512x512_onnx
+  session_name: onnxrt
+  size: 40230352
+  task_type: classification
+vcls-10-033-2_onnxrt:
+  model_name: model_regnetx-1.6gf_1024x1024.onnx
+  recommended: false
+  run_dir: vcls-10-033-2_onnxrt_fbr-pycls_regnetx-1.6gf_1024x1024_onnx
+  session_name: onnxrt
+  size: 40230912
+  task_type: classification
+vcls-10-060-0_tvmdlr:
+  model_name: gluoncv-mxnet_mobilenetv2_1.0-symbol.json
+  recommended: true
+  run_dir: vcls-10-060-0_tvmdlr_gluoncv-mxnet_mobilenetv2_1.0-symbol_json
+  session_name: tvmdlr
+  size: 45602099
+  task_type: classification
+vcls-10-061-0_tvmdlr:
+  model_name: gluoncv-mxnet_resnet50_v1d-symbol.json
+  recommended: true
+  run_dir: vcls-10-061-0_tvmdlr_gluoncv-mxnet_resnet50_v1d-symbol_json
+  session_name: tvmdlr
+  size: 199744323
+  task_type: classification
+vcls-10-062-0_tvmdlr:
+  model_name: gluoncv-mxnet_xception-symbol.json
+  recommended: true
+  run_dir: vcls-10-062-0_tvmdlr_gluoncv-mxnet_xception-symbol_json
+  session_name: tvmdlr
+  size: 501059356
+  task_type: classification
+vcls-10-063-0_tvmdlr:
+  model_name: gluoncv-mxnet_hrnet_w18_small_v2_c-symbol.json
+  recommended: false
+  run_dir: vcls-10-063-0_tvmdlr_gluoncv-mxnet_hrnet_w18_small_v2_c-symbol_json
+  session_name: tvmdlr
+  size: 196611581
+  task_type: classification
+vcls-10-100-0_onnxrt:
+  model_name: edgeai-tv_mobilenet_v1_20190906.onnx
+  recommended: true
+  run_dir: vcls-10-100-0_onnxrt_edgeai-tv_mobilenet_v1_20190906_onnx
+  session_name: onnxrt
+  size: 18732239
+  task_type: classification
+vcls-10-100-1_onnxrt:
+  model_name: model_mobilenet_v1_20190906_512x512.onnx
+  recommended: false
+  run_dir: vcls-10-100-1_onnxrt_edgeai-tv_mobilenet_v1_20190906_512x512_onnx
+  session_name: onnxrt
+  size: 18612590
+  task_type: classification
+vcls-10-100-2_onnxrt:
+  model_name: model_mobilenet_v1_20190906_1024x1024.onnx
+  recommended: false
+  run_dir: vcls-10-100-2_onnxrt_edgeai-tv_mobilenet_v1_20190906_1024x1024_onnx
+  session_name: onnxrt
+  size: 18612981
+  task_type: classification
+vcls-10-101-0_onnxrt:
+  model_name: edgeai-tv_mobilenet_v2_20191224.onnx
+  recommended: true
+  run_dir: vcls-10-101-0_onnxrt_edgeai-tv_mobilenet_v2_20191224_onnx
+  session_name: onnxrt
+  size: 15816369
+  task_type: classification
+vcls-10-101-1_onnxrt:
+  model_name: model_mobilenet_v2_20191224_512x512.onnx
+  recommended: false
+  run_dir: vcls-10-101-1_onnxrt_edgeai-tv_mobilenet_v2_20191224_512x512_onnx
+  session_name: onnxrt
+  size: 15606734
+  task_type: classification
+vcls-10-101-2_onnxrt:
+  model_name: model_mobilenet_v2_20191224_1024x1024.onnx
+  recommended: false
+  run_dir: vcls-10-101-2_onnxrt_edgeai-tv_mobilenet_v2_20191224_1024x1024_onnx
+  session_name: onnxrt
+  size: 15607637
+  task_type: classification
+vcls-10-101-8_onnxrt:
+  model_name: edgeai-tv_mobilenet_v2_qat-p2_20201213.onnx
+  recommended: true
+  run_dir: vcls-10-101-8_onnxrt_edgeai-tv_mobilenet_v2_qat-p2_20201213_onnx
+  session_name: onnxrt
+  size: 15359604
+  task_type: classification
+vcls-10-102-1_onnxrt:
+  model_name: model_mobilenet_v2_1p4_qat-p2_20210112_512x512.onnx
+  recommended: false
+  run_dir: vcls-10-102-1_onnxrt_edgeai-tv_mobilenet_v2_1p4_qat-p2_20210112_512x512_onnx
+  session_name: onnxrt
+  size: 26679225
+  task_type: classification
+vcls-10-102-2_onnxrt:
+  model_name: model_mobilenet_v2_1p4_qat-p2_20210112_1024x1024.onnx
+  recommended: false
+  run_dir: vcls-10-102-2_onnxrt_edgeai-tv_mobilenet_v2_1p4_qat-p2_20210112_1024x1024_onnx
+  session_name: onnxrt
+  size: 26679842
+  task_type: classification
+vcls-10-102-8_onnxrt:
+  model_name: edgeai-tv_mobilenet_v2_1p4_qat-p2_20210112.onnx
+  recommended: true
+  run_dir: vcls-10-102-8_onnxrt_edgeai-tv_mobilenet_v2_1p4_qat-p2_20210112_onnx
+  session_name: onnxrt
+  size: 26935368
+  task_type: classification
+vcls-10-105-0_onnxrt:
+  model_name: edgeai-tv_mobilenet_v3_lite_small_20210429.onnx
+  recommended: false
+  run_dir: vcls-10-105-0_onnxrt_edgeai-tv_mobilenet_v3_lite_small_20210429_onnx
+  session_name: onnxrt
+  size: 9360257
+  task_type: classification
+vcls-10-105-8_onnxrt:
+  model_name: edgeai-tv_mobilenet_v3_lite_small_qat-p2_20210429.onnx
+  recommended: false
+  run_dir: vcls-10-105-8_onnxrt_edgeai-tv_mobilenet_v3_lite_small_qat-p2_20210429_onnx
+  session_name: onnxrt
+  size: 8845012
+  task_type: classification
+vcls-10-106-0_onnxrt:
+  model_name: edgeai-tv_mobilenet_v3_lite_large_20210507.onnx
+  recommended: false
+  run_dir: vcls-10-106-0_onnxrt_edgeai-tv_mobilenet_v3_lite_large_20210507_onnx
+  session_name: onnxrt
+  size: 17574467
+  task_type: classification
+vcls-10-301-0_onnxrt:
+  model_name: torchvision_shufflenet_v2_x1.0.onnx
+  recommended: true
+  run_dir: vcls-10-301-0_onnxrt_torchvision_shufflenet_v2_x1.0_onnx
+  session_name: onnxrt
+  size: 10317230
+  task_type: classification
+vcls-10-302-0_onnxrt:
+  model_name: torchvision_mobilenet_v2_tv.onnx
+  recommended: true
+  run_dir: vcls-10-302-0_onnxrt_torchvision_mobilenet_v2_tv_onnx
+  session_name: onnxrt
+  size: 16024254
+  task_type: classification
+vcls-10-302-8_onnxrt:
+  model_name: torchvision_mobilenet_v2_tv_qat-p2.onnx
+  recommended: true
+  run_dir: vcls-10-302-8_onnxrt_torchvision_mobilenet_v2_tv_qat-p2_onnx
+  session_name: onnxrt
+  size: 15573383
+  task_type: classification
+vcls-10-304-0_onnxrt:
+  model_name: torchvision_resnet18.onnx
+  recommended: true
+  run_dir: vcls-10-304-0_onnxrt_torchvision_resnet18_onnx
+  session_name: onnxrt
+  size: 50011200
+  task_type: classification
+vcls-10-304-1_onnxrt:
+  model_name: model_resnet18_512x512.onnx
+  recommended: false
+  run_dir: vcls-10-304-1_onnxrt_torchvision_resnet18_512x512_onnx
+  session_name: onnxrt
+  size: 49958882
+  task_type: classification
+vcls-10-304-2_onnxrt:
+  model_name: model_resnet18_1024x1024.onnx
+  recommended: false
+  run_dir: vcls-10-304-2_onnxrt_torchvision_resnet18_1024x1024_onnx
+  session_name: onnxrt
+  size: 49959521
+  task_type: classification
+vcls-10-305-0_onnxrt:
+  model_name: torchvision_resnet50.onnx
+  recommended: true
+  run_dir: vcls-10-305-0_onnxrt_torchvision_resnet50_onnx
+  session_name: onnxrt
+  size: 110224420
+  task_type: classification
+vcls-10-305-1_onnxrt:
+  model_name: model_resnet50_512x512.onnx
+  recommended: false
+  run_dir: vcls-10-305-1_onnxrt_torchvision_resnet50_512x512_onnx
+  session_name: onnxrt
+  size: 110022596
+  task_type: classification
+vcls-10-305-2_onnxrt:
+  model_name: model_resnet50_1024x1024.onnx
+  recommended: false
+  run_dir: vcls-10-305-2_onnxrt_torchvision_resnet50_1024x1024_onnx
+  session_name: onnxrt
+  size: 110023362
+  task_type: classification
+vcls-10-330-0_onnxrt:
+  model_name: pingolh-hardnet_hardnet39ds.onnx
+  recommended: false
+  run_dir: vcls-10-330-0_onnxrt_pingolh-hardnet_hardnet39ds_onnx
+  session_name: onnxrt
+  size: 15283756
+  task_type: classification
+vcls-10-331-0_onnxrt:
+  model_name: pingolh-hardnet_hardnet68ds.onnx
+  recommended: false
+  run_dir: vcls-10-331-0_onnxrt_pingolh-hardnet_hardnet68ds_onnx
+  session_name: onnxrt
+  size: 18520139
+  task_type: classification
+vcls-10-332-0_onnxrt:
+  model_name: pingolh-hardnet_hardnet68.onnx
+  recommended: false
+  run_dir: vcls-10-332-0_onnxrt_pingolh-hardnet_hardnet68_onnx
+  session_name: onnxrt
+  size: 75967246
+  task_type: classification
+vcls-10-333-0_onnxrt:
+  model_name: pingolh-hardnet_hardnet85.onnx
+  recommended: false
+  run_dir: vcls-10-333-0_onnxrt_pingolh-hardnet_hardnet85_onnx
+  session_name: onnxrt
+  size: 157376597
+  task_type: classification
+vcls-10-400-0_tflitert:
+  model_name: tf1-models_mobilenet_v1_1.0_224.tflite
+  recommended: true
+  run_dir: vcls-10-400-0_tflitert_tf1-models_mobilenet_v1_1.0_224_tflite
+  session_name: tflitert
+  size: 18472873
+  task_type: classification
+vcls-10-400-8_tflitert:
+  model_name: tf1-models_mobilenet_v1_1.0_224_quant.tflite
+  recommended: true
+  run_dir: vcls-10-400-8_tflitert_tf1-models_mobilenet_v1_1.0_224_quant_tflite
+  session_name: tflitert
+  size: 5819429
+  task_type: classification
+vcls-10-401-0_tflitert:
+  model_name: tf1-models_mobilenet_v2_1.0_224.tflite
+  recommended: true
+  run_dir: vcls-10-401-0_tflitert_tf1-models_mobilenet_v2_1.0_224_tflite
+  session_name: tflitert
+  size: 15651810
+  task_type: classification
+vcls-10-402-0_tflitert:
+  model_name: tf1-models_mobilenet_v2_float_1.4_224.tflite
+  recommended: true
+  run_dir: vcls-10-402-0_tflitert_tf1-models_mobilenet_v2_float_1.4_224_tflite
+  session_name: tflitert
+  size: 27115982
+  task_type: classification
+vcls-10-403-0_tflitert:
+  model_name: tf1-models_squeezenet.tflite
+  recommended: true
+  run_dir: vcls-10-403-0_tflitert_tf1-models_squeezenet_tflite
+  session_name: tflitert
+  size: 5654701
+  task_type: classification
+vcls-10-404-0_tflitert:
+  model_name: tf1-models_densenet.tflite
+  recommended: true
+  run_dir: vcls-10-404-0_tflitert_tf1-models_densenet_tflite
+  session_name: tflitert
+  size: 47656469
+  task_type: classification
+vcls-10-405-8_tflitert:
+  model_name: tf1-models_inception_v1_224_quant.tflite
+  recommended: true
+  run_dir: vcls-10-405-8_tflitert_tf1-models_inception_v1_224_quant_tflite
+  session_name: tflitert
+  size: 9522658
+  task_type: classification
+vcls-10-406-0_tflitert:
+  model_name: tf1-models_inception_v3.tflite
+  recommended: true
+  run_dir: vcls-10-406-0_tflitert_tf1-models_inception_v3_tflite
+  session_name: tflitert
+  size: 104956446
+  task_type: classification
+vcls-10-407-0_tflitert:
+  model_name: tf1-models_mnasnet_1.0_224.tflite
+  recommended: true
+  run_dir: vcls-10-407-0_tflitert_tf1-models_mnasnet_1.0_224_tflite
+  session_name: tflitert
+  size: 19506110
+  task_type: classification
+vcls-10-409-0_tflitert:
+  model_name: tf1-models_resnet50_v1.tflite
+  recommended: true
+  run_dir: vcls-10-409-0_tflitert_tf1-models_resnet50_v1_tflite
+  session_name: tflitert
+  size: 110963484
+  task_type: classification
+vcls-10-410-0_tflitert:
+  model_name: tf1-models_resnet50_v2.tflite
+  recommended: true
+  run_dir: vcls-10-410-0_tflitert_tf1-models_resnet50_v2_tflite
+  session_name: tflitert
+  size: 111152576
+  task_type: classification
+vcls-10-411-0_tflitert:
+  model_name: tf1-models_mobilenet_v3-large-minimalistic_224_1.0_float.tflite
+  recommended: false
+  run_dir: vcls-10-411-0_tflitert_tf1-models_mobilenet_v3-large-minimalistic_224_1.0_float_tflite
+  session_name: tflitert
+  size: 17381558
+  task_type: classification
+vcls-10-412-0_tflitert:
+  model_name: tf1-models_mobilenet_v3-small-minimalistic_224_1.0_float.tflite
+  recommended: false
+  run_dir: vcls-10-412-0_tflitert_tf1-models_mobilenet_v3-small-minimalistic_224_1.0_float_tflite
+  session_name: tflitert
+  size: 9179638
+  task_type: classification
+vcls-10-430-0_tflitert:
+  model_name: tf-tpu_efficientnet-lite0-fp32.tflite
+  recommended: true
+  run_dir: vcls-10-430-0_tflitert_tf-tpu_efficientnet-lite0-fp32_tflite
+  session_name: tflitert
+  size: 20580593
+  task_type: classification
+vcls-10-431-0_tflitert:
+  model_name: tf-tpu_efficientnet-lite1-fp32.tflite
+  recommended: true
+  run_dir: vcls-10-431-0_tflitert_tf-tpu_efficientnet-lite1-fp32_tflite
+  session_name: tflitert
+  size: 23963423
+  task_type: classification
+vcls-10-434-0_tflitert:
+  model_name: tf-tpu_efficientnet-lite4-fp32.tflite
+  recommended: true
+  run_dir: vcls-10-434-0_tflitert_tf-tpu_efficientnet-lite4-fp32_tflite
+  session_name: tflitert
+  size: 57230545
+  task_type: classification
+vcls-10-440-0_tflitert:
+  model_name: tf-tpu_efficientnet-edgetpu-S_float.tflite
+  recommended: true
+  run_dir: vcls-10-440-0_tflitert_tf-tpu_efficientnet-edgetpu-S_float_tflite
+  session_name: tflitert
+  size: 24375412
+  task_type: classification
+vcls-10-441-0_tflitert:
+  model_name: tf-tpu_efficientnet-edgetpu-M_float.tflite
+  recommended: true
+  run_dir: vcls-10-441-0_tflitert_tf-tpu_efficientnet-edgetpu-M_float_tflite
+  session_name: tflitert
+  size: 30890482
+  task_type: classification
+vcls-10-442-0_tflitert:
+  model_name: tf-tpu_efficientnet-edgetpu-L_float.tflite
+  recommended: true
+  run_dir: vcls-10-442-0_tflitert_tf-tpu_efficientnet-edgetpu-L_float_tflite
+  session_name: tflitert
+  size: 47317897
+  task_type: classification
+vdet-12-010-0_tflitert:
+  model_name: mlperf_ssd_mobilenet_v1_coco_20180128.tflite
+  recommended: true
+  run_dir: vdet-12-010-0_tflitert_mlperf_ssd_mobilenet_v1_coco_20180128_tflite
+  session_name: tflitert
+  size: 29162311
+  task_type: detection
+vdet-12-011-0_tflitert:
+  model_name: mlperf_ssd_mobilenet_v2_300_float.tflite
+  recommended: true
+  run_dir: vdet-12-011-0_tflitert_mlperf_ssd_mobilenet_v2_300_float_tflite
+  session_name: tflitert
+  size: 70353862
+  task_type: detection
+vdet-12-012-0_onnxrt:
+  model_name: mlperf_ssd_resnet34-ssd1200.onnx
+  recommended: true
+  run_dir: vdet-12-012-0_onnxrt_mlperf_ssd_resnet34-ssd1200_onnx
+  session_name: onnxrt
+  size: 85555270
+  task_type: detection
+vdet-12-060-0_tvmdlr:
+  model_name: model_yolo3_mobilenet1.0_coco-symbol.json
+  recommended: true
+  run_dir: vdet-12-060-0_tvmdlr_gluoncv-mxnet_yolo3_mobilenet1.0_coco-symbol_json
+  session_name: tvmdlr
+  size: 314556708
+  task_type: detection
+vdet-12-061-0_tvmdlr:
+  model_name: gluoncv-mxnet_ssd_512_resnet50_v1_coco-symbol.json
+  recommended: true
+  run_dir: vdet-12-061-0_tvmdlr_gluoncv-mxnet_ssd_512_resnet50_v1_coco-symbol_json
+  session_name: tvmdlr
+  size: 612330266
+  task_type: detection
+vdet-12-062-0_tvmdlr:
+  model_name: gluoncv-mxnet_ssd_512_mobilenet1.0_coco-symbol.json
+  recommended: false
+  run_dir: vdet-12-062-0_tvmdlr_gluoncv-mxnet_ssd_512_mobilenet1.0_coco-symbol_json
+  session_name: tvmdlr
+  size: 282971443
+  task_type: detection
+vdet-12-100-0_onnxrt:
+  model_name: edgeai-mmdet_ssd-lite_mobilenetv2_512x512_20201214_model.onnx
+  recommended: false
+  run_dir: vdet-12-100-0_onnxrt_edgeai-mmdet_ssd-lite_mobilenetv2_512x512_20201214_model_onnx
+  session_name: onnxrt
+  size: 14175455
+  task_type: detection
+vdet-12-101-0_onnxrt:
+  model_name: edgeai-mmdet_ssd-lite_mobilenetv2_fpn_512x512_20201110_model.onnx
+  recommended: false
+  run_dir: vdet-12-101-0_onnxrt_edgeai-mmdet_ssd-lite_mobilenetv2_fpn_512x512_20201110_model_onnx
+  session_name: onnxrt
+  size: 10115956
+  task_type: detection
+vdet-12-102-0_onnxrt:
+  model_name: edgeai-mmdet_ssd-lite_regnetx-200mf_fpn_bgr_320x320_20201010_model.onnx
+  recommended: false
+  run_dir: vdet-12-102-0_onnxrt_edgeai-mmdet_ssd-lite_regnetx-200mf_fpn_bgr_320x320_20201010_model_onnx
+  session_name: onnxrt
+  size: 9335374
+  task_type: detection
+vdet-12-103-0_onnxrt:
+  model_name: edgeai-mmdet_ssd-lite_regnetx-800mf_fpn_bgr_512x512_20200919_model.onnx
+  recommended: false
+  run_dir: vdet-12-103-0_onnxrt_edgeai-mmdet_ssd-lite_regnetx-800mf_fpn_bgr_512x512_20200919_model_onnx
+  session_name: onnxrt
+  size: 26978222
+  task_type: detection
+vdet-12-104-0_onnxrt:
+  model_name: edgeai-mmdet_ssd-lite_regnetx-1.6gf_bifpn168x4_bgr_768x768_20201026_model.onnx
+  recommended: false
+  run_dir: vdet-12-104-0_onnxrt_edgeai-mmdet_ssd-lite_regnetx-1.6gf_bifpn168x4_bgr_768x768_20201026_model_onnx
+  session_name: onnxrt
+  size: 37739894
+  task_type: detection
+vdet-12-105-0_onnxrt:
+  model_name: edgeai-mmdet_yolov3_d53_relu_416x416_20210117_004118_model.onnx
+  recommended: false
+  run_dir: vdet-12-105-0_onnxrt_edgeai-mmdet_yolov3_d53_relu_416x416_20210117_004118_model_onnx
+  session_name: onnxrt
+  size: 269478836
+  task_type: detection
+vdet-12-106-0_onnxrt:
+  model_name: edgeai-mmdet_yolov3-lite_regnetx-1.6gf_bgr_512x512_20210202_model.onnx
+  recommended: false
+  run_dir: vdet-12-106-0_onnxrt_edgeai-mmdet_yolov3-lite_regnetx-1.6gf_bgr_512x512_20210202_model_onnx
+  session_name: onnxrt
+  size: 52246241
+  task_type: detection
+vdet-12-107-0_onnxrt:
+  model_name: edgeai-mmdet_retinanet-lite_regnetx-800mf_fpn_bgr_512x512_20200908_model.onnx
+  recommended: false
+  run_dir: vdet-12-107-0_onnxrt_edgeai-mmdet_retinanet-lite_regnetx-800mf_fpn_bgr_512x512_20200908_model_onnx
+  session_name: onnxrt
+  size: 29885758
+  task_type: detection
+vdet-12-400-0_tflitert:
+  model_name: tf1-models_ssdlite_mobiledet_dsp_320x320_coco_20200519.tflite
+  recommended: true
+  run_dir: vdet-12-400-0_tflitert_tf1-models_ssdlite_mobiledet_dsp_320x320_coco_20200519_tflite
+  session_name: tflitert
+  size: 31204501
+  task_type: detection
+vdet-12-401-0_tflitert:
+  model_name: tf1-models_ssdlite_mobiledet_edgetpu_320x320_coco_20200519.tflite
+  recommended: true
+  run_dir: vdet-12-401-0_tflitert_tf1-models_ssdlite_mobiledet_edgetpu_320x320_coco_20200519_tflite
+  session_name: tflitert
+  size: 18273983
+  task_type: detection
+vdet-12-402-0_tflitert:
+  model_name: tf1-models_ssdlite_mobilenet_v2_coco_20180509.tflite
+  recommended: true
+  run_dir: vdet-12-402-0_tflitert_tf1-models_ssdlite_mobilenet_v2_coco_20180509_tflite
+  session_name: tflitert
+  size: 19554774
+  task_type: detection
+vdet-12-410-0_tflitert:
+  model_name: tf2-models_ssd_mobilenet_v1_fpn_640x640_coco17_tpu-8.tflite
+  recommended: false
+  run_dir: vdet-12-410-0_tflitert_tf2-models_ssd_mobilenet_v1_fpn_640x640_coco17_tpu-8_tflite
+  session_name: tflitert
+  size: 135586230
+  task_type: detection
+vdet-12-412-0_tflitert:
+  model_name: tf2-models_ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8.tflite
+  recommended: false
+  run_dir: vdet-12-412-0_tflitert_tf2-models_ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8_tflite
+  session_name: tflitert
+  size: 13233698
+  task_type: detection
+vdet-12-413-0_tflitert:
+  model_name: tf2-models_ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8.tflite
+  recommended: false
+  run_dir: vdet-12-413-0_tflitert_tf2-models_ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8_tflite
+  session_name: tflitert
+  size: 13309362
+  task_type: detection
+vdet-12-414-0_tflitert:
+  model_name: tf2-models_ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tflite
+  recommended: false
+  run_dir: vdet-12-414-0_tflitert_tf2-models_ssd_resnet50_v1_fpn_640x640_coco17_tpu-8_tflite
+  session_name: tflitert
+  size: 222465262
+  task_type: detection
+vdet-12-420-0_tflitert:
+  model_name: google-automl_efficientdet-lite0_bifpn_maxpool2x2_relu_ti-lite.tflite
+  recommended: false
+  run_dir: vdet-12-420-0_tflitert_google-automl_efficientdet-lite0_bifpn_maxpool2x2_relu_ti-lite_tflite
+  session_name: tflitert
+  size: 15293159
+  task_type: detection
+vkpdet-25-101-0_onnxrt:
+  model_name: edgeai-mmpose_mobilenetv2_fpn_spp_udp_512_20210610.onnx
+  recommended: false
+  run_dir: vkpdet-25-101-0_onnxrt_edgeai-mmpose_mobilenetv2_fpn_spp_udp_512_20210610_onnx
+  session_name: onnxrt
+  size: 20604926
+  task_type: human_pose_estimation
+vkpdet-25-102-0_onnxrt:
+  model_name: edgeai-mmpose_resnet50_fpn_spp_udp_512_20210610.onnx
+  recommended: false
+  run_dir: vkpdet-25-102-0_onnxrt_edgeai-mmpose_resnet50_fpn_spp_udp_512_20210610_onnx
+  session_name: onnxrt
+  size: 115742789
+  task_type: human_pose_estimation
+vkpdet-25-103-0_onnxrt:
+  model_name: edgeai-mmpose_mobilenetv2_pan_spp_udp_512_20210617.onnx
+  recommended: false
+  run_dir: vkpdet-25-103-0_onnxrt_edgeai-mmpose_mobilenetv2_pan_spp_udp_512_20210617_onnx
+  session_name: onnxrt
+  size: 16547404
+  task_type: human_pose_estimation
+vkpdet-25-104-0_onnxrt:
+  model_name: edgeai-mmpose_resnet50_pan_spp_udp_512_20210616.onnx
+  recommended: false
+  run_dir: vkpdet-25-104-0_onnxrt_edgeai-mmpose_resnet50_pan_spp_udp_512_20210616_onnx
+  session_name: onnxrt
+  size: 116350913
+  task_type: human_pose_estimation
+vseg-17-400-0_tflitert:
+  model_name: tf1-models_deeplabv3_mnv2_ade20k_train_20181203_512x512.tflite
+  recommended: true
+  run_dir: vseg-17-400-0_tflitert_tf1-models_deeplabv3_mnv2_ade20k_train_20181203_512x512_tflite
+  session_name: tflitert
+  size: 10308996
+  task_type: segmentation
+vseg-18-010-0_tflitert:
+  model_name: mlperf_deeplabv3_mnv2_ade20k32_float.tflite
+  recommended: true
+  run_dir: vseg-18-010-0_tflitert_mlperf_deeplabv3_mnv2_ade20k32_float_tflite
+  session_name: tflitert
+  size: 10175411
+  task_type: segmentation
+vseg-18-100-0_onnxrt:
+  model_name: edgeai-tv_deeplabv3lite_mobilenetv2_512x512_ade20k32_outby4.onnx
+  recommended: true
+  run_dir: vseg-18-100-0_onnxrt_edgeai-tv_deeplabv3lite_mobilenetv2_512x512_ade20k32_outby4_onnx
+  session_name: onnxrt
+  size: 10969736
+  task_type: segmentation
+vseg-18-101-0_onnxrt:
+  model_name: edgeai-tv_unetlite_aspp_mobilenetv2_512x512_ade20k32_outby2.onnx
+  recommended: true
+  run_dir: vseg-18-101-0_onnxrt_edgeai-tv_unetlite_aspp_mobilenetv2_512x512_ade20k32_outby2_onnx
+  session_name: onnxrt
+  size: 11043679
+  task_type: segmentation
+vseg-18-102-0_onnxrt:
+  model_name: edgeai-tv_fpnlite_aspp_mobilenetv2_512x512_ade20k32_outby4.onnx
+  recommended: true
+  run_dir: vseg-18-102-0_onnxrt_edgeai-tv_fpnlite_aspp_mobilenetv2_512x512_ade20k32_outby4_onnx
+  session_name: onnxrt
+  size: 12042564
+  task_type: segmentation
+vseg-18-103-0_onnxrt:
+  model_name: edgeai-tv_fpnlite_aspp_mobilenetv2_1p4_512x512_ade20k32_outby4.onnx
+  recommended: true
+  run_dir: vseg-18-103-0_onnxrt_edgeai-tv_fpnlite_aspp_mobilenetv2_1p4_512x512_ade20k32_outby4_onnx
+  session_name: onnxrt
+  size: 23017696
+  task_type: segmentation
+vseg-18-110-0_onnxrt:
+  model_name: edgeai-tv_fpnlite_aspp_regnetx400mf_ade20k32_384x384_outby4.onnx
+  recommended: true
+  run_dir: vseg-18-110-0_onnxrt_edgeai-tv_fpnlite_aspp_regnetx400mf_ade20k32_384x384_outby4_onnx
+  session_name: onnxrt
+  size: 26688189
+  task_type: segmentation
+vseg-18-111-0_onnxrt:
+  model_name: edgeai-tv_fpnlite_aspp_regnetx800mf_ade20k32_512x512_outby4.onnx
+  recommended: true
+  run_dir: vseg-18-111-0_onnxrt_edgeai-tv_fpnlite_aspp_regnetx800mf_ade20k32_512x512_outby4_onnx
+  session_name: onnxrt
+  size: 36170771
+  task_type: segmentation
+vseg-19-400-0_tflitert:
+  model_name: tf1-models_deeplabv3_mnv2_dm05_pascal_trainaug_512x512.tflite
+  recommended: true
+  run_dir: vseg-19-400-0_tflitert_tf1-models_deeplabv3_mnv2_dm05_pascal_trainaug_512x512_tflite
+  session_name: tflitert
+  size: 3172147
+  task_type: segmentation
+vseg-19-401-0_tflitert:
+  model_name: tf1-models_deeplabv3_mnv2_pascal_trainaug_512x512.tflite
+  recommended: true
+  run_dir: vseg-19-401-0_tflitert_tf1-models_deeplabv3_mnv2_pascal_trainaug_512x512_tflite
+  session_name: tflitert
+  size: 9420175
+  task_type: segmentation
+vseg-21-100-0_onnxrt:
+  model_name: edgeai-tv_deeplabv3lite_mobilenetv2_cocoseg21_512x512_20210405.onnx
+  recommended: true
+  run_dir: vseg-21-100-0_onnxrt_edgeai-tv_deeplabv3lite_mobilenetv2_cocoseg21_512x512_20210405_onnx
+  session_name: onnxrt
+  size: 10933730
+  task_type: segmentation
+vseg-21-106-0_onnxrt:
+  model_name: edgeai-tv_deeplabv3_mobilenet_v3_lite_large_512x512_20210527.onnx
+  recommended: false
+  run_dir: vseg-21-106-0_onnxrt_edgeai-tv_deeplabv3_mobilenet_v3_lite_large_512x512_20210527_onnx
+  session_name: onnxrt
+  size: 41931531
+  task_type: segmentation
+vseg-21-110-0_onnxrt:
+  model_name: edgeai-tv_fpnlite_aspp_regnetx800mf_cocoseg21_512x512_20210405.onnx
+  recommended: true
+  run_dir: vseg-21-110-0_onnxrt_edgeai-tv_fpnlite_aspp_regnetx800mf_cocoseg21_512x512_20210405_onnx
+  session_name: onnxrt
+  size: 36065366
+  task_type: segmentation
