@@ -340,6 +340,8 @@ class BaseRTSession(utils.ParamsBase):
         model_path = utils.download_file(model_path, root=model_folder)
         # make a local copy
         model_file = utils.get_local_path(model_path, model_folder)
+        print(utils.log_color('INFO', 'model_path', model_path))
+        print(utils.log_color('INFO', 'model_file', model_file))
         if not utils.file_exists(model_file):
             utils.copy_files(model_path, model_file)
         #

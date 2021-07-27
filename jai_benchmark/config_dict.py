@@ -165,6 +165,12 @@ class ConfigDict(dict):
         self.experimental_models = False
         # rewrite results with latest params if the result exists
         self.rewrite_results = False
+        # it defines if we want to use udp postprocessing in human pose estimation.
+        # Paper ref: Huang et al. The Devil is in the Details: Delving into Unbiased
+        # Data Processing for Human Pose Estimation (CVPR 2020).
+        self.with_udp = True
+        # it will add horizontally flipped images in info_dict and run inference over the flipped image also
+        self.flip_test = False
 
     def _parse_include_files(self, include_files, include_base_path):
         input_dict = {}
