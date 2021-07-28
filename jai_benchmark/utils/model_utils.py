@@ -34,7 +34,7 @@ from . import misc_utils
 
 def get_local_path(file_path, dest_dir):
     # sometimes, some http/https links can have '?' - remove the characters from there
-    file_path = [f.split('?')[0] for f in file_path] if isinstance(list,tuple) else file_path.split('?')[0]
+    file_path = [f.split('?')[0] for f in file_path] if isinstance(file_path,(list,tuple)) else file_path.split('?')[0]
     if isinstance(file_path, (list,tuple)):
         file_path_local = [os.path.join(dest_dir, os.path.basename(m)) for m in file_path]
     else:
