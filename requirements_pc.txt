@@ -9,9 +9,9 @@ tqdm
 pyyaml
 mxnet
 pytest
-json_tricks
-xtcocotools
-munkres
+#json_tricks
+#xtcocotools
+#munkres
 flatbuffers==1.12.0
 requests
 opencv-python==4.2.0.34
