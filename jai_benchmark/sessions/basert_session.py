@@ -36,6 +36,7 @@ import itertools
 import copy
 from colorama import Fore
 import numpy as np
+import tarfile
 from .. import utils
 from .. import constants
 
@@ -104,6 +105,26 @@ class BaseRTSession(utils.ParamsBase):
         # _set_default_options requires to know the artifacts_folder
         # that's why this is not done in the constructor
         self._set_default_options()
+
+        # if the run_dir doesn't exist, check if tarfile exists or can be downloaded/untarred
+        run_dir = self.kwargs['run_dir']
+        if not os.path.exists(run_dir):
+            work_dir = os.path.dirname(run_dir)
+            tarfile_name = run_dir + '.tar.gz'
+            linkfile_name = tarfile_name + '.link'
+            # download the link file
+            if (not os.path.exists(tarfile_name)) and os.path.exists(linkfile_name):
+                tarfile_name = utils.download_file(linkfile_name, work_dir)
+            #
+            # extract the tar file
+            if os.path.exists(tarfile_name):
+                os.makedirs(run_dir, exist_ok=True)
+                tfp = tarfile.open(tarfile_name)
+                tfp.extractall(run_dir)
+                tfp.close()
+            #
+        #
+
         # create run_dir
         os.makedirs(self.kwargs['run_dir'], exist_ok=True)
         os.makedirs(self.kwargs['model_folder'], exist_ok=True)
