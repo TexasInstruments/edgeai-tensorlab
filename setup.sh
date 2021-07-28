@@ -42,7 +42,7 @@ conda install -y cython
 ######################################################################
 # Installing dependencies
 echo 'Installing python packages...'
-pip install -r ./requirements.txt
+pip install -r ./requirements_pc.txt
 
 ######################################################################
 #NOTE: THIS STEP INSTALLS THE EDITABLE LOCAL MODULE pytidl
