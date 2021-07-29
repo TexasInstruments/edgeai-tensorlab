@@ -79,7 +79,7 @@ model_id_artifacts_pair = {
     # TFLite SS
     'vseg-2500_tflitert': 'TFL-SS-2500-deeplab-mobV2-ade20k-512x512',
     'vseg-2540_tflitert': 'TFL-SS-2540-deeplabv3-mobv2-ade20k-512x512',
-    'vseg-2550_tflitert': 'TFL-SS-2550-deeplabv3-mobv2_cs-2048x1024',
+    'vseg-2550_tflitert': 'TFL-SS-2550-deeplabv3-mobv2-cs-2048x1024',
     'vseg-2580_tflitert': 'TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512',
     'vseg-2590_tflitert': 'TFL-SS-2590-deeplabv3_mobv2-dm05-pascal-trainaug-512x512',
     'vseg-2600_tflitert': 'TFL-SS-2600-deeplabv3_mobv2-pascal-trainaug-512x512',
@@ -308,8 +308,8 @@ removed_model_list = {
     'vseg-5560_tvmdlr': 'TVM-SS-5560-fpnlite-aspp-regNetx800mf-cs-768x384',
     'vseg-5570_tvmdlr': 'TVM-SS-5570-fpnlite-aspp-regNetx1.6gf-cs-1024x512',
     'vseg-5580_tvmdlr': 'TVM-SS-5580-fpnlite-aspp-regNetx3.2gf-cs-1536x768',
-    'vseg-5590_tvmdlr': 'TVM-SS-5590-deeplabv3-res50-1040x520',
-    'vseg-5600_tvmdlr': 'TVM-SS-5600-fcn-res50-1040x520',
+    'vseg-5590_tvmdlr': 'TVM-SS-5590-deeplabv3-res50-cs-1040x520',
+    'vseg-5600_tvmdlr': 'TVM-SS-5600-fcn-res50-cs-1040x520',
     # cityscapes model not part of Model Zoo
     'vseg-8500_onnxrt': 'ONR-SS-8500-deeplabv3lite-mobv2-cs-768x384',
     'vseg-8508_onnxrt': 'ONR-SS-8508-deeplabv3lite-mobv2-cs-qat-768x384',
@@ -320,13 +320,13 @@ removed_model_list = {
     'vseg-8560_onnxrt': 'ONR-SS-8560-fpnlite-aspp-regNetx800mf-cs-768x384',
     'vseg-8570_onnxrt': 'ONR-SS-8570-fpnlite-aspp-regNetx1.6gf-cs-1024x512',
     'vseg-8580_onnxrt': 'ONR-SS-8580-fpnlite-aspp-regNetx3.2gf-cs-1536x768',
-    'vseg-8590_onnxrt': 'ONR-SS-8590-deeplabv3-res50-1040x520',
-    'vseg-8600_onnxrt': 'ONR-SS-8600-fcn-res50-1040x520',
+    'vseg-8590_onnxrt': 'ONR-SS-8590-deeplabv3-res50-cs-1040x520',
+    'vseg-8600_onnxrt': 'ONR-SS-8600-fcn-res50-cs-1040x520',
     ################
     'vcls-0240_tflitert': 'TFL-CL-0240-nasNet-mobile-tflite', # Kumar removed model (Multiple sub-graphs) (Accuracy issue)
     'vcls-0180_tflitert': 'TFL-CL-0180-efficientNet-lite2', # Kumar removed model  (Accuracy issue)
     'vdet-2010_tflitert': 'TFL-OD-2010-ssd-mobV2-coco-300x300-mlperf',  # Kumar removed model (Duplocate)
-    'vseg-2550_tflitert': 'TFL-SS-2550-deeplabv3-mobv2_cs-2048x1024',  # Kumar removed model, (not in plan)
+    'vseg-2550_tflitert': 'TFL-SS-2550-deeplabv3-mobv2-cs-2048x1024',  # Kumar removed model, (not in plan)
 
     'vcls-3370_tvmdlr': 'TVM-CL-3370-vgg16', # Kumar removed model
     'vcls-3000_tvmdlr': 'TVM-CL-3000-resNet18V2', # Kumar removed model
