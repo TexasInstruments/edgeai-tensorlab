@@ -57,15 +57,24 @@ model_id_artifacts_pair = {
     'vcls-10-401-8_tflitert': 'TFL-CL-0018-mobileNetV2-qat', 
     'vcls-10-408-0_tflitert': 'TFL-CL-0240-nasNet-mobile-tflite',
     'vcls-10-450-0_tflitert': 'TFL-CL-0250-xceptionNet-tflite', # mxnet model replaced with with tflite model now
+    'vcls-10-411-0_tflitert': 'TFL-CL-0260-mobv3-large-minimalistic', #added in SDK8.0
+    'vcls-10-412-0_tflitert': 'TFL-CL-0270-mobv3-small-minimalistic', #added in SDK8.0
 
     # TFLite OD
     'vdet-12-010-0_tflitert': 'TFL-OD-2000-ssd-mobV1-coco-mlperf-300x300',
     'vdet-12-011-0_tflitert': 'TFL-OD-2010-ssd-mobV2-coco-mlperf-300x300', 
     'vdet-12-400-0_tflitert': 'TFL-OD-2020-ssdLite-mobDet-DSP-coco-320x320',
     'vdet-12-401-0_tflitert': 'TFL-OD-2030-ssdLite-mobDet-EdgeTPU-coco-320x320',
-    'vdet-12-404-0_tflitert': 'TFL-OD-2040-ssd-mobV1-FPN-coco-640x640',
+    'vdet-12-404-0_tflitert': 'TFL-OD-2040-ssd-mobV1-fpn-coco-640x640',
     'vdet-12-403-0_tflitert': 'TFL-OD-2050-ssd-mobV2-mnas-fpn-coco-320x320',
     'vdet-12-402-0_tflitert': 'TFL-OD-2060-ssd-mobV2-coco-mlperf-300x300',
+
+    # added in SDK8.0
+    'vdet-12-410-0_tflitert':'TFL-OD-2070-ssd-mobV1-fpn-coco-tpu-8-640x640',
+    'vdet-12-412-0_tflitert':'TFL-OD-2080-ssd-mobV2-fpnlite-coco-tpu-8-320x320',
+    'vdet-12-413-0_tflitert':'TFL-OD-2090-ssd-mobV2-fpnlite-coco-tpu-8-640x640',
+    'vdet-12-414-0_tflitert':'TFL-OD-2100-ssd-res50V1-fpn-coco-tpu-8-640x640',
+    'vdet-12-420-0_tflitert':'TFL-OD-2110-efficient-det-ti-lite0-512x512',
 
     # TFLite SS
     'vseg-17-010-0_tflitert': 'TFL-SS-2500-deeplab-mobV2-ade20k-512x512',
@@ -89,7 +98,7 @@ model_id_artifacts_pair = {
     'vcls-10-032-0_tvmdlr': 'TVM-CL-3130-regNetX-800mf',
     'vcls-10-033-0_tvmdlr': 'TVM-CL-3140-regNetX-1.6gf',
     'vcls-10-102-8_tvmdlr': 'TVM-CL-3150-mobileNetV2-1p4-qat',
-    
+
     #512x512
     'vcls-10-100-1_tvmdlr': 'TVM-CL-3061-mobileNetV1-512x512',
     'vcls-10-101-1_tvmdlr': 'TVM-CL-3071-mobileNetV2-512x512',
@@ -128,11 +137,16 @@ model_id_artifacts_pair = {
     'vcls-10-902-0_tvmdlr': 'TVM-CL-3460-harDNet68ds',
     'vcls-10-903-0_tvmdlr': 'TVM-CL-3470-harDNet39ds',
     
+    'vcls-10-063-0_tvmdlr': 'TVM-CL-3480-hrnet-w18-small-v2-gluon-mxnet',#added in SDK8.0
+    
     # TVM - OD
     'vdet-12-012-0_tvmdlr': 'TVM-OD-5000-ssd1200-resNet34-mlperf-1200x1200',
     'vdet-12-020-0_tvmdlr': 'TVM-OD-5010-yolov3-416x416',
     'vdet-12-060-0_tvmdlr': 'TVM-OD-5020-yolov3-mobv1-gluon-mxnet-416x416',
-    'vdet-12-061-0_tvmdlr': 'TVM-OD-5030-ssd-mobv1-gluon-mxnet-512x512',
+
+    'vdet-12-061-0_tvmdlr': 'TVM-OD-5030-ssd-res50v1-gluon-mxnet-512x512', #added in SDK8.0
+    'vdet-12-062-0_tvmdlr': 'TVM-OD-5040-ssd-mobv1-coco-gluon-mxnet-512x512', #renamed mobv1 model in SDK8.0
+
     # TVM - SS - CS
     'vseg-16-100-0_tvmdlr': 'TVM-SS-5500-deeplabv3lite-mobv2-cs-768x384',
     'vseg-16-100-8_tvmdlr': 'TVM-SS-5510-deeplabv3lite-mobv2-cs-qat-768x384',
@@ -208,15 +222,38 @@ model_id_artifacts_pair = {
     'vcls-10-060-0_onnxrt': 'ONR-CL-6410-gluoncv-mxnet-mobv2',
     'vcls-10-061-0_onnxrt': 'ONR-CL-6420-gluoncv-mxnet-resNet50-v1',
     'vcls-10-062-0_onnxrt': 'ONR-CL-6430-gluoncv-mxnet-xception',
-    # HarD Net
-    'vcls-10-900-0_onnxrt': 'ONR-CL-6440-harDNet68',
-    'vcls-10-901-0_onnxrt': 'ONR-CL-6450-harDNet85',
-    'vcls-10-902-0_onnxrt': 'ONR-CL-6460-harDNet68ds',
-    'vcls-10-903-0_onnxrt': 'ONR-CL-6470-harDNet39ds',
+
+    # HarD Net 
+    # model id changed in SDK8.0
+    'vcls-10-332-0_onnxrt': 'ONR-CL-6440-harDNet68',
+    'vcls-10-333-0_onnxrt': 'ONR-CL-6450-harDNet85',
+    'vcls-10-331-0_onnxrt': 'ONR-CL-6460-harDNet68ds',
+    'vcls-10-330-0_onnxrt': 'ONR-CL-6470-harDNet39ds',
+
+    #added in SDK8.0
+    'vcls-10-105-0_onnxrt': 'ONR-CL-6480-mobv3-lite-small',
+    'vcls-10-105-8_onnxrt': 'ONR-CL-6488-mobv3-lite-small-qat',
+    'vcls-10-106-0_onnxrt': 'ONR-CL-6490-mobv3-lite-large',
     
     # ONNX - OD
     'vdet-12-012-0_onnxrt': 'ONR-OD-8000-ssd1200-resNet34-mlperf-1200x1200',
     'vdet-12-020-0_onnxrt': 'ONR-OD-8010-yolov3-416x416',
+
+    #Added in SDK8.0
+    'vdet-12-100-0_onnxrt': 'ONR-OD-8020-ssd-lite-mobv2-coco-512x512',
+    'vdet-12-101-0_onnxrt': 'ONR-OD-8030-ssd-lite-mobv2-fpn-coco-512x512',
+    'vdet-12-102-0_onnxrt': 'ONR-OD-8040-ssd-lite-regNetX-200mf-fpn-bgr-coco-320x320',
+    'vdet-12-103-0_onnxrt': 'ONR-OD-8050-ssd-lite-regNetX-800mf-fpn-bgr-coco-512x512',
+    'vdet-12-104-0_onnxrt': 'ONR-OD-8060-ssd-lite-regNetX-1.6gf-bifpn168x4-bgr-coco-768x768',
+    'vdet-12-105-0_onnxrt': 'ONR-OD-8070-yolov3-d53-relu-coco-416x416',
+    'vdet-12-106-0_onnxrt': 'ONR-OD-8080-yolov3-lite-regNetX-1.6gf-bgr-coco-512x512',
+    'vdet-12-107-0_onnxrt': 'ONR-OD-8090-retina-lite-regNetX-800mf-fpn-bgr-coco-512x512',
+
+    #Yolov5 series added in SDK8.0
+    'vdet-12-020-0_onnxrt': 'ONR-OD-8100-yolov5-s6-ti-lite-coco-640x640',
+    'vdet-12-021-0_onnxrt': 'ONR-OD-8100-yolov5-s6-ti-lite-coco-384x384',
+    'vdet-12-022-0_onnxrt': 'ONR-OD-8100-yolov5-m6-ti-lite-coco-640x640',
+    'vdet-12-023-0_onnxrt': 'ONR-OD-8100-yolov5-l6-ti-lite-coco-640x640',
 
     # ONNX - SS - CS
     'vseg-16-100-0_onnxrt': 'ONR-SS-8500-deeplabv3lite-mobv2-cs-768x384',
@@ -244,8 +281,15 @@ model_id_artifacts_pair = {
     'vseg-18-111-0_onnxrt': 'ONR-SS-8700-fpnlite-aspp-regnetx800mf-ade20k32-512x512',
 
     # ONNX-SS - CocoSeg21
-    'vseg-21-100-0_onnxrt' : 'ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512',
-    'vseg-21-110-0_onnxrt' : 'ONR-SS-8720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
+    'vseg-21-100-0_onnxrt': 'ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512',
+    'vseg-21-110-0_onnxrt': 'ONR-SS-8720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
+    'vseg-21-106-0_onnxrt': 'ONR-SS-8730-deeplabv3-mobv3-lite-large-cocoseg21-512x512', #added in SDK8.0
+
+    #ONNX key point detections
+    'vkpdet-25-101-0_onnxrt': 'ONR-KD-7000-human-pose-ae-mobv2-fpn-spp-udp-512x512',
+    'vkpdet-25-102-0_onnxrt': 'ONR-KD-7010-human-pose-ae-res50v2-fpn-spp-udp-512x512',
+    'vkpdet-25-103-0_onnxrt': 'ONR-KD-7000-human-pose-ae-mobv2-pan-spp-udp-512x512',
+    'vkpdet-25-104-0_onnxrt': 'ONR-KD-7010-human-pose-ae-res50v2-pan-spp-udp-512x512',
 }
 
 removed_model_list = {
@@ -396,78 +440,7 @@ removed_models_from_plots = {
     'vseg-19-401-0_tflitert': 'TFL-SS-2600-deeplabv3_mobv2-pascal-trainaug-512x512', # # SS on pascal has only 2 models.  So removed from plots.
 }
 
-#sampled on 18th Mar
-super_set_del = [    
-    'vcls-10-010-0_tflitert',
-    'vcls-10-011-0_tflitert',
-    'vcls-10-012-0_tflitert',
-    'vcls-10-020-0_tvmdlr',
-    'vcls-10-030-0_tvmdlr',
-    'vcls-10-031-0_tvmdlr',
-    'vcls-10-032-0_tvmdlr',
-    'vcls-10-033-0_tvmdlr',
-    'vcls-10-060-0_tvmdlr',
-    'vcls-10-061-0_tvmdlr',
-    'vcls-10-062-0_tvmdlr',
-    'vcls-10-100-0_tvmdlr',
-    'vcls-10-101-0_tvmdlr',
-    'vcls-10-101-8_tvmdlr',
-    'vcls-10-102-8_tvmdlr',
-    'vcls-10-301-0_tvmdlr',
-    'vcls-10-302-0_tvmdlr',
-    'vcls-10-302-8_tvmdlr',
-    'vcls-10-304-0_tvmdlr',
-    'vcls-10-305-0_tvmdlr',
-    'vcls-10-400-0_tflitert',
-    'vcls-10-400-8_tflitert',
-    'vcls-10-401-0_tflitert',
-    'vcls-10-401-8_tflitert',
-    'vcls-10-402-0_tflitert',
-    'vcls-10-403-0_tflitert',
-    'vcls-10-404-0_tflitert',
-    'vcls-10-405-8_tflitert',
-    'vcls-10-406-0_tflitert',
-    'vcls-10-407-0_tflitert',
-    'vcls-10-408-0_tflitert',
-    'vcls-10-409-0_tflitert',
-    'vcls-10-410-0_tflitert',
-    'vcls-10-430-0_tflitert',
-    'vcls-10-431-0_tflitert',
-    'vcls-10-432-0_tflitert',
-    'vcls-10-434-0_tflitert',
-    'vcls-10-440-0_tflitert',
-    'vcls-10-441-0_tflitert',
-    'vcls-10-442-0_tflitert',
-    'vdet-12-010-0_tflitert',
-    'vdet-12-011-0_tflitert',
-    'vdet-12-060-0_tvmdlr',
-    'vdet-12-061-0_tvmdlr',
-    'vdet-12-400-0_tflitert',
-    'vdet-12-401-0_tflitert',
-    'vdet-12-402-0_tflitert',
-    'vseg-16-100-0_tvmdlr',
-    'vseg-16-101-0_tvmdlr',
-    'vseg-16-102-0_tvmdlr',
-    'vseg-16-103-0_tvmdlr',
-    'vseg-16-104-0_tvmdlr',
-    'vseg-16-105-0_tvmdlr',
-    'vseg-16-400-0_tflitert',
-    'vseg-17-400-0_tflitert',
-    'vseg-18-010-0_tflitert',
-    'vseg-18-100-0_tvmdlr',
-    'vseg-18-100-8_tvmdlr',
-    'vseg-18-101-0_tvmdlr',
-    'vseg-18-101-8_tvmdlr',
-    'vseg-18-102-0_tvmdlr',
-    'vseg-18-102-8_tvmdlr',
-    'vseg-18-103-0_tvmdlr',
-    'vseg-18-103-8_tvmdlr',
-    'vseg-18-110-0_tvmdlr',
-    'vseg-18-111-0_tvmdlr',
-    'vseg-19-400-0_tflitert',
-    'vseg-19-401-0_tflitert',
-]    
-
+#sampled on 29th Jul 21
 super_set = [
 'vcls-10-010-0_tflitert',
 'vcls-10-011-0_tflitert',
