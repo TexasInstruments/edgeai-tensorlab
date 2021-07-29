@@ -30,7 +30,7 @@
 import os
 
 #mapping from artifacts id to readable model names
-#ver:13-2021-04-01
+#ver:14-2021-07-29
 model_id_artifacts_pair = {
     # TFLite CL
     'vcls-10-010-0_tflitert': 'TFL-CL-0000-mobileNetV1-mlperf',
