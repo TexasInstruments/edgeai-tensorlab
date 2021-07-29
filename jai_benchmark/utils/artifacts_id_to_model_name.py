@@ -36,7 +36,7 @@ model_id_artifacts_pair = {
     'vcls-10-010-0_tflitert': 'TFL-CL-0000-mobileNetV1-mlperf',
     'vcls-10-401-0_tflitert': 'TFL-CL-0010-mobileNetV2',
     'vcls-10-403-0_tflitert': 'TFL-CL-0020-SqueezeNet',
-    'vcls-10-405-8_tflitert': 'TFL-CL-0030-InceptionNetV1',
+    'vcls-10-405-8_tflitert': 'TFL-CL-0038-InceptionNetV1',
     'vcls-10-406-0_tflitert': 'TFL-CL-0040-InceptionNetV3',
     'vcls-10-409-0_tflitert': 'TFL-CL-0050-resNet50V1',
     'vcls-10-410-0_tflitert': 'TFL-CL-0060-resNet50V2',
@@ -53,8 +53,8 @@ model_id_artifacts_pair = {
     'vcls-10-442-0_tflitert': 'TFL-CL-0190-efficientNet-edgeTPU-l',
     'vcls-10-402-0_tflitert': 'TFL-CL-0200-mobileNetV2-1p4',
     'vcls-10-400-0_tflitert': 'TFL-CL-0210-mobileNetV1', 
-    'vcls-10-400-8_tflitert': 'TFL-CL-0220-mobileNetV1-qat', 
-    'vcls-10-401-8_tflitert': 'TFL-CL-0230-mobileNetV2-qat', 
+    'vcls-10-400-8_tflitert': 'TFL-CL-0218-mobileNetV1-qat', 
+    'vcls-10-401-8_tflitert': 'TFL-CL-0018-mobileNetV2-qat', 
     'vcls-10-408-0_tflitert': 'TFL-CL-0240-nasNet-mobile-tflite',
     'vcls-10-450-0_tflitert': 'TFL-CL-0250-xceptionNet-tflite', # mxnet model replaced with with tflite model now
 
@@ -91,34 +91,34 @@ model_id_artifacts_pair = {
     'vcls-10-102-8_tvmdlr': 'TVM-CL-3150-mobileNetV2-1p4-qat',
     
     #512x512
-    'vcls-10-100-1_tvmdlr': 'TVM-CL-3160-mobileNetV1-512x512',
-    'vcls-10-101-1_tvmdlr': 'TVM-CL-3170-mobileNetV2-512x512',
-    'vcls-10-301-1_tvmdlr': 'TVM-CL-3180-shuffleNetV2-512x512',
-    'vcls-10-302-1_tvmdlr': 'TVM-CL-3190-mobileNetV2-tv-512x512',
-    'vcls-10-304-1_tvmdlr': 'TVM-CL-3200-resNet18-512x512',
-    'vcls-10-305-1_tvmdlr': 'TVM-CL-3210-resNet50-512x512',
-    'vcls-10-031-1_tvmdlr': 'TVM-CL-3220-regNetX-400mf-512x512',
-    'vcls-10-032-1_tvmdlr': 'TVM-CL-3230-regNetX-800mf-512x512',
-    'vcls-10-033-1_tvmdlr': 'TVM-CL-3240-regNetX-1.6gf-512x512',
-    'vcls-10-102-1_tvmdlr': 'TVM-CL-3250-mobileNetV2-1p4-qat-512x512',
+    'vcls-10-100-1_tvmdlr': 'TVM-CL-3061-mobileNetV1-512x512',
+    'vcls-10-101-1_tvmdlr': 'TVM-CL-3071-mobileNetV2-512x512',
+    'vcls-10-301-1_tvmdlr': 'TVM-CL-3081-shuffleNetV2-512x512',
+    'vcls-10-302-1_tvmdlr': 'TVM-CL-3091-mobileNetV2-tv-512x512',
+    'vcls-10-304-1_tvmdlr': 'TVM-CL-3101-resNet18-512x512',
+    'vcls-10-305-1_tvmdlr': 'TVM-CL-3111-resNet50-512x512',
+    'vcls-10-031-1_tvmdlr': 'TVM-CL-3121-regNetX-400mf-512x512',
+    'vcls-10-032-1_tvmdlr': 'TVM-CL-3131-regNetX-800mf-512x512',
+    'vcls-10-033-1_tvmdlr': 'TVM-CL-3141-regNetX-1.6gf-512x512',
+    'vcls-10-102-1_tvmdlr': 'TVM-CL-3151-mobileNetV2-1p4-qat-512x512',
 
     #1024x1024
-    'vcls-10-100-2_tvmdlr': 'TVM-CL-3260-mobileNetV1-1024x1024',
-    'vcls-10-101-2_tvmdlr': 'TVM-CL-3270-mobileNetV2-1024x1024',
-    'vcls-10-301-2_tvmdlr': 'TVM-CL-3280-shuffleNetV2-1024x1024',
-    'vcls-10-302-2_tvmdlr': 'TVM-CL-3290-mobileNetV2-tv-1024x1024',
-    'vcls-10-304-2_tvmdlr': 'TVM-CL-3300-resNet18-1024x1024',
-    'vcls-10-305-2_tvmdlr': 'TVM-CL-3310-resNet50-1024x1024',
-    'vcls-10-031-2_tvmdlr': 'TVM-CL-3320-regNetX-400mf-1024x1024',
-    'vcls-10-032-2_tvmdlr': 'TVM-CL-3330-regNetX-800mf-1024x1024',
-    'vcls-10-033-2_tvmdlr': 'TVM-CL-3340-regNetX-1.6gf-1024x1024',
-    'vcls-10-102-2_tvmdlr': 'TVM-CL-3350-mobileNetV2-1p4-qat-1024x1024',
+    'vcls-10-100-2_tvmdlr': 'TVM-CL-3062-mobileNetV1-1024x1024',
+    'vcls-10-101-2_tvmdlr': 'TVM-CL-3072-mobileNetV2-1024x1024',
+    'vcls-10-301-2_tvmdlr': 'TVM-CL-3082-shuffleNetV2-1024x1024',
+    'vcls-10-302-2_tvmdlr': 'TVM-CL-3092-mobileNetV2-tv-1024x1024',
+    'vcls-10-304-2_tvmdlr': 'TVM-CL-3102-resNet18-1024x1024',
+    'vcls-10-305-2_tvmdlr': 'TVM-CL-3112-resNet50-1024x1024',
+    'vcls-10-031-2_tvmdlr': 'TVM-CL-3122-regNetX-400mf-1024x1024',
+    'vcls-10-032-2_tvmdlr': 'TVM-CL-3132-regNetX-800mf-1024x1024',
+    'vcls-10-033-2_tvmdlr': 'TVM-CL-3142-regNetX-1.6gf-1024x1024',
+    'vcls-10-102-2_tvmdlr': 'TVM-CL-3152-mobileNetV2-1p4-qat-1024x1024',
     ########
     
     'vcls-10-030-0_tvmdlr': 'TVM-CL-3360-regNetx-200mf',
     'vcls-10-306-0_tvmdlr': 'TVM-CL-3370-vgg16',
-    'vcls-10-101-8_tvmdlr': 'TVM-CL-3380-mobileNetV2-qat',
-    'vcls-10-302-8_tvmdlr': 'TVM-CL-3400-mobileNetV2-tv-qat',
+    'vcls-10-101-8_tvmdlr': 'TVM-CL-3078-mobileNetV2-qat',
+    'vcls-10-302-8_tvmdlr': 'TVM-CL-3098-mobileNetV2-tv-qat',
     'vcls-10-060-0_tvmdlr': 'TVM-CL-3410-gluoncv-mxnet-mobv2',
     'vcls-10-061-0_tvmdlr': 'TVM-CL-3420-gluoncv-mxnet-resNet50-v1',
     'vcls-10-062-0_tvmdlr': 'TVM-CL-3430-gluoncv-mxnet-xception',
@@ -137,9 +137,9 @@ model_id_artifacts_pair = {
     'vseg-16-100-0_tvmdlr': 'TVM-SS-5500-deeplabv3lite-mobv2-cs-768x384',
     'vseg-16-100-8_tvmdlr': 'TVM-SS-5510-deeplabv3lite-mobv2-cs-qat-768x384',
     'vseg-16-101-0_tvmdlr': 'TVM-SS-5520-fpnlite-aspp-mobv2-cs-768x384',
-    'vseg-16-101-8_tvmdlr': 'TVM-SS-5530-fpnlite-aspp-mobv2-cs-qat-768x384',
+    'vseg-16-101-8_tvmdlr': 'TVM-SS-5528-fpnlite-aspp-mobv2-cs-qat-768x384',
     'vseg-16-102-0_tvmdlr': 'TVM-SS-5540-unetlite-aspp-mobv2-tv-cs-768x384',
-    'vseg-16-102-8_tvmdlr': 'TVM-SS-5550-unetlite-aspp-mobv2-tv-cs-qat-768x384',
+    'vseg-16-102-8_tvmdlr': 'TVM-SS-5548-unetlite-aspp-mobv2-tv-cs-qat-768x384',
     'vseg-16-103-0_tvmdlr': 'TVM-SS-5560-fpnlite-aspp-regNetx800mf-cs-768x384',
     'vseg-16-104-0_tvmdlr': 'TVM-SS-5570-fpnlite-aspp-regNetx1.6gf-cs-1024x512',
     'vseg-16-105-0_tvmdlr': 'TVM-SS-5580-fpnlite-aspp-regNetx3.2gf-cs-1536x768',
@@ -148,13 +148,13 @@ model_id_artifacts_pair = {
 
     # TVM - SS - ADE20k
     'vseg-18-100-0_tvmdlr': 'TVM-SS-5610-deeplabv3lite-mobv2-ade20k32-512x512',
-    'vseg-18-100-8_tvmdlr': 'TVM-SS-5620-deeplabv3lite-mobv2-ade20k32-qat-512x512', 
+    'vseg-18-100-8_tvmdlr': 'TVM-SS-5618-deeplabv3lite-mobv2-ade20k32-qat-512x512', 
     'vseg-18-101-0_tvmdlr': 'TVM-SS-5630-unetlite-aspp-mobv2-tv-ade20k32-512x512',
-    'vseg-18-101-8_tvmdlr': 'TVM-SS-5640-unetlite-aspp-mobv2-tv-ade20k32-qat-512x512',
+    'vseg-18-101-8_tvmdlr': 'TVM-SS-5638-unetlite-aspp-mobv2-tv-ade20k32-qat-512x512',
     'vseg-18-102-0_tvmdlr': 'TVM-SS-5650-fpnlite-aspp-mobv2-ade20k32-512x512',
-    'vseg-18-102-8_tvmdlr': 'TVM-SS-5660-fpnlite-aspp-mobv2-ade20k32-qat-512x512', 
+    'vseg-18-102-8_tvmdlr': 'TVM-SS-5658-fpnlite-aspp-mobv2-ade20k32-qat-512x512', 
     'vseg-18-103-0_tvmdlr': 'TVM-SS-5670-fpnlite-aspp-mobv2-1p4-ade20k32-512x512',
-    'vseg-18-103-8_tvmdlr': 'TVM-SS-5680-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512',
+    'vseg-18-103-8_tvmdlr': 'TVM-SS-5678-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512',
     'vseg-18-110-0_tvmdlr': 'TVM-SS-5690-fpnlite-aspp-regnetx400mf-ade20k32-384x384',
     'vseg-18-111-0_tvmdlr': 'TVM-SS-5700-fpnlite-aspp-regnetx800mf-ade20k32-512x512',
 
@@ -177,34 +177,34 @@ model_id_artifacts_pair = {
     'vcls-10-102-8_onnxrt': 'ONR-CL-6150-mobileNetV2-1p4-qat',
     
     #512x512
-    'vcls-10-100-1_onnxrt': 'ONR-CL-6160-mobileNetV1-512x512',
-    'vcls-10-101-1_onnxrt': 'ONR-CL-6170-mobileNetV2-512x512',
-    'vcls-10-301-1_onnxrt': 'ONR-CL-6180-shuffleNetV2-512x512',
-    'vcls-10-302-1_onnxrt': 'ONR-CL-6190-mobileNetV2-tv-512x512',
-    'vcls-10-304-1_onnxrt': 'ONR-CL-6200-resNet18-512x512',
-    'vcls-10-305-1_onnxrt': 'ONR-CL-6210-resNet50-512x512',
-    'vcls-10-031-1_onnxrt': 'ONR-CL-6220-regNetX-400mf-512x512',
-    'vcls-10-032-1_onnxrt': 'ONR-CL-6230-regNetX-800mf-512x512',
-    'vcls-10-033-1_onnxrt': 'ONR-CL-6240-regNetX-1.6gf-512x512',
-    'vcls-10-102-1_onnxrt': 'ONR-CL-6250-mobileNetV2-1p4-qat-512x512',
+    'vcls-10-100-1_onnxrt': 'ONR-CL-6061-mobileNetV1-512x512',
+    'vcls-10-101-1_onnxrt': 'ONR-CL-6071-mobileNetV2-512x512',
+    'vcls-10-301-1_onnxrt': 'ONR-CL-6081-shuffleNetV2-512x512',
+    'vcls-10-302-1_onnxrt': 'ONR-CL-6091-mobileNetV2-tv-512x512',
+    'vcls-10-304-1_onnxrt': 'ONR-CL-6102-resNet18-512x512',
+    'vcls-10-305-1_onnxrt': 'ONR-CL-6112-resNet50-512x512',
+    'vcls-10-031-1_onnxrt': 'ONR-CL-6122-regNetX-400mf-512x512',
+    'vcls-10-032-1_onnxrt': 'ONR-CL-6132-regNetX-800mf-512x512',
+    'vcls-10-033-1_onnxrt': 'ONR-CL-6142-regNetX-1.6gf-512x512',
+    'vcls-10-102-1_onnxrt': 'ONR-CL-6152-mobileNetV2-1p4-qat-512x512',
 
     #1024x1024
-    'vcls-10-100-2_onnxrt': 'ONR-CL-6260-mobileNetV1-1024x1024',
-    'vcls-10-101-2_onnxrt': 'ONR-CL-6270-mobileNetV2-1024x1024',
-    'vcls-10-301-2_onnxrt': 'ONR-CL-6280-shuffleNetV2-1024x1024',
-    'vcls-10-302-2_onnxrt': 'ONR-CL-6290-mobileNetV2-tv-1024x1024',
-    'vcls-10-304-2_onnxrt': 'ONR-CL-6300-resNet18-1024x1024',
-    'vcls-10-305-2_onnxrt': 'ONR-CL-6310-resNet50-1024x1024',
-    'vcls-10-031-2_onnxrt': 'ONR-CL-6320-regNetX-400mf-1024x1024',
-    'vcls-10-032-2_onnxrt': 'ONR-CL-6330-regNetX-800mf-1024x1024',
-    'vcls-10-033-2_onnxrt': 'ONR-CL-6340-regNetX-1.6gf-1024x1024',
-    'vcls-10-102-2_onnxrt': 'ONR-CL-6350-mobileNetV2-1p4-qat-1024x1024',
+    'vcls-10-100-2_onnxrt': 'ONR-CL-6062-mobileNetV1-1024x1024',
+    'vcls-10-101-2_onnxrt': 'ONR-CL-6072-mobileNetV2-1024x1024',
+    'vcls-10-301-2_onnxrt': 'ONR-CL-6082-shuffleNetV2-1024x1024',
+    'vcls-10-302-2_onnxrt': 'ONR-CL-6092-mobileNetV2-tv-1024x1024',
+    'vcls-10-304-2_onnxrt': 'ONR-CL-6102-resNet18-1024x1024',
+    'vcls-10-305-2_onnxrt': 'ONR-CL-6112-resNet50-1024x1024',
+    'vcls-10-031-2_onnxrt': 'ONR-CL-6122-regNetX-400mf-1024x1024',
+    'vcls-10-032-2_onnxrt': 'ONR-CL-6132-regNetX-800mf-1024x1024',
+    'vcls-10-033-2_onnxrt': 'ONR-CL-6142-regNetX-1.6gf-1024x1024',
+    'vcls-10-102-2_onnxrt': 'ONR-CL-6152-mobileNetV2-1p4-qat-1024x1024',
     ########
     
     'vcls-10-030-0_onnxrt': 'ONR-CL-6360-regNetx-200mf',
     'vcls-10-306-0_onnxrt': 'ONR-CL-6370-vgg16',
-    'vcls-10-101-8_onnxrt': 'ONR-CL-6380-mobileNetV2-qat',
-    'vcls-10-302-8_onnxrt': 'ONR-CL-6400-mobileNetV2-tv-qat',
+    'vcls-10-101-8_onnxrt': 'ONR-CL-6078-mobileNetV2-qat',
+    'vcls-10-302-8_onnxrt': 'ONR-CL-6098-mobileNetV2-tv-qat',
     'vcls-10-060-0_onnxrt': 'ONR-CL-6410-gluoncv-mxnet-mobv2',
     'vcls-10-061-0_onnxrt': 'ONR-CL-6420-gluoncv-mxnet-resNet50-v1',
     'vcls-10-062-0_onnxrt': 'ONR-CL-6430-gluoncv-mxnet-xception',
@@ -220,11 +220,11 @@ model_id_artifacts_pair = {
 
     # ONNX - SS - CS
     'vseg-16-100-0_onnxrt': 'ONR-SS-8500-deeplabv3lite-mobv2-cs-768x384',
-    'vseg-16-100-8_onnxrt': 'ONR-SS-8510-deeplabv3lite-mobv2-cs-qat-768x384',
+    'vseg-16-100-8_onnxrt': 'ONR-SS-8508-deeplabv3lite-mobv2-cs-qat-768x384',
     'vseg-16-101-0_onnxrt': 'ONR-SS-8520-fpnlite-aspp-mobv2-cs-768x384',
-    'vseg-16-101-8_onnxrt': 'ONR-SS-8530-fpnlite-aspp-mobv2-cs-qat-768x384',
+    'vseg-16-101-8_onnxrt': 'ONR-SS-8528-fpnlite-aspp-mobv2-cs-qat-768x384',
     'vseg-16-102-0_onnxrt': 'ONR-SS-8540-unetlite-aspp-mobv2-tv-cs-768x384',
-    'vseg-16-102-8_onnxrt': 'ONR-SS-8550-unetlite-aspp-mobv2-tv-cs-qat-768x384',
+    'vseg-16-102-8_onnxrt': 'ONR-SS-8548-unetlite-aspp-mobv2-tv-cs-qat-768x384',
     'vseg-16-103-0_onnxrt': 'ONR-SS-8560-fpnlite-aspp-regNetx800mf-cs-768x384',
     'vseg-16-104-0_onnxrt': 'ONR-SS-8570-fpnlite-aspp-regNetx1.6gf-cs-1024x512',
     'vseg-16-105-0_onnxrt': 'ONR-SS-8580-fpnlite-aspp-regNetx3.2gf-cs-1536x768',
@@ -233,13 +233,13 @@ model_id_artifacts_pair = {
 
     # ONNX - SS - ADE20k
     'vseg-18-100-0_onnxrt': 'ONR-SS-8610-deeplabv3lite-mobv2-ade20k32-512x512',
-    'vseg-18-100-8_onnxrt': 'ONR-SS-8620-deeplabv3lite-mobv2-ade20k32-qat-512x512', 
+    'vseg-18-100-8_onnxrt': 'ONR-SS-8618-deeplabv3lite-mobv2-ade20k32-qat-512x512', 
     'vseg-18-101-0_onnxrt': 'ONR-SS-8630-unetlite-aspp-mobv2-tv-ade20k32-512x512',
-    'vseg-18-101-8_onnxrt': 'ONR-SS-8640-unetlite-aspp-mobv2-tv-ade20k32-qat-512x512',
+    'vseg-18-101-8_onnxrt': 'ONR-SS-8638-unetlite-aspp-mobv2-tv-ade20k32-qat-512x512',
     'vseg-18-102-0_onnxrt': 'ONR-SS-8650-fpnlite-aspp-mobv2-ade20k32-512x512',
-    'vseg-18-102-8_onnxrt': 'ONR-SS-8660-fpnlite-aspp-mobv2-ade20k32-qat-512x512', 
+    'vseg-18-102-8_onnxrt': 'ONR-SS-8658-fpnlite-aspp-mobv2-ade20k32-qat-512x512', 
     'vseg-18-103-0_onnxrt': 'ONR-SS-8670-fpnlite-aspp-mobv2-1p4-ade20k32-512x512',
-    'vseg-18-103-8_onnxrt': 'ONR-SS-8680-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512',
+    'vseg-18-103-8_onnxrt': 'ONR-SS-8678-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512',
     'vseg-18-110-0_onnxrt': 'ONR-SS-8690-fpnlite-aspp-regnetx400mf-ade20k32-384x384',
     'vseg-18-111-0_onnxrt': 'ONR-SS-8700-fpnlite-aspp-regnetx800mf-ade20k32-512x512',
 
@@ -254,25 +254,30 @@ removed_model_list = {
     'vdet-12-012-0_tvmdlr': 'TVM-OD-5000-ssd1200-resNet34-mlperf-1200x1200', # Not working with TVM. Will need to park it till ONNX RT OD support is available.
     #'vdet-12-012-0_onnxrt': 'ONR-OD-800-ssd1200-resNet34-mlperf-1200x1200', #ONNX does not support OD yet
     ################ CS models
-    'vseg-16-100-0_tvmdlr': 'TVM-SS-5500-deeplabv3lite-mobv2-cs-768x384', # cityscapes model not part of Model Zoo
-    'vseg-16-100-8_tvmdlr': 'TVM-SS-5510-deeplabv3lite-mobv2-cs-qat-768x384', # cityscapes model not part of Model Zoo
-    'vseg-16-101-0_tvmdlr': 'TVM-SS-5520-fpnlite-aspp-mobv2-cs-768x384', # cityscapes model not part of Model Zoo
-    'vseg-16-101-8_tvmdlr': 'TVM-SS-5530-fpnlite-aspp-mobv2-cs-qat-768x384', # cityscapes model not part of Model Zoo
-    'vseg-16-102-0_tvmdlr': 'TVM-SS-5540-unetlite-aspp-mobv2-tv-cs-768x384', # cityscapes model not part of Model Zoo
-    'vseg-16-102-8_tvmdlr': 'TVM-SS-5550-unetlite-aspp-mobv2-tv-cs-qat-768x384', # cityscapes model not part of Model Zoo
-    'vseg-16-103-0_tvmdlr': 'TVM-SS-5560-fpnlite-aspp-regNetx800mf-cs-768x384', # cityscapes model not part of Model Zoo
-    'vseg-16-104-0_tvmdlr': 'TVM-SS-5570-fpnlite-aspp-regNetx1.6gf-cs-1024x512', # cityscapes model not part of Model Zoo
-    'vseg-16-105-0_tvmdlr': 'TVM-SS-5580-fpnlite-aspp-regNetx3.2gf-cs-1536x768', # cityscapes model not part of Model Zoo
-
-    'vseg-16-100-0_onnxrt': 'ONR-SS-8500-deeplabv3lite-mobv2-cs-768x384', # cityscapes model not part of Model Zoo
-    'vseg-16-100-8_onnxrt': 'ONR-SS-8510-deeplabv3lite-mobv2-cs-qat-768x384', # cityscapes model not part of Model Zoo
-    'vseg-16-101-0_onnxrt': 'ONR-SS-8520-fpnlite-aspp-mobv2-cs-768x384', # cityscapes model not part of Model Zoo
-    'vseg-16-101-8_onnxrt': 'ONR-SS-8530-fpnlite-aspp-mobv2-cs-qat-768x384', # cityscapes model not part of Model Zoo
-    'vseg-16-102-0_onnxrt': 'ONR-SS-8540-unetlite-aspp-mobv2-tv-cs-768x384', # cityscapes model not part of Model Zoo
-    'vseg-16-102-8_onnxrt': 'ONR-SS-8550-unetlite-aspp-mobv2-tv-cs-qat-768x384', # cityscapes model not part of Model Zoo
-    'vseg-16-103-0_onnxrt': 'ONR-SS-8560-fpnlite-aspp-regNetx800mf-cs-768x384', # cityscapes model not part of Model Zoo
-    'vseg-16-104-0_onnxrt': 'ONR-SS-8570-fpnlite-aspp-regNetx1.6gf-cs-1024x512', # cityscapes model not part of Model Zoo
-    'vseg-16-105-0_onnxrt': 'ONR-SS-8580-fpnlite-aspp-regNetx3.2gf-cs-1536x768', # cityscapes model not part of Model Zoo
+    # cityscapes model not part of Model Zoo
+    'vseg-16-100-0_tvmdlr': 'TVM-SS-5500-deeplabv3lite-mobv2-cs-768x384',
+    'vseg-16-100-8_tvmdlr': 'TVM-SS-5510-deeplabv3lite-mobv2-cs-qat-768x384',
+    'vseg-16-101-0_tvmdlr': 'TVM-SS-5520-fpnlite-aspp-mobv2-cs-768x384',
+    'vseg-16-101-8_tvmdlr': 'TVM-SS-5528-fpnlite-aspp-mobv2-cs-qat-768x384',
+    'vseg-16-102-0_tvmdlr': 'TVM-SS-5540-unetlite-aspp-mobv2-tv-cs-768x384',
+    'vseg-16-102-8_tvmdlr': 'TVM-SS-5548-unetlite-aspp-mobv2-tv-cs-qat-768x384',
+    'vseg-16-103-0_tvmdlr': 'TVM-SS-5560-fpnlite-aspp-regNetx800mf-cs-768x384',
+    'vseg-16-104-0_tvmdlr': 'TVM-SS-5570-fpnlite-aspp-regNetx1.6gf-cs-1024x512',
+    'vseg-16-105-0_tvmdlr': 'TVM-SS-5580-fpnlite-aspp-regNetx3.2gf-cs-1536x768',
+    'vseg-16-300-0_tvmdlr': 'TVM-SS-5590-deeplabv3-res50-1040x520',
+    'vseg-16-301-0_tvmdlr': 'TVM-SS-5600-fcn-res50-1040x520',
+    # cityscapes model not part of Model Zoo
+    'vseg-16-100-0_onnxrt': 'ONR-SS-8500-deeplabv3lite-mobv2-cs-768x384',
+    'vseg-16-100-8_onnxrt': 'ONR-SS-8508-deeplabv3lite-mobv2-cs-qat-768x384',
+    'vseg-16-101-0_onnxrt': 'ONR-SS-8520-fpnlite-aspp-mobv2-cs-768x384',
+    'vseg-16-101-8_onnxrt': 'ONR-SS-8528-fpnlite-aspp-mobv2-cs-qat-768x384',
+    'vseg-16-102-0_onnxrt': 'ONR-SS-8540-unetlite-aspp-mobv2-tv-cs-768x384',
+    'vseg-16-102-8_onnxrt': 'ONR-SS-8548-unetlite-aspp-mobv2-tv-cs-qat-768x384',
+    'vseg-16-103-0_onnxrt': 'ONR-SS-8560-fpnlite-aspp-regNetx800mf-cs-768x384',
+    'vseg-16-104-0_onnxrt': 'ONR-SS-8570-fpnlite-aspp-regNetx1.6gf-cs-1024x512',
+    'vseg-16-105-0_onnxrt': 'ONR-SS-8580-fpnlite-aspp-regNetx3.2gf-cs-1536x768',
+    'vseg-16-300-0_onnxrt': 'ONR-SS-8590-deeplabv3-res50-1040x520',
+    'vseg-16-301-0_onnxrt': 'ONR-SS-8600-fcn-res50-1040x520',
     ################
     'vcls-10-408-0_tflitert': 'TFL-CL-0240-nasNet-mobile-tflite', # Kumar removed model (Multiple sub-graphs) (Accuracy issue)
     'vcls-10-432-0_tflitert': 'TFL-CL-0180-efficientNet-lite2', # Kumar removed model  (Accuracy issue)
@@ -309,62 +314,61 @@ removed_model_list = {
     'vcls-10-062-0_onnxrt': 'ONR-CL-6430-gluoncv-mxnet-xception',
 
     #ADE20k32 models
-    'vseg-18-100-8_tvmdlr': 'TVM-SS-5620-deeplabv3lite-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
-    'vseg-18-101-8_tvmdlr': 'TVM-SS-5640-unetlite-aspp-mobv2-tv-ade20k32-qat-512x512', # import fails
-    'vseg-18-102-8_tvmdlr': 'TVM-SS-5660-fpnlite-aspp-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
-    'vseg-18-103-8_tvmdlr': 'TVM-SS-5680-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
+    'vseg-18-100-8_tvmdlr': 'TVM-SS-5618-deeplabv3lite-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
+    'vseg-18-101-8_tvmdlr': 'TVM-SS-5638-unetlite-aspp-mobv2-tv-ade20k32-qat-512x512', # import fails
+    'vseg-18-102-8_tvmdlr': 'TVM-SS-5658-fpnlite-aspp-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
+    'vseg-18-103-8_tvmdlr': 'TVM-SS-5678-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
 
-    'vseg-18-100-8_onnxrt': 'ONR-SS-8620-deeplabv3lite-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
-    'vseg-18-101-8_onnxrt': 'ONR-SS-8640-unetlite-aspp-mobv2-tv-ade20k32-qat-512x512', # import fails
-    'vseg-18-102-8_onnxrt': 'ONR-SS-8660-fpnlite-aspp-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
-    'vseg-18-103-8_onnxrt': 'ONR-SS-8680-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
+    'vseg-18-100-8_onnxrt': 'ONR-SS-8618-deeplabv3lite-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
+    'vseg-18-101-8_onnxrt': 'ONR-SS-8638-unetlite-aspp-mobv2-tv-ade20k32-qat-512x512', # import fails
+    'vseg-18-102-8_onnxrt': 'ONR-SS-8658-fpnlite-aspp-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
+    'vseg-18-103-8_onnxrt': 'ONR-SS-8678-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
 
     #512x512 (Only for performance)
-    'vcls-10-100-1_tvmdlr': 'TVM-CL-3160-mobileNetV1-512x512',
-    'vcls-10-101-1_tvmdlr': 'TVM-CL-3170-mobileNetV2-512x512',
-    'vcls-10-301-1_tvmdlr': 'TVM-CL-3180-shuffleNetV2-512x512',
-    'vcls-10-302-1_tvmdlr': 'TVM-CL-3190-mobileNetV2-tv-512x512',
-    'vcls-10-304-1_tvmdlr': 'TVM-CL-3200-resNet18-512x512',
-    'vcls-10-305-1_tvmdlr': 'TVM-CL-3210-resNet50-512x512',
-    'vcls-10-031-1_tvmdlr': 'TVM-CL-3220-regNetX-400mf-512x512',
-    'vcls-10-032-1_tvmdlr': 'TVM-CL-3230-regNetX-800mf-512x512',
-    'vcls-10-033-1_tvmdlr': 'TVM-CL-3240-regNetX-1.6gf-512x512',
-    'vcls-10-102-1_tvmdlr': 'TVM-CL-3250-mobileNetV2-1p4-qat-512x512',
+    'vcls-10-100-1_tvmdlr': 'TVM-CL-3061-mobileNetV1-512x512',
+    'vcls-10-101-1_tvmdlr': 'TVM-CL-3071-mobileNetV2-512x512',
+    'vcls-10-301-1_tvmdlr': 'TVM-CL-3081-shuffleNetV2-512x512',
+    'vcls-10-302-1_tvmdlr': 'TVM-CL-3091-mobileNetV2-tv-512x512',
+    'vcls-10-304-1_tvmdlr': 'TVM-CL-3101-resNet18-512x512',
+    'vcls-10-305-1_tvmdlr': 'TVM-CL-3111-resNet50-512x512',
+    'vcls-10-031-1_tvmdlr': 'TVM-CL-3121-regNetX-400mf-512x512',
+    'vcls-10-032-1_tvmdlr': 'TVM-CL-3131-regNetX-800mf-512x512',
+    'vcls-10-033-1_tvmdlr': 'TVM-CL-3141-regNetX-1.6gf-512x512',
+    'vcls-10-102-1_tvmdlr': 'TVM-CL-3151-mobileNetV2-1p4-qat-512x512',
     
-    'vcls-10-100-1_onnxrt': 'ONR-CL-6160-mobileNetV1-512x512',
-    'vcls-10-101-1_onnxrt': 'ONR-CL-6170-mobileNetV2-512x512',
-    'vcls-10-301-1_onnxrt': 'ONR-CL-6180-shuffleNetV2-512x512',
-    'vcls-10-302-1_onnxrt': 'ONR-CL-6190-mobileNetV2-tv-512x512',
-    'vcls-10-304-1_onnxrt': 'ONR-CL-6200-resNet18-512x512',
-    'vcls-10-305-1_onnxrt': 'ONR-CL-6210-resNet50-512x512',
-    'vcls-10-031-1_onnxrt': 'ONR-CL-6220-regNetX-400mf-512x512',
-    'vcls-10-032-1_onnxrt': 'ONR-CL-6230-regNetX-800mf-512x512',
-    'vcls-10-033-1_onnxrt': 'ONR-CL-6240-regNetX-1.6gf-512x512',
-    'vcls-10-102-1_onnxrt': 'ONR-CL-6250-mobileNetV2-1p4-qat-512x512',
-
+    'vcls-10-100-1_onnxrt': 'ONR-CL-6061-mobileNetV1-512x512',
+    'vcls-10-101-1_onnxrt': 'ONR-CL-6071-mobileNetV2-512x512',
+    'vcls-10-301-1_onnxrt': 'ONR-CL-6081-shuffleNetV2-512x512',
+    'vcls-10-302-1_onnxrt': 'ONR-CL-6091-mobileNetV2-tv-512x512',
+    'vcls-10-304-1_onnxrt': 'ONR-CL-6102-resNet18-512x512',
+    'vcls-10-305-1_onnxrt': 'ONR-CL-6112-resNet50-512x512',
+    'vcls-10-031-1_onnxrt': 'ONR-CL-6122-regNetX-400mf-512x512',
+    'vcls-10-032-1_onnxrt': 'ONR-CL-6132-regNetX-800mf-512x512',
+    'vcls-10-033-1_onnxrt': 'ONR-CL-6142-regNetX-1.6gf-512x512',
+    'vcls-10-102-1_onnxrt': 'ONR-CL-6152-mobileNetV2-1p4-qat-512x512',
 
     #1024x1024  (Only for performance)
-    'vcls-10-100-2_tvmdlr': 'TVM-CL-3260-mobileNetV1-1024x1024',
-    'vcls-10-101-2_tvmdlr': 'TVM-CL-3270-mobileNetV2-1024x1024',
-    'vcls-10-301-2_tvmdlr': 'TVM-CL-3280-shuffleNetV2-1024x1024',
-    'vcls-10-302-2_tvmdlr': 'TVM-CL-3290-mobileNetV2-tv-1024x1024',
-    'vcls-10-304-2_tvmdlr': 'TVM-CL-3300-resNet18-1024x1024',
-    'vcls-10-305-2_tvmdlr': 'TVM-CL-3310-resNet50-1024x1024',
-    'vcls-10-031-2_tvmdlr': 'TVM-CL-3320-regNetX-400mf-1024x1024',
-    'vcls-10-032-2_tvmdlr': 'TVM-CL-3330-regNetX-800mf-1024x1024',
-    'vcls-10-033-2_tvmdlr': 'TVM-CL-3340-regNetX-1.6gf-1024x1024',
-    'vcls-10-102-2_tvmdlr': 'TVM-CL-3350-mobileNetV2-1p4-qat-1024x1024',
+    'vcls-10-100-2_tvmdlr': 'TVM-CL-3062-mobileNetV1-1024x1024',
+    'vcls-10-101-2_tvmdlr': 'TVM-CL-3072-mobileNetV2-1024x1024',
+    'vcls-10-301-2_tvmdlr': 'TVM-CL-3082-shuffleNetV2-1024x1024',
+    'vcls-10-302-2_tvmdlr': 'TVM-CL-3092-mobileNetV2-tv-1024x1024',
+    'vcls-10-304-2_tvmdlr': 'TVM-CL-3102-resNet18-1024x1024',
+    'vcls-10-305-2_tvmdlr': 'TVM-CL-3112-resNet50-1024x1024',
+    'vcls-10-031-2_tvmdlr': 'TVM-CL-3122-regNetX-400mf-1024x1024',
+    'vcls-10-032-2_tvmdlr': 'TVM-CL-3132-regNetX-800mf-1024x1024',
+    'vcls-10-033-2_tvmdlr': 'TVM-CL-3142-regNetX-1.6gf-1024x1024',
+    'vcls-10-102-2_tvmdlr': 'TVM-CL-3152-mobileNetV2-1p4-qat-1024x1024',
 
-    'vcls-10-100-2_onnxrt': 'ONR-CL-6260-mobileNetV1-1024x1024',
-    'vcls-10-101-2_onnxrt': 'ONR-CL-6270-mobileNetV2-1024x1024',
-    'vcls-10-301-2_onnxrt': 'ONR-CL-6280-shuffleNetV2-1024x1024',
-    'vcls-10-302-2_onnxrt': 'ONR-CL-6290-mobileNetV2-tv-1024x1024',
-    'vcls-10-304-2_onnxrt': 'ONR-CL-6300-resNet18-1024x1024',
-    'vcls-10-305-2_onnxrt': 'ONR-CL-6310-resNet50-1024x1024',
-    'vcls-10-031-2_onnxrt': 'ONR-CL-6320-regNetX-400mf-1024x1024',
-    'vcls-10-032-2_onnxrt': 'ONR-CL-6330-regNetX-800mf-1024x1024',
-    'vcls-10-033-2_onnxrt': 'ONR-CL-6340-regNetX-1.6gf-1024x1024',
-    'vcls-10-102-2_onnxrt': 'ONR-CL-6350-mobileNetV2-1p4-qat-1024x1024',
+    'vcls-10-100-2_onnxrt': 'ONR-CL-6062-mobileNetV1-1024x1024',
+    'vcls-10-101-2_onnxrt': 'ONR-CL-6072-mobileNetV2-1024x1024',
+    'vcls-10-301-2_onnxrt': 'ONR-CL-6082-shuffleNetV2-1024x1024',
+    'vcls-10-302-2_onnxrt': 'ONR-CL-6092-mobileNetV2-tv-1024x1024',
+    'vcls-10-304-2_onnxrt': 'ONR-CL-6102-resNet18-1024x1024',
+    'vcls-10-305-2_onnxrt': 'ONR-CL-6112-resNet50-1024x1024',
+    'vcls-10-031-2_onnxrt': 'ONR-CL-6122-regNetX-400mf-1024x1024',
+    'vcls-10-032-2_onnxrt': 'ONR-CL-6132-regNetX-800mf-1024x1024',
+    'vcls-10-033-2_onnxrt': 'ONR-CL-6142-regNetX-1.6gf-1024x1024',
+    'vcls-10-102-2_onnxrt': 'ONR-CL-6152-mobileNetV2-1p4-qat-1024x1024',
 
     # ONNX-SS - CocoSeg21 Models are not added yet
     'vseg-21-100-0_onnxrt' : 'ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512',
@@ -379,7 +383,7 @@ removed_model_list = {
     'vseg-19-400-0_tflitert' : 'TFL-SS-2590-deeplabv3_mobv2-dm05-pascal-trainaug-512x512',
     'vcls-10-410-0_tflitert' : 'TFL-CL-0060-resNet50V2',
     'vseg-19-401-0_tflitert' : 'TFL-SS-2600-deeplabv3_mobv2-pascal-trainaug-512x512',
-    'vcls-10-400-8_tflitert' : 'TFL-CL-0220-mobileNetV1-qat',
+    'vcls-10-400-8_tflitert' : 'TFL-CL-0218-mobileNetV1-qat',
     'vcls-10-401-0_tflitert' : 'TFL-CL-0010-mobileNetV2',
     'vcls-10-301-0_onnxrt' : 'ONR-CL-6080-shuffleNetV2',
     'vcls-10-402-0_tflitert' : 'TFL-CL-0200-mobileNetV2-1p4',
