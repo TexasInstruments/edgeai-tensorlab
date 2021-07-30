@@ -28,7 +28,7 @@
 #################################################################################
 import os
 
-#ver:17 2021-07-30
+#ver:18 2021-07-30
 
 # Conventions
 # RunTime  Task                  start_id 
@@ -330,7 +330,7 @@ model_id_artifacts_pair = {
 }
 
 removed_model_list = {
-    'cs-3020_tvmdlr' : 'TVM-CL-3020-xceptionNet-mxnet', # This is replaced with tflite model now (that was also eventually removed)
+    'cl-3020_tvmdlr' : 'TVM-CL-3020-xceptionNet-mxnet', # This is replaced with tflite model now (that was also eventually removed)
     'cl-0230_tflitert': 'TFL-CL-0230-mobileNetV2-qat',  # QAT model is not giving good accuracy so keep only float
     'od-5000_tvmdlr': 'TVM-OD-5000-ssd1200-resNet34-mlperf-1200x1200', # Using ONNX RT for this.
     ################ CS models
