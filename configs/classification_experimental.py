@@ -57,14 +57,14 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_top1%':71.59})
         # ),
         # jai-devkit: classification mobilenetv3_large_lite qat expected_metric: 71.614% top-1 accuracy
-        'vcls-10-106-8':utils.dict_update(common_cfg,
+        'vdet-5060':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_qat-p2_20210507.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.614})
         ),
         # jai-devkit: classification mobilenetv3_large_lite_x2r expected_metric: 74.160% top-1 accuracy
-        'vcls-10-107-0':utils.dict_update(common_cfg,
+        'vcls-6508':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_x2r_20210522.onnx'),
@@ -82,7 +82,7 @@ def get_configs(settings, work_dir):
         #       MXNet MODELS
         #################################################################
         # mxnet : gluoncv model : classification - hrnet_w30_c - - reference accuracy: is from hrnet website, not from gluoncv
-        'vcls-10-064-0':utils.dict_update(common_cfg,
+        'vdet-2130':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(backend='cv2'),
             session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
                 model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/hrnet_w30_c-symbol.json',
