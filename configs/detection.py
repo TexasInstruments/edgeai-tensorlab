@@ -69,7 +69,7 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################onnx models#####################################
         # mlperf edge: detection - coco_ssd-resnet34_1200x1200 - expected_metric: 20.0% COCO AP[0.5-0.95]
-        'vdet-5000':utils.dict_update(common_cfg,
+        'vdet-8000':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx((1200,1200), (1200,1200), backend='cv2'),
             session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_ssd_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_resnet34-ssd1200.onnx'),
@@ -266,7 +266,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':29.1})
         ),
-        'vdet-2120':utils.dict_update(common_cfg,
+        'vdet-2130':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite((320,320), (320,320), backend='cv2'),
             session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_mobilenet_v2_320x320_coco17_tpu-8.tflite'),

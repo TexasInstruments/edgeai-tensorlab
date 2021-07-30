@@ -62,7 +62,7 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################onnx models#####################################
         # # yolov3: detection - yolov3 416x416 - expected_metric: 31.0% COCO AP[0.5-0.95]
-        # 'vdet-5010':utils.dict_update(common_cfg,
+        # 'vdet-8010':utils.dict_update(common_cfg,
         #     preprocess=settings.get_preproc_onnx((416,416), (416,416), backend='cv2',
         #         mean=(0.0, 0.0, 0.0), scale=(1/255.0, 1/255.0, 1/255.0)),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
@@ -73,7 +73,7 @@ def get_configs(settings, work_dir):
         #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90()),
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':31.0})
         # ),
-        'vdet-5010':utils.dict_update(common_cfg,
+        'vdet-8100':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(640, 640,  resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
@@ -86,7 +86,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.4})
         ),
-        'vdet-8100':utils.dict_update(common_cfg,
+        'vdet-8110':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(384, 384,  resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
@@ -99,7 +99,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.8})
         ),
-        'vdet-8110':utils.dict_update(common_cfg,
+        'vdet-8120':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(640, 640, resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
@@ -112,7 +112,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':44.1})
         ),
-           'vdet-8120':utils.dict_update(common_cfg,
+           'vdet-8130':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(640, 640, resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
@@ -130,7 +130,7 @@ def get_configs(settings, work_dir):
         #       MXNET MODELS
         #################################################################
         # # mxnet : gluoncv model : detection - yolo3_darknet53_coco - accuracy: 36.0% ap[0.5:0.95], 57.2% ap50
-        # 'vcls-3510':utils.dict_update(common_cfg,
+        # 'vdet-5050':utils.dict_update(common_cfg,
         #     preprocess=settings.get_preproc_onnx((416,416), (416,416), backend='cv2'),
         #     session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_p2(),
         #         model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/yolo3_darknet53_coco-symbol.json',
@@ -141,7 +141,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':36.0})
         # ),
         # # mxnet : gluoncv model : detection - center_net_resnet18_v1b_coco - accuracy: 26.6% ap[0.5:0.95], 28.1% ap50
-        # 'vdet-5050':utils.dict_update(common_cfg,
+        # 'vdet-5060':utils.dict_update(common_cfg,
         #     preprocess=settings.get_preproc_onnx((512,512), (512,512), backend='cv2'),
         #     session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_p2(),
         #         model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/center_net_resnet18_v1b_coco-symbol.json',
@@ -154,7 +154,7 @@ def get_configs(settings, work_dir):
         #################################################################
         #       TFLITE MODELS
         #################tflite models###################################
-        # 'vkpdet-7030':utils.dict_update(common_cfg,
+        # 'vdet-2120':utils.dict_update(common_cfg,
         #     preprocess=settings.get_preproc_tflite((1024,1024), (1024,1024), backend='cv2'),
         #     session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
         #         model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_resnet50_v1_fpn_1024x1024_coco17_tpu-8.tflite'),

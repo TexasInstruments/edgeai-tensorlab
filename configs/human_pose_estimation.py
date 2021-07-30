@@ -56,7 +56,7 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         ################# onnx models ###############################
         # human pose estimation : mobilenetv2 + fpn_spp + udp, Expected AP : 42.31
-        'vseg-8730':utils.dict_update(common_cfg,
+        'vkpdet-7000':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True,
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**common_session_cfg,
@@ -67,7 +67,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':42.31})
         ),
         # human pose estimation : resnet50 + fpn_spp, Expected AP : 50.4
-        'vkpdet-7000':utils.dict_update(common_cfg,
+        'vkpdet-7010':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True,
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**common_session_cfg, 
@@ -78,7 +78,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':50.4})
         ),
         # human pose estimation : mobilenetv2 + pan_spp + udp, Expected AP : 45.41
-        'vkpdet-7010':utils.dict_update(common_cfg,
+        'vkpdet-7020':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True, 
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**common_session_cfg, 
@@ -89,7 +89,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':45.41})
         ),
         # human pose estimation : resnet50 + pan_spp + udp, Expected AP : 51.62
-        'vkpdet-7020':utils.dict_update(common_cfg,
+        'vkpdet-7030':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True, 
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**common_session_cfg,

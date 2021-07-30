@@ -70,7 +70,7 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################mlperf models###################################
         # edgeai: segmentation - fpnlite_aspp_regnetx400mf_ade20k32_384x384_20210314-205347 expected_metric: 51.03% mean-iou
-        'vseg-5690':utils.dict_update(ade20k32_cfg,
+        'vseg-8690':utils.dict_update(ade20k32_cfg,
             preprocess=settings.get_preproc_jai((384,384), (384,384), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpnlite_aspp_regnetx400mf_ade20k32_384x384_outby4.onnx'),
@@ -78,7 +78,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_mean_iou%':50.85})
         ),
         # edgeai: segmentation - fpnlite_aspp_regnetx800mf_ade20k32_512x512_20210312-150048 expected_metric: 53.29% mean-iou
-        'vseg-5700':utils.dict_update(ade20k32_cfg,
+        'vseg-8700':utils.dict_update(ade20k32_cfg,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpnlite_aspp_regnetx800mf_ade20k32_512x512_outby4.onnx'),
@@ -86,28 +86,28 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_mean_iou%':53.16})
         ),
         ################# jacinto-ai ONNX models : ADE20k-Class32 ###################################
-        'vseg-5610':utils.dict_update(ade20k32_cfg,
+        'vseg-8610':utils.dict_update(ade20k32_cfg,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/deeplabv3lite_mobilenetv2_512x512_ade20k32_outby4.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':51.08})
         ),
-        'vseg-5630':utils.dict_update(ade20k32_cfg,
+        'vseg-8630':utils.dict_update(ade20k32_cfg,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/unetlite_aspp_mobilenetv2_512x512_ade20k32_outby2.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':50.07})
         ),
-        'vseg-5650':utils.dict_update(ade20k32_cfg,
+        'vseg-8650':utils.dict_update(ade20k32_cfg,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpnlite_aspp_mobilenetv2_512x512_ade20k32_outby4.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':50.55})
         ),
-        'vseg-5670':utils.dict_update(ade20k32_cfg,
+        'vseg-8670':utils.dict_update(ade20k32_cfg,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpnlite_aspp_mobilenetv2_1p4_512x512_ade20k32_outby4.onnx'),
@@ -116,21 +116,21 @@ def get_configs(settings, work_dir):
         ),
 
         #------------------------coco 21 class-----------------------
-        'vseg-5710':utils.dict_update(cocoseg21_cfg,
+        'vseg-8710':utils.dict_update(cocoseg21_cfg,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/deeplabv3lite_mobilenetv2_cocoseg21_512x512_20210405.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':57.77})
         ),
-        'vseg-5711':utils.dict_update(cocoseg21_cfg,
+        'vseg-8720':utils.dict_update(cocoseg21_cfg,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/fpnlite_aspp_regnetx800mf_cocoseg21_512x512_20210405.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':61.09})
         ),
-        'vseg-8720':utils.dict_update(cocoseg21_cfg,
+        'vseg-8730':utils.dict_update(cocoseg21_cfg,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/deeplabv3_mobilenet_v3_lite_large_512x512_20210527.onnx'),

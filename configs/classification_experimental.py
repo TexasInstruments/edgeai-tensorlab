@@ -50,21 +50,21 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################jai-devkit models###############################
         # # torchvision: classification vgg16_224x224 expected_metric: 71.59% top-1 accuracy - too slow inference
-        # 'vcls-3370':utils.dict_update(common_cfg,
+        # 'vcls-6370':utils.dict_update(common_cfg,
         #     preprocess=settings.get_preproc_onnx(),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
         #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/vgg16.onnx'),
         #     model_info=dict(metric_reference={'accuracy_top1%':71.59})
         # ),
         # jai-devkit: classification mobilenetv3_large_lite qat expected_metric: 71.614% top-1 accuracy
-        'vdet-5060':utils.dict_update(common_cfg,
+        'vcls-6508':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_qat-p2_20210507.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.614})
         ),
         # jai-devkit: classification mobilenetv3_large_lite_x2r expected_metric: 74.160% top-1 accuracy
-        'vcls-6508':utils.dict_update(common_cfg,
+        'vcls-6510':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_x2r_20210522.onnx'),
@@ -72,7 +72,7 @@ def get_configs(settings, work_dir):
         ),
         #################github/onnx/models#############################
         # github onnx model: classification resnet18_v2 expected_metric: 69.70% top-1 accuracy
-        'vcls-3000':utils.dict_update(common_cfg,
+        'vcls-6000':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/onnx-models/resnet18-v2-7.onnx'),
@@ -82,7 +82,7 @@ def get_configs(settings, work_dir):
         #       MXNet MODELS
         #################################################################
         # mxnet : gluoncv model : classification - hrnet_w30_c - - reference accuracy: is from hrnet website, not from gluoncv
-        'vdet-2130':utils.dict_update(common_cfg,
+        'vcls-3510':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(backend='cv2'),
             session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
                 model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/hrnet_w30_c-symbol.json',
