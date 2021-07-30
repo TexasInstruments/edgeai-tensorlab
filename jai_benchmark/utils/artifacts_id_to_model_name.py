@@ -29,7 +29,7 @@
 import os
 
 #mapping from artifacts id to readable model names
-#ver:16 2021-07-29
+#ver:17 2021-07-30
 model_id_artifacts_pair = {
     # TFLite CL
     'vcls-0000_tflitert': 'TFL-CL-0000-mobileNetV1-mlperf',
@@ -139,7 +139,7 @@ model_id_artifacts_pair = {
     'vcls-3470_tvmdlr': 'TVM-CL-3470-harDNet39ds',
     
     'vcls-3480_tvmdlr': 'TVM-CL-3480-hrnet-w18-small-v2-gluon-mxnet',#added in SDK8.0
-    'vcls-3490_tvmdlr': 'TVM-CL-3498-mobv3-ti-lite-large-qat', #added in SDK8.0 #'vcls-10-106-8'
+    'vcls-3498_tvmdlr': 'TVM-CL-3498-mobv3-ti-lite-large-qat', #added in SDK8.0 #'vcls-10-106-8'
     'vcls-3500_tvmdlr': 'TVM-CL-3500-mobv3-ti-lite-large-x2r', #added in SDK8.0 #'vcls-10-107-0'
     'vcls-3510_tvmdlr': 'TVM-CL-3510-hrnet-w30-c-gluon-mxnet', #added in SDK8.0 #'vcls-10-064-0'
 
