@@ -28,8 +28,33 @@
 #################################################################################
 import os
 
-#mapping from artifacts id to readable model names
 #ver:17 2021-07-30
+
+# Conventions
+# RunTime  Task                  start_id 
+# TF	   Classification	        0000
+# TF	   human pose estimation	1000
+# TF	   3D OD	                1100
+# TF	   object pose estimation	1200
+# TF	   OD	                    2000
+# TF	   Semantic Segmentation	2500
+		
+# TVM	   Classification	        3000
+# TVM	   human pose estimation	4000
+# TVM	   3D OD	                4100
+# TVM	   object pose estimation	4200
+# TVM	   OD	                    5000
+# TVM	   Semantic Segmentation	5500
+		
+# OD	   Classification	        6000
+# OD	   human pose estimation	7000
+# OD	   3D OD	                7100
+# OD	   object pose estimation	7200
+# OD	   OD	                    8000
+# OD	   Semantic Segmentation	8500
+
+
+#mapping from artifacts id to readable model names
 model_id_artifacts_pair = {
     # TFLite CL
     'cl-0000_tflitert': 'TFL-CL-0000-mobileNetV1-mlperf',
@@ -305,10 +330,9 @@ model_id_artifacts_pair = {
 }
 
 removed_model_list = {
-    'cl-3020_tvmdlr' : 'TVM-CL-3020-xceptionNet-mxnet', # this is replaced with tflite model now (that was also eventually removed)
+    'cs-3020_tvmdlr' : 'TVM-CL-3020-xceptionNet-mxnet', # This is replaced with tflite model now (that was also eventually removed)
     'cl-0230_tflitert': 'TFL-CL-0230-mobileNetV2-qat',  # QAT model is not giving good accuracy so keep only float
-    'od-5000_tvmdlr': 'TVM-OD-5000-ssd1200-resNet34-mlperf-1200x1200', # Not working with TVM. Will need to park it till ONNX RT OD support is available.
-    #'od-12-012-0_onnxrt': 'ONR-OD-800-ssd1200-resNet34-mlperf-1200x1200', #ONNX does not support OD yet
+    'od-5000_tvmdlr': 'TVM-OD-5000-ssd1200-resNet34-mlperf-1200x1200', # Using ONNX RT for this.
     ################ CS models
     # cityscapes model not part of Model Zoo
     'ss-5500_tvmdlr': 'TVM-SS-5500-deeplabv3lite-mobv2-cs-768x384',
@@ -362,7 +386,7 @@ removed_model_list = {
     'cl-6040_onnxrt': 'ONR-CL-6040-nasNet-mobile-tflite', # not part of benchmarking script yet. tflite model with TVM.
     'od-8010_onnxrt': 'ONR-OD-8010-yolov3-416x416', # not supported yet
     'cl-0150_tflitert': 'TFL-CL-0150-denseNet', # too far from optimal pareto line
-    'od-5020_tvmdlr': 'TVM-OD-5020-yolov3-mobv1-gluon-mxnet-416x416', #segmentation fault while running import
+    #'od-5020_tvmdlr': 'TVM-OD-5020-yolov3-mobv1-gluon-mxnet-416x416', #segmentation fault while running import
 
     #removed from ONNX-RT
     'cl-6410_onnxrt': 'ONR-CL-6410-gluoncv-mxnet-mobv2',
@@ -380,61 +404,15 @@ removed_model_list = {
     'ss-8658_onnxrt': 'ONR-SS-8658-fpnlite-aspp-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
     'ss-8678_onnxrt': 'ONR-SS-8678-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
 
-    #512x512 (Only for performance)
-    'cl-3061_tvmdlr': 'TVM-CL-3061-mobileNetV1-512x512',
-    'cl-3071_tvmdlr': 'TVM-CL-3071-mobileNetV2-512x512',
-    'cl-3081_tvmdlr': 'TVM-CL-3081-shuffleNetV2-512x512',
-    'cl-3091_tvmdlr': 'TVM-CL-3091-mobileNetV2-tv-512x512',
-    'cl-3101_tvmdlr': 'TVM-CL-3101-resNet18-512x512',
-    'cl-3111_tvmdlr': 'TVM-CL-3111-resNet50-512x512',
-    'cl-3121_tvmdlr': 'TVM-CL-3121-regNetX-400mf-512x512',
-    'cl-3131_tvmdlr': 'TVM-CL-3131-regNetX-800mf-512x512',
-    'cl-3141_tvmdlr': 'TVM-CL-3141-regNetX-1.6gf-512x512',
-    'cl-3151_tvmdlr': 'TVM-CL-3151-mobileNetV2-1p4-qat-512x512',
-    
-    'cl-6061_onnxrt': 'ONR-CL-6061-mobileNetV1-512x512',
-    'cl-6071_onnxrt': 'ONR-CL-6071-mobileNetV2-512x512',
-    'cl-6081_onnxrt': 'ONR-CL-6081-shuffleNetV2-512x512',
-    'cl-6091_onnxrt': 'ONR-CL-6091-mobileNetV2-tv-512x512',
-    'cl-6101_onnxrt': 'ONR-CL-6101-resNet18-512x512',
-    'cl-6111_onnxrt': 'ONR-CL-6111-resNet50-512x512',
-    'cl-6121_onnxrt': 'ONR-CL-6121-regNetX-400mf-512x512',
-    'cl-6131_onnxrt': 'ONR-CL-6131-regNetX-800mf-512x512',
-    'cl-6141_onnxrt': 'ONR-CL-6141-regNetX-1.6gf-512x512',
-    'cl-6151_onnxrt': 'ONR-CL-6151-mobileNetV2-1p4-qat-512x512',
+    # ONNX-SS-CocoSeg21 Models  are now in after SDK8.0
+    #'vseg-8710_onnxrt' : 'ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512',
+    #'vseg-8720_onnxrt' : 'ONR-SS-8720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
 
-    #1024x1024  (Only for performance)
-    'cl-3062_tvmdlr': 'TVM-CL-3062-mobileNetV1-1024x1024',
-    'cl-3072_tvmdlr': 'TVM-CL-3072-mobileNetV2-1024x1024',
-    'cl-3082_tvmdlr': 'TVM-CL-3082-shuffleNetV2-1024x1024',
-    'cl-3092_tvmdlr': 'TVM-CL-3092-mobileNetV2-tv-1024x1024',
-    'cl-3102_tvmdlr': 'TVM-CL-3102-resNet18-1024x1024',
-    'cl-3112_tvmdlr': 'TVM-CL-3112-resNet50-1024x1024',
-    'cl-3122_tvmdlr': 'TVM-CL-3122-regNetX-400mf-1024x1024',
-    'cl-3132_tvmdlr': 'TVM-CL-3132-regNetX-800mf-1024x1024',
-    'cl-3142_tvmdlr': 'TVM-CL-3142-regNetX-1.6gf-1024x1024',
-    'cl-3152_tvmdlr': 'TVM-CL-3152-mobileNetV2-1p4-qat-1024x1024',
+    # TVM-SS-CocoSeg21 Models are now in after SDK8.0 
+    #'vseg-5710_tvmdlr' : 'TVM-SS-5710-deeplabv3lite-mobv2-cocoseg21-512x512',
+    #'vseg-5720_tvmdlr' : 'TVM-SS-5720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
 
-    'cl-6062_onnxrt': 'ONR-CL-6062-mobileNetV1-1024x1024',
-    'cl-6072_onnxrt': 'ONR-CL-6072-mobileNetV2-1024x1024',
-    'cl-6082_onnxrt': 'ONR-CL-6082-shuffleNetV2-1024x1024',
-    'cl-6092_onnxrt': 'ONR-CL-6092-mobileNetV2-tv-1024x1024',
-    'cl-6102_onnxrt': 'ONR-CL-6102-resNet18-1024x1024',
-    'cl-6112_onnxrt': 'ONR-CL-6112-resNet50-1024x1024',
-    'cl-6122_onnxrt': 'ONR-CL-6122-regNetX-400mf-1024x1024',
-    'cl-6132_onnxrt': 'ONR-CL-6132-regNetX-800mf-1024x1024',
-    'cl-6142_onnxrt': 'ONR-CL-6142-regNetX-1.6gf-1024x1024',
-    'cl-6152_onnxrt': 'ONR-CL-6152-mobileNetV2-1p4-qat-1024x1024',
-
-    # ONNX-SS - CocoSeg21 Models are not added yet
-    'ss-8710_onnxrt' : 'ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512',
-    'ss-8720_onnxrt' : 'ONR-SS-8720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
-
-    # TVM-SS-CocoSeg21 Models are not added yet
-    'ss-5710_tvmdlr' : 'TVM-SS-5710-deeplabv3lite-mobv2-cocoseg21-512x512',
-    'ss-5720_tvmdlr' : 'TVM-SS-5720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
-
-    #removed low accuracy models where drop is more wrt reference accuracy. This will be corrected in the next release.
+    # During SDK7.3 removed low accuracy models where drop is more wrt reference accuracy. This will be corrected in the future.
     'ss-2540_tflitert' : 'TFL-SS-2540-deeplabv3-mobv2-ade20k-512x512',
     'ss-2590_tflitert' : 'TFL-SS-2590-deeplabv3_mobv2-dm05-pascal-trainaug-512x512',
     'cl-0060_tflitert' : 'TFL-CL-0060-resNet50V2',
@@ -443,7 +421,13 @@ removed_model_list = {
     'cl-0010_tflitert' : 'TFL-CL-0010-mobileNetV2',
     'cl-6080_onnxrt' : 'ONR-CL-6080-shuffleNetV2',
     'cl-0200_tflitert' : 'TFL-CL-0200-mobileNetV2-1p4',
-    'cl-3430_tvmdlr' : 'TVM-CL-3430-gluoncv-mxnet-xception',
+    #'vcls-3430_tvmdlr' : 'TVM-CL-3430-gluoncv-mxnet-xception', #enabled during SDK8.0
+
+    # During SDK8.0 removed low accuracy models where drop is more wrt reference accuracy.
+    'od-2100_tflitert':'TFL-OD-2100-ssd-res50V1-fpn-coco-tpu-8-640x640',
+    'od-5030_tvmdlr': 'TVM-OD-5030-ssd-res50v1-gluon-mxnet-512x512', 
+    'cl-0270_tflitert': 'TFL-CL-0270-mobv3-small-minimalistic',
+    'od-5040_tvmdlr': 'TVM-OD-5040-ssd-mobv1-coco-gluon-mxnet-512x512', #renamed mobv1 model in SDK8.0
 }
 
 removed_models_from_plots = {
