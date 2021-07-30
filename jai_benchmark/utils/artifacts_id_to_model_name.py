@@ -58,7 +58,7 @@ model_id_artifacts_pair = {
     'vcls-0250_tflitert': 'TFL-CL-0250-xceptionNet-tflite', # mxnet model replaced with with tflite model now
     'vcls-0260_tflitert': 'TFL-CL-0260-mobv3-large-minimalistic', #added in SDK8.0
     'vcls-0270_tflitert': 'TFL-CL-0270-mobv3-small-minimalistic', #added in SDK8.0
-
+        
     # TFLite OD
     'vdet-2000_tflitert': 'TFL-OD-2000-ssd-mobV1-coco-mlperf-300x300',
     'vdet-2010_tflitert': 'TFL-OD-2010-ssd-mobV2-coco-mlperf-300x300', 
@@ -74,6 +74,8 @@ model_id_artifacts_pair = {
     'vdet-2090_tflitert':'TFL-OD-2090-ssd-mobV2-fpnlite-coco-tpu-8-640x640',
     'vdet-2100_tflitert':'TFL-OD-2100-ssd-res50V1-fpn-coco-tpu-8-640x640',
     'vdet-2110_tflitert':'TFL-OD-2110-efficient-det-ti-lite0-512x512',
+    'vdet-2120_tflitert':'TFL-OD-2120-ssd-res50V1-fpn-coco-tpu-8-1024x1024', #'vdet-12-415-0'
+    'vdet-2130_tflitert':'TFL-OD-2130-ssd-mobV2-coco-tpu-8-320x320', #'vdet-12-411-0'
 
     # TFLite SS
     'vseg-2500_tflitert': 'TFL-SS-2500-deeplab-mobV2-ade20k-512x512',
@@ -137,6 +139,10 @@ model_id_artifacts_pair = {
     'vcls-3470_tvmdlr': 'TVM-CL-3470-harDNet39ds',
     
     'vcls-3480_tvmdlr': 'TVM-CL-3480-hrnet-w18-small-v2-gluon-mxnet',#added in SDK8.0
+    'vcls-3490_tvmdlr': 'TVM-CL-3498-mobv3-ti-lite-large-qat', #added in SDK8.0 #'vcls-10-106-8'
+    'vcls-3500_tvmdlr': 'TVM-CL-3500-mobv3-ti-lite-large-x2r', #added in SDK8.0 #'vcls-10-107-0'
+    'vcls-3510_tvmdlr': 'TVM-CL-3510-hrnet-w30-c-gluon-mxnet', #added in SDK8.0 #'vcls-10-064-0'
+
     
     # TVM - OD
     'vdet-5000_tvmdlr': 'TVM-OD-5000-ssd1200-resNet34-mlperf-1200x1200',
@@ -145,6 +151,9 @@ model_id_artifacts_pair = {
 
     'vdet-5030_tvmdlr': 'TVM-OD-5030-ssd-res50v1-gluon-mxnet-512x512', #added in SDK8.0
     'vdet-5040_tvmdlr': 'TVM-OD-5040-ssd-mobv1-coco-gluon-mxnet-512x512', #renamed mobv1 model in SDK8.0
+
+    'vdet-5050_tvmdlr': 'TVM-OD-5050-yolo3_darknet53-coco-gluon-mxnet-512x512', #renamed mobv1 model in SDK8.0 #'vdet-12-063-0'
+    'vdet-5060_tvmdlr': 'TVM-OD-5060-centernet-r18-v1b-coco-gluon-mxnet-512x512', #renamed mobv1 model in SDK8.0 'vdet-12-064-0'
 
     # TVM - SS - CS
     'vseg-5500_tvmdlr': 'TVM-SS-5500-deeplabv3lite-mobv2-cs-768x384',
@@ -233,6 +242,9 @@ model_id_artifacts_pair = {
     'vcls-6480_onnxrt': 'ONR-CL-6480-mobv3-lite-small',
     'vcls-6488_onnxrt': 'ONR-CL-6488-mobv3-lite-small-qat',
     'vcls-6490_onnxrt': 'ONR-CL-6490-mobv3-lite-large',
+
+    'vcls-6508_onnxrt': 'ONR-CL-6508-mobv3-ti-lite-large-qat', #added in SDK8.0 #'vcls-10-106-8'
+    'vcls-6510_onnxrt': 'ONR-CL-6510-mobv3-ti-lite-large-x2r', #added in SDK8.0 #'vcls-10-107-0'
     
     # ONNX - OD
     'vdet-8000_onnxrt': 'ONR-OD-8000-ssd1200-resNet34-mlperf-1200x1200',
@@ -283,6 +295,7 @@ model_id_artifacts_pair = {
     'vseg-8710_onnxrt': 'ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512',
     'vseg-8720_onnxrt': 'ONR-SS-8720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
     'vseg-8730_onnxrt': 'ONR-SS-8730-deeplabv3-mobv3-lite-large-cocoseg21-512x512', #added in SDK8.0
+    'vseg-8731_onnxrt': 'ONR-SS-8731-lraspp-mobV3-ti-lite-large-cocoseg21-512x512', #added in SDK8.0 #'vseg-21-105-0'
 
     #ONNX key point detections
     'vkpdet-7000_onnxrt': 'ONR-KD-7000-human-pose-ae-mobv2-fpn-spp-udp-512x512',
