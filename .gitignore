@@ -20,3 +20,5 @@ backup/*
 *.csv
 *.ods
 *.zip
+*.tar.gz
+
