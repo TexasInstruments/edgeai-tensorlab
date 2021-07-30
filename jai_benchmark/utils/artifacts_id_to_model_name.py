@@ -25,12 +25,11 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 #################################################################################
 import os
 
 #mapping from artifacts id to readable model names
-#ver:15 2021-07-29
+#ver:16 2021-07-29
 model_id_artifacts_pair = {
     # TFLite CL
     'vcls-0000_tflitert': 'TFL-CL-0000-mobileNetV1-mlperf',

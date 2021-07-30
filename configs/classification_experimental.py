@@ -50,7 +50,7 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################jai-devkit models###############################
         # # torchvision: classification vgg16_224x224 expected_metric: 71.59% top-1 accuracy - too slow inference
-        # 'vcls-10-306-0':utils.dict_update(common_cfg,
+        # 'vcls-3370':utils.dict_update(common_cfg,
         #     preprocess=settings.get_preproc_onnx(),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
         #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/vgg16.onnx'),
@@ -72,7 +72,7 @@ def get_configs(settings, work_dir):
         ),
         #################github/onnx/models#############################
         # github onnx model: classification resnet18_v2 expected_metric: 69.70% top-1 accuracy
-        'vcls-10-020-0':utils.dict_update(common_cfg,
+        'vcls-3000':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/onnx-models/resnet18-v2-7.onnx'),
@@ -94,7 +94,7 @@ def get_configs(settings, work_dir):
         #       TFLITE MODELS
         ##################tensorflow models##############################
         # tensorflow/models: classification mobilenetv2_224x224 quant expected_metric: 70.8% top-1 accuracy
-        'vcls-10-401-8':utils.dict_update(common_cfg,
+        'vcls-0018':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_1.0_224_quant.tflite'),
@@ -102,7 +102,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':70.8})
         ),
         # tf hosted models: classification nasnet mobile expected_metric: 73.9% top-1 accuracy
-        'vcls-10-408-0':utils.dict_update(common_cfg,
+        'vcls-0240':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/nasnet_mobile.tflite'),
@@ -110,7 +110,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':73.9})
         ),
         # # tensorflow/tpu: classification efficinetnet-lite2_260x260 expected_metric: 77.6% top-1 accuracy
-        # 'vcls-10-432-0':utils.dict_update(common_cfg,
+        # 'vcls-0180':utils.dict_update(common_cfg,
         #     preprocess=settings.get_preproc_tflite(297, 260),
         #     session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
         #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite2-fp32.tflite'),
@@ -118,7 +118,7 @@ def get_configs(settings, work_dir):
         # ),
         # ##################tf2-models#####################################################
         # # tf2_models: classification xception expected_metric: 79.0% top-1 accuracy
-        # 'vcls-10-450-0':utils.dict_update(common_cfg,
+        # 'vcls-0250':utils.dict_update(common_cfg,
         #     preprocess=settings.get_preproc_tflite(342, 299),
         #     session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
         #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf2-models/xception.tflite'),

@@ -50,49 +50,49 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################jai-devkit models###############################
         # jai-devkit: classification mobilenetv1_224x224 expected_metric: 71.82% top-1 accuracy
-        'vcls-10-100-0':utils.dict_update(common_cfg,
+        'vcls-3060':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v1_20190906.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.82})
         ),
         # jai-devkit: classification mobilenetv2_224x224 expected_metric: 72.13% top-1 accuracy
-        'vcls-10-101-0':utils.dict_update(common_cfg,
+        'vcls-3070':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.13})
         ),
         # jai-devkit: classification mobilenetv2_224x224 expected_metric: 72.13% top-1 accuracy, QAT: 71.73%
-        'vcls-10-101-8':utils.dict_update(common_cfg,
+        'vcls-3078':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_qat-p2_20201213.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.13})
         ),
         # jai-devkit: classification mobilenetv2_1p4_224x224 expected_metric: 75.22% top-1 accuracy, QAT: 75.22%
-        'vcls-10-102-8':utils.dict_update(common_cfg,
+        'vcls-3150':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_1p4_qat-p2_20210112.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.22})
         ),
         # jai-devkit: classification mobilenetv3_small_lite expected_metric: 62.688% top-1 accuracy
-        'vcls-10-105-0':utils.dict_update(common_cfg,
+        'vcls-6480':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':62.688})
         ),
         # jai-devkit: classification mobilenetv3_small_lite_qat expected_metric: 61.836% top-1 accuracy
-        'vcls-10-105-8':utils.dict_update(common_cfg,
+        'vcls-6488':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_qat-p2_20210429.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':61.836})
         ),
         # jai-devkit: classification mobilenetv3_large_lite expected_metric: 72.122% top-1 accuracy
-        'vcls-10-106-0':utils.dict_update(common_cfg,
+        'vcls-6490':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507.onnx'),
@@ -100,60 +100,60 @@ def get_configs(settings, work_dir):
         ),
         #################torchvision models#########################
         # torchvision: classification shufflenetv2_224x224 expected_metric: 69.36% top-1 accuracy
-        'vcls-10-301-0':utils.dict_update(common_cfg,
+        'vcls-3080':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/shufflenet_v2_x1.0.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':69.36})
         ),
         # torchvision: classification mobilenetv2_224x224 expected_metric: 71.88% top-1 accuracy
-        'vcls-10-302-0':utils.dict_update(common_cfg,
+        'vcls-3090':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.88})
         ),
         # torchvision: classification mobilenetv2_224x224 expected_metric: 71.88% top-1 accuracy, QAT: 71.31%
-        'vcls-10-302-8':utils.dict_update(common_cfg,
+        'vcls-3098':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_qat-p2.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.31})
         ),
         # torchvision: classification resnet18_224x224 expected_metric: 69.76% top-1 accuracy
-        'vcls-10-304-0':utils.dict_update(common_cfg,
+        'vcls-3100':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet18.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':69.76})
         ),
         # torchvision: classification resnet50_224x224 expected_metric: 76.15% top-1 accuracy
-        'vcls-10-305-0':utils.dict_update(common_cfg,
+        'vcls-3110':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet50.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':76.15})
         ),
         #################pingolh-hardnet models#########################
-        'vcls-10-330-0':utils.dict_update(common_cfg,
+        'vcls-6470':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet39ds.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.1})
         ),
-        'vcls-10-331-0':utils.dict_update(common_cfg,
+        'vcls-6460':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet68ds.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':74.3})
         ),
-        'vcls-10-332-0':utils.dict_update(common_cfg,
+        'vcls-6440':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet68.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':76.5})
         ),
-        'vcls-10-333-0':utils.dict_update(common_cfg,
+        'vcls-6450':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet85.onnx'),
@@ -161,28 +161,28 @@ def get_configs(settings, work_dir):
         ),
         #################pycls regnetx models#########################
         # pycls: classification regnetx200mf_224x224 expected_metric: 68.9% top-1 accuracy
-        'vcls-10-030-0':utils.dict_update(common_cfg,
+        'vcls-3360':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(reverse_channels=True),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-200mf.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':68.9})
         ),
         # pycls: classification regnetx400mf_224x224 expected_metric: 72.7% top-1 accuracy
-        'vcls-10-031-0':utils.dict_update(common_cfg,
+        'vcls-3120':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(reverse_channels=True),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-400mf.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.7})
         ),
         # pycls: classification regnetx800mf_224x224 expected_metric: 75.2% top-1 accuracy
-        'vcls-10-032-0':utils.dict_update(common_cfg,
+        'vcls-3130':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(reverse_channels=True),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-800mf.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.2})
         ),
         # pycls: classification regnetx1.6gf_224x224 expected_metric: 77.0% top-1 accuracy
-        'vcls-10-033-0':utils.dict_update(common_cfg,
+        'vcls-3140':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(reverse_channels=True),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-1.6gf.onnx'),
@@ -192,7 +192,7 @@ def get_configs(settings, work_dir):
         #       MXNet MODELS
         #################################################################
         # mxnet : gluoncv model : classification - mobilenetv2_1.0 - accuracy: 72.04% top1
-        'vcls-10-060-0':utils.dict_update(common_cfg,
+        'vcls-3410':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(backend='cv2'),
             session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_p2(),
                 model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-symbol.json',
@@ -201,7 +201,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':72.04})
         ),
         # mxnet : gluoncv model : classification - resnet50_v1d - accuracy: 79.15% top1
-        'vcls-10-061-0':utils.dict_update(common_cfg,
+        'vcls-3420':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(backend='cv2'),
             session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_p2(),
                 model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/resnet50_v1d-symbol.json',
@@ -210,7 +210,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':79.15})
         ),
         # mxnet : gluoncv model : classification - xception - accuracy: 79.56% top1
-        'vcls-10-062-0':utils.dict_update(common_cfg,
+        'vcls-3430':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(342, 299, backend='cv2'),
             session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_p2(),
                 model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/xception-symbol.json',
@@ -219,7 +219,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':79.56})
         ),
         # mxnet : gluoncv model : classification - hrnet_w18_small_v2_c - reference accuracy: is from hrnet website, not from gluoncv
-        'vcls-10-063-0':utils.dict_update(common_cfg,
+        'vcls-3480':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(backend='cv2'),
             session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_p2(),
                 model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/hrnet_w18_small_v2_c-symbol.json',
@@ -231,7 +231,7 @@ def get_configs(settings, work_dir):
         #       TFLITE MODELS
         ##################tensorflow models##############################
         # mlperf/tf1 model: classification mobilenet_v1_224x224 expected_metric: 71.676 top-1 accuracy
-        'vcls-10-010-0':utils.dict_update(common_cfg,
+        'vcls-0000':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/mobilenet_v1_1.0_224.tflite'),
@@ -239,7 +239,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':71.676})
         ),
         # mlperf/tf-edge model: classification mobilenet_edgetpu_224 expected_metric: 75.6% top-1 accuracy
-        'vcls-10-011-0':utils.dict_update(common_cfg,
+        'vcls-0080':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/mobilenet_edgetpu_224_1.0_float.tflite'),
@@ -247,7 +247,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':75.6})
         ),
         # mlperf model: classification resnet50_v1.5 expected_metric: 76.456% top-1 accuracy
-        'vcls-10-012-0':utils.dict_update(common_cfg,
+        'vcls-0160':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(mean=(123.675, 116.28, 103.53), scale=(1.0, 1.0, 1.0)),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/resnet50_v1.5.tflite'),
@@ -256,7 +256,7 @@ def get_configs(settings, work_dir):
         ),
         #########################tensorflow1.0 models##################################
         # tensorflow/models: classification mobilenetv1_224x224 expected_metric: 71.0% top-1 accuracy (or is it 71.676% as this seems same as mlperf model)
-        'vcls-10-400-0':utils.dict_update(common_cfg,
+        'vcls-0210':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v1_1.0_224.tflite'),
@@ -264,7 +264,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':71.0})
         ),
         # tensorflow/models: classification mobilenetv2_224x224 quant expected_metric: 70.0% top-1 accuracy
-        'vcls-10-400-8':utils.dict_update(common_cfg,
+        'vcls-0218':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v1_1.0_224_quant.tflite'),
@@ -272,7 +272,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':70.0})
         ),
         # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 71.9% top-1 accuracy
-        'vcls-10-401-0':utils.dict_update(common_cfg,
+        'vcls-0010':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_1.0_224.tflite'),
@@ -280,7 +280,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':71.9})
         ),
         # tensorflow/models: classification mobilenetv2_224x224 expected_metric: 75.0% top-1 accuracy
-        'vcls-10-402-0':utils.dict_update(common_cfg,
+        'vcls-0200':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_float_1.4_224.tflite'),
@@ -288,7 +288,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':75.0})
         ),
         # tf hosted models: classification squeezenet_1 expected_metric: 49.0% top-1 accuracy
-        'vcls-10-403-0':utils.dict_update(common_cfg,
+        'vcls-0020':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(mean=(123.68, 116.78, 103.94), scale=(1/255, 1/255, 1/255)),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/squeezenet.tflite'),
@@ -296,7 +296,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':49.0})
         ),
         # tf hosted models: classification densenet expected_metric: 74.98% top-1 accuracy (from publication)
-        'vcls-10-404-0':utils.dict_update(common_cfg,
+        'vcls-0150':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(mean=(123.68, 116.78, 103.94), scale=(1/255, 1/255, 1/255)),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/densenet.tflite'),
@@ -304,7 +304,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':74.98})
         ),
         # tf hosted models: classification inception_v1_224_quant expected_metric: 69.63% top-1 accuracy
-        'vcls-10-405-8':utils.dict_update(common_cfg,
+        'vcls-0038':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/inception_v1_224_quant.tflite'),
@@ -312,7 +312,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':69.63})
         ),
         # tf hosted models: classification inception_v3 expected_metric: 78% top-1 accuracy
-        'vcls-10-406-0':utils.dict_update(common_cfg,
+        'vcls-0040':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(342, 299),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/inception_v3.tflite'),
@@ -320,7 +320,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':78.0})
         ),
         # tf hosted models: classification mnasnet expected_metric: 74.08% top-1 accuracy
-        'vcls-10-407-0':utils.dict_update(common_cfg,
+        'vcls-0070':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mnasnet_1.0_224.tflite'),
@@ -328,7 +328,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':74.08})
         ),
         # tf1 models: classification resnet50_v1 expected_metric: 75.2% top-1 accuracy
-        'vcls-10-409-0':utils.dict_update(common_cfg,
+        'vcls-0050':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(mean=(123.675, 116.28, 103.53), scale=(1.0, 1.0, 1.0)),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/resnet50_v1.tflite'),
@@ -336,7 +336,7 @@ def get_configs(settings, work_dir):
         ),
         # TODO: is this model's input correct? shouldn't it be 299 according to the slim page?
         # tf1 models: classification resnet50_v2 expected_metric: 75.6% top-1 accuracy
-        'vcls-10-410-0':utils.dict_update(common_cfg,
+        'vcls-0060':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/resnet50_v2.tflite'),
@@ -344,7 +344,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':75.6})
         ),
         # tensorflow/models: classification mobilenet_v3-large-minimalistic_224_1.0_float expected_metric: 72.3% top-1 accuracy
-        'vcls-10-411-0':utils.dict_update(common_cfg,
+        'vcls-0260':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v3-large-minimalistic_224_1.0_float.tflite'),
@@ -352,7 +352,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':72.3})
         ),
         # tensorflow/models: classification mobilenet_v3-small-minimalistic_224_1.0_float expected_metric: 61.9% top-1 accuracy
-        'vcls-10-412-0':utils.dict_update(common_cfg,
+        'vcls-0270':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v3-small-minimalistic_224_1.0_float.tflite'),
@@ -361,28 +361,28 @@ def get_configs(settings, work_dir):
         ),
         #################efficinetnet & tpu models#########################
         # tensorflow/tpu: classification efficinetnet-lite0_224x224 expected_metric: 75.1% top-1 accuracy
-        'vcls-10-430-0':utils.dict_update(common_cfg,
+        'vcls-0130':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite0-fp32.tflite'),
             model_info=dict(metric_reference={'accuracy_top1%':75.1})
         ),
         # tensorflow/tpu: classification efficinetnet-lite1_240x240 expected_metric: 76.7% top-1 accuracy
-        'vcls-10-431-0':utils.dict_update(common_cfg,
+        'vcls-0170':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(274, 240),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite1-fp32.tflite'),
             model_info=dict(metric_reference={'accuracy_top1%':76.7})
         ),
         # tensorflow/tpu: classification efficinetnet-lite4_300x300 expected_metric: 81.5% top-1 accuracy
-        'vcls-10-434-0':utils.dict_update(common_cfg,
+        'vcls-0140':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(343, 300),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite4-fp32.tflite'),
             model_info=dict(metric_reference={'accuracy_top1%':81.5})
         ),
         # tensorflow/tpu: classification efficientnet-edgetpu-S expected_metric: 77.23% top-1 accuracy
-        'vcls-10-440-0':utils.dict_update(common_cfg,
+        'vcls-0090':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-edgetpu-S_float.tflite'),
@@ -390,7 +390,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':77.23})
         ),
         # tensorflow/tpu: classification efficientnet-edgetpu-M expected_metric: 78.69% top-1 accuracy
-        'vcls-10-441-0':utils.dict_update(common_cfg,
+        'vcls-0100':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(274, 240),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-edgetpu-M_float.tflite'),
@@ -398,7 +398,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':78.69})
         ),
         # tensorflow/tpu: classification efficientnet-edgetpu-L expected_metric: 80.62% top-1 accuracy
-        'vcls-10-442-0':utils.dict_update(common_cfg,
+        'vcls-0190':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(343, 300),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-edgetpu-L_float.tflite'),

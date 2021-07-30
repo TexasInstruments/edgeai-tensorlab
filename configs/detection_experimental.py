@@ -62,7 +62,7 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################onnx models#####################################
         # # yolov3: detection - yolov3 416x416 - expected_metric: 31.0% COCO AP[0.5-0.95]
-        # 'vdet-12-020-0':utils.dict_update(common_cfg,
+        # 'vdet-5010':utils.dict_update(common_cfg,
         #     preprocess=settings.get_preproc_onnx((416,416), (416,416), backend='cv2',
         #         mean=(0.0, 0.0, 0.0), scale=(1/255.0, 1/255.0, 1/255.0)),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
@@ -73,7 +73,7 @@ def get_configs(settings, work_dir):
         #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90()),
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':31.0})
         # ),
-        'vdet-12-020-0':utils.dict_update(common_cfg,
+        'vdet-5010':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(640, 640,  resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
@@ -86,7 +86,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.4})
         ),
-        'vdet-12-021-0':utils.dict_update(common_cfg,
+        'vdet-8100':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(384, 384,  resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
@@ -99,7 +99,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.8})
         ),
-        'vdet-12-022-0':utils.dict_update(common_cfg,
+        'vdet-8110':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(640, 640, resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
@@ -112,7 +112,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':44.1})
         ),
-           'vdet-12-023-0':utils.dict_update(common_cfg,
+           'vdet-8120':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(640, 640, resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
