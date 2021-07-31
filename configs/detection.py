@@ -36,17 +36,15 @@ def get_configs(settings, work_dir):
     tflite_session_type = settings.get_session_type(constants.MODEL_TYPE_TFLITE)
     mxnet_session_type = settings.get_session_type(constants.MODEL_TYPE_MXNET)
 
-    # for this model, layer 43 is forced to ddr - this is a temporary fix
-    runtime_options_onnx_ssd_np2 = settings.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
-                runtime_options={'ti_internal_reserved_1': 43})
-
+    # for tflite models od post proc options can be specified in runtime_options
+    # for onnx od models, od post proc options are specified in the prototxt
     # use a large top_k, keep_top_k and low confidence_threshold for accuracy measurement
     runtime_options_tflite_np2 = settings.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,
-                runtime_options={'object_detection:confidence_threshold': settings.detection_thr,
-                                 'object_detection:nms_threshold': 0.45,
-                                 'object_detection:top_k': 500,
-                                 #'object_detection:keep_top_k': 100
-                                 })
+        runtime_options={'object_detection:confidence_threshold': settings.detection_thr,
+                         'object_detection:nms_threshold': 0.45,
+                         'object_detection:top_k': 500,
+                         #'object_detection:keep_top_k': 100
+                         })
 
     # configs for each model pipeline
     common_cfg = {
@@ -69,11 +67,13 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################onnx models#####################################
         # mlperf edge: detection - coco_ssd-resnet34_1200x1200 - expected_metric: 20.0% COCO AP[0.5-0.95]
+        # for this model, layer 43 is forced to ddr - this is a temporary fix
         'od-8000':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx((1200,1200), (1200,1200), backend='cv2'),
-            session=onnx_session_type(**common_session_cfg, runtime_options=runtime_options_onnx_ssd_np2,
+            session=onnx_session_type(**common_session_cfg,
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {'ti_internal_reserved_1': 43, 'object_detection:meta_arch_type': 3, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/mlperf/ssd_resnet34-ssd1200.prototxt'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_resnet34-ssd1200.onnx'),
-            postprocess=postproc_detection_onnx,
+            postprocess=settings.get_postproc_detection_onnx(reshape_list=[(-1,4), (-1,1), (-1,1)], squeeze_axis=None),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=0)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':20.0})
         ),
@@ -127,10 +127,10 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                     {'object_detection:meta_arch_type': 4,
-                                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov3_d53_relu_416x416_20210117_004118_model.prototxt',
+                                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov3_d53_relu_416x416_20210117_model.prototxt',
                                      'advanced_options:output_feature_16bit_names_list':'694, 698, 702'
                                     }),
-                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov3_d53_relu_416x416_20210117_004118_model.onnx'),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov3_d53_relu_416x416_20210117_model.onnx'),
             postprocess=settings.get_postproc_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':30.7})
@@ -156,6 +156,59 @@ def get_configs(settings, work_dir):
             postprocess=settings.get_postproc_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':33.0})
+        ),
+        # yolov5 models - IMPORTANT - see licence of the repository edgeai-yolov5 before using this model
+        'od-8100':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(640, 640,  resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
+            session=onnx_session_type(**common_session_cfg,
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
+                                    {'object_detection:meta_arch_type': 6,
+                                     'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/yolov5s6_640_ti_lite/weights/yolov5s6_640_ti_lite_metaarch.prototxt',
+                                     'advanced_options:output_feature_16bit_names_list':'370, 680, 990, 1300'
+                                     }),
+                model_path=f'../edgeai-yolov5/pretrained_models/models/yolov5s6_640_ti_lite/weights/yolov5s6_640_ti_lite_37p4_56p0.onnx'),
+            postprocess=settings.get_postproc_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.4})
+        ),
+        'od-8110':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(384, 384,  resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
+            session=onnx_session_type(**common_session_cfg,
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
+                                    {'object_detection:meta_arch_type': 6,
+                                     'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/yolov5s6_384_ti_lite/weights/yolov5s6_384_ti_lite_metaarch.prototxt',
+                                     'advanced_options:output_feature_16bit_names_list':'168, 370, 680, 990, 1300'
+                                     }),
+                model_path=f'../edgeai-yolov5/pretrained_models/models/yolov5s6_384_ti_lite/weights/yolov5s6_384_ti_lite_32p8_51p2.onnx'),
+            postprocess=settings.get_postproc_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.8})
+        ),
+        'od-8120':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(640, 640, resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
+            session=onnx_session_type(**common_session_cfg,
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
+                                    {'object_detection:meta_arch_type': 6,
+                                     'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/yolov5m6_640_ti_lite/weights/yolov5m6_640_ti_lite_metaarch.prototxt',
+                                     'advanced_options:output_feature_16bit_names_list':'228, 498, 808, 1118, 1428'
+                                     }),
+                model_path=f'../edgeai-yolov5/pretrained_models/models/yolov5m6_640_ti_lite/weights/yolov5m6_640_ti_lite_44p1_62p9.onnx'),
+            postprocess=settings.get_postproc_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False,  resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':44.1})
+        ),
+        'od-8130':utils.dict_update(common_cfg,
+            preprocess=settings.get_preproc_onnx(640, 640, resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
+            session=onnx_session_type(**common_session_cfg,
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
+                                    {'object_detection:meta_arch_type': 6,
+                                     'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/yolov5l6_640_ti_lite/weights/yolov5l6_640_ti_lite_metaarch.prototxt',
+                                     'advanced_options:output_feature_16bit_names_list':'288, 626, 936, 1246, 1556'
+                                     }),
+                model_path=f'../edgeai-yolov5/pretrained_models/models/yolov5l6_640_ti_lite/weights/yolov5l6_640_ti_lite_47p1_65p6.onnx'),
+            postprocess=settings.get_postproc_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False,  resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':47.1})
         ),
         #################################################################
         #       MXNET MODELS
@@ -266,8 +319,10 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':29.1})
         ),
+        # note although the name of the model said 320x320, the pipeline.config along with the model had 300x300
+        # https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md
         'od-2130':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_tflite((320,320), (320,320), backend='cv2'),
+            preprocess=settings.get_preproc_tflite((300,300), (300,300), backend='cv2'),
             session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_mobilenet_v2_320x320_coco17_tpu-8.tflite'),
             postprocess=postproc_detection_tflite,

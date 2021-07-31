@@ -639,6 +639,13 @@ def get_name_key_pair_list(model_ids, session_name, remove_models=True):
     return name_key_pair_list
 
 
+def is_shortlisted_model(artifact_id):
+    removed_model_entries = removed_model_list.keys()
+    is_removed = (artifact_id in removed_model_entries)
+    is_shortlisted = (not is_removed)
+    return is_shortlisted
+
+
 if __name__ == '__main__':
     generate_list_mising_models = True
 

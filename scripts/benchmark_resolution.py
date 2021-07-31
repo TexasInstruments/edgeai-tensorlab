@@ -151,6 +151,7 @@ def modify_pipelines(cmds, pipeline_configs_in):
                 os.makedirs(model_folder, exist_ok=True)
                 print("saving modified model :{}".format(model_path_out))
                 onnx.save(onnx_model, model_path_out)
+                #onnx.shape_inference.infer_shapes_path(model_path_out, model_path_out)
             #
             pipeline_configs_out.update({new_model_id: pipeline_config})
         #
