@@ -25,8 +25,12 @@ See the [setup instructions](./docs/setup_instructions.md)
 See the [usage instructions](./docs/usage.md)
 
 
-## Pre-Imported/Compiled Model Artifacts
-This package provides Pre-Imported/Compiled Model Artifacts for several Deep Neural Network models. These artifacts can be used for inference in multiple ways: (1) [Jypyter Notebook examples in TIDL](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/tidl_j7_02_00_00_07/ti_dl/docs/user_guide_html/md_tidl_notebook.html) (2) For inference/benchmark in this Jacinto-AI-Benchmark repository (3) In [EdgeAI Cloud Evaluation](https://dev.ti.com/edgeai/) (4) In EdgeAI-DevKit Software Development Kit (to be announced)
+## Pre-Complied / Pre-Imported Model Artifacts
+URLs of Pre-Compiled model artifacts can be obtained [here](https://github.com/TexasInstruments/edgeai-modelzoo/blob/master/docs/modelartifacts.rst)
+
+Note: To run inference with these artifacts, there is no need to download them manually - they will be downloaded automatically.
+
+Note: This package provides Pre-Imported/Compiled Model Artifacts for several Deep Neural Network models. These artifacts can be used for inference in multiple ways: (1) [Jypyter Notebook examples in TIDL](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/tidl_j7_02_00_00_07/ti_dl/docs/user_guide_html/md_tidl_notebook.html) (2) For inference/benchmark in this Jacinto-AI-Benchmark repository (3) In [EdgeAI Cloud Evaluation](https://dev.ti.com/edgeai/) (4) In EdgeAI-DevKit Software Development Kit (to be announced)
 
 
 ## **Compiling/Importing Custom Models**
