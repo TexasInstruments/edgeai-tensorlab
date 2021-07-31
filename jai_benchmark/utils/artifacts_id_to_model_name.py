@@ -28,7 +28,7 @@
 #################################################################################
 import os
 
-#ver:18 2021-07-30
+#ver:19 2021-07-31
 
 # Conventions
 # RunTime  Task                  start_id 
@@ -207,7 +207,11 @@ model_id_artifacts_pair = {
 
     # TVM -SS - CocoSeg21
     'ss-5710_tvmdlr' : 'TVM-SS-5710-deeplabv3lite-mobv2-cocoseg21-512x512',
-    'ss-5711_tvmdlr' : 'TVM-SS-5720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
+    'ss-5720_tvmdlr' : 'TVM-SS-5720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
+
+    # TVM -SS - CocoSeg21
+    'ss-5810_tvmdlr' : 'TVM-SS-5810-fcn-resNet101-cocoseg21-gluon-mxnet-480x480',
+    'ss-5820_tvmdlr' : 'TVM-SS-5811-deeplab-resNet101-cocoseg21-gluon-mxnet-480x480',
 
     # ONNXRT- CL
     'cl-6000_onnxrt': 'ONR-CL-6000-resNet18V2',
@@ -428,6 +432,9 @@ removed_model_list = {
     'od-5030_tvmdlr': 'TVM-OD-5030-ssd-res50v1-gluon-mxnet-512x512', 
     'cl-0270_tflitert': 'TFL-CL-0270-mobv3-small-minimalistic',
     'od-5040_tvmdlr': 'TVM-OD-5040-ssd-mobv1-coco-gluon-mxnet-512x512', #renamed mobv1 model in SDK8.0
+
+    'od-8070_onnxrt': 'ONR-OD-8070-yolov3-d53-relu-coco-416x416',   #large model - issue in evm
+    'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640', #large model - issue in evm
 }
 
 removed_models_from_plots = {
