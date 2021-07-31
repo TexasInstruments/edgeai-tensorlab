@@ -18,7 +18,8 @@ docs/html
 *.tflite
 *.tf
 *.pb
-*.pnnx
-*.caffemodel
+*.onnx
 *.json
 *.params
+*.prototxt
+*.caffemodel
