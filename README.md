@@ -1,11 +1,11 @@
-# Jacinto-AI-ModelZoo
+# EdgeAI-ModelZoo
 
-This repository provides a collection of example Deep Neural Network (DNN) Models for various Computer Vision tasks. These tasks include image classification, segmentation and detection. The models in this repository can be run either in PC simulation mode or directly in [Jacinto 7](https://training.ti.com/jacinto7) family of SoCs, for example [TDA4VM](https://www.ti.com/product/TDA4VM). 
+This repository provides a collection of example Deep Neural Network (DNN) Models for various Computer Vision tasks. The models in this repository can be run either in PC simulation mode or in TI Deep Learning Library (TIDL) for [Jacinto 7](https://training.ti.com/jacinto7) family of SoCs, for example [TDA4VM](https://www.ti.com/product/TDA4VM). 
 
 
 ### Notice
 - If you have not visited the landing page of [**TI EdgeAI @ Github**](https://github.com/TexasInstruments/edgeai), please do so before attempting to use this repository.
-- This repository is located in Github at: https://github.com/TexasInstruments/edgeai-benchmark
+- This repository is located in Github at: https://github.com/TexasInstruments/edgeai-modelzoo
 - Important Note: This repository is being made available for experimentation and development  - this is not meant for deployment in production.
 
 
@@ -23,7 +23,7 @@ TIDL documentation (see information above) and test scripts provide information 
 However, we also provide higher level scripts that help to do inference and accuracy benchmarking on our platform easily, with just a few lines of Python code. These example scripts for Model Import/Calibration, Inference and Accuracy benchmarking are in the repository EdgeAI-Benchmark described above.
 
 
-## Model Zoo Documentation
+## ModelZoo / Pre-Trained Models Collection & Documentation
 
 #### Image Classification
 [Image Classification Model Zoo](./models/vision/classification/classification.md)
@@ -36,6 +36,12 @@ However, we also provide higher level scripts that help to do inference and accu
 
 #### Public Benchmarks
 [MLPerf Machine Learning Model Zoo](./models/docs/mlperf/mlperf.md)
+
+
+## Pre-Complied / Pre-Imported Model Artifacts
+URLs of Pre-Compiled model artifacts can be obtained [here](./docs/modelartifacts.rst)
+
+Note: if you are using [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) to run inference with these artifacts, there is no need to download these manually - they will be downloaded automatically.
 
 
 ## LICENSE
