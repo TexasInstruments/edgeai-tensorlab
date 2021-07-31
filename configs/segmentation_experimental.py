@@ -150,13 +150,13 @@ def get_configs(settings, work_dir):
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':51.61})
         # ),
-        'ss-8638':utils.dict_update(ade20k_cfg_class32,
-            preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
-            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
-                model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/unetlite_aspp_mobilenetv2_512x512_ade20k32_20210306_qat.onnx'),
-            postprocess=postproc_segmentation_onnx,
-            model_info=dict(metric_reference={'accuracy_mean_iou%':49.98})
-        ),
+        # 'ss-8638':utils.dict_update(ade20k_cfg_class32,
+        #     preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
+        #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
+        #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/unetlite_aspp_mobilenetv2_512x512_ade20k32_20210306_qat.onnx'),
+        #     postprocess=postproc_segmentation_onnx,
+        #     model_info=dict(metric_reference={'accuracy_mean_iou%':49.98})
+        # ),
         #  PTQ accuracy is good. Will remove in future.
         # 'ss-8658':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
@@ -173,12 +173,24 @@ def get_configs(settings, work_dir):
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':53.01})
         # ),
-        'ss-8731':utils.dict_update(cocoseg21_cfg,
+        'ss-8740':utils.dict_update(cocoseg21_cfg,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/lraspp_mobilenet_v3_lite_large_512x512_20210527.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':59.80})
+        ),
+        #################################################################
+        #       MXNET MODELS
+        #################################################################
+        'ss-5820':utils.dict_update(cocoseg21_cfg,
+            preprocess=settings.get_preproc_onnx((480,480), (480,480), backend='cv2'),
+            session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
+                model_path=[f'{settings.models_path}/vision/segmentation/cocoseg21/gluoncv-mxnet/deeplab_resnet101_coco-symbol.json',
+                            f'{settings.models_path}/vision/segmentation/cocoseg21/gluoncv-mxnet/deeplab_resnet101_coco-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,3,480,480)}),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':None})
         ),
         #################################################################
         #       TFLITE MODELS
