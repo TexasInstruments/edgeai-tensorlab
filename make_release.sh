@@ -29,8 +29,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 git stash
+git push
 git checkout release
 git rebase master
-git push
+git push --force
+git push github release:master --force
 git checkout master
 git stash pop
+
