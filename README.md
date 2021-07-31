@@ -1,41 +1,26 @@
 # Jacinto-AI-ModelZoo
 
-This repository provides a collection of example Deep Learning Models for various Computer Vision tasks. These tasks include image classification, segmentation and detection. The models in this repository can be run either in PC simulation mode or directly in [Jacinto 7](https://training.ti.com/jacinto7) family of SoCs, for example [TDA4VM](https://www.ti.com/product/TDA4VM). 
+This repository provides a collection of example Deep Neural Network (DNN) Models for various Computer Vision tasks. These tasks include image classification, segmentation and detection. The models in this repository can be run either in PC simulation mode or directly in [Jacinto 7](https://training.ti.com/jacinto7) family of SoCs, for example [TDA4VM](https://www.ti.com/product/TDA4VM). 
 
 
-#### Notice
-This repository is part of Jacinto-AI-DevKit, which is a collection of repositories providing Training & Quantization scripts, Model Zoo and Accuracy Benchmarks. If you have not visited the landing page of [**Jacinto-AI-Devkit**](https://github.com/TexasInstruments/jacinto-ai-devkit) please do so before attempting to use this repository.
-
-This repository can be obtained by git clone.
-```
-git clone https://git.ti.com/git/jacinto-ai/jacinto-ai-modelzoo.git
-```
-
-Online Documentation [link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/about/)
-
-Tree [view](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/)
+### Notice
+- If you have not visited the landing page of [**TI EdgeAI @ Github**](https://github.com/TexasInstruments/edgeai), please do so before attempting to use this repository.
+- This repository is located in Github at: https://github.com/TexasInstruments/edgeai-benchmark
+- Important Note: This repository is being made available for experimentation and development  - this is not meant for deployment in production.
 
 
 ## Introduction
+DNNs can be run on our SoCs using **[PROCESSOR-SDK-J721E](https://www.ti.com/tool/PROCESSOR-SDK-J721E)** and [PROCESSOR-SDK-RTOS-J721E)](https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E). 
+
 In order to run Deep Neural Networks (a.k.a. DNNs or Deep Learning Models or simply models) on embedded hardware, they need to be converted into embedded friendly formats and optimized. We have converted/exported several models from the original training frameworks in PyTorch, Tensorflow and MxNet into these embedded friendly formats and is being hosted in this repository. In this process we also make sure that these models provide optimized inference speed on our SoCs, so sometimes minor modifications are made to the models wherever necessary. These models provide a good starting point for our customers to explore high performance Deep Learning on our SoCs.
 
-DNNs can be run on our SoCs using RTOS SDK for Jacinto 7 (PROCESSOR-SDK-RTOS-J721E). It can be downloaded from the page for Processor SDK for Jacinto 7 TDA4x a.k.a. **[PROCESSOR-SDK-J721E](https://www.ti.com/tool/PROCESSOR-SDK-J721E)**. 
-
-RTOS SDK for Jacinto 7 TDA4x provides TI Deep Learning Library (TIDL), which is an optimized library that can run Neural Networks on our SoCs. TIDL provides several familiar interfaces for model inference - such as onnxruntime, tflite_runtime, tvm/dlr - apart from its own native interface. All these runtimes that are provided as part of TIDL have extensions on top of public domain runtimes that allow us to offload model execution into our high performance C7x+MMA DSP. For more information how to obtain and use these runtimes, please go through the TIDL documentation in the RTOS SDK. The documentation of TIDL can be seen if you click on the "SDK Documentation" link in the download page for [PROCESSOR-SDK-RTOS-J721E)](https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E)
-
-### Components of this repository
-- **Exported DNN models** (eg. tflite onnx and mxnet/json/params formats) - ready to be imported with and used in TIDL.
-- Corresponding scripts and config files (for those models) to import/calibrate those models and run benchmarks - provided in a separate repository - [Jacinto-AI-Benchmark](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-benchmark/about/) Please go through the documentation of that repository to understand the usage. 
-- Example **pre-imported/calibrated artifacts** for our platform - these artifacts can be directly used in our platform.
-
-
-**Important Note**: This repository is being made available for experimentation, analysis and research - this is not meant for deployment in production. We do not own the datasets that are used to train or evaluate these models and some of these datasets have restrictions on how they can be used.
+PROCESSOR-SDK-RTOS for Jacinto 7 TDA4x provides TI Deep Learning Library (TIDL), which is an optimized library that can run Neural Networks on our SoCs. TIDL has several familiar interfaces for model inference - such as onnxruntime, tflite_runtime, tvm/dlr - apart from its own native interface. All these runtimes that are provided as part of TIDL have extensions on top of public domain runtimes that allow us to offload model execution into our high performance C7x+MMA DSP. For more information how to obtain and use these runtimes, please go through the TIDL documentation in the RTOS SDK. The documentation of TIDL can be seen if you click on the "SDK Documentation" link in the download page for 
 
 
 ## Usage
 TIDL documentation (see information above) and test scripts provide information on running Deep Learning models in our SoCs. That is a good starting point to get familiarized with import/calibration and inference of such models.
 
-However, we also provide higher level scripts that help to do inference and accuracy benchmarking on our platform easily, with just a few lines of Python code. These example scripts for Model Import/Calibration, Inference and Accuracy benchmarking are in the repository Jacinto-AI-Benchmark described above.
+However, we also provide higher level scripts that help to do inference and accuracy benchmarking on our platform easily, with just a few lines of Python code. These example scripts for Model Import/Calibration, Inference and Accuracy benchmarking are in the repository EdgeAI-Benchmark described above.
 
 
 ## Model Zoo Documentation

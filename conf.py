@@ -43,10 +43,10 @@ sys.setrecursionlimit(10000)
 master_doc = 'index'
 
 project = 'ModelZoo' + ' ' + __version__
-html_title = 'Jacinto AI ModelZoo - Deep Neural Network Models & Artifacts for Jacinto 7 SoCs'
+html_title = 'EdgeAI ModelZoo - Deep Neural Network Models & Artifacts for Jacinto 7 SoCs'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'jacinto-ai-modelzoo'
+htmlhelp_basename = 'edgeai-modelzoo'
 
 # The full version, including alpha/beta/rc tags
 release = __version__
@@ -78,6 +78,8 @@ templates_path = ['templates']
 # source_suffix = ['.rst', '.md']
 # source_suffix = '.rst'
 source_suffix = ['.rst', '.md']
+
+exclude_patterns = ['dependencies/edgeai-benchmark/dependencies']
 
 # The encoding of source files.
 #source_encoding = 'utf-8-sig'
@@ -271,11 +273,15 @@ rst_epilog = """
 # Example configuration for intersphinx: refer to the Python standard library.
 # intersphinx_mapping = {'https://docs.python.org/': None}
 
-artifacts_location = 'artifacts/8bits'
-artifacts_dir = artifacts_location
-artifacts_list = [line for line in open(os.path.join(artifacts_dir, 'artifacts.list'))]
+artifacts_dir = 'modelartifacts/8bits'
+artifacts_path = f'./dependencies/edgeai-benchmark/work_dirs/{artifacts_dir}'
+artifacts_list = [line for line in open(os.path.join(artifacts_path, 'artifacts.list'))]
 artifacts_list = sorted(artifacts_list)
-with open('docs/artifacts.rst', 'w') as fp:
+
+release_str = '_'.join(['0'+r for r in release.split('.')])
+artifacts_location = os.path.join('https://software-dl.ti.com/jacinto7/esd/modelzoo/', release_str, artifacts_dir)
+
+with open('docs/modelartifacts.rst', 'w') as fp:
     fp.write('\nDownload Pre-Imported Model Artifacts')
     fp.write('\n-------------------------------------\n')
     fp.write(f'\n.. csv-table:: model artifacts list')
