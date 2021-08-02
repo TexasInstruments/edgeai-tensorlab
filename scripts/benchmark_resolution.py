@@ -190,9 +190,9 @@ if __name__ == '__main__':
     if 'session_type_dict' in kwargs:
         kwargs['session_type_dict'] = utils.str_to_dict(kwargs['session_type_dict'])
     #
-    # these artifacts are meant for only performance measurement
-    # just do a quick import with simple calibration
-    runtime_options = {'accuracy_level': 0}
+    # these artifacts are meant for only performance measurement - just do a quick import with simple calibration
+    # also set the high_resolution_optimization flag for improved performance at high resolution
+    runtime_options = {'accuracy_level': 0, 'advanced_options:high_resolution_optimization': 1}
     settings = config_settings.ConfigSettings(cmds.settings_file,
         num_frames=100, calibration_iterations=1, runtime_options=runtime_options, **kwargs)
 
