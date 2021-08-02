@@ -148,8 +148,8 @@ class ConfigDict(dict):
         # session types to use for each model type
         self.session_type_dict = {'onnx': 'onnxrt', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'}
         # dataset type to use if there are multiple variants for each dataset
-        # example: ['imagenet':'imagenetv1']
-        # example: ['imagenet':'imagenetv2c']
+        # example: {'imagenet':'imagenetv1'}
+        # example: {'imagenet':'imagenetv2c'}
         self.dataset_type_dict = None
         # whether to load the datasets or not. set to False to load no datasets
         # set to True to try and load all datasets (the dataset folders must be available in ./dependencies/datasets).
