@@ -74,8 +74,10 @@ from urllib.parse import urlparse
 import zipfile
 from tqdm.auto import tqdm
 
+from . import model_utils
 
-def download_file(url, root=None, extract_root=None, filename=None, md5=None, mode=None, force_download=False):
+
+def download_file(url, root=None, extract_root=None, filename=None, md5=None, mode=None, force_download=False, use_linkfile=True):
     if not isinstance(url, str):
         return url
     #
@@ -83,6 +85,13 @@ def download_file(url, root=None, extract_root=None, filename=None, md5=None, mo
     if url.endswith('.link'):
         with open(url) as fp:
             url = fp.read().rstrip()
+        #
+    elif use_linkfile:
+        url_link = url+'.link'
+        if model_utils.file_exists(url_link):
+            with open(url_link) as fp:
+                url = fp.readline().rstrip()
+            #
         #
     #
     if isinstance(url, str) and (url.startswith('http://') or url.startswith('https://')):

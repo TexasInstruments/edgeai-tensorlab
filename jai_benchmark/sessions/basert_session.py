@@ -111,10 +111,8 @@ class BaseRTSession(utils.ParamsBase):
         if not os.path.exists(run_dir):
             work_dir = os.path.dirname(run_dir)
             tarfile_name = run_dir + '.tar.gz'
-            linkfile_name = tarfile_name + '.link'
-            # download the link file
-            if (not os.path.exists(tarfile_name)) and os.path.exists(linkfile_name):
-                tarfile_name = utils.download_file(linkfile_name, work_dir, extract_root=run_dir)
+            if not os.path.exists(tarfile_name):
+                tarfile_name = utils.download_file(tarfile_name, work_dir, extract_root=run_dir)
             #
             # extract the tar file
             if (not os.path.exists(run_dir)) and os.path.exists(tarfile_name):
@@ -364,6 +362,8 @@ class BaseRTSession(utils.ParamsBase):
         print(utils.log_color('INFO', 'model_file', model_file))
         if not utils.file_exists(model_file):
             model_path = utils.download_file(model_path, root=model_folder)
+        #
+        if not utils.file_exists(model_file):
             utils.copy_files(model_path, model_file)
         #
         # self.kwargs['model_file'] is what is used in the session
@@ -378,6 +378,8 @@ class BaseRTSession(utils.ParamsBase):
             meta_file = utils.get_local_path(meta_path, model_folder)
             if not utils.file_exists(meta_file):
                 meta_path = utils.download_file(meta_path, root=model_folder)
+            #
+            if not utils.file_exists(meta_file):
                 utils.copy_files(meta_path, meta_file)
             #
             # write the local path
