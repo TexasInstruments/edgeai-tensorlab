@@ -28,5 +28,31 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-git push
-git push github
+git stash
+
+git checkout release
+
+#remove --squash to keep history
+git merge --allow-unrelated-histories -X theirs master --squash
+
+# remove internal files
+find . -name *.pth -delete
+find . -name *.pt -delete
+find . -name *.tflite -delete
+find . -name *.pb -delete
+find . -name *.onnx -delete
+find . -name *.json -delete
+find . -name *.params -delete
+find . -name *.prototxt -delete
+find . -name *.caffemodel -delete
+
+git add -u
+
+# commit
+git commit -a -m 'release commit'
+
+#git push
+
+git checkout master
+
+git stash pop

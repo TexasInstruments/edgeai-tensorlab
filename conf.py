@@ -278,7 +278,7 @@ artifacts_path = f'./dependencies/edgeai-benchmark/work_dirs/{artifacts_dir}'
 artifacts_list = [line for line in open(os.path.join(artifacts_path, 'artifacts.list'))]
 artifacts_list = sorted(artifacts_list)
 
-release_str = '_'.join(['0'+r for r in release.split('.')])
+release_str = '_'.join([f'{r:0>2}' for r in release.split('.')])
 artifacts_location = os.path.join('https://software-dl.ti.com/jacinto7/esd/modelzoo/', release_str, artifacts_dir)
 
 with open('docs/modelartifacts.rst', 'w') as fp:

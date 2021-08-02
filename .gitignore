@@ -13,13 +13,12 @@ downloads
 docs/doctrees
 docs/html
 
-*.pth
-*.pt
-*.tflite
-*.tf
-*.pb
-*.onnx
-*.json
-*.params
-*.prototxt
-*.caffemodel
+#*.pth
+#*.pt
+#*.tflite
+#*.pb
+#*.onnx
+#*.json
+#*.params
+#*.prototxt
+#*.caffemodel
