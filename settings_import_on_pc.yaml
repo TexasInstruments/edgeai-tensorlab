@@ -102,3 +102,9 @@ model_transformation_dict : null
 
 # enable use of experimental models - the actual model files are not available in modelzoo
 experimental_models : False
+
+# dataset type to use if there are multiple variants for each dataset
+# imagenetv2c is available for quick download - so use it in the release branch
+dataset_type_dict:
+  'imagenet': 'imagenetv2c'
+
