@@ -34,8 +34,9 @@ import gluoncv
 
 
 model_details = {
-    'deeplab_resnet101_coco': [{'name': 'data', 'shape': (1, 3, 480, 480)}],
-    'fcn_resnet101_coco': [{'name': 'data', 'shape': (1, 3, 480, 480)}],
+    'fcn_resnet50_ade': [{'name': 'data', 'shape': (1, 3, 480, 480)}],
+    #'fcn_resnet101_coco': [{'name': 'data', 'shape': (1, 3, 480, 480)}],
+    #'deeplab_resnet101_coco': [{'name': 'data', 'shape': (1, 3, 480, 480)}],
 }
 
 
