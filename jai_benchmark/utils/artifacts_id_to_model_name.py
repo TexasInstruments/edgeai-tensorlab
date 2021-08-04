@@ -443,11 +443,10 @@ removed_model_list = {
     'cl-6510_onnxrt' :  'ONR-CL-6510-mobv3-ti-lite-large-x2r',
     'cl-3500_tvmdlr' :  'TVM-CL-3500-mobv3-ti-lite-large-x2r', 
     'od-2120_tflitert': 'TFL-OD-2120-ssd-res50V1-fpn-coco-tpu-8-1024x1024',
-    'od-5020_tvmdlr' :  'TVM-OD-5020-yolov3-mobv1-gluon-mxnet-416x416',
+    #'od-5020_tvmdlr' :  'TVM-OD-5020-yolov3-mobv1-gluon-mxnet-416x416',
     'od-5050_tvmdlr' :  'TVM-OD-5050-yolo3_darknet53-coco-gluon-mxnet-512x512',
     'od-5060_tvmdlr' :  'TVM-OD-5060-centernet-r18-v1b-coco-gluon-mxnet-512x512',
     'ss-5810_tvmdlr' :  'TVM-SS-5810-fcn-resNet101-cocoseg21-gluon-mxnet-480x480',
-
 }
 
 removed_models_from_plots = {
