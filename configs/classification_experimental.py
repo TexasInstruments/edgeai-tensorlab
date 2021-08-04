@@ -95,7 +95,7 @@ def get_configs(settings, work_dir):
         ##################tensorflow models##############################
         # tensorflow/models: classification mobilenetv2_224x224 quant expected_metric: 70.8% top-1 accuracy
         'cl-0018':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_tflite(),
+            preprocess=settings.get_preproc_tflite_quant(),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_1.0_224_quant.tflite'),
             metric=dict(label_offset_pred=-1),

@@ -159,6 +159,9 @@ class ConfigSettings(config_dict.ConfigDict):
                                 backend=backend, interpolation=interpolation, resize_with_pad=resize_with_pad,
                                 mean=mean, scale=scale)
 
+    def get_preproc_tflite_quant(self, *args, mean=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0), **kwargs):
+        return self.get_preproc_tflite(*args, mean=mean, scale=scale, **kwargs)
+
     def get_postproc_classification(self):
         postprocess_classification = [postprocess.IndexArray(), postprocess.ArgMax()]
         transforms = utils.TransformsCompose(postprocess_classification)
