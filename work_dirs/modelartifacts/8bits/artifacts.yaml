@@ -719,3 +719,10 @@ ss-8730_onnxrt:
   shortlisted: true
   size: 41931996
   task_type: segmentation
+ss-5830_tvmdlr:
+  model_name: gluoncv-mxnet_fcn_resnet50_ade-symbol.json
+  run_dir: ss-5830_tvmdlr_gluoncv-mxnet_fcn_resnet50_ade-symbol_json
+  session_name: tvmdlr
+  shortlisted: true
+  size: 447374468
+  task_type: segmentation

@@ -158,9 +158,10 @@ class ADE20KSegmentation(DatasetBase):
         rgb[:, :, 2] = b / 255.0
         return rgb
 
-    def encode_segmap(self, label_img):
+    def encode_segmap(self, label_img, label_offset_target=0):
         label_img = label_img.convert('L')
         label_img = np.array(label_img)
+        label_img = label_img + label_offset_target
         if self.ignore_label is not None:
             label_img[self.ignore_label] = 255
         #
@@ -170,14 +171,16 @@ class ADE20KSegmentation(DatasetBase):
         return label_img
 
     def evaluate(self, predictions, **kwargs):
+        label_offset_target = kwargs.get('label_offset_target', 0)
+        label_offset_pred = kwargs.get('label_offset_pred', 0)
         cmatrix = None
         num_frames = min(self.num_frames, len(predictions))
         for n in range(num_frames):
             image_file, label_file = self.__getitem__(n, with_label=True)
             label_img = PIL.Image.open(label_file)
-            label_img = self.encode_segmap(label_img)
+            label_img = self.encode_segmap(label_img, label_offset_target=label_offset_target)
             # reshape prediction is needed
-            output = predictions[n]
+            output = predictions[n]+label_offset_pred
             output = output.astype(np.uint8)
             output = output[0] if (output.ndim > 2 and output.shape[0] == 1) else output
             output = output[:2] if (output.ndim > 2 and output.shape[2] == 1) else output

@@ -140,14 +140,15 @@ def get_configs(settings, work_dir):
         #################################################################
         #       MXNET MODELS
         #################################################################
-        'ss-5810':utils.dict_update(cocoseg21_cfg,
-            preprocess=settings.get_preproc_onnx((480,480), (480,480), backend='cv2'),
+        'ss-5830':utils.dict_update(ade20k_cfg,
+            preprocess=settings.get_preproc_mxnet((480,480), (480,480), backend='cv2', resize_with_pad=True),
             session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
-                model_path=[f'{settings.models_path}/vision/segmentation/cocoseg21/gluoncv-mxnet/fcn_resnet101_coco-symbol.json',
-                            f'{settings.models_path}/vision/segmentation/cocoseg21/gluoncv-mxnet/fcn_resnet101_coco-0000.params'],
+                model_path=[f'{settings.models_path}/vision/segmentation/ade20k/gluoncv-mxnet/fcn_resnet50_ade-symbol.json',
+                            f'{settings.models_path}/vision/segmentation/ade20k/gluoncv-mxnet/fcn_resnet50_ade-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,480,480)}),
             postprocess=postproc_segmentation_onnx,
-            model_info=dict(metric_reference={'accuracy_mean_iou%':None})
+            metric=dict(label_offset_target=-1),
+            model_info=dict(metric_reference={'accuracy_mean_iou%':39.5})
         ),
         #################################################################
         #       TFLITE MODELS
