@@ -77,7 +77,7 @@ from tqdm.auto import tqdm
 from . import model_utils
 
 
-def download_file(url, root=None, extract_root=None, filename=None, md5=None, mode=None, force_download=False, use_linkfile=True):
+def download_file(url, root=None, extract_root=None, filename=None, md5=None, mode=None, force_download=False, force_linkfile=True):
     if not isinstance(url, str):
         return url
     #
@@ -86,7 +86,10 @@ def download_file(url, root=None, extract_root=None, filename=None, md5=None, mo
         with open(url) as fp:
             url = fp.read().rstrip()
         #
-    elif use_linkfile:
+    elif os.path.exists(url):
+        # if the given source is a file and if it exists, nothing todo.
+        pass
+    elif force_linkfile:
         url_link = url+'.link'
         if model_utils.file_exists(url_link):
             with open(url_link) as fp:
