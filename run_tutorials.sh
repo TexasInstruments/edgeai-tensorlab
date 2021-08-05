@@ -35,5 +35,5 @@
 source run_setupenv_pc.sh
 
 # run the script
-jupyter notebook
+jupyter notebook --ip=0.0.0.0
 
