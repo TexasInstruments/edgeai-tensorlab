@@ -137,19 +137,18 @@ def get_configs(settings, work_dir):
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':60.80})
         ),
+        # this model is repeated here and hard-coded to use tvmdlr session to generate an example tvmdlr artifact
+        'ss-5720':utils.dict_update(cocoseg21_cfg,
+            preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
+            session=sessions.TVMDLRSession(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
+                model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/fpnlite_aspp_regnetx800mf_cocoseg21_512x512_20210405.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':61.09})
+        ),
         #################################################################
         #       MXNET MODELS
         #################################################################
-        'ss-5830':utils.dict_update(ade20k_cfg,
-            preprocess=settings.get_preproc_mxnet((480,480), (480,480), backend='cv2', resize_with_pad=True),
-            session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
-                model_path=[f'{settings.models_path}/vision/segmentation/ade20k/gluoncv-mxnet/fcn_resnet50_ade-symbol.json',
-                            f'{settings.models_path}/vision/segmentation/ade20k/gluoncv-mxnet/fcn_resnet50_ade-0000.params'],
-                model_type='mxnet', input_shape={'data':(1,3,480,480)}),
-            postprocess=postproc_segmentation_onnx,
-            metric=dict(label_offset_target=-1),
-            model_info=dict(metric_reference={'accuracy_mean_iou%':39.5})
-        ),
+        # TODO: add models. There are no mxnet segmentation models here, right now
         #################################################################
         #       TFLITE MODELS
         #################mlperf models###################################

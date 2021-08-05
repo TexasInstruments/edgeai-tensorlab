@@ -449,6 +449,7 @@ removed_model_list = {
     'od-5060_tvmdlr' :  'TVM-OD-5060-centernet-r18-v1b-coco-gluon-mxnet-512x512',
     'ss-5810_tvmdlr' :  'TVM-SS-5810-fcn-resNet101-cocoseg21-gluon-mxnet-480x480',
     'ss-5820_tvmdlr' :  'TVM-SS-5820-deeplab-resNet101-cocoseg21-gluon-mxnet-480x480',
+    'ss-5830_tvmdlr' : 'TVM-SS-5830-fcn-resNet50-ade20k-gluon-mxnet-480x480',
 }
 
 removed_models_from_plots = {
