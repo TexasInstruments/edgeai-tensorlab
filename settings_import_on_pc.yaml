@@ -84,7 +84,7 @@ dataset_loading : null
 verbose : False
 
 # detection threshold
-detection_thr : 0.05
+detection_thr : 0.3
 
 # save detection, segmentation, human pose estimation output
 save_output : False

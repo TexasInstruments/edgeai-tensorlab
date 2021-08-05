@@ -127,7 +127,7 @@ class ConfigDict(dict):
         # run only models for which the results are missing. if this is False, all configs will be run
         self.run_missing = True
         # detection threshold
-        self.detection_thr = 0.05
+        self.detection_thr = 0.3
         # max number of detections
         self.detection_max = 1000
         # save detection, segmentation output
