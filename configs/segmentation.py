@@ -72,7 +72,7 @@ def get_configs(settings, work_dir):
         # edgeai: segmentation - fpnlite_aspp_regnetx400mf_ade20k32_384x384_20210314-205347 expected_metric: 51.03% mean-iou
         'ss-8690':utils.dict_update(ade20k32_cfg,
             preprocess=settings.get_preproc_jai((384,384), (384,384), backend='cv2', interpolation=cv2.INTER_AREA),
-            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpnlite_aspp_regnetx400mf_ade20k32_384x384_outby4.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':50.85})
@@ -125,7 +125,7 @@ def get_configs(settings, work_dir):
         ),
         'ss-8720':utils.dict_update(cocoseg21_cfg,
             preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
-            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/fpnlite_aspp_regnetx800mf_cocoseg21_512x512_20210405.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':61.09})
@@ -155,7 +155,7 @@ def get_configs(settings, work_dir):
         #mlperf: ade20k-segmentation (32 class) - deeplabv3_mnv2_ade20k_float - expected_metric??
         'ss-2580':utils.dict_update(ade20k32_cfg,
             preprocess=settings.get_preproc_tflite((512, 512), (512, 512), mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
+            session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_p2(),
                  model_path=f'{settings.models_path}/vision/segmentation/ade20k32/mlperf/deeplabv3_mnv2_ade20k32_float.tflite'),
             postprocess=postproc_segmenation_tflite,
             model_info=dict(metric_reference={'accuracy_mean_iou%':54.8})

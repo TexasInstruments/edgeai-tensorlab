@@ -109,7 +109,7 @@ def get_configs(settings, work_dir):
         # torchvision: classification mobilenetv2_224x224 expected_metric: 71.88% top-1 accuracy
         'cl-6090':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
-            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.88})
         ),
@@ -123,7 +123,7 @@ def get_configs(settings, work_dir):
         # torchvision: classification resnet18_224x224 expected_metric: 69.76% top-1 accuracy
         'cl-6100':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
-            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet18.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':69.76})
         ),
@@ -137,13 +137,13 @@ def get_configs(settings, work_dir):
         #################pingolh-hardnet models#########################
         'cl-6470':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
-            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet39ds.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.1})
         ),
         'cl-6460':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(),
-            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/pingolh-hardnet/hardnet68ds.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':74.3})
         ),
@@ -194,7 +194,7 @@ def get_configs(settings, work_dir):
         # mxnet : gluoncv model : classification - mobilenetv2_1.0 - accuracy: 72.04% top1
         'cl-3410':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_onnx(backend='cv2'),
-            session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_p2(),
+            session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
                 model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-symbol.json',
                             f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,224,224)}),
@@ -330,7 +330,7 @@ def get_configs(settings, work_dir):
         # tf1 models: classification resnet50_v1 expected_metric: 75.2% top-1 accuracy
         'cl-0050':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(mean=(123.675, 116.28, 103.53), scale=(1.0, 1.0, 1.0)),
-            session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
+            session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/resnet50_v1.tflite'),
             model_info=dict(metric_reference={'accuracy_top1%':75.2})
         ),
@@ -363,7 +363,7 @@ def get_configs(settings, work_dir):
         # tensorflow/tpu: classification efficinetnet-lite0_224x224 expected_metric: 75.1% top-1 accuracy
         'cl-0130':utils.dict_update(common_cfg,
             preprocess=settings.get_preproc_tflite(),
-            session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
+            session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite0-fp32.tflite'),
             model_info=dict(metric_reference={'accuracy_top1%':75.1})
         ),
