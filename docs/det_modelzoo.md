@@ -18,7 +18,7 @@ MMDetection has a huge Model Zoo, supporting a lot of models. Many of them are h
 ✓ Available, ☐ In progress or partially available, ✗ TBD
 
 
-We have config files for ResNet, RegNetX and MobileNet backbone architectures. However, the **RegNetX family of architectures strike a good balance between complexity, accuracy and easiness to quantize. Hence we strongly recommend to use those models**.
+We have config files for ResNet, RegNetX and MobileNet backbone architectures. Overall, the RegNetX family of architectures strike a good balance between complexity, accuracy and easiness of quantization.
 
 We shall add support for additional low complexity models as mmdetection adds support for those architectures. Additional detectors that we are looking forward to see in mmdetection are CenterNet(Objects As Points) and EfficientDet. For more information, see the [roadmap of mmdetection](https://github.com/open-mmlab/mmdetection/issues/2931).
 
