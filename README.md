@@ -1,21 +1,22 @@
 # EdgeAI-Benchmark
 
-This repository provides a collection of scripts for various image recognition tasks such as classification, segmentation, detection and keypoint detection. These scripts can be used for Model Import/Calibration, Inference and Accuracy benchmarking of Deep Neural Networks (DNN). This benchmarks in this repository can be run either in PC simulation mode or in [Jacinto 7](https://training.ti.com/jacinto7) family of SoCs such as [TDA4VM](https://www.ti.com/product/TDA4VM). 
+This repository provides a collection of scripts for various image recognition tasks such as classification, segmentation, detection and keypoint detection. These scripts can be used for Model Compilation, Inference, Accuracy & Performance benchmarking of Deep Neural Networks (DNN). These benchmarks in this repository can be run either in PC simulation mode or on device. 
+
+Getting the correct functionality and accuracy with DNN Models is not easy. Several aspects such as dataset loading, pre-processing and post-processing operations have to be matched to that of the original training framework to get meaningful functionality and accuracy. There is much difference in these operations across various popular models and much effort is required to match that functionality. 
+- We provide high level scripts that help to do model compilation, inference and  benchmarking for our platform.
+- Aspects such dataset loading, pre-processing and post-processing as taken care for the models in our model zoo.
 
 
 ### Notice
-- If you have not visited the landing page of [**TI EdgeAI @ Github**](https://github.com/TexasInstruments/edgeai), please do so before attempting to use this repository.
+- If you have not visited the landing page of at https://github.com/TexasInstruments/edgeai, please do so before attempting to use this repository. We skip most of the introduction in this repository.
 - This repository is located in Github at: https://github.com/TexasInstruments/edgeai-benchmark
-- Important Note: This repository is being made available for experimentation, analysis and research - this is not meant for deployment in production.
-
-## Introduction
-Getting the correct functionality and accuracy with Deep Learning Models is not easy. Several aspects such as dataset loading, pre and post-processing operations have to be matched to that of the original training framework to get meaningful functionality and accuracy. There is much difference in these operations across various popular models and much effort is required to match that functionality. **In this repository, we provide high level scripts that help to do inference and accuracy benchmarking on our platform easily, with just a few lines of Python code.** Aspects such dataset loading, pre and post-processing as taken care for several popular models.
 
 
 ## Components of this repository
-This repository is generic and can be used with a variety of runtimes and models supported by TIDL. This repository contains several parts:<br>
-- **jai_benchmark**: Core scritps for core import/calibration, inference and accuracy benchmark scripts provided as a python package (that can be imported using: import jai_benchmark or using: from jai_benchmark import *)<br>
-- **scripts**: these are the top level scripts - to import/calibrate models, to infer and do accuracy benchmark, to collect accuracy report and to package the generate artifacts.<br>
+This repository is generic and can be used with a variety of runtimes and models supported by TIDL. This repository contains the following parts:<br>
+- **jai_benchmark**: Core scritps for core model compilation, inference and accuracy benchmark scripts provided as a python package (that can be imported using: *import jai_benchmark* or using: *from jai_benchmark import*)<br>
+- **scripts**: these are the top level scripts - to compile models, to infer and do accuracy & performance benchmark, to collect accuracy report and to package the generated artifacts.<br>
+
 
 ## Setup
 See the [setup instructions](./docs/setup_instructions.md)
@@ -25,16 +26,12 @@ See the [setup instructions](./docs/setup_instructions.md)
 See the [usage instructions](./docs/usage.md)
 
 
-## Pre-Complied / Pre-Imported Model Artifacts
-URLs of Pre-Compiled model artifacts can be obtained [here](https://github.com/TexasInstruments/edgeai-modelzoo/blob/master/docs/modelartifacts.rst)
-
-Note: To run inference with these artifacts, there is no need to download them manually - they will be downloaded automatically.
-
-Note: This package provides Pre-Imported/Compiled Model Artifacts for several Deep Neural Network models. These artifacts can be used for inference in multiple ways: (1) [Jypyter Notebook examples in TIDL](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/tidl_j7_02_00_00_07/ti_dl/docs/user_guide_html/md_tidl_notebook.html) (2) For inference/benchmark in this Jacinto-AI-Benchmark repository (3) In [EdgeAI Cloud Evaluation](https://dev.ti.com/edgeai/) (4) In EdgeAI-DevKit Software Development Kit (to be announced)
+## Pre-Complied Model Artifacts 
+See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md) that we provide with this repository.
 
 
-## **Compiling/Importing Custom Models**
-See the [**instructions to compile custom models**](./docs/custom_models.md)
+## Compiling Custom Models
+See the **[instructions to compile custom models](./docs/custom_models.md)**
 
 
 ## LICENSE
