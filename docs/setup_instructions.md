@@ -42,9 +42,9 @@ Where *../ti-processor-sdk-rtos-j721e-evm-07_03_00_07* is just an example - **re
 
 
 #### Requirement: ModelZoo
-DNN Models, config files and pre-imported/calibrated artifacts that are used in this benchmark are provided in another repository called **[Jacinto-AI-ModelZoo](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/about/)**. Please see the documentation of that repository to understand how to clone it. After cloning, jacinto-ai-benchmark and jacinto-ai-modelzoo must be inside the same parent folder for the default settings to work.
+DNN Models, config files and pre-imported/calibrated artifacts that are used in this benchmark are provided in another repository called **[EdgeAI-ModelZoo](https://github.com/TexasInstruments/edgeai-modelzoo)**. Please see the documentation of that repository to understand how to clone it. After cloning, edgeai-benchmark and edgeai-modelzoo must be inside the same parent folder for the default settings to work.
 
-Jacinto-AI-ModelZoo uses git-lfs, so please install git-lfs before cloning. After cloning, **jacinto-ai-benchmark** and **jacinto-ai-modelzoo** must be in the same parent folder. 
+After cloning, **edgeai-benchmark** and **edgeai-modelzoo** must be in the same parent folder. 
 
 
 #### Requirement: Datasets
@@ -67,7 +67,7 @@ After cloning this repository, install it as a Python package by running:
 ./setup.sh
 ```
 
-Open the shell scripts that starts the actual benchmarking run_benchmarks.sh and see the environment variables **PSDK_BASE_PATH** and **TIDL_BASE_PATH** being defined. Change these paths appropriately to reflect what is in your PC.
+Open the shell scripts that starts the actual benchmarking run_benchmarks.sh and see the environment variables **PSDK_BASE_PATH** and **TIDL_TOOLS_PATH** being defined. Change these paths appropriately to reflect what is in your PC.
 
 Once installed, the **jai_benchmark** will be a available as a package in your Python environment. It can be imported just like any other Python package in a Python script:<br>
 ```

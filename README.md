@@ -12,12 +12,6 @@ Getting the correct functionality and accuracy with DNN Models is not easy. Seve
 - This repository is located in Github at: https://github.com/TexasInstruments/edgeai-benchmark
 
 
-## Components of this repository
-This repository is generic and can be used with a variety of runtimes and models supported by TIDL. This repository contains the following parts:<br>
-- **jai_benchmark**: Core scritps for core model compilation, inference and accuracy benchmark scripts provided as a python package (that can be imported using: *import jai_benchmark* or using: *from jai_benchmark import*)<br>
-- **scripts**: these are the top level scripts - to compile models, to infer and do accuracy & performance benchmark, to collect accuracy report and to package the generated artifacts.<br>
-
-
 ## Setup
 See the [setup instructions](./docs/setup_instructions.md)
 
