@@ -467,6 +467,13 @@ od-2000_tflitert:
   shortlisted: true
   size: 29163277
   task_type: detection
+od-2010_tflitert:
+  model_name: mlperf_ssd_mobilenet_v2_300_float.tflite
+  run_dir: od-2010_tflitert_mlperf_ssd_mobilenet_v2_300_float_tflite
+  session_name: tflitert
+  shortlisted: false
+  size: 70377667
+  task_type: detection
 od-2020_tflitert:
   model_name: tf1-models_ssdlite_mobiledet_dsp_320x320_coco_20200519.tflite
   run_dir: od-2020_tflitert_tf1-models_ssdlite_mobiledet_dsp_320x320_coco_20200519_tflite
@@ -530,6 +537,13 @@ od-2130_tflitert:
   shortlisted: true
   size: 25964973
   task_type: detection
+od-5020_tvmdlr:
+  model_name: model_yolo3_mobilenet1.0_coco-symbol.json
+  run_dir: od-5020_tvmdlr_gluoncv-mxnet_yolo3_mobilenet1.0_coco-symbol_json
+  session_name: tvmdlr
+  shortlisted: true
+  size: 314354756
+  task_type: detection
 od-5030_tvmdlr:
   model_name: gluoncv-mxnet_ssd_512_resnet50_v1_coco-symbol.json
   run_dir: od-5030_tvmdlr_gluoncv-mxnet_ssd_512_resnet50_v1_coco-symbol_json
@@ -585,6 +599,13 @@ od-8060_onnxrt:
   session_name: onnxrt
   shortlisted: true
   size: 37741345
+  task_type: detection
+od-8070_onnxrt:
+  model_name: edgeai-mmdet_yolov3_d53_relu_416x416_20210117_004118_model.onnx
+  run_dir: od-8070_onnxrt_edgeai-mmdet_yolov3_d53_relu_416x416_20210117_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 269480016
   task_type: detection
 od-8080_onnxrt:
   model_name: edgeai-mmdet_yolov3-lite_regnetx-1.6gf_bgr_512x512_20210202_model.onnx
