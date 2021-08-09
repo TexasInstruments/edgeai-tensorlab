@@ -5,8 +5,15 @@ PROCESSOR-SDK-RTOS for Jacinto 7 provides TI Deep Learning Library (TIDL), which
 #### Environment
 We have tested this on Ubuntu 18.04 PC with Anaconda Python 3.6. This is the recommended environment. Create a Python 3.6 environment if you don't have it and activate it.
 
+
+#### Requirement: ModelZoo
+DNN Models and pre-compied model artifacts are provided in another repository called **[EdgeAI-ModelZoo](https://github.com/TexasInstruments/edgeai-modelzoo)**. 
+
+Please clone that repository. After cloning, edgeai-benchmark and edgeai-modelzoo must be inside the same parent folder for the default settings to work.
+
+
 #### Requirement: PROCESSOR-SDK-RTOS-J721E
-PROCESSOR-SDK-RTOS for Jacinto 7 is required to run this package. Please visit the links given at [TI EdgeAI @ Github](https://github.com/TexasInstruments/edgeai) to download and untar/extract the PROCESSOR-SDK-RTOS on your Ubuntu desktop machine.
+PROCESSOR-SDK-RTOS for Jacinto 7 is required to run this package. Please visit the links given at https://github.com/TexasInstruments/edgeai to download and untar/extract the PROCESSOR-SDK-RTOS on your Ubuntu desktop machine.
 
 After extracting, follow the instructions in the RTOS package to download and install the dependencies required for it. The following steps are required:<br>
 
@@ -39,12 +46,6 @@ ln -sf ../ti-processor-sdk-rtos-j721e-evm-07_03_00_07 ./dependencies/ti-processo
 ```
 
 Where *../ti-processor-sdk-rtos-j721e-evm-07_03_00_07* is just an example - **replace it** with the path where the SDK has been extracted.
-
-
-#### Requirement: ModelZoo
-DNN Models, config files and pre-imported/calibrated artifacts that are used in this benchmark are provided in another repository called **[EdgeAI-ModelZoo](https://github.com/TexasInstruments/edgeai-modelzoo)**. Please see the documentation of that repository to understand how to clone it. After cloning, edgeai-benchmark and edgeai-modelzoo must be inside the same parent folder for the default settings to work.
-
-After cloning, **edgeai-benchmark** and **edgeai-modelzoo** must be in the same parent folder. 
 
 
 #### Requirement: Datasets

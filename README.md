@@ -1,11 +1,11 @@
 # EdgeAI-Benchmark
 
-This repository provides a collection of scripts for various image recognition tasks such as classification, segmentation, detection and keypoint detection. These scripts can be used for Model Compilation, Inference, Accuracy & Performance benchmarking of Deep Neural Networks (DNN). These benchmarks in this repository can be run either in PC simulation mode or on device. 
-
-Getting the correct functionality and accuracy with DNN Models is not easy. Several aspects such as dataset loading, pre-processing and post-processing operations have to be matched to that of the original training framework to get meaningful functionality and accuracy. There is much difference in these operations across various popular models and much effort is required to match that functionality. 
-- We provide high level scripts that help to do model compilation, inference and  benchmarking for our platform.
+This repository provides a collection of scripts for various image recognition tasks such as classification, segmentation, detection and keypoint detection. 
+- These scripts can be used for Model Compilation, Inference, Accuracy & Performance benchmarking of Deep Neural Networks (DNN). 
 - Aspects such dataset loading, pre-processing and post-processing as taken care for the models in our model zoo.
+- These benchmarks in this repository can be run either in PC simulation mode or on device. 
 
+Getting the correct functionality and accuracy with DNN Models is not easy. Several aspects such as dataset loading, pre-processing and post-processing operations have to be matched to that of the original training framework to get meaningful functionality and accuracy. There is much difference in these operations across various popular models and much effort has gone into matching that functionality.
 
 ### Notice
 - If you have not visited the landing page of at https://github.com/TexasInstruments/edgeai, please do so before attempting to use this repository. We skip most of the introduction in this repository.
@@ -20,8 +20,8 @@ See the [setup instructions](./docs/setup_instructions.md)
 See the [usage instructions](./docs/usage.md)
 
 
-## Pre-Complied Model Artifacts 
-See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md) that we provide with this repository.
+## Models and Pre-Complied Model Artifacts 
+See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md)
 
 
 ## Compiling Custom Models
