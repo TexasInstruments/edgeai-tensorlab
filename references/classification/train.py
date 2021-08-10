@@ -187,6 +187,14 @@ def main(args):
 
     print("Creating model")
     model = torchvision.models.__dict__[args.model](pretrained=args.pretrained, num_classes=num_classes)
+
+    if args.export_only:
+        dummy_input = torch.rand((1,3,224,224))
+        onnx_file = os.path.join(args.output_dir, args.model+'.onnx')
+        print(f'Exporting ONNX model to: {onnx_file}')
+        torch.onnx.export(model, dummy_input, onnx_file)
+        return
+
     model.to(device)
 
     if args.distributed and args.sync_bn:
@@ -267,7 +275,7 @@ def main(args):
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
-        train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, args.print_freq, args.apex, model_ema)
+        train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, args.apex, model_ema, print_freq=args.print_freq)
         lr_scheduler.step()
         evaluate(model, criterion, data_loader_test, device=device)
         if model_ema:
@@ -351,6 +359,12 @@ def get_args_parser(add_help=True):
         "--pretrained",
         dest="pretrained",
         help="Use pre-trained models from the modelzoo",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--export-only",
+        dest="export_only",
+        help="Export onnx",
         action="store_true",
     )
     parser.add_argument('--auto-augment', default=None, help='auto augment policy (default: None)')

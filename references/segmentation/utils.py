@@ -94,6 +94,10 @@ class ConfusionMatrix(object):
         iu = torch.diag(h) / (h.sum(1) + h.sum(0) - torch.diag(h))
         return acc_global, acc, iu
 
+    def metric(self):
+        mean_iou = self.compute()[-1].mean().item()*100
+        return {'meanIoU': mean_iou}
+
     def reduce_from_all_processes(self):
         if not torch.distributed.is_available():
             return
@@ -108,7 +112,7 @@ class ConfusionMatrix(object):
             'global correct: {:.1f}\n'
             'average row correct: {}\n'
             'IoU: {}\n'
-            'mean IoU: {:.1f}').format(
+            'meanIoU: {:.1f}').format(
                 acc_global.item() * 100,
                 ['{:.1f}'.format(i) for i in (acc * 100).tolist()],
                 ['{:.1f}'.format(i) for i in (iu * 100).tolist()],
@@ -116,9 +120,12 @@ class ConfusionMatrix(object):
 
 
 class MetricLogger(object):
-    def __init__(self, delimiter="\t"):
+    def __init__(self, delimiter="\t", position=1):
         self.meters = defaultdict(SmoothedValue)
         self.delimiter = delimiter
+        self.position = position
+        self.move_up_str = '\033[F' #'\x1b[A'
+        self.move_down_str = '\n'
 
     def update(self, **kwargs):
         for k, v in kwargs.items():
@@ -184,6 +191,7 @@ class MetricLogger(object):
             yield obj
             iter_time.update(time.time() - end)
             if i % print_freq == 0:
+                self._set_position()
                 eta_seconds = iter_time.global_avg * (len(iterable) - i)
                 eta_string = str(datetime.timedelta(seconds=int(eta_seconds)))
                 if torch.cuda.is_available():
@@ -191,17 +199,28 @@ class MetricLogger(object):
                         i, len(iterable), eta=eta_string,
                         meters=str(self),
                         time=str(iter_time), data=str(data_time),
-                        memory=torch.cuda.max_memory_allocated() / MB))
+                        memory=torch.cuda.max_memory_allocated() / MB),
+                        end='')
                 else:
                     print(log_msg.format(
                         i, len(iterable), eta=eta_string,
                         meters=str(self),
-                        time=str(iter_time), data=str(data_time)))
+                        time=str(iter_time), data=str(data_time)),
+                        end='')
+                self._reset_position()
             i += 1
             end = time.time()
         total_time = time.time() - start_time
         total_time_str = str(datetime.timedelta(seconds=int(total_time)))
-        print('{} Total time: {}'.format(header, total_time_str))
+        print('{} Total time: {}\n'.format(header, total_time_str))
+
+    def _set_position(self):
+        pos_str = self.move_up_str*self.position
+        print(pos_str, end='')
+
+    def _reset_position(self):
+        pos_str = self.move_down_str*self.position
+        print(pos_str, end='')
 
 
 def cat_list(images, fill_value=0):
