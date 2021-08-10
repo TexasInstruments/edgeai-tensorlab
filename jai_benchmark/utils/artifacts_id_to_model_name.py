@@ -91,7 +91,7 @@ model_id_artifacts_pair = {
     'od-2030_tflitert': 'TFL-OD-2030-ssdLite-mobDet-EdgeTPU-coco-320x320',
     'od-2040_tflitert': 'TFL-OD-2040-ssd-mobV1-fpn-coco-640x640',
     'od-2050_tflitert': 'TFL-OD-2050-ssd-mobV2-mnas-fpn-coco-320x320',
-    'od-2060_tflitert': 'TFL-OD-2060-ssd-mobV2-coco-mlperf-300x300',
+    'od-2060_tflitert': 'TFL-OD-2060-ssdlite-mobV2-coco-300x300', #name was wrong. Corrrected on 2021-08-09. During SK8.0 release
 
     # added in SDK8.0
     'od-2070_tflitert':'TFL-OD-2070-ssd-mobV1-fpn-coco-tpu-8-640x640',
@@ -366,7 +366,7 @@ removed_model_list = {
     ################
     'cl-0240_tflitert': 'TFL-CL-0240-nasNet-mobile-tflite', # Kumar removed model (Multiple sub-graphs) (Accuracy issue)
     'cl-0180_tflitert': 'TFL-CL-0180-efficientNet-lite2', # Kumar removed model  (Accuracy issue)
-    'od-2010_tflitert': 'TFL-OD-2010-ssd-mobV2-coco-300x300-mlperf',  # Kumar removed model (Duplocate)
+    #'od-2010_tflitert': 'TFL-OD-2010-ssd-mobV2-coco-300x300-mlperf',  # Kumar removed model (Duplocate). It is not duplicate. 2010 and 2060 are different models.
     'ss-2550_tflitert': 'TFL-SS-2550-deeplabv3-mobv2-cs-2048x1024',  # Kumar removed model, (not in plan)
 
     'cl-3370_tvmdlr': 'TVM-CL-3370-vgg16', # Kumar removed model
@@ -391,7 +391,6 @@ removed_model_list = {
     'cl-6040_onnxrt': 'ONR-CL-6040-nasNet-mobile-tflite', # not part of benchmarking script yet. tflite model with TVM.
     'od-8010_onnxrt': 'ONR-OD-8010-yolov3-416x416', # not supported yet
     'cl-0150_tflitert': 'TFL-CL-0150-denseNet', # too far from optimal pareto line
-    #'od-5020_tvmdlr': 'TVM-OD-5020-yolov3-mobv1-gluon-mxnet-416x416', #segmentation fault while running import
 
     #removed from ONNX-RT
     'cl-6410_onnxrt': 'ONR-CL-6410-gluoncv-mxnet-mobv2',
@@ -444,7 +443,6 @@ removed_model_list = {
     'cl-6510_onnxrt' :  'ONR-CL-6510-mobv3-ti-lite-large-x2r',
     'cl-3500_tvmdlr' :  'TVM-CL-3500-mobv3-ti-lite-large-x2r', 
     'od-2120_tflitert': 'TFL-OD-2120-ssd-res50V1-fpn-coco-tpu-8-1024x1024',
-    #'od-5020_tvmdlr' :  'TVM-OD-5020-yolov3-mobv1-gluon-mxnet-416x416',
     'od-5050_tvmdlr' :  'TVM-OD-5050-yolo3_darknet53-coco-gluon-mxnet-512x512',
     'od-5060_tvmdlr' :  'TVM-OD-5060-centernet-r18-v1b-coco-gluon-mxnet-512x512',
     'ss-5810_tvmdlr' :  'TVM-SS-5810-fcn-resNet101-cocoseg21-gluon-mxnet-480x480',
