@@ -4,44 +4,40 @@ This repository provides a collection of example Deep Neural Network (DNN) Model
 
 
 ### Notice
-- If you have not visited the landing page of [**TI EdgeAI @ Github**](https://github.com/TexasInstruments/edgeai), please do so before attempting to use this repository.
+- If you have not visited the landing page https://github.com/TexasInstruments/edgeai, please do so before attempting to use this repository. We skip most of the introduction in this repository.
 - This repository is located in Github at: https://github.com/TexasInstruments/edgeai-modelzoo
-- Important Note: This repository is being made available for experimentation and development  - this is not meant for deployment in production.
+- Important Note: The models in this repository are being made available for experimentation and development  - they are not meant for deployment in production.
 
 
 ## Introduction
-DNNs can be run on our SoCs using **[PROCESSOR-SDK-J721E](https://www.ti.com/tool/PROCESSOR-SDK-J721E)** and [PROCESSOR-SDK-RTOS-J721E)](https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E). 
-
-In order to run Deep Neural Networks (a.k.a. DNNs or Deep Learning Models or simply models) on embedded hardware, they need to be converted into embedded friendly formats and optimized. We have converted/exported several models from the original training frameworks in PyTorch, Tensorflow and MxNet into these embedded friendly formats and is being hosted in this repository. In this process we also make sure that these models provide optimized inference speed on our SoCs, so sometimes minor modifications are made to the models wherever necessary. These models provide a good starting point for our customers to explore high performance Deep Learning on our SoCs.
-
-PROCESSOR-SDK-RTOS for Jacinto 7 TDA4x provides TI Deep Learning Library (TIDL), which is an optimized library that can run Neural Networks on our SoCs. TIDL has several familiar interfaces for model inference - such as onnxruntime, tflite_runtime, tvm/dlr - apart from its own native interface. All these runtimes that are provided as part of TIDL have extensions on top of public domain runtimes that allow us to offload model execution into our high performance C7x+MMA DSP. For more information how to obtain and use these runtimes, please go through the TIDL documentation in the RTOS SDK. The documentation of TIDL can be seen if you click on the "SDK Documentation" link in the download page for 
-
-
-## Usage
-TIDL documentation (see information above) and test scripts provide information on running Deep Learning models in our SoCs. That is a good starting point to get familiarized with import/calibration and inference of such models.
-
-However, we also provide higher level scripts that help to do inference and accuracy benchmarking on our platform easily, with just a few lines of Python code. These example scripts for Model Import/Calibration, Inference and Accuracy benchmarking are in the repository EdgeAI-Benchmark described above.
+In order to run Deep Neural Networks (a.k.a. DNNs or Deep Learning Models or simply models) on embedded hardware, they need to be optimized and converted into embedded friendly formats. We have converted/exported several models from the original training frameworks in PyTorch, Tensorflow and MxNet into these embedded friendly formats and is being hosted in this repository. In this process we also make sure that these models provide optimized inference speed on our SoCs, so sometimes minor modifications are made to the models wherever necessary. These models provide a good starting point for our customers to explore high performance Deep Learning on our SoCs.
 
 
 ## ModelZoo / Pre-Trained Models Collection & Documentation
 
 #### Image Classification
-[Image Classification Model Zoo](./models/vision/classification/classification.md)
+[Image Classification Model Zoo](./models/vision/classification/)
 
 #### Object Detection
-[Object Detection Model Zoo](./models/vision/detection/detection.md)
+[Object Detection Model Zoo](./models/vision/detection/)
 
 #### Semantic Segmentation
-[Semantic Segmentation Model Zoo](./models/vision/segmentation/segmentation.md)
+[Semantic Segmentation Model Zoo](./models/vision/segmentation/)
 
 #### Public Benchmarks
-[MLPerf Machine Learning Model Zoo](./models/docs/mlperf/mlperf.md)
+[MLPerf Machine Learning Model Zoo](./models/docs/mlperf/)
 
 
-## Pre-Complied / Pre-Imported Model Artifacts
-URLs of Pre-Compiled model artifacts can be obtained [here](./docs/modelartifacts.rst)
+## Pre-Complied Model Artifacts 
+See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md) that we provide with this repository.
 
-Note: if you are using [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) to run inference with these artifacts, there is no need to download these manually - they will be downloaded automatically.
+
+## Compiling Models
+TIDL documentation (see information above) and test scripts provide information on compiling and running DNN models in our SoCs. That is a good starting point to get familiarized with import/calibration and inference of such models.
+
+However, we also provide higher level scripts for Model Compilation, Inference and Accuracy benchmarking are in the repository [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) repository. You can find the compilation settings for the models there. URLs of Pre-Compiled model artifacts can also be obtained there.
+
+This repository contains .link files which have the URLs of actual DNN models. These models are arranged according to task that they are used for and then according to the training repositories that were used to train them. If you are using [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) to run compilation of run benchmark, you have to *git clone* this repository.
 
 
 ## LICENSE

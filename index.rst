@@ -55,9 +55,9 @@ Training Repositories
 .. toctree::
     :maxdepth: 2
 
-    PyTorch-Jacinto-AI-DevKit for Training Classification, Segmentation & Multi-Task models <https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/>
-    Quantization Aware Training (QAT) using PyTorch-Jacinto-AI-DevKit <https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/docs/Quantization.md>
-    Object Detection Training using PyTorch-MMDetection <https://git.ti.com/cgit/jacinto-ai/pytorch-mmdetection/about/>
+    EdgeAI-Torchvision for Training Classification, Segmentation & Multi-Task models <https://github.com/TexasInstruments/edgeai-torchvision>
+    Quantization Aware Training (QAT) using EdgeAI-Torchvision <https://github.com/TexasInstruments/edgeai-torchvision/blob/master/docs/pixel2pixel/Quantization.md>
+    Object Detection Training using PyTorch-MMDetection <https://github.com/TexasInstruments/edgeai-mmdetection>
 
 
 References

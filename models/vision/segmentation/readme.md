@@ -20,11 +20,11 @@ COCO dataset: Microsoft COCO: Common Objects in Context, Tsung-Yi Lin, Michael M
 
 ## Models
 
-### Pytorch-Jacinto-AI-Devkit
-- [Models Link - COCOSeg21](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/segmentation/cocoseg21/edgeai-tv/)
-- [Models Link - ADE20K32](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/segmentation/ade20k32/edgeai-tv/)
-- [Additional information](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/docs/Semantic_Segmentation.md)
-- [Training Code](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/)
+### EdgeAI-Torchvision
+- [Models Link - COCOSeg21](./cocoseg21/edgeai-tv/)
+- [Models Link - ADE20K32](./ade20k32/edgeai-tv/)
+- [Additional information](https://github.com/TexasInstruments/edgeai-torchvision/blob/master/docs/pixel2pixel/Semantic_Segmentation.md)
+- [Training Code](https://github.com/TexasInstruments/edgeai-torchvision)
 
 
 |Dataset    |Model Name                     |Input Size |GigaMACs  |MeanIoU%       |Available|Notes |
@@ -62,9 +62,9 @@ COCO dataset: Microsoft COCO: Common Objects in Context, Tsung-Yi Lin, Michael M
 
 
 ### Tensorflow DeepLab Models
-- [Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/segmentation/voc2012/tf1-models/)
+- [Models Link](./voc2012/tf1-models/)
 - [Training Source Code](https://github.com/tensorflow/models/tree/master/research/deeplab)
-- [**Additional Information**](./utils/README_tf_deeplab.md)
+- [**Additional Information**](./utils/tf-deeplab)
 
 |Dataset    |Model Name                     |Input Size |GigaMACs  |MeanIoU%    |Available|Notes |
 |---------- |------------------------------ |-----------|----------|------------|---------|------|

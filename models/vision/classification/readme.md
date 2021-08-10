@@ -14,7 +14,7 @@ Image classification is one of the most popular problems in Computer Vision. It 
 ## Models 
 The models are grouped in terms of repositories used to train them or the repositories through they are made available. Models from the following repositories are currently part of TI model zoo.
 
-[Pytorch Jacinto AI Devkit](#Pytorch-Jacinto-AI-Devkit)
+[EdgeAI-TorchVision](#EdgeAI-TorchVision)
 
 [Torchvision](#Torchvision-models)
 
@@ -32,22 +32,27 @@ The models are grouped in terms of repositories used to train them or the reposi
 
 ---
 
-<div id="Pytorch-Jacinto-AI-Devkit"></div>
+<div id="EdgeAI-TorchVision"></div>
 
-### Pytorch-Jacinto-AI-Devkit
-- [Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/classification/imagenet1k/edgeai-tv/)
-- **[Training Source Code](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/)**
-- [More Information](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/docs/Image_Classification.md)
+### EdgeAI-TorchVision
+EdgeAI-TorchVision is our extension of Torchvision that can be used to train embedded friendly Lite models.
+- [Models Link](./imagenet1k/edgeai-tv/)
+- **[Training Source Code](https://github.com/TexasInstruments/edgeai-torchvision)**
+- [More Information](https://github.com/TexasInstruments/edgeai-torchvision/blob/master/docs/pixel2pixel/Image_Classification.md)
 
 |Dataset  |Model Name             |Input Size|GigaMACs|Top-1 Accuracy%|Available|Notes    |
 |---------|----------             |----------|--------|--------       |---------|------   |
 |ImageNet |MobileNetV1[2]         |224x224   |0.568   |71.83          |Y        |         |
 |ImageNet |MobileNetV2[3]         |224x224   |0.296   |72.13          |Y        |         |
+|ImageNet |MobileNetV3Lite-Small[20]|224x224 |0.054   |62.688         |Y        |         |
+|ImageNet |MobileNetV3Lite-Large[20]|224x224 |0.213   |72.122         |Y        |         |
 |-
-|ImageNet |MobileNetV2-QAT[3]     |224x224   |0.296   |71.76          |Y        |QAT* Model|
-|ImageNet |MobileNetV2-1.4-QAT[3] |224x224   |0.583   |74.57          |Y        |QAT* Model|
+|ImageNet |MobileNetV2-QAT        |224x224   |0.296   |71.76          |Y        |QAT* Model|
+|ImageNet |MobileNetV2-1.4-QAT    |224x224   |0.583   |74.57          |Y        |QAT* Model|
+|ImageNet |MobileNetV3Lite-Small-QAT|224x224 |0.054   |61.836         |Y        |QAT* Model|
+|ImageNet |MobileNetV3Lite-Large-QAT|224x224 |0.213   |71.614         |Y        |QAT* Model|
 
-*- Quantization Aware Training using 8b precision
+*- Quantization Aware Training using 8bit precision
 
 </a>
 
@@ -56,7 +61,8 @@ The models are grouped in terms of repositories used to train them or the reposi
 <div id="Torchvision-models"></div>
 
 ### Torchvision models
-- [Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/classification/imagenet1k/torchvision/)
+Torchvision from Pytorch is one of the most popular packages for DNN training using PyTorch.
+- [Models Link](./imagenet1k/torchvision/)
 - [Additional information](https://pytorch.org/vision/stable/models.html)
 - [Models Source Code](https://github.com/pytorch/vision)
 - [**Training Source Code**](https://github.com/pytorch/examples/tree/master/imagenet)
@@ -80,7 +86,7 @@ The models are grouped in terms of repositories used to train them or the reposi
 <div id="Facebookresearch/pycls"></div>
 
 ### Facebookresearch/pycls
-- [Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/classification/imagenet1k/fbr-pycls/)
+- [Models Link](./imagenet1k/fbr-pycls/)
 - [Pretrained Models](https://github.com/facebookresearch/pycls/blob/master/MODEL_ZOO.md)
 - [Training Source Code](https://github.com/facebookresearch/pycls/)
 
@@ -91,7 +97,7 @@ The models are grouped in terms of repositories used to train them or the reposi
 |ImageNet |RegNetX800MF[6]  |224x224   |0.800   |75.2           |Y        |      |
 |ImageNet |RegNetX1.6GF[6]  |224x224   |1.600   |77.0           |Y        |      |
 
-**Note**: Some of these models can also be trained using pytorch-jacinto-ai-devkit
+**Note**: Some of these models can also be trained using edgeai-torchvision
 
 </a>
 
@@ -100,7 +106,7 @@ The models are grouped in terms of repositories used to train them or the reposi
 <div id="Tensorflow-TPU-Models"></div>
 
 ### Tensorflow TPU Models
-- [Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/classification/imagenet1k/tf-tpu/)
+- [Models Link](./imagenet1k/tf-tpu/)
 - [Training Source Code](https://github.com/tensorflow/tpu/tree/master/models/official)
 - [Training Source Code for EfficientNet](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet)
 
@@ -123,7 +129,7 @@ The models are grouped in terms of repositories used to train them or the reposi
 <div id="TensorFlow-Model-Garden-TF1.0" ></div>
 
 ### TensorFlow Model Garden - Models Using Tensorflow 1.0 APIs
-- [Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/classification/imagenet1k/tf1-models/)
+- [Models Link](./imagenet1k/tf1-models/)
 - [Training Source Code](https://github.com/tensorflow/models)
 - [More Information - Hosted Models](https://www.tensorflow.org/lite/guide/hosted_models)
 - [More Information - Slim Models](https://github.com/tensorflow/models/tree/master/research/slim)
@@ -147,7 +153,7 @@ The models are grouped in terms of repositories used to train them or the reposi
 <div id="TensorFlow-Model-Garden-TF2.0-Keras" ></div>
 
 ### TensorFlow Model Garden - Models Using Tensorflow 2.0 Keras APIs
-- [Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/classification/imagenet1k/tf2-models/)
+- [Models Link](./imagenet1k/tf2-models/)
 - [Training Source Code](https://github.com/tensorflow/models)
 - [More Information - Official Models](https://github.com/tensorflow/models/tree/master/official)
 - [More Information - Keras Models](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/python/keras/applications)
@@ -164,7 +170,7 @@ The models are grouped in terms of repositories used to train them or the reposi
 <div id="MXNet-Models" ></div>
 
 ### MxNet Models
-- [Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/classification/imagenet1k/gluoncv-mxnet/)
+- [Models Link](./imagenet1k/gluoncv-mxnet/)
 - [More Information - GluonCV Model Zoo](https://cv.gluon.ai/model_zoo/index.html)
 
 |Dataset  |Model Name                   |Input Size|GigaMACs|Top-1 Accuracy%|Available|Notes |
@@ -180,7 +186,7 @@ The models are grouped in terms of repositories used to train them or the reposi
 <div id="Models-From-github.com/onnx/models" ></div>
 
 ### Models From github.com/onnx/models
-- [Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/classification/imagenet1k/onnx-models/)
+- [Models Link](./imagenet1k/onnx-models/)
 - [More Information - ONNX Model Zoo](https://github.com/onnx/models)
 
 </a>
@@ -235,4 +241,6 @@ The models are grouped in terms of repositories used to train them or the reposi
 [18] ONNX Model Zoo: The ONNX Model Zoo is a collection of pre-trained, state-of-the-art models in the ONNX format contributed by community members like you. https://github.com/onnx/models
 
 [19] GluonCV Model Zoo: GluonCV provides implementations of state-of-the-art (SOTA) deep learning algorithms in computer vision. https://cv.gluon.ai/model_zoo/index.html
+
+[20] Searching for MobileNetV3, Andrew Howard, Mark Sandler, Grace Chu, Liang-Chieh Chen, Bo Chen, Mingxing Tan, Weijun Wang, Yukun Zhu, Ruoming Pang, Vijay Vasudevan, Quoc V. Le, Hartwig Adam, https://arxiv.org/abs/1905.02244
 

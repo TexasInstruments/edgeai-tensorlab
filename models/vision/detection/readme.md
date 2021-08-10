@@ -14,35 +14,36 @@ The models are grouped in terms of repositories used to train them or the reposi
 
 
 ### Jacinto-AI/Pytorch-MMDetection
-- [Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/detection/coco/edgeai-mmdet/)
-- [**Training Source Code**](https://git.ti.com/cgit/jacinto-ai/pytorch-mmdetection/about/)
+- [Models Link](./coco/edgeai-mmdet/)
+- [**Training Source Code**](https://github.com/TexasInstruments/edgeai-mmdetection)
 
 This is our fork of the popular mmdetection training framework for object detection. We provide several optimized, embedded friendly configurations that provide high throughput on our SoCs. One can train and export models to onnx format, and can then be used in our fork of onnxruntime. Please visit the link above for more information.
 
 |Dataset |Model Name                       |Input Size |GigaMACS  |AP[0.5:0.95]%, AP50%|Available|Notes |
 |--------|---------------------------------|-----------|----------|--------------------|---------|----- |
 |        |**SSD models**               
-|COCO    |MobileNetV2+SSDLite              |512x512    |**1.67**  |**25.1**, 43.1      |         |      |
-|COCO    |MobileNetV2+FPN+SSDLite          |512x512    |**2.29**  |**27.2**, 45.7      |         |      |
+|COCO    |MobileNetV2+SSDLite              |512x512    |**1.67**  |**25.1**, 43.1      |Y        |      |
+|COCO    |MobileNetV2+FPN+SSDLite          |512x512    |**2.29**  |**27.2**, 45.7      |Y        |      |
 |COCO    |MobileNetV2+FPN+SSDLite          |768x768    |**5.83**  |**29.0**, 47.8      |         |      |
 |-
+|COCO    |RegNetX200MF+SSDLite             |320x320    |**0.61**  |**20.7**, 36.7      |Y        |      |
 |COCO    |RegNetX400MF+SSDLite             |320x320    |**1.12**  |**24.1**, 41.0      |         |      |
-|COCO    |RegNetX800MF+FPN+SSDLite         |512x512    |**6.03**  |**32.8**, 52.8      |         |      |
+|COCO    |RegNetX800MF+FPN+SSDLite         |512x512    |**6.03**  |**32.8**, 52.8      |Y        |      |
 |COCO    |RegNetX1.6GF+FPN+SSDLite         |768x768    |**24.19** |**37.0**, 57.3      |         |      |
-|COCO    |RegNetX1.6GF+BiFPN168x4+SSDLite  |768x768    |**25.37** |**39.8**, 58.4      |         |      |
+|COCO    |RegNetX1.6GF+BiFPN168x4+SSDLite  |768x768    |**25.37** |**39.8**, 58.4      |Y        |      |
 |        |**YOLOV3 models**
 |COCO    |YOLOv3(LeakyReLU)                |416x416    |**33.0**  |**31.0**, 52.1      |         |Fine tuned to use fixed size |
-|COCO    |YOLOv3(ReLU)                     |416x416    |**33.0**  |**30.7**, 51.2      |         |Fine tuned to use fixed size and ReLU |
-|COCO    |RegNetX+YOLOV3Lite               |416x416    |**3.6**   |**26.9**, 46.9      |         |      |
-|COCO    |RegNetX+YOLOV3Lite               |512x512    |**10.48** |**30.8**, 51.9      |         |      |
+|COCO    |YOLOv3(ReLU)                     |416x416    |**33.0**  |**30.7**, 51.2      |Y        |Fine tuned to use fixed size and ReLU |
+|COCO    |RegNetX800MF+YOLOV3Lite          |416x416    |**3.6**   |**26.9**, 46.9      |         |      |
+|COCO    |RegNetX1.6GF+YOLOV3Lite          |512x512    |**10.48** |**30.8**, 51.9      |Y        |      |
 |-
-|COCO    |ResNet50+FPN+SSD                 |512x512    |**30.77** |**31.2**, 52.2      |         |      |
+|COCO    |ResNet50+FPN+SSD                 |512x512    |**30.77** |**31.2**, 52.2      |Y        |      |
 |        |**RetinaNet models**
-|COCO    |RegNetX800MF+FPN+RetinaNetLite   |512x512    |**11.08** |**33.0**, 50.8      |         |      |
+|COCO    |RegNetX800MF+FPN+RetinaNetLite   |512x512    |**11.08** |**33.0**, 50.8      |Y        |      |
 
 
 ### Open-MMLab/MMDetection
-- [Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/detection/coco/mmdet/)
+- [Models Link](./coco/mmdet/)
 - [Training Source Code](https://github.com/open-mmlab/mmdetection)
 
 |Dataset |Model Name                    |Input Size |GigaMACS  |AP[0.5:0.95]%, AP50%|Available|Notes |
@@ -58,38 +59,41 @@ This is our fork of the popular mmdetection training framework for object detect
 
 
 ### Tensorflow TPU Models
-- [Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/detection/coco/tf-tpu/)
-- [Training Source Code](https://github.com/tensorflow/tpu/tree/master/models/official)
-
-|Dataset |Model Name                    |Input Size |GigaMACS  |AP[0.5:0.95]%, AP50%|Available|Notes |
-|--------|------------------------------|-----------|----------|--------------------|---------|----- |
-|COCO    |ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19|320x320|1.534|**25.9**  |Y        |      |
-|COCO    |ssdlite_mobiledet_dsp_320x320_coco_2020_05_19|320x320|2.818|**28.9**      |Y        |      |
+- [Models Link](./coco/tf-tpu/)
+- [Training Source Code](https://github.com/tensorflow/tpu/tree/master/models/official/detection)
 
 
 ### TensorFlow Model Garden - Object Detection API Models Using Tensorflow 1.0 
-- [Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/detection/coco/tf1-models/)
+- [Models Link](./coco/tf1-models/)
 - [Training Source Code](https://github.com/tensorflow/models/tree/master/research/object_detection)
 - [Training Documentation](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf1.md)
 - [Object Detection API Model Zoo For Tensorflow 1.0](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf1_detection_zoo.md)
 
 |Dataset |Model Name                    |Input Size |GigaMACS  |AP[0.5:0.95]%, AP50%|Available|Notes   |
 |--------|------------------------------|-----------|----------|--------------------|---------|--------|
-|COCO    |ssd_mobilenet_v1_coco_2018_01_28|300x300  |1.237      |**23.0**           |Y         |Also used in MLPerf benchmark |
-|COCO    |ssd_mobilenet_v2_300          |300x300    |1.875     |**22.0**            |Y         |Also used in MLPerf benchmark |
-|COCO    |ssdlite_mobilenet_v2_coco_2018_05_09|300x300|0.75    |**22.0**            |Y         |        |
-
+|COCO    |ssdlite_mobiledet_dsp_320x320_coco_20200519|320x320|2.818|28.9            |Y        |        |
+|COCO    |ssdlite_mobiledet_edgetpu_320x320_coco_20200519|320x320|1.534|25.9        |Y        |        |
+|COCO    |ssd_mobilenet_v1_coco_2018_01_28|300x300  |1.237      |**23.0**           |Y        |Also used in MLPerf benchmark |
+|COCO    |ssd_mobilenet_v2_300          |300x300    |1.875     |**22.0**            |Y        |Also used in MLPerf benchmark |
+|COCO    |ssdlite_mobilenet_v2_coco_2018_05_09|300x300|0.75    |**22.0**            |Y        |        |
 
 ### TensorFlow Model Garden - Object Detection API Models Using Tensorflow 2.0
-- [Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/detection/coco/tf2-models/)
+- [Models Link](./coco/tf2-models/)
 - [Training Source Code](https://github.com/tensorflow/models/tree/master/research/object_detection)
 - [Training Documentation](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2.md)
 - [Object Detection API Model Zoo For Tensorflow 2.0](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md)
 
+|Dataset |Model Name                              |Input Size |GigaMACS  |AP[0.5:0.95]%, AP50%|Available|Notes |
+|--------|----------------------------------------|-----------|----------|--------------------|---------|----- |
+|COCO    |ssd_mobilenet_v1_fpn_640x640_coco17     |640x640    |61.593    |29.1                |Y        |      |
+|COCO    |ssd_mobilenet_v2_320x320_coco17         |320x320    |0.773     |20.2                |Y        |      |
+|COCO    |ssd_mobilenet_v2_fpnlite_320x320_coco17 |300x300    |0.987     |22.2                |Y        |      |
+|COCO    |ssd_mobilenet_v2_fpnlite_640x640_coco17 |640x640    |3.945     |28.2                |Y        |      |
+|COCO    |ssd_resnet50_v1_fpn_640x640_coco17      |640x640    |89.229    |34.3                |         |      |
 
 ### Models trained using github.com/google/automl
-- [**Information about our training**](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/about/models/vision/detection/coco/google-automl/README.md)
-- [Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/detection/coco/google-automl/)
+- [**Information about our training**](./coco/google-automl/README.md)
+- [Models Link](./coco/google-automl/)
 - [More Information - github.com/google/automl](https://github.com/google/automl)
 
 
@@ -97,14 +101,14 @@ This is our fork of the popular mmdetection training framework for object detect
 |--------|----------------------------------------|-----------|----------|--------------------|---------|----- |
 |        |**Our training - Lite models**
 |COCO    |efficientdet-lite0_bifpn_maxpool2x2_relu_ti-lite|512x512    |**2.50**  |33.61, 52.27        |Y        |ti-lite flavour|
-|          |**Model from original repository**
+|        |**Model from original repository**
 |COCO    |EfficientDet-D0                       |512x512    |          |34.3, 53.0          |         |      |
 
-Note: EfficientDet-Lite (or efficientdet-lite) is the embedded friendly variant of EfficientDet. We have also done some additional modifications on top of the original EfficientDet-Lite to better suite our platform (which we referred to as ti-lite flavour in the table). Please refer to [**information about our training**](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/about/models/vision/detection/coco/google-automl/README.md) for more details.
+Note: EfficientDet-Lite (or efficientdet-lite) is the embedded friendly variant of EfficientDet. We have also done some additional modifications on top of the original EfficientDet-Lite to better suite our platform (which we referred to as ti-lite flavour in the table). Please refer to [**information about our training**](./coco/google-automl/README.md) for more details.
 
 
 ## Models From github.com/onnx/models
-- [Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/detection/coco/onnx-models/)
+- [Models Link](./coco/onnx-models/)
 - [More Information - github.com/onnx/models](https://github.com/onnx/models)
 
 

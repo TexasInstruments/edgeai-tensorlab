@@ -19,9 +19,9 @@ Some of the models have to processed with additional steps before they can be us
 
 
 ## Models
-- [MLPerf Classification Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/classification/imagenet1k/mlperf/)
-- [MLPerf Detection Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/detection/coco/mlperf/)
-- [MLPerf Segmentation Models Link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/models/vision/segmentation/ade20k32/mlperf/)
+- [MLPerf Classification Models Link](../../vision/classification/imagenet1k/mlperf/)
+- [MLPerf Detection Models Link](../../vision/detection/coco/mlperf/)
+- [MLPerf Segmentation Models Link](../../vision/segmentation/ade20k32/mlperf/)
 
 |Dataset         |Model Name         |Input Size|GigaMACs  |Accuracy%         |Task          |Available|Notes     |
 |---------       |----------         |----------|----------|--------         |-------------- |---------|----------|
@@ -30,7 +30,7 @@ Some of the models have to processed with additional steps before they can be us
 |ImageNet        |MobileNetV2EdgeTPU |224x224   |0.991     |75.6   Top-1%    |Classification |Y        |mobilenet_edgetpu_224_1.0_float.tflite|
 |COCO            |MobileNetV1SSD     |300x300   |1.237     |23.0 AP[.5:.95]% |Detection      |Y        |ssd_mobilenet_v1_coco_2018_01_28.tflite|
 |COCO            |MobileNetV2SSD     |300x300   |1.875     |22.0 AP[.5:.95]% |Detection      |Y        |ssd_mobilenet_v2_300_float.tflite|
-|COCO            |ResNet34SSD        |1200x1200 |          |20.0 AP[.5:.95]% |Detection      |         |ssd_resnet34-ssd1200.onnx|
+|COCO            |ResNet34SSD        |1200x1200 |          |20.0 AP[.5:.95]% |Detection      |Y        |ssd_resnet34-ssd1200.onnx|
 |ADE20K 32 Class |DeepLabV3LiteMNV2  |512x512   |5.336     |54.8 MeanIoU%    |Segmentation   |Y        |deeplabv3_mnv2_ade20k_float.tflite|
 
 
