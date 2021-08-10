@@ -40,3 +40,5 @@ xcuserdata/
 # direnv
 .direnv
 .envrc
+
+data/
