@@ -55,4 +55,4 @@ git commit -a -m 'release commit'
 
 git checkout master
 
-git stash pop
+#git stash pop
