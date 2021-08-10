@@ -2,7 +2,7 @@
 
 This package provides Pre-Compiled Model Artifacts for several Deep Neural Network models. 
 
-URLs of Pre-Compiled model artifacts can be obtained [in this folder](../modelartifacts/8bits/artifacts.list) and information is provided in this [list](../modelartifacts/8bits/artifacts.list)
+URLs of Pre-Compiled model artifacts can be obtained [in this folder](../modelartifacts/8bits/) and information is provided in this [list](../modelartifacts/8bits/artifacts.list)
 
 Note: To run inference with these artifacts, there is no need to download them manually - they will be downloaded automatically during the inference using the URLs in the .link files.
 
