@@ -22,3 +22,7 @@ docs/html
 #*.params
 #*.prototxt
 #*.caffemodel
+
+*.tar.gz
+
+
