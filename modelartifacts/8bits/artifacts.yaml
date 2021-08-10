@@ -471,8 +471,8 @@ od-2010_tflitert:
   model_name: mlperf_ssd_mobilenet_v2_300_float.tflite
   run_dir: od-2010_tflitert_mlperf_ssd_mobilenet_v2_300_float_tflite
   session_name: tflitert
-  shortlisted: false
-  size: 70377667
+  shortlisted: true
+  size: 70356677
   task_type: detection
 od-2020_tflitert:
   model_name: tf1-models_ssdlite_mobiledet_dsp_320x320_coco_20200519.tflite
