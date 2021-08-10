@@ -1,3 +1,68 @@
+#################################################################################
+# Copyright (c) 2018-2021, Texas Instruments Incorporated - http://www.ti.com
+# All Rights Reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#################################################################################
+# Some parts of the code are borrowed from: https://github.com/pytorch/vision
+# with the following license:
+#
+# BSD 3-Clause License
+#
+# Copyright (c) Soumith Chintala 2016,
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#################################################################################
+
 import torch
 
 from functools import partial
@@ -8,8 +73,10 @@ from typing import Any, Callable, Dict, List, Optional, Sequence
 from .._internally_replaced_utils import load_state_dict_from_url
 from torchvision.models.mobilenetv2 import _make_divisible, ConvBNActivation
 
+from .. import xnn
 
-__all__ = ["MobileNetV3", "mobilenet_v3_large", "mobilenet_v3_small"]
+__all__ = ["MobileNetV3", "mobilenet_v3_large", "mobilenet_v3_small",
+           "MobileNetV3Lite", "mobilenet_v3_lite_large", "mobilenet_v3_lite_small"]
 
 
 model_urls = {
@@ -104,9 +171,10 @@ class MobileNetV3(nn.Module):
             self,
             inverted_residual_setting: List[InvertedResidualConfig],
             last_channel: int,
-            num_classes: int = 1000,
+            input_channels: int = 3,
             block: Optional[Callable[..., nn.Module]] = None,
             norm_layer: Optional[Callable[..., nn.Module]] = None,
+            activation_layer: Optional[Callable[..., nn.Module]] = nn.Hardswish,
             **kwargs: Any
     ) -> None:
         """
@@ -120,6 +188,7 @@ class MobileNetV3(nn.Module):
             norm_layer (Optional[Callable[..., nn.Module]]): Module specifying the normalization layer to use
         """
         super().__init__()
+        num_classes = kwargs.get('num_classes', 1000)
 
         if not inverted_residual_setting:
             raise ValueError("The inverted_residual_setting should not be empty")
@@ -137,8 +206,8 @@ class MobileNetV3(nn.Module):
 
         # building first layer
         firstconv_output_channels = inverted_residual_setting[0].input_channels
-        layers.append(ConvBNActivation(3, firstconv_output_channels, kernel_size=3, stride=2, norm_layer=norm_layer,
-                                       activation_layer=nn.Hardswish))
+        layers.append(ConvBNActivation(input_channels, firstconv_output_channels, kernel_size=3, stride=2, norm_layer=norm_layer,
+                                       activation_layer=activation_layer))
 
         # building inverted residual blocks
         for cnf in inverted_residual_setting:
@@ -148,13 +217,13 @@ class MobileNetV3(nn.Module):
         lastconv_input_channels = inverted_residual_setting[-1].out_channels
         lastconv_output_channels = 6 * lastconv_input_channels
         layers.append(ConvBNActivation(lastconv_input_channels, lastconv_output_channels, kernel_size=1,
-                                       norm_layer=norm_layer, activation_layer=nn.Hardswish))
+                                       norm_layer=norm_layer, activation_layer=activation_layer))
 
         self.features = nn.Sequential(*layers)
         self.avgpool = nn.AdaptiveAvgPool2d(1)
         self.classifier = nn.Sequential(
             nn.Linear(lastconv_output_channels, last_channel),
-            nn.Hardswish(inplace=True),
+            activation_layer(inplace=False),
             nn.Dropout(p=0.2, inplace=True),
             nn.Linear(last_channel, num_classes),
         )
@@ -186,45 +255,45 @@ class MobileNetV3(nn.Module):
 
 
 def _mobilenet_v3_conf(arch: str, width_mult: float = 1.0, reduced_tail: bool = False, dilated: bool = False,
-                       **kwargs: Any):
+                       use_se: bool = True, hs_type: str='HS', **kwargs: Any):
     reduce_divider = 2 if reduced_tail else 1
     dilation = 2 if dilated else 1
 
     bneck_conf = partial(InvertedResidualConfig, width_mult=width_mult)
     adjust_channels = partial(InvertedResidualConfig.adjust_channels, width_mult=width_mult)
 
-    if arch == "mobilenet_v3_large":
+    if arch in ("mobilenet_v3_large", "mobilenet_v3_lite_large"):
         inverted_residual_setting = [
             bneck_conf(16, 3, 16, 16, False, "RE", 1, 1),
             bneck_conf(16, 3, 64, 24, False, "RE", 2, 1),  # C1
             bneck_conf(24, 3, 72, 24, False, "RE", 1, 1),
-            bneck_conf(24, 5, 72, 40, True, "RE", 2, 1),  # C2
-            bneck_conf(40, 5, 120, 40, True, "RE", 1, 1),
-            bneck_conf(40, 5, 120, 40, True, "RE", 1, 1),
-            bneck_conf(40, 3, 240, 80, False, "HS", 2, 1),  # C3
-            bneck_conf(80, 3, 200, 80, False, "HS", 1, 1),
-            bneck_conf(80, 3, 184, 80, False, "HS", 1, 1),
-            bneck_conf(80, 3, 184, 80, False, "HS", 1, 1),
-            bneck_conf(80, 3, 480, 112, True, "HS", 1, 1),
-            bneck_conf(112, 3, 672, 112, True, "HS", 1, 1),
-            bneck_conf(112, 5, 672, 160 // reduce_divider, True, "HS", 2, dilation),  # C4
-            bneck_conf(160 // reduce_divider, 5, 960 // reduce_divider, 160 // reduce_divider, True, "HS", 1, dilation),
-            bneck_conf(160 // reduce_divider, 5, 960 // reduce_divider, 160 // reduce_divider, True, "HS", 1, dilation),
+            bneck_conf(24, 5, 72, 40, use_se, "RE", 2, 1),  # C2
+            bneck_conf(40, 5, 120, 40, use_se, "RE", 1, 1),
+            bneck_conf(40, 5, 120, 40, use_se, "RE", 1, 1),
+            bneck_conf(40, 3, 240, 80, False, hs_type, 2, 1),  # C3
+            bneck_conf(80, 3, 200, 80, False, hs_type, 1, 1),
+            bneck_conf(80, 3, 184, 80, False, hs_type, 1, 1),
+            bneck_conf(80, 3, 184, 80, False, hs_type, 1, 1),
+            bneck_conf(80, 3, 480, 112, use_se, hs_type, 1, 1),
+            bneck_conf(112, 3, 672, 112, use_se, hs_type, 1, 1),
+            bneck_conf(112, 5, 672, 160 // reduce_divider, use_se, hs_type, 2, dilation),  # C4
+            bneck_conf(160 // reduce_divider, 5, 960 // reduce_divider, 160 // reduce_divider, use_se, hs_type, 1, dilation),
+            bneck_conf(160 // reduce_divider, 5, 960 // reduce_divider, 160 // reduce_divider, use_se, hs_type, 1, dilation),
         ]
         last_channel = adjust_channels(1280 // reduce_divider)  # C5
-    elif arch == "mobilenet_v3_small":
+    elif arch in ("mobilenet_v3_small", "mobilenet_v3_lite_small"):
         inverted_residual_setting = [
-            bneck_conf(16, 3, 16, 16, True, "RE", 2, 1),  # C1
+            bneck_conf(16, 3, 16, 16, use_se, "RE", 2, 1),  # C1
             bneck_conf(16, 3, 72, 24, False, "RE", 2, 1),  # C2
             bneck_conf(24, 3, 88, 24, False, "RE", 1, 1),
-            bneck_conf(24, 5, 96, 40, True, "HS", 2, 1),  # C3
-            bneck_conf(40, 5, 240, 40, True, "HS", 1, 1),
-            bneck_conf(40, 5, 240, 40, True, "HS", 1, 1),
-            bneck_conf(40, 5, 120, 48, True, "HS", 1, 1),
-            bneck_conf(48, 5, 144, 48, True, "HS", 1, 1),
-            bneck_conf(48, 5, 288, 96 // reduce_divider, True, "HS", 2, dilation),  # C4
-            bneck_conf(96 // reduce_divider, 5, 576 // reduce_divider, 96 // reduce_divider, True, "HS", 1, dilation),
-            bneck_conf(96 // reduce_divider, 5, 576 // reduce_divider, 96 // reduce_divider, True, "HS", 1, dilation),
+            bneck_conf(24, 5, 96, 40, use_se, hs_type, 2, 1),  # C3
+            bneck_conf(40, 5, 240, 40, use_se, hs_type, 1, 1),
+            bneck_conf(40, 5, 240, 40, use_se, hs_type, 1, 1),
+            bneck_conf(40, 5, 120, 48, use_se, hs_type, 1, 1),
+            bneck_conf(48, 5, 144, 48, use_se, hs_type, 1, 1),
+            bneck_conf(48, 5, 288, 96 // reduce_divider, use_se, hs_type, 2, dilation),  # C4
+            bneck_conf(96 // reduce_divider, 5, 576 // reduce_divider, 96 // reduce_divider, use_se, hs_type, 1, dilation),
+            bneck_conf(96 // reduce_divider, 5, 576 // reduce_divider, 96 // reduce_divider, use_se, hs_type, 1, dilation),
         ]
         last_channel = adjust_channels(1024 // reduce_divider)  # C5
     else:
@@ -242,11 +311,20 @@ def _mobilenet_v3_model(
     **kwargs: Any
 ):
     model = MobileNetV3(inverted_residual_setting, last_channel, **kwargs)
-    if pretrained:
+    if pretrained is True:
         if model_urls.get(arch, None) is None:
             raise ValueError("No checkpoint is available for model type {}".format(arch))
         state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
         model.load_state_dict(state_dict)
+    elif xnn.utils.is_url(pretrained):
+        state_dict = load_state_dict_from_url(pretrained, progress=progress)
+        model.load_state_dict(state_dict)
+    elif isinstance(pretrained, str):
+        state_dict = torch.load(pretrained)
+        state_dict = state_dict['model'] if 'model' in state_dict else state_dict
+        state_dict = state_dict['state_dict'] if 'state_dict' in state_dict else state_dict
+        model.load_state_dict(state_dict)
+
     return model
 
 
@@ -276,3 +354,82 @@ def mobilenet_v3_small(pretrained: bool = False, progress: bool = True, **kwargs
     arch = "mobilenet_v3_small"
     inverted_residual_setting, last_channel = _mobilenet_v3_conf(arch, **kwargs)
     return _mobilenet_v3_model(arch, inverted_residual_setting, last_channel, pretrained, progress, **kwargs)
+
+
+###################################################
+class MobileNetV3Lite(MobileNetV3):
+    def __init__(
+            self,
+            inverted_residual_setting: List[InvertedResidualConfig],
+            last_channel: int,
+            block: Optional[Callable[..., nn.Module]] = None,
+            norm_layer: Optional[Callable[..., nn.Module]] = None,
+            activation_layer: Optional[Callable[..., nn.Module]] = nn.ReLU,
+            **kwargs
+    ) -> None:
+        kwargs['num_classes'] = kwargs.get('num_classes', 1000)
+        super().__init__(inverted_residual_setting,
+                         last_channel=last_channel,
+                         block=block,
+                         norm_layer=norm_layer,
+                         activation_layer=activation_layer,
+                         **kwargs)
+
+
+def _mobilenet_v3_lite_conf(arch: str, **params: Dict[str, Any]):
+    return _mobilenet_v3_conf(arch, use_se=False, hs_type="RE", **params)
+
+
+def _mobilenet_v3_lite_model(
+    arch: str,
+    inverted_residual_setting: List[InvertedResidualConfig],
+    last_channel: int,
+    pretrained: bool,
+    progress: bool,
+    **kwargs: Any
+):
+    model = MobileNetV3Lite(inverted_residual_setting, last_channel, **kwargs)
+    if pretrained is True:
+        if model_urls.get(arch, None) is None:
+            raise ValueError("No checkpoint is available for model type {}".format(arch))
+        state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
+        model.load_state_dict(state_dict)
+    elif xnn.utils.is_url(pretrained):
+        state_dict = load_state_dict_from_url(pretrained, progress=progress)
+        model.load_state_dict(state_dict)
+    elif isinstance(pretrained, str):
+        state_dict = torch.load(pretrained)
+        state_dict = state_dict['model'] if 'model' in state_dict else state_dict
+        state_dict = state_dict['state_dict'] if 'state_dict' in state_dict else state_dict
+        model.load_state_dict(state_dict)
+
+    return model
+
+
+def mobilenet_v3_lite_large(pretrained: bool = False, progress: bool = True, **kwargs: Any) -> MobileNetV3Lite:
+    """
+    Constructs a large MobileNetV3 architecture from
+    `"Searching for MobileNetV3" <https://arxiv.org/abs/1905.02244>`_.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    """
+    arch = "mobilenet_v3_lite_large"
+    inverted_residual_setting, last_channel = _mobilenet_v3_lite_conf(arch, **kwargs)
+    return _mobilenet_v3_lite_model(arch, inverted_residual_setting, last_channel, pretrained, progress, **kwargs)
+
+
+def mobilenet_v3_lite_small(pretrained: bool = False, progress: bool = True, **kwargs: Any) -> MobileNetV3Lite:
+    """
+    Constructs a small MobileNetV3 architecture from
+    `"Searching for MobileNetV3" <https://arxiv.org/abs/1905.02244>`_.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    """
+    arch = "mobilenet_v3_lite_small"
+    inverted_residual_setting, last_channel = _mobilenet_v3_lite_conf(arch, **kwargs)
+    return _mobilenet_v3_lite_model(arch, inverted_residual_setting, last_channel, pretrained, progress, **kwargs)
+

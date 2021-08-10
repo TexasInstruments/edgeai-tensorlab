@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+from ... import xnn
 from ._utils import _SimpleSegmentationModel
 
 
@@ -27,10 +28,10 @@ class DeepLabV3(_SimpleSegmentationModel):
 
 
 class DeepLabHead(nn.Sequential):
-    def __init__(self, in_channels, num_classes):
+    def __init__(self, in_channels, num_classes, conv_cfg=None, **kwargs):
         super(DeepLabHead, self).__init__(
             ASPP(in_channels, [12, 24, 36]),
-            nn.Conv2d(256, 256, 3, padding=1, bias=False),
+            xnn.layers.ConvWrapper2d(256, 256, kernel_size=3, padding=1, bias=False, conv_cfg=conv_cfg),
             nn.BatchNorm2d(256),
             nn.ReLU(),
             nn.Conv2d(256, num_classes, 1)
@@ -38,9 +39,9 @@ class DeepLabHead(nn.Sequential):
 
 
 class ASPPConv(nn.Sequential):
-    def __init__(self, in_channels, out_channels, dilation):
+    def __init__(self, in_channels, out_channels, dilation, conv_cfg=None):
         modules = [
-            nn.Conv2d(in_channels, out_channels, 3, padding=dilation, dilation=dilation, bias=False),
+            xnn.layers.ConvWrapper2d(in_channels, out_channels, 3, padding=dilation, dilation=dilation, bias=False, conv_cfg=conv_cfg),
             nn.BatchNorm2d(out_channels),
             nn.ReLU()
         ]
@@ -63,7 +64,7 @@ class ASPPPooling(nn.Sequential):
 
 
 class ASPP(nn.Module):
-    def __init__(self, in_channels, atrous_rates, out_channels=256):
+    def __init__(self, in_channels, atrous_rates, out_channels=256, conv_cfg=None):
         super(ASPP, self).__init__()
         modules = []
         modules.append(nn.Sequential(
@@ -73,7 +74,7 @@ class ASPP(nn.Module):
 
         rates = tuple(atrous_rates)
         for rate in rates:
-            modules.append(ASPPConv(in_channels, out_channels, rate))
+            modules.append(ASPPConv(in_channels, out_channels, rate, conv_cfg=conv_cfg))
 
         modules.append(ASPPPooling(in_channels, out_channels))
 

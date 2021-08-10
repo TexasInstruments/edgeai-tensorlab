@@ -13,9 +13,12 @@ from .backbone_utils import _validate_trainable_layers
 from .. import mobilenet
 from ..mobilenetv3 import ConvBNActivation
 from ..._internally_replaced_utils import load_state_dict_from_url
+from .backbone_utils import BackboneWithFPN
+from ... import xnn
 
 
-__all__ = ['ssdlite320_mobilenet_v3_large']
+__all__ = ['ssdlite320_mobilenet_v3_large', 'ssdlite_mobilenet_v3_large',
+           'ssdlite_mobilenet_v3_lite_large', 'ssdlite_mobilenet_v3_lite_small']
 
 model_urls = {
     'ssdlite320_mobilenet_v3_large_coco':
@@ -25,32 +28,39 @@ model_urls = {
 
 # Building blocks of SSDlite as described in section 6.2 of MobileNetV2 paper
 def _prediction_block(in_channels: int, out_channels: int, kernel_size: int,
-                      norm_layer: Callable[..., nn.Module]) -> nn.Sequential:
+                      norm_layer: Callable[..., nn.Module],
+                      activation_layer: Callable[..., nn.Module] = nn.ReLU6,
+                      conv_cfg: dict = None) -> nn.Sequential:
+    group_size_dw = conv_cfg.get('group_size_dw', None) if conv_cfg is not None else None
+    groups = (in_channels // group_size_dw) if group_size_dw is not None else in_channels
     return nn.Sequential(
         # 3x3 depthwise with stride 1 and padding 1
-        ConvBNActivation(in_channels, in_channels, kernel_size=kernel_size, groups=in_channels,
-                         norm_layer=norm_layer, activation_layer=nn.ReLU6),
+        ConvBNActivation(in_channels, in_channels, kernel_size=kernel_size, groups=groups,
+                         norm_layer=norm_layer, activation_layer=activation_layer),
 
         # 1x1 projetion to output channels
         nn.Conv2d(in_channels, out_channels, 1)
     )
 
 
-def _extra_block(in_channels: int, out_channels: int, norm_layer: Callable[..., nn.Module]) -> nn.Sequential:
-    activation = nn.ReLU6
+def _extra_block(in_channels: int, out_channels: int, norm_layer: Callable[..., nn.Module],
+                 activation_layer: Callable[..., nn.Module] = nn.ReLU6,
+                 conv_cfg: dict = None) -> nn.Sequential:
     intermediate_channels = out_channels // 2
+    group_size_dw = conv_cfg.get('group_size_dw', None) if conv_cfg is not None else None
+    groups = (intermediate_channels // group_size_dw) if group_size_dw is not None else intermediate_channels
     return nn.Sequential(
         # 1x1 projection to half output channels
         ConvBNActivation(in_channels, intermediate_channels, kernel_size=1,
-                         norm_layer=norm_layer, activation_layer=activation),
+                         norm_layer=norm_layer, activation_layer=activation_layer),
 
         # 3x3 depthwise with stride 2 and padding 1
         ConvBNActivation(intermediate_channels, intermediate_channels, kernel_size=3, stride=2,
-                         groups=intermediate_channels, norm_layer=norm_layer, activation_layer=activation),
+                         groups=groups, norm_layer=norm_layer, activation_layer=activation_layer),
 
         # 1x1 projetion to output channels
         ConvBNActivation(intermediate_channels, out_channels, kernel_size=1,
-                         norm_layer=norm_layer, activation_layer=activation),
+                         norm_layer=norm_layer, activation_layer=activation_layer),
     )
 
 
@@ -64,10 +74,12 @@ def _normal_init(conv: nn.Module):
 
 class SSDLiteHead(nn.Module):
     def __init__(self, in_channels: List[int], num_anchors: List[int], num_classes: int,
-                 norm_layer: Callable[..., nn.Module]):
+                 norm_layer: Callable[..., nn.Module],
+                 activation_layer: Callable[..., nn.Module] = nn.ReLU6,
+                 conv_cfg: dict = None):
         super().__init__()
-        self.classification_head = SSDLiteClassificationHead(in_channels, num_anchors, num_classes, norm_layer)
-        self.regression_head = SSDLiteRegressionHead(in_channels, num_anchors, norm_layer)
+        self.classification_head = SSDLiteClassificationHead(in_channels, num_anchors, num_classes, norm_layer, activation_layer=activation_layer, conv_cfg=conv_cfg)
+        self.regression_head = SSDLiteRegressionHead(in_channels, num_anchors, norm_layer, activation_layer=activation_layer, conv_cfg=conv_cfg)
 
     def forward(self, x: List[Tensor]) -> Dict[str, Tensor]:
         return {
@@ -78,26 +90,30 @@ class SSDLiteHead(nn.Module):
 
 class SSDLiteClassificationHead(SSDScoringHead):
     def __init__(self, in_channels: List[int], num_anchors: List[int], num_classes: int,
-                 norm_layer: Callable[..., nn.Module]):
+                 norm_layer: Callable[..., nn.Module],
+                 activation_layer: Callable[..., nn.Module] = nn.ReLU6,
+                 conv_cfg:dict = None):
         cls_logits = nn.ModuleList()
         for channels, anchors in zip(in_channels, num_anchors):
-            cls_logits.append(_prediction_block(channels, num_classes * anchors, 3, norm_layer))
+            cls_logits.append(_prediction_block(channels, num_classes * anchors, 3, norm_layer, activation_layer=activation_layer, conv_cfg=conv_cfg))
         _normal_init(cls_logits)
         super().__init__(cls_logits, num_classes)
 
 
 class SSDLiteRegressionHead(SSDScoringHead):
-    def __init__(self, in_channels: List[int], num_anchors: List[int], norm_layer: Callable[..., nn.Module]):
+    def __init__(self, in_channels: List[int], num_anchors: List[int], norm_layer: Callable[..., nn.Module],
+                                  activation_layer: Callable[..., nn.Module] = nn.ReLU6, conv_cfg:dict = None):
         bbox_reg = nn.ModuleList()
         for channels, anchors in zip(in_channels, num_anchors):
-            bbox_reg.append(_prediction_block(channels, 4 * anchors, 3, norm_layer))
+            bbox_reg.append(_prediction_block(channels, 4 * anchors, 3, norm_layer, activation_layer=activation_layer, conv_cfg=conv_cfg))
         _normal_init(bbox_reg)
         super().__init__(bbox_reg, 4)
 
 
 class SSDLiteFeatureExtractorMobileNet(nn.Module):
-    def __init__(self, backbone: nn.Module, c4_pos: int, norm_layer: Callable[..., nn.Module], width_mult: float = 1.0,
-                 min_depth: int = 16, **kwargs: Any):
+    def __init__(self, backbone: nn.Module, c4_pos: int, norm_layer: Callable[..., nn.Module],
+                 activation_layer: Callable[..., nn.Module] = nn.ReLU6,
+                 width_mult: float = 1.0, min_depth: int = 16, conv_cfg:dict = None, **kwargs: Any):
         super().__init__()
 
         assert not backbone[c4_pos].use_res_connect
@@ -109,10 +125,10 @@ class SSDLiteFeatureExtractorMobileNet(nn.Module):
 
         get_depth = lambda d: max(min_depth, int(d * width_mult))  # noqa: E731
         extra = nn.ModuleList([
-            _extra_block(backbone[-1].out_channels, get_depth(512), norm_layer),
-            _extra_block(get_depth(512), get_depth(256), norm_layer),
-            _extra_block(get_depth(256), get_depth(256), norm_layer),
-            _extra_block(get_depth(256), get_depth(128), norm_layer),
+            _extra_block(backbone[-1].out_channels, get_depth(512), norm_layer, activation_layer=activation_layer, conv_cfg=conv_cfg),
+            _extra_block(get_depth(512), get_depth(256), norm_layer, activation_layer=activation_layer, conv_cfg=conv_cfg),
+            _extra_block(get_depth(256), get_depth(256), norm_layer, activation_layer=activation_layer, conv_cfg=conv_cfg),
+            _extra_block(get_depth(256), get_depth(128), norm_layer, activation_layer=activation_layer, conv_cfg=conv_cfg),
         ])
         _normal_init(extra)
 
@@ -156,9 +172,11 @@ def _mobilenet_extractor(backbone_name: str, progress: bool, pretrained: bool, t
     return SSDLiteFeatureExtractorMobileNet(backbone, stage_indices[-2], norm_layer, **kwargs)
 
 
-def ssdlite320_mobilenet_v3_large(pretrained: bool = False, progress: bool = True, num_classes: int = 91,
+def ssdlite_mobilenet_v3(pretrained: bool = False, progress: bool = True, num_classes: int = 91,
                                   pretrained_backbone: bool = False, trainable_backbone_layers: Optional[int] = None,
                                   norm_layer: Optional[Callable[..., nn.Module]] = None,
+                                  activation_layer: Callable[..., nn.Module] = nn.ReLU6,
+                                  backbone_name = None, size = (320, 320), reduce_tail=False,
                                   **kwargs: Any):
     """Constructs an SSDlite model with input size 320x320 and a MobileNetV3 Large backbone, as described at
     `"Searching for MobileNetV3"
@@ -185,7 +203,8 @@ def ssdlite320_mobilenet_v3_large(pretrained: bool = False, progress: bool = Tru
         norm_layer (callable, optional): Module specifying the normalization layer to use.
     """
     if "size" in kwargs:
-        warnings.warn("The size of the model is already fixed; ignoring the argument.")
+        warnings.warn("The size of the model is not provided; using default.")
+        size = (320, 320)
 
     trainable_backbone_layers = _validate_trainable_layers(
         pretrained or pretrained_backbone, trainable_backbone_layers, 6, 6)
@@ -194,15 +213,14 @@ def ssdlite320_mobilenet_v3_large(pretrained: bool = False, progress: bool = Tru
         pretrained_backbone = False
 
     # Enable reduced tail if no pretrained backbone is selected. See Table 6 of MobileNetV3 paper.
-    reduce_tail = not pretrained_backbone
+    # reduce_tail = not pretrained_backbone
 
     if norm_layer is None:
         norm_layer = partial(nn.BatchNorm2d, eps=0.001, momentum=0.03)
 
-    backbone = _mobilenet_extractor("mobilenet_v3_large", progress, pretrained_backbone, trainable_backbone_layers,
-                                    norm_layer, reduced_tail=reduce_tail, **kwargs)
+    backbone = _mobilenet_extractor(backbone_name, progress, pretrained_backbone, trainable_backbone_layers,
+                                    norm_layer, activation_layer=activation_layer, reduced_tail=reduce_tail, **kwargs)
 
-    size = (320, 320)
     anchor_generator = DefaultBoxGenerator([[2, 3] for _ in range(6)], min_ratio=0.2, max_ratio=0.95)
     out_channels = det_utils.retrieve_out_channels(backbone, size)
     num_anchors = anchor_generator.num_anchors_per_location()
@@ -218,14 +236,55 @@ def ssdlite320_mobilenet_v3_large(pretrained: bool = False, progress: bool = Tru
         "image_mean": [0.5, 0.5, 0.5],
         "image_std": [0.5, 0.5, 0.5],
     }
+    if "image_mean" in kwargs:
+        del defaults["image_mean"]
+    #
+    if "image_std" in kwargs:
+        del defaults["image_std"]
+    #
     kwargs = {**defaults, **kwargs}
     model = SSD(backbone, anchor_generator, size, num_classes,
-                head=SSDLiteHead(out_channels, num_anchors, num_classes, norm_layer), **kwargs)
+                head=SSDLiteHead(out_channels, num_anchors, num_classes, norm_layer, activation_layer=activation_layer, conv_cfg=None),
+                **kwargs)
 
-    if pretrained:
+    if pretrained is True:
         weights_name = 'ssdlite320_mobilenet_v3_large_coco'
         if model_urls.get(weights_name, None) is None:
             raise ValueError("No checkpoint is available for model {}".format(weights_name))
         state_dict = load_state_dict_from_url(model_urls[weights_name], progress=progress)
         model.load_state_dict(state_dict)
+    elif xnn.utils.is_url(pretrained):
+        state_dict = load_state_dict_from_url(pretrained, progress=progress)
+        _load_state_dict(model, state_dict)
+    elif isinstance(pretrained, str):
+        state_dict = torch.load(pretrained)
+        _load_state_dict(model, state_dict)
     return model
+
+
+def _load_state_dict(model, state_dict):
+    state_dict = state_dict['model'] if 'model' in state_dict else state_dict
+    state_dict = state_dict['state_dict'] if 'state_dict' in state_dict else state_dict
+    try:
+        model.load_state_dict(state_dict)
+    except:
+        model.load_state_dict(state_dict, strict=False)
+
+
+def ssdlite_mobilenet_v3_large(*args, backbone_name="mobilenet_v3_large", **kwargs):
+    return ssdlite_mobilenet_v3(*args, backbone_name=backbone_name, **kwargs)
+
+
+# alias
+ssdlite320_mobilenet_v3_large = ssdlite_mobilenet_v3
+
+
+def ssdlite_mobilenet_v3_lite_large(*args, backbone_name="mobilenet_v3_lite_large", **kwargs):
+    return ssdlite_mobilenet_v3(*args, backbone_name=backbone_name,
+                                activation_layer=nn.ReLU, **kwargs)
+
+
+def ssdlite_mobilenet_v3_lite_small(*args, backbone_name="mobilenet_v3_lite_small", **kwargs):
+    return ssdlite_mobilenet_v3(*args, backbone_name=backbone_name,
+                                activation_layer=nn.ReLU, **kwargs)
+

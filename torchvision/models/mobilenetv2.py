@@ -5,11 +5,12 @@ from .._internally_replaced_utils import load_state_dict_from_url
 from typing import Callable, Any, Optional, List
 
 
-__all__ = ['MobileNetV2', 'mobilenet_v2']
+__all__ = ['MobileNetV2', 'mobilenet_v2', 'mobilenet_v2_lite']
 
 
 model_urls = {
     'mobilenet_v2': 'https://download.pytorch.org/models/mobilenet_v2-b0353104.pth',
+    'mobilenet_v2_lite': 'https://download.pytorch.org/models/mobilenet_v2-b0353104.pth',
 }
 
 
@@ -66,7 +67,9 @@ class InvertedResidual(nn.Module):
         oup: int,
         stride: int,
         expand_ratio: int,
-        norm_layer: Optional[Callable[..., nn.Module]] = None
+        dilation: int,
+        norm_layer: Optional[Callable[..., nn.Module]] = None,
+        activation_layer: Optional[Callable[..., nn.Module]] = None,
     ) -> None:
         super(InvertedResidual, self).__init__()
         self.stride = stride
@@ -78,20 +81,21 @@ class InvertedResidual(nn.Module):
         hidden_dim = int(round(inp * expand_ratio))
         self.use_res_connect = self.stride == 1 and inp == oup
 
+        stride = 1 if dilation > 1 else stride
         layers: List[nn.Module] = []
         if expand_ratio != 1:
             # pw
-            layers.append(ConvBNReLU(inp, hidden_dim, kernel_size=1, norm_layer=norm_layer))
+            layers.append(ConvBNReLU(inp, hidden_dim, kernel_size=1, norm_layer=norm_layer, activation_layer=activation_layer))
         layers.extend([
             # dw
-            ConvBNReLU(hidden_dim, hidden_dim, stride=stride, groups=hidden_dim, norm_layer=norm_layer),
+            ConvBNReLU(hidden_dim, hidden_dim, stride=stride, groups=hidden_dim, dilation=dilation, norm_layer=norm_layer, activation_layer=activation_layer),
             # pw-linear
             nn.Conv2d(hidden_dim, oup, 1, 1, 0, bias=False),
             norm_layer(oup),
         ])
         self.conv = nn.Sequential(*layers)
         self.out_channels = oup
-        self._is_cn = stride > 1
+        self._is_cn = self.stride > 1
 
     def forward(self, x: Tensor) -> Tensor:
         if self.use_res_connect:
@@ -108,7 +112,10 @@ class MobileNetV2(nn.Module):
         inverted_residual_setting: Optional[List[List[int]]] = None,
         round_nearest: int = 8,
         block: Optional[Callable[..., nn.Module]] = None,
-        norm_layer: Optional[Callable[..., nn.Module]] = None
+        norm_layer: Optional[Callable[..., nn.Module]] = None,
+        activation_layer: Optional[Callable[..., nn.Module]] = None,
+        dilated: bool = False,
+        **kwargs: Any
     ) -> None:
         """
         MobileNet V2 main class
@@ -131,39 +138,43 @@ class MobileNetV2(nn.Module):
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
 
+        if activation_layer is None:
+            activation_layer = nn.ReLU6
+
         input_channel = 32
         last_channel = 1280
+        dilation = 2 if dilated else 1
 
         if inverted_residual_setting is None:
             inverted_residual_setting = [
-                # t, c, n, s
-                [1, 16, 1, 1],
-                [6, 24, 2, 2],
-                [6, 32, 3, 2],
-                [6, 64, 4, 2],
-                [6, 96, 3, 1],
-                [6, 160, 3, 2],
-                [6, 320, 1, 1],
+                # t, c, n, s, d
+                [1, 16, 1, 1, 1],
+                [6, 24, 2, 2, 1],
+                [6, 32, 3, 2, 1],
+                [6, 64, 4, 2, 1],
+                [6, 96, 3, 1, 1],
+                [6, 160, 3, 2, dilation],
+                [6, 320, 1, 1, dilation],
             ]
 
-        # only check the first element, assuming user knows t,c,n,s are required
-        if len(inverted_residual_setting) == 0 or len(inverted_residual_setting[0]) != 4:
+        # only check the first element, assuming user knows t,c,n,s,d are required
+        if len(inverted_residual_setting) == 0 or len(inverted_residual_setting[0]) != 5:
             raise ValueError("inverted_residual_setting should be non-empty "
-                             "or a 4-element list, got {}".format(inverted_residual_setting))
+                             "or a 5-element list, got {}".format(inverted_residual_setting))
 
         # building first layer
         input_channel = _make_divisible(input_channel * width_mult, round_nearest)
         self.last_channel = _make_divisible(last_channel * max(1.0, width_mult), round_nearest)
-        features: List[nn.Module] = [ConvBNReLU(3, input_channel, stride=2, norm_layer=norm_layer)]
+        features: List[nn.Module] = [ConvBNReLU(3, input_channel, stride=2, norm_layer=norm_layer, activation_layer=activation_layer)]
         # building inverted residual blocks
-        for t, c, n, s in inverted_residual_setting:
+        for t, c, n, s, d in inverted_residual_setting:
             output_channel = _make_divisible(c * width_mult, round_nearest)
             for i in range(n):
                 stride = s if i == 0 else 1
-                features.append(block(input_channel, output_channel, stride, expand_ratio=t, norm_layer=norm_layer))
+                features.append(block(input_channel, output_channel, stride, expand_ratio=t, dilation=d, norm_layer=norm_layer, activation_layer=activation_layer))
                 input_channel = output_channel
         # building last several layers
-        features.append(ConvBNReLU(input_channel, self.last_channel, kernel_size=1, norm_layer=norm_layer))
+        features.append(ConvBNReLU(input_channel, self.last_channel, kernel_size=1, norm_layer=norm_layer, activation_layer=activation_layer))
         # make it nn.Sequential
         self.features = nn.Sequential(*features)
 
@@ -212,6 +223,26 @@ def mobilenet_v2(pretrained: bool = False, progress: bool = True, **kwargs: Any)
     model = MobileNetV2(**kwargs)
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls['mobilenet_v2'],
+                                              progress=progress)
+        model.load_state_dict(state_dict)
+    return model
+
+
+def mobilenet_v2_lite(pretrained: bool = False, progress: bool = True,
+                      norm_layer: Optional[Callable[..., nn.Module]] = None,
+                      activation_layer: Optional[Callable[..., nn.Module]]=nn.ReLU,
+                      **kwargs: Any) -> MobileNetV2:
+    """
+    Constructs a MobileNetV2 architecture from
+    `"MobileNetV2: Inverted Residuals and Linear Bottlenecks" <https://arxiv.org/abs/1801.04381>`_.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    """
+    model = MobileNetV2(norm_layer=norm_layer, activation_layer=activation_layer, **kwargs)
+    if pretrained:
+        state_dict = load_state_dict_from_url(model_urls['mobilenet_v2_lite'],
                                               progress=progress)
         model.load_state_dict(state_dict)
     return model

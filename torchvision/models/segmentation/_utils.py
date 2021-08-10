@@ -7,11 +7,12 @@ from torch.nn import functional as F
 class _SimpleSegmentationModel(nn.Module):
     __constants__ = ['aux_classifier']
 
-    def __init__(self, backbone, classifier, aux_classifier=None):
+    def __init__(self, backbone, classifier, aux_classifier=None, dict_featues=False):
         super(_SimpleSegmentationModel, self).__init__()
         self.backbone = backbone
         self.classifier = classifier
         self.aux_classifier = aux_classifier
+        self.dict_featues = dict_featues
 
     def forward(self, x):
         input_shape = x.shape[-2:]
@@ -19,7 +20,7 @@ class _SimpleSegmentationModel(nn.Module):
         features = self.backbone(x)
 
         result = OrderedDict()
-        x = features["out"]
+        x = features["out"] if not self.dict_featues else features
         x = self.classifier(x)
         x = F.interpolate(x, size=input_shape, mode='bilinear', align_corners=False)
         result["out"] = x

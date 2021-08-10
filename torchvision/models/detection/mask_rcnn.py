@@ -168,7 +168,13 @@ class MaskRCNN(FasterRCNN):
                  box_batch_size_per_image=512, box_positive_fraction=0.25,
                  bbox_reg_weights=None,
                  # Mask parameters
-                 mask_roi_pool=None, mask_head=None, mask_predictor=None):
+                 mask_roi_pool=None, mask_head=None, mask_predictor=None, size=None):
+
+        if size is not None:
+            assert min_size is None and max_size is None, 'if size is specified, min_size and max_size must be None'
+            min_size, max_size = min(size), max(size)
+        else:
+            assert min_size is not None and max_size is not None, 'if min_size and max_size is specified, size must be None'
 
         assert isinstance(mask_roi_pool, (MultiScaleRoIAlign, type(None)))
 

@@ -1,5 +1,5 @@
 from .boxes import nms, batched_nms, remove_small_boxes, clip_boxes_to_image, box_area, box_iou, generalized_box_iou
-from .boxes import box_convert
+from .boxes import box_convert, distance_box_iou_xywh, distance_box_iou_x1y1x2y2
 from .deform_conv import deform_conv2d, DeformConv2d
 from .roi_align import roi_align, RoIAlign
 from .roi_pool import roi_pool, RoIPool
@@ -8,6 +8,7 @@ from .ps_roi_pool import ps_roi_pool, PSRoIPool
 from .poolers import MultiScaleRoIAlign
 from .feature_pyramid_network import FeaturePyramidNetwork
 from .focal_loss import sigmoid_focal_loss
+from .rf_blocks import BiFPN
 
 from ._register_onnx_ops import _register_custom_op
 

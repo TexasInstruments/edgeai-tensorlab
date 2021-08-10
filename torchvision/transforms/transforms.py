@@ -15,14 +15,15 @@ except ImportError:
 
 from . import functional as F
 from .functional import InterpolationMode, _interpolation_modes_from_int
-
+from .transforms_ext import *
 
 __all__ = ["Compose", "ToTensor", "PILToTensor", "ConvertImageDtype", "ToPILImage", "Normalize", "Resize", "Scale",
            "CenterCrop", "Pad", "Lambda", "RandomApply", "RandomChoice", "RandomOrder", "RandomCrop",
            "RandomHorizontalFlip", "RandomVerticalFlip", "RandomResizedCrop", "RandomSizedCrop", "FiveCrop", "TenCrop",
            "LinearTransformation", "ColorJitter", "RandomRotation", "RandomAffine", "Grayscale", "RandomGrayscale",
            "RandomPerspective", "RandomErasing", "GaussianBlur", "InterpolationMode", "RandomInvert", "RandomPosterize",
-           "RandomSolarize", "RandomAdjustSharpness", "RandomAutocontrast", "RandomEqualize"]
+           "RandomSolarize", "RandomAdjustSharpness", "RandomAutocontrast", "RandomEqualize",
+           "ToFloat", "MultiColor", "Bypass", "NormalizeMeanScale", "ReverseChannels"]
 
 
 class Compose:
@@ -57,7 +58,7 @@ class Compose:
 
     def __call__(self, img):
         for t in self.transforms:
-            img = t(img)
+            img = t(img) if t else img
         return img
 
     def __repr__(self):
@@ -94,7 +95,12 @@ class ToTensor:
         Returns:
             Tensor: Converted image.
         """
-        return F.to_tensor(pic)
+        if isinstance(pic, (list,tuple)):
+            tensor = [F.to_tensor(p) for p in pic]
+        else:
+            tensor = F.to_tensor(pic)
+
+        return tensor
 
     def __repr__(self):
         return self.__class__.__name__ + '()'
@@ -218,7 +224,12 @@ class Normalize(torch.nn.Module):
         Returns:
             Tensor: Normalized Tensor image.
         """
-        return F.normalize(tensor, self.mean, self.std, self.inplace)
+        if isinstance(tensor, (list,tuple)):
+            tensor = [F.normalize(t, self.mean, self.std, self.inplace) for t in tensor]
+        else:
+            tensor = F.normalize(tensor, self.mean, self.std, self.inplace)
+
+        return tensor
 
     def __repr__(self):
         return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
@@ -706,6 +717,7 @@ class RandomPerspective(torch.nn.Module):
             For backward compatibility integer values (e.g. ``PIL.Image.NEAREST``) are still acceptable.
         fill (sequence or number): Pixel fill value for the area outside the transformed
             image. Default is ``0``. If given a number, the value is used for all bands respectively.
+            If input is PIL Image, the options is only available for ``Pillow>=5.0.0``.
     """
 
     def __init__(self, distortion_scale=0.5, p=0.5, interpolation=InterpolationMode.BILINEAR, fill=0):
@@ -1217,6 +1229,7 @@ class RandomRotation(torch.nn.Module):
             Default is the center of the image.
         fill (sequence or number): Pixel fill value for the area outside the rotated
             image. Default is ``0``. If given a number, the value is used for all bands respectively.
+            If input is PIL Image, the options is only available for ``Pillow>=5.2.0``.
         resample (int, optional): deprecated argument and will be removed since v0.10.0.
             Please use the ``interpolation`` parameter instead.
 
@@ -1327,6 +1340,7 @@ class RandomAffine(torch.nn.Module):
             For backward compatibility integer values (e.g. ``PIL.Image.NEAREST``) are still acceptable.
         fill (sequence or number): Pixel fill value for the area outside the transformed
             image. Default is ``0``. If given a number, the value is used for all bands respectively.
+            If input is PIL Image, the options is only available for ``Pillow>=5.0.0``.
         fillcolor (sequence or number, optional): deprecated argument and will be removed since v0.10.0.
             Please use the ``fill`` parameter instead.
         resample (int, optional): deprecated argument and will be removed since v0.10.0.

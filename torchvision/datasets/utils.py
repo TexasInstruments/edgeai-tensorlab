@@ -121,7 +121,7 @@ def download_url(
     # check if file is already present locally
     if check_integrity(fpath, md5):
         print('Using downloaded and verified file: ' + fpath)
-        return
+        return fpath
 
     if _is_remote_location_available():
         _download_file_from_remote_location(fpath, url)
@@ -150,6 +150,8 @@ def download_url(
     # check integrity of downloaded file
     if not check_integrity(fpath, md5):
         raise RuntimeError("File not found or corrupted.")
+
+    return fpath
 
 
 def list_dir(root: str, prefix: bool = False) -> List[str]:
@@ -242,6 +244,8 @@ def download_file_from_google_drive(file_id: str, root: str, filename: Optional[
 
         _save_response_content(itertools.chain((first_chunk, ), response_content_generator), fpath)
         response.close()
+    
+    return fpath
 
 
 def _get_confirm_token(response: "requests.models.Response") -> Optional[str]:  # type: ignore[name-defined]

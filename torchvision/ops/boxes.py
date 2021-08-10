@@ -297,3 +297,46 @@ def generalized_box_iou(boxes1: Tensor, boxes2: Tensor) -> Tensor:
     areai = whi[:, :, 0] * whi[:, :, 1]
 
     return iou - (areai - union) / areai
+
+
+# Distance-IoU Loss: Faster and Better Learning for Bounding Box Regression
+# https://arxiv.org/pdf/1911.08287.pdf
+def distance_box_iou_x1y1x2y2_core(boxes1: Tensor, boxes2: Tensor) -> Tensor:
+    eps = 1e-5
+    boxes1 = _upcast(boxes1)
+    boxes2 = _upcast(boxes2)
+    area1 = box_area(boxes1)
+    area2 = box_area(boxes2)
+    lt_intersection = torch.max(boxes1[:, :2], boxes2[:, :2])
+    rb_intersection = torch.min(boxes1[:, 2:], boxes2[:, 2:])
+    wh = (rb_intersection - lt_intersection).clamp(min=0)
+    inter = wh[:, 0] * wh[:, 1]
+    union = area1 + area2 - inter
+    iou = inter / (union + eps)
+
+    lt_enclosing = torch.min(boxes1[:, :2], boxes2[:, :2])
+    rb_enclosing = torch.max(boxes1[:, 2:], boxes2[:, 2:])
+    center1 = (boxes1[:, :2] + boxes1[:, 2:]) / 2
+    center2 = (boxes2[:, :2] + boxes2[:, 2:]) / 2
+    center_difference = (center1 - center2)
+    center_distance2 = center_difference[:, 0]**2 + center_difference[:, 1]**2
+    diagonal = (lt_enclosing - rb_enclosing)
+    diagonal_distance2 = diagonal[:, 0]**2 + diagonal[:, 1]**2
+    d_ratio = center_distance2 / (diagonal_distance2 + eps)
+    return iou - d_ratio
+
+
+def distance_box_iou_x1y1x2y2(boxes1: Tensor, boxes2: Tensor) -> Tensor:
+    # set degenerate boxes to zero area
+    boxes1 = torch.cat((boxes1[:, :2], torch.max(boxes1[:, :2], boxes1[:, 2:])), dim=-1)
+    boxes2 = torch.cat((boxes2[:, :2], torch.max(boxes2[:, :2], boxes2[:, 2:])), dim=-1)
+    # now call the actual diou function
+    return distance_box_iou_x1y1x2y2_core(boxes1, boxes2)
+
+
+def distance_box_iou_xywh(boxes1: Tensor, boxes2: Tensor) -> Tensor:
+    # set degenerate boxes to zero area, also convert to x1x2y1y2
+    boxes1 = torch.cat((boxes1[:, :2], torch.max(boxes1[:, :2], boxes1[:, :2]+boxes1[:, 2:])), dim=-1)
+    boxes2 = torch.cat((boxes2[:, :2], torch.max(boxes2[:, :2], boxes2[:, :2]+boxes2[:, 2:])), dim=-1)
+    # now call the actual diou function
+    return distance_box_iou_x1y1x2y2_core(boxes1, boxes2)
