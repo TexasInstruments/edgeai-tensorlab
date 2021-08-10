@@ -35,5 +35,5 @@ git rebase master
 git push --force
 git push github release:master --force
 git checkout master
-git stash pop
+#git stash pop
 
