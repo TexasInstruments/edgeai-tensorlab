@@ -20,17 +20,20 @@ the number of epochs should be adapted so that we have the same number of iterat
 import datetime
 import os
 import time
+from colorama import Fore
+import numpy as np
 
 import torch
 import torch.utils.data
 import torchvision
 import torchvision.models.detection
 import torchvision.models.detection.mask_rcnn
+from torchvision import xnn
 
 from coco_utils import get_coco, get_coco_kp
 
 from group_by_aspect_ratio import GroupedBatchSampler, create_aspect_ratio_groups
-from engine import train_one_epoch, evaluate
+from engine import train_one_epoch, evaluate, export, complexity
 
 import presets
 import utils
@@ -47,17 +50,18 @@ def get_dataset(name, image_set, transform, data_path):
     return ds, num_classes
 
 
-def get_transform(train, data_augmentation):
-    return presets.DetectionPresetTrain(data_augmentation) if train else presets.DetectionPresetEval()
+def get_transform(args, train, data_augmentation):
+    return presets.DetectionPresetTrain(data_augmentation, mean=args.mean) \
+        if train else presets.DetectionPresetEval()
 
 
 def get_args_parser(add_help=True):
     import argparse
     parser = argparse.ArgumentParser(description='PyTorch Detection Training', add_help=add_help)
 
-    parser.add_argument('--data-path', default='/datasets01/COCO/022719/', help='dataset')
-    parser.add_argument('--dataset', default='coco', help='dataset')
-    parser.add_argument('--model', default='maskrcnn_resnet50_fpn', help='model')
+    parser.add_argument('--data-path', default=None, help='dataset')
+    parser.add_argument('--dataset', default=None, help='dataset')
+    parser.add_argument('--model', default=None, help='model')
     parser.add_argument('--device', default='cuda', help='device')
     parser.add_argument('-b', '--batch-size', default=2, type=int,
                         help='images per gpu, the total batch size is $NGPU x batch_size')
@@ -80,15 +84,15 @@ def get_args_parser(add_help=True):
                         help='decrease lr every step-size epochs (multisteplr scheduler only)')
     parser.add_argument('--lr-gamma', default=0.1, type=float,
                         help='decrease lr by a factor of lr-gamma (multisteplr scheduler only)')
-    parser.add_argument('--print-freq', default=20, type=int, help='print frequency')
+    parser.add_argument('--print-freq', default=100, type=int, help='print frequency')
     parser.add_argument('--output-dir', default='.', help='path where to save')
     parser.add_argument('--resume', default='', help='resume from checkpoint')
-    parser.add_argument('--start_epoch', default=0, type=int, help='start epoch')
+    parser.add_argument('--start_epoch', '--start-epoch', default=0, type=int, help='start epoch')
     parser.add_argument('--aspect-ratio-group-factor', default=3, type=int)
     parser.add_argument('--rpn-score-thresh', default=None, type=float, help='rpn score threshold for faster-rcnn')
     parser.add_argument('--trainable-backbone-layers', default=None, type=int,
                         help='number of trainable layers of backbone')
-    parser.add_argument('--data-augmentation', default="hflip", help='data augmentation policy (default: hflip)')
+    parser.add_argument('--data-augmentation', default="hflip", type=xnn.utils.str_or_none, help='data augmentation policy (default: hflip)')
     parser.add_argument(
         "--sync-bn",
         dest="sync_bn",
@@ -104,8 +108,9 @@ def get_args_parser(add_help=True):
     parser.add_argument(
         "--pretrained",
         dest="pretrained",
-        help="Use pre-trained models from the modelzoo",
-        action="store_true",
+        default=None,
+        type=xnn.utils.str_or_bool,
+        help="Pre-trained models path or use from from the modelzoo",
     )
 
     # distributed training parameters
@@ -113,12 +118,40 @@ def get_args_parser(add_help=True):
                         help='number of distributed processes')
     parser.add_argument('--dist-url', default='env://', help='url used to set up distributed training')
 
+    parser.add_argument('--gpus', default=1, type=int, help='number of gpus')
+    parser.add_argument('--complexity', default=True, type=xnn.utils.str2bool, help='display complexity')
+    parser.add_argument('--date', default=datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), help='current date')
+    parser.add_argument('--input-size', default=None, type=int, nargs='*', help='resized image size or the smaller side')
+    parser.add_argument('--opset-version', default=11, type=int, nargs='*', help='opset version for onnx export')
+    parser.add_argument('--resize-with-scale-factor', action='store_true', help='resize with scale factor')
+    parser.add_argument('--mean', default=None, type=float, nargs=3, help='mean subtraction')
+    parser.add_argument('--scale', default=None, type=float, nargs=3, help='standard deviation for division')
+    parser.add_argument('--model-average', default=False, type=xnn.utils.str2bool, help='model averaging can help to improve accuracy')
+    parser.add_argument(
+        "--pretrained-backbone",
+        dest="pretrained_backbone",
+        default=None,
+        type=xnn.utils.str_or_bool,
+        help="Pre-trained backbone path or use from from the modelzoo",
+    )
+    parser.add_argument(
+        "--export-only",
+        dest="export_only",
+        help="Only export the model",
+        action="store_true",
+    )
+    parser.add_argument('--tensorboard', action='store_true', help='will use tensorboard if specified')
     return parser
 
 
 def main(args):
+    if args.resize_with_scale_factor:
+        torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
+        torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
+
     if args.output_dir:
         utils.mkdir(args.output_dir)
+        logger = xnn.utils.TeeLogger(os.path.join(args.output_dir, f'run_{args.date}.log'))
 
     utils.init_distributed_mode(args)
     print(args)
@@ -128,9 +161,9 @@ def main(args):
     # Data loading code
     print("Loading data")
 
-    dataset, num_classes = get_dataset(args.dataset, "train", get_transform(True, args.data_augmentation),
+    dataset, num_classes = get_dataset(args.dataset, "train", get_transform(args, True, args.data_augmentation),
                                        args.data_path)
-    dataset_test, _ = get_dataset(args.dataset, "val", get_transform(False, args.data_augmentation), args.data_path)
+    dataset_test, _ = get_dataset(args.dataset, "val", get_transform(args, False, args.data_augmentation), args.data_path)
 
     print("Creating data loaders")
     if args.distributed:
@@ -158,13 +191,32 @@ def main(args):
 
     print("Creating model")
     kwargs = {
-        "trainable_backbone_layers": args.trainable_backbone_layers
+        "trainable_backbone_layers": args.trainable_backbone_layers,
+        "size": args.input_size
     }
+    if args.export_only:
+        kwargs["with_preprocess"] = False
+    if args.mean is not None:
+        # Note: input is divided by 255 before this mean/std is applied
+        float_mean = [m/255.0 for m in args.mean]
+        kwargs.update({"image_mean": float_mean})
+    if args.scale is not None:
+        # Note: this scale/std is applied inside the model, but input is divided by 255 before that
+        float_std = [(1.0/s)/255.0 for s in args.scale]
+        kwargs.update({"image_std": float_std})
     if "rcnn" in args.model:
         if args.rpn_score_thresh is not None:
             kwargs["rpn_score_thresh"] = args.rpn_score_thresh
     model = torchvision.models.detection.__dict__[args.model](num_classes=num_classes, pretrained=args.pretrained,
-                                                              **kwargs)
+                                                              pretrained_backbone=args.pretrained_backbone, **kwargs)
+
+    if args.complexity:
+        complexity(args, model)
+
+    if args.export_only:
+        export(args, model, args.model)
+        return
+
     model.to(device)
     if args.distributed and args.sync_bn:
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
@@ -180,9 +232,9 @@ def main(args):
 
     args.lr_scheduler = args.lr_scheduler.lower()
     if args.lr_scheduler == 'multisteplr':
-        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.lr_steps, gamma=args.lr_gamma)
+        lr_scheduler = xnn.optim.lr_scheduler.MultiStepLRWarmup(optimizer, milestones=args.lr_steps, gamma=args.lr_gamma)
     elif args.lr_scheduler == 'cosineannealinglr':
-        lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
+        lr_scheduler = xnn.optim.lr_scheduler.CosineAnnealingLRWarmup(optimizer, T_max=args.epochs)
     else:
         raise RuntimeError("Invalid lr scheduler '{}'. Only MultiStepLR and CosineAnnealingLR "
                            "are supported.".format(args.lr_scheduler))
@@ -195,19 +247,29 @@ def main(args):
         args.start_epoch = checkpoint['epoch'] + 1
 
     if args.test_only:
-        evaluate(model, data_loader_test, device=device)
+        evaluate(args, model, data_loader_test, device=device)
         return
+
+    if args.model_average:
+        model_average = xnn.utils.ModelAverage()
 
     print("Start training")
     start_time = time.time()
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
-        train_one_epoch(model, optimizer, data_loader, device, epoch, args.print_freq)
+        train_one_epoch(args, model, optimizer, data_loader, device, epoch, args.print_freq)
         lr_scheduler.step()
+
+        if args.model_average:
+            model_average.put(model)
+            model_eval = model_average.get(model)
+        else:
+            model_eval = model
+
         if args.output_dir:
             checkpoint = {
-                'model': model_without_ddp.state_dict(),
+                'model': (model_eval.module if args.distributed else model_eval).state_dict(),
                 'optimizer': optimizer.state_dict(),
                 'lr_scheduler': lr_scheduler.state_dict(),
                 'args': args,
@@ -221,7 +283,7 @@ def main(args):
                 os.path.join(args.output_dir, 'checkpoint.pth'))
 
         # evaluate after every epoch
-        evaluate(model, data_loader_test, device=device)
+        evaluate(args, model_eval, data_loader_test, device=device)
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
@@ -230,4 +292,8 @@ def main(args):
 
 if __name__ == "__main__":
     args = get_args_parser().parse_args()
+
+    if isinstance(args.input_size, (list,tuple)) and len(args.input_size) == 1:
+        args.input_size = args.input_size[0]
+
     main(args)

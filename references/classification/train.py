@@ -158,6 +158,12 @@ def main(args):
 
     print("Creating model")
     model = torchvision.models.__dict__[args.model](pretrained=args.pretrained)
+    if args.export:
+        dummy_input = torch.rand((1,3,224,224))
+        onnx_file = os.path.join(args.output_dir, args.model+'.onnx')
+        print(f'Exporting ONNX model to: {onnx_file}')
+        torch.onnx.export(model, dummy_input, onnx_file)
+
     model.to(device)
     if args.distributed and args.sync_bn:
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
@@ -272,6 +278,12 @@ def get_args_parser(add_help=True):
         "--pretrained",
         dest="pretrained",
         help="Use pre-trained models from the modelzoo",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--export",
+        dest="export",
+        help="Export onnx",
         action="store_true",
     )
     parser.add_argument('--auto-augment', default=None, help='auto augment policy (default: None)')

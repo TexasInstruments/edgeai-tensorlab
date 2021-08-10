@@ -1,27 +1,27 @@
+import os
 import math
 import sys
 import time
 import torch
+from colorama import Fore
 
 import torchvision.models.detection.mask_rcnn
+from torchvision import xnn
 
 from coco_utils import get_coco_api_from_dataset
 from coco_eval import CocoEvaluator
+import torchinfo
 import utils
 
 
-def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq):
+def train_one_epoch(args, model, optimizer, data_loader, device, epoch, print_freq):
     model.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
     header = 'Epoch: [{}]'.format(epoch)
 
-    lr_scheduler = None
-    if epoch == 0:
-        warmup_factor = 1. / 1000
-        warmup_iters = min(1000, len(data_loader) - 1)
-
-        lr_scheduler = utils.warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor)
+    # warmup was earlier here, but is now included in the original lr_scheduler
+    # see creating of lr_scheduler in train.py
 
     for images, targets in metric_logger.log_every(data_loader, print_freq, header):
         images = list(image.to(device) for image in images)
@@ -46,9 +46,6 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq):
         losses.backward()
         optimizer.step()
 
-        if lr_scheduler is not None:
-            lr_scheduler.step()
-
         metric_logger.update(loss=losses_reduced, **loss_dict_reduced)
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
 
@@ -68,7 +65,7 @@ def _get_iou_types(model):
 
 
 @torch.no_grad()
-def evaluate(model, data_loader, device):
+def evaluate(args, model, data_loader, device, synchronize_time=False):
     n_threads = torch.get_num_threads()
     # FIXME remove this and make paste_masks_in_image run on the GPU
     torch.set_num_threads(1)
@@ -84,7 +81,7 @@ def evaluate(model, data_loader, device):
     for images, targets in metric_logger.log_every(data_loader, 100, header):
         images = list(img.to(device) for img in images)
 
-        if torch.cuda.is_available():
+        if synchronize_time and torch.cuda.is_available():
             torch.cuda.synchronize()
         model_time = time.time()
         outputs = model(images)
@@ -92,7 +89,7 @@ def evaluate(model, data_loader, device):
         outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
         model_time = time.time() - model_time
 
-        res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
+        res = {target["image_id"].item(): detach_dict(output) for target, output in zip(targets, outputs)}
         evaluator_time = time.time()
         coco_evaluator.update(res)
         evaluator_time = time.time() - evaluator_time
@@ -108,3 +105,31 @@ def evaluate(model, data_loader, device):
     coco_evaluator.summarize()
     torch.set_num_threads(n_threads)
     return coco_evaluator
+
+
+def complexity(args, model):
+    model.eval()
+    image_size_tuple = args.input_size if isinstance(args.input_size, (list,tuple)) else \
+        (args.input_size, args.input_size)
+    data_shape = (1,3,*image_size_tuple)
+    torchinfo.summary(model, data_shape, depth=10)
+
+
+def detach_dict(d):
+    for k in d:
+        d[k].detach()
+    #
+    return d
+
+
+def export(args, model, model_name=None):
+    model.eval()
+    model_name = 'model' if model_name is None else model_name
+    image_size_tuple = args.input_size if isinstance(args.input_size, (list,tuple)) else \
+        (args.input_size, args.input_size)
+    data_shape = (1,3,*image_size_tuple)
+    example_input = torch.rand(*data_shape)
+    torch.onnx.export(model, example_input, os.path.join(args.output_dir, model_name+'.onnx'), opset_version=args.opset_version)
+    #script_model = torch.jit.trace(model, example_input, strict=False)
+    #torch.jit.save(script_model, os.path.join(args.output_dir, model_name+'_model.pth'))
+

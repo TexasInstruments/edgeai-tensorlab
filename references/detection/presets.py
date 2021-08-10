@@ -1,8 +1,10 @@
 import transforms as T
+import transforms_mosaic as Tm
 
 
 class DetectionPresetTrain:
     def __init__(self, data_augmentation, hflip_prob=0.5, mean=(123., 117., 104.)):
+        data_augmentation = data_augmentation or 'ssdlite'
         if data_augmentation == 'hflip':
             self.transforms = T.Compose([
                 T.RandomHorizontalFlip(p=hflip_prob),
@@ -22,6 +24,13 @@ class DetectionPresetTrain:
                 T.RandomHorizontalFlip(p=hflip_prob),
                 T.ToTensor(),
             ])
+        elif data_augmentation == 'mosaic':
+            self.transforms = T.Compose([
+                T.RandomPhotometricDistort(),
+                T.RandomHorizontalFlip(p=hflip_prob),
+                T.ToTensor(),
+            ])
+            self.transforms = Tm.RandomMosaic(self.transforms)
         else:
             raise ValueError(f'Unknown data augmentation policy "{data_augmentation}"')
 
