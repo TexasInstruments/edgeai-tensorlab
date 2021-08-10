@@ -12,12 +12,14 @@ class _SimpleSegmentationModel(nn.Module):
         self,
         backbone: nn.Module,
         classifier: nn.Module,
-        aux_classifier: Optional[nn.Module] = None
+        aux_classifier: Optional[nn.Module] = None,
+        dict_featues: bool = False
     ) -> None:
         super(_SimpleSegmentationModel, self).__init__()
         self.backbone = backbone
         self.classifier = classifier
         self.aux_classifier = aux_classifier
+        self.dict_featues = dict_featues
 
     def forward(self, x: Tensor) -> Dict[str, Tensor]:
         input_shape = x.shape[-2:]
@@ -25,7 +27,7 @@ class _SimpleSegmentationModel(nn.Module):
         features = self.backbone(x)
 
         result = OrderedDict()
-        x = features["out"]
+        x = features["out"] if not self.dict_featues else features
         x = self.classifier(x)
         x = F.interpolate(x, size=input_shape, mode='bilinear', align_corners=False)
         result["out"] = x

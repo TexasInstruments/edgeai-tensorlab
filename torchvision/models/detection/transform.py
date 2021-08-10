@@ -73,7 +73,7 @@ class GeneralizedRCNNTransform(nn.Module):
     """
 
     def __init__(self, min_size: int, max_size: int, image_mean: List[float], image_std: List[float],
-                 size_divisible: int = 32, fixed_size: Optional[Tuple[int, int]] = None):
+                 size_divisible: int = 32, fixed_size: Optional[Tuple[int, int]] = None, with_preprocess: bool = True):
         super(GeneralizedRCNNTransform, self).__init__()
         if not isinstance(min_size, (list, tuple)):
             min_size = (min_size,)
@@ -83,11 +83,25 @@ class GeneralizedRCNNTransform(nn.Module):
         self.image_std = image_std
         self.size_divisible = size_divisible
         self.fixed_size = fixed_size
+        self.with_preprocess = with_preprocess
 
     def forward(self,
                 images: List[Tensor],
                 targets: Optional[List[Dict[str, Tensor]]] = None
                 ) -> Tuple[ImageList, Optional[List[Dict[str, Tensor]]]]:
+        # type: (...) -> Tuple[ImageList, Optional[List[Dict[str, Tensor]]]]
+        if not self.with_preprocess:
+            image_sizes = [img.shape[-2:] for img in images]
+            #images = torch.stack(images)
+            image_sizes_list: List[Tuple[int, int]] = []
+            for image_size in image_sizes:
+                assert len(image_size) == 2
+                image_sizes_list.append((image_size[0], image_size[1]))
+            #
+            image_list = ImageList(images, image_sizes_list)
+            return image_list, targets
+        #
+
         images = [img for img in images]
         if targets is not None:
             # make a copy of targets to avoid modifying it in-place

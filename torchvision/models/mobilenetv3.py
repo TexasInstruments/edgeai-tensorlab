@@ -9,6 +9,7 @@ from .._internally_replaced_utils import load_state_dict_from_url
 from ..ops.misc import ConvNormActivation, SqueezeExcitation as SElayer
 from ._utils import _make_divisible
 
+from .. import xnn
 
 __all__ = ["MobileNetV3", "mobilenet_v3_large", "mobilenet_v3_small"]
 
@@ -236,11 +237,20 @@ def _mobilenet_v3_model(
     **kwargs: Any
 ):
     model = MobileNetV3(inverted_residual_setting, last_channel, **kwargs)
-    if pretrained:
+    if pretrained is True:
         if model_urls.get(arch, None) is None:
             raise ValueError("No checkpoint is available for model type {}".format(arch))
         state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
         model.load_state_dict(state_dict)
+    elif xnn.utils.is_url(pretrained):
+        state_dict = load_state_dict_from_url(pretrained, progress=progress)
+        model.load_state_dict(state_dict)
+    elif isinstance(pretrained, str):
+        state_dict = torch.load(pretrained)
+        state_dict = state_dict['model'] if 'model' in state_dict else state_dict
+        state_dict = state_dict['state_dict'] if 'state_dict' in state_dict else state_dict
+        model.load_state_dict(state_dict)
+
     return model
 
 

@@ -173,7 +173,8 @@ class SSD(nn.Module):
                  detections_per_img: int = 200,
                  iou_thresh: float = 0.5,
                  topk_candidates: int = 400,
-                 positive_fraction: float = 0.25):
+                 positive_fraction: float = 0.25,
+                 with_preprocess=True, with_iou_loss=False):
         super().__init__()
 
         self.backbone = backbone
@@ -201,13 +202,15 @@ class SSD(nn.Module):
         if image_std is None:
             image_std = [0.229, 0.224, 0.225]
         self.transform = GeneralizedRCNNTransform(min(size), max(size), image_mean, image_std,
-                                                  size_divisible=1, fixed_size=size)
+                                                  size_divisible=1, fixed_size=size, with_preprocess=with_preprocess)
 
         self.score_thresh = score_thresh
         self.nms_thresh = nms_thresh
         self.detections_per_img = detections_per_img
         self.topk_candidates = topk_candidates
         self.neg_to_pos_ratio = (1.0 - positive_fraction) / positive_fraction
+        self.with_preprocess = with_preprocess
+        self.with_iou_loss = with_iou_loss
 
         # used only on torchscript mode
         self._has_warned = False
@@ -241,11 +244,9 @@ class SSD(nn.Module):
             bbox_regression_per_image = bbox_regression_per_image[foreground_idxs_per_image, :]
             anchors_per_image = anchors_per_image[foreground_idxs_per_image, :]
             target_regression = self.box_coder.encode_single(matched_gt_boxes_per_image, anchors_per_image)
-            bbox_loss.append(torch.nn.functional.smooth_l1_loss(
-                bbox_regression_per_image,
-                target_regression,
-                reduction='sum'
-            ))
+
+            bloss = self.compute_box_loss(bbox_regression_per_image, target_regression, reduction='sum')
+            bbox_loss.append(bloss)
 
             # Estimate ground truth for class targets
             gt_classes_target = torch.zeros((cls_logits_per_image.size(0), ), dtype=targets_per_image['labels'].dtype,
@@ -280,6 +281,21 @@ class SSD(nn.Module):
             'bbox_regression': bbox_loss.sum() / N,
             'classification': (cls_loss[foreground_idxs].sum() + cls_loss[background_idxs].sum()) / N,
         }
+
+    def compute_box_loss(self, bbox_regression_per_image, target_regression, reduction):
+        if self.with_iou_loss:
+            diou = box_ops.distance_box_iou_xywh(bbox_regression_per_image, target_regression)
+            diou_loss = (1 - diou)
+            diou_loss = torch.sum(diou_loss) if reduction == 'sum' else torch.mean(diou_loss)
+            loss = diou_loss
+        else:
+            l1_loss = torch.nn.functional.smooth_l1_loss(
+                        bbox_regression_per_image,
+                        target_regression,
+                        reduction=reduction)
+            loss = l1_loss
+        #
+        return loss
 
     def forward(self, images: List[Tensor],
                 targets: Optional[List[Dict[str, Tensor]]] = None) -> Tuple[Dict[str, Tensor], List[Dict[str, Tensor]]]:

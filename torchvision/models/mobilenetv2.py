@@ -190,8 +190,16 @@ def mobilenet_v2(pretrained: bool = False, progress: bool = True, **kwargs: Any)
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     model = MobileNetV2(**kwargs)
-    if pretrained:
+    if pretrained is True:
         state_dict = load_state_dict_from_url(model_urls['mobilenet_v2'],
                                               progress=progress)
+        model.load_state_dict(state_dict)
+    elif xnn.utils.is_url(pretrained):
+        state_dict = load_state_dict_from_url(pretrained, progress=progress)
+        model.load_state_dict(state_dict)
+    elif isinstance(pretrained, str):
+        state_dict = torch.load(pretrained)
+        state_dict = state_dict['model'] if 'model' in state_dict else state_dict
+        state_dict = state_dict['state_dict'] if 'state_dict' in state_dict else state_dict
         model.load_state_dict(state_dict)
     return model

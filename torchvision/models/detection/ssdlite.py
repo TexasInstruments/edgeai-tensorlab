@@ -13,9 +13,11 @@ from .backbone_utils import _validate_trainable_layers
 from .. import mobilenet
 from ..._internally_replaced_utils import load_state_dict_from_url
 from ...ops.misc import ConvNormActivation
+from ... import xnn
 
 
-__all__ = ['ssdlite320_mobilenet_v3_large']
+__all__ = ['ssdlite320_mobilenet_v3_large', 'ssdlite_mobilenet_v3_large',
+           'ssdlite_mobilenet_v3_lite_large', 'ssdlite_mobilenet_v3_lite_small']
 
 model_urls = {
     'ssdlite320_mobilenet_v3_large_coco':
@@ -156,9 +158,10 @@ def _mobilenet_extractor(backbone_name: str, progress: bool, pretrained: bool, t
     return SSDLiteFeatureExtractorMobileNet(backbone, stage_indices[-2], norm_layer, **kwargs)
 
 
-def ssdlite320_mobilenet_v3_large(pretrained: bool = False, progress: bool = True, num_classes: int = 91,
+def ssdlite_mobilenet_v3(pretrained: bool = False, progress: bool = True, num_classes: int = 91,
                                   pretrained_backbone: bool = False, trainable_backbone_layers: Optional[int] = None,
                                   norm_layer: Optional[Callable[..., nn.Module]] = None,
+                                  backbone_name = None, reduce_tail=False,
                                   **kwargs: Any):
     """Constructs an SSDlite model with input size 320x320 and a MobileNetV3 Large backbone, as described at
     `"Searching for MobileNetV3"
@@ -184,8 +187,9 @@ def ssdlite320_mobilenet_v3_large(pretrained: bool = False, progress: bool = Tru
             Valid values are between 0 and 6, with 6 meaning all backbone layers are trainable.
         norm_layer (callable, optional): Module specifying the normalization layer to use.
     """
-    if "size" in kwargs:
-        warnings.warn("The size of the model is already fixed; ignoring the argument.")
+    if "size" not in kwargs:
+        warnings.warn("The size of the model is not provided; using default.")
+        size = (320, 320)
 
     trainable_backbone_layers = _validate_trainable_layers(
         pretrained or pretrained_backbone, trainable_backbone_layers, 6, 6)
@@ -194,15 +198,14 @@ def ssdlite320_mobilenet_v3_large(pretrained: bool = False, progress: bool = Tru
         pretrained_backbone = False
 
     # Enable reduced tail if no pretrained backbone is selected. See Table 6 of MobileNetV3 paper.
-    reduce_tail = not pretrained_backbone
+    # reduce_tail = not pretrained_backbone
 
     if norm_layer is None:
         norm_layer = partial(nn.BatchNorm2d, eps=0.001, momentum=0.03)
 
-    backbone = _mobilenet_extractor("mobilenet_v3_large", progress, pretrained_backbone, trainable_backbone_layers,
+    backbone = _mobilenet_extractor(backbone_name, progress, pretrained_backbone, trainable_backbone_layers,
                                     norm_layer, reduced_tail=reduce_tail, **kwargs)
 
-    size = (320, 320)
     anchor_generator = DefaultBoxGenerator([[2, 3] for _ in range(6)], min_ratio=0.2, max_ratio=0.95)
     out_channels = det_utils.retrieve_out_channels(backbone, size)
     num_anchors = anchor_generator.num_anchors_per_location()
@@ -218,14 +221,54 @@ def ssdlite320_mobilenet_v3_large(pretrained: bool = False, progress: bool = Tru
         "image_mean": [0.5, 0.5, 0.5],
         "image_std": [0.5, 0.5, 0.5],
     }
+    if "image_mean" in kwargs:
+        del defaults["image_mean"]
+    #
+    if "image_std" in kwargs:
+        del defaults["image_std"]
+    #
     kwargs = {**defaults, **kwargs}
     model = SSD(backbone, anchor_generator, size, num_classes,
                 head=SSDLiteHead(out_channels, num_anchors, num_classes, norm_layer), **kwargs)
 
-    if pretrained:
+    if pretrained is True:
         weights_name = 'ssdlite320_mobilenet_v3_large_coco'
         if model_urls.get(weights_name, None) is None:
             raise ValueError("No checkpoint is available for model {}".format(weights_name))
         state_dict = load_state_dict_from_url(model_urls[weights_name], progress=progress)
         model.load_state_dict(state_dict)
+    elif xnn.utils.is_url(pretrained):
+        state_dict = load_state_dict_from_url(pretrained, progress=progress)
+        _load_state_dict(model, state_dict)
+    elif isinstance(pretrained, str):
+        state_dict = torch.load(pretrained)
+        _load_state_dict(model, state_dict)
     return model
+
+
+def _load_state_dict(model, state_dict):
+    state_dict = state_dict['model'] if 'model' in state_dict else state_dict
+    state_dict = state_dict['state_dict'] if 'state_dict' in state_dict else state_dict
+    try:
+        model.load_state_dict(state_dict)
+    except:
+        model.load_state_dict(state_dict, strict=False)
+
+
+def ssdlite_mobilenet_v3_large(*args, backbone_name="mobilenet_v3_large", **kwargs):
+    return ssdlite_mobilenet_v3(*args, backbone_name=backbone_name, **kwargs)
+
+
+# alias
+ssdlite320_mobilenet_v3_large = ssdlite_mobilenet_v3
+
+
+def ssdlite_mobilenet_v3_lite_large(*args, backbone_name="mobilenet_v3_lite_large", **kwargs):
+    return ssdlite_mobilenet_v3(*args, backbone_name=backbone_name,
+                                activation_layer=nn.ReLU, **kwargs)
+
+
+def ssdlite_mobilenet_v3_lite_small(*args, backbone_name="mobilenet_v3_lite_small", **kwargs):
+    return ssdlite_mobilenet_v3(*args, backbone_name=backbone_name,
+                                activation_layer=nn.ReLU, **kwargs)
+
