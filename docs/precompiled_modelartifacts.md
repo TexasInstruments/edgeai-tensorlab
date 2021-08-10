@@ -1,4 +1,4 @@
-# Pre-Complied / Pre-Imported Model Artifacts
+# Pre-Complied Model Artifacts
 
 DNN Models and pre-compied model artifacts are provided in another repository called **[EdgeAI-ModelZoo](https://github.com/TexasInstruments/edgeai-modelzoo)**. 
 

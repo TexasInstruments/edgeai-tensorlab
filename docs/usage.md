@@ -4,10 +4,14 @@ Compiling a DNN model is the process of quantizing and converting the model into
 
 In addition to what is provided with TIDL, this repository provides igh level utilities for compiling DNN models. These tools include dataset loaders, pre-processing utilities, post-processing utilities and metric computation utilities.
 
+
 ## Components of this repository
-This repository is generic and can be used with a variety of runtimes and models supported by TIDL. This repository contains the following parts:<br>
-- **jai_benchmark**: Core scritps for core model compilation, inference and accuracy benchmark scripts provided as a python package (that can be imported using: *import jai_benchmark* or using: *from jai_benchmark import*)<br>
-- **scripts**: these are the top level scripts - to compile models, to infer and do accuracy & performance benchmark, to collect accuracy report and to package the generated artifacts.<br>
+This repository is generic and can be used with a variety of runtimes and models supported by TIDL. This repository contains the following parts:
+
+- **jai_benchmark**: Core scritps for core model compilation, inference and accuracy benchmark scripts provided as a python package (that can be imported using: *import jai_benchmark* or using: *from jai_benchmark import*)
+- **scripts**: These are the top level scripts - to compile models, to infer and do accuracy & performance benchmark, to collect accuracy report and to package the generated artifacts.
+- **configs**: These are the actual configurations of to run the models in the model zoo. These configurations define the Dataset parameters, pre-processing, inference session parameters and post-processing.
+
 
 ## Running inference / benchmark using pre-compiled models
 [run_benchmarks_pc.sh](../run_benchmarks_pc.sh) is the main script in this repository that does compilation of models and benchmark. 

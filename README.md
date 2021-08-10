@@ -16,20 +16,18 @@ Getting the correct functionality and accuracy with DNN Models is not easy. Seve
 ## Setup
 See the [setup instructions](./docs/setup_instructions.md)
 
-<hr>
 
 ## Usage
 See the [usage instructions](./docs/usage.md)
 
 <hr>
 
-## Models and Pre-Complied Model Artifacts 
-See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md)
-
-<hr>
-
 ## Compiling Custom Models
 See the **[instructions to compile custom models](./docs/custom_models.md)**
+
+
+## Pre-Complied Model Artifacts 
+See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md)
 
 <hr>
 
