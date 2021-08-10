@@ -11,26 +11,32 @@ Getting the correct functionality and accuracy with DNN Models is not easy. Seve
 - If you have not visited the landing page of at https://github.com/TexasInstruments/edgeai, please do so before attempting to use this repository. We skip most of the introduction in this repository.
 - This repository is located in Github at: https://github.com/TexasInstruments/edgeai-benchmark
 
+<hr>
 
 ## Setup
 See the [setup instructions](./docs/setup_instructions.md)
 
+<hr>
 
 ## Usage
 See the [usage instructions](./docs/usage.md)
 
+<hr>
 
 ## Models and Pre-Complied Model Artifacts 
 See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md)
 
+<hr>
 
 ## Compiling Custom Models
 See the **[instructions to compile custom models](./docs/custom_models.md)**
 
+<hr>
 
 ## LICENSE
 Please see the License under which this repository is made available: [LICENSE](./LICENSE.md)
 
+<hr>
 
 ## References
 [1] **ImageNet ILSVRC Dataset**: Olga Russakovsky*, Jia Deng*, Hao Su, Jonathan Krause, Sanjeev Satheesh, Sean Ma, Zhiheng Huang, Andrej Karpathy, Aditya Khosla, Michael Bernstein, Alexander C. Berg and Li Fei-Fei. (* = equal contribution) ImageNet Large Scale Visual Recognition Challenge. International Journal of Computer Vision, 2015. http://www.image-net.org/ <br>
