@@ -2,16 +2,15 @@
 
 This repository provides a collection of example Deep Neural Network (DNN) Models for various Computer Vision tasks. The models in this repository can be run either in PC simulation mode or in TI Deep Learning Library (TIDL) for [Jacinto 7](https://training.ti.com/jacinto7) family of SoCs, for example [TDA4VM](https://www.ti.com/product/TDA4VM). 
 
+In order to run Deep Neural Networks (a.k.a. DNNs or Deep Learning Models or simply models) on embedded hardware, they need to be optimized and converted into embedded friendly formats. We have converted/exported several models from the original training frameworks in PyTorch, Tensorflow and MxNet into these embedded friendly formats and is being hosted in this repository. In this process we also make sure that these models provide optimized inference speed on our SoCs, so sometimes minor modifications are made to the models wherever necessary. These models provide a good starting point for our customers to explore high performance Deep Learning on our SoCs.
+
 
 ### Notice
 - If you have not visited the landing page https://github.com/TexasInstruments/edgeai, please do so before attempting to use this repository. We skip most of the introduction in this repository.
 - This repository is located in Github at: https://github.com/TexasInstruments/edgeai-modelzoo
 - Important Note: The models in this repository are being made available for experimentation and development  - they are not meant for deployment in production.
 
-
-## Introduction
-In order to run Deep Neural Networks (a.k.a. DNNs or Deep Learning Models or simply models) on embedded hardware, they need to be optimized and converted into embedded friendly formats. We have converted/exported several models from the original training frameworks in PyTorch, Tensorflow and MxNet into these embedded friendly formats and is being hosted in this repository. In this process we also make sure that these models provide optimized inference speed on our SoCs, so sometimes minor modifications are made to the models wherever necessary. These models provide a good starting point for our customers to explore high performance Deep Learning on our SoCs.
-
+<hr>
 
 ## ModelZoo / Pre-Trained Models Collection & Documentation
 
@@ -27,10 +26,12 @@ In order to run Deep Neural Networks (a.k.a. DNNs or Deep Learning Models or sim
 #### Public Benchmarks
 [MLPerf Machine Learning Model Zoo](./models/docs/mlperf/)
 
+<hr>
 
 ## Pre-Complied Model Artifacts 
 See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md) that we provide with this repository.
 
+<hr>
 
 ## Compiling Models
 TIDL documentation (see information above) and test scripts provide information on compiling and running DNN models in our SoCs. That is a good starting point to get familiarized with import/calibration and inference of such models.
@@ -39,10 +40,12 @@ However, we also provide higher level scripts for Model Compilation, Inference a
 
 This repository contains .link files which have the URLs of actual DNN models. These models are arranged according to task that they are used for and then according to the training repositories that were used to train them. If you are using [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) to run compilation of run benchmark, you have to *git clone* this repository.
 
+<hr>
 
 ## LICENSE
 Please see the License under which this repository is made available: [LICENSE](./LICENSE.md)
 
+<hr>
 
 ## References
 [1] **ImageNet ILSVRC Dataset**: Olga Russakovsky*, Jia Deng*, Hao Su, Jonathan Krause, Sanjeev Satheesh, Sean Ma, Zhiheng Huang, Andrej Karpathy, Aditya Khosla, Michael Bernstein, Alexander C. Berg and Li Fei-Fei. (* = equal contribution) ImageNet Large Scale Visual Recognition Challenge. International Journal of Computer Vision, 2015. http://www.image-net.org/ <br>
