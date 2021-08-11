@@ -13,7 +13,15 @@ Object Detection from Image (a.k.a. 2D Object Detection) is an important problem
 The models are grouped in terms of repositories used to train them or the repositories through they are made available.
 
 
-### Jacinto-AI/Pytorch-MMDetection
+### EdgeAI-YOLOv5 Models
+- [More Information](https://github.com/TexasInstruments/edgeai-yolov5)
+
+We have optimized YOLOv5 models to be friendly to TIDL. Take a look at the above link for more information, especially under the section "Models trained by TI".
+
+We shall soon publish pre-trained checkpoints and also pre-compiled modelartifacts there.
+
+
+### EdgeAI-MMDetection
 - [Models Link](./coco/edgeai-mmdet/)
 - [**Training Source Code**](https://github.com/TexasInstruments/edgeai-mmdetection)
 
