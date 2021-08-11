@@ -13,9 +13,11 @@ Please clone that repository. After cloning, edgeai-benchmark and edgeai-modelzo
 
 
 #### Requirement: PROCESSOR-SDK-RTOS-J721E
-PROCESSOR-SDK-RTOS for Jacinto 7 is required to run this package. Please visit the links given at https://github.com/TexasInstruments/edgeai to download and untar/extract the PROCESSOR-SDK-RTOS on your Ubuntu desktop machine.
+**Important Note:** *These instructions require the user to install PROCESSOR-SDK and PROCESSOR-SDK-RTOS. We are working on a separate compact package that can be easily downloaded to enable model compilation. This is expected by September Mid, 2021.*
 
-After extracting, follow the instructions in the RTOS package to download and install the dependencies required for it. The following steps are required:<br>
+PROCESSOR-SDK for Jacinto 7 is required to run this package. Please visit the links given at https://github.com/TexasInstruments/edgeai to download and install the PROCESSOR-SDK on your Ubuntu desktop machine.
+
+Follow the instructions in the PROCESSOR-SDK-RTOS package to download and install the dependencies required for it. The following steps are required:<br>
 
 (1) Install PROCESSOR-SDK-RTOS dependencies - especially graphviz and gcc-arm: Change directory to **psdk_rtos/scripts** inside the extracted SDK and run:
 
