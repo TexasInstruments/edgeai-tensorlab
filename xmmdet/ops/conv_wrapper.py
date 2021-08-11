@@ -1,7 +1,7 @@
 from torch import nn
 import mmcv
 from mmcv.cnn import CONV_LAYERS
-from pytorch_jacinto_ai import xnn
+from torchvision import xnn
 
 ################################################################################
 # custom conv modules

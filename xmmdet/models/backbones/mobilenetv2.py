@@ -1,6 +1,5 @@
 '''
-# Derived from: https://bitbucket.itg.ti.com/projects/ALGO-DEVKIT/repos/pytorch-devkit/browse/modules/pytorch_jacinto_ai/xvision/models/mobilenetv2.py
-# Which in-turn is derived from: https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenet.py
+# Derived from: https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenetv2.py
 
 ==============================================================================
 Texas Instruments (C) 2018-2019
@@ -74,7 +73,7 @@ from mmcv.runner import load_checkpoint
 
 from mmdet.utils import get_root_logger
 from mmdet.models.builder import BACKBONES
-from pytorch_jacinto_ai import xnn
+from torchvision import xnn
 
 ###################################################
 __all__ = ['MobileNetV2Base', 'MobileNetV2', 'mobilenet_v2']

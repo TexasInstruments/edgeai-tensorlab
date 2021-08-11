@@ -4,7 +4,7 @@ from mmcv.cnn import ConvModule, bias_init_with_prob, normal_init
 from mmdet.models.builder import HEADS
 from mmdet.models.dense_heads.retina_head import RetinaHead
 
-from pytorch_jacinto_ai import xnn
+from torchvision import xnn
 from ...ops import ConvModuleWrapper
 
 

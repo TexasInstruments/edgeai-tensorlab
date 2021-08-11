@@ -11,7 +11,7 @@ from mmdet.core import auto_fp16
 from mmdet.models.builder import NECKS
 from ...ops import ConvModuleWrapper
 
-from pytorch_jacinto_ai import xnn
+from torchvision import xnn
 
 
 @NECKS.register_module()
