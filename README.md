@@ -2,17 +2,28 @@
 
 This repository is an extension of the popular [mmdetection](https://github.com/open-mmlab/mmdetection) open source repository for object detection training. While mmdetection focuses on a wide variety of models, typically at high complexity, we focus on models that are optimized for speed and accuracy so that they run efficiently on embedded devices. 
 
+If the accuracy degradation with Post Training Quantization (PTQ) is higher than expected, this repository provides instructions and functionality required to do Quantization Aware Training (QAT).
+
 Kindly take time to read through the documentation of the original [mmdetection](https://github.com/open-mmlab/mmdetection) before attempting to use this repository.
 
-Also, please read the documentation at our landing page [jacinto-ai-devkit](https://github.com/TexasInstruments/jacinto-ai-devkit) before using this repository. Please also read the documentation of [pytorch-jacinto-ai-devkit](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about) and its **[quantization documentation](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/docs/Quantization.md)** for **guidelines** on how to get best accuracy with quantization. 
+### Notice
+- If you have not visited the landing page of at https://github.com/TexasInstruments/edgeai, please do so before attempting to use this repository. We skip most of the introduction in this repository.
+- This repository is located in Github at: https://github.com/TexasInstruments/edgeai-torchvision
 
-The models trained with this repository can be inferred using [TI Deep Learning Library (TIDL)](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/psdk_rtos_auto/docs/user_guide/sdk_components.html#ti-deep-learning-library-tidl) that is part of the [Processor SDK RTOS for Jacinto7](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/psdk_rtos_auto/docs/user_guide/index.html). TIDL natively supports Post Training Quantization (PTQ) to quantize these models. 
-
-However, in case there is more than expected accuracy degradation with PTQ even after making sure that the guidelines are followed, this repository provides instructions and functionality required to do Quantization Aware Training (QAT).
-
-This repository also provides a description of trained models with their accuracy and complexity. Recommendations on models friendly for embedded inference with quantization are also provided.
 
 ## Installation
+These installation instructions were tested using [Miniconda](https://docs.conda.io/en/latest/) Python 3.7 on a Linux Machine with Ubuntu 18.04 OS.
+
+Make sure that your Python version is indeed 3.7 or higher by typing:<br>
+```
+python --version
+```
+
+Please install this by running [./setup.sh](./setup.sh)
+
+
+### Advanced Installation help
+setup.sh has the commonly used settings. If your CUDA version is different or your Python version si different or if you have some missing packages in your system, this script can fail. In those scenarios, the following explanations can help.
 
 This repository requires [**mmdetection**](https://github.com/open-mmlab/mmdetection) and [**mmcv**](https://github.com/open-mmlab/mmcv) to be installed. 
 
@@ -20,9 +31,10 @@ Please refer to [installation instructions for mmdetection](https://github.com/o
 
 To install mmcv, browse to the github page of [mmcv](https://github.com/open-mmlab/mmcv), and see the section that says "**Install with pip**". Install the full version of mmcv using the instruction given there. Please check your CUDA version and PyTorch version and select the appropriate installation instructions.
 
-After installing **mmdetection** and **mmcv**, please clone and install [**PyTorch-Jacinto-AI-DevKit**](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/) using the link given in [jacinto-ai-devkit](https://github.com/TexasInstruments/jacinto-ai-devkit) as this repository uses several components from there - especially to define low complexity models and to do Quantization Aware Training (QAT) or Calibration.
+After installing **mmdetection** and **mmcv**, please clone and install [**EdgeAI-Torchvision**](https://github.com/TexasInstruments/edgeai-torchvision) as this repository uses several components from there - especially to define low complexity models and to do Quantization Aware Training (QAT) or Calibration.
 
-Please see our minimal installation script [setup.sh](./setup.sh) and modify for your system.
+If you still face issues, see our minimal installation script [setup.sh](./setup.sh) and modify for your system.
+
 
 ## Get Started
 
