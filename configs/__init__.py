@@ -27,13 +27,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+
 from jai_benchmark import utils
 from jai_benchmark import datasets
-from jai_benchmark import pipelines
+
 from . import classification
 from . import detection
 from . import segmentation
 from . import human_pose_estimation
+
 
 def get_configs(settings, work_dir):
     # load the datasets - it is done only once and re-used for all configs

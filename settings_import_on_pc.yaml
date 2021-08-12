@@ -97,5 +97,8 @@ with_udp : True
 # it will add horizontally flipped images in info_dict and run inference over the flipped image also 
 flip_test : False
 
+# the transformation that needs to be applied to the model itself. Note: this is different from pre-processing transforms
+model_transformation_dict : null
+
 # enable use of experimental models - the actual model files are not available in modelzoo
 experimental_models : False
