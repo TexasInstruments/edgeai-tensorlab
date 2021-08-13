@@ -222,17 +222,20 @@ def package_artifacts(settings, work_dir, out_dir, include_results=False):
                 run_dir_basename = os.path.basename(run_dir)
                 artifact_id = '_'.join(run_dir_basename.split('_')[:2])
                 runtime_name = run_dir_basename.split('_')[1]
-                model_name = '_'.join(os.path.normpath(model_path).split(os.sep)[-2:])
+                model_name = utils.get_artifact_name(artifact_id) or run_dir_basename
+
                 # artifacts generated using scripts/benchmark_resolution.py will not produce good accuracy
                 # that is only for performance test
                 suffix_highres = artifact_id.split('_')[0]
                 is_highres = suffix_highres.endswith('1') or suffix_highres.endswith('2')
                 is_shortlisted = utils.is_shortlisted_model(artifact_id) and (not is_highres)
+                is_recommended = utils.is_recommended_model(artifact_id)
 
                 artifacts_dict = {'task_type': task_type, 'session_name': runtime_name,
                                   'run_dir': package_run_dir, 'model_name': model_name,
                                   'size': tarfile_size,
-                                  'shortlisted': is_shortlisted}
+                                  'shortlisted': is_shortlisted,
+                                  'recommended': is_recommended}
                 packaged_artifacts_dict.update({artifact_id:artifacts_dict})
                 print(utils.log_color('SUCCESS', 'finished packaging', run_dir))
             else:

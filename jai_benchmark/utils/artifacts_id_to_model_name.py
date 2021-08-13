@@ -455,6 +455,18 @@ removed_models_from_plots = {
     'ss-2600_tflitert': 'TFL-SS-2600-deeplabv3_mobv2-pascal-trainaug-512x512', # # SS on pascal has only 2 models.  So removed from plots.
 }
 
+recommended_model_list = {
+    'cl-0000_tflitert': 'TFL-CL-0000-mobileNetV1-mlperf',
+    'od-2020_tflitert': 'TFL-OD-2020-ssdLite-mobDet-DSP-coco-320x320',
+    'ss-2580_tflitert': 'TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512',
+    'cl-3410_tvmdlr': 'TVM-CL-3410-gluoncv-mxnet-mobv2',
+    'od-5020_tvmdlr': 'TVM-OD-5020-yolov3-mobv1-gluon-mxnet-416x416',
+    'ss-8720_onnxrt': 'ONR-SS-8720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
+    'cl-6360_onnxrt': 'ONR-CL-6360-regNetx-200mf',
+    'od-8050_onnxrt': 'ONR-OD-8050-ssd-lite-regNetX-800mf-fpn-bgr-coco-512x512',
+    'ss-8610_onnxrt': 'ONR-SS-8610-deeplabv3lite-mobv2-ade20k32-512x512',
+}
+
 #sampled on 29th Jul 21
 super_set = [
 'cl-10-010-0_tflitert',
@@ -664,6 +676,12 @@ def is_shortlisted_model(artifact_id):
     is_removed = (artifact_id in removed_model_entries)
     is_shortlisted = (not is_removed)
     return is_shortlisted
+
+
+def is_recommended_model(artifact_id):
+    recommended_model_entries = recommended_model_list.keys()
+    is_recommended = (artifact_id in recommended_model_entries)
+    return is_recommended
 
 
 if __name__ == '__main__':
