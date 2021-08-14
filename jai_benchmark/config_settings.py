@@ -277,12 +277,13 @@ class QuantizationParams():
         # note that calibration_iterations has effect only if accuracy_level>0
         # so we can just set it to the max value here.
         # for more information see: get_calibration_accuracy_level()
-        return -1 if (self.tensor_bits != 8 or self.is_qat) else self.calibration_iterations
+        # Not overriding for 16b now
+        return -1 if self.is_qat else self.calibration_iterations 
 
     def get_calibration_accuracy_level(self):
         # For QAT models, simple calibration is sufficient, so we shall use accuracy_level=0
-        # Also if tensor_bits>8 (eg. 16), simple calibration is sufficient, so accuracy_level can be set to 0
-        return 0 if (self.tensor_bits != 8 or self.is_qat) else 1
+        #use advance calib for 16b too
+        return 0 if self.is_qat else 1 
 
     def get_quantization_scale_type(self):
         # 0 (non-power of 2, default), 1 (power of 2, might be helpful sometimes, needed for qat models)

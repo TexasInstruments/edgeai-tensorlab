@@ -28,7 +28,7 @@
 #################################################################################
 import os
 
-#ver:22 2021-08-04
+#ver:32 2021-08-14
 
 # Conventions
 # RunTime  Task                  start_id 
@@ -338,6 +338,7 @@ removed_model_list = {
     'cl-3020_tvmdlr' : 'TVM-CL-3020-xceptionNet-mxnet', # This is replaced with tflite model now (that was also eventually removed)
     'cl-0230_tflitert': 'TFL-CL-0230-mobileNetV2-qat',  # QAT model is not giving good accuracy so keep only float
     'od-5000_tvmdlr': 'TVM-OD-5000-ssd1200-resNet34-mlperf-1200x1200', # Using ONNX RT for this.
+    'cl-0210_tflitert': 'TFL-CL-0210-mobileNetV1', #duplicate same as cl-0000 mlperf model. 
     ################ CS models
     # cityscapes model not part of Model Zoo
     'ss-5500_tvmdlr': 'TVM-SS-5500-deeplabv3lite-mobv2-cs-768x384',
