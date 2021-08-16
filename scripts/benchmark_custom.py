@@ -33,6 +33,17 @@ from jai_benchmark import *
 
 
 def get_imagecls_dataset_loaders(settings, download=False):
+    # this example uses the datasets.ImageClassification data loader
+    # this data loader assumes that the split argument provided is a text file containing a list of images
+    # that are inside the folder provided in the path argument.
+    # the split file also should contain the class id after a space.
+    # so the split file format should be (for example)
+    # image3.png 10
+    # image2.jpg 1
+    # image_cat.png 3
+    # etc.
+    # all the images need not be inside the path, but can be inside subdirectories,
+    # but path combined with the lines in split file should give the image path.
     dataset_calib_cfg = dict(
         path=f'{settings.datasets_path}/imagenet/val',
         split=f'{settings.datasets_path}/imagenet/val.txt',
@@ -48,12 +59,17 @@ def get_imagecls_dataset_loaders(settings, download=False):
         shuffle=True,
         num_frames=min(settings.num_frames,50000))
 
+    # you are free to use any other data loaded provided in datasets folder or write your own instead of this
     calib_dataset = datasets.ImageClassification(**dataset_calib_cfg, download=download)
     val_dataset = datasets.ImageClassification(**dataset_val_cfg, download=download)
     return calib_dataset, val_dataset
 
 
 def get_imageseg_dataset_loaders(settings, download=False):
+    # this example uses the datasets.ImageSegmentation data loader
+    # it assumes that the split is a text file listing input images and label images
+    # that is each line should contain the image path and label image path
+    # that are inside the folder provided in the path argument.
     dataset_calib_cfg = dict(
         path=f'{settings.datasets_path}/coco-seg21-converted/val2017',
         split=f'{settings.datasets_path}/coco-seg21-converted/val2017.txt',
@@ -69,29 +85,32 @@ def get_imageseg_dataset_loaders(settings, download=False):
         shuffle=True,
         num_frames=min(settings.num_frames,5000))
 
+    # you are free to use any other data loaded provided in datasets folder or write your own instead of this
     calib_dataset = datasets.ImageSegmentation(**dataset_calib_cfg, download=download)
     val_dataset = datasets.ImageSegmentation(**dataset_val_cfg, download=download)
     return calib_dataset, val_dataset
 
 
 def get_imagedet_dataset_loaders(settings, download=False):
+    # this example uses the datasets.COCODetection data loader
     dataset_calib_cfg = dict(
-        path=f'{settings.datasets_path}/coco-det-converted/val2017',
-        split=f'{settings.datasets_path}/coco-det-converted/val2017.txt',
+        path=f'{settings.datasets_path}/coco/val2017',
+        split=f'{settings.datasets_path}/coco/val2017.txt',
         num_classes=90,
         shuffle=False, # shuffle is currently not supported for detection metric evaluation
         num_frames=min(settings.calibration_frames,5000))
 
     # dataset parameters for actual inference
     dataset_val_cfg = dict(
-        path=f'{settings.datasets_path}/coco-det-converted/val2017',
-        split=f'{settings.datasets_path}/coco-det-converted/val2017.txt',
+        path=f'{settings.datasets_path}/coco/val2017',
+        split=f'{settings.datasets_path}/coco/val2017.txt',
         num_classes=90,
         shuffle=False, # shuffle is currently not supported for detection metric evaluation
         num_frames=min(settings.num_frames,5000))
 
-    calib_dataset = datasets.ImageDetection(**dataset_calib_cfg, download=download)
-    val_dataset = datasets.ImageDetection(**dataset_val_cfg, download=download)
+    # you are free to use any other data loaded provided in datasets folder or write your own instead of this
+    calib_dataset = datasets.COCODetection(**dataset_calib_cfg, download=download)
+    val_dataset = datasets.COCODetection(**dataset_val_cfg, download=download)
     return calib_dataset, val_dataset
 
 
