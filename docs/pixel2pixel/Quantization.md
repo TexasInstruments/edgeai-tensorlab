@@ -54,10 +54,33 @@ However, if a function does not change the range of feature map, it is not criti
 
 If your training/calibration crashes because of insufficient GPU memory, reduce the batch size and try again.
 
+### Instructions for compiling models in TIDL (until TIDL version 2.0)
 If you are using TIDL to infer a model trained using QAT (or Calibrated model using the PTQ Calibration that is simulated here) tools provided in this repository, please set the following in the import config file of TIDL for best accuracy: <br>
-  **quantizationStyle = 3** to use power of 2 quantization. <br> 
-  **foldPreBnConv2D = 0** to avoid a slight accuracy degradation due to incorrect folding of BatchNormalization that comes before Convolution (input mean/scale is implemented in TIDL as a PreBN - so this affects most networks). <br> 
-  **calibrationOption = 0** to avoid further Calibration in TIDL. <br>
+```
+quantizationStyle = 3  #to use power of 2 quantization.
+calibrationOption = 0  #to avoid further Calibration in TIDL.
+```
+
+### Updated instructions for compiling models in TIDL 8.0 (August 2021) onwards:
+From TIDL 8.0 onwards, the right calibrationOption is 64 for QAT/Calibrated models:
+```
+quantizationStyle = 3  #to use power of 2 quantization.
+calibrationOption = 64 #to avoid further Calibration in TIDL.
+```
+
+### Instructions for compiling models in Open Source Runtimes of TIDL 8.0 (August 2021) onwards:
+TIDL offers Open Source Runtimes such as ONNXRuntime, TFLiteRuntime and TVM+DLR.
+The compilation options to use in these runtimes for QAT/Calibrated models in ONNXRuntime, TFLiteRuntime are:
+```
+accuracy_level =     0                            #to avoid further Calibration in TIDL.
+advanced_options:quantization_scale_type = 1      #to use power of 2 quantization.
+```
+
+For model compilation in TVM for use in DLR, advanced_options must be a dictionary - otherwise the values are same as above.
+```
+accuracy_level =     0                            #to avoid further Calibration in TIDL.
+advanced_options = {quantization_scale_type = 1}  #to use power of 2 quantization.
+```
 
 
 ## Post Training Calibration For Quantization (PTQ a.k.a. Calibration)

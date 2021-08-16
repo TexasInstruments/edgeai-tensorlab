@@ -2,7 +2,7 @@ echo "-----------------------------------------------------------"
 echo "attempting to install packages required to build pillow-simd"
 echo "if you don't have sudo access, uncomment pillow-simd and enable pillow in requirements.txt and references/requirements.txt"
 echo "also comment out the below line in that case"
-sudo apt-get install libjpeg-dev zlib1g-dev
+#sudo apt-get install libjpeg-dev zlib1g-dev
 
 echo "-----------------------------------------------------------"
 echo "installing requirements"
