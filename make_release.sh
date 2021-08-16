@@ -38,7 +38,7 @@ git merge --allow-unrelated-histories -X theirs master --squash
 # remove internal files
 find . -name *_internal.py -delete
 find . -name *_internal.sh -delete
-find . -type d -name *_internal -exec rm -rf {} +
+find . -type d -name *internal -exec rm -rf {} +
 
 git add -u
 

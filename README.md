@@ -8,14 +8,16 @@ This is an extension of the popular github repository [pytorch/vision](https://g
 
 The scripts in this repository requires torchvision to be installed using this repository - the standard torchvision will not support all the features in this repository. Please install our torchvision extension using the instructions below.
 
+### Notice
+- If you have not visited the landing page of at https://github.com/TexasInstruments/edgeai, please do so before attempting to use this repository. We skip most of the introduction in this repository.
+- This repository is located in Github at: https://github.com/TexasInstruments/edgeai-torchvision
+
 <hr>
 
 ## Installation Instructions
-These instructions are for installation on **Ubuntu 18.04**. 
+These installation instructions were tested using [Miniconda](https://docs.conda.io/en/latest/) Python 3.7 on a Linux Machine with Ubuntu 18.04 OS.
 
-Install Miniconda with Python 3.7 (higher version might also work) from https://docs.conda.io/en/latest/miniconda.html <br>
-
-After the installation, make sure that your python is indeed Miniconda Python 3.7 or higher by typing:<br>
+Make sure that your Python version is indeed 3.7 or higher by typing:<br>
 ```
 python --version
 ```
