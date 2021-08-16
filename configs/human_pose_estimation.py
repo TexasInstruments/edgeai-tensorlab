@@ -41,12 +41,15 @@ def get_configs(settings, work_dir):
     # get the sessions types to use for each model type
     onnx_session_type = settings.get_session_type(constants.MODEL_TYPE_ONNX)
 
+    preproc_transforms = preprocess.PreProcessTransforms(settings)
+    postproc_transforms = postprocess.PostProcessTransforms(settings)
+
     # configs for each model pipeline
     common_cfg = {
         'task_type': 'human_pose_estimation',
         'calibration_dataset': settings.dataset_cache['cocokpts']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['cocokpts']['input_dataset'],
-        'postprocess': settings.get_postproc_human_pose_estimation_onnx() 
+        'postprocess': postproc_transforms.get_transform_human_pose_estimation_onnx() 
     }
 
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
@@ -57,7 +60,7 @@ def get_configs(settings, work_dir):
         ################# onnx models ###############################
         # human pose estimation : mobilenetv2 + fpn_spp + udp, Expected AP : 42.31
         'kd-7000':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True,
+            preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True,
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
@@ -68,7 +71,7 @@ def get_configs(settings, work_dir):
         ),
         # human pose estimation : resnet50 + fpn_spp, Expected AP : 50.4
         'kd-7010':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True,
+            preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True,
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**common_session_cfg, 
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
@@ -79,7 +82,7 @@ def get_configs(settings, work_dir):
         ),
         # human pose estimation : mobilenetv2 + pan_spp + udp, Expected AP : 45.41
         'kd-7020':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True, 
+            preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True, 
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**common_session_cfg, 
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
@@ -90,7 +93,7 @@ def get_configs(settings, work_dir):
         ),
         # human pose estimation : resnet50 + pan_spp + udp, Expected AP : 51.62
         'kd-7030':utils.dict_update(common_cfg,
-            preprocess=settings.get_preproc_onnx(resize=512, crop=512, resize_with_pad=True, 
+            preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True, 
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), {

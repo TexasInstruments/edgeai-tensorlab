@@ -36,6 +36,9 @@ def get_configs(settings, work_dir):
     tflite_session_type = settings.get_session_type(constants.MODEL_TYPE_TFLITE)
     mxnet_session_type = settings.get_session_type(constants.MODEL_TYPE_MXNET)
 
+    preproc_transforms = preprocess.PreProcessTransforms(settings)
+    postproc_transforms = postprocess.PostProcessTransforms(settings)
+
     # configs for each model pipeline
     cityscapes_cfg = {
         'task_type': 'segmentation',
@@ -69,8 +72,8 @@ def get_configs(settings, work_dir):
 
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
 
-    postproc_segmentation_onnx = settings.get_postproc_segmentation_onnx()
-    postproc_segmenation_tflite = settings.get_postproc_segmentation_tflite(with_argmax=False)
+    postproc_segmentation_onnx = postproc_transforms.get_transform_segmentation_onnx()
+    postproc_segmenation_tflite = postproc_transforms.get_transform_segmentation_tflite(with_argmax=False)
 
     pipeline_configs = {
         #################################################################
@@ -79,7 +82,7 @@ def get_configs(settings, work_dir):
         #------------------------cityscapes models-----------------------
         # # edgeai: segmentation - deeplabv3lite_mobilenetv2_768x384_20190626-085932 expected_metric: 69.13% mean-iou
         # 'ss-8500':utils.dict_update(cityscapes_cfg,
-        #     preprocess=settings.get_preproc_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
+        #     preprocess=preproc_transforms.get_transform_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/deeplabv3lite_mobilenetv2_768x384_20190626.onnx'),
         #     postprocess=postproc_segmentation_onnx,
@@ -87,7 +90,7 @@ def get_configs(settings, work_dir):
         # ),
         # # edgeai: segmentation - fpnlite_aspp_mobilenetv2_768x384_20200120-135701 expected_metric: 70.48% mean-iou
         # 'ss-8520':utils.dict_update(cityscapes_cfg,
-        #     preprocess=settings.get_preproc_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
+        #     preprocess=preproc_transforms.get_transform_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/fpnlite_aspp_mobilenetv2_768x384_20200120.onnx'),
         #     postprocess=postproc_segmentation_onnx,
@@ -95,7 +98,7 @@ def get_configs(settings, work_dir):
         # ),
         # # edgeai: segmentation - unetlite_aspp_mobilenetv2_768x384_20200129-164340 expected_metric: 68.97% mean-iou
         # 'ss-8540':utils.dict_update(cityscapes_cfg,
-        #     preprocess=settings.get_preproc_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
+        #     preprocess=preproc_transforms.get_transform_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/unetlite_aspp_mobilenetv2_768x384_20200129.onnx'),
         #     postprocess=postproc_segmentation_onnx,
@@ -103,7 +106,7 @@ def get_configs(settings, work_dir):
         # ),
         # # edgeai: segmentation - fpnlite_aspp_regnetx800mf_768x384_20200911-144003 expected_metric: 72.01% mean-iou
         # 'ss-8560':utils.dict_update(cityscapes_cfg,
-        #     preprocess=settings.get_preproc_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
+        #     preprocess=preproc_transforms.get_transform_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/fpnlite_aspp_regnetx800mf_768x384_20200911.onnx'),
         #     postprocess=postproc_segmentation_onnx,
@@ -111,7 +114,7 @@ def get_configs(settings, work_dir):
         # ),
         # # edgeai: segmentation - fpnlite_aspp_regnetx1.6gf_1024x512_20200914-132016 expected_metric: 75.84% mean-iou
         # 'ss-8570':utils.dict_update(cityscapes_cfg,
-        #     preprocess=settings.get_preproc_jai((512,1024), (512,1024), backend='cv2', interpolation=cv2.INTER_AREA),
+        #     preprocess=preproc_transforms.get_transform_jai((512,1024), (512,1024), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/fpnlite_aspp_regnetx1.6gf_1024x512_20200914.onnx'),
         #     postprocess=postproc_segmentation_onnx,
@@ -119,7 +122,7 @@ def get_configs(settings, work_dir):
         # ),
         # # edgeai: segmentation - fpnlite_aspp_regnetx3.2gf_1536x768_20200915-092738 expected_metric: 78.90% mean-iou
         # 'ss-8580':utils.dict_update(cityscapes_cfg,
-        #     preprocess=settings.get_preproc_jai((768,1536), (768,1536), backend='cv2', interpolation=cv2.INTER_AREA),
+        #     preprocess=preproc_transforms.get_transform_jai((768,1536), (768,1536), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/fpnlite_aspp_regnetx3.2gf_1536x768_20200915.onnx'),
         #     postprocess=postproc_segmentation_onnx,
@@ -127,7 +130,7 @@ def get_configs(settings, work_dir):
         # ),
         # # torchvision: segmentation - torchvision deeplabv3-resnet50 - expected_metric: 73.5% MeanIoU.
         # 'ss-8590':utils.dict_update(cityscapes_cfg,
-        #     preprocess=settings.get_preproc_onnx((520,1040), (520,1040), backend='cv2'),
+        #     preprocess=preproc_transforms.get_transform_onnx((520,1040), (520,1040), backend='cv2'),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/torchvision/deeplabv3_resnet50_1040x520_20200901.onnx'),
         #     postprocess=postproc_segmentation_onnx,
@@ -135,7 +138,7 @@ def get_configs(settings, work_dir):
         # ),
         # # torchvision: segmentation - torchvision fcn-resnet50 - expected_metric: 71.6% MeanIoU.
         # 'ss-8600':utils.dict_update(cityscapes_cfg,
-        #     preprocess=settings.get_preproc_onnx((520,1040), (520,1040), backend='cv2'),
+        #     preprocess=preproc_transforms.get_transform_onnx((520,1040), (520,1040), backend='cv2'),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/torchvision/fcn_resnet50_1040x520_20200902.onnx'),
         #     postprocess=postproc_segmentation_onnx,
@@ -144,14 +147,14 @@ def get_configs(settings, work_dir):
         #------------------------ade20k 32 class models-----------------------
         #  PTQ accuracy is good. Will remove in future.
         # 'ss-8618':utils.dict_update(ade20k_cfg_class32,
-        #     preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
+        #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/deeplabv3lite_mobilenetv2_512x512_ade20k32_20210308_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':51.61})
         # ),
         # 'ss-8638':utils.dict_update(ade20k_cfg_class32,
-        #     preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
+        #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/unetlite_aspp_mobilenetv2_512x512_ade20k32_20210306_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
@@ -159,7 +162,7 @@ def get_configs(settings, work_dir):
         # ),
         #  PTQ accuracy is good. Will remove in future.
         # 'ss-8658':utils.dict_update(ade20k_cfg_class32,
-        #     preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
+        #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpnlite_aspp_mobilenetv2_512x512_ade20k32_20210306_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
@@ -167,14 +170,14 @@ def get_configs(settings, work_dir):
         # ),
         #  PTQ accuracy is good. Will remove in future.
         # 'ss-8678':utils.dict_update(ade20k_cfg_class32,
-        #     preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
+        #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpnlite_aspp_mobilenetv2_1p4_512x512_ade20k32_20210307_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':53.01})
         # ),
         'ss-8740':utils.dict_update(cocoseg21_cfg,
-            preprocess=settings.get_preproc_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
+            preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/lraspp_mobilenet_v3_lite_large_512x512_20210527.onnx'),
             postprocess=postproc_segmentation_onnx,
@@ -184,7 +187,7 @@ def get_configs(settings, work_dir):
         #       MXNET MODELS
         #################################################################
         'ss-5810':utils.dict_update(cocoseg21_cfg,
-            preprocess=settings.get_preproc_onnx((480,480), (480,480), backend='cv2'),
+            preprocess=preproc_transforms.get_transform_onnx((480,480), (480,480), backend='cv2'),
             session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
                 model_path=[f'{settings.models_path}/vision/segmentation/cocoseg21/gluoncv-mxnet/fcn_resnet101_coco-symbol.json',
                             f'{settings.models_path}/vision/segmentation/cocoseg21/gluoncv-mxnet/fcn_resnet101_coco-0000.params'],
@@ -193,7 +196,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_mean_iou%':None})
         ),
         'ss-5820':utils.dict_update(cocoseg21_cfg,
-            preprocess=settings.get_preproc_onnx((480,480), (480,480), backend='cv2'),
+            preprocess=preproc_transforms.get_transform_onnx((480,480), (480,480), backend='cv2'),
             session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
                 model_path=[f'{settings.models_path}/vision/segmentation/cocoseg21/gluoncv-mxnet/deeplab_resnet101_coco-symbol.json',
                             f'{settings.models_path}/vision/segmentation/cocoseg21/gluoncv-mxnet/deeplab_resnet101_coco-0000.params'],
@@ -202,7 +205,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_mean_iou%':None})
         ),
         'ss-5830':utils.dict_update(ade20k_cfg,
-            preprocess=settings.get_preproc_mxnet((480,480), (480,480), backend='cv2', resize_with_pad=True),
+            preprocess=preproc_transforms.get_transform_mxnet((480,480), (480,480), backend='cv2', resize_with_pad=True),
             session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
                 model_path=[f'{settings.models_path}/vision/segmentation/ade20k/gluoncv-mxnet/fcn_resnet50_ade-symbol.json',
                             f'{settings.models_path}/vision/segmentation/ade20k/gluoncv-mxnet/fcn_resnet50_ade-0000.params'],
@@ -216,7 +219,7 @@ def get_configs(settings, work_dir):
         #################mlperf models###################################
         # tensorflow-deeplab-cityscapes-segmentation- deeplabv3_mnv2_cityscapes_train - expected_metric: 73.57% MeanIoU.
         'ss-2550': utils.dict_update(cityscapes_cfg,
-            preprocess=settings.get_preproc_tflite((1024, 2048), (1024, 2048), mean=(127.5, 127.5, 127.5), scale=(1/127.5, 1/127.5, 1/127.5), backend='cv2'),
+            preprocess=preproc_transforms.get_transform_tflite((1024, 2048), (1024, 2048), mean=(127.5, 127.5, 127.5), scale=(1/127.5, 1/127.5, 1/127.5), backend='cv2'),
             session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/segmentation/cityscapes/tf1-models/deeplabv3_mnv2_cityscapes_train_1024x2048.tflite'),
             postprocess=postproc_segmenation_tflite,

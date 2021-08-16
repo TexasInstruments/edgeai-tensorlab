@@ -24,10 +24,10 @@ run_inference : True
 # but the size of the list determines the number of parallel processes
 # if you have cuda compiled tidl, these integers wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
 # null will run the models sequentially.
-parallel_devices : [0,1,2,3]
+parallel_devices : [0,1,2,3,0,1,2,3]
 
 # number of frames for inference
-num_frames : 10000 #50000
+num_frames : 100 #10000 #50000
 
 # number of frames to be used for post training quantization / calibration
 calibration_frames : 50 #100
