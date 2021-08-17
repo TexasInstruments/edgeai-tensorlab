@@ -324,25 +324,25 @@ def lraspp_mobilenet_v3_lite_large(pretrained=False, progress=True,
     return model
 
 
-def deeplabv3dws_mobilenet_v3_lite_large(pretrained=False, progress=True,
+def deeplabv3_mobilenet_v3_lite_large(pretrained=False, progress=True,
                     num_classes=21, backbone_name='mobilenet_v3_lite_large', **kwargs):
     '''DeepLabV3 with MobileNetV3 Large Backbone - using Depthwise separable layers'''
     return _load_model('deeplabv3', backbone_name, pretrained, progress, num_classes, conv_cfg=dict(group_size_dw=1), skip_tail=True, **kwargs)
 
 
-def deeplabv3plusdws_mobilenet_v2_lite(pretrained=False, progress=True,
+def deeplabv3plus_mobilenet_v2_lite(pretrained=False, progress=True,
                     num_classes=21, backbone_name='mobilenet_v2_lite', **kwargs):
     '''DeepLabV3Plus with MobileNetV2 Backbone - using Depthwise separable layers'''
     return _load_model('deeplabv3plus', backbone_name, pretrained, progress, num_classes, conv_cfg=dict(group_size_dw=1), skip_tail=True, **kwargs)
 
 
-def deeplabv3plusdws_mobilenet_v3_lite_large(pretrained=False, progress=True,
+def deeplabv3plus_mobilenet_v3_lite_large(pretrained=False, progress=True,
                     num_classes=21, backbone_name='mobilenet_v3_lite_large', **kwargs):
     '''DeepLabV3Plus with MobileNetV3 Large Backbone - using Depthwise separable layers'''
     return _load_model('deeplabv3plus', backbone_name, pretrained, progress, num_classes, conv_cfg=dict(group_size_dw=1), skip_tail=True, **kwargs)
 
 
-def deeplabv3plusdws_mobilenet_v3_lite_small(pretrained=False, progress=True,
+def deeplabv3plus_mobilenet_v3_lite_small(pretrained=False, progress=True,
                     num_classes=21, backbone_name='mobilenet_v3_lite_small', **kwargs):
     '''DeepLabV3Plus with MobileNetV3 Small Backbone - using Depthwise separable layers'''
     return _load_model('deeplabv3plus', backbone_name, pretrained, progress, num_classes, conv_cfg=dict(group_size_dw=1), skip_tail=True, **kwargs)

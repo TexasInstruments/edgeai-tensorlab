@@ -34,9 +34,9 @@ Execute the following shell script to install the dependencies:<br>
 ## Categories of Models and Scripts
 We have two three categories of models in this repository:
 
-- Models and scripts that can be used to train a Lite version of the original torchvision models. These models will carry a keyword called "lite". The training scripts for these are in the folder [references](./references) have been altered to train these "lite" models.
+- Models and scripts that can be used to train a Lite version of the original torchvision models. These models will carry keywords such as "lite" or "tvlite". The training scripts for these are in the folder [references](./references) have been altered to train these "lite" models.
 - Models and scripts that we have implemented and are best suited for our devices. The training scripts for these are in the folder [references/edgeailite](./references/edgeailite) - and they invoke "our extensions to torchvision". The models trained using these scripts will carry a keyword "edgeailite".
-- Then there are the original torchvision models, without any change. It is best that the original torchvision repository be used for training those models.
+- Then there are the original torchvision models, without any change. It is best that the original torchvision repository be used for training those models. These models will carry keyword "tv" when we add then in our ModelZoo.
 
 <hr>
 
