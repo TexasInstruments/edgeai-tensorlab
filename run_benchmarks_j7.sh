@@ -30,13 +30,15 @@
 
 ##################################################################
 
-
 # tvmdlr artifacts are different for pc and j7 device
 # point to the right artifact before this script executes
 source set_target_device.sh j7
 
-# setup the environment
-source run_setupenv_j7.sh
+echo "==================================================================="
+echo "Please install edgeai-sdk from: http://software-dl.ti.com/jacinto7/esd/edgeai-sdk-j721e/latest/exports/docs/"
+echo "All the required dependencies are available in the SDK"
+echo "-------------------------------------------------------------------"
+
 
 # specify one of the following settings - options can be changed inside the yaml
 #settings_file=settings_infer_on_j7.yaml

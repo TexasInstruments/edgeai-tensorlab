@@ -1,8 +1,8 @@
 numpy
 onnx
 tflite
-pillow
-opencv-python
+#pillow
+pillow-simd
 pycocotools
 colorama
 tqdm
@@ -12,4 +12,8 @@ pytest
 json_tricks
 xtcocotools
 munkres
-#git+https://github.com/yogin16/prototxt_parser.git
+flatbuffers==1.12.0
+requests
+opencv-python==4.2.0.34
+pytest
+graphviz

@@ -13,31 +13,27 @@ This repository is generic and can be used with a variety of runtimes and models
 - **configs**: These are the actual configurations of to run the models in the model zoo. These configurations define the Dataset parameters, pre-processing, inference session parameters and post-processing.
 
 
-## Running inference / benchmark using pre-compiled models
+## Running inference / benchmark using pre-compiled model artifacts
 [run_benchmarks_pc.sh](../run_benchmarks_pc.sh) is the main script in this repository that does compilation of models and benchmark. 
 
-For the models in the model zoo, we have provided (link to) pre-compiled artifacts in the folder [work_dirs/modelartifacts/8bits](../work_dirs/modelartifacts/8bits). 
+*modelartifacts_path* in the settings yaml file indicates the location where the artifacts are generated or expected. It currently points to [work_dirs/modelartifacts/8bits](../work_dirs/modelartifacts/8bits). We have a symbolic link in this repository that points to the corresponding folder in edgeai-modelzoo. 
 
-If these links are present, compilation will be skipped, those model artifacts will be downloaded automatically and inference/benchmark will be performed.
+If this is present, compilation will be skipped, those model artifacts will be downloaded automatically and inference/benchmark will be performed.
 
 [run_benchmarks_j7.sh](../run_benchmarks_j7.sh) can be used to run these model artifacts on device. 
 
 
 ## Compile models in the model zoo
 
-[run_benchmarks_pc.sh](../run_benchmarks_pc.sh) is the main script in this repository that does compilation of models and benchmark. 
-- While running this script, compilation of model in the model zoo will be performed as the first step before the inference. 
-- The imported artifacts can be used to run inference on the target device (eg. EVM). 
+[run_benchmarks_pc.sh](../run_benchmarks_pc.sh) is the main script in this repository that does compilation of models and benchmark. However, there are a few things to note:
+* Model compilation, inference and benchmark can be run on PC (Simulation). However, the model compilation cannot be run on the target device (eg. EVM). So that model compilation has to be run on PC. 
+* For the models in the model zoo, we have provided (link to) pre-compiled artifacts in the folder as explained above. If you like to do the compilation of these models yourself, you can either rename the folder [work_dirs/modelartifacts](../work_dirs/modelartifacts) or change the value of *modelartifacts_path* in [settings_import_on_pc.yaml](../settings_import_on_pc.yaml). 
+* While running this script, compilation of models in the model zoo will be performed as the first step before the inference. But if the pre-compiled model artifacts are present, model compilation will be skipped. param.yaml file present in each model artifacts folder indicates that the model compilation is complete.
+* result.yaml file, if present in each model artifacts folder indicates that the model inference is complete. If result.yaml is present, inference is also skipped. Manually delete result.yaml if it is present (i.e. if you have done it once already) to do the inference - otherwise, the script will merely print the result information from result.yaml.
 
-However, there are a few things to note:
-- Model compilation, inference and benchmark can be run on PC (Simulation).
-- However, the import step cannot be run on the target device (eg. EVM). So that import step has to be run on PC and the resulting artifacts has to be coped to the target device to perform inference or accuracy benchmark.
-
-For the models in the model zoo, we have provided (link to) pre-compiled artifacts in the folder [work_dirs/modelartifacts/8bits](../work_dirs/modelartifacts/8bits). 
-- If this links are present, comilation will be skipped, those model artifacts will be downloaded automatically and infernce/benchmark will be performed.
-- If you like to do the compilation of these models yourself, you can either rename the folder [work_dirs/modelartifacts](../work_dirs/modelartifacts) or change the value of *modelartifacts_path* in [settings_import_on_pc.yaml](../settings_import_on_pc.yaml). 
-
-If you have compiled models yourself and would like to run those model artifacts in the target device, run the script [run_package_artifacts_j7.sh](../run_package_artifacts_j7.sh) to package the artifacts for use in the target device.
+The imported artifacts can be used to run inference on the target device (eg. EVM):
+* If you have compiled models yourself and would like to run those model artifacts in the target device, run the script [run_package_artifacts_j7.sh](../run_package_artifacts_j7.sh) to package the artifacts for use in the target device.
+* These packaged artifacts can be copied to the device to run inference there.
 
 
 ## Generate report
