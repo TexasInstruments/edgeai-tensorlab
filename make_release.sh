@@ -30,6 +30,8 @@
 
 git stash
 
+git push
+
 git checkout release-branch
 
 #remove --squash to keep history
@@ -45,7 +47,8 @@ git add -u
 # commit
 git commit -a -m 'release commit'
 
-#git push
+git push
+git push github release-branch:master
 
 git checkout master
 

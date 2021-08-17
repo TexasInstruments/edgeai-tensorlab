@@ -5,10 +5,10 @@
 export PYTHONPATH=:$PYTHONPATH
 
 
-# lraspp_mobilenet_v3_lite_large
-# deeplabv3dws_mobilenet_v3_lite_large
-# deeplabv3plusdws_mobilenet_v2_lite
-# deeplabv3plusdws_mobilenet_v3_lite_large
-# deeplabv3plusdws_mobilenet_v3_lite_small
+model=deeplabv3_mobilenet_v3_lite_large
+#model=deeplabv3plus_mobilenet_v2_lite
+#model=deeplabv3plus_mobilenet_v3_lite_large
+#model=deeplabv3plus_mobilenet_v3_lite_small
+#model=lraspp_mobilenet_v3_lite_large
 
-python ./references/segmentation/segmentation_main.py --model deeplabv3plusdws_mobilenet_v2_lite
+python ./references/segmentation/segmentation_main.py --model ${model}
