@@ -31,9 +31,9 @@
 ##################################################################
 
 
-# tvmdlr artifacts are different for pc and j7 device
-# point to the right artifact before this script executes
-source set_target_device.sh j7
+# set environment variables
+# also point to the right type of artifacts (pc or j7)
+source run_setup_env.sh j7
 
 # setup the environment
 source run_setupenv_j7.sh

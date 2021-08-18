@@ -94,18 +94,16 @@ def get_imageseg_dataset_loaders(settings, download=False):
 def get_imagedet_dataset_loaders(settings, download=False):
     # this example uses the datasets.COCODetection data loader
     dataset_calib_cfg = dict(
-        path=f'{settings.datasets_path}/coco/val2017',
-        split=f'{settings.datasets_path}/coco/val2017.txt',
-        num_classes=90,
-        shuffle=False, # shuffle is currently not supported for detection metric evaluation
+        path=f'{settings.datasets_path}/coco',
+        split='val2017',
+        shuffle=True,
         num_frames=min(settings.calibration_frames,5000))
 
     # dataset parameters for actual inference
     dataset_val_cfg = dict(
-        path=f'{settings.datasets_path}/coco/val2017',
-        split=f'{settings.datasets_path}/coco/val2017.txt',
-        num_classes=90,
-        shuffle=False, # shuffle is currently not supported for detection metric evaluation
+        path=f'{settings.datasets_path}/coco',
+        split='val2017',
+        shuffle=False, # can be set to True as well, if needed
         num_frames=min(settings.num_frames,5000))
 
     # you are free to use any other data loaded provided in datasets folder or write your own instead of this
@@ -197,7 +195,7 @@ def create_configs(settings, work_dir):
             preprocess=preproc_transforms.get_transform_tflite((300,300), (300,300), backend='cv2'),
             session=sessions.TFLiteRTSession(
                 work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_tflitert,
-                model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_2018_01_28.tflite'),
+                model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_20180128.tflite'),
             postprocess=postproc_transforms.get_transform_detection_tflite(),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':23.0})

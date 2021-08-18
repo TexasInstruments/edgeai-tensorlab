@@ -30,9 +30,9 @@
 
 ##################################################################
 
-# tvmdlr artifacts are different for pc and j7 device
-# point to the right artifact before this script executes
-source set_target_device.sh j7
+# set environment variables
+# also point to the right type of artifacts (pc or j7)
+source run_setup_env.sh j7
 
 echo "==================================================================="
 echo "Please install edgeai-sdk from: http://software-dl.ti.com/jacinto7/esd/edgeai-sdk-j721e/latest/exports/docs/"

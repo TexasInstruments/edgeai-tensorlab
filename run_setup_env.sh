@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # Copyright (c) 2018-2021, Texas Instruments
 # All Rights Reserved.
 #
@@ -31,9 +29,31 @@
 ##################################################################
 
 
-# setup the environment
-source run_setupenv_pc.sh
+# for onnxruntime and tflite_runtime, the artifacts are same for pc and j7 devices
+# however for tvmdlr, there are two sets of artifacts - one for pc and one for j7 device
+# deploy_lib.so.pc is for pc and deploy_lib.so.j7 is for j7 device
+# a symbolic link called deploy_lib.so needs to be created, depending on where we plan to run the inference.
+# this can be done after the import has been done and artifacts generated.
+# by default it points to deploy_lib.so.pc, so nothing needs to be done for inference on pc
 
-# run the script
-jupyter notebook --ip=0.0.0.0
+if [[ $# -ne 1 ]]; then
+  echo "please provide exactly one argument - either pc or j7"
+  exit 1
+fi
+
+# tvmdlr artifacts are different for pc and j7 device
+# point to the right artifact before this script executes
+source run_set_target_device.sh $1
+
+# setup the environment
+# source run_setupenv_pc.sh
+export TIDL_TOOLS_PATH=$(pwd)/tidl_tools
+echo "TIDL_TOOLS_PATH=${TIDL_TOOLS_PATH}"
+
+export LD_LIBRARY_PATH=$TIDL_TOOLS_PATH
+echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
+
+# make sure current directory is visible for python import
+export PYTHONPATH=:${PYTHONPATH}
+echo "PYTHONPATH=${PYTHONPATH}"
 

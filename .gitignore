@@ -13,6 +13,7 @@ dependencies/*
 work_dirs/*/*/*
 !work_dirs/modelartifacts/8bits/*
 backup/*
+tutorials/.ipynb_checkpoints/
 tidl_tools/
 
 .vscode/

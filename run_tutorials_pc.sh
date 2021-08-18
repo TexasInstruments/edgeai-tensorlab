@@ -35,18 +35,6 @@
 # also point to the right type of artifacts (pc or j7)
 source run_setup_env.sh pc
 
-# specify one of the following - additional options can be changed inside the yaml
-#settings_file=accuracy_infer_on_j7.yaml
-#settings_file=accuracy_import_on_pc.yaml
-settings_file=accuracy_import_on_pc.yaml
+# run the script
+jupyter notebook --ip=localhost
 
-
-echo "==================================================================="
-## run all the shortlisted models with these settings
-python3 ./scripts/benchmark_custom.py ${settings_file}
-echo "-------------------------------------------------------------------"
-
-echo "==================================================================="
-# generate the final report with results for all the artifacts generated
-python3 ./scripts/generate_report.py ${settings_file}
-echo "-------------------------------------------------------------------"
