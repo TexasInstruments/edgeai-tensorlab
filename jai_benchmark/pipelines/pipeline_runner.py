@@ -260,8 +260,8 @@ class PipelineRunner():
                 if isinstance(model_path, (list,tuple)) or os.path.splitext(model_path)[-1] != '.onnx':
                     continue
                 #
-                print("=" * 64)
-                print("src model path :{}".format(model_path))
+                #print("=" * 64)
+                #print("src model path :{}".format(model_path))
 
                 # create a new model_id for the modified model
                 new_model_id = pipeline_id[:-1] + str(1+size_id)
@@ -314,7 +314,7 @@ class PipelineRunner():
                     #
                     # save model in model_folder
                     os.makedirs(model_folder, exist_ok=True)
-                    print("saving modified model :{}".format(model_path_out))
+                    #print("saving modified model :{}".format(model_path_out))
                     onnx.save(onnx_model, model_path_out)
                     #onnx.shape_inference.infer_shapes_path(model_path_out, model_path_out)
                 #
