@@ -208,20 +208,20 @@ class PipelineRunner():
                 selected_model = False
             #
         #
-        calibration_dataset = pipeline_config['calibration_dataset']
-        if settings.run_import and calibration_dataset is None:
-            if settings.verbose:
-                warnings.warn(f'settings.run_import was set, but calibration_dataset={calibration_dataset}, removing model {model_id}:{model_path0}')
-            #
-            selected_model = False
-        #
-        input_dataset = pipeline_config['input_dataset']
-        if settings.run_inference and input_dataset is None:
-            if settings.verbose:
-                warnings.warn(f'settings.run_inference was set, but input_dataset={input_dataset}, removing model {model_id}:{model_path0}')
-            #
-            selected_model = False
-        #
+        # calibration_dataset = pipeline_config['calibration_dataset']
+        # if settings.run_import and calibration_dataset is None:
+        #     if settings.verbose:
+        #         warnings.warn(f'settings.run_import was set, but calibration_dataset={calibration_dataset}, removing model {model_id}:{model_path0}')
+        #     #
+        #     selected_model = False
+        # #
+        # input_dataset = pipeline_config['input_dataset']
+        # if settings.run_inference and input_dataset is None:
+        #     if settings.verbose:
+        #         warnings.warn(f'settings.run_inference was set, but input_dataset={input_dataset}, removing model {model_id}:{model_path0}')
+        #     #
+        #     selected_model = False
+        # #
         return selected_model
 
     def model_transformation(self, settings, pipeline_configs_in):
@@ -247,8 +247,10 @@ class PipelineRunner():
                 for tidx, trans in enumerate(preproc_transforms):
                     if isinstance(trans, preprocess.ImageResize):
                         trans = preprocess.ImageResize(input_size)
+                        preproc_stge.set_param('resize', input_size)
                     elif isinstance(trans, preprocess.ImageCenterCrop):
                         trans = preprocess.ImageCenterCrop(input_size)
+                        preproc_stge.set_param('crop', input_size)
                     #
                     preproc_transforms[tidx] = trans
                 #

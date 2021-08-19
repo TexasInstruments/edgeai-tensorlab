@@ -30,6 +30,7 @@ import os
 
 from jai_benchmark import utils
 from jai_benchmark import datasets
+from jai_benchmark.pipelines.pipeline_runner import PipelineRunner
 
 from . import classification
 from . import detection
@@ -62,10 +63,9 @@ def get_configs(settings, work_dir):
 
 
 def select_configs(settings, work_dir, session_name=None):
-    task_selection = utils.as_list(settings.task_selection)
     pipeline_configs = get_configs(settings, work_dir)
-    pipeline_configs = {pipeline_id:pipeline_config for pipeline_id, pipeline_config in pipeline_configs.items() \
-            if pipeline_config['task_type'] in task_selection}
+    pipeline_runner = PipelineRunner(settings, pipeline_configs)
+    pipeline_configs = pipeline_runner.pipeline_configs
     if session_name is not None:
         pipeline_configs = {pipeline_id:pipeline_config for pipeline_id, pipeline_config in pipeline_configs.items() \
                 if pipeline_config['session'].peek_param('session_name') == session_name}
