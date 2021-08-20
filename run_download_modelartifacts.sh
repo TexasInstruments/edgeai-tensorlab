@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version=$(python version.py --delimiter=_)
+version=$(python3 version.py --delimiter=_)
 
 url=http://software-dl.ti.com/jacinto7/esd/modelzoo/$version/modelartifacts/8bits
 directory_prefix=./work_dirs/modelartifacts/8bits

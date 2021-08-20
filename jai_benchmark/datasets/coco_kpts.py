@@ -392,7 +392,7 @@ class COCOKeypoints(DatasetBase):
 ################################################################################################
 if __name__ == '__main__':
     # from inside the folder jacinto_ai_benchmark, run the following:
-    # python -m jai_benchmark.datasets.coco_det
+    # python3 -m jai_benchmark.datasets.coco_det
     # to create a converted dataset if you wish to load it using the dataset loader ImageDetection() in image_det.py
     # to load it using CocoSegmentation dataset in this file, this conversion is not required.
     import shutil
