@@ -35,39 +35,59 @@ echo 'python version must be >= 3.6'
 exit 1
 fi
 
-######################################################################
-echo "pycocotools need cython has to be installed from conda, if this is conda python"
-conda install -y cython
+#######################################################################
+#echo "pycocotools need cython has to be installed from conda, if this is conda python"
+#conda install -y cython
+#
+#######################################################################
+## Installing dependencies
+#echo 'Installing python packages...'
+#pip install -r ./requirements_pc.txt
+#
+#######################################################################
+##NOTE: THIS STEP INSTALLS THE EDITABLE LOCAL MODULE pytidl
+#echo 'Installing as a local module using setup.py'
+#pip install -e ./
+#
+#######################################################################
+## Installing dependencies
+#echo 'Installing tidl_tools...'
+#
+#pip install https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/dlr-1.8.0-py3-none-any.whl
+#pip install https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tvm-0.8.dev0-cp36-cp36m-linux_x86_64.whl
+#pip install https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
+#pip install https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tflite_runtime-2.4.0-py3-none-any.whl
+#wget https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tidl_tools.tar.gz
+#
+#tar -xzf tidl_tools.tar.gz
 
 ######################################################################
-# Installing dependencies
-echo 'Installing python packages...'
-pip install -r ./requirements_pc.txt
-
-######################################################################
-#NOTE: THIS STEP INSTALLS THE EDITABLE LOCAL MODULE pytidl
-echo 'Installing as a local module using setup.py'
-pip install -e ./
-
-######################################################################
-# Installing dependencies
-echo 'Installing tidl_tools...'
-
-pip install https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/dlr-1.8.0-py3-none-any.whl
-pip install https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tvm-0.8.dev0-cp36-cp36m-linux_x86_64.whl
-pip install https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
-pip install https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tflite_runtime-2.4.0-py3-none-any.whl
-wget https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tidl_tools.tar.gz
-
-tar -xzf tidl_tools.tar.gz
 export TIDL_TOOLS_PATH=$(pwd)/tidl_tools
 echo "TIDL_TOOLS_PATH=${TIDL_TOOLS_PATH}"
 
+
+######################################################################
+cd $TIDL_TOOLS_PATH
+
+echo "[gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu] Checking ..."
+if [ ! -d gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu ]
+then
+    wget https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu.tar.xz --no-check-certificate
+    tar xf gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu.tar.xz > /dev/null
+    rm gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu.tar.xz
+fi
+cd ..
+echo "[gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu] Done"
+
+######################################################################
 export LD_LIBRARY_PATH=$TIDL_TOOLS_PATH
 echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
 
 # make sure current directory is visible for python import
 export PYTHONPATH=:${PYTHONPATH}
 echo "PYTHONPATH=${PYTHONPATH}"
+
+# needed for TVM compilation
+export ARM64_GCC_PATH=$TIDL_TOOLS_PATH/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu
 
 echo 'Completed installation.'

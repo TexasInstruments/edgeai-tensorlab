@@ -57,3 +57,5 @@ echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
 export PYTHONPATH=:${PYTHONPATH}
 echo "PYTHONPATH=${PYTHONPATH}"
 
+# needed for TVM compilation
+export ARM64_GCC_PATH=$TIDL_TOOLS_PATH/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu
