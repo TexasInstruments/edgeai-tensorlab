@@ -92,7 +92,7 @@ def create_configs(settings, work_dir):
     postproc_transforms = postprocess.PostProcessTransforms(settings)
 
     pipeline_configs = {
-        'vseg-robokit-qat': dict(
+        'ss-robokit1-qat': dict(
             task_type='segmentation',
             calibration_dataset=imageseg_robokit_calib_dataset,
             input_dataset=imageseg_robokit_val_dataset,
@@ -103,7 +103,7 @@ def create_configs(settings, work_dir):
             postprocess=postproc_transforms.get_transform_segmentation_onnx(),
             model_info=dict(metric_reference={'accuracy_mean_iou%':None})
         ),
-        'vseg-robokit': dict(
+        'ss-robokit2': dict(
             task_type='segmentation',
             calibration_dataset=imageseg_robokit_calib_dataset,
             input_dataset=imageseg_robokit_val_dataset,

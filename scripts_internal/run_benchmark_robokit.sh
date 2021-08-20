@@ -47,10 +47,10 @@ echo "-------------------------------------------------------------------"
 
 echo "==================================================================="
 # generate the final report with results for all the artifacts generated
-python3 ./scripts/generate_report.py ${settings_file} --expt_name benchmark_robokit
+python3 ./scripts/generate_report.py ${settings_file}
 echo "-------------------------------------------------------------------"
 
 echo "==================================================================="
 # package the artifacts generated
-python3 ./scripts/package_artifacts.py ${settings_file} --expt_name benchmark_robokit
+python3 ./scripts/package_artifacts.py ${settings_file}
 echo "-------------------------------------------------------------------"
