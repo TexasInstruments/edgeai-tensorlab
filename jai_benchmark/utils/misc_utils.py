@@ -113,7 +113,7 @@ def as_list_or_tuple(arg):
 
 
 # convert to something that can be saved by yaml.safe_dump
-def pretty_object(d, depth=10, precision=3):
+def pretty_object(d, depth=10, precision=6):
     depth = depth - 1
     pass_through_types = (str, int)
     if depth < 0:

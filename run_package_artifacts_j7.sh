@@ -35,8 +35,6 @@
 # also point to the right type of artifacts (pc or j7)
 source run_setup_env.sh j7
 
-# setup the environment
-source run_setupenv_j7.sh
 
 # specify one of the following settings - options can be changed inside the yaml
 #settings_file=settings_infer_on_j7.yaml

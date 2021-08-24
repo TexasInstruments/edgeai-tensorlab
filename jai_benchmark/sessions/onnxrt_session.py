@@ -130,7 +130,7 @@ class ONNXRTSession(BaseRTSession):
         runtime_options = self.kwargs.get("runtime_options", {})
         default_options = {
             "tidl_platform": "J7",
-            "tidl_version": "7.2",
+            "tidl_version": "8.0",
             "tidl_tools_path": self.kwargs["tidl_tools_path"],
             "artifacts_folder": self.kwargs["artifacts_folder"],
             "tensor_bits": self.kwargs.get("tensor_bits", 8),
