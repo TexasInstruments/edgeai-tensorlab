@@ -1,4 +1,4 @@
-# Jacinto-AI-Detection
+# EdgeAI-MMDetection
 
 This repository is an extension of the popular [mmdetection](https://github.com/open-mmlab/mmdetection) open source repository for object detection training. While mmdetection focuses on a wide variety of models, typically at high complexity, we focus on models that are optimized for speed and accuracy so that they run efficiently on embedded devices. 
 
