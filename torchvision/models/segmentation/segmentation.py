@@ -20,9 +20,9 @@ from ... import xnn
 __all__ = ['fcn_resnet50', 'fcn_resnet101', 'deeplabv3_resnet50', 'deeplabv3_resnet101',
            'deeplabv3_mobilenet_v3_large', 'lraspp_mobilenet_v3_large',
            # lite models
-           'lraspp_mobilenet_v3_lite_large', 'deeplabv3dws_mobilenet_v3_lite_large',
-           'deeplabv3plusdws_mobilenet_v3_lite_large', 'deeplabv3plusdws_mobilenet_v3_lite_small',
-           'deeplabv3plusdws_mobilenet_v2_lite']
+           'lraspp_mobilenet_v3_lite_large', 'deeplabv3_mobilenet_v3_lite_large',
+           'deeplabv3plus_mobilenet_v3_lite_large', 'deeplabv3plus_mobilenet_v3_lite_small',
+           'deeplabv3plus_mobilenet_v2_lite']
 
 
 model_urls = {
