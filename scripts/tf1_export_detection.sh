@@ -49,7 +49,7 @@ input_size="${MODEL_NAMES[$model_name]}"
 echo $LOCAL_DIR
 echo $input_size
 
-python ${TF_MODELS_REPO}/research/object_detection/export_tflite_ssd_graph.py \
+python3 ${TF_MODELS_REPO}/research/object_detection/export_tflite_ssd_graph.py \
 --pipeline_config_path=${LOCAL_DIR}/pipeline.config \
 --output_directory=${LOCAL_DIR}/tflite \
 --trained_checkpoint_prefix=${LOCAL_DIR}/model.ckpt \

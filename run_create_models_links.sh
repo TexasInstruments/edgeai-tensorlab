@@ -28,11 +28,4 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-version=$(python3 version.py --delimiter=_)
-
-url=http://software-dl.ti.com/jacinto7/esd/modelzoo/$version/modelartifacts/8bits
-
-for artifact in $(ls -1 ./modelartifacts/8bits |grep .tar.gz)
-do
-echo ${url}/${artifact} > ./modelartifacts/8bits/${artifact}.link
-done
+python3 ./scripts/make_link_files.py

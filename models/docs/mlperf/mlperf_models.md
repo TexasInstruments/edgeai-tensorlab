@@ -80,7 +80,7 @@ export CONFIG_FILE=${MODEL_LOCATION}/pipeline.config
 export CHECKPOINT_PATH=${MODEL_LOCATION}/model.ckpt
 export OUTPUT_DIR=${MODEL_LOCATION}/
 
-python object_detection/export_tflite_ssd_graph.py --pipeline_config_path=$CONFIG_FILE --trained_checkpoint_prefix=$CHECKPOINT_PATH --output_directory=$OUTPUT_DIR --add_postprocessing_op=true --max_detections=4000
+python3 object_detection/export_tflite_ssd_graph.py --pipeline_config_path=$CONFIG_FILE --trained_checkpoint_prefix=$CHECKPOINT_PATH --output_directory=$OUTPUT_DIR --add_postprocessing_op=true --max_detections=4000
 ```
 
 In the output directory, you should now see two files: tflite_graph.pb and tflite_graph.pbtxt. Note that the add_postprocessing flag enables the model to take advantage of a custom optimized detection post-processing operation which can be thought of as a replacement for tf.image.non_max_suppression. 
