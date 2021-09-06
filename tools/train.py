@@ -14,6 +14,16 @@ from yolox.core import Trainer, launch
 from yolox.exp import get_exp
 from yolox.utils import configure_nccl, configure_omp, get_num_devices
 
+_SUPPORTED_DATASETS = ["COCO", "LINEMOD"]
+_NUM_CLASSES = {"COCO":80, "LINEMOD":15}
+_VAL_ANN = {
+    "COCO":"instances_val2017.json", 
+    "LINEMOD":"instances_test.json"
+}
+_TRAIN_ANN = {
+    "COCO":"instances_train2017.json", 
+    "LINEMOD":"instances_train.json"
+}
 
 def make_parser():
     parser = argparse.ArgumentParser("YOLOX train parser")
@@ -44,6 +54,7 @@ def make_parser():
     parser.add_argument(
         "--resume", default=False, action="store_true", help="resume training"
     )
+    parser.add_argument("--dataset", default=None, type=str, help="dataset fro training")
     parser.add_argument("-c", "--ckpt", default=None, type=str, help="checkpoint file")
     parser.add_argument(
         "-e",
@@ -105,6 +116,15 @@ def main(exp, args):
     configure_nccl()
     configure_omp()
     cudnn.benchmark = True
+
+    if args.dataset is not None:
+        assert (
+            args.dataset in _SUPPORTED_DATASETS
+        ), "The given dataset is not supported for training!"
+        exp.data_set = args.dataset
+        exp.num_classes = _NUM_CLASSES[args.dataset]
+        exp.val_ann = _VAL_ANN[args.dataset]
+        exp.train_ann = _TRAIN_ANN[args.dataset]
 
     trainer = Trainer(exp, args)
     trainer.train()

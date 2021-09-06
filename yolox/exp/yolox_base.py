@@ -68,6 +68,7 @@ class Exp(BaseExp):
         self.test_size = (640, 640)
         self.test_conf = 0.01
         self.nmsthre = 0.65
+        self.data_set = "COCO"
 
     def get_model(self):
         from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
@@ -93,6 +94,7 @@ class Exp(BaseExp):
     ):
         from yolox.data import (
             COCODataset,
+            LINEMODDataset,
             TrainTransform,
             YoloBatchSampler,
             DataLoader,
@@ -108,16 +110,28 @@ class Exp(BaseExp):
         local_rank = get_local_rank()
 
         with wait_for_the_master(local_rank):
-            dataset = COCODataset(
-                data_dir=self.data_dir,
-                json_file=self.train_ann,
-                img_size=self.input_size,
-                preproc=TrainTransform(
-                    max_labels=50,
-                    flip_prob=self.flip_prob,
-                    hsv_prob=self.hsv_prob),
-                cache=cache_img,
-            )
+            if self.data_set == "COCO":
+                dataset = COCODataset(
+                    data_dir=self.data_dir,
+                    json_file=self.train_ann,
+                    img_size=self.input_size,
+                    preproc=TrainTransform(
+                        max_labels=50,
+                        flip_prob=self.flip_prob,
+                        hsv_prob=self.hsv_prob),
+                    cache=cache_img,
+                )
+            elif self.data_set == "LINEMOD":
+               dataset = LINEMODDataset(
+                    data_dir=self.data_dir,
+                    json_file=self.train_ann,
+                    img_size=self.input_size,
+                    preproc=TrainTransform(
+                        max_labels=50,
+                        flip_prob=self.flip_prob,
+                        hsv_prob=self.hsv_prob),
+                    cache=cache_img,
+                ) 
 
         dataset = MosaicDetection(
             dataset,
@@ -237,15 +251,24 @@ class Exp(BaseExp):
         return scheduler
 
     def get_eval_loader(self, batch_size, is_distributed, testdev=False, legacy=False):
-        from yolox.data import COCODataset, ValTransform
+        from yolox.data import COCODataset, LINEMODDataset, ValTransform
 
-        valdataset = COCODataset(
-            data_dir=self.data_dir,
-            json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
-            name="val2017" if not testdev else "test2017",
-            img_size=self.test_size,
-            preproc=ValTransform(legacy=legacy),
-        )
+        if self.data_set == "COCO":
+            valdataset = COCODataset(
+                data_dir=self.data_dir,
+                json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
+                name="val2017" if not testdev else "test2017",
+                img_size=self.test_size,
+                preproc=ValTransform(legacy=legacy),
+            )
+        elif self.data_set == "LINEMOD":
+            valdataset = LINEMODDataset(
+                data_dir=self.data_dir,
+                json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
+                name="test", #if not testdev else "test2017",
+                img_size=self.test_size,
+                preproc=ValTransform(legacy=legacy),
+            )
 
         if is_distributed:
             batch_size = batch_size // dist.get_world_size()

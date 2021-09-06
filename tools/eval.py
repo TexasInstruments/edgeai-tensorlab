@@ -16,6 +16,12 @@ from yolox.core import launch
 from yolox.exp import get_exp
 from yolox.utils import configure_nccl, fuse_model, get_local_rank, get_model_info, setup_logger
 
+_SUPPORTED_DATASETS = ["COCO", "LINEMOD"]
+_NUM_CLASSES = {"COCO":80, "LINEMOD":15}
+_VAL_ANN = {
+    "COCO":"instances_val2017.json", 
+    "LINEMOD":"instances_test.json"
+}
 
 def make_parser():
     parser = argparse.ArgumentParser("YOLOX Eval")
@@ -49,6 +55,7 @@ def make_parser():
         type=str,
         help="pls input your expriment description file",
     )
+    parser.add_argument("--dataset", default=None, type=str, help="dataset for eval")
     parser.add_argument("-c", "--ckpt", default=None, type=str, help="ckpt for eval")
     parser.add_argument("--conf", default=None, type=float, help="test conf")
     parser.add_argument("--nms", default=None, type=float, help="test nms threshold")
@@ -131,6 +138,13 @@ def main(exp, args, num_gpu):
     setup_logger(file_name, distributed_rank=rank, filename="val_log.txt", mode="a")
     logger.info("Args: {}".format(args))
 
+    if args.dataset is not None:
+        assert (
+            args.dataset in _SUPPORTED_DATASETS
+        ), "The given dataset is not supported for evaluation!"
+        exp.data_set = args.dataset
+        exp.num_classes = _NUM_CLASSES[args.dataset]
+        exp.val_ann = _VAL_ANN[args.dataset]
     if args.conf is not None:
         exp.test_conf = args.conf
     if args.nms is not None:
