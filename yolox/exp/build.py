@@ -23,6 +23,7 @@ def get_exp_by_name(exp_name):
     yolox_path = os.path.dirname(os.path.dirname(yolox.__file__))
     filedict = {
         "yolox-s": "yolox_s.py",
+        "yolox-s-ti-lite": "yolox_s_ti_lite.py",
         "yolox-m": "yolox_m.py",
         "yolox-l": "yolox_l.py",
         "yolox-x": "yolox_x.py",
