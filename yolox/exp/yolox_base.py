@@ -69,6 +69,7 @@ class Exp(BaseExp):
         self.test_conf = 0.01
         self.nmsthre = 0.65
         self.data_set = "COCO"
+        self.pose  = False
 
     def get_model(self):
         from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
@@ -131,6 +132,7 @@ class Exp(BaseExp):
                         flip_prob=self.flip_prob,
                         hsv_prob=self.hsv_prob),
                     cache=cache_img,
+                    pose=self.pose
                 ) 
 
         dataset = MosaicDetection(
@@ -268,6 +270,7 @@ class Exp(BaseExp):
                 name="test", #if not testdev else "test2017",
                 img_size=self.test_size,
                 preproc=ValTransform(legacy=legacy),
+                pose=self.pose 
             )
 
         if is_distributed:
