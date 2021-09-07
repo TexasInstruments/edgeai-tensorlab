@@ -121,29 +121,3 @@ session:
   # Options: tflitert, onnxrt, tvmdlr
   session_name: tflitert
 
-
-#################################################################################
-# The fields in this section are not currently used by EDGEAI CPP, but may be used in the future.
-# No need to specify these for EDGEAI inference currently.
-#################################################################################
-
-# Parameters of the Dataset used for import/calibration of the model.
-calibration_dataset:
-  name: ade20k
-  num_frames: 50
-  path: ./dependencies/datasets/ADEChallengeData2016
-  shuffle: true
-  split: validation
-
-# Parameters of the Dataset used for accuracy evaluation of the model.input_dataset:
-input_dataset:
-  name: ade20k
-  num_frames: 2000
-  path: ./dependencies/datasets/ADEChallengeData2016
-  shuffle: true
-  split: validation
-
-# Information about the model - for example, the reference accuracy.
-model_info:
-  metric_reference:
-    accuracy_mean_iou%: 32.04

@@ -237,29 +237,3 @@ session:
   # Options: tflitert, onnxrt, tvmdlr
   session_name: tflitert
 
-
-#################################################################################
-# The fields in this section are not currently used by EDGEAI CPP, but may be used in the future.
-# No need to specify these for EDGEAI inference currently.
-#################################################################################
-
-# Parameters of the Dataset used for import/calibration of the model.
-calibration_dataset:
-  name: coco
-  num_frames: 50
-  path: ./dependencies/datasets/coco
-  shuffle: true
-  split: val2017
-  
-# Parameters of the Dataset used for accuracy evaluation of the model.
-input_dataset:
-  name: coco
-  num_frames: 5000
-  path: ./dependencies/datasets/coco
-  shuffle: false
-  split: val2017
-
-# Information about the model - for example, the reference accuracy.
-model_info:
-  metric_reference:
-    accuracy_ap[.5:.95]%: 23.0

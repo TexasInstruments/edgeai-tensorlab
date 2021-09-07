@@ -120,29 +120,3 @@ session:
   # Options: tflitert, onnxrt, tvmdlr
   session_name: tflitert
 
-
-#################################################################################
-# The fields in this section are not currently used by EDGEAI CPP, but may be used in the future.
-# No need to specify these for EDGEAI inference currently.
-#################################################################################
-
-# Parameters of the Dataset used for import/calibration of the model.
-calibration_dataset:
-  name: imagenet
-  num_frames: 50
-  path: /data/files/a0393608/work/code/ti/jacinto-ai/jacinto-ai-benchmark/dependencies/datasets/imagenet/val
-  shuffle: true
-  split: /data/files/a0393608/work/code/ti/jacinto-ai/jacinto-ai-benchmark/dependencies/datasets/imagenet/val.txt
-
-# Parameters of the Dataset used for accuracy evaluation of the model.
-input_dataset:
-  name: imagenet
-  num_frames: 10000
-  path: /data/files/a0393608/work/code/ti/jacinto-ai/jacinto-ai-benchmark/dependencies/datasets/imagenet/val
-  shuffle: true
-  split: /data/files/a0393608/work/code/ti/jacinto-ai/jacinto-ai-benchmark/dependencies/datasets/imagenet/val.txt
-
-# Information about the model - for example, the reference accuracy.
-model_info:
-  metric_reference:
-    accuracy_top1%: 71.676
