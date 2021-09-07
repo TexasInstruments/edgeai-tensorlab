@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Copyright (c) 2018-2021, Texas Instruments
 # All Rights Reserved.
@@ -40,7 +40,10 @@ echo "pycocotools need cython has to be installed from conda, if this is conda p
 conda install -y cython
 
 ######################################################################
-# Installing dependencies
+# Dependencies for building pillow-simd
+echo 'Installing dependencies to build pillow-simd. If you dont have sudo access, comment the below line and replace pillow-simd with pillow in the requirements file'
+sudo apt-get install libjpeg-dev zlib1g-dev
+
 echo 'Installing python packages...'
 pip install -r ./requirements_pc.txt
 
