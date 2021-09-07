@@ -22,6 +22,10 @@ _VAL_ANN = {
     "COCO":"instances_val2017.json", 
     "LINEMOD":"instances_test.json"
 }
+_SUPPORTED_TASKS = {
+    "COCO":["2DOD"],
+    "LINEMOD":["2DOD", "6DPOSE"]
+}
 
 def make_parser():
     parser = argparse.ArgumentParser("YOLOX Eval")
@@ -56,6 +60,7 @@ def make_parser():
         help="pls input your expriment description file",
     )
     parser.add_argument("--dataset", default=None, type=str, help="dataset for eval")
+    parser.add_argument("--task", default=None, type=str, help="type of task for model eval")
     parser.add_argument("-c", "--ckpt", default=None, type=str, help="ckpt for eval")
     parser.add_argument("--conf", default=None, type=float, help="test conf")
     parser.add_argument("--nms", default=None, type=float, help="test nms threshold")
@@ -145,6 +150,12 @@ def main(exp, args, num_gpu):
         exp.data_set = args.dataset
         exp.num_classes = _NUM_CLASSES[args.dataset]
         exp.val_ann = _VAL_ANN[args.dataset]
+    if args.task is not None:
+        assert (
+            args.task in _SUPPORTED_TASKS[args.dataset] if args.dataset is not None else args.task == "2DOD"
+        ), "The specified task cannot be performed with the given dataset!"
+        if args.dataset == "LINEMOD":
+            exp.pose = True if args.task == "6DPOSE" else exp.pose = False
     if args.conf is not None:
         exp.test_conf = args.conf
     if args.nms is not None:
