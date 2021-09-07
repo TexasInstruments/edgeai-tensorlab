@@ -123,17 +123,26 @@ class SPPBottleneck(nn.Module):
     """Spatial pyramid pooling layer used in YOLOv3-SPP"""
 
     def __init__(
-        self, in_channels, out_channels, kernel_sizes=(5, 9, 13), activation="silu"
+        self, in_channels, out_channels, kernel_sizes=(5, 9, 13), activation="silu", split_max_pool_kernel=False,
     ):
         super().__init__()
         hidden_channels = in_channels // 2
         self.conv1 = BaseConv(in_channels, hidden_channels, 1, stride=1, act=activation)
-        self.m = nn.ModuleList(
-            [
-                nn.MaxPool2d(kernel_size=ks, stride=1, padding=ks // 2)
-                for ks in kernel_sizes
-            ]
-        )
+        if not split_max_pool_kernel:
+            self.m = nn.ModuleList(
+                [
+                    nn.MaxPool2d(kernel_size=ks, stride=1, padding=ks // 2)
+                    for ks in kernel_sizes
+                ]
+            )
+        else:
+            max_pool_module_list = []
+            for ks in kernel_sizes:
+                assert (ks-1)%2 == 0; "kernel cannot be splitted into 3x3 kernels"
+                num_3x3_maxpool = (ks-1)//2
+                max_pool_module_list.append(nn.Sequential(*num_3x3_maxpool*[nn.MaxPool2d(kernel_size=3, stride=1, padding=1)]))
+            self.m = nn.ModuleList(max_pool_module_list)
+
         conv2_channels = hidden_channels * (len(kernel_sizes) + 1)
         self.conv2 = BaseConv(conv2_channels, out_channels, 1, stride=1, act=activation)
 
