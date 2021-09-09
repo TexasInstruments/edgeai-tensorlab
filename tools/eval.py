@@ -155,7 +155,7 @@ def main(exp, args, num_gpu):
             args.task in _SUPPORTED_TASKS[args.dataset] if args.dataset is not None else args.task == "2DOD"
         ), "The specified task cannot be performed with the given dataset!"
         if args.dataset == "LINEMOD":
-            exp.pose = True if args.task == "6DPOSE" else exp.pose = False
+            exp.pose = True if args.task == "6DPOSE" else False
     if args.conf is not None:
         exp.test_conf = args.conf
     if args.nms is not None:
