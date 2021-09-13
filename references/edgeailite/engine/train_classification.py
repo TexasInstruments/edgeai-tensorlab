@@ -52,10 +52,8 @@ import onnx
 from onnx import shape_inference
 
 import torchvision
-from torchvision import xnn
-from references.edgeailite import xvision
-from ..xvision.models import backbone as backbone_models
-from ..xvision.datasets import backbone as backbone_datasets
+from torchvision.edgeailite import xnn
+from torchvision.edgeailite import xvision
 
 
 #################################################
@@ -273,7 +271,7 @@ def main(args):
         model = xnn.onnx.import_onnx(args.model)
         is_onnx_model = True
     else:
-        model = backbone_models.__dict__[args.model_name](args.model_config)
+        model = xvision.models.__dict__[args.model_name](args.model_config)
     #
 
     # check if we got the model as well as parameters to change the names in pretrained
@@ -874,7 +872,7 @@ def get_transforms(args):
 def get_data_loaders(args):
     train_transform, val_transform = get_transforms(args) if args.transforms is None else (args.transforms[0], args.transforms[1])
 
-    train_dataset, val_dataset = backbone_datasets.__dict__[args.dataset_name](args.dataset_config, args.data_path, transforms=(train_transform,val_transform))
+    train_dataset, val_dataset = xvision.datasets.__dict__[args.dataset_name](args.dataset_config, args.data_path, transforms=(train_transform,val_transform))
 
     if args.distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)

@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from ... import xnn
+from ...edgeailite import xnn
 from ._utils import _SimpleSegmentationModel
 
 

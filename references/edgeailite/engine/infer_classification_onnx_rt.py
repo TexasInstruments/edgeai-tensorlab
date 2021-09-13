@@ -49,8 +49,8 @@ import torch.utils.data.distributed
 import onnx
 import onnxruntime
 
-from torchvision import xnn
-from .. import xvision
+from torchvision.edgeailite import xnn
+from torchvision.edgeailite import xvision
 
 
 # ################################################

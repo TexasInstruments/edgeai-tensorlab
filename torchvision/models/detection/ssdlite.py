@@ -14,7 +14,7 @@ from .. import mobilenet
 from ..mobilenetv3 import ConvBNActivation
 from ..._internally_replaced_utils import load_state_dict_from_url
 from .backbone_utils import BackboneWithFPN
-from ... import xnn
+from ...edgeailite import xnn
 
 
 __all__ = ['ssdlite320_mobilenet_v3_large', 'ssdlite_mobilenet_v3_large',

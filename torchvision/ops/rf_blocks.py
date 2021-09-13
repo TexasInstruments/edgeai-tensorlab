@@ -38,7 +38,7 @@ from torch import nn, Tensor
 
 from typing import Tuple, List, Dict, Optional, Union
 
-from ..import xnn
+from ..edgeailite import xnn
 
 from .feature_pyramid_network import ExtraFPNBlock, LastLevelP6P7, LastLevelMaxPool
 

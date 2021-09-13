@@ -39,7 +39,7 @@ import datetime
 import numpy as np
 
 ################################
-from torchvision.xnn.utils import str2bool
+from torchvision.edgeailite.xnn.utils import str2bool
 parser = argparse.ArgumentParser()
 parser.add_argument('--image_mean', type=float, nargs='*', default=None, help='image_mean')
 parser.add_argument('--image_scale', type=float, nargs='*', default=None, help='image_scale')

@@ -73,7 +73,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence
 from .._internally_replaced_utils import load_state_dict_from_url
 from torchvision.models.mobilenetv2 import _make_divisible, ConvBNActivation
 
-from .. import xnn
+from ..edgeailite import xnn
 
 __all__ = ["MobileNetV3", "mobilenet_v3_large", "mobilenet_v3_small",
            "MobileNetV3Lite", "mobilenet_v3_lite_large", "mobilenet_v3_lite_small"]

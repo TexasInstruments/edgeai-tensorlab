@@ -6,7 +6,7 @@ import torch
 from colorama import Fore
 
 import torchvision.models.detection.mask_rcnn
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 
 from coco_utils import get_coco_api_from_dataset
 from coco_eval import CocoEvaluator

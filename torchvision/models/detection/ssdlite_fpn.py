@@ -47,7 +47,7 @@ from ..._internally_replaced_utils import load_state_dict_from_url
 from .backbone_utils import BackboneWithFPN
 from ...ops.feature_pyramid_network import LastLevelP6P7, FeaturePyramidNetwork
 from ...ops.rf_blocks import BiFPN
-from ... import xnn
+from ...edgeailite import xnn
 
 __all__ = ['ssdlite_mobilenet_v2_lite_fpn', 'ssdlite_mobilenet_v3_lite_large_fpn', 'ssdlite_mobilenet_v3_lite_small_fpn',
            'ssdlite_mobilenet_v2_lite_bifpn']

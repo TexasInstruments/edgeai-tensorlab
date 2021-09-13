@@ -46,8 +46,8 @@ import torch.optim
 import torch.utils.data
 import torch.utils.data.distributed
 
-from torchvision import xnn
-from .. import xvision
+from torchvision.edgeailite import xnn
+from torchvision.edgeailite import xvision
 
 
 # ################################################

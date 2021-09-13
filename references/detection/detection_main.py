@@ -5,9 +5,9 @@ import os
 import sys
 import datetime
 from torch.distributed import launch as distributed_launch
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 
-main_script = './scripts/detection/train.py'
+main_script = './references/detection/train.py'
 
 
 def get_common_argv(args):
@@ -107,14 +107,14 @@ if __name__ == "__main__":
     args.weight_decay = 4e-5
     args.tensorboard = True
 
-    args.output_dir = f'./data/checkpoints/edgeailite/detection/{args.dataset}_{args.model}'
+    args.output_dir = f'./data/checkpoints/detection/{args.dataset}_{args.model}'
     checkpoint_path = os.path.join(args.output_dir, 'checkpoint.pth')
-    checkpoint_backbone_path = '../jacinto-ai-modelzoo/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth'
 
     if (not args.test_only) and (not args.export_only):
         # training
         is_training = True
-        args.pretrained_backbone = args.pretrained_backbone or checkpoint_backbone_path
+        args.pretrained = False
+        # args.pretrained_backbone = True # already set as default - can be changed from outside if needed
         args.resume = (checkpoint_path if os.path.exists(checkpoint_path) else '')
         train(args)
     else:

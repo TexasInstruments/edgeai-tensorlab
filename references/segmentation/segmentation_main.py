@@ -5,9 +5,9 @@ import os
 import sys
 import datetime
 from torch.distributed import launch as distributed_launch
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 
-main_script = './scripts/segmentation/train.py'
+main_script = './references/segmentation/train.py'
 
 
 def get_common_argv(args):
@@ -104,9 +104,9 @@ if __name__ == "__main__":
     args.lr = 0.01
     args.tensorboard = True
 
-    args.output_dir = f'./data/checkpoints/edgeailite/segmentation/{args.dataset}_{args.model}'
+    args.output_dir = f'./data/checkpoints/segmentation/{args.dataset}_{args.model}'
     checkpoint_path = os.path.join(args.output_dir, 'checkpoint.pth')
-    checkpoint_backbone_path = '../jacinto-ai-modelforest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth'
+    checkpoint_backbone_path = '../edgeai-modelzoo/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth'
 
     if (not args.test_only) and (not args.export_only):
         # training

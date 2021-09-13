@@ -32,7 +32,7 @@ import torch
 import numpy as np
 import cv2
 
-from .. import xnn
+from torchvision.edgeailite import xnn
 
 
 ##################################################

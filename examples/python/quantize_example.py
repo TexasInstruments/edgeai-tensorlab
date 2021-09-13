@@ -85,8 +85,8 @@ import torchvision.datasets as datasets
 # quantization aware training. so use models from references.edgeailite insead
 #import torchvision.models as models
 
-from torchvision import xnn
-from references.edgeailite import xvision
+from torchvision.edgeailite import xnn
+from torchvision.edgeailite import xvision
 from references.edgeailite.xvision import models
 
 model_names = sorted(name for name in models.__dict__
