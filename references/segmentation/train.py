@@ -8,7 +8,7 @@ import torch
 import torch.utils.data
 from torch import nn
 import torchvision
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 import torchinfo
 
 from coco_utils import get_coco
@@ -369,15 +369,13 @@ def get_args_parser(add_help=True):
     parser.add_argument('--wd', '--weight-decay', default=1e-4, type=float,
                         metavar='W', help='weight decay (default: 1e-4)',
                         dest='weight_decay')
-<<<<<<< HEAD
     parser.add_argument('--lr-warmup-epochs', default=0, type=int, help='the number of epochs to warmup (default: 0)')
     parser.add_argument('--lr-warmup-method', default="linear", type=str, help='the warmup method (default: linear)')
     parser.add_argument('--lr-warmup-decay', default=0.01, type=float, help='the decay for lr')
     parser.add_argument('--print-freq', default=10, type=int, help='print frequency')
-=======
     parser.add_argument('--print-freq', default=100, type=int, help='print frequency')
->>>>>>> torchvision - references updated to train lite models
     parser.add_argument('--output-dir', default='.', help='path where to save')
+    parser.add_argument('--output-dir', default='./data/checkpoints/segmentation', help='path where to save')
     parser.add_argument('--resume', default='', help='resume from checkpoint')
     parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                         help='start epoch')

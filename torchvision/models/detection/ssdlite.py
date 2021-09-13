@@ -13,7 +13,7 @@ from .backbone_utils import _validate_trainable_layers
 from .. import mobilenet
 from ..._internally_replaced_utils import load_state_dict_from_url
 from ...ops.misc import ConvNormActivation
-from ... import xnn
+from ...edgeailite import xnn
 
 
 __all__ = ['ssdlite320_mobilenet_v3_large', 'ssdlite_mobilenet_v3_large',

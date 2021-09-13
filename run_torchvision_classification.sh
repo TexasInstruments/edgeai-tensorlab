@@ -16,4 +16,4 @@ export PYTHONPATH=:$PYTHONPATH
 model=mobilenet_v3_lite_large
 #model=mobilenet_v3_lite_small
 
-python ./references/classification/train.py --data-path ./data/datasets/imagenet/ --model ${model} --pretrained --export
+python ./references/classification/train.py --data-path ./data/datasets/imagenet/ --model ${model} --export

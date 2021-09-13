@@ -14,7 +14,7 @@ from .deeplabv3 import DeepLabHead, DeepLabV3
 from .deeplabv3plus import DeepLabV3PlusHead, DeepLabV3Plus
 from .fcn import FCN, FCNHead
 from .lraspp import LRASPP
-from ... import xnn
+from ...edgeailite import xnn
 
 
 __all__ = ['fcn_resnet50', 'fcn_resnet101', 'deeplabv3_resnet50', 'deeplabv3_resnet101',

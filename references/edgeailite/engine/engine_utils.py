@@ -29,8 +29,8 @@
 import os
 import numpy as np
 import torch
-from torchvision import xnn
-from references.edgeailite import xvision
+from torchvision.edgeailite import xnn
+from torchvision.edgeailite import xvision
 
 
 #################################################

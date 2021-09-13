@@ -44,8 +44,8 @@ import random
 import cv2
 import matplotlib.pyplot as plt
 
-from torchvision import xnn
-from references.edgeailite import xvision
+from torchvision.edgeailite import xnn
+from torchvision.edgeailite import xvision
 from .engine_utils import *
 
 # ################################################
@@ -255,7 +255,7 @@ def main(args):
     if args.dataset is not None:
         dataset = args.dataset
     else:
-        dataset = xvision.datasets.edgeailite.__dict__[args.dataset_name](args.dataset_config, args.data_path, split=split_arg, transforms=transforms)
+        dataset = xvision.datasets.__dict__[args.dataset_name](args.dataset_config, args.data_path, split=split_arg, transforms=transforms)
     #
 
     # if a pair is given, take the second one
@@ -303,7 +303,7 @@ def main(args):
         model, change_names_dict = args.model if isinstance(args.model, (list, tuple)) else (args.model, None)
         assert isinstance(model, torch.nn.Module), 'args.model, if provided must be a valid torch.nn.Module'
     else:
-        model = xvision.models.edgeailite.__dict__[args.model_name](args.model_config)
+        model = xvision.models.pixel2pixel.__dict__[args.model_name](args.model_config)
         # check if we got the model as well as parameters to change the names in pretrained
         model, change_names_dict = model if isinstance(model, (list,tuple)) else (model,None)
     #

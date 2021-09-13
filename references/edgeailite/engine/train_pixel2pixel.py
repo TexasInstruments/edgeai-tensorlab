@@ -50,13 +50,11 @@ import progiter
 from packaging import version
 import warnings
 
-from torchvision import xnn
-from references.edgeailite import xvision
-from ..xvision.transforms import image_transforms
+from torchvision.edgeailite import xnn
+from torchvision.edgeailite import xvision
+from torchvision.edgeailite.xvision.transforms import image_transforms
+from torchvision.edgeailite.xvision import losses as pixel2pixel_losses
 from .infer_pixel2pixel import compute_accuracy
-from ..xvision import datasets as pixel2pixel_datasets
-from ..xvision import models as pixel2pixel_models
-from ..xvision import losses as pixel2pixel_losses
 
 ##################################################
 warnings.filterwarnings('ignore', category=torch.jit.TracerWarning)
@@ -319,7 +317,7 @@ def main(args):
 
     print("=> fetching images in '{}'".format(args.data_path))
     split_arg = args.split_file if args.split_file else (args.split_files if args.split_files else args.split_value)
-    train_dataset, val_dataset = pixel2pixel_datasets.__dict__[args.dataset_name](args.dataset_config, args.data_path, split=split_arg, transforms=transforms)
+    train_dataset, val_dataset = xvision.datasets.__dict__[args.dataset_name](args.dataset_config, args.data_path, split=split_arg, transforms=transforms)
 
     #################################################
     print('=> {} samples found, {} train samples and {} test samples '.format(len(train_dataset)+len(val_dataset),
@@ -390,7 +388,7 @@ def main(args):
         is_onnx_model = True
     else:
         xnn.utils.print_yellow("=> creating model '{}'".format(args.model_name))
-        model = pixel2pixel_models.__dict__[args.model_name](args.model_config)
+        model = xvision.models.pixel2pixel.__dict__[args.model_name](args.model_config)
         # check if we got the model as well as parameters to change the names in pretrained
         model, change_names_dict = model if isinstance(model, (list,tuple)) else (model,None)
     #

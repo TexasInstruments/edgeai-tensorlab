@@ -28,7 +28,7 @@ import torch.utils.data
 import torchvision
 import torchvision.models.detection
 import torchvision.models.detection.mask_rcnn
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 
 from coco_utils import get_coco, get_coco_kp
 
@@ -85,7 +85,7 @@ def get_args_parser(add_help=True):
     parser.add_argument('--lr-gamma', default=0.1, type=float,
                         help='decrease lr by a factor of lr-gamma (multisteplr scheduler only)')
     parser.add_argument('--print-freq', default=100, type=int, help='print frequency')
-    parser.add_argument('--output-dir', default='.', help='path where to save')
+    parser.add_argument('--output-dir', default='./data/checkpoints/detection', help='path where to save')
     parser.add_argument('--resume', default='', help='resume from checkpoint')
     parser.add_argument('--start_epoch', '--start-epoch', default=0, type=int, help='start epoch')
     parser.add_argument('--aspect-ratio-group-factor', default=3, type=int)
@@ -130,7 +130,7 @@ def get_args_parser(add_help=True):
     parser.add_argument(
         "--pretrained-backbone",
         dest="pretrained_backbone",
-        default=None,
+        default=True,
         type=xnn.utils.str_or_bool,
         help="Pre-trained backbone path or use from from the modelzoo",
     )

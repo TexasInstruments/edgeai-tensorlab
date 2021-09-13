@@ -9,7 +9,7 @@ from .._internally_replaced_utils import load_state_dict_from_url
 from ..ops.misc import ConvNormActivation, SqueezeExcitation as SElayer
 from ._utils import _make_divisible
 
-from .. import xnn
+from ..edgeailite import xnn
 
 __all__ = ["MobileNetV3", "mobilenet_v3_large", "mobilenet_v3_small"]
 

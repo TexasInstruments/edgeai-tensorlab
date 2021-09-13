@@ -46,8 +46,8 @@ import onnx
 import caffe2
 import caffe2.python.onnx.backend
 
-from torchvision import xnn
-from .. import xvision
+from torchvision.edgeailite import xnn
+from torchvision.edgeailite import xvision
 
 
 

@@ -46,7 +46,7 @@ rand_crop = (224,224)
 opset_version = 9
 
 # the saving path - you can choose any path
-save_path = './data/checkpoints'
+save_path = './data/checkpoints/edgeailite'
 save_path = os.path.join(save_path, dataset_name, date + '_' + dataset_name)
 save_path += '_resize{}x{}_traincrop{}x{}'.format(img_resize[1], img_resize[0], rand_crop[1], rand_crop[0])
 os.makedirs(save_path, exist_ok=True)

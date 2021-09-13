@@ -5,7 +5,7 @@ from torch import nn, Tensor
 
 from typing import Tuple, List, Dict, Optional, Union
 
-from ..import xnn
+from ..edgeailite import xnn
 
 class ExtraFPNBlock(nn.Module):
     """

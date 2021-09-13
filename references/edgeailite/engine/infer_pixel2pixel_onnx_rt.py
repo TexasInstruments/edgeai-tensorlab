@@ -50,8 +50,8 @@ import onnxruntime
 from onnx import helper
 
 
-from torchvision import xnn
-from .. import xvision
+from torchvision.edgeailite import xnn
+from torchvision.edgeailite import xvision
 
 #sys.path.insert(0, '../devkit-datasets/TI/')
 #from fisheye_calib import r_fish_to_theta_rect
@@ -247,7 +247,7 @@ def main(args):
     print("=> fetching img pairs in '{}'".format(args.data_path))
     split_arg = args.split_file if args.split_file else (args.split_files if args.split_files else args.split_value)
 
-    val_dataset = xvision.datasets.edgeailite.__dict__[args.dataset_name](args.dataset_config, args.data_path, split=split_arg, transforms=transforms)
+    val_dataset = xvision.datasets.pixel2pixel.__dict__[args.dataset_name](args.dataset_config, args.data_path, split=split_arg, transforms=transforms)
 
     print('=> {} val samples found'.format(len(val_dataset)))
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=args.batch_size,
@@ -273,7 +273,7 @@ def main(args):
     onnx_model = onnx.load(args.pretrained)
     try:
         #Check that the IR is well formed
-        onnx.checker.check_model(model)
+        onnx.checker.check_model(onnx_model)
     except:
         print("ONNX model check failed: IR(Intermediate Representation) is not well formed")
 
