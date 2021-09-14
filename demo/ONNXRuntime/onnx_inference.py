@@ -56,6 +56,12 @@ def make_parser():
         action="store_true",
         help="Whether your model uses p6 in FPN/PAN.",
     )
+    parser.add_argument(
+        "--save-txt",
+        action="store_true",
+        help="Whether your model uses p6 in FPN/PAN.",
+    )
+
     return parser
 
 
@@ -90,3 +96,12 @@ if __name__ == '__main__':
     mkdir(args.output_dir)
     output_path = os.path.join(args.output_dir, args.image_path.split("/")[-1])
     cv2.imwrite(output_path, origin_img)
+
+
+    if args.save_txt:  # Write to file in tidl dump format
+        output_txt_path = os.path.join(os.path.dirname(output_path) , os.path.basename(output_path).split('.')[0] + '.txt')
+        for *xyxy, conf, cls in dets.tolist():
+            line = (conf, cls, *xyxy)
+            if conf>args.score_thr:
+                with open(output_txt_path, 'a') as f:
+                    f.write(('%g ' * len(line)).rstrip() % line + '\n')
