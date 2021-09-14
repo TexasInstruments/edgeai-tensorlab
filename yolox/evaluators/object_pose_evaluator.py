@@ -23,7 +23,7 @@ from yolox.utils import (
 )
 
 
-class POSEEvaluator:
+class ObjectPoseEvaluator:
     """
     COCO AP Evaluation class.  All the data in the val2017 dataset are processed
     and evaluated by COCO API.

@@ -47,6 +47,9 @@ def make_parser():
         "-d", "--devices", default=None, type=int, help="device for training"
     )
     parser.add_argument(
+        "-w", "--workers", default=None, type=int, help="number of workers per gpu"
+    )
+    parser.add_argument(
         "--num_machines", default=1, type=int, help="num of node for training"
     )
     parser.add_argument(
@@ -155,7 +158,8 @@ def main(exp, args, num_gpu):
             args.task in _SUPPORTED_TASKS[args.dataset] if args.dataset is not None else args.task == "2dod"
         ), "The specified task cannot be performed with the given dataset!"
         if args.dataset == "linemod":
-            exp.pose = True if args.task == "6dpose" else exp.pose = False
+            if args.task == "6dpose":
+                exp.object_pose = True 
     if args.conf is not None:
         exp.test_conf = args.conf
     if args.nms is not None:
@@ -222,6 +226,9 @@ if __name__ == "__main__":
 
     num_gpu = torch.cuda.device_count() if args.devices is None else args.devices
     assert num_gpu <= torch.cuda.device_count()
+
+    if args.workers is not None:
+        exp.data_num_workers = args.workers
 
     dist_url = "auto" if args.dist_url is None else args.dist_url
     launch(

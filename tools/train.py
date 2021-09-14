@@ -49,6 +49,9 @@ def make_parser():
         "-d", "--devices", default=None, type=int, help="device for training"
     )
     parser.add_argument(
+        "-w", "--workers", default=None, type=int, help="number of workers per gpu"
+    )
+    parser.add_argument(
         "-f",
         "--exp_file",
         default=None,
@@ -138,7 +141,7 @@ def main(exp, args):
             if args.dataset == "linemod":
                 #exp.pose = True if args.task == "6dpose" else exp.pose = False
                 if args.task == "6dpose":
-                    exp.pose = True
+                    exp.object_pose = True
 
     trainer = Trainer(exp, args)
     trainer.train()
@@ -154,6 +157,9 @@ if __name__ == "__main__":
 
     num_gpu = get_num_devices() if args.devices is None else args.devices
     assert num_gpu <= get_num_devices()
+
+    if args.workers is not None:
+        exp.data_num_workers = args.workers
 
     dist_url = "auto" if args.dist_url is None else args.dist_url
     launch(

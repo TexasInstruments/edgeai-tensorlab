@@ -89,7 +89,7 @@ def main():
             ), "The specified task cannot be performed with the given dataset!"
             if args.dataset == "linemod":
                 if args.task == "6dpose":
-                    exp.pose = True
+                    exp.object_pose = True
     exp.merge(args.opts)
 
     if not args.experiment_name:

@@ -168,16 +168,24 @@ def preproc(img, input_size, swap=(2, 0, 1)):
 
 
 class TrainTransform:
-    def __init__(self, max_labels=50, flip_prob=0.5, hsv_prob=1.0):
+    def __init__(self, max_labels=50, flip_prob=0.5, hsv_prob=1.0, object_pose = False):
         self.max_labels = max_labels
         self.flip_prob = flip_prob
         self.hsv_prob = hsv_prob
+        self.object_pose = object_pose
+        
+        if self.object_pose:
+            self.target_size = 11
+        else:
+            self.target_size = 5
 
     def __call__(self, image, targets, input_dim):
         boxes = targets[:, :4].copy()
         labels = targets[:, 4].copy()
+        if self.object_pose:
+            object_poses = targets[:, 5:11].copy()
         if len(boxes) == 0:
-            targets = np.zeros((self.max_labels, 5), dtype=np.float32)
+            targets = np.zeros((self.max_labels, self.target_size), dtype=np.float32)
             image, r_o = preproc(image, input_dim)
             return image, targets
 
@@ -186,6 +194,8 @@ class TrainTransform:
         height_o, width_o, _ = image_o.shape
         boxes_o = targets_o[:, :4]
         labels_o = targets_o[:, 4]
+        if self.object_pose:
+            object_poses_o = targets_o[:, 5:11]
         # bbox_o: [xyxy] to [c_x,c_y,w,h]
         boxes_o = xyxy2cxcywh(boxes_o)
 
@@ -201,17 +211,24 @@ class TrainTransform:
         mask_b = np.minimum(boxes[:, 2], boxes[:, 3]) > 1
         boxes_t = boxes[mask_b]
         labels_t = labels[mask_b]
+        if self.object_pose:
+            object_poses_t = object_poses[mask_b]
 
         if len(boxes_t) == 0:
             image_t, r_o = preproc(image_o, input_dim)
             boxes_o *= r_o
             boxes_t = boxes_o
             labels_t = labels_o
+            if self.object_pose:
+                object_poses_t = object_poses_o
 
         labels_t = np.expand_dims(labels_t, 1)
 
-        targets_t = np.hstack((labels_t, boxes_t))
-        padded_labels = np.zeros((self.max_labels, 5))
+        if self.object_pose:
+            targets_t = np.hstack((labels_t, boxes_t, object_poses_t))
+        else:
+            targets_t = np.hstack((labels_t, boxes_t))
+        padded_labels = np.zeros((self.max_labels, self.target_size))
         padded_labels[range(len(targets_t))[: self.max_labels]] = targets_t[
             : self.max_labels
         ]

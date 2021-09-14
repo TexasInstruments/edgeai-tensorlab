@@ -15,7 +15,7 @@ from .losses import IOUloss
 from .network_blocks import BaseConv, DWConv
 
 
-class YOLOXPoseHead(nn.Module):
+class YOLOXObjectPoseHead(nn.Module):
     def __init__(
         self,
         num_classes,
@@ -187,6 +187,7 @@ class YOLOXPoseHead(nn.Module):
         self.l1_loss = nn.L1Loss(reduction="none")
         self.bcewithlog_loss = nn.BCEWithLogitsLoss(reduction="none")
         self.iou_loss = IOUloss(reduction="none")
+        self.mse_loss = nn.MSELoss(reduction="none")
         self.strides = strides
         self.grids = [torch.zeros(1)] * len(in_channels)
 
@@ -332,13 +333,13 @@ class YOLOXPoseHead(nn.Module):
         bbox_preds = outputs[:, :, :4]  # [batch, n_anchors_all, 4]
         obj_preds = outputs[:, :, 4].unsqueeze(-1)  # [batch, n_anchors_all, 1]
         rot_preds = outputs[:, :, 5:8] # [batch, n_anchors_all, 3]
-        trn_preds = outputs[:, :, 8:10] # [batch, n_anchors_all, 3]
-        cls_preds = outputs[:, :, 10:]  # [batch, n_anchors_all, n_cls]
+        trn_preds = outputs[:, :, 8:11] # [batch, n_anchors_all, 3]
+        cls_preds = outputs[:, :, 11:]  # [batch, n_anchors_all, n_cls]
 
         # calculate targets
-        mixup = labels.shape[2] > 5 #change to 11
+        mixup = labels.shape[2] > 11 #change to 11 from 5
         if mixup:
-            label_cut = labels[..., :5]
+            label_cut = labels[..., :11]
         else:
             label_cut = labels
         nlabel = (label_cut.sum(dim=2) > 0).sum(dim=1)  # number of objects
@@ -374,6 +375,8 @@ class YOLOXPoseHead(nn.Module):
                 fg_mask = outputs.new_zeros(total_num_anchors).bool()
             else:
                 gt_bboxes_per_image = labels[batch_idx, :num_gt, 1:5]
+                gt_rots_per_image = labels[batch_idx, :num_gt, 5:8]
+                gt_trns_per_image = labels[batch_idx, :num_gt, 8:11]
                 gt_classes = labels[batch_idx, :num_gt, 0]
                 bboxes_preds_per_image = bbox_preds[batch_idx]
 
@@ -439,6 +442,8 @@ class YOLOXPoseHead(nn.Module):
                 ) * pred_ious_this_matching.unsqueeze(-1)
                 obj_target = fg_mask.unsqueeze(-1)
                 reg_target = gt_bboxes_per_image[matched_gt_inds]
+                rot_target = gt_rots_per_image[matched_gt_inds]
+                trn_target = gt_trns_per_image[matched_gt_inds]
                 if self.use_l1:
                     l1_target = self.get_l1_target(
                         outputs.new_zeros((num_fg_img, 4)),
@@ -450,6 +455,8 @@ class YOLOXPoseHead(nn.Module):
 
             cls_targets.append(cls_target)
             reg_targets.append(reg_target)
+            rot_targets.append(rot_target)
+            trn_targets.append(trn_target)
             obj_targets.append(obj_target.to(dtype))
             fg_masks.append(fg_mask)
             if self.use_l1:
@@ -457,6 +464,8 @@ class YOLOXPoseHead(nn.Module):
 
         cls_targets = torch.cat(cls_targets, 0)
         reg_targets = torch.cat(reg_targets, 0)
+        rot_targets = torch.cat(rot_targets, 0)
+        trn_targets = torch.cat(trn_targets, 0)
         obj_targets = torch.cat(obj_targets, 0)
         fg_masks = torch.cat(fg_masks, 0)
         if self.use_l1:
@@ -474,6 +483,16 @@ class YOLOXPoseHead(nn.Module):
                 cls_preds.view(-1, self.num_classes)[fg_masks], cls_targets
             )
         ).sum() / num_fg
+        loss_rot = (
+            self.mse_loss(
+                rot_preds.view(-1, 3)[fg_masks], rot_targets
+            )
+        ).sum() / num_fg
+        loss_trn = (
+            self.mse_loss(
+                trn_preds.view(-1, 3)[fg_masks], trn_targets
+            )
+        ).sum() / num_fg
         if self.use_l1:
             loss_l1 = (
                 self.l1_loss(origin_preds.view(-1, 4)[fg_masks], l1_targets)
@@ -482,13 +501,15 @@ class YOLOXPoseHead(nn.Module):
             loss_l1 = 0.0
 
         reg_weight = 5.0
-        loss = reg_weight * loss_iou + loss_obj + loss_cls + loss_l1
+        loss = reg_weight * loss_iou + loss_obj + loss_cls + loss_rot + loss_trn + loss_l1
 
         return (
             loss,
             reg_weight * loss_iou,
             loss_obj,
             loss_cls,
+            loss_rot,
+            loss_trn,
             loss_l1,
             num_fg / max(num_gts, 1),
         )

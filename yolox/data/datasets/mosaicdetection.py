@@ -73,6 +73,8 @@ class MosaicDetection(Dataset):
         self.mosaic_prob = mosaic_prob
         self.mixup_prob = mixup_prob
         self.local_rank = get_local_rank()
+        #if self._dataset.pose: #Temporary fix
+        #    self.preproc = None
 
     def __len__(self):
         return len(self._dataset)
@@ -159,7 +161,11 @@ class MosaicDetection(Dataset):
         else:
             self._dataset._input_dim = self.input_dim
             img, label, img_info, img_id = self._dataset.pull_item(idx)
+            #if self.preproc is not None: #Temporary fix
+            #    img, label = self.preproc(img, label, self.input_dim)
             img, label = self.preproc(img, label, self.input_dim)
+            #if self._dataset.pose:
+            #    label = np
             return img, label, img_info, img_id
 
     def mixup(self, origin_img, origin_labels, input_dim):
