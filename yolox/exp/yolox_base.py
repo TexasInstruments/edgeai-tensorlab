@@ -68,11 +68,11 @@ class Exp(BaseExp):
         self.test_size = (640, 640)
         self.test_conf = 0.01
         self.nmsthre = 0.65
-        self.data_set = "COCO"
-        self.pose  = False
+        self.data_set = "coco"
+        self.object_pose  = False
 
     def get_model(self):
-        from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
+        from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead, YOLOXObjectPoseHead
 
         def init_yolo(M):
             for m in M.modules():
@@ -83,7 +83,10 @@ class Exp(BaseExp):
         if getattr(self, "model", None) is None:
             in_channels = [256, 512, 1024]
             backbone = YOLOPAFPN(self.depth, self.width, in_channels=in_channels)
-            head = YOLOXHead(self.num_classes, self.width, in_channels=in_channels)
+            if self.object_pose:
+                head = YOLOXObjectPoseHead(self.num_classes, self.width, in_channels=in_channels)
+            else:
+                head = YOLOXHead(self.num_classes, self.width, in_channels=in_channels)
             self.model = YOLOX(backbone, head)
 
         self.model.apply(init_yolo)
@@ -111,7 +114,7 @@ class Exp(BaseExp):
         local_rank = get_local_rank()
 
         with wait_for_the_master(local_rank):
-            if self.data_set == "COCO":
+            if self.data_set == "coco":
                 dataset = COCODataset(
                     data_dir=self.data_dir,
                     json_file=self.train_ann,
@@ -122,7 +125,9 @@ class Exp(BaseExp):
                         hsv_prob=self.hsv_prob),
                     cache=cache_img,
                 )
-            elif self.data_set == "LINEMOD":
+            elif self.data_set == "linemod":
+               if self.object_pose:
+                   self.flip_prob = 0
                dataset = LINEMODDataset(
                     data_dir=self.data_dir,
                     json_file=self.train_ann,
@@ -130,11 +135,14 @@ class Exp(BaseExp):
                     preproc=TrainTransform(
                         max_labels=50,
                         flip_prob=self.flip_prob,
-                        hsv_prob=self.hsv_prob),
+                        hsv_prob=self.hsv_prob,
+                        object_pose=self.object_pose),
                     cache=cache_img,
-                    pose=self.pose
+                    object_pose=self.object_pose
                 ) 
 
+        if self.object_pose:
+            no_aug = True
         dataset = MosaicDetection(
             dataset,
             mosaic=not no_aug,
@@ -142,7 +150,8 @@ class Exp(BaseExp):
             preproc=TrainTransform(
                 max_labels=120,
                 flip_prob=self.flip_prob,
-                hsv_prob=self.hsv_prob),
+                hsv_prob=self.hsv_prob,
+                object_pose=self.object_pose),
             degrees=self.degrees,
             translate=self.translate,
             mosaic_scale=self.mosaic_scale,
@@ -257,7 +266,7 @@ class Exp(BaseExp):
     def get_eval_loader(self, batch_size, is_distributed, testdev=False, legacy=False):
         from yolox.data import COCODataset, LINEMODDataset, ValTransform
 
-        if self.data_set == "COCO":
+        if self.data_set == "coco":
             valdataset = COCODataset(
                 data_dir=self.data_dir,
                 json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
@@ -265,14 +274,14 @@ class Exp(BaseExp):
                 img_size=self.test_size,
                 preproc=ValTransform(legacy=legacy),
             )
-        elif self.data_set == "LINEMOD":
+        elif self.data_set == "linemod":
             valdataset = LINEMODDataset(
                 data_dir=self.data_dir,
                 json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
                 name="test", #if not testdev else "test2017",
                 img_size=self.test_size,
                 preproc=ValTransform(legacy=legacy),
-                pose=self.pose 
+                object_pose=self.object_pose 
             )
 
         if is_distributed:
@@ -294,17 +303,27 @@ class Exp(BaseExp):
         return val_loader
 
     def get_evaluator(self, batch_size, is_distributed, testdev=False, legacy=False):
-        from yolox.evaluators import COCOEvaluator
+        from yolox.evaluators import COCOEvaluator, ObjectPoseEvaluator
 
         val_loader = self.get_eval_loader(batch_size, is_distributed, testdev, legacy)
-        evaluator = COCOEvaluator(
-            dataloader=val_loader,
-            img_size=self.test_size,
-            confthre=self.test_conf,
-            nmsthre=self.nmsthre,
-            num_classes=self.num_classes,
-            testdev=testdev,
-        )
+        if self.object_pose:
+            evaluator = ObjectPoseEvaluator(
+                dataloader=val_loader,
+                img_size=self.test_size,
+                confthre=self.test_conf,
+                nmsthre=self.nmsthre,
+                num_classes=self.num_classes,
+                testdev=testdev,  
+            )
+        else:
+            evaluator = COCOEvaluator(
+                dataloader=val_loader,
+                img_size=self.test_size,
+                confthre=self.test_conf,
+                nmsthre=self.nmsthre,
+                num_classes=self.num_classes,
+                testdev=testdev,
+            )
         return evaluator
 
     def eval(self, model, evaluator, is_distributed, half=False):

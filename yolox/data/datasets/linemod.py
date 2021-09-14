@@ -43,6 +43,7 @@ class LINEMODDataset(Dataset):
             data_dir = os.path.join(get_yolox_datadir(), "Occlusion_COCO")
         self.data_dir = data_dir
         self.json_file = json_file
+        self.pose = pose 
 
         self.coco = COCO(os.path.join(self.data_dir, "annotations", self.json_file))
         self.ids = self.coco.getImgIds()
@@ -52,7 +53,10 @@ class LINEMODDataset(Dataset):
         self.imgs = None
         self.name = name
         self.img_size = img_size
-        self.preproc = preproc
+        if not self.pose:   #Temporary fix, might have to make new class to replace TrainTransform 
+            self.preproc = preproc
+        else:
+            self.preproc = None
         self.annotations = self._load_coco_annotations()
         if cache:
             self._cache_images()
@@ -126,29 +130,35 @@ class LINEMODDataset(Dataset):
             x2 = np.min((width, x1 + np.max((0, obj["bbox"][2]))))
             y2 = np.min((height, y1 + np.max((0, obj["bbox"][3]))))
             #https://www.ccs.neu.edu/home/rplatt/cs5335_fall2017/slides/euler_quaternions.pdf
-            #theta = acos((obj["R"][0] + obj["R"][4] + obj["R"][8] - 1) / 2)
-            #n1 = (obj["R"][7] - obj["R"][5]) / (2*sin(theta))
-            #n2 = (obj["R"][2] - obj["R"][6]) / (2*sin(theta))
-            #n3 = (obj["R"][3] - obj["R"][1]) / (2*sin(theta))
+            if self.pose:    
+                if obj["R"][0] + obj["R"][4] + obj["R"][8] > -1:
+                    theta = acos((obj["R"][0] + obj["R"][4] + obj["R"][8] - 1) / 2)
+                else:
+                    theta = acos(-1)
+                n1 = (obj["R"][7] - obj["R"][5]) / (2*sin(theta))
+                n2 = (obj["R"][2] - obj["R"][6]) / (2*sin(theta))
+                n3 = (obj["R"][3] - obj["R"][1]) / (2*sin(theta))
+                obj["R_aa"] = [theta*n1, theta*n2, theta*n3]
             
 
             if obj["area"] > 0 and x2 >= x1 and y2 >= y1:
                 obj["clean_bbox"] = [x1, y1, x2, y2]
-                #obj["R_aa"] = [theta*n1, theta*n2, theta*n3]
                 objs.append(obj)
 
         num_objs = len(objs)
 
-        res = np.zeros((num_objs, 5))
-        #res = np.zeros((num_objs, 11))
+        if self.pose:
+            res = np.zeros((num_objs, 11))
+        else:
+            res = np.zeros((num_objs, 5))
 
         for ix, obj in enumerate(objs):
             cls = self.class_ids.index(obj["category_id"])
             res[ix, 0:4] = obj["clean_bbox"]
             res[ix, 4] = cls
-            #res[ix, 4:7] = obj["R_aa"]
-            #res[ix, 7:10] = obj["T"]
-            #res[ix, 10] = cls
+            if self.pose:
+                res[ix, 5:8] = obj["R_aa"]
+                res[ix, 8:11] = obj["T"]
 
         r = min(self.img_size[0] / height, self.img_size[1] / width)
         res[:, :4] *= r

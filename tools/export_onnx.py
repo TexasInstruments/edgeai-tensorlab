@@ -13,6 +13,20 @@ from yolox.exp import get_exp
 from yolox.models.network_blocks import SiLU
 from yolox.utils import replace_module
 
+_SUPPORTED_DATASETS = ["coco", "linemod"]
+_NUM_CLASSES = {"coco":80, "linemod":15}
+_VAL_ANN = {
+    "coco":"instances_val2017.json", 
+    "linemod":"instances_test.json"
+}
+_TRAIN_ANN = {
+    "coco":"instances_train2017.json", 
+    "linemod":"instances_train.json"
+}
+_SUPPORTED_TASKS = {
+    "coco":["2dod"],
+    "linemod":["2dod", "6dpose"]
+}
 
 def make_parser():
     parser = argparse.ArgumentParser("YOLOX onnx deploy")
@@ -41,6 +55,8 @@ def make_parser():
         help="expriment description file",
     )
     parser.add_argument("-expn", "--experiment-name", type=str, default=None)
+    parser.add_argument("--dataset", default=None, type=str, help="dataset for training")
+    parser.add_argument("--task", default=None, type=str, help="type of task for model eval")
     parser.add_argument("-n", "--name", type=str, default=None, help="model name")
     parser.add_argument("-c", "--ckpt", default=None, type=str, help="ckpt path")
     parser.add_argument(
@@ -58,25 +74,50 @@ def main():
     args = make_parser().parse_args()
     logger.info("args value: {}".format(args))
     exp = get_exp(args.exp_file, args.name)
+    if args.dataset is not None:
+        assert (
+            args.dataset in _SUPPORTED_DATASETS
+        ), "The given dataset is not supported for training!"
+        exp.data_set = args.dataset
+        exp.num_classes = _NUM_CLASSES[args.dataset]
+        exp.val_ann = _VAL_ANN[args.dataset]
+        exp.train_ann = _TRAIN_ANN[args.dataset]
+
+        if args.task is not None:
+            assert (
+                args.task in _SUPPORTED_TASKS[args.dataset]
+            ), "The specified task cannot be performed with the given dataset!"
+            if args.dataset == "linemod":
+                if args.task == "6dpose":
+                    exp.object_pose = True
     exp.merge(args.opts)
 
     if not args.experiment_name:
         args.experiment_name = exp.exp_name
 
     model = exp.get_model()
+    
+    
     if args.ckpt is None:
         file_name = os.path.join(exp.output_dir, args.experiment_name)
         ckpt_file = os.path.join(file_name, "best_ckpt.pth")
+    elif args.ckpt == "random":
+        pass
     else:
         ckpt_file = args.ckpt
 
-    # load the model state dict
-    ckpt = torch.load(ckpt_file, map_location="cpu")
+    if args.ckpt == "random":
+        #Proceed with initialized values
+        ckpt = None
+    else:
+        # load the model state dict
+        ckpt = torch.load(ckpt_file, map_location="cpu")
 
     model.eval()
-    if "model" in ckpt:
-        ckpt = ckpt["model"]
-    model.load_state_dict(ckpt)
+    if ckpt is not None:
+        if "model" in ckpt:
+            ckpt = ckpt["model"]
+        model.load_state_dict(ckpt)
     model = replace_module(model, nn.SiLU, SiLU)
     model.head.decode_in_inference = False
 
