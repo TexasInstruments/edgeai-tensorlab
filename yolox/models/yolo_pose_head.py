@@ -98,8 +98,46 @@ class YOLOXPoseHead(nn.Module):
                     ]
                 )
             )
-            self.rot_convs.append()
-            self.trn_convs.append()
+            self.rot_convs.append(
+                nn.Sequential(
+                    *[
+                        Conv(
+                            in_channels=int(256 * width),
+                            out_channels=int(256 * width),
+                            ksize=3,
+                            stride=1,
+                            act=act,
+                        ),
+                        Conv(
+                            in_channels=int(256 * width),
+                            out_channels=int(256 * width),
+                            ksize=3,
+                            stride=1,
+                            act=act,
+                        ),
+                    ]
+                )
+            )
+            self.trn_convs.append(
+                nn.Sequential(
+                    *[
+                        Conv(
+                            in_channels=int(256 * width),
+                            out_channels=int(256 * width),
+                            ksize=3,
+                            stride=1,
+                            act=act,
+                        ),
+                        Conv(
+                            in_channels=int(256 * width),
+                            out_channels=int(256 * width),
+                            ksize=3,
+                            stride=1,
+                            act=act,
+                        ),
+                    ]
+                )
+            )
             self.cls_preds.append(
                 nn.Conv2d(
                     in_channels=int(256 * width),
@@ -129,7 +167,7 @@ class YOLOXPoseHead(nn.Module):
             )
             self.rot_preds.append(
                 nn.Conv2d(
-                    in_channels(256*width),
+                    in_channels=int(256 * width),
                     out_channels=self.n_anchors * 3,
                     kernel_size=1,
                     padding=0
@@ -137,7 +175,7 @@ class YOLOXPoseHead(nn.Module):
             )
             self.trn_preds.append(
                 nn.Conv2d(
-                    in_channels=(256 * width),
+                    in_channels=int(256 * width),
                     out_channels=self.n_anchors * 3,
                     kernel_size=1,
                     stride=1,
@@ -247,7 +285,7 @@ class YOLOXPoseHead(nn.Module):
         grid = self.grids[k]
 
         batch_size = output.shape[0]
-        n_ch = 11 + self.num_classes #changed from 5 +
+        n_ch = 11 + self.num_classes #Replace 11 with variable for features
         hsize, wsize = output.shape[-2:]
         if grid.shape[2:4] != output.shape[2:4]:
             yv, xv = torch.meshgrid([torch.arange(hsize), torch.arange(wsize)])
@@ -298,7 +336,7 @@ class YOLOXPoseHead(nn.Module):
         cls_preds = outputs[:, :, 10:]  # [batch, n_anchors_all, n_cls]
 
         # calculate targets
-        mixup = labels.shape[2] > 5
+        mixup = labels.shape[2] > 5 #change to 11
         if mixup:
             label_cut = labels[..., :5]
         else:
