@@ -27,7 +27,7 @@ class LINEMODDataset(Dataset):
         img_size=(416, 416),
         preproc=None,
         cache=False,
-        pose=False
+        object_pose=False
     ):
         """
         LINEMOD dataset initialization. Annotation data are read into memory by COCO API.
@@ -43,7 +43,7 @@ class LINEMODDataset(Dataset):
             data_dir = os.path.join(get_yolox_datadir(), "Occlusion_COCO")
         self.data_dir = data_dir
         self.json_file = json_file
-        self.pose = pose 
+        self.object_pose = object_pose 
 
         self.coco = COCO(os.path.join(self.data_dir, "annotations", self.json_file))
         self.ids = self.coco.getImgIds()
@@ -53,7 +53,7 @@ class LINEMODDataset(Dataset):
         self.imgs = None
         self.name = name
         self.img_size = img_size
-        if not self.pose:   #Temporary fix, might have to make new class to replace TrainTransform 
+        if not self.object_pose:   #Temporary fix, might have to make new class to replace TrainTransform 
             self.preproc = preproc
         else:
             self.preproc = None
@@ -130,7 +130,7 @@ class LINEMODDataset(Dataset):
             x2 = np.min((width, x1 + np.max((0, obj["bbox"][2]))))
             y2 = np.min((height, y1 + np.max((0, obj["bbox"][3]))))
             #https://www.ccs.neu.edu/home/rplatt/cs5335_fall2017/slides/euler_quaternions.pdf
-            if self.pose:    
+            if self.object_pose:    
                 if obj["R"][0] + obj["R"][4] + obj["R"][8] > -1:
                     theta = acos((obj["R"][0] + obj["R"][4] + obj["R"][8] - 1) / 2)
                 else:
@@ -147,7 +147,7 @@ class LINEMODDataset(Dataset):
 
         num_objs = len(objs)
 
-        if self.pose:
+        if self.object_pose:
             res = np.zeros((num_objs, 11))
         else:
             res = np.zeros((num_objs, 5))
@@ -156,7 +156,7 @@ class LINEMODDataset(Dataset):
             cls = self.class_ids.index(obj["category_id"])
             res[ix, 0:4] = obj["clean_bbox"]
             res[ix, 4] = cls
-            if self.pose:
+            if self.object_pose:
                 res[ix, 5:8] = obj["R_aa"]
                 res[ix, 8:11] = obj["T"]
 
