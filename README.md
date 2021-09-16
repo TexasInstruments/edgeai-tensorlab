@@ -1,6 +1,6 @@
 # EdgeAI-ModelZoo
 
-This repository provides a collection of example Deep Neural Network (DNN) Models for various Computer Vision tasks. The models in this repository can be run either in PC simulation mode or in TI Deep Learning Library (TIDL) for [Jacinto 7](https://training.ti.com/jacinto7) family of SoCs, for example [TDA4VM](https://www.ti.com/product/TDA4VM). 
+This repository provides a collection of example Deep Neural Network (DNN) Models for various Computer Vision tasks.
 
 In order to run Deep Neural Networks (a.k.a. DNNs or Deep Learning Models or simply models) on embedded hardware, they need to be optimized and converted into embedded friendly formats. We have converted/exported several models from the original training frameworks in PyTorch, Tensorflow and MxNet into these embedded friendly formats and is being hosted in this repository. In this process we also make sure that these models provide optimized inference speed on our SoCs, so sometimes minor modifications are made to the models wherever necessary. These models provide a good starting point for our customers to explore high performance Deep Learning on our SoCs.
 
