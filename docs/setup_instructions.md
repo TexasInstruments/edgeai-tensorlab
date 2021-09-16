@@ -1,8 +1,4 @@
-## Requirements
-
-PROCESSOR-SDK-RTOS for Jacinto 7 provides TI Deep Learning Library (TIDL), which is an optimized library that can run DNNs on our SoCs. TIDL provides several familiar interfaces for model inference - such as onnxruntime, tflite_runtime, tvm/dlr - apart from its own native interface. All these runtimes that are provided as part of TIDL can offload model execution into our high performance C7x+MMA DSP. For more information how to obtain and use these runtimes, please visit the TIDL documentation in the RTOS SDK. This software depends on TIDL.
-
-#### Environment
+## Environment
 We have tested this on Ubuntu 18.04 PC with Miniconda from https://docs.conda.io/en/latest/ with Python 3.6. Create a Python 3.6 environment if you don't have it and activate it before following the rest of the instructions.
 ```
 conda create -n benchmark python=3.6
@@ -29,7 +25,7 @@ from jai_benchmark import *
 ```
 
 
-#### Additional Requirement: ModelZoo
+## Additional Requirement: ModelZoo
 DNN Models and pre-compied model artifacts are provided in another repository called **[EdgeAI-ModelZoo](https://github.com/TexasInstruments/edgeai-modelzoo)**. 
 
 DNN models are in the folder edgeai-modelzoo/models and pre-compiled artifacts are in the folder edgeai-modelzoo/modelartifacts/8bits. 
@@ -37,7 +33,7 @@ DNN models are in the folder edgeai-modelzoo/models and pre-compiled artifacts a
 Please clone that repository. After cloning, edgeai-benchmark and edgeai-modelzoo must be inside the same parent folder for the default settings to work.
 
 
-#### Additional Requirement: Datasets
+## Additional Requirement: Datasets
 This benchmark code can use several datasets. In fact, the design of this code is flexible to add support for additional datasets easily.
 
 We already have support to download several of these datasets automatically - but this may not always work because the source URLs may change. For example the ImageNet download URL has changed recently and the automatic download no longer works. 
