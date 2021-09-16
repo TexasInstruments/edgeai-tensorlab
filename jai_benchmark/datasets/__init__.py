@@ -38,7 +38,7 @@ from .cityscapes import *
 from .ade20k import *
 from .voc_seg import *
 
-#from .coco_kpts import *
+from .coco_kpts import *
 
 dataset_info_dict = {
     #------------------------image classification datasets--------------------------#
@@ -62,7 +62,7 @@ dataset_info_dict = {
     'voc2012': {'task_type':'segmentation', 'category':'voc2012', 'type':VOC2012Segmentation, 'size':1449, 'split':'val'},
     'cocoseg21': {'task_type':'segmentation', 'category':'cocoseg21', 'type':COCOSegmentation, 'size':5000, 'split':'val2017'},
     #------------------------pose estimation datasets--------------------------#
-    #'cocokpts': {'task_type':'keypoint_detection', 'category':'cocokpts', 'type':COCOKeypoints, 'size':5000, 'split':'val2017'},
+    'cocokpts': {'task_type':'keypoint_detection', 'category':'cocokpts', 'type':COCOKeypoints, 'size':5000, 'split':'val2017'},
  }
 
 
