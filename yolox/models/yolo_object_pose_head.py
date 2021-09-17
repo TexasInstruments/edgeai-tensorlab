@@ -4,6 +4,12 @@
 
 import math
 from loguru import logger
+import os
+
+from torch._C import Size
+
+#For debugging runtime error
+os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 
 import torch
 import torch.nn as nn
@@ -471,6 +477,9 @@ class YOLOXObjectPoseHead(nn.Module):
         if self.use_l1:
             l1_targets = torch.cat(l1_targets, 0)
 
+        #if torch.any(torch.isinf(rot_targets)):
+        #    print(rot_targets)
+
         num_fg = max(num_fg, 1)
         loss_iou = (
             self.iou_loss(bbox_preds.view(-1, 4)[fg_masks], reg_targets)
@@ -485,14 +494,35 @@ class YOLOXObjectPoseHead(nn.Module):
         ).sum() / num_fg
         loss_rot = (
             self.mse_loss(
-                rot_preds.view(-1, 3)[fg_masks], rot_targets
+                rot_preds.view(-1, 3)[fg_masks], rot_targets #% (2 * math.pi), rot_targets
             )
         ).sum() / num_fg
+        #print(trn_targets.max())
+        #print(trn_preds.view(-1, 3)[fg_masks].shape)
+        #print(trn_targets.shape)
+        #print(trn_preds.view(-1, 3)[fg_masks].min())
+        #print(trn_preds.view(-1, 3)[fg_masks].max())
+        #print(trn_targets.min())
+        
         loss_trn = (
             self.mse_loss(
                 trn_preds.view(-1, 3)[fg_masks], trn_targets
             )
         ).sum() / num_fg
+
+        #dummy_input = torch.randn(rot_targets.shape[0], rot_targets.shape[1], requires_grad=True)
+        #dummy_target
+        #rot_preds.view(-1, 3)[fg_masks]  = trn_targets
+        #loss_rot = (
+        #    self.mse_loss(
+        #        rot_preds.view(-1, 3)[fg_masks] , rot_targets
+        #)
+        #).sum() / num_fg 
+        
+        #loss_rot = torch.sum(rot_targets)
+        #loss_trn = torch.sum(trn_targets)
+
+       
         if self.use_l1:
             loss_l1 = (
                 self.l1_loss(origin_preds.view(-1, 4)[fg_masks], l1_targets)
@@ -584,7 +614,7 @@ class YOLOXObjectPoseHead(nn.Module):
         with torch.cuda.amp.autocast(enabled=False):
             cls_preds_ = (
                 cls_preds_.float().unsqueeze(0).repeat(num_gt, 1, 1).sigmoid_()
-                * obj_preds_.unsqueeze(0).repeat(num_gt, 1, 1).sigmoid_()
+                * obj_preds_.float().unsqueeze(0).repeat(num_gt, 1, 1).sigmoid_()
             )
             pair_wise_cls_loss = F.binary_cross_entropy(
                 cls_preds_.sqrt_(), gt_cls_per_image, reduction="none"
