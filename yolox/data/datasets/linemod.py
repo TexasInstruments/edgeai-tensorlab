@@ -7,7 +7,7 @@ from loguru import logger
 
 import cv2
 import numpy as np
-from math import acos, sin
+from math import acos, sin, sqrt, copysign
 from pycocotools.coco import COCO
 
 from ..dataloading import get_yolox_datadir
@@ -135,9 +135,24 @@ class LINEMODDataset(Dataset):
                     theta = acos((obj["R"][0] + obj["R"][4] + obj["R"][8] - 1) / 2)
                 else:
                     theta = acos(-1)
-                n1 = (obj["R"][7] - obj["R"][5]) / (2*sin(theta))
-                n2 = (obj["R"][2] - obj["R"][6]) / (2*sin(theta))
-                n3 = (obj["R"][3] - obj["R"][1]) / (2*sin(theta))
+                if theta != 0 and theta != acos(-1):    
+                    n1 = (obj["R"][7] - obj["R"][5]) / (2*sin(theta))
+                    n2 = (obj["R"][2] - obj["R"][6]) / (2*sin(theta))
+                    n3 = (obj["R"][3] - obj["R"][1]) / (2*sin(theta))
+                elif theta == acos(-1):
+                    n1 = sqrt((obj["R"][0] + 1) / 2) if obj["R"][0] <= 1 and obj["R"][0] >= -1 else sqrt((copysign(1, obj["R"][0]) + 1) / 2)
+                    
+                    if obj["R"][1] >= 0:
+                        n2 = sqrt((obj["R"][4] + 1) / 2) if obj["R"][4] <= 1 and obj["R"][4] >= -1 else sqrt((copysign(1, obj["R"][4]) + 1) / 2)
+                    else:
+                        n2 = -1 * sqrt((obj["R"][4] + 1) / 2) if obj["R"][4] <= 1 and obj["R"][4] >= -1 else -1 * sqrt((copysign(1, obj["R"][4]) + 1) / 2)
+                    
+                    if obj["R"][2] >= 0:
+                        n3 = sqrt((obj["R"][8] + 1) / 2) if obj["R"][8] <= 1 and obj["R"][8] >= -1 else sqrt((copysign(1, obj["R"][8]) + 1) / 2)
+                    else:
+                        n3 = -1 * sqrt((obj["R"][8] + 1) / 2) if obj["R"][8] <= 1 and obj["R"][8] >= -1 else -1 * sqrt((copysign(1, obj["R"][8]) + 1) / 2)
+                else:
+                    n1, n2, n3 = 0.0, 0.0, 0.0
                 obj["R_aa"] = [theta*n1, theta*n2, theta*n3]
             
 
