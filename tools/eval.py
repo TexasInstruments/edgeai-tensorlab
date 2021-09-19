@@ -16,15 +16,15 @@ from yolox.core import launch
 from yolox.exp import get_exp
 from yolox.utils import configure_nccl, fuse_model, get_local_rank, get_model_info, setup_logger
 
-_SUPPORTED_DATASETS = ["COCO", "LINEMOD"]
-_NUM_CLASSES = {"COCO":80, "LINEMOD":15}
+_SUPPORTED_DATASETS = ["coco", "linemod"]
+_NUM_CLASSES = {"coco":80, "linemod":15}
 _VAL_ANN = {
-    "COCO":"instances_val2017.json", 
-    "LINEMOD":"instances_test.json"
+    "coco":"instances_val2017.json", 
+    "linemod":"instances_test.json"
 }
 _SUPPORTED_TASKS = {
-    "COCO":["2DOD"],
-    "LINEMOD":["2DOD", "6DPOSE"]
+    "coco":["2dod"],
+    "linemod":["2dod", "6dpose"]
 }
 
 def make_parser():
@@ -45,6 +45,9 @@ def make_parser():
     parser.add_argument("-b", "--batch-size", type=int, default=64, help="batch size")
     parser.add_argument(
         "-d", "--devices", default=None, type=int, help="device for training"
+    )
+    parser.add_argument(
+        "-w", "--workers", default=None, type=int, help="number of workers per gpu"
     )
     parser.add_argument(
         "--num_machines", default=1, type=int, help="num of node for training"
@@ -152,10 +155,11 @@ def main(exp, args, num_gpu):
         exp.val_ann = _VAL_ANN[args.dataset]
     if args.task is not None:
         assert (
-            args.task in _SUPPORTED_TASKS[args.dataset] if args.dataset is not None else args.task == "2DOD"
+            args.task in _SUPPORTED_TASKS[args.dataset] if args.dataset is not None else args.task == "2dod"
         ), "The specified task cannot be performed with the given dataset!"
-        if args.dataset == "LINEMOD":
-            exp.pose = True if args.task == "6DPOSE" else False
+        if args.dataset == "linemod":
+            if args.task == "6dpose":
+                exp.object_pose = True 
     if args.conf is not None:
         exp.test_conf = args.conf
     if args.nms is not None:
@@ -222,6 +226,9 @@ if __name__ == "__main__":
 
     num_gpu = torch.cuda.device_count() if args.devices is None else args.devices
     assert num_gpu <= torch.cuda.device_count()
+
+    if args.workers is not None:
+        exp.data_num_workers = args.workers
 
     dist_url = "auto" if args.dist_url is None else args.dist_url
     launch(

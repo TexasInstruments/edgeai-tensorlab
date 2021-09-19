@@ -14,15 +14,19 @@ from yolox.core import Trainer, launch
 from yolox.exp import get_exp
 from yolox.utils import configure_nccl, configure_omp, get_num_devices
 
-_SUPPORTED_DATASETS = ["COCO", "LINEMOD"]
-_NUM_CLASSES = {"COCO":80, "LINEMOD":15}
+_SUPPORTED_DATASETS = ["coco", "linemod"]
+_NUM_CLASSES = {"coco":80, "linemod":15}
 _VAL_ANN = {
-    "COCO":"instances_val2017.json", 
-    "LINEMOD":"instances_test.json"
+    "coco":"instances_val2017.json", 
+    "linemod":"instances_test.json"
 }
 _TRAIN_ANN = {
-    "COCO":"instances_train2017.json", 
-    "LINEMOD":"instances_train.json"
+    "coco":"instances_train2017.json", 
+    "linemod":"instances_train.json"
+}
+_SUPPORTED_TASKS = {
+    "coco":["2dod"],
+    "linemod":["2dod", "6dpose"]
 }
 
 def make_parser():
@@ -45,6 +49,9 @@ def make_parser():
         "-d", "--devices", default=None, type=int, help="device for training"
     )
     parser.add_argument(
+        "-w", "--workers", default=None, type=int, help="number of workers per gpu"
+    )
+    parser.add_argument(
         "-f",
         "--exp_file",
         default=None,
@@ -54,7 +61,8 @@ def make_parser():
     parser.add_argument(
         "--resume", default=False, action="store_true", help="resume training"
     )
-    parser.add_argument("--dataset", default=None, type=str, help="dataset fro training")
+    parser.add_argument("--dataset", default=None, type=str, help="dataset for training")
+    parser.add_argument("--task", default=None, type=str, help="type of task for model eval")
     parser.add_argument("-c", "--ckpt", default=None, type=str, help="checkpoint file")
     parser.add_argument(
         "-e",
@@ -126,6 +134,15 @@ def main(exp, args):
         exp.val_ann = _VAL_ANN[args.dataset]
         exp.train_ann = _TRAIN_ANN[args.dataset]
 
+        if args.task is not None:
+            assert (
+                args.task in _SUPPORTED_TASKS[args.dataset]
+            ), "The specified task cannot be performed with the given dataset!"
+            if args.dataset == "linemod":
+                #exp.pose = True if args.task == "6dpose" else exp.pose = False
+                if args.task == "6dpose":
+                    exp.object_pose = True
+
     trainer = Trainer(exp, args)
     trainer.train()
 
@@ -140,6 +157,9 @@ if __name__ == "__main__":
 
     num_gpu = get_num_devices() if args.devices is None else args.devices
     assert num_gpu <= get_num_devices()
+
+    if args.workers is not None:
+        exp.data_num_workers = args.workers
 
     dist_url = "auto" if args.dist_url is None else args.dist_url
     launch(

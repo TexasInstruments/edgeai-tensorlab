@@ -4,3 +4,4 @@
 
 from .coco_evaluator import COCOEvaluator
 from .voc_evaluator import VOCEvaluator
+from .object_pose_evaluator import ObjectPoseEvaluator
