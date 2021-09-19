@@ -13,8 +13,8 @@ from yolox.exp import get_exp
 from yolox.models.network_blocks import SiLU
 from yolox.utils import replace_module
 
-_SUPPORTED_DATASETS = ["coco", "linemod"]
-_NUM_CLASSES = {"coco":80, "linemod":15}
+_SUPPORTED_DATASETS = ["coco", "linemod", "coco_kpts"]
+_NUM_CLASSES = {"coco":80, "linemod":15, "coco_kpts":57}
 _VAL_ANN = {
     "coco":"instances_val2017.json", 
     "linemod":"instances_test.json"
