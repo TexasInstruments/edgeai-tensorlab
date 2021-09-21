@@ -70,6 +70,7 @@ class Exp(BaseExp):
         self.nmsthre = 0.65
         self.data_set = "coco"
         self.object_pose  = False
+        self.human_pose = False
 
     def get_model(self):
         from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead, YOLOXObjectPoseHead
@@ -85,6 +86,8 @@ class Exp(BaseExp):
             backbone = YOLOPAFPN(self.depth, self.width, in_channels=in_channels)
             if self.object_pose:
                 head = YOLOXObjectPoseHead(self.num_classes, self.width, in_channels=in_channels)
+            elif self.human_pose:
+                pass
             else:
                 head = YOLOXHead(self.num_classes, self.width, in_channels=in_channels)
             self.model = YOLOX(backbone, head)
@@ -163,7 +166,8 @@ class Exp(BaseExp):
                 max_labels=120,
                 flip_prob=self.flip_prob,
                 hsv_prob=self.hsv_prob,
-                object_pose=self.object_pose),
+                object_pose=self.object_pose,
+                human_pose=self.human_pose),
             degrees=self.degrees,
             translate=self.translate,
             mosaic_scale=self.mosaic_scale,
@@ -295,13 +299,14 @@ class Exp(BaseExp):
                 preproc=ValTransform(legacy=legacy),
                 object_pose=self.object_pose 
             )
-        elif self.dataset == "coco_kpts":
+        elif self.data_set == "coco_kpts":
             valdataset = COCOKPTSDataset(
                 data_dir=self.data_dir,
                 json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
                 name="val2017" if not testdev else "test2017",
                 img_size=self.test_size,
                 preproc=ValTransform(legacy=legacy),
+                human_pose = self.human_pose
             )
 
         if is_distributed:

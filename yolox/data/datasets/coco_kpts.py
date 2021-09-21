@@ -26,6 +26,7 @@ class COCOKPTSDataset(Dataset):
         img_size=(416, 416),
         preproc=None,
         cache=False,
+        human_pose=False
     ):
         """
         COCO dataset initialization. Annotation data are read into memory by COCO API.
@@ -51,19 +52,20 @@ class COCOKPTSDataset(Dataset):
         self.name = name
         self.img_size = img_size
         self.preproc = preproc
-        self.annotations = self._load_coco_annotations()
+        self.annotations, self.ids = self._load_coco_annotations()
         if cache:
             self._cache_images()
 
     def __len__(self):
-        return len(self.ids)
+        return len(self.annotations)
 
     def __del__(self):
         del self.imgs
 
     def _load_coco_annotations(self):
-        return [self.load_anno_from_ids(_ids) for _ids in self.ids]
-
+        annotations = [self.load_anno_from_ids(_ids) for _ids in self.ids if self.load_anno_from_ids(_ids) is not None]
+        ids = [ _ids for _ids in self.ids if self.load_anno_from_ids(_ids) is not None]
+        return annotations, ids
     def _cache_images(self):
         logger.warning(
             "\n********************************************************************************\n"
@@ -81,7 +83,7 @@ class COCOKPTSDataset(Dataset):
             )
             self.imgs = np.memmap(
                 cache_file,
-                shape=(len(self.ids), max_h, max_w, 3),
+                shape=(len(self.annotations), max_h, max_w, 3),
                 dtype=np.uint8,
                 mode="w+",
             )
@@ -106,7 +108,7 @@ class COCOKPTSDataset(Dataset):
         logger.info("Loading cached imgs...")
         self.imgs = np.memmap(
             cache_file,
-            shape=(len(self.ids), max_h, max_w, 3),
+            shape=(len(self.annotations), max_h, max_w, 3),
             dtype=np.uint8,
             mode="r+",
         )
@@ -125,22 +127,26 @@ class COCOKPTSDataset(Dataset):
             y2 = np.min((height, y1 + np.max((0, obj["bbox"][3]))))
             if obj["area"] > 0 and x2 >= x1 and y2 >= y1 and obj['num_keypoints']>0:
                 obj["clean_bbox"] = [x1, y1, x2, y2]
-                obj["clean_kpts"] = []
-                #for kpts in range(len())
-
+                # assert np.all(0 <= np.array(obj['keypoints'][0::3]))
+                # assert np.all(np.array(obj['keypoints'][0::3]) <= width)
+                # assert np.all(0 <= np.array(obj['keypoints'][1::3]))
+                # assert np.all(np.array(obj['keypoints'][1::3]) <= height)
+                obj["clean_kpts"] =  obj['keypoints']
                 objs.append(obj)
-
         num_objs = len(objs)
-
-        res = np.zeros((num_objs, 5))
+        if num_objs==0:
+            return
+        res = np.zeros((num_objs, 5+3*17))
 
         for ix, obj in enumerate(objs):
             cls = self.class_ids.index(obj["category_id"])
             res[ix, 0:4] = obj["clean_bbox"]
             res[ix, 4] = cls
+            res[ix, 5:] = obj["clean_kpts"]
 
         r = min(self.img_size[0] / height, self.img_size[1] / width)
         res[:, :4] *= r
+        res[:, 5:] *= r
 
         img_info = (height, width)
         resized_info = (int(height * r), int(width * r))

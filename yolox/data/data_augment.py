@@ -168,14 +168,16 @@ def preproc(img, input_size, swap=(2, 0, 1)):
 
 
 class TrainTransform:
-    def __init__(self, max_labels=50, flip_prob=0.5, hsv_prob=1.0, object_pose = False):
+    def __init__(self, max_labels=50, flip_prob=0.5, hsv_prob=1.0, object_pose = False, human_pose=False):
         self.max_labels = max_labels
         self.flip_prob = flip_prob
         self.hsv_prob = hsv_prob
         self.object_pose = object_pose
-        
+        self.human_pose = human_pose
         if self.object_pose:
             self.target_size = 11
+        elif self.human_pose:
+            self.target_size = 56  # 5+ 3*17
         else:
             self.target_size = 5
 
@@ -184,6 +186,8 @@ class TrainTransform:
         labels = targets[:, 4].copy()
         if self.object_pose:
             object_poses = targets[:, 5:11].copy()
+        elif self.human_pose:
+            human_poses = targets[:, 5:].copy()
         if len(boxes) == 0:
             targets = np.zeros((self.max_labels, self.target_size), dtype=np.float32)
             image, r_o = preproc(image, input_dim)
@@ -196,6 +200,8 @@ class TrainTransform:
         labels_o = targets_o[:, 4]
         if self.object_pose:
             object_poses_o = targets_o[:, 5:11]
+        elif self.human_pose:
+            human_poses_o = targets_o[:, 5:]
         # bbox_o: [xyxy] to [c_x,c_y,w,h]
         boxes_o = xyxy2cxcywh(boxes_o)
 
@@ -213,6 +219,8 @@ class TrainTransform:
         labels_t = labels[mask_b]
         if self.object_pose:
             object_poses_t = object_poses[mask_b]
+        elif self.human_pose:
+            human_poses_t = human_poses[mask_b]
 
         if len(boxes_t) == 0:
             image_t, r_o = preproc(image_o, input_dim)
@@ -221,11 +229,15 @@ class TrainTransform:
             labels_t = labels_o
             if self.object_pose:
                 object_poses_t = object_poses_o
+            elif self.human_pose:
+                human_poses_t = human_poses_o
 
         labels_t = np.expand_dims(labels_t, 1)
 
         if self.object_pose:
             targets_t = np.hstack((labels_t, boxes_t, object_poses_t))
+        elif self.human_pose:
+            targets_t = np.hstack((labels_t, boxes_t, human_poses_t))
         else:
             targets_t = np.hstack((labels_t, boxes_t))
         padded_labels = np.zeros((self.max_labels, self.target_size))

@@ -120,6 +120,9 @@ class MosaicDetection(Dataset):
                     labels[:, 1] = scale * _labels[:, 1] + padh
                     labels[:, 2] = scale * _labels[:, 2] + padw
                     labels[:, 3] = scale * _labels[:, 3] + padh
+                    if self.preproc.human_pose:
+                        labels[:, 5::3] = scale * _labels[:, 5::3] + padw
+                        labels[:, 6::3] = scale * _labels[:, 6::3] + padw
                 mosaic_labels.append(labels)
 
             if len(mosaic_labels):
@@ -128,6 +131,9 @@ class MosaicDetection(Dataset):
                 np.clip(mosaic_labels[:, 1], 0, 2 * input_h, out=mosaic_labels[:, 1])
                 np.clip(mosaic_labels[:, 2], 0, 2 * input_w, out=mosaic_labels[:, 2])
                 np.clip(mosaic_labels[:, 3], 0, 2 * input_h, out=mosaic_labels[:, 3])
+                if self.preproc.human_pose:
+                    np.clip(mosaic_labels[:, 5::3], 0, 2 * input_w, out=mosaic_labels[:, 5::3])
+                    np.clip(mosaic_labels[:, 6::3], 0, 2 * input_h, out=mosaic_labels[:, 6::3])
 
             mosaic_img, mosaic_labels = random_perspective(
                 mosaic_img,
