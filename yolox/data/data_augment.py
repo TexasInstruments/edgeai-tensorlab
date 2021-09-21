@@ -58,6 +58,7 @@ def random_perspective(
     shear=10,
     perspective=0.0,
     border=(0, 0),
+    human_pose=False,
 ):
     # targets = [cls, xyxy]
     height = img.shape[0] + border[0] * 2  # shape(h,w,c)
@@ -132,10 +133,28 @@ def random_perspective(
         xy[:, [0, 2]] = xy[:, [0, 2]].clip(0, width)
         xy[:, [1, 3]] = xy[:, [1, 3]].clip(0, height)
 
+
+        if human_pose:
+            xy_kpts = np.ones((n * 17, 3))
+            xy_kpts[:, :2] = targets[:, 5:].reshape(n * 17, 2)  # num_kpt is hardcoded to 17
+            xy_kpts = xy_kpts @ M.T  # transform
+            xy_kpts = (xy_kpts[:, :2] / xy_kpts[:, 2:3] if perspective else xy_kpts[:, :2]).reshape(n,
+                                                                                                    34)  # perspective rescale or affine
+            xy_kpts[targets[:, 5:] == 0] = 0
+            x_kpts = xy_kpts[:, list(range(0, 34, 2))]
+            y_kpts = xy_kpts[:, list(range(1, 34, 2))]
+
+            x_kpts[np.logical_or.reduce((x_kpts < 0, x_kpts > width, y_kpts < 0, y_kpts > height))] = 0
+            y_kpts[np.logical_or.reduce((x_kpts < 0, x_kpts > width, y_kpts < 0, y_kpts > height))] = 0
+            xy_kpts[:, list(range(0, 34, 2))] = x_kpts
+            xy_kpts[:, list(range(1, 34, 2))] = y_kpts
+
         # filter candidates
         i = box_candidates(box1=targets[:, :4].T * s, box2=xy.T)
         targets = targets[i]
         targets[:, :4] = xy[i]
+        if human_pose:
+            targets[:, 5:] = xy_kpts[i]
 
     return img, targets
 
@@ -168,16 +187,17 @@ def preproc(img, input_size, swap=(2, 0, 1)):
 
 
 class TrainTransform:
-    def __init__(self, max_labels=50, flip_prob=0.5, hsv_prob=1.0, object_pose = False, human_pose=False):
+    def __init__(self, max_labels=50, flip_prob=0.5, hsv_prob=1.0, object_pose = False, human_pose=False, flip_index=None):
         self.max_labels = max_labels
         self.flip_prob = flip_prob
         self.hsv_prob = hsv_prob
         self.object_pose = object_pose
         self.human_pose = human_pose
+        self.flip_index = flip_index
         if self.object_pose:
             self.target_size = 11
         elif self.human_pose:
-            self.target_size = 56  # 5+ 3*17
+            self.target_size = 39  # 5+ 2*17
         else:
             self.target_size = 5
 

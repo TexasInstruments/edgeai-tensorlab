@@ -144,6 +144,7 @@ class MosaicDetection(Dataset):
                 shear=self.shear,
                 perspective=self.perspective,
                 border=[-input_h // 2, -input_w // 2],
+                human_pose=self.preproc.human_pose,
             )  # border to remove
 
             # -----------------------------------------------------------------
@@ -154,7 +155,7 @@ class MosaicDetection(Dataset):
                 and not len(mosaic_labels) == 0
                 and random.random() < self.mixup_prob
             ):
-                mosaic_img, mosaic_labels = self.mixup(mosaic_img, mosaic_labels, self.input_dim)
+                mosaic_img, mosaic_labels = self.mixup(mosaic_img, mosaic_labels, self.input_dim, human_pose=self.preproc.human_pose)
             mix_img, padded_labels = self.preproc(mosaic_img, mosaic_labels, self.input_dim)
             img_info = (mix_img.shape[1], mix_img.shape[0])
 
@@ -174,7 +175,7 @@ class MosaicDetection(Dataset):
             #    label = np
             return img, label, img_info, img_id
 
-    def mixup(self, origin_img, origin_labels, input_dim):
+    def mixup(self, origin_img, origin_labels, input_dim, human_pose=False):
         jit_factor = random.uniform(*self.mixup_scale)
         FLIP = random.uniform(0, 1) > 0.5
         cp_labels = []
@@ -240,10 +241,31 @@ class MosaicDetection(Dataset):
         )
         keep_list = box_candidates(cp_bboxes_origin_np.T, cp_bboxes_transformed_np.T, 5)
 
+        if human_pose:
+            cp_kpt_origin_np = adjust_box_anns(
+                cp_labels[:, 5:].copy(), cp_scale_ratio, 0, 0, origin_w, origin_h
+            )
+            if FLIP:
+                cp_kpt_origin_np[:, 0::2] = (origin_w - cp_kpt_origin_np[:, 0::2][:, ::-1])*(cp_kpt_origin_np[:, 0::2]!=0)
+                cp_kpt_origin_np[:, 0::2] = cp_kpt_origin_np[:, 0::2][:, self.preproc.flip_index]
+                cp_kpt_origin_np[:, 1::2] = cp_kpt_origin_np[:, 1::2][:, self.preproc.flip_index]
+
+            cp_kpt_transformed_np = cp_kpt_origin_np.copy()
+            cp_kpt_transformed_np[:, 0::2] = np.clip(
+                cp_kpt_transformed_np[:, 0::2] - x_offset, 0, target_w
+            )
+            cp_kpt_transformed_np[:, 1::2] = np.clip(
+                cp_kpt_transformed_np[:, 1::2] - y_offset, 0, target_h
+            )
+
         if keep_list.sum() >= 1.0:
             cls_labels = cp_labels[keep_list, 4:5].copy()
             box_labels = cp_bboxes_transformed_np[keep_list]
-            labels = np.hstack((box_labels, cls_labels))
+            if not human_pose:
+                labels = np.hstack((box_labels, cls_labels))
+            else:
+                kpt_label = cp_kpt_transformed_np[keep_list].copy()
+                labels = np.hstack((box_labels, cls_labels, kpt_label))
             origin_labels = np.vstack((origin_labels, labels))
             origin_img = origin_img.astype(np.float32)
             origin_img = 0.5 * origin_img + 0.5 * padded_cropped_img.astype(np.float32)

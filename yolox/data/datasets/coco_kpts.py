@@ -53,6 +53,7 @@ class COCOKPTSDataset(Dataset):
         self.img_size = img_size
         self.preproc = preproc
         self.annotations, self.ids = self._load_coco_annotations()
+        self.flip_index = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
         if cache:
             self._cache_images()
 
@@ -136,13 +137,14 @@ class COCOKPTSDataset(Dataset):
         num_objs = len(objs)
         if num_objs==0:
             return
-        res = np.zeros((num_objs, 5+3*17))
+        res = np.zeros((num_objs, 5+2*17))
 
         for ix, obj in enumerate(objs):
             cls = self.class_ids.index(obj["category_id"])
             res[ix, 0:4] = obj["clean_bbox"]
             res[ix, 4] = cls
-            res[ix, 5:] = obj["clean_kpts"]
+            res[ix, 5::2] = obj["clean_kpts"][0::3]
+            res[ix, 6::2] = obj["clean_kpts"][1::3]
 
         r = min(self.img_size[0] / height, self.img_size[1] / width)
         res[:, :4] *= r

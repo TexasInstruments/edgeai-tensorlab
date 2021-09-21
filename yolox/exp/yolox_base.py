@@ -87,7 +87,7 @@ class Exp(BaseExp):
             if self.object_pose:
                 head = YOLOXObjectPoseHead(self.num_classes, self.width, in_channels=in_channels)
             elif self.human_pose:
-                pass
+                head = YOLOXHead(self.num_classes, self.width, in_channels=in_channels)
             else:
                 head = YOLOXHead(self.num_classes, self.width, in_channels=in_channels)
             self.model = YOLOX(backbone, head)
@@ -167,7 +167,9 @@ class Exp(BaseExp):
                 flip_prob=self.flip_prob,
                 hsv_prob=self.hsv_prob,
                 object_pose=self.object_pose,
-                human_pose=self.human_pose),
+                human_pose=self.human_pose,
+                flip_index=dataset.flip_index,
+            ),
             degrees=self.degrees,
             translate=self.translate,
             mosaic_scale=self.mosaic_scale,
