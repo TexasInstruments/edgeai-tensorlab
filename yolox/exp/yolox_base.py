@@ -83,10 +83,7 @@ class Exp(BaseExp):
         if getattr(self, "model", None) is None:
             in_channels = [256, 512, 1024]
             backbone = YOLOPAFPN(self.depth, self.width, in_channels=in_channels)
-            if self.object_pose:
-                head = YOLOXObjectPoseHead(self.num_classes, self.width, in_channels=in_channels)
-            else:
-                head = YOLOXHead(self.num_classes, self.width, in_channels=in_channels)
+            head = YOLOXHead(self.num_classes, self.width, in_channels=in_channels)
             self.model = YOLOX(backbone, head)
 
         self.model.apply(init_yolo)
@@ -126,8 +123,6 @@ class Exp(BaseExp):
                     cache=cache_img,
                 )
             elif self.data_set == "linemod":
-               if self.object_pose:
-                   self.flip_prob = 0
                dataset = LINEMODDataset(
                     data_dir=self.data_dir,
                     json_file=self.train_ann,
@@ -141,8 +136,6 @@ class Exp(BaseExp):
                     object_pose=self.object_pose
                 ) 
 
-        if self.object_pose:
-            no_aug = True
         dataset = MosaicDetection(
             dataset,
             mosaic=not no_aug,

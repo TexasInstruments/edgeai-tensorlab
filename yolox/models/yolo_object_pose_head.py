@@ -231,13 +231,13 @@ class YOLOXObjectPoseHead(nn.Module):
             obj_output = self.obj_preds[k](reg_feat)
 
             rot_feat = rot_conv(rot_x)  #NEW
-            rot_output = self.rot_preds[k](rot_feat)
+            rot_output = (self.rot_preds[k](rot_feat)).clamp(0, 1)
             
             trn_feat = trn_conv(trn_x)  #NEW
-            trn_output = self.trn_preds[k](trn_feat)
+            trn_output = (self.trn_preds[k](trn_feat)).clamp(0, 1)
 
             if self.training:
-                output = torch.cat([reg_output, rot_output, trn_output, obj_output, cls_output], 1)
+                output = torch.cat([reg_output, obj_output, rot_output, trn_output, cls_output], 1)
                 output, grid = self.get_output_and_grid(
                     output, k, stride_this_level, xin[0].type()
                 )
@@ -261,10 +261,11 @@ class YOLOXObjectPoseHead(nn.Module):
 
             else:
                 output = torch.cat(
-                    [reg_output, rot_output, trn_output, obj_output.sigmoid(), cls_output.sigmoid()], 1
+                    [reg_output, obj_output.sigmoid(), rot_output, trn_output, cls_output.sigmoid()], 1
                 )
 
             outputs.append(output)
+
 
         if self.training:
             return self.get_losses(
@@ -477,9 +478,6 @@ class YOLOXObjectPoseHead(nn.Module):
         if self.use_l1:
             l1_targets = torch.cat(l1_targets, 0)
 
-        #if torch.any(torch.isinf(rot_targets)):
-        #    print(rot_targets)
-
         num_fg = max(num_fg, 1)
         loss_iou = (
             self.iou_loss(bbox_preds.view(-1, 4)[fg_masks], reg_targets)
@@ -492,7 +490,7 @@ class YOLOXObjectPoseHead(nn.Module):
                 cls_preds.view(-1, self.num_classes)[fg_masks], cls_targets
             )
         ).sum() / num_fg
-        loss_rot = (
+        loss_rot = 1.0 * (
             self.mse_loss(
                 rot_preds.view(-1, 3)[fg_masks], rot_targets #% (2 * math.pi), rot_targets
             )
@@ -504,7 +502,7 @@ class YOLOXObjectPoseHead(nn.Module):
         #print(trn_preds.view(-1, 3)[fg_masks].max())
         #print(trn_targets.min())
         
-        loss_trn = (
+        loss_trn = 0.0001 * (
             self.mse_loss(
                 trn_preds.view(-1, 3)[fg_masks], trn_targets
             )
@@ -519,8 +517,8 @@ class YOLOXObjectPoseHead(nn.Module):
         #)
         #).sum() / num_fg 
         
-        #loss_rot = torch.sum(rot_targets)
-        #loss_trn = torch.sum(trn_targets)
+        #loss_rot = 0
+        #loss_trn = 0
 
        
         if self.use_l1:

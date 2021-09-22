@@ -9,10 +9,18 @@ from loguru import logger
 
 import torch
 import torch.backends.cudnn as cudnn
+#import numpy as np
 
 from yolox.core import Trainer, launch
 from yolox.exp import get_exp
 from yolox.utils import configure_nccl, configure_omp, get_num_devices
+
+#torch.manual_seed(123)
+#torch.cuda.manual_seed(123)
+#np.random.seed(123)
+#random.seed(123)
+#torch.backends.cudnn.enabled=False
+#torch.backends.cudnn.deterministic=True
 
 _SUPPORTED_DATASETS = ["coco", "linemod"]
 _NUM_CLASSES = {"coco":80, "linemod":15}
