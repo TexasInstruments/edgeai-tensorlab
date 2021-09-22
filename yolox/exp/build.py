@@ -25,6 +25,7 @@ def get_exp_by_name(exp_name):
         "yolox-s": "yolox_s.py",
         "yolox-s-ti-lite": "yolox_s_ti_lite.py",
         "yolox-s-object-pose" : "yolox_s_object_pose.py",
+        "yolox-m-ti-lite": "yolox_m_ti_lite.py",
         "yolox-m": "yolox_m.py",
         "yolox-l": "yolox_l.py",
         "yolox-x": "yolox_x.py",
