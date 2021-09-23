@@ -86,8 +86,6 @@ class Exp(BaseExp):
             backbone = YOLOPAFPN(self.depth, self.width, in_channels=in_channels)
             if self.object_pose:
                 head = YOLOXObjectPoseHead(self.num_classes, self.width, in_channels=in_channels)
-            elif self.human_pose:
-                head = YOLOXHead(self.num_classes, self.width, in_channels=in_channels)
             else:
                 head = YOLOXHead(self.num_classes, self.width, in_channels=in_channels)
             self.model = YOLOX(backbone, head)
@@ -144,17 +142,6 @@ class Exp(BaseExp):
                     cache=cache_img,
                     object_pose=self.object_pose
                 )
-            elif self.data_set == "coco_kpts":
-                dataset = COCOKPTSDataset(
-                    data_dir=self.data_dir,
-                    json_file=self.train_ann,
-                    img_size=self.input_size,
-                    preproc=TrainTransform(
-                        max_labels=50,
-                        flip_prob=self.flip_prob,
-                        hsv_prob=self.hsv_prob),
-                    cache=cache_img,
-                )
 
         if self.object_pose:
             no_aug = True
@@ -167,8 +154,6 @@ class Exp(BaseExp):
                 flip_prob=self.flip_prob,
                 hsv_prob=self.hsv_prob,
                 object_pose=self.object_pose,
-                human_pose=self.human_pose,
-                flip_index=dataset.flip_index,
             ),
             degrees=self.degrees,
             translate=self.translate,
@@ -301,15 +286,6 @@ class Exp(BaseExp):
                 preproc=ValTransform(legacy=legacy),
                 object_pose=self.object_pose 
             )
-        elif self.data_set == "coco_kpts":
-            valdataset = COCOKPTSDataset(
-                data_dir=self.data_dir,
-                json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
-                name="val2017" if not testdev else "test2017",
-                img_size=self.test_size,
-                preproc=ValTransform(legacy=legacy),
-                human_pose = self.human_pose
-            )
 
         if is_distributed:
             batch_size = batch_size // dist.get_world_size()
@@ -341,15 +317,6 @@ class Exp(BaseExp):
                 nmsthre=self.nmsthre,
                 num_classes=self.num_classes,
                 testdev=testdev,  
-            )
-        elif self.human_pose:
-            evaluator = ObjectPoseEvaluator(
-                dataloader=val_loader,
-                img_size=self.test_size,
-                confthre=self.test_conf,
-                nmsthre=self.nmsthre,
-                num_classes=self.num_classes,
-                testdev=testdev,
             )
         else:
             evaluator = COCOEvaluator(

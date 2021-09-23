@@ -24,6 +24,7 @@ class YOLOXHeadKPTS(nn.Module):
         in_channels=[256, 512, 1024],
         act="silu",
         depthwise=False,
+        num_kpts = 17,
     ):
         """
         Args:
@@ -34,6 +35,7 @@ class YOLOXHeadKPTS(nn.Module):
 
         self.n_anchors = 1
         self.num_classes = num_classes
+        self.num_kpts = num_kpts
         self.decode_in_inference = True  # for deploy, set to False
 
         self.cls_convs = nn.ModuleList()
@@ -146,7 +148,7 @@ class YOLOXHeadKPTS(nn.Module):
             self.kpts_preds.append(
                 nn.Conv2d(
                     in_channels=int(256 * width),
-                    out_channels=self.n_anchors * 1,
+                    out_channels=self.n_anchors * self.num_kpts * 3,
                     kernel_size=1,
                     stride=1,
                     padding=0,
@@ -178,12 +180,13 @@ class YOLOXHeadKPTS(nn.Module):
         y_shifts = []
         expanded_strides = []
 
-        for k, (cls_conv, reg_conv, stride_this_level, x) in enumerate(
-            zip(self.cls_convs, self.reg_convs, self.strides, xin)
+        for k, (cls_conv, reg_conv, kpts_conv, stride_this_level, x) in enumerate(
+            zip(self.cls_convs, self.reg_convs, self.kpts_convs, self.strides, xin)
         ):
             x = self.stems[k](x)
             cls_x = x
             reg_x = x
+            kpts_x = x
 
             cls_feat = cls_conv(cls_x)
             cls_output = self.cls_preds[k](cls_feat)
@@ -192,8 +195,11 @@ class YOLOXHeadKPTS(nn.Module):
             reg_output = self.reg_preds[k](reg_feat)
             obj_output = self.obj_preds[k](reg_feat)
 
+            kpts_feature = kpts_conv(kpts_x)
+            kpts_output = self.kpts_preds[k](kpts_feature)
+
             if self.training:
-                output = torch.cat([reg_output, obj_output, cls_output], 1)
+                output = torch.cat([reg_output, obj_output, cls_output, kpts_output], 1)
                 output, grid = self.get_output_and_grid(
                     output, k, stride_this_level, xin[0].type()
                 )
@@ -217,7 +223,7 @@ class YOLOXHeadKPTS(nn.Module):
 
             else:
                 output = torch.cat(
-                    [reg_output, obj_output.sigmoid(), cls_output.sigmoid()], 1
+                    [reg_output, obj_output.sigmoid(), cls_output.sigmoid(), kpts_output], 1
                 )
 
             outputs.append(output)
@@ -248,7 +254,7 @@ class YOLOXHeadKPTS(nn.Module):
         grid = self.grids[k]
 
         batch_size = output.shape[0]
-        n_ch = 5 + self.num_classes
+        n_ch = 5 + self.num_classes+ 3*self.num_kpts
         hsize, wsize = output.shape[-2:]
         if grid.shape[2:4] != output.shape[2:4]:
             yv, xv = torch.meshgrid([torch.arange(hsize), torch.arange(wsize)])
@@ -260,8 +266,12 @@ class YOLOXHeadKPTS(nn.Module):
             batch_size, self.n_anchors * hsize * wsize, -1
         )
         grid = grid.view(1, -1, 2)
+        kpt_conf_grids = torch.zeros_like(grid)[...,0:1]
+        kpt_grids = torch.cat((grid, kpt_conf_grids), dim=2)
+
         output[..., :2] = (output[..., :2] + grid) * stride
         output[..., 2:4] = torch.exp(output[..., 2:4]) * stride
+        output[..., 6:] = (output[..., 6:] +  kpt_grids.repeat(1,1,self.num_kpts)) * stride
         return output, grid
 
     def decode_outputs(self, outputs, dtype):
@@ -275,10 +285,13 @@ class YOLOXHeadKPTS(nn.Module):
             strides.append(torch.full((*shape, 1), stride))
 
         grids = torch.cat(grids, dim=1).type(dtype)
+        kpt_conf_grids = torch.zeros_like(grids)[...,0:1]
+        kpt_grids = torch.cat((grids, kpt_conf_grids), dim=2)
         strides = torch.cat(strides, dim=1).type(dtype)
 
         outputs[..., :2] = (outputs[..., :2] + grids) * strides
         outputs[..., 2:4] = torch.exp(outputs[..., 2:4]) * strides
+        outputs[...,  6:] = (outputs[..., 6:] + kpt_grids.repeat(1,1,self.num_kpts)) * strides
         return outputs
 
     def get_losses(
@@ -294,7 +307,8 @@ class YOLOXHeadKPTS(nn.Module):
     ):
         bbox_preds = outputs[:, :, :4]  # [batch, n_anchors_all, 4]
         obj_preds = outputs[:, :, 4].unsqueeze(-1)  # [batch, n_anchors_all, 1]
-        cls_preds = outputs[:, :, 5:]  # [batch, n_anchors_all, n_cls]
+        cls_preds = outputs[:, :, 5 : 5+self.num_classes]  # [batch, n_anchors_all, n_cls]
+        kpts_pred = outputs[:, :, 6:]
 
         # calculate targets
         mixup = labels.shape[2] > 5
