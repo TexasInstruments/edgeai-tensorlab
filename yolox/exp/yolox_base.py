@@ -70,7 +70,6 @@ class Exp(BaseExp):
         self.nmsthre = 0.65
         self.data_set = "coco"
         self.object_pose  = False
-        self.human_pose = False
 
     def get_model(self):
         from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead, YOLOXObjectPoseHead
@@ -100,7 +99,6 @@ class Exp(BaseExp):
         from yolox.data import (
             COCODataset,
             LINEMODDataset,
-            COCOKPTSDataset,
             TrainTransform,
             YoloBatchSampler,
             DataLoader,
@@ -141,7 +139,7 @@ class Exp(BaseExp):
                         object_pose=self.object_pose),
                     cache=cache_img,
                     object_pose=self.object_pose
-                )
+                ) 
 
         if self.object_pose:
             no_aug = True
@@ -153,8 +151,7 @@ class Exp(BaseExp):
                 max_labels=120,
                 flip_prob=self.flip_prob,
                 hsv_prob=self.hsv_prob,
-                object_pose=self.object_pose,
-            ),
+                object_pose=self.object_pose),
             degrees=self.degrees,
             translate=self.translate,
             mosaic_scale=self.mosaic_scale,
@@ -267,7 +264,7 @@ class Exp(BaseExp):
         return scheduler
 
     def get_eval_loader(self, batch_size, is_distributed, testdev=False, legacy=False):
-        from yolox.data import COCODataset, COCOKPTSDataset, LINEMODDataset, ValTransform
+        from yolox.data import COCODataset, LINEMODDataset, ValTransform
 
         if self.data_set == "coco":
             valdataset = COCODataset(
