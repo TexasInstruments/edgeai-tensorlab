@@ -159,12 +159,19 @@ def random_perspective(
     return img, targets
 
 
-def _mirror(image, boxes, prob=0.5):
+def _mirror(image, boxes, prob=0.5, human_pose=False, human_kpts=None, flip_index=None):
     _, width, _ = image.shape
     if random.random() < prob:
         image = image[:, ::-1]
         boxes[:, 0::2] = width - boxes[:, 2::-2]
-    return image, boxes
+        if human_pose:
+            human_kpts[:, 0::2] = width - human_kpts[:, 0::2]
+            human_kpts[:, 0::2] = human_kpts[:, 0::2][:, flip_index]
+            human_kpts[:, 1::2] = human_kpts[:, 1::2][:, flip_index]
+    if human_pose:
+        return image, boxes, human_kpts
+    else:
+        return image, boxes
 
 
 def preproc(img, input_size, swap=(2, 0, 1)):
@@ -206,8 +213,10 @@ class TrainTransform:
         labels = targets[:, 4].copy()
         if self.object_pose:
             object_poses = targets[:, 5:11].copy()
-        elif self.human_pose:
-            human_poses = targets[:, 5:].copy()
+        if self.human_pose:
+            human_kpts = targets[:, 5:].copy()
+        else:
+            human_kpts = None
         if len(boxes) == 0:
             targets = np.zeros((self.max_labels, self.target_size), dtype=np.float32)
             image, r_o = preproc(image, input_dim)
@@ -221,18 +230,26 @@ class TrainTransform:
         if self.object_pose:
             object_poses_o = targets_o[:, 5:11]
         elif self.human_pose:
-            human_poses_o = targets_o[:, 5:]
+            human_kpts_o = targets_o[:, 5:]
         # bbox_o: [xyxy] to [c_x,c_y,w,h]
         boxes_o = xyxy2cxcywh(boxes_o)
 
         if random.random() < self.hsv_prob:
             augment_hsv(image)
-        image_t, boxes = _mirror(image, boxes, self.flip_prob)
+
+        if self.human_pose:
+            image_t, boxes, human_kpts = _mirror(image, boxes, self.flip_prob, human_pose=self.human_pose, human_kpts=human_kpts, flip_index=self.flip_index)
+        else:
+            image_t, boxes = _mirror(image, boxes, self.flip_prob)
+
         height, width, _ = image_t.shape
         image_t, r_ = preproc(image_t, input_dim)
         # boxes [xyxy] 2 [cx,cy,w,h]
         boxes = xyxy2cxcywh(boxes)
         boxes *= r_
+        if self.human_pose:
+            human_kpts *= r_
+
 
         mask_b = np.minimum(boxes[:, 2], boxes[:, 3]) > 1
         boxes_t = boxes[mask_b]
@@ -240,7 +257,7 @@ class TrainTransform:
         if self.object_pose:
             object_poses_t = object_poses[mask_b]
         elif self.human_pose:
-            human_poses_t = human_poses[mask_b]
+            human_kpts_t = human_kpts[mask_b]
 
         if len(boxes_t) == 0:
             image_t, r_o = preproc(image_o, input_dim)
@@ -250,14 +267,15 @@ class TrainTransform:
             if self.object_pose:
                 object_poses_t = object_poses_o
             elif self.human_pose:
-                human_poses_t = human_poses_o
+                human_kpts_t = human_kpts_o
+                human_kpts_t *= r_o
 
         labels_t = np.expand_dims(labels_t, 1)
 
         if self.object_pose:
             targets_t = np.hstack((labels_t, boxes_t, object_poses_t))
         elif self.human_pose:
-            targets_t = np.hstack((labels_t, boxes_t, human_poses_t))
+            targets_t = np.hstack((labels_t, boxes_t, human_kpts_t))
         else:
             targets_t = np.hstack((labels_t, boxes_t))
         padded_labels = np.zeros((self.max_labels, self.target_size))

@@ -46,6 +46,7 @@ class YOLOXHeadKPTS(nn.Module):
         self.obj_preds = nn.ModuleList()
         self.kpts_preds = nn.ModuleList()
         self.stems = nn.ModuleList()
+        self.sigmas = torch.tensor([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.07, 1.07, .87, .87, .89, .89]) / 10.0
         Conv = DWConv if depthwise else BaseConv
 
         for i in range(len(in_channels)):
@@ -195,8 +196,8 @@ class YOLOXHeadKPTS(nn.Module):
             reg_output = self.reg_preds[k](reg_feat)
             obj_output = self.obj_preds[k](reg_feat)
 
-            kpts_feature = kpts_conv(kpts_x)
-            kpts_output = self.kpts_preds[k](kpts_feature)
+            kpts_feat = kpts_conv(kpts_x)
+            kpts_output = self.kpts_preds[k](kpts_feat)
 
             if self.training:
                 output = torch.cat([reg_output, obj_output, cls_output, kpts_output], 1)
@@ -308,7 +309,7 @@ class YOLOXHeadKPTS(nn.Module):
         bbox_preds = outputs[:, :, :4]  # [batch, n_anchors_all, 4]
         obj_preds = outputs[:, :, 4].unsqueeze(-1)  # [batch, n_anchors_all, 1]
         cls_preds = outputs[:, :, 5 : 5+self.num_classes]  # [batch, n_anchors_all, n_cls]
-        kpts_pred = outputs[:, :, 6:]
+        kpts_preds = outputs[:, :, 5+self.num_classes:]
 
         # calculate targets
         mixup = labels.shape[2] > 5
@@ -329,6 +330,7 @@ class YOLOXHeadKPTS(nn.Module):
         reg_targets = []
         l1_targets = []
         obj_targets = []
+        kpts_targets = []
         fg_masks = []
 
         num_fg = 0.0
@@ -340,13 +342,16 @@ class YOLOXHeadKPTS(nn.Module):
             if num_gt == 0:
                 cls_target = outputs.new_zeros((0, self.num_classes))
                 reg_target = outputs.new_zeros((0, 4))
+                kpts_target = outputs.new_zeros((0, 2*self.num_kpts))
                 l1_target = outputs.new_zeros((0, 4))
                 obj_target = outputs.new_zeros((total_num_anchors, 1))
                 fg_mask = outputs.new_zeros(total_num_anchors).bool()
             else:
                 gt_bboxes_per_image = labels[batch_idx, :num_gt, 1:5]
+                kpts_per_image = labels[batch_idx, :num_gt, 5:]
                 gt_classes = labels[batch_idx, :num_gt, 0]
                 bboxes_preds_per_image = bbox_preds[batch_idx]
+                kpts_preds_per_image = kpts_preds[batch_idx]
 
                 try:
                     (
@@ -410,9 +415,11 @@ class YOLOXHeadKPTS(nn.Module):
                 ) * pred_ious_this_matching.unsqueeze(-1)
                 obj_target = fg_mask.unsqueeze(-1)
                 reg_target = gt_bboxes_per_image[matched_gt_inds]
+                kpts_target = kpts_per_image[matched_gt_inds]
                 if self.use_l1:
                     l1_target = self.get_l1_target(
                         outputs.new_zeros((num_fg_img, 4)),
+                        gt_bboxes_per_image[matched_gt_inds],
                         gt_bboxes_per_image[matched_gt_inds],
                         expanded_strides[0][fg_mask],
                         x_shifts=x_shifts[0][fg_mask],
@@ -421,6 +428,7 @@ class YOLOXHeadKPTS(nn.Module):
 
             cls_targets.append(cls_target)
             reg_targets.append(reg_target)
+            kpts_targets.append(kpts_target)
             obj_targets.append(obj_target.to(dtype))
             fg_masks.append(fg_mask)
             if self.use_l1:
@@ -428,6 +436,7 @@ class YOLOXHeadKPTS(nn.Module):
 
         cls_targets = torch.cat(cls_targets, 0)
         reg_targets = torch.cat(reg_targets, 0)
+        kpts_targets = torch.cat(kpts_targets, 0)
         obj_targets = torch.cat(obj_targets, 0)
         fg_masks = torch.cat(fg_masks, 0)
         if self.use_l1:
@@ -445,6 +454,11 @@ class YOLOXHeadKPTS(nn.Module):
                 cls_preds.view(-1, self.num_classes)[fg_masks], cls_targets
             )
         ).sum() / num_fg
+        loss_kpts, loss_kpts_vis = self.kpts_loss(
+                kpts_preds.view(-1, self.num_kpts*3)[fg_masks], kpts_targets, reg_targets)
+        loss_kpts = loss_kpts.sum() / num_fg
+        loss_kpts_vis = loss_kpts_vis.sum() / num_fg
+
         if self.use_l1:
             loss_l1 = (
                 self.l1_loss(origin_preds.view(-1, 4)[fg_masks], l1_targets)
@@ -453,7 +467,7 @@ class YOLOXHeadKPTS(nn.Module):
             loss_l1 = 0.0
 
         reg_weight = 5.0
-        loss = reg_weight * loss_iou + loss_obj + loss_cls + loss_l1
+        loss = reg_weight * loss_iou + loss_obj + loss_cls + loss_l1 + loss_kpts + loss_kpts_vis
 
         return (
             loss,
@@ -461,6 +475,8 @@ class YOLOXHeadKPTS(nn.Module):
             loss_obj,
             loss_cls,
             loss_l1,
+            loss_kpts,
+            loss_kpts_vis,
             num_fg / max(num_gts, 1),
         )
 
@@ -688,3 +704,22 @@ class YOLOXHeadKPTS(nn.Module):
             fg_mask_inboxes
         ]
         return num_fg, gt_matched_classes, pred_ious_this_matching, matched_gt_inds
+
+
+    def kpts_loss(self, kpts_preds, kpts_targets, bbox_targets):
+        sigmas = torch.tensor([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.07, 1.07, .87, .87, .89, .89], device=kpts_preds.device) / 10.0
+        kpts_preds_x, kpts_targets_x = kpts_preds[:, 0::3], kpts_targets[:, 0::2]
+        kpts_preds_y, kpts_targets_y = kpts_preds[:, 1::3], kpts_targets[:, 1::2]
+        kpts_preds_score = kpts_preds[:, 2::3]
+        # mask
+        kpt_mask = (kpts_targets[:, 0::2] != 0)
+        lkptv = self.bcewithlog_loss(kpts_preds_score, kpt_mask.float()).mean(axis=1)
+        # OKS based loss
+        d = (kpts_preds_x - kpts_targets_x) ** 2 + (kpts_preds_y - kpts_targets_y) ** 2
+        bbox_scale = torch.prod(bbox_targets[:, -2:], dim=1, keepdim=True)  #scale derived from bbox gt
+        kpt_loss_factor = (torch.sum(kpt_mask != 0) + torch.sum(kpt_mask == 0)) / torch.sum(kpt_mask != 0)
+        oks = torch.exp(-d / (bbox_scale * (4 * sigmas ** 2) + 1e-9))
+        lkpt = kpt_loss_factor * ((1 - oks**2) * kpt_mask).mean(axis=1)
+
+        return lkpt, lkptv
+
