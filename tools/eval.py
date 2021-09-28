@@ -117,6 +117,13 @@ def make_parser():
         default=None,
         nargs=argparse.REMAINDER,
     )
+    parser.add_argument(
+        "--not-strict",
+        dest="strict",
+        default=True,
+        action="store_false",
+        help="Set loading checkpoint to not strict"
+    )
     return parser
 
 
@@ -185,7 +192,7 @@ def main(exp, args, num_gpu):
         logger.info("loading checkpoint from {}".format(ckpt_file))
         loc = "cuda:{}".format(rank)
         ckpt = torch.load(ckpt_file, map_location=loc)
-        model.load_state_dict(ckpt["model"])
+        model.load_state_dict(ckpt["model"], strict=args.strict)
         logger.info("loaded checkpoint done.")
 
     if is_distributed:

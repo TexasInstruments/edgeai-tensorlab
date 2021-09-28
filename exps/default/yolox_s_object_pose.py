@@ -16,6 +16,13 @@ class Exp(MyExp):
         self.width = 0.50
         self.exp_name = os.path.split(os.path.realpath(__file__))[1].split(".")[0]
 
+        # ---------------- model config ---------------- #
+        self.num_classes = 15
+
+        # ---------------- dataloader config ---------------- #
+        self.train_ann = "instances_train.json"
+        self.val_ann = "instances_test.json"
+
         # --------------- transform config ----------------- #
         self.mosaic_prob = 0.0
         self.mixup_prob = 0.0
