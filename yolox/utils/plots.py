@@ -135,7 +135,7 @@ def output_to_target(output):
     return np.array(targets)
 
 
-def plot_images(images, targets, paths=None, fname='images.jpg', names=None, max_size=640, max_subplots=16, kpt_label=True, steps=2, orig_shape=None):
+def plot_images(images, targets, paths=None, fname='images.png', names=None, max_size=640, max_subplots=16, kpt_label=True, steps=2, orig_shape=None):
     # Plot image grid with labels
 
     if isinstance(images, torch.Tensor):
@@ -201,6 +201,8 @@ def plot_images(images, targets, paths=None, fname='images.jpg', names=None, max
                 if kpts.max()<1.01:
                     kpts[list(range(0,len(kpts),steps))] *=w # scale to pixels
                     kpts[list(range(1,len(kpts),steps))] *= h
+                elif scale_factor < 1:  # absolute coords need scale if image scales
+                    kpts *= scale_factor
                 kpts[list(range(0, len(kpts), steps))] += block_x
                 kpts[list(range(1, len(kpts), steps))] += block_y
 
