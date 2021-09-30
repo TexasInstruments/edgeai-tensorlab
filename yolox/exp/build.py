@@ -24,10 +24,10 @@ def get_exp_by_name(exp_name):
     filedict = {
         "yolox-s": "yolox_s.py",
         "yolox-s-ti-lite": "yolox_s_ti_lite.py",
-        "yolox-s-human-pose": "yolox_s_human_pose.py",
         "yolox-m": "yolox_m.py",
         "yolox-l": "yolox_l.py",
         "yolox-x": "yolox_x.py",
+        "yolox-s-human-pose": "yolox_s_human_pose.py",
         "yolox-tiny": "yolox_tiny.py",
         "yolox-nano": "nano.py",
         "yolov3": "yolov3.py",
