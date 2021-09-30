@@ -7,7 +7,7 @@ import random
 import cv2
 import numpy as np
 
-from yolox.utils import adjust_box_anns, get_local_rank
+from yolox.utils import adjust_box_anns, adjust_kpts_anns, get_local_rank
 
 from ..data_augment import box_candidates, random_perspective
 from .datasets_wrapper import Dataset
@@ -121,8 +121,8 @@ class MosaicDetection(Dataset):
                     labels[:, 2] = scale * _labels[:, 2] + padw
                     labels[:, 3] = scale * _labels[:, 3] + padh
                     if self.preproc.human_pose:
-                        labels[:, 5::3] = scale * _labels[:, 5::3] + padw
-                        labels[:, 6::3] = scale * _labels[:, 6::3] + padw
+                        labels[:, 5::2][labels[:, 5::2]!=0] = scale * _labels[:, 5::2][labels[:, 5::2]!=0] + padw
+                        labels[:, 6::2][labels[:, 6::2]!=0] = scale * _labels[:, 6::2][labels[:, 6::2]!=0] + padh
                 mosaic_labels.append(labels)
 
             if len(mosaic_labels):
@@ -132,8 +132,8 @@ class MosaicDetection(Dataset):
                 np.clip(mosaic_labels[:, 2], 0, 2 * input_w, out=mosaic_labels[:, 2])
                 np.clip(mosaic_labels[:, 3], 0, 2 * input_h, out=mosaic_labels[:, 3])
                 if self.preproc.human_pose:
-                    np.clip(mosaic_labels[:, 5::3], 0, 2 * input_w, out=mosaic_labels[:, 5::3])
-                    np.clip(mosaic_labels[:, 6::3], 0, 2 * input_h, out=mosaic_labels[:, 6::3])
+                    np.clip(mosaic_labels[:, 5::2], 0, 2 * input_w, out=mosaic_labels[:, 5::2])
+                    np.clip(mosaic_labels[:, 6::2], 0, 2 * input_h, out=mosaic_labels[:, 6::2])
 
             mosaic_img, mosaic_labels = random_perspective(
                 mosaic_img,
@@ -242,11 +242,11 @@ class MosaicDetection(Dataset):
         keep_list = box_candidates(cp_bboxes_origin_np.T, cp_bboxes_transformed_np.T, 5)
 
         if human_pose:
-            cp_kpt_origin_np = adjust_box_anns(
+            cp_kpt_origin_np = adjust_kpts_anns(
                 cp_labels[:, 5:].copy(), cp_scale_ratio, 0, 0, origin_w, origin_h
             )
             if FLIP:
-                cp_kpt_origin_np[:, 0::2] = (origin_w - cp_kpt_origin_np[:, 0::2][:, ::-1])*(cp_kpt_origin_np[:, 0::2]!=0)
+                cp_kpt_origin_np[:, 0::2] = (origin_w - cp_kpt_origin_np[:, 0::2])*(cp_kpt_origin_np[:, 0::2]!=0)
                 cp_kpt_origin_np[:, 0::2] = cp_kpt_origin_np[:, 0::2][:, self.preproc.flip_index]
                 cp_kpt_origin_np[:, 1::2] = cp_kpt_origin_np[:, 1::2][:, self.preproc.flip_index]
 

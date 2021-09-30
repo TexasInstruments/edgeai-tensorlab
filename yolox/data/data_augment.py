@@ -165,7 +165,7 @@ def _mirror(image, boxes, prob=0.5, human_pose=False, human_kpts=None, flip_inde
         image = image[:, ::-1]
         boxes[:, 0::2] = width - boxes[:, 2::-2]
         if human_pose:
-            human_kpts[:, 0::2] = width - human_kpts[:, 0::2]
+            human_kpts[:, 0::2] = (width - human_kpts[:, 0::2])*(human_kpts[:, 0::2]!=0)
             human_kpts[:, 0::2] = human_kpts[:, 0::2][:, flip_index]
             human_kpts[:, 1::2] = human_kpts[:, 1::2][:, flip_index]
     if human_pose:
