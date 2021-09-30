@@ -6,6 +6,7 @@ from yolox.models.yolo_object_pose_head import YOLOXObjectPoseHead
 import torch.nn as nn
 
 from .yolo_head import YOLOXHead
+from .yolo_kpts_head import YOLOXHeadKPTS
 from .yolo_pafpn import YOLOPAFPN
 
 
@@ -58,6 +59,21 @@ class YOLOX(nn.Module):
                     "trn_loss": trn_loss,
                     "num_fg": num_fg,
                 }
+            elif isinstance(self.head, YOLOXHeadKPTS):
+                loss, iou_loss, conf_loss, cls_loss, l1_loss, kpts_loss, kpts_vis_loss, num_fg = self.head(
+                    fpn_outs, targets, x
+                )
+                outputs = {
+                    "total_loss": loss,
+                    "iou_loss": iou_loss,
+                    "l1_loss": l1_loss,
+                    "conf_loss": conf_loss,
+                    "cls_loss": cls_loss,
+                    "kpts_loss": kpts_loss,
+                    "kpts_vis_loss": kpts_vis_loss,
+                    "num_fg": num_fg,
+                }
+
         else:
             outputs = self.head(fpn_outs)
 

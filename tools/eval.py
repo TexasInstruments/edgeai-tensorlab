@@ -16,8 +16,8 @@ from yolox.core import launch
 from yolox.exp import get_exp
 from yolox.utils import configure_nccl, fuse_model, get_local_rank, get_model_info, setup_logger
 
-_SUPPORTED_DATASETS = ["coco", "linemod"]
-_NUM_CLASSES = {"coco":80, "linemod":15}
+_SUPPORTED_DATASETS = ["coco", "linemod", "coco_kpts"]
+_NUM_CLASSES = {"coco":80, "linemod":15, "coco_kpts":57}
 _VAL_ANN = {
     "coco":"instances_val2017.json", 
     "linemod":"instances_test.json"

@@ -13,8 +13,10 @@ __all__ = [
     "bboxes_iou",
     "matrix_iou",
     "adjust_box_anns",
+    "adjust_kpts_anns",
     "xyxy2xywh",
     "xyxy2cxcywh",
+    "cxcywh2xyxy",
 ]
 
 
@@ -121,6 +123,14 @@ def adjust_box_anns(bbox, scale_ratio, padw, padh, w_max, h_max):
     return bbox
 
 
+def adjust_kpts_anns(kpts, scale_ratio, padw, padh, w_max, h_max):
+    kpts[:, 0::2][kpts[:, 0::2]!=0] = kpts[:, 0::2][kpts[:, 0::2]!=0] * scale_ratio + padw
+    kpts[:, 1::2][kpts[:, 1::2]!=0] = kpts[:, 1::2][kpts[:, 1::2]!=0] * scale_ratio + padh
+    kpts[:, 0::2] = np.clip(kpts[:, 0::2] , 0, w_max)
+    kpts[:, 1::2] = np.clip(kpts[:, 1::2] , 0, h_max)
+    return kpts
+
+
 def xyxy2xywh(bboxes):
     bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 0]
     bboxes[:, 3] = bboxes[:, 3] - bboxes[:, 1]
@@ -132,4 +142,12 @@ def xyxy2cxcywh(bboxes):
     bboxes[:, 3] = bboxes[:, 3] - bboxes[:, 1]
     bboxes[:, 0] = bboxes[:, 0] + bboxes[:, 2] * 0.5
     bboxes[:, 1] = bboxes[:, 1] + bboxes[:, 3] * 0.5
+    return bboxes
+
+
+def cxcywh2xyxy(bboxes):
+    bboxes[:, 0] = bboxes[:, 0] - bboxes[:, 2] / 2  # top left x
+    bboxes[:, 1] = bboxes[:, 1] - bboxes[:, 3] / 2  # top left y
+    bboxes[:, 2] = bboxes[:, 0] + bboxes[:, 2]  # bottom right x
+    bboxes[:, 3] = bboxes[:, 1] + bboxes[:, 3]  # bottom right y
     return bboxes
