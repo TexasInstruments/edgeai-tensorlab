@@ -26,7 +26,8 @@ from yolox.utils import (
     occupy_mem,
     save_checkpoint,
     setup_logger,
-    synchronize
+    synchronize,
+    plots
 )
 
 
@@ -96,7 +97,9 @@ class Trainer:
         targets.requires_grad = False
         inps, targets = self.exp.preprocess(inps, targets, self.input_size)
         data_end_time = time.time()
-
+        if self.epoch < 2 and self.iter <100 and self.args.task == "human_pose":
+            f = os.path.join(self.file_name, f'epoch_{self.epoch}_train_batch{self.iter}.png')  # filename
+            plots.plot_images(inps, targets, fname=f)
         with torch.cuda.amp.autocast(enabled=self.amp_training):
             outputs = self.model(inps, targets)
 
