@@ -467,7 +467,7 @@ class YOLOXHeadKPTS(nn.Module):
             loss_l1 = 0.0
 
         reg_weight = 5.0
-        loss = reg_weight * loss_iou + loss_obj + loss_cls + loss_l1 + loss_kpts + loss_kpts_vis
+        loss = reg_weight * loss_iou + loss_obj + loss_cls + loss_l1 + reg_weight * loss_kpts + loss_kpts_vis
 
         return (
             loss,
@@ -475,7 +475,7 @@ class YOLOXHeadKPTS(nn.Module):
             loss_obj,
             loss_cls,
             loss_l1,
-            loss_kpts,
+            reg_weight * loss_kpts,
             loss_kpts_vis,
             num_fg / max(num_gts, 1),
         )
@@ -718,7 +718,7 @@ class YOLOXHeadKPTS(nn.Module):
         d = (kpts_preds_x - kpts_targets_x) ** 2 + (kpts_preds_y - kpts_targets_y) ** 2
         bbox_scale = torch.prod(bbox_targets[:, -2:], dim=1, keepdim=True)  #scale derived from bbox gt
         kpt_loss_factor = (torch.sum(kpt_mask != 0) + torch.sum(kpt_mask == 0)) / torch.sum(kpt_mask != 0)
-        oks = torch.exp(-d / (bbox_scale * (4 * sigmas ** 2) + 1e-9))
+        oks = torch.exp(-d / (bbox_scale * (4 * sigmas) + 1e-9))
         lkpt = kpt_loss_factor * ((1 - oks**2) * kpt_mask).mean(axis=1)
 
         return lkpt, lkptv
