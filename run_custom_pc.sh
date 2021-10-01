@@ -36,9 +36,9 @@
 source run_setup_env.sh pc
 
 # specify one of the following - additional options can be changed inside the yaml
-#settings_file=accuracy_infer_on_j7.yaml
-#settings_file=accuracy_import_on_pc.yaml
-settings_file=accuracy_import_on_pc.yaml
+#settings_file=settings_infer_on_j7.yaml
+#settings_file=settings_import_on_pc.yaml
+settings_file=settings_import_on_pc.yaml
 
 
 echo "==================================================================="

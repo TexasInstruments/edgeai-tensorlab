@@ -45,21 +45,21 @@ echo 'Installing dependencies to build pillow-simd. If you dont have sudo access
 sudo apt-get install libjpeg-dev zlib1g-dev
 
 echo 'Installing python packages...'
-pip install -r ./requirements_pc.txt
+pip3 install -r ./requirements_pc.txt
 
 ######################################################################
 #NOTE: THIS STEP INSTALLS THE EDITABLE LOCAL MODULE pytidl
 echo 'Installing as a local module using setup.py'
-pip install -e ./
+pip3 install -e ./
 
 ######################################################################
 # Installing dependencies
 echo 'Installing tidl_tools...'
 
-pip install https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/dlr-1.8.0-py3-none-any.whl
-pip install https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tvm-0.8.dev0-cp36-cp36m-linux_x86_64.whl
-pip install https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
-pip install https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tflite_runtime-2.4.0-py3-none-any.whl
+pip3 install https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/dlr-1.8.0-py3-none-any.whl
+pip3 install https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tvm-0.8.dev0-cp36-cp36m-linux_x86_64.whl
+pip3 install https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
+pip3 install https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tflite_runtime-2.4.0-py3-none-any.whl
 wget https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tidl_tools.tar.gz
 
 tar -xzf tidl_tools.tar.gz
