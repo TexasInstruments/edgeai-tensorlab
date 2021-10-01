@@ -85,7 +85,7 @@ def plot_skeleton_kpts(im, kpts, steps, orig_shape=None):
     for kid in range(num_kpts):
         r, g, b = pose_kpt_color[kid]
         x_coord, y_coord = kpts[steps * kid], kpts[steps * kid + 1]
-        if not (x_coord % 640 == 0 or y_coord % 640 == 0):
+        if not (x_coord % orig_shape[1] == 0 or y_coord % orig_shape[0] == 0):
             if steps == 3:
                 conf = kpts[steps * kid + 2]
                 if conf < 0.5:
@@ -101,9 +101,9 @@ def plot_skeleton_kpts(im, kpts, steps, orig_shape=None):
             conf2 = kpts[(sk[1]-1)*steps+2]
             if conf1<0.5 or conf2<0.5:
                 continue
-        if pos1[0]%640 == 0 or pos1[1]%640==0 or pos1[0]<0 or pos1[1]<0:
+        if pos1[0]%orig_shape[1] == 0 or pos1[1]%orig_shape[0]==0 or pos1[0]<0 or pos1[1]<0:
             continue
-        if pos2[0] % 640 == 0 or pos2[1] % 640 == 0 or pos2[0]<0 or pos2[1]<0:
+        if pos2[0] % orig_shape[1] == 0 or pos2[1] % orig_shape[0] == 0 or pos2[0]<0 or pos2[1]<0:
             continue
         cv2.line(im, pos1, pos2, (int(r), int(g), int(b)), thickness=2)
 
@@ -158,7 +158,7 @@ def plot_images(images, targets, paths=None, fname='images.png', names=None, max
     if scale_factor < 1:
         h = math.ceil(scale_factor * h)
         w = math.ceil(scale_factor * w)
-
+    print(h,w)
     mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
     for i, img in enumerate(images):
         if i == max_subplots:  # if last batch has fewer images than we expect
@@ -213,7 +213,7 @@ def plot_images(images, targets, paths=None, fname='images.png', names=None, max
                 if labels or conf[j] > 0.25:  # 0.25 conf thresh
                     label = '%s' % cls if labels else '%s %.1f' % (cls, conf[j])
                     if kpt_label:
-                        plot_one_box(box, mosaic, label=label, color=color, line_thickness=tl, kpt_label=kpt_label, kpts=kpts[:,j], steps=steps, orig_shape=orig_shape)
+                        plot_one_box(box, mosaic, label=label, color=color, line_thickness=tl, kpt_label=kpt_label, kpts=kpts[:,j], steps=steps, orig_shape=(h,w))
                     else:
                         plot_one_box(box, mosaic, label=label, color=color, line_thickness=tl, kpt_label=kpt_label, orig_shape=orig_shape)
                     #cv2.imwrite(Path(paths[i]).name.split('.')[0] + "_box_{}.".format(j) + Path(paths[i]).name.split('.')[1], mosaic[:,:,::-1]) # used for debugging the dataloader pipeline
