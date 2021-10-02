@@ -151,16 +151,17 @@ class Exp(MyExp):
         return val_loader
 
     def get_evaluator(self, batch_size, is_distributed, testdev=False, legacy=False):
-        from yolox.evaluators import COCOEvaluator, ObjectPoseEvaluator
+        from yolox.evaluators import COCOHumanPoseEvaluator
 
         val_loader = self.get_eval_loader(batch_size, is_distributed, testdev, legacy)
         if self.human_pose:
-            evaluator = COCOEvaluator(
+            evaluator = COCOHumanPoseEvaluator(
                 dataloader=val_loader,
                 img_size=self.test_size,
                 confthre=self.test_conf,
                 nmsthre=self.nmsthre,
                 num_classes=self.num_classes,
                 testdev=testdev,
+                human_pose=self.human_pose
             )
         return evaluator

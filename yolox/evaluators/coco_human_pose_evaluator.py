@@ -30,7 +30,7 @@ class COCOHumanPoseEvaluator:
     """
 
     def __init__(
-        self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False
+        self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False, human_pose=True
     ):
         """
         Args:
@@ -47,6 +47,7 @@ class COCOHumanPoseEvaluator:
         self.nmsthre = nmsthre
         self.num_classes = num_classes
         self.testdev = testdev
+        self.human_pose = human_pose
 
     def evaluate(
         self,
@@ -114,7 +115,7 @@ class COCOHumanPoseEvaluator:
                     inference_time += infer_end - start
 
                 outputs = postprocess(
-                    outputs, self.num_classes, self.confthre, self.nmsthre
+                    outputs, self.num_classes, self.confthre, self.nmsthre, human_pose=self.human_pose,
                 )
                 if is_time_record:
                     nms_end = time_synchronized()
@@ -150,18 +151,22 @@ class COCOHumanPoseEvaluator:
             bboxes /= scale
             bboxes = xyxy2xywh(bboxes)
 
+            keypoints = output[:, 7:]
+            num_kpts = len(keypoints)//3
+            for kpt_index in range(num_kpts):
+                keypoints[3*kpt_index: 3*kpt_index+2] /= scale
+
             cls = output[:, 6]
             scores = output[:, 4] * output[:, 5]
             for ind in range(bboxes.shape[0]):
                 label = self.dataloader.dataset.class_ids[int(cls[ind])]
-                keypoints = None
                 pred_data = {
                     "image_id": int(img_id),
                     "category_id": label,
                     "bbox": bboxes[ind].numpy().tolist(),
                     "score": scores[ind].numpy().item(),
                     "segmentation": [],
-                    'keypoints': keypoints,
+                    'keypoints': keypoints[ind].numpy().tolist(),
                 }  # COCO json format
                 data_list.append(pred_data)
         return data_list
@@ -211,7 +216,7 @@ class COCOHumanPoseEvaluator:
 
                 logger.warning("Use standard COCOeval.")
 
-            cocoEval = COCOeval(cocoGt, cocoDt, annType[1])
+            cocoEval = COCOeval(cocoGt, cocoDt, annType[2])
             cocoEval.evaluate()
             cocoEval.accumulate()
             redirect_string = io.StringIO()
