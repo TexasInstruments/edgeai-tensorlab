@@ -213,6 +213,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':47.1})
         ),
+
         #################################################################
         #       MXNET MODELS
         #################################################################

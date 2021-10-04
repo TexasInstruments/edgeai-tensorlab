@@ -85,6 +85,11 @@ class PostProcessTransforms:
     def get_transform_detection_yolov5_onnx(self, formatter=None, **kwargs):
         return self.get_transform_detection_base(formatter=formatter, reshape_list=[(-1,6)], **kwargs)
 
+    def get_transform_detection_tv_onnx(self, formatter=DetectionBoxSL2BoxLS(), reshape_list=[(-1,4), (-1,1), (-1,1)],
+            squeeze_axis=None, normalized_detections=False, **kwargs):
+        return self.get_transform_detection_base(reshape_list=reshape_list, formatter=formatter,
+            squeeze_axis=squeeze_axis, normalized_detections=normalized_detections, **kwargs)
+
     def get_transform_detection_tflite(self, formatter=DetectionYXYX2XYXY(), **kwargs):
         return self.get_transform_detection_base(formatter=formatter, **kwargs)
 
