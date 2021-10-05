@@ -17,23 +17,29 @@ class PointPillarsScatter(nn.Module):
         output_shape (list[int]): Required output shape of features.
     """
 
-    def __init__(self, in_channels, output_shape):
+    def __init__(self, in_channels, output_shape, use_scatter_op = False):
         super().__init__()
         self.output_shape = output_shape
         self.ny = output_shape[0]
         self.nx = output_shape[1]
         self.in_channels = in_channels
         self.fp16_enabled = False
+        self.use_scatter_op = use_scatter_op
 
     @auto_fp16(apply_to=('voxel_features', ))
-    def forward(self, voxel_features, coors, batch_size=None):
+    def forward(self, voxel_features, coors, batch_size=None, data=None):
         """Foraward function to scatter features."""
         # TODO: rewrite the function in a batch manner
         # no need to deal with different batch cases
-        if batch_size is not None:
-            return self.forward_batch(voxel_features, coors, batch_size)
+        #coors = torch.zeros(voxel_features.shape)
+
+        if self.use_scatter_op == True and batch_size is not None and batch_size == 1:
+            return self.forward_scatter_op(voxel_features, coors, data)
         else:
-            return self.forward_single(voxel_features, coors)
+            if batch_size is not None:
+                return self.forward_batch(voxel_features, coors, batch_size)
+            else:
+                return self.forward_single(voxel_features, coors) # this flow can use scatter opertor but keeping intact original flow
 
     def forward_single(self, voxel_features, coors):
         """Scatter features of single sample.
@@ -50,14 +56,17 @@ class PointPillarsScatter(nn.Module):
             dtype=voxel_features.dtype,
             device=voxel_features.device)
 
-        indices = coors[:, 2] * self.nx + coors[:, 3]
+        # below couldbe potential bug, it should have been
+        # indices = coors[:, 2] * self.nx + coors[:, 3]
+        # since control is not coming here in pointPillars nw hence not affecting
+        indices = coors[:, 1] * self.nx + coors[:, 2]
         indices = indices.long()
         voxels = voxel_features.t()
         # Now scatter the blob back to the canvas.
         canvas[:, indices] = voxels
         # Undo the column stacking to final 4-dim tensor
         canvas = canvas.view(1, self.in_channels, self.ny, self.nx)
-        return canvas
+        return [canvas] # canvas looks like a bug
 
     def forward_batch(self, voxel_features, coors, batch_size):
         """Scatter features of single sample.
@@ -100,3 +109,39 @@ class PointPillarsScatter(nn.Module):
                                          self.nx)
 
         return batch_canvas
+
+    def forward_scatter_op(self, voxel_features, indices, data=None):
+        """Scatter features of single sample.
+
+        Args:
+            voxel_features (torch.Tensor): Voxel features in shape (N, M, C).
+            coors (torch.Tensor): Coordinates of each voxel.
+                The first column indicates the sample ID.
+        """
+        # Create the canvas for this sample
+        if data == None:
+            canvas = torch.zeros(
+                self.in_channels,
+                self.nx * self.ny,
+                dtype=voxel_features.dtype,
+                device=voxel_features.device)
+
+            # in this flow voxel is already transposed voxels = voxel_features.t()
+            # Now scatter the blob back to the canvas.
+            canvas.scatter_(1,indices,voxel_features)
+            #canvas[:, indices] = voxels
+            # Undo the column stacking to final 4-dim tensor
+            canvas = canvas.view(1, self.in_channels, self.ny, self.nx)
+            return canvas
+
+        else:
+            # in this flow voxel is already transposed voxels = voxel_features.t()
+            # Now scatter the blob back to the canvas.
+            voxel_features = voxel_features.squeeze(dim=2)
+            data.scatter_(1,indices,voxel_features)
+            #canvas[:, indices] = voxels
+            # Undo the column stacking to final 4-dim tensor
+            data = data.view(1, self.in_channels, self.ny, self.nx)
+            return data
+
+

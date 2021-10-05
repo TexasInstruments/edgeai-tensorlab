@@ -35,9 +35,46 @@ def single_gpu_test(model,
     results = []
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
+    dump_txt_op = False
+    read_txt_op = False
     for i, data in enumerate(data_loader):
         with torch.no_grad():
             result = model(return_loss=False, rescale=True, **data)
+
+        if dump_txt_op:
+            img_metas = data['img_metas'][0].data[0][0]
+            file_name = osp.split(img_metas['pts_filename'])[1]
+            f = open(file_name+'.txt','w')
+            for score, label, det_tensor in zip(result[0]['scores_3d'], result[0]['labels_3d'],result[0]['boxes_3d'].tensor):
+                f.write("{:3d} ".format(label))
+                f.write("{:.4f} ".format(score))
+                f.write("{:.4f} {:.4f} {:.4f} ".format(det_tensor[0],det_tensor[1],det_tensor[2]))
+                f.write("{:.4f} {:.4f} {:.4f} ".format(det_tensor[3],det_tensor[4],det_tensor[5]))
+                f.write("{:.4f}".format(det_tensor[6]))
+                f.write("\n");
+            f.close()
+
+        if read_txt_op:
+            img_metas = data['img_metas'][0].data[0][0]
+            file_name = osp.split(img_metas['pts_filename'])[1]
+            file_name = osp.join('/user/a0393749/deepak_files/ti/c7x-mma-tidl/ti_dl/test/testvecs/output',file_name)
+            f = open(file_name+'.txt','r')
+            lines = f.readlines()
+            det_tensor = torch.empty((len(lines),7), dtype=torch.float32, device = 'cpu')
+
+            result[0]['scores_3d'] = torch.empty((len(lines)), dtype=torch.float32, device = 'cpu')
+            result[0]['labels_3d'] = torch.empty((len(lines)), dtype=torch.float32, device = 'cpu')
+            result[0]['boxes_3d']  = img_metas['box_type_3d'](det_tensor, box_dim=7)
+
+            for i, line in enumerate(lines):
+                det = line.strip().split()
+                result[0]['labels_3d'][i] = float(det[0])
+                result[0]['scores_3d'][i] = float(det[1])
+                for j in range(7):
+                    det_tensor[i][j] = float(det[j+2])
+            result[0]['boxes_3d'] = img_metas['box_type_3d'](det_tensor, box_dim=7)
+
+            f.close()
 
         if show:
             # Visualize the results of MMDetection3D model

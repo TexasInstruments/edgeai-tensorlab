@@ -8,6 +8,8 @@ from mmdet3d.core import bbox3d2result, merge_aug_bboxes_3d
 from .. import builder
 from ..builder import DETECTORS
 from .single_stage import SingleStage3DDetector
+import os
+import numpy as np
 
 
 @DETECTORS.register_module()
@@ -40,12 +42,68 @@ class VoxelNet(SingleStage3DDetector):
     def extract_feat(self, points, img_metas=None):
         """Extract features from points."""
         voxels, num_points, coors = self.voxelize(points)
-        voxel_features = self.voxel_encoder(voxels, num_points, coors)
+
+        if os.path.split(img_metas[0]['pts_filename'])[1] == '00000x.bin':
+            dump_voxel          = True
+            dump_voxel_feature  = True
+            dump_middle_encoder = True
+            dump_backbone       = True
+            dump_neck           = True
+            dump_raw_voxel_feat = True
+        else:
+            dump_voxel          = False
+            dump_voxel_feature  = False
+            dump_middle_encoder = False
+            dump_backbone       = False
+            dump_neck           = False
+            dump_raw_voxel_feat = False
+
+        if dump_voxel == True:
+            dumpTensor('voxel_data.txt',voxels,32.0)
+
+        voxel_features = self.voxel_encoder(voxels, num_points, coors, dump_raw_voxel_feat)
+
+        # avoid using scatter operator when multiple frame inputs are used i.e. batch_size >1
         batch_size = coors[-1, 0].item() + 1
+
+        if dump_voxel_feature == True:
+            dumpTensor('voxel_features.txt',voxel_features)
+
+        scatter_op_flow = False
+
+        if self.middle_encoder.use_scatter_op == True and batch_size == 1:
+            # use the scatter operator only in this flow
+            coors = coors[:, 2] * self.middle_encoder.nx + coors[:, 3]
+            coors = coors.long()
+            coors = coors.repeat(self.middle_encoder.in_channels,1)
+            scatter_op_flow = True
+
+        if (scatter_op_flow == False) and (self.voxel_encoder.pfn_layers.replace_mat_mul == True):
+
+            # in this scenario voxel_features is generated in 64xP format favourable to scatter operator
+            # hence putting back the voxel_feature in default format
+            voxel_features = voxel_features.t()
+
         x = self.middle_encoder(voxel_features, coors, batch_size)
+
+
+
+        if dump_middle_encoder == True:
+            dumpTensor('middle_encoder.txt',x[0])
+
         x = self.backbone(x)
+
+        if dump_backbone == True:
+            dumpTensor("backbone_0.txt",x[0][0])
+            dumpTensor("backbone_1.txt",x[1][0])
+            dumpTensor("backbone_2.txt",x[2][0])
+
         if self.with_neck:
             x = self.neck(x)
+
+        if dump_neck == True:
+            dumpTensor("neck.txt",x[0][0])
+
         return x
 
     @torch.no_grad()
@@ -97,8 +155,31 @@ class VoxelNet(SingleStage3DDetector):
 
     def simple_test(self, points, img_metas, imgs=None, rescale=False):
         """Test function without augmentaiton."""
+
+        save_raw_point_data = False
+
+        import numpy as np
+        import os
+
+        if save_raw_point_data == True:
+            np_arr = points[0].cpu().detach().numpy()
+            base_file_name = os.path.split(img_metas[0]['pts_filename'])
+            dst_dir = '/data/adas_vision_data1/datasets/other/vision/common/kitti/training/velodyne_reduced_custom_point_pillars'
+            np_arr.tofile(os.path.join(dst_dir,base_file_name[1]))
+
         x = self.extract_feat(points, img_metas)
         outs = self.bbox_head(x)
+
+        if os.path.split(img_metas[0]['pts_filename'])[1] == '00000x.bin':
+            dump_bbox_head = True
+        else:
+            dump_bbox_head = False
+
+        if dump_bbox_head == True:
+            dumpTensor('conf.txt',outs[0][0][0])
+            dumpTensor('loc.txt',outs[1][0][0])
+            dumpTensor('dir.txt',outs[2][0][0])
+
         bbox_list = self.bbox_head.get_bboxes(
             *outs, img_metas, rescale=rescale)
         bbox_results = [
@@ -128,3 +209,17 @@ class VoxelNet(SingleStage3DDetector):
                                             self.bbox_head.test_cfg)
 
         return [merged_bboxes]
+
+def dumpTensor(filleName, x, scale_fact=1.0):
+    x_np = x.cpu().detach().numpy()
+
+    if len(x_np.shape) == 2:
+        x_np = np.expand_dims(x_np, axis=0)
+
+    f = open(filleName,'w')
+    for c, x_ch in  enumerate(x_np):
+        for i, x_i in enumerate(x_ch):
+            for j, pt in enumerate(x_i):
+                f.write("{:.2f} ".format(pt*scale_fact))
+            f.write("\n");
+    f.close()

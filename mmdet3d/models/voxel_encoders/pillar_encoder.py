@@ -45,6 +45,8 @@ class PillarFeatureNet(nn.Module):
                  with_voxel_center=True,
                  voxel_size=(0.2, 0.2, 4),
                  point_cloud_range=(0, -40, -3, 70.4, 40, 1),
+                 replace_mat_mul=False,
+                 feat_scale_fact=1.0,
                  norm_cfg=dict(type='BN1d', eps=1e-3, momentum=0.01),
                  mode='max',
                  legacy=True):
@@ -78,9 +80,10 @@ class PillarFeatureNet(nn.Module):
                     out_filters,
                     norm_cfg=norm_cfg,
                     last_layer=last_layer,
+                    replace_mat_mul = replace_mat_mul,
                     mode=mode))
         self.pfn_layers = nn.ModuleList(pfn_layers)
-
+        self.pfn_layers.replace_mat_mul = replace_mat_mul
         # Need pillar (voxel) size and x/y offset in order to calculate offset
         self.vx = voxel_size[0]
         self.vy = voxel_size[1]
@@ -89,9 +92,10 @@ class PillarFeatureNet(nn.Module):
         self.y_offset = self.vy / 2 + point_cloud_range[1]
         self.z_offset = self.vz / 2 + point_cloud_range[2]
         self.point_cloud_range = point_cloud_range
+        self.feat_scale_fact   = feat_scale_fact # features are scaled by this value
 
     @force_fp32(out_fp16=True)
-    def forward(self, features, num_points, coors):
+    def forward(self, features, num_points, coors, dump_raw_voxel_feat=False):
         """Forward function.
 
         Args:
@@ -152,6 +156,37 @@ class PillarFeatureNet(nn.Module):
         mask = get_paddings_indicator(num_points, voxel_count, axis=0)
         mask = torch.unsqueeze(mask, -1).type_as(features)
         features *= mask
+
+        #  kind of quantizing the feature vectors
+        features = features*self.feat_scale_fact
+        features = features.to(torch.int32)
+        features = features.to(torch.float32)
+
+        if dump_raw_voxel_feat == True:
+            f = open("voxel_raw_features.txt",'w')
+            features_np = features.cpu().detach().numpy()
+            for i, voxel_ft in  enumerate(features_np):
+                f.write("voxel no {} \n".format(i))
+                for j in range(32):
+                    f.write(" {:.2f} {:.2f} {:.2f} ".format(voxel_ft[j][0],voxel_ft[j][1],voxel_ft[j][2]))
+                    f.write(" {:.2f} {:.2f} {:.2f} ".format(voxel_ft[j][3],voxel_ft[j][4],voxel_ft[j][5]))
+                    f.write(" {:.2f} {:.2f} {:.2f} \n".format(voxel_ft[j][6],voxel_ft[j][7],voxel_ft[j][8]))
+
+            f.close()
+
+        if dump_raw_voxel_feat == True:
+            inputs = features.permute(2,1,0)
+            inputs = inputs.unsqueeze(0)
+            x = self.pfn_layers._modules['0'].linear(inputs)
+            f = open("mlp.txt",'w')
+            x_np = x.cpu().detach().numpy()
+            for c, x_ch in  enumerate(x_np):
+                for i, x_i in enumerate(x_ch):
+                    for j, pt_w in enumerate(x_i):
+                        for j, pt in enumerate(pt_w):
+                            f.write("{:.2f} ".format(pt))
+                        f.write("\n");
+            f.close
 
         for pfn in self.pfn_layers:
             features = pfn(features, num_points)

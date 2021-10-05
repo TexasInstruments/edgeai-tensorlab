@@ -32,6 +32,29 @@ try:
 except ImportError:
     from mmdet3d.utils import compat_cfg
 
+class CombinedModel(torch.nn.Module):
+
+    def __init__(self, pfn_layers, middle_encoder, backbone, neck, conv_cls, conv_dir_cls,conv_reg):
+        super().__init__()
+        self.pfn_layers     = pfn_layers
+        self.middle_encoder = middle_encoder
+        self.backbone       = backbone
+        self.neck           = neck
+        self.conv_cls       = conv_cls
+        self.conv_dir_cls   = conv_dir_cls
+        self.conv_reg       = conv_reg
+
+    def forward(self, raw_voxel_feat, coors, data):
+
+        x = self.pfn_layers(raw_voxel_feat)
+        x = self.middle_encoder(x,coors,1,data)
+        x = self.backbone(x)
+        x = self.neck(x)
+        y0= self.conv_cls(x[0])
+        y1= self.conv_dir_cls(x[0])
+        y2= self.conv_reg(x[0])
+
+        return y0,y1,y2
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -206,16 +229,23 @@ def main():
     # build the model and load checkpoint
     cfg.model.train_cfg = None
     model = build_model(cfg.model, test_cfg=cfg.get('test_cfg'))
+
     fp16_cfg = cfg.get('fp16', None)
     if fp16_cfg is not None:
         wrap_fp16_model(model)
     checkpoint = load_checkpoint(model, args.checkpoint, map_location='cpu')
     if args.fuse_conv_bn:
         model = fuse_conv_bn(model)
+
+    save_onnx_model = False
+
+    if save_onnx_model == True:
+        save_model(model)
+
     # old versions did not save class info in checkpoints, this walkaround is
     # for backward compatibility
     if 'CLASSES' in checkpoint.get('meta', {}):
-        model.CLASSES = checkpoint['meta']['CLASSES']
+         model.CLASSES = checkpoint['meta']['CLASSES']
     else:
         model.CLASSES = dataset.CLASSES
     # palette for visualization in segmentation tasks
@@ -254,6 +284,29 @@ def main():
                 eval_kwargs.pop(key, None)
             eval_kwargs.update(dict(metric=args.eval, **kwargs))
             print(dataset.evaluate(outputs, **eval_kwargs))
+
+def save_model(model, save_onnx_model=True):
+    combined_model = CombinedModel(model.voxel_encoder.pfn_layers._modules['0'],
+                                    model.middle_encoder,
+                                    model.backbone,
+                                    model.neck,
+                                    model.bbox_head.conv_cls,
+                                    model.bbox_head.conv_dir_cls,
+                                    model.bbox_head.conv_reg
+                                    )
+
+    ## Need to parameterized the contants in below three tensors
+    max_num_3d_points = 20000
+    raw_voxel_feat = torch.ones(max_num_3d_points, 32, 9)
+    data = torch.zeros(1, 64, 496*432)
+    coors = torch.ones(1, 64, max_num_3d_points)
+    coors = coors.long()
+
+    torch.onnx.export(combined_model,
+            (raw_voxel_feat,coors,data),
+            "combined_model.onnx",
+            opset_version=11,
+            verbose=False)
 
 
 if __name__ == '__main__':
