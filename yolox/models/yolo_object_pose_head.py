@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from yolox.utils import bboxes_iou
+from yolox.utils import bboxes_iou, calculate_model_rotation, load_models
 
 from .losses import IOUloss
 from .network_blocks import BaseConv, DWConv
@@ -41,6 +41,8 @@ class YOLOXObjectPoseHead(nn.Module):
         self.n_anchors = 1
         self.num_classes = num_classes
         self.decode_in_inference = True  # for deploy, set to False
+
+        self.models = load_models(models_datapath="/home/a0492969/datasets/Linemod_preprocessed/models")
 
         self.cls_convs = nn.ModuleList()
         self.reg_convs = nn.ModuleList()
@@ -231,10 +233,10 @@ class YOLOXObjectPoseHead(nn.Module):
             obj_output = self.obj_preds[k](reg_feat)
 
             rot_feat = rot_conv(rot_x)  #NEW
-            rot_output = (self.rot_preds[k](rot_feat)).clamp(0, 1)
+            rot_output = self.rot_preds[k](rot_feat)
             
             trn_feat = trn_conv(trn_x)  #NEW
-            trn_output = (self.trn_preds[k](trn_feat)).clamp(0, 1)
+            trn_output = self.trn_preds[k](trn_feat)
 
             if self.training:
                 output = torch.cat([reg_output, obj_output, rot_output, trn_output, cls_output], 1)
@@ -490,11 +492,21 @@ class YOLOXObjectPoseHead(nn.Module):
                 cls_preds.view(-1, self.num_classes)[fg_masks], cls_targets
             )
         ).sum() / num_fg
-        loss_rot = 1.0 * (
-            self.mse_loss(
-                rot_preds.view(-1, 3)[fg_masks], rot_targets #% (2 * math.pi), rot_targets
+        loss_rot = 0
+        for i, (rot_pred, rot_gt) in enumerate(zip(rot_preds.view(-1, 3)[fg_masks], rot_targets)):
+            obj_class = int(torch.argmax(cls_targets[i]))
+            loss_rot += 0.1 * (
+                self.mse_loss(
+                    calculate_model_rotation(self.models[obj_class], rot_pred),
+                    calculate_model_rotation(self.models[obj_class], rot_gt)
+                ).sum() / (int(self.models[obj_class].shape[0]) * num_fg) #int(self.models[obj_class].shape[0])
             )
-        ).sum() / num_fg
+        #loss_rot /= num_fg
+        #loss_rot = (
+        #    self.mse_loss(
+        #        rot_preds.view(-1, 3)[fg_masks]% (2 * math.pi), rot_targets
+        #    )
+        #).sum() / num_fg
         #print(trn_targets.max())
         #print(trn_preds.view(-1, 3)[fg_masks].shape)
         #print(trn_targets.shape)
@@ -502,11 +514,11 @@ class YOLOXObjectPoseHead(nn.Module):
         #print(trn_preds.view(-1, 3)[fg_masks].max())
         #print(trn_targets.min())
         
-        loss_trn = 0.0001 * (
+        loss_trn = 0 * (
             self.mse_loss(
                 trn_preds.view(-1, 3)[fg_masks], trn_targets
             )
-        ).sum() / num_fg
+        ).sum() / (num_fg * trn_targets.norm(dim=1).sum())
 
         #dummy_input = torch.randn(rot_targets.shape[0], rot_targets.shape[1], requires_grad=True)
         #dummy_target

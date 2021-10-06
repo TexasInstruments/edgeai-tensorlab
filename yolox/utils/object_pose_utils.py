@@ -1,7 +1,12 @@
-import cv2
+import torch
 import numpy as np
-from torch import is_tensor
+from os import path
+from plyfile import PlyData
+from loguru import logger
+from math import cos, sin
+from .dist import get_local_rank
 
+class_to_name = {0: "ape", 1: "can", 2: "cat", 3: "driller", 4: "duck", 5: "eggbox", 6: "glue", 7: "holepuncher", 8: "benchvise", 9: "bowl", 10: "cup", 11: "iron", 12: "lamp", 13: "phone", 14: "cam"}
 class_to_cuboid = [
     np.array([[-37.9343, -38.7996, 45.8845], [-37.9343, 38.7996, 45.8845], [37.9343, 38.7996, 45.8845], [37.9343, -38.7996, 45.8845],
     [-37.9343, -38.7996, -45.8845], [-37.9343, 38.7996, -45.8845], [37.9343, 38.7996, -45.8845], [37.9343, -38.7996, -45.8845]]),
@@ -34,89 +39,48 @@ class_to_cuboid = [
     np.array([[-46.9591, -73.7167, 92.3737], [-46.9591, 73.7167, 92.3737], [46.9591, 73.7167, 92.3737], [46.9591, -73.7167, 92.3737],
     [-46.9591, -73.7167, -92.3737], [-46.9591, 73.7167, -92.3737], [46.9591, 73.7167, -92.3737], [46.9591, -73.7167, -92.3737]])
 ]
-camera_matrix = np.array([572.4114, 0.0, 325.2611, 0.0, 573.57043, 242.04899, 0.0, 0.0, 1.0])
-colours = [(255, 0, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (0, 125, 255), 
-(0, 255, 125), (125, 0, 255), (255, 0, 125), (125, 255, 0), (255, 125, 0), (125, 255, 255), (255, 125, 255),
-(255, 255, 125), (255, 255, 255)]
 
-def draw_cuboid_2d(img, cuboid_corners, colour = (0, 255, 0), thickness = 2):
-    box = np.copy(cuboid_corners).astype(np.int32)
+def calculate_model_rotation(point_cloud, rvec):
+    #rvec = rvec.cpu()
+    point_cloud = point_cloud.to(device="cuda:{}".format(get_local_rank()))
+    theta = float(rvec.norm(dim = 0))
+    if theta != 0:
+        k = rvec / theta
+    else:
+        k = 0 * rvec
+    rows = int(point_cloud.shape[0])
+    k_cross = torch.tensor([]).to(device="cuda:{}".format(get_local_rank()))
+    for _ in range(rows):
+        k_cross = torch.cat((k_cross, k))
+    k_cross = k_cross.reshape(rows, 3)
+    k = k.reshape(1, 3)
 
-    #upper level
-    cv2.line(img, box[0], box[1], colour, thickness)
-    cv2.line(img, box[1], box[2], colour, thickness)
-    cv2.line(img, box[2], box[3], colour, thickness)
-    cv2.line(img, box[0], box[3], colour, thickness)
-    #lower level
-    cv2.line(img, box[4], box[5], colour, thickness)
-    cv2.line(img, box[5], box[6], colour, thickness)
-    cv2.line(img, box[6], box[7], colour, thickness)
-    cv2.line(img, box[4], box[7], colour, thickness)
-    #sides
-    cv2.line(img, box[0], box[4], colour, thickness)
-    cv2.line(img, box[1], box[5], colour, thickness)
-    cv2.line(img, box[2], box[6], colour, thickness)
-    cv2.line(img, box[3], box[7], colour, thickness)
+    points_transformed = point_cloud * cos(theta) + torch.cross(k_cross, point_cloud) * sin(theta) + k_cross * torch.mm(point_cloud, k.transpose(0, 1)) * (1 - cos(theta))
+    return points_transformed
 
-def project_cuboid(cuboid_corners, rotation_vec, translation_vec, camera_matrix):
-   cuboid_corners_2d, _ = cv2.projectPoints(
-       objectPoints=cuboid_corners,
-       rvec=rotation_vec,
-       tvec=translation_vec,
-       cameraMatrix=camera_matrix.reshape((3,3)),
-       distCoeffs=None
-    ) 
-   cuboid_corners_2d = np.squeeze(cuboid_corners_2d)
+def load_models(models_datapath, class_to_name=class_to_name):
+    class_to_model = {class_id: None for class_id in class_to_name.keys()}
+    logger.info("Loading 3D models...")
 
-   return cuboid_corners_2d
+    for class_id, name in class_to_name.items():
+        file = "obj_{:02}.ply".format(class_id + 1)
+        model_datapath = path.join(models_datapath, file)
 
-def draw_predictions(img, predictions, num_classes, class_to_cuboid=class_to_cuboid, camera_matrix=camera_matrix, colours=colours, conf = 0.5):
- 
-    if is_tensor(predictions):
-        predictions = predictions.cpu()
-        predictions = predictions.numpy()
-   
-    for prediction in predictions:
-        if prediction[4]*prediction[-2] < conf:
+        if not path.isfile(model_datapath):
+            logger.warning(
+                "The file {} model for class {} was not found".format(file, name)
+            )
             continue
-        obj_class = int(prediction[-1])
-        colour = colours[obj_class]
-        rotation_vec = prediction[5:8].astype(np.float64)
-        translation_vec = prediction[8:11].astype(np.float64)
 
-        cuboid_corners_2d = project_cuboid(
-            cuboid_corners=class_to_cuboid[obj_class],
-            rotation_vec=rotation_vec,
-            translation_vec=translation_vec,
-            camera_matrix=camera_matrix
-        )
+        model_3D = load_model_point_cloud(model_datapath)
+        class_to_model[class_id] = torch.from_numpy(model_3D).half()
 
-        draw_cuboid_2d(
-            img=img,
-            cuboid_corners=cuboid_corners_2d,
-            colour=colour
-        )
+    return class_to_model 
 
-def draw_ground_truths(img, ground_truths, class_to_cuboid=class_to_cuboid, camera_matrix=camera_matrix, colour=(0, 255, 0)):
-    if is_tensor(ground_truths):
-        ground_truths = ground_truths.numpy()
-
-    for ground_truth in ground_truths:
-        for obj in ground_truth:
-            obj_class = obj[4] - 1
-            rotation_vec = obj[5:8]
-            translation_vec = obj[8:11]
-            colour = colour
-
-            cuboid_corners_2d = project_cuboid(
-                cuboid_corners=class_to_cuboid[int(obj_class)],
-                rotation_vec=rotation_vec,
-                translation_vec=translation_vec,
-                camera_matrix=camera_matrix
-            )
-
-            draw_cuboid_2d(
-                img=img,
-                cuboid_corners=cuboid_corners_2d,
-                colour=colour
-            )
+def load_model_point_cloud(datapath):
+    model = PlyData.read(datapath)
+                                  
+    vertex = model['vertex']
+    points = np.stack([vertex[:]['x'], vertex[:]['y'], vertex[:]['z']], axis = -1).astype(np.float64)
+        
+    return points

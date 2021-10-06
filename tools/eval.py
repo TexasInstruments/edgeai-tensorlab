@@ -124,6 +124,13 @@ def make_parser():
         action="store_false",
         help="Set loading checkpoint to not strict"
     )
+    parser.add_argument(
+        "--visualize",
+        dest="visualize",
+        default=False,
+        action="store_true",
+        help="Draw bounding cuboids to visualize pose"
+    )
     return parser
 
 
@@ -173,6 +180,8 @@ def main(exp, args, num_gpu):
         exp.nmsthre = args.nms
     if args.tsize is not None:
         exp.test_size = (args.tsize, args.tsize)
+    if args.visualize:
+        exp.visualize = args.visualize
 
     model = exp.get_model()
     logger.info("Model Summary: {}".format(get_model_info(model, exp.test_size)))

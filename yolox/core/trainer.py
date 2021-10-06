@@ -202,9 +202,9 @@ class Trainer:
     def after_epoch(self):
         self.save_ckpt(ckpt_name="latest")
 
-        #if (self.epoch + 1) % self.exp.eval_interval == 0:
-        #    all_reduce_norm(self.model)
-        #    self.evaluate_and_save_model()
+        if (self.epoch + 1) % self.exp.eval_interval == 0:
+            all_reduce_norm(self.model)
+            self.evaluate_and_save_model()
 
     def before_iter(self):
         pass

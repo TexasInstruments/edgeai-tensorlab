@@ -69,7 +69,8 @@ class Exp(BaseExp):
         self.test_conf = 0.01
         self.nmsthre = 0.65
         self.data_set = "coco"
-        self.object_pose  = False
+        self.object_pose = False
+        self.visualize = False
 
     def get_model(self):
         from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead, YOLOXObjectPoseHead
@@ -273,7 +274,7 @@ class Exp(BaseExp):
                 json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
                 name="test", #if not testdev else "test2017",
                 img_size=self.test_size,
-                preproc=ValTransform(legacy=legacy),
+                preproc=ValTransform(legacy=legacy, visualize=self.visualize),
                 object_pose=self.object_pose 
             )
 
@@ -291,6 +292,8 @@ class Exp(BaseExp):
             "sampler": sampler,
         }
         dataloader_kwargs["batch_size"] = batch_size
+        if self.visualize:
+            dataloader_kwargs["batch_size"] = 1
         val_loader = torch.utils.data.DataLoader(valdataset, **dataloader_kwargs)
 
         return val_loader

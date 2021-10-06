@@ -26,7 +26,7 @@ class Exp(MyExp):
         # --------------- transform config ----------------- #
         self.mosaic_prob = 0.0
         self.mixup_prob = 0.0
-        self.hsv_prob = 1.0
+        self.hsv_prob = 0.0
         self.flip_prob = 0.0
         self.degrees = 10.0
         self.translate = 0.1
@@ -34,7 +34,7 @@ class Exp(MyExp):
         self.mixup_scale = (0.5, 1.5)
         self.shear = 2.0
         self.perspective = 0.0
-        self.enable_mixup = True
+        self.enable_mixup = False
 
         # -----------------  testing config ------------------ #
         self.test_size = (640, 640)
@@ -141,7 +141,7 @@ class Exp(MyExp):
 
             return train_loader
 
-    def get_evaluator(self, batch_size, is_distributed, testdev=False, legacy=False):
+    def get_evaluator(self, batch_size, is_distributed, testdev=False, legacy=False, visualize=False):
             from yolox.evaluators import ObjectPoseEvaluator
 
             val_loader = self.get_eval_loader(batch_size, is_distributed, testdev, legacy)
@@ -151,7 +151,8 @@ class Exp(MyExp):
                 confthre=self.test_conf,
                 nmsthre=self.nmsthre,
                 num_classes=self.num_classes,
-                testdev=testdev,  
+                testdev=testdev,
+                visualize=self.visualize  
                 )
 
             return evaluator

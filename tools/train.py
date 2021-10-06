@@ -108,6 +108,13 @@ def make_parser():
         help="occupy GPU memory first for training.",
     )
     parser.add_argument(
+        "--visualize",
+        dest="visualize",
+        default=False,
+        action="store_true",
+        help="Enable drawing of bounding cuboid"
+    )
+    parser.add_argument(
         "opts",
         help="Modify config options using the command-line",
         default=None,
@@ -150,6 +157,9 @@ def main(exp, args):
                 #exp.pose = True if args.task == "6dpose" else exp.pose = False
                 if args.task == "6dpose":
                     exp.object_pose = True
+
+        if args.visualize:
+            exp.visualize = args.visualize
 
     trainer = Trainer(exp, args)
     trainer.train()
