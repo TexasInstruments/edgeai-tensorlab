@@ -58,6 +58,7 @@ def random_perspective(
     shear=10,
     perspective=0.0,
     border=(0, 0),
+    human_pose=False,
 ):
     # targets = [cls, xyxy]
     height = img.shape[0] + border[0] * 2  # shape(h,w,c)
@@ -132,20 +133,45 @@ def random_perspective(
         xy[:, [0, 2]] = xy[:, [0, 2]].clip(0, width)
         xy[:, [1, 3]] = xy[:, [1, 3]].clip(0, height)
 
+
+        if human_pose:
+            xy_kpts = np.ones((n * 17, 3))
+            xy_kpts[:, :2] = targets[:, 5:].reshape(n * 17, 2)  # num_kpt is hardcoded to 17
+            xy_kpts = xy_kpts @ M.T  # transform
+            xy_kpts = (xy_kpts[:, :2] / xy_kpts[:, 2:3] if perspective else xy_kpts[:, :2]).reshape(n,
+                                                                                                    34)  # perspective rescale or affine
+            xy_kpts[targets[:, 5:] == 0] = 0
+            x_kpts = xy_kpts[:, list(range(0, 34, 2))]
+            y_kpts = xy_kpts[:, list(range(1, 34, 2))]
+
+            x_kpts[np.logical_or.reduce((x_kpts < 0, x_kpts > width, y_kpts < 0, y_kpts > height))] = 0
+            y_kpts[np.logical_or.reduce((x_kpts < 0, x_kpts > width, y_kpts < 0, y_kpts > height))] = 0
+            xy_kpts[:, list(range(0, 34, 2))] = x_kpts
+            xy_kpts[:, list(range(1, 34, 2))] = y_kpts
+
         # filter candidates
         i = box_candidates(box1=targets[:, :4].T * s, box2=xy.T)
         targets = targets[i]
         targets[:, :4] = xy[i]
+        if human_pose:
+            targets[:, 5:] = xy_kpts[i]
 
     return img, targets
 
 
-def _mirror(image, boxes, prob=0.5):
+def _mirror(image, boxes, prob=0.5, human_pose=False, human_kpts=None, flip_index=None):
     _, width, _ = image.shape
     if random.random() < prob:
         image = image[:, ::-1]
         boxes[:, 0::2] = width - boxes[:, 2::-2]
-    return image, boxes
+        if human_pose:
+            human_kpts[:, 0::2] = (width - human_kpts[:, 0::2])*(human_kpts[:, 0::2]!=0)
+            human_kpts[:, 0::2] = human_kpts[:, 0::2][:, flip_index]
+            human_kpts[:, 1::2] = human_kpts[:, 1::2][:, flip_index]
+    if human_pose:
+        return image, boxes, human_kpts
+    else:
+        return image, boxes
 
 
 def preproc(img, input_size, swap=(2, 0, 1)):
@@ -168,14 +194,17 @@ def preproc(img, input_size, swap=(2, 0, 1)):
 
 
 class TrainTransform:
-    def __init__(self, max_labels=50, flip_prob=0.5, hsv_prob=1.0, object_pose = False):
+    def __init__(self, max_labels=50, flip_prob=0.5, hsv_prob=1.0, object_pose = False, human_pose=False, flip_index=None):
         self.max_labels = max_labels
         self.flip_prob = flip_prob
         self.hsv_prob = hsv_prob
         self.object_pose = object_pose
-        
+        self.human_pose = human_pose
+        self.flip_index = flip_index
         if self.object_pose:
             self.target_size = 11
+        elif self.human_pose:
+            self.target_size = 39  # 5+ 2*17
         else:
             self.target_size = 5
 
@@ -184,6 +213,10 @@ class TrainTransform:
         labels = targets[:, 4].copy()
         if self.object_pose:
             object_poses = targets[:, 5:11].copy()
+        if self.human_pose:
+            human_kpts = targets[:, 5:].copy()
+        else:
+            human_kpts = None
         if len(boxes) == 0:
             targets = np.zeros((self.max_labels, self.target_size), dtype=np.float32)
             image, r_o = preproc(image, input_dim)
@@ -196,23 +229,35 @@ class TrainTransform:
         labels_o = targets_o[:, 4]
         if self.object_pose:
             object_poses_o = targets_o[:, 5:11]
+        elif self.human_pose:
+            human_kpts_o = targets_o[:, 5:]
         # bbox_o: [xyxy] to [c_x,c_y,w,h]
         boxes_o = xyxy2cxcywh(boxes_o)
 
         if random.random() < self.hsv_prob:
             augment_hsv(image)
-        image_t, boxes = _mirror(image, boxes, self.flip_prob)
+
+        if self.human_pose:
+            image_t, boxes, human_kpts = _mirror(image, boxes, self.flip_prob, human_pose=self.human_pose, human_kpts=human_kpts, flip_index=self.flip_index)
+        else:
+            image_t, boxes = _mirror(image, boxes, self.flip_prob)
+
         height, width, _ = image_t.shape
         image_t, r_ = preproc(image_t, input_dim)
         # boxes [xyxy] 2 [cx,cy,w,h]
         boxes = xyxy2cxcywh(boxes)
         boxes *= r_
+        if self.human_pose:
+            human_kpts *= r_
+
 
         mask_b = np.minimum(boxes[:, 2], boxes[:, 3]) > 1
         boxes_t = boxes[mask_b]
         labels_t = labels[mask_b]
         if self.object_pose:
             object_poses_t = object_poses[mask_b]
+        elif self.human_pose:
+            human_kpts_t = human_kpts[mask_b]
 
         if len(boxes_t) == 0:
             image_t, r_o = preproc(image_o, input_dim)
@@ -221,11 +266,16 @@ class TrainTransform:
             labels_t = labels_o
             if self.object_pose:
                 object_poses_t = object_poses_o
+            elif self.human_pose:
+                human_kpts_t = human_kpts_o
+                human_kpts_t *= r_o
 
         labels_t = np.expand_dims(labels_t, 1)
 
         if self.object_pose:
             targets_t = np.hstack((labels_t, boxes_t, object_poses_t))
+        elif self.human_pose:
+            targets_t = np.hstack((labels_t, boxes_t, human_kpts_t))
         else:
             targets_t = np.hstack((labels_t, boxes_t))
         padded_labels = np.zeros((self.max_labels, self.target_size))

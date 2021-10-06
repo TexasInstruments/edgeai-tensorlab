@@ -15,26 +15,22 @@ from yolox.core import Trainer, launch
 from yolox.exp import get_exp
 from yolox.utils import configure_nccl, configure_omp, get_num_devices
 
-#torch.manual_seed(123)
-#torch.cuda.manual_seed(123)
-#np.random.seed(123)
-#random.seed(123)
-#torch.backends.cudnn.enabled=False
-#torch.backends.cudnn.deterministic=True
-
-_SUPPORTED_DATASETS = ["coco", "linemod"]
-_NUM_CLASSES = {"coco":80, "linemod":15}
+_SUPPORTED_DATASETS = ["coco", "linemod", "coco_kpts"]
+_NUM_CLASSES = {"coco":80, "linemod":15, "coco_kpts":1}
 _VAL_ANN = {
     "coco":"instances_val2017.json", 
-    "linemod":"instances_test.json"
+    "linemod":"instances_test.json",
+    "coco_kpts": "person_keypoints_val2017.json",
 }
 _TRAIN_ANN = {
     "coco":"instances_train2017.json", 
-    "linemod":"instances_train.json"
+    "linemod":"instances_train.json",
+    "coco_kpts": "person_keypoints_train2017.json",
 }
 _SUPPORTED_TASKS = {
     "coco":["2dod"],
-    "linemod":["2dod", "6dpose"]
+    "linemod":["2dod", "6dpose"],
+    "coco_kpts": ["2dod", "human_pose"]
 }
 
 def make_parser():
@@ -64,7 +60,7 @@ def make_parser():
         "--exp_file",
         default=None,
         type=str,
-        help="plz input your expriment description file",
+        help="plz input your experiment description file",
     )
     parser.add_argument(
         "--resume", default=False, action="store_true", help="resume training"
@@ -157,6 +153,9 @@ def main(exp, args):
                 #exp.pose = True if args.task == "6dpose" else exp.pose = False
                 if args.task == "6dpose":
                     exp.object_pose = True
+            elif args.dataset=="coco_kpts":
+                if args.task == "human_pose":
+                    exp.human_pose=True
 
         if args.visualize:
             exp.visualize = args.visualize

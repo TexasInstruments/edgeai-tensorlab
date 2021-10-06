@@ -16,3 +16,4 @@ from .setup_env import *
 from .visualize import *
 from .visualize_pose import *
 from .object_pose_utils import *
+from .plots import *
