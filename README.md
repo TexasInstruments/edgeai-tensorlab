@@ -78,6 +78,21 @@ a part of the OpenMMLab project developed by [MMLab](http://mmlab.ie.cuhk.edu.hk
 
 Like [MMDetection](https://github.com/open-mmlab/mmdetection) and [MMCV](https://github.com/open-mmlab/mmcv), MMDetection3D can also be used as a library to support different projects on top of it.
 
+## TI Specific details
+- **TIDL specific changes for point pillars model**
+  - Multiple portion of model is combined into single onnx model
+  - Generic matrix multiplication is replaced with 1x1 convolution
+  - Deconvolution with stride 2 and 4 are changed to bilinear up sample layers
+  - Pseudo Image creation using “Scatter” onnx operator
+  - Flag "save_onnx_model" can be set in the file ./tools/test.py to true to save onnx model in evalution flow. @TODO this flag will be exposed through config file
+
+- **Training command**
+
+  python ./tools/train.py configs/pointpillars/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car.py --work-dir <some_dir>
+- **Evalution command**
+
+  python ./tools/test.py configs/pointpillars/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car.py <.pth file> --eval mAP --out <output_dir>
+
 ## License
 
 This project is released under the [Apache 2.0 license](LICENSE).
