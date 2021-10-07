@@ -191,7 +191,6 @@ class YOLOXHead(nn.Module):
 
             outputs.append(output)
 
-
         if self.training:
             return self.get_losses(
                 imgs,

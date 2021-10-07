@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 from torch import is_tensor
 
+#Based on code from https://github.com/ybkscht/EfficientPose/blob/main/utils/visualization.py
+
 class_to_cuboid = [
     np.array([[-37.9343, -38.7996, 45.8845], [-37.9343, 38.7996, 45.8845], [37.9343, 38.7996, 45.8845], [37.9343, -38.7996, 45.8845],
     [-37.9343, -38.7996, -45.8845], [-37.9343, 38.7996, -45.8845], [37.9343, 38.7996, -45.8845], [37.9343, -38.7996, -45.8845]]),

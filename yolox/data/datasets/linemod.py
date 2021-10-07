@@ -127,6 +127,7 @@ class LINEMODDataset(Dataset):
             y1 = np.max((0, obj["bbox"][1]))
             x2 = np.min((width, x1 + np.max((0, obj["bbox"][2]))))
             y2 = np.min((height, y1 + np.max((0, obj["bbox"][3]))))
+            #Convert the rotation matrix to angle axis format using Rodrigues formula
             #https://www.ccs.neu.edu/home/rplatt/cs5335_fall2017/slides/euler_quaternions.pdf
             if self.object_pose:    
                 obj["R_aa"], _ = cv2.Rodrigues(np.array(obj["R"]).reshape(3,3))
