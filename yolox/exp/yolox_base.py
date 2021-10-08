@@ -70,7 +70,8 @@ class Exp(BaseExp):
         self.test_conf = 0.01
         self.nmsthre = 0.65
         self.data_set = "coco"
-        self.object_pose  = False
+        self.object_pose = False
+        self.visualize = False
 
     def get_model(self):
         from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead, YOLOXObjectPoseHead
@@ -84,10 +85,7 @@ class Exp(BaseExp):
         if getattr(self, "model", None) is None:
             in_channels = [256, 512, 1024]
             backbone = YOLOPAFPN(self.depth, self.width, in_channels=in_channels)
-            if self.object_pose:
-                head = YOLOXObjectPoseHead(self.num_classes, self.width, in_channels=in_channels)
-            else:
-                head = YOLOXHead(self.num_classes, self.width, in_channels=in_channels)
+            head = YOLOXHead(self.num_classes, self.width, in_channels=in_channels)
             self.model = YOLOX(backbone, head)
 
         self.model.apply(init_yolo)
@@ -127,8 +125,6 @@ class Exp(BaseExp):
                     cache=cache_img,
                 )
             elif self.data_set == "linemod":
-               if self.object_pose:
-                   self.flip_prob = 0
                dataset = LINEMODDataset(
                     data_dir=self.data_dir,
                     json_file=self.train_ann,
@@ -142,8 +138,6 @@ class Exp(BaseExp):
                     object_pose=self.object_pose
                 ) 
 
-        if self.object_pose:
-            no_aug = True
         dataset = MosaicDetection(
             dataset,
             mosaic=not no_aug,
@@ -281,7 +275,7 @@ class Exp(BaseExp):
                 json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
                 name="test", #if not testdev else "test2017",
                 img_size=self.test_size,
-                preproc=ValTransform(legacy=legacy),
+                preproc=ValTransform(legacy=legacy, visualize=self.visualize),
                 object_pose=self.object_pose 
             )
 
@@ -299,6 +293,8 @@ class Exp(BaseExp):
             "sampler": sampler,
         }
         dataloader_kwargs["batch_size"] = batch_size
+        if self.visualize:
+            dataloader_kwargs["batch_size"] = 1
         val_loader = torch.utils.data.DataLoader(valdataset, **dataloader_kwargs)
 
         return val_loader

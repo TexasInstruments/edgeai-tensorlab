@@ -53,10 +53,8 @@ class LINEMODDataset(Dataset):
         self.imgs = None
         self.name = name
         self.img_size = img_size
-        if not self.object_pose:   #Temporary fix, might have to make new class to replace TrainTransform 
+        if preproc is not None:
             self.preproc = preproc
-        else:
-            self.preproc = None
         self.annotations = self._load_coco_annotations()
         if cache:
             self._cache_images()
@@ -129,31 +127,11 @@ class LINEMODDataset(Dataset):
             y1 = np.max((0, obj["bbox"][1]))
             x2 = np.min((width, x1 + np.max((0, obj["bbox"][2]))))
             y2 = np.min((height, y1 + np.max((0, obj["bbox"][3]))))
+            #Convert the rotation matrix to angle axis format using Rodrigues formula
             #https://www.ccs.neu.edu/home/rplatt/cs5335_fall2017/slides/euler_quaternions.pdf
             if self.object_pose:    
-                if obj["R"][0] + obj["R"][4] + obj["R"][8] > -1:
-                    theta = acos((obj["R"][0] + obj["R"][4] + obj["R"][8] - 1) / 2)
-                else:
-                    theta = acos(-1)
-                if theta != 0 and theta != acos(-1):    
-                    n1 = (obj["R"][7] - obj["R"][5]) / (2*sin(theta))
-                    n2 = (obj["R"][2] - obj["R"][6]) / (2*sin(theta))
-                    n3 = (obj["R"][3] - obj["R"][1]) / (2*sin(theta))
-                elif theta == acos(-1):
-                    n1 = sqrt((obj["R"][0] + 1) / 2) if obj["R"][0] <= 1 and obj["R"][0] >= -1 else sqrt((copysign(1, obj["R"][0]) + 1) / 2)
-                    
-                    if obj["R"][1] >= 0:
-                        n2 = sqrt((obj["R"][4] + 1) / 2) if obj["R"][4] <= 1 and obj["R"][4] >= -1 else sqrt((copysign(1, obj["R"][4]) + 1) / 2)
-                    else:
-                        n2 = -1 * sqrt((obj["R"][4] + 1) / 2) if obj["R"][4] <= 1 and obj["R"][4] >= -1 else -1 * sqrt((copysign(1, obj["R"][4]) + 1) / 2)
-                    
-                    if obj["R"][2] >= 0:
-                        n3 = sqrt((obj["R"][8] + 1) / 2) if obj["R"][8] <= 1 and obj["R"][8] >= -1 else sqrt((copysign(1, obj["R"][8]) + 1) / 2)
-                    else:
-                        n3 = -1 * sqrt((obj["R"][8] + 1) / 2) if obj["R"][8] <= 1 and obj["R"][8] >= -1 else -1 * sqrt((copysign(1, obj["R"][8]) + 1) / 2)
-                else:
-                    n1, n2, n3 = 0.0, 0.0, 0.0
-                obj["R_aa"] = [theta*n1, theta*n2, theta*n3]
+                obj["R_aa"], _ = cv2.Rodrigues(np.array(obj["R"]).reshape(3,3))
+                obj["R_aa"] = np.squeeze(obj["R_aa"])
             
 
             if obj["area"] > 0 and x2 >= x1 and y2 >= y1:

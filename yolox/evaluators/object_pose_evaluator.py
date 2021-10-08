@@ -8,8 +8,11 @@ import itertools
 import json
 import tempfile
 import time
+import os
 from loguru import logger
 from tqdm import tqdm
+from cv2 import imread, imwrite
+from ..utils  import visualize_pose
 
 import torch
 
@@ -17,6 +20,7 @@ from yolox.utils import (
     gather,
     is_main_process,
     postprocess,
+    postprocess_pose,
     synchronize,
     time_synchronized,
     xyxy2xywh
@@ -30,7 +34,7 @@ class ObjectPoseEvaluator:
     """
 
     def __init__(
-        self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False
+        self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False, visualize = False
     ):
         """
         Args:
@@ -47,6 +51,7 @@ class ObjectPoseEvaluator:
         self.nmsthre = nmsthre
         self.num_classes = num_classes
         self.testdev = testdev
+        self.visualize = visualize
 
     def evaluate(
         self,
@@ -94,7 +99,7 @@ class ObjectPoseEvaluator:
             model(x)
             model = model_trt
 
-        for cur_iter, (imgs, _, info_imgs, ids) in enumerate(
+        for cur_iter, (imgs, targets, info_imgs, ids) in enumerate(
             progress_bar(self.dataloader)
         ):
             with torch.no_grad():
@@ -112,9 +117,21 @@ class ObjectPoseEvaluator:
                 if is_time_record:
                     infer_end = time_synchronized()
                     inference_time += infer_end - start
+                
+                if self.visualize:
+                    predictions = postprocess_pose(outputs, self.num_classes, self.confthre, self.nmsthre)
+                    image_name = "{:04}.png".format(int(ids))
+                    current_img = imread(os.path.join("/home/a0492969/datasets/Occlusion_COCO/test", image_name))
+                    visualize_pose.draw_ground_truths(img=current_img, ground_truths=targets)
+                    visualize_pose.draw_predictions(img=current_img, predictions=predictions[0], num_classes=self.num_classes)
+                    imwrite(os.path.join("/home/a0492969/edgeai-yolox/eval_images",image_name), current_img)
+
+                outputs_2dod = torch.cat(
+                    (outputs[:, :, :5],outputs[:, :, -15:]), dim=2
+                )
 
                 outputs = postprocess(
-                    outputs, self.num_classes, self.confthre, self.nmsthre
+                    outputs_2dod, self.num_classes, self.confthre, self.nmsthre
                 )
                 if is_time_record:
                     nms_end = time_synchronized()

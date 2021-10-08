@@ -103,6 +103,13 @@ def make_parser():
         help="occupy GPU memory first for training.",
     )
     parser.add_argument(
+        "--visualize",
+        dest="visualize",
+        default=False,
+        action="store_true",
+        help="Enable drawing of bounding cuboid"
+    )
+    parser.add_argument(
         "opts",
         help="Modify config options using the command-line",
         default=None,
@@ -148,6 +155,9 @@ def main(exp, args):
             elif args.dataset=="coco_kpts":
                 if args.task == "human_pose":
                     exp.human_pose=True
+
+        if args.visualize:
+            exp.visualize = args.visualize
 
     trainer = Trainer(exp, args)
     trainer.train()
