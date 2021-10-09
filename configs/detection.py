@@ -214,6 +214,20 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':47.1})
         ),
 
+        # torchvision models
+        'od-8200':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
+            session=onnx_session_type(**common_session_cfg,
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
+                                      {'object_detection:meta_arch_type': 3,
+                                       'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-tv/ssdlite_mobilenet_v2_lite_fpn_512x512_20211007_dummypp.prototxt'
+                                       }),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-tv/ssdlite_mobilenet_v2_lite_fpn_512x512_20211007_dummypp.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_tv_onnx(),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':25.0})
+        ),
+
         #################################################################
         #       MXNET MODELS
         #################################################################
