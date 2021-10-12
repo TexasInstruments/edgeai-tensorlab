@@ -121,29 +121,36 @@ __all__ = ['COCODetection', 'coco_det_label_offset_80to90', 'coco_det_label_offs
 
 
 class COCODetection(DatasetBase):
-    def __init__(self, num_classes=90, download=False, **kwargs):
+    def __init__(self, num_classes=90, download=False, image_dir=None, annotation_file=None, **kwargs):
         super().__init__(num_classes=num_classes, **kwargs)
-        self.force_download = True if download == 'always' else False
-        assert 'path' in self.kwargs and 'split' in self.kwargs, 'kwargs must have path and split'
-        path = self.kwargs['path']
-        split = self.kwargs['split']
-        if download:
-            self.download(path, split)
+        if image_dir is None or annotation_file is None:
+            self.force_download = True if download == 'always' else False
+            assert 'path' in self.kwargs and 'split' in self.kwargs, 'kwargs must have path and split'
+            path = self.kwargs['path']
+            split = self.kwargs['split']
+            if download:
+                self.download(path, split)
+            #
+
+            dataset_folders = os.listdir(self.kwargs['path'])
+            assert 'annotations' in dataset_folders, 'invalid path to coco dataset annotations'
+            annotations_dir = os.path.join(self.kwargs['path'], 'annotations')
+
+            image_base_dir = 'images' if ('images' in dataset_folders) else ''
+            image_base_dir = os.path.join(self.kwargs['path'], image_base_dir)
+            image_split_dirs = os.listdir(image_base_dir)
+            assert self.kwargs['split'] in image_split_dirs, f'invalid path to coco dataset images/split {kwargs["split"]}'
+            self.image_dir = os.path.join(image_base_dir, self.kwargs['split'])
+            self.annotation_file = os.path.join(annotations_dir, f'instances_{self.kwargs["split"]}.json')
+        else:
+            self.image_dir = image_dir
+            self.annotation_file = annotation_file
         #
+        self._load_dataset()
 
-        dataset_folders = os.listdir(self.kwargs['path'])
-        assert 'annotations' in dataset_folders, 'invalid path to coco dataset annotations'
-        annotations_dir = os.path.join(self.kwargs['path'], 'annotations')
-
+    def _load_dataset(self):
         shuffle = self.kwargs.get('shuffle', False)
-        image_base_dir = 'images' if ('images' in dataset_folders) else ''
-        image_base_dir = os.path.join(self.kwargs['path'], image_base_dir)
-        image_split_dirs = os.listdir(image_base_dir)
-        assert self.kwargs['split'] in image_split_dirs, f'invalid path to coco dataset images/split {kwargs["split"]}'
-        self.image_dir = os.path.join(image_base_dir, self.kwargs['split'])
-
-        self.coco_dataset = COCO(os.path.join(annotations_dir, f'instances_{self.kwargs["split"]}.json'))
-
+        self.coco_dataset = COCO(self.annotation_file)
         filter_imgs = self.kwargs['filter_imgs'] if 'filter_imgs' in self.kwargs else None
         if isinstance(filter_imgs, str):
             # filter images with the given list

@@ -37,6 +37,7 @@ from .imagenetv2 import *
 from .cityscapes import *
 from .ade20k import *
 from .voc_seg import *
+from .modelmaker_datasets import *
 
 from .coco_kpts import *
 
