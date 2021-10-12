@@ -14,7 +14,9 @@ work_dirs/*/*/*
 !work_dirs/modelartifacts/8bits/*
 backup/*
 tutorials/.ipynb_checkpoints/
+tidl_tools
 tidl_tools/
+tidl_tools_*/
 
 .vscode/
 *.npy
