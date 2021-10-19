@@ -220,9 +220,9 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                       {'object_detection:meta_arch_type': 3,
-                                       'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-tv/ssdlite_mobilenet_v2_fpn_lite_512x512_20211011_dummypp.prototxt'
+                                       'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-tv/ssdlite_mobilenet_v2_fpn_lite_512x512_20211015_dummypp.prototxt'
                                        }),
-                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-tv/ssdlite_mobilenet_v2_fpn_lite_512x512_20211011_dummypp.onnx'),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-tv/ssdlite_mobilenet_v2_fpn_lite_512x512_20211015_dummypp.onnx'),
             postprocess=postproc_transforms.get_transform_detection_tv_onnx(),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':25.0})
