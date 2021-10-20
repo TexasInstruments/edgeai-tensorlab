@@ -244,6 +244,9 @@ class ImageResize():
         info_dict['resize_border'] = border
         return img, info_dict
 
+    def set_size(self, size):
+        self.size = size
+
     def __repr__(self):
         repr_str = self.__class__.__name__ + f'({self.size}'
         for arg in self.args:
@@ -290,6 +293,19 @@ class ImageCenterCrop():
             PIL Image or Tensor: Cropped image.
         """
         return F.center_crop(img, self.size) if self.size is not None else img, info_dict
+
+    def set_size(self, size):
+        if isinstance(size, numbers.Number):
+            self.size = (int(size), int(size))
+        elif isinstance(size, Sequence) and len(size) == 1:
+            self.size = (size[0], size[0])
+        elif size is None:
+            self.size = size
+        else:
+            if len(size) != 2:
+                raise ValueError("Please provide only two dimensions (h, w) for size.")
+            self.size = size
+        #
 
     def __repr__(self):
         if self.size is not None:

@@ -31,8 +31,9 @@ from .. import utils
 from .transforms import *
 
 
-class PostProcessTransforms:
-    def __init__(self, settings):
+class PostProcessTransforms(utils.TransformsCompose):
+    def __init__(self, settings, transforms=None, **kwargs):
+        super().__init__(transforms, **kwargs)
         self.settings = settings
 
     ###############################################################
@@ -40,7 +41,7 @@ class PostProcessTransforms:
     ###############################################################
     def get_transform_classification(self):
         postprocess_classification = [IndexArray(), ArgMax()]
-        transforms = utils.TransformsCompose(postprocess_classification)
+        transforms = PostProcessTransforms(self.settings, postprocess_classification)
         return transforms
 
     ###############################################################
@@ -70,10 +71,11 @@ class PostProcessTransforms:
         if self.settings.save_output:
             postprocess_detection += [DetectionImageSave()]
         #
-        transforms = utils.TransformsCompose(postprocess_detection, detection_thr=self.settings.detection_thr,
-                            save_output=self.settings.save_output, formatter=formatter, resize_with_pad=resize_with_pad,
-                            normalized_detections=normalized_detections, shuffle_indices=shuffle_indices,
-                            squeeze_axis=squeeze_axis)
+        transforms = PostProcessTransforms(self.settings, postprocess_detection,
+                                           detection_thr=self.settings.detection_thr,
+                                           save_output=self.settings.save_output, formatter=formatter, resize_with_pad=resize_with_pad,
+                                           normalized_detections=normalized_detections, shuffle_indices=shuffle_indices,
+                                           squeeze_axis=squeeze_axis)
         return transforms
 
     def get_transform_detection_onnx(self, formatter=None, **kwargs):
@@ -113,8 +115,10 @@ class PostProcessTransforms:
         if self.settings.save_output:
             postprocess_segmentation += [SegmentationImageSave()]
         #
-        transforms = utils.TransformsCompose(postprocess_segmentation, data_layout=data_layout,
-                                             save_output=self.settings.save_output, with_argmax=with_argmax)
+        transforms = PostProcessTransforms(self.settings, postprocess_segmentation,
+                                           data_layout=data_layout,
+                                           save_output=self.settings.save_output,
+                                           with_argmax=with_argmax)
         return transforms
 
     def get_transform_segmentation_onnx(self, data_layout=constants.NCHW, with_argmax=True):
@@ -135,8 +139,9 @@ class PostProcessTransforms:
         if self.settings.save_output:
             postprocess_human_pose_estimation += [HumanPoseImageSave()]
         #
-        transforms = utils.TransformsCompose(postprocess_human_pose_estimation, data_layout=data_layout,
-                                             save_output=self.settings.save_output)
+        transforms = PostProcessTransforms(self.settings, postprocess_human_pose_estimation,
+                                           data_layout=data_layout,
+                                           save_output=self.settings.save_output)
         return transforms
 
     def get_transform_human_pose_estimation_onnx(self, data_layout=constants.NCHW):

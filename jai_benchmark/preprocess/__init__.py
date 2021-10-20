@@ -31,9 +31,19 @@ from .. import utils
 from .transforms import *
 
 
-class PreProcessTransforms:
-    def __init__(self, settings):
+class PreProcessTransforms(utils.TransformsCompose):
+    def __init__(self, settings, transforms=None, **kwargs):
+        super().__init__(transforms, **kwargs)
         self.settings = settings
+
+    def set_input_size(self, resize, crop):
+        for t in self.transforms:
+            if isinstance(t, ImageResize):
+                t.set_size(resize)
+            elif isinstance(t, ImageCenterCrop):
+                t.set_size(crop)
+            #
+        #
 
     ###############################################################
     # preprocess transforms
@@ -52,10 +62,11 @@ class PreProcessTransforms:
         if add_flip_image:
             transforms_list += [ImageFlipAdd()]
         #
-        transforms = utils.TransformsCompose(transforms_list, resize=resize, crop=crop,
-                                             data_layout=data_layout, reverse_channels=reverse_channels,
-                                             backend=backend, interpolation=interpolation,
-                                             mean=mean, scale=scale, add_flip_image=add_flip_image)
+        transforms = PreProcessTransforms(self.settings, transforms_list,
+                                          resize=resize, crop=crop,
+                                          data_layout=data_layout, reverse_channels=reverse_channels,
+                                          backend=backend, interpolation=interpolation,
+                                          mean=mean, scale=scale, add_flip_image=add_flip_image)
         return transforms
 
     def get_transform_onnx(self, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,

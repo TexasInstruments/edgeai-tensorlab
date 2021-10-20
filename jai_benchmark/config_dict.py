@@ -75,7 +75,10 @@ class ConfigDict(dict):
         return ConfigDict({k:self[k] for k in self.basic_keys})
     
     def __getattr__(self, key):
-        return self[key]
+        try:
+            return self[key]
+        except KeyError:
+            raise AttributeError(key)
 
     def __setattr__(self, key, value):
         self[key] = value
