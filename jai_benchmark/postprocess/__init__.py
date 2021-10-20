@@ -41,7 +41,7 @@ class PostProcessTransforms(utils.TransformsCompose):
     ###############################################################
     def get_transform_classification(self):
         postprocess_classification = [IndexArray(), ArgMax()]
-        transforms = PostProcessTransforms(self.settings, postprocess_classification)
+        transforms = PostProcessTransforms(None, postprocess_classification)
         return transforms
 
     ###############################################################
@@ -71,7 +71,7 @@ class PostProcessTransforms(utils.TransformsCompose):
         if self.settings.save_output:
             postprocess_detection += [DetectionImageSave()]
         #
-        transforms = PostProcessTransforms(self.settings, postprocess_detection,
+        transforms = PostProcessTransforms(None, postprocess_detection,
                                            detection_thr=self.settings.detection_thr,
                                            save_output=self.settings.save_output, formatter=formatter, resize_with_pad=resize_with_pad,
                                            normalized_detections=normalized_detections, shuffle_indices=shuffle_indices,
@@ -115,7 +115,7 @@ class PostProcessTransforms(utils.TransformsCompose):
         if self.settings.save_output:
             postprocess_segmentation += [SegmentationImageSave()]
         #
-        transforms = PostProcessTransforms(self.settings, postprocess_segmentation,
+        transforms = PostProcessTransforms(None, postprocess_segmentation,
                                            data_layout=data_layout,
                                            save_output=self.settings.save_output,
                                            with_argmax=with_argmax)
@@ -139,7 +139,7 @@ class PostProcessTransforms(utils.TransformsCompose):
         if self.settings.save_output:
             postprocess_human_pose_estimation += [HumanPoseImageSave()]
         #
-        transforms = PostProcessTransforms(self.settings, postprocess_human_pose_estimation,
+        transforms = PostProcessTransforms(None, postprocess_human_pose_estimation,
                                            data_layout=data_layout,
                                            save_output=self.settings.save_output)
         return transforms

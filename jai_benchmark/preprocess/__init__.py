@@ -62,7 +62,7 @@ class PreProcessTransforms(utils.TransformsCompose):
         if add_flip_image:
             transforms_list += [ImageFlipAdd()]
         #
-        transforms = PreProcessTransforms(self.settings, transforms_list,
+        transforms = PreProcessTransforms(None, transforms_list,
                                           resize=resize, crop=crop,
                                           data_layout=data_layout, reverse_channels=reverse_channels,
                                           backend=backend, interpolation=interpolation,
