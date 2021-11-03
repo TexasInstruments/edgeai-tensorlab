@@ -30,7 +30,7 @@ class COCOHumanPoseEvaluator:
     """
 
     def __init__(
-        self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False, human_pose=True
+        self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False, human_pose=True, visualize=False
     ):
         """
         Args:
@@ -48,6 +48,7 @@ class COCOHumanPoseEvaluator:
         self.num_classes = num_classes
         self.testdev = testdev
         self.human_pose = human_pose
+        self.visualize = visualize
 
     def evaluate(
         self,
