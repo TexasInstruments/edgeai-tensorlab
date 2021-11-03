@@ -186,8 +186,9 @@ class YOLOXHead(nn.Module):
 
             else:
                 output = torch.cat(
-                    [reg_output, obj_output.sigmoid(), cls_output.sigmoid()], 1
+                    [reg_output, obj_output, cls_output], 1
                 )
+                output[:,4:,:,:] = torch.sigmoid(output[:,4:,:,:])
 
             outputs.append(output)
 
