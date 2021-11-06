@@ -215,7 +215,7 @@ def get_configs(settings, work_dir):
         ),
         # yolox models
         'od-8140': utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0), backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], mean=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0), backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,

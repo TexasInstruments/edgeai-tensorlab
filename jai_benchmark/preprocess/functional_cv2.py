@@ -132,10 +132,16 @@ def resize(img, size, **kwargs):
             # pad if necessary
             wpad = (size - ow)
             hpad = (size - oh)
-            top = hpad // 2
-            bottom = hpad - top
-            left = wpad // 2
-            right = wpad - left
+            if  isinstance(resize_with_pad, (list, tuple)):
+                if "corner" in resize_with_pad:
+                    top, left = 0, 0
+                    bottom, right = hpad, wpad
+            else :
+                top = hpad // 2
+                bottom = hpad - top
+                left = wpad // 2
+                right = wpad - left
+
             img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=pad_color)
             border=(left,top,right,bottom)
             return img, border
