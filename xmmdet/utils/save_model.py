@@ -164,8 +164,11 @@ def _save_mmdet_proto_ssd(cfg, model, input_size, output_filename, input_names=N
                                             code_type=mmdet_meta_arch_pb2.CENTER_SIZE, keep_top_k=100,
                                             confidence_threshold=0.5)
 
-    ssd = mmdet_meta_arch_pb2.TidlMaCaffeSsd(box_input=reg_output_names, class_input=cls_output_names, output='output', prior_box_param=prior_box_param,
-                                             in_width=input_size[3], in_height=input_size[2], detection_output_param=detection_output_param)
+    ssd = mmdet_meta_arch_pb2.TidlMaCaffeSsd(box_input=reg_output_names, class_input=cls_output_names,
+                                             output=['boxes', 'labels'], prior_box_param=prior_box_param,
+                                             in_width=input_size[3], in_height=input_size[2],
+                                             detection_output_param=detection_output_param,
+                                             framework='MMDetection')
 
     arch = mmdet_meta_arch_pb2.TIDLMetaArch(name='ssd',  caffe_ssd=[ssd])
 
