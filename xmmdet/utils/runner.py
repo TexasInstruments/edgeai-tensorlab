@@ -2,7 +2,7 @@ import torch
 import mmcv
 from mmcv.runner import EpochBasedRunner
 from mmcv.runner import OptimizerHook, HOOKS, Hook
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 from .quantize import is_mmdet_quant_module
 
 

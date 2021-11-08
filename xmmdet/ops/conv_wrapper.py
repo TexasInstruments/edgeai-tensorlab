@@ -1,7 +1,7 @@
 from torch import nn
 import mmcv
 from mmcv.cnn import CONV_LAYERS
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 
 ################################################################################
 # custom conv modules

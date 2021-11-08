@@ -16,7 +16,7 @@ from xmmdet.datasets import (build_dataloader, build_dataset,
 from xmmdet.models import build_detector
 from xmmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint
 
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 
 def parse_args():
     parser = argparse.ArgumentParser(

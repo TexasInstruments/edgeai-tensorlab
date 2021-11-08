@@ -6,7 +6,7 @@ from mmcv.runner import load_checkpoint
 from torch.nn.modules.batchnorm import _BatchNorm
 
 from mmdet.utils import get_root_logger
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 from mmdet.models.builder import BACKBONES
 from mmdet.models.utils import ResLayer
 

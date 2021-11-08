@@ -7,7 +7,7 @@ from mmdet.core import distance2bbox, force_fp32, multi_apply, multiclass_nms
 from mmdet.models.builder import HEADS, build_loss
 from mmdet.models.dense_heads.fcos_head import FCOSHead
 
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 from ...ops import ConvModuleWrapper
 
 INF = 1e8

@@ -26,7 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 
 class XMMDetQuantCalibrateModule(xnn.quantize.QuantCalibrateModule):
     def __init__(self, model,  dummy_input, *args, forward_analyze_method='forward_dummy', **kwargs):

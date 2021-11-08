@@ -10,7 +10,7 @@ from mmdet.models.builder import NECKS
 from mmdet.models.necks.yolo_neck import DetectionBlock
 from ...ops import ConvModuleWrapper
 
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 
 @NECKS.register_module(force=True)
 class YOLOV3Neck(nn.Module):
