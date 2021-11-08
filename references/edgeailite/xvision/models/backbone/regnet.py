@@ -76,7 +76,7 @@ import torch
 import torch.nn as nn
 import collections
 from ..utils import load_state_dict_from_url
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 from .resnet import conv1x1, conv3x3
 
 

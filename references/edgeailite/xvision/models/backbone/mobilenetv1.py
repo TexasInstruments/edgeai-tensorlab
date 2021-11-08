@@ -65,7 +65,7 @@
 
 import torch
 from ..utils import *
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 
 ###################################################
 __all__ = ['MobileNetV1Base', 'MobileNetV1', 'mobilenet_v1', 'get_config']
