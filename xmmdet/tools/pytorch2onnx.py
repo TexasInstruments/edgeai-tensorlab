@@ -63,9 +63,13 @@ def pytorch2onnx(config_path,
         do_constant_folding=True,
         verbose=show,
         opset_version=opset_version)
+    # shape inference is required to support onnx+proto detection models in edgeai-tidl-tools
+    onnx.shape_inference.infer_shapes_path(output_file, output_file)
 
     output_proto_file = osp.splitext(output_file)[0] + '-proto.onnx'
     pytorch2proto(cfg, model, tensor_data, output_file, output_proto_file, opset_version=opset_version)
+    # shape inference is required to support onnx+proto detection models in edgeai-tidl-tools
+    onnx.shape_inference.infer_shapes_path(output_proto_file, output_proto_file)
 
     model.forward = orig_model.forward
     print(f'Successfully exported ONNX model: {output_file}')
