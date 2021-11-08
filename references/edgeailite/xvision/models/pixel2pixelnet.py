@@ -30,7 +30,7 @@
 #################################################################################
 
 import torch
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 from .pixel2pixelnet_utils import *
 
 

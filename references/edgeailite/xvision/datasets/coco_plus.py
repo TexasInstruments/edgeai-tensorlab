@@ -72,7 +72,7 @@ https://arxiv.org/abs/1405.0312, https://cocodataset.org/
 
 import numpy as np
 from torchvision.datasets.coco import COCOSegmentation
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 
 __all__ = ['coco_segmentation', 'coco_seg21']
 

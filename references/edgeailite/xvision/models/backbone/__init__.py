@@ -89,7 +89,7 @@ except: pass
 try: from .. import mobilenetv1_internal
 except: pass
 
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 
 __all__ = ['regnetx400mf_x1', 'regnetx800mf_x1', 'regnetx1p6gf_x1', 'regnetx3p2gf_x1',
            'regnetx400mf_x1_bgr', 'regnetx800mf_x1_bgr', 'regnetx1p6gf_x1_bgr', 'regnetx3p2gf_x1_bgr',

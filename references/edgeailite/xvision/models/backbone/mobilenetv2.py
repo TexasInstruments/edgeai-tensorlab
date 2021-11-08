@@ -68,7 +68,7 @@ from torch import nn, Tensor
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
 from ..utils import *
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 
 ###################################################
 __all__ = ['MobileNetV2Base', 'MobileNetV2',

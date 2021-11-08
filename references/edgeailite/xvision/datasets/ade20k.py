@@ -49,7 +49,7 @@ import random
 import numpy as np
 import PIL
 from torchvision.datasets import utils
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 
 
 __all__ = ['ADE20KSegmentation', 'ade20k_segmentation', 'ade20k_seg_noweights', 'ade20k_seg_class32']

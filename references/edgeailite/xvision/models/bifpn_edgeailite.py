@@ -40,7 +40,7 @@
 import copy
 import torch
 import numpy as np
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 
 from .pixel2pixelnet import *
 from .backbone.multi_input_net import MobileNetV2TVMI4, ResNet50MI4, \

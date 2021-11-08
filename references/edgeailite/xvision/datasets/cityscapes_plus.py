@@ -105,7 +105,7 @@ import json
 from torch.utils import data
 import sys
 import warnings
-from torchvision import xnn
+from torchvision.edgeailite import xnn
 
 ###########################################
 # config settings
