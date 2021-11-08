@@ -3,6 +3,7 @@ import os
 import time
 from colorama import Fore
 import numpy as np
+import onnx
 
 import torch
 import torch.utils.data
@@ -184,9 +185,12 @@ def export(args, model, model_name=None):
         (args.input_size, args.input_size)
     data_shape = (1,3,*image_size_tuple)
     example_input = torch.rand(*data_shape)
-    torch.onnx.export(model, example_input, os.path.join(args.output_dir, model_name+'.onnx'), opset_version=args.opset_version)
-    script_model = torch.jit.trace(model, example_input, strict=False)
-    torch.jit.save(script_model, os.path.join(args.output_dir, model_name+'_model.pth'))
+    output_onnx_file = os.path.join(args.output_dir, model_name+'.onnx')
+    torch.onnx.export(model, example_input, output_onnx_file, opset_version=args.opset_version)
+    onnx.shape_inference.infer_shapes_path(output_onnx_file, output_onnx_file)
+
+    #script_model = torch.jit.trace(model, example_input, strict=False)
+    #torch.jit.save(script_model, os.path.join(args.output_dir, model_name+'_model.pth'))
 
 
 def complexity(args, model):

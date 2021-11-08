@@ -2,6 +2,8 @@ import os
 import math
 import sys
 import time
+import onnx
+
 import torch
 from colorama import Fore
 
@@ -130,7 +132,10 @@ def export(args, model, model_name=None):
         (args.input_size, args.input_size)
     data_shape = (1,3,*image_size_tuple)
     example_input = torch.rand(*data_shape)
-    torch.onnx.export(model, example_input, os.path.join(args.output_dir, model_name+'.onnx'), opset_version=args.opset_version)
+    output_onnx_file = os.path.join(args.output_dir, model_name+'.onnx')
+    torch.onnx.export(model, example_input, output_onnx_file, opset_version=args.opset_version)
+    onnx.shape_inference.infer_shapes_path(output_onnx_file, output_onnx_file)
+
     #script_model = torch.jit.trace(model, example_input, strict=False)
     #torch.jit.save(script_model, os.path.join(args.output_dir, model_name+'_model.pth'))
 
