@@ -299,7 +299,10 @@ class DetectionBoxSL2BoxLS(DetectionFormatting):
 
 class DetectionImageSave():
     def __init__(self):
-        self.colors = [(r,g,b) for r in range(0,256,32) for g in range(0,256,32) for b in range(0,256,32)]
+        self.color_step = 64 #32
+        self.colors = [(r,g,b) for r in range(0,256,self.color_step) \
+                       for g in range(0,256,self.color_step) \
+                       for b in range(0,256,self.color_step)]
         self.thickness = 2
 
     def __call__(self, bbox, info_dict):
