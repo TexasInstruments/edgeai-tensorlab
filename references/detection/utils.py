@@ -7,6 +7,7 @@ import time
 import torch
 import torch.distributed as dist
 
+from torchvision.edgeailite import xnn
 
 class SmoothedValue(object):
     """Track a series of values and provide access to smoothed values over a
@@ -282,3 +283,13 @@ def init_distributed_mode(args):
                                          world_size=args.world_size, rank=args.rank)
     torch.distributed.barrier()
     setup_for_distributed(args.rank == 0)
+
+
+def is_quant_module(model):
+    return isinstance(model, (xnn.quantize.QuantCalibrateModule, xnn.quantize.QuantTrainModule,
+                              xnn.quantize.QuantTestModule))
+
+
+def is_parallel_module(model):
+    return isinstance(model, (torch.nn.parallel.DataParallel, torch.nn.parallel.DistributedDataParallel))
+

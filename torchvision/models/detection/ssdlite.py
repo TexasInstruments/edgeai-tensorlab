@@ -16,8 +16,7 @@ from ...ops.misc import ConvNormActivation
 from ...edgeailite import xnn
 
 
-__all__ = ['ssdlite320_mobilenet_v3_large', 'ssdlite_mobilenet_v3_large',
-           'ssdlite_mobilenet_v3_lite_large', 'ssdlite_mobilenet_v3_lite_small']
+__all__ = ['ssdlite320_mobilenet_v3_large', 'ssdlite_mobilenet_v3_large']
 
 model_urls = {
     'ssdlite320_mobilenet_v3_large_coco':
@@ -70,6 +69,7 @@ class SSDLiteHead(nn.Module):
         super().__init__()
         self.classification_head = SSDLiteClassificationHead(in_channels, num_anchors, num_classes, norm_layer)
         self.regression_head = SSDLiteRegressionHead(in_channels, num_anchors, norm_layer)
+        self.num_classes = num_classes
 
     def forward(self, x: List[Tensor]) -> Dict[str, Tensor]:
         return {
@@ -158,10 +158,13 @@ def _mobilenet_extractor(backbone_name: str, progress: bool, pretrained: bool, t
     return SSDLiteFeatureExtractorMobileNet(backbone, stage_indices[-2], norm_layer, **kwargs)
 
 
-def ssdlite_mobilenet_v3(pretrained: bool = False, progress: bool = True, num_classes: int = 91,
+def ssdlite320_mobilenet_v3_large(pretrained: bool = False, progress: bool = True, num_classes: int = 91,
                                   pretrained_backbone: bool = False, trainable_backbone_layers: Optional[int] = None,
                                   norm_layer: Optional[Callable[..., nn.Module]] = None,
-                                  backbone_name = None, reduce_tail=False,
+                                  backbone_name = None, 
+                                  reduce_tail = False,								  
+                                  size = (320,320),
+								  weights_name = 'ssdlite320_mobilenet_v3_large_coco',
                                   **kwargs: Any):
     """Constructs an SSDlite model with input size 320x320 and a MobileNetV3 Large backbone, as described at
     `"Searching for MobileNetV3"
@@ -232,7 +235,6 @@ def ssdlite_mobilenet_v3(pretrained: bool = False, progress: bool = True, num_cl
                 head=SSDLiteHead(out_channels, num_anchors, num_classes, norm_layer), **kwargs)
 
     if pretrained is True:
-        weights_name = 'ssdlite320_mobilenet_v3_large_coco'
         if model_urls.get(weights_name, None) is None:
             raise ValueError("No checkpoint is available for model {}".format(weights_name))
         state_dict = load_state_dict_from_url(model_urls[weights_name], progress=progress)
@@ -256,19 +258,5 @@ def _load_state_dict(model, state_dict):
 
 
 def ssdlite_mobilenet_v3_large(*args, backbone_name="mobilenet_v3_large", **kwargs):
-    return ssdlite_mobilenet_v3(*args, backbone_name=backbone_name, **kwargs)
-
-
-# alias
-ssdlite320_mobilenet_v3_large = ssdlite_mobilenet_v3
-
-
-def ssdlite_mobilenet_v3_lite_large(*args, backbone_name="mobilenet_v3_lite_large", **kwargs):
-    return ssdlite_mobilenet_v3(*args, backbone_name=backbone_name,
-                                activation_layer=nn.ReLU, **kwargs)
-
-
-def ssdlite_mobilenet_v3_lite_small(*args, backbone_name="mobilenet_v3_lite_small", **kwargs):
-    return ssdlite_mobilenet_v3(*args, backbone_name=backbone_name,
-                                activation_layer=nn.ReLU, **kwargs)
+    return ssdlite_mobilenet_v3(*args, backbone_name=backbone_name, weights_name=None, **kwargs)
 

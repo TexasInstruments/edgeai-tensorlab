@@ -77,5 +77,5 @@ for model in "${!model_pretrained[@]}"; do
   echo Quantization Aware Training for $model
   # note: this example uses only a part of the training epoch and only 10 such (partial) epochs during quantized training to save time,
   # but it may necessary to use the full training epoch if the accuracy is not satisfactory.
-  python -u ./examples/python/quantize_example.py ./data/datasets/image_folder_classification --arch $model --batch_size $batch_size --lr $lr --epoch_size $epoch_size --epoch_size_val $epoch_size_val --epochs $epochs --pretrained $pretrained --save_path $save_path --quantize_torch False --quantize qat --use_gpu True
+  python3 -u ./examples/python/quantize_example.py ./data/datasets/image_folder_classification --arch $model --batch_size $batch_size --lr $lr --epoch_size $epoch_size --epoch_size_val $epoch_size_val --epochs $epochs --pretrained $pretrained --save_path $save_path --quantize_torch False --quantize qat --use_gpu True
 done

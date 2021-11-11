@@ -82,7 +82,8 @@ class ConvertCocoPolysToMask(object):
         keep = (boxes[:, 3] > boxes[:, 1]) & (boxes[:, 2] > boxes[:, 0])
         boxes = boxes[keep]
         classes = classes[keep]
-        masks = masks[keep]
+        if len(masks) > 0:
+            masks = masks[keep]
         if keypoints is not None:
             keypoints = keypoints[keep]
 
@@ -220,13 +221,19 @@ class CocoDetection(torchvision.datasets.CocoDetection):
         return img, target
 
 
-def get_coco(root, image_set, transforms, mode='instances'):
-    anno_file_template = "{}_{}2017.json"
-    PATHS = {
-        "train": ("train2017", os.path.join("annotations", anno_file_template.format(mode, "train"))),
-        "val": ("val2017", os.path.join("annotations", anno_file_template.format(mode, "val"))),
-        # "train": ("val2017", os.path.join("annotations", anno_file_template.format(mode, "val")))
-    }
+def get_coco(root, image_set, transforms, mode='instances', paths=None, anno_files=None):
+    if paths is not None and anno_files is not None:
+        PATHS = {
+            "train": (paths[0], os.path.join("annotations", anno_files[0])),
+            "val": (paths[1], os.path.join("annotations", anno_files[1])),
+        }
+    else:
+        anno_file_template = "{}_{}2017.json"
+        PATHS = {
+            "train": (f"train2017", os.path.join("annotations", anno_file_template.format(mode, "train"))),
+            "val": (f"val2017", os.path.join("annotations", anno_file_template.format(mode, "val"))),
+        }
+    
 
     t = [ConvertCocoPolysToMask()]
 
@@ -250,3 +257,8 @@ def get_coco(root, image_set, transforms, mode='instances'):
 
 def get_coco_kp(root, image_set, transforms):
     return get_coco(root, image_set, transforms, mode="person_keypoints")
+
+
+def get_coco_modelmaker(root, image_set, transforms, mode='instances'):
+    return get_coco(root, image_set, transforms, mode=mode, paths=('files','files'),
+                    anno_files=(f'{mode}_train.json',f'{mode}_val.json'))

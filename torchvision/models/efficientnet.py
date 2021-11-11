@@ -11,6 +11,7 @@ from ..ops.misc import ConvNormActivation, SqueezeExcitation
 from ._utils import _make_divisible
 from torchvision.ops import StochasticDepth
 
+from ..edgeailite import xnn
 
 __all__ = ["EfficientNet", "efficientnet_b0", "efficientnet_b1", "efficientnet_b2", "efficientnet_b3",
            "efficientnet_b4", "efficientnet_b5", "efficientnet_b6", "efficientnet_b7"]
@@ -235,11 +236,20 @@ def _efficientnet_model(
     **kwargs: Any
 ) -> EfficientNet:
     model = EfficientNet(inverted_residual_setting, dropout, **kwargs)
-    if pretrained:
+    if pretrained is True:
         if model_urls.get(arch, None) is None:
             raise ValueError("No checkpoint is available for model type {}".format(arch))
         state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
         model.load_state_dict(state_dict)
+    elif xnn.utils.is_url(pretrained):
+        state_dict = load_state_dict_from_url(pretrained, progress=progress)
+        model.load_state_dict(state_dict)
+    elif isinstance(pretrained, str):
+        state_dict = torch.load(pretrained)
+        state_dict = state_dict['model'] if 'model' in state_dict else state_dict
+        state_dict = state_dict['state_dict'] if 'state_dict' in state_dict else state_dict
+        model.load_state_dict(state_dict)	
+	
     return model
 
 

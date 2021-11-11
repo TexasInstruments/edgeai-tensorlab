@@ -40,6 +40,7 @@ class SSDHead(nn.Module):
         super().__init__()
         self.classification_head = SSDClassificationHead(in_channels, num_anchors, num_classes)
         self.regression_head = SSDRegressionHead(in_channels, num_anchors)
+        self.num_classes = num_classes
 
     def forward(self, x: List[Tensor]) -> Dict[str, Tensor]:
         return {
@@ -49,10 +50,11 @@ class SSDHead(nn.Module):
 
 
 class SSDScoringHead(nn.Module):
-    def __init__(self, module_list: nn.ModuleList, num_columns: int):
+    def __init__(self, module_list: nn.ModuleList, num_columns: int, with_postprocess: bool=True):
         super().__init__()
         self.module_list = module_list
         self.num_columns = num_columns
+        self.with_postprocess = with_postprocess
 
     def _get_result_from_module_list(self, x: Tensor, idx: int) -> Tensor:
         """
@@ -76,15 +78,19 @@ class SSDScoringHead(nn.Module):
         for i, features in enumerate(x):
             results = self._get_result_from_module_list(features, i)
 
-            # Permute output from (N, A * K, H, W) to (N, HWA, K).
-            N, _, H, W = results.shape
-            results = results.view(N, -1, self.num_columns, H, W)
-            results = results.permute(0, 3, 4, 1, 2)
-            results = results.reshape(N, -1, self.num_columns)  # Size=(N, HWA, K)
+            if self.with_postprocess:
+                # Permute output from (N, A * K, H, W) to (N, HWA, K).
+                N, _, H, W = results.shape
+                results = results.view(N, -1, self.num_columns, H, W)
+                results = results.permute(0, 3, 4, 1, 2)
+                results = results.reshape(N, -1, self.num_columns)  # Size=(N, HWA, K)
 
             all_results.append(results)
 
-        return torch.cat(all_results, dim=1)
+        if self.with_postprocess:
+            return torch.cat(all_results, dim=1)
+        else:
+            return all_results
 
 
 class SSDClassificationHead(SSDScoringHead):
@@ -174,7 +180,8 @@ class SSD(nn.Module):
                  iou_thresh: float = 0.5,
                  topk_candidates: int = 400,
                  positive_fraction: float = 0.25,
-                 with_preprocess=True, with_iou_loss=False):
+                 with_preprocess: bool = True,
+				 with_postprocess: bool = True):
         super().__init__()
 
         self.backbone = backbone
@@ -209,11 +216,12 @@ class SSD(nn.Module):
         self.detections_per_img = detections_per_img
         self.topk_candidates = topk_candidates
         self.neg_to_pos_ratio = (1.0 - positive_fraction) / positive_fraction
-        self.with_preprocess = with_preprocess
-        self.with_iou_loss = with_iou_loss
 
         # used only on torchscript mode
         self._has_warned = False
+
+        # forward without postprocess to export partial onnx
+        self.with_postprocess = with_postprocess
 
     @torch.jit.unused
     def eager_outputs(self, losses: Dict[str, Tensor],
@@ -244,9 +252,11 @@ class SSD(nn.Module):
             bbox_regression_per_image = bbox_regression_per_image[foreground_idxs_per_image, :]
             anchors_per_image = anchors_per_image[foreground_idxs_per_image, :]
             target_regression = self.box_coder.encode_single(matched_gt_boxes_per_image, anchors_per_image)
-
-            bloss = self.compute_box_loss(bbox_regression_per_image, target_regression, reduction='sum')
-            bbox_loss.append(bloss)
+            bbox_loss.append(torch.nn.functional.smooth_l1_loss(
+                bbox_regression_per_image,
+                target_regression,
+                reduction='sum'
+            ))
 
             # Estimate ground truth for class targets
             gt_classes_target = torch.zeros((cls_logits_per_image.size(0), ), dtype=targets_per_image['labels'].dtype,
@@ -281,21 +291,6 @@ class SSD(nn.Module):
             'bbox_regression': bbox_loss.sum() / N,
             'classification': (cls_loss[foreground_idxs].sum() + cls_loss[background_idxs].sum()) / N,
         }
-
-    def compute_box_loss(self, bbox_regression_per_image, target_regression, reduction):
-        if self.with_iou_loss:
-            diou = box_ops.distance_box_iou_xywh(bbox_regression_per_image, target_regression)
-            diou_loss = (1 - diou)
-            diou_loss = torch.sum(diou_loss) if reduction == 'sum' else torch.mean(diou_loss)
-            loss = diou_loss
-        else:
-            l1_loss = torch.nn.functional.smooth_l1_loss(
-                        bbox_regression_per_image,
-                        target_regression,
-                        reduction=reduction)
-            loss = l1_loss
-        #
-        return loss
 
     def forward(self, images: List[Tensor],
                 targets: Optional[List[Dict[str, Tensor]]] = None) -> Tuple[Dict[str, Tensor], List[Dict[str, Tensor]]]:
@@ -347,6 +342,13 @@ class SSD(nn.Module):
         # compute the ssd heads outputs using the features
         head_outputs = self.head(features)
 
+        if not self.with_postprocess:
+            # put the cls_logits first as in retinanet - this also the order expected by export_proto
+            cls_outputs = head_outputs['cls_logits']
+            reg_outputs = head_outputs['bbox_regression']
+            model_outputs = cls_outputs + reg_outputs
+            return model_outputs
+
         # create the set of anchors
         anchors = self.anchor_generator(images, features)
 
@@ -376,6 +378,12 @@ class SSD(nn.Module):
                 self._has_warned = True
             return losses, detections
         return self.eager_outputs(losses, detections)
+
+    def configure_forward(self, with_preprocess=True, with_postprocess=True):
+        self.transform.with_preprocess = with_preprocess
+        self.with_postprocess = with_postprocess
+        self.head.classification_head.with_postprocess = with_postprocess
+        self.head.regression_head.with_postprocess = with_postprocess
 
     def postprocess_detections(self, head_outputs: Dict[str, Tensor], image_anchors: List[Tensor],
                                image_shapes: List[Tuple[int, int]]) -> List[Dict[str, Tensor]]:

@@ -8,11 +8,9 @@ from .googlenet import *
 from .mobilenet import *
 from .mnasnet import *
 from .shufflenetv2 import *
-<<<<<<< HEAD
 from .efficientnet import *
-=======
->>>>>>> torchvision - updates to train lite models
 from .regnet import *
+from .models_lite import *
 from . import segmentation
 from . import detection
 from . import video

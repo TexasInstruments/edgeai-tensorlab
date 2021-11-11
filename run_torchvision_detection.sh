@@ -4,13 +4,38 @@
 # PYTHONPATH must start with a : to be able to load local modules
 export PYTHONPATH=:$PYTHONPATH
 
-model=ssdlite_mobilenet_v2_lite_fpn
-#model=ssdlite_mobilenet_v2_lite_bifpn
-#model=ssdlite_mobilenet_v3_lite_large
-#model=ssdlite_mobilenet_v3_lite_small
-#model=ssdlite_mobilenet_v3_lite_large_fpn
-#model=ssdlite_mobilenet_v3_lite_small_fpn
+model_url_base="https://software-dl.ti.com/jacinto7/esd/modelzoo/common/models/vision/classification/imagenet1k/edgeai-tv"
+
+model=ssdlite_mobilenet_v2_fpn_lite
+#model=ssdlite_mobilenet_v2_bifpn_lite
+#model=ssdlite_mobilenet_v3_large_fpn_lite
+#model=ssdlite_mobilenet_v3_small_fpn_lite
+#model=ssdlite_regnet_x_1_6gf_fpn
+#model=ssdlite_regnet_x_800mf_fpn_lite
+#model=ssdlite_regnet_x_1_6gf_fpn
+#model=ssdlite_efficientnet_b0_fpn_lite
+
+backbone_checkpoint=${model_url_base}/'mobilenet_v2_20191224_checkpoint.pth'
+#backbone_checkpoint=${model_url_base}/'mobilenet_v3_lite_large_20210507_checkpoint.pth'
+#backbone_checkpoint=${model_url_base}/'mobilenet_v3_lite_small_20210429_checkpoint.pth'
+#backbone_checkpoint=True
 
 
-python ./references/detection/detection_main.py --model ${model}
+# The multi-gpu training/test can be run using one of several methods
+# 1. for cpu based training, specify --device cpu
+# 1. elastic launch using torch.distributed.run or torch.distributed.launch or torch.distributed.run with --nproc_per_node <num_gpus> <trainign script> <args...>
+# 2. this script can launch torch.multiprocess internally (i.e. without using torch.distributed.run), if you set --distributed=True --gpus <num_gpus>
 
+# training : using torch.distributed.run
+python3 -m torch.distributed.run --nproc_per_node 4 ./references/detection/train.py --model ${model} --epochs=240 --batch-size=8 \
+--pretrained-backbone ${backbone_checkpoint}
+# alternative launch method supported by this script : using torch.multiprocess internally to launch processes
+#python3 ./references/detection/train.py --model ${model} --epochs=240 --batch-size=8 --gpus 4 \
+# --pretrained-backbone ${backbone_checkpoint}
+
+# test
+#python3 -m torch.distributed.run ./references/detection/train.py --model ${model} --epochs=240 --batch-size=8 --gpus=4 \
+# --pretrained ./data/checkpoints/detection/coco_${model}/checkpoint.pth --test-only
+
+# export
+#python3 ./references/detection/train.py --model ${model} --pretrained ./data/checkpoints/detection/coco_${model}/checkpoint.pth --export-only

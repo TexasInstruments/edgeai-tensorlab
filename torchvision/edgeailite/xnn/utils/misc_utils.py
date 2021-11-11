@@ -26,6 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import sys
 import numpy as np
 import yaml
 from .params_base import ParamsBase
@@ -164,8 +165,29 @@ def str_to_dict(input):
     return d
 
 
-def str_to_int(input):
-    if input in ('', None, 'None'):
+def str_to_list(input):
+    if input in ('', None, 'None', 'none'):
+        inputs = None
+    else:
+        inputs = input.split(' ')
+    #
+    return inputs
+
+
+def str_to_list_int(input):
+    inputs = str_to_list(input)
+    inputs = [int(i) for i in inputs] if isinstance(inputs, (list,tuple)) else inputs
+    return inputs
+
+
+def str_to_list_float(input):
+    inputs = str_to_list(input)
+    inputs = [float(i) for i in inputs] if isinstance(inputs, (list,tuple)) else inputs
+    return inputs
+
+
+def str_to_int(v):
+    if v in ('', None, 'None', 'none'):
         return None
     else:
         return int(input)
@@ -188,14 +210,10 @@ def str_or_bool(v):
 
 
 def str_or_none(v):
-  if isinstance(v, (str)):
-      if v.lower() in ("none",):
-          return None
-      else:
-          return v
-      #
-  else:
-      return v
+    if v in (None, 'None', 'none'):
+        return None
+    else:
+        return v
 
 
 # a utility function used for argument parsing
@@ -212,6 +230,13 @@ def str2bool(v):
       return v
 
 
+def str2bool_or_none(v):
+    if isinstance(v, str) and v.lower() in ('none',):
+        return None
+    else:
+        return str2bool(v)
+
+
 def splitstr2bool(v):
   v = v.split(',')
   for index, args in enumerate(v):
@@ -222,3 +247,32 @@ def splitstr2bool(v):
 def is_url(v):
     is_url = isinstance(v, str) and (v.startswith('http://') or v.startswith('https://'))
     return is_url
+
+
+def default_arg(parser, option, value, modify_argv=True):
+    '''Change the default value of action in ArgumentParser instance'''
+    option1 = option
+    option2 = option.replace('_', '-')
+    modify_options = [option1, '-'+option1, '--'+option1, option2, '-'+option2, '--'+option2]
+    for action in parser._actions:
+        for option_string in action.option_strings:
+            for option_name in modify_options:
+                if option_string == option_name:
+                    action.default = value
+                    action.const = value
+                    if modify_argv:
+                        if isinstance(value, (list, tuple)):
+                            sys.argv.insert(1, f'{option_name}')
+                            for pos, v in enumerate(value):
+                                sys.argv.insert(2+pos, f'{v}')
+                            #
+                        else:
+                            sys.argv.insert(1, f'{option_name}={value}')
+                        #
+                    #
+                    return True
+                #
+            #
+        #
+    #
+    return False

@@ -5,3 +5,4 @@ from .retinanet import *
 from .ssd import *
 from .ssdlite import *
 from .ssdlite_fpn import *
+from .models_lite import *

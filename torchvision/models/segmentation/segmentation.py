@@ -1,10 +1,7 @@
-<<<<<<< HEAD
 from torch import nn
 from typing import Any, Optional
-=======
 from collections import OrderedDict
 import torch
->>>>>>> torchvision - updates to train lite models
 from .._utils import IntermediateLayerGetter
 from ..._internally_replaced_utils import load_state_dict_from_url
 from .. import mobilenetv3
@@ -14,15 +11,13 @@ from .deeplabv3 import DeepLabHead, DeepLabV3
 from .deeplabv3plus import DeepLabV3PlusHead, DeepLabV3Plus
 from .fcn import FCN, FCNHead
 from .lraspp import LRASPP
+
 from ...edgeailite import xnn
 
 
 __all__ = ['fcn_resnet50', 'fcn_resnet101', 'deeplabv3_resnet50', 'deeplabv3_resnet101',
            'deeplabv3_mobilenet_v3_large', 'lraspp_mobilenet_v3_large',
-           # lite models
-           'lraspp_mobilenet_v3_lite_large', 'deeplabv3_mobilenet_v3_lite_large',
-           'deeplabv3plus_mobilenet_v3_lite_large', 'deeplabv3plus_mobilenet_v3_lite_small',
-           'deeplabv3plus_mobilenet_v2_lite']
+           'deeplabv3plus_mobilenet_v3_large', 'deeplabv3plus_mobilenet_v3_small', 'deeplabv3plus_mobilenet_v2']
 
 
 model_urls = {
@@ -36,19 +31,16 @@ model_urls = {
 }
 
 
-<<<<<<< HEAD
 def _segm_model(
     name: str,
     backbone_name: str,
     num_classes: int,
     aux: Optional[bool],
-    pretrained_backbone: bool = True
+    pretrained_backbone: Optional[bool] = True,
+    skip_tail: Optional[bool] = False
 ) -> nn.Module:
-=======
-def _segm_model(name, backbone_name, num_classes, aux=False, pretrained_backbone=True, conv_cfg=None, skip_tail=False):
     shortcut_name = None
     shortcut_channels = None
->>>>>>> torchvision - updates to train lite models
     if 'resnet' in backbone_name:
         backbone = resnet.__dict__[backbone_name](
             pretrained=pretrained_backbone,
@@ -61,7 +53,7 @@ def _segm_model(name, backbone_name, num_classes, aux=False, pretrained_backbone
             shortcut_name = 'layer1'
             shortcut_channels = 256
         #
-    elif 'mobilenet_v3' in backbone_name or 'mobilenet_v2' in backbone_name:
+    elif 'mobilenet' in backbone_name:
         backbone = mobilenet.__dict__[backbone_name](pretrained=pretrained_backbone, dilated=True).features
         # Gather the indices of blocks which are strided. These are the locations of C1, ..., Cn-1 blocks.
         # The first and last blocks are always included because they are the C0 (conv1) and Cn.
@@ -105,7 +97,6 @@ def _segm_model(name, backbone_name, num_classes, aux=False, pretrained_backbone
     return model
 
 
-<<<<<<< HEAD
 def _load_model(
     arch_type: str,
     backbone: str,
@@ -115,9 +106,6 @@ def _load_model(
     aux_loss: Optional[bool],
     **kwargs: Any
 ) -> nn.Module:
-=======
-def _load_model(arch_type, backbone, pretrained, progress, num_classes, aux_loss=True, **kwargs):
->>>>>>> torchvision - updates to train lite models
     if pretrained:
         kwargs["pretrained_backbone"] = False
     model = _segm_model(arch_type, backbone, num_classes, aux_loss, **kwargs)
@@ -126,7 +114,6 @@ def _load_model(arch_type, backbone, pretrained, progress, num_classes, aux_loss
     return model
 
 
-<<<<<<< HEAD
 def _load_weights(model: nn.Module, arch_type: str, backbone: str, progress: bool) -> None:
     arch = arch_type + '_' + backbone + '_coco'
     model_url = model_urls.get(arch, None)
@@ -134,12 +121,12 @@ def _load_weights(model: nn.Module, arch_type: str, backbone: str, progress: boo
         raise NotImplementedError('pretrained {} is not supported as of now'.format(arch))
     else:
         state_dict = load_state_dict_from_url(model_url, progress=progress)
-=======
+
+
 def _load_state_dict(model, state_dict):
     state_dict = state_dict['model'] if 'model' in state_dict else state_dict
     state_dict = state_dict['state_dict'] if 'state_dict' in state_dict else state_dict
     try:
->>>>>>> torchvision - updates to train lite models
         model.load_state_dict(state_dict)
     except:
         model.load_state_dict(state_dict, strict=False)
@@ -160,13 +147,8 @@ def _load_weights(model, arch_type, backbone, progress, pretrained=None):
         _load_state_dict(model, state_dict)
 
 
-<<<<<<< HEAD
 def _segm_lraspp_mobilenetv3(backbone_name: str, num_classes: int, pretrained_backbone: bool = True) -> LRASPP:
     backbone = mobilenetv3.__dict__[backbone_name](pretrained=pretrained_backbone, dilated=True).features
-=======
-def _segm_lraspp_mobilenetv3(backbone_name, num_classes, pretrained_backbone=True):
-    backbone = mobilenet.__dict__[backbone_name](pretrained=pretrained_backbone, dilated=True).features
->>>>>>> torchvision - updates to train lite models
 
     # Gather the indices of blocks which are strided. These are the locations of C1, ..., Cn-1 blocks.
     # The first and last blocks are always included because they are the C0 (conv1) and Cn.
@@ -182,18 +164,14 @@ def _segm_lraspp_mobilenetv3(backbone_name, num_classes, pretrained_backbone=Tru
     return model
 
 
-<<<<<<< HEAD
 def fcn_resnet50(
     pretrained: bool = False,
     progress: bool = True,
     num_classes: int = 21,
     aux_loss: Optional[bool] = None,
+    pretrained_backbone: Optional[bool] = True,
     **kwargs: Any
 ) -> nn.Module:
-=======
-def fcn_resnet50(pretrained=False, progress=True,
-                 num_classes=21, aux_loss=None, pretrained_backbone=True, **kwargs):
->>>>>>> torchvision - updates to train lite models
     """Constructs a Fully-Convolutional Network model with a ResNet-50 backbone.
 
     Args:
@@ -312,37 +290,19 @@ def lraspp_mobilenet_v3_large(
 
 
 #################################################################################################
-def lraspp_mobilenet_v3_lite_large(pretrained=False, progress=True,
-                                   num_classes=21, backbone_name='mobilenet_v3_lite_large', **kwargs):
-    if kwargs.pop("aux_loss", False):
-        raise NotImplementedError('This model does not use auxiliary loss')
-    #
-    model = _segm_lraspp_mobilenetv3(backbone_name, num_classes, **kwargs)
-    if pretrained:
-        _load_weights(model, 'lraspp', backbone_name, progress, pretrained)
-    #
-    return model
-
-
-def deeplabv3_mobilenet_v3_lite_large(pretrained=False, progress=True,
-                    num_classes=21, backbone_name='mobilenet_v3_lite_large', **kwargs):
-    '''DeepLabV3 with MobileNetV3 Large Backbone - using Depthwise separable layers'''
-    return _load_model('deeplabv3', backbone_name, pretrained, progress, num_classes, conv_cfg=dict(group_size_dw=1), skip_tail=True, **kwargs)
-
-
-def deeplabv3plus_mobilenet_v2_lite(pretrained=False, progress=True,
-                    num_classes=21, backbone_name='mobilenet_v2_lite', **kwargs):
+def deeplabv3plus_mobilenet_v2(pretrained=False, progress=True,
+                    num_classes=21, backbone_name='mobilenet_v2', **kwargs):
     '''DeepLabV3Plus with MobileNetV2 Backbone - using Depthwise separable layers'''
-    return _load_model('deeplabv3plus', backbone_name, pretrained, progress, num_classes, conv_cfg=dict(group_size_dw=1), skip_tail=True, **kwargs)
+    return _load_model('deeplabv3plus', backbone_name, pretrained, progress, num_classes, skip_tail=True, **kwargs)
 
 
-def deeplabv3plus_mobilenet_v3_lite_large(pretrained=False, progress=True,
-                    num_classes=21, backbone_name='mobilenet_v3_lite_large', **kwargs):
+def deeplabv3plus_mobilenet_v3_large(pretrained=False, progress=True,
+                    num_classes=21, backbone_name='mobilenet_v3_large', **kwargs):
     '''DeepLabV3Plus with MobileNetV3 Large Backbone - using Depthwise separable layers'''
-    return _load_model('deeplabv3plus', backbone_name, pretrained, progress, num_classes, conv_cfg=dict(group_size_dw=1), skip_tail=True, **kwargs)
+    return _load_model('deeplabv3plus', backbone_name, pretrained, progress, num_classes, skip_tail=True, **kwargs)
 
 
-def deeplabv3plus_mobilenet_v3_lite_small(pretrained=False, progress=True,
-                    num_classes=21, backbone_name='mobilenet_v3_lite_small', **kwargs):
+def deeplabv3plus_mobilenet_v3_small(pretrained=False, progress=True,
+                    num_classes=21, backbone_name='mobilenet_v3_small', **kwargs):
     '''DeepLabV3Plus with MobileNetV3 Small Backbone - using Depthwise separable layers'''
-    return _load_model('deeplabv3plus', backbone_name, pretrained, progress, num_classes, conv_cfg=dict(group_size_dw=1), skip_tail=True, **kwargs)
+    return _load_model('deeplabv3plus', backbone_name, pretrained, progress, num_classes, skip_tail=True, **kwargs)

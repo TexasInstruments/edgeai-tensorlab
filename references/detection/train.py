@@ -59,40 +59,40 @@ def get_args_parser(add_help=True):
     import argparse
     parser = argparse.ArgumentParser(description='PyTorch Detection Training', add_help=add_help)
 
-    parser.add_argument('--data-path', default=None, help='dataset')
-    parser.add_argument('--dataset', default=None, help='dataset')
-    parser.add_argument('--model', default=None, help='model')
+    parser.add_argument('--data-path', default='./data/datasets/coco', help='dataset')
+    parser.add_argument('--dataset', default='coco', help='dataset')
+    parser.add_argument('--model', default='ssdlite_mobilenet_v2_lite_fpn', help='model')
     parser.add_argument('--device', default='cuda', help='device')
-    parser.add_argument('-b', '--batch-size', default=2, type=int,
+    parser.add_argument('-b', '--batch-size', default=4, type=int,
                         help='images per gpu, the total batch size is $NGPU x batch_size')
-    parser.add_argument('--epochs', default=26, type=int, metavar='N',
+    parser.add_argument('--epochs', default=60, type=int, metavar='N',
                         help='number of total epochs to run')
     parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
-    parser.add_argument('--lr', default=0.02, type=float,
-                        help='initial learning rate, 0.02 is the default value for training '
+    parser.add_argument('--lr', default=0.05, type=float,
+                        help='initial learning rate, 0.05 is the default value for training '
                              'on 8 gpus and 2 images_per_gpu')
     parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                         help='momentum')
-    parser.add_argument('--wd', '--weight-decay', default=1e-4, type=float,
-                        metavar='W', help='weight decay (default: 1e-4)',
+    parser.add_argument('--wd', '--weight-decay', default=4e-5, type=float,
+                        metavar='W', help='weight decay (default: 4e-5)',
                         dest='weight_decay')
-    parser.add_argument('--lr-scheduler', default="multisteplr", help='the lr scheduler (default: multisteplr)')
+    parser.add_argument('--lr-scheduler', default="cosineannealinglr", help='the lr scheduler (default: cosineannealinglr)')
     parser.add_argument('--lr-step-size', default=8, type=int,
                         help='decrease lr every step-size epochs (multisteplr scheduler only)')
-    parser.add_argument('--lr-steps', default=[16, 22], nargs='+', type=int,
+    parser.add_argument('--lr-steps', default=None, nargs='+', type=int,
                         help='decrease lr every step-size epochs (multisteplr scheduler only)')
     parser.add_argument('--lr-gamma', default=0.1, type=float,
                         help='decrease lr by a factor of lr-gamma (multisteplr scheduler only)')
     parser.add_argument('--print-freq', default=100, type=int, help='print frequency')
-    parser.add_argument('--output-dir', default='./data/checkpoints/detection', help='path where to save')
+    parser.add_argument('--output-dir', default=None, help='path where to save')
     parser.add_argument('--resume', default='', help='resume from checkpoint')
     parser.add_argument('--start_epoch', '--start-epoch', default=0, type=int, help='start epoch')
     parser.add_argument('--aspect-ratio-group-factor', default=3, type=int)
     parser.add_argument('--rpn-score-thresh', default=None, type=float, help='rpn score threshold for faster-rcnn')
     parser.add_argument('--trainable-backbone-layers', default=None, type=int,
                         help='number of trainable layers of backbone')
-    parser.add_argument('--data-augmentation', default="hflip", type=xnn.utils.str_or_none, help='data augmentation policy (default: hflip)')
+    parser.add_argument('--data-augmentation', default="ssd", type=xnn.utils.str_or_none, help='data augmentation policy (default: ssd)')
     parser.add_argument(
         "--sync-bn",
         dest="sync_bn",
@@ -117,16 +117,20 @@ def get_args_parser(add_help=True):
     parser.add_argument('--world-size', default=1, type=int,
                         help='number of distributed processes')
     parser.add_argument('--dist-url', default='env://', help='url used to set up distributed training')
+    parser.add_argument("--distributed", default=None, type=xnn.utils.str2bool_or_none,
+                        help="use dstributed training even if this script is not launched using torch.disctibuted.launch or run")
 
+    parser.add_argument("--num-classes", default=None, type=xnn.utils.str_to_int, help="number of classes in the dataset")
     parser.add_argument('--gpus', default=1, type=int, help='number of gpus')
     parser.add_argument('--complexity', default=True, type=xnn.utils.str2bool, help='display complexity')
     parser.add_argument('--date', default=datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), help='current date')
-    parser.add_argument('--input-size', default=None, type=int, nargs='*', help='resized image size or the smaller side')
+    parser.add_argument('--input-size', default=(512,512), type=int, nargs='*', help='resized image size or the smaller side')
     parser.add_argument('--opset-version', default=11, type=int, nargs='*', help='opset version for onnx export')
-    parser.add_argument('--resize-with-scale-factor', action='store_true', help='resize with scale factor')
-    parser.add_argument('--mean', default=None, type=float, nargs=3, help='mean subtraction')
-    parser.add_argument('--scale', default=None, type=float, nargs=3, help='standard deviation for division')
-    parser.add_argument('--model-average', default=False, type=xnn.utils.str2bool, help='model averaging can help to improve accuracy')
+    parser.add_argument('--resize-with-scale-factor', type=xnn.utils.str2bool, default=True, help='resize with scale factor')
+    parser.add_argument('--mean', default=(123.675, 116.28, 103.53), type=float, nargs=3, help='mean subtraction')
+    parser.add_argument('--scale', default=(0.017125, 0.017507, 0.017429), type=float, nargs=3, help='standard deviation for division')
+    parser.add_argument("--tensorboard-logger", default=False, type=xnn.utils.str2bool, help="start tensorboard logging")
+    parser.add_argument("--tensorboard-server", default=False, type=xnn.utils.str2bool, help="start tensorboard serving")
     parser.add_argument(
         "--pretrained-backbone",
         dest="pretrained_backbone",
@@ -140,20 +144,44 @@ def get_args_parser(add_help=True):
         help="Only export the model",
         action="store_true",
     )
-    parser.add_argument('--tensorboard', action='store_true', help='will use tensorboard if specified')
     return parser
 
 
-def main(args):
+def main(gpu, args):
+    if args.device != 'cpu' and args.distributed is True:
+        os.environ['RANK'] = str(int(os.environ['RANK'])*args.gpus + gpu) if 'RANK' in os.environ else str(gpu)
+        os.environ['LOCAL_RANK'] = str(gpu)
+
     if args.resize_with_scale_factor:
         torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
         torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
 
-    if args.output_dir:
-        utils.mkdir(args.output_dir)
-        logger = xnn.utils.TeeLogger(os.path.join(args.output_dir, f'run_{args.date}.log'))
+    if args.output_dir is None:
+        args.output_dir = os.path.join('./data/checkpoints/detection', f'{args.dataset}_{args.model}')
 
-    utils.init_distributed_mode(args)
+    utils.mkdir(args.output_dir)
+    logger = xnn.utils.TeeLogger(os.path.join(args.output_dir, f'run_{args.date}.log'))
+
+    if args.lr_steps is None:
+        args.lr_steps = [int(args.epochs*0.5), int(args.epochs*0.75)]
+        # print(f'lr_steps were not specified - using {args.lr_steps}')
+    #
+
+    if args.tensorboard_server:
+        tb = TensorBoard()
+        tb_logging.get_logger().setLevel('ERROR')
+        tb.configure(logdir=args.output_dir, bind_all=True)
+        tb_url = tb.launch()
+        print(f'TensorBoard started at: {tb_url}')
+    #
+
+    summary_writer = SummaryWriter(log_dir=args.output_dir) if args.tensorboard_logger else None
+
+    if args.device != 'cpu':
+        utils.init_distributed_mode(args)
+    else:
+        args.distributed = False
+
     print(args)
 
     device = torch.device(args.device)
@@ -210,12 +238,13 @@ def main(args):
     model = torchvision.models.detection.__dict__[args.model](num_classes=num_classes, pretrained=args.pretrained,
                                                               pretrained_backbone=args.pretrained_backbone, **kwargs)
 
-    if args.complexity:
-        complexity(args, model)
 
     if args.export_only:
         export(args, model, args.model)
         return
+
+    if args.complexity:
+        complexity(args, model)
 
     model.to(device)
     if args.distributed and args.sync_bn:
@@ -247,29 +276,21 @@ def main(args):
         args.start_epoch = checkpoint['epoch'] + 1
 
     if args.test_only:
-        evaluate(args, model, data_loader_test, device=device)
+        evaluate(args, model, data_loader_test, device=device, epoch=0)
         return
-
-    if args.model_average:
-        model_average = xnn.utils.ModelAverage()
 
     print("Start training")
     start_time = time.time()
+    epoch = 0
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
-        train_one_epoch(args, model, optimizer, data_loader, device, epoch, args.print_freq)
+        train_one_epoch(args, model, optimizer, data_loader, device, epoch, summary_writer, print_freq=args.print_freq)
         lr_scheduler.step()
-
-        if args.model_average:
-            model_average.put(model)
-            model_eval = model_average.get(model)
-        else:
-            model_eval = model
 
         if args.output_dir:
             checkpoint = {
-                'model': (model_eval.module if args.distributed else model_eval).state_dict(),
+                'model': model_without_ddp.state_dict(),
                 'optimizer': optimizer.state_dict(),
                 'lr_scheduler': lr_scheduler.state_dict(),
                 'args': args,
@@ -283,17 +304,50 @@ def main(args):
                 os.path.join(args.output_dir, 'checkpoint.pth'))
 
         # evaluate after every epoch
-        evaluate(args, model_eval, data_loader_test, device=device)
+        evaluate(args, model, data_loader_test, device=device, epoch=epoch, summary_writer=summary_writer)
+
+        if summary_writer:
+            summary_writer.flush()
+
+        if hasattr(args, 'quit_event') and args.quit_event.is_set():
+            break
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))
 
+    if hasattr(args, 'quit_event') and args.quit_event.is_set():
+        return
+
+
+    print('Model export after training:')
+    export(args, model, args.model)
+
+    print('Model training and export completed.')
+
+
+
+def run(args):
+    if isinstance(args.input_size, (list,tuple)) and len(args.input_size) == 1:
+        args.input_size = args.input_size[0]
+
+    if args.device != 'cpu' and args.distributed is True:
+        # for explanation of what is happening here, please see this:
+        # https://yangkky.github.io/2019/07/08/distributed-pytorch-tutorial.html
+        # this assignment of RANK assumes a single machine, but with multiple gpus
+        os.environ['RANK'] = '0'
+        os.environ['WORLD_SIZE'] = str(args.gpus)
+        os.environ['MASTER_ADDR'] = 'localhost'
+        os.environ['MASTER_PORT'] = '29500'
+        torch.multiprocessing.spawn(main, nprocs=args.gpus, args=(args,))
+    else:
+        main(0, args)
+
 
 if __name__ == "__main__":
     args = get_args_parser().parse_args()
 
-    if isinstance(args.input_size, (list,tuple)) and len(args.input_size) == 1:
-        args.input_size = args.input_size[0]
-
-    main(args)
+    # run the training.
+    # if args.distributed is True is set, then this will launch distributed training
+    # depending on args.gpus
+    run(args)

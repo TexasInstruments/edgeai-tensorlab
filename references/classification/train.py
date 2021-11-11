@@ -148,14 +148,20 @@ def load_data(traindir, valdir, args):
     return dataset, dataset_test, train_sampler, test_sampler
 
 
-def main(args):
+def main(gpu, args):
+    if args.device != 'cpu' and args.distributed is True:
+        os.environ['RANK'] = str(int(os.environ['RANK'])*args.gpus + gpu) if 'RANK' in os.environ else str(gpu)
+        os.environ['LOCAL_RANK'] = str(gpu)
+
     if args.apex and amp is None:
         raise RuntimeError("Failed to import apex. Please install apex from https://www.github.com/nvidia/apex "
                            "to enable mixed-precision training.")
 
-    if args.output_dir:
-        utils.mkdir(args.output_dir)
-
+    if not args.output_dir:
+        args.output_dir = os.path.join('./data/checkpoints/classification', args.model)
+	
+	utils.mkdir(args.output_dir, exist_ok=True)
+	
     utils.init_distributed_mode(args)
     print(args)
 
@@ -317,7 +323,7 @@ def get_args_parser(add_help=True):
     parser.add_argument('--lr', default=0.1, type=float, help='initial learning rate')
     parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                         help='momentum')
-    parser.add_argument('--wd', '--weight-decay', default=1e-4, type=float,
+    parser.add_argument('--wd', '--weight-decay', default=4e-5, type=float,
                         metavar='W', help='weight decay (default: 1e-4)',
                         dest='weight_decay')
     parser.add_argument('--label-smoothing', default=0.0, type=float,
@@ -325,15 +331,15 @@ def get_args_parser(add_help=True):
                         dest='label_smoothing')
     parser.add_argument('--mixup-alpha', default=0.0, type=float, help='mixup alpha (default: 0.0)')
     parser.add_argument('--cutmix-alpha', default=0.0, type=float, help='cutmix alpha (default: 0.0)')
-    parser.add_argument('--lr-scheduler', default="steplr", help='the lr scheduler (default: steplr)')
-    parser.add_argument('--lr-warmup-epochs', default=0, type=int, help='the number of epochs to warmup (default: 0)')
+    parser.add_argument('--lr-scheduler', default="cosineannealinglr", help='the lr scheduler (default: cosineannealinglr)')
+    parser.add_argument('--lr-warmup-epochs', default=5, type=int, help='the number of epochs to warmup (default: 5)')
     parser.add_argument('--lr-warmup-method', default="constant", type=str,
                         help='the warmup method (default: constant)')
     parser.add_argument('--lr-warmup-decay', default=0.01, type=float, help='the decay for lr')
     parser.add_argument('--lr-step-size', default=30, type=int, help='decrease lr every step-size epochs')
     parser.add_argument('--lr-gamma', default=0.1, type=float, help='decrease lr by a factor of lr-gamma')
     parser.add_argument('--print-freq', default=10, type=int, help='print frequency')
-    parser.add_argument('--output-dir', default='./data/checkpoints/classification', help='path where to save')
+    parser.add_argument('--output-dir', default=None, help='path where to save')
     parser.add_argument('--resume', default='', help='resume from checkpoint')
     parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                         help='start epoch')
@@ -359,7 +365,8 @@ def get_args_parser(add_help=True):
         "--pretrained",
         dest="pretrained",
         help="Use pre-trained models from the modelzoo",
-        action="store_true",
+        default=None,
+        type=xnn.utils.str_or_bool,
     )
     parser.add_argument(
         "--export-only",
@@ -393,6 +400,25 @@ def get_args_parser(add_help=True):
     return parser
 
 
+def run(args):
+    if args.device != 'cpu' and args.distributed is True:
+        # for explanation of what is happening here, please see this:
+        # https://yangkky.github.io/2019/07/08/distributed-pytorch-tutorial.html
+        # this assignment of RANK assumes a single machine, but with multiple gpus
+        os.environ['RANK'] = '0'
+        os.environ['WORLD_SIZE'] = str(args.gpus)
+        os.environ['MASTER_ADDR'] = 'localhost'
+        os.environ['MASTER_PORT'] = '29500'
+        torch.multiprocessing.spawn(main, nprocs=args.gpus, args=(args,))
+    else:
+        main(0, args)
+
+
 if __name__ == "__main__":
     args = get_args_parser().parse_args()
-    main(args)
+
+    # run the training.
+    # if args.distributed is True is set, then this will launch distributed training
+    # depending on args.gpus
+    run(args)
+

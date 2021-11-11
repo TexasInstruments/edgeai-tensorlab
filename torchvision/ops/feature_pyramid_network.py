@@ -3,7 +3,7 @@ from collections import OrderedDict
 import torch.nn.functional as F
 from torch import nn, Tensor
 
-from typing import Tuple, List, Dict, Optional, Union
+from typing import Tuple, List, Dict, Optional
 
 from ..edgeailite import xnn
 
@@ -73,25 +73,25 @@ class FeaturePyramidNetwork(nn.Module):
         in_channels_list: List[int],
         out_channels: int,
         extra_blocks: Optional[ExtraFPNBlock] = None,
-        conv_cfg: Union[dict,None] = None
     ):
         super(FeaturePyramidNetwork, self).__init__()
         self.inner_blocks = nn.ModuleList()
         self.layer_blocks = nn.ModuleList()
+        self.add_blocks = nn.ModuleList()		
         for in_channels in in_channels_list:
             if in_channels == 0:
                 raise ValueError("in_channels=0 is currently not supported")
-            inner_block_module = xnn.layers.ConvNormWrapper2d(in_channels, out_channels, 1, conv_cfg=conv_cfg)
-            layer_block_module = xnn.layers.ConvNormWrapper2d(out_channels, out_channels, 3, padding=1, conv_cfg=conv_cfg)
+            inner_block_module = nn.Conv2d(in_channels, out_channels, 1)
+            layer_block_module = nn.Conv2d(out_channels, out_channels, 3, padding=1)
             self.inner_blocks.append(inner_block_module)
             self.layer_blocks.append(layer_block_module)
-
+            self.add_blocks.append(xnn.layers.AddBlock())
+			
         # initialize parameters now to avoid modifying the initialization of top_blocks
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_uniform_(m.weight, a=1)
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
+                nn.init.constant_(m.bias, 0)
 
         if extra_blocks is not None:
             assert isinstance(extra_blocks, ExtraFPNBlock)
@@ -152,7 +152,8 @@ class FeaturePyramidNetwork(nn.Module):
             inner_lateral = self.get_result_from_inner_blocks(x[idx], idx)
             feat_shape = inner_lateral.shape[-2:]
             inner_top_down = F.interpolate(last_inner, size=feat_shape, mode="nearest")
-            last_inner = inner_lateral + inner_top_down
+            add_block = self.add_blocks[idx]
+            last_inner = add_block((inner_lateral, inner_top_down))
             results.insert(0, self.get_result_from_layer_blocks(last_inner, idx))
 
         if self.extra_blocks is not None:
@@ -183,27 +184,23 @@ class LastLevelP6P7(ExtraFPNBlock):
     """
     This module is used in RetinaNet to generate extra layers, P6 and P7.
     """
-    def __init__(self, in_channels: int, out_channels: int, num_blocks=2, conv_cfg=None):
+    def __init__(self, in_channels: int, out_channels: int, num_blocks=2):
         super(LastLevelP6P7, self).__init__()
-        self.p6 = xnn.layers.ConvNormWrapper2d(in_channels, out_channels, 3, 2, padding=1, conv_cfg=conv_cfg)
-        self.p7 = xnn.layers.ConvNormWrapper2d(out_channels, out_channels, 3, 2, padding=1, conv_cfg=conv_cfg)
+        self.p6 = nn.Conv2d(in_channels, out_channels, 3, 2, 1)
+        self.p7 = nn.Conv2d(out_channels, out_channels, 3, 2, 1)
         self.relup6 = nn.ReLU()
         self.use_P5 = in_channels == out_channels
         self.num_blocks = num_blocks
         modules_list = [self.p6, self.p7]
         if self.num_blocks > 2:
             self.relup7 = nn.ReLU()
-            self.p8 = xnn.layers.ConvNormWrapper2d(out_channels, out_channels, 3, 2, padding=1, conv_cfg=conv_cfg)
+            self.p8 = nn.Conv2d(out_channels, out_channels, 3, 2, 1)
             modules_list.append(self.p8)
-        #
-        if conv_cfg is not None:
-            xnn.utils.module_weights_init(self, weight_init='uniform', mode='fan_in', nonlinearity='leaky_relu', a=1)
-        else:
-            for module in modules_list:
-                nn.init.kaiming_uniform_(module.weight, a=1)
-                nn.init.constant_(module.bias, 0)
-            #
-        #
+
+        for module in modules_list:
+            nn.init.kaiming_uniform_(module.weight, a=1)
+            nn.init.constant_(module.bias, 0)
+
 
     def forward(
         self,

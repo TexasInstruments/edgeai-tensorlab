@@ -3,27 +3,29 @@ import os
 import time
 from colorama import Fore
 import numpy as np
-import onnx
+import warnings
 
 import torch
 import torch.utils.data
 from torch import nn
 import torchvision
-from torchvision.edgeailite import xnn
 import torchinfo
 
 from coco_utils import get_coco
 import presets
 import utils
 
+from torchvision.edgeailite import xnn
+
 
 def get_dataset(dir_path, name, image_set, transform):
     def sbd(*args, **kwargs):
         return torchvision.datasets.SBDataset(*args, mode='segmentation', **kwargs)
+
     paths = {
         "voc": (dir_path, torchvision.datasets.VOCSegmentation, 21),
         "voc_aug": (dir_path, sbd, 21),
-        "coco": (dir_path, get_coco, 21)
+        "coco": (dir_path, get_coco, 21),
     }
     p, ds_fn, num_classes = paths[name]
 
@@ -34,8 +36,8 @@ def get_dataset(dir_path, name, image_set, transform):
 def get_transform(args, train):
     base_size = args.input_size
     crop_size = args.crop_size
-    return presets.SegmentationPresetTrain(base_size, crop_size, mean=args.mean, scale=args.scale, data_augmentation=args.data_augmentation) \
-        if train else presets.SegmentationPresetEval(base_size, mean=args.mean, scale=args.scale)
+
+    return presets.SegmentationPresetTrain(base_size, crop_size, mean=args.mean, scale=args.scale, data_augmentation=args.data_augmentation) if train else presets.SegmentationPresetEval(base_size, mean=args.mean, scale=args.scale)
 
 
 def criterion(inputs, target):
@@ -101,7 +103,7 @@ def tensor_to_color(seg_image, num_classes, dataformats='CHW'):
     return xnn.utils.segmap_to_color(seg_image, num_classes)
 
 
-def evaluate(args, model, data_loader, device, num_classes, epoch, visualizer):
+def evaluate(args, model, data_loader, device, num_classes, epoch, visualizer, print_freq=100):
     model.eval()
     confmat = utils.ConfusionMatrix(num_classes)
     metric_logger = utils.MetricLogger(delimiter="  ")
@@ -110,9 +112,10 @@ def evaluate(args, model, data_loader, device, num_classes, epoch, visualizer):
     epoch_size = len(data_loader)
     visualization_freq = epoch_size // 5
     visualization_counter = 0
+    print_freq = min(print_freq, len(data_loader))
 
     with torch.no_grad():
-        for iteration, (image, target) in enumerate(metric_logger.log_every(data_loader, 100, header)):
+        for iteration, (image, target) in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
             image, target = image.to(device), target.to(device)
             output = model(image)
             output = output['out']
@@ -140,7 +143,7 @@ def evaluate(args, model, data_loader, device, num_classes, epoch, visualizer):
     return confmat
 
 
-def train_one_epoch(args, model, criterion, optimizer, data_loader, lr_scheduler, device, num_classes, epoch, visualizer):
+def train_one_epoch(args, model, criterion, optimizer, data_loader, lr_scheduler, device, num_classes, epoch, visualizer, print_freq=100):
     model.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value}'))
@@ -149,6 +152,7 @@ def train_one_epoch(args, model, criterion, optimizer, data_loader, lr_scheduler
     epoch_size = len(data_loader)
     visualization_freq = epoch_size // 5
     visualization_counter = 0
+    print_freq = min(print_freq, len(data_loader))
 
     for iteration, (image, target) in enumerate(metric_logger.log_every(data_loader, args.print_freq, header)):
         image, target = image.to(device), target.to(device)
@@ -185,12 +189,13 @@ def export(args, model, model_name=None):
         (args.input_size, args.input_size)
     data_shape = (1,3,*image_size_tuple)
     example_input = torch.rand(*data_shape)
-    output_onnx_file = os.path.join(args.output_dir, model_name+'.onnx')
+    output_onnx_file = os.path.join(args.output_dir, 'model.onnx')
     torch.onnx.export(model, example_input, output_onnx_file, opset_version=args.opset_version)
+    # shape inference to make it easy for inference
     onnx.shape_inference.infer_shapes_path(output_onnx_file, output_onnx_file)
-
-    #script_model = torch.jit.trace(model, example_input, strict=False)
-    #torch.jit.save(script_model, os.path.join(args.output_dir, model_name+'_model.pth'))
+    # export torchscript model
+    # script_model = torch.jit.trace(model, example_input, strict=False)
+    # torch.jit.save(script_model, os.path.join(args.output_dir, model_name+'_model.pth'))
 
 
 def complexity(args, model):
@@ -198,19 +203,32 @@ def complexity(args, model):
     image_size_tuple = args.input_size if isinstance(args.input_size, (list,tuple)) else \
         (args.input_size, args.input_size)
     data_shape = (1,3,*image_size_tuple)
-    torchinfo.summary(model, data_shape, depth=10)
+    device = next(model.parameters()).device
+    try:
+        torchinfo.summary(model, data_shape, depth=10, device=device)
+    except UnicodeEncodeError:
+        warnings.warn('torchinfo.summary could not print - please check language/locale')
 
 
-def main(args):
+def main(gpu, args):
+    if args.device != 'cpu' and args.distributed is True:
+        os.environ['RANK'] = str(int(os.environ['RANK'])*args.gpus + gpu) if 'RANK' in os.environ else str(gpu)
+        os.environ['LOCAL_RANK'] = str(gpu)
+	
     if args.resize_with_scale_factor:
         nn.functional._interpolate_orig = nn.functional.interpolate
         nn.functional.interpolate = xnn.layers.resize_with_scale_factor
 
-    if args.output_dir:
-        utils.mkdir(args.output_dir)
-        logger = xnn.utils.TeeLogger(os.path.join(args.output_dir, f'run_{args.date}.log'))
+    if args.output_dir is None:
+        args.output_dir = os.path.join('./data/checkpoints/segmentation', f'{args.dataset}_{args.model}')
 
-    utils.init_distributed_mode(args)
+    utils.mkdir(args.output_dir)
+    logger = xnn.utils.TeeLogger(os.path.join(args.output_dir, f'run_{args.date}.log'))
+
+    if args.device != 'cpu':
+        utils.init_distributed_mode(args)
+    else:
+        args.distributed = False
 
     # print args
     print(f'{Fore.YELLOW}')
@@ -318,7 +336,7 @@ def main(args):
             args.start_epoch = checkpoint['epoch'] + 1
 
     if args.test_only:
-        confmat = evaluate(args, model, data_loader_test, device=device, num_classes=num_classes, epoch=0, visualizer=None)
+        confmat = evaluate(args, model, data_loader_test, device=device, num_classes=num_classes, epoch=0, visualizer=None, print_freq=args.print_freq)
         print(confmat, '\n\n')
         return
 
@@ -326,11 +344,9 @@ def main(args):
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
-        train_one_epoch(args, model, criterion, optimizer, data_loader, lr_scheduler, device, num_classes=num_classes,
-                        epoch=epoch, visualizer=train_visualizer)
+        train_one_epoch(args, model, criterion, optimizer, data_loader, lr_scheduler, device, num_classes=num_classes, epoch=epoch, visualizer=train_visualizer, print_freq=args.print_freq)
         print(f'{Fore.GREEN}', end='')
-        confmat = evaluate(args, model, data_loader_test, device=device, num_classes=num_classes,
-                           epoch=epoch, visualizer=val_visualizer)
+        confmat = evaluate(args, model, data_loader_test, device=device, num_classes=num_classes, epoch=epoch, visualizer=val_visualizer, print_freq=args.print_freq)
         print(confmat, '\n\n')
         print(f'{Fore.RESET}', end='')
         checkpoint = {
@@ -356,30 +372,29 @@ def get_args_parser(add_help=True):
     import argparse
     parser = argparse.ArgumentParser(description='PyTorch Segmentation Training', add_help=add_help)
 
-    parser.add_argument('--data-path', default=None, help='dataset path')
-    parser.add_argument('--dataset', default=None, help='dataset name')
-    parser.add_argument('--model', default=None, help='model')
+    parser.add_argument('--data-path', default='./data/datasets/coco', help='dataset path')
+    parser.add_argument('--dataset', default='coco', help='dataset name')
+    parser.add_argument('--model', default='deeplabv3plus_mobilenet_v2_lite', help='model')
     parser.add_argument('--aux-loss', action='store_true', help='auxiliar loss')
     parser.add_argument('--device', default='cuda', help='device')
     parser.add_argument('-b', '--batch-size', default=8, type=int)
-    parser.add_argument('--epochs', default=30, type=int, metavar='N',
+    parser.add_argument('--epochs', default=60, type=int, metavar='N',
                         help='number of total epochs to run')
 
     parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                         help='number of data loading workers (default: 16)')
-    parser.add_argument('--lr', default=0.01, type=float, help='initial learning rate')
+    parser.add_argument('--lr', default=0.05, type=float, help='initial learning rate')
     parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                         help='momentum')
-    parser.add_argument('--wd', '--weight-decay', default=1e-4, type=float,
-                        metavar='W', help='weight decay (default: 1e-4)',
+    parser.add_argument('--wd', '--weight-decay', default=4e-5, type=float,
+                        metavar='W', help='weight decay (default: 4e-5)',
                         dest='weight_decay')
     parser.add_argument('--lr-warmup-epochs', default=0, type=int, help='the number of epochs to warmup (default: 0)')
     parser.add_argument('--lr-warmup-method', default="linear", type=str, help='the warmup method (default: linear)')
     parser.add_argument('--lr-warmup-decay', default=0.01, type=float, help='the decay for lr')
     parser.add_argument('--print-freq', default=10, type=int, help='print frequency')
     parser.add_argument('--print-freq', default=100, type=int, help='print frequency')
-    parser.add_argument('--output-dir', default='.', help='path where to save')
-    parser.add_argument('--output-dir', default='./data/checkpoints/segmentation', help='path where to save')
+    parser.add_argument('--output-dir', default=None, help='path where to save')
     parser.add_argument('--resume', default='', help='resume from checkpoint')
     parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                         help='start epoch')
@@ -404,17 +419,17 @@ def get_args_parser(add_help=True):
     parser.add_argument('--gpus', default=1, type=int, help='number of gpus')
     parser.add_argument('--complexity', default=True, type=xnn.utils.str2bool, help='display complexity')
     parser.add_argument('--date', default=datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), help='current date')
-    parser.add_argument('--input-size', default=520, type=int, nargs='*', help='resized image size or the smaller side')
-    parser.add_argument('--crop-size', default=480, type=int, nargs='*', help='cropped image size for training')
+    parser.add_argument('--input-size', default=(512,512), type=int, nargs='*', help='resized image size or the smaller side')
+    parser.add_argument('--crop-size', default=(480,480), type=int, nargs='*', help='cropped image size for training')
     parser.add_argument('--opset-version', default=11, type=int, nargs='*', help='opset version for onnx export')
-    parser.add_argument('--resize-with-scale-factor', action='store_true', help='resize with scale factor')
+    parser.add_argument('--resize-with-scale-factor', type=xnn.utils.str2bool, default=True, help='resize with scale factor')
     parser.add_argument('--data-augmentation', default=None, type=xnn.utils.str_or_none, help='type of data augmentation')
     parser.add_argument('--mean', default=[123.675, 116.28, 103.53], type=float, nargs=3, help='mean subtraction')
     parser.add_argument('--scale', default=[0.017125, 0.017507, 0.017429], type=float, nargs=3, help='standard deviation for division')
     parser.add_argument(
         "--pretrained-backbone",
         dest="pretrained_backbone",
-        default=None,
+        default=True,
         type=xnn.utils.str_or_bool,
         help="Pre-trained backbone path or use from from the modelzoo",
     )
@@ -424,8 +439,25 @@ def get_args_parser(add_help=True):
         help="Only export the model",
         action="store_true",
     )
-    parser.add_argument('--tensorboard', action='store_true', help='will use tensorboard if specified')
+    parser.add_argument('--tensorboard', default=True, type=xnn.utils.str_or_bool, help='will use tensorboard if specified')
     return parser
+
+
+def run(args):
+    if isinstance(args.input_size, (list,tuple)) and len(args.input_size) == 1:
+        args.input_size = args.input_size[0]
+
+    if args.device != 'cpu' and args.distributed is True:
+        # for explanation of what is happening here, please see this:
+        # https://yangkky.github.io/2019/07/08/distributed-pytorch-tutorial.html
+        # this assignment of RANK assumes a single machine, but with multiple gpus
+        os.environ['RANK'] = '0'
+        os.environ['WORLD_SIZE'] = str(args.gpus)
+        os.environ['MASTER_ADDR'] = 'localhost'
+        os.environ['MASTER_PORT'] = '29500'
+        torch.multiprocessing.spawn(main, nprocs=args.gpus, args=(args,))
+    else:
+        main(0, args)
 
 
 if __name__ == "__main__":
@@ -436,5 +468,9 @@ if __name__ == "__main__":
 
     if isinstance(args.crop_size, (list,tuple)) and len(args.crop_size) == 1:
         args.crop_size = args.crop_size[0]
-
-    main(args)
+		
+    # run the training.
+    # if args.distributed is True is set, then this will launch distributed training
+    # depending on args.gpus
+    run(args)
+	

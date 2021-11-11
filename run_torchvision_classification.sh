@@ -13,7 +13,7 @@ export PYTHONPATH=:$PYTHONPATH
 #model=regnetx1p6gf
 #model=mobilenet_v2
 #model=mobilenet_v2_lite
-model=mobilenet_v3_lite_large
-#model=mobilenet_v3_lite_small
+#model=mobilenet_v3_small_lite
+model=mobilenet_v3_large_lite
 
-python ./references/classification/train.py --data-path ./data/datasets/imagenet/ --model ${model} --export
+python3 -m torch.distributed.run --nproc_per_node 4 ./references/classification/train.py --data-path ./data/datasets/imagenet/ --model ${model} --export

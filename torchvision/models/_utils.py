@@ -1,7 +1,7 @@
 from collections import OrderedDict
-
-from torch import nn
 from typing import Dict, Optional
+import copy
+from torch import nn
 
 
 class IntermediateLayerGetter(nn.ModuleDict):
@@ -64,6 +64,62 @@ class IntermediateLayerGetter(nn.ModuleDict):
                 out_name = self.return_layers[name]
                 out[out_name] = x
         return out
+
+
+class IntermediateModuleGetter(nn.ModuleDict):
+    """
+    feature_extraction.create_feature_extractor provides more granularity compared to IntermediateLayerGetter,
+      but it uses torch.fx and it doesn't keep the original class names.
+    IntermediateModuleGetter is our modification to IntermediateLayerGetter - this provides more granulatrity,
+      but it still has one of the original limitations - forward fuction of the model is not preserved -
+      so the forward function of the model passed should not use functionals.
+    """
+    _version = 2
+    __annotations__ = {
+        "return_layers": Dict[str, str],
+    }
+    def __init__(self, model: nn.Module, return_layers: Dict[str, str]) -> None:
+        if not set(return_layers).issubset([name for name, _ in model.named_modules()]):
+            raise ValueError("return_layers are not present in model")
+
+        # logic to find only upto the required laeyrs and remove the remaining
+        # otherwise DistributedDataParallel will complain that certain parameters were not used
+        self.return_layers = return_layers
+        return_layers_copy = copy.deepcopy(return_layers)
+        layers = OrderedDict()
+        for name, child in model.named_children():
+            layers[name] = child
+            layer_found = False
+            for cn, cm in child.named_modules():
+                cn_full = name + '.' + cn if cn else name
+                if cn_full in return_layers_copy:
+                    layer_found = True
+                #
+            #
+            if layer_found:
+                del return_layers_copy[name]
+            if not return_layers_copy:
+                break
+        #
+        super().__init__(layers)
+
+        for name, module in self.named_modules():
+            module._module_name = name
+            module.register_forward_hook(self._forward_hook_fn)
+        #
+
+    def _forward_hook_fn(self, m, input, output):
+        if m._module_name in self.return_layers:
+            return_layer_name = self.return_layers[m._module_name]
+            self._return_outputs[return_layer_name] = output
+
+    def forward(self, x):
+        self._return_outputs = OrderedDict()
+        for name, module in self.items():
+            x = module(x)
+        #
+        assert len(self._return_outputs) > 0, 'Could not find intermediate outputs to return'
+        return self._return_outputs
 
 
 def _make_divisible(v: float, divisor: int, min_value: Optional[int] = None) -> int:

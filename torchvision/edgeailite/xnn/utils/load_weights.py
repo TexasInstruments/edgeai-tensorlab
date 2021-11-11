@@ -137,6 +137,9 @@ def check_model_data(model, data, verbose=False, ignore_names=('num_batches_trac
     missing_weights = [name for name in missing_weights if not _match_name_partial(ignore_names, name)]
     extra_weights = [name for name in extra_weights if not _match_name_partial(ignore_names, name)]
     not_matching_sizes = [k for k in model_dict.keys() if ((k in data.keys()) and (data[k].size() != model_dict[k].size()))]
+    # for k in model_dict.keys():
+    #     if ((k in data.keys()) and (data[k].size() != model_dict[k].size())):
+    #         print(f"size mismatch for layer k expected:{model_dict[k].size()}, got:{data[k].size()}")
 
     if missing_weights:
         print_utils.print_yellow("=> The following layers in the model could not be loaded from pre-trained: ", *missing_weights, sep = "\n")

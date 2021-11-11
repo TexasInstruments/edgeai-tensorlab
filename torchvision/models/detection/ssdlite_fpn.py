@@ -1,4 +1,35 @@
 #################################################################################
+# Modified from: https://github.com/pytorch/vision
+# BSD 3-Clause License
+#
+# Copyright (c) Soumith Chintala 2016,
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#################################################################################
 # Copyright (c) 2018-2021, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
 #
@@ -26,7 +57,6 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
 #################################################################################
 
 import torch
@@ -35,34 +65,35 @@ import warnings
 from collections import OrderedDict
 from functools import partial
 from torch import nn, Tensor
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Dict
 
 from . import _utils as det_utils
 from .ssd import SSD, SSDScoringHead
 from .anchor_utils import DefaultBoxGenerator
 from .backbone_utils import _validate_trainable_layers
-from .. import mobilenet
-from ..mobilenetv3 import ConvBNActivation
+from .. import mobilenet, regnet, efficientnet
 from ..._internally_replaced_utils import load_state_dict_from_url
 from .backbone_utils import BackboneWithFPN
 from ...ops.feature_pyramid_network import LastLevelP6P7, FeaturePyramidNetwork
 from ...ops.rf_blocks import BiFPN
 from ...edgeailite import xnn
-
-__all__ = ['ssdlite_mobilenet_v2_lite_fpn', 'ssdlite_mobilenet_v3_lite_large_fpn', 'ssdlite_mobilenet_v3_lite_small_fpn',
-           'ssdlite_mobilenet_v2_lite_bifpn']
-
-
 from .ssdlite import _normal_init, SSDLiteHead, _load_state_dict, model_urls
+
+
+__all__ = ['ssdlite_mobilenet_v2_fpn', 'ssdlite_mobilenet_v3_large_fpn',
+           'ssdlite_mobilenet_v3_small_fpn', 'ssdlite_mobilenet_v2_bifpn',
+           'ssdlite_regnet_x_400mf_fpn', 'ssdlite_regnet_x_800mf_fpn', 'ssdlite_regnet_x_1_6gf_fpn',
+           'ssdlite_efficientnet_b0_fpn']
 
 
 def ssdlite_fpn_model(pretrained: bool = False, progress: bool = True, num_classes: int = 91,
                       pretrained_backbone: bool = False, trainable_backbone_layers: Optional[int] = None,
                       norm_layer: Optional[Callable[..., nn.Module]] = None,
-                      activation_layer: Callable[..., nn.Module] = nn.ReLU,
-                      backbone_name = None, size = (320, 320), reduce_tail=False,
-                      conv_cfg: dict = None, shortcut_layers = ('7', '14', '16'),
-                      shortcut_channels = (80, 160, 960), fpn_type=FeaturePyramidNetwork,
+                      backbone_name = None, size = (320, 320),
+                      shortcut_layers = ('7', '14', '16'),
+                      shortcut_channels = (80, 160, 960), 
+					  fpn_type=FeaturePyramidNetwork,
+                      weights_name = None,
                       **kwargs: Any):
     """Constructs an SSDlite model and a MobileNetV3 Large backbone with FPN
 
@@ -82,10 +113,6 @@ def ssdlite_fpn_model(pretrained: bool = False, progress: bool = True, num_class
             Valid values are between 0 and 6, with 6 meaning all backbone layers are trainable.
         norm_layer (callable, optional): Module specifying the normalization layer to use.
     """
-    if "size" is None:
-        warnings.warn("The size of the model is not provided; using default.")
-        size = (320, 320)
-
     if pretrained:
         pretrained_backbone = False
 
@@ -95,8 +122,17 @@ def ssdlite_fpn_model(pretrained: bool = False, progress: bool = True, num_class
     if norm_layer is None:
         norm_layer = partial(nn.BatchNorm2d, eps=0.001, momentum=0.03)
 
-    backbone = mobilenet.__dict__[backbone_name](pretrained=pretrained_backbone, progress=progress,
-                                                 norm_layer=norm_layer, **kwargs)
+    if 'mobilenet' in backbone_name:
+        backbone_module = mobilenet
+    elif 'regnet' in backbone_name:
+        backbone_module = regnet
+    elif 'efficientnet' in backbone_name:
+        backbone_module = efficientnet
+    else:
+        assert False, f'unknown backbone model name {backbone_name}'
+
+    backbone = backbone_module.__dict__[backbone_name](pretrained=pretrained_backbone, progress=progress,
+                                                       norm_layer=norm_layer)
 
     if not pretrained_backbone:
         # Change the default initialization scheme if not pretrained
@@ -106,9 +142,11 @@ def ssdlite_fpn_model(pretrained: bool = False, progress: bool = True, num_class
     # in FeaturePyramidNetwork extra_blocks are applied at the output.
     # in BiFPN they are applied at the input
     p5_channels = 256 if fpn_type == FeaturePyramidNetwork else shortcut_channels[-1]
-    extra_blocks = LastLevelP6P7(p5_channels,256,num_blocks=3,conv_cfg=conv_cfg)
-    backbone = BackboneWithFPN(backbone.features, return_layers, in_channels_list=shortcut_channels,
-                               out_channels=256, conv_cfg=conv_cfg, extra_blocks=extra_blocks,
+    extra_blocks = LastLevelP6P7(p5_channels,256,num_blocks=3)
+
+    backbone_features = backbone.features if hasattr(backbone, 'features') else backbone
+    backbone = BackboneWithFPN(backbone_features, return_layers, in_channels_list=shortcut_channels,
+                               out_channels=256, extra_blocks=extra_blocks,
                                fpn_type=fpn_type)
 
     # these factors are chosen to match those in mmdetection
@@ -119,10 +157,10 @@ def ssdlite_fpn_model(pretrained: bool = False, progress: bool = True, num_class
     assert len(out_channels) == len(anchor_generator.aspect_ratios)
 
     defaults = {
-        "score_thresh": 0.001,
-        "nms_thresh": 0.55,
+        "score_thresh": 0.02,
+        "nms_thresh": 0.45,
         "detections_per_img": 300,
-        "topk_candidates": 300,
+        "topk_candidates": 300, #1000
         # Rescale the input in a way compatible to the backbone:
         # The following mean/std rescale the data from [0, 1] to [-1, -1]
         "image_mean": [0.5, 0.5, 0.5],
@@ -135,12 +173,10 @@ def ssdlite_fpn_model(pretrained: bool = False, progress: bool = True, num_class
         del defaults["image_std"]
     #
     kwargs = {**defaults, **kwargs}
-    model = SSD(backbone, anchor_generator, size, num_classes,
-                head=SSDLiteHead(out_channels, num_anchors, num_classes, norm_layer, activation_layer=activation_layer, conv_cfg=conv_cfg),
-                **kwargs)
+    ssd_head = SSDLiteHead(out_channels, num_anchors, num_classes, norm_layer)
+    model = SSD(backbone, anchor_generator, size, num_classes, head=ssd_head, **kwargs)
 
     if pretrained is True:
-        weights_name = 'ssdlite320_mobilenet_v3_large_coco'
         if model_urls.get(weights_name, None) is None:
             raise ValueError("No checkpoint is available for model {}".format(weights_name))
         state_dict = load_state_dict_from_url(model_urls[weights_name], progress=progress)
@@ -154,24 +190,64 @@ def ssdlite_fpn_model(pretrained: bool = False, progress: bool = True, num_class
     return model
 
 
-def ssdlite_mobilenet_v2_lite_fpn(*args, backbone_name="mobilenet_v2_lite", **kwargs):
-    return ssdlite_fpn_model(*args, backbone_name=backbone_name, shortcut_layers=('6', '10', '18'),
-                             shortcut_channels=(32, 64, 1280), conv_cfg=dict(group_size_dw=1), **kwargs)
+def _load_state_dict(model, state_dict):
+    state_dict = state_dict['model'] if 'model' in state_dict else state_dict
+    state_dict = state_dict['state_dict'] if 'state_dict' in state_dict else state_dict
+    try:
+        model.load_state_dict(state_dict)
+    except:
+        model.load_state_dict(state_dict, strict=False)
 
 
-def ssdlite_mobilenet_v3_lite_large_fpn(*args, backbone_name="mobilenet_v3_lite_large", **kwargs):
-    return ssdlite_fpn_model(*args, backbone_name=backbone_name, shortcut_layers=('6', '12', '16'),
-                             shortcut_channels=(40, 112, 960), conv_cfg=dict(group_size_dw=1), **kwargs)
+###################################################################################
+def ssdlite_mobilenet_v2_fpn(*args, backbone_name="mobilenet_v2", **kwargs):
+    return ssdlite_fpn_model(*args, backbone_name=backbone_name, shortcut_layers=('6', '10', '17'),
+                             shortcut_channels=(32, 64, 320), **kwargs)
 
 
-def ssdlite_mobilenet_v3_lite_small_fpn(*args, backbone_name="mobilenet_v3_lite_small", **kwargs):
-    return ssdlite_fpn_model(*args, backbone_name=backbone_name, shortcut_layers=('6', '12', '16'),
-                             shortcut_channels=(40, 112, 960), conv_cfg=dict(group_size_dw=1), **kwargs)
-
-
-def ssdlite_mobilenet_v2_lite_bifpn(*args, backbone_name="mobilenet_v2_lite", **kwargs):
+def ssdlite_mobilenet_v2_bifpn(*args, backbone_name="mobilenet_v2", **kwargs):
     BiFPN2 = partial(BiFPN, num_blocks=2)
-    return ssdlite_fpn_model(*args, backbone_name=backbone_name, shortcut_layers=('6', '10', '18'),
-                             shortcut_channels=(32, 64, 1280), conv_cfg=dict(group_size_dw=1),
+    return ssdlite_fpn_model(*args, backbone_name=backbone_name, shortcut_layers=('6', '10', '17'),
+                             shortcut_channels=(32, 64, 320),
                              fpn_type=BiFPN2, with_iou_loss=False, **kwargs)
 
+
+###################################################################################
+def ssdlite_mobilenet_v3_large_fpn(*args, backbone_name="mobilenet_v3_large", **kwargs):
+    return ssdlite_fpn_model(*args, backbone_name=backbone_name, shortcut_layers=('6', '12', '15'),
+                             shortcut_channels=(40, 112, 160), **kwargs)
+
+
+def ssdlite_mobilenet_v3_small_fpn(*args, backbone_name="mobilenet_v3_small", **kwargs):
+    return ssdlite_fpn_model(*args, backbone_name=backbone_name, shortcut_layers=('6', '12', '15'),
+                             shortcut_channels=(40, 112, 96), **kwargs)
+
+
+###################################################################################
+def ssdlite_regnet_x_400mf_fpn(*args, backbone_name="regnet_x_400mf", **kwargs):
+    # shortcut_channels need not be populated for FPN
+    return ssdlite_fpn_model(*args, backbone_name=backbone_name,
+                             shortcut_layers=('trunk_output.block2', 'trunk_output.block3', 'trunk_output.block4'),
+                             shortcut_channels=(64,160,384), **kwargs)
+
+
+def ssdlite_regnet_x_800mf_fpn(*args, backbone_name="regnet_x_800mf", **kwargs):
+    # shortcut_channels need not be populated for FPN
+    return ssdlite_fpn_model(*args, backbone_name=backbone_name,
+                             shortcut_layers=('trunk_output.block2', 'trunk_output.block3', 'trunk_output.block4'),
+                             shortcut_channels=(128,288,672), **kwargs)
+
+
+def ssdlite_regnet_x_1_6gf_fpn(*args, backbone_name="regnet_x_1_6gf", **kwargs):
+    # shortcut_channels need not be populated for FPN
+    return ssdlite_fpn_model(*args, backbone_name=backbone_name,
+                             shortcut_layers=('trunk_output.block2', 'trunk_output.block3', 'trunk_output.block4'),
+                             shortcut_channels=(168, 408, 912), **kwargs)
+
+
+###################################################################################
+def ssdlite_efficientnet_b0_fpn(*args, backbone_name="efficientnet_b0", **kwargs):
+    # shortcut_channels need not be populated for FPN
+    return ssdlite_fpn_model(*args, backbone_name=backbone_name,
+                             shortcut_layers=('3', '5', '7'),
+                             shortcut_channels=(40, 112, 320), **kwargs)

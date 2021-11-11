@@ -93,14 +93,15 @@ class MultBlock(torch.nn.Module):
 ###########################################################
 # cat
 class CatBlock(torch.nn.Module):
-    def __init__(self, inplace=False, signed=True, *args, **kwargs):
+    def __init__(self, inplace=False, signed=True, dim=1, *args, **kwargs):
         super().__init__()
         self.inplace = inplace
         self.signed = signed
+        self.dim = dim
 
     def forward(self, x):
         assert isinstance(x, (list,tuple)), 'input to add block must be a list or tuple'
-        y = torch.cat(x, dim=1)
+        y = torch.cat(x, dim=self.dim)
         return y
 
     def __repr__(self):
