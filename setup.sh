@@ -15,7 +15,7 @@ echo "building torchvision"
 echo "installing pytoch for cuda 11.1"
 echo "if your cuda version is different, please change the pip pytorh nightly url"
 echo "find the url here: https://pytorch.org/get-started/locally/"
-pip install torch==1.9.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
+pip install torch==1.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 
 # an editable install - changes in this local torchvision module immediately takes effect
 pip install -e ./
