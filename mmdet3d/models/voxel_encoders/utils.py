@@ -155,7 +155,7 @@ class PFNLayer(nn.Module):
         self.mode = mode
 
     @auto_fp16(apply_to=('inputs'), out_fp32=True)
-    def forward(self, inputs, num_voxels=None, aligned_distance=None):
+    def forward(self, inputs, num_voxels=None, aligned_distance=None, ip_tensor_dim_correct=False):
         """Forward function.
 
         Args:
@@ -199,8 +199,9 @@ class PFNLayer(nn.Module):
             # replacating whole code for simplicity
             # keeping intact the input data dimension and format
             if self.mode == 'max':
-                inputs = inputs.permute(2,1,0)
-                inputs = inputs.unsqueeze(0)
+                if ip_tensor_dim_correct == False:
+                    inputs = inputs.permute(2,1,0)
+                    inputs = inputs.unsqueeze(0)
                 x = self.linear(inputs)
                 x = self.norm(x.contiguous()).contiguous()
                 x_max = torch.max(x, dim=2, keepdim=True)[0]

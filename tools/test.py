@@ -46,15 +46,16 @@ class CombinedModel(torch.nn.Module):
 
     def forward(self, raw_voxel_feat, coors, data):
 
-        x = self.pfn_layers(raw_voxel_feat)
+        x = self.pfn_layers(raw_voxel_feat,ip_tensor_dim_correct=True)
         x = self.middle_encoder(x,coors,1,data)
         x = self.backbone(x)
         x = self.neck(x)
         y0= self.conv_cls(x[0])
         y1= self.conv_dir_cls(x[0])
         y2= self.conv_reg(x[0])
-
-        return y0,y1,y2
+        y = torch.cat((y0, y1, y2), 1)
+        y = torch.reshape(y,(-1,10))
+        return y
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -237,7 +238,7 @@ def main():
     if args.fuse_conv_bn:
         model = fuse_conv_bn(model)
 
-    save_onnx_model = False
+    save_onnx_model = True
 
     if save_onnx_model == True:
         save_model(model)
@@ -297,7 +298,7 @@ def save_model(model, save_onnx_model=True):
 
     ## Need to parameterized the contants in below three tensors
     max_num_3d_points = 20000
-    raw_voxel_feat = torch.ones(max_num_3d_points, 32, 9)
+    raw_voxel_feat = torch.ones(1, 9, 32, max_num_3d_points)
     data = torch.zeros(1, 64, 496*432)
     coors = torch.ones(1, 64, max_num_3d_points)
     coors = coors.long()

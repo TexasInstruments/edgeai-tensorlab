@@ -138,7 +138,7 @@ class PointPillarsScatter(nn.Module):
             # in this flow voxel is already transposed voxels = voxel_features.t()
             # Now scatter the blob back to the canvas.
             voxel_features = voxel_features.squeeze(dim=2)
-            data.scatter_(1,indices,voxel_features)
+            data.scatter_(2,indices,voxel_features)
             #canvas[:, indices] = voxels
             # Undo the column stacking to final 4-dim tensor
             data = data.view(1, self.in_channels, self.ny, self.nx)
