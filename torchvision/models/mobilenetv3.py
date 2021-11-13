@@ -85,11 +85,12 @@ class InvertedResidual(nn.Module):
         self.block = nn.Sequential(*layers)
         self.out_channels = cnf.out_channels
         self._is_cn = cnf.stride > 1
+        self.add = xnn.layers.AddBlock()
 
     def forward(self, input: Tensor) -> Tensor:
         result = self.block(input)
         if self.use_res_connect:
-            result += input
+            result = self.add((result, input))
         return result
 
 

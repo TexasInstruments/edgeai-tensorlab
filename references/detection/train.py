@@ -17,6 +17,7 @@ Also, if you train Keypoint R-CNN, the default hyperparameters are
 Because the number of images is smaller in the person keypoint subset of COCO,
 the number of epochs should be adapted so that we have the same number of iterations.
 """
+import sys
 import datetime
 import os
 import time
@@ -25,12 +26,20 @@ import numpy as np
 
 import torch
 import torch.utils.data
+from torch.utils.tensorboard import SummaryWriter
+from tensorboard.program import TensorBoard, tb_logging
+
 import torchvision
 import torchvision.models.detection
 import torchvision.models.detection.mask_rcnn
+
 from torchvision.edgeailite import xnn
 
-from coco_utils import get_coco, get_coco_kp
+
+# insert the parent folder to path to enable the imports below to work from both script and module import
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+
+from coco_utils import get_coco, get_coco_kp, get_coco_modelmaker
 
 from group_by_aspect_ratio import GroupedBatchSampler, create_aspect_ratio_groups
 from engine import train_one_epoch, evaluate, export, complexity
@@ -39,10 +48,11 @@ import presets
 import utils
 
 
-def get_dataset(name, image_set, transform, data_path):
+def get_dataset(name, image_set, transform, data_path, num_classes=None):
     paths = {
         "coco": (data_path, get_coco, 91),
-        "coco_kp": (data_path, get_coco_kp, 2)
+        "coco_kp": (data_path, get_coco_kp, 2),
+        "modelmaker": (data_path, get_coco_modelmaker, num_classes+1 if num_classes else 91)
     }
     p, ds_fn, num_classes = paths[name]
 
@@ -61,7 +71,7 @@ def get_args_parser(add_help=True):
 
     parser.add_argument('--data-path', default='./data/datasets/coco', help='dataset')
     parser.add_argument('--dataset', default='coco', help='dataset')
-    parser.add_argument('--model', default='ssdlite_mobilenet_v2_lite_fpn', help='model')
+    parser.add_argument('--model', default='ssdlite_mobilenet_v2_fpn_lite', help='model')
     parser.add_argument('--device', default='cuda', help='device')
     parser.add_argument('-b', '--batch-size', default=4, type=int,
                         help='images per gpu, the total batch size is $NGPU x batch_size')

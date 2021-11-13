@@ -27,15 +27,15 @@ backbone_checkpoint=${model_url_base}/'mobilenet_v2_20191224_checkpoint.pth'
 # 2. this script can launch torch.multiprocess internally (i.e. without using torch.distributed.run), if you set --distributed=True --gpus <num_gpus>
 
 # training : using torch.distributed.run
-python3 -m torch.distributed.run --nproc_per_node 4 ./references/detection/train.py --model ${model} --epochs=240 --batch-size=8 \
---pretrained-backbone ${backbone_checkpoint}
+#python3 -m torch.distributed.run --nproc_per_node 4 ./references/detection/train.py --model ${model} --epochs=240 --batch-size=8 \
+#--pretrained-backbone ${backbone_checkpoint}
 # alternative launch method supported by this script : using torch.multiprocess internally to launch processes
 #python3 ./references/detection/train.py --model ${model} --epochs=240 --batch-size=8 --gpus 4 \
 # --pretrained-backbone ${backbone_checkpoint}
 
 # test
-#python3 -m torch.distributed.run ./references/detection/train.py --model ${model} --epochs=240 --batch-size=8 --gpus=4 \
-# --pretrained ./data/checkpoints/detection/coco_${model}/checkpoint.pth --test-only
+python3 -m torch.distributed.run ./references/detection/train.py --model ${model} --epochs=240 --batch-size=8 --gpus=4 \
+ --pretrained ./data/checkpoints/detection/coco_${model}/checkpoint.pth --test-only
 
 # export
 #python3 ./references/detection/train.py --model ${model} --pretrained ./data/checkpoints/detection/coco_${model}/checkpoint.pth --export-only

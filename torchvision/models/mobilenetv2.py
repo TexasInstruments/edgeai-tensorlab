@@ -9,6 +9,7 @@ from ..ops.misc import ConvNormActivation
 from ._utils import _make_divisible
 from typing import Callable, Any, Optional, List
 
+from ..edgeailite import xnn
 
 __all__ = ['MobileNetV2', 'mobilenet_v2']
 

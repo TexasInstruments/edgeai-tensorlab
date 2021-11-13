@@ -103,7 +103,7 @@ def tensor_to_color(seg_image, num_classes, dataformats='CHW'):
     return xnn.utils.segmap_to_color(seg_image, num_classes)
 
 
-def evaluate(args, model, data_loader, device, num_classes, epoch, visualizer, print_freq=100):
+def evaluate(args, model, data_loader, device, num_classes, epoch, visualizer):
     model.eval()
     confmat = utils.ConfusionMatrix(num_classes)
     metric_logger = utils.MetricLogger(delimiter="  ")
@@ -112,7 +112,7 @@ def evaluate(args, model, data_loader, device, num_classes, epoch, visualizer, p
     epoch_size = len(data_loader)
     visualization_freq = epoch_size // 5
     visualization_counter = 0
-    print_freq = min(print_freq, len(data_loader))
+    print_freq = min(args.print_freq, len(data_loader))
 
     with torch.no_grad():
         for iteration, (image, target) in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
@@ -143,7 +143,7 @@ def evaluate(args, model, data_loader, device, num_classes, epoch, visualizer, p
     return confmat
 
 
-def train_one_epoch(args, model, criterion, optimizer, data_loader, lr_scheduler, device, num_classes, epoch, visualizer, print_freq=100):
+def train_one_epoch(args, model, criterion, optimizer, data_loader, lr_scheduler, device, num_classes, epoch, visualizer):
     model.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value}'))
@@ -152,9 +152,9 @@ def train_one_epoch(args, model, criterion, optimizer, data_loader, lr_scheduler
     epoch_size = len(data_loader)
     visualization_freq = epoch_size // 5
     visualization_counter = 0
-    print_freq = min(print_freq, len(data_loader))
-
-    for iteration, (image, target) in enumerate(metric_logger.log_every(data_loader, args.print_freq, header)):
+    print_freq = min(args.print_freq, len(data_loader))
+    
+    for iteration, (image, target) in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
         image, target = image.to(device), target.to(device)
         output = model(image)
         loss = criterion(output, target)
@@ -336,7 +336,7 @@ def main(gpu, args):
             args.start_epoch = checkpoint['epoch'] + 1
 
     if args.test_only:
-        confmat = evaluate(args, model, data_loader_test, device=device, num_classes=num_classes, epoch=0, visualizer=None, print_freq=args.print_freq)
+        confmat = evaluate(args, model, data_loader_test, device=device, num_classes=num_classes, epoch=0, visualizer=None)
         print(confmat, '\n\n')
         return
 
@@ -344,9 +344,9 @@ def main(gpu, args):
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
-        train_one_epoch(args, model, criterion, optimizer, data_loader, lr_scheduler, device, num_classes=num_classes, epoch=epoch, visualizer=train_visualizer, print_freq=args.print_freq)
+        train_one_epoch(args, model, criterion, optimizer, data_loader, lr_scheduler, device, num_classes=num_classes, epoch=epoch, visualizer=train_visualizer)
         print(f'{Fore.GREEN}', end='')
-        confmat = evaluate(args, model, data_loader_test, device=device, num_classes=num_classes, epoch=epoch, visualizer=val_visualizer, print_freq=args.print_freq)
+        confmat = evaluate(args, model, data_loader_test, device=device, num_classes=num_classes, epoch=epoch, visualizer=val_visualizer)
         print(confmat, '\n\n')
         print(f'{Fore.RESET}', end='')
         checkpoint = {

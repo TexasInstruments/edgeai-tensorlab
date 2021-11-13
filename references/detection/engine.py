@@ -220,8 +220,7 @@ def export(args, model, model_name=None):
     output_onnx_file_ext = os.path.splitext(output_onnx_file)
     output_onnxproto_file = output_onnx_file_ext[0] + '-proto' + output_onnx_file_ext[1]
     export_proto.export_model_proto(dict(), model_copy, example_input, output_onnx_file, output_onnxproto_file,
-                    output_names=output_names_proto, opset_version=args.opset_version,
-                    export_full_model=args.export_full_model)
+                    output_names=output_names_proto, opset_version=args.opset_version)
     # shape inference to make it easy for inference
     onnx.shape_inference.infer_shapes_path(output_onnxproto_file, output_onnxproto_file)
 
