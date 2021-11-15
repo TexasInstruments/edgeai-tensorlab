@@ -43,11 +43,13 @@ class InvertedResidual(nn.Module):
         oup: int,
         stride: int,
         expand_ratio: int,
+        dilation: int,
         norm_layer: Optional[Callable[..., nn.Module]] = None
     ) -> None:
         super(InvertedResidual, self).__init__()
         self.stride = stride
         assert stride in [1, 2]
+        stride = 1 if dilation > 1 else stride
 
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -62,7 +64,7 @@ class InvertedResidual(nn.Module):
                                              activation_layer=nn.ReLU6))
         layers.extend([
             # dw
-            ConvNormActivation(hidden_dim, hidden_dim, stride=stride, groups=hidden_dim, norm_layer=norm_layer,
+            ConvNormActivation(hidden_dim, hidden_dim, stride=stride, dilation=dilation, groups=hidden_dim, norm_layer=norm_layer,
                                activation_layer=nn.ReLU6),
             # pw-linear
             nn.Conv2d(hidden_dim, oup, 1, 1, 0, bias=False),
@@ -70,11 +72,12 @@ class InvertedResidual(nn.Module):
         ])
         self.conv = nn.Sequential(*layers)
         self.out_channels = oup
-        self._is_cn = stride > 1
+        self._is_cn = self.stride > 1
+        self.add = xnn.layers.AddBlock()
 
     def forward(self, x: Tensor) -> Tensor:
         if self.use_res_connect:
-            return x + self.conv(x)
+            return self.add((x, self.conv(x)))
         else:
             return self.conv(x)
 
@@ -87,7 +90,8 @@ class MobileNetV2(nn.Module):
         inverted_residual_setting: Optional[List[List[int]]] = None,
         round_nearest: int = 8,
         block: Optional[Callable[..., nn.Module]] = None,
-        norm_layer: Optional[Callable[..., nn.Module]] = None
+        norm_layer: Optional[Callable[..., nn.Module]] = None,
+        dilated: bool = False
     ) -> None:
         """
         MobileNet V2 main class
@@ -103,7 +107,7 @@ class MobileNetV2(nn.Module):
 
         """
         super(MobileNetV2, self).__init__()
-
+        dilation = 2 if dilated else 1
         if block is None:
             block = InvertedResidual
 
@@ -115,20 +119,20 @@ class MobileNetV2(nn.Module):
 
         if inverted_residual_setting is None:
             inverted_residual_setting = [
-                # t, c, n, s
-                [1, 16, 1, 1],
-                [6, 24, 2, 2],
-                [6, 32, 3, 2],
-                [6, 64, 4, 2],
-                [6, 96, 3, 1],
-                [6, 160, 3, 2],
-                [6, 320, 1, 1],
+                # t, c, n, s, d
+                [1, 16, 1, 1, 1],
+                [6, 24, 2, 2, 1],
+                [6, 32, 3, 2, 1],
+                [6, 64, 4, 2, 1],
+                [6, 96, 3, 1, 1],
+                [6, 160, 3, 2, dilation],
+                [6, 320, 1, 1, dilation],
             ]
 
         # only check the first element, assuming user knows t,c,n,s are required
-        if len(inverted_residual_setting) == 0 or len(inverted_residual_setting[0]) != 4:
+        if len(inverted_residual_setting) == 0 or len(inverted_residual_setting[0]) != 5:
             raise ValueError("inverted_residual_setting should be non-empty "
-                             "or a 4-element list, got {}".format(inverted_residual_setting))
+                             "or a 5-element list, got {}".format(inverted_residual_setting))
 
         # building first layer
         input_channel = _make_divisible(input_channel * width_mult, round_nearest)
@@ -136,11 +140,11 @@ class MobileNetV2(nn.Module):
         features: List[nn.Module] = [ConvNormActivation(3, input_channel, stride=2, norm_layer=norm_layer,
                                                         activation_layer=nn.ReLU6)]
         # building inverted residual blocks
-        for t, c, n, s in inverted_residual_setting:
+        for t, c, n, s, d in inverted_residual_setting:
             output_channel = _make_divisible(c * width_mult, round_nearest)
             for i in range(n):
                 stride = s if i == 0 else 1
-                features.append(block(input_channel, output_channel, stride, expand_ratio=t, norm_layer=norm_layer))
+                features.append(block(input_channel, output_channel, stride, expand_ratio=t, dilation=d, norm_layer=norm_layer))
                 input_channel = output_channel
         # building last several layers
         features.append(ConvNormActivation(input_channel, self.last_channel, kernel_size=1, norm_layer=norm_layer,

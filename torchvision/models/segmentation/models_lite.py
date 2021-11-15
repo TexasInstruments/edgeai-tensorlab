@@ -29,39 +29,38 @@
 #################################################################################
 
 from ...edgeailite import xnn
-from . import fcn
-from . import lraspp
-from . import deeplabv3
-from . import deeplabv3plus
+from . import segmentation
 
-__all__ = ['lraspp_mobilenet_v3_large_lite', 'deeplabv3_mobilenet_v3_large_lite',
-           'deeplabv3plus_mobilenet_v3_large_lite', 'deeplabv3plus_mobilenet_v3_small_lite', 'deeplabv3plus_mobilenet_v2_lite'
+__all__ = ['lraspp_mobilenet_v3_large_lite', 'deeplabv3_mobilenet_v3_large_lite', 'deeplabv3_mobilenet_v2_lite',
+           'deeplabv3plus_mobilenet_v3_large_lite', 'deeplabv3plus_mobilenet_v2_lite'
            ]
 
 
+model_urls = {}
+
 ###############################################################################################
 def lraspp_mobilenet_v3_large_lite(**kwargs):
-    return xnn.model_surgery.create_lite_model(lraspp.lraspp_mobilenet_v3_large,
-                pretrained_backbone_names={'^features.':'backbone.'}, model_urls_dict=lraspp.model_urls, **kwargs)
+    return xnn.model_surgery.create_lite_model(segmentation.lraspp_mobilenet_v3_large,
+                pretrained_backbone_names={'^features.':'backbone.'}, model_urls_dict=model_urls, **kwargs)
 
 
 ###############################################################################################
 def deeplabv3_mobilenet_v3_large_lite(**kwargs):
-    return xnn.model_surgery.create_lite_model(deeplabv3.deeplabv3_mobilenet_v3_large,
-                pretrained_backbone_names={'^features.':'backbone.'}, model_urls_dict=deeplabv3.model_urls, **kwargs)
+    return xnn.model_surgery.create_lite_model(segmentation.deeplabv3_mobilenet_v3_large,
+                pretrained_backbone_names={'^features.':'backbone.'}, model_urls_dict=model_urls, **kwargs)
+
+
+def deeplabv3_mobilenet_v2_lite(**kwargs):
+    return xnn.model_surgery.create_lite_model(segmentation.deeplabv3_mobilenet_v2,
+                pretrained_backbone_names={'^features.':'backbone.'}, model_urls_dict=model_urls, **kwargs)
 
 
 ###############################################################################################
 def deeplabv3plus_mobilenet_v3_large_lite(**kwargs):
-    return xnn.model_surgery.create_lite_model(deeplabv3plus.deeplabv3plus_mobilenet_v3_large,
-                pretrained_backbone_names={'^features.':'backbone.'}, model_urls_dict=deeplabv3plus.model_urls, **kwargs)
-
-
-def deeplabv3plus_mobilenet_v3_small_lite(**kwargs):
-    return xnn.model_surgery.create_lite_model(deeplabv3plus.deeplabv3plus_mobilenet_v3_small,
-                pretrained_backbone_names={'^features.':'backbone.'}, model_urls_dict=deeplabv3plus.model_urls, **kwargs)
+    return xnn.model_surgery.create_lite_model(segmentation.deeplabv3plus_mobilenet_v3_large,
+                pretrained_backbone_names={'^features.':'backbone.'}, model_urls_dict=model_urls, **kwargs)
 
 
 def deeplabv3plus_mobilenet_v2_lite(**kwargs):
-    return xnn.model_surgery.create_lite_model(deeplabv3plus.deeplabv3plus_mobilenet_v2,
-                pretrained_backbone_names={'^features.':'backbone.'}, model_urls_dict=deeplabv3plus.model_urls, **kwargs)
+    return xnn.model_surgery.create_lite_model(segmentation.deeplabv3plus_mobilenet_v2,
+                pretrained_backbone_names={'^features.':'backbone.'}, model_urls_dict=model_urls, **kwargs)

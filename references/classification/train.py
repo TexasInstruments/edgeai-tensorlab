@@ -9,6 +9,8 @@ from torch import nn
 import torchvision
 from torchvision.transforms.functional import InterpolationMode
 
+from torchvision.edgeailite import xnn
+
 import presets
 import transforms
 import utils
@@ -55,6 +57,7 @@ def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch,
 def evaluate(model, criterion, data_loader, device, print_freq=100, log_suffix=''):
     model.eval()
     metric_logger = utils.MetricLogger(delimiter="  ")
+    print_freq = min(print_freq, len(data_loader))
     header = f'Test: {log_suffix}'
     with torch.no_grad():
         for image, target in metric_logger.log_every(data_loader, print_freq, header):
@@ -158,7 +161,7 @@ def main(gpu, args):
                            "to enable mixed-precision training.")
 
     if not args.output_dir:
-        args.output_dir = os.path.join('./data/checkpoints/classification', args.model)
+        args.output_dir = os.path.join('./data/checkpoints/classification',  f'{args.dataset}_{args.model}')
 	
 	utils.mkdir(args.output_dir, exist_ok=True)
 	
@@ -311,7 +314,7 @@ def get_args_parser(add_help=True):
     import argparse
     parser = argparse.ArgumentParser(description='PyTorch Classification Training', add_help=add_help)
 
-    parser.add_argument('--data-path', default='/datasets01/imagenet_full_size/061417/', help='dataset')
+    parser.add_argument('--data-path', default='./data/datasets/imagenet', help='dataset')
     parser.add_argument('--model', default='resnet18', help='model')
     parser.add_argument('--device', default='cuda', help='device')
     parser.add_argument('-b', '--batch-size', default=32, type=int)
@@ -390,6 +393,9 @@ def get_args_parser(add_help=True):
     parser.add_argument('--world-size', default=1, type=int,
                         help='number of distributed processes')
     parser.add_argument('--dist-url', default='env://', help='url used to set up distributed training')
+    parser.add_argument("--distributed", default=None, type=xnn.utils.str2bool_or_none,
+                        help="use dstributed training even if this script is not launched using torch.disctibuted.launch or run")
+
     parser.add_argument(
         '--model-ema', action='store_true',
         help='enable tracking Exponential Moving Average of model parameters')

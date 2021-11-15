@@ -16,8 +16,8 @@ from ...edgeailite import xnn
 
 
 __all__ = ['fcn_resnet50', 'fcn_resnet101', 'deeplabv3_resnet50', 'deeplabv3_resnet101',
-           'deeplabv3_mobilenet_v3_large', 'lraspp_mobilenet_v3_large',
-           'deeplabv3plus_mobilenet_v3_large', 'deeplabv3plus_mobilenet_v3_small', 'deeplabv3plus_mobilenet_v2']
+           'deeplabv3_mobilenet_v3_large', 'lraspp_mobilenet_v3_large', 'deeplabv3_mobilenet_v2',
+           'deeplabv3plus_mobilenet_v3_large', 'deeplabv3plus_mobilenet_v2']
 
 
 model_urls = {
@@ -37,10 +37,11 @@ def _segm_model(
     num_classes: int,
     aux: Optional[bool],
     pretrained_backbone: Optional[bool] = True,
-    skip_tail: Optional[bool] = False
+    skip_tail: Optional[bool] = False,
+    shortcut_pos: Any = None,	
+    shortcut_name: Any = None,
+    shortcut_channels: Any = None
 ) -> nn.Module:
-    shortcut_name = None
-    shortcut_channels = None
     if 'resnet' in backbone_name:
         backbone = resnet.__dict__[backbone_name](
             pretrained=pretrained_backbone,
@@ -65,9 +66,9 @@ def _segm_model(
         aux_layer = str(aux_pos)
         aux_inplanes = backbone[aux_pos].out_channels
         if name == 'deeplabv3plus':
-            shortcut_pos = 3
-            shortcut_name = str(shortcut_pos)
-            shortcut_channels = backbone[shortcut_pos].out_channels
+            shortcut_pos = shortcut_pos or 3
+            shortcut_name = shortcut_name or str(shortcut_pos)
+            shortcut_channels = shortcut_channels or backbone[shortcut_pos].out_channels
         #
     else:
         raise NotImplementedError('backbone {} is not supported as of now'.format(backbone_name))
@@ -89,8 +90,7 @@ def _segm_model(
         'deeplabv3plus': (DeepLabV3PlusHead, DeepLabV3Plus),	
         'fcn': (FCNHead, FCN),
     }
-    classifier = model_map[name][0](out_inplanes, num_classes=num_classes,
-                                    shortcut_channels=shortcut_channels, conv_cfg=conv_cfg)
+    classifier = model_map[name][0](out_inplanes, num_classes=num_classes, shortcut_channels=shortcut_channels)
     base_model = model_map[name][1]
 
     model = base_model(backbone, classifier, aux_classifier)
@@ -290,6 +290,25 @@ def lraspp_mobilenet_v3_large(
 
 
 #################################################################################################
+def deeplabv3_mobilenet_v2(
+    pretrained: bool = False,
+    progress: bool = True,
+    num_classes: int = 21,
+    aux_loss: Optional[bool] = None,
+    **kwargs: Any
+) -> nn.Module:
+    """Constructs a DeepLabV3 model with a MobileNetV2 backbone.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on COCO train2017 which
+            contains the same classes as Pascal VOC
+        progress (bool): If True, displays a progress bar of the download to stderr
+        num_classes (int): number of output classes of the model (including the background)
+        aux_loss (bool): If True, it uses an auxiliary loss
+    """
+    return _load_model('deeplabv3', 'mobilenet_v2', pretrained, progress, num_classes, aux_loss, **kwargs)
+	
+	
 def deeplabv3plus_mobilenet_v2(pretrained=False, progress=True,
                     num_classes=21, backbone_name='mobilenet_v2', **kwargs):
     '''DeepLabV3Plus with MobileNetV2 Backbone - using Depthwise separable layers'''
@@ -301,8 +320,3 @@ def deeplabv3plus_mobilenet_v3_large(pretrained=False, progress=True,
     '''DeepLabV3Plus with MobileNetV3 Large Backbone - using Depthwise separable layers'''
     return _load_model('deeplabv3plus', backbone_name, pretrained, progress, num_classes, skip_tail=True, **kwargs)
 
-
-def deeplabv3plus_mobilenet_v3_small(pretrained=False, progress=True,
-                    num_classes=21, backbone_name='mobilenet_v3_small', **kwargs):
-    '''DeepLabV3Plus with MobileNetV3 Small Backbone - using Depthwise separable layers'''
-    return _load_model('deeplabv3plus', backbone_name, pretrained, progress, num_classes, skip_tail=True, **kwargs)

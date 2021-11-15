@@ -11,11 +11,11 @@ from torch import nn
 import torchvision
 import torchinfo
 
+from torchvision.edgeailite import xnn
+
 from coco_utils import get_coco
 import presets
 import utils
-
-from torchvision.edgeailite import xnn
 
 
 def get_dataset(dir_path, name, image_set, transform):
@@ -392,7 +392,6 @@ def get_args_parser(add_help=True):
     parser.add_argument('--lr-warmup-epochs', default=0, type=int, help='the number of epochs to warmup (default: 0)')
     parser.add_argument('--lr-warmup-method', default="linear", type=str, help='the warmup method (default: linear)')
     parser.add_argument('--lr-warmup-decay', default=0.01, type=float, help='the decay for lr')
-    parser.add_argument('--print-freq', default=10, type=int, help='print frequency')
     parser.add_argument('--print-freq', default=100, type=int, help='print frequency')
     parser.add_argument('--output-dir', default=None, help='path where to save')
     parser.add_argument('--resume', default='', help='resume from checkpoint')
@@ -415,6 +414,8 @@ def get_args_parser(add_help=True):
     parser.add_argument('--world-size', default=1, type=int,
                         help='number of distributed processes')
     parser.add_argument('--dist-url', default='env://', help='url used to set up distributed training')
+    parser.add_argument("--distributed", default=None, type=xnn.utils.str2bool_or_none,
+                        help="use dstributed training even if this script is not launched using torch.disctibuted.launch or run")
 
     parser.add_argument('--gpus', default=1, type=int, help='number of gpus')
     parser.add_argument('--complexity', default=True, type=xnn.utils.str2bool, help='display complexity')
@@ -468,7 +469,7 @@ if __name__ == "__main__":
 
     if isinstance(args.crop_size, (list,tuple)) and len(args.crop_size) == 1:
         args.crop_size = args.crop_size[0]
-		
+
     # run the training.
     # if args.distributed is True is set, then this will launch distributed training
     # depending on args.gpus

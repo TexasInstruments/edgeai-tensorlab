@@ -10,7 +10,7 @@ class ClassificationPresetTrain:
         # Note: can potentially use direct_float in ToTensor and then T.NormalizeMeanScale() to avoid division by 255
         float_mean = [m/255.0 for m in mean]
         float_std = [(1.0/s)/255.0 for s in scale]
-
+        
         trans = [transforms.RandomResizedCrop(crop_size)]
         if hflip_prob > 0:
             trans.append(transforms.RandomHorizontalFlip(hflip_prob))

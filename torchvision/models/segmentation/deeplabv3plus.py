@@ -3,6 +3,8 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+from ...edgeailite import xnn
+
 from ._utils import _SimpleSegmentationModel
 from .deeplabv3 import ASPP
 
