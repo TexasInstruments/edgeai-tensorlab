@@ -142,7 +142,8 @@ class ShuffleNetV2(nn.Module):
             nn.BatchNorm2d(output_channels),
             nn.ReLU(inplace=True),
         )
-
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
+        self.flatten = torch.nn.Flatten(start_dim=1)
         self.fc = nn.Linear(output_channels, num_classes)
 
     def _forward_impl(self, x: Tensor) -> Tensor:
@@ -153,7 +154,8 @@ class ShuffleNetV2(nn.Module):
         x = self.stage3(x)
         x = self.stage4(x)
         x = self.conv5(x)
-        x = x.mean([2, 3])  # globalpool
+        x = self.avgpool(x)
+        x = self.flatten(x)
         x = self.fc(x)
         return x
 

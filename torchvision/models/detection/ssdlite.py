@@ -258,5 +258,5 @@ def _load_state_dict(model, state_dict):
 
 
 def ssdlite_mobilenet_v3_large(*args, backbone_name="mobilenet_v3_large", **kwargs):
-    return ssdlite_mobilenet_v3(*args, backbone_name=backbone_name, weights_name=None, **kwargs)
+    return ssdlite320_mobilenet_v3_large(*args, backbone_name=backbone_name, weights_name=None, **kwargs)
 

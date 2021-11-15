@@ -45,9 +45,11 @@ model_urls = {}
 
 
 ###############################################################################################
+# the structure of the mobilenet bacbone itself is changed inside ssdlite.py/SSDLiteFeatureExtractorMobileNet
+# so loading the backbone weights is a challenge for this lite model.
 def ssdlite_mobilenet_v3_large_lite(**kwargs):
     return xnn.model_surgery.create_lite_model(ssdlite.ssdlite_mobilenet_v3_large,
-                pretrained_backbone_names={'^features.':'backbone.'}, model_urls_dict=model_urls, **kwargs)
+                pretrained_backbone_names={'^features.':'backbone.features.0.'}, model_urls_dict=model_urls, **kwargs)
 				
 
 ###############################################################################################

@@ -110,6 +110,7 @@ def convert_to_lite_model(model, inplace=True, replace_se=True, replace_conv=Tru
 _REPLACEMENTS_DICT = {
     torch.nn.ReLU6: [torch.nn.ReLU, 'inplace'],
     torch.nn.Hardswish: [torch.nn.ReLU, 'inplace'],
+    torch.nn.SiLU: [torch.nn.ReLU, 'inplace'],
 }
 
 

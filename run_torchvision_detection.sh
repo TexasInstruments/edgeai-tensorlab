@@ -10,6 +10,7 @@ model=ssdlite_mobilenet_v2_fpn_lite
 #model=ssdlite_mobilenet_v2_bifpn_lite
 #model=ssdlite_mobilenet_v3_large_fpn_lite
 #model=ssdlite_mobilenet_v3_small_fpn_lite
+#model=ssdlite_mobilenet_v3_large_lite
 #model=ssdlite_regnet_x_1_6gf_fpn
 #model=ssdlite_regnet_x_800mf_fpn_lite
 #model=ssdlite_regnet_x_1_6gf_fpn
@@ -23,18 +24,18 @@ backbone_checkpoint=${model_url_base}/'mobilenet_v2_20191224_checkpoint.pth'
 
 # The multi-gpu training/test can be run using one of several methods
 # 1. for cpu based training, specify --device cpu
-# 1. elastic launch using torch.distributed.run or torch.distributed.launch or torch.distributed.run with --nproc_per_node <num_gpus> <trainign script> <args...>
+# 1. elastic launch using torchrun (torch.distributed.run) or torch.distributed.launch with --nproc_per_node <num_gpus> <trainign script> <args...>
 # 2. this script can launch torch.multiprocess internally (i.e. without using torch.distributed.run), if you set --distributed=True --gpus <num_gpus>
 
 # training : using torch.distributed.run
-python3 -m torch.distributed.run --nproc_per_node 4 ./references/detection/train.py --model ${model} --epochs=240 --batch-size=8 \
+torchrun --nproc_per_node 4 ./references/detection/train.py --model ${model} --epochs=240 --batch-size=8 \
 --pretrained-backbone ${backbone_checkpoint}
 # alternative launch method supported by this script : using torch.multiprocess internally to launch processes
 #python3 ./references/detection/train.py --model ${model} --epochs=240 --batch-size=8 --gpus 4 \
 # --pretrained-backbone ${backbone_checkpoint}
 
 # test
-#python3 -m torch.distributed.run ./references/detection/train.py --model ${model} --epochs=240 --batch-size=8 --gpus=4 \
+#torchrun --nproc_per_node 4 ./references/detection/train.py --model ${model} --epochs=240 --batch-size=8 --gpus=4 \
 # --pretrained ./data/checkpoints/detection/coco_${model}/checkpoint.pth --test-only
 
 # export

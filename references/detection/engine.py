@@ -77,7 +77,7 @@ def _get_iou_types(model):
 
 
 @torch.no_grad()
-def evaluate(args, model, data_loader, device, epoch, synchronize_time=False, summary_writer=None, print_freq=100):
+def evaluate(args, model, data_loader, device, epoch, synchronize_time=False, print_freq=100, summary_writer=None):
     n_threads = torch.get_num_threads()
     # FIXME remove this and make paste_masks_in_image run on the GPU
     torch.set_num_threads(1)

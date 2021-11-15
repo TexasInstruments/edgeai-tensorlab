@@ -89,15 +89,15 @@ class IntermediateModuleGetter(nn.ModuleDict):
         layers = OrderedDict()
         for name, child in model.named_children():
             layers[name] = child
-            layer_found = False
+            layer_found = None
             for cn, cm in child.named_modules():
                 cn_full = name + '.' + cn if cn else name
                 if cn_full in return_layers_copy:
-                    layer_found = True
+                    layer_found = cn_full
                 #
             #
             if layer_found:
-                del return_layers_copy[name]
+                del return_layers_copy[layer_found]
             if not return_layers_copy:
                 break
         #

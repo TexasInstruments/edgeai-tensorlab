@@ -1,6 +1,9 @@
 import torch
 from torch import Tensor
 import torch.nn as nn
+
+from ..edgeailite import xnn
+
 from .._internally_replaced_utils import load_state_dict_from_url
 from typing import Type, Any, Callable, Union, List, Optional
 
@@ -58,18 +61,20 @@ class BasicBlock(nn.Module):
         # Both self.conv1 and self.downsample layers downsample the input when stride != 1
         self.conv1 = conv3x3(inplanes, planes, stride)
         self.bn1 = norm_layer(planes)
-        self.relu = nn.ReLU(inplace=True)
+        self.relu1 = nn.ReLU(inplace=True)
         self.conv2 = conv3x3(planes, planes)
         self.bn2 = norm_layer(planes)
+        self.relu2 = nn.ReLU(inplace=True)
         self.downsample = downsample
         self.stride = stride
+        self.add = xnn.layers.AddBlock()
 
     def forward(self, x: Tensor) -> Tensor:
         identity = x
 
         out = self.conv1(x)
         out = self.bn1(out)
-        out = self.relu(out)
+        out = self.relu1(out)
 
         out = self.conv2(out)
         out = self.bn2(out)
@@ -77,8 +82,8 @@ class BasicBlock(nn.Module):
         if self.downsample is not None:
             identity = self.downsample(x)
 
-        out += identity
-        out = self.relu(out)
+        out = self.add((out, identity))
+        out = self.relu2(out)
 
         return out
 
@@ -110,24 +115,27 @@ class Bottleneck(nn.Module):
         # Both self.conv2 and self.downsample layers downsample the input when stride != 1
         self.conv1 = conv1x1(inplanes, width)
         self.bn1 = norm_layer(width)
+        self.relu1 = nn.ReLU(inplace=True)
         self.conv2 = conv3x3(width, width, stride, groups, dilation)
         self.bn2 = norm_layer(width)
+        self.relu2 = nn.ReLU(inplace=True)
         self.conv3 = conv1x1(width, planes * self.expansion)
         self.bn3 = norm_layer(planes * self.expansion)
-        self.relu = nn.ReLU(inplace=True)
+        self.relu3 = nn.ReLU(inplace=True)
         self.downsample = downsample
         self.stride = stride
+        self.add = xnn.layers.AddBlock()
 
     def forward(self, x: Tensor) -> Tensor:
         identity = x
 
         out = self.conv1(x)
         out = self.bn1(out)
-        out = self.relu(out)
+        out = self.relu1(out)
 
         out = self.conv2(out)
         out = self.bn2(out)
-        out = self.relu(out)
+        out = self.relu2(out)
 
         out = self.conv3(out)
         out = self.bn3(out)
@@ -135,8 +143,8 @@ class Bottleneck(nn.Module):
         if self.downsample is not None:
             identity = self.downsample(x)
 
-        out += identity
-        out = self.relu(out)
+        out = self.add((out, identity))
+        out = self.relu3(out)
 
         return out
 
@@ -183,6 +191,7 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2,
                                        dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.flatten = torch.nn.Flatten(start_dim=1)
         self.fc = nn.Linear(512 * block.expansion, num_classes)
 
         for m in self.modules():
@@ -240,7 +249,7 @@ class ResNet(nn.Module):
         x = self.layer4(x)
 
         x = self.avgpool(x)
-        x = torch.flatten(x, 1)
+        x = self.flatten(x)
         x = self.fc(x)
 
         return x

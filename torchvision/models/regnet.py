@@ -11,6 +11,8 @@ from functools import partial
 from typing import Any, Callable, List, Optional, Tuple
 from torch import nn, Tensor
 
+from ..edgeailite import xnn
+
 from .._internally_replaced_utils import load_state_dict_from_url
 from ..ops.misc import ConvNormActivation, SqueezeExcitation
 from ._utils import _make_divisible
@@ -125,12 +127,13 @@ class ResBottleneckBlock(nn.Module):
             se_ratio,
         )
         self.activation = activation_layer(inplace=True)
+        self.add = xnn.layers.AddBlock()
 
     def forward(self, x: Tensor) -> Tensor:
         if self.proj is not None:
-            x = self.proj(x) + self.f(x)
+            x = self.add((self.proj(x), self.f(x)))
         else:
-            x = x + self.f(x)
+            x = self.add((x, self.f(x)))
         return self.activation(x)
 
 
@@ -348,6 +351,7 @@ class RegNet(nn.Module):
         self.trunk_output = nn.Sequential(OrderedDict(blocks))
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.flatten = torch.nn.Flatten(start_dim=1)
         self.fc = nn.Linear(in_features=current_width, out_features=num_classes)
 
         # Init weights and good to go
@@ -358,7 +362,7 @@ class RegNet(nn.Module):
         x = self.trunk_output(x)
 
         x = self.avgpool(x)
-        x = x.flatten(start_dim=1)
+        x = self.flatten(x)
         x = self.fc(x)
 
         return x
@@ -379,7 +383,10 @@ class RegNet(nn.Module):
 
 
 def _regnet(arch: str, block_params: BlockParams, pretrained: bool, progress: bool, **kwargs: Any) -> RegNet:
-    model = RegNet(block_params, norm_layer=partial(nn.BatchNorm2d, eps=1e-05, momentum=0.1), **kwargs)
+    if 'norm_layer' not in kwargs:
+	    kwargs['norm_layer']=partial(nn.BatchNorm2d, eps=1e-05, momentum=0.1)
+	#
+    model = RegNet(block_params, **kwargs)
     if pretrained:
         if arch not in model_urls:
             raise ValueError(f"No checkpoint is available for model type {arch}")

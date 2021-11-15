@@ -295,7 +295,7 @@ def main(gpu, args):
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
-        train_one_epoch(args, model, optimizer, data_loader, device, epoch, summary_writer, print_freq=args.print_freq)
+        train_one_epoch(args, model, optimizer, data_loader, device, epoch, print_freq=args.print_freq, summary_writer=summary_writer)
         lr_scheduler.step()
 
         if args.output_dir:
@@ -314,7 +314,7 @@ def main(gpu, args):
                 os.path.join(args.output_dir, 'checkpoint.pth'))
 
         # evaluate after every epoch
-        evaluate(args, model, data_loader_test, device=device, epoch=epoch, summary_writer=summary_writer)
+        evaluate(args, model, data_loader_test, device=device, epoch=epoch, print_freq=args.print_freq, summary_writer=summary_writer)
 
         if summary_writer:
             summary_writer.flush()

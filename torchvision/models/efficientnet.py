@@ -181,6 +181,7 @@ class EfficientNet(nn.Module):
 
         self.features = nn.Sequential(*layers)
         self.avgpool = nn.AdaptiveAvgPool2d(1)
+        self.flatten = torch.nn.Flatten(start_dim=1)
         self.classifier = nn.Sequential(
             nn.Dropout(p=dropout, inplace=True),
             nn.Linear(lastconv_output_channels, num_classes),
@@ -203,7 +204,7 @@ class EfficientNet(nn.Module):
         x = self.features(x)
 
         x = self.avgpool(x)
-        x = torch.flatten(x, 1)
+        x = self.flatten(x)
 
         x = self.classifier(x)
 

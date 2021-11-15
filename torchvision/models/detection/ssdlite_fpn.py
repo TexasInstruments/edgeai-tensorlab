@@ -160,7 +160,7 @@ def ssdlite_fpn_model(pretrained: bool = False, progress: bool = True, num_class
         "score_thresh": 0.02,
         "nms_thresh": 0.45,
         "detections_per_img": 300,
-        "topk_candidates": 300, #1000
+        "topk_candidates": 1000, #300
         # Rescale the input in a way compatible to the backbone:
         # The following mean/std rescale the data from [0, 1] to [-1, -1]
         "image_mean": [0.5, 0.5, 0.5],
