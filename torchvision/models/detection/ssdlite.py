@@ -161,9 +161,9 @@ def _mobilenet_extractor(backbone_name: str, progress: bool, pretrained: bool, t
 def ssdlite320_mobilenet_v3_large(pretrained: bool = False, progress: bool = True, num_classes: int = 91,
                                   pretrained_backbone: bool = False, trainable_backbone_layers: Optional[int] = None,
                                   norm_layer: Optional[Callable[..., nn.Module]] = None,
+                                  size: Optional[Tuple] = None,
                                   backbone_name = None, 
                                   reduce_tail = False,								  
-                                  size = (320,320),
 								  weights_name = 'ssdlite320_mobilenet_v3_large_coco',
                                   **kwargs: Any):
     """Constructs an SSDlite model with input size 320x320 and a MobileNetV3 Large backbone, as described at
@@ -190,7 +190,7 @@ def ssdlite320_mobilenet_v3_large(pretrained: bool = False, progress: bool = Tru
             Valid values are between 0 and 6, with 6 meaning all backbone layers are trainable.
         norm_layer (callable, optional): Module specifying the normalization layer to use.
     """
-    if "size" not in kwargs:
+    if size is None:
         warnings.warn("The size of the model is not provided; using default.")
         size = (320, 320)
 
