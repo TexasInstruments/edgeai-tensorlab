@@ -49,6 +49,8 @@ except ImportError:
 def load_weights(model, pretrained, change_names_dict=None, keep_original_names=False, width_mult=1.0,
                         ignore_size=True, verbose=False, num_batches_tracked = None, download_root=None,
                         state_dict_name='state_dict', **kwargs):
+    device = next(model.parameters()).device
+
     download_root = './' if (download_root is None) else download_root
     if pretrained is None or pretrained is False:
         print_utils.print_yellow(f'=> weights could not be loaded. pretrained data given is {pretrained}')
@@ -60,7 +62,7 @@ def load_weights(model, pretrained, change_names_dict=None, keep_original_names=
         else:
             pretrained_file = pretrained
         #
-        data = torch.load(pretrained_file)
+        data = torch.load(pretrained_file, map_location=device)
     else:
         data = pretrained
     #
