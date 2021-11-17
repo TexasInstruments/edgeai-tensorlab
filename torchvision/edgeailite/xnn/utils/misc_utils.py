@@ -190,7 +190,7 @@ def str_to_int(v):
     if v in ('', None, 'None', 'none'):
         return None
     else:
-        return int(input)
+        return int(v)
     #
 
 
