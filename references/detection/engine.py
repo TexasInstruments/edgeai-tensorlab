@@ -8,13 +8,15 @@ import onnx
 import torch
 from colorama import Fore
 import collections
+import torchinfo
 
 import torchvision.models.detection.mask_rcnn
 
 from coco_utils import get_coco_api_from_dataset
 from coco_eval import CocoEvaluator
-import torchinfo
+
 import utils
+import export_proto
 
 from torchvision.edgeailite import xnn
 
