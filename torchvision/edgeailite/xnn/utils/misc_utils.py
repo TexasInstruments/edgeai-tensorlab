@@ -218,20 +218,22 @@ def str_or_none(v):
 
 # a utility function used for argument parsing
 def str2bool(v):
-  if isinstance(v, (str)):
-      if v.lower() in ("yes", "true", "t", "1"):
-          return True
-      elif v.lower() in ("none", "no", "false", "f", "0"):
-          return False
-      else:
-          return v
-      #
-  else:
-      return v
+    if v is None:
+        return False
+    elif isinstance(v, str):
+        if input.lower() in ('', 'none', 'false', 'no', '0'):
+            return False
+        elif input.lower() in ('true', 'yes', '1'):
+            return True
+        #
+    #
+    return bool(v)
 
 
 def str2bool_or_none(v):
-    if isinstance(v, str) and v.lower() in ('none',):
+    if v is None:
+        return None
+    elif isinstance(v, str) and v.lower() in ('none',):
         return None
     else:
         return str2bool(v)
