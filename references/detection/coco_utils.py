@@ -31,6 +31,9 @@ class FilterAndRemapCocoCategories(object):
 
 
 def convert_coco_poly_to_mask(segmentations, height, width):
+    if segmentations is None:
+        return None
+
     masks = []
     for polygons in segmentations:
         rles = coco_mask.frPyObjects(polygons, height, width)
@@ -68,8 +71,11 @@ class ConvertCocoPolysToMask(object):
         classes = [obj["category_id"] for obj in anno]
         classes = torch.tensor(classes, dtype=torch.int64)
 
-        segmentations = [obj["segmentation"] for obj in anno]
-        masks = convert_coco_poly_to_mask(segmentations, h, w)
+        try:
+            segmentations = [obj["segmentation"] if "segmentation" in obj else None for obj in anno]
+            masks = convert_coco_poly_to_mask(segmentations, h, w) if segmentations else None
+        except:
+            masks = None
 
         keypoints = None
         if anno and "keypoints" in anno[0]:
@@ -82,7 +88,7 @@ class ConvertCocoPolysToMask(object):
         keep = (boxes[:, 3] > boxes[:, 1]) & (boxes[:, 2] > boxes[:, 0])
         boxes = boxes[keep]
         classes = classes[keep]
-        if len(masks) > 0:
+        if masks is not None and len(masks) > 0:
             masks = masks[keep]
         if keypoints is not None:
             keypoints = keypoints[keep]
@@ -90,13 +96,15 @@ class ConvertCocoPolysToMask(object):
         target = {}
         target["boxes"] = boxes
         target["labels"] = classes
-        target["masks"] = masks
+        if masks is not None:
+            target["masks"] = masks
+		#
         target["image_id"] = image_id
         if keypoints is not None:
             target["keypoints"] = keypoints
 
         # for conversion to coco api
-        area = torch.tensor([obj["area"] for obj in anno])
+        area = torch.tensor([obj["area"] if "area" in obj else 0 for obj in anno])
         iscrowd = torch.tensor([obj["iscrowd"] for obj in anno])
         target["area"] = area
         target["iscrowd"] = iscrowd

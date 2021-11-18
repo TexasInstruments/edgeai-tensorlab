@@ -200,7 +200,7 @@ def main(gpu, args):
     print("Loading data")
 
     dataset, num_classes = get_dataset(args.dataset, "train", get_transform(args, True, args.data_augmentation),
-                                       args.data_path)
+                                       args.data_path, args.num_classes)
     dataset_test, _ = get_dataset(args.dataset, "val", get_transform(args, False, args.data_augmentation), args.data_path)
 
     print("Creating data loaders")
