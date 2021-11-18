@@ -154,36 +154,36 @@ def pretty_object(d, depth=10, precision=3):
     return d_out
 
 
-def str_to_dict(input):
-    if input is None:
+def str_to_dict(v):
+    if v is None:
         return None
     #
-    if isinstance(input, list):
-        input = ' '.join(input)
+    if isinstance(v, list):
+        v = ' '.join(v)
     #
-    d = yaml.safe_load(input)
+    d = yaml.safe_load(v)
     return d
 
 
-def str_to_list(input):
-    if input in ('', None, 'None', 'none'):
-        inputs = None
+def str_to_list(v):
+    if v in ('', None, 'None', 'none'):
+        vs = None
     else:
-        inputs = input.split(' ')
+        vs = v.split(' ')
     #
-    return inputs
+    return vs
 
 
-def str_to_list_int(input):
-    inputs = str_to_list(input)
-    inputs = [int(i) for i in inputs] if isinstance(inputs, (list,tuple)) else inputs
-    return inputs
+def str_to_list_int(v):
+    vs = str_to_list(v)
+    vs = [int(i) for i in vs] if isinstance(vs, (list,tuple)) else vs
+    return vs
 
 
-def str_to_list_float(input):
-    inputs = str_to_list(input)
-    inputs = [float(i) for i in inputs] if isinstance(inputs, (list,tuple)) else inputs
-    return inputs
+def str_to_list_float(v):
+    vs = str_to_list(v)
+    vs = [float(i) for i in vs] if isinstance(vs, (list,tuple)) else vs
+    return vs
 
 
 def str_to_int(v):
@@ -221,9 +221,9 @@ def str2bool(v):
     if v is None:
         return False
     elif isinstance(v, str):
-        if input.lower() in ('', 'none', 'false', 'no', '0'):
+        if v.lower() in ('', 'none', 'false', 'no', '0'):
             return False
-        elif input.lower() in ('true', 'yes', '1'):
+        elif v.lower() in ('true', 'yes', '1'):
             return True
         #
     #
