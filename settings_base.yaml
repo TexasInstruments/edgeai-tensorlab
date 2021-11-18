@@ -102,3 +102,7 @@ model_transformation_dict : null
 
 # enable use of experimental models - the actual model files are not available in modelzoo
 experimental_models : False
+
+# a shortlist of models an alse be specified. the behaviour of this is similar to model_selection
+# if both model_shortlist and model_slection are specified, only model that are in both lists will be run
+# model_shortlist : [cl-0000, od-2020, ss-2580, cl-3410, od-5020, ss-5720, cl-6360, od-8050, ss-8610]

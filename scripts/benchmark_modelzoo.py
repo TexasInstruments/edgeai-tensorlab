@@ -51,6 +51,8 @@ if __name__ == '__main__':
     parser.add_argument('--num_frames', type=int)
     parser.add_argument('--calibration_frames', type=int)
     parser.add_argument('--calibration_iterations', type=int)
+    parser.add_argument('--run_import', type=utils.str_to_bool)
+    parser.add_argument('--run_inference', type=utils.str_to_bool)
     parser.add_argument('--parallel_devices', type=int, nargs='*')
     cmds = parser.parse_args()
 

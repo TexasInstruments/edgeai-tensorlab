@@ -153,20 +153,32 @@ def pretty_object(d, depth=10, precision=6):
     return d_out
 
 
-def str_to_dict(input):
-    if input is None:
+def str_to_dict(v):
+    if v is None:
         return None
     #
-    if isinstance(input, list):
-        input = ' '.join(input)
+    if isinstance(v, list):
+        v = ' '.join(v)
     #
-    d = yaml.safe_load(input)
+    d = yaml.safe_load(v)
     return d
 
 
-def str_to_int(input):
-    if input in ('', None, 'None'):
+def str_to_int(v):
+    if v in ('', None, 'None'):
         return None
     else:
-        return int(input)
+        return int(v)
+
+
+def str_to_bool(v):
+    if v is None:
+        return False
+    elif isinstance(v, str):
+        if v.lower() in ('', 'none', 'false', 'no', '0'):
+            return False
+        elif v.lower() in ('true', 'yes', '1'):
+            return True
+        #
     #
+    return bool(v)
