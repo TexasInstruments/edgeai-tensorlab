@@ -157,6 +157,7 @@ class DefaultBoxGenerator(nn.Module):
         self.aspect_ratios = aspect_ratios
         self.steps = steps
         self.clip = clip
+        self.dynamic_steps = None
         num_outputs = len(aspect_ratios)
 
         # Estimation of default boxes scales
@@ -198,6 +199,7 @@ class DefaultBoxGenerator(nn.Module):
     # Default Boxes calculation based on page 6 of SSD paper
     def _grid_default_boxes(self, grid_sizes: List[List[int]], image_size: List[int],
                             dtype: torch.dtype = torch.float32) -> Tensor:
+        self.dynamic_steps = []
         default_boxes = []
         for k, f_k in enumerate(grid_sizes):
             # Now add the default boxes for each width-height pair
@@ -205,6 +207,7 @@ class DefaultBoxGenerator(nn.Module):
                 x_f_k, y_f_k = [img_shape / self.steps[k] for img_shape in image_size]
             else:
                 y_f_k, x_f_k = f_k
+                self.dynamic_steps.append([img_shape/gs for (img_shape,gs) in zip(image_size, f_k)])
 
             shifts_x = ((torch.arange(0, f_k[1]) + 0.5) / x_f_k).to(dtype=dtype)
             shifts_y = ((torch.arange(0, f_k[0]) + 0.5) / y_f_k).to(dtype=dtype)
@@ -222,6 +225,9 @@ class DefaultBoxGenerator(nn.Module):
             default_boxes.append(default_box)
 
         return torch.cat(default_boxes, dim=0)
+
+    def get_steps(self):
+        return self.steps if self.steps else self.dynamic_steps
 
     def __repr__(self) -> str:
         s = self.__class__.__name__ + '('

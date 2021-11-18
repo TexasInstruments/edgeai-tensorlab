@@ -9,6 +9,7 @@ import torch
 from colorama import Fore
 import collections
 import torchinfo
+import copy
 
 import torchvision.models.detection.mask_rcnn
 
