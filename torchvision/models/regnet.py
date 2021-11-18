@@ -351,7 +351,6 @@ class RegNet(nn.Module):
         self.trunk_output = nn.Sequential(OrderedDict(blocks))
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.flatten = torch.nn.Flatten(start_dim=1)
         self.fc = nn.Linear(in_features=current_width, out_features=num_classes)
 
         # Init weights and good to go
@@ -362,7 +361,7 @@ class RegNet(nn.Module):
         x = self.trunk_output(x)
 
         x = self.avgpool(x)
-        x = self.flatten(x)
+        x = x.flatten(start_dim=1)
         x = self.fc(x)
 
         return x

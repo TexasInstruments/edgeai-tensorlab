@@ -47,9 +47,10 @@ class _DenseLayer(nn.Module):
                                            bias=False))
         self.drop_rate = float(drop_rate)
         self.memory_efficient = memory_efficient
+        self.cat = xnn.layers.CatBlock(dim=1)
 
     def bn_function(self, inputs: List[Tensor]) -> Tensor:
-        concated_features = torch.cat(inputs, 1)
+        concated_features = self.cat(inputs)
         bottleneck_output = self.conv1(self.relu1(self.norm1(concated_features)))  # noqa: T484
         return bottleneck_output
 
@@ -111,6 +112,7 @@ class _DenseBlock(nn.ModuleDict):
         memory_efficient: bool = False
     ) -> None:
         super(_DenseBlock, self).__init__()
+        self.cat = xnn.layers.CatBlock(dim=1)
         for i in range(num_layers):
             layer = _DenseLayer(
                 num_input_features + i * growth_rate,
@@ -126,7 +128,7 @@ class _DenseBlock(nn.ModuleDict):
         for name, layer in self.items():
             new_features = layer(features)
             features.append(new_features)
-        return torch.cat(features, 1)
+        return self.cat(features)
 
 
 class _Transition(nn.Sequential):

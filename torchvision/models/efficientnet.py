@@ -99,12 +99,13 @@ class MBConv(nn.Module):
         self.block = nn.Sequential(*layers)
         self.stochastic_depth = StochasticDepth(stochastic_depth_prob, "row")
         self.out_channels = cnf.out_channels
+        self.add = xnn.layers.AddBlock()
 
     def forward(self, input: Tensor) -> Tensor:
         result = self.block(input)
         if self.use_res_connect:
             result = self.stochastic_depth(result)
-            result += input
+            result = self.add((result, input))
         return result
 
 
@@ -181,7 +182,6 @@ class EfficientNet(nn.Module):
 
         self.features = nn.Sequential(*layers)
         self.avgpool = nn.AdaptiveAvgPool2d(1)
-        self.flatten = torch.nn.Flatten(start_dim=1)
         self.classifier = nn.Sequential(
             nn.Dropout(p=dropout, inplace=True),
             nn.Linear(lastconv_output_channels, num_classes),
@@ -204,7 +204,7 @@ class EfficientNet(nn.Module):
         x = self.features(x)
 
         x = self.avgpool(x)
-        x = self.flatten(x)
+        x = torch.flatten(x, 1)
 
         x = self.classifier(x)
 

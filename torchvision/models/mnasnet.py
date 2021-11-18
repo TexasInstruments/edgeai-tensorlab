@@ -51,10 +51,11 @@ class _InvertedResidual(nn.Module):
             # Linear pointwise. Note that there's no activation.
             nn.Conv2d(mid_ch, out_ch, 1, bias=False),
             nn.BatchNorm2d(out_ch, momentum=bn_momentum))
+        self.add = xnn.layers.AddBlock()
 
     def forward(self, input: Tensor) -> Tensor:
         if self.apply_residual:
-            return self.layers(input) + input
+            return self.add(self.layers(input), input)
         else:
             return self.layers(input)
 
