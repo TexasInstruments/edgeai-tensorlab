@@ -216,8 +216,15 @@ def str_or_none(v):
         return v
 
 
-# a utility function used for argument parsing
+def int_or_none(v):
+    if v is None or v in ('None', 'none'):
+        return None
+    else:
+        return int(v)
+
+
 def str2bool(v):
+    '''a utility function used for argument parsing'''
     if v is None:
         return False
     elif isinstance(v, str):

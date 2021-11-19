@@ -154,6 +154,15 @@ def ssdlite_fpn_model(pretrained: bool = False, progress: bool = True, num_class
                                out_channels=256, extra_blocks=extra_blocks,
                                fpn_type=fpn_type)
 
+    # find the index of the layer from which we wont freeze
+    if trainable_backbone_layers is not None:
+        backbone_modules = list(backbone.modules())
+        trainable_layers = min(trainable_backbone_layers, len(backbone_modules))
+        freeze_before = len(backbone_modules) - trainable_layers
+        for b in backbone_modules[:freeze_before]:
+            for parameter in b.parameters():
+                parameter.requires_grad_(False)
+
     # these factors are chosen to match those in mmdetection
     aspect_ratios = [[2]] + [[2,3]]*4 + [[2]]
     anchor_generator = DefaultBoxGenerator(aspect_ratios, min_ratio=0.1, max_ratio=0.9)

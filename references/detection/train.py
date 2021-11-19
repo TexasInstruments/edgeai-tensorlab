@@ -100,7 +100,7 @@ def get_args_parser(add_help=True):
     parser.add_argument('--start_epoch', '--start-epoch', default=0, type=int, help='start epoch')
     parser.add_argument('--aspect-ratio-group-factor', default=3, type=int)
     parser.add_argument('--rpn-score-thresh', default=None, type=float, help='rpn score threshold for faster-rcnn')
-    parser.add_argument('--trainable-backbone-layers', default=None, type=int,
+    parser.add_argument('--trainable-backbone-layers', default=None, type=xnn.utils.int_or_none,
                         help='number of trainable layers of backbone')
     parser.add_argument('--data-augmentation', default="ssd", type=xnn.utils.str_or_none, help='data augmentation policy (default: ssd)')
     parser.add_argument(
