@@ -160,7 +160,8 @@ def convert_to_lite_model(model, inplace=True, groups_dw=None, group_size_dw=1,
     '''
     replacements_dict = replacements_dict or REPLACEMENTS_DICT_DEFAULT
     model = model if inplace else copy.deepcopy(inplace)
-    for iteration in range(len(list(model.modules()))):
+    num_trails = len(list(model.modules()))
+    for trial_id in range(num_trails):
         for p_name, p in model.named_modules():
             is_replaced = False
             for c_name, c in p.named_children():
@@ -185,12 +186,12 @@ def convert_to_lite_model(model, inplace=True, groups_dw=None, group_size_dw=1,
 
 
 def _replace_with_new_module(parent, c_name, current_m, replacements_dict, **kwargs):
-    for k_cls, v_params in replacements_dict.items():
-        do_replace = False
-        if inspect.isclass(k_cls):
-            do_replace = isinstance(current_m, k_cls)
-        elif callable(k_cls):
-            do_replace = k_cls(current_m)
+    for k_check, v_params in replacements_dict.items():
+        assert callable(k_check), f'the key in replacements_dict must be a class or function: {k_check}'
+        if inspect.isclass(k_check):
+            do_replace = isinstance(current_m, k_check)
+        else:
+            do_replace = k_check(current_m)
         #
         if do_replace:
             # first entry is the constructor or a callable that constructs
@@ -211,6 +212,7 @@ def _replace_with_new_module(parent, c_name, current_m, replacements_dict, **kwa
             if new_m is not current_m:
                 _initialize_module(new_m)
                 new_m.train(current_m.training)
+                new_m.requires_grad = current_m.requires_grad
                 setattr(parent, c_name, new_m)
                 return True
             #
