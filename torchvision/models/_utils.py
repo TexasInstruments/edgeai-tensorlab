@@ -87,20 +87,25 @@ class IntermediateModuleGetter(nn.ModuleDict):
         self.return_layers = return_layers
         return_layers_copy = copy.deepcopy(return_layers)
         layers = OrderedDict()
-        for name, child in model.named_children():
-            layers[name] = child
-            layer_found = None
-            for cn, cm in child.named_modules():
-                cn_full = name + '.' + cn if cn else name
-                if cn_full in return_layers_copy:
-                    layer_found = cn_full
+        for iter in range(len(return_layers)):
+            for name, child in model.named_children():
+                if name not in layers:
+                    layers[name] = child
+                #
+                layer_found = None
+                for cn, cm in child.named_modules():
+                    cn_full = name + '.' + cn if cn else name
+                    if cn_full in return_layers_copy:
+                        layer_found = cn_full
+                    #
+                #
+                if layer_found:
+                    del return_layers_copy[layer_found]
+                    break
                 #
             #
-            if layer_found:
-                del return_layers_copy[layer_found]
-            if not return_layers_copy:
-                break
         #
+        assert len(return_layers_copy) == 0, f'some intermediate layers could be found in the model: {return_layers_copy.keys()}'
         super().__init__(layers)
 
         for name, module in self.named_modules():
