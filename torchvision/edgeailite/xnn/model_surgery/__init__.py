@@ -32,12 +32,14 @@
 import copy
 import functools
 import torch
+import inspect
+
 from ....ops.misc import SqueezeExcitation
 from .. import utils
 from .. import layers
 
 
-__all__ = {'convert_to_lite_model', 'create_lite_model'}
+__all__ = {'convert_to_lite_model', 'create_lite_model', 'REPLACEMENTS_DICT_DEFAULT'}
 
 
 #################################################################################################
@@ -55,24 +57,90 @@ __all__ = {'convert_to_lite_model', 'create_lite_model'}
 #################################################################################################
 
 
+def _check_dummy(current_m):
+    '''
+    a dummy check function to demonstrate a posible key in replacements dict.
+    replace with your condition check.
+    '''
+    return isinstance(current_m, torch.nn.Identity)
+
+
+def _replace_dummy(current_m):
+    '''
+    a dummy replace function to demonstrate a posible value in replacements dict.
+    replace with the new object that you wish to replace
+    Note: if the output is same as input, no replacement is done.
+    '''
+    return current_m
+
+
+def _replace_conv2d(current_m=None, groups_dw=None, group_size_dw=1,
+                    with_normalization=(True,False), with_activation=(True,False)):
+    '''replace a regular convolution such as 3x3 or 5x5 with depthwise separable.
+    with_normalization: introduce a normaliztion after point convolution default: (True,False)
+    with_activation: introduce an activation fn between the depthwise and pointwise default: (True,False).
+    - the above default choices are done to mimic a regulr convolution at a much lower complexity.
+    - while replacing a regular convolution with a dws, we may not want to put a bn at the end,
+      as a bn may be already there after this conv. same case with activation
+
+    Note: it is also possible to do checks inside this function and if we dont want to replace, return the original module
+    '''
+    assert current_m is not None, 'for replacing Conv2d the current module must be provided'
+    if isinstance(current_m, torch.nn.Conv2d):
+        kernel_size = current_m.kernel_size if isinstance(current_m.kernel_size, (list,tuple)) else (current_m.kernel_size,current_m.kernel_size)
+        if current_m.groups == 1 and current_m.in_channels >= 16 and kernel_size[0] > 1 and kernel_size[1] > 1:
+            with_bias = current_m.bias is not None
+            normalization = (current_m.with_normalization[0],current_m.with_normalization[1]) if hasattr(current_m, "with_normalization") else \
+                (with_normalization[0],with_normalization[1])
+            activation = (current_m.with_activation[0],current_m.with_activation[1]) if hasattr(current_m, "with_activation") else \
+                (with_activation[0],with_activation[1])
+            new_m = layers.ConvDWSepNormAct2d(in_planes=current_m.in_channels, out_planes=current_m.out_channels,
+                        kernel_size=current_m.kernel_size, stride=current_m.stride, groups_dw=groups_dw, group_size_dw=group_size_dw,
+                        bias=with_bias, normalization=normalization, activation=activation)
+            return new_m
+        #
+    #
+    return current_m
+
+
+'''
+A dictionary with the fllowing structure.
+key: a torch.nn.Module that has to be replaced OR a callable which takes a module as input and returns boolean
+value: a list. the fist entry is a constructor or a callable that creates the replacement module
+               the remaining entries are properties that have to be copied from old module to newly created module.
+'''
+REPLACEMENTS_DICT_DEFAULT = {
+    torch.nn.ReLU6: [torch.nn.ReLU, 'inplace'],
+    torch.nn.Hardswish: [torch.nn.ReLU, 'inplace'],
+    torch.nn.SiLU: [torch.nn.ReLU, 'inplace'],
+    SqueezeExcitation: [torch.nn.Identity],
+    torch.nn.Conv2d: [_replace_conv2d],
+    # just a dummy entry to show that the key and value can be a functions
+    # the key should return a boolean and the first entry of value(list) should return an instance of torch.nn.Module
+    _check_dummy: [_replace_dummy]
+}
+
+
 # this function can be used after creating the model to transform it into a lite model.
 def create_lite_model(model_function, pretrained_backbone_names=None, pretrained=None, model_urls_dict=None,
-                      model_name_lite=None, **kwargs):
+                      model_name_lite=None, replacements_dict=None, **kwargs):
     model_name_lite = model_name_lite or f'{model_function.__name__}_lite'
     lookup_pretrained = pretrained is True and model_urls_dict is not None and model_name_lite in model_urls_dict
     pretrained = model_urls_dict[model_name_lite] if lookup_pretrained else pretrained
-    model = create_lite_model_impl(model_function, pretrained_backbone_names, pretrained=pretrained, **kwargs)
+    model = _create_lite_model_impl(model_function, pretrained_backbone_names, pretrained=pretrained,
+                                   replacements_dict=replacements_dict, **kwargs)
     return model
 
 
-def create_lite_model_impl(model_function, pretrained_backbone_names=None, groups_dw=None, group_size_dw=1,
-                           with_normalization=(True,False), with_activation=(True,False), **kwargs):
+def _create_lite_model_impl(model_function, pretrained_backbone_names=None, groups_dw=None, group_size_dw=1,
+                           with_normalization=(True,False), with_activation=(True,False), replacements_dict=None, **kwargs):
     pretrained = kwargs.pop('pretrained', None)
     pretrained_backbone = kwargs.pop('pretrained_backbone', None)
     # if pretrained is set to true, we will try to hanlde it inside model
     model = model_function(pretrained=(pretrained is True), pretrained_backbone=(pretrained_backbone is True), **kwargs)
     model = convert_to_lite_model(model, groups_dw=groups_dw, group_size_dw=group_size_dw,
-                                  with_normalization=with_normalization, with_activation=with_activation)
+                                  with_normalization=with_normalization, with_activation=with_activation,
+                                  replacements_dict=replacements_dict)
     if pretrained and pretrained is not True:
         utils.load_weights(model, pretrained, state_dict_name=['state_dict', 'model'])
     elif pretrained_backbone and pretrained_backbone is not True:
@@ -83,123 +151,86 @@ def create_lite_model_impl(model_function, pretrained_backbone_names=None, group
     return model
 
 
-def convert_to_lite_model(model, inplace=True, replace_se=True, replace_conv=True, groups_dw=None, group_size_dw=1,
-                          with_normalization=(True,False), with_activation=(True,False)):
+def convert_to_lite_model(model, inplace=True, groups_dw=None, group_size_dw=1,
+                          with_normalization=(True,False), with_activation=(True,False),
+                          replacements_dict=None):
     '''
     with_normalization: whether to insert BN after replacing 3x3/5x5 conv etc. with dw-seperable conv
     with_activation: whether to insert ReLU after replacing conv with dw-seperable conv
     '''
+    replacements_dict = replacements_dict or REPLACEMENTS_DICT_DEFAULT
     model = model if inplace else copy.deepcopy(inplace)
-    for name, m in model.named_modules():
-        if replace_se:
-            _replace_se(model, m)
+    for iteration in range(len(list(model.modules()))):
+        for p_name, p in model.named_modules():
+            is_replaced = False
+            for c_name, c in p.named_children():
+                # replacing Conv2d is not trivial. it needs several arguments
+                if isinstance(c, torch.nn.Conv2d):
+                    replace_kwargs = dict(groups_dw=groups_dw, group_size_dw=group_size_dw,
+                                          with_normalization=with_normalization, with_activation=with_activation)
+                else:
+                    replace_kwargs = dict()
+                #
+                is_replaced = _replace_with_new_module(p, c_name, c, replacements_dict, **replace_kwargs)
+                if is_replaced:
+                    break
+                #
+            #
+            if is_replaced:
+                break
+            #
         #
-    #
-    for name, m in model.named_modules():
-        if replace_conv:
-            _replace_conv2d(model, m, groups_dw=groups_dw, group_size_dw=group_size_dw,
-                            with_normalization=with_normalization, with_activation=with_activation)
-        #
-    #
-    for name, m in model.named_modules():
-        _replace_with_new_module(model, m)
     #
     return model
 
 
-_REPLACEMENTS_DICT = {
-    torch.nn.ReLU6: [torch.nn.ReLU, 'inplace'],
-    torch.nn.Hardswish: [torch.nn.ReLU, 'inplace'],
-    torch.nn.SiLU: [torch.nn.ReLU, 'inplace'],
-}
-
-
-def _replace_module(model, m, new_m):
-    _initialize_module(new_m)
-    parent = utils.get_parent_module(model, m)
-    name = utils.get_module_name(parent, m)
-    new_m.train(model.training)
-    setattr(parent, name, new_m)
-
-
-def _get_replacement(m, relacements_dict=_REPLACEMENTS_DICT):
-    for k_cls, new_cls_params in relacements_dict.items():
-        if isinstance(m, k_cls):
-            return new_cls_params
+def _replace_with_new_module(parent, c_name, current_m, replacements_dict, **kwargs):
+    for k_cls, v_params in replacements_dict.items():
+        do_replace = False
+        if inspect.isclass(k_cls):
+            do_replace = isinstance(current_m, k_cls)
+        elif callable(k_cls):
+            do_replace = k_cls(current_m)
+        #
+        if do_replace:
+            # first entry is the constructor or a callable that constructs
+            new_constructor = v_params[0]
+            assert callable(new_constructor), f'the value in replacements_dict must be a class or function: {new_constructor}'
+            # the parameters of the new moulde that has to be copied from current
+            new_args = {}
+            for k in v_params[1:]:
+                new_args.update({k:getattr(current_m,k)})
+            #
+            # create the new module that replaces the existing
+            if inspect.isclass(new_constructor):
+                new_m = new_constructor(**new_args, **kwargs)
+            else:
+                new_m = new_constructor(current_m, **new_args, **kwargs)
+            #
+            # now initialize the new module and replace it in the parent
+            if new_m is not current_m:
+                _initialize_module(new_m)
+                new_m.train(current_m.training)
+                setattr(parent, c_name, new_m)
+                return True
+            #
         #
     #
-    return None
-
-
-def _replace_with_new_module(model, m, new_cls_params=None, relacements_dict=_REPLACEMENTS_DICT):
-    if new_cls_params is None:
-        new_cls_params = _get_replacement(m, relacements_dict=relacements_dict)
-    #
-    if new_cls_params:
-        new_cls = new_cls_params[0]
-        new_args = {}
-        for k in new_cls_params[1:]:
-            new_args.update({k:getattr(m,k)})
-        #
-        new_m = new_cls(new_args)
-        _replace_module(model, m, new_m)
-    #
-
-
-def _is_se_layer(m):
-    if isinstance(m, functools.partial):
-        m = m.func
-    #
-    return isinstance(m, SqueezeExcitation)
-
-
-def _replace_se(model, m):
-    if _is_se_layer(m):
-        new_cls_params = [torch.nn.Identity]
-        _replace_with_new_module(model, m, new_cls_params)
-
-
-def _replace_conv2d(model, m, groups_dw=None, group_size_dw=1,
-                    with_normalization=(True,False), with_activation=(True,False)):
-    '''replace a regular convolution such as 3x3 or 5x5 with depthwise separable.
-    with_normalization: introduce a normaliztion after point convolution default: (True,False)
-    with_activation: introduce an activation fn between the depthwise and pointwise default: (True,False).
-    - the above default choices are done to mimic a regulr convolution at a much lower complexity.
-    - while replacing a regular convolution with a dws, we may not want to put a bn at the end,
-      as a bn may be already there after this conv. same case with activation
-    '''
-    if isinstance(m, torch.nn.Conv2d):
-        kernel_size = m.kernel_size if isinstance(m.kernel_size, (list,tuple)) else (m.kernel_size,m.kernel_size)
-        if m.groups == 1 and m.in_channels >= 16 and kernel_size[0] > 1 and kernel_size[1] > 1:
-            with_bias = m.bias is not None
-            normalization = (m.with_normalization[0],m.with_normalization[1]) if hasattr(m, "with_normalization") else \
-                (with_normalization[0],with_normalization[1])
-            activation = (m.with_activation[0],m.with_activation[1]) if hasattr(m, "with_activation") else \
-                (with_activation[0],with_activation[1])
-            new_m = layers.ConvDWSepNormAct2d(in_planes=m.in_channels, out_planes=m.out_channels,
-                        kernel_size=m.kernel_size, stride=m.stride, groups_dw=groups_dw, group_size_dw=group_size_dw,
-                        bias=with_bias, normalization=normalization, activation=activation)
-            _replace_module(model, m, new_m)
-        #
+    return False
 
 
 def _initialize_module(module):
-    _initialize_module_impl(module)
     for m in module.modules():
-        _initialize_module_impl(m)
-    #
-
-
-def _initialize_module_impl(m):
-    if isinstance(m, torch.nn.Conv2d):
-        torch.nn.init.kaiming_normal_(m.weight, mode="fan_out")
-        if m.bias is not None:
+        if isinstance(m, torch.nn.Conv2d):
+            torch.nn.init.kaiming_normal_(m.weight, mode="fan_out")
+            if m.bias is not None:
+                torch.nn.init.zeros_(m.bias)
+        elif isinstance(m, (torch.nn.BatchNorm2d, torch.nn.GroupNorm)):
+            torch.nn.init.ones_(m.weight)
             torch.nn.init.zeros_(m.bias)
-    elif isinstance(m, (torch.nn.BatchNorm2d, torch.nn.GroupNorm)):
-        torch.nn.init.ones_(m.weight)
-        torch.nn.init.zeros_(m.bias)
-    elif isinstance(m, torch.nn.Linear):
-        init_range = 1.0 / math.sqrt(m.out_features)
-        torch.nn.init.uniform_(m.weight, -init_range, init_range)
-        torch.nn.init.zeros_(m.bias)
+        elif isinstance(m, torch.nn.Linear):
+            init_range = 1.0 / math.sqrt(m.out_features)
+            torch.nn.init.uniform_(m.weight, -init_range, init_range)
+            torch.nn.init.zeros_(m.bias)
+        #
     #

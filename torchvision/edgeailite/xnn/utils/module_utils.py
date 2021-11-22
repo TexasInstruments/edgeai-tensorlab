@@ -74,8 +74,8 @@ def is_bn(module):
 
 
 def get_parent_module(module, m):
-    for p in module.modules():
-        for c in p.children():
+    for p_name, p in module.named_modules():
+        for c_name, c in p.named_children():
             if c is m:
                 return p
     #
@@ -84,6 +84,9 @@ def get_parent_module(module, m):
 
 
 def get_module_name(module, m):
+    if module is None:
+        return None
+    #
     for name, mod in module.named_modules():
         if mod is m:
             return name
