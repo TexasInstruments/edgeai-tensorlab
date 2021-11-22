@@ -52,7 +52,6 @@ class BiFPN(nn.Module):
         in_channels_list: List[int],
         out_channels: int,
         extra_blocks: Optional[ExtraFPNBlock] = None,
-        conv_cfg: Union[dict,None] = None,
         num_outputs=6,
         start_level=3,
         num_blocks=1
@@ -74,7 +73,7 @@ class BiFPN(nn.Module):
         for i in range(num_outputs):
             if i < self.num_backbone_convs:
                 in_ch = in_channels_list[i]
-                in_conv = xnn.layers.ConvNormWrapper2d(in_ch, out_channels, kernel_size=1, conv_cfg=conv_cfg)
+                in_conv = xnn.layers.ConvNormAct2d(in_ch, out_channels, kernel_size=1)
             else:
                 in_ch = out_channels
                 in_conv = torch.nn.Identity()
@@ -88,7 +87,7 @@ class BiFPN(nn.Module):
             last_in_channels = [self.intermediate_channels for _ in range(self.num_outputs)] if block_id>0 else self.in_channels
             up_only = (block_id == (num_blocks-1)) and (out_channels != self.intermediate_channels)
             bi_fpn = BiFPNBlock(block_id=block_id, up_only=up_only, in_channels=last_in_channels, out_channels=out_channels,
-                                    num_outputs=self.num_outputs, start_level=start_level, conv_cfg=conv_cfg)
+                                    num_outputs=self.num_outputs, start_level=start_level)
             blocks.append(bi_fpn)
         #
         self.bifpn_blocks = nn.ModuleList(blocks)
@@ -120,7 +119,7 @@ class BiFPN(nn.Module):
 
 class BiFPNBlock(nn.Module):
     def __init__(self, block_id=None, up_only=False, in_channels=None, out_channels=None,
-                 num_outputs=5, start_level=3, conv_cfg=None, upsample_cfg=None):
+                 num_outputs=5, start_level=3, upsample_cfg=None):
         super(BiFPNBlock, self).__init__()
         assert isinstance(in_channels, (list,tuple))
 
@@ -154,9 +153,8 @@ class BiFPNBlock(nn.Module):
             # up modules
             if not up_only:
                 up = UpsampleType(**upsample_cfg)
-                up_conv = xnn.layers.ConvNormWrapper2d(out_channels,
-                        out_channels, 3, padding=1,
-                        conv_cfg=conv_cfg)
+                up_conv = xnn.layers.ConvNormAct2d(out_channels,
+                        out_channels, 3, padding=1)
                 up_act = ActType()
                 self.ups.append(up)
                 self.up_convs.append(up_conv)
@@ -165,9 +163,8 @@ class BiFPNBlock(nn.Module):
             #
             # down modules
             down = DownsampleType(kernel_size=3, stride=2, padding=1)
-            down_conv = xnn.layers.ConvNormWrapper2d(out_channels,
-                out_channels, 3, padding=1,
-                conv_cfg=conv_cfg)
+            down_conv = xnn.layers.ConvNormAct2d(out_channels,
+                out_channels, 3, padding=1)
             down_act = ActType()
             self.downs.append(down)
             self.down_convs.append(down_conv)

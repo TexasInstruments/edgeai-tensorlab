@@ -34,9 +34,9 @@ from . import ssdlite_fpn
 
 
 __all__ = ['ssdlite_mobilenet_v3_large_lite', 
-           'ssdlite_mobilenet_v2_fpn_lite', 'ssdlite_mobilenet_v3_large_fpn_lite', 'ssdlite_mobilenet_v3_small_fpn_lite', 'ssdlite_mobilenet_v2_bifpn_lite',
+           'ssdlite_mobilenet_v2_fpn_lite', 'ssdlite_mobilenet_v3_large_fpn_lite', 'ssdlite_mobilenet_v3_small_fpn_lite',
            'ssdlite_regnet_x_400mf_fpn_lite', 'ssdlite_regnet_x_800mf_fpn_lite', 'ssdlite_regnet_x_1_6gf_fpn_lite',
-           'ssdlite_efficientnet_b0_fpn_lite'
+           'ssdlite_efficientnet_b0_fpn_lite', 'ssdlite_efficientnet_b0_bifpn_lite'
            ]
 
 
@@ -68,11 +68,6 @@ def ssdlite_mobilenet_v3_small_fpn_lite(**kwargs):
                 pretrained_backbone_names={'^features.':'backbone.body.'}, model_urls_dict=model_urls, **kwargs)
 
 
-def ssdlite_mobilenet_v2_bifpn_lite(**kwargs):
-    return xnn.model_surgery.create_lite_model(ssdlite_fpn.ssdlite_mobilenet_v2_bifpn,
-                pretrained_backbone_names={'^features.':'backbone.body.'}, model_urls_dict=model_urls, **kwargs)
-
-
 ###############################################################################################
 def ssdlite_regnet_x_400mf_fpn_lite(**kwargs):
     return xnn.model_surgery.create_lite_model(ssdlite_fpn.ssdlite_regnet_x_400mf_fpn,
@@ -95,3 +90,7 @@ def ssdlite_efficientnet_b0_fpn_lite(**kwargs):
     return xnn.model_surgery.create_lite_model(ssdlite_fpn.ssdlite_efficientnet_b0_fpn,
                 pretrained_backbone_names={'^features.':'backbone.body.'}, model_urls_dict=model_urls, **kwargs)
 
+
+def ssdlite_efficientnet_b0_bifpn_lite(**kwargs):
+    return xnn.model_surgery.create_lite_model(ssdlite_fpn.ssdlite_efficientnet_b0_bifpn,
+                pretrained_backbone_names={'^features.':'backbone.body.'}, model_urls_dict=model_urls, **kwargs)

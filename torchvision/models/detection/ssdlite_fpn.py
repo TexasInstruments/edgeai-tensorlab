@@ -80,10 +80,9 @@ from ...edgeailite import xnn
 from .ssdlite import _normal_init, SSDLiteHead, _load_state_dict, model_urls
 
 
-__all__ = ['ssdlite_mobilenet_v2_fpn', 'ssdlite_mobilenet_v3_large_fpn',
-           'ssdlite_mobilenet_v3_small_fpn', 'ssdlite_mobilenet_v2_bifpn',
+__all__ = ['ssdlite_mobilenet_v2_fpn', 'ssdlite_mobilenet_v3_large_fpn', 'ssdlite_mobilenet_v3_small_fpn',
            'ssdlite_regnet_x_400mf_fpn', 'ssdlite_regnet_x_800mf_fpn', 'ssdlite_regnet_x_1_6gf_fpn',
-           'ssdlite_efficientnet_b0_fpn']
+           'ssdlite_efficientnet_b0_fpn', 'ssdlite_efficientnet_b0_bifpn']
 
 
 def ssdlite_fpn_model(pretrained: bool = False, progress: bool = True, num_classes: int = 91,
@@ -92,7 +91,8 @@ def ssdlite_fpn_model(pretrained: bool = False, progress: bool = True, num_class
                       size: Optional[Tuple] = None,
                       backbone_name = None,
                       shortcut_layers = ('7', '14', '16'),
-                      shortcut_channels = (80, 160, 960), 
+                      shortcut_channels = (80, 160, 960),
+                      fpn_channels=256,
 					  fpn_type=FeaturePyramidNetwork,
                       weights_name = None,
                       **kwargs: Any):
@@ -146,12 +146,12 @@ def ssdlite_fpn_model(pretrained: bool = False, progress: bool = True, num_class
     return_layers = {s:s for s in shortcut_layers}
     # in FeaturePyramidNetwork extra_blocks are applied at the output.
     # in BiFPN they are applied at the input
-    p5_channels = 256 if fpn_type == FeaturePyramidNetwork else shortcut_channels[-1]
-    extra_blocks = LastLevelP6P7(p5_channels,256,num_blocks=3)
+    p5_channels = fpn_channels if fpn_type == FeaturePyramidNetwork else shortcut_channels[-1]
+    extra_blocks = LastLevelP6P7(p5_channels,fpn_channels,num_blocks=3)
 
     backbone_features = backbone.features if hasattr(backbone, 'features') else backbone
     backbone = BackboneWithFPN(backbone_features, return_layers, in_channels_list=shortcut_channels,
-                               out_channels=256, extra_blocks=extra_blocks,
+                               out_channels=fpn_channels, extra_blocks=extra_blocks,
                                fpn_type=fpn_type)
 
     # find the index of the layer from which we wont freeze
@@ -219,13 +219,6 @@ def ssdlite_mobilenet_v2_fpn(*args, backbone_name="mobilenet_v2", **kwargs):
                              shortcut_channels=(32, 64, 320), **kwargs)
 
 
-def ssdlite_mobilenet_v2_bifpn(*args, backbone_name="mobilenet_v2", **kwargs):
-    BiFPN2 = partial(BiFPN, num_blocks=2)
-    return ssdlite_fpn_model(*args, backbone_name=backbone_name, shortcut_layers=('6', '10', '17'),
-                             shortcut_channels=(32, 64, 320),
-                             fpn_type=BiFPN2, with_iou_loss=False, **kwargs)
-
-
 ###################################################################################
 def ssdlite_mobilenet_v3_large_fpn(*args, backbone_name="mobilenet_v3_large", **kwargs):
     return ssdlite_fpn_model(*args, backbone_name=backbone_name, shortcut_layers=('6', '12', '15'),
@@ -265,3 +258,11 @@ def ssdlite_efficientnet_b0_fpn(*args, backbone_name="efficientnet_b0", **kwargs
     return ssdlite_fpn_model(*args, backbone_name=backbone_name,
                              shortcut_layers=('3', '5', '7'),
                              shortcut_channels=(40, 112, 320), **kwargs)
+
+
+def ssdlite_efficientnet_b0_bifpn(*args, backbone_name="efficientnet_b0", **kwargs):
+    BiFPN3 = partial(BiFPN, num_blocks=3)
+    return ssdlite_fpn_model(*args, backbone_name=backbone_name,
+                             shortcut_layers=('3', '5', '7'),
+                             shortcut_channels=(40, 112, 320),
+                             fpn_type=BiFPN3, fpn_channels=128, **kwargs)
