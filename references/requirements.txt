@@ -11,6 +11,5 @@ opencv-python
 tensorboard
 onnx
 packaging
-fast-histogram
 pycocotools
 pyyaml
