@@ -177,7 +177,7 @@ def main(gpu, args):
         # print(f'lr_steps were not specified - using {args.lr_steps}')
     #
 
-    if args.tensorboard_server:
+    if args.tensorboard_server and utils.is_main_process():
         tb = TensorBoard()
         tb_logging.get_logger().setLevel('ERROR')
         tb.configure(logdir=args.output_dir, bind_all=True)
@@ -185,7 +185,7 @@ def main(gpu, args):
         print(f'TensorBoard started at: {tb_url}')
     #
 
-    summary_writer = SummaryWriter(log_dir=args.output_dir) if args.tensorboard_logger else None
+    summary_writer = SummaryWriter(log_dir=args.output_dir) if args.tensorboard_logger and utils.is_main_process() else None
 
     if args.device != 'cpu':
         utils.init_distributed_mode(args)

@@ -239,7 +239,7 @@ def main(gpu, args):
     print(f'preproc scale: {[round_frac(s) for s in args.scale]}')
     print(f'{Fore.RESET}')
 
-    if args.tensorboard and (not args.test_only) and (not args.export_only):
+    if args.tensorboard and utils.is_main_process() and (not args.test_only) and (not args.export_only):
         from torch.utils.tensorboard import SummaryWriter
         train_vis_dir = os.path.join(args.output_dir, 'tensorboard', 'train')
         os.makedirs(train_vis_dir, exist_ok=True)
