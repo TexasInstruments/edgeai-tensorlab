@@ -82,7 +82,7 @@ from .ssdlite import _normal_init, SSDLiteHead, _load_state_dict, model_urls
 
 __all__ = ['ssdlite_mobilenet_v2_fpn', 'ssdlite_mobilenet_v3_large_fpn', 'ssdlite_mobilenet_v3_small_fpn',
            'ssdlite_regnet_x_400mf_fpn', 'ssdlite_regnet_x_800mf_fpn', 'ssdlite_regnet_x_1_6gf_fpn',
-           'ssdlite_efficientnet_b0_fpn', 'ssdlite_efficientnet_b0_bifpn']
+           'ssdlite_efficientnet_b0_fpn', 'ssdlite_efficientnet_b0_bifpn', 'ssdlite_efficientnet_b2_bifpn']
 
 
 def ssdlite_fpn_model(pretrained: bool = False, progress: bool = True, num_classes: int = 91,
@@ -256,8 +256,30 @@ def ssdlite_efficientnet_b0_fpn(*args, backbone_name="efficientnet_b0", **kwargs
 
 
 def ssdlite_efficientnet_b0_bifpn(*args, backbone_name="efficientnet_b0", **kwargs):
+    '''
+    An SSD model that tries to imitate EfficientDet (https://arxiv.org/abs/1911.09070).
+    Key differences:
+    - SSD is used here instead of a RetinaNet like meta architecture in EfficientDet.
+    - Wider BiFPN (more channels, compared to what is used in the BiFPN of EfficientDet-D0) for faster training convergence.
+    - BiFPN used here does not have weighted addition, but only direct addition to be more embedded friendly.
+    '''
     BiFPN3 = partial(BiFPN, num_blocks=3)
     return ssdlite_fpn_model(*args, backbone_name=backbone_name,
                              shortcut_layers=('3', '5', '7'),
                              shortcut_channels=(40, 112, 320),
                              fpn_type=BiFPN3, fpn_channels=128, **kwargs)
+
+def ssdlite_efficientnet_b2_bifpn(*args, backbone_name="efficientnet_b2", **kwargs):
+    '''
+    An SSD model that tries to imitate EfficientDet (https://arxiv.org/abs/1911.09070).
+    Key differences:
+    - SSD is used here instead of a RetinaNet like meta architecture in EfficientDet.
+    - Wider BiFPN (more channels, compared to what is used in the BiFPN of EfficientDet-D2) for faster training convergence.
+    - BiFPN used here does not have weighted addition, but only direct addition to be more embedded friendly.
+    '''
+    BiFPN5 = partial(BiFPN, num_blocks=5)
+    return ssdlite_fpn_model(*args, backbone_name=backbone_name,
+                             shortcut_layers=('3', '5', '7'),
+                             shortcut_channels=(48, 120, 352),
+                             fpn_type=BiFPN5, fpn_channels=192, **kwargs)
+
