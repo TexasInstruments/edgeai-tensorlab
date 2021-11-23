@@ -325,12 +325,12 @@ def _save_proto_ssd(cfg, model, input_tensor, output_filename, input_names=None,
     head = model.head
     anchor_generator = model.anchor_generator
     input_size_ssd = max(input_size[-2:])
-    confidence_threshold = model.score_thresh
-    nms_threshold = model.nms_thresh
-    top_k = model.topk_candidates
-    keep_top_k = model.detections_per_img
     num_classes = head.num_classes
     background_label_id = -1 if use_sigmoid_cls else 0 #head.num_classes-1
+    confidence_threshold = 0.3 #model.score_thresh
+    nms_threshold = model.nms_thresh
+    top_k = 300 #model.topk_candidates
+    keep_top_k = 300 #model.detections_per_img
 
     prior_box_param = []
     for h_idx in range(num_feature_names):
@@ -377,17 +377,21 @@ def _save_proto_retinanet(cfg, model, input_tensor, output_filename, input_names
     anchor_generator = head.anchor_generator
     num_classes = head.num_classes
     background_label_id = -1 if use_sigmoid_cls else 0 #head.num_classes-1
+    confidence_threshold = 0.3
+    nms_threshold = 0.45
+    top_k = 300
+    keep_top_k = 300
 
     score_converter = detection_meta_arch_pb2.SIGMOID if use_sigmoid_cls else detection_meta_arch_pb2.SOFTMAX
     anchor_param = detection_meta_arch_pb2.RetinaNetAnchorParameter(aspect_ratio=anchor_generator.ratios,
                                                                 octave_base_scale=anchor_generator.octave_base_scale,
                                                                 scales_per_octave=anchor_generator.scales_per_octave)
 
-    nms_param = detection_meta_arch_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=100)
+    nms_param = detection_meta_arch_pb2.TIDLNmsParam(nms_threshold=nms_threshold, top_k=top_k)
     detection_output_param = detection_meta_arch_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
                                             background_label_id=background_label_id, nms_param=nms_param,
-                                            code_type=detection_meta_arch_pb2.CENTER_SIZE, keep_top_k=100,
-                                            confidence_threshold=0.5)
+                                            code_type=detection_meta_arch_pb2.CENTER_SIZE, keep_top_k=keep_top_k,
+                                            confidence_threshold=confidence_threshold)
 
     retinanet = detection_meta_arch_pb2.TidlMaRetinaNet(box_input=reg_feature_names, class_input=cls_feature_names, output=output_names,
                                               x_scale=1.0, y_scale=1.0, width_scale=1.0, height_scale=1.0,
