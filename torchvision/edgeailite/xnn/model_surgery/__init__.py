@@ -212,7 +212,16 @@ def _replace_with_new_module(parent, c_name, current_m, replacements_dict, **kwa
             if new_m is not current_m:
                 _initialize_module(new_m)
                 new_m.train(current_m.training)
-                new_m.requires_grad = current_m.requires_grad
+                # requires_grad setting of the source is used for the newly created module
+                requires_grad = None
+                for param_cur in current_m.parameters():
+                    requires_grad = requires_grad or param_cur.requires_grad
+                #
+                if requires_grad is not None:
+                    for param_new in new_m.parameters():
+                        param_new.requires_grad = requires_grad
+                    #
+                #
                 setattr(parent, c_name, new_m)
                 return True
             #

@@ -240,11 +240,11 @@ def main(gpu, args):
         kwargs["with_preprocess"] = False
     if args.image_mean is not None:
         # Note: input is divided by 255 before this mean/std is applied
-        float_mean = [m/255.0 for m in args.mean]
+        float_mean = [m/255.0 for m in args.image_mean]
         kwargs.update({"image_mean": float_mean})
     if args.image_scale is not None:
         # Note: this scale/std is applied inside the model, but input is divided by 255 before that
-        float_std = [(1.0/s)/255.0 for s in args.scale]
+        float_std = [(1.0/s)/255.0 for s in args.image_scale]
         kwargs.update({"image_std": float_std})
     if "rcnn" in args.model:
         if args.rpn_score_thresh is not None:

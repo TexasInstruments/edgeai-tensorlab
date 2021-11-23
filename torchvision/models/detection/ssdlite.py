@@ -222,8 +222,8 @@ def ssdlite320_mobilenet_v3_large(pretrained: bool = False, progress: bool = Tru
         # If image_mean or image_std is in kwargs, use it, otherwise these defaults will take effect
         # The following default mean/std rescale the input in a way compatible to the (tensorflow?) backbone:
         # i.e. rescale the data in [0, 1] to [-1, -1]. But this is different from typical torchvision backbones.
-        "image_mean": kwargs.pop(image_mean, [0.5, 0.5, 0.5]),
-        "image_std":  kwargs.pop(image_std, [0.5, 0.5, 0.5]),
+        "image_mean": kwargs.pop('image_mean', [0.5, 0.5, 0.5]),
+        "image_std":  kwargs.pop('image_std', [0.5, 0.5, 0.5]),
     }
     kwargs = {**defaults, **kwargs}
     model = SSD(backbone, anchor_generator, size, num_classes,
