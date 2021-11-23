@@ -7,14 +7,13 @@ export PYTHONPATH=:$PYTHONPATH
 model_url_base="https://software-dl.ti.com/jacinto7/esd/modelzoo/common/models/vision/classification/imagenet1k/edgeai-tv"
 
 model=ssdlite_mobilenet_v2_fpn_lite
-#model=ssdlite_mobilenet_v2_bifpn_lite
 #model=ssdlite_mobilenet_v3_large_fpn_lite
 #model=ssdlite_mobilenet_v3_small_fpn_lite
 #model=ssdlite_mobilenet_v3_large_lite
-#model=ssdlite_regnet_x_1_6gf_fpn
 #model=ssdlite_regnet_x_800mf_fpn_lite
 #model=ssdlite_regnet_x_1_6gf_fpn
 #model=ssdlite_efficientnet_b0_fpn_lite
+#model=ssdlite_efficientnet_b0_bifpn_lite
 
 backbone_checkpoint=${model_url_base}/'mobilenet_v2_20191224_checkpoint.pth'
 #backbone_checkpoint=${model_url_base}/'mobilenet_v3_lite_large_20210507_checkpoint.pth'
