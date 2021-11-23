@@ -219,17 +219,12 @@ def ssdlite320_mobilenet_v3_large(pretrained: bool = False, progress: bool = Tru
         "nms_thresh": 0.55,
         "detections_per_img": 300,
         "topk_candidates": 300,
-        # Rescale the input in a way compatible to the backbone:
-        # The following mean/std rescale the data from [0, 1] to [-1, -1]
-        "image_mean": [0.5, 0.5, 0.5],
-        "image_std": [0.5, 0.5, 0.5],
+        # If image_mean or image_std is in kwargs, use it, otherwise these defaults will take effect
+        # The following default mean/std rescale the input in a way compatible to the (tensorflow?) backbone:
+        # i.e. rescale the data in [0, 1] to [-1, -1]. But this is different from typical torchvision backbones.
+        "image_mean": kwargs.pop(image_mean, [0.5, 0.5, 0.5]),
+        "image_std":  kwargs.pop(image_std, [0.5, 0.5, 0.5]),
     }
-    if "image_mean" in kwargs:
-        del defaults["image_mean"]
-    #
-    if "image_std" in kwargs:
-        del defaults["image_std"]
-    #
     kwargs = {**defaults, **kwargs}
     model = SSD(backbone, anchor_generator, size, num_classes,
                 head=SSDLiteHead(out_channels, num_anchors, num_classes, norm_layer), **kwargs)
@@ -258,5 +253,5 @@ def _load_state_dict(model, state_dict):
 
 
 def ssdlite_mobilenet_v3_large(*args, backbone_name="mobilenet_v3_large", **kwargs):
-    return ssdlite320_mobilenet_v3_large(*args, backbone_name=backbone_name, weights_name=None, **kwargs)
+    return ssdlite320_mobilenet_v3_large(*args, backbone_name=backbone_name, weights_name=ssdlite_mobilenet_v3_large, **kwargs)
 

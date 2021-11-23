@@ -4,7 +4,7 @@ import transforms_mosaic as Tm
 
 
 class DetectionPresetTrain:
-    def __init__(self, data_augmentation, hflip_prob=0.5, mean=(123., 117., 104.)):
+    def __init__(self, data_augmentation, hflip_prob=0.5, image_mean=(123., 117., 104.)):
         data_augmentation = data_augmentation or 'ssdlite'
         if data_augmentation == 'hflip':
             self.transforms = T.Compose([
@@ -15,7 +15,7 @@ class DetectionPresetTrain:
         elif data_augmentation == 'ssd':
             self.transforms = T.Compose([
                 T.RandomPhotometricDistort(),
-                T.RandomZoomOut(fill=list(mean)),
+                T.RandomZoomOut(fill=list(image_mean)),
                 T.RandomIoUCrop(),
                 T.RandomHorizontalFlip(p=hflip_prob),
                 T.PILToTensor(),

@@ -117,7 +117,8 @@ def load_data(traindir, valdir, args):
         dataset = torchvision.datasets.ImageFolder(
             traindir,
             presets.ClassificationPresetTrain(crop_size=crop_size, auto_augment_policy=auto_augment_policy,
-                                              random_erase_prob=random_erase_prob))
+                                              random_erase_prob=random_erase_prob, 
+                                              image_mean=args.image_mean, image_scale=args.image_scale))
         if args.cache_dataset:
             print("Saving dataset_train to {}".format(cache_path))
             utils.mkdir(os.path.dirname(cache_path))
@@ -134,7 +135,8 @@ def load_data(traindir, valdir, args):
         dataset_test = torchvision.datasets.ImageFolder(
             valdir,
             presets.ClassificationPresetEval(crop_size=crop_size, resize_size=resize_size,
-                                             interpolation=interpolation))
+                                             interpolation=interpolation, 
+                                             image_mean=args.image_mean, image_scale=args.image_scale))
         if args.cache_dataset:
             print("Saving dataset_test to {}".format(cache_path))
             utils.mkdir(os.path.dirname(cache_path))
@@ -402,7 +404,8 @@ def get_args_parser(add_help=True):
     parser.add_argument(
         '--model-ema-decay', type=float, default=0.9,
         help='decay factor for Exponential Moving Average of model parameters(default: 0.9)')
-
+    parser.add_argument('--image-mean', default=[123.675, 116.28, 103.53], type=float, nargs=3, help='mean subtraction of input')
+    parser.add_argument('--image-scale', default=[0.017125, 0.017507, 0.017429], type=float, nargs=3, help='scale for multiplication of input')
     return parser
 
 

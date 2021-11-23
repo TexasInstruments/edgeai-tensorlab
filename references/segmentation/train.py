@@ -37,7 +37,7 @@ def get_transform(args, train):
     base_size = args.input_size
     crop_size = args.crop_size
 
-    return presets.SegmentationPresetTrain(base_size, crop_size, mean=args.mean, scale=args.scale, data_augmentation=args.data_augmentation) if train else presets.SegmentationPresetEval(base_size, mean=args.mean, scale=args.scale)
+    return presets.SegmentationPresetTrain(base_size, crop_size, image_mean=args.image_mean, image_scale=args.image_scale, data_augmentation=args.data_augmentation) if train else presets.SegmentationPresetEval(base_size, image_mean=args.image_mean, image_scale=args.image_scale)
 
 
 def criterion(inputs, target):
@@ -55,7 +55,7 @@ def round_frac(number, digits=4):
     return round(number, digits)
 
 
-def tensor_to_numpy(tensor, mean=None, scale=None, dataformats=None):
+def tensor_to_numpy(tensor, image_mean=None, image_scale=None, dataformats=None):
     if dataformats is None:
         dataformats = 'HW' if tensor.ndim == 2 else ('CHW' if tensor.ndim == 3 else dataformats)
     #
@@ -70,16 +70,16 @@ def tensor_to_numpy(tensor, mean=None, scale=None, dataformats=None):
             view_args = (-1,)
         #
     #
-    array = array / scale.reshape(view_args) if scale is not None else array
-    array = array + mean.reshape(view_args) if scale is not None else array
+    array = array / image_scale.reshape(view_args) if image_scale is not None else array
+    array = array + image_mean.reshape(view_args) if image_scale is not None else array
     return array
 
 
-def write_visualization(visualizer, name, tensor, epoch, mean=None, scale=None, image_formatting=None, dataformats=None):
+def write_visualization(visualizer, name, tensor, epoch, image_mean=None, image_scale=None, image_formatting=None, dataformats=None):
     if dataformats is None:
         dataformats = 'HW' if tensor.ndim == 2 else ('CHW' if tensor.ndim == 3 else dataformats)
     #
-    tensor = tensor_to_numpy(tensor, mean=mean, scale=scale, dataformats=dataformats)
+    tensor = tensor_to_numpy(tensor, image_mean=image_mean, image_scale=image_scale, dataformats=dataformats)
     if image_formatting is not None:
         tensor = np.array(tensor.clip(0, 255.0), dtype=np.uint8)
     #
@@ -127,7 +127,7 @@ def evaluate(args, model, data_loader, device, num_classes, epoch, visualizer):
                 output_color = tensor_to_color(output[0], num_classes)
                 dataformats_color = 'HWC'
                 write_visualization(visualizer, f'val-image/{visualization_counter}', image[0], epoch,
-                    mean=np.array(args.mean), scale=np.array(args.scale), image_formatting=True)
+                    image_mean=np.array(args.image_mean), image_scale=np.array(args.image_scale), image_formatting=True)
                 write_visualization(visualizer, f'val-target/{visualization_counter}', target_color, epoch, dataformats=dataformats_color)
                 write_visualization(visualizer, f'val-output/{visualization_counter}', output_color, epoch, dataformats=dataformats_color)
                 visualization_counter = visualization_counter + 1
@@ -173,7 +173,7 @@ def train_one_epoch(args, model, criterion, optimizer, data_loader, lr_scheduler
             dataformats_color = 'HWC'
             visualizer.add_scalar(f'train-loss/iter', loss.item(), epoch*epoch_size+iteration)
             write_visualization(visualizer, f'train-image/{visualization_counter}', image[0], epoch,
-                mean=np.array(args.mean), scale=np.array(args.scale), image_formatting=True)
+                image_mean=np.array(args.image_mean), image_scale=np.array(args.image_scale), image_formatting=True)
             write_visualization(visualizer, f'train-target/{visualization_counter}', target_color, epoch, dataformats=dataformats_color)
             write_visualization(visualizer, f'train-output/{visualization_counter}', output_color, epoch, dataformats=dataformats_color)
             visualization_counter = visualization_counter + 1
@@ -235,8 +235,8 @@ def main(gpu, args):
     print(args)
 
     # input pre-processing - show in pixel domain - for information
-    print(f'preproc mean : {[round_frac(m) for m in args.mean]}')
-    print(f'preproc scale: {[round_frac(s) for s in args.scale]}')
+    print(f'preproc mean : {[round_frac(m) for m in args.image_mean]}')
+    print(f'preproc scale: {[round_frac(s) for s in args.image_scale]}')
     print(f'{Fore.RESET}')
 
     if args.tensorboard and utils.is_main_process() and (not args.test_only) and (not args.export_only):
@@ -425,8 +425,8 @@ def get_args_parser(add_help=True):
     parser.add_argument('--opset-version', default=11, type=int, nargs='*', help='opset version for onnx export')
     parser.add_argument('--resize-with-scale-factor', type=xnn.utils.str2bool, default=True, help='resize with scale factor')
     parser.add_argument('--data-augmentation', default=None, type=xnn.utils.str_or_none, help='type of data augmentation')
-    parser.add_argument('--mean', default=[123.675, 116.28, 103.53], type=float, nargs=3, help='mean subtraction')
-    parser.add_argument('--scale', default=[0.017125, 0.017507, 0.017429], type=float, nargs=3, help='standard deviation for division')
+    parser.add_argument('--image-mean', default=[123.675, 116.28, 103.53], type=float, nargs=3, help='mean subtraction of input')
+    parser.add_argument('--image-scale', default=[0.017125, 0.017507, 0.017429], type=float, nargs=3, help='scale for multiplication of input')
     parser.add_argument(
         "--pretrained-backbone",
         dest="pretrained_backbone",

@@ -61,7 +61,11 @@ def get_dataset(name, image_set, transform, data_path, num_classes=None):
 
 
 def get_transform(args, train, data_augmentation):
-    return presets.DetectionPresetTrain(data_augmentation, mean=args.mean) \
+    '''
+    Note: the mean/scale is handled in teh model itself. 
+    The mean passed here only for padding.
+    '''
+    return presets.DetectionPresetTrain(data_augmentation, image_mean=args.image_mean) \
         if train else presets.DetectionPresetEval()
 
 
@@ -137,8 +141,8 @@ def get_args_parser(add_help=True):
     parser.add_argument('--input-size', default=(512,512), type=int, nargs='*', help='resized image size or the smaller side')
     parser.add_argument('--opset-version', default=11, type=int, nargs='*', help='opset version for onnx export')
     parser.add_argument('--resize-with-scale-factor', type=xnn.utils.str2bool, default=True, help='resize with scale factor')
-    parser.add_argument('--mean', default=(123.675, 116.28, 103.53), type=float, nargs=3, help='mean subtraction')
-    parser.add_argument('--scale', default=(0.017125, 0.017507, 0.017429), type=float, nargs=3, help='standard deviation for division')
+    parser.add_argument('--image-mean', default=(123.675, 116.28, 103.53), type=float, nargs=3, help='mean subtraction of input')
+    parser.add_argument('--image-scale', default=(0.017125, 0.017507, 0.017429), type=float, nargs=3, help='scale for multiplication of input')
     parser.add_argument("--tensorboard-logger", default=False, type=xnn.utils.str2bool, help="start tensorboard logging")
     parser.add_argument("--tensorboard-server", default=False, type=xnn.utils.str2bool, help="start tensorboard serving")
     parser.add_argument(
@@ -234,11 +238,11 @@ def main(gpu, args):
     }
     if args.export_only:
         kwargs["with_preprocess"] = False
-    if args.mean is not None:
+    if args.image_mean is not None:
         # Note: input is divided by 255 before this mean/std is applied
         float_mean = [m/255.0 for m in args.mean]
         kwargs.update({"image_mean": float_mean})
-    if args.scale is not None:
+    if args.image_scale is not None:
         # Note: this scale/std is applied inside the model, but input is divided by 255 before that
         float_std = [(1.0/s)/255.0 for s in args.scale]
         kwargs.update({"image_std": float_std})

@@ -5,13 +5,13 @@ import transforms_mosaic as Tm
 
 class SegmentationPresetTrain:
     def __init__(self, base_size, crop_size, hflip_prob=0.5,
-                 mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429),
+                 image_mean=(123.675, 116.28, 103.53), image_scale=(0.017125, 0.017507, 0.017429),
                  data_augmentation=None):
         
         # Note: input is divided by 255 before this mean/std is applied
         # Note: can potentially use direct_float in ToTensor and then T.NormalizeMeanScale() to avoid division by 255
-        float_mean = [m/255.0 for m in mean]
-        float_std = [(1.0/s)/255.0 for s in scale]
+        float_mean = [m/255.0 for m in image_mean]
+        float_std = [(1.0/s)/255.0 for s in image_scale]
 
         min_ratio = 0.5
         max_ratio = 2.0
@@ -44,11 +44,11 @@ class SegmentationPresetTrain:
 
 
 class SegmentationPresetEval:
-    def __init__(self, base_size, mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429)):
+    def __init__(self, base_size, image_mean=(123.675, 116.28, 103.53), image_scale=(0.017125, 0.017507, 0.017429)):
         # Note: input is divided by 255 before this mean/std is applied
         # Note: can potentially use direct_float in ToTensor and then T.NormalizeMeanScale() to avoid division by 255
-        float_mean = [m/255.0 for m in mean]
-        float_std = [(1.0/s)/255.0 for s in scale]
+        float_mean = [m/255.0 for m in image_mean]
+        float_std = [(1.0/s)/255.0 for s in image_scale]
 		
         self.transforms = T.Compose([
             T.RandomResize(base_size, base_size),
