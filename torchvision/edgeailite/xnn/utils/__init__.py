@@ -50,6 +50,7 @@ from .quant_utils import *
 from .amp import *
 from .path_utils import *
 from .import_utils import *
+from .distributed_utils import *
 
 
 try: from .tensor_utils_internal import *
