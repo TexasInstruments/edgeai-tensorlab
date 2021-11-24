@@ -20,7 +20,8 @@ import utils
 import export_proto
 
 from torchvision.edgeailite import xnn
-
+import cv2
+import numpy as np
 
 def train_one_epoch(args, model, optimizer, data_loader, device, epoch, print_freq, summary_writer=None):
     model.train()
@@ -31,8 +32,9 @@ def train_one_epoch(args, model, optimizer, data_loader, device, epoch, print_fr
 
     # warmup was earlier here, but is now included in the original lr_scheduler
     # see creating of lr_scheduler in train.py
-
     for batch_id, (images, targets) in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
+        if batch_id > args.max_batches:
+            break
         images = list(image.to(device) for image in images)
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
@@ -78,6 +80,36 @@ def _get_iou_types(model):
         iou_types.append("keypoints")
     return iou_types
 
+def draw_boxes(args=None, batch_counter=None, images=None, outputs=None, image_id=None):
+    if args.save_imgs_path is not None and args.test_only:
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        fontScale = 0.5
+        fontColor = (255, 255, 255)
+        lineType = 2
+
+        grid = torchvision.utils.make_grid(images[0])
+        # Add 0.5 after unnormalizing to [0, 255] to round to nearest integer
+        image_nd_array = grid.mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
+        cv2_image = image_nd_array[:, :, ::-1].copy()
+
+        # draw boxes
+        for box, score, label in zip(outputs[0]['boxes'], outputs[0]['scores'], outputs[0]['labels']):
+            if score > 0.2:
+                x1, y1, x2, y2 = box
+                pts = np.array([x1, y1, x2, y1, x2, y2, x1, y2], np.int32)
+                pts = pts.reshape((-1, 1, 2))
+                cv2.polylines(cv2_image, [pts], True, (255, 0, 0), thickness=2)
+
+                # display text
+                txt_to_disp = "{:02d}_{:4.2f}".format(label.cpu().numpy(), score.cpu().numpy())
+                offset = 10
+                y = pts[0, 0, 1] - offset if pts[0, 0, 1] > offset else pts[0, 0, 1] + offset
+                coord = (pts[0, 0, 0], y)
+                cv2.putText(cv2_image, txt_to_disp, coord, font, fontScale, fontColor, lineType)
+        os.makedirs(args.save_imgs_path, exist_ok=True)
+        image_name = '{}/image_op_{:05d}.png'.format(args.save_imgs_path, image_id)
+        cv2.imwrite(image_name, cv2_image)
+    return
 
 @torch.no_grad()
 def evaluate(args, model, data_loader, device, epoch, synchronize_time=False, print_freq=100, summary_writer=None):
@@ -92,18 +124,21 @@ def evaluate(args, model, data_loader, device, epoch, synchronize_time=False, pr
     coco = get_coco_api_from_dataset(data_loader.dataset)
     iou_types = _get_iou_types(model)
     coco_evaluator = CocoEvaluator(coco, iou_types)
-    saved_images = collections.deque(maxlen=2)
-    saved_results = collections.deque(maxlen=2)
+    saved_images = collections.deque(maxlen=5)
+    saved_results = collections.deque(maxlen=5)
     batch_counter = 0
     print_freq = min(print_freq, len(data_loader))
-
     for images, targets in metric_logger.log_every(data_loader, print_freq, header):
+        if batch_counter > args.max_batches:
+            break
         images = list(img.to(device) for img in images)
 
         if synchronize_time and torch.cuda.is_available():
             torch.cuda.synchronize()
         model_time = time.time()
         outputs = model(images)
+
+        draw_boxes(args=args, batch_counter=batch_counter, images=images, outputs=outputs, image_id=targets[0]['image_id'][0].cpu().numpy())
 
         outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
         model_time = time.time() - model_time
@@ -152,13 +187,13 @@ def evaluate(args, model, data_loader, device, epoch, synchronize_time=False, pr
 
         # save image with boxes
         for saved_i, saved_r in zip(saved_images, saved_results):
-            summary_tag = list(saved_r.keys())[0]
+            summary_tag = random.randrange(5)
             summary_output = list(saved_r.values())[0]
             summary_image = saved_i.cpu()
             summary_boxes = summary_output['boxes'].cpu()
             summary_labels = summary_output['labels'].cpu()
             summary_scores = summary_output['scores'].cpu()
-            summary_boxes = summary_boxes[summary_scores > 0.5].contiguous()
+            summary_boxes = summary_boxes[summary_scores > 0.2].contiguous()
             summary_writer.add_image_with_boxes(f'val/image image_id:{summary_tag}', summary_image, summary_boxes, global_step=epoch)
         #
     #
