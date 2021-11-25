@@ -80,7 +80,7 @@ def _get_iou_types(model):
         iou_types.append("keypoints")
     return iou_types
 
-def draw_boxes(args=None, batch_counter=None, images=None, outputs=None, image_id=None):
+def draw_boxes(args=None, images=None, outputs=None, img_name=None):
     if args.save_imgs_path is not None and args.test_only:
         font = cv2.FONT_HERSHEY_SIMPLEX
         fontScale = 0.5
@@ -106,9 +106,45 @@ def draw_boxes(args=None, batch_counter=None, images=None, outputs=None, image_i
                 y = pts[0, 0, 1] - offset if pts[0, 0, 1] > offset else pts[0, 0, 1] + offset
                 coord = (pts[0, 0, 0], y)
                 cv2.putText(cv2_image, txt_to_disp, coord, font, fontScale, fontColor, lineType)
-        os.makedirs(args.save_imgs_path, exist_ok=True)
-        image_name = '{}/image_op_{:05d}.png'.format(args.save_imgs_path, image_id)
-        cv2.imwrite(image_name, cv2_image)
+        img_name = os.path.join(args.save_imgs_path, img_name)
+        os.makedirs(os.path.dirname(img_name), exist_ok=True)
+        cv2.imwrite(img_name, cv2_image)
+    return
+
+def id_to_filename(anno=None, image_id=None, args=None):
+    for img in anno['images']:
+        if img['id'] == image_id:
+            break
+    return img['file_name']
+
+def write_outputs_txt_format(args=None, outputs=None, image_id=None):
+    if args.save_op_txt_path is not None and args.test_only:
+        import json
+        f = open(os.path.join(args.data_path, 'instances_val.json'))
+        os.makedirs(args.save_op_txt_path, exist_ok=True)
+        anno = json.load(f)
+        filename = id_to_filename(anno=anno, image_id=image_id, args=args)
+        ext = os.path.splitext(filename)[1]
+        filename = filename.replace(ext, '.txt')
+        filename = os.path.join(args.save_op_txt_path, filename)
+        scores = np.expand_dims(outputs[0]['scores'].cpu().numpy(), axis=-1)
+        result = np.hstack((outputs[0]['boxes'].cpu().numpy(), scores))
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        header = "{} \n{:04d}".format(os.path.basename(filename), scores.shape[0])
+        np.savetxt(filename, result, header=header)
+    return
+
+# Visualize results as well as for writing detected boxes in text format
+def store_boxes(args=None, targets=None, outputs=None, images=None):
+    if args.save_imgs_path is not None and args.test_only:
+        import json
+        anno = json.load(open(os.path.join(args.data_path, 'annotations', 'instances_val.json')))
+        image_id = targets[0]['image_id'][0].cpu().numpy()
+        img_name = id_to_filename(anno=anno, image_id=image_id, args=args)
+        draw_boxes(args=args, images=images, outputs=outputs, img_name=img_name)
+    
+    if args.save_op_txt_path is not None and args.test_only:
+        write_outputs_txt_format(args=args, outputs=outputs, image_id=image_id)
     return
 
 @torch.no_grad()
@@ -137,8 +173,8 @@ def evaluate(args, model, data_loader, device, epoch, synchronize_time=False, pr
             torch.cuda.synchronize()
         model_time = time.time()
         outputs = model(images)
-
-        draw_boxes(args=args, batch_counter=batch_counter, images=images, outputs=outputs, image_id=targets[0]['image_id'][0].cpu().numpy())
+        
+        store_boxes(args=args, targets=targets, outputs=outputs, images=images)
 
         outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
         model_time = time.time() - model_time

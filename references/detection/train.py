@@ -159,6 +159,7 @@ def get_args_parser(add_help=True):
         action="store_true",
     )
     parser.add_argument('--save-imgs-path', default=None, type=str, help='if in test-only mode images with output superimposed need saving')
+    parser.add_argument('--save-op-txt-path', default=None, type=str, help='if in test-only mode save results in text format')
     parser.add_argument('--max-batches', default=1E9, type=int, help='For debugging if train/test needs exit after few batches.')
     return parser
 
