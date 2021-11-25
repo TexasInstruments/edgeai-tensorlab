@@ -6,19 +6,35 @@ export PYTHONPATH=:$PYTHONPATH
 
 model_url_base="https://software-dl.ti.com/jacinto7/esd/modelzoo/common/models/vision/classification/imagenet1k/edgeai-tv"
 
-model=ssdlite_mobilenet_v2_fpn_lite
-#model=ssdlite_mobilenet_v3_large_fpn_lite
-#model=ssdlite_mobilenet_v3_small_fpn_lite
-#model=ssdlite_mobilenet_v3_large_lite
-#model=ssdlite_regnet_x_800mf_fpn_lite
-#model=ssdlite_regnet_x_1_6gf_fpn
-#model=ssdlite_efficientnet_b0_fpn_lite
-#model=ssdlite_efficientnet_b0_bifpn_lite
 
+##################################################################################################
+# A sample of models supported and pretrained backbone checkpoints that can be used to train them
+# uncomment only one set of lines to train
+
+model=ssdlite_mobilenet_v2_fpn_lite
 backbone_checkpoint=${model_url_base}/'mobilenet_v2_20191224_checkpoint.pth'
+
+#model=ssdlite_mobilenet_v3_large_fpn_lite
 #backbone_checkpoint=${model_url_base}/'mobilenet_v3_lite_large_20210507_checkpoint.pth'
+
+#model=ssdlite_mobilenet_v3_small_fpn_lite
 #backbone_checkpoint=${model_url_base}/'mobilenet_v3_lite_small_20210429_checkpoint.pth'
+
+#model=ssdlite_regnet_x_800mf_fpn_lite
 #backbone_checkpoint=True
+
+#model=ssdlite_regnet_x_1_6gf_fpn
+#backbone_checkpoint=True
+
+#model=ssdlite_efficientnet_b0_fpn_lite
+#backbone_checkpoint=True
+
+#model=ssdlite_efficientnet_b0_bifpn_lite
+#backbone_checkpoint=True
+
+#model=ssdlite_mobilenet_v3_large_lite
+#backbone_checkpoint=${model_url_base}/'mobilenet_v3_lite_large_20210507_checkpoint.pth'
+##################################################################################################
 
 
 # The multi-gpu training/test can be run using one of several methods
