@@ -150,8 +150,8 @@ def convert_results_anno_for_wider_face_eval(outputs=None, targets=None):
 
     annotation_wider_face_format['bboxes'] = []
     annotation_wider_face_format['bboxes_ignore'] = []
-    for (box, invalid) in zip(targets[0]['boxes'], targets[0]['invalid']):
-        if not invalid and ((box[3]-box[1]) >= min_size or (box[2]-box[0]) >= min_size):
+    for box in targets[0]['boxes']:
+        if (box[3]-box[1]) >= min_size or (box[2]-box[0]) >= min_size:
             annotation_wider_face_format['bboxes'].append(box.cpu().numpy())
         else:
             annotation_wider_face_format['bboxes_ignore'].append(box.cpu().numpy())
