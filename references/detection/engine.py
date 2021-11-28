@@ -117,15 +117,11 @@ def id_to_filename(anno=None, image_id=None, args=None):
             break
     return img['file_name']
 
-def write_outputs_txt_format(args=None, outputs=None, image_id=None):
+def write_outputs_txt_format(args=None, outputs=None, img_name=None):
     if args.save_op_txt_path is not None and args.test_only:
-        import json
-        f = open(os.path.join(args.data_path, 'instances_val.json'))
         os.makedirs(args.save_op_txt_path, exist_ok=True)
-        anno = json.load(f)
-        filename = id_to_filename(anno=anno, image_id=image_id, args=args)
-        ext = os.path.splitext(filename)[1]
-        filename = filename.replace(ext, '.txt')
+        ext = os.path.splitext(img_name)[1]
+        filename = img_name.replace(ext, '.txt')
         filename = os.path.join(args.save_op_txt_path, filename)
         scores = np.expand_dims(outputs[0]['scores'].cpu().numpy(), axis=-1)
         result = np.hstack((outputs[0]['boxes'].cpu().numpy(), scores))
@@ -135,17 +131,46 @@ def write_outputs_txt_format(args=None, outputs=None, image_id=None):
     return
 
 # Visualize results as well as for writing detected boxes in text format
-def store_boxes(args=None, targets=None, outputs=None, images=None):
-    if args.save_imgs_path is not None and args.test_only:
-        import json
-        anno = json.load(open(os.path.join(args.data_path, 'annotations', 'instances_val.json')))
+def store_boxes(args=None, targets=None, outputs=None, images=None, anno=None):
+    if args.save_imgs_path or args.save_op_txt_path:
         image_id = targets[0]['image_id'][0].cpu().numpy()
         img_name = id_to_filename(anno=anno, image_id=image_id, args=args)
+
+    if args.save_imgs_path is not None and args.test_only:
         draw_boxes(args=args, images=images, outputs=outputs, img_name=img_name)
     
     if args.save_op_txt_path is not None and args.test_only:
-        write_outputs_txt_format(args=args, outputs=outputs, image_id=image_id)
+        write_outputs_txt_format(args=args, outputs=outputs, img_name=img_name)
     return
+
+def convert_results_anno_for_wider_face_eval(outputs=None, targets=None):
+    min_size = 10
+    result_wider_face_format = torch.hstack((outputs[0]['boxes'].cpu(), torch.unsqueeze(outputs[0]['scores'], 1).cpu())).numpy()
+    annotation_wider_face_format = dict()
+
+    annotation_wider_face_format['bboxes'] = []
+    annotation_wider_face_format['bboxes_ignore'] = []
+    for (box, invalid) in zip(targets[0]['boxes'], targets[0]['invalid']):
+        if not invalid and ((box[3]-box[1]) >= min_size or (box[2]-box[0]) >= min_size):
+            annotation_wider_face_format['bboxes'].append(box.cpu().numpy())
+        else:
+            annotation_wider_face_format['bboxes_ignore'].append(box.cpu().numpy())
+
+    annotation_wider_face_format['bboxes'] = np.array(annotation_wider_face_format['bboxes'])
+    annotation_wider_face_format['bboxes_ignore'] = np.array(annotation_wider_face_format['bboxes_ignore'])
+    annotation_wider_face_format['labels'] = np.array([0] * len(annotation_wider_face_format['bboxes']))
+
+    n_ignore_boxes = len(annotation_wider_face_format['bboxes_ignore'])
+    annotation_wider_face_format['labels_ignore'] = np.array([0] * n_ignore_boxes)
+    if n_ignore_boxes == 0:
+        annotation_wider_face_format['bboxes_ignore'] = None
+        annotation_wider_face_format['labels_ignore'] = None
+
+    n_boxes = len(annotation_wider_face_format['bboxes'])
+    if n_boxes == 0:
+        annotation_wider_face_format['bboxes'] = np.zeros((0,4))
+
+    return result_wider_face_format, annotation_wider_face_format
 
 @torch.no_grad()
 def evaluate(args, model, data_loader, device, epoch, synchronize_time=False, print_freq=100, summary_writer=None):
@@ -164,6 +189,11 @@ def evaluate(args, model, data_loader, device, epoch, synchronize_time=False, pr
     saved_results = collections.deque(maxlen=5)
     batch_counter = 0
     print_freq = min(print_freq, len(data_loader))
+    results_wider_face_format = []
+    annotations_wider_face_format = []
+    if args.save_imgs_path or args.save_op_txt_path:
+        import json
+        anno = json.load(open(os.path.join(args.data_path, 'annotations', 'instances_val.json')))
     for images, targets in metric_logger.log_every(data_loader, print_freq, header):
         if batch_counter > args.max_batches:
             break
@@ -173,8 +203,12 @@ def evaluate(args, model, data_loader, device, epoch, synchronize_time=False, pr
             torch.cuda.synchronize()
         model_time = time.time()
         outputs = model(images)
-        
-        store_boxes(args=args, targets=targets, outputs=outputs, images=images)
+
+        if args.en_wider_face_eval:
+            result_wider_face_format, annotation_wider_face_format = convert_results_anno_for_wider_face_eval(outputs=outputs, targets=targets)
+            results_wider_face_format.append([result_wider_face_format])
+            annotations_wider_face_format.append(annotation_wider_face_format)
+        store_boxes(args=args, targets=targets, outputs=outputs, images=images, anno=anno)
 
         outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
         model_time = time.time() - model_time
@@ -198,6 +232,15 @@ def evaluate(args, model, data_loader, device, epoch, synchronize_time=False, pr
     metric_logger.synchronize_between_processes()
     print("Averaged stats:", metric_logger)
     coco_evaluator.synchronize_between_processes()
+    if args.en_wider_face_eval:
+        import vedadet.misc.evaluation.mean_ap as wider_face_mean_ap
+        mean_ap, _ = wider_face_mean_ap.eval_map(
+                results_wider_face_format,
+                annotations_wider_face_format,
+                scale_ranges=None,
+                iou_thr=0.5,
+                dataset=('face',),
+                logger=None)
 
     if hasattr(args, 'quit_event') and args.quit_event.is_set():
         return

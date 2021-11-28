@@ -161,6 +161,8 @@ def get_args_parser(add_help=True):
     parser.add_argument('--save-imgs-path', default=None, type=str, help='if in test-only mode images with output superimposed need saving')
     parser.add_argument('--save-op-txt-path', default=None, type=str, help='if in test-only mode save results in text format')
     parser.add_argument('--max-batches', default=1E9, type=int, help='For debugging if train/test needs exit after few batches.')
+    parser.add_argument('--en_wider_face_eval', default=False, type=xnn.utils.str2bool, help='to do additional eval using wider-face method')
+
     return parser
 
 

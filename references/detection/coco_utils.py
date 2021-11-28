@@ -108,7 +108,14 @@ class ConvertCocoPolysToMask(object):
         iscrowd = torch.tensor([obj["iscrowd"] for obj in anno])
         target["area"] = area
         target["iscrowd"] = iscrowd
-
+        # for wider_face_dataset
+        # x1, y1, w, h, blur, expression, illumination, invalid, occlusion, pose
+        en_wider_face_eval = True
+        if en_wider_face_eval:
+            BBOX_INVALID_IDX = 7
+            invalid_boxes = [obj["boxes"][BBOX_INVALID_IDX] for obj in anno if 'boxes' in obj and len(obj['boxes']) > BBOX_INVALID_IDX]
+            target['invalid'] = torch.tensor(invalid_boxes)
+            assert len(target['invalid']) == len(target["area"]), "check invalid box checking added for wider dataset"
         return image, target
 
 
