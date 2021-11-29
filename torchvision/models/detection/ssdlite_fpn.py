@@ -82,7 +82,8 @@ from .ssdlite import _normal_init, SSDLiteHead, _load_state_dict, model_urls
 
 __all__ = ['ssdlite_mobilenet_v2_fpn', 'ssdlite_mobilenet_v3_large_fpn', 'ssdlite_mobilenet_v3_small_fpn',
            'ssdlite_regnet_x_400mf_fpn', 'ssdlite_regnet_x_800mf_fpn', 'ssdlite_regnet_x_1_6gf_fpn',
-           'ssdlite_efficientnet_b0_fpn', 'ssdlite_efficientnet_b0_bifpn', 'ssdlite_efficientnet_b2_bifpn']
+           'ssdlite_efficientnet_b0_fpn', 'ssdlite_efficientnet_b2_fpn',
+           'ssdlite_efficientnet_b0_bifpn', 'ssdlite_efficientnet_b2_bifpn']
 
 
 def ssdlite_fpn_model(pretrained: bool = False, progress: bool = True, num_classes: int = 91,
@@ -255,6 +256,14 @@ def ssdlite_efficientnet_b0_fpn(*args, backbone_name="efficientnet_b0", **kwargs
                              shortcut_channels=(40, 112, 320), **kwargs)
 
 
+def ssdlite_efficientnet_b2_fpn(*args, backbone_name="efficientnet_b2", **kwargs):
+    # shortcut_channels need not be populated for FPN
+    return ssdlite_fpn_model(*args, backbone_name=backbone_name,
+                             shortcut_layers=('3', '5', '7'),
+                             shortcut_channels=(48, 120, 352), **kwargs)
+
+
+###################################################################################
 def ssdlite_efficientnet_b0_bifpn(*args, backbone_name="efficientnet_b0", **kwargs):
     '''
     An SSD model that tries to imitate EfficientDet (https://arxiv.org/abs/1911.09070).
