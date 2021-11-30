@@ -146,3 +146,20 @@ class PostProcessTransforms(utils.TransformsCompose):
 
     def get_transform_human_pose_estimation_onnx(self, data_layout=constants.NCHW):
         return self.get_transform_human_pose_estimation_base(data_layout=data_layout, with_udp=self.settings.with_udp)
+
+    ###############################################################
+    # post process transforms for depth estimation
+    ###############################################################
+    def get_transform_depth_estimation_base(self, data_layout):
+        postprocess_depth_estimation = []
+
+        # if self.settings.save_output:
+        #     postprocess_depth_estimation += [DepthImageSave()]
+        #
+        transforms = PostProcessTransforms(None, postprocess_depth_estimation,
+                                           data_layout=data_layout,
+                                           save_output=self.settings.save_output)
+        return transforms
+
+    def get_transform_depth_estimation_onnx(self, data_layout=constants.NCHW):
+        return self.get_transform_depth_estimation_base(data_layout=data_layout)

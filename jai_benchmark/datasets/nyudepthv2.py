@@ -39,6 +39,19 @@ class NYUDepthV2(DatasetBase):
     def __init__(self, num_classes=151, ignore_label=None, download=False, **kwargs):
         super().__init__(num_classes=num_classes, **kwargs)
 
+        self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
+        self.name = "NYUDEPTHV2"
+        self.ignore_label = ignore_label
+        #self.label_dir_txt = os.path.join(self.kwargs['path'], 'objectInfo150.txt')
+
+        image_dir = os.path.join(self.kwargs['path'], self.kwargs['split'], 'images')
+        images_pattern = os.path.join(image_dir, '*.jpg')
+        images = glob.glob(images_pattern)
+        self.imgs = sorted(images)
+
+        self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
+            if (self.kwargs['num_frames'] is not None) else len(self.imgs)
+
     def __len__(self):
         return self.num_frames
 
