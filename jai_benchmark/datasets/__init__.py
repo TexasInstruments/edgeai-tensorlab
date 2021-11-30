@@ -37,6 +37,7 @@ from .imagenetv2 import *
 from .cityscapes import *
 from .ade20k import *
 from .voc_seg import *
+from .nyudepthv2 import * 
 from .modelmaker_datasets import *
 
 from .coco_kpts import *
@@ -64,6 +65,8 @@ dataset_info_dict = {
     'cocoseg21': {'task_type':'segmentation', 'category':'cocoseg21', 'type':COCOSegmentation, 'size':5000, 'split':'val2017'},
     #------------------------pose estimation datasets--------------------------#
     'cocokpts': {'task_type':'keypoint_detection', 'category':'cocokpts', 'type':COCOKeypoints, 'size':5000, 'split':'val2017'},
+    #------------------------depth estimation datasets--------------------------#
+    'nyudepthv2': {'task_type':'depth_estimation', 'category':'nyudepthv2', 'type':NYUDepthV2, 'size':654, 'split':'val'},
  }
 
 
@@ -251,6 +254,23 @@ def get_datasets(settings, download=False):
         dataset_cache['voc2012']['calibration_dataset'] = VOC2012Segmentation(**voc_seg_calib_cfg, download=download)
         dataset_cache['voc2012']['input_dataset'] = VOC2012Segmentation(**voc_seg_val_cfg, download=False)
     #
+    if in_dataset_loading(settings, 'nyudepthv2'):
+        filter_imgs = False
+        nyudepthv2_calib_cfg = dict(
+            path=f'{settings.datasets_path}/nyudepthv2',
+            split='val',
+            shuffle=True,
+            num_frames=settings.calibration_frames,
+            name='nyudepthv2')
+        nyudepthv2_val_cfg = dict(
+            path=f'{settings.datasets_path}/nyudepthv2',
+            split='val',
+            shuffle=False, #TODO: need to make COCODetection.evaluate() work with shuffle
+            num_frames=min(settings.num_frames, 654),
+            name='nyudepthv2')
+
+        dataset_cache['nyudepthv2']['calibration_dataset'] = NYUDepthV2(**nyudepthv2_calib_cfg, download=download)
+        dataset_cache['nyudepthv2']['input_dataset'] = NYUDepthV2(**nyudepthv2_val_cfg, download=False)
     return dataset_cache
 
 
