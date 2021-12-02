@@ -27,9 +27,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import h5py
+import scipy.io
+import sys
 import glob
 import random
 import numpy as np
+import cv2
 import PIL
 from colorama import Fore
 from .. import utils
@@ -38,6 +42,15 @@ from .dataset_base import *
 class NYUDepthV2(DatasetBase):
     def __init__(self, num_classes=151, ignore_label=None, download=False, **kwargs):
         super().__init__(num_classes=num_classes, **kwargs)
+
+        self.force_download = True if download == 'always' else False
+        assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must be provided'
+
+        path = self.kwargs['path']
+        split = kwargs['split']
+        if download:
+            self.download(path, split)
+        #
 
         self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
         self.name = "NYUDEPTHV2"
@@ -51,6 +64,82 @@ class NYUDepthV2(DatasetBase):
 
         self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
+
+    def download(self, path, split):
+        root = path
+        images_folder = os.path.join(path, 'images')
+        annotations_folder = os.path.join(path, 'annotations')
+        if (not self.force_download) and os.path.exists(path) and os.path.exists(images_folder) and os.path.exists(annotations_folder):
+            print(utils.log_color('\nINFO', 'dataset exists - will reuse', path))
+            return
+        #
+        print(utils.log_color('\nINFO', 'downloading and preparing dataset', path + ' This may take some time.'))
+        print(f'{Fore.YELLOW}'
+              f'\nNYUDepthV2 Dataset:'
+              f'\n    Indoor Segmentation and Support Inference from RGBD Images'
+              f'\n       Silberman, N., Hoiem, D., Kohli, P., & Fergus, R. , European Conference on Computer Vision (ECCV), 2012. '
+              f'\n    Visit the following urls to know more about NYUDepthV2 dataset: '            
+              f'\n        https://www.tensorflow.org/datasets/catalog/nyu_depth_v2'
+              f'\n        https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html '
+              f'{Fore.RESET}\n')
+
+        dataset_url = 'http://horatio.cs.nyu.edu/mit/silberman/nyu_depth_v2/nyu_depth_v2_labeled.mat'
+        split_url = 'https://github.com/cleinc/bts/blob/master/utils/splits.mat?raw=true'
+        root = root.rstrip('/')
+        download_root = os.path.join(root, 'download')
+        file_path = utils.download_file(dataset_url, root=download_root, force_download=self.force_download)
+        split_path = utils.download_file(split_url, root=download_root, force_download=self.force_download)
+
+        h5_file = h5py.File(file_path, 'r')
+        split = scipy.io.loadmat(split_path)
+        out_folder = os.path.join(os.path.expanduser('~'), 'edgeai-benchmark/dependencies/datasets/nyudepthv2')
+
+        os.makedirs(out_folder, exist_ok=True)
+        os.makedirs(os.path.join(out_folder, 'train'), exist_ok=True)
+        os.makedirs(os.path.join(out_folder, 'val'), exist_ok=True)
+        os.makedirs(os.path.join(out_folder, 'train', 'images'), exist_ok=True)
+        os.makedirs(os.path.join(out_folder, 'train', 'annotations'), exist_ok=True)
+        os.makedirs(os.path.join(out_folder, 'val', 'images'), exist_ok=True)
+        os.makedirs(os.path.join(out_folder, 'val', 'annotations'), exist_ok=True)
+
+        test_images = set([int(x) for x in split["testNdxs"]])
+        train_images = set([int(x) for x in split["trainNdxs"]])
+        depths_raw = h5_file['rawDepths']
+
+        images = h5_file['images']
+        scenes = [u''.join(chr(c) for c in h5_file[obj_ref]) for obj_ref in h5_file['sceneTypes'][0]]
+
+        for i, (image, scene, depth_raw) in enumerate(zip(images, scenes, depths_raw)):
+            depth_raw = depth_raw.T
+            image = image.T
+
+            idx = int(i) + 1
+            if idx in train_images:
+                train_val = "train"
+            else:
+                assert idx in test_images, "index %d neither found in training set nor in test set" % idx
+                train_val = "val"
+
+            #folder = "%s/%s" % (out_folder, train_val)
+            folder = os.path.join(out_folder, train_val)
+            images_folder = os.path.join(folder, 'images')
+            annotations_folder = os.path.join(folder, 'annotations')
+
+            # if not os.path.exists(folder):
+            #     os.makedirs(folder)
+
+            img_depth = depth_raw * 1000.0
+            img_depth_uint16 = img_depth.astype(np.uint16)
+            cv2.imwrite("%s/sync_depth_%05d.png" % (annotations_folder, i), img_depth_uint16)
+            image = image[:, :, ::-1]
+            image_black_boundary = np.zeros((480, 640, 3), dtype=np.uint8)
+            image_black_boundary[7:474, 7:632, :] = image[7:474, 7:632, :]
+            cv2.imwrite("%s/rgb_%05d.jpg" % (images_folder, i), image_black_boundary)
+        #
+
+
+        print(utils.log_color('\nINFO', 'dataset ready', path))
+        return
 
     def __len__(self):
         return self.num_frames

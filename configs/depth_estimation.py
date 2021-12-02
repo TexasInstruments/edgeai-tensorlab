@@ -55,7 +55,7 @@ def get_configs(settings, work_dir):
         #################mlperf models###################################
         # edgeai: segmentation - fpnlite_aspp_regnetx400mf_ade20k32_384x384_20210314-205347 expected_metric: 51.03% mean-iou
         'de-9000':utils.dict_update(nyudepthv2_cfg,
-            preprocess=preproc_transforms.get_transform_jai((224,224), (224,224), backend='cv2', interpolation=cv2.INTER_AREA),
+            preprocess=preproc_transforms.get_transform_jai((224,224), (224,224), backend='cv2', interpolation=cv2.INTER_NEAREST),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/depth_estimation/nyudepthv2/fast-depth/fast-depth.onnx'),
             postprocess=postproc_depth_estimation_onnx,
