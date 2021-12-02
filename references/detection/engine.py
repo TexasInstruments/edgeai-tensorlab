@@ -143,34 +143,32 @@ def store_boxes(args=None, targets=None, outputs=None, images=None, anno=None):
         write_outputs_txt_format(args=args, outputs=outputs, img_name=img_name)
     return
 
-def convert_results_anno_for_wider_face_eval(outputs=None, targets=None):
-    min_size = 10
+def convert_results_anno_for_wider_face_eval(outputs=None, targets=None, min_size=0):
     result_wider_face_format = torch.hstack((outputs[0]['boxes'].cpu(), torch.unsqueeze(outputs[0]['scores'], 1).cpu())).numpy()
-    annotation_wider_face_format = dict()
+    annotations = dict()
 
-    annotation_wider_face_format['bboxes'] = []
-    annotation_wider_face_format['bboxes_ignore'] = []
+    annotations['bboxes'] = []
+    annotations['bboxes_ignore'] = []
     for box in targets[0]['boxes']:
         if (box[3]-box[1]) >= min_size or (box[2]-box[0]) >= min_size:
-            annotation_wider_face_format['bboxes'].append(box.cpu().numpy())
+            annotations['bboxes'].append(box.cpu().numpy())
         else:
-            annotation_wider_face_format['bboxes_ignore'].append(box.cpu().numpy())
+            annotations['bboxes_ignore'].append(box.cpu().numpy())
 
-    annotation_wider_face_format['bboxes'] = np.array(annotation_wider_face_format['bboxes'])
-    annotation_wider_face_format['bboxes_ignore'] = np.array(annotation_wider_face_format['bboxes_ignore'])
-    annotation_wider_face_format['labels'] = np.array([0] * len(annotation_wider_face_format['bboxes']))
-
-    n_ignore_boxes = len(annotation_wider_face_format['bboxes_ignore'])
-    annotation_wider_face_format['labels_ignore'] = np.array([0] * n_ignore_boxes)
-    if n_ignore_boxes == 0:
-        annotation_wider_face_format['bboxes_ignore'] = None
-        annotation_wider_face_format['labels_ignore'] = None
-
-    n_boxes = len(annotation_wider_face_format['bboxes'])
+    annotations['bboxes'] = np.array(annotations['bboxes'])
+    annotations['labels'] = np.array([0] * len(annotations['bboxes']))
+    n_boxes = len(annotations['bboxes'])
     if n_boxes == 0:
-        annotation_wider_face_format['bboxes'] = np.zeros((0,4))
+        annotations['bboxes'] = np.zeros((0, 4))
 
-    return result_wider_face_format, annotation_wider_face_format
+    annotations['bboxes_ignore'] = np.array(annotations['bboxes_ignore'])
+    n_ignore_boxes = len(annotations['bboxes_ignore'])
+    annotations['labels_ignore'] = np.array([0] * n_ignore_boxes)
+    if n_ignore_boxes == 0:
+        annotations['bboxes_ignore'] = None
+        annotations['labels_ignore'] = None
+
+    return result_wider_face_format, annotations
 
 @torch.no_grad()
 def evaluate(args, model, data_loader, device, epoch, synchronize_time=False, print_freq=100, summary_writer=None):
@@ -191,6 +189,7 @@ def evaluate(args, model, data_loader, device, epoch, synchronize_time=False, pr
     print_freq = min(print_freq, len(data_loader))
     results_wider_face_format = []
     annotations_wider_face_format = []
+    anno = None
     if args.save_imgs_path or args.save_op_txt_path:
         import json
         anno = json.load(open(os.path.join(args.data_path, 'annotations', 'instances_val.json')))
