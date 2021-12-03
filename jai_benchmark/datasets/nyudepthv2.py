@@ -46,6 +46,7 @@ class NYUDepthV2(DatasetBase):
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must be provided'
 
+        self.detph_label_scale = 256.0
         path = self.kwargs['path']
         split = kwargs['split']
         if download:
@@ -61,6 +62,12 @@ class NYUDepthV2(DatasetBase):
         images_pattern = os.path.join(image_dir, '*.jpg')
         images = glob.glob(images_pattern)
         self.imgs = sorted(images)
+
+        labels_dir = os.path.join(self.kwargs['path'], self.kwargs['split'], 'annotations')
+        labels_pattern = os.path.join(labels_dir, '*.png')
+        labels = glob.glob(labels_pattern)
+        self.labels = sorted(labels)
+        assert len(self.imgs) == len(self.labels), 'mismatch in the number f images and labels'
 
         self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
@@ -130,7 +137,8 @@ class NYUDepthV2(DatasetBase):
             # if not os.path.exists(folder):
             #     os.makedirs(folder)
 
-            img_depth = depth_raw * 1000.0
+            depth_raw = depth_raw.clip(0.0, 255.0)
+            img_depth = depth_raw * self.detph_label_scale
             img_depth_uint16 = img_depth.astype(np.uint16)
             cv2.imwrite("%s/sync_depth_%05d.png" % (annotations_folder, i), img_depth_uint16)
             image = image[:, :, ::-1]
@@ -138,8 +146,6 @@ class NYUDepthV2(DatasetBase):
             image_black_boundary[7:474, 7:632, :] = image[7:474, 7:632, :]
             cv2.imwrite("%s/rgb_%05d.jpg" % (images_folder, i), image_black_boundary)
         #
-
-
         print(utils.log_color('\nINFO', 'dataset ready', path))
         return
 
@@ -155,15 +161,20 @@ class NYUDepthV2(DatasetBase):
             return self.imgs[idx]
         #
 
-    def evaluate(self, predictions, threshold, **kwargs):
+    def __call__(self, predictions, **kwargs):
+        return self.evaluate(predictions, **kwargs)
+
+    def evaluate(self, predictions, threshold=1.25, **kwargs):
         bad_pixels = 0.0
         num_frames = min(self.num_frames, len(predictions))
         for n in range(num_frames):
             image_file, label_file = self.__getitem__(n, with_label=True)
             label_img = PIL.Image.open(label_file)
-            mask = np.min(label_img, predictions[n]) != 0 
+            label_img = np.array(label_img, dtype=np.float32) / self.detph_label_scale
+            depth_prediction = predictions[n]
+            mask = np.minimum(label_img, depth_prediction) != 0
 
-            delta = np.min(
+            delta = np.minimum(
                 predictions[n][mask] / label_img[mask], 
                 label_img[mask] / predictions[n][mask]
             )

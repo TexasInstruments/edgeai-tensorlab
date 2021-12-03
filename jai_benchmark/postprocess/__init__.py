@@ -151,10 +151,11 @@ class PostProcessTransforms(utils.TransformsCompose):
     # post process transforms for depth estimation
     ###############################################################
     def get_transform_depth_estimation_base(self, data_layout):
-        postprocess_depth_estimation = []
-
-        # if self.settings.save_output:
-        #     postprocess_depth_estimation += [DepthImageSave()]
+        postprocess_depth_estimation = [IndexArray(),
+                                        NPTensorToImage(data_layout=data_layout),
+                                        DepthImageResize()]
+        if self.settings.save_output:
+            postprocess_depth_estimation += [DepthImageSave()]
         #
         transforms = PostProcessTransforms(None, postprocess_depth_estimation,
                                            data_layout=data_layout,
