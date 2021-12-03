@@ -164,7 +164,9 @@ class QuantizationParams():
             # mixed precision options - this is just a placeholder
             # output/params names need to be specified according to a particular model
             'advanced_options:output_feature_16bit_names_list':'',
-            'advanced_options:params_16bit_names_list':''
+            'advanced_options:params_16bit_names_list':'',
+            # optimize data conversion options by moving them from arm to c7x
+            'advanced_options:add_data_convert_ops': 3,
         }
         return runtime_options
 
