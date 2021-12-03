@@ -67,9 +67,14 @@ class NYUDepthV2(DatasetBase):
 
     def download(self, path, split):
         root = path
-        images_folder = os.path.join(path, 'images')
-        annotations_folder = os.path.join(path, 'annotations')
-        if (not self.force_download) and os.path.exists(path) and os.path.exists(images_folder) and os.path.exists(annotations_folder):
+        out_folder = root
+        train_images_folder = os.path.join(path, 'train', 'images')
+        train_annotations_folder = os.path.join(path, 'train', 'annotations')
+        val_images_folder = os.path.join(path, 'val', 'images')
+        val_annotations_folder = os.path.join(path, 'val', 'annotations')
+        if (not self.force_download) and os.path.exists(path) and os.path.exists(train_images_folder) and \
+            os.path.exists(train_annotations_folder) and os.path.exists(val_images_folder) and \
+            os.path.exists(val_annotations_folder):
             print(utils.log_color('\nINFO', 'dataset exists - will reuse', path))
             return
         #
@@ -92,15 +97,12 @@ class NYUDepthV2(DatasetBase):
 
         h5_file = h5py.File(file_path, 'r')
         split = scipy.io.loadmat(split_path)
-        out_folder = os.path.join(os.path.expanduser('~'), 'edgeai-benchmark/dependencies/datasets/nyudepthv2')
 
         os.makedirs(out_folder, exist_ok=True)
-        os.makedirs(os.path.join(out_folder, 'train'), exist_ok=True)
-        os.makedirs(os.path.join(out_folder, 'val'), exist_ok=True)
-        os.makedirs(os.path.join(out_folder, 'train', 'images'), exist_ok=True)
-        os.makedirs(os.path.join(out_folder, 'train', 'annotations'), exist_ok=True)
-        os.makedirs(os.path.join(out_folder, 'val', 'images'), exist_ok=True)
-        os.makedirs(os.path.join(out_folder, 'val', 'annotations'), exist_ok=True)
+        os.makedirs(train_images_folder, exist_ok=True)
+        os.makedirs(train_annotations_folder, exist_ok=True)
+        os.makedirs(val_images_folder, exist_ok=True)
+        os.makedirs(val_annotations_folder, exist_ok=True)
 
         test_images = set([int(x) for x in split["testNdxs"]])
         train_images = set([int(x) for x in split["trainNdxs"]])
