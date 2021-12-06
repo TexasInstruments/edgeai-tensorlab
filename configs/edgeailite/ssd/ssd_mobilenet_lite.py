@@ -47,7 +47,7 @@ quantize = False #'training' #'calibration'
 initial_learning_rate = 4e-2 #8e-2
 samples_per_gpu = 16
 if quantize:
-  load_from = './work_dirs/ssd-lite_mobilenet/latest.pth'
+  load_from = './work_dirs/ssd_mobilenet_lite/latest.pth'
   optimizer = dict(type='SGD', lr=initial_learning_rate/100.0, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   total_epochs = 1 if quantize == 'calibration' else 12
 else:
@@ -55,7 +55,7 @@ else:
 #
 
 ######################################################
-backbone_type = 'MobileNetV2Lite' #'MobileNetV2Lite' #'MobileNetV1'
+backbone_type = 'MobileNetV2Lite' #'MobileNetV2Lite' #'MobileNetV1Lite'
 mobilenetv2_pretrained='torchvision://mobilenet_v2'
 mobilenetv1_pretrained='./data/modelzoo/pytorch/image_classification/imagenet1k/jacinto_ai/mobilenet_v1_2019-09-06_17-15-44.pth'
 pretrained=(mobilenetv2_pretrained if backbone_type == 'MobileNetV2' else mobilenetv1_pretrained)
@@ -63,8 +63,9 @@ bacbone_out_channels=(96, 320, 512, 256, 256, 256) if backbone_type == 'MobileNe
 backbone_out_indices = (1, 2, 3, 4)
 basesize_ratio_range = (0.1, 0.9)
 
-conv_cfg = dict(type='ConvDWSep')
+conv_cfg = None
 norm_cfg = dict(type='BN')
+convert_to_lite_model = dict(group_size_dw=1)
 
 model = dict(
     type='SingleStageDetector',
@@ -81,7 +82,7 @@ model = dict(
         init_cfg=dict(type='Pretrained', checkpoint=pretrained)),
     neck=None,
     bbox_head=dict(
-        type='SSDLiteHead',
+        type='SSDHead',
         in_channels=bacbone_out_channels,
         num_classes=num_classes,
         conv_cfg=conv_cfg,

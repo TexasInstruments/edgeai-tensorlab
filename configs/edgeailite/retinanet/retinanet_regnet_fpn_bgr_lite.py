@@ -31,8 +31,7 @@ backbone_type = 'RegNet'
 backbone_arch = 'regnetx_800mf'                  # 'regnetx_800mf' #'regnetx_1.6gf' #'regnetx_3.2gf'
 to_rgb = False                                   # pycls regnet backbones are trained with bgr
 
-decoder_fpn_type = 'FPNLite'                    # 'FPNLite' #'BiFPNLite' #'FPN'
-decoder_conv_type = 'ConvDWSep'                 # 'ConvDWSep' #'ConvDWTripletRes' #'ConvDWTripletAlwaysRes'
+decoder_fpn_type = 'FPN'                         # 'FPN' #'BiFPNLite'
 fpn_width_fact = 2 if decoder_fpn_type == 'BiFPNLite' else 4
 decoder_width_fact = 2 if decoder_fpn_type == 'BiFPNLite' else 4
 decoder_depth_fact = 4
@@ -89,8 +88,9 @@ fpn_add_extra_convs = 'on_input'
 
 input_size_divisor = 128 if decoder_fpn_type == 'BiFPNLite' else 32
 
-conv_cfg = dict(type=decoder_conv_type, group_size_dw=regnet_cfg['group_size_dw']) #None
+conv_cfg = None
 norm_cfg = dict(type='BN')
+convert_to_lite_model = dict(group_size_dw=regnet_cfg['group_size_dw'])
 
 #head_base_stride = (8 if fpn_start_level==1 else (4 if fpn_start_level==0 else None))
 head_stacked_convs = regnet_cfg['head_stacked_convs']
