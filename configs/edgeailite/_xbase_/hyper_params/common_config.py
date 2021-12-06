@@ -7,7 +7,7 @@ resize_with_scale_factor = True
 # replace complex activation functions with ReLU.
 # Also replace regular convolutions with depthwise-separable convolutions.
 # torchvision.edgeailite requires edgeai-torchvision to be installed
-convert_to_lite_model = dict(group_size_dw=1)
+# convert_to_lite_model = dict(group_size_dw=1)
 
 checkpoint_config = dict(interval=1)
 

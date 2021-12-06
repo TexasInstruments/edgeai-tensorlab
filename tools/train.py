@@ -17,10 +17,14 @@ from mmdet.apis import init_random_seed, set_random_seed, train_detector
 from mmdet.datasets import build_dataset
 from mmdet.models import build_detector
 from mmdet.utils import collect_env, get_root_logger, setup_multi_processes
-
-from mmdet.utils import collect_env, get_root_logger, get_model_complexity_info, \
-    LoggerStream, XMMDetQuantTrainModule, XMMDetQuantCalibrateModule
+from mmdet.utils import collect_env, get_root_logger
 from contextlib import redirect_stdout
+
+from mmdet.utils import get_model_complexity_info, \
+    LoggerStream, XMMDetQuantTrainModule, XMMDetQuantCalibrateModule
+from mmdet.utils import XMMDetQuantTrainModule, XMMDetQuantCalibrateModule
+from mmdet.utils import save_model_proto, mmdet_load_checkpoint, get_model_complexity_info, LoggerStream
+
 
 from torchvision.edgeailite import xnn
 
@@ -182,7 +186,7 @@ def main(args=None):
     meta['seed'] = seed
     meta['exp_name'] = osp.basename(args.config)
 
-    if cfg.resize_with_scale_factor:
+    if hasattr(cfg, 'resize_with_scale_factor') and cfg.resize_with_scale_factor:
         torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
         torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
 

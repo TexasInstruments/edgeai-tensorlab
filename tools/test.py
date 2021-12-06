@@ -18,8 +18,10 @@ from mmdet.datasets import (build_dataloader, build_dataset,
                             replace_ImageToTensor)
 from mmdet.models import build_detector
 from mmdet.utils import setup_multi_processes
+from contextlib import redirect_stdout
 
-from mmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint
+from mmdet.utils import XMMDetQuantTestModule
+from mmdet.utils import save_model_proto, mmdet_load_checkpoint, get_model_complexity_info, LoggerStream
 
 from torchvision.edgeailite import xnn
 
@@ -138,13 +140,14 @@ def main(args=None):
 
     # just creating an instance of xnn.utils.TeeLogger() with a file
     # is sufficient to simultaneously pipe the results to the file
-    results_file = os.path.splitext(args.out)[0] + '.log'
-    results_dir = os.path.split(results_file)[0]
-    if not os.path.exists(results_dir):
-        warnings.warn(f'folder {results_dir} does nto exist. creating it')
-        os.makedirs(results_dir, exist_ok=True)
-    #
-    logger = xnn.utils.TeeLogger(results_file, append=True)
+    if xnn.utils.is_main_process():
+        results_file = os.path.splitext(args.out)[0] + '.log'
+        results_dir = os.path.split(results_file)[0]
+        if not os.path.exists(results_dir):
+            warnings.warn(f'folder {results_dir} does nto exist. creating it')
+            os.makedirs(results_dir, exist_ok=True)
+        #
+        logger = xnn.utils.TeeLogger(results_file, append=True)
 
     cfg = Config.fromfile(args.config)
     if args.cfg_options is not None:
@@ -222,9 +225,22 @@ def main(args=None):
         dist=distributed,
         shuffle=False)
 
+    if hasattr(cfg, 'resize_with_scale_factor') and cfg.resize_with_scale_factor:
+        torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
+        torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
+
     # build the model and load checkpoint
     cfg.model.train_cfg = None
     model = build_detector(cfg.model, test_cfg=cfg.get('test_cfg'))
+
+    if hasattr(cfg, 'convert_to_lite_model'):
+        convert_to_lite_model_args = cfg.convert_to_lite_model if isinstance(cfg.convert_to_lite_model, dict) else dict()
+        model = xnn.model_surgery.convert_to_lite_model(model, **convert_to_lite_model_args)
+
+    if hasattr(cfg, 'print_model_complexity') and cfg.print_model_complexity:
+        input_res = (3, *cfg.input_size) if isinstance(cfg.input_size, (list, tuple)) else \
+            (3, cfg.input_size, cfg.input_size)
+        get_model_complexity_info(model, input_res)
 
     if hasattr(cfg, 'quantize') and cfg.quantize:
         input_size = (1, 3, *cfg.input_size) if isinstance(cfg.input_size, (list, tuple)) \
