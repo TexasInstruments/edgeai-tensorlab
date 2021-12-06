@@ -32,7 +32,7 @@ import sys
 import os
 import datetime
 import mmcv
-from .tools import pytorch2onnx
+from tools.deployment import pytorch2onnx
 
 # config from local folder
 from detection_configs import config

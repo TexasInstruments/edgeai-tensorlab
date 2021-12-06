@@ -62,7 +62,7 @@ if distributed:
                 config, checkpoint]
     distributed_launch.main()
 else:
-    from .tools import test as test_mmdet
+    from tools import test as test_mmdet
     sys.argv = [sys.argv[0], f'--eval={metric}',
                 f'--out={outfile}',
                 f'{config}', f'{checkpoint}']

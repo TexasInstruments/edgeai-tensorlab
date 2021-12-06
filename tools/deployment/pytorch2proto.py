@@ -33,7 +33,7 @@ import numpy as np
 import mmcv
 import onnx
 import torch
-from xmmdet.utils import save_model_proto
+from mmdet.utils import save_model_proto
 
 
 __all__ = ['pytorch2proto']
