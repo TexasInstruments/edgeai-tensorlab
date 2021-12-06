@@ -12,8 +12,12 @@ from mmcv import Config, DictAction
 from mmdet.core.export import build_model_from_cfg, preprocess_example_input
 from mmdet.core.export.model_wrappers import ONNXRuntimeDetector
 
+from mmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint
+from .pytorch2proto import *
 
-def pytorch2onnx(model,
+def pytorch2onnx(args,
+                 cfg,
+                 model,
                  input_img,
                  input_shape,
                  normalize_cfg,
@@ -34,6 +38,16 @@ def pytorch2onnx(model,
     # prepare input
     one_img, one_meta = preprocess_example_input(input_config)
     img_list, img_meta_list = [one_img], [[one_meta]]
+
+    quantize = hasattr(cfg, 'quantize') and cfg.quantize
+    if quantize:
+        # the base model will be become model.module is quantize flag is set
+        model = XMMDetQuantTestModule(model, one_img)
+        model_org = model.module
+        mmdet_load_checkpoint(model_org, args.checkpoint)
+    else:
+        model_org = model
+    #
 
     if skip_postprocess:
         warnings.warn('Not all models support export onnx without post '
@@ -63,7 +77,7 @@ def pytorch2onnx(model,
         rescale=False)
 
     output_names = ['dets', 'labels']
-    if model.with_mask:
+    if model_org.with_mask:
         output_names.append('masks')
     input_name = 'input'
     dynamic_axes = None
@@ -83,7 +97,7 @@ def pytorch2onnx(model,
                 1: 'num_dets',
             },
         }
-        if model.with_mask:
+        if model_org.with_mask:
             dynamic_axes['masks'] = {0: 'batch', 1: 'num_dets'}
 
     torch.onnx.export(
@@ -98,6 +112,13 @@ def pytorch2onnx(model,
         verbose=show,
         opset_version=opset_version,
         dynamic_axes=dynamic_axes)
+    # shape inference is required to support onnx+proto detection models in edgeai-tidl-tools
+    onnx.shape_inference.infer_shapes_path(output_file, output_file)
+
+    output_proto_file = osp.splitext(output_file)[0] + '-proto.onnx'
+    pytorch2proto(cfg, model, img_list, output_file, output_proto_file, output_names=output_names, opset_version=opset_version)
+    # shape inference is required to support onnx+proto detection models in edgeai-tidl-tools
+    onnx.shape_inference.infer_shapes_path(output_proto_file, output_proto_file)
 
     model.forward = origin_forward
 
@@ -133,7 +154,12 @@ def pytorch2onnx(model,
             warnings.warn('Failed to simplify ONNX model.')
     print(f'Successfully exported ONNX model: {output_file}')
 
-    if verify:
+    # onnx model does not have the quant hooks, so in quant mode the outputs won't match
+    if verify and not quantize:
+        from xmmdet.core import get_classes
+        from xmmdet.apis import show_result_pyplot
+        model.CLASSES = get_classes(dataset)
+        num_classes = len(model.CLASSES)
         # check by onnx
         onnx_model = onnx.load(output_file)
         onnx.checker.check_model(onnx_model)
@@ -292,8 +318,7 @@ def parse_args():
     return args
 
 
-if __name__ == '__main__':
-    args = parse_args()
+def main(args):
     warnings.warn('Arguments like `--mean`, `--std`, `--dataset` would be \
         parsed directly from config file and are deprecated and \
         will be removed in future releases.')
@@ -331,6 +356,8 @@ if __name__ == '__main__':
 
     # convert model to onnx file
     pytorch2onnx(
+        args,
+        cfg,
         model,
         args.input_img,
         input_shape,
@@ -355,3 +382,8 @@ if __name__ == '__main__':
     msg += 'MMDeploy: https://github.com/open-mmlab/mmdeploy'
     msg += reset_style
     warnings.warn(msg)
+
+if __name__ == '__main__':
+    args = parse_args()
+    main(args)
+

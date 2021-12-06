@@ -1,4 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+from .mobilenetv1_lite import MobileNetV1Lite
+from .mobilenetv2_lite import MobileNetV2Lite
 from .csp_darknet import CSPDarknet
 from .darknet import Darknet
 from .detectors_resnet import DetectoRS_ResNet
@@ -17,6 +19,7 @@ from .swin import SwinTransformer
 from .trident_resnet import TridentResNet
 
 __all__ = [
+    'MobileNetV1Lite', 'MobileNetV2Lite'
     'RegNet', 'ResNet', 'ResNetV1d', 'ResNeXt', 'SSDVGG', 'HRNet',
     'MobileNetV2', 'Res2Net', 'HourglassNet', 'DetectoRS_ResNet',
     'DetectoRS_ResNeXt', 'Darknet', 'ResNeSt', 'TridentResNet', 'CSPDarknet',

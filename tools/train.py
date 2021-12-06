@@ -18,6 +18,12 @@ from mmdet.datasets import build_dataset
 from mmdet.models import build_detector
 from mmdet.utils import collect_env, get_root_logger, setup_multi_processes
 
+from mmdet.utils import collect_env, get_root_logger, get_model_complexity_info, \
+    LoggerStream, XMMDetQuantTrainModule, XMMDetQuantCalibrateModule
+from contextlib import redirect_stdout
+
+from torchvision.edgeailite import xnn
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a detector')
@@ -94,8 +100,8 @@ def parse_args():
     return args
 
 
-def main():
-    args = parse_args()
+def main(args=None):
+    args = args or parse_args()
 
     cfg = Config.fromfile(args.config)
     if args.cfg_options is not None:
@@ -176,11 +182,40 @@ def main():
     meta['seed'] = seed
     meta['exp_name'] = osp.basename(args.config)
 
+    if cfg.resize_with_scale_factor:
+        torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
+        torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
+
     model = build_detector(
         cfg.model,
         train_cfg=cfg.get('train_cfg'),
         test_cfg=cfg.get('test_cfg'))
     model.init_weights()
+
+    if hasattr(cfg, 'convert_to_lite_model'):
+        convert_to_lite_model_args = cfg.convert_to_lite_model if isinstance(cfg.convert_to_lite_model, dict) else dict()
+        model = xnn.model_surgery.convert_to_lite_model(model, **convert_to_lite_model_args)
+
+    if hasattr(cfg, 'print_model_complexity') and cfg.print_model_complexity:
+        input_res = (3, *cfg.input_size) if isinstance(cfg.input_size, (list, tuple)) else \
+            (3, cfg.input_size, cfg.input_size)
+        logger_stream = LoggerStream(logger)
+        with redirect_stdout(logger_stream):
+            get_model_complexity_info(model, input_res)
+
+    if hasattr(cfg, 'quantize') and cfg.quantize:
+        input_res = (3, *cfg.input_size) if isinstance(cfg.input_size, (list, tuple)) else \
+            (3, cfg.input_size, cfg.input_size)
+        assert cfg.quantize in ('calibration', 'training', True, False, None), \
+            f'invalid value for quantize {cfg.quantize}'
+        dummy_input = torch.zeros(*(1,*input_res))
+        if cfg.quantize == 'calibration':
+            # calibration doesn't support multi-gpu for now, so switch it off
+            cfg.gpu_ids = cfg.gpu_ids[:1]
+            model = XMMDetQuantCalibrateModule(model, dummy_input)
+        elif cfg.quantize:
+            model = XMMDetQuantTrainModule(model, dummy_input)
+        #
 
     datasets = [build_dataset(cfg.data.train)]
     if len(cfg.workflow) == 2:

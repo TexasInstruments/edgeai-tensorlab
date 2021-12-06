@@ -10,13 +10,13 @@ from .loading import (LoadAnnotations, LoadImageFromFile, LoadImageFromWebcam,
                       LoadMultiChannelImageFromFiles, LoadPanopticAnnotations,
                       LoadProposals)
 from .test_time_aug import MultiScaleFlipAug
-from .transforms import (Albu, CutOut, Expand, MinIoURandomCrop, MixUp, Mosaic,
+from .transforms import (Bypass, Albu, CutOut, Expand, MinIoURandomCrop, MixUp, Mosaic,
                          Normalize, Pad, PhotoMetricDistortion, RandomAffine,
                          RandomCenterCropPad, RandomCrop, RandomFlip,
                          RandomShift, Resize, SegRescale, YOLOXHSVRandomAug)
 
 __all__ = [
-    'Compose', 'to_tensor', 'ToTensor', 'ImageToTensor', 'ToDataContainer',
+    'Bypass', 'Compose', 'to_tensor', 'ToTensor', 'ImageToTensor', 'ToDataContainer',
     'Transpose', 'Collect', 'DefaultFormatBundle', 'LoadAnnotations',
     'LoadImageFromFile', 'LoadImageFromWebcam', 'LoadPanopticAnnotations',
     'LoadMultiChannelImageFromFiles', 'LoadProposals', 'MultiScaleFlipAug',

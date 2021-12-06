@@ -7,6 +7,7 @@ from mmcv.cnn import ConvModule
 from mmcv.runner import BaseModule
 
 from ..builder import NECKS
+from torchvision.edgeailite import xnn
 
 
 class DetectionBlock(BaseModule):
@@ -106,6 +107,7 @@ class YOLOV3Neck(BaseModule):
         # shortcut
         cfg = dict(conv_cfg=conv_cfg, norm_cfg=norm_cfg, act_cfg=act_cfg)
 
+        self.cats = nn.ModuleList()
         # To support arbitrary scales, the code looks awful, but it works.
         # Better solution is welcomed.
         self.detect1 = DetectionBlock(in_channels[0], out_channels[0], **cfg)
@@ -116,6 +118,7 @@ class YOLOV3Neck(BaseModule):
             # in_c + out_c : High-lvl feats will be cat with low-lvl feats
             self.add_module(f'detect{i+1}',
                             DetectionBlock(in_c + out_c, out_c, **cfg))
+            self.cats.append(xnn.layers.CatBlock())
 
     def forward(self, feats):
         assert len(feats) == self.num_scales
@@ -131,7 +134,7 @@ class YOLOV3Neck(BaseModule):
 
             # Cat with low-lvl feats
             tmp = F.interpolate(tmp, scale_factor=2)
-            tmp = torch.cat((tmp, x), 1)
+            tmp = self.cats[i]((tmp, x), 1)
 
             detect = getattr(self, f'detect{i+2}')
             out = detect(tmp)

@@ -6,6 +6,7 @@ from mmcv.runner import BaseModule, auto_fp16
 
 from ..builder import NECKS
 
+from torchvision.edgeailite import xnn
 
 @NECKS.register_module()
 class FPN(BaseModule):
@@ -105,6 +106,7 @@ class FPN(BaseModule):
 
         self.lateral_convs = nn.ModuleList()
         self.fpn_convs = nn.ModuleList()
+        self.adds = nn.ModuleList()
 
         for i in range(self.start_level, self.backbone_end_level):
             l_conv = ConvModule(
@@ -127,6 +129,7 @@ class FPN(BaseModule):
 
             self.lateral_convs.append(l_conv)
             self.fpn_convs.append(fpn_conv)
+            self.adds.append(xnn.layers.AddBlock())
 
         # add extra conv layers (e.g., RetinaNet)
         extra_levels = num_outs - self.backbone_end_level + self.start_level
@@ -162,16 +165,17 @@ class FPN(BaseModule):
         # build top-down path
         used_backbone_levels = len(laterals)
         for i in range(used_backbone_levels - 1, 0, -1):
+            add_block = self.adds[i - 1]
             # In some cases, fixing `scale factor` (e.g. 2) is preferred, but
             #  it cannot co-exist with `size` in `F.interpolate`.
             if 'scale_factor' in self.upsample_cfg:
                 # fix runtime error of "+=" inplace operation in PyTorch 1.10
-                laterals[i - 1] = laterals[i - 1] + F.interpolate(
-                    laterals[i], **self.upsample_cfg)
+                laterals[i - 1] = add_block((laterals[i - 1], F.interpolate(
+                    laterals[i], **self.upsample_cfg)))
             else:
                 prev_shape = laterals[i - 1].shape[2:]
-                laterals[i - 1] = laterals[i - 1] + F.interpolate(
-                    laterals[i], size=prev_shape, **self.upsample_cfg)
+                laterals[i - 1] = add_block((laterals[i - 1], F.interpolate(
+                    laterals[i], size=prev_shape, **self.upsample_cfg)))
 
         # build outputs
         # part 1: from original levels
@@ -194,11 +198,4 @@ class FPN(BaseModule):
                 elif self.add_extra_convs == 'on_output':
                     extra_source = outs[-1]
                 else:
-                    raise NotImplementedError
-                outs.append(self.fpn_convs[used_backbone_levels](extra_source))
-                for i in range(used_backbone_levels + 1, self.num_outs):
-                    if self.relu_before_extra_convs:
-                        outs.append(self.fpn_convs[i](F.relu(outs[-1])))
-                    else:
-                        outs.append(self.fpn_convs[i](outs[-1]))
-        return tuple(outs)
+                    raise Not

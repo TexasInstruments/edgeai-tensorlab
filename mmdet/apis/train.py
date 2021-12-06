@@ -14,6 +14,7 @@ from mmdet.core import DistEvalHook, EvalHook
 from mmdet.datasets import (build_dataloader, build_dataset,
                             replace_ImageToTensor)
 from mmdet.utils import find_latest_checkpoint, get_root_logger
+from mmdet.utils import XMMDetEpochBasedRunner, XMMDetNoOptimizerHook, FreezeRangeHook
 
 
 def init_random_seed(seed=None, device='cuda'):
@@ -151,7 +152,12 @@ def train_detector(model,
 
     # fp16 setting
     fp16_cfg = cfg.get('fp16', None)
-    if fp16_cfg is not None:
+	
+    quantize = cfg.get('quantize', False)
+	
+    if quantize == 'calibration':
+        optimizer_config = XMMDetNoOptimizerHook()
+    elif fp16_cfg is not None:
         optimizer_config = Fp16OptimizerHook(
             **cfg.optimizer_config, **fp16_cfg, distributed=distributed)
     elif distributed and 'type' not in cfg.optimizer_config:
@@ -171,6 +177,12 @@ def train_detector(model,
     if distributed:
         if isinstance(runner, EpochBasedRunner):
             runner.register_hook(DistSamplerSeedHook())
+
+    # register train hooks
+    freeze_range = bool(quantize)
+    if freeze_range:
+        runner.register_hook(FreezeRangeHook())
+    #
 
     # register eval hooks
     if validate:

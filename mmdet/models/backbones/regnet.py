@@ -68,7 +68,12 @@ class RegNet(ResNet):
         (1, 432, 2, 2)
         (1, 1008, 1, 1)
     """
+    # added regnetx_200mf setting from pycls, which was missing here in mmdetection
+    # source: https://github.com/facebookresearch/pycls,
+    # license: https://github.com/facebookresearch/pycls/blob/master/LICENSE
     arch_settings = {
+        'regnetx_200mf':
+        dict(w0=24, wa=36.44, wm=2.49, group_w=8, depth=13, bot_mul=1.0),
         'regnetx_400mf':
         dict(w0=24, wa=24.48, wm=2.54, group_w=16, depth=22, bot_mul=1.0),
         'regnetx_800mf':
@@ -108,7 +113,8 @@ class RegNet(ResNet):
                  with_cp=False,
                  zero_init_residual=True,
                  pretrained=None,
-                 init_cfg=None):
+                 init_cfg=None,
+                 fast_down=False):
         super(ResNet, self).__init__(init_cfg)
 
         # Generate RegNet parameters first
@@ -167,8 +173,11 @@ class RegNet(ResNet):
         expansion_bak = self.block.expansion
         self.block.expansion = 1
         self.stage_blocks = stage_blocks[:num_stages]
+        self.fast_down = fast_down
 
         self._make_stem_layer(in_channels, stem_channels)
+        if self.fast_down:
+            self.pool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
         block_init_cfg = None
         assert not (init_cfg and pretrained), \
@@ -346,6 +355,8 @@ class RegNet(ResNet):
         x = self.conv1(x)
         x = self.norm1(x)
         x = self.relu(x)
+        if self.fast_down:
+            x = self.pool(x)
 
         outs = []
         for i, layer_name in enumerate(self.res_layers):

@@ -10,6 +10,7 @@ from torch.nn.modules.batchnorm import _BatchNorm
 from ..builder import BACKBONES
 from ..utils import ResLayer
 
+from torchvision.edgeailite import xnn
 
 class BasicBlock(BaseModule):
     expansion = 1
@@ -48,10 +49,12 @@ class BasicBlock(BaseModule):
             conv_cfg, planes, planes, 3, padding=1, bias=False)
         self.add_module(self.norm2_name, norm2)
 
-        self.relu = nn.ReLU(inplace=True)
+        self.relu1 = nn.ReLU(inplace=True)
+        self.relu2 = nn.ReLU(inplace=True)
         self.downsample = downsample
         self.stride = stride
         self.dilation = dilation
+        self.add = xnn.layers.AddBlock()
         self.with_cp = with_cp
 
     @property
@@ -72,7 +75,7 @@ class BasicBlock(BaseModule):
 
             out = self.conv1(x)
             out = self.norm1(out)
-            out = self.relu(out)
+            out = self.relu1(out)
 
             out = self.conv2(out)
             out = self.norm2(out)
@@ -80,7 +83,7 @@ class BasicBlock(BaseModule):
             if self.downsample is not None:
                 identity = self.downsample(x)
 
-            out += identity
+            out = self.add((out,identity))
 
             return out
 
@@ -89,7 +92,7 @@ class BasicBlock(BaseModule):
         else:
             out = _inner_forward(x)
 
-        out = self.relu(out)
+        out = self.relu2(out)
 
         return out
 
@@ -205,8 +208,11 @@ class Bottleneck(BaseModule):
             bias=False)
         self.add_module(self.norm3_name, norm3)
 
-        self.relu = nn.ReLU(inplace=True)
+        self.relu1 = nn.ReLU(inplace=True)
+        self.relu2 = nn.ReLU(inplace=True)
+        self.relu3 = nn.ReLU(inplace=True)
         self.downsample = downsample
+        self.add = xnn.layers.AddBlock()
 
         if self.with_plugins:
             self.after_conv1_plugin_names = self.make_block_plugins(
@@ -267,14 +273,14 @@ class Bottleneck(BaseModule):
             identity = x
             out = self.conv1(x)
             out = self.norm1(out)
-            out = self.relu(out)
+            out = self.relu1(out)
 
             if self.with_plugins:
                 out = self.forward_plugin(out, self.after_conv1_plugin_names)
 
             out = self.conv2(out)
             out = self.norm2(out)
-            out = self.relu(out)
+            out = self.relu2(out)
 
             if self.with_plugins:
                 out = self.forward_plugin(out, self.after_conv2_plugin_names)
@@ -288,7 +294,7 @@ class Bottleneck(BaseModule):
             if self.downsample is not None:
                 identity = self.downsample(x)
 
-            out += identity
+            out = self.add((out,identity))
 
             return out
 
@@ -297,7 +303,7 @@ class Bottleneck(BaseModule):
         else:
             out = _inner_forward(x)
 
-        out = self.relu(out)
+        out = self.relu3(out)
 
         return out
 
