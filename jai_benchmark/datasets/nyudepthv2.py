@@ -164,20 +164,62 @@ class NYUDepthV2(DatasetBase):
     def __call__(self, predictions, **kwargs):
         return self.evaluate(predictions, **kwargs)
 
-    def evaluate(self, predictions, threshold=1.25, **kwargs):
+    def compute_scale_and_shift(self, prediction, gt, mask):
+        a_00 = np.sum(mask * prediction * prediction)
+        a_01 = np.sum(mask * prediction)
+        a_11 = np.sum(mask)
+
+        b_0 = np.sum(mask * prediction * gt)
+        b_1 = np.sum(mask * gt)
+
+        det = a_00 * a_11 - a_01 * a_01
+
+        if det <= 0:
+            return 0, 0
+
+        else:
+            x_0 = (a_11 * b_0 - a_01 * b_1) / det
+            x_1 = (-a_01 * b_0 + a_00 * b_1) / det
+
+            return x_0, x_1
+
+    def evaluate(self, predictions, threshold=1.25, depth_cap_max = 80, depth_cap_min = 1e-3, **kwargs):
+        disparity = kwargs.get('disparity')
+        scale_and_shift_needed = kwargs.get('scale_shift')
+
         delta_1 = 0.0
         num_frames = min(self.num_frames, len(predictions))
         for n in range(num_frames):
             image_file, label_file = self.__getitem__(n, with_label=True)
             label_img = PIL.Image.open(label_file)
             label_img = np.array(label_img, dtype=np.float32) / self.depth_label_scale
-            depth_prediction = predictions[n]
-            mask = np.minimum(label_img, depth_prediction) != 0
+            prediction = predictions[n]
+            if scale_and_shift_needed:
+                mask = label_img != 0
+                disp_label = np.zeros_like(label_img)
+                disp_label[mask] = 1.0 / label_img[mask]
+                if not disparity:
+                    disp_prediction = np.zeros_like(prediction)
+                    disp_prediction[prediction != 0] = 1.0 / prediction[prediction != 0]
+                else:
+                    disp_prediction = prediction
+                scale, shift = self.compute_scale_and_shift(disp_prediction, disp_label, mask)
+
+                prediction = scale * disp_prediction + shift
+                prediction[prediction < 1 / depth_cap_max] = 1 / depth_cap_max
+                prediction[prediction > 1 / depth_cap_min] = 1 / depth_cap_min
+
+            mask = np.minimum(label_img, prediction) != 0
+
+            if disparity:
+                disp_pred = prediction
+                prediction = np.zeros_like(disp_pred)
+                prediction[mask] = 1.0 / disp_pred[mask]
 
             delta = np.zeros_like(label_img, dtype=np.float32)
             delta = np.maximum(
-                predictions[n][mask] / label_img[mask], 
-                label_img[mask] / predictions[n][mask]
+                prediction[mask] / label_img[mask], 
+                label_img[mask] / prediction[mask]
             )
             good_pixels_in_img = delta < threshold
             delta_1 += good_pixels_in_img.sum() / mask.sum()

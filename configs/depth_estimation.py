@@ -59,7 +59,16 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/depth_estimation/nyudepthv2/fast-depth/fast-depth.onnx'),
             postprocess=postproc_depth_estimation_onnx,
+            metric=dict(disparity=False, scale_shift=False),
             model_info=dict(metric_reference={'accuracy_delta_1%':77.1})
+        ),
+        'de-9001':utils.dict_update(nyudepthv2_cfg,
+            preprocess=preproc_transforms.get_transform_jai((256,256), (256,256), backend='cv2', interpolation=cv2.INTER_CUBIC, mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429)),
+            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
+                model_path=f'{settings.models_path}/vision/depth_estimation/nyudepthv2/MiDaS/midas-small.onnx'),
+            postprocess=postproc_depth_estimation_onnx,
+            metric=dict(disparity=True, scale_shift=True),
+            model_info=dict(metric_reference={'accuracy_delta_1%':86.4})
         ),
     }
     return pipeline_configs
