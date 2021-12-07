@@ -9,11 +9,15 @@ import onnx
 import torch
 from mmcv import Config, DictAction
 
+import mmdet.utils
 from mmdet.core.export import build_model_from_cfg, preprocess_example_input
 from mmdet.core.export.model_wrappers import ONNXRuntimeDetector
 
-from mmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint
+from mmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint, is_mmdet_quant_module
 from .pytorch2proto import *
+
+from torchvision.edgeailite import xnn
+
 
 def pytorch2onnx(args,
                  cfg,
@@ -38,16 +42,6 @@ def pytorch2onnx(args,
     # prepare input
     one_img, one_meta = preprocess_example_input(input_config)
     img_list, img_meta_list = [one_img], [[one_meta]]
-
-    quantize = hasattr(cfg, 'quantize') and cfg.quantize
-    if quantize:
-        # the base model will be become model.module is quantize flag is set
-        model = XMMDetQuantTestModule(model, one_img)
-        model_org = model.module
-        mmdet_load_checkpoint(model_org, args.checkpoint)
-    else:
-        model_org = model
-    #
 
     if skip_postprocess:
         warnings.warn('Not all models support export onnx without post '
@@ -77,6 +71,7 @@ def pytorch2onnx(args,
         rescale=False)
 
     output_names = ['dets', 'labels']
+    model_org = model.module if is_mmdet_quant_module(model) else model
     if model_org.with_mask:
         output_names.append('masks')
     input_name = 'input'
@@ -155,9 +150,9 @@ def pytorch2onnx(args,
     print(f'Successfully exported ONNX model: {output_file}')
 
     # onnx model does not have the quant hooks, so in quant mode the outputs won't match
-    if verify and not quantize:
-        from xmmdet.core import get_classes
-        from xmmdet.apis import show_result_pyplot
+    if verify:
+        from mmdet.core import get_classes
+        from mmdet.apis import show_result_pyplot
         model.CLASSES = get_classes(dataset)
         num_classes = len(model.CLASSES)
         # check by onnx
@@ -344,6 +339,10 @@ def main(args):
         input_shape = (1, 3) + tuple(args.shape)
     else:
         raise ValueError('invalid input shape')
+
+    if hasattr(cfg, 'resize_with_scale_factor') and cfg.resize_with_scale_factor:
+        torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
+        torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
 
     # build the model and load checkpoint
     model = build_model_from_cfg(args.config, args.checkpoint,

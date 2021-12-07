@@ -5,6 +5,9 @@ import mmcv
 import numpy as np
 import torch
 from mmcv.runner import load_checkpoint
+from mmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint
+
+from torchvision.edgeailite import xnn
 
 
 def generate_inputs_and_wrap_model(config_path,
@@ -87,14 +90,27 @@ def build_model_from_cfg(config_path, checkpoint_path, cfg_options=None):
     # build the model
     cfg.model.train_cfg = None
     model = build_detector(cfg.model, test_cfg=cfg.get('test_cfg'))
-    checkpoint = load_checkpoint(model, checkpoint_path, map_location='cpu')
+
+    if hasattr(cfg, 'convert_to_lite_model'):
+        convert_to_lite_model_args = cfg.convert_to_lite_model if isinstance(cfg.convert_to_lite_model, dict) else dict()
+        model = xnn.model_surgery.convert_to_lite_model(model, **convert_to_lite_model_args)
+
+    model_org = model
+    if hasattr(cfg, 'quantize') and cfg.quantize:
+        input_size = (1, 3, *cfg.input_size) if isinstance(cfg.input_size, (list, tuple)) \
+            else (1, 3, cfg.input_size, cfg.input_size)
+        dummy_input = torch.zeros(*input_size)
+        model = XMMDetQuantTestModule(model, dummy_input)
+
+    if checkpoint_path:
+        checkpoint = load_checkpoint(model_org, checkpoint_path, map_location='cpu')
     if 'CLASSES' in checkpoint.get('meta', {}):
-        model.CLASSES = checkpoint['meta']['CLASSES']
+        model_org.CLASSES = checkpoint['meta']['CLASSES']
     else:
         from mmdet.datasets import DATASETS
         dataset = DATASETS.get(cfg.data.test['type'])
         assert (dataset is not None)
-        model.CLASSES = dataset.CLASSES
+        model_org.CLASSES = dataset.CLASSES
     model.cpu().eval()
     return model
 
