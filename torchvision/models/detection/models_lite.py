@@ -72,17 +72,17 @@ def ssdlite_mobilenet_v3_small_fpn_lite(**kwargs):
 ###############################################################################################
 def ssdlite_regnet_x_400mf_fpn_lite(**kwargs):
     return xnn.model_surgery.create_lite_model(ssdlite_fpn.ssdlite_regnet_x_400mf_fpn,
-                pretrained_backbone_names={'^stem.':'backbone.body.stem.', '^trunk_output':'backbone.body.trunk_output.'},
+                pretrained_backbone_names={'^stem.':'backbone.body.stem.', '^trunk_output.':'backbone.body.trunk_output.'},
                 group_size_dw=16, model_urls_dict=model_urls, **kwargs)
 
 def ssdlite_regnet_x_800mf_fpn_lite(**kwargs):
     return xnn.model_surgery.create_lite_model(ssdlite_fpn.ssdlite_regnet_x_800mf_fpn,
-                pretrained_backbone_names={'^stem.':'backbone.body.stem.', '^trunk_output':'backbone.body.trunk_output.'},
+                pretrained_backbone_names={'^stem.':'backbone.body.stem.', '^trunk_output.':'backbone.body.trunk_output.'},
                 group_size_dw=16, model_urls_dict=model_urls, **kwargs)
 
 def ssdlite_regnet_x_1_6gf_fpn_lite(**kwargs):
     return xnn.model_surgery.create_lite_model(ssdlite_fpn.ssdlite_regnet_x_1_6gf_fpn,
-                pretrained_backbone_names={'^stem.':'backbone.body.stem.', '^trunk_output':'backbone.body.trunk_output.'},
+                pretrained_backbone_names={'^stem.':'backbone.body.stem.', '^trunk_output.':'backbone.body.trunk_output.'},
                 group_size_dw=24, model_urls_dict=model_urls, **kwargs)
 
 

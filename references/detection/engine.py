@@ -23,7 +23,7 @@ from torchvision.edgeailite import xnn
 import cv2
 import numpy as np
 
-def train_one_epoch(args, model, optimizer, data_loader, device, epoch, print_freq, summary_writer=None):
+def train_one_epoch(args, model, optimizer, data_loader, device, epoch, print_freq, summary_writer=None, anno=None):
     model.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
@@ -39,6 +39,7 @@ def train_one_epoch(args, model, optimizer, data_loader, device, epoch, print_fr
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
         loss_dict = model(images, targets)
+        draw_boxes_training(args=args, images=images, targets=targets, anno=anno)
 
         losses = sum(loss for loss in loss_dict.values())
 
@@ -111,11 +112,49 @@ def draw_boxes(args=None, images=None, outputs=None, img_name=None):
         cv2.imwrite(img_name, cv2_image)
     return
 
+def draw_boxes_training(args=None, targets=None, images=None, anno=None, en_text_to_display=False):
+    if args.save_imgs_path is not None:
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        fontScale = 0.5
+        fontColor = (255, 255, 255)
+        lineType = 2
+
+        for (image, target) in zip(images, targets):
+            grid = torchvision.utils.make_grid(image)
+            # Add 0.5 after unnormalizing to [0, 255] to round to nearest integer
+            image_nd_array = grid.mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
+            cv2_image = image_nd_array[:, :, ::-1].copy()
+
+            # draw boxes
+            scores = [1.0]*len(target['boxes'])
+            for box, score, label in zip(target['boxes'], scores, target['labels']):
+                if score > 0.2:
+                    x1, y1, x2, y2 = box
+                    pts = np.array([x1, y1, x2, y1, x2, y2, x1, y2], np.int32)
+                    pts = pts.reshape((-1, 1, 2))
+                    cv2.polylines(cv2_image, [pts], True, (255, 0, 0), thickness=2)
+
+                    # display text
+                    if en_text_to_display:
+                        txt_to_disp = "{:02d}_{:4.2f}".format(label.cpu().numpy(), score)
+                        offset = 10
+                        y = pts[0, 0, 1] - offset if pts[0, 0, 1] > offset else pts[0, 0, 1] + offset
+                        coord = (pts[0, 0, 0], y)
+                        cv2.putText(cv2_image, txt_to_disp, coord, font, fontScale, fontColor, lineType)
+
+            img_name = id_to_filename(anno=anno, image_id=target['image_id'], args=None)
+            img_name = os.path.join(args.save_imgs_path, img_name)
+            os.makedirs(os.path.dirname(img_name), exist_ok=True)
+            cv2.imwrite(img_name, cv2_image)
+    return
+
 def id_to_filename(anno=None, image_id=None, args=None):
+    found = None
     for img in anno['images']:
         if img['id'] == image_id:
+            found = img['file_name']
             break
-    return img['file_name']
+    return found
 
 def write_outputs_txt_format(args=None, outputs=None, img_name=None):
     if args.save_op_txt_path is not None and args.test_only:

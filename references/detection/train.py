@@ -161,10 +161,17 @@ def get_args_parser(add_help=True):
     parser.add_argument('--save-imgs-path', default=None, type=str, help='if in test-only mode images with output superimposed need saving')
     parser.add_argument('--save-op-txt-path', default=None, type=str, help='if in test-only mode save results in text format')
     parser.add_argument('--max-batches', default=1E9, type=int, help='For debugging if train/test needs exit after few batches.')
-    parser.add_argument('--en_wider_face_eval', default=False, type=xnn.utils.str2bool, help='to do additional eval using wider-face method')
+    parser.add_argument('--en-wider-face-eval', default=False, type=xnn.utils.str2bool, help='to do additional eval using wider-face method')
 
     return parser
 
+#load train annotation for bbox drawing for visualizing training images with annotations
+def load_train_anno(args=None):
+    anno_train = None
+    if args.save_imgs_path or args.save_op_txt_path:
+        import json
+        anno_train = json.load(open(os.path.join(args.data_path, 'annotations', 'instances_train.json')))
+    return anno_train
 
 def main(gpu, args):
     if args.device != 'cpu' and args.distributed is True:
@@ -202,6 +209,7 @@ def main(gpu, args):
         args.distributed = False
 
     print(args)
+    [print(key, ':', value) for key, value in vars(args).items()]
 
     device = torch.device(args.device)
 
@@ -283,6 +291,7 @@ def main(gpu, args):
         lr_scheduler = xnn.optim.lr_scheduler.MultiStepLRWarmup(optimizer, milestones=args.lr_steps, gamma=args.lr_gamma)
     elif args.lr_scheduler == 'cosineannealinglr':
         lr_scheduler = xnn.optim.lr_scheduler.CosineAnnealingLRWarmup(optimizer, T_max=args.epochs)
+        #lr_scheduler = xnn.optim.lr_scheduler.CosineAnnealingLRWarmup(optimizer, T_max=args.epochs, warmup_epochs=4, warmup_ratio=1.0)
     else:
         raise RuntimeError("Invalid lr scheduler '{}'. Only MultiStepLR and CosineAnnealingLR "
                            "are supported.".format(args.lr_scheduler))
@@ -298,13 +307,14 @@ def main(gpu, args):
         evaluate(args, model, data_loader_test, device=device, epoch=0)
         return
 
+    anno_train = load_train_anno(args=args)
     print("Start training")
     start_time = time.time()
     epoch = 0
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
-        train_one_epoch(args, model, optimizer, data_loader, device, epoch, print_freq=args.print_freq, summary_writer=summary_writer)
+        train_one_epoch(args, model, optimizer, data_loader, device, epoch, print_freq=args.print_freq, summary_writer=summary_writer, anno=anno_train)
         lr_scheduler.step()
 
         if args.output_dir:
