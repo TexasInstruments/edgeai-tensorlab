@@ -54,26 +54,35 @@ class BasicLogger:
 
 
 class TeeLogger:
-    def __init__(self, filename, log_level=logging.INFO, append=False):
+    def __init__(self, filename, log_level=logging.INFO, append=False, source_names=('stdout','stderr')):
         assert log_level == logging.INFO, 'for now we support only INFO logging level'
         mode = "a" if append else "w"
-        self.term = sys.stdout
+        self.source_names = source_names
         self.file = open(filename, mode)
-        sys.stdout = self
+        for source_name in self.source_names:
+            source_stream = getattr(sys, source_name)
+            setattr(self, source_name, source_stream)
+            setattr(sys, source_name, self)
+        #
         self.count = 0
 
     def __del__(self):
         self.close()
 
     def close(self):
-        if self.file is not None:
-            sys.stdout = self.term
-            self.file.close()
-            self.file = None
+        if self.file is None:
+            return
         #
+        for source_name in self.source_names:
+            source_stream = getattr(self, source_name)
+            setattr(sys, source_name, source_stream)
+        #
+        self.file.close()
+        self.file = None
 
     def write(self, message):
-        self.term.write(message)
+        source_stream = getattr(self, self.source_names[0])
+        source_stream.write(message)
         self.file.write(message)
         self.flush()
 
@@ -85,9 +94,11 @@ class TeeLogger:
         self.flush()
 
     def flush(self):
-        self.term.flush()
+        for source_name in self.source_names:
+            source_stream = getattr(self, source_name)
+            source_stream.flush()
+        #
         self.file.flush()
 
     def fileno(self):
         return self.term.fileno()
-

@@ -88,7 +88,8 @@ def _replace_conv2d(current_m=None, groups_dw=None, group_size_dw=1,
     assert current_m is not None, 'for replacing Conv2d the current module must be provided'
     if isinstance(current_m, torch.nn.Conv2d):
         kernel_size = current_m.kernel_size if isinstance(current_m.kernel_size, (list,tuple)) else (current_m.kernel_size,current_m.kernel_size)
-        if current_m.groups == 1 and current_m.in_channels >= 16 and kernel_size[0] > 1 and kernel_size[1] > 1:
+        if (current_m.groups == 1 and current_m.in_channels >= 16 and kernel_size[0] > 1 and kernel_size[1] > 1) and \
+            (groups_dw is not None or group_size_dw is not None):
             with_bias = current_m.bias is not None
             normalization = (current_m.with_normalization[0],current_m.with_normalization[1]) if hasattr(current_m, "with_normalization") else \
                 (with_normalization[0],with_normalization[1])
