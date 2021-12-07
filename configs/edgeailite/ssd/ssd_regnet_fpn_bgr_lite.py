@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2020, Texas Instruments
+# Copyright (c) 2018-2021, Texas Instruments
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ######################################################
-input_size = (512,512)                          #(320,320) #(384,384) #(512,512) #(768,384) #(768,768) #(1024,512) #(1024,1024)
+input_size = (320,320)                          #(320,320) #(384,384) #(512,512) #(768,384) #(768,768) #(1024,512) #(1024,1024)
 dataset_type = 'CocoDataset'
 num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8}
 num_classes = num_classes_dict[dataset_type]
@@ -47,7 +47,7 @@ quantize = False #'training' #'calibration'
 initial_learning_rate = 8e-2
 samples_per_gpu = 16
 if quantize:
-  load_from = './work_dirs/ssd-lite_regnet_fpn_bgr/latest.pth'
+  load_from = './work_dirs/ssd_regnet_fpn_bgr_lite/latest.pth'
   optimizer = dict(type='SGD', lr=initial_learning_rate/100.0, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   total_epochs = 1 if quantize == 'calibration' else 12
 else:
@@ -56,7 +56,7 @@ else:
 
 ######################################################
 backbone_type = 'RegNet'
-backbone_arch = 'regnetx_800mf'                  # 'regnetx_800mf' #'regnetx_1.6gf' #'regnetx_3.2gf'
+backbone_arch = 'regnetx_200mf'                  # 'regnetx_200mf' #'regnetx_800mf' #'regnetx_1.6gf' #'regnetx_3.2gf'
 to_rgb = False                                   # pycls regnet backbones are trained with bgr
 
 decoder_fpn_type = 'FPN'

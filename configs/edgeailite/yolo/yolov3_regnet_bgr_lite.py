@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2020, Texas Instruments
+# Copyright (c) 2018-2021, Texas Instruments
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -83,9 +83,10 @@ fpn_in_channels = bacbone_out_channels
 fpn_out_channels = regnet_cfg['bacbone_out_channels'][:-1][::-1]
 
 input_size_divisor = 32
-conv_cfg = dict(type=decoder_conv_type, group_size_dw=group_size_dw)
+conv_cfg = None
 norm_cfg = dict(type='BN')
 act_cfg = dict(type='ReLU')
+convert_to_lite_model = dict(group_size_dw=group_size_dw)
 
 model = dict(
     type='YOLOV3',
@@ -97,7 +98,7 @@ model = dict(
         style='pytorch',
         init_cfg=dict(type='Pretrained', checkpoint=pretrained)),
     neck=dict(
-        type='YOLOV3LiteNeck',
+        type='YOLOV3Neck',
         num_scales=3,
         in_channels=fpn_in_channels,
         out_channels=fpn_out_channels,
@@ -105,7 +106,7 @@ model = dict(
         norm_cfg=norm_cfg,
         act_cfg=act_cfg),
     bbox_head=dict(
-        type='YOLOV3LiteHead',
+        type='YOLOV3Head',
         num_classes=80,
         in_channels=fpn_out_channels,
         out_channels=fpn_in_channels,

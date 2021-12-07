@@ -2,6 +2,7 @@
 # Copyright (c) 2019 Western Digital Corporation or its affiliates.
 
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from mmcv.cnn import ConvModule
 from mmcv.runner import BaseModule
@@ -118,7 +119,7 @@ class YOLOV3Neck(BaseModule):
             # in_c + out_c : High-lvl feats will be cat with low-lvl feats
             self.add_module(f'detect{i+1}',
                             DetectionBlock(in_c + out_c, out_c, **cfg))
-            self.cats.append(xnn.layers.CatBlock())
+            self.cats.append(xnn.layers.CatBlock(dim=1))
 
     def forward(self, feats):
         assert len(feats) == self.num_scales
@@ -134,7 +135,7 @@ class YOLOV3Neck(BaseModule):
 
             # Cat with low-lvl feats
             tmp = F.interpolate(tmp, scale_factor=2)
-            tmp = self.cats[i]((tmp, x), 1)
+            tmp = self.cats[i]((tmp, x))
 
             detect = getattr(self, f'detect{i+2}')
             out = detect(tmp)

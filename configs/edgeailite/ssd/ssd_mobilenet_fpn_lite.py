@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2020, Texas Instruments
+# Copyright (c) 2018-2021, Texas Instruments
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ quantize = False #'training' #'calibration'
 initial_learning_rate = 4e-2 #8e-2
 samples_per_gpu = 16
 if quantize:
-  load_from = './work_dirs/ssd-lite_mobilenet_fpn/latest.pth'
+  load_from = './work_dirs/ssd_mobilenet_fpn_lite/latest.pth'
   optimizer = dict(type='SGD', lr=initial_learning_rate/100.0, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   total_epochs = 1 if quantize == 'calibration' else 12
 else:

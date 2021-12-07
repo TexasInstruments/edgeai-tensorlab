@@ -19,7 +19,7 @@ quantize = False #'training' #'calibration'
 initial_learning_rate = 8e-2
 samples_per_gpu = 16
 if quantize:
-  load_from = './work_dirs/retinanet-lite_regnet_fpn_bgr/latest.pth'
+  load_from = './work_dirs/retinanet_regnet_fpn_bgr_lite/latest.pth'
   optimizer = dict(type='SGD', lr=initial_learning_rate/100.0, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   total_epochs = 1 if quantize == 'calibration' else 12
 else:
@@ -31,9 +31,9 @@ backbone_type = 'RegNet'
 backbone_arch = 'regnetx_800mf'                  # 'regnetx_800mf' #'regnetx_1.6gf' #'regnetx_3.2gf'
 to_rgb = False                                   # pycls regnet backbones are trained with bgr
 
-decoder_fpn_type = 'FPN'                         # 'FPN' #'BiFPNLite'
-fpn_width_fact = 2 if decoder_fpn_type == 'BiFPNLite' else 4
-decoder_width_fact = 2 if decoder_fpn_type == 'BiFPNLite' else 4
+decoder_fpn_type = 'FPN'
+fpn_width_fact = 4
+decoder_width_fact = 4
 decoder_depth_fact = 4
 
 regnet_settings = {
@@ -82,11 +82,9 @@ fpn_upsample_mode = 'bilinear' #'nearest' #'bilinear'
 fpn_upsample_cfg = dict(scale_factor=2, mode=fpn_upsample_mode)
 fpn_num_blocks = regnet_cfg['fpn_num_blocks']
 fpn_intermediate_channels = regnet_cfg['fpn_intermediate_channels']
-fpn_bifpn_cfg = dict(num_blocks=fpn_num_blocks, intermediate_channels=fpn_intermediate_channels) \
-    if decoder_fpn_type == 'BiFPNLite' else dict()
 fpn_add_extra_convs = 'on_input'
 
-input_size_divisor = 128 if decoder_fpn_type == 'BiFPNLite' else 32
+input_size_divisor = 32
 
 conv_cfg = None
 norm_cfg = dict(type='BN')
@@ -113,10 +111,9 @@ model = dict(
         add_extra_convs=fpn_add_extra_convs,
         upsample_cfg=fpn_upsample_cfg,
         conv_cfg=conv_cfg,
-        norm_cfg=norm_cfg,
-        **fpn_bifpn_cfg),
+        norm_cfg=norm_cfg),
     bbox_head=dict(
-        type='RetinaLiteHead',
+        type='RetinaHead',
         num_classes=num_classes,
         in_channels=fpn_out_channels,
         stacked_convs=head_stacked_convs,
