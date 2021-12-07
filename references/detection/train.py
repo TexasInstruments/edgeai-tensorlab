@@ -291,7 +291,6 @@ def main(gpu, args):
         lr_scheduler = xnn.optim.lr_scheduler.MultiStepLRWarmup(optimizer, milestones=args.lr_steps, gamma=args.lr_gamma)
     elif args.lr_scheduler == 'cosineannealinglr':
         lr_scheduler = xnn.optim.lr_scheduler.CosineAnnealingLRWarmup(optimizer, T_max=args.epochs)
-        #lr_scheduler = xnn.optim.lr_scheduler.CosineAnnealingLRWarmup(optimizer, T_max=args.epochs, warmup_epochs=4, warmup_ratio=1.0)
     else:
         raise RuntimeError("Invalid lr scheduler '{}'. Only MultiStepLR and CosineAnnealingLR "
                            "are supported.".format(args.lr_scheduler))
