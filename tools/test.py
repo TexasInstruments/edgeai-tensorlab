@@ -18,10 +18,12 @@ from mmdet.datasets import (build_dataloader, build_dataset,
                             replace_ImageToTensor)
 from mmdet.models import build_detector
 from mmdet.utils import setup_multi_processes
-from contextlib import redirect_stdout
 
+from mmdet.utils import get_root_logger
 from mmdet.utils import XMMDetQuantTestModule
 from mmdet.utils import save_model_proto, mmdet_load_checkpoint, get_model_complexity_info, LoggerStream
+from mmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint, get_model_complexity_info, LoggerStream
+from contextlib import redirect_stdout
 
 from torchvision.edgeailite import xnn
 
@@ -138,17 +140,6 @@ def main(args=None):
     if args.out is not None and not args.out.endswith(('.pkl', '.pickle')):
         raise ValueError('The output file must be a pkl file.')
 
-    # just creating an instance of xnn.utils.TeeLogger() with a file
-    # is sufficient to simultaneously pipe the results to the file
-    if xnn.utils.is_main_process():
-        results_file = os.path.splitext(args.out)[0] + '.log'
-        results_dir = os.path.split(results_file)[0]
-        if not os.path.exists(results_dir):
-            warnings.warn(f'folder {results_dir} does nto exist. creating it')
-            os.makedirs(results_dir, exist_ok=True)
-        #
-        logger = xnn.utils.TeeLogger(results_file, append=True)
-
     cfg = Config.fromfile(args.config)
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
@@ -202,6 +193,10 @@ def main(args=None):
     else:
         cfg.gpu_ids = [args.gpu_id]
 
+    log_file = os.path.splitext(args.out)[0] + '.log'
+    os.makedirs(os.path.split(log_file)[0], exist_ok=True)
+    logger = get_root_logger(log_file=log_file, log_level=cfg.log_level)
+
     # init distributed env first, since logger depends on the dist info.
     if args.launcher == 'none':
         distributed = False
@@ -238,9 +233,9 @@ def main(args=None):
         model = xnn.model_surgery.convert_to_lite_model(model, **convert_to_lite_model_args)
 
     if hasattr(cfg, 'print_model_complexity') and cfg.print_model_complexity:
-        input_res = (3, *cfg.input_size) if isinstance(cfg.input_size, (list, tuple)) else \
-            (3, cfg.input_size, cfg.input_size)
-        get_model_complexity_info(model, input_res)
+        logger_stream = LoggerStream(logger)
+        with redirect_stdout(logger_stream):
+            get_model_complexity_info(model, cfg.input_size)
 
     if hasattr(cfg, 'quantize') and cfg.quantize:
         input_size = (1, 3, *cfg.input_size) if isinstance(cfg.input_size, (list, tuple)) \
@@ -291,7 +286,7 @@ def main(args=None):
                 eval_kwargs.pop(key, None)
             eval_kwargs.update(dict(metric=args.eval, **kwargs))
             metric = dataset.evaluate(outputs, **eval_kwargs)
-            print(metric)
+            logger.info(metric) #print(metric)
             metric_dict = dict(config=args.config, metric=metric)
             if args.work_dir is not None and rank == 0:
                 mmcv.dump(metric_dict, json_file)

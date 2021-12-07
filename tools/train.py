@@ -17,14 +17,12 @@ from mmdet.apis import init_random_seed, set_random_seed, train_detector
 from mmdet.datasets import build_dataset
 from mmdet.models import build_detector
 from mmdet.utils import collect_env, get_root_logger, setup_multi_processes
-from mmdet.utils import collect_env, get_root_logger
-from contextlib import redirect_stdout
 
 from mmdet.utils import get_model_complexity_info, \
     LoggerStream, XMMDetQuantTrainModule, XMMDetQuantCalibrateModule
 from mmdet.utils import XMMDetQuantTrainModule, XMMDetQuantCalibrateModule
 from mmdet.utils import save_model_proto, mmdet_load_checkpoint, get_model_complexity_info, LoggerStream
-
+from contextlib import redirect_stdout
 
 from torchvision.edgeailite import xnn
 
@@ -201,11 +199,9 @@ def main(args=None):
         model = xnn.model_surgery.convert_to_lite_model(model, **convert_to_lite_model_args)
 
     if hasattr(cfg, 'print_model_complexity') and cfg.print_model_complexity:
-        input_res = (3, *cfg.input_size) if isinstance(cfg.input_size, (list, tuple)) else \
-            (3, cfg.input_size, cfg.input_size)
         logger_stream = LoggerStream(logger)
         with redirect_stdout(logger_stream):
-            get_model_complexity_info(model, input_res)
+            get_model_complexity_info(model, cfg.input_size)
 
     if hasattr(cfg, 'quantize') and cfg.quantize:
         input_res = (3, *cfg.input_size) if isinstance(cfg.input_size, (list, tuple)) else \

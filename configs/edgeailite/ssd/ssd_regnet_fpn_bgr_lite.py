@@ -59,33 +59,33 @@ backbone_type = 'RegNet'
 backbone_arch = 'regnetx_800mf'                  # 'regnetx_800mf' #'regnetx_1.6gf' #'regnetx_3.2gf'
 to_rgb = False                                   # pycls regnet backbones are trained with bgr
 
-decoder_fpn_type = 'FPN'                         # 'FPN' #'BiFPNLite'
-fpn_width_fact = 2 if decoder_fpn_type == 'BiFPNLite' else 4
-decoder_width_fact = 2 if decoder_fpn_type == 'BiFPNLite' else 4
+decoder_fpn_type = 'FPN'
+fpn_width_fact = 4
+decoder_width_fact = 4
 decoder_depth_fact = 4
 
 regnet_settings = {
-    'regnetx_200mf': {'bacbone_out_channels': [32, 56, 152, 368], 'group_size_dw': 8,
+    'regnetx_200mf': {'backbone_out_channels': [32, 56, 152, 368], 'group_size_dw': 8,
                       'fpn_intermediate_channels': min(28*fpn_width_fact,256),
                       'fpn_out_channels': min(28*decoder_width_fact,256),
                       'fpn_num_blocks': decoder_depth_fact,
                       'pretrained': './checkpoints/RegNetX-200MF_dds_8gpu_mmdet-converted.pyth'},
-    'regnetx_400mf': {'bacbone_out_channels': [32, 64, 160, 384], 'group_size_dw': 16,
+    'regnetx_400mf': {'backbone_out_channels': [32, 64, 160, 384], 'group_size_dw': 16,
                       'fpn_intermediate_channels': min(32*fpn_width_fact,256),
                       'fpn_out_channels': min(32*decoder_width_fact,256),
                       'fpn_num_blocks': decoder_depth_fact,
                       'pretrained': 'open-mmlab://regnetx_400mf'},
-    'regnetx_800mf':{'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
+    'regnetx_800mf':{'backbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
                      'fpn_intermediate_channels':min(64*fpn_width_fact,256),
                      'fpn_out_channels':min(64*decoder_width_fact,256),
                      'fpn_num_blocks':decoder_depth_fact,
                      'pretrained':'open-mmlab://regnetx_800mf'},
-    'regnetx_1.6gf':{'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
+    'regnetx_1.6gf':{'backbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
                      'fpn_intermediate_channels':min(84*fpn_width_fact,264),
                      'fpn_out_channels':min(84*decoder_width_fact,264),
                      'fpn_num_blocks':decoder_depth_fact,
                      'pretrained':'open-mmlab://regnetx_1.6gf'},
-    'regnetx_3.2gf':{'bacbone_out_channels':[96, 192, 432, 1008], 'group_size_dw':48,
+    'regnetx_3.2gf':{'backbone_out_channels':[96, 192, 432, 1008], 'group_size_dw':48,
                      'fpn_intermediate_channels':min(96*fpn_width_fact,288),
                      'fpn_out_channels':min(96*decoder_width_fact,288),
                      'fpn_num_blocks':decoder_depth_fact,
@@ -95,10 +95,10 @@ regnet_settings = {
 ######################################################
 regnet_cfg = regnet_settings[backbone_arch]
 pretrained=regnet_cfg['pretrained']
-bacbone_out_channels=regnet_cfg['bacbone_out_channels']
+backbone_out_channels=regnet_cfg['backbone_out_channels']
 backbone_out_indices = (0, 1, 2, 3)
 
-fpn_in_channels = bacbone_out_channels[-len(backbone_out_indices):]
+fpn_in_channels = backbone_out_channels[-len(backbone_out_indices):]
 fpn_out_channels = regnet_cfg['fpn_out_channels']
 fpn_start_level = 1
 fpn_num_outs = 6
@@ -106,12 +106,10 @@ fpn_upsample_mode = 'bilinear' #'nearest' #'bilinear'
 fpn_upsample_cfg = dict(scale_factor=2, mode=fpn_upsample_mode)
 fpn_num_blocks = regnet_cfg['fpn_num_blocks']
 fpn_intermediate_channels = regnet_cfg['fpn_intermediate_channels']
-fpn_bifpn_cfg = dict(num_blocks=fpn_num_blocks, intermediate_channels=fpn_intermediate_channels) \
-    if decoder_fpn_type == 'BiFPNLite' else dict()
 fpn_add_extra_convs = 'on_input'
 
 basesize_ratio_range = (0.1, 0.9)
-input_size_divisor = 128 if decoder_fpn_type == 'BiFPNLite' else 32
+input_size_divisor = 32
 
 conv_cfg = None
 norm_cfg = dict(type='BN')
@@ -135,8 +133,7 @@ model = dict(
         add_extra_convs=fpn_add_extra_convs,
         upsample_cfg=fpn_upsample_cfg,
         conv_cfg=conv_cfg,
-        norm_cfg=norm_cfg,
-        **fpn_bifpn_cfg),
+        norm_cfg=norm_cfg),
     bbox_head=dict(
         type='SSDHead',
         in_channels=[fpn_out_channels for _ in range(fpn_num_outs)],

@@ -29,7 +29,9 @@
 import torchinfo
 
 
-def get_model_complexity_info(model, input_res, *args, **kwargs):
+def get_model_complexity_info(model, input_size, *args, **kwargs):
+    input_res = (3, *input_size) if isinstance(input_size, (list, tuple)) else \
+        (3, input_size, input_size)
     model.eval()
     input_res = input_res if isinstance(input_res, (list,tuple)) else (3, input_res, input_res)
     data_shape = (1,*input_res)

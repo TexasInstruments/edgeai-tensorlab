@@ -1,12 +1,14 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+import functools
 import torch.nn as nn
 import torch.nn.functional as F
-from mmcv.cnn import ConvModule
+from mmcv.cnn import ConvModule, Conv2d, Linear, build_activation_layer
 from mmcv.runner import BaseModule, auto_fp16
 
 from ..builder import NECKS
 
 from torchvision.edgeailite import xnn
+
 
 @NECKS.register_module()
 class FPN(BaseModule):
@@ -198,4 +200,11 @@ class FPN(BaseModule):
                 elif self.add_extra_convs == 'on_output':
                     extra_source = outs[-1]
                 else:
-                    raise Not
+                    raise NotImplementedError
+                outs.append(self.fpn_convs[used_backbone_levels](extra_source))
+                for i in range(used_backbone_levels + 1, self.num_outs):
+                    if self.relu_before_extra_convs:
+                        outs.append(self.fpn_convs[i](F.relu(outs[-1])))
+                    else:
+                        outs.append(self.fpn_convs[i](outs[-1]))
+        return tuple(outs)
