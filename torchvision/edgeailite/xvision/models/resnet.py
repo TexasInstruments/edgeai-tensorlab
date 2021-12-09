@@ -229,7 +229,8 @@ class ResNet(nn.Module):
         strides: Optional[List[int]] = None, 
 		width_mult: int = 1.0, 
         fastdown: bool = False,
-        enable_fp16: bool = False
+        enable_fp16: bool = False,
+        input_channels: int = 3
     ) -> None:
         super(ResNet, self).__init__()
         if norm_layer is None:

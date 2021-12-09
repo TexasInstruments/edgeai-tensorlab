@@ -87,7 +87,7 @@ import torchvision.datasets as datasets
 
 from torchvision.edgeailite import xnn
 from torchvision.edgeailite import xvision
-from references.edgeailite.xvision import models
+from torchvision.edgeailite.xvision import models
 
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
@@ -238,6 +238,7 @@ def main_worker(gpu, ngpus_per_node, args):
     # create model
     print("=> creating model '{}'".format(args.arch))
     model = models.__dict__[args.arch]()
+    model, change_names_dict = model if isinstance(model, (list,tuple)) else (model, None)
 
     if args.quantize is not False:
         if args.use_gpu:
@@ -305,9 +306,9 @@ def main_worker(gpu, ngpus_per_node, args):
         model_orig = model_orig.module if args.quantize else model_orig
         print("=> using pre-trained model for {} from {}".format(args.arch, args.pretrained))
         if hasattr(model_orig, 'load_weights'):
-            model_orig.load_weights(args.pretrained, download_root='./data/downloads')
+            model_orig.load_weights(args.pretrained, download_root='./data/downloads', change_names_dict=change_names_dict)
         else:
-            xnn.utils.load_weights(model_orig, args.pretrained, download_root='./data/downloads')
+            xnn.utils.load_weights(model_orig, args.pretrained, download_root='./data/downloads', change_names_dict=change_names_dict)
         #
 
     if args.quantize:
@@ -355,14 +356,14 @@ def main_worker(gpu, ngpus_per_node, args):
     # Data loading code
     traindir = os.path.join(args.data, 'train')
     valdir = os.path.join(args.data, 'val')
-    normalize = xvision.transforms.NormalizeMeanScale(mean=[123.675, 116.28, 103.53], scale=[0.017125, 0.017507, 0.017429])
+    normalize = transforms.NormalizeMeanScale(mean=[123.675, 116.28, 103.53], scale=[0.017125, 0.017507, 0.017429])
 
     train_dataset = datasets.ImageFolder(
         traindir,
         transforms.Compose([
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
-            xvision.transforms.ToFloat(),   # converting to float avoids the division by 255 in ToTensor()
+            transforms.ToFloat(),   # converting to float avoids the division by 255 in ToTensor()
             transforms.ToTensor(),
             normalize,
         ]))
@@ -370,7 +371,7 @@ def main_worker(gpu, ngpus_per_node, args):
     val_dataset = datasets.ImageFolder(valdir, transforms.Compose([
         transforms.Resize(256),
         transforms.CenterCrop(224),
-        xvision.transforms.ToFloat(),  # converting to float avoids the division by 255 in ToTensor()
+        transforms.ToFloat(),  # converting to float avoids the division by 255 in ToTensor()
         transforms.ToTensor(),
         normalize,
     ]))
