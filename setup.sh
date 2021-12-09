@@ -7,25 +7,25 @@ sudo apt-get install libjpeg-dev zlib1g-dev
 
 echo "-----------------------------------------------------------"
 echo "installing requirements"
-pip install -r requirements.txt
-pip install -r references/requirements.txt
+pip3 install -r requirements.txt
+pip3 install -r references/requirements.txt
 
 echo "-----------------------------------------------------------"
 echo "building torchvision"
 # may need pytorch nightly to build this package
 echo "installing pytorch for cuda 11.1"
 echo "other versions can be found here: https://pytorch.org/get-started/locally/"
-pip install torch==1.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
+pip3 install torch==1.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 
 echo "if your CUDA version has changed, please remove 'build' folder before attempting this installatio."
 echo "otherwise there can be errors while using torchvision c++ ops."
 
 # an editable install - changes in this local torchvision module immediately takes effect
 echo "installing torchvision in develop mode"
-pip install -e ./
+python3 setup.py develop
 
 # final install - the torchvision module is copied to the python folder
-#python setup.py install
+#python3 setup.py install
 
 echo "-----------------------------------------------------------"
 echo "copying the .so files to make running from this folder work"

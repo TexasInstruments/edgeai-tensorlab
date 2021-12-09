@@ -32,7 +32,7 @@ Execute the following shell script to install the dependencies:<br>
 ./setup.sh
 ```
 
-This installation script is derived from the installation instructions described in [pytorch/vision](https://github.com/pytorch/vision)
+This installation script is derived from the instructions described in [pytorch/vision](https://github.com/pytorch/vision) to install/build from source.
 
 
 <hr>
