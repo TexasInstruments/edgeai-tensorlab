@@ -33,22 +33,22 @@ Below are some of the examples are currently available. Click on each of the lin
 
 [**Quantization**](docs/pixel2pixel/Quantization.md)<br>
 
+
 <br><hr><br>
 
 
 ## Model Quantization
 Quantization (especially 8-bit Quantization) is important to get best throughput for inference. Quantization can be done using either **Post Training Quantization (PTQ)** or **Quantization Aware Training (QAT)**.
 
-[TI Deep Learning Library (TIDL)](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/psdk_rtos_auto/docs/user_guide/sdk_components.html#ti-deep-learning-library-tidl) that is part of the [Processor SDK RTOS for Jacinto7](https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/psdk_rtos_auto/docs/user_guide/index.html) natively supports **PTQ** - TIDL can take floating point models and can quantize them using advanced calibration methods. 
+TI Deep Learning Library (TIDL) that is part of the Processor SDK for Jacinto7 natively supports **PTQ** - TIDL can take floating point models and can quantize them using advanced calibration methods. Please visit our edgeai landing page at github (see the link below) for information on model compilation (which includes PTQ) using edgeai-tidl-tools and model benchmarking using edgeai-benchmark.
 
-We have  guidelines on how to choose models and how train them to get best accuracy with Quantization. It is unlikely that there will be significant accuracy drop with **PTQ** if these guidelines are followed. In spite of this, if there are models that have significant accuracy drop with quantization, it is possible to improve the accuracy using **QAT**. Please read more details in the documentation on **[Quantization](docs/pixel2pixel/Quantization.md)**.
+In this repository, we have  guidelines on how to choose models and how train them to get best accuracy with Quantization. It is unlikely that there will be significant accuracy drop with **PTQ** if these guidelines are followed. In spite of this, if there are models that have significant accuracy drop with quantization, it is possible to improve the accuracy using **QAT**. Please read more details in the documentation on **[Quantization](docs/pixel2pixel/Quantization.md)**.
 
 <br><hr><br>
 
 
 ## Additional Information
-- Some of the common training and validation commands are provided in shell scripts (.sh files) in the root folder. <br>
-- Landing Page for our models, training and quantization scripts: [https://github.com/TexasInstruments/edgeai](https://github.com/TexasInstruments/edgeai) <br>
+- Landing Page for our SDK, models, training and quantization scripts: [https://github.com/TexasInstruments/edgeai](https://github.com/TexasInstruments/edgeai) <br>
 
 <br><hr><br>
 
