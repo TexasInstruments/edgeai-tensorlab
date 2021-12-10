@@ -22,6 +22,7 @@ from mmdet.utils import get_model_complexity_info, \
     LoggerStream, XMMDetQuantTrainModule, XMMDetQuantCalibrateModule
 from mmdet.utils import XMMDetQuantTrainModule, XMMDetQuantCalibrateModule
 from mmdet.utils import save_model_proto, mmdet_load_checkpoint, get_model_complexity_info, LoggerStream
+from mmdet.utils import convert_to_lite_model
 from contextlib import redirect_stdout
 
 from torchvision.edgeailite import xnn
@@ -195,8 +196,7 @@ def main(args=None):
     model.init_weights()
 
     if hasattr(cfg, 'convert_to_lite_model'):
-        convert_to_lite_model_args = cfg.convert_to_lite_model if isinstance(cfg.convert_to_lite_model, dict) else dict()
-        model = xnn.model_surgery.convert_to_lite_model(model, **convert_to_lite_model_args)
+        model = convert_to_lite_model(model, cfg)
 
     if hasattr(cfg, 'print_model_complexity') and cfg.print_model_complexity:
         logger_stream = LoggerStream(logger)

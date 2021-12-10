@@ -4,14 +4,12 @@
 echo "Installing pytorch and torchvision"
 pip3 install torch==1.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 
+echo "Installing mmcv"
+pip3 install mmcv-full==1.4.0 -f https://download.openmmlab.com/mmcv/dist/cu111/1.10.0/index.html
 
 echo "Installing mmdetection"
 echo "For more details, see: https://github.com/open-mmlab/mmdetection/blob/master/docs/get_started.md and https://github.com/open-mmlab/mmdetection"
-#pip3 install openmim
-#mim install mmdet=2.16.0
-pip install -v -e ./
-
-pip install mmcv-full -f https://download.openmmlab.com/mmcv/dist/cu111/1.10.0/index.html
+python3 setup.py develop
 
 pip3 install onnxruntime
 pip3 install torchinfo

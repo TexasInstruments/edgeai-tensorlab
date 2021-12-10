@@ -36,7 +36,7 @@ img_norm_cfg = dict(mean=[0, 0, 0], std=[255., 255., 255.], to_rgb=True)
 _base_ = [
     f'../_xbase_/datasets/{dataset_type.lower()}.py',
     '../_xbase_/hyper_params/common_config.py',
-    '../_xbase_/hyper_params/yolo_config.py',
+    '../_xbase_/hyper_params/yolov3_config.py',
     '../_xbase_/hyper_params/schedule.py',
 ]
 
@@ -48,7 +48,7 @@ initial_learning_rate = 4e-2 #8e-2
 samples_per_gpu = 8 #16
 
 if quantize:
-  load_from = './work_dirs/yolov3_d53/latest.pth'
+  load_from = './work_dirs/yolov3_d53_relu/latest.pth'
   optimizer = dict(type='SGD', lr=initial_learning_rate/100.0, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   total_epochs = 1 if quantize == 'calibration' else 12
 else:
@@ -56,22 +56,25 @@ else:
 #
 
 input_size_divisor = 32
+act_cfg = dict(type='ReLU')
 pretrained = 'open-mmlab://darknet53'
 
 model = dict(
     type='YOLOV3',
-    backbone=dict(type='Darknet', depth=53, out_indices=(3, 4, 5),
+    backbone=dict(type='Darknet', depth=53, out_indices=(3, 4, 5), act_cfg=act_cfg,
                   init_cfg=dict(type='Pretrained', checkpoint=pretrained)),
     neck=dict(
         type='YOLOV3Neck',
         num_scales=3,
         in_channels=[1024, 512, 256],
-        out_channels=[512, 256, 128]),
+        out_channels=[512, 256, 128],
+        act_cfg=act_cfg,),
     bbox_head=dict(
         type='YOLOV3Head',
         num_classes=80,
         in_channels=[512, 256, 128],
         out_channels=[1024, 512, 256],
+        act_cfg=act_cfg,
         anchor_generator=dict(
             type='YOLOAnchorGenerator',
             base_sizes=[[(116, 90), (156, 198), (373, 326)],

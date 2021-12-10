@@ -27,16 +27,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ######################################################
-input_size = (512,512)                          #(320,320) #(416,416) #(512,512) #(608,608)
+input_size = (416,416)                          #(320,320) #(416,416) #(608,608)
 dataset_type = 'CocoDataset'
 num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8}
 num_classes = num_classes_dict[dataset_type]
-img_norm_cfg = dict(mean=[103.53, 116.28, 123.675], std=[57.375, 57.12, 58.395], to_rgb=False) #imagenet mean used in pycls (bgr)
+img_norm_cfg = dict(mean=[0, 0, 0], std=[255., 255., 255.], to_rgb=True)
 
 _base_ = [
     f'../_xbase_/datasets/{dataset_type.lower()}.py',
     '../_xbase_/hyper_params/common_config.py',
-    '../_xbase_/hyper_params/yolo_config.py',
+    '../_xbase_/hyper_params/yolov3_config.py',
     '../_xbase_/hyper_params/schedule.py',
 ]
 
@@ -44,75 +44,34 @@ _base_ = [
 # settings for qat or calibration - uncomment after doing floating point training
 # also change dataset_repeats in the dataset config to 1 for fast learning
 quantize = False #'training' #'calibration'
-initial_learning_rate = 1e-2 #8e-2
+initial_learning_rate = 4e-2 #8e-2
 samples_per_gpu = 8 #16
+
 if quantize:
-  load_from = './work_dirs/yolov3-lite_regnet/latest.pth'
+  load_from = './work_dirs/yolov3_d53/latest.pth'
   optimizer = dict(type='SGD', lr=initial_learning_rate/100.0, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
   total_epochs = 1 if quantize == 'calibration' else 12
 else:
   optimizer = dict(type='SGD', lr=initial_learning_rate, momentum=0.9, weight_decay=4e-5) #1e-4 => 4e-5
 #
 
-######################################################
-backbone_type = 'RegNet'
-backbone_arch = 'regnetx_1.6gf'                  # 'regnetx_800mf' #'regnetx_1.6gf' #'regnetx_3.2gf'
-to_rgb = False                                   # pycls regnet backbones are trained with bgr
-decoder_conv_type = 'ConvDWSep'                 # 'ConvDWSep' #'ConvDWTripletRes' #'ConvDWTripletAlwaysRes'
-
-regnet_settings = {
-    'regnetx_200mf': {'bacbone_out_channels': [32, 56, 152, 368], 'group_size_dw': 8,
-                      'pretrained': './checkpoints/RegNetX-200MF_dds_8gpu_mmdet-converted.pyth'},
-    'regnetx_400mf': {'bacbone_out_channels': [32, 64, 160, 384], 'group_size_dw': 16,
-                      'pretrained': 'open-mmlab://regnetx_400mf'},
-    'regnetx_800mf':{'bacbone_out_channels':[64, 128, 288, 672], 'group_size_dw':16,
-                     'pretrained':'open-mmlab://regnetx_800mf'},
-    'regnetx_1.6gf':{'bacbone_out_channels':[72, 168, 408, 912], 'group_size_dw':24,
-                     'pretrained':'open-mmlab://regnetx_1.6gf'},
-    'regnetx_3.2gf':{'bacbone_out_channels':[96, 192, 432, 1008], 'group_size_dw':48,
-                     'pretrained': 'open-mmlab://regnetx_3.2gf'}
-}
-
-######################################################
-regnet_cfg = regnet_settings[backbone_arch]
-pretrained=regnet_cfg['pretrained']
-bacbone_out_channels=regnet_cfg['bacbone_out_channels'][1:][::-1]
-backbone_out_indices = (1, 2, 3)
-group_size_dw=regnet_cfg['group_size_dw']
-fpn_in_channels = bacbone_out_channels
-fpn_out_channels = regnet_cfg['bacbone_out_channels'][:-1][::-1]
-
 input_size_divisor = 32
-conv_cfg = None
-norm_cfg = dict(type='BN')
-act_cfg = dict(type='ReLU')
-convert_to_lite_model = dict(group_size_dw=group_size_dw)
+pretrained = 'open-mmlab://darknet53'
 
 model = dict(
     type='YOLOV3',
-    backbone=dict(
-        type=backbone_type,
-        arch=backbone_arch,
-        out_indices=backbone_out_indices,
-        norm_eval=False,
-        style='pytorch',
-        init_cfg=dict(type='Pretrained', checkpoint=pretrained)),
+    backbone=dict(type='Darknet', depth=53, out_indices=(3, 4, 5),
+                  init_cfg=dict(type='Pretrained', checkpoint=pretrained)),
     neck=dict(
         type='YOLOV3Neck',
         num_scales=3,
-        in_channels=fpn_in_channels,
-        out_channels=fpn_out_channels,
-        conv_cfg=conv_cfg,
-        norm_cfg=norm_cfg,
-        act_cfg=act_cfg),
+        in_channels=[1024, 512, 256],
+        out_channels=[512, 256, 128]),
     bbox_head=dict(
         type='YOLOV3Head',
         num_classes=80,
-        in_channels=fpn_out_channels,
-        out_channels=fpn_in_channels,
-        conv_cfg=conv_cfg,
-        norm_cfg=norm_cfg,
-        act_cfg=act_cfg,
+        in_channels=[512, 256, 128],
+        out_channels=[1024, 512, 256],
         anchor_generator=dict(
             type='YOLOAnchorGenerator',
             base_sizes=[[(116, 90), (156, 198), (373, 326)],
@@ -159,7 +118,6 @@ train_pipeline = [
     dict(type='DefaultFormatBundle'),
     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
 ]
-
 test_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(

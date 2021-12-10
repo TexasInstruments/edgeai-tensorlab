@@ -26,29 +26,20 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-'''
-Usage:
-(1) Use one of the following config files.
-(2) Inside the config file, make sure that the dataset that needs to be trained on is uncommented.
-(3) Use the appropriate input resolution in the config file (input_size).
-(4) Recommend to run the first training with voc0712 dataset as it is widely used and reasonably small.
-(5) To convert cityscapes to coco format, run the script: tools/convert_datasets/cityscapes.py
+import copy
+import torch
+import mmcv
+from mmcv.cnn import bricks
+from torchvision.edgeailite import xnn
 
-config='./configs/edgeailite/ssd/ssd_regnet_fpn_bgr_lite.py'
-config='./configs/edgeailite/ssd/ssd_mobilenet_fpn_lite.py'
-config='./configs/edgeailite/ssd/ssd_mobilenet_lite.py'
-config='./configs/edgeailite/ssd/ssd_resnet_fpn.py'
 
-config='./configs/edgeailite/retinanet/retinanet_regnet_fpn_bgr_lite.py'
-config='./configs/edgeailite/retinanet/retinanet_resnet_fpn.py'
+def convert_to_lite_model(model, cfg):
+    convert_to_lite_model_args = cfg.convert_to_lite_model if isinstance(cfg.convert_to_lite_model, dict) else dict()
+    replacements_dict = copy.deepcopy(xnn.model_surgery.REPLACEMENTS_DICT_DEFAULT)
+    replacements_ext = {
+        bricks.Swish:[torch.nn.ReLU]
+    }
+    replacements_dict.update(replacements_ext)
+    model = xnn.model_surgery.convert_to_lite_model(model, replacements_dict=replacements_dict, **convert_to_lite_model_args)
+    return model
 
-config='./configs/edgeailite/yolov3/yolov3_regnet_bgr_lite.py'
-config='./configs/edgeailite/yolov3/yolov3_d53_relu.py'
-config='./configs/edgeailite/yolov3/yolov3_d53.py'
-
-# these yolox configs are experimental - not completely enabled or verified
-config='./configs/edgeailite/yolox/yolox_s_lite.py'
-config='./configs/edgeailite/yolox/yolox_tiny_lite.py'
-'''
-
-config='./configs/edgeailite/ssd/ssd_regnet_fpn_bgr_lite.py'

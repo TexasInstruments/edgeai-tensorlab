@@ -19,7 +19,7 @@ from .swin import SwinTransformer
 from .trident_resnet import TridentResNet
 
 __all__ = [
-    'MobileNetV1Lite', 'MobileNetV2Lite'
+    'MobileNetV1Lite', 'MobileNetV2Lite',
     'RegNet', 'ResNet', 'ResNetV1d', 'ResNeXt', 'SSDVGG', 'HRNet',
     'MobileNetV2', 'Res2Net', 'HourglassNet', 'DetectoRS_ResNet',
     'DetectoRS_ResNeXt', 'Darknet', 'ResNeSt', 'TridentResNet', 'CSPDarknet',

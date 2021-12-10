@@ -1,11 +1,13 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from functools import partial
+import copy
 
 import mmcv
 import numpy as np
 import torch
 from mmcv.runner import load_checkpoint
 from mmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint
+from mmdet.utils import convert_to_lite_model
 
 from torchvision.edgeailite import xnn
 
@@ -92,8 +94,7 @@ def build_model_from_cfg(config_path, checkpoint_path, cfg_options=None):
     model = build_detector(cfg.model, test_cfg=cfg.get('test_cfg'))
 
     if hasattr(cfg, 'convert_to_lite_model'):
-        convert_to_lite_model_args = cfg.convert_to_lite_model if isinstance(cfg.convert_to_lite_model, dict) else dict()
-        model = xnn.model_surgery.convert_to_lite_model(model, **convert_to_lite_model_args)
+        model = convert_to_lite_model(model, cfg)
 
     model_org = model
     if hasattr(cfg, 'quantize') and cfg.quantize:
