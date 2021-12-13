@@ -68,6 +68,7 @@ import random
 import shutil
 import time
 import warnings
+import onnx
 
 import torch
 import torch.nn as nn
@@ -598,6 +599,7 @@ def write_onnx_model(args, model, is_best, filename='checkpoint.onnx'):
     dummy_input = create_rand_inputs(is_cuda)
     torch.onnx.export(model, dummy_input, filename, export_params=True, verbose=False,
                       do_constant_folding=True, opset_version=args.opset_version)
+    onnx.shape_inference.infer_shapes_path(filename, filename)
     if is_best:
         shutil.copyfile(filename, os.path.splitext(filename)[0]+'_best.onnx')
 

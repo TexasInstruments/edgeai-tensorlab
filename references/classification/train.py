@@ -1,6 +1,7 @@
 import datetime
 import os
 import time
+import onnx
 
 import torch
 import torch.utils.data
@@ -204,6 +205,7 @@ def main(gpu, args):
         onnx_file = os.path.join(args.output_dir, args.model+'.onnx')
         print(f'Exporting ONNX model to: {onnx_file}')
         torch.onnx.export(model, dummy_input, onnx_file)
+        onnx.shape_inference.infer_shapes_path(onnx_file, onnx_file)
         return
 
     model.to(device)

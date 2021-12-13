@@ -1023,13 +1023,15 @@ def add_node_names(onnx_model_name):
 def write_onnx_model(args, model, save_path, name='checkpoint.onnx', save_traced_model=False):
     is_cuda = next(model.parameters()).is_cuda
     input_list = create_rand_inputs(args, is_cuda=is_cuda)
-    #
+    onnx_file = os.path.join(save_path, name)
     model.eval()
-    torch.onnx.export(model, input_list, os.path.join(save_path, name), export_params=True, verbose=False,
+    torch.onnx.export(model, input_list, onnx_file, export_params=True, verbose=False,
                       do_constant_folding=True, opset_version=args.opset_version)
 
     #torch onnx export does not update names. Do it using onnx.save
-    add_node_names(onnx_model_name = os.path.join(save_path, name))
+    add_node_names(onnx_model_name=onnx_file)
+    # infer shapes
+    onnx.shape_inference.infer_shapes_path(onnx_file, onnx_file)
 
     if save_traced_model:
         traced_model = torch.jit.trace(model, (input_list,))

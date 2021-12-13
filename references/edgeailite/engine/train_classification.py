@@ -36,6 +36,7 @@ from colorama import Fore
 import math
 import progiter
 import warnings
+import onnx
 
 import torch
 import torch.nn.parallel
@@ -505,10 +506,8 @@ def write_onnx_model(args, model, save_path, name='checkpoint.onnx'):
     model.eval()
     torch.onnx.export(model, dummy_input, filepath, export_params=True, verbose=False,
                       do_constant_folding=True, opset_version=args.opset_version)
-    # to see tensor shape in ONNX graph. Works only upto ver 8
-    if args.opset_version <= 8:
-        onnx.save(onnx.shape_inference.infer_shapes(onnx.load(filepath)), filepath)
-    #
+    # infer shapes
+    onnx.shape_inference.infer_shapes_path(filepath, filepath)
     # export torchscript model
     traced_model = torch.jit.trace(model, dummy_input)
     torch.jit.save(traced_model, os.path.splitext(filepath)[0]+'_model.pth')
