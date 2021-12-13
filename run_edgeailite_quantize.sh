@@ -71,28 +71,28 @@
 #
 #
 ### Semantic Segmentation - Post Training Calibration &  Quantization for MobileNetV2+DeeplabV3Lite
-#python3 ./references/edgeailite/scripts/train_segmentation_main.py --phase calibration --dataset_name cityscapes_segmentation --model_name deeplabv3plus_edgeailite_mobilenetv2_tv \
+#python3 ./references/edgeailite/scripts/train_segmentation_main.py --phase calibration --dataset_name cityscapes_segmentation --model_name deeplabv3plus_mobilenetv2_tv_edgeailite \
 #--data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 \
 #--pretrained ./data/modelzoo/pytorch/semantic_seg/cityscapes/jacinto_ai/deeplabv3plus_edgeailite_mobilenetv2_tv_768x384_best.pth \
 #--batch_size 4 --quantize True --epochs 1 --evaluate_start False
 #
 #
 ### Semantic Segmentation - Post Training Calibration &  Quantization for MobileNetV2+UNetEdgeAILite
-#python3 ./references/edgeailite/scripts/train_segmentation_main.py --phase calibration --dataset_name cityscapes_segmentation --model_name unet_edgeailite_aspp_mobilenetv2_tv \
+#python3 ./references/edgeailite/scripts/train_segmentation_main.py --phase calibration --dataset_name cityscapes_segmentation --model_name unet_aspp_mobilenetv2_tv_edgeailite \
 #--data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 \
 #--pretrained ./data/modelzoo/pytorch/semantic_seg/cityscapes/jacinto_ai/unet_aspp_mobilenetv2_tv_768x384_best.pth \
 #--batch_size 4 --quantize True --epochs 1 --evaluate_start False
 #
 #
 ### Semantic Segmentation - Post Training Calibration &  Quantization for MobileNetV2+FPNEdgeAILite
-#python3 ./references/edgeailite/scripts/train_segmentation_main.py --phase calibration --dataset_name cityscapes_segmentation --model_name fpn_edgeailite_aspp_mobilenetv2_tv \
+#python3 ./references/edgeailite/scripts/train_segmentation_main.py --phase calibration --dataset_name cityscapes_segmentation --model_name fpn_aspp_mobilenetv2_tv_edgeailite \
 #--data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 \
 #--pretrained ./data/modelzoo/pytorch/semantic_seg/cityscapes/jacinto_ai/fpn_aspp_mobilenetv2_tv_768x384_best.pth \
 #--batch_size 4 --quantize True --epochs 1 --evaluate_start False
 #
 #
 ### Depth Estimation - Post Training Calibration &  Quantization for MobileNetV2+DeeplabV3Lite
-#python3 ./references/edgeailite/scripts/train_depth_main.py --phase calibration --dataset_name kitti_depth --model_name deeplabv3plus_edgeailite_mobilenetv2_tv  --gpus 0 \
+#python3 ./references/edgeailite/scripts/train_depth_main.py --phase calibration --dataset_name kitti_depth --model_name deeplabv3plus_mobilenetv2_tv_edgeailite  --gpus 0 \
 #--pretrained ./data/modelzoo/pytorch/monocular_depth/kitti_depth/jacinto_ai/deeplabv3plus_edgeailite_mobilenetv2_tv_768x384_best.pth \
 #--batch_size 4 --quantize True --epochs 1 --evaluate_start False
 #
@@ -116,7 +116,7 @@
 #
 #
 #### Semantic Segmentation - Quantization Aware Training for MobileNetV2+DeeplabV3Lite
-#python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name deeplabv3plus_edgeailite_mobilenetv2_tv \
+#python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name deeplabv3plus_mobilenetv2_tv_edgeailite \
 #--data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 \
 #--pretrained ./data/modelzoo/pytorch/semantic_seg/cityscapes/jacinto_ai/deeplabv3plus_edgeailite_mobilenetv2_tv_768x384_best.pth \
 #--batch_size 12 --quantize True --epochs 10  --lr 1e-5 --warmup_epochs 0 --evaluate_start False
@@ -130,14 +130,14 @@
 ##
 ##
 #### Semantic Segmentation - Quantization Aware Training for MobileNetV2+FPNEdgeAILite
-#python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name fpn_edgeailite_aspp_mobilenetv2_tv \
+#python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name fpn_aspp_mobilenetv2_tv_edgeailite \
 #--data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 \
 #--pretrained ./data/modelzoo/pytorch/semantic_seg/cityscapes/jacinto_ai/fpn_aspp_mobilenetv2_tv_768x384_best.pth \
 #--batch_size 12 --quantize True --epochs 10 --lr 1e-5 --warmup_epochs 0 --evaluate_start False
 ##
 ##
 #### Depth Estimation - Quantization Aware Training for MobileNetV2+DeeplabV3Lite
-#python3 ./references/edgeailite/scripts/train_depth_main.py --dataset_name kitti_depth --model_name deeplabv3plus_edgeailite_mobilenetv2_tv --img_resize 384 768 --output_size 1024 2048 \
+#python3 ./references/edgeailite/scripts/train_depth_main.py --dataset_name kitti_depth --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --img_resize 384 768 --output_size 1024 2048 \
 #--pretrained ./data/modelzoo/pytorch/monocular_depth/kitti_depth/jacinto_ai/deeplabv3plus_edgeailite_mobilenetv2_tv_768x384_best.pth \
 #--batch_size 32 --quantize True --epochs 10 --lr 1e-5 --warmup_epochs 0 --evaluate_start False
 #
@@ -173,7 +173,7 @@
 #--batch_size 64 --quantize True
 #
 #### Semantic Segmentation - Accuracy Estimation with Post Training Quantization - MobileNetV2+DeeplabV3Lite
-#python3 ./references/edgeailite/scripts/train_segmentation_main.py --phase validation --dataset_name cityscapes_segmentation --model_name deeplabv3plus_edgeailite_mobilenetv2_tv \
+#python3 ./references/edgeailite/scripts/train_segmentation_main.py --phase validation --dataset_name cityscapes_segmentation --model_name deeplabv3plus_mobilenetv2_tv_edgeailite \
 #--data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 \
 #--pretrained './data/modelzoo/pytorch/semantic_seg/cityscapes/jacinto_ai/deeplabv3plus_edgeailite_mobilenetv2_tv_768x384_best.pth' \
 #--batch_size 1 --quantize True

@@ -33,4 +33,4 @@ model = torchvision.edgeailite.xvision.models.mobilenetv3_lite_large_x1(pretrain
 model_list = [m for m in dir(torchvision.edgeailite.xvision.models.pixel2pixel) if not m.startswith('__')]
 print('torchvision.edgeailite pixel2pixel models', model_list)
 model_config = dict(output_type=['segmentation'], output_channels=[19])
-model = torchvision.edgeailite.xvision.models.pixel2pixel.fpn_edgeailite_mobilenetv2_tv(model_config)
+model = torchvision.edgeailite.xvision.models.pixel2pixel.fpn_mobilenetv2_tv_edgeailite(model_config)

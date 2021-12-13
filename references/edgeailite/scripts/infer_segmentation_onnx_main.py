@@ -85,7 +85,7 @@ from references.edgeailite.engine import test_pixel2pixel_onnx
 args = test_pixel2pixel_onnx.get_config()
 
 #Modify arguments
-args.model_name = "deeplabv3plus_edgeailite_mobilenetv2_relu" #"deeplabv3plus_edgeailite_mobilenetv2_relu" #"deeplabv3plus_edgeailite_mobilenetv2_relu_x1p5" #"deeplabv3plus"
+args.model_name = "deeplabv3plus_edgeailite_mobilenetv2_relu" 
 
 args.dataset_name = 'cityscapes_segmentation_measure' #'cityscapes_segmentation_infer' #'tiad_segmentation' #'tiad_segmentation_infer'   #
 

@@ -36,7 +36,7 @@
 ## Training
 ## =====================================================================================
 #### KITTI Depth (Manual Download) - Training with MobileNetV2+DeeplabV3Lite
-#python3 ./references/edgeailite/scripts/train_depth_main.py --dataset_name kitti_depth --model_name deeplabv3plus_edgeailite_mobilenetv2_tv --data_path ./data/datasets/kitti/kitti_depth/data --img_resize 384 768 --output_size 374 1242 \
+#python3 ./references/edgeailite/scripts/train_depth_main.py --dataset_name kitti_depth --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --data_path ./data/datasets/kitti/kitti_depth/data --img_resize 384 768 --output_size 374 1242 \
 #--pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth
 
 #### KITTI Depth (Manual Download) - Training with ResNet50+FPN
@@ -47,10 +47,10 @@
 ## Validation
 ## =====================================================================================
 #### KITTI Depth (Manual Download) - Validation - populate the pretrained path in ??
-#python3 ./references/edgeailite/scripts/train_depth_main.py --phase validation --dataset_name kitti_depth --model_name deeplabv3plus_edgeailite_mobilenetv2_tv --data_path ./data/datasets/kitti/kitti_depth/data --img_resize 384 768 --output_size 374 1242 \
+#python3 ./references/edgeailite/scripts/train_depth_main.py --phase validation --dataset_name kitti_depth --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --data_path ./data/datasets/kitti/kitti_depth/data --img_resize 384 768 --output_size 374 1242 \
 #--pretrained=???
 
 #### KITTI Depth (Manual Download) - Inference - populate the pretrained filename in ??
-#python3 ./references/edgeailite/scripts/infer_depth_main.py --dataset_name kitti_depth --model_name deeplabv3plus_edgeailite_mobilenetv2_tv --data_path ./data/datasets/kitti/kitti_depth/data --img_resize 384 768 --output_size 374 1242 \
+#python3 ./references/edgeailite/scripts/infer_depth_main.py --dataset_name kitti_depth --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --data_path ./data/datasets/kitti/kitti_depth/data --img_resize 384 768 --output_size 374 1242 \
 #--pretrained ???
 

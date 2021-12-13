@@ -85,8 +85,8 @@ python ./references/edgeailite/scripts/train_classification_main.py --phase cali
 
 - Calibration of Cityscapes Semantic Segmentation model
 ```
-python ./references/edgeailite/scripts/train_segmentation_main.py --phase calibration --dataset_name cityscapes_segmentation --model_name deeplabv3plus_edgeailite_mobilenetv2_tv --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 
---pretrained ./data/modelzoo/pytorch/semantic_segmentation/cityscapes/jacinto_ai/deeplabv3plus_edgeailite_mobilenetv2_tv_resize768x384_best.pth 
+python ./references/edgeailite/scripts/train_segmentation_main.py --phase calibration --dataset_name cityscapes_segmentation --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 
+--pretrained ./data/modelzoo/pytorch/semantic_segmentation/cityscapes/jacinto_ai/deeplabv3plus_mobilenetv2_tv_edgeailite_resize768x384_best.pth 
 --batch_size 12 --quantize True --epochs 1
 ```
 

@@ -45,21 +45,21 @@ from ..multi_input_net import MobileNetV2TVMI4, ResNet50MI4, \
     RegNetX400MFMI4, RegNetX800MFMI4, RegNetX1p6GFMI4, RegNetX3p2GFMI4
 
 
-__all__ = ['FPNEdgeAILiteASPP', 'FPNEdgeAILiteDecoder',
-           'fpn_edgeailite_aspp_mobilenetv2_tv', 'fpn_edgeailite_aspp_mobilenetv2_tv_fd', 
-           'fpn128_edgeailite_aspp_mobilenetv2_tv_fd', 'fpn_edgeailite_aspp_mobilenetv2_1p4_tv',
+__all__ = ['FPNASPPEdgeAILite', 'FPNEdgeAILiteDecoder',
+           'fpn_aspp_mobilenetv2_tv_edgeailite', 'fpn_aspp_mobilenetv2_tv_fd_edgeailite', 
+           'fpn128_aspp_mobilenetv2_tv_fd_edgeailite', 'fpn_aspp_mobilenetv2_1p4_tv_edgeailite',
            # no aspp models
-           'fpn_edgeailite_mobilenetv2_tv', 'fpn_edgeailite_mobilenetv2_tv_fd',
+           'fpn_mobilenetv2_tv_edgeailite', 'fpn_mobilenetv2_tv_fd_edgeailite',
            # resnet models
-           'fpn_edgeailite_aspp_resnet50', 'fpn_edgeailite_aspp_resnet50_fd',
-           'fpn_edgeailite_aspp_regnetx400mf', 'fpn_edgeailite_aspp_regnetx400mf_bgr',
-           'fpn_edgeailite_aspp_regnetx800mf', 'fpn_edgeailite_aspp_regnetx800mf_bgr',
-           'fpn_edgeailite_aspp_regnetx1p6gf', 'fpn_edgeailite_aspp_regnetx1p6gf_bgr',
-           'fpn_edgeailite_aspp_regnetx3p2gf', 'fpn_edgeailite_aspp_regnetx3p2gf_bgr'
+           'fpn_aspp_resnet50_edgeailite', 'fpn_aspp_resnet50_fd_edgeailite',
+           'fpn_aspp_regnetx400mf_edgeailite', 'fpn_aspp_regnetx400mf_bgr_edgeailite',
+           'fpn_aspp_regnetx800mf_edgeailite', 'fpn_aspp_regnetx800mf_bgr_edgeailite',
+           'fpn_aspp_regnetx1p6gf_edgeailite', 'fpn_aspp_regnetx1p6gf_bgr_edgeailite',
+           'fpn_aspp_regnetx3p2gf_edgeailite', 'fpn_aspp_regnetx3p2gf_bgr_edgeailite'
            ]
 
 # config settings for mobilenetv2 backbone
-def get_config_fpn_edgeailite_mnv2():
+def get_config_fpn_mnv2_edgeailite():
     model_config = xnn.utils.ConfigNode()
     model_config.num_classes = None
     model_config.num_decoders = None
@@ -272,19 +272,19 @@ class FPNEdgeAILiteDecoder(torch.nn.Module):
 
 
 ###########################################
-class FPNEdgeAILiteASPP(Pixel2PixelNet):
+class FPNASPPEdgeAILite(Pixel2PixelNet):
     def __init__(self, base_model, model_config):
         super().__init__(base_model, FPNEdgeAILiteDecoder, model_config)
 
 
 ###########################################
-def fpn_edgeailite_aspp_mobilenetv2_tv(model_config=None, pretrained=None):
-    model_config = get_config_fpn_edgeailite_mnv2().merge_from(model_config)
+def fpn_aspp_mobilenetv2_tv_edgeailite(model_config=None, pretrained=None):
+    model_config = get_config_fpn_mnv2_edgeailite().merge_from(model_config)
     # encoder setup
     model_config_e = model_config.clone()
     base_model = MobileNetV2TVMI4(model_config_e)
     # decoder setup
-    model = FPNEdgeAILiteASPP(base_model, model_config)
+    model = FPNASPPEdgeAILite(base_model, model_config)
 
     num_inputs = len(model_config.input_channels)
     num_decoders = len(model_config.output_channels) if (model_config.num_decoders is None) else model_config.num_decoders
@@ -305,8 +305,8 @@ def fpn_edgeailite_aspp_mobilenetv2_tv(model_config=None, pretrained=None):
     return model, change_names_dict
 
 
-def fpn_edgeailite_aspp_mobilenetv2_1p4_tv(model_config=None, pretrained=None):
-    model_config = get_config_fpn_edgeailite_mnv2().merge_from(model_config)
+def fpn_aspp_mobilenetv2_1p4_tv_edgeailite(model_config=None, pretrained=None):
+    model_config = get_config_fpn_mnv2_edgeailite().merge_from(model_config)
     model_config.width_mult = 1.4
     model_config.activation = torch.nn.ReLU6
 
@@ -314,47 +314,47 @@ def fpn_edgeailite_aspp_mobilenetv2_1p4_tv(model_config=None, pretrained=None):
     model_config.shortcut_channels = tuple([xnn.utils.make_divisible_by8(ch*w_m) for ch in model_config.shortcut_channels])
     model_config.decoder_chan = xnn.utils.make_divisible_by8(model_config.decoder_chan*w_m)
     model_config.aspp_chan = xnn.utils.make_divisible_by8(model_config.aspp_chan*w_m)
-    return fpn_edgeailite_aspp_mobilenetv2_tv(model_config, pretrained=pretrained)
+    return fpn_aspp_mobilenetv2_tv_edgeailite(model_config, pretrained=pretrained)
 
 
 # fast down sampling model (encoder stride 64 model)
-def fpn_edgeailite_aspp_mobilenetv2_tv_fd(model_config=None, pretrained=None):
-    model_config = get_config_fpn_edgeailite_mnv2().merge_from(model_config)
+def fpn_aspp_mobilenetv2_tv_fd_edgeailite(model_config=None, pretrained=None):
+    model_config = get_config_fpn_mnv2_edgeailite().merge_from(model_config)
     model_config.fastdown = True
     model_config.strides = (2,2,2,2,2)
     model_config.shortcut_strides = (8,16,32,64)
     model_config.shortcut_channels = (24,32,96,320)
     model_config.decoder_chan = 256
     model_config.aspp_chan = 256
-    return fpn_edgeailite_aspp_mobilenetv2_tv(model_config, pretrained=pretrained)
+    return fpn_aspp_mobilenetv2_tv_edgeailite(model_config, pretrained=pretrained)
 
 
 # fast down sampling model (encoder stride 64 model) with fpn decoder channels 128
-def fpn128_edgeailite_aspp_mobilenetv2_tv_fd(model_config=None, pretrained=None):
-    model_config = get_config_fpn_edgeailite_mnv2().merge_from(model_config)
+def fpn128_aspp_mobilenetv2_tv_fd_edgeailite(model_config=None, pretrained=None):
+    model_config = get_config_fpn_mnv2_edgeailite().merge_from(model_config)
     model_config.fastdown = True
     model_config.strides = (2,2,2,2,2)
     model_config.shortcut_strides = (4,8,16,32,64)
     model_config.shortcut_channels = (16,24,32,96,320)
     model_config.decoder_chan = 128
     model_config.aspp_chan = 128
-    return fpn_edgeailite_aspp_mobilenetv2_tv(model_config, pretrained=pretrained)
+    return fpn_aspp_mobilenetv2_tv_edgeailite(model_config, pretrained=pretrained)
 
 
 ##################
 # similar to the original fpn model with extra convolutions with strides (no aspp)
-def fpn_edgeailite_mobilenetv2_tv(model_config=None, pretrained=None):
-    model_config = get_config_fpn_edgeailite_mnv2().merge_from(model_config)
+def fpn_mobilenetv2_tv_edgeailite(model_config=None, pretrained=None):
+    model_config = get_config_fpn_mnv2_edgeailite().merge_from(model_config)
     model_config.use_aspp = False
     model_config.use_extra_strides = True
     model_config.shortcut_strides = (4, 8, 16, 32, 64, 128)
     model_config.shortcut_channels = (24, 32, 96, 320, 320, 256)
-    return fpn_edgeailite_aspp_mobilenetv2_tv(model_config, pretrained=pretrained)
+    return fpn_aspp_mobilenetv2_tv_edgeailite(model_config, pretrained=pretrained)
 
 
 # similar to the original fpn model with extra convolutions with strides (no aspp) - fast down sampling model (encoder stride 64 model)
-def fpn_edgeailite_mobilenetv2_tv_fd(model_config=None, pretrained=None):
-    model_config = get_config_fpn_edgeailite_mnv2().merge_from(model_config)
+def fpn_mobilenetv2_tv_fd_edgeailite(model_config=None, pretrained=None):
+    model_config = get_config_fpn_mnv2_edgeailite().merge_from(model_config)
     model_config.use_aspp = False
     model_config.use_extra_strides = True
     model_config.fastdown = True
@@ -363,24 +363,24 @@ def fpn_edgeailite_mobilenetv2_tv_fd(model_config=None, pretrained=None):
     model_config.shortcut_channels = (24, 32, 96, 320, 320, 256)
     model_config.decoder_chan = 256
     model_config.aspp_chan = 256
-    return fpn_edgeailite_aspp_mobilenetv2_tv(model_config, pretrained=pretrained)
+    return fpn_aspp_mobilenetv2_tv_edgeailite(model_config, pretrained=pretrained)
 
 
 ###########################################
-def get_config_fpn_edgeailite_resnet50():
+def get_config_fpn_resnet50_edgeailite():
     # only the delta compared to the one defined for mobilenetv2
-    model_config = get_config_fpn_edgeailite_mnv2()
+    model_config = get_config_fpn_mnv2_edgeailite()
     model_config.shortcut_channels = (256,512,1024,2048)
     return model_config
 
 
-def fpn_edgeailite_aspp_resnet50(model_config=None, pretrained=None):
-    model_config = get_config_fpn_edgeailite_resnet50().merge_from(model_config)
+def fpn_aspp_resnet50_edgeailite(model_config=None, pretrained=None):
+    model_config = get_config_fpn_resnet50_edgeailite().merge_from(model_config)
     # encoder setup
     model_config_e = model_config.clone()
     base_model = ResNet50MI4(model_config_e)
     # decoder setup
-    model = FPNEdgeAILiteASPP(base_model, model_config)
+    model = FPNASPPEdgeAILite(base_model, model_config)
 
     # the pretrained model provided by torchvision and what is defined here differs slightly
     # note: that this change_names_dict  will take effect only if the direct load fails
@@ -412,26 +412,26 @@ def fpn_edgeailite_aspp_resnet50(model_config=None, pretrained=None):
     return model, change_names_dict
 
 
-def fpn_edgeailite_aspp_resnet50_fd(model_config=None, pretrained=None):
-    model_config = get_config_fpn_edgeailite_resnet50().merge_from(model_config)
+def fpn_aspp_resnet50_fd_edgeailite(model_config=None, pretrained=None):
+    model_config = get_config_fpn_resnet50_edgeailite().merge_from(model_config)
     model_config.fastdown = True
     model_config.strides = (2,2,2,2,2)
     model_config.shortcut_strides = (8,16,32,64) #(4,8,16,32,64)
     model_config.shortcut_channels = (256,512,1024,2048) #(64,256,512,1024,2048)
     model_config.decoder_chan = 256 #128
     model_config.aspp_chan = 256 #128
-    return fpn_edgeailite_aspp_resnet50(model_config, pretrained=pretrained)
+    return fpn_aspp_resnet50_edgeailite(model_config, pretrained=pretrained)
 
 
 ###########################################
 # here this is nothing specific about bgr in this model
 # but is just a reminder that regnet models are typically trained with bgr input
-def fpn_edgeailite_aspp_regnetx(model_config=None, pretrained=None, base_model_class=None):
+def fpn_aspp_regnetx_edgeailite(model_config=None, pretrained=None, base_model_class=None):
     # encoder setup
     model_config_e = model_config.clone() if model_config is not None else None
     base_model = base_model_class(model_config_e)
     # decoder setup
-    model = FPNEdgeAILiteASPP(base_model, model_config)
+    model = FPNASPPEdgeAILite(base_model, model_config)
 
     # the pretrained model provided by torchvision and what is defined here differs slightly
     # note: that this change_names_dict  will take effect only if the direct load fails
@@ -468,45 +468,45 @@ def fpn_edgeailite_aspp_regnetx(model_config=None, pretrained=None, base_model_c
 
 ###########################################
 # config settings for regnet400 backbone
-def get_config_fpn_edgeailite_regnetx400mf(model_config=None):
+def get_config_fpn_regnetx400mf_edgeailite(model_config=None):
     # only the delta compared to the one defined for mobilenetv2
-    model_config = get_config_fpn_edgeailite_mnv2().merge_from(model_config)
+    model_config = get_config_fpn_mnv2_edgeailite().merge_from(model_config)
     model_config.group_size_dw = 16
     model_config.shortcut_channels = (32,64,160,384)
     return model_config
 
 
-def fpn_edgeailite_aspp_regnetx400mf(model_config=None, pretrained=None):
-    model_config = get_config_fpn_edgeailite_regnetx400mf().merge_from(model_config)
-    return fpn_edgeailite_aspp_regnetx(model_config, pretrained, base_model_class=RegNetX400MFMI4)
+def fpn_aspp_regnetx400mf_edgeailite(model_config=None, pretrained=None):
+    model_config = get_config_fpn_regnetx400mf_edgeailite().merge_from(model_config)
+    return fpn_aspp_regnetx_edgeailite(model_config, pretrained, base_model_class=RegNetX400MFMI4)
 
 
-fpn_edgeailite_aspp_regnetx400mf_bgr = fpn_edgeailite_aspp_regnetx400mf
+fpn_aspp_regnetx400mf_bgr_edgeailite = fpn_aspp_regnetx400mf_edgeailite
 
 
 ###########################################
 # config settings for regnet800 backbone
-def get_config_fpn_edgeailite_regnetx800mf(model_config=None):
+def get_config_fpn_regnetx800mf_edgeailite(model_config=None):
     # only the delta compared to the one defined for mobilenetv2
-    model_config = get_config_fpn_edgeailite_mnv2().merge_from(model_config)
+    model_config = get_config_fpn_mnv2_edgeailite().merge_from(model_config)
     model_config.group_size_dw = 16
     model_config.shortcut_channels = (64,128,288,672)
     return model_config
 
 
-def fpn_edgeailite_aspp_regnetx800mf(model_config=None, pretrained=None):
-    model_config = get_config_fpn_edgeailite_regnetx800mf().merge_from(model_config)
-    return fpn_edgeailite_aspp_regnetx(model_config, pretrained, base_model_class=RegNetX800MFMI4)
+def fpn_aspp_regnetx800mf_edgeailite(model_config=None, pretrained=None):
+    model_config = get_config_fpn_regnetx800mf_edgeailite().merge_from(model_config)
+    return fpn_aspp_regnetx_edgeailite(model_config, pretrained, base_model_class=RegNetX800MFMI4)
 
 
-fpn_edgeailite_aspp_regnetx800mf_bgr = fpn_edgeailite_aspp_regnetx800mf
+fpn_aspp_regnetx800mf_bgr_edgeailite = fpn_aspp_regnetx800mf_edgeailite
 
 
 ###########################################
 # config settings for mobilenetv2 backbone
-def get_config_fpn_edgeailite_regnetx1p6gf(model_config=None):
+def get_config_fpn_regnetx1p6gf_edgeailite(model_config=None):
     # only the delta compared to the one defined for mobilenetv2
-    model_config = get_config_fpn_edgeailite_mnv2().merge_from(model_config)
+    model_config = get_config_fpn_mnv2_edgeailite().merge_from(model_config)
     model_config.group_size_dw = 24
     model_config.decoder_chan = 264
     model_config.aspp_chan = 264
@@ -514,19 +514,19 @@ def get_config_fpn_edgeailite_regnetx1p6gf(model_config=None):
     return model_config
 
 
-def fpn_edgeailite_aspp_regnetx1p6gf(model_config=None, pretrained=None):
-    model_config = get_config_fpn_edgeailite_regnetx1p6gf().merge_from(model_config)
-    return fpn_edgeailite_aspp_regnetx(model_config, pretrained, base_model_class=RegNetX1p6GFMI4)
+def fpn_aspp_regnetx1p6gf_edgeailite(model_config=None, pretrained=None):
+    model_config = get_config_fpn_regnetx1p6gf_edgeailite().merge_from(model_config)
+    return fpn_aspp_regnetx_edgeailite(model_config, pretrained, base_model_class=RegNetX1p6GFMI4)
 
 
-fpn_edgeailite_aspp_regnetx1p6gf_bgr = fpn_edgeailite_aspp_regnetx1p6gf
+fpn_aspp_regnetx1p6gf_bgr_edgeailite = fpn_aspp_regnetx1p6gf_edgeailite
 
 
 ###########################################
 # config settings for mobilenetv2 backbone
-def get_config_fpn_edgeailite_regnetx3p2gf(model_config=None):
+def get_config_fpn_regnetx3p2gf_edgeailite(model_config=None):
     # only the delta compared to the one defined for mobilenetv2
-    model_config = get_config_fpn_edgeailite_mnv2().merge_from(model_config)
+    model_config = get_config_fpn_mnv2_edgeailite().merge_from(model_config)
     model_config.group_size_dw = 48
     model_config.decoder_chan = 288
     model_config.aspp_chan = 288
@@ -534,9 +534,9 @@ def get_config_fpn_edgeailite_regnetx3p2gf(model_config=None):
     return model_config
 
 
-def fpn_edgeailite_aspp_regnetx3p2gf(model_config=None, pretrained=None):
-    model_config = get_config_fpn_edgeailite_regnetx3p2gf().merge_from(model_config)
-    return fpn_edgeailite_aspp_regnetx(model_config, pretrained, base_model_class=RegNetX3p2GFMI4)
+def fpn_aspp_regnetx3p2gf_edgeailite(model_config=None, pretrained=None):
+    model_config = get_config_fpn_regnetx3p2gf_edgeailite().merge_from(model_config)
+    return fpn_aspp_regnetx_edgeailite(model_config, pretrained, base_model_class=RegNetX3p2GFMI4)
 
 
-fpn_edgeailite_aspp_regnetx3p2gf_bgr = fpn_edgeailite_aspp_regnetx3p2gf
+fpn_aspp_regnetx3p2gf_bgr_edgeailite = fpn_aspp_regnetx3p2gf_edgeailite

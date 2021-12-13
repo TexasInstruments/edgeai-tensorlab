@@ -100,7 +100,7 @@ args = train_pixel2pixel.get_config()
 
 ################################
 #Modify arguments
-args.model_name = 'deeplabv3plus_edgeailite_mobilenetv2_tv' #'deeplabv3plus_edgeailite_mobilenetv2_tv' #'fpn_edgeailite_aspp_mobilenetv2_tv' #'fpn_edgeailite_aspp_resnet50'
+args.model_name = 'deeplabv3plus_mobilenetv2_tv_edgeailite' #'deeplabv3plus_mobilenetv2_tv_edgeailite' #'fpn_aspp_mobilenetv2_tv_edgeailite' #'fpn_aspp_resnet50_edgeailite'
 
 args.dataset_name = 'kitti_depth' #'kitti_depth' #'kitti_depth' #'kitti_depth2'
 

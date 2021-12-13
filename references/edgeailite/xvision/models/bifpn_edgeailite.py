@@ -47,16 +47,16 @@ from .backbone.multi_input_net import MobileNetV2TVMI4, ResNet50MI4, \
     RegNetX400MFMI4, RegNetX800MFMI4, RegNetX1p6GFMI4, RegNetX3p2GFMI4
 
 
-__all__ = ['BiFPNEdgeAILiteASPP', 'BiFPNEdgeAILiteDecoder',
-           'bifpn_edgeailite_aspp_mobilenetv2_tv', 'bifpn_edgeailite_mobilenetv2_tv',
-           'bifpn_edgeailite_aspp_regnetx400mf', 'bifpn_edgeailite_aspp_regnetx400mf_bgr',
-           'bifpn_edgeailite_aspp_regnetx800mf', 'bifpn_edgeailite_aspp_regnetx800mf_bgr',
-           'bifpn_edgeailite_aspp_regnetx1p6gf', 'bifpn_edgeailite_aspp_regnetx1p6gf_bgr',
-           'bifpn_edgeailite_aspp_regnetx3p2gf', 'bifpn_edgeailite_aspp_regnetx3p2gf_bgr'
+__all__ = ['BiFPNASPPEdgeAILite', 'BiFPNEdgeAILiteDecoder',
+           'bifpn_aspp_mobilenetv2_tv_edgeailite', 'bifpn_mobilenetv2_tv_edgeailite',
+           'bifpn_aspp_regnetx400mf_edgeailite', 'bifpn_aspp_regnetx400mf_bgr_edgeailite',
+           'bifpn_aspp_regnetx800mf_edgeailite', 'bifpn_aspp_regnetx800mf_bgr_edgeailite',
+           'bifpn_aspp_regnetx1p6gf_edgeailite', 'bifpn_aspp_regnetx1p6gf_bgr_edgeailite',
+           'bifpn_aspp_regnetx3p2gf_edgeailite', 'bifpn_aspp_regnetx3p2gf_bgr_edgeailite'
            ]
 
 # config settings for mobilenetv2 backbone
-def get_config_bifpn_edgeailite_mnv2():
+def get_config_bifpn_mnv2_edgeailite():
     model_config = xnn.utils.ConfigNode()
     model_config.num_classes = None
     model_config.num_decoders = None
@@ -432,19 +432,19 @@ class BiFPNEdgeAILiteDecoder(torch.nn.Module):
 
 
 ###########################################
-class BiFPNEdgeAILiteASPP(Pixel2PixelNet):
+class BiFPNASPPEdgeAILite(Pixel2PixelNet):
     def __init__(self, base_model, model_config):
         super().__init__(base_model, BiFPNEdgeAILiteDecoder, model_config)
 
 
 ###########################################
-def bifpn_edgeailite_aspp_mobilenetv2_tv(model_config, pretrained=None):
-    model_config = get_config_bifpn_edgeailite_mnv2().merge_from(model_config)
+def bifpn_aspp_mobilenetv2_tv_edgeailite(model_config, pretrained=None):
+    model_config = get_config_bifpn_mnv2_edgeailite().merge_from(model_config)
     # encoder setup
     model_config_e = model_config.clone()
     base_model = MobileNetV2TVMI4(model_config_e)
     # decoder setup
-    model = BiFPNEdgeAILiteASPP(base_model, model_config)
+    model = BiFPNASPPEdgeAILite(base_model, model_config)
 
     num_inputs = len(model_config.input_channels)
     num_decoders = len(model_config.output_channels) if (model_config.num_decoders is None) else model_config.num_decoders
@@ -468,21 +468,21 @@ def bifpn_edgeailite_aspp_mobilenetv2_tv(model_config, pretrained=None):
 
 ##################
 # similar to the original fpn model with extra convolutions with strides (no aspp)
-def bifpn_edgeailite_mobilenetv2_tv(model_config, pretrained=None):
-    model_config = get_config_bifpn_edgeailite_mnv2().merge_from(model_config)
+def bifpn_mobilenetv2_tv_edgeailite(model_config, pretrained=None):
+    model_config = get_config_bifpn_mnv2_edgeailite().merge_from(model_config)
     model_config.use_aspp = False
-    return bifpn_edgeailite_aspp_mobilenetv2_tv(model_config, pretrained=pretrained)
+    return bifpn_aspp_mobilenetv2_tv_edgeailite(model_config, pretrained=pretrained)
 
 
 ###########################################
 # here this is nothing specific about bgr in this model
 # but is just a reminder that regnet models are typically trained with bgr input
-def bifpn_edgeailite_aspp_regnetx(model_config, pretrained=None, base_model_class=None):
+def bifpn_aspp_regnetx_edgeailite(model_config, pretrained=None, base_model_class=None):
     # encoder setup
     model_config_e = model_config.clone()
     base_model = base_model_class(model_config_e)
     # decoder setup
-    model = BiFPNEdgeAILiteASPP(base_model, model_config)
+    model = BiFPNASPPEdgeAILite(base_model, model_config)
 
     # the pretrained model provided by torchvision and what is defined here differs slightly
     # note: that this change_names_dict  will take effect only if the direct load fails
@@ -519,43 +519,43 @@ def bifpn_edgeailite_aspp_regnetx(model_config, pretrained=None, base_model_clas
 
 ###########################################
 # config settings for mobilenetv2 backbone
-def get_config_bifpn_edgeailite_regnetx400mf():
+def get_config_bifpn_regnetx400mf_edgeailite():
     # only the delta compared to the one defined for mobilenetv2
-    model_config = get_config_bifpn_edgeailite_mnv2()
+    model_config = get_config_bifpn_mnv2_edgeailite()
     model_config.group_size_dw = 16
     model_config.shortcut_channels = (32,64,160,384)
     return model_config
 
-def bifpn_edgeailite_aspp_regnetx400mf(model_config, pretrained=None):
-    model_config = get_config_bifpn_edgeailite_regnetx400mf().merge_from(model_config)
-    return bifpn_edgeailite_aspp_regnetx(model_config, pretrained, base_model_class=RegNetX400MFMI4)
+def bifpn_aspp_regnetx400mf_edgeailite(model_config, pretrained=None):
+    model_config = get_config_bifpn_regnetx400mf_edgeailite().merge_from(model_config)
+    return bifpn_aspp_regnetx_edgeailite(model_config, pretrained, base_model_class=RegNetX400MFMI4)
 
 
-bifpn_edgeailite_aspp_regnetx400mf_bgr = bifpn_edgeailite_aspp_regnetx400mf
+bifpn_aspp_regnetx400mf_bgr_edgeailite = bifpn_aspp_regnetx400mf_edgeailite
 
 
 ###########################################
 # config settings for mobilenetv2 backbone
-def get_config_bifpn_edgeailite_regnetx800mf():
+def get_config_bifpn_regnetx800mf_edgeailite():
     # only the delta compared to the one defined for mobilenetv2
-    model_config = get_config_bifpn_edgeailite_mnv2()
+    model_config = get_config_bifpn_mnv2_edgeailite()
     model_config.group_size_dw = 16
     model_config.shortcut_channels = (64,128,288,672)
     return model_config
 
-def bifpn_edgeailite_aspp_regnetx800mf(model_config, pretrained=None):
-    model_config = get_config_bifpn_edgeailite_regnetx800mf().merge_from(model_config)
-    return bifpn_edgeailite_aspp_regnetx(model_config, pretrained, base_model_class=RegNetX800MFMI4)
+def bifpn_aspp_regnetx800mf_edgeailite(model_config, pretrained=None):
+    model_config = get_config_bifpn_regnetx800mf_edgeailite().merge_from(model_config)
+    return bifpn_aspp_regnetx_edgeailite(model_config, pretrained, base_model_class=RegNetX800MFMI4)
 
 
-bifpn_edgeailite_aspp_regnetx800mf_bgr = bifpn_edgeailite_aspp_regnetx800mf
+bifpn_aspp_regnetx800mf_bgr_edgeailite = bifpn_aspp_regnetx800mf_edgeailite
 
 
 ###########################################
 # config settings for mobilenetv2 backbone
-def get_config_bifpn_edgeailite_regnetx1p6gf():
+def get_config_bifpn_regnetx1p6gf_edgeailite():
     # only the delta compared to the one defined for mobilenetv2
-    model_config = get_config_bifpn_edgeailite_mnv2()
+    model_config = get_config_bifpn_mnv2_edgeailite()
     # group size is 24. make the decoder channels multiples of 24
     model_config.group_size_dw = 24
     model_config.decoder_chan = 168 #264
@@ -566,19 +566,19 @@ def get_config_bifpn_edgeailite_regnetx1p6gf():
     return model_config
 
 
-def bifpn_edgeailite_aspp_regnetx1p6gf(model_config, pretrained=None):
-    model_config = get_config_bifpn_edgeailite_regnetx1p6gf().merge_from(model_config)
-    return bifpn_edgeailite_aspp_regnetx(model_config, pretrained, base_model_class=RegNetX1p6GFMI4)
+def bifpn_aspp_regnetx1p6gf_edgeailite(model_config, pretrained=None):
+    model_config = get_config_bifpn_regnetx1p6gf_edgeailite().merge_from(model_config)
+    return bifpn_aspp_regnetx_edgeailite(model_config, pretrained, base_model_class=RegNetX1p6GFMI4)
 
 
-bifpn_edgeailite_aspp_regnetx1p6gf_bgr = bifpn_edgeailite_aspp_regnetx1p6gf
+bifpn_aspp_regnetx1p6gf_bgr_edgeailite = bifpn_aspp_regnetx1p6gf_edgeailite
 
 
 ###########################################
 # config settings for mobilenetv2 backbone
-def get_config_bifpn_edgeailite_regnetx3p2gf():
+def get_config_bifpn_regnetx3p2gf_edgeailite():
     # only the delta compared to the one defined for mobilenetv2
-    model_config = get_config_bifpn_edgeailite_mnv2()
+    model_config = get_config_bifpn_mnv2_edgeailite()
     # group size is 48. make the decoder channels multiples of 48
     model_config.group_size_dw = 48
     model_config.decoder_chan = 192 #288
@@ -589,9 +589,9 @@ def get_config_bifpn_edgeailite_regnetx3p2gf():
     return model_config
 
 
-def bifpn_edgeailite_aspp_regnetx3p2gf(model_config, pretrained=None):
-    model_config = get_config_bifpn_edgeailite_regnetx3p2gf().merge_from(model_config)
-    return bifpn_edgeailite_aspp_regnetx(model_config, pretrained, base_model_class=RegNetX3p2GFMI4)
+def bifpn_aspp_regnetx3p2gf_edgeailite(model_config, pretrained=None):
+    model_config = get_config_bifpn_regnetx3p2gf_edgeailite().merge_from(model_config)
+    return bifpn_aspp_regnetx_edgeailite(model_config, pretrained, base_model_class=RegNetX3p2GFMI4)
 
 
-bifpn_edgeailite_aspp_regnetx3p2gf_bgr = bifpn_edgeailite_aspp_regnetx3p2gf
+bifpn_aspp_regnetx3p2gf_bgr_edgeailite = bifpn_aspp_regnetx3p2gf_edgeailite

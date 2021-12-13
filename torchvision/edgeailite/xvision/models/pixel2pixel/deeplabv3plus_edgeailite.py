@@ -51,11 +51,11 @@ from ..multi_input_net import MobileNetV2TVMI4, MobileNetV2EricsunMI4, \
 
 ###########################################
 __all__ = ['DeepLabV3PlusEdgeAILite', 'DeepLabV3PlusEdgeAILiteDecoder',
-           'deeplabv3plus_edgeailite_mobilenetv2_tv', 'deeplabv3plus_edgeailite_mobilenetv2_tv_fd',
-           'deeplabv3plus_edgeailite_mobilenetv2_tv_1p4',
-           'deeplabv3plus_edgeailite_mobilenetv2_ericsun',
-           'deeplabv3plus_edgeailite_resnet50', 'deeplabv3plus_edgeailite_resnet50_p5', 'deeplabv3plus_edgeailite_resnet50_p5_fd',
-           'deeplabv3plus_edgeailite_regnetx800mf', 'deeplabv3plus_edgeailite_regnetx800mf_bgr']
+           'deeplabv3plus_mobilenetv2_tv_edgeailite', 'deeplabv3plus_mobilenetv2_tv_fd_edgeailite',
+           'deeplabv3plus_mobilenetv2_tv_1p4_edgeailite',
+           'deeplabv3plus_mobilenetv2_ericsun_edgeailite',
+           'deeplabv3plus_resnet50_edgeailite', 'deeplabv3plus_resnet50_p5_edgeailite', 'deeplabv3plus_resnet50_p5_fd_edgeailite',
+           'deeplabv3plus_regnetx800mf_edgeailite', 'deeplabv3plus_regnetx800mf_bgr_edgeailite']
 
 
 ###########################################
@@ -196,7 +196,7 @@ def get_config_deeplav3lite_mnv2():
     return model_config
 
 
-def deeplabv3plus_edgeailite_mobilenetv2_tv_1p4(model_config=None, pretrained=None):
+def deeplabv3plus_mobilenetv2_tv_1p4_edgeailite(model_config=None, pretrained=None):
     model_config = get_config_deeplav3lite_mnv2().merge_from(model_config)
     #for mobv2_1.4
     model_config.width_mult = 1.4
@@ -208,9 +208,9 @@ def deeplabv3plus_edgeailite_mobilenetv2_tv_1p4(model_config=None, pretrained=No
     model_config.decoder_chan = xnn.utils.make_divisible_by8(model_config.decoder_chan*w_m)
     model_config.aspp_chan = xnn.utils.make_divisible_by8(model_config.aspp_chan*w_m)
     
-    return deeplabv3plus_edgeailite_mobilenetv2_tv(model_config, pretrained=pretrained)
+    return deeplabv3plus_mobilenetv2_tv_edgeailite(model_config, pretrained=pretrained)
 
-def deeplabv3plus_edgeailite_mobilenetv2_tv(model_config=None, pretrained=None):
+def deeplabv3plus_mobilenetv2_tv_edgeailite(model_config=None, pretrained=None):
     model_config = get_config_deeplav3lite_mnv2().merge_from(model_config)
     # encoder setup
     model_config_e = model_config.clone()
@@ -236,7 +236,7 @@ def deeplabv3plus_edgeailite_mobilenetv2_tv(model_config=None, pretrained=None):
     return model, change_names_dict
 
 
-def deeplabv3plus_edgeailite_mobilenetv2_tv_fd(model_config=None, pretrained=None):
+def deeplabv3plus_mobilenetv2_tv_fd_edgeailite(model_config=None, pretrained=None):
     model_config = get_config_deeplav3lite_mnv2().merge_from(model_config)
     model_config.fastdown = True
     model_config.strides = (2,2,2,2,1)
@@ -244,10 +244,10 @@ def deeplabv3plus_edgeailite_mobilenetv2_tv_fd(model_config=None, pretrained=Non
     model_config.shortcut_channels = (24,320)
     model_config.decoder_chan = 256
     model_config.aspp_chan = 256
-    return deeplabv3plus_edgeailite_mobilenetv2_tv(model_config, pretrained=pretrained)
+    return deeplabv3plus_mobilenetv2_tv_edgeailite(model_config, pretrained=pretrained)
 
 
-def deeplabv3plus_edgeailite_mobilenetv2_ericsun(model_config=None, pretrained=None):
+def deeplabv3plus_mobilenetv2_ericsun_edgeailite(model_config=None, pretrained=None):
     model_config = get_config_deeplav3lite_mnv2().merge_from(model_config)
     # encoder setup
     model_config_e = model_config.clone()
@@ -283,7 +283,7 @@ def get_config_deeplav3lite_resnet50():
     return model_config
 
 
-def deeplabv3plus_edgeailite_resnet50(model_config=None, pretrained=None):
+def deeplabv3plus_resnet50_edgeailite(model_config=None, pretrained=None):
     model_config = get_config_deeplav3lite_resnet50().merge_from(model_config)
     # encoder setup
     model_config_e = model_config.clone()
@@ -321,18 +321,18 @@ def deeplabv3plus_edgeailite_resnet50(model_config=None, pretrained=None):
     return model, change_names_dict
 
 
-def deeplabv3plus_edgeailite_resnet50_p5(model_config=None, pretrained=None):
+def deeplabv3plus_resnet50_p5_edgeailite(model_config=None, pretrained=None):
     model_config.width_mult = 0.5
     model_config.shortcut_channels = (128,1024)
-    return deeplabv3plus_edgeailite_resnet50(model_config, pretrained=pretrained)
+    return deeplabv3plus_resnet50_edgeailite(model_config, pretrained=pretrained)
 
 
-def deeplabv3plus_edgeailite_resnet50_p5_fd(model_config, pretrained=None):
+def deeplabv3plus_resnet50_p5_fd_edgeailite(model_config, pretrained=None):
     model_config.width_mult = 0.5
     model_config.fastdown = True
     model_config.shortcut_channels = (128,1024)
     model_config.shortcut_strides = (8,64)
-    return deeplabv3plus_edgeailite_resnet50(model_config, pretrained=pretrained)
+    return deeplabv3plus_resnet50_edgeailite(model_config, pretrained=pretrained)
 
 
 ###########################################
@@ -347,7 +347,7 @@ def get_config_deeplav3lite_regnetx800mf():
 
 # here this is nothing specific about bgr in this model
 # but is just a reminder that regnet models are typically trained with bgr input
-def deeplabv3plus_edgeailite_regnetx800mf(model_config=None, pretrained=None):
+def deeplabv3plus_regnetx800mf_edgeailite(model_config=None, pretrained=None):
     model_config = get_config_deeplav3lite_regnetx800mf().merge_from(model_config)
     # encoder setup
     model_config_e = model_config.clone()
@@ -387,4 +387,4 @@ def deeplabv3plus_edgeailite_regnetx800mf(model_config=None, pretrained=None):
 
     return model, change_names_dict
 
-deeplabv3plus_edgeailite_regnetx800mf_bgr = deeplabv3plus_edgeailite_regnetx800mf
+deeplabv3plus_regnetx800mf_bgr_edgeailite = deeplabv3plus_regnetx800mf_edgeailite

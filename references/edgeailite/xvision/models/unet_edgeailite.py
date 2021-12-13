@@ -44,14 +44,14 @@ from .pixel2pixelnet import *
 from .backbone.multi_input_net import MobileNetV2TVMI4, ResNet50MI4, RegNetX800MFMI4
 
 
-__all__ = ['UNetEdgeAILiteASPP', 'UNetEdgeAILiteDecoder',
-           'unet_edgeailite_aspp_mobilenetv2_tv', 'unet_edgeailite_aspp_mobilenetv2_tv_fd',
-           'unet_edgeailite_aspp_resnet50', 'unet_edgeailite_aspp_resnet50_fd',
-           'unet_edgeailite_aspp_regnetx800mf', 'unet_edgeailite_aspp_regnetx800mf_bgr'
+__all__ = ['UNetASPPEdgeAILite', 'UNetEdgeAILiteDecoder',
+           'unet_aspp_mobilenetv2_tv_edgeailite', 'unet_aspp_mobilenetv2_tv_fd_edgeailite',
+           'unet_aspp_resnet50_edgeailite', 'unet_aspp_resnet50_fd_edgeailite',
+           'unet_aspp_regnetx800mf_edgeailite', 'unet_aspp_regnetx800mf_bgr_edgeailite'
            ]
 
 # config settings for mobilenetv2 backbone
-def get_config_unet_edgeailitep2p_mnv2():
+def get_config_unet_mnv2_edgeailite():
     model_config = xnn.utils.ConfigNode()
     model_config.num_classes = None
     model_config.num_decoders = None
@@ -230,19 +230,19 @@ class UNetEdgeAILiteDecoder(torch.nn.Module):
 
 
 ###########################################
-class UNetEdgeAILiteASPP(Pixel2PixelNet):
+class UNetASPPEdgeAILite(Pixel2PixelNet):
     def __init__(self, base_model, model_config):
         super().__init__(base_model, UNetEdgeAILiteDecoder, model_config)
 
 
 ###########################################
-def unet_edgeailite_aspp_mobilenetv2_tv(model_config, pretrained=None):
-    model_config = get_config_unet_edgeailitep2p_mnv2().merge_from(model_config)
+def unet_aspp_mobilenetv2_tv_edgeailite(model_config, pretrained=None):
+    model_config = get_config_unet_mnv2_edgeailite().merge_from(model_config)
     # encoder setup
     model_config_e = model_config.clone()
     base_model = MobileNetV2TVMI4(model_config_e)
     # decoder setup
-    model = UNetEdgeAILiteASPP(base_model, model_config)
+    model = UNetASPPEdgeAILite(base_model, model_config)
 
     num_inputs = len(model_config.input_channels)
     num_decoders = len(model_config.output_channels) if (model_config.num_decoders is None) else model_config.num_decoders
@@ -264,33 +264,33 @@ def unet_edgeailite_aspp_mobilenetv2_tv(model_config, pretrained=None):
 
 
 # fast down sampling model (encoder stride 64 model)
-def unet_edgeailite_aspp_mobilenetv2_tv_fd(model_config, pretrained=None):
-    model_config = get_config_unet_edgeailitep2p_mnv2().merge_from(model_config)
+def unet_aspp_mobilenetv2_tv_fd_edgeailite(model_config, pretrained=None):
+    model_config = get_config_unet_mnv2_edgeailite().merge_from(model_config)
     model_config.fastdown = True
     model_config.strides = (2,2,2,2,2)
     model_config.shortcut_strides = (4,8,16,32,64)
     model_config.shortcut_channels = (16,24,32,96,320)
     model_config.decoder_chan = 256
     model_config.aspp_chan = 256
-    return unet_edgeailite_aspp_mobilenetv2_tv(model_config, pretrained=pretrained)
+    return unet_aspp_mobilenetv2_tv_edgeailite(model_config, pretrained=pretrained)
 
 
 ###########################################
-def get_config_unet_edgeailite_resnet50():
+def get_config_unet_resnet50_edgeailite():
     # only the delta compared to the one defined for mobilenetv2
-    model_config = get_config_unet_edgeailitep2p_mnv2()
+    model_config = get_config_unet_mnv2_edgeailite()
     model_config.shortcut_strides = (2,4,8,16,32)
     model_config.shortcut_channels = (64,256,512,1024,2048)
     return model_config
 
 
-def unet_edgeailite_aspp_resnet50(model_config, pretrained=None):
-    model_config = get_config_unet_edgeailite_resnet50().merge_from(model_config)
+def unet_aspp_resnet50_edgeailite(model_config, pretrained=None):
+    model_config = get_config_unet_resnet50_edgeailite().merge_from(model_config)
     # encoder setup
     model_config_e = model_config.clone()
     base_model = ResNet50MI4(model_config_e)
     # decoder setup
-    model = UNetEdgeAILiteASPP(base_model, model_config)
+    model = UNetASPPEdgeAILite(base_model, model_config)
 
     # the pretrained model provided by torchvision and what is defined here differs slightly
     # note: that this change_names_dict  will take effect only if the direct load fails
@@ -322,22 +322,22 @@ def unet_edgeailite_aspp_resnet50(model_config, pretrained=None):
     return model, change_names_dict
 
 
-def unet_edgeailite_aspp_resnet50_fd(model_config, pretrained=None):
-    model_config = get_config_unet_edgeailite_resnet50().merge_from(model_config)
+def unet_aspp_resnet50_fd_edgeailite(model_config, pretrained=None):
+    model_config = get_config_unet_resnet50_edgeailite().merge_from(model_config)
     model_config.fastdown = True
     model_config.strides = (2,2,2,2,2)
     model_config.shortcut_strides = (2,4,8,16,32,64) #(4,8,16,32,64)
     model_config.shortcut_channels = (64,64,256,512,1024,2048) #(64,256,512,1024,2048)
     model_config.decoder_chan = 256 #128
     model_config.aspp_chan = 256 #128
-    return unet_edgeailite_aspp_resnet50(model_config, pretrained=pretrained)
+    return unet_aspp_resnet50_edgeailite(model_config, pretrained=pretrained)
 
 
 ###########################################
 # config settings for mobilenetv2 backbone
-def get_config_unet_edgeailite_regnetx800mf():
+def get_config_unet_regnetx800mf_edgeailite():
     # only the delta compared to the one defined for mobilenetv2
-    model_config = get_config_unet_edgeailitep2p_mnv2()
+    model_config = get_config_unet_mnv2_edgeailite()
     model_config.shortcut_strides = (2,4,8,16,32)
     model_config.shortcut_channels = (32,64,128,288,672)
     model_config.group_size_dw = 16
@@ -346,13 +346,13 @@ def get_config_unet_edgeailite_regnetx800mf():
 
 # here this is nothing specific about bgr in this model
 # but is just a reminder that regnet models are typically trained with bgr input
-def unet_edgeailite_aspp_regnetx800mf(model_config, pretrained=None):
-    model_config = get_config_unet_edgeailite_regnetx800mf().merge_from(model_config)
+def unet_aspp_regnetx800mf_edgeailite(model_config, pretrained=None):
+    model_config = get_config_unet_regnetx800mf_edgeailite().merge_from(model_config)
     # encoder setup
     model_config_e = model_config.clone()
     base_model = RegNetX800MFMI4(model_config_e)
     # decoder setup
-    model = UNetEdgeAILiteASPP(base_model, model_config)
+    model = UNetASPPEdgeAILite(base_model, model_config)
 
     # the pretrained model provided by torchvision and what is defined here differs slightly
     # note: that this change_names_dict  will take effect only if the direct load fails
@@ -386,4 +386,4 @@ def unet_edgeailite_aspp_regnetx800mf(model_config, pretrained=None):
     #
     return model, change_names_dict
 
-unet_edgeailite_aspp_regnetx800mf_bgr = unet_edgeailite_aspp_regnetx800mf
+unet_aspp_regnetx800mf_bgr_edgeailite = unet_aspp_regnetx800mf_edgeailite

@@ -100,7 +100,7 @@ args = train_pixel2pixel.get_config()
 
 #Modify arguments
 
-args.model_name = 'deeplabv3plus_edgeailite_mobilenetv2_tv'
+args.model_name = 'deeplabv3plus_mobilenetv2_tv_edgeailite'
 
 #args.save_path = './data/checkpoints/edgeailite'
 args.dataset_name = 'cityscapes_motion_multi_input'

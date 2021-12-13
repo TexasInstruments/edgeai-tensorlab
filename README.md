@@ -46,18 +46,7 @@ We have three categories of models and scripts in this repository:
 <hr>
 
 
-### Category 1: "lite" models created using original torchvision models
-
-Recently torchvision has started adding support for several tasks such as Object Detection, Semantic Segmentation etc. Some of these do not run on our platform due to the presence of unsupported layers. But we have a model surgery function that creates embedded friendly versions of these models. The models thus created carry a keyworkd "lite". See the list of "lite" models here: [./torchvision/models/model_lite.py](./torchvision/models/model_lite.py), [./torchvision/models/detection/model_lite.py](./torchvision/models/detection/model_lite.py), [./torchvision/models/segmentation/model_lite.py](./torchvision/models/segmentation/model_lite.py)
-
-These "lite" models (1) provide more variety to our Model Zoo making it richer (2) extensible as torchvision adds more models in the future (3) stay close to the official version of these models.
-
-The shell scripts run_torchvision_....sh can be used to train, evaluate or export these "lite" models.
-
-<hr>
-
-
-### Category 2: Our 'edgeailite' models
+### Category 1: Our 'edgeailite' models
 
 **[See documentation of our edgeailite extensions to torchvision](README_edgeailite.md)**
 
@@ -76,6 +65,19 @@ Tools and scripts for **Quantization Aware Training (QAT)** that is best suited 
 
 The shell scripts run_edgeailite_....sh can be used to train, evaluate or export these "edgeailite" models. 
 
+
+<hr>
+
+
+### Category 2: "lite" models created using original torchvision models
+
+Recently torchvision has started adding support for several tasks such as Object Detection, Semantic Segmentation etc. Some of these do not run on our platform due to the presence of unsupported layers. But we have a model surgery function that creates embedded friendly versions of these models. The models thus created carry a keyworkd "lite". See the list of "lite" models here: [./torchvision/models/model_lite.py](./torchvision/models/model_lite.py), [./torchvision/models/detection/model_lite.py](./torchvision/models/detection/model_lite.py), [./torchvision/models/segmentation/model_lite.py](./torchvision/models/segmentation/model_lite.py)
+
+These "lite" models (1) provide more variety to our Model Zoo making it richer (2) extensible as torchvision adds more models in the future (3) stay close to the official version of these models.
+
+The shell scripts run_torchvision_....sh can be used to train, evaluate or export these "lite" models.
+
+**Note**: these models are still in developmet and some of them may not be fully supported in TIDL yet.
 
 <hr>
 

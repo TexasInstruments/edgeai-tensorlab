@@ -12,7 +12,7 @@ We provide  scripts for training models with three different input combinations.
 
 The following model is used for training:
 
-**deeplabv3plus_edgeailite_mobilenetv2_tv**: This is same as deeplabv3plus_edgeailite_mobilenetv2_tv as described [`here`](Semantic_Segmentation.md). The sole difference being it takes two inputs for the training and fuses the feature maps after a stride of 4. This increases the complexity compared to a single stream model by roughly 20%.
+**deeplabv3plus_mobilenetv2_tv_edgeailite**: This is same as deeplabv3plus_mobilenetv2_tv_edgeailite as described [`here`](Semantic_Segmentation.md). The sole difference being it takes two inputs for the training and fuses the feature maps after a stride of 4. This increases the complexity compared to a single stream model by roughly 20%.
 
 ## Datasets: Cityscapes Motion Datset
 **Dataset preparation:**  Dataset used for this training is cityscapes dataset with motion annotation. This training requires either the previous frame or optical flow generated from (current frame, previous frame). Given below are the details to download these extra files.

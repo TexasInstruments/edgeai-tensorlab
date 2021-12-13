@@ -85,7 +85,7 @@ args = infer_pixel2pixel.get_config()
 
 
 #Modify arguments
-args.model_name = "deeplabv3plus_edgeailite_mobilenetv2_tv" #"deeplabv3plus_edgeailite_mobilenetv2_relu" #"deeplabv3plus_edgeailite_mobilenetv2_relu_x1p5" #"deeplabv3plus"
+args.model_name = "deeplabv3plus_mobilenetv2_tv_edgeailite"
 
 args.dataset_name = 'cityscapes_segmentation_measure' #'tiad_segmentation_infer'   #'cityscapes_segmentation_infer' #'tiad_segmentation'  #'cityscapes_segmentation_measure'
 args.dataset_config.split = 'val'

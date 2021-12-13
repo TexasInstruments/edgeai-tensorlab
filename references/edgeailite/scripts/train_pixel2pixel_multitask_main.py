@@ -101,7 +101,7 @@ args = train_pixel2pixel.get_config()
 
 #Modify arguments
 
-args.model_name = 'deeplabv3plus_edgeailite_mobilenetv2_ericsun' #'deeplabv3plus_edgeailite_mobilenetv2_mi4'
+args.model_name = 'deeplabv3plus_mobilenetv2_ericsun_edgeailite' 
 
 args.dataset_name =  'cityscapes_depth_semantic_motion_multi_input' #'cityscapes_flow_depth_segmentation_image_pair' #cityscapes_segmentation #'cityscapes_segmentation_dual'
 

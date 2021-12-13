@@ -10,28 +10,28 @@ Whether to use multiple inputs or how many decoders to use are fully configurabl
 
 These are some of the supported models that use MobileNetV2 backbone.
 
-**deeplabv3plus_edgeailite_mobilenetv2_tv**: (default) This model is mostly similar to the DeepLabV3+ model [[7]] using MobileNetV2 backbone. The difference with DeepLabV3+ is that we removed the convolutions after the shortcut and kep one set of depthwise separable convolutions to generate the prediction. The ASPP module that we used is a lite-weight variant with depthwise separable convolutions (DWASPP). We found that this reduces complexity without sacrificing accuracy. Due to this we call this model DeepLabV3+(Lite) or simply  DeepLabV3PlusEdgeAILite. (Note: The suffix "_tv" is used to indicate that our backbone model is from torchvision)
+**deeplabv3plus_mobilenetv2_tv_edgeailite**: (default) This model is mostly similar to the DeepLabV3+ model [[7]] using MobileNetV2 backbone. The difference with DeepLabV3+ is that we removed the convolutions after the shortcut and kep one set of depthwise separable convolutions to generate the prediction. The ASPP module that we used is a lite-weight variant with depthwise separable convolutions (DWASPP). We found that this reduces complexity without sacrificing accuracy. Due to this we call this model DeepLabV3+(Lite) or simply  DeepLabV3PlusEdgeAILite. (Note: The suffix "_tv" is used to indicate that our backbone model is from torchvision)
 
-**unet_edgeailite_aspp_mobilenetv2_tv**: UNet [6] based edgeailite model.
+**unet_aspp_mobilenetv2_tv_edgeailite**: UNet [6] based edgeailite model.
 
-**fpn_edgeailite_aspp_mobilenetv2_tv**: This is similar to Feature Pyramid Network [[4]], but adapted for edgeailite tasks. We stop the decoder at a stride of 4 and then upsample to the final resolution from there. We also use DWASPP module to improve the receptive field. We call this model FPNPixel2Pixel.
+**fpn_aspp_mobilenetv2_tv_edgeailite**: This is similar to Feature Pyramid Network [[4]], but adapted for edgeailite tasks. We stop the decoder at a stride of 4 and then upsample to the final resolution from there. We also use DWASPP module to improve the receptive field. We call this model FPNPixel2Pixel.
 
-**fpn_edgeailite_aspp_mobilenetv2_tv_fd**: This is also FPN, but with a larger encoder stride(64). This is a low complexity model (using Fast Downsampling Strategy [12]) that can be used with higher resolutions.
+**fpn_aspp_mobilenetv2_tv_fd_edgeailite**: This is also FPN, but with a larger encoder stride(64). This is a low complexity model (using Fast Downsampling Strategy [12]) that can be used with higher resolutions.
 
 
 **We find that RegNetX models strike a good balance between accuracy, model complexity, speed of inference on device and easiness of quantization.**  For RegNetX based edgeailite models, the same group size used in the encoder is used in the decoder part as well. Following are some of the RegNetX based models that are supported.
 
-**deeplabv3plus_edgeailite_regnetx800mf**: RegNetX-800MF based DeepLabV3Plus model.
+**deeplabv3plus_regnetx800mf_edgeailite**: RegNetX-800MF based DeepLabV3Plus model.
 
-**unet_edgeailite_aspp_regnetx800mf**: RegNetX-800MF based UNet model.
+**unet_aspp_regnetx800mf_edgeailite**: RegNetX-800MF based UNet model.
 
-**fpn_edgeailite_aspp_regnetx400mf**: RegNetX-400MF based FPN model.
+**fpn_aspp_regnetx400mf_edgeailite**: RegNetX-400MF based FPN model.
 
-**fpn_edgeailite_aspp_regnetx800mf** RegNetX-800MF based FPN model.
+**fpn_aspp_regnetx800mf_edgeailite** RegNetX-800MF based FPN model.
 
-**fpn_edgeailite_aspp_regnetx1p6gf** RegNetX-1.6GF based FPN model.
+**fpn_aspp_regnetx1p6gf_edgeailite** RegNetX-1.6GF based FPN model.
 
-**fpn_edgeailite_aspp_regnetx3p2gf** RegNetX-3.2GF based FPN model.
+**fpn_aspp_regnetx3p2gf_edgeailite** RegNetX-3.2GF based FPN model.
 
 
 ## Datasets: Cityscapes Dataset 
@@ -72,40 +72,40 @@ These examples use two gpus because we use slightly higher accuracy when we rest
 
 **Cityscapes Segmentation Training** with MobileNetV2 backbone and DeeplabV3Lite decoder can be done as follows:<br>
 ```
-python ./references/edgeailite/scripts/train_segmentation_main.py --model_name deeplabv3plus_edgeailite_mobilenetv2_tv --dataset_name cityscapes_segmentation --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --gpus 0 1
+python ./references/edgeailite/scripts/train_segmentation_main.py --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --dataset_name cityscapes_segmentation --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --gpus 0 1
 ```
 
 Cityscapes Segmentation Training with **RegNet800MF backbone and FPN decoder** can be done as follows:<br>
 ```
-python ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name fpn_edgeailite_aspp_regnetx800mf --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 --pretrained https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906036/RegNetX-800MF_dds_8gpu.pyth
+python ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name fpn_aspp_regnetx800mf_edgeailite --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 --pretrained https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906036/RegNetX-800MF_dds_8gpu.pyth
 ```
 
 It is possible to use a **different image size**. For example, we trained for 1536x768 resolution by the following. (We used a smaller crop size compared to the image resize resolution to reduce GPU memory usage). <br>
 ```
-python ./references/edgeailite/scripts/train_segmentation_main.py --model_name deeplabv3plus_edgeailite_mobilenetv2_tv --dataset_name cityscapes_segmentation --data_path ./data/datasets/cityscapes/data --img_resize 768 1536 --rand_crop 512 1024 --output_size 1024 2048 --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --gpus 0 1
+python ./references/edgeailite/scripts/train_segmentation_main.py --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --dataset_name cityscapes_segmentation --data_path ./data/datasets/cityscapes/data --img_resize 768 1536 --rand_crop 512 1024 --output_size 1024 2048 --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --gpus 0 1
 ```
 
 Train **FPNPixel2Pixel model at 1536x768 resolution** (use 1024x512 crop to reduce memory usage):<br>
 ```
-python ./references/edgeailite/scripts/train_segmentation_main.py --model_name fpn_edgeailite_aspp_mobilenetv2_tv --dataset_name cityscapes_segmentation --data_path ./data/datasets/cityscapes/data --img_resize 768 1536 --rand_crop 512 1024 --output_size 1024 2048 --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --gpus 0 1
+python ./references/edgeailite/scripts/train_segmentation_main.py --model_name fpn_aspp_mobilenetv2_tv_edgeailite --dataset_name cityscapes_segmentation --data_path ./data/datasets/cityscapes/data --img_resize 768 1536 --rand_crop 512 1024 --output_size 1024 2048 --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --gpus 0 1
 ```
  
 **VOC Segmentation Training** can be done as follows:<br>
 ```
-python ./references/edgeailite/scripts/train_segmentation_main.py --model_name deeplabv3plus_edgeailite_mobilenetv2_tv --dataset_name voc_segmentation --data_path ./data/datasets/voc --img_resize 512 512 --output_size 512 512 --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --gpus 0 1
+python ./references/edgeailite/scripts/train_segmentation_main.py --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --dataset_name voc_segmentation --data_path ./data/datasets/voc --img_resize 512 512 --output_size 512 512 --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --gpus 0 1
 ```
 
 ## Validation
 During the training, **validation** accuracy will also be printed. But to explicitly check the accuracy again with **validation** set, it can be done as follows (fill in the path to the pretrained model):<br>
 ```
-python ./references/edgeailite/scripts/train_segmentation_main.py --phase validation --model_name deeplabv3plus_edgeailite_mobilenetv2_tv --dataset_name cityscapes_segmentation --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 --pretrained ?????
+python ./references/edgeailite/scripts/train_segmentation_main.py --phase validation --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --dataset_name cityscapes_segmentation --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 --pretrained ?????
 ```
 
 
 ## Inference
 Inference can be done as follows (fill in the path to the pretrained model):<br>
 ```
-python ./scripts/infer_segmentation_main.py --phase validation --model_name deeplabv3plus_edgeailite_mobilenetv2_tv --dataset_name cityscapes_segmentation_measure --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 --pretrained ?????
+python ./scripts/infer_segmentation_main.py --phase validation --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --dataset_name cityscapes_segmentation_measure --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 --pretrained ?????
 ```
 
  
@@ -127,21 +127,21 @@ python ./scripts/infer_segmentation_main.py --phase validation --model_name deep
 |COCOSeg21  |MobileNetV2+FPNEdgeAILite          |512x512    |3.357     |               |                |      | 
 |COCOSeg21  |RegNetX800MF+FPNEdgeAILite         |512x512    |7.864     |61.15          |                |      | 
 |           |**Cityscapes dataset models**
-|Cityscapes|RegNetX800MF+FPNEdgeAILite          |768x384    |**8.84**  |**72.01**      |fpn_edgeailite_aspp_regnetx800mf  |      | 
-|Cityscapes|RegNetX1.6GF+FPNEdgeAILite          |1024x512   |**24.29** |**75.84**      |fpn_edgeailite_aspp_regnetx1p6gf  |      | 
-|Cityscapes|RegNetX3.2GF+FPNEdgeAILite          |1024x512   |**49.40** |**77.24**      |fpn_edgeailite_aspp_regnetx3p2gf  |      | 
-|Cityscapes|RegNetX3.2FF+FPNEdgeAILite          |1536x768   |**111.16**|**78.90**      |fpn_edgeailite_aspp_regnetx3p2gf  |      | 
+|Cityscapes|RegNetX800MF+FPNEdgeAILite          |768x384    |**8.84**  |**72.01**      |fpn_aspp_regnetx800mf_edgeailite  |      | 
+|Cityscapes|RegNetX1.6GF+FPNEdgeAILite          |1024x512   |**24.29** |**75.84**      |fpn_aspp_regnetx1p6gf_edgeailite  |      | 
+|Cityscapes|RegNetX3.2GF+FPNEdgeAILite          |1024x512   |**49.40** |**77.24**      |fpn_aspp_regnetx3p2gf_edgeailite  |      | 
+|Cityscapes|RegNetX3.2FF+FPNEdgeAILite          |1536x768   |**111.16**|**78.90**      |fpn_aspp_regnetx3p2gf_edgeailite  |      | 
 |-
-|Cityscapes|RegNetX400MF+FPNEdgeAILite          |768x384    |**6.09**  |**68.03**      |fpn_edgeailite_aspp_regnetx400mf  |      | 
-|Cityscapes|RegNetX400MF+FPNEdgeAILite          |1536x768   |**24.37** |**73.96**      |fpn_edgeailite_aspp_regnetx400mf  |      | 
+|Cityscapes|RegNetX400MF+FPNEdgeAILite          |768x384    |**6.09**  |**68.03**      |fpn_aspp_regnetx400mf_edgeailite  |      | 
+|Cityscapes|RegNetX400MF+FPNEdgeAILite          |1536x768   |**24.37** |**73.96**      |fpn_aspp_regnetx400mf_edgeailite  |      | 
 |-
-|Cityscapes|MobileNetV2S16+DeepLabV3PlusEdgeAILite  |768x384    |**3.54**  |**69.13**      |deeplabv3plus_edgeailite_mobilenetv2_tv           |      | 
+|Cityscapes|MobileNetV2S16+DeepLabV3PlusEdgeAILite  |768x384    |**3.54**  |**69.13**      |deeplabv3plus_mobilenetv2_tv_edgeailite           |      | 
 |Cityscapes|MobileNetV2+UNetEdgeAILite          |768x384    |**2.20**  |**68.94**      |unet_edgeailite_pixel2pixel_aspp_mobilenetv2_tv |      | 
-|Cityscapes|MobileNetV2+FPNEdgeAILite           |768x384    |**3.84**  |**70.39**      |fpn_edgeailite_aspp_mobilenetv2_tv |      | 
-|Cityscapes|MobileNetV2+FPNEdgeAILite           |1536x768   |**15.07** |**74.61**      |fpn_edgeailite_aspp_mobilenetv2_tv |      | 
+|Cityscapes|MobileNetV2+FPNEdgeAILite           |768x384    |**3.84**  |**70.39**      |fpn_aspp_mobilenetv2_tv_edgeailite |      | 
+|Cityscapes|MobileNetV2+FPNEdgeAILite           |1536x768   |**15.07** |**74.61**      |fpn_aspp_mobilenetv2_tv_edgeailite |      | 
 |-
-|Cityscapes|FD-MobileNetV2+FPNEdgeAILite        |1536x768   |**3.96**  |**71.28**      |fpn_edgeailite_aspp_mobilenetv2_tv_fd |      | 
-|Cityscapes|FD-MobileNetV2+FPNEdgeAILite        |2048x1024  |**7.03**  |**72.67**      |fpn_edgeailite_aspp_mobilenetv2_tv_fd |      | 
+|Cityscapes|FD-MobileNetV2+FPNEdgeAILite        |1536x768   |**3.96**  |**71.28**      |fpn_aspp_mobilenetv2_tv_fd_edgeailite |      | 
+|Cityscapes|FD-MobileNetV2+FPNEdgeAILite        |2048x1024  |**7.03**  |**72.67**      |fpn_aspp_mobilenetv2_tv_fd_edgeailite |      | 
 |-
 |Cityscapes |MobileNetV2S16+DeepLabV3PlusEdgeAILite-QAT* |768x384  |**3.54**  |**68.77**   |                |      |
 |Cityscapes |MobileNetV2+UNetEdgeAILite-QAT*         |768x384  |**2.20**  |**68.18**   |                |      |
