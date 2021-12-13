@@ -110,7 +110,7 @@ def get_configs(settings, work_dir):
             preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', mean=(128.0, 128.0, 128.0), scale=(0.015625, 0.015625, 0.015625), interpolation=cv2.INTER_AREA),
             session=onnx_session_type(
                 work_dir=work_dir, target_device=settings.target_device, runtime_options=settings.runtime_options_onnx_qat(),
-                model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/robokit-zed1hd_deeplabv3lite_mobilenetv2_tv_768x432_qat-p2.onnx'),
+                model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432_qat-p2.onnx'),
             postprocess=postproc_transforms.get_transform_segmentation_onnx(),
             model_info=dict(metric_reference={'accuracy_mean_iou%':None})
         ),
@@ -121,7 +121,7 @@ def get_configs(settings, work_dir):
             preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', mean=(128.0, 128.0, 128.0), scale=(0.015625, 0.015625, 0.015625), interpolation=cv2.INTER_AREA),
             session=onnx_session_type(
                 work_dir=work_dir, target_device=settings.target_device, runtime_options=settings.runtime_options_onnx_np2(),
-                model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/robokit-zed1hd_deeplabv3lite_mobilenetv2_tv_768x432.onnx'),
+                model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432.onnx'),
             postprocess=postproc_transforms.get_transform_segmentation_onnx(),
             model_info=dict(metric_reference={'accuracy_mean_iou%':None})
         ),
@@ -130,7 +130,7 @@ def get_configs(settings, work_dir):
         # 'ss-8500':utils.dict_update(cityscapes_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
-        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/deeplabv3lite_mobilenetv2_768x384_20190626.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailite_768x384_20190626.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':69.13})
         # ),
@@ -138,7 +138,7 @@ def get_configs(settings, work_dir):
         # 'ss-8520':utils.dict_update(cityscapes_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
-        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/fpnlite_aspp_mobilenetv2_768x384_20200120.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/fpn_aspp_mobilenetv2_edgeailite_768x384_20200120.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':70.48})
         # ),
@@ -146,7 +146,7 @@ def get_configs(settings, work_dir):
         # 'ss-8540':utils.dict_update(cityscapes_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
-        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/unetlite_aspp_mobilenetv2_768x384_20200129.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/unet_aspp_mobilenetv2_edgeailite_768x384_20200129.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':68.97})
         # ),
@@ -154,7 +154,7 @@ def get_configs(settings, work_dir):
         # 'ss-8560':utils.dict_update(cityscapes_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
-        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/fpnlite_aspp_regnetx800mf_768x384_20200911.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/fpn_aspp_regnetx800mf_edgeailite_768x384_20200911.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':72.01})
         # ),
@@ -162,7 +162,7 @@ def get_configs(settings, work_dir):
         # 'ss-8570':utils.dict_update(cityscapes_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((512,1024), (512,1024), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
-        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/fpnlite_aspp_regnetx1.6gf_1024x512_20200914.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/fpn_aspp_regnetx1.6gf_edgeailite_1024x512_20200914.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':75.84})
         # ),
@@ -170,7 +170,7 @@ def get_configs(settings, work_dir):
         # 'ss-8580':utils.dict_update(cityscapes_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((768,1536), (768,1536), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
-        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/fpnlite_aspp_regnetx3.2gf_1536x768_20200915.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/edgeai-tv/fpn_aspp_regnetx3.2gf_edgeailite_1536x768_20200915.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':78.90})
         # ),
@@ -195,7 +195,7 @@ def get_configs(settings, work_dir):
         # 'ss-8618':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
-        #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/deeplabv3lite_mobilenetv2_512x512_ade20k32_20210308_qat.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailtie_512x512_20210308_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':51.61})
         # ),
@@ -210,7 +210,7 @@ def get_configs(settings, work_dir):
         # 'ss-8658':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
-        #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpnlite_aspp_mobilenetv2_512x512_ade20k32_20210306_qat.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpn_aspp_mobilenetv2_edgeailite_512x512_20210306_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':50.93})
         # ),
@@ -218,14 +218,14 @@ def get_configs(settings, work_dir):
         # 'ss-8678':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
-        #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpnlite_aspp_mobilenetv2_1p4_512x512_ade20k32_20210307_qat.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpn_aspp_mobilenetv2_1p4_edgeailite_512x512_20210307_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':53.01})
         # ),
         'ss-8740':utils.dict_update(cocoseg21_cfg,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
             session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
-                model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/lraspp_mobilenet_v3_lite_large_512x512_20210527.onnx'),
+                model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/lraspp_mobilenet_v3_large_lite_512x512_20210527.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':59.80})
         ),

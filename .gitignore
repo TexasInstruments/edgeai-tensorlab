@@ -10,8 +10,8 @@ build/*
 datasets/*
 dependencies/*
 !dependencies/examples
-work_dirs/*/*/*
-!work_dirs/modelartifacts/8bits/*
+work_dirs/
+!work_dirs/modelartifacts
 backup/*
 tutorials/.ipynb_checkpoints/
 tidl_tools
