@@ -25,6 +25,12 @@ Make sure that your Python version is indeed 3.7 or higher by typing:<br>
 python --version
 ```
 
+Make sure gcc and g++ versions are greater then or equal to 7 - if not install the required versions. The installed versions can be checked by:<br>
+```
+gcc --version
+g++ --version
+```
+
 Clone this repository into your local folder
 
 Execute the following shell script to install the dependencies:<br>
