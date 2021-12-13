@@ -309,7 +309,7 @@ class PipelineRunner():
                     try:
                         onnx_model, check = simplify(onnx_model, skip_shape_inference=False, input_shapes=input_name_shapes)
                     except:
-                        warnings.warn(f'onnxsim.simplify(): changing the size of {model_path} did not work - skipping')
+                        warnings.warn(f'please install onnx-simplifier : onnxsim.simplify() - changing the size of {model_path} did not work - skipping')
                         continue
                     #
                     # save model in model_folder
