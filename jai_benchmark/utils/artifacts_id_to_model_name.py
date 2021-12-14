@@ -36,22 +36,25 @@ import os
 # TF	   human pose estimation	1000
 # TF	   3D OD	                1100
 # TF	   object pose estimation	1200
-# TF	   OD	                    2000
+# TF	   depth estimation	        1300
+# TF	   OD                       2000
 # TF	   Semantic Segmentation	2500
 		
 # TVM	   Classification	        3000
 # TVM	   human pose estimation	4000
 # TVM	   3D OD	                4100
 # TVM	   object pose estimation	4200
-# TVM	   OD	                    5000
+# TVM	   depth estimation	        4300
+# TVM	   OD                       5000
 # TVM	   Semantic Segmentation	5500
 		
-# OD	   Classification	        6000
-# OD	   human pose estimation	7000
-# OD	   3D OD	                7100
-# OD	   object pose estimation	7200
-# OD	   OD	                    8000
-# OD	   Semantic Segmentation	8500
+# ONR	   Classification	        6000
+# ONR	   human pose estimation	7000
+# ONR	   3D OD	                7100
+# ONR	   object pose estimation	7200
+# ONR	   depth estimation	        7300
+# ONR	   OD                       8000
+# ONR	   Semantic Segmentation	8500
 
 
 #mapping from artifacts id to readable model names
@@ -296,6 +299,13 @@ model_id_artifacts_pair = {
     'od-8120_onnxrt': 'ONR-OD-8120-yolov5-m6-ti-lite-coco-640x640',
     'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640',
 
+    # Yolox
+    'od-8140_onnxrt': 'ONR-OD-8140-yolox-s-ti-lite_640x640',
+
+    # EdgeAI-Torchvision
+    'od-8160_onnxrt': 'ONR-OD-8160-ssdlite-mobv2-fpn-lite-512x512',
+    'od-8170_onnxrt': 'ONR-OD-8170-ssdlite-regNetX-800mf-fpn-lite-512x512',
+
     # ONNX - SS - CS
     'ss-8500_onnxrt': 'ONR-SS-8500-deeplabv3lite-mobv2-cs-768x384',
     'ss-8508_onnxrt': 'ONR-SS-8508-deeplabv3lite-mobv2-cs-qat-768x384',
@@ -332,6 +342,10 @@ model_id_artifacts_pair = {
     'kd-7010_onnxrt': 'ONR-KD-7010-human-pose-ae-res50v2-fpn-spp-udp-512x512',
     'kd-7020_onnxrt': 'ONR-KD-7020-human-pose-ae-mobv2-pan-spp-udp-512x512',
     'kd-7030_onnxrt': 'ONR-KD-7030-human-pose-ae-res50v2-pan-spp-udp-512x512',
+
+    # ONNX depth estimation
+    'de-7300_onnxrt': 'ONR-DE-7300-depth-est-fast-depth-224x224',
+    'de-7310_onnxrt': 'ONR-DE-7310-depth-est-midas-small-256x256',
 }
 
 removed_model_list = {

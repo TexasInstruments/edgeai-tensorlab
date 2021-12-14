@@ -229,8 +229,8 @@ def get_configs(settings, work_dir):
         ),
 
 
-        # torchvision models
-        'od-8200':utils.dict_update(common_cfg,
+        # edgeai-torchvision models
+        'od-8160':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
@@ -242,7 +242,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':25.0})
         ),
-        'od-8210':utils.dict_update(common_cfg,
+        'od-8170':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
