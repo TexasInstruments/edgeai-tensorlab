@@ -65,3 +65,5 @@ else:
 
 runner = dict(max_epochs=total_epochs)
 
+# edgeailite
+convert_to_lite_model = dict(group_size_dw=None)
