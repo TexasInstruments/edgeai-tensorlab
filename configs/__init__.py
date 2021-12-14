@@ -35,6 +35,7 @@ from jai_benchmark.pipelines.pipeline_runner import PipelineRunner
 from . import classification
 from . import detection
 from . import segmentation
+from . import lidar_3d_detection
 from . import human_pose_estimation
 from . import depth_estimation
 
@@ -52,6 +53,7 @@ def get_configs(settings, work_dir):
     pipeline_configs.update(segmentation.get_configs(settings, work_dir))
     pipeline_configs.update(human_pose_estimation.get_configs(settings,work_dir))
     pipeline_configs.update(depth_estimation.get_configs(settings,work_dir))
+	pipeline_configs.update(lidar_3d_detection.get_configs(settings, work_dir))
     if settings.experimental_models:
         from . import classification_experimental
         from . import detection_experimental
