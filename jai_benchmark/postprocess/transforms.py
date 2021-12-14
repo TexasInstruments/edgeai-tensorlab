@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import sys
 import copy
 import numpy as np
 import cv2
@@ -1289,4 +1290,75 @@ class HumanPoseImageSave:
         else:
             assert False, f'PIL image type isnt supported because PIL process dont pad right now' #TODO
         #
+        return result, info_dict
+
+
+##############################################################################
+class DepthImageResize():
+    def __call__(self, label, info_dict):
+        image_shape = info_dict['data_shape']
+        # if label.dtype in (np.int32, np.int64):
+        #     label = label.astype(np.float32)
+        # #
+        label = cv2.resize(label, dsize=(image_shape[1],image_shape[0]), interpolation=cv2.INTER_NEAREST)
+        return label, info_dict
+
+class DepthImageSave():
+    #Taken from MiDaS (https://github.com/isl-org/MiDaS)
+    def write_pfm(path, image, scale=1):
+        """Write pfm file.
+
+        Args:
+            path (str): pathto file
+            image (array): data
+            scale (int, optional): Scale. Defaults to 1.
+        """
+
+        with open(path, "wb") as file:
+            color = None
+
+            if image.dtype.name != "float32":
+                raise Exception("Image dtype must be float32.")
+
+            image = np.flipud(image)
+
+            if len(image.shape) == 3 and image.shape[2] == 3:  # color image
+                color = True
+            elif (
+                len(image.shape) == 2 or len(image.shape) == 3 and image.shape[2] == 1
+            ):  # greyscale
+                color = False
+            else:
+                raise Exception("Image must have H x W x 3, H x W x 1 or H x W dimensions.")
+
+            file.write("PF\n" if color else "Pf\n".encode())
+            file.write("%d %d\n".encode() % (image.shape[1], image.shape[0]))
+
+            endian = image.dtype.byteorder
+
+            if endian == "<" or endian == "=" and sys.byteorder == "little":
+                scale = -scale
+
+            file.write("%f\n".encode() % scale)
+
+            image.tofile(file)
+    
+    def _call_(self, result, info_dict):
+        data_path = info_dict['data_path']
+        image_name = os.path.split(data_path)[-1]
+        run_dir = info_dict['run_dir']
+        save_dir = os.path.join(run_dir, 'outputs')
+        os.makedirs(save_dir, exist_ok=True)
+        save_path = os.path.join(save_dir, image_name)
+
+        pred = result['preds'].astype(np.float32)
+        self.write_pfm(pred)
+        
+        #Write a relative 16 bit depth map
+        d_min = np.min(pred)
+        d_max = np.max(pred)
+        pred_relative = 65535 * ((pred - d_min) / (d_max - d_min))
+
+        cv2.imwrite(save_path, pred_relative.astype("uint16"))
+
         return result, info_dict
