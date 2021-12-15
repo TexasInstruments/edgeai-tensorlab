@@ -164,3 +164,8 @@ class PostProcessTransforms(utils.TransformsCompose):
 
     def get_transform_depth_estimation_onnx(self, data_layout=constants.NCHW):
         return self.get_transform_depth_estimation_base(data_layout=data_layout)
+
+    def get_transform_lidar_base(self):
+        postprocess_lidar = []
+        transforms = PostProcessTransforms(None, postprocess_lidar)
+        return transforms

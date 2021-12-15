@@ -31,6 +31,24 @@ from jai_benchmark import constants, utils, datasets, preprocess, sessions, post
 
 def get_configs(settings, work_dir):
 
+    dataset_calib_cfg = dict(
+        path=f'{settings.datasets_path}/kitti_3dod/training/velodyne_reduced',
+        split=f'{settings.datasets_path}/kitti_3dod/ImageSets/val.txt',
+        num_classes=1,
+        shuffle=True,
+        num_frames=min(settings.calibration_frames,150))
+
+    # dataset parameters for actual inference
+    dataset_val_cfg = dict(
+        path=f'{settings.datasets_path}/kitti_3dod/training/velodyne_reduced',
+        split=f'{settings.datasets_path}/kitti_3dod/ImageSets/val.txt',
+        num_classes=1,
+        shuffle=True,
+        num_frames=min(settings.num_frames,49))
+
+    calib_dataset = datasets.KittiLidar3D(**dataset_calib_cfg, download=False)
+    val_dataset = datasets.KittiLidar3D(**dataset_val_cfg, download=False)
+
     # to define the names of first and last layer for 16 bit conversion
     first_last_layer = {
         'mobilenetv2_fpn_spp_udp': '363,561',
@@ -46,9 +64,9 @@ def get_configs(settings, work_dir):
 
     # configs for each model pipeline
     common_cfg = {
-        'task_type': 'lidar-3d-detection',
-        'calibration_dataset': None,
-        'input_dataset': None,
+        'task_type': '3ddetection',
+        'calibration_dataset': calib_dataset,
+        'input_dataset': val_dataset,
         'postprocess': None
     }
 
@@ -60,14 +78,15 @@ def get_configs(settings, work_dir):
         ################# onnx models ###############################
         # human pose estimation : mobilenetv2 + fpn_spp + udp, Expected AP : 42.31
         'lidar-3dod-7100':utils.dict_update(common_cfg,
-            preprocess=None,
+            preprocess=preproc_transforms.get_transform_lidar_base(),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                     {'object_detection:meta_arch_type': 7,
-                                     'object_detection:meta_layers_names_list':f'{settings.models_path}/lidar/detection/kitti/pointPillars/pointPillars.prototxt',
+                                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/3d_detection/kitti/mmdetection3d/lidar_point_pillars_496x432.prototxt',
+                                     "advanced_options:add_data_convert_ops" : 0,
                                      }),
-                model_path=f'{settings.models_path}/lidar/detection/kitti/pointPillars/point-pillars-combined_model_simple_mod.onnx'),
-            postprocess=None,
+                model_path=f'{settings.models_path}/vision/3d_detection/kitti/mmdetection3d/lidar_point_pillars_496x432.onnx'),
+            postprocess=postproc_transforms.get_transform_lidar_base(),
             metric=dict(label_offset_pred=None),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':47.1})
         )

@@ -123,7 +123,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-1.6gf_fpn_bgr_lite_768x768_20200923_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':39.8})
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.0})
         ),
         'od-8070':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((416,416), (416,416), backend='cv2'),

@@ -100,3 +100,13 @@ class PreProcessTransforms(utils.TransformsCompose):
 
     def get_transform_tflite_quant(self, *args, mean=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0), **kwargs):
         return self.get_transform_tflite(*args, mean=mean, scale=scale, **kwargs)
+
+    def get_transform_lidar_base(self):
+        transforms_list = [
+            PointCloudRead(),
+            Voxelization()
+            ]
+        transforms = PreProcessTransforms(None, transforms_list)
+
+        return transforms
+

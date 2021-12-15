@@ -88,33 +88,33 @@ class ImageRead(object):
 
     def __call__(self, path, info_dict):
         if isinstance(path, str):
-            img_data = None
+            point_cloud_data = None
             if self.backend == 'pil':
-                img_data = PIL.Image.open(path)
-                img_data = img_data.convert('RGB')
-                info_dict['data_shape'] = img_data.size[1], img_data.size[0], len(img_data.getbands())
+                point_cloud_data = PIL.Image.open(path)
+                point_cloud_data = point_cloud_data.convert('RGB')
+                info_dict['data_shape'] = point_cloud_data.size[1], point_cloud_data.size[0], len(point_cloud_data.getbands())
             elif self.backend == 'cv2':
-                img_data = cv2.imread(path)
-                if img_data.shape[-1] == 1:
-                    img_data = cv2.cvtColor(img_data, cv2.COLOR_GRAY2BGR)
-                elif img_data.shape[-1] == 4:
-                    img_data = cv2.cvtColor(img_data, cv2.COLOR_BGRA2BGR)
+                point_cloud_data = cv2.imread(path)
+                if point_cloud_data.shape[-1] == 1:
+                    point_cloud_data = cv2.cvtColor(point_cloud_data, cv2.COLOR_GRAY2BGR)
+                elif point_cloud_data.shape[-1] == 4:
+                    point_cloud_data = cv2.cvtColor(point_cloud_data, cv2.COLOR_BGRA2BGR)
                 #
                 # always return in RGB format
-                img_data = img_data[:,:,::-1]
-                info_dict['data_shape'] = img_data.shape
+                point_cloud_data = point_cloud_data[:,:,::-1]
+                info_dict['data_shape'] = point_cloud_data.shape
             #
-            info_dict['data'] = img_data
+            info_dict['data'] = point_cloud_data
             info_dict['data_path'] = path
         elif isinstance(path, np.ndarray):
-            img_data = path
-            info_dict['data_shape'] = img_data.shape
-            info_dict['data'] = img_data
+            point_cloud_data = path
+            info_dict['data_shape'] = point_cloud_data.shape
+            info_dict['data'] = point_cloud_data
             info_dict['data_path'] = './'
         else:
             assert False, 'invalid input'
         #
-        return img_data, info_dict
+        return point_cloud_data, info_dict
 
     def __repr__(self):
         return self.__class__.__name__ + f'(backend={self.backend})'
@@ -395,3 +395,149 @@ class ImageFlipAdd:
     def __call__(self, img, info_dict):
         info_dict['flip_img'] = np.flip(img, axis=[self.flip_axis])
         return img, info_dict
+
+class PointCloudRead(object):
+    def __init__(self):
+        pass
+
+    def __call__(self, path, info_dict):
+        point_cloud_data = None
+
+        point_cloud_data = np.fromfile(path, dtype='float32')
+        point_cloud_data = np.reshape(point_cloud_data,(-1,4))
+
+        info_dict['data_shape'] = point_cloud_data.shape[1], point_cloud_data.shape[0]
+        info_dict['data'] = point_cloud_data
+        info_dict['data_path'] = path
+
+        return point_cloud_data, info_dict
+
+class Voxelization(object):
+    def __init__(self):
+
+        self.min_x = 0
+        self.max_x = 69.120
+        self.min_y = -39.680
+        self.max_y = 39.680
+        self.min_z = -3.0
+        self.max_z = 1.0
+        self.voxel_size_x= 0.16
+        self.voxel_size_y= 0.16
+        self.num_voxel_x = (self.max_x - self.min_x)/self.voxel_size_x
+        self.num_voxel_y = (self.max_y - self.min_y)/self.voxel_size_y
+        self.max_points_per_voxel = 32
+        self.nw_max_num_voxels  = 20000
+        self.num_feat_per_voxel = 9
+        self.num_channel = 64
+        self.scale_fact = 32.0
+
+
+    def __call__(self, lidar_data, info_dict):
+
+        scratch_1 =[]
+        scratch_2 =[]
+
+        input0 = np.zeros((1, self.num_feat_per_voxel, self.max_points_per_voxel, self.nw_max_num_voxels),dtype='float32')
+        input1 = np.zeros((1, self.num_channel, (int)(self.num_voxel_x*self.num_voxel_y)),dtype='float32')
+        input2 = np.zeros((1, self.num_channel, self.nw_max_num_voxels),dtype='int32')
+
+        for i, data in enumerate(lidar_data):
+
+            x = data[0]
+            y = data[1]
+            z = data[2]
+
+            if ((x >= self.min_x) and (x < self.max_x) and (y >= self.min_y) and (y < self.max_y) and
+                (z >= self.min_z) and (z < self.max_z)):
+
+                x_id = (int)(((x - self.min_x) / self.voxel_size_x))
+                y_id = (int)(((y - self.min_y) / self.voxel_size_y))
+                scratch_1.append(y_id * self.num_voxel_x + x_id)
+            else:
+                scratch_1.append(-1 - i) # filing unique non valid index
+
+        num_points = np.zeros(self.nw_max_num_voxels,dtype=int)
+
+        # Find unique indices
+        # There will be voxel which doesnt have any 3d point, hence collecting the voxel ids for valid voxels*/
+        # scratch_2 is the index in valid voxels
+        num_non_empty_voxels = 0
+
+        for i in range(len(lidar_data)):
+            if (scratch_1[i] >= 0):
+
+                find_voxel = scratch_1[i] in scratch_1[:i]
+
+                if find_voxel == False:
+                    scratch_2.append(num_non_empty_voxels) # this voxel idx has come first time, hence allocate a new index for this
+                    input2[0][0][num_non_empty_voxels] = scratch_1[i]
+                    num_non_empty_voxels += 1
+                else:
+                    k = scratch_1[:i].index(scratch_1[i])
+                    scratch_2.append(scratch_2[k]) #already this voxel is having one id hence reuse it
+            else:
+                scratch_2.append(None)
+
+        #Even though current_voxels is less than self.nw_max_num_voxels, then also arrange
+        #    the data as per maximum number of voxels.
+
+        line_pitch = self.nw_max_num_voxels
+        channel_pitch = self.max_points_per_voxel * line_pitch
+        j = 0
+        tot_num_pts = 0
+
+        for i in range(len(lidar_data)):
+            if (scratch_1[i] >= 0):
+                j = scratch_2[i] #voxel index
+                if(num_points[j]<self.max_points_per_voxel):
+                    input0[0][0][num_points[j]][j] = lidar_data[i][0] * self.scale_fact
+                    input0[0][1][num_points[j]][j] = lidar_data[i][1] * self.scale_fact
+                    input0[0][2][num_points[j]][j] = lidar_data[i][2] * self.scale_fact
+                    input0[0][3][num_points[j]][j] = lidar_data[i][3] * self.scale_fact
+                    num_points[j] = num_points[j] + 1
+                else:
+                    tot_num_pts = tot_num_pts+1
+
+        line_pitch = self.nw_max_num_voxels
+        channel_pitch = self.max_points_per_voxel * line_pitch
+        x_offset = self.voxel_size_x / 2 + self.min_x
+        y_offset = self.voxel_size_y / 2 + self.min_y
+
+        for i in range(num_non_empty_voxels):
+            x = 0
+            y = 0
+            z = 0
+
+            for j in range(num_points[i]):
+                x += input0[0][0][j][i]
+                y += input0[0][1][j][i]
+                z += input0[0][2][j][i]
+
+            x_avg = x / num_points[i]
+            y_avg = y / num_points[i]
+            z_avg = z / num_points[i]
+
+            voxel_center_y = (int)(input2[0][0][i] / self.num_voxel_x)
+            voxel_center_x = (int)(input2[0][0][i] - ((int)(voxel_center_y)) * self.num_voxel_x)
+
+            voxel_center_x *= self.voxel_size_x
+            voxel_center_x += x_offset
+
+            voxel_center_y *= self.voxel_size_y
+            voxel_center_y += y_offset
+
+            for j in range(num_points[i]):
+                input0[0][4][j][i] = input0[0][0][j][i] - x_avg
+                input0[0][5][j][i] = input0[0][1][j][i] - y_avg
+                input0[0][6][j][i] = input0[0][2][j][i] - z_avg
+                input0[0][7][j][i] = input0[0][0][j][i] - voxel_center_x * self.scale_fact
+                input0[0][8][j][i] = input0[0][1][j][i] - voxel_center_y * self.scale_fact
+
+        #/*looks like bug in python mmdetection3d code, hence below code is to mimic the mmdetect behaviour*/
+        for j in range (num_points[i]):
+            input0[0][0][j][i] = input0[0][7][j][i]
+            input0[0][1][j][i] = input0[0][8][j][i]
+
+        input2[0][1:64] = input2[0][0]
+
+        return (input0,input2,input1), info_dict

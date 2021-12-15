@@ -37,8 +37,10 @@ from .imagenetv2 import *
 from .cityscapes import *
 from .ade20k import *
 from .voc_seg import *
-from .nyudepthv2 import * 
+from .nyudepthv2 import *
 from .modelmaker_datasets import *
+
+from .kitti_lidar_det import *
 
 from .coco_kpts import *
 
@@ -67,6 +69,8 @@ dataset_info_dict = {
     'cocokpts': {'task_type':'keypoint_detection', 'category':'cocokpts', 'type':COCOKeypoints, 'size':5000, 'split':'val2017'},
     #------------------------depth estimation datasets--------------------------#
     'nyudepthv2': {'task_type':'depth_estimation', 'category':'nyudepthv2', 'type':NYUDepthV2, 'size':654, 'split':'val'},
+    #------------------------3D OD datasets--------------------------#
+    'kitti_lidar_det': {'task_type':'3d_detection', 'category':'kitti_lidar_det', 'type':NYUDepthV2, 'size':3276, 'split':'val'},
  }
 
 
@@ -157,7 +161,7 @@ def get_datasets(settings, download=False):
 
         dataset_cache['cocokpts']['calibration_dataset'] = COCOKeypoints(**coco_kpts_calib_cfg, download=download)
         dataset_cache['cocokpts']['input_dataset'] = COCOKeypoints(**coco_kpts_val_cfg, download=False)
-    
+
     if in_dataset_loading(settings, 'coco'):
         coco_det_calib_cfg = dict(
             path=f'{settings.datasets_path}/coco',
