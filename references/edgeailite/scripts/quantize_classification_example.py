@@ -173,6 +173,10 @@ parser.add_argument('--quantize_torch', default=False, type=str2bool,
                     help='Enable PyTorch Quantization')
 parser.add_argument('--opset_version', default=11, type=int,
                     help='opset version for onnx export')
+parser.add_argument('--img_resize', type=int, default=256,
+                    help='images will be first resized to this size during training and validation')
+parser.add_argument('--img_crop', type=int, default=224,
+                    help='the cropped portion (validation), cropped pertion will be resized to this size (training)')
 
 best_acc1 = 0
 
@@ -247,7 +251,7 @@ def main_worker(gpu, ngpus_per_node, args):
                           'use_gpu should not be set while quantizing')
         #
         # DistributedDataParallel / DataParallel are not supported with quantization
-        dummy_input = torch.rand((1, 3, 224, 224))
+        dummy_input = torch.rand((1, 3, args.img_crop, args.img_crop))
         if args.quantize_torch:
             # GPU/CUDA is not yet support for Torch quantization
             if args.evaluate:
@@ -362,7 +366,7 @@ def main_worker(gpu, ngpus_per_node, args):
     train_dataset = datasets.ImageFolder(
         traindir,
         transforms.Compose([
-            transforms.RandomResizedCrop(224),
+            transforms.RandomResizedCrop(args.img_crop),
             transforms.RandomHorizontalFlip(),
             transforms.ToFloat(),   # converting to float avoids the division by 255 in ToTensor()
             transforms.ToTensor(),
@@ -370,8 +374,8 @@ def main_worker(gpu, ngpus_per_node, args):
         ]))
 
     val_dataset = datasets.ImageFolder(valdir, transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
+        transforms.Resize(args.img_resize),
+        transforms.CenterCrop(args.img_crop),
         transforms.ToFloat(),  # converting to float avoids the division by 255 in ToTensor()
         transforms.ToTensor(),
         normalize,
@@ -588,7 +592,7 @@ def save_checkpoint(state, is_best, filename='checkpoint.pth'):
 
 
 def create_rand_inputs(is_cuda):
-    dummy_input = torch.rand((1, 3, 224, 224))
+    dummy_input = torch.rand((1, 3, args.img_crop, args.img_crop))
     dummy_input = dummy_input.cuda() if is_cuda else dummy_input
     return dummy_input
 
