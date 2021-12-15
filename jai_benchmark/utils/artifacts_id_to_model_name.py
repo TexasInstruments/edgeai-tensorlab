@@ -288,7 +288,7 @@ model_id_artifacts_pair = {
     'od-8030_onnxrt': 'ONR-OD-8030-ssd-lite-mobv2-fpn-coco-512x512',
     'od-8040_onnxrt': 'ONR-OD-8040-ssd-lite-regNetX-200mf-fpn-bgr-coco-320x320',
     'od-8050_onnxrt': 'ONR-OD-8050-ssd-lite-regNetX-800mf-fpn-bgr-coco-512x512',
-    'od-8060_onnxrt': 'ONR-OD-8060-ssd-lite-regNetX-1.6gf-bifpn168x4-bgr-coco-768x768',
+    'od-8060_onnxrt': 'ONR-OD-8060-ssd-lite-regNetX-1.6gf-fpn-bgr-coco-768x768',
     'od-8070_onnxrt': 'ONR-OD-8070-yolov3-d53-relu-coco-416x416',
     'od-8080_onnxrt': 'ONR-OD-8080-yolov3-lite-regNetX-1.6gf-bgr-coco-512x512',
     'od-8090_onnxrt': 'ONR-OD-8090-retina-lite-regNetX-800mf-fpn-bgr-coco-512x512',
@@ -451,7 +451,7 @@ removed_model_list = {
     'od-8070_onnxrt': 'ONR-OD-8070-yolov3-d53-relu-coco-416x416',   #large model - issue in evm
     'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640', #large model - issue in evm
 
-    #models for which artifacts are not getting generated during SDK8.0
+    # models for which artifacts are not getting generated during SDK8.0
     'cl-3510_tvmdlr' :  'TVM-CL-3510-hrnet-w30-c-gluon-mxnet',
     'cl-6508_onnxrt' :  'ONR-CL-6508-mobv3-ti-lite-large-qat',
     'cl-3498_tvmdlr' :  'TVM-CL-3498-mobv3-ti-lite-large-qat',
@@ -463,6 +463,12 @@ removed_model_list = {
     'ss-5810_tvmdlr' :  'TVM-SS-5810-fcn-resNet101-cocoseg21-gluon-mxnet-480x480',
     'ss-5820_tvmdlr' :  'TVM-SS-5820-deeplab-resNet101-cocoseg21-gluon-mxnet-480x480',
     'ss-5830_tvmdlr' : 'TVM-SS-5830-fcn-resNet50-ade20k-gluon-mxnet-480x480',
+
+    # During SDK8.1, these models were marked as removed - not running on device (may be due to large memory requirement)
+    'cl-6450_onnxrt': 'ONR-CL-6450-harDNet85',
+    'od-8060_onnxrt': 'ONR-OD-8060-ssd-lite-regNetX-1.6gf-fpn-bgr-coco-768x768',
+    'od-8120_onnxrt': 'ONR-OD-8120-yolov5-m6-ti-lite-coco-640x640',
+    'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640',
 }
 
 removed_models_from_plots = {
