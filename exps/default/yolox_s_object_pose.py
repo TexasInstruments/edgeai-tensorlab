@@ -3,6 +3,7 @@
 # Copyright (c) Megvii, Inc. and its affiliates.
 
 import os
+import torch
 
 from yolox.exp import Exp as MyExp
 import torch.distributed as dist
@@ -42,6 +43,7 @@ class Exp(MyExp):
         self.nmsthre = 0.65
         self.data_set = "linemod"
         self.object_pose  = True
+        self.od_weights = None
 
     def get_model(self):
         from yolox.models import YOLOX, YOLOPAFPN, YOLOXObjectPoseHead
@@ -60,6 +62,15 @@ class Exp(MyExp):
 
         self.model.apply(init_yolo)
         self.model.head.initialize_biases(1e-2)
+
+        if self.od_weights is not None:    
+            state_dict_object_pose = self.model.state_dict()
+            state_dict_object_detect = torch.load(self.od_weights, map_location=self.device)
+
+            for key in state_dict_object_detect.keys():
+                state_dict_object_pose[key] = state_dict_object_detect[key]
+                state_dict_object_pose[key].requires_grad = False
+
         return self.model
 
     def get_data_loader(

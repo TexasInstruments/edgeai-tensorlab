@@ -46,7 +46,7 @@ class YOLOX(nn.Module):
                     "num_fg": num_fg,
                 }
             elif isinstance(self.head, YOLOXObjectPoseHead):
-                loss, iou_loss, conf_loss, cls_loss, rot_loss, trn_loss, l1_loss, num_fg = self.head(
+                loss, iou_loss, conf_loss, cls_loss, rot_loss, trn_xy_loss, trn_z_loss, l1_loss, num_fg = self.head(
                     fpn_outs, targets, x
                 )
                 outputs = {
@@ -56,7 +56,8 @@ class YOLOX(nn.Module):
                     "conf_loss": conf_loss,
                     "cls_loss": cls_loss,
                     "rot_loss": rot_loss,
-                    "trn_loss": trn_loss,
+                    "trn_xy_loss": trn_xy_loss,
+                    "trn_z_loss": trn_z_loss,
                     "num_fg": num_fg,
                 }
             elif isinstance(self.head, YOLOXHeadKPTS):

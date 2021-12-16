@@ -12,6 +12,7 @@ from pycocotools.coco import COCO
 
 from ..dataloading import get_yolox_datadir
 from .datasets_wrapper import Dataset
+from yolox.utils import camera_matrix
 
 
 class LINEMODDataset(Dataset):
@@ -130,8 +131,22 @@ class LINEMODDataset(Dataset):
             #Convert the rotation matrix to angle axis format using Rodrigues formula
             #https://www.ccs.neu.edu/home/rplatt/cs5335_fall2017/slides/euler_quaternions.pdf
             if self.object_pose:    
-                obj["R_aa"], _ = cv2.Rodrigues(np.array(obj["R"]).reshape(3,3))
-                obj["R_aa"] = np.squeeze(obj["R_aa"])
+                #obj["R_aa"], _ = cv2.Rodrigues(np.array(obj["R"]).reshape(3,3))
+                #obj["R_aa"] = np.squeeze(obj["R_aa"])
+                #Use Gram-Schmidt to make the rotation representation continuous and in 6D
+                #https://towardsdatascience.com/better-rotation-representations-for-accurate-pose-estimation-e890a7e1317f
+                R_gs = np.array(obj["R"]).reshape(3,3)
+                obj["R_gs"] = np.squeeze(R_gs[:, :2].transpose().reshape(6, 1))
+                temp_R, _ = cv2.Rodrigues(np.array(obj["R"]).reshape(3,3))
+                temp_R = np.squeeze(temp_R)
+                obj_centre_2d, _ = cv2.projectPoints(
+                    objectPoints=np.zeros(shape=(1, 3)),
+                    rvec=temp_R,
+                    tvec=np.array(obj["T"]),
+                    cameraMatrix=camera_matrix.reshape(3,3),
+                    distCoeffs=None
+                )
+                obj_centre_2d = np.squeeze(obj_centre_2d)
             
 
             if obj["area"] > 0 and x2 >= x1 and y2 >= y1:
@@ -141,7 +156,7 @@ class LINEMODDataset(Dataset):
         num_objs = len(objs)
 
         if self.object_pose:
-            res = np.zeros((num_objs, 11))
+            res = np.zeros((num_objs, 14))
         else:
             res = np.zeros((num_objs, 5))
 
@@ -150,11 +165,14 @@ class LINEMODDataset(Dataset):
             res[ix, 0:4] = obj["clean_bbox"]
             res[ix, 4] = cls
             if self.object_pose:
-                res[ix, 5:8] = obj["R_aa"]
-                res[ix, 8:11] = obj["T"]
+                res[ix, 5:11] = obj["R_gs"]
+                #res[ix, 11:14] = obj["T"]
+                res[ix, 11:13] = obj_centre_2d
+                res[ix, 13] = obj["T"][2] / 100.0
 
         r = min(self.img_size[0] / height, self.img_size[1] / width)
         res[:, :4] *= r
+        res[:, 11:13] *= r
 
         img_info = (height, width)
         resized_info = (int(height * r), int(width * r))
