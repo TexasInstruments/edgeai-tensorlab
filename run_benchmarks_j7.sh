@@ -35,8 +35,10 @@
 source run_setup_env.sh j7
 
 echo "==================================================================="
-echo "Please install edgeai-sdk from: http://software-dl.ti.com/jacinto7/esd/edgeai-sdk-j721e/latest/exports/docs/"
+echo "Please install EdgeAI Linux SDK StarterKit for TDA4VM"
+echo "from: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM"
 echo "All the required dependencies are available in the SDK"
+echo "For more information, please visit: https://www.ti.com/tool/SK-TDA4VM"
 echo "-------------------------------------------------------------------"
 
 
