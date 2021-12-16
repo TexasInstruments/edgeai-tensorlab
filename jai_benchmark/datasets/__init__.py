@@ -70,7 +70,7 @@ dataset_info_dict = {
     #------------------------depth estimation datasets--------------------------#
     'nyudepthv2': {'task_type':'depth_estimation', 'category':'nyudepthv2', 'type':NYUDepthV2, 'size':654, 'split':'val'},
     #------------------------3D OD datasets--------------------------#
-    'kitti_lidar_det': {'task_type':'3d_detection', 'category':'kitti_lidar_det', 'type':NYUDepthV2, 'size':3276, 'split':'val'},
+    'kitti_lidar_det': {'task_type':'3d-detection', 'category':'kitti_lidar_det', 'type':KittiLidar3D, 'size':3769, 'split':'val'},
  }
 
 
@@ -275,6 +275,27 @@ def get_datasets(settings, download=False):
 
         dataset_cache['nyudepthv2']['calibration_dataset'] = NYUDepthV2(**nyudepthv2_calib_cfg, download=download)
         dataset_cache['nyudepthv2']['input_dataset'] = NYUDepthV2(**nyudepthv2_val_cfg, download=False)
+
+    if in_dataset_loading(settings, 'kitti_lidar_det'):
+
+        dataset_calib_cfg = dict(
+            path=f'{settings.datasets_path}/kitti_3dod/training/velodyne_reduced',
+            split=f'{settings.datasets_path}/kitti_3dod/ImageSets/val.txt',
+            num_classes=1,
+            shuffle=True,
+            num_frames=min(settings.calibration_frames,150))
+
+        # dataset parameters for actual inference
+        dataset_val_cfg = dict(
+            path=f'{settings.datasets_path}/kitti_3dod/training/velodyne_reduced',
+            split=f'{settings.datasets_path}/kitti_3dod/ImageSets/val.txt',
+            num_classes=1,
+            shuffle=True,
+            num_frames=min(settings.num_frames,49))
+
+        dataset_cache['kitti_lidar_det']['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False)
+        dataset_cache['kitti_lidar_det']['input_dataset'] = KittiLidar3D(**dataset_val_cfg, download=False)
+
     return dataset_cache
 
 

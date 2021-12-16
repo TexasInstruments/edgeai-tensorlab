@@ -534,10 +534,9 @@ class Voxelization(object):
                 input0[0][8][j][i] = input0[0][1][j][i] - voxel_center_y * self.scale_fact
 
         #/*looks like bug in python mmdetection3d code, hence below code is to mimic the mmdetect behaviour*/
-        for j in range (num_points[i]):
-            input0[0][0][j][i] = input0[0][7][j][i]
-            input0[0][1][j][i] = input0[0][8][j][i]
+            for j in range (num_points[i]):
+                input0[0][0][j][i] = input0[0][7][j][i]
+                input0[0][1][j][i] = input0[0][8][j][i]
 
         input2[0][1:64] = input2[0][0]
-
         return (input0,input2,input1), info_dict

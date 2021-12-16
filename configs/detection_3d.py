@@ -31,24 +31,6 @@ from jai_benchmark import constants, utils, datasets, preprocess, sessions, post
 
 def get_configs(settings, work_dir):
 
-    dataset_calib_cfg = dict(
-        path=f'{settings.datasets_path}/kitti_3dod/training/velodyne_reduced',
-        split=f'{settings.datasets_path}/kitti_3dod/ImageSets/val.txt',
-        num_classes=1,
-        shuffle=True,
-        num_frames=min(settings.calibration_frames,150))
-
-    # dataset parameters for actual inference
-    dataset_val_cfg = dict(
-        path=f'{settings.datasets_path}/kitti_3dod/training/velodyne_reduced',
-        split=f'{settings.datasets_path}/kitti_3dod/ImageSets/val.txt',
-        num_classes=1,
-        shuffle=True,
-        num_frames=min(settings.num_frames,49))
-
-    calib_dataset = datasets.KittiLidar3D(**dataset_calib_cfg, download=False)
-    val_dataset = datasets.KittiLidar3D(**dataset_val_cfg, download=False)
-
     # to define the names of first and last layer for 16 bit conversion
     first_last_layer = {
         'mobilenetv2_fpn_spp_udp': '363,561',
@@ -64,9 +46,9 @@ def get_configs(settings, work_dir):
 
     # configs for each model pipeline
     common_cfg = {
-        'task_type': '3ddetection',
-        'calibration_dataset': calib_dataset,
-        'input_dataset': val_dataset,
+        'task_type': '3d-detection',
+        'calibration_dataset': settings.dataset_cache['kitti_lidar_det']['calibration_dataset'],
+        'input_dataset': settings.dataset_cache['kitti_lidar_det']['input_dataset'],
         'postprocess': None
     }
 
