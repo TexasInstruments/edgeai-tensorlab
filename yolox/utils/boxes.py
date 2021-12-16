@@ -5,6 +5,7 @@
 import numpy as np
 
 import torch
+import torch.nn as nn
 import torchvision
 
 __all__ = [
@@ -18,6 +19,7 @@ __all__ = [
     "xyxy2xywh",
     "xyxy2cxcywh",
     "cxcywh2xyxy",
+    "PostprocessExport",
 ]
 
 
@@ -125,6 +127,44 @@ def postprocess_pose(prediction, num_classes, conf_thre=0.7, nms_thre=0.45, clas
     return output
 
 
+def postprocess_export(prediction, num_classes, conf_thre=0.7, nms_thre=0.45):
+    cx, cy, w, h = prediction[..., 0:1], prediction[..., 1:2], prediction[..., 2:3], prediction[..., 3:4]
+    box = cxcywh2xyxy_export(cx, cy, w, h)
+    prediction[:, :, :4] = box
+
+    output = [None for _ in range(len(prediction))]
+    for i, image_pred in enumerate(prediction):
+
+        # If none are remaining => process next image
+        if not image_pred.size(0):
+            continue
+        # Get score and class with highest confidence
+        class_conf, class_pred = torch.max(image_pred[:, 5: 5 + num_classes], 1, keepdim=True)
+        conf =  image_pred[:, 4:5] * class_conf
+        conf_mask = (conf.squeeze() >= conf_thre).squeeze()
+        # Detections ordered as (x1, y1, x2, y2, obj_conf, class_conf, class_pred)
+        detections = torch.cat((image_pred[:, :4], conf, class_pred.float()), 1)
+
+        detections = detections[conf_mask]
+        if not detections.size(0):
+            continue
+        class_2d_offset = detections[:, -1:] * 4096  # class_2d_offser
+
+        nms_out_index = torchvision.ops.nms(
+            detections[:, :4] + class_2d_offset,
+            detections[:, 4],
+            nms_thre,
+        )
+
+        detections = detections[nms_out_index]
+        if output[i] is None:
+            output[i] = detections
+        else:
+            output[i] = torch.cat((output[i], detections))
+
+    return output
+
+
 def bboxes_iou(bboxes_a, bboxes_b, xyxy=True):
     if bboxes_a.shape[1] != 4 or bboxes_b.shape[1] != 4:
         raise IndexError
@@ -198,3 +238,27 @@ def cxcywh2xyxy(bboxes):
     bboxes[:, 2] = bboxes[:, 0] + bboxes[:, 2]  # bottom right x
     bboxes[:, 3] = bboxes[:, 1] + bboxes[:, 3]  # bottom right y
     return bboxes
+
+def cxcywh2xyxy_export(cx,cy,w,h):
+    #This function is used while exporting ONNX models
+    # Convert nx4 boxes from [x, y, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
+    halfw = w/2
+    halfh = h/2
+    xmin = cx - halfw  # top left x
+    ymin = cy - halfh  # top left y
+    xmax = cx + halfw  # bottom right x
+    ymax = cy + halfh  # bottom right y
+    return torch.cat((xmin, ymin, xmax, ymax), 2)
+
+
+class PostprocessExport(nn.Module):
+    def __init__(self, conf_thre=0.7, nms_thre=0.45, num_classes=80):
+        super(PostprocessExport, self).__init__()
+        self.conf_thre = conf_thre
+        self.nms_thre = nms_thre
+        self.num_classes = num_classes
+
+
+    def forward(self, prediction):
+        return postprocess_export(prediction, self.num_classes, conf_thre=self.conf_thre, nms_thre=self.nms_thre)
+

@@ -11,7 +11,10 @@ from torch import nn
 
 from yolox.exp import get_exp
 from yolox.models.network_blocks import SiLU
-from yolox.utils import replace_module
+from yolox.utils import replace_module, PostprocessExport
+from yolox.data.data_augment import preproc as preprocess
+
+import cv2
 
 _SUPPORTED_DATASETS = ["coco", "linemod", "coco_kpts"]
 _NUM_CLASSES = {"coco":80, "linemod":15, "coco_kpts":57}
@@ -71,6 +74,7 @@ def make_parser():
 
 @logger.catch
 def main():
+    export_nms = True
     args = make_parser().parse_args()
     logger.info("args value: {}".format(args))
     exp = get_exp(args.exp_file, args.name)
@@ -119,14 +123,25 @@ def main():
             ckpt = ckpt["model"]
         model.load_state_dict(ckpt)
     model = replace_module(model, nn.SiLU, SiLU)
-    model.head.decode_in_inference = False
+    if not export_nms:
+        model.head.decode_in_inference = False
+    if export_nms:
+        post_process = PostprocessExport(conf_thre=0.25, nms_thre=0.45, num_classes=80)
+        model = nn.Sequential(model, post_process)
+        args.output = 'detections'
 
     logger.info("loading checkpoint done.")
-    dummy_input = torch.randn(args.batch_size, 3, exp.test_size[0], exp.test_size[1])
+    img = cv2.imread("./assets/dog.jpg")
+    img, ratio = preprocess(img, (640,640))
+    img = img[None, ...]
+    img = img.astype('float32')
+    img = torch.from_numpy(img)
+    #dummy_input = torch.randn(args.batch_size, 3, exp.test_size[0], exp.test_size[1])
+    output = model(img)
 
     torch.onnx._export(
         model,
-        dummy_input,
+        img,
         args.output_name,
         input_names=[args.input],
         output_names=[args.output],
