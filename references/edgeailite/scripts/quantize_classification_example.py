@@ -250,7 +250,8 @@ def main_worker(gpu, ngpus_per_node, args):
             warnings.warn('quantized inference/test may fail as it is not yet supported in gpu: '
                           'use_gpu should not be set while quantizing')
         #
-        # DistributedDataParallel / DataParallel are not supported with quantization
+        # DistributedDataParallel / DataParallel are supported with QuantTrainModule and QuantTestModule
+        # but other Quant Modules may not support it.
         dummy_input = torch.rand((1, 3, args.img_crop, args.img_crop))
         if args.quantize_torch:
             # GPU/CUDA is not yet support for Torch quantization
