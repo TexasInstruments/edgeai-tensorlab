@@ -62,7 +62,7 @@ session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
 # examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
 # examples: ['resnet18.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision']
 # examples: [cl-0000, od-2020, ss-2580, cl-3410, od-5020, ss-5720, cl-6360, od-8050, ss-8610]
-model_selection : lidar-3dod-7100
+model_selection : null
 
 # exclude from running, these models
 # example: ['voc']
@@ -78,8 +78,8 @@ task_selection : null
 
 # wild card list to match against dataset type - if null, all datasets will be shortlisted
 # example: ['coco']
-#example: ['kitti_lidar_det']
-dataset_loading : ['kitti_lidar_det']
+# example: ['imagenet','cocoseg21','ade20k','cocokpts']
+dataset_loading : null
 
 # verbose mode - print out more information
 verbose : False
@@ -90,12 +90,12 @@ detection_thr : 0.3
 # save detection, segmentation, human pose estimation output
 save_output : False
 
-# it defines if we want to use udp postprocessing in human pose estimation.
+# it defines if we want to use udp postprocessing in human pose estimation. 
 # Paper ref: Huang et al. The Devil is in the Details: Delving into Unbiased
 # Data Processing for Human Pose Estimation (CVPR 2020).
 with_udp : True
 
-# it will add horizontally flipped images in info_dict and run inference over the flipped image also
+# it will add horizontally flipped images in info_dict and run inference over the flipped image also 
 flip_test : False
 
 # the transformation that needs to be applied to the model itself. Note: this is different from pre-processing transforms

@@ -35,7 +35,6 @@ from jai_benchmark.pipelines.pipeline_runner import PipelineRunner
 from . import classification
 from . import detection
 from . import segmentation
-from . import detection_3d
 from . import human_pose_estimation
 from . import depth_estimation
 
@@ -53,16 +52,16 @@ def get_configs(settings, work_dir):
     pipeline_configs.update(segmentation.get_configs(settings, work_dir))
     pipeline_configs.update(human_pose_estimation.get_configs(settings,work_dir))
     pipeline_configs.update(depth_estimation.get_configs(settings,work_dir))
-    pipeline_configs.update(detection_3d.get_configs(settings, work_dir))
-
     if settings.experimental_models:
         from . import classification_experimental
         from . import detection_experimental
         from . import segmentation_experimental
+        from . import detection_3d_experimental
         # now get the experimental configs
         pipeline_configs.update(classification_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(detection_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(segmentation_experimental.get_configs(settings, work_dir))
+        pipeline_configs.update(detection_3d_experimental.get_configs(settings, work_dir))
     #
     return pipeline_configs
 

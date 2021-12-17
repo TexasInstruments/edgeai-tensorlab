@@ -275,15 +275,14 @@ def get_datasets(settings, download=False):
 
         dataset_cache['nyudepthv2']['calibration_dataset'] = NYUDepthV2(**nyudepthv2_calib_cfg, download=download)
         dataset_cache['nyudepthv2']['input_dataset'] = NYUDepthV2(**nyudepthv2_val_cfg, download=False)
-
-    if in_dataset_loading(settings, 'kitti_lidar_det'):
-
+    #
+    if settings.experimental_models and in_dataset_loading(settings, 'kitti_lidar_det'):
         dataset_calib_cfg = dict(
             path=f'{settings.datasets_path}/kitti_3dod/training/velodyne_reduced',
             split=f'{settings.datasets_path}/kitti_3dod/ImageSets/val.txt',
             num_classes=1,
             shuffle=True,
-            num_frames=min(settings.calibration_frames,150))
+            num_frames=min(settings.calibration_frames,3769))
 
         # dataset parameters for actual inference
         dataset_val_cfg = dict(
@@ -291,11 +290,30 @@ def get_datasets(settings, download=False):
             split=f'{settings.datasets_path}/kitti_3dod/ImageSets/val.txt',
             num_classes=1,
             shuffle=True,
-            num_frames=min(settings.num_frames,49))
+            num_frames=min(settings.num_frames,3769))
 
         dataset_cache['kitti_lidar_det']['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False)
         dataset_cache['kitti_lidar_det']['input_dataset'] = KittiLidar3D(**dataset_val_cfg, download=False)
+    #
+    if settings.experimental_models and in_dataset_loading(settings, 'ti-robokit_semseg_zed1hd'):
+        dataset_calib_cfg = dict(
+            path=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd',
+            split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/train_img_gt_pair.txt',
+            num_classes=19,
+            shuffle=True,
+            num_frames=min(settings.calibration_frames,150))
 
+        # dataset parameters for actual inference
+        dataset_val_cfg = dict(
+            path=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd',
+            split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/val_img_gt_pair.txt',
+            num_classes=19,
+            shuffle=True,
+            num_frames=min(settings.num_frames,49))
+
+        dataset_cache['ti-robokit_semseg_zed1hd']['calibration_dataset'] = ImageSegmentation(**dataset_calib_cfg, download=False)
+        dataset_cache['ti-robokit_semseg_zed1hd']['input_dataset'] = ImageSegmentation(**dataset_val_cfg, download=False)
+    #
     return dataset_cache
 
 

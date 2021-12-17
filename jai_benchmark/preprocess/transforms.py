@@ -88,33 +88,33 @@ class ImageRead(object):
 
     def __call__(self, path, info_dict):
         if isinstance(path, str):
-            point_cloud_data = None
+            img_data = None
             if self.backend == 'pil':
-                point_cloud_data = PIL.Image.open(path)
-                point_cloud_data = point_cloud_data.convert('RGB')
-                info_dict['data_shape'] = point_cloud_data.size[1], point_cloud_data.size[0], len(point_cloud_data.getbands())
+                img_data = PIL.Image.open(path)
+                img_data = img_data.convert('RGB')
+                info_dict['data_shape'] = img_data.size[1], img_data.size[0], len(img_data.getbands())
             elif self.backend == 'cv2':
-                point_cloud_data = cv2.imread(path)
-                if point_cloud_data.shape[-1] == 1:
-                    point_cloud_data = cv2.cvtColor(point_cloud_data, cv2.COLOR_GRAY2BGR)
-                elif point_cloud_data.shape[-1] == 4:
-                    point_cloud_data = cv2.cvtColor(point_cloud_data, cv2.COLOR_BGRA2BGR)
+                img_data = cv2.imread(path)
+                if img_data.shape[-1] == 1:
+                    img_data = cv2.cvtColor(img_data, cv2.COLOR_GRAY2BGR)
+                elif img_data.shape[-1] == 4:
+                    img_data = cv2.cvtColor(img_data, cv2.COLOR_BGRA2BGR)
                 #
                 # always return in RGB format
-                point_cloud_data = point_cloud_data[:,:,::-1]
-                info_dict['data_shape'] = point_cloud_data.shape
+                img_data = img_data[:,:,::-1]
+                info_dict['data_shape'] = img_data.shape
             #
-            info_dict['data'] = point_cloud_data
+            info_dict['data'] = img_data
             info_dict['data_path'] = path
         elif isinstance(path, np.ndarray):
-            point_cloud_data = path
-            info_dict['data_shape'] = point_cloud_data.shape
-            info_dict['data'] = point_cloud_data
+            img_data = path
+            info_dict['data_shape'] = img_data.shape
+            info_dict['data'] = img_data
             info_dict['data_path'] = './'
         else:
             assert False, 'invalid input'
         #
-        return point_cloud_data, info_dict
+        return img_data, info_dict
 
     def __repr__(self):
         return self.__class__.__name__ + f'(backend={self.backend})'
