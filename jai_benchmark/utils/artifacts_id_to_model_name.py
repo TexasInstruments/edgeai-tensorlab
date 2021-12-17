@@ -318,7 +318,9 @@ model_id_artifacts_pair = {
     'ss-8580_onnxrt': 'ONR-SS-8580-fpnlite-aspp-regNetx3.2gf-cs-1536x768',
     'ss-8590_onnxrt': 'ONR-SS-8590-deeplabv3-res50-1040x520',
     'ss-8600_onnxrt': 'ONR-SS-8600-fcn-res50-1040x520',
-
+    # ONNX - LIDAR - 3DOD
+    'lidar-3dod-7100_onnxrt' : 'ONR-LIDAR-3DOD-7100-pointPillars_20000',
+    
     # ONNX - SS - ADE20k
     'ss-8610_onnxrt': 'ONR-SS-8610-deeplabv3lite-mobv2-ade20k32-512x512',
     'ss-8618_onnxrt': 'ONR-SS-8618-deeplabv3lite-mobv2-ade20k32-qat-512x512', 

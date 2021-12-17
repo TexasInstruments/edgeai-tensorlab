@@ -78,7 +78,7 @@ task_selection : null
 
 # wild card list to match against dataset type - if null, all datasets will be shortlisted
 # example: ['coco']
-# example: ['imagenet','cocoseg21','ade20k','cocokpts']
+# example: ['imagenet','cocoseg21','ade20k','cocokpts', 'kitti_lidar_det', 'ti-robokit_semseg_zed1hd']
 dataset_loading : null
 
 # verbose mode - print out more information

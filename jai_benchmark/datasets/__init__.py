@@ -37,8 +37,10 @@ from .imagenetv2 import *
 from .cityscapes import *
 from .ade20k import *
 from .voc_seg import *
-from .nyudepthv2 import * 
+from .nyudepthv2 import *
 from .modelmaker_datasets import *
+
+from .kitti_lidar_det import *
 
 from .coco_kpts import *
 
@@ -73,6 +75,9 @@ dataset_info_dict = {
 dataset_info_dict_experimental = {
     #------------------------semantic segmentation datasets--------------------------#
     'cityscapes': {'task_type':'segmentation', 'category':'cityscapes', 'type':CityscapesSegmentation, 'size':500, 'split':'val'},
+    'ti-robokit_semseg_zed1hd': {'task_type':'segmentation', 'category':'ti-robokit_semseg_zed1hd', 'type':ImageSegmentation, 'size':49, 'split':'val'},
+    #------------------------3D OD datasets--------------------------#
+    'kitti_lidar_det': {'task_type':'3d-detection', 'category':'kitti_lidar_det', 'type':KittiLidar3D, 'size':3769, 'split':'val'},
  }
 
 
@@ -157,7 +162,7 @@ def get_datasets(settings, download=False):
 
         dataset_cache['cocokpts']['calibration_dataset'] = COCOKeypoints(**coco_kpts_calib_cfg, download=download)
         dataset_cache['cocokpts']['input_dataset'] = COCOKeypoints(**coco_kpts_val_cfg, download=False)
-    
+
     if in_dataset_loading(settings, 'coco'):
         coco_det_calib_cfg = dict(
             path=f'{settings.datasets_path}/coco',
@@ -190,7 +195,7 @@ def get_datasets(settings, download=False):
         dataset_cache['cocoseg21']['calibration_dataset'] = COCOSegmentation(**cocoseg21_calib_cfg, download=download)
         dataset_cache['cocoseg21']['input_dataset'] = COCOSegmentation(**cocoseg21_val_cfg, download=False)
     #
-    if in_dataset_loading(settings, 'cityscapes'):
+    if settings.experimental_models and in_dataset_loading(settings, 'cityscapes'):
         cityscapes_seg_calib_cfg = dict(
             path=f'{settings.datasets_path}/cityscapes',
             split='val',
@@ -205,6 +210,9 @@ def get_datasets(settings, download=False):
             name='cityscapes')
         dataset_cache['cityscapes']['calibration_dataset'] = CityscapesSegmentation(**cityscapes_seg_calib_cfg, download=False)
         dataset_cache['cityscapes']['input_dataset'] = CityscapesSegmentation(**cityscapes_seg_val_cfg, download=False)
+    else:
+        dataset_cache['cityscapes']['calibration_dataset'] = None
+        dataset_cache['cityscapes']['input_dataset'] = None
     #
     if in_dataset_loading(settings, 'ade20k'):
         ade20k_seg_calib_cfg = dict(
@@ -271,6 +279,51 @@ def get_datasets(settings, download=False):
 
         dataset_cache['nyudepthv2']['calibration_dataset'] = NYUDepthV2(**nyudepthv2_calib_cfg, download=download)
         dataset_cache['nyudepthv2']['input_dataset'] = NYUDepthV2(**nyudepthv2_val_cfg, download=False)
+    #
+    if settings.experimental_models and in_dataset_loading(settings, 'kitti_lidar_det'):
+        dataset_calib_cfg = dict(
+            path=f'{settings.datasets_path}/kitti_3dod/training/velodyne_reduced',
+            split=f'{settings.datasets_path}/kitti_3dod/ImageSets/val.txt',
+            num_classes=1,
+            shuffle=True,
+            num_frames=min(settings.calibration_frames,3769))
+
+        # dataset parameters for actual inference
+        dataset_val_cfg = dict(
+            path=f'{settings.datasets_path}/kitti_3dod/training/velodyne_reduced',
+            split=f'{settings.datasets_path}/kitti_3dod/ImageSets/val.txt',
+            num_classes=1,
+            shuffle=True,
+            num_frames=min(settings.num_frames,3769))
+
+        dataset_cache['kitti_lidar_det']['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False)
+        dataset_cache['kitti_lidar_det']['input_dataset'] = KittiLidar3D(**dataset_val_cfg, download=False)
+    else:
+        dataset_cache['kitti_lidar_det']['calibration_dataset'] = None
+        dataset_cache['kitti_lidar_det']['input_dataset'] = None
+    #
+    if settings.experimental_models and in_dataset_loading(settings, 'ti-robokit_semseg_zed1hd'):
+        dataset_calib_cfg = dict(
+            path=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd',
+            split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/train_img_gt_pair.txt',
+            num_classes=19,
+            shuffle=True,
+            num_frames=min(settings.calibration_frames,150))
+
+        # dataset parameters for actual inference
+        dataset_val_cfg = dict(
+            path=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd',
+            split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/val_img_gt_pair.txt',
+            num_classes=19,
+            shuffle=True,
+            num_frames=min(settings.num_frames,49))
+
+        dataset_cache['ti-robokit_semseg_zed1hd']['calibration_dataset'] = ImageSegmentation(**dataset_calib_cfg, download=False)
+        dataset_cache['ti-robokit_semseg_zed1hd']['input_dataset'] = ImageSegmentation(**dataset_val_cfg, download=False)
+    else:
+        dataset_cache['ti-robokit_semseg_zed1hd']['calibration_dataset'] = None
+        dataset_cache['ti-robokit_semseg_zed1hd']['input_dataset'] = None
+    #
     return dataset_cache
 
 

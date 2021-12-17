@@ -30,27 +30,6 @@ import cv2
 from jai_benchmark import constants, utils, datasets, preprocess, sessions, postprocess, metrics
 
 
-def get_imageseg_robokit_dataset_loaders(settings, download=False):
-    dataset_calib_cfg = dict(
-        path=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd',
-        split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/train_img_gt_pair.txt',
-        num_classes=19,
-        shuffle=True,
-        num_frames=min(settings.calibration_frames,150))
-
-    # dataset parameters for actual inference
-    dataset_val_cfg = dict(
-        path=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd',
-        split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/val_img_gt_pair.txt',
-        num_classes=19,
-        shuffle=True,
-        num_frames=min(settings.num_frames,49))
-
-    calib_dataset = datasets.ImageSegmentation(**dataset_calib_cfg, download=download)
-    val_dataset = datasets.ImageSegmentation(**dataset_val_cfg, download=download)
-    return calib_dataset, val_dataset
-
-
 def get_configs(settings, work_dir):
     # get the sessions types to use for each model type
     onnx_session_type = settings.get_session_type(constants.MODEL_TYPE_ONNX)
@@ -91,7 +70,11 @@ def get_configs(settings, work_dir):
         'input_dataset': settings.dataset_cache['cocoseg21']['input_dataset'],
     }
 
-    imageseg_robokit_calib_dataset, imageseg_robokit_val_dataset = get_imageseg_robokit_dataset_loaders(settings)
+    robokitseg_cfg = {
+        'task_type': 'segmentation',
+        'calibration_dataset': settings.dataset_cache['ti-robokit_semseg_zed1hd']['calibration_dataset'],
+        'input_dataset': settings.dataset_cache['ti-robokit_semseg_zed1hd']['input_dataset'],
+    }
 
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
 
@@ -103,24 +86,16 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################mlperf models###################################
         #------------------------robokit models-----------------------
-        'ss-robokit1-qat': dict(
-            task_type='segmentation',
-            calibration_dataset=imageseg_robokit_calib_dataset,
-            input_dataset=imageseg_robokit_val_dataset,
+        'ss-robokit1-qat': utils.dict_update(robokitseg_cfg,
             preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', mean=(128.0, 128.0, 128.0), scale=(0.015625, 0.015625, 0.015625), interpolation=cv2.INTER_AREA),
-            session=onnx_session_type(
-                work_dir=work_dir, target_device=settings.target_device, runtime_options=settings.runtime_options_onnx_qat(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
                 model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432_qat-p2.onnx'),
             postprocess=postproc_transforms.get_transform_segmentation_onnx(),
             model_info=dict(metric_reference={'accuracy_mean_iou%':None})
         ),
-        'ss-robokit2': dict(
-            task_type='segmentation',
-            calibration_dataset=imageseg_robokit_calib_dataset,
-            input_dataset=imageseg_robokit_val_dataset,
+        'ss-robokit2': utils.dict_update(robokitseg_cfg,
             preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', mean=(128.0, 128.0, 128.0), scale=(0.015625, 0.015625, 0.015625), interpolation=cv2.INTER_AREA),
-            session=onnx_session_type(
-                work_dir=work_dir, target_device=settings.target_device, runtime_options=settings.runtime_options_onnx_np2(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432.onnx'),
             postprocess=postproc_transforms.get_transform_segmentation_onnx(),
             model_info=dict(metric_reference={'accuracy_mean_iou%':None})

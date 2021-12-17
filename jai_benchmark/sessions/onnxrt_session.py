@@ -56,7 +56,8 @@ class ONNXRTSession(BaseRTSession):
         # provide the calibration data and run the import
         for c_data in calib_data:
             input_keys = list(self.kwargs['input_shape'].keys())
-            c_data = utils.as_tuple(c_data)
+            if type(c_data) != tuple:
+                c_data = utils.as_tuple(c_data)
             calib_dict = {d_name:d for d_name, d in zip(input_keys,c_data)}
             # model may need additional inputs given in extra_inputs
             if self.kwargs['extra_inputs'] is not None:

@@ -56,10 +56,12 @@ def get_configs(settings, work_dir):
         from . import classification_experimental
         from . import detection_experimental
         from . import segmentation_experimental
+        from . import detection_3d_experimental
         # now get the experimental configs
         pipeline_configs.update(classification_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(detection_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(segmentation_experimental.get_configs(settings, work_dir))
+        pipeline_configs.update(detection_3d_experimental.get_configs(settings, work_dir))
     #
     return pipeline_configs
 
