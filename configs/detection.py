@@ -407,6 +407,33 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':33.61})
         ),
+        'od-2120': utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_tflite((384, 384), (384, 384), resize_with_pad=True, backend='cv2', mean=(127.0,  127.0,  127.0), scale=(0.0078125, 0.0078125, 0.0078125), pad_color=[127,127,127]),
+            session=tflite_session_type(**common_session_cfg,
+                runtime_options=utils.dict_update(runtime_options_tflite_np2,
+                                                  {'object_detection:meta_arch_type': 5,
+                                                   'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/google-automl/official_relu/efficientdet_lite1.prototxt',
+                                                   'advanced_options:output_feature_16bit_names_list': 'efficientnet-lite1/stem/Relu;efficientnet-lite1/stem/tpu_batch_normalization/FusedBatchNormV3;efficientnet-lite1/blocks_0/tpu_batch_normalization/FusedBatchNormV3;efficientnet-lite1/blocks_0/depthwise_conv2d/depthwise;efficientnet-lite1/stem/conv2d/Conv2D, box_net/box-predict/BiasAdd;box_net/box-predict_4/separable_conv2d;box_net/box-predict/separable_conv2d;box_net/box-predict/bias, class_net/class-predict/BiasAdd;class_net/class-predict_4/separable_conv2d;class_net/class-predict/separable_conv2d;class_net/class-predict/bias, box_net/box-predict_1/BiasAdd;box_net/box-predict_4/separable_conv2d;box_net/box-predict_1/separable_conv2d;box_net/box-predict/bias, class_net/class-predict_1/BiasAdd;class_net/class-predict_4/separable_conv2d;class_net/class-predict_1/separable_conv2d;class_net/class-predict/bias, box_net/box-predict_2/BiasAdd;box_net/box-predict_4/separable_conv2d;box_net/box-predict_2/separable_conv2d;box_net/box-predict/bias, class_net/class-predict_2/BiasAdd;class_net/class-predict_4/separable_conv2d;class_net/class-predict_2/separable_conv2d;class_net/class-predict/bias, box_net/box-predict_3/BiasAdd;box_net/box-predict_4/separable_conv2d;box_net/box-predict_3/separable_conv2d;box_net/box-predict/bias, class_net/class-predict_3/BiasAdd;class_net/class-predict_4/separable_conv2d;class_net/class-predict_3/separable_conv2d;class_net/class-predict/bias, box_net/box-predict_4/BiasAdd;box_net/box-predict_4/separable_conv2d;box_net/box-predict/bias1, class_net/class-predict_4/BiasAdd;class_net/class-predict_4/separable_conv2d;class_net/class-predict/bias1'}),
+                model_path=f'{settings.models_path}/vision/detection/coco/google-automl/official_relu/efficientdet-lite1.tflite'
+                                        ),
+            postprocess=postproc_transforms.get_transform_detection_tflite(normalized_detections=False, ignore_detection_element=0,
+                                                            formatter=postprocess.DetectionFormatting(dst_indices=(0,1,2,3,4,5), src_indices=(1,0,3,2,5,4)), resize_with_pad=True,),
+            metric=dict( label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 31.79})
+            ),
+        'od-2140': utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_tflite((512, 512), (512, 512), resize_with_pad=True, backend='cv2', mean=(127.0, 127.0, 127.0), scale=(0.0078125, 0.0078125, 0.0078125), pad_color=[127,127,127]),
+            session=tflite_session_type(**common_session_cfg,
+                runtime_options=utils.dict_update(runtime_options_tflite_np2,
+                                                  {'object_detection:meta_arch_type': 5,
+                                                   'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/google-automl/official_relu/efficientdet_lite3.prototxt',
+                                                   'advanced_options:output_feature_16bit_names_list': 'efficientnet-lite3/stem/Relu;efficientnet-lite3/stem/tpu_batch_normalization/FusedBatchNormV3;efficientnet-lite3/blocks_0/tpu_batch_normalization/FusedBatchNormV3;efficientnet-lite3/blocks_0/depthwise_conv2d/depthwise;efficientnet-lite3/blocks_3/conv2d_1/Conv2D;efficientnet-lite3/stem/conv2d/Conv2D, box_net/box-predict/BiasAdd;box_net/box-predict_4/separable_conv2d;box_net/box-predict/separable_conv2d;box_net/box-predict/bias, class_net/class-predict/BiasAdd;class_net/class-predict_4/separable_conv2d;class_net/class-predict/separable_conv2d;class_net/class-predict/bias, box_net/box-predict_1/BiasAdd;box_net/box-predict_4/separable_conv2d;box_net/box-predict_1/separable_conv2d;box_net/box-predict/bias, class_net/class-predict_1/BiasAdd;class_net/class-predict_4/separable_conv2d;class_net/class-predict_1/separable_conv2d;class_net/class-predict/bias, box_net/box-predict_2/BiasAdd;box_net/box-predict_4/separable_conv2d;box_net/box-predict_2/separable_conv2d;box_net/box-predict/bias, class_net/class-predict_2/BiasAdd;class_net/class-predict_4/separable_conv2d;class_net/class-predict_2/separable_conv2d;class_net/class-predict/bias, box_net/box-predict_3/BiasAdd;box_net/box-predict_4/separable_conv2d;box_net/box-predict_3/separable_conv2d;box_net/box-predict/bias, class_net/class-predict_3/BiasAdd;class_net/class-predict_4/separable_conv2d;class_net/class-predict_3/separable_conv2d;class_net/class-predict/bias, box_net/box-predict_4/BiasAdd;box_net/box-predict_4/separable_conv2d;box_net/box-predict/bias1, class_net/class-predict_4/BiasAdd;class_net/class-predict_4/separable_conv2d;class_net/class-predict/bias1'}),
+                model_path=f'{settings.models_path}/vision/detection/coco/google-automl/official_relu/efficientdet-lite3.tflite'),
+            postprocess=postproc_transforms.get_transform_detection_tflite( normalized_detections=False, ignore_detection_element=0,
+                                                           formatter=postprocess.DetectionFormatting(dst_indices=(0,1,2,3,4,5), src_indices=(1,0,3,2,5,4)), resize_with_pad=True),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 38.33})
+            ),
     }
     return pipeline_configs
 

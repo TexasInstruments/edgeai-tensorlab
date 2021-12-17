@@ -93,10 +93,10 @@ class PreProcessTransforms(utils.TransformsCompose):
 
     def get_transform_tflite(self, resize=256, crop=224, data_layout=constants.NHWC, reverse_channels=False,
                               backend='pil', interpolation=None, resize_with_pad=False,
-                              mean=(128.0, 128.0, 128.0), scale=(1/128.0, 1/128.0, 1/128.0)):
+                              mean=(128.0, 128.0, 128.0), scale=(1/128.0, 1/128.0, 1/128.0), pad_color=0):
         return self.get_transform_base(resize=resize, crop=crop, data_layout=data_layout, reverse_channels=reverse_channels,
                                 backend=backend, interpolation=interpolation, resize_with_pad=resize_with_pad,
-                                mean=mean, scale=scale)
+                                mean=mean, scale=scale, pad_color=pad_color)
 
     def get_transform_tflite_quant(self, *args, mean=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0), **kwargs):
         return self.get_transform_tflite(*args, mean=mean, scale=scale, **kwargs)
