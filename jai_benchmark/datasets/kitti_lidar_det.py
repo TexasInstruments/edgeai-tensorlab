@@ -81,5 +81,5 @@ class KittiLidar3D(DatasetBase):
         return self.evaluate(predictions, **kwargs)
 
     def evaluate(self, predictions, **kwargs):
-        return {'accuracy_ap_3d':None}
+        return {'accuracy_ap_3d_moderate%':None}
 

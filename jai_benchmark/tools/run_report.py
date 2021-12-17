@@ -33,7 +33,7 @@ import glob
 
 from .. import utils
 
-metric_keys = ['accuracy_top1%', 'accuracy_mean_iou%', 'accuracy_ap[.5:.95]%', 'accuracy_delta_1%']
+metric_keys = ['accuracy_top1%', 'accuracy_mean_iou%', 'accuracy_ap[.5:.95]%', 'accuracy_delta_1%', 'accuracy_ap_3d_moderate%']
 performance_keys = ['num_subgraphs', 'infer_time_core_ms', 'ddr_transfer_mb', 'perfsim_time_ms', 'perfsim_ddr_transfer_mb', 'perfsim_gmacs']
 
 

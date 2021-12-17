@@ -70,7 +70,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/3d_detection/kitti/mmdetection3d/lidar_point_pillars_496x432.onnx'),
             postprocess=postproc_transforms.get_transform_lidar_base(),
             metric=dict(label_offset_pred=None),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':47.1})
+            model_info=dict(metric_reference={'accuracy_ap_3d_moderate%':74.99})
         )
     }
     return pipeline_configs
