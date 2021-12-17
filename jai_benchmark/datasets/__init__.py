@@ -69,14 +69,15 @@ dataset_info_dict = {
     'cocokpts': {'task_type':'keypoint_detection', 'category':'cocokpts', 'type':COCOKeypoints, 'size':5000, 'split':'val2017'},
     #------------------------depth estimation datasets--------------------------#
     'nyudepthv2': {'task_type':'depth_estimation', 'category':'nyudepthv2', 'type':NYUDepthV2, 'size':654, 'split':'val'},
-    #------------------------3D OD datasets--------------------------#
-    'kitti_lidar_det': {'task_type':'3d-detection', 'category':'kitti_lidar_det', 'type':KittiLidar3D, 'size':3769, 'split':'val'},
  }
 
 
 dataset_info_dict_experimental = {
     #------------------------semantic segmentation datasets--------------------------#
     'cityscapes': {'task_type':'segmentation', 'category':'cityscapes', 'type':CityscapesSegmentation, 'size':500, 'split':'val'},
+    'ti-robokit_semseg_zed1hd': {'task_type':'segmentation', 'category':'ti-robokit_semseg_zed1hd', 'type':ImageSegmentation, 'size':49, 'split':'val'},
+    #------------------------3D OD datasets--------------------------#
+    'kitti_lidar_det': {'task_type':'3d-detection', 'category':'kitti_lidar_det', 'type':KittiLidar3D, 'size':3769, 'split':'val'},
  }
 
 
@@ -194,7 +195,7 @@ def get_datasets(settings, download=False):
         dataset_cache['cocoseg21']['calibration_dataset'] = COCOSegmentation(**cocoseg21_calib_cfg, download=download)
         dataset_cache['cocoseg21']['input_dataset'] = COCOSegmentation(**cocoseg21_val_cfg, download=False)
     #
-    if in_dataset_loading(settings, 'cityscapes'):
+    if settings.experimental_models and in_dataset_loading(settings, 'cityscapes'):
         cityscapes_seg_calib_cfg = dict(
             path=f'{settings.datasets_path}/cityscapes',
             split='val',
@@ -209,6 +210,9 @@ def get_datasets(settings, download=False):
             name='cityscapes')
         dataset_cache['cityscapes']['calibration_dataset'] = CityscapesSegmentation(**cityscapes_seg_calib_cfg, download=False)
         dataset_cache['cityscapes']['input_dataset'] = CityscapesSegmentation(**cityscapes_seg_val_cfg, download=False)
+    else:
+        dataset_cache['cityscapes']['calibration_dataset'] = None
+        dataset_cache['cityscapes']['input_dataset'] = None
     #
     if in_dataset_loading(settings, 'ade20k'):
         ade20k_seg_calib_cfg = dict(
@@ -294,6 +298,9 @@ def get_datasets(settings, download=False):
 
         dataset_cache['kitti_lidar_det']['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False)
         dataset_cache['kitti_lidar_det']['input_dataset'] = KittiLidar3D(**dataset_val_cfg, download=False)
+    else:
+        dataset_cache['kitti_lidar_det']['calibration_dataset'] = None
+        dataset_cache['kitti_lidar_det']['input_dataset'] = None
     #
     if settings.experimental_models and in_dataset_loading(settings, 'ti-robokit_semseg_zed1hd'):
         dataset_calib_cfg = dict(
@@ -313,6 +320,9 @@ def get_datasets(settings, download=False):
 
         dataset_cache['ti-robokit_semseg_zed1hd']['calibration_dataset'] = ImageSegmentation(**dataset_calib_cfg, download=False)
         dataset_cache['ti-robokit_semseg_zed1hd']['input_dataset'] = ImageSegmentation(**dataset_val_cfg, download=False)
+    else:
+        dataset_cache['ti-robokit_semseg_zed1hd']['calibration_dataset'] = None
+        dataset_cache['ti-robokit_semseg_zed1hd']['input_dataset'] = None
     #
     return dataset_cache
 
