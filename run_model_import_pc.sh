@@ -34,18 +34,6 @@
 # also point to the right type of artifacts (pc or j7)
 source run_setup_env.sh pc
 
-# setup the environment
-# source run_setupenv_pc.sh
-export TIDL_TOOLS_PATH=$(pwd)/tidl_tools
-echo "TIDL_TOOLS_PATH=${TIDL_TOOLS_PATH}"
-
-export LD_LIBRARY_PATH=$TIDL_TOOLS_PATH
-echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
-
-# make sure current directory is visible for python import
-export PYTHONPATH=:${PYTHONPATH}
-echo "PYTHONPATH=${PYTHONPATH}"
-
 
 # specify one of the following settings - options can be changed inside the yaml
 #settings_file=settings_infer_on_j7.yaml
