@@ -345,6 +345,9 @@ model_id_artifacts_pair = {
     'kd-7020_onnxrt': 'ONR-KD-7020-human-pose-ae-mobv2-pan-spp-udp-512x512',
     'kd-7030_onnxrt': 'ONR-KD-7030-human-pose-ae-res50v2-pan-spp-udp-512x512',
 
+    'od-2130_tflitert':'TFL-OD-2130-efficientdet-lite1-relu-384x384',
+    'od-2140_tflitert':'TFL-OD-2140-efficientdet-lite3-relu-512x512',
+
     # ONNX depth estimation
     'de-7300_onnxrt': 'ONR-DE-7300-depth-est-fast-depth-224x224',
     'de-7310_onnxrt': 'ONR-DE-7310-depth-est-midas-small-256x256',
