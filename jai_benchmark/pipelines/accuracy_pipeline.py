@@ -187,6 +187,8 @@ class AccuracyPipeline():
         preprocess = self.pipeline_config['preprocess']
         postprocess = self.pipeline_config['postprocess']
         run_dir_base = os.path.split(session.get_param('run_dir'))[-1]
+        num_frames = self.pipeline_config.get('num_frames', self.settings.num_frames)
+        num_frames = min(len(input_dataset), num_frames)
 
         is_ok = session.start_infer()
         assert is_ok, utils.log_color('\nERROR', f'start_infer() did not succeed for:', run_dir_base)
@@ -198,7 +200,6 @@ class AccuracyPipeline():
         num_frames_ddr = 0
 
         output_list = []
-        num_frames = min(len(input_dataset), self.settings.num_frames)
         pbar_desc = f'infer {description}: {run_dir_base}'
         for data_index in utils.progress_step(range(num_frames), desc=pbar_desc, file=self.logger, position=0):
             info_dict = {}
