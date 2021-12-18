@@ -38,21 +38,29 @@ def get_configs(settings, work_dir):
     preproc_transforms = preprocess.PreProcessTransforms(settings)
     postproc_transforms = postprocess.PostProcessTransforms(settings)
 
+    # overriding with a small number as these take too much time.
+    calibration_frames = 10
+    num_frames = 100
+
     # configs for each model pipeline
     common_cfg = {
         'task_type': 'classification',
         'calibration_dataset': settings.dataset_cache['imagenet']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['imagenet']['input_dataset'],
         'postprocess': postproc_transforms.get_transform_classification(),
-        'num_frames': 100 # overriding with a small number as these take too much time.
+        'calibration_frames': calibration_frames,
+        'num_frames': num_frames
     }
 
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
 
     hr_input_sizes = (512,1024)
     hr_input_sizes_x = [f'{s}x{s}' for s in hr_input_sizes]
+    # use a fast calibration setting as the goal of these modles are performance estimation and not accuracy
     hr_runtime_options = {
         'accuracy_level': 0,
+        'advanced_options:calibration_frames': calibration_frames,
+        'advanced_options:calibration_iterations': 1,
         'advanced_options:high_resolution_optimization': 1
     }
 

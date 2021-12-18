@@ -167,9 +167,10 @@ class AccuracyPipeline():
         calibration_dataset = self.pipeline_config['calibration_dataset']
         assert calibration_dataset is not None, f'got input_dataset={calibration_dataset}. please check settings.dataset_loading'
         preprocess = self.pipeline_config['preprocess']
+        calibration_frames = self.pipeline_config.get('calibration_frames', self.settings.calibration_frames)
+        calibration_frames = min(len(calibration_dataset), calibration_frames)
 
         calib_data = []
-        calibration_frames = min(len(calibration_dataset), self.settings.calibration_frames)
         for data_index in range(calibration_frames):
             info_dict = {}
             data = calibration_dataset[data_index]
