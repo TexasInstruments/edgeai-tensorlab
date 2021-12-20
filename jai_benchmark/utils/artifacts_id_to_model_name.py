@@ -351,6 +351,10 @@ model_id_artifacts_pair = {
     # ONNX depth estimation
     'de-7300_onnxrt': 'ONR-DE-7300-depth-est-fast-depth-224x224',
     'de-7310_onnxrt': 'ONR-DE-7310-depth-est-midas-small-256x256',
+
+    # Models for Robokit - TODO: assign a model id for these
+    'ss-robokit1-qat_onnxrt': 'ONR-SS-robokit1-qat-deeplabv3lite-mobv2-768x432',
+    'ss-robokit2': 'ONR-SS-robokit2-deeplabv3lite-mobv2-768x432'
 }
 
 removed_model_list = {
@@ -474,6 +478,10 @@ removed_model_list = {
     'od-8060_onnxrt': 'ONR-OD-8060-ssd-lite-regNetX-1.6gf-fpn-bgr-coco-768x768',
     'od-8120_onnxrt': 'ONR-OD-8120-yolov5-m6-ti-lite-coco-640x640',
     'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640',
+
+    # Models for Robokit - TODO: assign a model id for these
+    'ss-robokit1-qat_onnxrt': 'ONR-SS-robokit1-qat-deeplabv3lite-mobv2-768x432',
+    'ss-robokit2': 'ONR-SS-robokit2-deeplabv3lite-mobv2-768x432'
 }
 
 removed_models_from_plots = {
