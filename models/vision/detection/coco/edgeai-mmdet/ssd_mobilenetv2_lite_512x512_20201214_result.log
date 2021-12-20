@@ -1,0 +1,42 @@
+loading annotations into memory...loading annotations into memory...loading annotations into memory...
+
+
+loading annotations into memory...
+Done (t=0.53s)
+creating index...
+Done (t=0.53s)
+creating index...
+Done (t=0.54s)
+creating index...
+Done (t=0.54s)
+creating index...
+index created!
+index created!
+index created!
+index created!
+
+writing results to ./work_dirs/ssd-lite_mobilenet/result.pkl
+
+Evaluating bbox...
+Loading and preparing results...
+DONE (t=7.59s)
+creating index...
+index created!
+Running per image evaluation...
+Evaluate annotation type *bbox*
+DONE (t=66.42s).
+Accumulating evaluation results...
+DONE (t=20.39s).
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.251
+Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.431
+Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.254
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.069
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.260
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = 0.417
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.375
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.376
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.376
+Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.131
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.400
+Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = 0.586
+OrderedDict([('bbox_mAP', 0.251), ('bbox_mAP_50', 0.431), ('bbox_mAP_75', 0.254), ('bbox_mAP_s', 0.069), ('bbox_mAP_m', 0.26), ('bbox_mAP_l', 0.417), ('bbox_mAP_copypaste', '0.251 0.431 0.254 0.069 0.260 0.417')])
