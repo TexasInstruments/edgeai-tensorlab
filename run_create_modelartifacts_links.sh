@@ -32,7 +32,9 @@ version=$(python3 version.py --delimiter=_)
 
 url=http://software-dl.ti.com/jacinto7/esd/modelzoo/$version/modelartifacts/8bits
 
-for artifact in $(ls -1 ./modelartifacts/8bits |grep .tar.gz)
+for artifact in $(ls -1 ./modelartifacts/8bits/*.tar.gz)
 do
-echo ${url}/${artifact} > ./modelartifacts/8bits/${artifact}.link
+artifact_basename=$(basename ${artifact})
+echo ${artifact_basename}
+echo ${url}/${artifact_basename} > ./modelartifacts/8bits/${artifact_basename}.link
 done
