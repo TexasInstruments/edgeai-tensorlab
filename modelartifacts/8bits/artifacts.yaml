@@ -895,15 +895,15 @@ ss-8730_onnxrt:
   size: 41960969
   task_type: segmentation
 ss-robokit1-qat_onnxrt:
-  model_name: ss-robokit1-qat_onnxrt_edgeai-tv_deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432_qat-p2_onnx
+  model_name: ONR-SS-robokit1-qat-deeplabv3lite-mobv2-768x432
   recommended: false
   run_dir: ss-robokit1-qat_onnxrt_edgeai-tv_deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432_qat-p2_onnx
   session_name: onnxrt
-  shortlisted: true
+  shortlisted: false
   size: 5411580
   task_type: segmentation
 ss-robokit2_onnxrt:
-  model_name: ss-robokit2_onnxrt_edgeai-tv_deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432_onnx
+  model_name: ONR-SS-robokit2-deeplabv3lite-mobv2-768x432
   recommended: false
   run_dir: ss-robokit2_onnxrt_edgeai-tv_deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432_onnx
   session_name: onnxrt

@@ -33,7 +33,7 @@ import glob
 import re
 
 
-dest_url = 'http://software-dl.ti.com/jacinto7/esd/modelzoo/common/models/'
+dest_url = 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/'
 
 supported_ext = ['.tf', '.tflite', '.pth', '.pt', '.ptl', '.onnx', '.json', '.params', '.prototxt', '.caffemodel']
 

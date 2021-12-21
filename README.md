@@ -23,6 +23,12 @@ In order to run Deep Neural Networks (a.k.a. DNNs or Deep Learning Models or sim
 #### Semantic Segmentation
 [Semantic Segmentation Model Zoo](./models/vision/segmentation/)
 
+#### Depth Estimation
+[Depth Estimation Model Zoo](./models/vision/depth_estimation/)
+
+#### 3D Object Detection
+[3D Object Detection Model Zoo](./models/vision/3d_detection/)
+
 #### Public Benchmarks
 [MLPerf Machine Learning Model Zoo](./models/docs/mlperf/)
 

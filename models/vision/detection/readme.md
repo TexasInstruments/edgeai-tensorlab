@@ -14,11 +14,37 @@ The models are grouped in terms of repositories used to train them or the reposi
 
 
 ### EdgeAI-YOLOv5 Models
-- [More Information](https://github.com/TexasInstruments/edgeai-yolov5)
+- [Training Source Code & models](https://github.com/TexasInstruments/edgeai-yolov5)
+- [Original source code](https://github.com/ultralytics/yolov5): We made changes on this repository to create the edgeai-yolov5 fork.
 
-We have optimized YOLOv5 models to be friendly to TIDL. Take a look at the above link for more information, especially under the section "Models trained by TI".
+YOLOv5 models have very good accuracy and are good candidates for low complexity inference. We have optimized YOLOv5 models to be friendly to TIDL. Take a look at the above link for more information, especially under the section "Models trained by TI". Pre-trained model checkpoints and pre-compiled modelartifacts are also published there.
 
-We shall soon publish pre-trained checkpoints and also pre-compiled modelartifacts there.
+|Dataset |Model Name                      |Input Size |GigaMACS  |AP[0.5:0.95]%| AP50%|Available|Notes |
+|--------|------------------------------- |-----------|----------|-------------|------|---------|----- |
+|COCO    |Yolov5s6_ti_lite_640            |640x640    |**8.74**  |**37.4**     | 56.0 |Y        |      |
+|COCO    |Yolov5s6_ti_lite_576            |576x576    |**7.08**  |**36.6**     | 55.7 |         |(Train@ 640, val@576) |
+|COCO    |Yolov5s6_ti_lite_512            |512x512    |**5.59**  |**35.3**     | 54.3 |         |(Train@ 640, val@512) |
+|COCO    |Yolov5s6_ti_lite_448            |448x448    |**4.28**  |**34.0**     | 52.3 |         |(Train@ 640, val@448) |
+|COCO    |Yolov5s6_ti_lite_384            |384x384    |**3.15**  |**32.8**     | 51.2 |Y        |(Train@ 384, val@384) |
+|COCO    |Yolov5s6_ti_lite_320            |320x320    |**2.19**  |**30.3**     | 47.6 |         |(Train@ 384, val@320) |
+|COCO    |Yolov5m6_ti_lite_640            |640x640    |**26.25** |**44.1**     | 62.9 |Y        |      |
+|COCO    |Yolov5m6_ti_lite_576            |576x576    |**21.26** |**43.0**     | 61.9 |         |(Train@ 640, val@576) |
+|COCO    |Yolov5m6_ti_lite_512            |512x512    |**16.08** |**42.0**     | 60.5 |         |(Train@ 640, val@512) |
+|COCO    |Yolov5l6_ti_lite_640            |640x640    |**58.92** |**47.1**     | 65.6 |Y        |This model is finetuned from the official ckpt for 100 epochs|
+
+
+### EdgeAI-YOLOX Models
+- [Models Link](./coco/edgeai-yolox/)
+- Training Source Code & models - coming soon!
+- [Original source code](https://github.com/Megvii-BaseDetection/YOLOX/blob/main/LICENSE): We made changes on this repository to create the edgeai-yolox fork.
+
+YOLOX is another excellent set of models with low complexity and high accuracy. We have made some changes to this model - for example replacing complex activation functions such as SiLU with more common and widely support activation function ReLU.
+
+|Dataset |Model Name                      |Input Size |GigaMACS  |AP[0.5:0.95]%| AP50%|Available|Notes |
+|--------|------------------------------- |-----------|----------|-------------|------|---------|----- |
+|COCO    |Yolox_s_ti_lite_640             |640x640    |**13.43** |**39.1**     |57.9  |Y        |      |
+|COCO    |Yolox-s (original)              |640x640    |**13.4**  |**40.5**     |59.6  |         |      |
+|COCO    |Yolox-m (original)              |640x640    |**36.9**  |**46.4**     |65.4  |         |      |
 
 
 ### EdgeAI-MMDetection
@@ -37,8 +63,8 @@ This is our fork of the popular mmdetection training framework for object detect
 |COCO    |RegNetX200MF+SSDLite             |320x320    |**0.61**  |**20.7**, 36.7      |Y        |      |
 |COCO    |RegNetX400MF+SSDLite             |320x320    |**1.12**  |**24.1**, 41.0      |         |      |
 |COCO    |RegNetX800MF+FPN+SSDLite         |512x512    |**6.03**  |**32.8**, 52.8      |Y        |      |
-|COCO    |RegNetX1.6GF+FPN+SSDLite         |768x768    |**24.19** |**37.0**, 57.3      |         |      |
-|COCO    |RegNetX1.6GF+BiFPN168x4+SSDLite  |768x768    |**25.37** |**39.8**, 58.4      |Y        |      |
+|COCO    |RegNetX1.6GF+FPN+SSDLite         |768x768    |**24.19** |**37.0**, 57.3      |Y        |      |
+|COCO    |RegNetX1.6GF+BiFPN168x4+SSDLite  |768x768    |**25.37** |**39.8**, 58.4      |         |      |
 |        |**YOLOV3 models**
 |COCO    |YOLOv3(LeakyReLU)                |416x416    |**33.0**  |**31.0**, 52.1      |         |Fine tuned to use fixed size |
 |COCO    |YOLOv3(ReLU)                     |416x416    |**33.0**  |**30.7**, 51.2      |Y        |Fine tuned to use fixed size and ReLU |
