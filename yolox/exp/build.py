@@ -31,7 +31,9 @@ def get_exp_by_name(exp_name):
         "yolox-x": "yolox_x.py",
         "yolox-s-human-pose": "yolox_s_human_pose.py",
         "yolox-tiny": "yolox_tiny.py",
+        "yolox-tiny-ti-lite": "yolox_tiny_ti_lite.py",
         "yolox-nano": "nano.py",
+        "yolox-nano-ti-lite": "nano_ti_lite.py",
         "yolov3": "yolov3.py",
     }
     filename = filedict[exp_name]
