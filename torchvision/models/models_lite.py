@@ -41,7 +41,7 @@ __all__ = ['mobilenet_v2_lite',
            ]
 
 model_url_base = \
-    'https://software-dl.ti.com/jacinto7/esd/modelzoo/common/models/vision/classification/imagenet1k/edgeai-tv'
+    'https://software-dl.ti.com/jacinto7/esd/modelzoo/stable/models/vision/classification/imagenet1k/edgeai-tv'
 
 
 model_urls = {
