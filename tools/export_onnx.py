@@ -132,7 +132,7 @@ def main():
 
     logger.info("loading checkpoint done.")
     img = cv2.imread("./assets/dog.jpg")
-    img, ratio = preprocess(img, (640,640))
+    img, ratio = preprocess(img, exp.test_size)
     img = img[None, ...]
     img = img.astype('float32')
     img = torch.from_numpy(img)
