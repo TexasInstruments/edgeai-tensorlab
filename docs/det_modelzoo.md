@@ -37,26 +37,28 @@ We shall add support for additional low complexity models as mmdetection adds su
 
 |Dataset |Model Name                    |Input Size |GigaMACS  |Accuracy%      |Config File |
 |--------|------------------------------|-----------|----------|---------------|------------|
-|COCO    |RegNetX400MF+FPN+SSDLite      |384x384    |**2.13**  |**27.2**, 45.0 |ssd-lite_regnet_fpn_bgr.py  |
-|COCO    |RegNetX800MF+FPN+SSDLite      |512x512    |**6.03**  |**32.8**, 52.8 |ssd-lite_regnet_fpn_bgr.py  |
-|COCO    |RegNetX1.6GF+FPN+SSDLite      |768x768    |**24.19** |**37.0**, 57.3 |ssd-lite_regnet_fpn_bgr.py  |
+|COCO    |RegNetX400MF+FPN+SSDLite      |384x384    |**2.13**  |**27.2**, 45.0 |configs/edgeailite/ssd/ssd_regnet_fpn_bgr_lite.py  |
+|COCO    |RegNetX800MF+FPN+SSDLite      |512x512    |**6.03**  |**32.8**, 52.8 |configs/edgeailite/ssd/ssd_regnet_fpn_bgr_lite.py  |
+|COCO    |RegNetX1.6GF+FPN+SSDLite      |768x768    |**24.19** |**37.0**, 57.3 |configs/edgeailite/ssd/ssd_regnet_fpn_bgr_lite.py  |
 |-
-|COCO    |MobileNetV2+SSDLite           |512x512    |**1.74**  |**22.2**       |ssd-lite_mobilenet.py  |
-|COCO    |MobileNetV2+FPN+SSDLite       |512x512    |**2.29**  |**26.0**       |ssd-lite_mobilenet_fpn.py  |
+|COCO    |MobileNetV2+SSDLite           |512x512    |**1.74**  |**22.2**       |configs/edgeailite/ssd/ssd_mobilenet_lite.py  |
+|COCO    |MobileNetV2+FPN+SSDLite       |512x512    |**2.29**  |**26.0**       |configs/edgeailite/ssd/ssd_mobilenet_fpn_lite.py  |
 |-
-|COCO    |ResNet50+FPN+SSD              |512x512    |**30.77** |**31.2**, 52.2 |ssd_resnet_fpn.py |
+|COCO    |ResNet50+FPN+SSD              |512x512    |**30.77** |**31.2**, 52.2 |configs/edgeailite/ssd/ssd_resnet_fpn.py |
 |COCO    |VGG16+SSD                     |512x512    |**98.81** |**29.34**      |         |
 |-
-|COCO    |RegNetX800MF+FPN+RetinaNetLite|512x512    |**11.08** |**33.0**, 50.8 |retinanet-lite_regnet_fpn_bgr.py |
-|COCO    |RegNetX1.6GF+FPN+RetinaNetLite|768x768    |          |               |retinanet-lite_regnet_fpn_bgr.py |
+|COCO    |RegNetX800MF+FPN+RetinaNetLite|512x512    |**11.08** |**33.0**, 50.8 |configs/edgeailite/retinanet/retinanet_regnet_fpn_bgr_lite.py |
+|COCO    |RegNetX1.6GF+FPN+RetinaNetLite|768x768    |          |               |configs/edgeailite/retinanet/retinanet_regnet_fpn_bgr_lite.py |
 |-
-|COCO    |ResNet50+FPN+RetinaNet        |512x512    |**68.88** |**29.0**       |retinanet_resnet_fpn.py |
-|COCO    |ResNet50+FPN+RetinaNet        |768x768    |**137.75**|**34.0**       |retinanet_resnet_fpn.py |
-|COCO    |ResNet50+FPN+RetinaNet        |(1536,768) |**275.5** |**37.0**       |retinanet_resnet_fpn.py |
+|COCO    |ResNet50+FPN+RetinaNet        |512x512    |**68.88** |**29.0**       |configs/edgeailite/retinanet/retinanet_resnet_fpn.py |
+|COCO    |ResNet50+FPN+RetinaNet        |768x768    |**137.75**|**34.0**       |configs/edgeailite/retinanet/retinanet_resnet_fpn.py |
+|COCO    |ResNet50+FPN+RetinaNet        |(1536,768) |**275.5** |**37.0**       |configs/edgeailite/retinanet/retinanet_resnet_fpn.py |
 |-
-|COCO    |YOLOv3                        |416x416    |**33.0**  |**29.6**       |yolov3_d53.py |
-|COCO    |YOLOv3                        |(416,416)  |**33.0**  |**30.9**       |yolov3_d53.py |
-|COCO    |YOLOv3                        |(608,608)  |**70.59** |**33.4**       |yolov3_d53.py |
+|COCO    |RegNet1.6GF+YOLO3+Lite        |416x416    |**10.48** |**30.8**, 52.00|configs/edgeailite/yolov3/yolov3_regnet_bgr_lite.py |
+|COCO    |YOLO3+ReLU                    |416x416    |**33.0**  |**30.7**, 51.30|configs/edgeailite/yolov3/yolov3_d53_relu.py |
+|COCO    |YOLOv3                        |416x416    |**33.0**  |**29.6**       |configs/edgeailite/yolov3/yolov3_d53.py |
+|COCO    |YOLOv3                        |(416,416)  |**33.0**  |**30.9**       |configs/edgeailite/yolov3/yolov3_d53.py |
+|COCO    |YOLOv3                        |(608,608)  |**70.59** |**33.4**       |configs/edgeailite/yolov3/yolov3_d53.py |
 
 
 - The suffix 'Lite' in the name of models such as SSDLite, RetinaNetLite indicates the use of Depthwise convolutions or Grouped convolutions. If the feature extractor (encoder) uses Depthwise Convolutions (eg. MobileNet), then Depthwise convolutions are used throughout such models - even in the neck and decoder. If the feature extractor (encoder) uses grouped convolutions as in the case of RegNetX, then grouped convolutions (with the same group size as that of the feature extractor) are used even in the neck and decoder.<br>
