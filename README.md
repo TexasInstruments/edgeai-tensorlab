@@ -6,47 +6,65 @@ In order to run Deep Neural Networks (a.k.a. DNNs or Deep Learning Models or sim
 
 
 ### Notice
-- If you have not visited the landing page https://github.com/TexasInstruments/edgeai, please do so before attempting to use this repository. We skip most of the introduction in this repository.
-- This repository is located in Github at: https://github.com/TexasInstruments/edgeai-modelzoo
+If you have not visited the following landing pages, please do so before attempting to use this repository.
+- https://www.ti.com/edgeai 
+- https://github.com/TexasInstruments/edgeai
 - Important Note: The models in this repository are being made available for experimentation and development  - they are not meant for deployment in production.
 
+
 <hr>
 
-## ModelZoo / Pre-Trained Models Collection & Documentation
 
-#### Image Classification
+## ModelZoo / pre-trained models collection & documentation
+
+#### Image classification
 [Image Classification Model Zoo](./models/vision/classification/)
 
-#### Object Detection
+#### Object detection
 [Object Detection Model Zoo](./models/vision/detection/)
 
-#### Semantic Segmentation
+#### Semantic segmentation
 [Semantic Segmentation Model Zoo](./models/vision/segmentation/)
 
-#### Depth Estimation
+#### Depth estimation
 [Depth Estimation Model Zoo](./models/vision/depth_estimation/)
 
-#### 3D Object Detection
+#### 3D object detection
 [3D Object Detection Model Zoo](./models/vision/3d_detection/)
 
-#### Public Benchmarks
+#### Public benchmarks
 [MLPerf Machine Learning Model Zoo](./models/docs/mlperf/)
 
+
 <hr>
 
-## Pre-Complied Model Artifacts 
+
+## Compiling models
+[edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) provide information on compiling models for our SoCs. That is a good starting point to get familiarized with import/calibration and inference of models.
+
+[edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) provides higher level scripts for model compilation, inference and accuracy benchmarking. You can find the compilation settings for these models there. The pre-compiled model artifacts here are compiled using that repository.
+
+This repository contains .link files which have the URLs of actual DNN models. These models are arranged according to task that they are used for and then according to the training repositories that were used to train them. If you are using edgeai-benchmark to run model compilation of run benchmark, you have to *git clone* this repository as well.
+
+
+<hr>
+
+
+## Pre-complied model artifacts 
 See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md) that we provide with this repository.
 
-<hr>
-
-## Compiling Models
-TIDL documentation (see information above) and test scripts provide information on compiling and running DNN models in our SoCs. That is a good starting point to get familiarized with import/calibration and inference of such models.
-
-However, we also provide higher level scripts for Model Compilation, Inference and Accuracy benchmarking are in the repository [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) repository. You can find the compilation settings for the models there. URLs of Pre-Compiled model artifacts can also be obtained there.
-
-This repository contains .link files which have the URLs of actual DNN models. These models are arranged according to task that they are used for and then according to the training repositories that were used to train them. If you are using [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) to run compilation of run benchmark, you have to *git clone* this repository.
 
 <hr>
+
+
+## Model inference
+[edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) - as mentioned earlier edgeai-benchmark has been used to compile the models in the repository and compiled model artifacts are provided. edgeai-benchmark can also be used for inference & accuracy/performance benchmark of these models on PC or on EVM.
+
+[PROCESSOR-SDK-LINUX-SK-TDA4VM](https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM) - Processor SDK Linux for TDA4VM Starter Kit can seamlessly use model artifacts from this repository. The SDK provides software and tools to let you effectively balance deep learning performance with system power and cost on Texas Instrument’s processors for edge AI applications such as latest TDA4 class of SoCs. We offer a practical embedded inference solution for next-generation vehicles, smart cameras, edge AI boxes, and autonomous machines and robots. In addition to general compute core and deep learning cores accelerator, our processors for edge AI integrate imaging, vision, multimedia cores hardware accelerators and with security enablers and optional microcontrollers for applications that require SIL-3 and ASIL-D functional safety certifications. With a few simple steps you can run high performance computer vision and deep learning demos using a live camera and display.
+
+
+<hr>
+
 
 ## LICENSE
 Please see the License under which this repository is made available: [LICENSE](./LICENSE.md)
