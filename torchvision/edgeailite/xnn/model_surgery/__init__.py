@@ -39,7 +39,7 @@ from .. import utils
 from .. import layers
 
 
-__all__ = {'convert_to_lite_model', 'create_lite_model', 'REPLACEMENTS_DICT_DEFAULT'}
+__all__ = {'convert_to_lite_model', 'create_lite_model', 'get_replacements_dict'}
 
 
 #################################################################################################
@@ -120,6 +120,10 @@ REPLACEMENTS_DICT_DEFAULT = {
     # the key should return a boolean and the first entry of value(list) should return an instance of torch.nn.Module
     _check_dummy: [_replace_dummy]
 }
+
+
+def get_replacements_dict():
+    return REPLACEMENTS_DICT_DEFAULT
 
 
 # this function can be used after creating the model to transform it into a lite model.
