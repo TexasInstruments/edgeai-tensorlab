@@ -65,6 +65,13 @@ See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md) that we
 
 <hr>
 
+## Reports, Release Notes & Manifest
+
+Please see [release notes](./docs/release_notes.md) file.
+
+
+<hr>
+
 
 ## LICENSE
 Please see the License under which this repository is made available: [LICENSE](./LICENSE.md)
