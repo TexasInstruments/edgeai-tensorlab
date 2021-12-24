@@ -113,6 +113,6 @@ segmentation,onnxrt,ss-8720_onnxrt_edgeai-tv_fpn_aspp_regnetx800mf_edgeailite_51
 segmentation,onnxrt,ss-8730_onnxrt_edgeai-tv_deeplabv3_mobilenet_v3_large_lite_512x512_20210527_onnx,ONR-SS-8730-deeplabv3-mobv3-lite-large-cocoseg21-512x512,41960969,True,False
 segmentation,onnxrt,ss-robokit1-qat_onnxrt_edgeai-tv_deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432_qat-p2_onnx,ONR-SS-robokit1-qat-deeplabv3lite-mobv2-768x432,5411580,False,False
 segmentation,onnxrt,ss-robokit2_onnxrt_edgeai-tv_deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432_onnx,ONR-SS-robokit2-deeplabv3lite-mobv2-768x432,5591910,False,False
-3d-detection,onnxrt,lidar-3dod-7100_onnxrt_mmdetection3d_lidar_point_pillars_496x432_onnx,ONR-LIDAR-3DOD-7100-pointPillars_20000,17948934,False,False
-detection,tflitert,od-2130_tflitert_google-automl_efficientdet_lite1_relu_tflite,TFL-OD-2130-efficientdet-lite1-relu-384x384,20645643,False,False
-detection,tflitert,od-2140_tflitert_google-automl_efficientdet_lite3_relu_tflite,TFL-OD-2140-efficientdet-lite3-relu-512x512,42265107,False,False
+3d-detection,onnxrt,3dod-7100_onnxrt_mmdetection3d_lidar_point_pillars_496x432_onnx,ONR-3DOD-7100-pointPillars-lidar-20000,17948931,True,False
+detection,tflitert,od-2150_tflitert_google-automl_efficientdet_lite1_relu_tflite,TFL-OD-2150-efficientdet-lite1-relu-384x384,20645643,False,False
+detection,tflitert,od-2170_tflitert_google-automl_efficientdet_lite3_relu_tflite,TFL-OD-2170-efficientdet-lite3-relu-512x512,42265112,False,False

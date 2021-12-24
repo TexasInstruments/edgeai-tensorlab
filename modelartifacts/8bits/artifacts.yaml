@@ -910,27 +910,27 @@ ss-robokit2_onnxrt:
   shortlisted: false
   size: 5591910
   task_type: segmentation
-lidar-3dod-7100_onnxrt:
-  model_name: ONR-LIDAR-3DOD-7100-pointPillars_20000
+3dod-7100_onnxrt:
+  model_name: ONR-3DOD-7100-pointPillars-lidar-20000
   recommended: false
-  run_dir: lidar-3dod-7100_onnxrt_mmdetection3d_lidar_point_pillars_496x432_onnx
+  run_dir: 3dod-7100_onnxrt_mmdetection3d_lidar_point_pillars_496x432_onnx
   session_name: onnxrt
-  shortlisted: false
-  size: 17948934
+  shortlisted: true
+  size: 17948931
   task_type: 3d-detection
-od-2130_tflitert:
-  model_name: TFL-OD-2130-efficientdet-lite1-relu-384x384
+od-2150_tflitert:
+  model_name: TFL-OD-2150-efficientdet-lite1-relu-384x384
   recommended: false
-  run_dir: od-2130_tflitert_google-automl_efficientdet_lite1_relu_tflite
+  run_dir: od-2150_tflitert_google-automl_efficientdet_lite1_relu_tflite
   session_name: tflitert
   shortlisted: false
   size: 20645643
   task_type: detection
-od-2140_tflitert:
-  model_name: TFL-OD-2140-efficientdet-lite3-relu-512x512
+od-2170_tflitert:
+  model_name: TFL-OD-2170-efficientdet-lite3-relu-512x512
   recommended: false
-  run_dir: od-2140_tflitert_google-automl_efficientdet_lite3_relu_tflite
+  run_dir: od-2170_tflitert_google-automl_efficientdet_lite3_relu_tflite
   session_name: tflitert
   shortlisted: false
-  size: 42265107
+  size: 42265112
   task_type: detection
