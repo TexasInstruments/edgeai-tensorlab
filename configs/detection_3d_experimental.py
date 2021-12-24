@@ -31,13 +31,6 @@ from jai_benchmark import constants, utils, datasets, preprocess, sessions, post
 
 def get_configs(settings, work_dir):
 
-    # to define the names of first and last layer for 16 bit conversion
-    first_last_layer = {
-        'mobilenetv2_fpn_spp_udp': '363,561',
-        'resnet50_fpn_spp_udp': '369,590',
-        'mobilenetv2_pan_spp_udp': '669,1384',
-        'resnet50_pan_spp_udp': '675,1416'
-    }
     # get the sessions types to use for each model type
     onnx_session_type = settings.get_session_type(constants.MODEL_TYPE_ONNX)
 
