@@ -35,7 +35,7 @@ from torchvision.edgeailite import xnn
 
 def convert_to_lite_model(model, cfg):
     convert_to_lite_model_args = cfg.convert_to_lite_model if isinstance(cfg.convert_to_lite_model, dict) else dict()
-    replacements_dict = copy.deepcopy(xnn.model_surgery.REPLACEMENTS_DICT_DEFAULT)
+    replacements_dict = copy.deepcopy(xnn.model_surgery.get_replacements_dict())
     replacements_ext = {
         bricks.Swish:[torch.nn.ReLU]
     }

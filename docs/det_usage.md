@@ -27,3 +27,10 @@ Make sure that the appropriate config file is selected in [detection_configs.py]
 Start export by running [run_detection_export.sh](../run_detection_export.sh).
 
 Note: If you did QAT, then the flag quantize in the config file must be set to True even at this stage. 
+
+
+## Embedded friendly models
+We now have a tool that can automatically replace some of embedded un-friendly layers. This tool will run automatically if you set the parameter convert_to_lite_model in the config file. Please see our edgeailite config files for some example usage. Examples: 
+- convert_to_lite_model = dict(group_size_dw=1)
+- convert_to_lite_model = dict(group_size_dw=None)
+- where group_size_dw indicates the (convolution) group size to be used for convolution layers with kernel size larger than 1.
