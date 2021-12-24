@@ -31,13 +31,6 @@ from jai_benchmark import constants, utils, datasets, preprocess, sessions, post
 
 def get_configs(settings, work_dir):
 
-    # to define the names of first and last layer for 16 bit conversion
-    first_last_layer = {
-        'mobilenetv2_fpn_spp_udp': '363,561',
-        'resnet50_fpn_spp_udp': '369,590',
-        'mobilenetv2_pan_spp_udp': '669,1384',
-        'resnet50_pan_spp_udp': '675,1416'
-    }
     # get the sessions types to use for each model type
     onnx_session_type = settings.get_session_type(constants.MODEL_TYPE_ONNX)
 
@@ -59,7 +52,7 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         ################# onnx models ###############################
         # human pose estimation : mobilenetv2 + fpn_spp + udp, Expected AP : 42.31
-        'lidar-3dod-7100':utils.dict_update(common_cfg,
+        '3dod-7100':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_lidar_base(),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
