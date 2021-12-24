@@ -59,7 +59,7 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         ################# onnx models ###############################
         # human pose estimation : mobilenetv2 + fpn_spp + udp, Expected AP : 42.31
-        'lidar-3dod-7100':utils.dict_update(common_cfg,
+        '3dod-7100':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_lidar_base(),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),

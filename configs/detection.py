@@ -364,16 +364,6 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':29.1})
         ),
-        # note although the name of the model said 320x320, the pipeline.config along with the model had 300x300
-        # https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md
-        'od-2130':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_tflite((300,300), (300,300), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
-                model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_mobilenet_v2_320x320_coco17_tpu-8.tflite'),
-            postprocess=postproc_detection_tflite,
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':20.2})
-        ),
         'od-2080':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((320,320), (320,320), backend='cv2'),
             session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
@@ -407,7 +397,17 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':33.61})
         ),
-        'od-2130': utils.dict_update(common_cfg,
+        # note although the name of the model said 320x320, the pipeline.config along with the model had 300x300
+        # https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md
+        'od-2130':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_tflite((300,300), (300,300), backend='cv2'),
+            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
+                model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_mobilenet_v2_320x320_coco17_tpu-8.tflite'),
+            postprocess=postproc_detection_tflite,
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':20.2})
+        ),
+        'od-2150': utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((384, 384), (384, 384), resize_with_pad=True, backend='cv2', mean=(127.0,  127.0,  127.0), scale=(0.0078125, 0.0078125, 0.0078125), pad_color=[127,127,127]),
             session=tflite_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(runtime_options_tflite_np2,
@@ -420,8 +420,8 @@ def get_configs(settings, work_dir):
                                                             formatter=postprocess.DetectionFormatting(dst_indices=(0,1,2,3,4,5), src_indices=(1,0,3,2,5,4)), resize_with_pad=True,),
             metric=dict( label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 31.79})
-            ),
-        'od-2140': utils.dict_update(common_cfg,
+        ),
+        'od-2170': utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((512, 512), (512, 512), resize_with_pad=True, backend='cv2', mean=(127.0, 127.0, 127.0), scale=(0.0078125, 0.0078125, 0.0078125), pad_color=[127,127,127]),
             session=tflite_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(runtime_options_tflite_np2,
@@ -433,7 +433,7 @@ def get_configs(settings, work_dir):
                                                            formatter=postprocess.DetectionFormatting(dst_indices=(0,1,2,3,4,5), src_indices=(1,0,3,2,5,4)), resize_with_pad=True),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 38.33})
-            ),
+        ),
     }
     return pipeline_configs
 

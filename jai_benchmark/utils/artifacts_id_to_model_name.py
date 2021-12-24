@@ -319,7 +319,7 @@ model_id_artifacts_pair = {
     'ss-8590_onnxrt': 'ONR-SS-8590-deeplabv3-res50-1040x520',
     'ss-8600_onnxrt': 'ONR-SS-8600-fcn-res50-1040x520',
     # ONNX - LIDAR - 3DOD
-    'lidar-3dod-7100_onnxrt' : 'ONR-LIDAR-3DOD-7100-pointPillars_20000',
+    '3dod-7100_onnxrt' : 'ONR-3DOD-7100-pointPillars-lidar-20000',
     
     # ONNX - SS - ADE20k
     'ss-8610_onnxrt': 'ONR-SS-8610-deeplabv3lite-mobv2-ade20k32-512x512',
@@ -345,8 +345,8 @@ model_id_artifacts_pair = {
     'kd-7020_onnxrt': 'ONR-KD-7020-human-pose-ae-mobv2-pan-spp-udp-512x512',
     'kd-7030_onnxrt': 'ONR-KD-7030-human-pose-ae-res50v2-pan-spp-udp-512x512',
 
-    'od-2130_tflitert':'TFL-OD-2130-efficientdet-lite1-relu-384x384',
-    'od-2140_tflitert':'TFL-OD-2140-efficientdet-lite3-relu-512x512',
+    'od-2150_tflitert':'TFL-OD-2150-efficientdet-lite1-relu-384x384',
+    'od-2170_tflitert':'TFL-OD-2170-efficientdet-lite3-relu-512x512',
 
     # ONNX depth estimation
     'de-7300_onnxrt': 'ONR-DE-7300-depth-est-fast-depth-224x224',
@@ -478,6 +478,9 @@ removed_model_list = {
     'od-8060_onnxrt': 'ONR-OD-8060-ssd-lite-regNetX-1.6gf-fpn-bgr-coco-768x768',
     'od-8120_onnxrt': 'ONR-OD-8120-yolov5-m6-ti-lite-coco-640x640',
     'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640',
+
+    'od-2150_tflitert':'TFL-OD-2150-efficientdet-lite1-relu-384x384',
+    'od-2170_tflitert':'TFL-OD-2170-efficientdet-lite3-relu-512x512',
 
     # Models for Robokit - TODO: assign a model id for these
     'ss-robokit1-qat_onnxrt': 'ONR-SS-robokit1-qat-deeplabv3lite-mobv2-768x432',
