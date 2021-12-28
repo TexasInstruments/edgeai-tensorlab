@@ -332,13 +332,13 @@ class Expand(nn.Module):
 
         ratio = torch_uniform_l_h(self.min_ratio, self.max_ratio)
         high = int(w*ratio) - w
-        if high == 0:
-            print("ratio : high for left ", ratio, high)
+        # if high == 0:
+        #     print("ratio : high for left ", ratio, high)
         left = int(torch.randint(low=0, high=high, size=(1,))) if high > 0 else 0
         high = int(h*ratio) - h
         top = int(torch.randint(low=0, high=high, size=(1,))) if high > 0 else 0
-        if high == 0:
-            print("ratio : high for top ", ratio, high)
+        # if high == 0:
+        #     print("ratio : high for top ", ratio, high)
 
         right = int(w * ratio) - w - left
         bottom = int(h * ratio) - h - top
