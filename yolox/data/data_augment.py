@@ -94,11 +94,6 @@ def random_perspective(
     # Combined rotation matrix
     M = T @ S @ R @ C  # order of operations (right to left) is IMPORTANT
 
-    ###########################
-    # For Aug out of Mosaic
-    # s = 1.
-    # M = np.eye(3)
-    ###########################
 
     if (border[0] != 0) or (border[1] != 0) or (M != np.eye(3)).any():  # image changed
         if perspective:
