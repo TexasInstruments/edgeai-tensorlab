@@ -118,8 +118,8 @@ class CSPDarknet(nn.Module):
             self.stem = Focus(3, base_channels, ksize=3, act=act)
         else:
             self.stem =  nn.Sequential(
-                Conv(3, 12 , 3, 2, act=act),
-                Conv(12, base_channels, 3, 1, act=act))
+                BaseConv(3, 12 , 3, 2, act=act),
+                BaseConv(12, base_channels, 3, 1, act=act))
 
         # dark2
         self.dark2 = nn.Sequential(

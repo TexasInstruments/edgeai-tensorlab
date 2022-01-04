@@ -132,11 +132,11 @@ def main():
 
     logger.info("loading checkpoint done.")
     img = cv2.imread("./assets/dog.jpg")
-    img, ratio = preprocess(img, exp.test_size)
+    img, ratio = preprocess(img, exp.input_size)
     img = img[None, ...]
     img = img.astype('float32')
     img = torch.from_numpy(img)
-    #dummy_input = torch.randn(args.batch_size, 3, exp.test_size[0], exp.test_size[1])
+    dummy_input = torch.randn(args.batch_size, 3, exp.test_size[0], exp.test_size[1])
     output = model(img)
 
     torch.onnx._export(
