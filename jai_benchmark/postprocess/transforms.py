@@ -119,7 +119,7 @@ class ReshapeList():
         return tensor_list_out, info_dict
 
 
-class IgnoreDetectionElement():
+class IgnoreIndex():
     def __init__(self, indice=None):
         self.indice = indice
 
