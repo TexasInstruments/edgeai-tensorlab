@@ -917,7 +917,7 @@ ss-robokit2_onnxrt:
   session_name: onnxrt
   shortlisted: true
   size: 17948931
-  task_type: 3d-detection
+  task_type: detection_3d
 od-2150_tflitert:
   model_name: TFL-OD-2150-efficientdet-lite1-relu-384x384
   recommended: false
