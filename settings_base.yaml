@@ -60,25 +60,25 @@ session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
 # wild card list to match against model_path, model_id or model_type - if null, all models wil be shortlisted
 # only models matching these criteria will be considered - even for model_selection
 # examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
-# examples: ['resnet18.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision']
+# examples: ['resnet18.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision'] ['coco']
 # examples: [cl-0000, od-2020, ss-2580, cl-3410, od-5020, ss-5720, cl-6360, od-8050, ss-8610]
 model_selection : null
 
 # exclude from running, these models
-# example: ['voc']
-# example: ['cityscapes']
-# example: ['vcls-10-306-0', 'vcls-10-404-0', 'vcls-10-434-0', 'vcls-10-442-0', 'vseg-16-300-0', 'vseg-16-301-0', 'vseg-16-400-0']
+# examples: ['mxnet']
+# examples: ['coco']
+# examples: [cl-0000, od-2020, ss-2580, cl-3410, od-5020, ss-5720, cl-6360, od-8050, ss-8610]
 model_exclusion : null
 
 # wild card list to match against the tasks. it null, all tasks will be run
-# example: ['classification', 'detection', 'segmentation']
+# example: ['classification', 'detection', 'segmentation', 'depth_estimation', 'human_pose_estimation', 'detection_3d']
 # example: 'classification'
 # example: null (Note: null means no filter - run all the tasks)
 task_selection : null
 
 # wild card list to match against dataset type - if null, all datasets will be shortlisted
 # example: ['coco']
-# example: ['imagenet','cocoseg21','ade20k','cocokpts', 'kitti_lidar_det', 'ti-robokit_semseg_zed1hd']
+# example: ['imagenet', 'cocoseg21', 'ade20k', 'cocokpts', 'kitti_lidar_det', 'ti-robokit_semseg_zed1hd']
 dataset_loading : null
 
 # verbose mode - print out more information

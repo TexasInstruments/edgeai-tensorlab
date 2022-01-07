@@ -46,7 +46,7 @@ def get_configs(settings, work_dir):
 
     # configs for each model pipeline
     common_cfg = {
-        'task_type': '3d-detection',
+        'task_type': 'detection_3d',
         'calibration_dataset': settings.dataset_cache['kitti_lidar_det']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['kitti_lidar_det']['input_dataset'],
         'postprocess': None
