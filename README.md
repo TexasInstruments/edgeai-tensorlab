@@ -60,10 +60,10 @@ For more details, please refer to Megvii's [report on Arxiv](https://arxiv.org/a
 <summary>Reproduce our results on COCO</summary>
 
 ```shell
-python tools/train.py -n yolox-s-ti-lite -d 8 -b 64 --fp16 -o [--cache]
-                         yolox-m-ti-lite
-                         yolox-tiny-ti-lite
-                         yolox-nano-ti-lite
+python -m yolox.tools.train -n yolox-s-ti-lite -d 8 -b 64 --fp16 -o [--cache]
+                               yolox-m-ti-lite
+                               yolox-tiny-ti-lite
+                               yolox-nano-ti-lite
 ```
 * -d: number of gpu devices
 * -b: total batch size, the recommended number for -b is num-gpu * 8
@@ -72,19 +72,19 @@ python tools/train.py -n yolox-s-ti-lite -d 8 -b 64 --fp16 -o [--cache]
 
 When using -f, the above commands are equivalent to:
 ```shell
-python tools/train.py -f exps/default/yolox_s_ti_lite.py -d 8 -b 64 --fp16 -o [--cache]
-                         exps/default/yolox_m_ti_lite.py
-                         exps/default/yolox_tiny_ti_lite.py
-                         exps/default/nano_ti_lite.py
+python -m yolox.tools.train -f exps/default/yolox_s_ti_lite.py -d 8 -b 64 --fp16 -o [--cache]
+                               exps/default/yolox_m_ti_lite.py
+                               exps/default/yolox_tiny_ti_lite.py
+                               exps/default/nano_ti_lite.py
 ```
 <summary>Evaluation</summary>
 
 
 ```shell
-python tools/eval.py -n  yolox-s-ti-lite -c yolox_s.pth -b 64 -d 8 --conf 0.001 [--fp16] [--fuse]
-                         yolox-m-ti-lite
-                         yolox-tiny-ti-lite
-                         yolox-nano-ti-lite
+python -m yolox.tools.eval -n  yolox-s-ti-lite -c yolox_s.pth -b 64 -d 8 --conf 0.001 [--fp16] [--fuse]
+                               yolox-m-ti-lite
+                               yolox-tiny-ti-lite
+                               yolox-nano-ti-lite
 ```
 * --fuse: fuse conv and bn
 * -d: number of GPUs used for evaluation. DEFAULT: All GPUs available will be used.
