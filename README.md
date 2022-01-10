@@ -142,6 +142,9 @@ Notes:
 * -s: score threshold for visualization.
 * --input_shape: should be consistent with the shape you used for onnx convertion.
 
+### Pretrained Models
+
+Pretrained models will be Added under [pretrained_models](./pretrained_models)
 
 ## Third-party resources
 * Converting darknet or yolov5 datasets to COCO format for YOLOX: [YOLO2COCO](https://github.com/RapidAI/YOLO2COCO) from [Daniel](https://github.com/znsoftm)
