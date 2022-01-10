@@ -234,7 +234,7 @@ def main(args=None):
     cfg.model.train_cfg = None
     model = build_detector(cfg.model, test_cfg=cfg.get('test_cfg'))
 
-    if hasattr(cfg, 'convert_to_lite_model'):
+    if hasattr(cfg, 'convert_to_lite_model') and cfg.convert_to_lite_model not in (False, None):
         model = convert_to_lite_model(model, cfg)
 
     if hasattr(cfg, 'print_model_complexity') and cfg.print_model_complexity:
