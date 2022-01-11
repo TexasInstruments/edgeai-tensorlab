@@ -75,7 +75,7 @@ When using -f, the above commands are equivalent to:
 python -m yolox.tools.train -f exps/default/yolox_s_ti_lite.py -d 8 -b 64 --fp16 -o [--cache]
                                exps/default/yolox_m_ti_lite.py
                                exps/default/yolox_tiny_ti_lite.py
-                               exps/default/nano_ti_lite.py
+                               exps/default/yolox_nano_ti_lite.py
 ```
 <summary>Evaluation</summary>
 
@@ -89,7 +89,6 @@ python -m yolox.tools.eval -n  yolox-s-ti-lite -c yolox_s.pth -b 64 -d 8 --conf 
 * --fuse: fuse conv and bn
 * -d: number of GPUs used for evaluation. DEFAULT: All GPUs available will be used.
 * -b: total batch size across on all GPUs
-
 
 ## Deployment
 
@@ -106,13 +105,11 @@ python -m yolox.tools.eval -n  yolox-s-ti-lite -c yolox_s.pth -b 64 -d 8 --conf 
 
 1. Convert a standard YOLOX model by -n:
 ```shell
-python3 tools/export_onnx.py --output-name yolox_s.onnx -n yolox-s -c yolox_s.pth
+python3 tools/export_onnx.py --output-name yolox_s.onnx -n yolox-s -c yolox_s.pth --export-det
 ```
 Notes:
-* -n: specify a model name. The model name must be one of the [yolox-s,m,l,x and yolox-nane, yolox-tiny, yolov3]
+* -n: specify a model name. The model name must be one of the [yolox-s,m and yolox-nano, yolox-tiny, yolov3]
 * -c: the model you have trained
-* -o: opset version, default 11. **However, if you will further convert your onnx model to [OpenVINO](https://github.com/Megvii-BaseDetection/YOLOX/demo/OpenVINO/), please specify the opset version to 10.**
-* --no-onnxsim: disable onnxsim
 * To customize an input shape for onnx model,  modify the following code in tools/export.py:
 
     ```python
@@ -144,7 +141,7 @@ Notes:
 
 ### Pretrained Models
 
-Pretrained models will be Added under [pretrained_models](./pretrained_models)
+Pretrained models will be added under [pretrained_models](./pretrained_models)
 
 ## Third-party resources
 * Converting darknet or yolov5 datasets to COCO format for YOLOX: [YOLO2COCO](https://github.com/RapidAI/YOLO2COCO) from [Daniel](https://github.com/znsoftm)

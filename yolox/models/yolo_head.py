@@ -35,6 +35,7 @@ class YOLOXHead(nn.Module):
         self.n_anchors = 1
         self.num_classes = num_classes
         self.decode_in_inference = True  # for deploy, set to False
+        self.export_proto = False     #Set it to True while exporting prototxt
 
         self.cls_convs = nn.ModuleList()
         self.reg_convs = nn.ModuleList()
@@ -203,6 +204,8 @@ class YOLOXHead(nn.Module):
                 origin_preds,
                 dtype=xin[0].dtype,
             )
+        elif self.export_proto:
+            return outputs
         else:
             self.hw = [x.shape[-2:] for x in outputs]
             # [batch, n_anchors_all, 85]
