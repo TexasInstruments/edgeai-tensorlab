@@ -195,7 +195,7 @@ def main():
         logger.info("generated onnx model named {}".format(args.output_name))
     else:
         torch.onnx._export(
-            model_det,
+            model,
             img,
             args.output_name,
             input_names=[args.input],

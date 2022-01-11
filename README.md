@@ -9,9 +9,10 @@ This repository is based on [Megvii/YOLOX](https://github.com/ultralytics/yolov5
   * It uses a simplified version of OTA for label assignment, called SimOTA.
 * Anchor free object detection reduces the complexity of the Detection layer.
   * There are 3x less detection candidates compared to YOLOv3 and YOLOv5.
-  * Box-decoding is much simpler as well.
+  * Box-decoding is much simpler than other YOLO variants as well.
 * Several new augmentation techniques as in YOLOv5. E.g. Mosaic augmentation. 
 * All models are trained from scratch. There is no need for imagenet pretraining because of strong augmentation.
+* YOLOX-Nano-ti-lite uses regular convolution instead of depth-wise convolution.  
 
 For more details, please refer to Megvii's [report on Arxiv](https://arxiv.org/abs/2107.08430).
 
@@ -49,10 +50,10 @@ For more details, please refer to Megvii's [report on Arxiv](https://arxiv.org/a
 
 |Model |size |mAP<sup>val<br>0.5:0.95 |mAP<sup>val<br>0.5:0.95 | Params<br>(M) |FLOPs<br>(G)| weights |
 | ------        |:---: | :---:| :---:    | :---:       |:---:     |:---:  | 
-|[YOLOX-s-ti-lite](./exps/default/yolox_s_ti_lite.py) |640|39.1| 57.9      |9.0 | 26.9 | [github](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth) |
-|[YOLOX-m-ti-lite](./exps/default/yolox_m_ti_lite.py)|640  |45.5 | 64.2    |25.3 |73.8| [github](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m.pth) |
-|[YOLOX-Nano-ti-lite](./exps/default/nano_ti_lite.py)|416  |ToDo | ToDo| 0.91 |1.08 | [github](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_nano.pth) |
-|[YOLOX-Tiny-ti-lite](./exps/default/yolox_tiny_ti_lite.py)|416  |32.0|49.5  | 5.06 |6.48 | [github](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_tiny.pth) |
+|[YOLOX-s-ti-lite](./exps/default/yolox_s_ti_lite.py) |640|39.1| 57.9      |9.0 | 26.9 |  |
+|[YOLOX-m-ti-lite](./exps/default/yolox_m_ti_lite.py)|640  |45.5 | 64.2    |25.3 |73.8|  |
+|[YOLOX-Nano-ti-lite](./exps/default/nano_ti_lite.py)|416  |ToDo | ToDo| 0.91 |1.08 |  |
+|[YOLOX-Tiny-ti-lite](./exps/default/yolox_tiny_ti_lite.py)|416  |32.0|49.5  | 5.06 |6.48 |  |
 
 
 ## Training and Testing
@@ -119,8 +120,10 @@ Notes:
 2. Convert a standard YOLOX model by -f. When using -f, the above command is equivalent to:
 
 ```shell
-python3 tools/export_onnx.py --output-name yolox_s.onnx -f exps/default/yolox_s.py -c yolox_s.pth
+python3 tools/export_onnx.py --output-name yolox_s.onnx -f exps/default/yolox_s.py -c yolox_s.pth --export-det
 ```
+
+* Apart from exporting the complete ONNX model, above script will generate a prototxt file that contains information of the detection layer. This prototxt file is required to deploy the moodel on TI SoC.
 
 ### ONNXRuntime Demo
 
@@ -128,6 +131,7 @@ Step1.
 ```shell
 cd <YOLOX_HOME>/demo/ONNXRuntime
 ```
+* With models that are exported end-to-end, inference becomes much simpler. The model takes an image as i/p and gives out the final detection. There is no need for any further post-processing.
 
 Step2. 
 ```shell
@@ -143,5 +147,3 @@ Notes:
 
 Pretrained models will be added under [pretrained_models](./pretrained_models)
 
-## Third-party resources
-* Converting darknet or yolov5 datasets to COCO format for YOLOX: [YOLO2COCO](https://github.com/RapidAI/YOLO2COCO) from [Daniel](https://github.com/znsoftm)
