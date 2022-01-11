@@ -142,3 +142,17 @@ Notes:
 
 Pretrained models will be added under [pretrained_models](./pretrained_models)
 
+
+## **References**
+
+[1] [Official YOLOX repository](https://github.com/Megvii-BaseDetection/YOLOX) <br>
+[2] [Official YOLOV5 repository](https://github.com/ultralytics/yolov5/) <br>
+[3] [Focus layer]( https://github.com/ultralytics/yolov5/discussions/3181) <br>
+[4] [CrossStagePartial Network](https://github.com/WongKinYiu/CrossStagePartialNetworkss)  <br>
+[5] Chien-Yao Wang, Hong-Yuan Mark Liao, Yueh-Hua Wu, Ping-Yang Chen, Jun-Wei Hsieh, and I-Hau Yeh. [CSPNet: A new backbone that can enhance learning capability of
+cnn](https://arxiv.org/abs/1911.11929). Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition Workshop (CVPR Workshop),2020. <br>
+[6]Shu Liu, Lu Qi, Haifang Qin, Jianping Shi, and Jiaya Jia. [Path aggregation network for instance segmentation](https://arxiv.org/abs/1803.01534). In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 8759–8768, 2018 <br>
+[7] [Efficientnet-lite quantization](https://blog.tensorflow.org/2020/03/higher-accuracy-on-vision-models-with-efficientnet-lite.html) <br>
+[8] [FCOS: Fully Convolutional One-Stage Object Detection](https://github.com/tianzhi0549/FCOS) <br>
+[9] [OTA: Optimal Transport Assignment for Object Detection](https://github.com/Megvii-BaseDetection/OTA)
+
