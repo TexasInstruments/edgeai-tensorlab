@@ -1,5 +1,5 @@
 # YOLOX-ti-lite Object Detection Models
-This repository is based on [Megvii/YOLOX](https://github.com/ultralytics/yolov5). As per the [Official documentation](./README_megvii.md), YOLOX is an anchor-free version of YOLO, with a simpler design but better performance! It aims to bridge the gap between research and industrial communities. It has the following major differences rom YOLOv3:
+This repository is based on [Megvii/YOLOX](https://github.com/Megvii-BaseDetection/YOLOX). As per the [Official documentation](./README_megvii.md), YOLOX is an anchor-free version of YOLO, with a simpler design but better performance! It aims to bridge the gap between research and industrial communities. It has the following major differences rom YOLOv3:
 
 * Darknet-csp backbone instead of vanilla Darknet. Reduces complexity by 30%. 
 * PANet feature extractor instead of FPN.
@@ -33,7 +33,7 @@ For more details, please refer to Megvii's [report on Arxiv](https://arxiv.org/a
 |[YOLOX-Tiny](./exps/default/yolox_tiny.py) |416  |32.8 | 5.06 |6.45 | [github](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_tiny.pth) |
 
 ## **YOLOX-ti-lite model definition**
-* YOLOX-ti-lite is a version of YOLOX from TI for efficient edge deployment. This naming convention is chosen to avoid conflict with future release of YOLOV5-lite models from Ultralytics.
+* YOLOX-ti-lite is a version of YOLOX from TI for efficient edge deployment. This naming convention is chosen to avoid possible conflict with future release of YOLOX-lite models from Megvii.
 
 * Here is a brief description of changes that were made to get YOLOX-ti-lite from YOLOX:
     * YOLOX has a Focus layer as the very first layer of the network. This replaces the first few heavy convolution layers that are present in YOLOv3. It reduces the complexity of the n/w by 7% and training time by 15%. However, the slice operations in Focus layer are not embedded friendly and hence we replace it with a light-weight convolution layer. Here is a pictorial description of the changes from YOLOv3 to YOLOX to YOLOX-ti-lite:
