@@ -97,9 +97,9 @@ python -m yolox.tools.eval -n  yolox-s-ti-lite -c yolox_s.pth -b 64 -d 8 --conf 
 
 ###  **ONNX export including detection:**
 
-Run the following commands to export the entire models including the detection part. Use the flag export-det to add the extra post-processing. 
+Run the following commands to export the entire models including the detection part. Use the flag "export-det" to add the extra post-processing. 
 
-1. *  Convert a standard YOLOX model by -n:
+1. Convert a standard YOLOX model by -n:
 ```shell
 python3 tools/export_onnx.py --output-name yolox_s.onnx -n yolox-s -c yolox_s.pth --export-det
 ```
