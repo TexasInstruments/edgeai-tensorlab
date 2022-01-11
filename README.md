@@ -5,14 +5,14 @@ This repository is based on [Megvii/YOLOX](https://github.com/Megvii-BaseDetecti
 * PANet feature extractor instead of FPN.
 * YOLOX detection head and label assignement is based on FCOS and OTA.  
   * It uses decoupled head. There are three subheads for each detection head. They are {class score head, box head, object score head}
-  * It uses center sampling, assigning the center 3x3 areas as positive.
-  * It uses a simplified version of OTA for label assignment, called SimOTA.
+  * Center sampling is used that assigns the center 3x3 areas as positive.
+  * Label assignment is based on a simplified version of OTA, called SimOTA.
 * Anchor free object detection reduces the complexity of the Detection layer.
   * There are 3x less detection candidates compared to YOLOv3 and YOLOv5.
   * Box-decoding is much simpler than other YOLO variants as well.
 * Several new augmentation techniques as in YOLOv5. E.g. Mosaic augmentation. 
 * All models are trained from scratch. There is no need for imagenet pretraining because of strong augmentation.
-* YOLOX-Nano-ti-lite uses regular convolution instead of depth-wise convolution.  
+* YOLOX-Nano-ti-lite uses regular convolution instead of depth-wise convolution.
 
 For more details, please refer to Megvii's [report on Arxiv](https://arxiv.org/abs/2107.08430).
 
