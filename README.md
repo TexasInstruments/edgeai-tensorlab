@@ -37,14 +37,14 @@ For more details, please refer to Megvii's [report on Arxiv](https://arxiv.org/a
 
 * Here is a brief description of changes that were made to get YOLOX-ti-lite from YOLOX:
     * YOLOX has a Focus layer as the very first layer of the network. This replaces the first few heavy convolution layers that are present in YOLOv3. It reduces the complexity of the n/w by 7% and training time by 15%. However, the slice operations in Focus layer are not embedded friendly and hence we replace it with a light-weight convolution layer. Here is a pictorial description of the changes from YOLOv3 to YOLOX to YOLOX-ti-lite:
-    <p align="left"><img width="800" src="yolox/utils/figures/Focus.png"></p>     
+    <p align="left"><img width="1600" src="yolox/utils/figures/Focus.png"></p>     
 
     * SiLU activation is not well-supported in embedded devices. it's not quantization friendly as well because of it's unbounded nature. This was observed for hSwish activation function while [quantizing efficientnet](https://blog.tensorflow.org/2020/03/higher-accuracy-on-vision-models-with-efficientnet-lite.html). Hence, SiLU activation is replaced with ReLU.
     * SPP module with maxpool(k=13, s=1), maxpool(k=9,s=1) and maxpool(k=5,s=1) are replaced with various combinations of maxpool(k=3,s=1).Intention is to keep the receptive field and functionality same. This change will cause no difference to the model in floating-point.
         *	maxpool(k=5, s=1) -> replaced with two maxpool(k=3,s=1)
         *	maxpool(k=9, s=1) -> replaced with four maxpool(k=3,s=1) 
         *   maxpool(k=13, s=1)-> replaced with six maxpool(k=3,s=1) as shown below:
-        <p align="left"><img width="800" src="yolox/utils/figures/max_pool.png"></p> 
+        <p align="left"><img width="1600" src="yolox/utils/figures/max_pool.png"></p> 
 
 ### **Models trained by TI**
 
