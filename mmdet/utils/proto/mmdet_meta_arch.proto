@@ -40,6 +40,7 @@ message TIDLMetaArch {
   repeated TidlMaFasterRcnn tidl_faster_rcnn = 5;
   repeated TidlYoloOd tidl_yolo = 6;
   repeated TidlMaRetinaNet tidl_retinanet = 7;
+  repeated TidlMa3DOD tidl_3dod = 8;
 }
 
 message TIDLNmsParam {
@@ -59,19 +60,21 @@ CORNER_SIZE = 3;
 CENTER_SIZE_EXP = 4;
 CENTER_SIZE_YXHW = 5;
 CODE_TYPE_YOLO_V5 = 6;
-} 
+CODE_TYPE_YOLO_X = 7;
+CODE_TYPE_3DOD = 8;
+}
 
 enum TIDLScoreConverter {
 IDENTITY = 0;
 SIGMOID = 1;
 SOFTMAX = 2;
-} 
+}
 
 
 enum TIDLAnchorDataLayout {
 SEPARATED = 0;
 INTERLEAVED = 1;
-} 
+}
 
 // Message that store parameters used by PriorBoxLayer
 message PriorBoxParameter {
@@ -109,6 +112,22 @@ message PriorBoxParameter {
   // Offset to the top left corner of each cell.
   optional float offset = 13 [default = 0.5];
   optional uint32 num_keypoint = 14 [default = 0];
+}
+
+// Message that store parameters used by PriorBoxLayer
+message PriorBox3DODParameter {
+
+  // box length (in cm). Required!
+  repeated float anchor_length = 1;
+  // box width (in cm). Required!
+  repeated float anchor_width = 2;
+  // box height (in cm). Required!
+  repeated float anchor_height = 3;
+
+  required float anchor_length_offset = 4;
+
+  repeated float rotation = 5;
+
 }
 
 message TIDLOdSaveParams {
@@ -160,7 +179,7 @@ message TIDLOdPostProc {
   optional int32 keep_top_k = 7 [default = -1];
   // Only consider detections whose confidences are larger than a threshold.
   // If not provided, consider all boxes.
-  optional float confidence_threshold = 9; 
+  optional float confidence_threshold = 9;
   // If true, visualize the detection results.
   optional bool visualize = 10 [default = false];
   // The threshold used to visualize the detection results.
@@ -201,7 +220,6 @@ message TidlMaCaffeSsd {
   optional string framework = 11;
 }
 
-
 // Configuration for list of TF OD API SSD heades
 message TidlMaTfOdApiSsd {
   optional string name = 1;
@@ -235,7 +253,7 @@ def get_boxes(pred, anchors, classes):
     return bbox, object_probability, class_probabilities, pred_box
  */
 
-// Configuration for one  TidlYoloOd v2/v3/v4 
+// Configuration for one  TidlYoloOd v2/v3/v4
 message TidlYoloOd {
   repeated TIDLYoloParams yolo_param = 1;
   required TIDLOdPostProc detection_output_param = 2;
@@ -250,7 +268,7 @@ message TidlYoloOd {
 
 
 message TIDLYoloParams {
-  required string input = 1; 
+  required string input = 1;
   repeated float anchor_width = 2;
   repeated float anchor_height = 3;
 }
@@ -262,12 +280,12 @@ message RetinaNetAnchorParameter {
   required uint32 scales_per_octave = 3;
 }
 
-// Configuration for retinanet 
+// Configuration for retinanet
 message TidlMaRetinaNet {
-  repeated string box_input = 1; 
-  repeated string class_input = 2; 
+  repeated string box_input = 1;
+  repeated string class_input = 2;
   repeated string output = 3;
-  optional string name = 4; 
+  optional string name = 4;
   required uint32 in_width = 5;
   required uint32 in_height = 6;
   optional uint32 anchorbox_order = 16 [default = 0];
@@ -277,8 +295,34 @@ message TidlMaRetinaNet {
   optional float y_offset = 15 [default = 0.0];
   optional float width_scale = 9 [default = 5.0];
   optional float height_scale = 10 [default = 5.0];
-  optional TIDLScoreConverter score_converter = 11 [default = SOFTMAX]; 
+  optional TIDLScoreConverter score_converter = 11 [default = SOFTMAX];
   required RetinaNetAnchorParameter anchor_param = 12;
   required TIDLOdPostProc detection_output_param = 13;
   optional string framework = 17;
 }
+
+// Configuration for one  anchor based 3D OD
+message TidlMa3DOD {
+  repeated string box_input = 1; // List of input tensors in the same order as prior_box_param
+  repeated string class_input = 2; // List of input tensors in the same order as prior_box_param
+  repeated string dir_input = 3; // List of input tensors in the same order as prior_box_param
+  repeated string output = 4; // the name of output tensor
+  optional string name = 5; // the name of the head
+  required float min_x = 6;
+  required float max_x = 7;
+  required float min_y = 8;
+  required float max_y = 9;
+  required float min_z = 10;
+  required float max_z = 11;
+  required float voxel_size_x = 12;
+  required float voxel_size_y = 13;
+  required uint32 max_points_per_voxel = 14;
+  optional TIDLScoreConverter score_converter = 15 [default = SIGMOID];
+  repeated PriorBox3DODParameter prior_box_3dod_param = 16;
+  optional TIDLOdPostProc detection_output_param = 17;
+  optional TIDLAnchorDataLayout data_layout = 18 [default = SEPARATED];
+}
+
+
+
+

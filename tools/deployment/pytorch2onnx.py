@@ -236,8 +236,8 @@ def parse_normalize_cfg(test_pipeline):
             break
     assert transforms is not None, 'Failed to find `transforms`'
     norm_config_li = [_ for _ in transforms if _['type'] == 'Normalize']
-    assert len(norm_config_li) == 1, '`norm_config` should only have one'
-    norm_config = norm_config_li[0]
+    assert len(norm_config_li) <= 1, '`norm_config` should only have one'
+    norm_config = norm_config_li[0] if len(norm_config_li)>0 else dict(mean=0.0, std=1.0)
     return norm_config
 
 

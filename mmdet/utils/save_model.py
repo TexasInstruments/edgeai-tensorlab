@@ -45,6 +45,7 @@ def save_model_proto(cfg, model, input, output_filename, input_names=None, proto
     is_fcos = hasattr(cfg.model, 'bbox_head') and ('FCOS' in cfg.model.bbox_head.type)
     is_retinanet = hasattr(cfg.model, 'bbox_head') and ('Retina' in cfg.model.bbox_head.type)
     is_yolov3 = hasattr(cfg.model, 'bbox_head') and ('YOLOV3' in cfg.model.bbox_head.type)
+    is_yolox = hasattr(cfg.model, 'bbox_head') and ('YOLOXHead' in cfg.model.bbox_head.type)
     input_names = input_names or ('input',)
 
     if is_ssd:
@@ -73,6 +74,16 @@ def save_model_proto(cfg, model, input, output_filename, input_names=None, proto
             _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, proto_names, output_names, opset_version=opset_version)
         #
         _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_names, proto_names, output_names)
+    elif is_yolox:
+        if proto_names is None:
+            proto_names = [f'yolox_cls_{i}' for i in model.bbox_head.strides]
+            proto_names += [f'yolox_reg_{i}' for i in model.bbox_head.strides]
+            proto_names += [f'yolox_obj_{i}' for i in model.bbox_head.strides]
+        #
+        if save_onnx:
+            _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, proto_names, output_names, opset_version=opset_version)
+        #
+        _save_mmdet_proto_yolox(cfg, model, input_size, output_filename, input_names, proto_names, output_names)
     elif is_fcos:
         if proto_names is None:
             proto_names = [f'cls_convs_{i}' for i in range(model.neck.num_outs)]
@@ -223,6 +234,43 @@ def _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_name
                                             framework='MMDetection')
 
     arch = mmdet_meta_arch_pb2.TIDLMetaArch(name='yolo_v3',  tidl_yolo=[yolov3])
+
+    with open(output_filename, 'wt') as pfile:
+        txt_message = text_format.MessageToString(arch)
+        pfile.write(txt_message)
+
+
+###########################################################
+def _save_mmdet_proto_yolox(cfg, model, input_size, output_filename, input_names=None, proto_names=None, output_names=None):
+    output_filename = os.path.splitext(output_filename)[0] + '.prototxt'
+    bbox_head = model.bbox_head
+    # anchor_generator = bbox_head.anchor_generator
+    base_sizes = model.bbox_head.strides
+
+    background_label_id = -1
+    num_classes = bbox_head.num_classes
+    #score_converter = mmdet_meta_arch_pb2.SIGMOID
+
+    yolo_params = []
+    for base_size_id, base_size in enumerate(base_sizes):
+        yolo_param = mmdet_meta_arch_pb2.TIDLYoloParams(input=proto_names[base_size_id],
+                                                        anchor_width=[base_size],
+                                                        anchor_height=[base_size])
+        yolo_params.append(yolo_param)
+
+    nms_param = mmdet_meta_arch_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=200)
+    detection_output_param = mmdet_meta_arch_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
+                                            background_label_id=background_label_id, nms_param=nms_param,
+                                            code_type=mmdet_meta_arch_pb2.CODE_TYPE_YOLO_X, keep_top_k=200,
+                                            confidence_threshold=0.3)
+
+    yolox = mmdet_meta_arch_pb2.TidlYoloOd(name='yolox', output=output_names,
+                                            in_width=input_size[3], in_height=input_size[2],
+                                            yolo_param=yolo_params,
+                                            detection_output_param=detection_output_param,
+                                            framework='MMDetection')
+
+    arch = mmdet_meta_arch_pb2.TIDLMetaArch(name='yolox',  tidl_yolo=[yolox])
 
     with open(output_filename, 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)

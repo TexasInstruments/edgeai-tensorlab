@@ -132,3 +132,30 @@ class YOLOX(SingleStageDetector):
 
         input_size = (tensor[0].item(), tensor[1].item())
         return input_size
+
+    # Inspired by and modified from mmdeploy: https://github.com/open-mmlab/mmdeploy
+    # Note: mmdeploy has the officially recommended scripts to export onnx for this model
+    # But this minor change seems to enabled onnx export for this model in this repository.
+    def onnx_export(self, img, img_metas=None, **kwargs):
+        img_metas = img_metas[0] if isinstance(img_metas, (list,tuple)) else img_metas
+        assert isinstance(img_metas, dict)
+        assert isinstance(img, torch.Tensor)
+
+        is_dynamic_flag = False
+        # get origin input shape as tensor to support onnx dynamic shape
+        img_shape = torch._shape_as_tensor(img)[2:]
+        if not is_dynamic_flag:
+            img_shape = [int(val) for val in img_shape]
+        img_metas['img_shape'] = img_shape
+        img_metas = [img_metas]
+        return self.simple_test(img, img_metas, **kwargs)
+
+    # Inspired by and modified from mmdeploy: https://github.com/open-mmlab/mmdeploy
+    # Note: mmdeploy has the officially recommended scripts to export onnx for this model
+    # But this minor change seems to enabled onnx export for this model in this repository.
+    def simple_test(self, img, img_metas, **kwargs):
+        if torch.onnx.is_in_onnx_export():
+            feat = self.extract_feat(img)
+            return self.bbox_head.simple_test(feat, img_metas, **kwargs)
+        else:
+            return super().simple_test(img, img_metas, **kwargs)
