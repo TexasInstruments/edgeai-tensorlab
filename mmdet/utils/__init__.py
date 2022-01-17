@@ -10,7 +10,7 @@ from .runner import mmdet_load_checkpoint, mmdet_save_checkpoint
 from .runner import XMMDetEpochBasedRunner, XMMDetNoOptimizerHook, FreezeRangeHook
 from .save_model import save_model_proto
 from .quantize import XMMDetQuantTrainModule, XMMDetQuantCalibrateModule, XMMDetQuantTestModule, is_mmdet_quant_module
-from .model_surgery import *
+from .model_surgery import convert_to_lite_model
 
 
 __all__ = [

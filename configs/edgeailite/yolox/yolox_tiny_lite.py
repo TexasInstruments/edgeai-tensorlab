@@ -5,11 +5,19 @@ _base_ = '../../yolox/yolox_tiny_8x8_300e_coco.py'
 
 img_scale = (416, 416)
 input_size = img_scale
+img_norm_cfg = dict(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], to_rgb=True)
 
 # settings for qat or calibration - set to True after doing floating point training
 quantize = False #'training' #'calibration'
-
-img_norm_cfg = dict(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], to_rgb=True)
+if quantize:
+    load_from = './work_dirs/yolox_s_lite/latest.pth'
+    total_epochs = (1 if quantize == 'calibration' else 12)
+    num_last_epochs = 1
+else:
+    load_from = 'https://download.openmmlab.com/mmdetection/v2.0/yolox/yolox_tiny_8x8_300e_coco/yolox_tiny_8x8_300e_coco_20211124_171234-b4047906.pth'
+    max_epochs = total_epochs = 32 #240
+    num_last_epochs = 7 #15
+#
 
 
 # in the above base config, the image_scale for train_pipeline and test_pipeline are different.
