@@ -192,7 +192,11 @@ class YOLOXHead(BaseDenseHead, BBoxTestMixin):
         bbox_pred = conv_reg(reg_feat)
         objectness = conv_obj(reg_feat)
 
-        return cls_score, bbox_pred, objectness
+        if torch.onnx.is_in_onnx_export():
+            outs = torch.cat((bbox_pred, objectness, cls_score), dim=1)
+            return (outs,)
+        else:
+            return cls_score, bbox_pred, objectness
 
     def forward(self, feats):
         """Forward features from the upstream network.
@@ -212,7 +216,26 @@ class YOLOXHead(BaseDenseHead, BBoxTestMixin):
                            self.multi_level_conv_reg,
                            self.multi_level_conv_obj)
 
-    def get_bboxes(self,
+    def get_bboxes(self, *args, **kwargs):
+        if torch.onnx.is_in_onnx_export():
+            multi_level_outs = args[0]
+            num_levels = len(multi_level_outs)
+            split_args = []
+            multi_level_conv_cls = []
+            multi_level_conv_reg = []
+            multi_level_conv_obj = []
+            for l in range(num_levels):
+                outs = multi_level_outs[l]
+                bbox_pred, objectness, cls_score = outs[:,:4,...], outs[:,4:5,...], outs[:,5:,...]
+                multi_level_conv_cls.append(cls_score)
+                multi_level_conv_reg.append(bbox_pred)
+                multi_level_conv_obj.append(objectness)
+            #
+            return self.get_bboxes_(multi_level_conv_cls, multi_level_conv_reg, multi_level_conv_obj, **kwargs)
+        else:
+            return self.get_bboxes_(*args, **kwargs)
+
+    def get_bboxes_(self,
                    cls_scores,
                    bbox_preds,
                    objectnesses,

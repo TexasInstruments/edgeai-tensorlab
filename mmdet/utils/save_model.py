@@ -76,9 +76,8 @@ def save_model_proto(cfg, model, input, output_filename, input_names=None, proto
         _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_names, proto_names, output_names)
     elif is_yolox:
         if proto_names is None:
-            proto_names = [f'yolox_cls_{i}' for i in model.bbox_head.strides]
-            proto_names += [f'yolox_reg_{i}' for i in model.bbox_head.strides]
-            proto_names += [f'yolox_obj_{i}' for i in model.bbox_head.strides]
+            num_strides = len(model.bbox_head.strides)
+            proto_names = [f'yolox_head_{i}' for i in range(num_strides)]
         #
         if save_onnx:
             _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, proto_names, output_names, opset_version=opset_version)

@@ -11,17 +11,42 @@ img_norm_cfg = dict(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], to_rgb=True)
 quantize = False #'training' #'calibration'
 if quantize:
     load_from = './work_dirs/yolox_s_lite/latest.pth'
-    total_epochs = (1 if quantize == 'calibration' else 12)
-    num_last_epochs = 1
+    max_epochs = (1 if quantize == 'calibration' else 12)
+    initial_learning_rate = 1e-4
+    num_last_epochs = max_epochs
+    resume_from = None
+    interval = 10
 else:
-    load_from = 'https://download.openmmlab.com/mmdetection/v2.0/yolox/yolox_tiny_8x8_300e_coco/yolox_tiny_8x8_300e_coco_20211124_171234-b4047906.pth'
-    max_epochs = total_epochs = 32 #240
-    num_last_epochs = 7 #15
+    load_from = None #'https://download.openmmlab.com/mmdetection/v2.0/yolox/yolox_tiny_8x8_300e_coco/yolox_tiny_8x8_300e_coco_20211124_171234-b4047906.pth'
+    max_epochs = 300
+    initial_learning_rate = 0.01
+    num_last_epochs = 15
+    resume_from = None
+    interval = 10
 #
 
+optimizer = dict(
+    type='SGD',
+    lr=initial_learning_rate,
+    momentum=0.9,
+    weight_decay=5e-4,
+    nesterov=True,
+    paramwise_cfg=dict(norm_decay_mult=0., bias_decay_mult=0.))
+optimizer_config = dict(grad_clip=None)
 
-# in the above base config, the image_scale for train_pipeline and test_pipeline are different.
-# not sure how much it matters, but re-defining them here with matching values.
+# learning policy
+lr_config = dict(
+    _delete_=True,
+    policy='YOLOX',
+    warmup='exp',
+    by_epoch=False,
+    warmup_by_epoch=True,
+    warmup_ratio=1,
+    warmup_iters=5,  # 5 epoch
+    num_last_epochs=num_last_epochs,
+    min_lr_ratio=0.05)
+
+runner = dict(type='EpochBasedRunner', max_epochs=max_epochs)
 
 train_pipeline = [
     dict(type='Mosaic', img_scale=img_scale, pad_val=114.0),
