@@ -1,7 +1,7 @@
 
 # modified from: https://github.com/open-mmlab/mmdetection/tree/master/configs/yolox
 
-_base_ = '../../yolox/yolox_tiny_8x8_300e_coco.py'
+_base_ = '../../yolox/yolox_nano_8x8_300e_coco.py'
 
 img_scale = (416, 416)
 input_size = img_scale
@@ -10,14 +10,14 @@ img_norm_cfg = dict(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], to_rgb=True)
 # settings for qat or calibration - set to True after doing floating point training
 quantize = False #'training' #'calibration'
 if quantize:
-    load_from = './work_dirs/yolox_tiny_lite/latest.pth'
+    load_from = './work_dirs/yolox_nano_lite/latest.pth'
     max_epochs = (1 if quantize == 'calibration' else 12)
     initial_learning_rate = 1e-4
     num_last_epochs = max_epochs
     resume_from = None
     interval = 10
 else:
-    load_from = None #'https://download.openmmlab.com/mmdetection/v2.0/yolox/yolox_tiny_8x8_300e_coco/yolox_tiny_8x8_300e_coco_20211124_171234-b4047906.pth'
+    load_from = None
     max_epochs = 300
     initial_learning_rate = 0.01
     num_last_epochs = 15

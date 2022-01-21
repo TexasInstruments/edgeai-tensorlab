@@ -11,7 +11,8 @@ MMDetection has a huge Model Zoo, supporting a lot of models. Many of them are h
 | RetinaNet                   | ☐        | ✓        | ☐        |          |
 | CenterNet(Objects As Points)| ✗        | ✗        | ✗        |          |
 | EfficientDet                | ✗        | ✗        | ✗        |          |
-| YOLOv3                      | ✗        | ✗        | ✗        |☐         |
+| YOLOv3                      | ✗        | ✗        | ✗        |✓         |
+| YOLOX                       | ✗        | ✗        | ✗        |✓         |
 | Faster R-CNN                | ✗        | ✗        | ✗        |          |
 | Mask R-CNN                  | ✗        | ✗        | ✗        |          |
 
