@@ -26,6 +26,15 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# TIDL platform to be used for compilation
+# This also depends on the tidl_tools that is installed.
+TIDL_PLATFORM = "J7"
+
+# TIDL version that is supported by default - however this is not the only version that is supported.
+# This version actually depends on tidl_tools that is being used - so what is populated here is just for guidance.
+TIDL_VERSION = (8,1)
+TIDL_VERSION_STR = '8.1'
+
 # data layout constants
 NCHW = 'NCHW'
 NHWC = 'NHWC'
