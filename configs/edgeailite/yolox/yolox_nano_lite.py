@@ -5,6 +5,12 @@ _base_ = '../../yolox/yolox_nano_8x8_300e_coco.py'
 
 img_scale = (416, 416)
 input_size = img_scale
+
+# dataset settings
+data_root = 'data/coco/'
+dataset_type = 'CocoDataset'
+num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8}
+num_classes = num_classes_dict[dataset_type]
 img_norm_cfg = dict(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], to_rgb=True)
 
 # settings for qat or calibration - set to True after doing floating point training
@@ -86,17 +92,7 @@ test_pipeline = [
         ])
 ]
 
-if quantize:
-    load_from = './work_dirs/yolox_s_lite/latest.pth'
-    total_epochs = (1 if quantize == 'calibration' else 12)
-    num_last_epochs = 1
-else:
-    load_from = None
-    total_epochs = 240
-    num_last_epochs = 15
-#
-
-runner = dict(max_epochs=total_epochs)
 
 # edgeailite
 convert_to_lite_model = dict(group_size_dw=None)
+

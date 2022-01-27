@@ -1,14 +1,14 @@
 # Object Detection Model Zoo
 
-MMDetection has a huge Model Zoo, supporting a lot of models. Many of them are high complexity models that are not suitable for embedded scenarios that require high throughput. (Please refer to the mmdetection documentation link above for details). However, in this fork, we list only speed/accuracy optimized models that we have trained ourselves or is recommending from another location.
+MMDetection has a huge Model Zoo, supporting a lot of models. Many of them are high complexity models that are not suitable for embedded scenarios that require high throughput. (Please refer to the mmdetection documentation link above for details). However, here we primarily list speed/accuracy optimized models that we have trained ourselves or is recommending from another location.
 
 
 ## Features
 
-|                             | ResNet   | RegNetX  | MobileNet| Other    |
+| Detector/Backbone           | ResNet   | RegNetX  | MobileNet| Other    |
 |-----------------------------|:--------:|:--------:|:--------:|:--------:|
-| SSD                         | ✓        | ✓        | ☐        |          |
-| RetinaNet                   | ☐        | ✓        | ☐        |          |
+| SSD                         | ✓        | ✓        | ✓        |          |
+| RetinaNet                   | ☐        | ✓        | ✗        |          |
 | CenterNet(Objects As Points)| ✗        | ✗        | ✗        |          |
 | EfficientDet                | ✗        | ✗        | ✗        |          |
 | YOLOv3                      | ✗        | ✗        | ✗        |✓         |
@@ -19,7 +19,7 @@ MMDetection has a huge Model Zoo, supporting a lot of models. Many of them are h
 ✓ Available, ☐ In progress or partially available, ✗ TBD
 
 
-We have config files for ResNet, RegNetX and MobileNet backbone architectures. Overall, the RegNetX family of architectures strike a good balance between complexity, accuracy and easiness of quantization.
+We have config files for ResNet, RegNetX and MobileNet backbone architectures. The detector meta architectures that we list here include SSD, RetinaNet, YOLOV3 and YOLOX. Overall, the RegNetX family of backbones strike a good balance between complexity, accuracy and easiness of quantization. Among the detector meta architectures listed, YOLOX is one of the best.
 
 We shall add support for additional low complexity models as mmdetection adds support for those architectures. Additional detectors that we are looking forward to see in mmdetection are CenterNet(Objects As Points) and EfficientDet. For more information, see the [roadmap of mmdetection](https://github.com/open-mmlab/mmdetection/issues/2931).
 
@@ -60,9 +60,12 @@ We shall add support for additional low complexity models as mmdetection adds su
 |COCO    |YOLOv3                        |416x416    |**33.0**  |**29.6**       |configs/edgeailite/yolov3/yolov3_d53.py |
 |COCO    |YOLOv3                        |(416,416)  |**33.0**  |**30.9**       |configs/edgeailite/yolov3/yolov3_d53.py |
 |COCO    |YOLOv3                        |(608,608)  |**70.59** |**33.4**       |configs/edgeailite/yolov3/yolov3_d53.py |
+|-
+|COCO    |YOLOX-s-Lite                  |640x640    |**13.43** |**38.2**, 57.0 |configs/edgeailite/yolox/yolox_s_lite.py |
+|COCO    |YOLOX-tiny-Lite               |416x416    |**3.240** |**29.5**, 46.4 |configs/edgeailite/yolox/yolox_tiny_lite.py |
+|COCO    |YOLOX-nano-Lite               |416x416    |**0.552** |**20.9**, 35.2 |configs/edgeailite/yolox/yolox_nano_lite.py |
 
-
-- The suffix 'Lite' in the name of models such as SSDLite, RetinaNetLite indicates the use of Depthwise convolutions or Grouped convolutions. If the feature extractor (encoder) uses Depthwise Convolutions (eg. MobileNet), then Depthwise convolutions are used throughout such models - even in the neck and decoder. If the feature extractor (encoder) uses grouped convolutions as in the case of RegNetX, then grouped convolutions (with the same group size as that of the feature extractor) are used even in the neck and decoder.<br>
+- The suffix 'Lite' in the name of models indicates the use of Depthwise convolutions or Grouped convolutions. If the feature extractor (encoder) uses Depthwise Convolutions (eg. MobileNet), then Depthwise convolutions are used throughout such models - even in the neck and decoder. If the feature extractor (encoder) uses grouped convolutions as in the case of RegNetX, then grouped convolutions (with the same group size as that of the feature extractor) are used even in the neck and decoder.<br>
 - GigaMACS: Complexity in Giga Multiply-Accumulations (lower is better). This is an important metric to watch out for when selecting models for embedded inference.<br>
 - Accuracy%: Original Floating Point Validation Accuracy obtained after training.<br>
 <br>
