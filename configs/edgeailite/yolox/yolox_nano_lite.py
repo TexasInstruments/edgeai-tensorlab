@@ -31,6 +31,17 @@ else:
     interval = 10
 #
 
+# model settings
+# switching off depthwise improves accuracy in this model without increasing inference time significantly.
+model = dict(
+    backbone=dict(deepen_factor=0.33, widen_factor=0.25, use_depthwise=False),
+    neck=dict(
+        in_channels=[64, 128, 256],
+        out_channels=64,
+        num_csp_blocks=1,
+        use_depthwise=False),
+    bbox_head=dict(in_channels=64, feat_channels=64, use_depthwise=False))
+
 optimizer = dict(
     type='SGD',
     lr=initial_learning_rate,
