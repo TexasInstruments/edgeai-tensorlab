@@ -348,39 +348,10 @@ def export(args, model, model_name=None):
 
     data_shape = (1,3,*image_size_tuple)
     example_input = torch.rand(*data_shape).to(device)
-
     output_onnx_file = os.path.join(args.output_dir, 'model.onnx')
-
-    # configure_forward is used to export a model without preprocess
-    model_copy.configure_forward(with_preprocess=False)
-
-    torch.onnx.export(
-        model_copy,
-        example_input,
-        output_onnx_file,
-        input_names=input_names,
-        output_names=output_names,
-        # export_params=True,
-        # keep_initializers_as_inputs=True,
-        # do_constant_folding=False,
-        # verbose=False,
-        # training=torch.onnx.TrainingMode.PRESERVE,
-        opset_version=args.opset_version)
-    # shape inference to make it easy for inference
-    onnx.shape_inference.infer_shapes_path(output_onnx_file, output_onnx_file)
-
-    # export prototxt file for detection model_copy without preprocess or postprocess
-    model_copy.configure_forward(with_preprocess=False, with_postprocess=False)
-    # this output_partial_onnx_file is only for temporary purposes
-    output_onnx_file_ext = os.path.splitext(output_onnx_file)
-    output_onnxproto_file = output_onnx_file_ext[0] + '-proto' + output_onnx_file_ext[1]
-    export_proto.export_model_proto(dict(), model_copy, example_input, output_onnx_file, output_onnxproto_file,
-                    output_names=output_names_proto, opset_version=args.opset_version)
-    # shape inference to make it easy for inference
-    onnx.shape_inference.infer_shapes_path(output_onnxproto_file, output_onnxproto_file)
-
-    # restore the full model with pre and post process
-    model_copy.configure_forward()
+    export_proto.export_model_proto(args, model_copy, example_input, output_onnx_file,
+                                    input_names, output_names, output_names_proto,
+                                    args.opset_version)
 
     # #export torchscript model - disabled for time being
     # script_model = torch.jit.trace(model_copy, example_input, strict=False)
@@ -400,6 +371,5 @@ def complexity(args, model):
     device = next(model.parameters()).device
     try:
         torchinfo.summary(model, data_shape, depth=10, device=device)
-    except UnicodeEncodeError:
-        warnings.warm('torchinfo.summary could not print - please check the language/locale')
-
+    except Exception as err:
+        warnings.warn(f'torchinfo.summary could not print - {str(err)}')

@@ -50,11 +50,11 @@ class SSDHead(nn.Module):
 
 
 class SSDScoringHead(nn.Module):
-    def __init__(self, module_list: nn.ModuleList, num_columns: int, with_postprocess: bool=True):
+    def __init__(self, module_list: nn.ModuleList, num_columns: int, with_intermediate_outputs: bool=False):
         super().__init__()
         self.module_list = module_list
         self.num_columns = num_columns
-        self.with_postprocess = with_postprocess
+        self.with_intermediate_outputs = with_intermediate_outputs
 
     def _get_result_from_module_list(self, x: Tensor, idx: int) -> Tensor:
         """
@@ -74,23 +74,24 @@ class SSDScoringHead(nn.Module):
 
     def forward(self, x: List[Tensor]) -> Tensor:
         all_results = []
+        intermediate_results = []
 
         for i, features in enumerate(x):
             results = self._get_result_from_module_list(features, i)
+            intermediate_results.append(results)
 
-            if self.with_postprocess:
-                # Permute output from (N, A * K, H, W) to (N, HWA, K).
-                N, _, H, W = results.shape
-                results = results.view(N, -1, self.num_columns, H, W)
-                results = results.permute(0, 3, 4, 1, 2)
-                results = results.reshape(N, -1, self.num_columns)  # Size=(N, HWA, K)
+            # Permute output from (N, A * K, H, W) to (N, HWA, K).
+            N, _, H, W = results.shape
+            results = results.view(N, -1, self.num_columns, H, W)
+            results = results.permute(0, 3, 4, 1, 2)
+            results = results.reshape(N, -1, self.num_columns)  # Size=(N, HWA, K)
 
             all_results.append(results)
 
-        if self.with_postprocess:
-            return torch.cat(all_results, dim=1)
+        if self.with_intermediate_outputs:
+            return torch.cat(all_results, dim=1), intermediate_results
         else:
-            return all_results
+            return torch.cat(all_results, dim=1)
 
 
 class SSDClassificationHead(SSDScoringHead):
@@ -181,7 +182,8 @@ class SSD(nn.Module):
                  topk_candidates: int = 400,
                  positive_fraction: float = 0.25,
                  with_preprocess: bool = True,
-				 with_postprocess: bool = True):
+				 with_postprocess: bool = True,
+                 with_intermediate_outputs: bool = False):
         super().__init__()
 
         self.backbone = backbone
@@ -222,6 +224,8 @@ class SSD(nn.Module):
 
         # forward without postprocess to export partial onnx
         self.with_postprocess = with_postprocess
+        # export the intermediate tensors as well
+        self.with_intermediate_outputs = with_intermediate_outputs
 
     @torch.jit.unused
     def eager_outputs(self, losses: Dict[str, Tensor],
@@ -342,12 +346,19 @@ class SSD(nn.Module):
         # compute the ssd heads outputs using the features
         head_outputs = self.head(features)
 
+        # intermediate outputs
+        if self.with_intermediate_outputs:
+            cls_outputs, cls_intermediate = head_outputs['cls_logits']
+            reg_outputs, reg_intermediate = head_outputs['bbox_regression']
+            intermediate_outputs = {}
+            intermediate_outputs.update({f'cls_logits_{idx}':opt for idx, opt in enumerate(cls_intermediate)})
+            intermediate_outputs.update({f'bbox_regression_{idx}':opt for idx, opt in enumerate(reg_intermediate)})
+            head_outputs['cls_logits'] = cls_outputs
+            head_outputs['bbox_regression'] = reg_outputs
+
         if not self.with_postprocess:
-            # put the cls_logits first as in retinanet - this also the order expected by export_proto
-            cls_outputs = head_outputs['cls_logits']
-            reg_outputs = head_outputs['bbox_regression']
-            model_outputs = cls_outputs + reg_outputs
-            return model_outputs
+            assert self.with_intermediate_outputs, 'please set with_intermediate_outputs'
+            return list(intermediate_outputs.values())
 
         # create the set of anchors
         anchors = self.anchor_generator(images, features)
@@ -372,6 +383,9 @@ class SSD(nn.Module):
             detections = self.postprocess_detections(head_outputs, anchors, images.image_sizes)
             detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
 
+        if self.with_intermediate_outputs:
+            detections[0] = dict(**detections[0], **intermediate_outputs)
+
         if torch.jit.is_scripting():
             if not self._has_warned:
                 warnings.warn("SSD always returns a (Losses, Detections) tuple in scripting")
@@ -379,11 +393,12 @@ class SSD(nn.Module):
             return losses, detections
         return self.eager_outputs(losses, detections)
 
-    def configure_forward(self, with_preprocess=True, with_postprocess=True):
+    def configure_forward(self, with_preprocess=True, with_postprocess=True, with_intermediate_outputs=False):
         self.transform.with_preprocess = with_preprocess
         self.with_postprocess = with_postprocess
-        self.head.classification_head.with_postprocess = with_postprocess
-        self.head.regression_head.with_postprocess = with_postprocess
+        self.with_intermediate_outputs = with_intermediate_outputs
+        self.head.classification_head.with_intermediate_outputs = with_intermediate_outputs
+        self.head.regression_head.with_intermediate_outputs = with_intermediate_outputs
 
     def postprocess_detections(self, head_outputs: Dict[str, Tensor], image_anchors: List[Tensor],
                                image_shapes: List[Tuple[int, int]]) -> List[Dict[str, Tensor]]:

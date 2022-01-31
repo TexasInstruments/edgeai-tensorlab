@@ -25,7 +25,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+import copy
 import os
 import numpy as np
 import onnx
@@ -41,33 +41,75 @@ import utils
 __all__ = ['export_model_proto']
 
 
-def export_model_proto(cfg, model, input_data, output_onnx_file, output_onnxproto_file, output_names, opset_version,
-                       add_postproc_op=True):
-    '''
-    The model passed is expected to be partial model without postprocess.
-    output_onnx_file is expected to be an already exported full onnx file with postprocess.
-    output_onnxproto_file: onnx+proto file
-    This function will generate the prototxt file with correct input names.
-    '''
-
-    feature_names = _save_model_proto(cfg, model, input_data, output_filename=output_onnxproto_file,
-                      output_names=output_names, opset_version=opset_version)
-
-    # export prototxt file corresponding to the full model
-    # this needs a retrieval of the output names in teh full model
-    # it done by runnin gonnxruntime to compare the tensor values agains the output of the partial model above
-    if output_onnx_file is not None:
-        matched_names = retrieve_onnx_names(input_data, output_onnx_file, output_onnxproto_file)
-        if matched_names is not None:
-            matched_names = list(matched_names.values())
-            _save_model_proto(cfg, model, input_data, output_filename=output_onnx_file,
-                              feature_names=matched_names, output_names=output_names,
-                              opset_version=opset_version, save_onnx=False)
-        else:
-            print('Tensor names could not be located; prototxt file corresponding to model.onnx wont be written')
+def export_model_proto(cfg, model, example_input, output_onnx_file, input_names, output_names, output_names_proto, opset_version, add_postproc_op=True):
+    # configure_forward is used to export a model without preprocess
+    model.configure_forward(with_preprocess=False, with_postprocess=True, with_intermediate_outputs=True)
+    torch.onnx.export(
+        model,
+        example_input,
+        output_onnx_file,
+        input_names=input_names,
+        output_names=None,
+        # export_params=True,
+        # keep_initializers_as_inputs=True,
+        # do_constant_folding=False,
+        # verbose=False,
+        # training=torch.onnx.TrainingMode.PRESERVE,
+        opset_version=opset_version)
+    onnx_model = onnx.load(output_onnx_file)
+    feature_names = [node.name for node in onnx_model.graph.output[3:]]
+    for opt in onnx_model.graph.output[3:]:
+        onnx_model.graph.output.remove(opt)
+    #
+    for opt_name, opt in zip(output_names, onnx_model.graph.output[:3]):
+        name_changed = False
+        for node in onnx_model.graph.node:
+            for node_o_idx in range(len(node.output)):
+                if node.output[node_o_idx] == opt.name:
+                    node.output[node_o_idx] = opt_name
+                    opt.name = opt_name
+                    name_changed = True
+                    break
+                #
+            #
+            if name_changed:
+                break
+            #
         #
     #
+    # make model
+    opset = onnx.OperatorSetIdProto()
+    opset.version = opset_version
+    onnx_model = onnx.helper.make_model(onnx_model.graph, opset_imports=[opset])
+    # check model and save
+    onnx.checker.check_model(onnx_model)
+    onnx.save(onnx_model, output_onnx_file)
+    # shape inference to make it easy for inference
+    onnx.shape_inference.infer_shapes_path(output_onnx_file, output_onnx_file)
+    # export proto
+    _save_model_proto(cfg, model, example_input, output_filename=output_onnx_file,
+                      output_names=output_names_proto, feature_names=feature_names, opset_version=opset_version)
 
+    # export prototxt file for detection model_copy without preprocess or postprocess
+    output_onnx_file_ext = os.path.splitext(output_onnx_file)
+    output_onnxproto_file = output_onnx_file_ext[0] + '-proto' + output_onnx_file_ext[1]
+    model.configure_forward(with_preprocess=False, with_postprocess=False, with_intermediate_outputs=True)
+    torch.onnx.export(
+        model,
+        example_input,
+        output_onnxproto_file,
+        input_names=input_names,
+        output_names=None,
+        # export_params=True,
+        # keep_initializers_as_inputs=True,
+        # do_constant_folding=False,
+        # verbose=False,
+        # training=torch.onnx.TrainingMode.PRESERVE,
+        opset_version=opset_version)
+    onnx_model = onnx.load(output_onnxproto_file)
+    feature_names = [node.name for node in onnx_model.graph.output]
+    _save_model_proto(cfg, model, example_input, output_filename=output_onnxproto_file,
+                      output_names=output_names_proto, feature_names=feature_names, opset_version=opset_version)
     # add the postprocessing operator
     if add_postproc_op:
         _add_dummydetection_operator(cfg, model, output_onnxproto_file, feature_names, opset_version=opset_version)
@@ -75,52 +117,21 @@ def export_model_proto(cfg, model, input_data, output_onnx_file, output_onnxprot
     #
     # shape inference to make it easy for inference
     onnx.shape_inference.infer_shapes_path(output_onnxproto_file, output_onnxproto_file)
-    # these files can be removd if they are not required
-    # # these were created just to be able to find the intermediate tensor names
-    # output_partial_onnx_file = os.path.splitext(output_onnxproto_file)[0] + '.onnx'
-    # output_partial_proto_file = os.path.splitext(output_onnxproto_file)[0] + '.prototxt'
-    # os.remove(output_partial_onnx_file)
-    # os.remove(output_partial_proto_file)
+
+    # restore the model
+    model.configure_forward()
 
 
 def _save_model_proto(cfg, model, input_tensor, output_filename, input_names = ('images',), feature_names=None, output_names=None,
-                      save_onnx=True, opset_version=11):
+                      save_onnx=False, opset_version=11):
     model = model.module if utils.is_quant_module(model) else model
     model = model.module if utils.is_parallel_module(model) else model
     is_ssd = isinstance(model, models.detection.SSD)
     is_retinanet = isinstance(model, models.detection.RetinaNet)
     if is_ssd:
-        if feature_names is None:
-            feature_names = []
-            for cls_idx, cls in enumerate(model.head.classification_head.module_list):
-                feature_names.append(f'cls_convs_{cls_idx}')
-            #
-            for reg_idx, reg in enumerate(model.head.regression_head.module_list):
-                feature_names.append(f'reg_convs_{reg_idx}')
-            #
-        #
-        if save_onnx:
-            _save_onnx(cfg, model, input_tensor, output_filename, input_names, feature_names, opset_version=opset_version)
-        #
         _save_proto_ssd(cfg, model, input_tensor, output_filename, input_names, feature_names, output_names)
     elif is_retinanet:
-        if feature_names is None:
-            feature_names = []
-            for i in range(model.neck.num_outs):
-                feature_names.append(f'retina_cls_{i}')
-            #
-            for i in range(model.neck.num_outs):
-                feature_names.append(f'retina_reg_{i}')
-            #
-        #
-        if save_onnx:
-            _save_onnx(cfg, model, input_tensor, output_filename, input_names, feature_names, opset_version=opset_version)
-        #
         _save_proto_retinanet(cfg, model, input_tensor, output_filename, input_names, feature_names, output_names)
-    else:
-        if save_onnx:
-            _save_onnx(cfg, model, input_tensor, output_filename, input_names, feature_names, opset_version=opset_version)
-        #
     #
     return feature_names
 
@@ -303,7 +314,6 @@ def _add_dummydetection_operator(cfg, model, onnx_filename, feature_names, outpu
         onnx_model.graph.output.remove(g_tensor)
     #
     onnx_model.graph.output.extend([boxes, scores, labels])
-    onnx_model = onnx.helper.make_model(onnx_model.graph)
     # make model
     opset = onnx.OperatorSetIdProto()
     opset.version = opset_version
