@@ -326,13 +326,13 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
-                                        'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220124_model.prototxt',
-                                        'advanced_options:output_feature_16bit_names_list': '651, 958, 959, 960, 986, 987, 988, 1014, 1015, 1016'
+                                        'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220128_model.prototxt',
+                                        'advanced_options:output_feature_16bit_names_list': '471, 712, 713, 714, 728, 729, 730, 744, 745, 746'
                                         }),
-                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220124_model.onnx'),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220128_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 20.9})
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 24.0})
         ),
         #################################################################
         #       MXNET MODELS
