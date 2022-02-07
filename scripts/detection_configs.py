@@ -46,9 +46,10 @@ config='./configs/edgeailite/yolov3/yolov3_regnet_bgr_lite.py'
 config='./configs/edgeailite/yolov3/yolov3_d53_relu.py'
 config='./configs/edgeailite/yolov3/yolov3_d53.py'
 
-config='./configs/edgeailite/yolox/yolox_s_lite.py'
-config='./configs/edgeailite/yolox/yolox_tiny_lite.py'
 config='./configs/edgeailite/yolox/yolox_nano_lite.py'
+config='./configs/edgeailite/yolox/yolox_tiny_lite.py'
+config='./configs/edgeailite/yolox/yolox_s_lite.py'
+config='./configs/edgeailite/yolox/yolox_m_lite.py'
 '''
 
 config='./configs/edgeailite/ssd/ssd_regnet_fpn_bgr_lite.py'
