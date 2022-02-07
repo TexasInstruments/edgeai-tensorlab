@@ -37,6 +37,7 @@ class SingleStageDetector(BaseDetector):
         self.bbox_head = build_head(bbox_head)
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
+        self.with_intermediate_outputs = False
 
     def extract_feat(self, img):
         """Directly extract features from the backbone+neck."""
@@ -168,4 +169,7 @@ class SingleStageDetector(BaseDetector):
         det_bboxes, det_labels = self.bbox_head.onnx_export(
             *outs, img_metas, with_nms=with_nms)
 
-        return det_bboxes, det_labels
+        if self.with_intermediate_outputs:
+            return (det_bboxes, det_labels, *outs)
+        else:
+            return det_bboxes, det_labels

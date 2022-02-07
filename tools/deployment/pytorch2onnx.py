@@ -14,7 +14,7 @@ from mmdet.core.export import build_model_from_cfg, preprocess_example_input
 from mmdet.core.export.model_wrappers import ONNXRuntimeDetector
 
 from mmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint, is_mmdet_quant_module
-from .pytorch2proto import *
+from mmdet.utils import save_model_proto
 
 from torchvision.edgeailite import xnn
 
@@ -95,25 +95,75 @@ def pytorch2onnx(args,
         if model_org.with_mask:
             dynamic_axes['masks'] = {0: 'batch', 1: 'num_dets'}
 
+    # export the full onnx file
+    model.with_intermediate_outputs = True
     torch.onnx.export(
         model,
         img_list,
         output_file,
         input_names=[input_name],
-        output_names=output_names,
-        export_params=True,
-        keep_initializers_as_inputs=True,
-        do_constant_folding=True,
-        verbose=show,
+        output_names=None,
+        #export_params=True,
+        #keep_initializers_as_inputs=True,
+        #do_constant_folding=True,
+        #verbose=show,
+        #dynamic_axes=dynamic_axes
         opset_version=opset_version,
-        dynamic_axes=dynamic_axes)
-    # shape inference is required to support onnx+proto detection models in edgeai-tidl-tools
+    )
+    onnx_model = onnx.load(output_file)
+    feature_names = [node.name for node in onnx_model.graph.output[2:]]
+    for opt in onnx_model.graph.output[2:]:
+        onnx_model.graph.output.remove(opt)
+    #
+    for opt_name, opt in zip(output_names, onnx_model.graph.output[:2]):
+        name_changed = False
+        for node in onnx_model.graph.node:
+            for node_o_idx in range(len(node.output)):
+                if node.output[node_o_idx] == opt.name:
+                    node.output[node_o_idx] = opt_name
+                    opt.name = opt_name
+                    name_changed = True
+                    break
+                #
+            #
+            if name_changed:
+                break
+            #
+        #
+    #
+    # make model
+    opset = onnx.OperatorSetIdProto()
+    opset.version = opset_version
+    onnx_model = onnx.helper.make_model(onnx_model.graph, opset_imports=[opset])
+    # check model and save
+    onnx.checker.check_model(onnx_model)
+    onnx.save(onnx_model, output_file)
+    # shape inference to make it easy for inference
     onnx.shape_inference.infer_shapes_path(output_file, output_file)
+    # write prototxt
+    save_model_proto(cfg, model, img_list, output_file, feature_names=feature_names, output_names=output_names)
+    model.with_intermediate_outputs = False
 
-    output_proto_file = osp.splitext(output_file)[0] + '-proto.onnx'
-    pytorch2proto(cfg, model, img_list, output_file, output_proto_file, output_names=output_names, opset_version=opset_version)
+    # export the partial onnx file
+    onnx_proto_file = osp.splitext(output_file)[0] + '-proto.onnx'
+    model.forward = model.forward_dummy
+    torch.onnx.export(
+        model,
+        img_list[0],
+        onnx_proto_file,
+        input_names=[input_name],
+        output_names=None,
+        #export_params=True,
+        #keep_initializers_as_inputs=True,
+        #do_constant_folding=True,
+        #verbose=show,
+        #dynamic_axes=dynamic_axes,
+        opset_version=opset_version)
+    onnx_model = onnx.load(onnx_proto_file)
+    feature_names = [node.name for node in onnx_model.graph.output]
     # shape inference is required to support onnx+proto detection models in edgeai-tidl-tools
-    onnx.shape_inference.infer_shapes_path(output_proto_file, output_proto_file)
+    onnx.shape_inference.infer_shapes_path(onnx_proto_file, onnx_proto_file)
+    save_model_proto(cfg, model, img_list, output_file, feature_names=feature_names, output_names=output_names)
 
     model.forward = origin_forward
 

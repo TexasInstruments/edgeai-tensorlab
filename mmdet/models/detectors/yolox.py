@@ -156,6 +156,11 @@ class YOLOX(SingleStageDetector):
     def simple_test(self, img, img_metas, **kwargs):
         if torch.onnx.is_in_onnx_export():
             feat = self.extract_feat(img)
-            return self.bbox_head.simple_test(feat, img_metas, **kwargs)
+            results_list = self.bbox_head.simple_test(feat, img_metas, **kwargs)
+            if self.with_intermediate_outputs:
+                results_list[0] = list(results_list[0])
+                results_list[0].extend(feat)
+            #
+            return results_list
         else:
             return super().simple_test(img, img_metas, **kwargs)

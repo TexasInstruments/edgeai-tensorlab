@@ -11,7 +11,7 @@ echo "Installing mmdetection"
 echo "For more details, see: https://github.com/open-mmlab/mmdetection/blob/master/docs/get_started.md and https://github.com/open-mmlab/mmdetection"
 python3 setup.py develop
 
-pip3 install onnxruntime
+pip3 install onnx==1.8.1
 pip3 install torchinfo
 
 echo "This package depends on edgeai-torchvision:"

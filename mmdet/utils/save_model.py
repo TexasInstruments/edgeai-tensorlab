@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import numpy as np
 import torch
 from .quantize import is_mmdet_quant_module
 from .proto import mmdet_meta_arch_pb2
@@ -35,10 +36,10 @@ from google.protobuf import text_format
 __all__ = ['save_model_proto']
 
 
-def save_model_proto(cfg, model, input, output_filename, input_names=None, proto_names=None, output_names=None,
-                     save_onnx=True, opset_version=11):
-    is_cuda = next(model.parameters()).is_cuda
-    input_list = input if isinstance(input, torch.Tensor) else _create_rand_inputs(input, is_cuda)
+def save_model_proto(cfg, model, input, output_filename, input_names=None, feature_names=None, output_names=None):
+    output_filename = os.path.splitext(output_filename)[0] + '.prototxt'
+    input = input[0] if isinstance(input, (list,tuple)) and \
+                                  isinstance(input[0], (torch.Tensor, np.ndarray)) else input
     input_size = input.size() if isinstance(input, torch.Tensor) else input
     model = model.module if is_mmdet_quant_module(model) else model
     is_ssd = hasattr(cfg.model, 'bbox_head') and ('SSD' in cfg.model.bbox_head.type)
@@ -49,51 +50,13 @@ def save_model_proto(cfg, model, input, output_filename, input_names=None, proto
     input_names = input_names or ('input',)
 
     if is_ssd:
-        if proto_names is None:
-            proto_names = [f'cls_convs_{cls_idx}' for cls_idx, cls in enumerate(model.bbox_head.cls_convs)]
-            proto_names += [f'reg_convs_{reg_idx}' for reg_idx, reg in enumerate(model.bbox_head.reg_convs)]
-        #
-        if save_onnx:
-            _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, proto_names, output_names, opset_version=opset_version)
-        #
-        _save_mmdet_proto_ssd(cfg, model, input_size, output_filename, input_names, proto_names, output_names)
+        _save_mmdet_proto_ssd(cfg, model, input_size, output_filename, input_names, feature_names, output_names)
     elif is_retinanet:
-        if proto_names is None:
-            proto_names = [f'retina_cls_{i}' for i in range(model.neck.num_outs)]
-            proto_names += [f'retina_reg_{i}' for i in range(model.neck.num_outs)]
-        #
-        if save_onnx:
-            _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, proto_names, output_names, opset_version=opset_version)
-        #
-        _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_names, proto_names, output_names)
+        _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_names, feature_names, output_names)
     elif is_yolov3:
-        if proto_names is None:
-            proto_names = [f'convs_pred_{i}' for i in range(model.neck.num_scales)]
-        #
-        if save_onnx:
-            _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, proto_names, output_names, opset_version=opset_version)
-        #
-        _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_names, proto_names, output_names)
+        _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_names, feature_names, output_names)
     elif is_yolox:
-        if proto_names is None:
-            num_strides = len(model.bbox_head.strides)
-            proto_names = [f'yolox_head_{i}' for i in range(num_strides)]
-        #
-        if save_onnx:
-            _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, proto_names, output_names, opset_version=opset_version)
-        #
-        _save_mmdet_proto_yolox(cfg, model, input_size, output_filename, input_names, proto_names, output_names)
-    elif is_fcos:
-        if proto_names is None:
-            proto_names = [f'cls_convs_{i}' for i in range(model.neck.num_outs)]
-            proto_names += [f'reg_convs_{i}' for i in range(model.neck.num_outs)]
-            proto_names += [f'centerness_convs_{i}' for i in range(model.neck.num_outs)]
-        #
-        if save_onnx:
-            _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, proto_names, output_names, opset_version=opset_version)
-        #
-    elif save_onnx:
-        _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names, proto_names, output_names, opset_version=opset_version)
+        _save_mmdet_proto_yolox(cfg, model, input_size, output_filename, input_names, feature_names, output_names)
     #
 
 
@@ -128,7 +91,6 @@ def _save_mmdet_onnx(cfg, model, input_list, output_filename, input_names=None, 
 
 ###########################################################
 def _save_mmdet_proto_ssd(cfg, model, input_size, output_filename, input_names=None, proto_names=None, output_names=None):
-    output_filename = os.path.splitext(output_filename)[0] + '.prototxt'
     num_proto_names = len(proto_names)//2
     cls_proto_names = proto_names[:num_proto_names]
     reg_proto_names = proto_names[num_proto_names:]
@@ -168,7 +130,6 @@ def _save_mmdet_proto_ssd(cfg, model, input_size, output_filename, input_names=N
 
 ###########################################################
 def _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_names=None, proto_names=None, output_names=None):
-    output_filename = os.path.splitext(output_filename)[0] + '.prototxt'
     num_proto_names = len(proto_names)//2
     cls_proto_names = proto_names[:num_proto_names]
     reg_proto_names = proto_names[num_proto_names:]
@@ -204,7 +165,6 @@ def _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_n
 
 ###########################################################
 def _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_names=None, proto_names=None, output_names=None):
-    output_filename = os.path.splitext(output_filename)[0] + '.prototxt'
     bbox_head = model.bbox_head
     anchor_generator = bbox_head.anchor_generator
     base_sizes = anchor_generator.base_sizes
@@ -241,7 +201,6 @@ def _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_name
 
 ###########################################################
 def _save_mmdet_proto_yolox(cfg, model, input_size, output_filename, input_names=None, proto_names=None, output_names=None):
-    output_filename = os.path.splitext(output_filename)[0] + '.prototxt'
     bbox_head = model.bbox_head
     # anchor_generator = bbox_head.anchor_generator
     base_sizes = model.bbox_head.strides
