@@ -88,7 +88,7 @@ def export_model_proto(cfg, model, example_input, output_onnx_file, input_names,
     onnx.shape_inference.infer_shapes_path(output_onnx_file, output_onnx_file)
     # export proto
     _save_model_proto(cfg, model, example_input, output_filename=output_onnx_file,
-                      output_names=output_names_proto, feature_names=feature_names, opset_version=opset_version)
+                      feature_names=feature_names, output_names=output_names_proto)
 
     # export prototxt file for detection model_copy without preprocess or postprocess
     output_onnx_file_ext = os.path.splitext(output_onnx_file)
@@ -109,7 +109,7 @@ def export_model_proto(cfg, model, example_input, output_onnx_file, input_names,
     onnx_model = onnx.load(output_onnxproto_file)
     feature_names = [node.name for node in onnx_model.graph.output]
     _save_model_proto(cfg, model, example_input, output_filename=output_onnxproto_file,
-                      output_names=output_names_proto, feature_names=feature_names, opset_version=opset_version)
+                      feature_names=feature_names, output_names=output_names_proto)
     # add the postprocessing operator
     if add_postproc_op:
         _add_dummydetection_operator(cfg, model, output_onnxproto_file, feature_names, opset_version=opset_version)
@@ -122,8 +122,7 @@ def export_model_proto(cfg, model, example_input, output_onnx_file, input_names,
     model.configure_forward()
 
 
-def _save_model_proto(cfg, model, input_tensor, output_filename, input_names = ('images',), feature_names=None, output_names=None,
-                      save_onnx=False, opset_version=11):
+def _save_model_proto(cfg, model, input_tensor, output_filename, input_names = ('images',), feature_names=None, output_names=None):
     model = model.module if utils.is_quant_module(model) else model
     model = model.module if utils.is_parallel_module(model) else model
     is_ssd = isinstance(model, models.detection.SSD)
@@ -134,24 +133,6 @@ def _save_model_proto(cfg, model, input_tensor, output_filename, input_names = (
         _save_proto_retinanet(cfg, model, input_tensor, output_filename, input_names, feature_names, output_names)
     #
     return feature_names
-
-
-def _save_onnx(cfg, model, input_tensor, output_filename, input_names=None, feature_names=None, opset_version=11):
-    model.eval()
-    os.makedirs(os.path.dirname(output_filename), exist_ok=True)
-    # export
-    torch.onnx.export(
-        model,
-        input_tensor,
-        output_filename,
-        input_names=input_names,
-        output_names=feature_names,
-        # export_params=True,
-        # keep_initializers_as_inputs=True,
-        # do_constant_folding=False,
-        # verbose=False,
-        # training=torch.onnx.TrainingMode.PRESERVE,
-        opset_version=opset_version)
 
 
 ###########################################################
