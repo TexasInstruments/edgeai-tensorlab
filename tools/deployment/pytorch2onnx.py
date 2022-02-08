@@ -163,7 +163,7 @@ def pytorch2onnx(args,
     feature_names = [node.name for node in onnx_model.graph.output]
     # shape inference is required to support onnx+proto detection models in edgeai-tidl-tools
     onnx.shape_inference.infer_shapes_path(onnx_proto_file, onnx_proto_file)
-    save_model_proto(cfg, model, img_list, output_file, feature_names=feature_names, output_names=output_names)
+    save_model_proto(cfg, model, img_list, onnx_proto_file, feature_names=feature_names, output_names=output_names)
 
     model.forward = origin_forward
 

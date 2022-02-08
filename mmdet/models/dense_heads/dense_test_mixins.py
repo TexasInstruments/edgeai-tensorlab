@@ -36,6 +36,13 @@ class BBoxTestMixin(object):
         outs = self.forward(feats)
         results_list = self.get_bboxes(
             *outs, img_metas=img_metas, rescale=rescale)
+
+        if torch.onnx.is_in_onnx_export():
+            if self.with_intermediate_outputs:
+                results_list = list(results_list)
+                results_list.extend(outs)
+            #
+        #
         return results_list
 
     def aug_test_bboxes(self, feats, img_metas, rescale=False):

@@ -37,7 +37,17 @@ class SingleStageDetector(BaseDetector):
         self.bbox_head = build_head(bbox_head)
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
-        self.with_intermediate_outputs = False
+        # for onnx export
+        self.with_intermediate_outputs_ = False
+
+    @property
+    def with_intermediate_outputs(self):
+        return self.with_intermediate_outputs_
+
+    @with_intermediate_outputs.setter
+    def with_intermediate_outputs(self, v):
+        self.with_intermediate_outputs_ = v
+        self.bbox_head.with_intermediate_outputs = v
 
     def extract_feat(self, img):
         """Directly extract features from the backbone+neck."""
@@ -166,10 +176,7 @@ class SingleStageDetector(BaseDetector):
             # add dummy score_factor
             outs = (*outs, None)
         # TODO Can we change to `get_bboxes` when `onnx_export` fail
-        det_bboxes, det_labels = self.bbox_head.onnx_export(
+        bbox_results = self.bbox_head.onnx_export(
             *outs, img_metas, with_nms=with_nms)
 
-        if self.with_intermediate_outputs:
-            return (det_bboxes, det_labels, *outs)
-        else:
-            return det_bboxes, det_labels
+        return bbox_results

@@ -14,6 +14,8 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
 
     def __init__(self, init_cfg=None):
         super(BaseDenseHead, self).__init__(init_cfg)
+        # for onnx export
+        self.with_intermediate_outputs = False
 
     def init_weights(self):
         super(BaseDenseHead, self).init_weights()
@@ -518,9 +520,15 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
             iou_threshold = cfg.nms.get('iou_threshold', 0.5)
             score_threshold = cfg.score_thr
             nms_pre = cfg.get('deploy_nms_pre', -1)
-            return add_dummy_nms_for_onnx(batch_bboxes, batch_scores,
+            bbox_results = add_dummy_nms_for_onnx(batch_bboxes, batch_scores,
                                           max_output_boxes_per_class,
                                           iou_threshold, score_threshold,
                                           nms_pre, cfg.max_per_img)
         else:
-            return batch_bboxes, batch_scores
+            bbox_results = batch_bboxes, batch_scores
+
+        if self.with_intermediate_outputs:
+            bbox_results = list(bbox_results)
+            bbox_results.extend((cls_scores,bbox_preds))
+        #
+        return bbox_results
