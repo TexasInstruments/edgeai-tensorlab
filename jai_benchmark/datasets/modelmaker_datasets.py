@@ -35,7 +35,7 @@ class ModelMakerDetectionDataset(coco_det.COCODetection):
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
         path = kwargs['path']
         split = kwargs['split']
-        image_dir = os.path.join(path, 'files')
+        image_dir = os.path.join(path, split)
         annotation_file = os.path.join(path, 'annotations', f'instances_{split}.json')
         super().__init__(num_classes=num_classes, image_dir=image_dir, annotation_file=annotation_file,
                          download=False, **kwargs)
