@@ -103,12 +103,12 @@ def pytorch2onnx(args,
         output_file,
         input_names=[input_name],
         output_names=None,
-        #export_params=True,
-        #keep_initializers_as_inputs=True,
-        #do_constant_folding=True,
-        #verbose=show,
-        #dynamic_axes=dynamic_axes
+        export_params=True,
+        keep_initializers_as_inputs=True,
+        do_constant_folding=True,
+        verbose=show,
         opset_version=opset_version,
+        dynamic_axes=dynamic_axes,
     )
     onnx_model = onnx.load(output_file)
     feature_names = [node.name for node in onnx_model.graph.output[2:]]
@@ -153,12 +153,12 @@ def pytorch2onnx(args,
         onnx_proto_file,
         input_names=[input_name],
         output_names=None,
-        #export_params=True,
-        #keep_initializers_as_inputs=True,
-        #do_constant_folding=True,
-        #verbose=show,
-        #dynamic_axes=dynamic_axes,
-        opset_version=opset_version)
+        export_params=True,
+        keep_initializers_as_inputs=True,
+        do_constant_folding=True,
+        verbose=show,
+        opset_version=opset_version,
+        dynamic_axes=dynamic_axes)
     onnx_model = onnx.load(onnx_proto_file)
     feature_names = [node.name for node in onnx_model.graph.output]
     # shape inference is required to support onnx+proto detection models in edgeai-tidl-tools
