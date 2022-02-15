@@ -11,10 +11,7 @@ import cv2
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-import seaborn as sns
 import torch
-import yaml
 from PIL import Image, ImageDraw, ImageFont
 
 #from utils.general import xywh2xyxy, xyxy2xywh
@@ -85,7 +82,7 @@ def plot_skeleton_kpts(im, kpts, steps, orig_shape=None):
     for kid in range(num_kpts):
         r, g, b = pose_kpt_color[kid]
         x_coord, y_coord = kpts[steps * kid], kpts[steps * kid + 1]
-        if not (x_coord % 640 == 0 or y_coord % 640 == 0):
+        if not (x_coord % orig_shape[1] == 0 or y_coord % orig_shape[0] == 0):
             if steps == 3:
                 conf = kpts[steps * kid + 2]
                 if conf < 0.5:
@@ -101,9 +98,9 @@ def plot_skeleton_kpts(im, kpts, steps, orig_shape=None):
             conf2 = kpts[(sk[1]-1)*steps+2]
             if conf1<0.5 or conf2<0.5:
                 continue
-        if pos1[0]%640 == 0 or pos1[1]%640==0 or pos1[0]<0 or pos1[1]<0:
+        if pos1[0]%orig_shape[1] == 0 or pos1[1]%orig_shape[0]==0 or pos1[0]<0 or pos1[1]<0:
             continue
-        if pos2[0] % 640 == 0 or pos2[1] % 640 == 0 or pos2[0]<0 or pos2[1]<0:
+        if pos2[0] % orig_shape[1] == 0 or pos2[1] % orig_shape[0] == 0 or pos2[0]<0 or pos2[1]<0:
             continue
         cv2.line(im, pos1, pos2, (int(r), int(g), int(b)), thickness=2)
 
@@ -158,7 +155,7 @@ def plot_images(images, targets, paths=None, fname='images.png', names=None, max
     if scale_factor < 1:
         h = math.ceil(scale_factor * h)
         w = math.ceil(scale_factor * w)
-
+    print(h,w)
     mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
     for i, img in enumerate(images):
         if i == max_subplots:  # if last batch has fewer images than we expect
@@ -213,7 +210,7 @@ def plot_images(images, targets, paths=None, fname='images.png', names=None, max
                 if labels or conf[j] > 0.25:  # 0.25 conf thresh
                     label = '%s' % cls if labels else '%s %.1f' % (cls, conf[j])
                     if kpt_label:
-                        plot_one_box(box, mosaic, label=label, color=color, line_thickness=tl, kpt_label=kpt_label, kpts=kpts[:,j], steps=steps, orig_shape=orig_shape)
+                        plot_one_box(box, mosaic, label=label, color=color, line_thickness=tl, kpt_label=kpt_label, kpts=kpts[:,j], steps=steps, orig_shape=(h,w))
                     else:
                         plot_one_box(box, mosaic, label=label, color=color, line_thickness=tl, kpt_label=kpt_label, orig_shape=orig_shape)
                     #cv2.imwrite(Path(paths[i]).name.split('.')[0] + "_box_{}.".format(j) + Path(paths[i]).name.split('.')[1], mosaic[:,:,::-1]) # used for debugging the dataloader pipeline
@@ -236,52 +233,3 @@ def plot_images(images, targets, paths=None, fname='images.png', names=None, max
         mosaic = mosaic[:,:,::-1]
         Image.fromarray(mosaic).save(fname)  # PIL save
     return mosaic
-
-
-
-def plot_labels(labels, names=(), save_dir=Path(''), loggers=None):
-    # plot dataset labels
-    print('Plotting labels... ')
-    c, b, kpts = labels[:, 0], labels[:, 1:5].transpose(), labels[:, 5:].transpose()  # classes, boxes
-    nc = int(c.max() + 1)  # number of classes
-    x = pd.DataFrame(b.transpose(), columns=['x', 'y', 'width', 'height'])
-
-    # seaborn correlogram
-    sns.pairplot(x, corner=True, diag_kind='auto', kind='hist', diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
-    plt.savefig(save_dir / 'labels_correlogram.jpg', dpi=200)
-    plt.close()
-
-    # matplotlib labels
-    matplotlib.use('svg')  # faster
-    ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)[1].ravel()
-    ax[0].hist(c, bins=np.linspace(0, nc, nc + 1) - 0.5, rwidth=0.8)
-    ax[0].set_ylabel('instances')
-    if 0 < len(names) < 30:
-        ax[0].set_xticks(range(len(names)))
-        ax[0].set_xticklabels(names, rotation=90, fontsize=10)
-    else:
-        ax[0].set_xlabel('classes')
-    sns.histplot(x, x='x', y='y', ax=ax[2], bins=50, pmax=0.9)
-    sns.histplot(x, x='width', y='height', ax=ax[3], bins=50, pmax=0.9)
-
-    # rectangles
-    labels[:, 1:3] = 0.5  # center
-    labels[:, 1:] = cxcywh2xyxy(labels[:, 1:]) * 2000
-    img = Image.fromarray(np.ones((2000, 2000, 3), dtype=np.uint8) * 255)
-    for cls, *box in labels[:1000, :5]:
-        ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
-    ax[1].imshow(img)
-    ax[1].axis('off')
-
-    for a in [0, 1, 2, 3]:
-        for s in ['top', 'right', 'left', 'bottom']:
-            ax[a].spines[s].set_visible(False)
-
-    plt.savefig(save_dir / 'labels.jpg', dpi=200)
-    matplotlib.use('Agg')
-    plt.close()
-
-    # loggers
-    for k, v in loggers.items() or {}:
-        if k == 'wandb' and v:
-            v.log({"Labels": [v.Image(str(x), caption=x.name) for x in save_dir.glob('*labels*.jpg')]}, commit=False)

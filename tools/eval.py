@@ -17,14 +17,16 @@ from yolox.exp import get_exp
 from yolox.utils import configure_nccl, fuse_model, get_local_rank, get_model_info, setup_logger
 
 _SUPPORTED_DATASETS = ["coco", "linemod", "coco_kpts"]
-_NUM_CLASSES = {"coco":80, "linemod":15, "coco_kpts":57}
+_NUM_CLASSES = {"coco":80, "linemod":15, "coco_kpts":1}
 _VAL_ANN = {
     "coco":"instances_val2017.json", 
-    "linemod":"instances_test.json"
+    "linemod":"instances_test.json",
+    "coco_kpts": "person_keypoints_val2017.json",
 }
 _SUPPORTED_TASKS = {
     "coco":["2dod"],
-    "linemod":["2dod", "6dpose"]
+    "linemod":["2dod", "6dpose"],
+    "coco_kpts": ["2dod", "human_pose"],
 }
 
 def make_parser():
@@ -173,7 +175,10 @@ def main(exp, args, num_gpu):
         ), "The specified task cannot be performed with the given dataset!"
         if args.dataset == "linemod":
             if args.task == "6dpose":
-                exp.object_pose = True 
+                exp.object_pose = True
+        elif args.dataset == "coco_kpts":
+            if args.task == "human_pose":
+                exp.human_pose=True
     if args.conf is not None:
         exp.test_conf = args.conf
     if args.nms is not None:
