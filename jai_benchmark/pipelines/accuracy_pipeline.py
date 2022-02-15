@@ -189,7 +189,7 @@ class AccuracyPipeline():
         postprocess = self.pipeline_config['postprocess']
         run_dir_base = os.path.split(session.get_param('run_dir'))[-1]
         num_frames = self.pipeline_config.get('num_frames', self.settings.num_frames)
-        num_frames = min(len(input_dataset), num_frames)
+        num_frames = min(len(input_dataset), num_frames) if num_frames else len(input_dataset)
 
         is_ok = session.start_infer()
         assert is_ok, utils.log_color('\nERROR', f'start_infer() did not succeed for:', run_dir_base)
