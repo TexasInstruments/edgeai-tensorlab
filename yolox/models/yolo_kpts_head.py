@@ -36,6 +36,8 @@ class YOLOXHeadKPTS(nn.Module):
         self.n_anchors = 1
         self.num_classes = num_classes
         self.num_kpts = num_kpts
+        self.kpt_index = []
+        [self.kpt_index.extend((3 * i, 3 * i + 1)) for i in range(17)]
         self.decode_in_inference = True  # for deploy, set to False
 
         self.cls_convs = nn.ModuleList()
@@ -228,9 +230,7 @@ class YOLOXHeadKPTS(nn.Module):
                     kpts_output = kpts_output.permute(0, 1, 3, 4, 2).reshape(
                         batch_size, -1,  3*self.num_kpts
                     )
-                    kpts_locations_index = []
-                    [kpts_locations_index.extend(list(range(3 * kpt_index, 3 * kpt_index + 2))) for kpt_index in range(self.num_kpts)]
-                    kpts_output = kpts_output[:, :, kpts_locations_index]
+                    kpts_output = kpts_output[..., self.kpt_index]
                     origin_kpts_preds.append(kpts_output.clone())
 
 
@@ -492,7 +492,6 @@ class YOLOXHeadKPTS(nn.Module):
             loss_l1_kpts = (
                 self.l1_loss(origin_kpts_preds.view(-1, 2*self.num_kpts)[fg_masks], l1_targets_kpts)
             ).sum() / num_fg / self.num_kpts
-            loss_l1_kpts = 0
         else:
             loss_l1 = 0.0
             loss_l1_kpts = 0
@@ -522,6 +521,10 @@ class YOLOXHeadKPTS(nn.Module):
     def get_l1_target_kpts(self, l1_target, gt_kpts, stride, x_shifts, y_shifts):
         l1_target[:, 0::2] = gt_kpts[:, 0::2] / stride[:, None] - x_shifts[:, None]
         l1_target[:, 1::2] = gt_kpts[:, 1::2] / stride[:, None] - y_shifts[:, None]
+        l1_target = l1_target * (gt_kpts != 0)
+        #Extra transfornation in key_point prediction
+        #l1_target[:, 4:] = (l1_target[:, 4:] + 0.5)/2.0  #matching transfonration with YOLOv5
+        #l1_target[:, 4:] = torch.pow(abs(l1_target[:, 4:]), 1/3)  * torch.sign(l1_target[:, 4:]) # This may help in quantization
         return l1_target
 
     @torch.no_grad()
