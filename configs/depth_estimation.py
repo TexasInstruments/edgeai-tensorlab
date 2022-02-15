@@ -45,7 +45,7 @@ def get_configs(settings, work_dir):
         'input_dataset': settings.dataset_cache['nyudepthv2']['input_dataset'],
     }
 
-    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
+    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device, tidl_offload=settings.tidl_offload)
 
     postproc_depth_estimation_onnx = postproc_transforms.get_transform_depth_estimation_onnx()
 
