@@ -155,7 +155,7 @@ def plot_images(images, targets, paths=None, fname='images.png', names=None, max
     if scale_factor < 1:
         h = math.ceil(scale_factor * h)
         w = math.ceil(scale_factor * w)
-    print(h,w)
+    #print(h,w)
     mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
     for i, img in enumerate(images):
         if i == max_subplots:  # if last batch has fewer images than we expect

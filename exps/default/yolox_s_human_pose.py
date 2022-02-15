@@ -18,6 +18,7 @@ class Exp(MyExp):
 
         # -----------------  testing config ------------------ #
         self.human_pose = True
+        self.visualize = True
 
     def get_model(self):
         from yolox.models import YOLOX, YOLOPAFPN, YOLOXHeadKPTS
@@ -162,6 +163,7 @@ class Exp(MyExp):
                 nmsthre=self.nmsthre,
                 num_classes=self.num_classes,
                 testdev=testdev,
-                human_pose=self.human_pose
+                human_pose=self.human_pose,
+                visualize=self.visualize
             )
         return evaluator
