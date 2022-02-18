@@ -282,22 +282,24 @@ def get_datasets(settings, download=False):
         #
         if in_dataset_loading(settings, 'kitti_lidar_det'):
             dataset_calib_cfg = dict(
-                path=f'{settings.datasets_path}/kitti_3dod/training/velodyne_reduced',
-                split=f'{settings.datasets_path}/kitti_3dod/ImageSets/val.txt',
+                path=f'{settings.datasets_path}/kitti_3dod/',
+                split='training',
+                pts_prefix='velodyne_reduced',
                 num_classes=1,
-                shuffle=True,
-                num_frames=min(settings.calibration_frames,3769))
+                shuffle=False,
+                num_frames=min(settings.calibration_frames, 3769))
 
             # dataset parameters for actual inference
             dataset_val_cfg = dict(
-                path=f'{settings.datasets_path}/kitti_3dod/training/velodyne_reduced',
-                split=f'{settings.datasets_path}/kitti_3dod/ImageSets/val.txt',
+                path=f'{settings.datasets_path}/kitti_3dod/',
+                split='training',
+                pts_prefix='velodyne_reduced',
                 num_classes=1,
-                shuffle=True,
-                num_frames=min(settings.num_frames,3769))
+                shuffle=False,
+                num_frames=min(settings.num_frames, 3769))
 
-            dataset_cache['kitti_lidar_det']['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False)
-            dataset_cache['kitti_lidar_det']['input_dataset'] = KittiLidar3D(**dataset_val_cfg, download=False)
+            dataset_cache['kitti_lidar_det']['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False, read_anno=False)
+            dataset_cache['kitti_lidar_det']['input_dataset'] = KittiLidar3D(**dataset_val_cfg, download=False, read_anno=True)
         #
         if in_dataset_loading(settings, 'ti-robokit_semseg_zed1hd'):
             dataset_calib_cfg = dict(

@@ -33,7 +33,7 @@ num_frames : 10000 #50000
 calibration_frames : 50 #100
 
 # number of itrations to be used for post training quantization / calibration
-calibration_iterations : 50
+calibration_iterations : 50 #100
 
 # runtime_options to be passed to the core session. default: null or a dict
 # eg. (in next line and with preceding spaces to indicate this is a dict entry) accuracy_level : 0
@@ -85,7 +85,7 @@ dataset_loading : null
 tidl_offload : True
 
 # detection threshold
-detection_thr : 0.3
+detection_thr : 0.01
 
 # verbose mode - print out more information
 verbose : False
@@ -93,16 +93,16 @@ verbose : False
 # save detection, segmentation, human pose estimation output
 save_output : False
 
-# it defines if we want to use udp postprocessing in human pose estimation. 
+# it defines if we want to use udp postprocessing in human pose estimation.
 # Paper ref: Huang et al. The Devil is in the Details: Delving into Unbiased
 # Data Processing for Human Pose Estimation (CVPR 2020).
 with_udp : True
 
-# it will add horizontally flipped images in info_dict and run inference over the flipped image also 
+# it will add horizontally flipped images in info_dict and run inference over the flipped image also
 flip_test : False
 
 # the transformation that needs to be applied to the model itself. Note: this is different from pre-processing transforms
 model_transformation_dict : null
 
-# enable use of experimental models - the actual model files are not available in modelzoo
+# enable use of experimental models - these model files may not be available in modelzoo in some cases
 experimental_models : False
