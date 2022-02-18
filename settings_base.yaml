@@ -27,13 +27,13 @@ run_inference : True
 parallel_devices : null #[0,1,2,3]
 
 # number of frames for inference
-num_frames : 3769
+num_frames : 10000 #50000
 
 # number of frames to be used for post training quantization / calibration
-calibration_frames : 50
+calibration_frames : 50 #100
 
 # number of itrations to be used for post training quantization / calibration
-calibration_iterations : 100
+calibration_iterations : 50 #100
 
 # runtime_options to be passed to the core session. default: null or a dict
 # eg. (in next line and with preceding spaces to indicate this is a dict entry) accuracy_level : 0
@@ -43,7 +43,6 @@ calibration_iterations : 100
 
 # folder where benchmark configs are defined. this should be python importable
 # # if this is None, the internally defined minimal set of configs will be used
-
 configs_path : './configs'
 
 # folder where models are available
@@ -63,8 +62,7 @@ session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
 # examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
 # examples: ['resnet18.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision'] ['coco']
 # examples: [cl-0000, od-2020, ss-2580, cl-3410, od-5020, ss-5720, cl-6360, od-8050, ss-8610]
-#model_selection : null
-model_selection : 3dod-7100
+model_selection : null
 
 # exclude from running, these models
 # examples: ['mxnet']
@@ -106,5 +104,5 @@ flip_test : False
 # the transformation that needs to be applied to the model itself. Note: this is different from pre-processing transforms
 model_transformation_dict : null
 
-# enable use of experimental models - the actual model files are not available in modelzoo
-experimental_models : True
+# enable use of experimental models - these model files may not be available in modelzoo in some cases
+experimental_models : False

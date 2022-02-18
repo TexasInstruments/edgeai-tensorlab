@@ -59,11 +59,11 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                     {'object_detection:meta_arch_type': 7,
-                                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/3d_detection/kitti/mmdetection3d/lidar_point_pillars_496x432.prototxt',
+                                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection_3d/kitti/mmdet3d/lidar_point_pillars_10k_496x432.prototxt',
                                      "advanced_options:add_data_convert_ops" : 0,
                                      'advanced_options:output_feature_16bit_names_list': first_last_layer
                                      }),
-                model_path=f'{settings.models_path}/vision/3d_detection/kitti/mmdetection3d/lidar_point_pillars_10k_496x432.onnx'),
+                model_path=f'{settings.models_path}/vision/detection_3d/kitti/mmdet3d/lidar_point_pillars_10k_496x432.onnx'),
             postprocess=postproc_transforms.get_transform_lidar_base(),
             metric=dict(label_offset_pred=None),
             model_info=dict(metric_reference={'accuracy_ap_3d_moderate%':74.99})
