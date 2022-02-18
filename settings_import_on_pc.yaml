@@ -15,4 +15,4 @@ run_import : True
 run_inference : True
 
 # parallel execution on pc only - not supported on j7 device
-parallel_devices : [0,1,2,3]
+parallel_devices : null #[3]

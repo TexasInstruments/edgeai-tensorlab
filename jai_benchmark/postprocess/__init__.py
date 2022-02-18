@@ -166,6 +166,8 @@ class PostProcessTransforms(utils.TransformsCompose):
         return self.get_transform_depth_estimation_base(data_layout=data_layout)
 
     def get_transform_lidar_base(self):
-        postprocess_lidar = []
+        postprocess_lidar = [
+            OD3DOutPutPorcess()
+        ]
         transforms = PostProcessTransforms(None, postprocess_lidar)
         return transforms

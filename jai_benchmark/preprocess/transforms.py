@@ -426,7 +426,7 @@ class Voxelization(object):
         self.num_voxel_x = (self.max_x - self.min_x)/self.voxel_size_x
         self.num_voxel_y = (self.max_y - self.min_y)/self.voxel_size_y
         self.max_points_per_voxel = 32
-        self.nw_max_num_voxels  = 20000
+        self.nw_max_num_voxels  = 10000
         self.num_feat_per_voxel = 9
         self.num_channel = 64
         self.scale_fact = 32.0
@@ -533,10 +533,28 @@ class Voxelization(object):
                 input0[0][7][j][i] = input0[0][0][j][i] - voxel_center_x * self.scale_fact
                 input0[0][8][j][i] = input0[0][1][j][i] - voxel_center_y * self.scale_fact
 
-        #/*looks like bug in python mmdetection3d code, hence below code is to mimic the mmdetect behaviour*/
+            #/*looks like bug in python mmdetection3d code, hence below code is to mimic the mmdetect behaviour*/
             for j in range (num_points[i]):
                 input0[0][0][j][i] = input0[0][7][j][i]
                 input0[0][1][j][i] = input0[0][8][j][i]
 
         input2[0][1:64] = input2[0][0]
+        input0 = input0.astype("int32")
+        input0 = input0.astype("float32")
+        #input2 = input2.astype("float32")
+
+        #np.savetxt('input2.txt', input2.flatten(), fmt='%6.2e')
+        #np.savetxt('input0.txt', input0.flatten(), fmt='%6.2e')
+
+        #input0 = np.fromfile('/user/a0393749/deepak_files/bitbucket/edgeai-tidl-tools/test_data/input0.bin', dtype='float32')
+        #input1 = np.fromfile('/user/a0393749/deepak_files/bitbucket/edgeai-tidl-tools/test_data/input1.bin', dtype='float32')
+        #input2 = np.fromfile('/user/a0393749/deepak_files/bitbucket/edgeai-tidl-tools/test_data/input2.bin', dtype='float32')
+
+        #np.savetxt('input2.txt', input2.flatten(), fmt='%6.2e')
+        #np.savetxt('input0.txt', input0.flatten(), fmt='%6.2e')
+
+        #input0 = input0.reshape(1, 9, 32, 10000)
+        #input1 = input1.reshape(1, 64, 214272)
+        #input2 = input2.reshape(1, 64, 10000).astype('int32')
+
         return (input0,input2,input1), info_dict

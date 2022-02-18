@@ -364,7 +364,7 @@ class NPTensorToImage(object):
 
 
 ##############################################################################
-     
+
 class HumanPoseHeatmapParser:
     def __init__(self, use_udp=True):
         self.num_joints = 17
@@ -378,7 +378,7 @@ class HumanPoseHeatmapParser:
         self.nms_kernel = 5
         self.nms_padding = 2
         self.use_udp = use_udp
-        self.with_heatmaps = [True] 
+        self.with_heatmaps = [True]
         self.with_ae = [True]
         self.flip_index = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
         self.project2image = not(use_udp)
@@ -401,7 +401,7 @@ class HumanPoseHeatmapParser:
         output_shape = ((A.shape[0] - self.nms_kernel)//stride + 1,
                         (A.shape[1] - self.nms_kernel)//stride + 1)
         kernel_size = (self.nms_kernel, self.nms_kernel)
-        A_w = as_strided(A, shape = output_shape + kernel_size, 
+        A_w = as_strided(A, shape = output_shape + kernel_size,
                             strides = (stride*A.strides[0],
                                     stride*A.strides[1]) + A.strides)
         A_w = A_w.reshape(-1, *kernel_size)
@@ -510,7 +510,7 @@ class HumanPoseHeatmapParser:
         return ans
 
     def gather(self, a, dim, index):
-        """Get the corresponding values from "a" matrix along the "dim" dimension according to "index" array 
+        """Get the corresponding values from "a" matrix along the "dim" dimension according to "index" array
         """
         expanded_index = [index if dim==i else np.arange(a.shape[i]).reshape([-1 if i==j else 1 for j in range(a.ndim)]) for i in range(a.ndim)]
         return a[tuple(expanded_index)]
@@ -577,13 +577,13 @@ class HumanPoseHeatmapParser:
         heatmaps = self.nms(heatmaps)
         N, K, H, W = heatmaps.shape
         heatmaps = np.reshape(heatmaps,[N,K,-1])
-        
+
         ind = np.zeros((N,K,self.max_num_people),int)
         val_k = np.zeros((N,K,self.max_num_people))
         for i,heatmap in enumerate(heatmaps[0]):
             ind[0][i] = heatmap.argsort()[-self.max_num_people:][::-1]
             val_k[0][i] = heatmap[ind[0][i]]
-            
+
         tags = np.reshape(tags,(tags.shape[0], tags.shape[1], W * H, -1))
         tag_k = np.concatenate([np.expand_dims(self.gather(tags[...,i],2,ind),axis=3) for i in range(tags.shape[3])],axis=3)
 
@@ -597,7 +597,7 @@ class HumanPoseHeatmapParser:
             'loc_k': ind_k,
             'val_k': val_k
         }
-        
+
         return ans
 
     def adjust(self, ans, heatmaps):
@@ -829,7 +829,7 @@ class HumanPoseHeatmapParser:
     def PoseMultiStage(self, outputs, outputs_flip, base_size):
         """ Outputs is divided into heatmaps and tags according to num_joints label.
         If flip test is set to true then outputs_flip have output of inference of flipped image else it is None.
-        If we want to project the heatmaps to image, the project_to_image flag is used and the heatmaps are projected 
+        If we want to project the heatmaps to image, the project_to_image flag is used and the heatmaps are projected
         to the specified base_size. The flipped outputs are also projected if flip test is used.
         If flip test is true, then the heatmaps from flipped outputs and original outputs are averaged and the tags concatenated.
 
@@ -850,14 +850,14 @@ class HumanPoseHeatmapParser:
 
         heatmaps = [outputs[0][:, :self.num_joints]]
         tags = [outputs[0][:, self.num_joints:]]
-        
+
         aggregated_heatmaps = None
         tags_list = []
 
         flip_test = outputs_flip is not None
 
         if flip_test and self.flip_index:
-            # perform flip testing      
+            # perform flip testing
             outputs_flip[0] = np.flip(outputs_flip[0], axis=3)
             heatmaps_avg = outputs_flip[0][:, :self.num_joints][:, self.flip_index, :, :]
             tags.append(outputs_flip[0][:, self.num_joints:])
@@ -871,7 +871,7 @@ class HumanPoseHeatmapParser:
 
             final_heatmaps =[]
             final_tags = []
-            
+
             new_heatmaps = np.empty((0,dim[0],dim[1]),int)
             for hms in heatmaps[0][0]:
                 new_hms = cv2.resize(
@@ -879,7 +879,7 @@ class HumanPoseHeatmapParser:
                     dim,
                     interpolation=cv2.INTER_LINEAR)
                 new_heatmaps = np.append(new_heatmaps,[new_hms],axis=0)
-            
+
             final_heatmaps.append(np.expand_dims(new_heatmaps,0))
 
             if flip_test:
@@ -890,7 +890,7 @@ class HumanPoseHeatmapParser:
                         dim,
                         interpolation=cv2.INTER_LINEAR)
                     new_heatmaps_flipped = np.append(new_heatmaps_flipped,[new_hms],axis=0)
-                    
+
                 final_heatmaps.append(np.expand_dims(new_heatmaps_flipped,0))
 
             new_tags = np.empty((0,dim[0],dim[1]),int)
@@ -900,7 +900,7 @@ class HumanPoseHeatmapParser:
                     dim,
                     interpolation=cv2.INTER_LINEAR)
                 new_tags = np.append(new_tags,[new_tms],axis=0)
-                
+
             final_tags.append(np.expand_dims(new_tags,0))
 
             if flip_test:
@@ -911,21 +911,21 @@ class HumanPoseHeatmapParser:
                         dim,
                         interpolation=cv2.INTER_LINEAR)
                     new_tags_flipped = np.append(new_tags_flipped,[new_tms],axis=0)
-                    
+
                 final_tags.append(np.expand_dims(new_tags_flipped,0))
-        
+
         else:
             final_tags = tags
             final_heatmaps = heatmaps
-                
+
         for tms in final_tags:
             tags_list.append(np.expand_dims(tms,axis=4))
-            
-        aggregated_heatmaps = (final_heatmaps[0] + 
-                    final_heatmaps[1]) / 2.0 if flip_test else final_heatmaps[0] 
-        
+
+        aggregated_heatmaps = (final_heatmaps[0] +
+                    final_heatmaps[1]) / 2.0 if flip_test else final_heatmaps[0]
+
         tags = np.concatenate(tags_list,axis=4)
-            
+
         return aggregated_heatmaps, tags
 
     def __call__(self, outputs, info_dict):
@@ -940,7 +940,7 @@ class HumanPoseHeatmapParser:
         info_dict['scores'] = scores
 
         return ans, info_dict
-    
+
 
 class KeypointsProject2Image:
     def __init__(self, use_udp=True):
@@ -1009,12 +1009,12 @@ class KeypointsProject2Image:
                 * If ndims=5, corrds are composed of (x, y, scores, tags,
                 flipped_tags)
 
-            final_size (int): Image size of the input of the inference network 
+            final_size (int): Image size of the input of the inference network
             target_img_size (np.ndarray[2]): Final expected size of image (orignal image size before preprocessing)
 
         Returns:
             np.ndarray: Predicted coordinates in the images.
-        """      
+        """
 
         if target_img_size[1]<target_img_size[0]:
             scale_it = final_size/target_img_size[0]
@@ -1033,7 +1033,7 @@ class KeypointsProject2Image:
 
         Args:
             grouped_joints (list): Grouped person joints.
-            final_size (int): Image size of the input of the inference network 
+            final_size (int): Image size of the input of the inference network
             target_img_size (np.ndarray[2]): Final expected size of image (orignal image size before preprocessing)
             scale (np.ndarray[2, ]): Scale of the bounding box
                 wrt [width, height].
@@ -1080,7 +1080,7 @@ class KeypointsProject2Image:
         result['output_heatmap'] = output_heatmap
 
         return result, info_dict
-    
+
 
 class HumanPoseImageSave:
     def __init__(self):
@@ -1258,7 +1258,7 @@ class HumanPoseImageSave:
                                 img,
                                 pos1,
                                 pos2, (int(r), int(g), int(b)),
-                                thickness=self.thickness)     
+                                thickness=self.thickness)
         return img
 
     def __call__(self, result, info_dict):
@@ -1342,7 +1342,7 @@ class DepthImageSave():
             file.write("%f\n".encode() % scale)
 
             image.tofile(file)
-    
+
     def _call_(self, result, info_dict):
         data_path = info_dict['data_path']
         image_name = os.path.split(data_path)[-1]
@@ -1353,7 +1353,7 @@ class DepthImageSave():
 
         pred = result['preds'].astype(np.float32)
         self.write_pfm(pred)
-        
+
         #Write a relative 16 bit depth map
         d_min = np.min(pred)
         d_max = np.max(pred)
@@ -1362,3 +1362,24 @@ class DepthImageSave():
         cv2.imwrite(save_path, pred_relative.astype("uint16"))
 
         return result, info_dict
+
+class OD3DOutPutPorcess(object):
+    def __init__(self):
+        pass
+
+    def __call__(self, tidl_op, info_dict):
+
+        from mmdet3d.core.bbox import structures
+        import torch
+
+        tidl_op     =  tidl_op[0][0][0]
+        selected_op =  tidl_op[tidl_op[:,1] > 0.01]
+
+        det_op = {}
+
+        det_op['labels_3d'] = torch.as_tensor([class_id for class_id in selected_op[:,0]])
+        det_op['scores_3d'] = torch.as_tensor([score for score in selected_op[:,1]])
+        det_op['boxes_3d']  = structures.lidar_box3d.LiDARInstance3DBoxes(torch.as_tensor(selected_op[:,2:]))
+
+        return det_op, info_dict
+
