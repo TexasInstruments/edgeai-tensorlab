@@ -38,10 +38,20 @@ class VoxelNet(SingleStage3DDetector):
         self.voxel_layer = Voxelization(**voxel_layer)
         self.voxel_encoder = builder.build_voxel_encoder(voxel_encoder)
         self.middle_encoder = builder.build_middle_encoder(middle_encoder)
+        self.max_num_voxel = 0
+        self.max_num_points_per_voxel = 0
 
     def extract_feat(self, points, img_metas=None):
         """Extract features from points."""
         voxels, num_points, coors = self.voxelize(points)
+
+        if(self.max_num_voxel < voxels.shape[0]):
+            self.max_num_voxel = voxels.shape[0]
+            print('maximum number of voxel is', self.max_num_voxel)
+
+        if(self.max_num_points_per_voxel < num_points.max()):
+            self.max_num_points_per_voxel = num_points.max()
+            print('maximum number of point in voxel is', self.max_num_points_per_voxel)
 
         if os.path.split(img_metas[0]['pts_filename'])[1] == '00000x.bin':
             dump_voxel          = True

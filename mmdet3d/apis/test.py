@@ -31,13 +31,17 @@ def single_gpu_test(model,
     Returns:
         list[dict]: The prediction results.
     """
+    show = False
+    out_dir = './show-dir'
     model.eval()
     results = []
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
     dump_txt_op = False
-    read_txt_op = False
+    read_txt_op = True
     for i, data in enumerate(data_loader):
+        #if i >=100:
+        #    break
         with torch.no_grad():
             result = model(return_loss=False, rescale=True, **data)
 
@@ -51,13 +55,13 @@ def single_gpu_test(model,
                 f.write("{:.4f} {:.4f} {:.4f} ".format(det_tensor[0],det_tensor[1],det_tensor[2]))
                 f.write("{:.4f} {:.4f} {:.4f} ".format(det_tensor[3],det_tensor[4],det_tensor[5]))
                 f.write("{:.4f}".format(det_tensor[6]))
-                f.write("\n");
+                f.write("\n")
             f.close()
 
         if read_txt_op:
             img_metas = data['img_metas'][0].data[0][0]
             file_name = osp.split(img_metas['pts_filename'])[1]
-            file_name = osp.join('/user/a0393749/deepak_files/ti/c7x-mma-tidl/ti_dl/test/testvecs/output',file_name)
+            file_name = osp.join('/user/a0393749/deepak_files/ti/c7x-mma-tidl-before/ti_dl/test/testvecs/output',file_name)
             f = open(file_name+'.txt','r')
             lines = f.readlines()
             det_tensor = torch.empty((len(lines),7), dtype=torch.float32, device = 'cpu')

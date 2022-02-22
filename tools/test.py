@@ -238,7 +238,7 @@ def main():
     if args.fuse_conv_bn:
         model = fuse_conv_bn(model)
 
-    save_onnx_model = True
+    save_onnx_model = False
 
     if save_onnx_model == True:
         save_model(model)
@@ -297,7 +297,7 @@ def save_model(model, save_onnx_model=True):
                                     )
 
     ## Need to parameterized the contants in below three tensors
-    max_num_3d_points = 20000
+    max_num_3d_points = 10000
     raw_voxel_feat = torch.ones(1, 9, 32, max_num_3d_points)
     data = torch.zeros(1, 64, 496*432)
     coors = torch.ones(1, 64, max_num_3d_points)
@@ -308,7 +308,15 @@ def save_model(model, save_onnx_model=True):
             "combined_model.onnx",
             opset_version=11,
             verbose=False)
+    import onnx
+    model = onnx.load("combined_model.onnx")
+    graph = model.graph
 
+    for inp in graph.input:
+        if inp.name == 'coors' and inp.type.tensor_type.elem_type == onnx.TensorProto.INT64 :
+            inp.type.tensor_type.elem_type = onnx.TensorProto.INT32
+
+    onnx.save(model, "combined_model_int32.onnx")
 
 if __name__ == '__main__':
     main()
