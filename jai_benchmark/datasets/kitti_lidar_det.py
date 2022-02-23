@@ -108,6 +108,7 @@ class KittiLidar3D(DatasetBase):
             version (str): Dataset version.
             out_dir (str): Output directory of the groundtruth database info.
         """
+        from tools.data_converter import kitti_converter as kitti
         kitti.create_kitti_info_file(root_path, info_prefix)
         kitti.create_reduced_point_cloud(root_path, info_prefix)
 
