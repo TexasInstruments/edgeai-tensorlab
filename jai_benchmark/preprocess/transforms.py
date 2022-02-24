@@ -541,7 +541,8 @@ class Voxelization(object):
                     input0[0][0][j][i] = input0[0][7][j][i]
                     input0[0][1][j][i] = input0[0][8][j][i]
 
-            input2[0][1:64] = input2[0][0]
+            input2[0][0][num_non_empty_voxels] = -1 # TIDL doesnt know valid number of voxels, hence this act as marker field.
+            input2[0][1:64] = input2[0][0] # replicating the firsh channel indices to all channels. As scatter is same for all channels.
             input0 = input0.astype("int32")
             input0 = input0.astype("float32")
             #input2 = input2.astype("float32")
