@@ -196,9 +196,10 @@ class DetectionResizeOnlyNormalized():
 
 
 class DetectionResizePad():
-    def __init__(self, resize_with_pad=False, normalized_detections=True):
+    def __init__(self, resize_with_pad=False, normalized_detections=True, keypoint=False):
         self.resize_with_pad = resize_with_pad
         self.normalized_detections = normalized_detections
+        self.keypoint = keypoint
 
     def __call__(self, bbox, info_dict):
         img_data = info_dict['data']
@@ -219,6 +220,9 @@ class DetectionResizePad():
             bbox[...,2] -= left
             bbox[...,3] -= top
             resize_height, resize_width = (resize_height - top - bottom), (resize_width - left - right)
+            if self.keypoint:
+                bbox[..., 6::3] -= left
+                bbox[..., 7::3] -= top
         #
         # scale the detections from the input shape to data shape
         sh = data_height / (1.0 if self.normalized_detections else resize_height)
@@ -227,6 +231,9 @@ class DetectionResizePad():
         bbox[...,1] = (bbox[...,1] * sh).clip(0, data_height)
         bbox[...,2] = (bbox[...,2] * sw).clip(0, data_width)
         bbox[...,3] = (bbox[...,3] * sh).clip(0, data_height)
+        if self.keypoint:
+            bbox[..., 6::3] = (bbox[..., 6::3] * sw).clip(0, data_width)
+            bbox[..., 7::3] = (bbox[..., 7::3] * sh).clip(0, data_height)
         return bbox, info_dict
 
 
@@ -1081,11 +1088,27 @@ class KeypointsProject2Image:
 
         return result, info_dict
 
+class BboxKeypointsConfReformat():
+    def __call__(self, preds, info_dict):
+        result= {}
+        result['preds'] = []
+        result['bbox'] = []
+        result['area'] = []
+        result['scores'] = []
+        result['image_paths'] = [info_dict['data_path']]
+        result['output_heatmap'] = None
+        for pred in preds:
+            result['preds'].append(pred[6:].reshape(-1, 3))
+            result['bbox'].append(pred[:4])
+            result['area'].append(np.abs((pred[3]-pred[1])*(pred[2]-pred[0])))
+            result['scores'].append(pred[5])
+        return result, info_dict
+
 
 class HumanPoseImageSave:
     def __init__(self):
         self.pose_nms_thr = 0.9
-        self.kpt_score_thr = 0.3
+        self.kpt_score_thr = 0.5
         self.palette = np.array([[255, 128, 0], [255, 153, 51], [255, 178, 102],
                         [230, 230, 0], [255, 153, 255], [153, 204, 255],
                         [255, 102, 255], [255, 51, 255], [102, 178, 255],
@@ -1093,8 +1116,8 @@ class HumanPoseImageSave:
                         [255, 51, 51], [153, 255, 153], [102, 255, 102],
                         [51, 255, 51], [0, 255, 0], [0, 0, 255], [255, 0, 0],
                         [255, 255, 255]])
-        self.radius = 4
-        self.thickness = 1
+        self.radius = 5
+        self.thickness = 2
         self.font_scale = 0.5
         self.skeleton = [[16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12],
                 [7, 13], [6, 7], [6, 8], [7, 9], [8, 10], [9, 11], [2, 3],
@@ -1186,8 +1209,14 @@ class HumanPoseImageSave:
         for res in result:
             pose_result.append(res['keypoints'])
 
-        for _, kpts in enumerate(pose_result):
+        for kpt_index, kpts in enumerate(pose_result):
             # draw each point on image
+            if 'bbox' in result[kpt_index].keys():
+                bbox = result[kpt_index]['bbox']
+                pt1 = (int(bbox[0]),int(bbox[1]))
+                pt2 = (int(bbox[2]),int(bbox[3]))
+                cv2.rectangle(img, pt1, pt2, color=(0,0,0), thickness=self.thickness)
+
             if self.pose_kpt_color is not None:
                 assert len(self.pose_kpt_color) == len(kpts)
                 for kid, kpt in enumerate(kpts):
@@ -1271,17 +1300,27 @@ class HumanPoseImageSave:
         save_path = os.path.join(save_dir, image_name)
 
         pose_results = []
-        for idx, pred in enumerate(result['preds']):
-            area = (np.max(pred[:, 0]) - np.min(pred[:, 0])) * (
-                np.max(pred[:, 1]) - np.min(pred[:, 1]))
-            pose_results.append({
-                'keypoints': pred[:, :3],
-                'score': result['scores'][idx],
-                'area': area,
-            })
+        if 'bbox' not in result.keys():
+            for idx, pred in enumerate(result['preds']):
+                area = (np.max(pred[:, 0]) - np.min(pred[:, 0])) * (
+                    np.max(pred[:, 1]) - np.min(pred[:, 1]))
+                pose_results.append({
+                    'keypoints': pred[:, :3],
+                    'score': result['scores'][idx],
+                    'area': area,
+                })
 
-        keep = self.oks_nms(pose_results, self.pose_nms_thr, sigmas=None)
-        pose_results = [pose_results[_keep] for _keep in keep]
+            keep = self.oks_nms(pose_results, self.pose_nms_thr, sigmas=None)
+            pose_results = [pose_results[_keep] for _keep in keep]
+        else:
+            for idx, pred in enumerate(result['preds']):
+                pose_results.append({
+                    'keypoints': pred,
+                    'bbox': result['bbox'][idx],
+                    'score': result['scores'][idx],
+                    'area': result['area'][idx],
+                }
+            )
 
         img_data = copy.deepcopy(img_data[:,:,::-1])
         if isinstance(img_data, np.ndarray):

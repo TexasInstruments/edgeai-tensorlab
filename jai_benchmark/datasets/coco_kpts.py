@@ -178,12 +178,15 @@ class COCOKeypoints(DatasetBase):
                 self.coco_dataset.imgs = {k: self.coco_dataset.imgs[k] for k in orig_keys}
             #
         elif filter_imgs:
-            sel_keys = self.coco_dataset.getImgIds()
-            sel_keys = [
-                img_id for img_id in sel_keys
-                if len(self.coco_dataset.getAnnIds(imgIds=img_id, iscrowd=None)) > 0
-            ]
-            # filter and use images with gt only
+            all_keys = self.coco_dataset.getImgIds()
+            sel_keys = []
+            # filter and use images with gt having keypoints only.
+            for img_id in all_keys:
+                for ann in self.coco_dataset.imgToAnns[img_id]:
+                    if ann['num_keypoints'] >0 :
+                        sel_keys.append(img_id)
+                        break
+
             self.coco_dataset.imgs = {k: self.coco_dataset.imgs[k] for k in sel_keys}
         #
 
@@ -321,18 +324,18 @@ class COCOKeypoints(DatasetBase):
 
             for img_kpt, key_point in zip(img_kpts, key_points):
                 kpt = key_point.reshape((self.ann_info['num_joints'], 3))
-                left_top = np.amin(kpt, axis=0)
-                right_bottom = np.amax(kpt, axis=0)
+                #left_top = np.amin(kpt, axis=0)
+                #right_bottom = np.amax(kpt, axis=0)
 
-                w = right_bottom[0] - left_top[0]
-                h = right_bottom[1] - left_top[1]
+                #w = right_bottom[0] - left_top[0]
+                #h = right_bottom[1] - left_top[1]
 
                 cat_results.append({
                     'image_id': img_kpt['image_id'],
                     'category_id': cat_id,
                     'keypoints': key_point.tolist(),
                     'score': img_kpt['score'],
-                    'bbox': [left_top[0], left_top[1], w, h]
+                    #'bbox': [left_top[0], left_top[1], w, h]
                 })
         
         res_file = os.path.join(kwargs['run_dir'], 'keypoint_results.json')
@@ -353,11 +356,17 @@ class COCOKeypoints(DatasetBase):
         preds = []
         scores = []
         image_paths = []
+        areas = []
+        bboxes = []
 
         for output in outputs:
             preds.append(output['preds'])
             scores.append(output['scores'])
             image_paths.append(output['image_paths'][0])
+            if 'area' in output.keys():
+                areas.append(output['area'])
+            if 'bbox' in output.keys():
+                bboxes.append(output['bbox'])
 
         kpts = defaultdict(list)
 
@@ -366,15 +375,21 @@ class COCOKeypoints(DatasetBase):
             image_id = self.name2id[os.path.basename(str_image_path)]
             for idx_person, kpt in enumerate(_preds):
                 # use bbox area
-                area = (np.max(kpt[:, 0]) - np.min(kpt[:, 0])) * (
-                    np.max(kpt[:, 1]) - np.min(kpt[:, 1]))
+                if len(areas) ==0:
+                    area = (np.max(kpt[:, 0]) - np.min(kpt[:, 0])) * (
+                        np.max(kpt[:, 1]) - np.min(kpt[:, 1]))
+                else:
+                    area = areas[idx][idx_person]
+                if len(bboxes)!=0:
+                    bbox = bboxes[idx][idx_person]
 
                 kpts[image_id].append({
                     'keypoints': kpt[:, 0:3],
                     'score': scores[idx][idx_person],
-                    'tags': kpt[:, 3],
+                    #'tags': kpt[:, 3],
                     'image_id': image_id,
                     'area': area,
+                    'bbox': bbox
                 })
 
         valid_kpts = []

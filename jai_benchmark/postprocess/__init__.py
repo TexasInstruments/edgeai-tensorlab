@@ -47,7 +47,7 @@ class PostProcessTransforms(utils.TransformsCompose):
     ###############################################################
     # post process transforms for detection
     ###############################################################
-    def get_transform_detection_base(self, formatter=None, resize_with_pad=False, normalized_detections=True,
+    def get_transform_detection_base(self, formatter=None, resize_with_pad=False, keypoint=False, normalized_detections=True,
                                      shuffle_indices=None, squeeze_axis=0, reshape_list=None, ignore_index=None):
         postprocess_detection = [ReshapeList(reshape_list=reshape_list),
                                  ShuffleList(indices=shuffle_indices),
@@ -62,14 +62,20 @@ class PostProcessTransforms(utils.TransformsCompose):
         if formatter is not None:
             postprocess_detection += [formatter]
         #
-        postprocess_detection += [DetectionResizePad(resize_with_pad=resize_with_pad,
+        postprocess_detection += [DetectionResizePad(resize_with_pad=resize_with_pad, keypoint=keypoint,
                                                     normalized_detections=normalized_detections)]
         if self.settings.detection_thr is not None:
             postprocess_detection += [DetectionFilter(detection_thr=self.settings.detection_thr,
                                                                   detection_max=self.settings.detection_max)]
         #
+        if keypoint:
+            postprocess_detection += [BboxKeypointsConfReformat()]
+
         if self.settings.save_output:
-            postprocess_detection += [DetectionImageSave()]
+            if not keypoint:
+                postprocess_detection += [DetectionImageSave()]
+            else:
+                postprocess_detection += [HumanPoseImageSave()]
         #
         transforms = PostProcessTransforms(None, postprocess_detection,
                                            detection_thr=self.settings.detection_thr,
@@ -86,6 +92,9 @@ class PostProcessTransforms(utils.TransformsCompose):
 
     def get_transform_detection_yolov5_onnx(self, formatter=None, **kwargs):
         return self.get_transform_detection_base(formatter=formatter, reshape_list=[(-1,6)], **kwargs)
+
+    def get_transform_detection_yolov5_pose_onnx(self, formatter=None, **kwargs):
+        return self.get_transform_detection_base(formatter=formatter, reshape_list=[(-1,57)], **kwargs)
 
     def get_transform_detection_tv_onnx(self, formatter=DetectionBoxSL2BoxLS(), reshape_list=[(-1,4), (-1,1), (-1,1)],
             squeeze_axis=None, normalized_detections=True, **kwargs):
