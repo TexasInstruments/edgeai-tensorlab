@@ -143,6 +143,7 @@ class QuantizationParams():
             'accuracy_level': self.get_calibration_accuracy_level(),
             # debug level
             'debug_level': 0,
+            'priority': 0,
             ##################################
             # advanced_options
             #################################
