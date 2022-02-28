@@ -54,7 +54,7 @@ def get_configs(settings, work_dir):
         'input_dataset': settings.dataset_cache['coco']['input_dataset'],
     }
     
-    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
+    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device, tidl_offload=settings.tidl_offload)
 
     postproc_detection_onnx = postproc_transforms.get_transform_detection_onnx()
     postproc_detection_tflite = postproc_transforms.get_transform_detection_tflite()

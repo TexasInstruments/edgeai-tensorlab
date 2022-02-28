@@ -209,8 +209,8 @@ class TVMDLRSession(BaseRTSession):
     def _set_default_options(self):
         runtime_options = self.kwargs.get("runtime_options", {})
         default_options = {
-            'platform':self.kwargs.get('platform', 'J7'),
-            'version':self.kwargs.get('version', (8,0)),
+            'platform':self.kwargs.get('platform', constants.TIDL_PLATFORM),
+            'version':self.kwargs.get('version', constants.TIDL_VERSION),
             'data_layout':self.kwargs.get('data_layout', constants.NCHW),
             "tidl_tools_path": self.kwargs["tidl_tools_path"],
             "artifacts_folder": self.kwargs["artifacts_folder"],

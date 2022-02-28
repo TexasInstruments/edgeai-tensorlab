@@ -76,7 +76,7 @@ def get_configs(settings, work_dir):
         'input_dataset': settings.dataset_cache['ti-robokit_semseg_zed1hd']['input_dataset'],
     }
 
-    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
+    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device, tidl_offload=settings.tidl_offload)
 
     postproc_segmentation_onnx = postproc_transforms.get_transform_segmentation_onnx()
     postproc_segmenation_tflite = postproc_transforms.get_transform_segmentation_tflite(with_argmax=False)

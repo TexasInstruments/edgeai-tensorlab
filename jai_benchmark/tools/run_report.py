@@ -117,7 +117,7 @@ def run_report(benchmark_dir, rewrite_results=True):
 
         if pipeline_params_anchor is not None:
             results_line_dict['runtime_name'] = pipeline_params_anchor['session']['session_name']
-            preprocess_crop = pipeline_params_anchor['preprocess']['crop']
+            preprocess_crop = pipeline_params_anchor['preprocess'].get('crop',None)
             results_line_dict['input_resolution'] = 'x'.join(map(str, preprocess_crop)) \
                 if isinstance(preprocess_crop, (list,tuple)) else str(preprocess_crop)
             model_path = pipeline_params_anchor['session']['model_path']

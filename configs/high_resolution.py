@@ -52,7 +52,7 @@ def get_configs(settings, work_dir):
         'num_frames': num_frames
     }
 
-    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
+    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device, tidl_offload=settings.tidl_offload)
 
     hr_input_sizes = (512,1024)
     hr_input_sizes_x = [f'{s}x{s}' for s in hr_input_sizes]

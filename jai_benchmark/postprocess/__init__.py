@@ -48,7 +48,7 @@ class PostProcessTransforms(utils.TransformsCompose):
     # post process transforms for detection
     ###############################################################
     def get_transform_detection_base(self, formatter=None, resize_with_pad=False, normalized_detections=True,
-                                     shuffle_indices=None, squeeze_axis=0, reshape_list=None, ignore_detection_element=None):
+                                     shuffle_indices=None, squeeze_axis=0, reshape_list=None, ignore_index=None):
         postprocess_detection = [ReshapeList(reshape_list=reshape_list),
                                  ShuffleList(indices=shuffle_indices),
                                  Concat(axis=-1, end_index=3)]
@@ -56,8 +56,8 @@ class PostProcessTransforms(utils.TransformsCompose):
             #  TODO make this more generic to squeeze any axis
             postprocess_detection += [IndexArray()]
         #
-        if ignore_detection_element is not None:
-            postprocess_detection += [IgnoreDetectionElement(ignore_detection_element)]
+        if ignore_index is not None:
+            postprocess_detection += [IgnoreIndex(ignore_index)]
         #
         if formatter is not None:
             postprocess_detection += [formatter]
@@ -75,7 +75,7 @@ class PostProcessTransforms(utils.TransformsCompose):
                                            detection_thr=self.settings.detection_thr,
                                            save_output=self.settings.save_output, formatter=formatter, resize_with_pad=resize_with_pad,
                                            normalized_detections=normalized_detections, shuffle_indices=shuffle_indices,
-                                           squeeze_axis=squeeze_axis)
+                                           squeeze_axis=squeeze_axis, ignore_index=ignore_index)
         return transforms
 
     def get_transform_detection_onnx(self, formatter=None, **kwargs):
@@ -166,6 +166,8 @@ class PostProcessTransforms(utils.TransformsCompose):
         return self.get_transform_depth_estimation_base(data_layout=data_layout)
 
     def get_transform_lidar_base(self):
-        postprocess_lidar = []
+        postprocess_lidar = [
+            OD3DOutPutPorcess()
+        ]
         transforms = PostProcessTransforms(None, postprocess_lidar)
         return transforms

@@ -15,4 +15,5 @@ run_import : True
 run_inference : True
 
 # parallel execution on pc only - not supported on j7 device
-parallel_devices : [0,1,2,3]
+# models are processed in parallel if this is a list. set to null to disable parallelism
+parallel_devices : [0,1,2,3] #null

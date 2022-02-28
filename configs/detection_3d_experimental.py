@@ -30,7 +30,8 @@ from jai_benchmark import constants, utils, datasets, preprocess, sessions, post
 
 
 def get_configs(settings, work_dir):
-
+    # to define the names of first and last layer for 16 bit conversion
+    first_last_layer_3dod_7100 = '205,206,207,input.1'
     # get the sessions types to use for each model type
     onnx_session_type = settings.get_session_type(constants.MODEL_TYPE_ONNX)
 
@@ -39,31 +40,32 @@ def get_configs(settings, work_dir):
 
     # configs for each model pipeline
     common_cfg = {
-        'task_type': '3d-detection',
+        'task_type': 'detection_3d',
         'calibration_dataset': settings.dataset_cache['kitti_lidar_det']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['kitti_lidar_det']['input_dataset'],
         'postprocess': None
     }
 
-    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
+    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device, tidl_offload=settings.tidl_offload)
 
     pipeline_configs = {
         #################################################################
         #       ONNX MODELS
         ################# onnx models ###############################
-        # human pose estimation : mobilenetv2 + fpn_spp + udp, Expected AP : 42.31
         '3dod-7100':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_lidar_base(),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                     {'object_detection:meta_arch_type': 7,
-                                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/3d_detection/kitti/mmdetection3d/lidar_point_pillars_496x432.prototxt',
+                                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection_3d/kitti/mmdet3d/lidar_point_pillars_10k_496x432.prototxt',
                                      "advanced_options:add_data_convert_ops" : 0,
+                                     'advanced_options:output_feature_16bit_names_list': first_last_layer_3dod_7100
                                      }),
-                model_path=f'{settings.models_path}/vision/3d_detection/kitti/mmdetection3d/lidar_point_pillars_496x432.onnx'),
+                model_path=f'{settings.models_path}/vision/detection_3d/kitti/mmdet3d/lidar_point_pillars_10k_496x432.onnx'),
             postprocess=postproc_transforms.get_transform_lidar_base(),
             metric=dict(label_offset_pred=None),
             model_info=dict(metric_reference={'accuracy_ap_3d_moderate%':74.99})
         )
     }
+
     return pipeline_configs

@@ -52,7 +52,7 @@ def get_configs(settings, work_dir):
         'postprocess': postproc_transforms.get_transform_human_pose_estimation_onnx() 
     }
 
-    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device)
+    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device, tidl_offload=settings.tidl_offload)
 
     pipeline_configs = {
         #################################################################
