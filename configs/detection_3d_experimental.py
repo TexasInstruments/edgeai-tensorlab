@@ -30,10 +30,8 @@ from jai_benchmark import constants, utils, datasets, preprocess, sessions, post
 
 
 def get_configs(settings, work_dir):
-
     # to define the names of first and last layer for 16 bit conversion
-    first_last_layer = '205,206,207,input.1'
-
+    first_last_layer_3dod_7100 = '205,206,207,input.1'
     # get the sessions types to use for each model type
     onnx_session_type = settings.get_session_type(constants.MODEL_TYPE_ONNX)
 
@@ -61,7 +59,7 @@ def get_configs(settings, work_dir):
                                     {'object_detection:meta_arch_type': 7,
                                      'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection_3d/kitti/mmdet3d/lidar_point_pillars_10k_496x432.prototxt',
                                      "advanced_options:add_data_convert_ops" : 0,
-                                     'advanced_options:output_feature_16bit_names_list': first_last_layer
+                                     'advanced_options:output_feature_16bit_names_list': first_last_layer_3dod_7100
                                      }),
                 model_path=f'{settings.models_path}/vision/detection_3d/kitti/mmdet3d/lidar_point_pillars_10k_496x432.onnx'),
             postprocess=postproc_transforms.get_transform_lidar_base(),
