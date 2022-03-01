@@ -144,7 +144,7 @@ def get_datasets(settings, download=False):
         dataset_cache['imagenet']['input_dataset'] = ImageNetDataSetType(**imagenet_cls_val_cfg, download=False)
     #
     if in_dataset_loading(settings, 'cocokpts'):
-        filter_imgs = False
+        filter_imgs = True
         coco_kpts_calib_cfg = dict(
             path=f'{settings.datasets_path}/coco',
             split='val2017',
