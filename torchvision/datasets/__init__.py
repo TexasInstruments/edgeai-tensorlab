@@ -1,6 +1,7 @@
 from .lsun import LSUN, LSUNClass
 from .folder import ImageFolder, DatasetFolder
-from .coco import CocoCaptions, CocoDetection
+from .datalist import DataListClassification, ImageListClassification
+from .coco import CocoCaptions, CocoDetection, CocoClassification
 from .cifar import CIFAR10, CIFAR100
 from .stl10 import STL10
 from .mnist import MNIST, EMNIST, FashionMNIST, KMNIST, QMNIST
@@ -30,6 +31,7 @@ from .lfw import LFWPeople, LFWPairs
 
 __all__ = ('LSUN', 'LSUNClass',
            'ImageFolder', 'DatasetFolder', 'FakeData',
+           'ModelMakerClassification', 'ModelMakerImageClassification',
            'CocoCaptions', 'CocoDetection',
            'CIFAR10', 'CIFAR100', 'EMNIST', 'FashionMNIST', 'QMNIST',
            'MNIST', 'KMNIST', 'STL10', 'SVHN', 'PhotoTour', 'SEMEION',

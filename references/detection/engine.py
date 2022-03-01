@@ -61,7 +61,7 @@ def train_one_epoch(args, model, optimizer, data_loader, device, epoch, print_fr
         metric_logger.update(loss=losses_reduced, **loss_dict_reduced)
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
 
-        if hasattr(args, 'quit_event') and args.quit_event.is_set():
+        if hasattr(args, 'quit_event') and args.quit_event is not None and args.quit_event.is_set():
             break
 
     if summary_writer:
@@ -261,7 +261,7 @@ def evaluate(args, model, data_loader, device, epoch, synchronize_time=False, pr
             saved_images.append(images[0])
             saved_results.append(res)
 
-        if hasattr(args, 'quit_event') and args.quit_event.is_set():
+        if hasattr(args, 'quit_event') and args.quit_event is not None and args.quit_event.is_set():
             break
 
         batch_counter += 1
@@ -280,7 +280,7 @@ def evaluate(args, model, data_loader, device, epoch, synchronize_time=False, pr
                 dataset=('face',),
                 logger=None)
 
-    if hasattr(args, 'quit_event') and args.quit_event.is_set():
+    if hasattr(args, 'quit_event') and args.quit_event is not None and args.quit_event.is_set():
         return
 
     # accumulate predictions from all images
@@ -319,7 +319,7 @@ def evaluate(args, model, data_loader, device, epoch, synchronize_time=False, pr
 
 
 def export(args, model, model_name=None):
-    if hasattr(args, 'quit_event') and args.quit_event.is_set():
+    if hasattr(args, 'quit_event') and args.quit_event is not None and args.quit_event.is_set():
         return
     #
     if not utils.is_main_process():
@@ -359,7 +359,7 @@ def export(args, model, model_name=None):
 
 
 def complexity(args, model):
-    if hasattr(args, 'quit_event') and args.quit_event.is_set():
+    if hasattr(args, 'quit_event') and args.quit_event is not None and args.quit_event.is_set():
         return
     #
     model.eval()

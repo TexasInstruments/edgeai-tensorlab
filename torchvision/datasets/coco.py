@@ -5,6 +5,7 @@ import os.path
 from typing import Any, Callable, Optional, Tuple, List
 import random
 import numpy as np
+import json
 
 class CocoDetection(VisionDataset):
     """`MS Coco Detection <https://cocodataset.org/#detection-2016>`_ Dataset.
@@ -237,3 +238,64 @@ class COCOSegmentation():
         else:
             masks = np.zeros((0, height, width), dtype=np.uint8)
         return masks
+
+
+class CocoClassification(VisionDataset):
+
+    def __init__(
+        self,
+        root: str,
+        annFile: str,
+        transform: Optional[Callable] = None,
+        target_transform: Optional[Callable] = None,
+        transforms: Optional[Callable] = None,
+    ) -> None:
+        super().__init__(root, transforms, transform, target_transform)
+        with open(annFile) as ann_fp:
+            self.dataset_store = json.load(ann_fp)
+        #
+        self.annotations_info = self._find_annotations_info()
+        num_images = len(self.dataset_store['images'])
+        self.ids = range(num_images)
+        self.classes = self.dataset_store['categories']
+
+    def _find_annotations_info(self):
+        image_id_to_file_id_dict = dict()
+        file_id_to_image_id_dict = dict()
+        annotations_info_list = []
+        for file_id, image_info in enumerate(self.dataset_store['images']):
+            image_id = image_info['id']
+            image_id_to_file_id_dict[image_id] = file_id
+            file_id_to_image_id_dict[file_id] = image_id
+            annotations_info_list.append([])
+        #
+        for annotation_info in self.dataset_store['annotations']:
+            if annotation_info:
+                image_id = annotation_info['image_id']
+                file_id = image_id_to_file_id_dict[image_id]
+                annotations_info_list[file_id].append(annotation_info)
+            #
+        #
+        return annotations_info_list
+
+    def _load_image(self, id: int) -> Image.Image:
+        path = self.dataset_store['images'][id]["file_name"]
+        return Image.open(os.path.join(self.root, path)).convert("RGB")
+
+    def _load_target(self, id: int) -> List[Any]:
+        anno_info = self.annotations_info[id]
+        return anno_info[0]["category_id"]
+
+    def __getitem__(self, index: int) -> Tuple[Any, Any]:
+        id = self.ids[index]
+        image = self._load_image(id)
+        target = self._load_target(id)
+
+        if self.transforms is not None:
+            image, target = self.transforms(image, target)
+
+        return image, target
+
+    def __len__(self) -> int:
+        return len(self.ids)
+

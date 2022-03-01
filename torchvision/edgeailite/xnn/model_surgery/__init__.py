@@ -142,7 +142,11 @@ def _create_lite_model_impl(model_function, pretrained_backbone_names=None, grou
     pretrained = kwargs.pop('pretrained', None)
     pretrained_backbone = kwargs.pop('pretrained_backbone', None)
     # if pretrained is set to true, we will try to hanlde it inside model
-    model = model_function(pretrained=(pretrained is True), pretrained_backbone=(pretrained_backbone is True), **kwargs)
+    if pretrained_backbone is not None:
+        model = model_function(pretrained=(pretrained is True), pretrained_backbone=(pretrained_backbone is True), **kwargs)
+    else:
+        model = model_function(pretrained=(pretrained is True), **kwargs)
+    #
     model = convert_to_lite_model(model, groups_dw=groups_dw, group_size_dw=group_size_dw,
                                   with_normalization=with_normalization, with_activation=with_activation,
                                   replacements_dict=replacements_dict)

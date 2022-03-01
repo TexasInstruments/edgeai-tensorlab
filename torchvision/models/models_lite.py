@@ -29,7 +29,7 @@
 #################################################################################
 
 from ..edgeailite import xnn
-from . import mobilenet_v2
+from . import mobilenetv2
 from . import mobilenetv3
 from . import efficientnet
 
@@ -52,7 +52,7 @@ model_urls = {
 
 ###############################################################################################
 def mobilenet_v2_lite(**kwargs):
-    return xnn.model_surgery.create_lite_model(mobilenet_v2.mobilenet_v2, model_urls_dict=model_urls, **kwargs)
+    return xnn.model_surgery.create_lite_model(mobilenetv2.mobilenet_v2, model_urls_dict=model_urls, **kwargs)
 
 
 ###############################################################################################

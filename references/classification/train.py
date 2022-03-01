@@ -1,4 +1,5 @@
 import datetime
+import sys
 import os
 import time
 import onnx
@@ -12,18 +13,25 @@ from torchvision.transforms.functional import InterpolationMode
 
 from torchvision.edgeailite import xnn
 
-import presets
-import transforms
-import utils
-
 try:
     from apex import amp
 except ImportError:
     amp = None
 
+# insert the parent folder to path to enable the imports below to work from both script and module import
+this_dirname = os.path.abspath(os.path.dirname(__file__))
+if sys.path[0] != this_dirname:
+    sys.path.insert(0, this_dirname)
+#
+
+
+import presets
+import transforms
+import utils
+
 
 def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch,
-                    print_freq, apex=False, model_ema=None):
+                    apex=False, model_ema=None, print_freq=100):
     model.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value}'))
@@ -55,7 +63,7 @@ def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch,
         model_ema.update_parameters(model)
 
 
-def evaluate(model, criterion, data_loader, device, print_freq=100, log_suffix=''):
+def evaluate(model, criterion, data_loader, device, log_suffix='', print_freq=100):
     model.eval()
     metric_logger = utils.MetricLogger(delimiter="  ")
     print_freq = min(print_freq, len(data_loader))
@@ -115,11 +123,18 @@ def load_data(traindir, valdir, args):
     else:
         auto_augment_policy = getattr(args, "auto_augment", None)
         random_erase_prob = getattr(args, "random_erase", 0.0)
-        dataset = torchvision.datasets.ImageFolder(
-            traindir,
-            presets.ClassificationPresetTrain(crop_size=crop_size, auto_augment_policy=auto_augment_policy,
-                                              random_erase_prob=random_erase_prob, 
-                                              image_mean=args.image_mean, image_scale=args.image_scale))
+        train_transform = presets.ClassificationPresetTrain(crop_size=crop_size, auto_augment_policy=auto_augment_policy,
+                                              random_erase_prob=random_erase_prob,
+                                              image_mean=args.image_mean, image_scale=args.image_scale)
+        if args.dataset == 'modelmaker':
+            train_folders = os.path.normpath(traindir).split(os.sep)
+            train_anno = os.path.join(os.sep.join(train_folders[:-1]), 'annotations', 'labels_train.json')
+            dataset = torchvision.datasets.CocoClassification(traindir, train_anno, train_transform)
+        elif args.dataset == 'imagelist':
+            dataset = torchvision.datasets.ImageListClassification(traindir, traindir+'.txt', train_transform)
+        else:
+            dataset = torchvision.datasets.ImageFolder(traindir, train_transform)
+        #
         if args.cache_dataset:
             print("Saving dataset_train to {}".format(cache_path))
             utils.mkdir(os.path.dirname(cache_path))
@@ -133,11 +148,18 @@ def load_data(traindir, valdir, args):
         print("Loading dataset_test from {}".format(cache_path))
         dataset_test, _ = torch.load(cache_path)
     else:
-        dataset_test = torchvision.datasets.ImageFolder(
-            valdir,
-            presets.ClassificationPresetEval(crop_size=crop_size, resize_size=resize_size,
-                                             interpolation=interpolation, 
-                                             image_mean=args.image_mean, image_scale=args.image_scale))
+        val_transform = presets.ClassificationPresetEval(crop_size=crop_size, resize_size=resize_size,
+                                             interpolation=interpolation,
+                                             image_mean=args.image_mean, image_scale=args.image_scale)
+        if args.dataset == 'modelmaker':
+            val_folders = os.path.normpath(valdir).split(os.sep)
+            val_anno = os.path.join(os.sep.join(val_folders[:-1]), 'annotations', 'labels_val.json')
+            dataset_test = torchvision.datasets.CocoClassification(valdir, val_anno, val_transform)
+        elif args.dataset == 'imagelist':
+            dataset_test = torchvision.datasets.ImageListClassification(valdir, valdir+'.txt', val_transform)
+        else:
+            dataset_test = torchvision.datasets.ImageFolder(valdir, val_transform)
+        #
         if args.cache_dataset:
             print("Saving dataset_test to {}".format(cache_path))
             utils.mkdir(os.path.dirname(cache_path))
@@ -165,9 +187,9 @@ def main(gpu, args):
 
     if not args.output_dir:
         args.output_dir = os.path.join('./data/checkpoints/classification',  f'{args.dataset}_{args.model}')
-	
-	utils.mkdir(args.output_dir, exist_ok=True)
-	
+	#
+    utils.mkdir(args.output_dir)
+
     utils.init_distributed_mode(args)
     print(args)
 
@@ -292,7 +314,7 @@ def main(gpu, args):
         lr_scheduler.step()
         evaluate(model, criterion, data_loader_test, device=device)
         if model_ema:
-            evaluate(model_ema, criterion, data_loader_test, device=device, log_suffix='EMA')
+            evaluate(model_ema, criterion, data_loader_test, device=device, log_suffix='EMA', print_freq=args.print_freq)
         if args.output_dir:
             checkpoint = {
                 'model': model_without_ddp.state_dict(),
@@ -319,8 +341,10 @@ def get_args_parser(add_help=True):
     parser = argparse.ArgumentParser(description='PyTorch Classification Training', add_help=add_help)
 
     parser.add_argument('--data-path', default='./data/datasets/imagenet', help='dataset')
+    parser.add_argument('--dataset', default='folder', help='dataset')
     parser.add_argument('--model', default='resnet18', help='model')
     parser.add_argument('--device', default='cuda', help='device')
+    parser.add_argument('--gpus', default=1, type=int, help='number of gpus')
     parser.add_argument('-b', '--batch-size', default=32, type=int)
     parser.add_argument('--epochs', default=90, type=int, metavar='N',
                         help='number of total epochs to run')

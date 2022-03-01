@@ -37,9 +37,13 @@ from torchvision.edgeailite import xnn
 
 
 # insert the parent folder to path to enable the imports below to work from both script and module import
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+this_dirname = os.path.abspath(os.path.dirname(__file__))
+if sys.path[0] != this_dirname:
+    sys.path.insert(0, this_dirname)
+#
 
-from coco_utils import get_coco, get_coco_kp, get_coco_modelmaker
+
+from coco_utils import get_coco, get_coco_kp, get_detection_modelmaker
 
 from group_by_aspect_ratio import GroupedBatchSampler, create_aspect_ratio_groups
 from engine import train_one_epoch, evaluate, export, complexity
@@ -52,7 +56,7 @@ def get_dataset(name, image_set, transform, data_path, num_classes=None):
     paths = {
         "coco": (data_path, get_coco, 91),
         "coco_kp": (data_path, get_coco_kp, 2),
-        "modelmaker": (data_path, get_coco_modelmaker, num_classes+1 if num_classes else 91)
+        "modelmaker": (data_path, get_detection_modelmaker, num_classes+1 if num_classes else 91)
     }
     p, ds_fn, num_classes = paths[name]
 
@@ -337,14 +341,14 @@ def main(gpu, args):
         if summary_writer:
             summary_writer.flush()
 
-        if hasattr(args, 'quit_event') and args.quit_event.is_set():
+        if hasattr(args, 'quit_event') and args.quit_event is not None and args.quit_event.is_set():
             break
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))
 
-    if hasattr(args, 'quit_event') and args.quit_event.is_set():
+    if hasattr(args, 'quit_event') and args.quit_event is not None and args.quit_event.is_set():
         return
 
 

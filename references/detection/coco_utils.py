@@ -266,6 +266,6 @@ def get_coco_kp(root, image_set, transforms):
     return get_coco(root, image_set, transforms, mode="person_keypoints")
 
 
-def get_coco_modelmaker(root, image_set, transforms, mode='instances'):
+def get_detection_modelmaker(root, image_set, transforms, mode='instances'):
     return get_coco(root, image_set, transforms, mode=mode, paths=('train','val'),
                     anno_files=(f'{mode}_train.json',f'{mode}_val.json'))
