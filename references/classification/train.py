@@ -176,6 +176,15 @@ def load_data(traindir, valdir, args):
     return dataset, dataset_test, train_sampler, test_sampler
 
 
+def export_model(args, model):
+    device = next(model.parameters())
+    dummy_input = torch.rand((1,3,224,224)).to(device)
+    onnx_file = os.path.join(args.output_dir, 'model.onnx')
+    print(f'Exporting ONNX model to: {onnx_file}')
+    torch.onnx.export(model, dummy_input, onnx_file)
+    onnx.shape_inference.infer_shapes_path(onnx_file, onnx_file)
+
+
 def main(gpu, args):
     if args.device != 'cpu' and args.distributed is True:
         os.environ['RANK'] = str(int(os.environ['RANK'])*args.gpus + gpu) if 'RANK' in os.environ else str(gpu)
@@ -223,11 +232,7 @@ def main(gpu, args):
     model = torchvision.models.__dict__[args.model](pretrained=args.pretrained, num_classes=num_classes)
 
     if args.export_only:
-        dummy_input = torch.rand((1,3,224,224))
-        onnx_file = os.path.join(args.output_dir, args.model+'.onnx')
-        print(f'Exporting ONNX model to: {onnx_file}')
-        torch.onnx.export(model, dummy_input, onnx_file)
-        onnx.shape_inference.infer_shapes_path(onnx_file, onnx_file)
+        export_model(args, model)
         return
 
     model.to(device)
@@ -333,6 +338,8 @@ def main(gpu, args):
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
+    print('Exporting model after training.')
+    export_model(args, model)
     print('Training time {}'.format(total_time_str))
 
 

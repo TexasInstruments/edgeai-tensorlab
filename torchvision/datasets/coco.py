@@ -6,6 +6,7 @@ from typing import Any, Callable, Optional, Tuple, List
 import random
 import numpy as np
 import json
+import copy
 
 class CocoDetection(VisionDataset):
     """`MS Coco Detection <https://cocodataset.org/#detection-2016>`_ Dataset.
@@ -257,7 +258,14 @@ class CocoClassification(VisionDataset):
         self.annotations_info = self._find_annotations_info()
         num_images = len(self.dataset_store['images'])
         self.ids = range(num_images)
-        self.classes = self.dataset_store['categories']
+        self.classes = copy.deepcopy(self.dataset_store['categories'])
+        class_ids = [class_info['id'] for class_info in self.classes]
+        class_ids_min = min(class_ids)
+        if class_ids_min != 0:
+            for class_id in range(class_ids_min):
+                self.classes.insert(0, dict(id=class_id, name=f'background_{class_id}'))
+            #
+        #
 
     def _find_annotations_info(self):
         image_id_to_file_id_dict = dict()
