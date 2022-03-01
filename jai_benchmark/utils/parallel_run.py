@@ -143,7 +143,7 @@ class MultiProcessingTaskMaker:
 
 
 def process_run(func, *args, **kwargs):
-    with multiprocessing.get_context(_multiprocessing_default_context_type).Pool(1) as process_pool:
+    with NoDaeomonPool(1) as process_pool:
         task = MultiProcessingTaskMaker(func, *args, **kwargs)
         results = process_pool.map(task, [0])
         return results[0]
