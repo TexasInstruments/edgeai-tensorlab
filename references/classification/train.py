@@ -18,16 +18,16 @@ try:
 except ImportError:
     amp = None
 
-# insert the parent folder to path to enable the imports below to work from both script and module import
-this_dirname = os.path.abspath(os.path.dirname(__file__))
-if sys.path[0] != this_dirname:
-    sys.path.insert(0, this_dirname)
+
+if __name__ == '__main__':
+    import presets
+    import transforms
+    import utils
+else:
+    from . import presets
+    from . import transforms
+    from . import utils
 #
-
-
-import presets
-import transforms
-import utils
 
 
 def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch,

@@ -35,8 +35,15 @@ from torch.onnx import symbolic_helper as torch_symbolic_helper
 from torch.onnx import symbolic_registry as torch_symbolic_registry
 
 from torchvision import models
-import detection_proto.detection_meta_arch_pb2 as detection_meta_arch_pb2
-import utils
+
+basename = os.path.splitext(os.path.basename(__file__))[0]
+if __name__.startswith(basename):
+    import detection_proto.detection_meta_arch_pb2 as detection_meta_arch_pb2
+    import utils
+else:
+    from .detection_proto import detection_meta_arch_pb2 as detection_meta_arch_pb2
+    from . import utils
+#
 
 __all__ = ['export_model_proto']
 

@@ -1,7 +1,14 @@
+import os
 import torch
-import transforms as T
-import transforms_mosaic as Tm
 
+basename = os.path.splitext(os.path.basename(__file__))[0]
+if __name__.startswith(basename):
+    import transforms as T
+    import transforms_mosaic as Tm
+else:
+    from . import transforms as T
+    from . import transforms_mosaic as Tm
+#
 
 class DetectionPresetTrain:
     def __init__(self, data_augmentation, hflip_prob=0.5, image_mean=(123., 117., 104.), image_size=(512,512)):

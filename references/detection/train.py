@@ -36,20 +36,21 @@ import torchvision.models.detection.mask_rcnn
 from torchvision.edgeailite import xnn
 
 
-# insert the parent folder to path to enable the imports below to work from both script and module import
-this_dirname = os.path.abspath(os.path.dirname(__file__))
-if sys.path[0] != this_dirname:
-    sys.path.insert(0, this_dirname)
+if __name__ == '__main__':
+    from coco_utils import get_coco, get_coco_kp, get_detection_modelmaker
+    from group_by_aspect_ratio import GroupedBatchSampler, create_aspect_ratio_groups
+    from engine import train_one_epoch, evaluate, export, complexity
+    import presets
+    import utils
+    import coco_utils
+else:
+    from .coco_utils import get_coco, get_coco_kp, get_detection_modelmaker
+    from .group_by_aspect_ratio import GroupedBatchSampler, create_aspect_ratio_groups
+    from .engine import train_one_epoch, evaluate, export, complexity
+    from . import presets
+    from . import utils
+    from . import coco_utils
 #
-
-
-from coco_utils import get_coco, get_coco_kp, get_detection_modelmaker
-
-from group_by_aspect_ratio import GroupedBatchSampler, create_aspect_ratio_groups
-from engine import train_one_epoch, evaluate, export, complexity
-
-import presets
-import utils
 
 
 def get_dataset(name, image_set, transform, data_path, num_classes=None):

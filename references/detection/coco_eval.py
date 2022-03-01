@@ -1,3 +1,4 @@
+import os
 import copy
 import io
 from contextlib import redirect_stdout
@@ -8,8 +9,12 @@ import torch
 from pycocotools.cocoeval import COCOeval
 from pycocotools.coco import COCO
 
-import utils
-
+basename = os.path.splitext(os.path.basename(__file__))[0]
+if __name__.startswith(basename):
+    import utils
+else:
+    from . import utils
+#
 
 class CocoEvaluator:
     def __init__(self, coco_gt, iou_types):

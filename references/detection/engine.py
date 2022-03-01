@@ -13,15 +13,22 @@ import copy
 
 import torchvision.models.detection.mask_rcnn
 
-from coco_utils import get_coco_api_from_dataset
-from coco_eval import CocoEvaluator
-
-import utils
-import export_proto
-
 from torchvision.edgeailite import xnn
 import cv2
 import numpy as np
+
+basename = os.path.splitext(os.path.basename(__file__))[0]
+if __name__.startswith(basename):
+    from coco_utils import get_coco_api_from_dataset
+    from coco_eval import CocoEvaluator
+    import utils
+    import export_proto
+else:
+    from .coco_utils import get_coco_api_from_dataset
+    from .coco_eval import CocoEvaluator
+    from . import utils
+    from . import export_proto
+#
 
 def train_one_epoch(args, model, optimizer, data_loader, device, epoch, print_freq, summary_writer=None, anno=None):
     model.train()

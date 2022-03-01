@@ -9,8 +9,12 @@ import torchvision
 from pycocotools import mask as coco_mask
 from pycocotools.coco import COCO
 
-import transforms as T
-
+basename = os.path.splitext(os.path.basename(__file__))[0]
+if __name__.startswith(basename):
+    import transforms as T
+else:
+    from . import transforms as T
+#
 
 class FilterAndRemapCocoCategories(object):
     def __init__(self, categories, remap=True):

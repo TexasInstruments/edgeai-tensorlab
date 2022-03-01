@@ -29,7 +29,7 @@
 #
 #################################################################################
 
-
+import os
 import random
 import copy
 import collections
@@ -39,7 +39,13 @@ import PIL
 import torch
 from torchvision import transforms as T
 from torchvision.transforms import functional as F
-import transforms
+
+basename = os.path.splitext(os.path.basename(__file__))[0]
+if __name__.startswith(basename):
+    import transforms
+else:
+    from . import transforms
+#
 
 
 class RandomMosaic():
