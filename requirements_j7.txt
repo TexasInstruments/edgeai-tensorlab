@@ -11,7 +11,6 @@ pyyaml
 pytest
 json_tricks
 munkres
-#git+https://github.com/jin-s13/xtcocoapi.git
 #git+https://github.com/yogin16/prototxt_parser.git
 h5py
 scipy

@@ -10,7 +10,6 @@ pyyaml
 mxnet
 pytest
 json_tricks
-xtcocotools
 munkres
 flatbuffers==1.12.0
 requests
