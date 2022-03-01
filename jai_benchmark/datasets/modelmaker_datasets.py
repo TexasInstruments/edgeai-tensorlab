@@ -49,12 +49,12 @@ class ModelMakerDetectionDataset(coco_det.COCODetection):
 
 
 class ModelMakerClassificationDataset(DatasetBase):
-    def __init__(self, num_classes=None, download=False, **kwargs):
+    def __init__(self, num_classes=None, download=False, num_frames=None, **kwargs):
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
         path = kwargs['path']
         split = kwargs['split']
         self.image_dir = os.path.join(path, split)
-        self.annotation_file = os.path.join(path, 'annotations', f'classes_{split}.json')
+        self.annotation_file = os.path.join(path, 'annotations', f'labels_{split}.json')
         with open(self.annotation_file) as afp:
             self.dataset_store = json.load(afp)
         #
@@ -62,22 +62,25 @@ class ModelMakerClassificationDataset(DatasetBase):
         self.annotations_info = self.dataset_store['annotations']
         if num_classes is None:
             classes = self.dataset_store['categories']
-            num_classes = len(num_classes)
+            num_classes = len(classes)
         #
         self.num_classes = num_classes
         self.annotations_info = self._find_annotations_info()
         self.num_frames = num_frames
-        super().__init__(num_classes=num_classes, image_dir=image_dir, annotation_file=annotation_file,
+        super().__init__(num_classes=num_classes, image_dir=self.image_dir, annotation_file=self.annotation_file,
                          download=False, **kwargs)
 
     def download(self, path, split):
         return
 
-    def __getitem__(self, idx, **kwargs):
-        image_info = self.images_info['idx']
+    def __getitem__(self, idx, with_label=False, **kwargs):
+        image_info = self.images_info[idx]
         filename = os.path.join(self.image_dir, image_info['file_name'])
         label = self.annotations_info[idx][0]['category_id']
-        return filename, label
+        if with_label:
+            return filename, label
+        else:
+            return filename
 
     def __len__(self):
         return min(self.num_frames, len(self.images_info)) if self.num_frames else len(self.images_info)
