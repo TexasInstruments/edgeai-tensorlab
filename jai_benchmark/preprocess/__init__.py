@@ -66,7 +66,7 @@ class PreProcessTransforms(utils.TransformsCompose):
                                           resize=resize, crop=crop,
                                           data_layout=data_layout, reverse_channels=reverse_channels,
                                           backend=backend, interpolation=interpolation,
-                                          mean=mean, scale=scale, add_flip_image=add_flip_image)
+                                          mean=mean, scale=scale, add_flip_image=add_flip_image, resize_with_pad=resize_with_pad, pad_color=pad_color)
         return transforms
 
     def get_transform_onnx(self, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
