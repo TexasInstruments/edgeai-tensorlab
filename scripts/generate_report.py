@@ -41,6 +41,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('settings_file', type=str)
+    parser.add_argument('--modelartifacts_path', type=str)
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)

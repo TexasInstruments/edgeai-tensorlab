@@ -54,6 +54,7 @@ if __name__ == '__main__':
     parser.add_argument('--run_import', type=utils.str_to_bool)
     parser.add_argument('--run_inference', type=utils.str_to_bool)
     parser.add_argument('--parallel_devices', type=int, nargs='*')
+    parser.add_argument('--modelartifacts_path', type=str)
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)
