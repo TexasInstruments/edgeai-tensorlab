@@ -229,7 +229,7 @@ class COCODetection(DatasetBase):
             return image_path
 
     def __len__(self):
-        return self.num_frames
+        return min(self.num_frames, len(self.img_ids)) if self.num_frames else len(self.img_ids)
 
     def __del__(self):
         for t in self.tempfiles:
