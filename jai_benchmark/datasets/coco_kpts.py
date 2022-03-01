@@ -112,8 +112,8 @@ import tempfile
 import numpy as np
 from collections import OrderedDict, defaultdict
 from colorama import Fore
-from xtcocotools.coco import COCO
-from xtcocotools.cocoeval import COCOeval
+from pycocotools.coco import COCO
+from pycocotools.cocoeval import COCOeval
 
 
 from jai_benchmark.utils import *
@@ -343,7 +343,7 @@ class COCOKeypoints(DatasetBase):
             json.dump(cat_results, f, sort_keys=True, indent=4)
 
         coco_det = self.coco_dataset.loadRes(res_file)
-        coco_eval = COCOeval(self.coco_dataset, coco_det, 'keypoints', self.sigmas, use_area = True)
+        coco_eval = COCOeval(self.coco_dataset, coco_det, 'keypoints')
         coco_eval.params.useSegm = None
         coco_eval.evaluate()
         coco_eval.accumulate()
@@ -374,22 +374,11 @@ class COCOKeypoints(DatasetBase):
             str_image_path = image_paths[idx]
             image_id = self.name2id[os.path.basename(str_image_path)]
             for idx_person, kpt in enumerate(_preds):
-                # use bbox area
-                if len(areas) ==0:
-                    area = (np.max(kpt[:, 0]) - np.min(kpt[:, 0])) * (
-                        np.max(kpt[:, 1]) - np.min(kpt[:, 1]))
-                else:
-                    area = areas[idx][idx_person]
-                if len(bboxes)!=0:
-                    bbox = bboxes[idx][idx_person]
 
                 kpts[image_id].append({
                     'keypoints': kpt[:, 0:3],
                     'score': scores[idx][idx_person],
-                    #'tags': kpt[:, 3],
                     'image_id': image_id,
-                    'area': area,
-                    'bbox': bbox
                 })
 
         valid_kpts = []
