@@ -62,7 +62,8 @@ class ModelMakerClassificationDataset(DatasetBase):
         self.annotations_info = self.dataset_store['annotations']
         if num_classes is None:
             classes = self.dataset_store['categories']
-            num_classes = len(classes)
+            class_ids = [class_info['id'] for class_info in classes]
+            num_classes = max(class_ids)+1
         #
         self.num_classes = num_classes
         self.annotations_info = self._find_annotations_info()
