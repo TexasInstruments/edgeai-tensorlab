@@ -61,6 +61,7 @@ echo "PYTHONPATH=${PYTHONPATH}"
 export ARM64_GCC_PATH=$TIDL_TOOLS_PATH/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu
 
 # additional environment variables for performance measurement
-#export TIDL_RT_DDR_STATS="1"
-#export TIDL_RT_PERFSTATS="1"
-
+if [ $1 == "pc" ]; then
+export TIDL_RT_DDR_STATS="1"
+export TIDL_RT_PERFSTATS="1"
+fi
