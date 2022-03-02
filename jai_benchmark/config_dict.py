@@ -176,6 +176,8 @@ class ConfigDict(dict):
         self.flip_test = False
         # the transformations that needs to be applied to the model itself. Note: this is different from pre-processing transforms
         self.model_transformation_dict = None
+        # include perfsim stats in the report or not
+        self.report_perfsim = False
 
     def _parse_include_files(self, include_files, include_base_path):
         input_dict = {}

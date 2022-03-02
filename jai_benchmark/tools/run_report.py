@@ -33,9 +33,6 @@ import glob
 
 from .. import utils
 
-metric_keys = ['accuracy_top1%', 'accuracy_mean_iou%', 'accuracy_ap[.5:.95]%', 'accuracy_delta_1%', 'accuracy_ap_3d_moderate%']
-performance_keys = ['num_subgraphs', 'infer_time_core_ms', 'ddr_transfer_mb', 'perfsim_time_ms', 'perfsim_ddr_transfer_mb', 'perfsim_gmacs']
-
 
 def run_rewrite_results(work_dir, results_yaml):
     run_dirs = glob.glob(f'{work_dir}/*')
@@ -62,7 +59,10 @@ def run_rewrite_results(work_dir, results_yaml):
     return results
 
 
-def run_report(benchmark_dir, rewrite_results=True):
+def run_report(settings, rewrite_results=True):
+    benchmark_dir = settings.modelartifacts_path
+    report_perfsim = settings.report_perfsim
+
     work_dirs = glob.glob(f'{benchmark_dir}/*')
     work_dirs = [f for f in work_dirs if os.path.isdir(f)]
     work_dirs = [d for d in work_dirs if 'bits' in os.path.basename(d)]
@@ -103,6 +103,12 @@ def run_report(benchmark_dir, rewrite_results=True):
         return
     #
 
+    metric_keys = ['accuracy_top1%', 'accuracy_mean_iou%', 'accuracy_ap[.5:.95]%', 'accuracy_delta_1%', 'accuracy_ap_3d_moderate%']
+    performance_keys = ['num_subgraphs', 'infer_time_core_ms', 'ddr_transfer_mb']
+    if report_perfsim:
+        performance_keys += ['perfsim_time_ms', 'perfsim_ddr_transfer_mb', 'perfsim_gmacs']
+    #
+
     results_table = list()
     metric_title = ['metric_'+m for m in results_collection.keys()] + ['metric_reference']
     title_line = ['serial_num', 'model_id', 'runtime_name', 'task_type', 'input_resolution', 'model_path', 'metric_name'] + \
@@ -126,18 +132,18 @@ def run_report(benchmark_dir, rewrite_results=True):
             results_line_dict['task_type'] = pipeline_params_anchor['task_type'] \
                 if 'task_type' in pipeline_params_anchor else None
         #
-        metric_name, _, metric_reference = get_metric(pipeline_params_anchor)
+        metric_name, _, metric_reference = get_metric(pipeline_params_anchor, metric_keys)
         results_line_dict['metric_name'] = metric_name
 
         # now populate results for each setting/work_id
         for work_id, (settings_name, param_results) in enumerate(results_collection.items()):
             param_result = param_results[artifact_id] if artifact_id in param_results else None
-            _, metric_value, _ = get_metric(param_result)
+            _, metric_value, _ = get_metric(param_result, metric_keys)
             results_line_dict[metric_title[work_id]] = metric_value
         #
         results_line_dict['metric_reference'] = metric_reference
 
-        performance_line_dict = get_performance(pipeline_params_anchor)
+        performance_line_dict = get_performance(pipeline_params_anchor, performance_keys)
         results_line_dict.update(performance_line_dict)
 
         run_dir = pipeline_params_anchor['session']['run_dir'] if pipeline_params_anchor is not None else None
@@ -163,8 +169,7 @@ def run_report(benchmark_dir, rewrite_results=True):
     #
 
 
-def get_metric(pipeline_params):
-    global metric_keys
+def get_metric(pipeline_params, metric_keys):
     metric_name = None
     metric = None
     metric_reference = None
@@ -191,8 +196,7 @@ def get_metric(pipeline_params):
     return metric_name, metric, metric_reference
 
 
-def get_performance(pipeline_params):
-    global performance_keys
+def get_performance(pipeline_params, performance_keys):
     performance_line_dict = {result_key:None for result_key in performance_keys}
     if pipeline_params is not None:
         if 'result' in pipeline_params:

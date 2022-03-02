@@ -30,6 +30,8 @@
 import os
 import sys
 import argparse
+
+import jai_benchmark.utils
 from jai_benchmark import *
 
 
@@ -42,6 +44,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('settings_file', type=str)
     parser.add_argument('--modelartifacts_path', type=str)
+    parser.add_argument('--report_perfsim', type=jai_benchmark.utils.str_to_bool)
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)
@@ -49,5 +52,5 @@ if __name__ == '__main__':
     print(f'settings: {settings}')
     sys.stdout.flush()
 
-    tools.run_report(settings.modelartifacts_path)
+    tools.run_report(settings)
     print("Report generated at {}".format(settings.modelartifacts_path))
