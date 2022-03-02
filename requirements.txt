@@ -11,6 +11,7 @@ thop
 ninja
 tabulate
 tensorboard
+plyfile
 
 # verified versions
 onnx==1.8.1

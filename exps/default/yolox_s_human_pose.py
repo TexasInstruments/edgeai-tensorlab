@@ -154,6 +154,7 @@ class Exp(MyExp):
         from yolox.evaluators import COCOHumanPoseEvaluator
 
         val_loader = self.get_eval_loader(batch_size, is_distributed, testdev, legacy)
+        output_dir = os.path.join(self.output_dir, self.exp_name)
         if self.human_pose:
             evaluator = COCOHumanPoseEvaluator(
                 dataloader=val_loader,
@@ -163,6 +164,7 @@ class Exp(MyExp):
                 num_classes=self.num_classes,
                 testdev=testdev,
                 human_pose=self.human_pose,
-                visualize=self.visualize
+                visualize=self.visualize,
+                output_dir = output_dir
             )
         return evaluator

@@ -131,7 +131,7 @@ def make_parser():
         dest="visualize",
         default=False,
         action="store_true",
-        help="Draw bounding cuboids to visualize pose"
+        help="Draw bounding box/humanpose/6d_pose_cuboids to visualize pose"
     )
     return parser
 

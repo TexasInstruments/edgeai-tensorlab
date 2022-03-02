@@ -104,6 +104,7 @@ def plot_skeleton_kpts(im, kpts, steps, orig_shape=None):
             continue
         cv2.line(im, pos1, pos2, (int(r), int(g), int(b)), thickness=2)
 
+    return im
 
 def plot_one_box_PIL(box, im, color=None, label=None, line_thickness=None):
     # Plots one bounding box on image 'im' using PIL

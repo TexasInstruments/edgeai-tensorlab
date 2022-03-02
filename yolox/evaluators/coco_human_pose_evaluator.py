@@ -10,6 +10,10 @@ import tempfile
 import time
 from loguru import logger
 from tqdm import tqdm
+import cv2
+import os
+
+from ..utils.visualize_human_pose import vis_human_pose
 
 import torch
 
@@ -30,7 +34,7 @@ class COCOHumanPoseEvaluator:
     """
 
     def __init__(
-        self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False, human_pose=True, visualize=False
+        self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False, human_pose=True, visualize=False, output_dir=None
     ):
         """
         Args:
@@ -49,6 +53,7 @@ class COCOHumanPoseEvaluator:
         self.testdev = testdev
         self.human_pose = human_pose
         self.visualize = visualize
+        self.output_dir = output_dir
 
     def evaluate(
         self,
@@ -118,6 +123,13 @@ class COCOHumanPoseEvaluator:
                 outputs = postprocess(
                     outputs, self.num_classes, self.confthre, self.nmsthre, human_pose=self.human_pose,
                 )
+                if self.visualize:
+                    output_imgs = vis_human_pose(imgs, outputs)
+                    for output_idx in range(len(output_imgs)):
+                        os.makedirs(os.path.join(self.output_dir, "vis"), exist_ok=True)
+                        outfile_name = os.path.join(self.output_dir, "vis", "{0:012}.png".format(ids[output_idx][0]))
+                        cv2.imwrite(outfile_name, output_imgs[output_idx])
+
                 if is_time_record:
                     nms_end = time_synchronized()
                     nms_time += nms_end - infer_end
