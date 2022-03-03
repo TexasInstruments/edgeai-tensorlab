@@ -103,6 +103,8 @@ def get_args_parser(add_help=True):
                         help='decrease lr every step-size epochs (multisteplr scheduler only)')
     parser.add_argument('--lr-gamma', default=0.1, type=float,
                         help='decrease lr by a factor of lr-gamma (multisteplr scheduler only)')
+    parser.add_argument('--lr-warmup-epochs', default=5, type=int,
+                        help='lr warmup epochs')
     parser.add_argument('--print-freq', default=100, type=int, help='print frequency')
     parser.add_argument('--output-dir', default=None, help='path where to save')
     parser.add_argument('--resume', default='', help='resume from checkpoint')
@@ -293,9 +295,11 @@ def main(gpu, args):
 
     args.lr_scheduler = args.lr_scheduler.lower()
     if args.lr_scheduler == 'multisteplr':
-        lr_scheduler = xnn.optim.lr_scheduler.MultiStepLRWarmup(optimizer, milestones=args.lr_steps, gamma=args.lr_gamma)
+        lr_scheduler = xnn.optim.lr_scheduler.MultiStepLRWarmup(optimizer, milestones=args.lr_steps, gamma=args.lr_gamma,
+                                                                warmup_epochs=args.lr_warmup_epochs)
     elif args.lr_scheduler == 'cosineannealinglr':
-        lr_scheduler = xnn.optim.lr_scheduler.CosineAnnealingLRWarmup(optimizer, T_max=args.epochs)
+        lr_scheduler = xnn.optim.lr_scheduler.CosineAnnealingLRWarmup(optimizer, T_max=args.epochs,
+                                                                      warmup_epochs=args.lr_warmup_epochs)
     else:
         raise RuntimeError("Invalid lr scheduler '{}'. Only MultiStepLR and CosineAnnealingLR "
                            "are supported.".format(args.lr_scheduler))
