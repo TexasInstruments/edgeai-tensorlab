@@ -162,7 +162,7 @@ class YOLOXHeadKPTS(nn.Module):
         self.use_l1 = False
         self.l1_loss = nn.L1Loss(reduction="none")
         self.bcewithlog_loss = nn.BCEWithLogitsLoss(reduction="none")
-        self.iou_loss = IOUloss(reduction="none")
+        self.iou_loss = IOUloss(reduction="none" ,loss_type="ciou")
         self.strides = strides
         self.grids = [torch.zeros(1)] * len(in_channels)
 
@@ -289,7 +289,8 @@ class YOLOXHeadKPTS(nn.Module):
 
         output[..., :2] = (output[..., :2] + grid) * stride
         output[..., 2:4] = torch.exp(output[..., 2:4]) * stride
-        output[..., 6:] = (output[..., 6:] +  kpt_grids.repeat(1,1,self.num_kpts)) * stride
+        #output[..., 6:] = (output[..., 6:] +  kpt_grids.repeat(1,1,self.num_kpts)) * stride
+        output[..., 6:] = (2*output[..., 6:] -0.5 +  kpt_grids.repeat(1,1,self.num_kpts)) * stride
         return output, grid
 
     def decode_outputs(self, outputs, dtype):
@@ -309,7 +310,8 @@ class YOLOXHeadKPTS(nn.Module):
 
         outputs[..., :2] = (outputs[..., :2] + grids) * strides
         outputs[..., 2:4] = torch.exp(outputs[..., 2:4]) * strides
-        outputs[...,  6:] = (outputs[..., 6:] + kpt_grids.repeat(1,1,self.num_kpts)) * strides
+        #outputs[...,  6:] = (outputs[..., 6:] + kpt_grids.repeat(1,1,self.num_kpts)) * strides
+        outputs[...,  6:] = (2*outputs[..., 6:] - 0.5  + kpt_grids.repeat(1,1,self.num_kpts)) * strides
         return outputs
 
     def get_losses(
@@ -433,7 +435,7 @@ class YOLOXHeadKPTS(nn.Module):
 
                 cls_target = F.one_hot(
                     gt_matched_classes.to(torch.int64), self.num_classes
-                ) * pred_ious_this_matching.unsqueeze(-1)
+                ) * 1.0
                 obj_target = fg_mask.unsqueeze(-1)
                 reg_target = gt_bboxes_per_image[matched_gt_inds]
                 kpts_target = gt_kpts_per_image[matched_gt_inds]
@@ -496,6 +498,8 @@ class YOLOXHeadKPTS(nn.Module):
             loss_l1_kpts = (
                 self.l1_loss(origin_kpts_preds.view(-1, 2*self.num_kpts)[fg_masks], l1_targets_kpts)
             ).sum() / num_fg / self.num_kpts
+            loss_l1 = 0.0
+            loss_l1_kpts = 0
         else:
             loss_l1 = 0.0
             loss_l1_kpts = 0
