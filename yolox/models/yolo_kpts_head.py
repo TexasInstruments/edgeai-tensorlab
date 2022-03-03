@@ -495,9 +495,9 @@ class YOLOXHeadKPTS(nn.Module):
             loss_l1 = (
                 self.l1_loss(origin_preds.view(-1, 4)[fg_masks], l1_targets)
             ).sum() / num_fg
-            loss_l1_kpts = (
-                self.l1_loss(origin_kpts_preds.view(-1, 2*self.num_kpts)[fg_masks], l1_targets_kpts)
-            ).sum() / num_fg / self.num_kpts
+            loss_l1_kpts = ((
+                self.l1_loss(origin_kpts_preds.view(-1, 2*self.num_kpts)[fg_masks], l1_targets_kpts))*(l1_targets_kpts!=0)
+           ).sum() / num_fg / self.num_kpts
             loss_l1 = 0.0
             loss_l1_kpts = 0
         else:

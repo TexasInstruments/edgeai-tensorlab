@@ -26,7 +26,7 @@ class COCOKPTSDataset(Dataset):
         img_size=(416, 416),
         preproc=None,
         cache=False,
-        human_pose=False
+        human_pose=True
     ):
         """
         COCO dataset initialization. Annotation data are read into memory by COCO API.
@@ -52,6 +52,7 @@ class COCOKPTSDataset(Dataset):
         self.name = name
         self.img_size = img_size
         self.preproc = preproc
+        self.human_pose = human_pose
         self.annotations, self.ids = self._load_coco_annotations()
         self.flip_index = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
         if cache:
@@ -137,18 +138,23 @@ class COCOKPTSDataset(Dataset):
         num_objs = len(objs)
         if num_objs==0:
             return
-        res = np.zeros((num_objs, 5+2*17))
+        if self.human_pose:
+            res = np.zeros((num_objs, 5+2*17))
+        else:
+            res = np.zeros((num_objs, 5))
 
         for ix, obj in enumerate(objs):
             cls = self.class_ids.index(obj["category_id"])
             res[ix, 0:4] = obj["clean_bbox"]
             res[ix, 4] = cls
-            res[ix, 5::2] = obj["clean_kpts"][0::3]
-            res[ix, 6::2] = obj["clean_kpts"][1::3]
+            if self.human_pose:
+                res[ix, 5::2] = obj["clean_kpts"][0::3]
+                res[ix, 6::2] = obj["clean_kpts"][1::3]
 
         r = min(self.img_size[0] / height, self.img_size[1] / width)
         res[:, :4] *= r
-        res[:, 5:] *= r
+        if self.human_pose:
+            res[:, 5:] *= r
 
         img_info = (height, width)
         resized_info = (int(height * r), int(width * r))
