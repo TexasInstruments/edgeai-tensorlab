@@ -256,8 +256,7 @@ class CocoClassification(VisionDataset):
             self.dataset_store = json.load(ann_fp)
         #
         self.annotations_info = self._find_annotations_info()
-        num_images = len(self.dataset_store['images'])
-        self.ids = range(num_images)
+        self.num_images = len(self.dataset_store['images'])
         self.classes = copy.deepcopy(self.dataset_store['categories'])
         class_ids = [class_info['id'] for class_info in self.classes]
         class_ids_min = min(class_ids)
@@ -291,13 +290,12 @@ class CocoClassification(VisionDataset):
         return Image.open(os.path.join(self.root, path)).convert("RGB")
 
     def _load_target(self, id: int) -> List[Any]:
-        anno_info = self.annotations_info[id]
-        return anno_info[0]["category_id"]
+        anno_info = self.annotations_info[id][0]
+        return anno_info["category_id"]
 
     def __getitem__(self, index: int) -> Tuple[Any, Any]:
-        id = self.ids[index]
-        image = self._load_image(id)
-        target = self._load_target(id)
+        image = self._load_image(index)
+        target = self._load_target(index)
 
         if self.transforms is not None:
             image, target = self.transforms(image, target)
@@ -305,5 +303,5 @@ class CocoClassification(VisionDataset):
         return image, target
 
     def __len__(self) -> int:
-        return len(self.ids)
+        return self.num_images
 
