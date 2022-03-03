@@ -259,12 +259,12 @@ class CocoClassification(VisionDataset):
         self.num_images = len(self.dataset_store['images'])
         self.classes = copy.deepcopy(self.dataset_store['categories'])
         class_ids = [class_info['id'] for class_info in self.classes]
-        class_ids_min = min(class_ids)
-        if class_ids_min != 0:
-            for class_id in range(class_ids_min):
-                self.classes.insert(0, dict(id=class_id, name=f'background_{class_id}'))
-            #
-        #
+        self.class_ids_min = min(class_ids)
+        # if self.class_ids_min != 0:
+        #     for class_id in range(self.class_ids_min):
+        #         self.classes.insert(0, dict(id=class_id, name=f'background_{class_id}'))
+        #     #
+        # #
 
     def _find_annotations_info(self):
         image_id_to_file_id_dict = dict()
@@ -291,7 +291,9 @@ class CocoClassification(VisionDataset):
 
     def _load_target(self, id: int) -> List[Any]:
         anno_info = self.annotations_info[id][0]
-        return anno_info["category_id"]
+        category_id = anno_info["category_id"]
+        category_id -= self.class_ids_min
+        return category_id
 
     def __getitem__(self, index: int) -> Tuple[Any, Any]:
         image = self._load_image(index)
