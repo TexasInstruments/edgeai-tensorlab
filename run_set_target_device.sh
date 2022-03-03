@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright (c) 2018-2021, Texas Instruments
 # All Rights Reserved.
 #
