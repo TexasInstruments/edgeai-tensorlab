@@ -39,6 +39,7 @@ class YOLOXHeadKPTS(nn.Module):
         self.kpt_index = []
         [self.kpt_index.extend((3 * i, 3 * i + 1)) for i in range(17)]
         self.decode_in_inference = True  # for deploy, set to False
+        self.export_proto = False
 
         self.cls_convs = nn.ModuleList()
         self.reg_convs = nn.ModuleList()
@@ -236,8 +237,9 @@ class YOLOXHeadKPTS(nn.Module):
 
             else:
                 output = torch.cat(
-                    [reg_output, obj_output.sigmoid(), cls_output.sigmoid(), kpts_output], 1
+                    [reg_output, obj_output, cls_output, kpts_output], 1
                 )
+                output[:,4:6,:,:] = torch.sigmoid(output[:,4:6,:,:])
 
             outputs.append(output)
 
@@ -253,6 +255,8 @@ class YOLOXHeadKPTS(nn.Module):
                 origin_kpts_preds,
                 dtype=xin[0].dtype,
             )
+        elif self.export_proto:
+            return outputs
         else:
             self.hw = [x.shape[-2:] for x in outputs]
             # [batch, n_anchors_all, 85]

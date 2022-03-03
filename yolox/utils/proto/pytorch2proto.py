@@ -99,11 +99,12 @@ def retrieve_onnx_names(input_data, partial_model, full_model_path):
         partial_outputs = partial_model(input_data)
 
     matched_names = []
+    num_classes = partial_model.head.num_classes
     for po in partial_outputs:
         matched_name = None
         bs,  no, ny, nx = po.shape
         for fname, fo in zip(full_output_names, full_outputs):
-            fo[:,4:,...] = 1.0/(1.0 + np.exp(-fo[:, 4:, ...]))
+            fo[:,4:5+num_classes, ...] = 1.0/(1.0 + np.exp(-fo[:, 4:5+num_classes, ...]))
             if similar_tensor(po, fo):
                 matched_name = fname
                 break

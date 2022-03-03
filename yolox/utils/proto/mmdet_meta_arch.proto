@@ -188,6 +188,8 @@ message TIDLOdPostProc {
   optional string save_file = 12;
   // Total number of keypoints predicted along with each bounding box.
   optional uint32 num_keypoint = 13 [default = 0];
+  // If set to 1, there is a confidence term for each keypoint .
+  optional bool keypoint_confidence = 14 [default = false];
 }
 
 // Configuration for one  TIDL SSD HEAD
