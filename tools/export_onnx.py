@@ -82,6 +82,7 @@ def export_prototxt(model, img, onnx_model_name):
     num_heads = len(model.head.strides)
     num_keypoint = model.head.num_kpts if hasattr(model.head, "num_kpts") else None
     keypoint_confidence = True if (num_keypoint is not None and num_keypoint>0) else None
+    keep_top_k = 20 if (num_keypoint is not None and num_keypoint>0) else 200
     matched_names = retrieve_onnx_names(img, model, onnx_model_name)
     prototxt_name = onnx_model_name.replace('onnx', 'prototxt')
 
@@ -99,7 +100,7 @@ def export_prototxt(model, img, onnx_model_name):
     nms_param = mmdet_meta_arch_pb2.TIDLNmsParam(nms_threshold=0.65, top_k=500)
     detection_output_param = mmdet_meta_arch_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
                                             background_label_id=background_label_id, nms_param=nms_param,
-                                            code_type=mmdet_meta_arch_pb2.CODE_TYPE_YOLO_X, keep_top_k=200,
+                                            code_type=mmdet_meta_arch_pb2.CODE_TYPE_YOLO_X, keep_top_k=keep_top_k,
                                             confidence_threshold=0.01, num_keypoint=num_keypoint, keypoint_confidence=keypoint_confidence)
 
     yolov3 = mmdet_meta_arch_pb2.TidlYoloOd(name='yolo_v3', output=["detections"],
