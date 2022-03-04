@@ -63,10 +63,14 @@ class ModelMakerClassificationDataset(DatasetBase):
         if num_classes is None:
             classes = self.dataset_store['categories']
             class_ids = [class_info['id'] for class_info in classes]
-            num_classes = max(class_ids)+1
+            class_ids_min = min(class_ids)
+            num_classes = max(class_ids) - class_ids_min + 1
         #
         self.num_classes = num_classes
         self.annotations_info = self._find_annotations_info()
+        if num_frames is None:
+            num_frames = len(self.images_info)
+        #
         self.num_frames = num_frames
         super().__init__(num_classes=num_classes, image_dir=self.image_dir, annotation_file=self.annotation_file,
                          download=False, **kwargs)
@@ -90,11 +94,10 @@ class ModelMakerClassificationDataset(DatasetBase):
         return self.evaluate(predictions, **kwargs)
 
     def evaluate(self, predictions, **kwargs):
-        in_lines = self.imgs
         metric_tracker = utils.AverageMeter(name='accuracy_top1%')
         num_frames = min(self.num_frames, len(predictions))
         for n in range(num_frames):
-            words = in_lines[n].split(' ')
+            words = self.__getitem__(n, with_label=True)
             gt_label = int(words[1])
             accuracy = self.classification_accuracy(predictions[n], gt_label, **kwargs)
             metric_tracker.update(accuracy)
