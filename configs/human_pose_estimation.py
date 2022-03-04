@@ -127,5 +127,19 @@ def get_configs(settings, work_dir):
             postprocess=postproc_transforms.get_transform_detection_yolov5_pose_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS(), keypoint=True),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':54.9})
         ),
+
+        'kd-7060':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], mean=(0.0, 0.0, 0.0),  scale=(1.0, 1.0, 1.0),  backend='cv2', pad_color=[114,114,114]),
+            session=onnx_session_type(**common_session_cfg,
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
+                        {'object_detection:meta_arch_type': 6,
+                         'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-yolox/yolox_s_pose_ti_lite_metaarch.prototxt',
+                        'advanced_options:output_feature_16bit_names_list': '513, 758, 883, 1008, 756, 753, 878, 881, 1003, 1006'
+                        }),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-yolox/yolox_s_pose_ti_lite_49p5_78p0.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_yolov5_pose_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS(), keypoint=True),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':49.5})
+        ),
+
     }
     return pipeline_configs
