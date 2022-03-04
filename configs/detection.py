@@ -300,10 +300,10 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
-                                        'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220128_model.prototxt',
-                                        'advanced_options:output_feature_16bit_names_list': '471, 712, 713, 714, 728, 729, 730, 744, 745, 746'
+                                        'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_model.prototxt',
+                                        'advanced_options:output_feature_16bit_names_list': '1033, 711, 712, 713, 727, 728, 728, 743, 744, 745'
                                         }),
-                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220128_model.onnx'),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 24.0})
@@ -313,10 +313,10 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
-                                        'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220131_model.prototxt',
-                                        'advanced_options:output_feature_16bit_names_list': '471, 712, 713, 714, 728, 729, 730, 744, 745, 746'
+                                        'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_640x640_20220217_model.prototxt',
+                                        'advanced_options:output_feature_16bit_names_list': '1033, 711, 712, 713, 727, 728, 728, 743, 744, 745'
                                         }),
-                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220131_model.onnx'),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_640x640_20220217_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 29.5})
@@ -326,10 +326,10 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
-                                        'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220119_model.prototxt',
-                                        'advanced_options:output_feature_16bit_names_list': '471, 712, 713, 714, 728, 729, 730, 744, 745, 746'
+                                        'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_model.prototxt',
+                                        'advanced_options:output_feature_16bit_names_list': '1033, 711, 712, 713, 727, 728, 728, 743, 744, 745'
                                         }),
-                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220119_model.onnx'),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 38.2})
