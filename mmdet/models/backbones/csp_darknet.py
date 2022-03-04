@@ -101,7 +101,7 @@ class FocusLite(nn.Module):
             padding=(kernel_size - 1) // 2,
             conv_cfg=conv_cfg,
             norm_cfg=norm_cfg,
-            act_cfg=act_cfg)
+            act_cfg=None)
         self.conv = ConvModule(
             in_channels * 4,
             out_channels,
