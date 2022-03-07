@@ -29,4 +29,4 @@ data = dict(
         pipeline=None))
 
 evaluation = dict(
-    save_best='auto', interval=1, metric='bbox')
+    save_best='mAP', interval=1, metric='mAP')

@@ -31,4 +31,4 @@ data = dict(
         img_prefix=data_root + 'VOC2007/',
         pipeline=TBD))
 
-evaluation = dict(interval=1, metric='bbox')
+evaluation = dict(interval=1, metric='mAP')
