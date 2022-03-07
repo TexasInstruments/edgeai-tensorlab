@@ -66,7 +66,7 @@ def build_dataset(cfg, default_args=None):
             cfg.get('separate_eval', True))
     elif cfg['type'] == 'RepeatDataset':
         dataset = RepeatDataset(
-            build_dataset(cfg['dataset'], default_args), cfg['times'])
+            build_dataset(cfg['dataset'], default_args), cfg.get('times',1))
     elif cfg['type'] == 'ClassBalancedDataset':
         dataset = ClassBalancedDataset(
             build_dataset(cfg['dataset'], default_args), cfg['oversample_thr'])

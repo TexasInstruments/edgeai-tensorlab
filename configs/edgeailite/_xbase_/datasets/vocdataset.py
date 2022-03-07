@@ -1,20 +1,17 @@
 TBD = None
 
-img_norm_cfg = dict(mean=TBD, std=TBD, to_rgb=TBD)
-train_pipeline = TBD
-test_pipeline = TBD
 
 # dataset settings
 dataset_type = 'VOCDataset'
 data_root = 'data/VOCdevkit/'
-dataset_repeats = 10
+#dataset_repeats = 1
 
 data = dict(
     samples_per_gpu=TBD,
     workers_per_gpu=TBD,
     train=dict(
         type='RepeatDataset',
-        times=dataset_repeats,
+        #times=dataset_repeats,
         dataset=dict(
             type=dataset_type,
             ann_file=[
@@ -22,16 +19,16 @@ data = dict(
                 data_root + 'VOC2012/ImageSets/Main/trainval.txt'
             ],
             img_prefix=[data_root + 'VOC2007/', data_root + 'VOC2012/'],
-            pipeline=train_pipeline)),
+            pipeline=TBD)),
     val=dict(
         type=dataset_type,
         ann_file=data_root + 'VOC2007/ImageSets/Main/test.txt',
         img_prefix=data_root + 'VOC2007/',
-        pipeline=test_pipeline),
+        pipeline=TBD),
     test=dict(
         type=dataset_type,
         ann_file=data_root + 'VOC2007/ImageSets/Main/test.txt',
         img_prefix=data_root + 'VOC2007/',
-        pipeline=test_pipeline))
+        pipeline=TBD))
 
-evaluation = dict(interval=1, metric='mAP')
+evaluation = dict(interval=1, metric='bbox')

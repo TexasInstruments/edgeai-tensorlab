@@ -37,7 +37,7 @@ _base_ = [
     f'../_xbase_/datasets/{dataset_type.lower()}.py',
     '../_xbase_/hyper_params/common_config.py',
     '../_xbase_/hyper_params/yolov3_config.py',
-    '../_xbase_/hyper_params/schedule.py',
+    '../_xbase_/hyper_params/common_schedule.py',
 ]
 
 ######################################################

@@ -1,19 +1,28 @@
 
 # modified from: https://github.com/open-mmlab/mmdetection/tree/master/configs/yolox
 
-_base_ = [
-    '../../yolox/yolox_m_8x8_300e_coco.py'
-]
-
 img_scale = (640, 640)
 input_size = img_scale
+samples_per_gpu = 16
 
 # dataset settings
-data_root = 'data/coco/'
 dataset_type = 'CocoDataset'
-num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8}
+num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8, 'WIDERFaceDataset':1}
+dataset_root_dict = {'CocoDataset':'data/coco/', 'VOCDataset':'data/VOCdevkit/', 'CityscapesDataset':'data/cityscapes/', 'WIDERFaceDataset':'data/WIDERFace/'}
 num_classes = num_classes_dict[dataset_type]
+data_root = dataset_root_dict[dataset_type]
 img_norm_cfg = dict(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], to_rgb=True)
+
+# replace complex activation functions with ReLU.
+# Also replace regular convolutions with depthwise-separable convolutions.
+# torchvision.edgeailite requires edgeai-torchvision to be installed
+convert_to_lite_model = dict(group_size_dw=None)
+
+_base_ = [
+    f'../_xbase_/datasets/{dataset_type.lower()}.py',
+    '../_xbase_/hyper_params/yolox_config.py',
+    '../_xbase_/hyper_params/yolox_schedule.py',
+]
 
 # settings for qat or calibration - set to True after doing floating point training
 quantize = False #'training' #'calibration'
@@ -21,40 +30,36 @@ if quantize:
     load_from = './work_dirs/yolox_s_lite/latest.pth'
     max_epochs = (1 if quantize == 'calibration' else 12)
     initial_learning_rate = 1e-4
-    num_last_epochs = max_epochs
-    resume_from = None
+    num_last_epochs = max_epochs//2
     interval = 10
+    resume_from = None
 else:
     load_from = None #'https://download.openmmlab.com/mmdetection/v2.0/yolox/yolox_s_8x8_300e_coco/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth'
     max_epochs = 300
     initial_learning_rate = 0.01
     num_last_epochs = 15
-    resume_from = None
     interval = 10
+    resume_from = None
 #
 
-optimizer = dict(
-    type='SGD',
-    lr=initial_learning_rate,
-    momentum=0.9,
-    weight_decay=5e-4,
-    nesterov=True,
-    paramwise_cfg=dict(norm_decay_mult=0., bias_decay_mult=0.))
-optimizer_config = dict(grad_clip=None)
-
-# learning policy
-lr_config = dict(
-    _delete_=True,
-    policy='YOLOX',
-    warmup='exp',
-    by_epoch=False,
-    warmup_by_epoch=True,
-    warmup_ratio=1,
-    warmup_iters=5,  # 5 epoch
-    num_last_epochs=num_last_epochs,
-    min_lr_ratio=0.05)
-
-runner = dict(type='EpochBasedRunner', max_epochs=max_epochs)
+# model settings
+model = dict(
+    type='YOLOX',
+    input_size=img_scale,
+    random_size_range=(15, 25),
+    random_size_interval=10,
+    backbone=dict(type='CSPDarknet', deepen_factor=0.67, widen_factor=0.75),
+    neck=dict(
+        type='YOLOXPAFPN',
+        in_channels=[192, 384, 768],
+        out_channels=192,
+        num_csp_blocks=2),
+    bbox_head=dict(
+        type='YOLOXHead', num_classes=num_classes, in_channels=192, feat_channels=192),
+    train_cfg=dict(assigner=dict(type='SimOTAAssigner', center_radius=2.5)),
+    # In order to align the source code, the threshold of the val phase is
+    # 0.01, and the threshold of the test phase is 0.001.
+    test_cfg=dict(score_thr=0.01, nms=dict(type='nms', iou_threshold=0.65)))
 
 train_pipeline = [
     dict(type='Mosaic', img_scale=img_scale, pad_val=114.0),
@@ -80,7 +85,6 @@ train_pipeline = [
         # to be set separately for each channel.
         pad_val=dict(img=(114.0, 114.0, 114.0))),
     dict(type='FilterAnnotations', min_gt_bbox_wh=(1, 1), keep_empty=False),
-    dict(type='Normalize', **img_norm_cfg),
     dict(type='DefaultFormatBundle'),
     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
 ]
@@ -98,13 +102,50 @@ test_pipeline = [
                 type='Pad',
                 pad_to_square=True,
                 pad_val=dict(img=(114.0, 114.0, 114.0))),
-            dict(type='Normalize', **img_norm_cfg),
             dict(type='DefaultFormatBundle'),
             dict(type='Collect', keys=['img'])
         ])
 ]
 
+data = dict(
+    samples_per_gpu=samples_per_gpu,
+    workers_per_gpu=2,
+    persistent_workers=True,
+    train=dict(
+        type='MultiImageMixDataset',
+        dataset=dict(
+            type=dataset_type,
+            filter_empty_gt=False,
+            pipeline=[
+                dict(type='LoadImageFromFile'),
+                dict(type='LoadAnnotations', with_bbox=True)
+            ]
+        ),
+        pipeline=train_pipeline),
+    val=dict(pipeline=test_pipeline),
+    test=dict(pipeline=test_pipeline))
 
-# edgeailite
-convert_to_lite_model = dict(group_size_dw=None)
+runner = dict(type='EpochBasedRunner', max_epochs=max_epochs)
 
+custom_hooks = [
+    dict(
+        type='YOLOXModeSwitchHook',
+        num_last_epochs=num_last_epochs,
+        priority=48),
+    dict(
+        type='SyncNormHook',
+        num_last_epochs=num_last_epochs,
+        interval=interval,
+        priority=48),
+    dict(
+        type='ExpMomentumEMAHook',
+        resume_from=resume_from,
+        momentum=0.0001,
+        priority=49)
+]
+
+optimizer = dict(
+    type='SGD',lr=initial_learning_rate)
+
+lr_config = dict(
+    num_last_epochs=num_last_epochs)
