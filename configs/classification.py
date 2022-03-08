@@ -191,6 +191,28 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-1.6gf.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':77.0})
         ),
+        #################torchvision models#########################
+        # torchvision: classification regnetx400mf_224x224 expected_metric: 72.834% top-1 accuracy
+        'cl-6160':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/regnet_x_400mf_tv.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':72.834})
+        ),
+        # torchvision: classification regnetx800mf_224x224 expected_metric: 75.212% top-1 accuracy
+        'cl-6170':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/regnet_x_800mf_tv.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':75.212})
+        ),
+        # pycls: classification regnetx1.6gf_224x224 expected_metric: 77.040% top-1 accuracy
+        'cl-6180':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/regnet_x_1_6gf_tv.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':77.040})
+        ),
         #################################################################
         #       MXNet MODELS
         #################################################################
