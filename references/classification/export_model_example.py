@@ -29,8 +29,8 @@
 import os
 import torch
 import datetime
+import onnx
 from torchvision import models
-# from references.edgeailite import models
 
 # dependencies
 # Python 3.7 (might work in other versions as well)
@@ -39,14 +39,16 @@ from torchvision import models
 
 # some parameters - modify as required
 date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-dataset_name = 'image_folder_classification'
-model_names = ['mobilenet_v2', 'resnet18', 'resnet50', 'resnext50_32x4d', 'shufflenet_v2_x1_0']
+dataset_name = 'imagenet'
+model_names = ['mobilenet_v2', 'resnet18', 'resnet50', 'resnext50_32x4d', 'shufflenet_v2_x1_0',
+               "regnet_x_400mf", "regnet_x_800mf", "regnet_x_1_6gf",
+               'mobilenet_v2_lite', 'mobilenet_v3_large_lite']
 img_resize = (256,256)
 rand_crop = (224,224)
-opset_version = 9
+opset_version = 11
 
 # the saving path - you can choose any path
-save_path = './data/checkpoints/edgeailite'
+save_path = './data/checkpoints/classification'
 save_path = os.path.join(save_path, dataset_name, date + '_' + dataset_name)
 save_path += '_resize{}x{}_traincrop{}x{}'.format(img_resize[1], img_resize[0], rand_crop[1], rand_crop[0])
 os.makedirs(save_path, exist_ok=True)
@@ -60,15 +62,16 @@ for model_name in model_names:
     model.eval()
 
     # write pytorch model
-    model_path=os.path.join(save_path, f'{model_name}_model.pth')
+    model_path=os.path.join(save_path, f'{model_name}_tsmodel.pth')
     traced_model = torch.jit.trace(model, rand_input)
     torch.jit.save(traced_model, model_path)
 
     # write pytorch sate dict
-    model_path=os.path.join(save_path, f'{model_name}_state_dict.pth')
+    model_path=os.path.join(save_path, f'{model_name}_checkpoint.pth')
     torch.save(model.state_dict(), model_path)
 
     # write the onnx model
-    model_path=os.path.join(save_path, f'{model_name}_opset{opset_version}.onnx')
+    model_path=os.path.join(save_path, f'{model_name}_model.onnx')
     torch.onnx.export(model, rand_input, model_path, export_params=True, verbose=False,
                       do_constant_folding=True, opset_version=opset_version)
+    onnx.shape_inference.infer_shapes_path(model_path, model_path)

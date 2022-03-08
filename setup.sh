@@ -17,6 +17,9 @@ echo "installing pytorch for cuda 11.1"
 echo "other versions can be found here: https://pytorch.org/get-started/locally/"
 pip3 install torch==1.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 
+pip3 install onnx==1.8.1
+pip3 install torchinfo
+
 echo "if your CUDA version has changed, please remove 'build' folder before attempting this installatio."
 echo "otherwise there can be errors while using torchvision c++ ops."
 
