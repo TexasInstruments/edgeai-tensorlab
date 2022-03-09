@@ -98,18 +98,16 @@ class TFLiteRTSession(BaseRTSession):
         return self.kwargs["runtime_options"].get(option, default)
 
     def optimize_model(self):
-        from osrt_model_tools.tflite_tools.tflite_model_opt import tidlTfliteModelOptimize
+        from osrt_model_tools.tflite_tools import tflite_model_opt as tflopt
         model_file = self.kwargs['model_file']
         input_mean = self.kwargs['input_mean']
         input_scale = self.kwargs['input_scale']
-        tidlTfliteModelOptimize(
+        tflopt.tidlTfliteModelOptimize(
             model_file, model_file,
             input_mean, input_scale)
         # set the mean and scale in kwarges to unity
-        for m_idx, _ in enumerate(self.kwargs['input_mean']):
-            self.kwargs['input_mean'][m_idx] = 0.0
-            self.kwargs['input_scale'][m_idx] = 1.0
-        #
+        self.kwargs['input_mean'] = tuple([0.0 for _ in self.kwargs['input_mean']])
+        self.kwargs['input_scale'] = tuple([1.0 for _ in self.kwargs['input_scale']])
 
     def _create_interpreter(self, is_import):
         if self.kwargs['tidl_offload']:
