@@ -32,8 +32,6 @@ import warnings
 import copy
 import struct
 import numpy as np
-import flatbuffers
-import tflite_model
 import tflite_runtime.interpreter as tflitert_interpreter
 from .. import constants
 from .. import utils
@@ -100,6 +98,9 @@ class TFLiteRTSession(BaseRTSession):
         return self.kwargs["runtime_options"].get(option, default)
 
     def optimize_model(self):
+        import flatbuffers
+        import tflite_model
+
         model_file = self.kwargs['model_file']
         input_mean = self.kwargs['input_mean']
         input_scale = self.kwargs['input_scale']

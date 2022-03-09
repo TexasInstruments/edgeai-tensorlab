@@ -393,11 +393,12 @@ class BaseRTSession(utils.ParamsBase):
         #
         # optimize the model to speedup inference.
         # for example, the input of the model can be converted to 8bit and mean/scale can be moved inside the model
-        if self.kwargs['input_optimization'] is not None:
+        if self.kwargs['input_optimization'] and self.kwargs['tensor_bits'] == 8:
             self.optimize_model()
         else:
-            self.input_normalizer = ImageNormMeanScale(self.kwargs['input_mean'], self.kwargs['input_scale'],
-                                                    self.kwargs['input_data_layout'])
+            self.input_normalizer = ImageNormMeanScale(
+                self.kwargs['input_mean'], self.kwargs['input_scale'],
+                self.kwargs['input_data_layout'])
         #
 
     def optimize_model(self):
