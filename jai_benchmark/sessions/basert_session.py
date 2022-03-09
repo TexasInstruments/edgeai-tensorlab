@@ -393,16 +393,41 @@ class BaseRTSession(utils.ParamsBase):
         #
         # optimize the model to speedup inference.
         # for example, the input of the model can be converted to 8bit and mean/scale can be moved inside the model
+        optimization_done = False
         if self.kwargs['input_optimization'] and self.kwargs['tensor_bits'] == 8:
-            self.optimize_model()
+            optimization_done = self._optimize_model()
+        #
+        if optimization_done:
+            # set the mean and scale in kwarges to unity
+            self.kwargs['input_mean'] = tuple([0.0 for _ in self.kwargs['input_mean']])
+            self.kwargs['input_scale'] = tuple([1.0 for _ in self.kwargs['input_scale']])
         else:
+            # mean scale could not be absorbed inside the model - do it explicitly
             self.input_normalizer = ImageNormMeanScale(
                 self.kwargs['input_mean'], self.kwargs['input_scale'],
                 self.kwargs['input_data_layout'])
         #
 
-    def optimize_model(self):
-        pass
+    def _optimize_model(self):
+        model_file = self.kwargs['model_file']
+        model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
+        input_mean = self.kwargs['input_mean']
+        input_scale = self.kwargs['input_scale']
+        optimization_done = False
+        if model_file0.endswith('.onnx'):
+            from osrt_model_tools.onnx_tools import onnx_model_opt as onnxopt
+            onnxopt.tidlOnnxModelOptimize(
+                model_file0, model_file0,
+                input_mean, input_scale)
+            optimization_done = True
+        elif model_file0.endswith('.tflite'):
+            from osrt_model_tools.tflite_tools import tflite_model_opt as tflopt
+            tflopt.tidlTfliteModelOptimize(
+                model_file0, model_file0,
+                input_mean, input_scale)
+            optimization_done = True
+        #
+        return optimization_done
 
     def _set_default_options(self):
         assert False, 'this function must be overridden in the derived class'

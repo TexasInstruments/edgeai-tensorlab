@@ -112,18 +112,6 @@ class ONNXRTSession(BaseRTSession):
     def get_runtime_option(self, option, default=None):
         return self.kwargs["runtime_options"].get(option, default)
 
-    def optimize_model(self):
-        from osrt_model_tools.onnx_tools import onnx_model_opt as onnxopt
-        model_file = self.kwargs['model_file']
-        input_mean = self.kwargs['input_mean']
-        input_scale = self.kwargs['input_scale']
-        onnxopt.tidlOnnxModelOptimize(
-            model_file, model_file,
-            input_mean, input_scale)
-        # set the mean and scale in kwarges to unity
-        self.kwargs['input_mean'] = tuple([0.0 for _ in self.kwargs['input_mean']])
-        self.kwargs['input_scale'] = tuple([1.0 for _ in self.kwargs['input_scale']])
-
     def _create_interpreter(self, is_import):
         # pass options to pybind
         if is_import:
