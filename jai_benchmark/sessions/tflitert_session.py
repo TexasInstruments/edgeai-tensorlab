@@ -39,6 +39,7 @@ from .basert_session import BaseRTSession
 class TFLiteRTSession(BaseRTSession):
     def __init__(self, session_name=constants.SESSION_NAME_TFLITERT, **kwargs):
         super().__init__(session_name=session_name, **kwargs)
+        self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NHWC)
         self.interpreter = None
 
     def import_model(self, calib_data, info_dict=None):
@@ -51,6 +52,9 @@ class TFLiteRTSession(BaseRTSession):
         output_details = self.interpreter.get_output_details()
         for c_data in calib_data:
             c_data = utils.as_tuple(c_data)
+            if self.input_normalizer is not None:
+                c_data, _ = self.input_normalizer(c_data, {})
+            #
             for c_data_entry_idx, c_data_entry in enumerate(c_data):
                 self._set_tensor(input_details[c_data_entry_idx], c_data_entry)
             #
@@ -71,6 +75,9 @@ class TFLiteRTSession(BaseRTSession):
         input_details = self.interpreter.get_input_details()
         output_details = self.interpreter.get_output_details()
         c_data = utils.as_tuple(input)
+        if self.input_normalizer is not None:
+            c_data, _ = self.input_normalizer(c_data, {})
+        #
         for c_data_entry_idx, c_data_entry in enumerate(c_data):
             self._set_tensor(input_details[c_data_entry_idx], c_data_entry)
         #
@@ -88,6 +95,161 @@ class TFLiteRTSession(BaseRTSession):
     def get_runtime_option(self, option, default=None):
         return self.kwargs["runtime_options"].get(option, default)
 
+    def optimize_model(self):
+        model_file = self.kwargs['model_file']
+        input_mean = self.kwargs['input_mean']
+        input_scale = self.kwargs['input_scale']
+        out_model_path = model_file
+        meanList = [x * -1 for x in input_mean]
+        modelBin = open(in_model_path, 'rb').read()
+        if modelBin is None:
+            print(f'Error: Could not open file {in_model_path}')
+            return
+        modelBin = bytearray(modelBin)
+        model = tflite_model.Model.Model.GetRootAsModel(modelBin, 0)
+        modelT = tflite_model.Model.ModelT.InitFromObj(model)
+
+        #Add operators needed for preprocessing:
+        setTensorProperties(modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].inputs[0]], tflite_model.TensorType.TensorType.UINT8, 1.0, 0)
+        mul_idx = addNewOperator(modelT, tflite_model.BuiltinOperator.BuiltinOperator.MUL)
+        add_idx = addNewOperator(modelT, tflite_model.BuiltinOperator.BuiltinOperator.ADD)
+        cast_idx = addNewOperator(modelT, tflite_model.BuiltinOperator.BuiltinOperator.CAST)
+
+        in_cast_idx = addNewOperator(modelT, tflite_model.BuiltinOperator.BuiltinOperator.CAST)
+        #Find argmax in the network:
+        argMax_idx = getArgMax_idx(modelT)
+
+        #Create a tensor for the "ADD" operator:
+        bias_tensor = createTensor(modelT, tflite_model.TensorType.TensorType.FLOAT32, None, [modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].inputs[0]].shape[3]], bytearray(str("Preproc-bias"),'utf-8'))
+        #Create a new buffer to store mean values:
+        new_buffer = copy.copy(modelT.buffers[modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].inputs[0]].buffer])
+        new_buffer.data = struct.pack('%sf' % len(meanList), *meanList)
+        modelT.buffers.append(new_buffer)
+        new_buffer_idx = len(modelT.buffers) - 1
+        bias_tensor.buffer = new_buffer_idx
+
+        #Create a tensor for the "MUL" operator
+        scale_tensor = copy.deepcopy(bias_tensor)
+        scale_tensor.name  = bytearray(str("Preproc-scale"),'utf-8')
+        #Create a new buffer to store the scale values:
+        new_buffer = copy.copy(new_buffer)
+        new_buffer.data = struct.pack('%sf' % len(scaleList), *scaleList)
+        modelT.buffers.append(new_buffer)
+        new_buffer_idx = len(modelT.buffers) - 1
+        scale_tensor.buffer = new_buffer_idx
+
+        #Append tensors into the tensor list:
+        modelT.subgraphs[0].tensors.append(bias_tensor)
+        bias_tensor_idx = len(modelT.subgraphs[0].tensors) - 1
+        modelT.subgraphs[0].tensors.append(scale_tensor)
+        scale_tensor_idx = len(modelT.subgraphs[0].tensors) - 1
+        new_tensor = copy.deepcopy(modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].outputs[0]])
+        new_tensor.name = bytearray((str(new_tensor.name, 'utf-8') + str("/Mul")),'utf-8')
+        modelT.subgraphs[0].tensors.append(new_tensor)
+        new_tensor_idx = len(modelT.subgraphs[0].tensors) - 1
+        new_buffer = copy.deepcopy(modelT.buffers[modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].outputs[0]].buffer])
+        modelT.buffers.append(new_buffer)
+        new_buffer_idx = len(modelT.buffers) - 1
+        modelT.subgraphs[0].tensors[new_tensor_idx].buffer = new_buffer_idx
+
+        #Add the MUL Operator for scales:
+        new_op = copy.deepcopy(modelT.subgraphs[0].operators[0])
+        modelT.subgraphs[0].operators.insert(0,new_op)
+        modelT.subgraphs[0].operators[0].outputs[0] = new_tensor_idx
+        modelT.subgraphs[0].operators[0].inputs = [modelT.subgraphs[0].operators[1].inputs[0],scale_tensor_idx]
+        modelT.subgraphs[0].operators[1].inputs[0] = new_tensor_idx
+        modelT.subgraphs[0].tensors[new_tensor_idx].shape = modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].inputs[0]].shape
+        modelT.subgraphs[0].operators[0].opcodeIndex = mul_idx
+        modelT.subgraphs[0].operators[0].builtinOptionsType = tflite_model.BuiltinOptions.BuiltinOptions.MulOptions
+        modelT.subgraphs[0].operators[0].builtinOptions = tflite_model.MulOptions.MulOptionsT()
+
+        #Add the ADD operator for mean:
+        new_tensor = copy.deepcopy(modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].outputs[0]])
+        new_tensor.name = bytearray((str(new_tensor.name, 'utf-8') + str("/Bias")),'utf-8')
+        modelT.subgraphs[0].tensors.append(new_tensor)
+        new_tensor_idx = len(modelT.subgraphs[0].tensors) - 1
+        new_buffer = copy.deepcopy(modelT.buffers[modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].outputs[0]].buffer])
+        modelT.buffers.append(new_buffer)
+        new_buffer_idx = len(modelT.buffers) - 1
+        modelT.subgraphs[0].tensors[new_tensor_idx].buffer = new_buffer_idx
+        new_op_code = copy.deepcopy(modelT.operatorCodes[0])
+        new_op = copy.deepcopy(modelT.subgraphs[0].operators[0])
+        modelT.subgraphs[0].operators.insert(0,new_op)
+        modelT.subgraphs[0].operators[0].outputs[0] = new_tensor_idx
+        modelT.subgraphs[0].operators[0].inputs = [modelT.subgraphs[0].operators[1].inputs[0],bias_tensor_idx]
+        modelT.subgraphs[0].operators[1].inputs[0] = new_tensor_idx
+        modelT.subgraphs[0].tensors[new_tensor_idx].shape = modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].inputs[0]].shape
+        modelT.subgraphs[0].operators[0].opcodeIndex = add_idx
+        modelT.subgraphs[0].operators[0].builtinOptionsType = tflite_model.BuiltinOptions.BuiltinOptions.AddOptions
+        modelT.subgraphs[0].operators[0].builtinOptions = tflite_model.AddOptions.AddOptionsT()
+
+        #Add the dequantize operator:
+        new_tensor = copy.deepcopy(modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].outputs[0]])
+        new_tensor.name = bytearray((str(new_tensor.name, 'utf-8') + str("/InCast")),'utf-8')
+        modelT.subgraphs[0].tensors.append(new_tensor)
+        new_tensor_idx = len(modelT.subgraphs[0].tensors) - 1
+        new_buffer = copy.deepcopy(modelT.buffers[modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].outputs[0]].buffer])
+        modelT.buffers.append(new_buffer)
+        new_buffer_idx = len(modelT.buffers) - 1
+        modelT.subgraphs[0].tensors[new_tensor_idx].buffer = new_buffer_idx
+        new_op_code = copy.deepcopy(modelT.operatorCodes[0])
+        new_op = copy.deepcopy(modelT.subgraphs[0].operators[0])
+        modelT.subgraphs[0].operators.insert(0,new_op)
+        modelT.subgraphs[0].operators[0].outputs[0] = new_tensor_idx
+        modelT.subgraphs[0].operators[0].inputs = [modelT.subgraphs[0].operators[1].inputs[0]]
+        modelT.subgraphs[0].operators[1].inputs[0] = new_tensor_idx
+        modelT.subgraphs[0].tensors[new_tensor_idx].shape = modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].inputs[0]].shape
+        modelT.subgraphs[0].operators[0].opcodeIndex = in_cast_idx
+        modelT.subgraphs[0].operators[0].builtinOptionsType = tflite_model.BuiltinOptions.BuiltinOptions.CastOptions
+        modelT.subgraphs[0].operators[0].builtinOptions = tflite_model.CastOptions.CastOptionsT()
+        modelT.subgraphs[0].operators[0].builtinOptions.inDataType = tflite_model.TensorType.TensorType.UINT8
+        modelT.subgraphs[0].tensors[new_tensor_idx].type  = tflite_model.TensorType.TensorType.FLOAT32
+
+        #Detect and convert ArgMax's output data type:
+        for operator in modelT.subgraphs[0].operators:
+            #Find ARGMAX:
+            if(operator.opcodeIndex == argMax_idx):
+                if(modelT.subgraphs[0].tensors[operator.inputs[0]].shape[3] < 256): #Change dType only if #Classes can fit in UINT8
+                    #Add CAST Op on ouput of Argmax:
+                    new_op = copy.deepcopy(modelT.subgraphs[0].operators[0])
+                    modelT.subgraphs[0].operators.append(new_op)
+                    new_op_idx = len(modelT.subgraphs[0].operators) - 1
+
+                    modelT.subgraphs[0].operators[new_op_idx].outputs[0] = operator.outputs[0]
+
+                    new_tensor = copy.deepcopy(modelT.subgraphs[0].tensors[operator.outputs[0]])
+                    new_tensor.name = bytearray((str(new_tensor.name, 'utf-8') + str("_org")),'utf-8')
+                    modelT.subgraphs[0].tensors.append(new_tensor)
+                    new_tensor_idx = len(modelT.subgraphs[0].tensors) - 1
+                    new_buffer = copy.deepcopy(modelT.buffers[modelT.subgraphs[0].tensors[operator.outputs[0]].buffer])
+                    modelT.buffers.append(new_buffer)
+                    new_buffer_idx = len(modelT.buffers) - 1
+                    modelT.subgraphs[0].tensors[new_tensor_idx].buffer = new_buffer_idx
+
+                    operator.outputs[0] = new_tensor_idx
+
+                    modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[new_op_idx].outputs[0]].type  = tflite_model.TensorType.TensorType.UINT8
+
+                    modelT.subgraphs[0].operators[new_op_idx].inputs[0] = new_tensor_idx
+                    modelT.subgraphs[0].operators[new_op_idx].opcodeIndex = cast_idx
+                    modelT.subgraphs[0].operators[new_op_idx].builtinOptionsType = tflite_model.BuiltinOptions.BuiltinOptions.CastOptions
+                    modelT.subgraphs[0].operators[new_op_idx].builtinOptions = tflite_model.CastOptions.CastOptionsT()
+                    modelT.subgraphs[0].operators[new_op_idx].builtinOptions.outDataType = tflite_model.TensorType.TensorType.UINT8
+
+
+        # Packs the object class into another flatbuffer.
+        b2 = flatbuffers.Builder(0)
+        b2.Finish(modelT.Pack(b2), b"TFL3")
+        modelBuf = b2.Output()
+        newFile = open(out_model_path, "wb")
+        newFile.write(modelBuf)
+        
+        # set the mean and scale in kwarges to unity
+        for m_idx, _ in enumerate(self.kwargs['input_mean']):
+            self.kwargs['input_mean'] = 0.0
+            self.kwargs['input_scale'] = 1.0
+        #
+        
     def _create_interpreter(self, is_import):
         if self.kwargs['tidl_offload']:
             if is_import:

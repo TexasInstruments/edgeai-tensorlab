@@ -52,7 +52,18 @@ def get_configs(settings, work_dir):
         'num_frames': num_frames
     }
 
-    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device, tidl_offload=settings.tidl_offload)
+    common_session_cfg = sessions.get_common_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    onnx_session_cfg = sessions.get_onnx_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    jai_session_cfg = sessions.get_jai_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    mxnet_session_cfg = sessions.get_mxnet_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    tflite_session_cfg = sessions.get_tflite_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    tflite_quant_session_cfg = sessions.get_tflite_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
 
     hr_input_sizes = (512,1024)
     hr_input_sizes_x = [f'{s}x{s}' for s in hr_input_sizes]
@@ -71,14 +82,14 @@ def get_configs(settings, work_dir):
          # jai-devkit: classification mobilenetv1_224x224 expected_metric: 71.82% top-1 accuracy
         'cl-6061':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=hr_input_sizes[0], crop=hr_input_sizes[0]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/edgeai-tv/mobilenet_v1_20190906_{hr_input_sizes_x[0]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None})
         ),
         'cl-6062':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=hr_input_sizes[1], crop=hr_input_sizes[1]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/edgeai-tv/mobilenet_v1_20190906_{hr_input_sizes_x[1]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None})
@@ -86,14 +97,14 @@ def get_configs(settings, work_dir):
         # jai-devkit: classification mobilenetv2_224x224 expected_metric: 72.13% top-1 accuracy
         'cl-6071':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=hr_input_sizes[0], crop=hr_input_sizes[0]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/edgeai-tv/mobilenet_v2_20191224_{hr_input_sizes_x[0]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None})
         ),
         'cl-6072':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=hr_input_sizes[1], crop=hr_input_sizes[1]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/edgeai-tv/mobilenet_v2_20191224_{hr_input_sizes_x[1]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None})
@@ -101,14 +112,14 @@ def get_configs(settings, work_dir):
         # jai-devkit: classification mobilenetv2_1p4_224x224 expected_metric: 75.22% top-1 accuracy, QAT: 75.22%
         'cl-6151':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=hr_input_sizes[0], crop=hr_input_sizes[0]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_qat(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/edgeai-tv/mobilenet_v2_1p4_qat-p2_20210112_{hr_input_sizes_x[0]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None})
         ),
         'cl-6152':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=hr_input_sizes[1], crop=hr_input_sizes[1]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_qat(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/edgeai-tv/mobilenet_v2_1p4_qat-p2_20210112_{hr_input_sizes_x[1]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None})
@@ -116,14 +127,14 @@ def get_configs(settings, work_dir):
         # torchvision: classification resnet18_224x224 expected_metric: 69.76% top-1 accuracy
         'cl-6101':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=hr_input_sizes[0], crop=hr_input_sizes[0]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/torchvision/resnet18_{hr_input_sizes_x[0]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None})
         ),
         'cl-6102':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=hr_input_sizes[1], crop=hr_input_sizes[1]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/torchvision/resnet18_{hr_input_sizes_x[1]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None})
@@ -131,14 +142,14 @@ def get_configs(settings, work_dir):
         # torchvision: classification resnet50_224x224 expected_metric: 76.15% top-1 accuracy
         'cl-6111':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=hr_input_sizes[0], crop=hr_input_sizes[0]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/torchvision/resnet50_{hr_input_sizes_x[0]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':76.15})
         ),
         'cl-6112':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=hr_input_sizes[1], crop=hr_input_sizes[1]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/torchvision/resnet50_{hr_input_sizes_x[1]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':76.15})
@@ -146,14 +157,14 @@ def get_configs(settings, work_dir):
         # pycls: classification regnetx400mf_224x224 expected_metric: 72.7% top-1 accuracy
         'cl-6121':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True, resize=hr_input_sizes[0], crop=hr_input_sizes[0]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/fbr-pycls/regnetx-400mf_{hr_input_sizes_x[0]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None})
         ),
         'cl-6122':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True, resize=hr_input_sizes[1], crop=hr_input_sizes[1]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/fbr-pycls/regnetx-400mf_{hr_input_sizes_x[1]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None})
@@ -161,14 +172,14 @@ def get_configs(settings, work_dir):
         # pycls: classification regnetx800mf_224x224 expected_metric: 75.2% top-1 accuracy
         'cl-6131':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True, resize=hr_input_sizes[0], crop=hr_input_sizes[0]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/fbr-pycls/regnetx-800mf_{hr_input_sizes_x[0]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None})
         ),
         'cl-6132':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True, resize=hr_input_sizes[1], crop=hr_input_sizes[1]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/fbr-pycls/regnetx-800mf_{hr_input_sizes_x[1]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None})
@@ -176,14 +187,14 @@ def get_configs(settings, work_dir):
         # pycls: classification regnetx1.6gf_224x224 expected_metric: 77.0% top-1 accuracy
         'cl-6141':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True, resize=hr_input_sizes[0], crop=hr_input_sizes[0]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/fbr-pycls/regnetx-1.6gf_{hr_input_sizes_x[0]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None})
         ),
         'cl-6142':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True, resize=hr_input_sizes[1], crop=hr_input_sizes[1]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/fbr-pycls/regnetx-1.6gf_{hr_input_sizes_x[1]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None})

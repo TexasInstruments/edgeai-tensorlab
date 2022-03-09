@@ -30,6 +30,7 @@ import os
 import time
 import numpy as np
 import warnings
+import onnx
 import onnxruntime
 from .. import utils
 from .. import constants
@@ -39,6 +40,7 @@ from .basert_session import BaseRTSession
 class ONNXRTSession(BaseRTSession):
     def __init__(self, session_name=constants.SESSION_NAME_ONNXRT, **kwargs):
         super().__init__(session_name=session_name, **kwargs)
+        self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NCHW)
         self.interpreter = None
 
     def start(self):
@@ -56,8 +58,10 @@ class ONNXRTSession(BaseRTSession):
         # provide the calibration data and run the import
         for c_data in calib_data:
             input_keys = list(self.kwargs['input_shape'].keys())
-            if type(c_data) != tuple:
-                c_data = utils.as_tuple(c_data)
+            c_data = utils.as_tuple(c_data)
+            if self.input_normalizer is not None:
+                c_data, _ = self.input_normalizer(c_data, {})
+            #
             calib_dict = {d_name:d for d_name, d in zip(input_keys,c_data)}
             # model may need additional inputs given in extra_inputs
             if self.kwargs['extra_inputs'] is not None:
@@ -85,6 +89,9 @@ class ONNXRTSession(BaseRTSession):
         super().infer_frame(input, info_dict)
         input_keys = list(self.kwargs['input_shape'].keys())
         in_data = utils.as_tuple(input)
+        if self.input_normalizer is not None:
+            c_data, _ = self.input_normalizer(c_data, {})
+        #
         input_dict = {d_name:d for d_name, d in zip(input_keys,in_data)}
         # model needs additional inputs given in extra_inputs
         if self.kwargs['extra_inputs'] is not None:
@@ -104,6 +111,94 @@ class ONNXRTSession(BaseRTSession):
 
     def get_runtime_option(self, option, default=None):
         return self.kwargs["runtime_options"].get(option, default)
+
+    def optimize_model(self):
+        model_file = self.kwargs['model_file']
+        input_mean = self.kwargs['input_mean']
+        input_scale = self.kwargs['input_scale']
+        out_model_path = model_file
+        #Read Model
+        meanList = [x * -1 for x in input_mean]
+        scaleList = input_scale
+        model = onnx.load_model(model_file)
+        op = onnx.OperatorSetIdProto()
+        #Track orginal opset:
+        op.version = model.opset_import[0].version
+        #Get Graph:
+        originalGraph = model.graph
+        #Get Nodes:
+        originalNodes = originalGraph.node
+        #Get Initializers:
+        originalInitializers = originalGraph.initializer
+        #Create Lists
+        nodeList = [node for node in originalNodes]
+        initList = [init for init in originalInitializers]
+
+        nInCh = int(originalGraph.input[0].type.tensor_type.shape.dim[1].dim_value)
+
+        #Input & Output Dimensions:
+        inDims = tuple([x.dim_value for x in originalGraph.input[0].type.tensor_type.shape.dim])
+        outDims = tuple([x.dim_value for x in originalGraph.output[0].type.tensor_type.shape.dim])
+
+        #Construct bias & scale tensors
+        biasTensor = onnx.helper.make_tensor("TIDL_preProc_Bias",onnx.TensorProto.FLOAT,[1,nInCh, 1, 1],np.array(meanList,dtype=np.float32))
+        scaleTensor = onnx.helper.make_tensor("TIDL_preProc_Scale",onnx.TensorProto.FLOAT,[1, nInCh, 1, 1],np.array(scaleList,dtype=np.float32))
+
+        #Add these tensors to initList:
+        initList.append(biasTensor)
+        initList.append(scaleTensor)
+
+        #Cast Node:
+        attrib_dict = {"to":onnx.TensorProto.FLOAT}
+        cast = onnx.helper.make_node('Cast',inputs=[originalGraph.input[0].name+"Net_IN"],outputs=['TIDL_cast_in'], **attrib_dict)
+
+        #Add Node:
+        addNode = onnx.helper.make_node('Add',inputs=["TIDL_cast_in","TIDL_preProc_Bias"],outputs=["TIDL_Scale_In"])
+
+        #Scale Node:
+        scaleNode = onnx.helper.make_node('Mul',inputs=["TIDL_Scale_In","TIDL_preProc_Scale"],outputs=[originalGraph.input[0].name]) #Assumption that input[0].name is the input node
+
+        nodeList = [cast, addNode, scaleNode] + nodeList #Toplogically Sorted
+
+        outSequence = originalGraph.output
+        #Check for Argmax:
+        for node in nodeList:
+            if node.op_type == "ArgMax":
+                #Check if it is final output:
+                if node.output[0] == originalGraph.output[0].name:
+                    #Argmax Output is final output:
+                    attrib_dict_1 = {"to":TensorProto.UINT8}
+                    cast_out = onnx.helper.make_node('Cast',inputs=[originalGraph.output[0].name],outputs=[originalGraph.output[0].name+'TIDL_cast_out'], **attrib_dict_1)
+                    nodeList = nodeList + [cast_out] #Toplogically Sorted
+                    outSequence = [helper.make_tensor_value_info(originalGraph.output[0].name+'TIDL_cast_out', TensorProto.UINT8,outDims)]
+
+        #Construct Graph:
+        newGraph = onnx.helper.make_graph(
+            nodeList,
+            'Rev_Model',
+            [onnx.helper.make_tensor_value_info(originalGraph.input[0].name+"Net_IN", onnx.TensorProto.UINT8, inDims)],
+            outSequence,
+            initList
+            )
+        #Construct Model:
+        op.version = 11
+        model_def_noShape = onnx.helper.make_model(newGraph, producer_name='onnx-TIDL', opset_imports=[op])
+        model_def = onnx.shape_inference.infer_shapes(model_def_noShape)
+
+        try:
+            onnx.checker.check_model(model_def)
+        except onnx.checker.ValidationError as e:
+            print('Converted model is invalid: %s' % e)
+        else:
+            print('Converted model is valid!')
+            onnx.save_model(model_def, out_model_path)
+        #
+        
+        # set the mean and scale in kwarges to unity
+        for m_idx, _ in enumerate(self.kwargs['input_mean']):
+            self.kwargs['input_mean'] = 0.0
+            self.kwargs['input_scale'] = 1.0
+        #
 
     def _create_interpreter(self, is_import):
         # pass options to pybind

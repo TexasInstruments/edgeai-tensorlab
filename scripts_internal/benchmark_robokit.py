@@ -91,14 +91,17 @@ def create_configs(settings, work_dir):
     preproc_transforms = preprocess.PreProcessTransforms(settings)
     postproc_transforms = postprocess.PostProcessTransforms(settings)
 
+    jai_session_cfg = sessions.get_jai_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+
     pipeline_configs = {
         'ss-robokit1-qat': dict(
             task_type='segmentation',
             calibration_dataset=imageseg_robokit_calib_dataset,
             input_dataset=imageseg_robokit_val_dataset,
-            preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', mean=(128.0, 128.0, 128.0), scale=(0.015625, 0.015625, 0.015625), interpolation=cv2.INTER_AREA),
-            session=sessions.TVMDLRSession(
-                work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_tvmdlr_qat,
+            preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
+            session=sessions.TVMDLRSession(**jai_session_cfg,
+                runtime_options=runtime_options_tvmdlr_qat,
                 model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/robokit-zed1hd_deeplabv3lite_mobilenetv2_tv_768x432_qat-p2.onnx'),
             postprocess=postproc_transforms.get_transform_segmentation_onnx(),
             model_info=dict(metric_reference={'accuracy_mean_iou%':None})
@@ -107,9 +110,9 @@ def create_configs(settings, work_dir):
             task_type='segmentation',
             calibration_dataset=imageseg_robokit_calib_dataset,
             input_dataset=imageseg_robokit_val_dataset,
-            preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', mean=(128.0, 128.0, 128.0), scale=(0.015625, 0.015625, 0.015625), interpolation=cv2.INTER_AREA),
-            session=sessions.TVMDLRSession(
-                work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_tvmdlr,
+            preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
+            session=sessions.TVMDLRSession(**jai_session_cfg,
+                runtime_options=runtime_options_tvmdlr,
                 model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/robokit-zed1hd_deeplabv3lite_mobilenetv2_tv_768x432.onnx'),
             postprocess=postproc_transforms.get_transform_segmentation_onnx(),
             model_info=dict(metric_reference={'accuracy_mean_iou%':None})

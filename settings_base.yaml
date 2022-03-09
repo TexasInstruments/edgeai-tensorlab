@@ -84,6 +84,9 @@ dataset_loading : null
 # use TIDL offload to speedup inference
 tidl_offload : True
 
+# input optimization to improve FPS
+input_optimization : True
+
 # detection threshold
 detection_thr : 0.01
 

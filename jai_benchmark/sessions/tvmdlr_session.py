@@ -45,6 +45,7 @@ from ..import utils
 class TVMDLRSession(BaseRTSession):
     def __init__(self, session_name=constants.SESSION_NAME_TVMDLR, **kwargs):
         super().__init__(session_name=session_name, **kwargs)
+        self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NCHW)
         self.interpreter = None
         self.supported_devices = ('pc', 'j7')
         target_device = self.kwargs['target_device']
@@ -95,6 +96,9 @@ class TVMDLRSession(BaseRTSession):
         calib_list = []
         for c_data in calib_data:
             c_data = utils.as_tuple(c_data)
+            if self.input_normalizer is not None:
+                c_data, _ = self.input_normalizer(c_data, {})
+            #
             c_dict = {d_name:d for d_name, d in zip(input_keys,c_data)}
             calib_list.append(c_dict)
         #
@@ -174,6 +178,9 @@ class TVMDLRSession(BaseRTSession):
         input_shape = self.kwargs['input_shape']
         input_keys = list(input_shape.keys())
         in_data = utils.as_tuple(input)
+        if self.input_normalizer is not None:
+            in_data, _ = self.input_normalizer(in_data, {})
+        #
         input_dict = {d_name:d for d_name, d in zip(input_keys,in_data)}
         # measure the time across only interpreter.run
         # time for setting the tensor and other overheads would be optimized out in c-api
