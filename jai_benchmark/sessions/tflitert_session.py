@@ -29,7 +29,11 @@
 import os
 import time
 import warnings
+import copy
+import struct
 import numpy as np
+import flatbuffers
+import tflite_model
 import tflite_runtime.interpreter as tflitert_interpreter
 from .. import constants
 from .. import utils
@@ -101,7 +105,8 @@ class TFLiteRTSession(BaseRTSession):
         input_scale = self.kwargs['input_scale']
         out_model_path = model_file
         meanList = [x * -1 for x in input_mean]
-        modelBin = open(in_model_path, 'rb').read()
+        scaleList = input_scale
+        modelBin = open(model_file, 'rb').read()
         if modelBin is None:
             print(f'Error: Could not open file {in_model_path}')
             return
@@ -110,17 +115,17 @@ class TFLiteRTSession(BaseRTSession):
         modelT = tflite_model.Model.ModelT.InitFromObj(model)
 
         #Add operators needed for preprocessing:
-        setTensorProperties(modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].inputs[0]], tflite_model.TensorType.TensorType.UINT8, 1.0, 0)
-        mul_idx = addNewOperator(modelT, tflite_model.BuiltinOperator.BuiltinOperator.MUL)
-        add_idx = addNewOperator(modelT, tflite_model.BuiltinOperator.BuiltinOperator.ADD)
-        cast_idx = addNewOperator(modelT, tflite_model.BuiltinOperator.BuiltinOperator.CAST)
+        self._set_tensor_properties(modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].inputs[0]], tflite_model.TensorType.TensorType.UINT8, 1.0, 0)
+        mul_idx = self._add_new_operator(modelT, tflite_model.BuiltinOperator.BuiltinOperator.MUL)
+        add_idx = self._add_new_operator(modelT, tflite_model.BuiltinOperator.BuiltinOperator.ADD)
+        cast_idx = self._add_new_operator(modelT, tflite_model.BuiltinOperator.BuiltinOperator.CAST)
 
-        in_cast_idx = addNewOperator(modelT, tflite_model.BuiltinOperator.BuiltinOperator.CAST)
+        in_cast_idx = self._add_new_operator(modelT, tflite_model.BuiltinOperator.BuiltinOperator.CAST)
         #Find argmax in the network:
-        argMax_idx = getArgMax_idx(modelT)
+        argMax_idx = self._get_argmax_idx(modelT)
 
         #Create a tensor for the "ADD" operator:
-        bias_tensor = createTensor(modelT, tflite_model.TensorType.TensorType.FLOAT32, None, [modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].inputs[0]].shape[3]], bytearray(str("Preproc-bias"),'utf-8'))
+        bias_tensor = self._create_tensor(modelT, tflite_model.TensorType.TensorType.FLOAT32, None, [modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].inputs[0]].shape[3]], bytearray(str("Preproc-bias"),'utf-8'))
         #Create a new buffer to store mean values:
         new_buffer = copy.copy(modelT.buffers[modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].inputs[0]].buffer])
         new_buffer.data = struct.pack('%sf' % len(meanList), *meanList)
@@ -249,7 +254,34 @@ class TFLiteRTSession(BaseRTSession):
             self.kwargs['input_mean'] = 0.0
             self.kwargs['input_scale'] = 1.0
         #
-        
+
+    def _add_new_operator(self, modelT, operatorBuiltinCode):
+        new_op_code                       = copy.deepcopy(modelT.operatorCodes[0])
+        new_op_code.deprecatedBuiltinCode = operatorBuiltinCode
+        modelT.operatorCodes.append(new_op_code)
+        return (len(modelT.operatorCodes) - 1)
+
+    def _get_argmax_idx(self, modelT):
+        idx = 0
+        for op in modelT.operatorCodes:
+            if(op.deprecatedBuiltinCode == tflite_model.BuiltinOperator.BuiltinOperator.ARG_MAX):
+                break
+            idx = idx + 1
+        return idx
+
+    def _set_tensor_properties(self, tensor, dataType, scale, zeroPoint):
+        tensor.type                   = dataType
+        tensor.quantization.scale     = [scale]
+        tensor.quantization.zeroPoint = [zeroPoint]
+
+    def _create_tensor(self, modelT, dataType, quantization, tensorShape, tensorName):
+        newTensor              = copy.deepcopy(modelT.subgraphs[0].tensors[modelT.subgraphs[0].operators[0].inputs[0]])
+        newTensor.type         = dataType
+        newTensor.quantization = quantization
+        newTensor.shape        = tensorShape
+        newTensor.name         = tensorName
+        return newTensor
+
     def _create_interpreter(self, is_import):
         if self.kwargs['tidl_offload']:
             if is_import:
