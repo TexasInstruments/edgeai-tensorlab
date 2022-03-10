@@ -418,13 +418,13 @@ class BaseRTSession(utils.ParamsBase):
             from osrt_model_tools.onnx_tools import onnx_model_opt as onnxopt
             onnxopt.tidlOnnxModelOptimize(
                 model_file0, model_file0,
-                input_mean, input_scale)
+                input_scale, input_mean)
             optimization_done = True
         elif model_file0.endswith('.tflite'):
             from osrt_model_tools.tflite_tools import tflite_model_opt as tflopt
             tflopt.tidlTfliteModelOptimize(
                 model_file0, model_file0,
-                input_mean, input_scale)
+                input_scale, input_mean)
             optimization_done = True
         #
         return optimization_done
