@@ -178,6 +178,8 @@ class ConfigDict(dict):
         self.model_transformation_dict = None
         # include perfsim stats in the report or not
         self.report_perfsim = False
+        # input optimization to improve FPS
+        self.input_optimization = True
 
     def _parse_include_files(self, include_files, include_base_path):
         input_dict = {}

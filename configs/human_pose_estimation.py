@@ -52,7 +52,18 @@ def get_configs(settings, work_dir):
         'postprocess': postproc_transforms.get_transform_human_pose_estimation_onnx() 
     }
 
-    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device, tidl_offload=settings.tidl_offload)
+    common_session_cfg = sessions.get_common_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    onnx_session_cfg = sessions.get_onnx_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    jai_session_cfg = sessions.get_jai_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    mxnet_session_cfg = sessions.get_mxnet_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    tflite_session_cfg = sessions.get_tflite_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    tflite_quant_session_cfg = sessions.get_tflite_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
 
     pipeline_configs = {
         #################################################################
@@ -62,7 +73,7 @@ def get_configs(settings, work_dir):
         'kd-7000':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True,
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
                     'advanced_options:output_feature_16bit_names_list': first_last_layer['mobilenetv2_fpn_spp_udp']
                     }),
@@ -73,7 +84,7 @@ def get_configs(settings, work_dir):
         'kd-7010':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True,
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
-            session=onnx_session_type(**common_session_cfg, 
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['resnet50_fpn_spp_udp']
                         }),
@@ -84,7 +95,7 @@ def get_configs(settings, work_dir):
         'kd-7020':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True, 
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
-            session=onnx_session_type(**common_session_cfg, 
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['mobilenetv2_pan_spp_udp']
                         }),
@@ -95,7 +106,7 @@ def get_configs(settings, work_dir):
         'kd-7030':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True, 
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['resnet50_pan_spp_udp']
                         }),
@@ -103,8 +114,8 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':51.62})
         ),
         'kd-7040':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, mean=(0.0, 0.0, 0.0),  scale=(0.003921568627, 0.003921568627, 0.003921568627),  backend='cv2', pad_color=[114,114,114]),
-            session=onnx_session_type(**common_session_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True,  backend='cv2', pad_color=[114,114,114]),
+            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_mean=(0.0, 0.0, 0.0),  input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                         {'tensor_bits': 16,
                          'object_detection:meta_arch_type': 6,
@@ -117,8 +128,8 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':54.9})
         ),
         'kd-7050':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, mean=(0.0, 0.0, 0.0),  scale=(0.003921568627, 0.003921568627, 0.003921568627),  backend='cv2', pad_color=[114,114,114]),
-            session=onnx_session_type(**common_session_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
+            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_mean=(0.0, 0.0, 0.0),  input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                         {'object_detection:meta_arch_type': 6,
                          'object_detection:meta_layers_names_list': f'../edgeai-yolov5/pretrained_models/models/yolov5s6_640_ti_lite_pose/weights/yolov5s6_pose_640_ti_lite_metaarch.prototxt',
@@ -131,7 +142,7 @@ def get_configs(settings, work_dir):
         ),
 
         'kd-7060':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], mean=(0.0, 0.0, 0.0),  scale=(1.0, 1.0, 1.0),  backend='cv2', pad_color=[114,114,114]),
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                         {'object_detection:meta_arch_type': 6,

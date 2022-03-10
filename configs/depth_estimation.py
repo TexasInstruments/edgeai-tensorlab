@@ -45,7 +45,18 @@ def get_configs(settings, work_dir):
         'input_dataset': settings.dataset_cache['nyudepthv2']['input_dataset'],
     }
 
-    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device, tidl_offload=settings.tidl_offload)
+    common_session_cfg = sessions.get_common_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    onnx_session_cfg = sessions.get_onnx_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    jai_session_cfg = sessions.get_jai_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    mxnet_session_cfg = sessions.get_mxnet_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    tflite_session_cfg = sessions.get_tflite_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    tflite_quant_session_cfg = sessions.get_tflite_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
 
     postproc_depth_estimation_onnx = postproc_transforms.get_transform_depth_estimation_onnx()
 
@@ -55,8 +66,8 @@ def get_configs(settings, work_dir):
         #################mlperf models###################################
         # edgeai: segmentation - fpnlite_aspp_regnetx400mf_ade20k32_384x384_20210314-205347 expected_metric: 51.03% mean-iou
         'de-7300':utils.dict_update(nyudepthv2_cfg,
-            preprocess=preproc_transforms.get_transform_jai((246,246), (224,224), backend='cv2', interpolation=cv2.INTER_NEAREST, mean=(0, 0, 0), scale=(1/255, 1/255, 1/255)),
-            session=onnx_session_type(**common_session_cfg,
+            preprocess=preproc_transforms.get_transform_jai((246,246), (224,224), backend='cv2', interpolation=cv2.INTER_NEAREST),
+            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_mean=(0, 0, 0), input_scale=(1/255, 1/255, 1/255)),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':'233, 424'}),
                 model_path=f'{settings.models_path}/vision/depth_estimation/nyudepthv2/fast-depth/fast-depth.onnx'),
@@ -65,8 +76,8 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_delta_1%':77.1})
         ),
         'de-7310':utils.dict_update(nyudepthv2_cfg,
-            preprocess=preproc_transforms.get_transform_jai((256,256), (256,256), backend='cv2', interpolation=cv2.INTER_CUBIC, mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429)),
-            session=onnx_session_type(**common_session_cfg,
+            preprocess=preproc_transforms.get_transform_jai((256,256), (256,256), backend='cv2', interpolation=cv2.INTER_CUBIC),
+            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_mean=(123.675, 116.28, 103.53), input_scale=(0.017125, 0.017507, 0.017429)),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':'511, 983'}),
                 model_path=f'{settings.models_path}/vision/depth_estimation/nyudepthv2/MiDaS/midas-small.onnx'),

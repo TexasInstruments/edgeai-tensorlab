@@ -29,6 +29,8 @@
 import os
 import time
 import warnings
+import copy
+import struct
 import numpy as np
 import tflite_runtime.interpreter as tflitert_interpreter
 from .. import constants
@@ -39,6 +41,7 @@ from .basert_session import BaseRTSession
 class TFLiteRTSession(BaseRTSession):
     def __init__(self, session_name=constants.SESSION_NAME_TFLITERT, **kwargs):
         super().__init__(session_name=session_name, **kwargs)
+        self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NHWC)
         self.interpreter = None
 
     def import_model(self, calib_data, info_dict=None):
@@ -51,6 +54,9 @@ class TFLiteRTSession(BaseRTSession):
         output_details = self.interpreter.get_output_details()
         for c_data in calib_data:
             c_data = utils.as_tuple(c_data)
+            if self.input_normalizer is not None:
+                c_data, _ = self.input_normalizer(c_data, {})
+            #
             for c_data_entry_idx, c_data_entry in enumerate(c_data):
                 self._set_tensor(input_details[c_data_entry_idx], c_data_entry)
             #
@@ -71,6 +77,9 @@ class TFLiteRTSession(BaseRTSession):
         input_details = self.interpreter.get_input_details()
         output_details = self.interpreter.get_output_details()
         c_data = utils.as_tuple(input)
+        if self.input_normalizer is not None:
+            c_data, _ = self.input_normalizer(c_data, {})
+        #
         for c_data_entry_idx, c_data_entry in enumerate(c_data):
             self._set_tensor(input_details[c_data_entry_idx], c_data_entry)
         #

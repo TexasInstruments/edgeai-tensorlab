@@ -56,7 +56,18 @@ def get_configs(settings, work_dir):
         'input_dataset': settings.dataset_cache['coco']['input_dataset'],
     }
 
-    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device, tidl_offload=settings.tidl_offload)
+    common_session_cfg = sessions.get_common_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    onnx_session_cfg = sessions.get_onnx_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    jai_session_cfg = sessions.get_jai_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    mxnet_session_cfg = sessions.get_mxnet_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    tflite_session_cfg = sessions.get_tflite_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    tflite_quant_session_cfg = sessions.get_tflite_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
 
     postproc_detection_onnx = postproc_transforms.get_transform_detection_onnx()
     postproc_detection_tflite = postproc_transforms.get_transform_detection_tflite()
@@ -73,7 +84,7 @@ def get_configs(settings, work_dir):
         # for this model, layer 43 is forced to ddr - this is a temporary fix
         'od-8000':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((1200,1200), (1200,1200), backend='cv2'),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {'ti_internal_reserved_1': 43, 'object_detection:meta_arch_type': 3, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/mlperf/ssd_resnet34-ssd1200.prototxt'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_resnet34-ssd1200.onnx'),
             postprocess=postproc_transforms.get_transform_detection_onnx(reshape_list=[(-1,4), (-1,1), (-1,1)], squeeze_axis=None),
@@ -82,7 +93,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8020':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {'object_detection:meta_arch_type': 3, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_lite_512x512_20201214_model.prototxt'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_lite_512x512_20201214_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
@@ -91,7 +102,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8030':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {'object_detection:meta_arch_type': 3, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_model.prototxt'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
@@ -100,7 +111,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8040':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((320,320), (320,320), backend='cv2', reverse_channels=True),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), {'object_detection:meta_arch_type': 3, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-200mf_fpn_bgr_lite_320x320_20201010_model.prototxt'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-200mf_fpn_bgr_lite_320x320_20201010_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
@@ -109,7 +120,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8050':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2', reverse_channels=True),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), {'object_detection:meta_arch_type': 3, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_model.prototxt'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
@@ -118,7 +129,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8060':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((768,768), (768,768), backend='cv2'),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), {'object_detection:meta_arch_type': 3, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-1.6gf_fpn_bgr_lite_768x768_20200923_model.prototxt'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-1.6gf_fpn_bgr_lite_768x768_20200923_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
@@ -127,7 +138,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8070':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((416,416), (416,416), backend='cv2'),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                     {'object_detection:meta_arch_type': 4,
                                      'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov3_d53_relu_416x416_20210117_model.prototxt',
@@ -140,7 +151,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8080':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                     {'object_detection:meta_arch_type': 4,
                                      'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov3_regnetx-1.6gf_bgr_lite_512x512_20210202_model.prototxt',
@@ -153,7 +164,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8090':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {'object_detection:meta_arch_type': 5, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/retinanet_regnetx-800mf_fpn_bgr_lite_512x512_20200908_model.prototxt'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/retinanet_regnetx-800mf_fpn_bgr_lite_512x512_20200908_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
@@ -162,8 +173,8 @@ def get_configs(settings, work_dir):
         ),
         # yolov5 models - IMPORTANT - see licence of the repository edgeai-yolov5 before using this model
         'od-8100':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640,  resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
-            session=onnx_session_type(**common_session_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(640, 640,  resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
+            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                     {'object_detection:meta_arch_type': 6,
                                      'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/yolov5s6_640_ti_lite/weights/yolov5s6_640_ti_lite_metaarch.prototxt',
@@ -175,8 +186,8 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.4})
         ),
         'od-8110':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(384, 384,  resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
-            session=onnx_session_type(**common_session_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(384, 384,  resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
+            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                     {'object_detection:meta_arch_type': 6,
                                      'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/yolov5s6_384_ti_lite/weights/yolov5s6_384_ti_lite_metaarch.prototxt',
@@ -188,8 +199,8 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.8})
         ),
         'od-8120':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
-            session=onnx_session_type(**common_session_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
+            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                     {'object_detection:meta_arch_type': 6,
                                      'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/yolov5m6_640_ti_lite/weights/yolov5m6_640_ti_lite_metaarch.prototxt',
@@ -201,8 +212,8 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':44.1})
         ),
         'od-8130':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, mean=(0.0, 0.0, 0.0), scale=(0.003921568627, 0.003921568627, 0.003921568627), backend='cv2', pad_color=[114,114,114]),
-            session=onnx_session_type(**common_session_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
+            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                     {'object_detection:meta_arch_type': 6,
                                      'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/yolov5l6_640_ti_lite/weights/yolov5l6_640_ti_lite_metaarch.prototxt',
@@ -215,7 +226,7 @@ def get_configs(settings, work_dir):
         ),
         # yolox models
         'od-8140': utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], mean=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0), backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
@@ -228,7 +239,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 39.1})
         ),
         'od-8150': utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], mean=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0), backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                 {'object_detection:meta_arch_type': 6,
@@ -241,7 +252,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 45.5})
             ),
         'od-8180': utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], mean=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0), backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                         {'object_detection:meta_arch_type': 6,
@@ -254,7 +265,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 32.0})
             ),
         'od-8190': utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], mean=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0), backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                     {
@@ -272,7 +283,7 @@ def get_configs(settings, work_dir):
         # edgeai-torchvision models
         'od-8160':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                       {'object_detection:meta_arch_type': 3,
                                        'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-tv/ssdlite_mobilenet_v2_fpn_lite_512x512_20211015_dummypp.prototxt'
@@ -284,7 +295,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8170':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**onnx_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                       {'object_detection:meta_arch_type': 3,
                                        'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-tv/ssdlite_regnet_x_800mf_fpn_lite_20211030_dummypp.prototxt'
@@ -296,7 +307,7 @@ def get_configs(settings, work_dir):
         ),
         # yolox lite versions from edgeai-mmdet
         'od-8200':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], mean=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0), backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
@@ -309,7 +320,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 24.8})
         ),         
         'od-8210':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], mean=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0), backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
@@ -322,7 +333,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5})
         ),
         'od-8220':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], mean=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0), backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
@@ -335,7 +346,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 38.3})
         ),
         'od-8230':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], mean=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0), backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
@@ -354,7 +365,7 @@ def get_configs(settings, work_dir):
         # mxnet : gluoncv model : detection - yolo3_mobilenet1.0_coco - accuracy: 28.6% ap[0.5:0.95], 48.9% ap50
         'od-5020':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((416,416), (416,416), backend='cv2'),
-            session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
+            session=mxnet_session_type(**mxnet_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
                 model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-symbol.json',
                             f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,416,416)}),
@@ -365,7 +376,7 @@ def get_configs(settings, work_dir):
         # mxnet : gluoncv model : detection - ssd_512_resnet50_v1_coco - accuracy: 30.6% ap[0.5:0.95], 50.0% ap50
         'od-5030':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_p2(),
+            session=mxnet_session_type(**mxnet_session_cfg, runtime_options=settings.runtime_options_mxnet_p2(),
                 model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_resnet50_v1_coco-symbol.json',
                             f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_resnet50_v1_coco-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,512,512)}),
@@ -376,7 +387,7 @@ def get_configs(settings, work_dir):
         # mxnet : gluoncv model : detection - ssd_512_mobilenet1.0_coco - accuracy: 21.7% ap[0.5:0.95], 39.2% ap50
         'od-5040':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
+            session=mxnet_session_type(**mxnet_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
                 model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-symbol.json',
                             f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,512,512)}),
@@ -390,7 +401,7 @@ def get_configs(settings, work_dir):
         # mlperf edge: detection - ssd_mobilenet_v1_coco_2018_01_28 expected_metric: 23.0% ap[0.5:0.95] accuracy
         'od-2000':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((300,300), (300,300), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
+            session=tflite_session_type(**tflite_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_20180128.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
@@ -399,7 +410,7 @@ def get_configs(settings, work_dir):
         # mlperf mobile: detection - ssd_mobilenet_v2_coco_300x300 - expected_metric: 22.0% COCO AP[0.5-0.95]
         'od-2010':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((300,300), (300,300), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
+            session=tflite_session_type(**tflite_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v2_300_float.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
@@ -409,7 +420,7 @@ def get_configs(settings, work_dir):
         # tensorflow1.0 models: detection - ssdlite_mobiledet_dsp_320x320_coco_2020_05_19 expected_metric: 28.9% ap[0.5:0.95] accuracy
         'od-2020':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((320,320), (320,320), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
+            session=tflite_session_type(**tflite_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_20200519.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
@@ -418,7 +429,7 @@ def get_configs(settings, work_dir):
         # tensorflow1.0 models: detection - ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19 expected_metric: 25.9% ap[0.5:0.95] accuracy
         'od-2030':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((320,320), (320,320), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
+            session=tflite_session_type(**tflite_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_edgetpu_320x320_coco_20200519.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
@@ -427,7 +438,7 @@ def get_configs(settings, work_dir):
         # tensorflow1.0 models: detection - ssdlite_mobilenet_v2_coco_2018_05_09 expected_metric: 22.0% ap[0.5:0.95] accuracy
         'od-2060':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((300,300), (300,300), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
+            session=tflite_session_type(**tflite_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobilenet_v2_coco_20180509.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
@@ -435,7 +446,7 @@ def get_configs(settings, work_dir):
         ),
         'od-2050':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((640,640), (640,640), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
+            session=tflite_session_type(**tflite_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssd_mobilenet_v1_fpn_shared_box_predictor_640x640_coco14_sync_20180703.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
@@ -443,7 +454,7 @@ def get_configs(settings, work_dir):
         ),
         'od-2040':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((320,320), (320,320), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
+            session=tflite_session_type(**tflite_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssd_mobilenet_v2_mnasfpn_shared_box_predictor_320x320_coco_sync_20200518.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
@@ -451,7 +462,7 @@ def get_configs(settings, work_dir):
         ),
         'od-2070':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((640,640), (640,640), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
+            session=tflite_session_type(**tflite_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_mobilenet_v1_fpn_640x640_coco17_tpu-8.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
@@ -459,7 +470,7 @@ def get_configs(settings, work_dir):
         ),
         'od-2080':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((320,320), (320,320), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
+            session=tflite_session_type(**tflite_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
@@ -467,7 +478,7 @@ def get_configs(settings, work_dir):
         ),
         'od-2090':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((640,640), (640,640), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
+            session=tflite_session_type(**tflite_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
@@ -475,15 +486,15 @@ def get_configs(settings, work_dir):
         ),
         'od-2100':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((640,640), (640,640), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
+            session=tflite_session_type(**tflite_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':34.3})
         ),
         'od-2110':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_tflite((512,512), (512,512), backend='cv2',mean=(123.675, 116.28, 103.53), scale=(0.01712475, 0.017507, 0.01742919)),
-            session=tflite_session_type(**common_session_cfg,
+            preprocess=preproc_transforms.get_transform_tflite((512,512), (512,512), backend='cv2'),
+            session=tflite_session_type(**utils.dict_update(tflite_session_cfg, input_mean=(123.675, 116.28, 103.53), input_scale=(0.01712475, 0.017507, 0.01742919)),
                 runtime_options=utils.dict_update(runtime_options_tflite_np2, {'object_detection:meta_arch_type': 5, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/google-automl/efficientdet-lite0_bifpn_maxpool2x2_relu_ti-lite.prototxt'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/google-automl/efficientdet-lite0_bifpn_maxpool2x2_relu_ti-lite.tflite'),
             postprocess=postproc_detection_efficientdet_ti_lite_tflite,
@@ -494,15 +505,15 @@ def get_configs(settings, work_dir):
         # https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md
         'od-2130':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((300,300), (300,300), backend='cv2'),
-            session=tflite_session_type(**common_session_cfg, runtime_options=runtime_options_tflite_np2,
+            session=tflite_session_type(**tflite_session_cfg, runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_mobilenet_v2_320x320_coco17_tpu-8.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':20.2})
         ),
         'od-2150': utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_tflite((384, 384), (384, 384), resize_with_pad=True, backend='cv2', mean=(127.0,  127.0,  127.0), scale=(0.0078125, 0.0078125, 0.0078125), pad_color=[127,127,127]),
-            session=tflite_session_type(**common_session_cfg,
+            preprocess=preproc_transforms.get_transform_tflite((384, 384), (384, 384), resize_with_pad=True, backend='cv2', pad_color=[127,127,127]),
+            session=tflite_session_type(**utils.dict_update(tflite_session_cfg, input_mean=(127.0,  127.0,  127.0), input_scale=(0.0078125, 0.0078125, 0.0078125)),
                 runtime_options=utils.dict_update(runtime_options_tflite_np2,
                                                   {'object_detection:meta_arch_type': 5,
                                                    'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/google-automl/efficientdet_lite1_relu.prototxt',
@@ -515,8 +526,8 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 31.79})
         ),
         'od-2170': utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_tflite((512, 512), (512, 512), resize_with_pad=True, backend='cv2', mean=(127.0, 127.0, 127.0), scale=(0.0078125, 0.0078125, 0.0078125), pad_color=[127,127,127]),
-            session=tflite_session_type(**common_session_cfg,
+            preprocess=preproc_transforms.get_transform_tflite((512, 512), (512, 512), resize_with_pad=True, backend='cv2', pad_color=[127,127,127]),
+            session=tflite_session_type(**utils.dict_update(tflite_session_cfg, input_mean=(127.0,  127.0,  127.0), input_scale=(0.0078125, 0.0078125, 0.0078125)),
                 runtime_options=utils.dict_update(runtime_options_tflite_np2,
                                                   {'object_detection:meta_arch_type': 5,
                                                    'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/google-automl/efficientdet_lite3_relu.prototxt',

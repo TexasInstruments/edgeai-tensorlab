@@ -60,3 +60,44 @@ def get_session_type(session_name):
 def get_session_name_to_type_dict():
     return session_name_to_type_dict
 
+
+# these are some example session configs
+# the actual config will vary depending on the parameters used to train the model
+def get_common_session_cfg(work_dir=None, target_device=None, tidl_offload=None,
+                           input_optimization=True, input_data_layout=constants.NCHW,
+                           input_mean=(0.0, 0.0, 0.0), input_scale=(1.0, 1.0, 1.0), **kwargs):
+    common_session_cfg = dict(work_dir=work_dir, target_device=target_device, tidl_offload=tidl_offload,
+                              input_optimization=input_optimization, input_data_layout=input_data_layout,
+                              input_mean=input_mean, input_scale=input_scale,
+                              **kwargs)
+    return common_session_cfg
+
+def get_onnx_session_cfg(input_optimization=True, input_data_layout=constants.NCHW,
+                 input_mean=(123.675, 116.28, 103.53), input_scale=(0.017125, 0.017507, 0.017429), **kwargs):
+    session_cfg = get_common_session_cfg(input_optimization=input_optimization, input_data_layout=input_data_layout,
+                 input_mean=input_mean, input_scale=input_scale, **kwargs)
+    return session_cfg
+
+def get_jai_session_cfg(input_optimization=True, input_data_layout=constants.NCHW,
+                 input_mean=(128.0, 128.0, 128.0), input_scale=(1/64.0, 1/64.0, 1/64.0), **kwargs):
+    session_cfg = get_common_session_cfg(input_optimization=input_optimization, input_data_layout=input_data_layout,
+                 input_mean=input_mean, input_scale=input_scale, **kwargs)
+    return session_cfg
+
+def get_mxnet_session_cfg(input_optimization=True, input_data_layout=constants.NCHW,
+                  input_mean=(123.675, 116.28, 103.53), input_scale=(0.017125, 0.017507, 0.017429), **kwargs):
+    session_cfg = get_common_session_cfg(input_optimization=input_optimization, input_data_layout=input_data_layout,
+                 input_mean=input_mean, input_scale=input_scale, **kwargs)
+    return session_cfg
+
+def get_tflite_session_cfg(input_optimization=True, input_data_layout=constants.NCHW,
+                 input_mean=(128.0, 128.0, 128.0), input_scale=(1/128.0, 1/128.0, 1/128.0), **kwargs):
+    session_cfg = get_common_session_cfg(input_optimization=input_optimization, input_data_layout=input_data_layout,
+                 input_mean=input_mean, input_scale=input_scale, **kwargs)
+    return session_cfg
+
+def get_tflite_quant_session_cfg(input_optimization=False, input_data_layout=constants.NCHW,
+                 input_mean=(0.0, 0.0, 0.0), input_scale=(1.0, 1.0, 1.0), **kwargs):
+    session_cfg = get_common_session_cfg(input_optimization=input_optimization, input_data_layout=input_data_layout,
+                 input_mean=input_mean, input_scale=input_scale, **kwargs)
+    return session_cfg

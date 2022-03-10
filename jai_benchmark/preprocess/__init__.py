@@ -49,14 +49,14 @@ class PreProcessTransforms(utils.TransformsCompose):
     # preprocess transforms
     ###############################################################
     def get_transform_base(self, resize, crop, data_layout, reverse_channels,
-                         backend, interpolation, resize_with_pad, mean, scale,
+                         backend, interpolation, resize_with_pad,
                          add_flip_image=False, pad_color=0):
         transforms_list = [
             ImageRead(backend=backend),
             ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
             ImageCenterCrop(crop),
-            ImageToNPTensor4D(data_layout=data_layout),
-            ImageNormMeanScale(mean=mean, scale=scale, data_layout=data_layout)]
+            ImageToNPTensor4D(data_layout=data_layout)
+        ]
         if reverse_channels:
             transforms_list = transforms_list + [NPTensor4DChanReverse(data_layout=data_layout)]
         if add_flip_image:
@@ -66,40 +66,35 @@ class PreProcessTransforms(utils.TransformsCompose):
                                           resize=resize, crop=crop,
                                           data_layout=data_layout, reverse_channels=reverse_channels,
                                           backend=backend, interpolation=interpolation,
-                                          mean=mean, scale=scale, add_flip_image=add_flip_image, resize_with_pad=resize_with_pad, pad_color=pad_color)
+                                          add_flip_image=add_flip_image, resize_with_pad=resize_with_pad, pad_color=pad_color)
         return transforms
 
     def get_transform_onnx(self, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
                          backend='pil', interpolation=None, resize_with_pad=False,
-                         mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429), add_flip_image=False, pad_color=0):
+                         add_flip_image=False, pad_color=0):
         transforms = self.get_transform_base(resize=resize, crop=crop, data_layout=data_layout,
                                       reverse_channels=reverse_channels, backend=backend, interpolation=interpolation,
-                                      resize_with_pad=resize_with_pad, mean=mean, scale=scale, add_flip_image=add_flip_image, pad_color=pad_color)
+                                      resize_with_pad=resize_with_pad, add_flip_image=add_flip_image, pad_color=pad_color)
         return transforms
 
     def get_transform_jai(self, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
-                        backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False,
-                        mean=(128.0, 128.0, 128.0), scale=(1/64.0, 1/64.0, 1/64.0)):
+                        backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False):
         return self.get_transform_base(resize=resize, crop=crop, data_layout=data_layout, reverse_channels=reverse_channels,
-                                backend=backend, interpolation=interpolation, resize_with_pad=resize_with_pad,
-                                mean=mean, scale=scale)
+                                backend=backend, interpolation=interpolation, resize_with_pad=resize_with_pad)
 
     def get_transform_mxnet(self, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
-                        backend='cv2', interpolation=None, resize_with_pad=False,
-                        mean=(123.675, 116.28, 103.53), scale=(0.017125, 0.017507, 0.017429)):
+                        backend='cv2', interpolation=None, resize_with_pad=False):
         return self.get_transform_base(resize=resize, crop=crop, data_layout=data_layout, reverse_channels=reverse_channels,
-                                backend=backend, interpolation=interpolation, resize_with_pad=resize_with_pad,
-                                mean=mean, scale=scale)
+                                backend=backend, interpolation=interpolation, resize_with_pad=resize_with_pad)
 
     def get_transform_tflite(self, resize=256, crop=224, data_layout=constants.NHWC, reverse_channels=False,
-                              backend='pil', interpolation=None, resize_with_pad=False,
-                              mean=(128.0, 128.0, 128.0), scale=(1/128.0, 1/128.0, 1/128.0), pad_color=0):
+                              backend='pil', interpolation=None, resize_with_pad=False, pad_color=0):
         return self.get_transform_base(resize=resize, crop=crop, data_layout=data_layout, reverse_channels=reverse_channels,
                                 backend=backend, interpolation=interpolation, resize_with_pad=resize_with_pad,
-                                mean=mean, scale=scale, pad_color=pad_color)
+                                pad_color=pad_color)
 
-    def get_transform_tflite_quant(self, *args, mean=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0), **kwargs):
-        return self.get_transform_tflite(*args, mean=mean, scale=scale, **kwargs)
+    def get_transform_tflite_quant(self, *args, **kwargs):
+        return self.get_transform_tflite(*args, **kwargs)
 
     def get_transform_lidar_base(self):
         transforms_list = [

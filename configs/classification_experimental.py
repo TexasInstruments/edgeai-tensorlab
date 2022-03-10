@@ -46,7 +46,18 @@ def get_configs(settings, work_dir):
         'postprocess': postproc_transforms.get_transform_classification()
     }
 
-    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device, tidl_offload=settings.tidl_offload)
+    common_session_cfg = sessions.get_common_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    onnx_session_cfg = sessions.get_onnx_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    jai_session_cfg = sessions.get_jai_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    mxnet_session_cfg = sessions.get_mxnet_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    tflite_session_cfg = sessions.get_tflite_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    tflite_quant_session_cfg = sessions.get_tflite_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
 
     pipeline_configs = {
         #################################################################
@@ -55,21 +66,23 @@ def get_configs(settings, work_dir):
         # # torchvision: classification vgg16_224x224 expected_metric: 71.59% top-1 accuracy - too slow inference
         # 'cl-6370':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(),
-        #     session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
+        #     session=onnx_session_type(**onnx_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
         #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/vgg16.onnx'),
         #     model_info=dict(metric_reference={'accuracy_top1%':71.59})
         # ),
         # jai-devkit: classification mobilenetv3_large_lite qat expected_metric: 71.614% top-1 accuracy
         'cl-6508':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_qat(),
+            session=onnx_session_type(**onnx_session_cfg,
+                runtime_options=settings.runtime_options_onnx_qat(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_qat-p2_20210507.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.614})
         ),
         # jai-devkit: classification mobilenetv3_large_lite_x2r expected_metric: 74.160% top-1 accuracy
         'cl-6510':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_p2(),
+            session=onnx_session_type(**onnx_session_cfg,
+                runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_x2r_20210522.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':74.160})
         ),
@@ -77,7 +90,8 @@ def get_configs(settings, work_dir):
         # github onnx model: classification resnet18_v2 expected_metric: 69.70% top-1 accuracy
         'cl-6000':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**common_session_cfg, runtime_options=settings.runtime_options_onnx_np2(),
+            session=onnx_session_type(**onnx_session_cfg,
+                runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/onnx-models/resnet18-v2-7.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':69.70})
         ),
@@ -87,7 +101,8 @@ def get_configs(settings, work_dir):
         # mxnet : gluoncv model : classification - hrnet_w30_c - - reference accuracy: is from hrnet website, not from gluoncv
         'cl-3510':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(backend='cv2'),
-            session=mxnet_session_type(**common_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
+            session=mxnet_session_type(**onnx_session_cfg,
+                runtime_options=settings.runtime_options_mxnet_np2(),
                 model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/hrnet_w30_c-symbol.json',
                             f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/hrnet_w30_c-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,224,224)}),
@@ -99,7 +114,8 @@ def get_configs(settings, work_dir):
         # tensorflow/models: classification mobilenetv2_224x224 quant expected_metric: 70.8% top-1 accuracy
         'cl-0018':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite_quant(),
-            session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
+            session=tflite_session_type(**tflite_quant_session_cfg,
+                runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_1.0_224_quant.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':70.8})
@@ -107,7 +123,8 @@ def get_configs(settings, work_dir):
         # tf hosted models: classification nasnet mobile expected_metric: 73.9% top-1 accuracy
         'cl-0240':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
-            session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
+            session=tflite_session_type(**tflite_session_cfg,
+                runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/nasnet_mobile.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':73.9})
@@ -115,15 +132,17 @@ def get_configs(settings, work_dir):
         # # tensorflow/tpu: classification efficinetnet-lite2_260x260 expected_metric: 77.6% top-1 accuracy
         # 'cl-0180':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_tflite(297, 260),
-        #     session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
+        #     session=tflite_session_type(**tflite_session_cfg,
+        #         runtime_options=settings.runtime_options_tflite_np2(),
         #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite2-fp32.tflite'),
         #     model_info=dict(metric_reference={'accuracy_top1%':77.6})
         # ),
         # ##################tf2-models#####################################################
         # # tf2_models: classification xception expected_metric: 79.0% top-1 accuracy
         # 'cl-0250':utils.dict_update(common_cfg,
-        #     preprocess=preproc_transforms.get_transform_tflite(342, 299),
-        #     session=tflite_session_type(**common_session_cfg, runtime_options=settings.runtime_options_tflite_np2(),
+        #     preprocess=preproc_transforms.tflite_session_cfg(342, 299),
+        #     session=tflite_session_type(**common_session_cfg,
+        #         runtime_options=settings.runtime_options_tflite_np2(),
         #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf2-models/xception.tflite'),
         #     model_info=dict(metric_reference={'accuracy_top1%':79.0})
         # ),

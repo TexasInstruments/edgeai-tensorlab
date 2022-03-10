@@ -30,6 +30,7 @@ import os
 import time
 import numpy as np
 import warnings
+import onnx
 import onnxruntime
 from .. import utils
 from .. import constants
@@ -39,6 +40,7 @@ from .basert_session import BaseRTSession
 class ONNXRTSession(BaseRTSession):
     def __init__(self, session_name=constants.SESSION_NAME_ONNXRT, **kwargs):
         super().__init__(session_name=session_name, **kwargs)
+        self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NCHW)
         self.interpreter = None
 
     def start(self):
@@ -56,8 +58,10 @@ class ONNXRTSession(BaseRTSession):
         # provide the calibration data and run the import
         for c_data in calib_data:
             input_keys = list(self.kwargs['input_shape'].keys())
-            if type(c_data) != tuple:
-                c_data = utils.as_tuple(c_data)
+            c_data = utils.as_tuple(c_data)
+            if self.input_normalizer is not None:
+                c_data, _ = self.input_normalizer(c_data, {})
+            #
             calib_dict = {d_name:d for d_name, d in zip(input_keys,c_data)}
             # model may need additional inputs given in extra_inputs
             if self.kwargs['extra_inputs'] is not None:
@@ -85,6 +89,9 @@ class ONNXRTSession(BaseRTSession):
         super().infer_frame(input, info_dict)
         input_keys = list(self.kwargs['input_shape'].keys())
         in_data = utils.as_tuple(input)
+        if self.input_normalizer is not None:
+            c_data, _ = self.input_normalizer(c_data, {})
+        #
         input_dict = {d_name:d for d_name, d in zip(input_keys,in_data)}
         # model needs additional inputs given in extra_inputs
         if self.kwargs['extra_inputs'] is not None:

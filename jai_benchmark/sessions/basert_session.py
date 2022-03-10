@@ -39,6 +39,7 @@ import numpy as np
 import tarfile
 from .. import utils
 from .. import constants
+from ..preprocess.transforms import ImageNormMeanScale
 
 
 class BaseRTSession(utils.ParamsBase):
@@ -50,6 +51,7 @@ class BaseRTSession(utils.ParamsBase):
         self.is_started = False
         self.is_imported = False
         self.is_start_infer_done = False
+        self.input_normalizer = None
 
         # set tidl_offload to False to disable offloading to TIDL
         self.kwargs['tidl_offload'] = self.kwargs.get('tidl_offload', True)
@@ -76,6 +78,10 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['output_shape'] = self.kwargs.get('output_shape', None)
         self.kwargs['num_inputs'] = self.kwargs.get('num_inputs', 1)
         self.kwargs['extra_inputs'] = self.kwargs.get('extra_inputs', None)
+        # parameters for input optimization
+        self.kwargs['input_optimization'] = self.kwargs.get('input_optimization', None)
+        self.kwargs['input_mean'] = self.kwargs.get('input_mean', None)
+        self.kwargs['input_scale'] = self.kwargs.get('input_scale', None)
 
         # other parameters
         self.kwargs['tensor_bits'] = self.kwargs.get('tensor_bits', 8)
@@ -126,7 +132,7 @@ class BaseRTSession(utils.ParamsBase):
         # create run_dir
         os.makedirs(self.kwargs['run_dir'], exist_ok=True)
         os.makedirs(self.kwargs['model_folder'], exist_ok=True)
-        self._get_model()
+        self.get_model()
         self.is_started = True
 
     def import_model(self, calib_data, info_dict=None):
@@ -351,7 +357,7 @@ class BaseRTSession(utils.ParamsBase):
         run_dir = os.path.join(work_dir, f'{run_name}')
         return run_dir
 
-    def _get_model(self):
+    def get_model(self):
         model_folder = self.kwargs['model_folder']
 
         # download the file if it is an http or https link
@@ -385,6 +391,43 @@ class BaseRTSession(utils.ParamsBase):
             # write the local path
             self.kwargs['runtime_options'][od_meta_names_key] = meta_file
         #
+        # optimize the model to speedup inference.
+        # for example, the input of the model can be converted to 8bit and mean/scale can be moved inside the model
+        optimization_done = False
+        if self.kwargs['input_optimization'] and self.kwargs['tensor_bits'] == 8:
+            optimization_done = self._optimize_model()
+        #
+        if optimization_done:
+            # set the mean and scale in kwarges to unity
+            self.kwargs['input_mean'] = tuple([0.0 for _ in self.kwargs['input_mean']])
+            self.kwargs['input_scale'] = tuple([1.0 for _ in self.kwargs['input_scale']])
+        else:
+            # mean scale could not be absorbed inside the model - do it explicitly
+            self.input_normalizer = ImageNormMeanScale(
+                self.kwargs['input_mean'], self.kwargs['input_scale'],
+                self.kwargs['input_data_layout'])
+        #
+
+    def _optimize_model(self):
+        model_file = self.kwargs['model_file']
+        model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
+        input_mean = self.kwargs['input_mean']
+        input_scale = self.kwargs['input_scale']
+        optimization_done = False
+        if model_file0.endswith('.onnx'):
+            from osrt_model_tools.onnx_tools import onnx_model_opt as onnxopt
+            onnxopt.tidlOnnxModelOptimize(
+                model_file0, model_file0,
+                input_scale, input_mean)
+            optimization_done = True
+        elif model_file0.endswith('.tflite'):
+            from osrt_model_tools.tflite_tools import tflite_model_opt as tflopt
+            tflopt.tidlTfliteModelOptimize(
+                model_file0, model_file0,
+                input_scale, input_mean)
+            optimization_done = True
+        #
+        return optimization_done
 
     def _set_default_options(self):
         assert False, 'this function must be overridden in the derived class'
