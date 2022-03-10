@@ -14,3 +14,4 @@ munkres
 #git+https://github.com/yogin16/prototxt_parser.git
 h5py
 scipy
+pillow

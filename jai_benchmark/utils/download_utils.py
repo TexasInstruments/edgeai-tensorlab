@@ -453,7 +453,7 @@ def download_and_extract_archive(
     else:
         fpath = url
     #
-    if _is_archive(fpath):
+    if os.path.exists(fpath) and _is_archive(fpath):
         fpath = extract_archive(fpath, extract_root, remove_finished, mode=mode)
     #
     if len(url_files) > 1:

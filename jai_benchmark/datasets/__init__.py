@@ -60,7 +60,7 @@ dataset_info_dict = {
     'imagenet-resized-64x64':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetResized64x64Cls, 'size':50000, 'split':'val'},
     #------------------------object detection datasets--------------------------#
     'coco': {'task_type':'detection', 'category':'coco', 'type':COCODetection, 'size':5000, 'split':'val2017'},
-    'widerface': {'task_type':'detection', 'category':'widerface', 'type':WiderFaceDetection, 'size':None, 'split':'val'},
+    'widerface': {'task_type':'detection', 'category':'widerface', 'type':WiderFaceDetection, 'size':3226, 'split':'val'},
     #------------------------semantic segmentation datasets--------------------------#
     'ade20k32': {'task_type':'segmentation', 'category':'ade20k32', 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
     'ade20k': {'task_type':'segmentation', 'category':'ade20k', 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
@@ -191,7 +191,7 @@ def get_datasets(settings, download=False):
             path=f'{settings.datasets_path}/widerface',
             split='val',
             shuffle=False, # can be set to True as well, if needed
-            num_frames=min(settings.num_frames,5000),
+            num_frames=min(settings.num_frames,3226),
             name='widerface')
         dataset_cache['widerface']['calibration_dataset'] = WiderFaceDetection(**widerface_det_calib_cfg, download=download)
         dataset_cache['widerface']['input_dataset'] = WiderFaceDetection(**widerface_det_val_cfg, download=False)

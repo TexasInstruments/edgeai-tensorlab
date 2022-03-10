@@ -48,6 +48,7 @@ import tempfile
 import numpy as np
 from colorama import Fore
 import datetime
+import PIL
 
 from .. import utils
 from .dataset_base import *
@@ -57,7 +58,8 @@ __all__ = ['WiderFaceDetection', 'widerfacedet_det_label_offset_1to1']
 
 
 class WiderFaceDetection(coco_det.COCODetection):
-    def __init__(self, num_classes=1, download=False, image_dir=None, annotation_file=None, **kwargs):
+    def __init__(self, num_classes=1, download=False, image_dir=None, annotation_file=None, verbose_mode=True, **kwargs):
+        self.verbose_mode = verbose_mode
         if image_dir is None or annotation_file is None:
             self.force_download = True if download == 'always' else False
             assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
@@ -81,7 +83,7 @@ class WiderFaceDetection(coco_det.COCODetection):
             self.image_dir = image_dir
             self.annotation_file = annotation_file
         #
-        with open(annotation_file) as afp:
+        with open(self.annotation_file) as afp:
             dataset_store = json.load(afp)
         #
         categories = dataset_store['categories']
@@ -146,7 +148,7 @@ class WiderFaceDetection(coco_det.COCODetection):
         num_annotations = 0
         image_id = 0
         for image_path, anno_path, split_name in zip(image_paths, anno_paths, split_names):
-            images_folder = os.path.join(path, split)
+            images_folder = os.path.join(path, split_name)
             annotations_folder = os.path.join(path, 'annotations')
             # prepare the dataset folder
             os.makedirs(images_folder, exist_ok=True)
@@ -213,7 +215,7 @@ class WiderFaceDetection(coco_det.COCODetection):
                 annotations_img = []
                 anno_bboxes = anno_bboxes[:max_annotations_per_image]
                 for object_anno_id, object_anno in enumerate(anno_bboxes):
-                    category_id = widerface_categories[0]['id'] # there is only one category
+                    category_id = categories_list[0]['id'] # there is only one category
                     # object_anno: x, y, width, height
                     annotation_info = {
                         'id': image_id * max_annotations_per_image + object_anno_id,
@@ -230,7 +232,7 @@ class WiderFaceDetection(coco_det.COCODetection):
                 image_count_split += 1
                 image_id += 1
             #
-            if state.common.verbose_mode:
+            if self.verbose_mode:
                 print(f'dataset load: split_name={split_name} image_count={image_count_split}')
             #
             dataset_store['annotations'] = annotations
@@ -249,12 +251,12 @@ class WiderFaceDetection(coco_det.COCODetection):
         return root
 
 
-def widerfacedet_det_label_offset_1to1(label_offset=1):
-    coco_label_table = range(1)
+def widerfacedet_det_label_offset_1to1(label_offset=1, num_classes=1):
+    coco_label_table = range(1,num_classes+1)
     if label_offset == 1:
         # 0 => 1, 1 => 2, .. 90 => 91
         coco_label_offset = {k:v for k,v in enumerate(coco_label_table)}
-        coco_label_offset.update({-1:0,90:91})
+        coco_label_offset.update({-1:0,num_classes:(num_classes+1)})
     elif label_offset == 0:
         # 0 => 0, 1 => 1, .. 90 => 90
         coco_label_offset = {(k+1):v for k,v in enumerate(coco_label_table)}
