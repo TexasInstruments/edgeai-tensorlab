@@ -104,7 +104,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_s_lite_640x640_20220307_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.widerfacedet_det_label_offset_1to1(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None})
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 31.62})
         ),
     }
     return pipeline_configs
