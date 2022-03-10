@@ -78,6 +78,7 @@ from . import model_utils
 
 
 def download_file(url, root=None, extract_root=None, filename=None, md5=None, mode=None, force_download=False, force_linkfile=True):
+    fpath = None
     if not isinstance(url, str):
         return url
     #
@@ -97,13 +98,29 @@ def download_file(url, root=None, extract_root=None, filename=None, md5=None, mo
             #
         #
     #
-    if isinstance(url, str) and (url.startswith('http://') or url.startswith('https://')):
-        fpath = download_and_extract_archive(url, root, extract_root=extract_root, filename=filename,
-                                             md5=md5, mode=mode,force_download=force_download)
-    else:
-        fpath = url
-    #
+    fpath = download_and_extract_archive(url, root, extract_root=extract_root, filename=filename,
+                                         md5=md5, mode=mode,force_download=force_download)
     return fpath
+
+
+def download_files(dataset_urls, root, extract_root=None, save_filenames=None):
+    dataset_urls = dataset_urls if isinstance(dataset_urls, (list,tuple)) else [dataset_urls]
+    save_filenames = save_filenames if isinstance(save_filenames, (list,tuple)) else \
+        ([None]*len(dataset_urls) if save_filenames is None else [save_filenames])
+
+    download_paths = []
+    for dataset_url_id, (dataset_url, save_filename) in enumerate(zip(dataset_urls, save_filenames)):
+        print(f'Downloading {dataset_url_id+1}/{len(dataset_urls)}: {dataset_url}')
+        download_path = download_file(dataset_url, root=root, extract_root=extract_root,
+                                      filename=save_filename)
+        if download_path is not None:
+            print(f'Download done for {dataset_url}')
+        else:
+            print(f'Download failed for {dataset_url} {str(message)}')
+        #
+        download_paths.append(download_path)
+    #
+    return download_paths
 
 
 def gen_bar_updater() -> Callable[[int, int, int], None]:
@@ -431,7 +448,11 @@ def download_and_extract_archive(
         # basename may contain http arguments after a ?. skip them
         filename = os.path.basename(url).split('?')[0]
     #
-    fpath = download_url(url, download_root, filename, md5, force_download=force_download)
+    if isinstance(url, str) and (url.startswith('http://') or url.startswith('https://')):
+        fpath = download_url(url, download_root, filename, md5, force_download=force_download)
+    else:
+        fpath = url
+    #
     if _is_archive(fpath):
         fpath = extract_archive(fpath, extract_root, remove_finished, mode=mode)
     #

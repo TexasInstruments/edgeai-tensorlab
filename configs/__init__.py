@@ -34,6 +34,7 @@ from jai_benchmark.pipelines.pipeline_runner import PipelineRunner
 
 from . import classification
 from . import detection
+from . import face_detection
 from . import segmentation
 from . import human_pose_estimation
 from . import depth_estimation
@@ -50,6 +51,7 @@ def get_configs(settings, work_dir):
     # merge all the config dictionaries
     pipeline_configs.update(classification.get_configs(settings, work_dir))
     pipeline_configs.update(detection.get_configs(settings, work_dir))
+    pipeline_configs.update(face_detection.get_configs(settings, work_dir))
     pipeline_configs.update(segmentation.get_configs(settings, work_dir))
     pipeline_configs.update(human_pose_estimation.get_configs(settings,work_dir))
     pipeline_configs.update(depth_estimation.get_configs(settings,work_dir))
