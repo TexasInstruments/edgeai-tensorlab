@@ -133,7 +133,7 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                         {'object_detection:meta_arch_type': 6,
                          'object_detection:meta_layers_names_list': f'../edgeai-yolov5/pretrained_models/models/yolov5s6_640_ti_lite_pose/weights/yolov5s6_pose_640_ti_lite_metaarch.prototxt',
-                        'advanced_options:output_feature_16bit_names_list': '176, 258,267, 335,333,328,326,349,347,342,340,363,361,356,354,377,375,370,368,  380,819,1258,1697',
+                         'advanced_options:output_feature_16bit_names_list': '176, 258,267, 335,333,328,326,349,347,342,340,363,361,356,354,377,375,370,368,  380,819,1258,1697',
                          "advanced_options:add_data_convert_ops" : 0,
                         }),
                 model_path=f'../edgeai-yolov5/pretrained_models/models/yolov5s6_640_ti_lite_pose/weights/yolov5s6_pose_640_ti_lite_54p9_82p2.onnx'),

@@ -171,7 +171,6 @@ model_id_artifacts_pair = {
     'cl-3500_tvmdlr': 'TVM-CL-3500-mobv3-ti-lite-large-x2r', #added in SDK8.0 #'cl-10-107-0'
     'cl-3510_tvmdlr': 'TVM-CL-3510-hrnet-w30-c-gluon-mxnet', #added in SDK8.0 #'cl-10-064-0'
 
-
     # TVM - OD
     'od-5000_tvmdlr': 'TVM-OD-5000-ssd1200-resNet34-mlperf-1200x1200',
     'od-5010_tvmdlr': 'TVM-OD-5010-yolov3-416x416',
@@ -283,24 +282,31 @@ model_id_artifacts_pair = {
     'od-8000_onnxrt': 'ONR-OD-8000-ssd1200-resNet34-mlperf-1200x1200',
     'od-8010_onnxrt': 'ONR-OD-8010-yolov3-416x416',
 
-    #Added in SDK8.0
-    'od-8020_onnxrt': 'ONR-OD-8020-ssd-lite-mobv2-coco-512x512',
-    'od-8030_onnxrt': 'ONR-OD-8030-ssd-lite-mobv2-fpn-coco-512x512',
-    'od-8040_onnxrt': 'ONR-OD-8040-ssd-lite-regNetX-200mf-fpn-bgr-coco-320x320',
-    'od-8050_onnxrt': 'ONR-OD-8050-ssd-lite-regNetX-800mf-fpn-bgr-coco-512x512',
-    'od-8060_onnxrt': 'ONR-OD-8060-ssd-lite-regNetX-1.6gf-fpn-bgr-coco-768x768',
-    'od-8070_onnxrt': 'ONR-OD-8070-yolov3-d53-relu-coco-416x416',
-    'od-8080_onnxrt': 'ONR-OD-8080-yolov3-lite-regNetX-1.6gf-bgr-coco-512x512',
-    'od-8090_onnxrt': 'ONR-OD-8090-retina-lite-regNetX-800mf-fpn-bgr-coco-512x512',
+    # Edgeai-MMdetection
+    'od-8020_onnxrt': 'ONR-OD-8020-ssd-lite-mobv2-mmdet-coco-512x512',
+    'od-8030_onnxrt': 'ONR-OD-8030-ssd-lite-mobv2-fpn-mmdet-coco-512x512',
+    'od-8040_onnxrt': 'ONR-OD-8040-ssd-lite-regNetX-200mf-fpn-bgr-mmdet-coco-320x320',
+    'od-8050_onnxrt': 'ONR-OD-8050-ssd-lite-regNetX-800mf-fpn-bgr-mmdet-coco-512x512',
+    'od-8060_onnxrt': 'ONR-OD-8060-ssd-lite-regNetX-1.6gf-fpn-bgr-mmdet-coco-768x768',
+    'od-8070_onnxrt': 'ONR-OD-8070-yolov3-d53-relu-mmdet-coco-416x416',
+    'od-8080_onnxrt': 'ONR-OD-8080-yolov3-lite-regNetX-1.6gf-bgr-mmdet-coco-512x512',
+    'od-8090_onnxrt': 'ONR-OD-8090-retina-lite-regNetX-800mf-fpn-bgr-mmdet-coco-512x512',
+    'od-8200_onnxrt': 'ONR-OD-8200-yolox-nano-lite-mmdet-coco-416x416',
+    'od-8210_onnxrt': 'ONR-OD-8210-yolox-tiny-lite-mmdet-coco-416x416',
+    'od-8220_onnxrt': 'ONR-OD-8220-yolox-s-lite-mmdet-coco-640x640',
+    'od-8230_onnxrt': 'ONR-OD-8230-yolox-m-lite-mmdet-coco-640x640',
 
-    #Yolov5 series added in SDK8.0
+    # Yolov5 series
     'od-8100_onnxrt': 'ONR-OD-8100-yolov5-s6-ti-lite-coco-640x640',
     'od-8110_onnxrt': 'ONR-OD-8110-yolov5-s6-ti-lite-coco-384x384',
     'od-8120_onnxrt': 'ONR-OD-8120-yolov5-m6-ti-lite-coco-640x640',
     'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640',
 
-    # Yolox
+    # Edgeai-Yolox
     'od-8140_onnxrt': 'ONR-OD-8140-yolox-s-ti-lite_640x640',
+    'od-8150_onnxrt': 'ONR-OD-8140-yolox-m-ti-lite_640x640',
+    'od-8180_onnxrt': 'ONR-OD-8140-yolox-tiny-ti-lite_416x416',
+    'od-8190_onnxrt': 'ONR-OD-8140-yolox-nano-ti-lite_416x416',
 
     # EdgeAI-Torchvision
     'od-8160_onnxrt': 'ONR-OD-8160-ssdlite-mobv2-fpn-lite-512x512',
@@ -344,6 +350,9 @@ model_id_artifacts_pair = {
     'kd-7010_onnxrt': 'ONR-KD-7010-human-pose-ae-res50v2-fpn-spp-udp-512x512',
     'kd-7020_onnxrt': 'ONR-KD-7020-human-pose-ae-mobv2-pan-spp-udp-512x512',
     'kd-7030_onnxrt': 'ONR-KD-7030-human-pose-ae-res50v2-pan-spp-udp-512x512',
+    'kd-7040_onnxrt': 'ONR-KD-7040-human-pose-yolov5s6-640x640',
+    'kd-7050_onnxrt': 'ONR-KD-7050-human-pose-yolov5s6-mixp-640x640',
+    'kd-7060_onnxrt': 'ONR-KD-7060-human-pose-yolox-s-640x640',
 
     'od-2150_tflitert':'TFL-OD-2150-efficientdet-lite1-relu-384x384',
     'od-2170_tflitert':'TFL-OD-2170-efficientdet-lite3-relu-512x512',
@@ -501,7 +510,9 @@ recommended_model_list = {
     'ss-5720_tvmdlr' : 'TVM-SS-5720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
     'cl-6360_onnxrt': 'ONR-CL-6360-regNetx-200mf',
     'od-8050_onnxrt': 'ONR-OD-8050-ssd-lite-regNetX-800mf-fpn-bgr-coco-512x512',
+    'od-8220_onnxrt': 'ONR-OD-8220-yolox-s-lite-mmdet-coco-640x640',
     'ss-8610_onnxrt': 'ONR-SS-8610-deeplabv3lite-mobv2-ade20k32-512x512',
+    'kd-7060_onnxrt': 'ONR-KD-7060-human-pose-yolox-s-640x640',
 }
 
 #sampled on 29th Jul 21
