@@ -65,7 +65,7 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['work_dir'] = self.kwargs.get('work_dir', None)
         # run_dir for individual model
         self.kwargs['run_dir'] = self.kwargs.get('run_dir', None)
-        self.kwargs['dir_tree_depth'] = self.kwargs.get('dir_tree_depth', 2)
+        self.kwargs['dir_tree_depth'] = self.kwargs.get('dir_tree_depth', 3)
 
         # parameters related to models
         self.kwargs['num_tidl_subgraphs'] = self.kwargs.get('num_tidl_subgraphs', 16)
