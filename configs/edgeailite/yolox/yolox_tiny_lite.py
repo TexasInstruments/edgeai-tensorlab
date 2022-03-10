@@ -1,7 +1,7 @@
 
 # modified from: https://github.com/open-mmlab/mmdetection/tree/master/configs/yolox
 
-img_scale = (640, 640)
+img_scale = (416, 416)
 input_size = img_scale
 samples_per_gpu = 16
 
