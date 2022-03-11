@@ -84,9 +84,9 @@ dataset_loading : null
 # use TIDL offload to speedup inference
 tidl_offload : True
 
-# input optimization to improve FPS: True, False or null
+# input optimization to improve FPS: False or null
 # null will cause the default value set in sessions.__init__ to be used.
-input_optimization : null
+input_optimization : False
 
 # detection threshold
 detection_thr : 0.01

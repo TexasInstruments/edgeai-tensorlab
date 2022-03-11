@@ -178,9 +178,9 @@ class ConfigDict(dict):
         self.model_transformation_dict = None
         # include perfsim stats in the report or not
         self.report_perfsim = False
-        # input optimization to improve FPS: True, False or None
+        # input optimization to improve FPS: False or None
         # None will cause the default value set in sessions.__init__ to be used.
-        self.input_optimization = None
+        self.input_optimization = False
 
     def _parse_include_files(self, include_files, include_base_path):
         input_dict = {}
