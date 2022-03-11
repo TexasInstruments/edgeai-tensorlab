@@ -180,7 +180,7 @@ class ConfigDict(dict):
         self.report_perfsim = False
         # input optimization to improve FPS: False or None
         # None will cause the default value set in sessions.__init__ to be used.
-        self.input_optimization = False
+        self.input_optimization = None
 
     def _parse_include_files(self, include_files, include_base_path):
         input_dict = {}
