@@ -364,8 +364,10 @@ class BaseRTSession(utils.ParamsBase):
         model_path = self.kwargs['model_path']
         # make a local copy
         model_file = utils.get_local_path(model_path, model_folder)
+        is_new_file = (not utils.file_exists(model_file))
         print(utils.log_color('INFO', 'model_path', model_path))
         print(utils.log_color('INFO', 'model_file', model_file))
+
         if not utils.file_exists(model_file):
             model_path = utils.download_file(model_path, root=model_folder)
         #
@@ -395,7 +397,7 @@ class BaseRTSession(utils.ParamsBase):
         # for example, the input of the model can be converted to 8bit and mean/scale can be moved inside the model
         optimization_done = False
         if self.kwargs['input_optimization'] and self.kwargs['tensor_bits'] == 8:
-            optimization_done = self._optimize_model()
+            optimization_done = self._optimize_model(is_new_file)
         #
         if optimization_done:
             # set the mean and scale in kwarges to unity
@@ -408,23 +410,23 @@ class BaseRTSession(utils.ParamsBase):
                 self.kwargs['input_data_layout'])
         #
 
-    def _optimize_model(self):
+    def _optimize_model(self, is_new_file=True):
         model_file = self.kwargs['model_file']
         model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
         input_mean = self.kwargs['input_mean']
         input_scale = self.kwargs['input_scale']
         optimization_done = False
         if model_file0.endswith('.onnx'):
-            from osrt_model_tools.onnx_tools import onnx_model_opt as onnxopt
-            onnxopt.tidlOnnxModelOptimize(
-                model_file0, model_file0,
-                input_scale, input_mean)
+            if is_new_file:
+                from osrt_model_tools.onnx_tools import onnx_model_opt as onnxopt
+                onnxopt.tidlOnnxModelOptimize(model_file0, model_file0, input_scale, input_mean)
+            #
             optimization_done = True
         elif model_file0.endswith('.tflite'):
-            from osrt_model_tools.tflite_tools import tflite_model_opt as tflopt
-            tflopt.tidlTfliteModelOptimize(
-                model_file0, model_file0,
-                input_scale, input_mean)
+            if is_new_file:
+                from osrt_model_tools.tflite_tools import tflite_model_opt as tflopt
+                tflopt.tidlTfliteModelOptimize(model_file0, model_file0, input_scale, input_mean)
+            #
             optimization_done = True
         #
         return optimization_done
