@@ -52,22 +52,16 @@ def get_configs(settings, work_dir):
         'num_frames': num_frames
     }
 
-    common_session_cfg = sessions.get_common_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    onnx_session_cfg = sessions.get_onnx_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    onnx_quant_session_cfg = sessions.get_onnx_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    jai_session_cfg = sessions.get_jai_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    jai_quant_session_cfg = sessions.get_jai_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    mxnet_session_cfg = sessions.get_mxnet_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    tflite_session_cfg = sessions.get_tflite_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    tflite_quant_session_cfg = sessions.get_tflite_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    common_session_cfg = sessions.get_common_session_cfg(settings, work_dir=work_dir)
+    onnx_session_cfg = sessions.get_onnx_session_cfg(settings, work_dir=work_dir)
+    onnx_bgr_session_cfg = sessions.get_onnx_bgr_session_cfg(settings, work_dir=work_dir)
+    onnx_quant_session_cfg = sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir)
+    onnx_bgr_quant_session_cfg = sessions.get_onnx_bgr_quant_session_cfg(settings, work_dir=work_dir)
+    jai_session_cfg = sessions.get_jai_session_cfg(settings, work_dir=work_dir)
+    jai_quant_session_cfg = sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir)
+    mxnet_session_cfg = sessions.get_mxnet_session_cfg(settings, work_dir=work_dir)
+    tflite_session_cfg = sessions.get_tflite_session_cfg(settings, work_dir=work_dir)
+    tflite_quant_session_cfg = sessions.get_tflite_quant_session_cfg(settings, work_dir=work_dir)
 
     hr_input_sizes = (512,1024)
     hr_input_sizes_x = [f'{s}x{s}' for s in hr_input_sizes]

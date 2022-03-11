@@ -44,22 +44,16 @@ def get_configs(settings, work_dir):
         'postprocess': None
     }
 
-    common_session_cfg = sessions.get_common_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    onnx_session_cfg = sessions.get_onnx_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    onnx_quant_session_cfg = sessions.get_onnx_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    jai_session_cfg = sessions.get_jai_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    jai_quant_session_cfg = sessions.get_jai_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    mxnet_session_cfg = sessions.get_mxnet_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    tflite_session_cfg = sessions.get_tflite_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    tflite_quant_session_cfg = sessions.get_tflite_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    common_session_cfg = sessions.get_common_session_cfg(settings, work_dir=work_dir)
+    onnx_session_cfg = sessions.get_onnx_session_cfg(settings, work_dir=work_dir)
+    onnx_bgr_session_cfg = sessions.get_onnx_bgr_session_cfg(settings, work_dir=work_dir)
+    onnx_quant_session_cfg = sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir)
+    onnx_bgr_quant_session_cfg = sessions.get_onnx_bgr_quant_session_cfg(settings, work_dir=work_dir)
+    jai_session_cfg = sessions.get_jai_session_cfg(settings, work_dir=work_dir)
+    jai_quant_session_cfg = sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir)
+    mxnet_session_cfg = sessions.get_mxnet_session_cfg(settings, work_dir=work_dir)
+    tflite_session_cfg = sessions.get_tflite_session_cfg(settings, work_dir=work_dir)
+    tflite_quant_session_cfg = sessions.get_tflite_quant_session_cfg(settings, work_dir=work_dir)
 
     # to define the names of first and last layer for 16 bit conversion
     first_last_layer_3dod_7100 = '205,206,207,input.1'

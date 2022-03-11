@@ -46,22 +46,16 @@ def get_configs(settings, work_dir):
         'postprocess': postproc_transforms.get_transform_classification()
     }
 
-    common_session_cfg = sessions.get_common_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    onnx_session_cfg = sessions.get_onnx_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    onnx_quant_session_cfg = sessions.get_onnx_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    jai_session_cfg = sessions.get_jai_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    jai_quant_session_cfg = sessions.get_jai_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    mxnet_session_cfg = sessions.get_mxnet_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    tflite_session_cfg = sessions.get_tflite_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    tflite_quant_session_cfg = sessions.get_tflite_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    common_session_cfg = sessions.get_common_session_cfg(settings, work_dir=work_dir)
+    onnx_session_cfg = sessions.get_onnx_session_cfg(settings, work_dir=work_dir)
+    onnx_bgr_session_cfg = sessions.get_onnx_bgr_session_cfg(settings, work_dir=work_dir)
+    onnx_quant_session_cfg = sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir)
+    onnx_bgr_quant_session_cfg = sessions.get_onnx_bgr_quant_session_cfg(settings, work_dir=work_dir)
+    jai_session_cfg = sessions.get_jai_session_cfg(settings, work_dir=work_dir)
+    jai_quant_session_cfg = sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir)
+    mxnet_session_cfg = sessions.get_mxnet_session_cfg(settings, work_dir=work_dir)
+    tflite_session_cfg = sessions.get_tflite_session_cfg(settings, work_dir=work_dir)
+    tflite_quant_session_cfg = sessions.get_tflite_quant_session_cfg(settings, work_dir=work_dir)
 
     pipeline_configs = {
         #################################################################
@@ -197,7 +191,7 @@ def get_configs(settings, work_dir):
         # pycls: classification regnetx200mf_224x224 expected_metric: 68.9% top-1 accuracy
         'cl-6360':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True),
-            session=onnx_session_type(**onnx_session_cfg,
+            session=onnx_session_type(**onnx_bgr_session_cfg,
                 runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-200mf.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':68.9})
@@ -205,7 +199,7 @@ def get_configs(settings, work_dir):
         # pycls: classification regnetx400mf_224x224 expected_metric: 72.7% top-1 accuracy
         'cl-6120':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True),
-            session=onnx_session_type(**onnx_session_cfg,
+            session=onnx_session_type(**onnx_bgr_session_cfg,
                 runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-400mf.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.7})
@@ -213,7 +207,7 @@ def get_configs(settings, work_dir):
         # pycls: classification regnetx800mf_224x224 expected_metric: 75.2% top-1 accuracy
         'cl-6130':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True),
-            session=onnx_session_type(**onnx_session_cfg,
+            session=onnx_session_type(**onnx_bgr_session_cfg,
                 runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-800mf.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.2})
@@ -221,7 +215,7 @@ def get_configs(settings, work_dir):
         # pycls: classification regnetx1.6gf_224x224 expected_metric: 77.0% top-1 accuracy
         'cl-6140':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True),
-            session=onnx_session_type(**onnx_session_cfg,
+            session=onnx_session_type(**onnx_bgr_session_cfg,
                 runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-1.6gf.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':77.0})

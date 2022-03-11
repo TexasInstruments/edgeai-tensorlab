@@ -56,22 +56,16 @@ def get_configs(settings, work_dir):
         'input_dataset': settings.dataset_cache['coco']['input_dataset'],
     }
 
-    common_session_cfg = sessions.get_common_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    onnx_session_cfg = sessions.get_onnx_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    onnx_quant_session_cfg = sessions.get_onnx_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    jai_session_cfg = sessions.get_jai_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    jai_quant_session_cfg = sessions.get_jai_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    mxnet_session_cfg = sessions.get_mxnet_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    tflite_session_cfg = sessions.get_tflite_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
-    tflite_quant_session_cfg = sessions.get_tflite_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
-                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    common_session_cfg = sessions.get_common_session_cfg(settings, work_dir=work_dir)
+    onnx_session_cfg = sessions.get_onnx_session_cfg(settings, work_dir=work_dir)
+    onnx_bgr_session_cfg = sessions.get_onnx_bgr_session_cfg(settings, work_dir=work_dir)
+    onnx_quant_session_cfg = sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir)
+    onnx_bgr_quant_session_cfg = sessions.get_onnx_bgr_quant_session_cfg(settings, work_dir=work_dir)
+    jai_session_cfg = sessions.get_jai_session_cfg(settings, work_dir=work_dir)
+    jai_quant_session_cfg = sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir)
+    mxnet_session_cfg = sessions.get_mxnet_session_cfg(settings, work_dir=work_dir)
+    tflite_session_cfg = sessions.get_tflite_session_cfg(settings, work_dir=work_dir)
+    tflite_quant_session_cfg = sessions.get_tflite_quant_session_cfg(settings, work_dir=work_dir)
 
     postproc_detection_onnx = postproc_transforms.get_transform_detection_onnx()
     postproc_detection_tflite = postproc_transforms.get_transform_detection_tflite()
@@ -115,7 +109,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8040':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((320,320), (320,320), backend='cv2', reverse_channels=True),
-            session=onnx_session_type(**onnx_session_cfg,
+            session=onnx_session_type(**onnx_bgr_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), {'object_detection:meta_arch_type': 3, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-200mf_fpn_bgr_lite_320x320_20201010_model.prototxt'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-200mf_fpn_bgr_lite_320x320_20201010_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
@@ -124,7 +118,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8050':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2', reverse_channels=True),
-            session=onnx_session_type(**onnx_session_cfg,
+            session=onnx_session_type(**onnx_bgr_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), {'object_detection:meta_arch_type': 3, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_model.prototxt'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
@@ -133,7 +127,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8060':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((768,768), (768,768), backend='cv2'),
-            session=onnx_session_type(**onnx_session_cfg,
+            session=onnx_session_type(**onnx_bgr_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), {'object_detection:meta_arch_type': 3, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-1.6gf_fpn_bgr_lite_768x768_20200923_model.prototxt'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-1.6gf_fpn_bgr_lite_768x768_20200923_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
@@ -155,7 +149,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8080':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**onnx_session_cfg,
+            session=onnx_session_type(**onnx_bgr_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                     {'object_detection:meta_arch_type': 4,
                                      'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov3_regnetx-1.6gf_bgr_lite_512x512_20210202_model.prototxt',
@@ -168,7 +162,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8090':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**onnx_session_cfg,
+            session=onnx_session_type(**onnx_bgr_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {'object_detection:meta_arch_type': 5, 'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/retinanet_regnetx-800mf_fpn_bgr_lite_512x512_20200908_model.prototxt'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/retinanet_regnetx-800mf_fpn_bgr_lite_512x512_20200908_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),

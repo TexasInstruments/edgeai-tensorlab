@@ -63,51 +63,60 @@ def get_session_name_to_type_dict():
 
 # these are some example session configs
 # the actual config will vary depending on the parameters used to train the model
-def get_common_session_cfg(work_dir=None, target_device=None, tidl_offload=None,
-                           input_optimization=None, input_data_layout=constants.NCHW,
+def get_common_session_cfg(settings, work_dir=None, input_optimization=True, input_data_layout=constants.NCHW,
                            input_mean=(0.0, 0.0, 0.0), input_scale=(1.0, 1.0, 1.0), **kwargs):
     # if it set to None from outside, change it to True (default value)
-    input_optimization = True if input_optimization is None else input_optimization
-    common_session_cfg = dict(work_dir=work_dir, target_device=target_device, tidl_offload=tidl_offload,
-                              input_optimization=input_optimization, input_data_layout=input_data_layout,
+    input_optimization = input_optimization if settings.input_optimization is None else settings.input_optimization
+    common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device, tidl_offload=settings.tidl_offload,
+                              input_optimization=settings.input_optimization, input_data_layout=input_data_layout,
                               input_mean=input_mean, input_scale=input_scale,
                               **kwargs)
     return common_session_cfg
 
-def get_onnx_session_cfg(input_optimization=None, input_data_layout=constants.NCHW,
+def get_onnx_session_cfg(settings, work_dir=None, input_optimization=True, input_data_layout=constants.NCHW,
                  input_mean=(123.675, 116.28, 103.53), input_scale=(0.017125, 0.017507, 0.017429), **kwargs):
-    session_cfg = get_common_session_cfg(input_optimization=input_optimization, input_data_layout=input_data_layout,
+    session_cfg = get_common_session_cfg(settings, work_dir, input_optimization=input_optimization,
+                input_data_layout=input_data_layout, input_mean=input_mean, input_scale=input_scale, **kwargs)
+    return session_cfg
+
+def get_onnx_bgr_session_cfg(settings, work_dir=None, input_optimization=True, input_data_layout=constants.NCHW,
+                 input_mean=(103.53, 116.28, 123.675), input_scale=(0.017429, 0.017507, 0.017125), **kwargs):
+    session_cfg = get_common_session_cfg(settings, work_dir, input_data_layout=input_data_layout,
                  input_mean=input_mean, input_scale=input_scale, **kwargs)
     return session_cfg
 
-def get_onnx_quant_session_cfg(input_optimization=None, **kwargs):
-    session_cfg = get_onnx_session_cfg(input_optimization=False, **kwargs)
+def get_onnx_quant_session_cfg(settings, work_dir=None, input_optimization=False, **kwargs):
+    session_cfg = get_onnx_session_cfg(settings, work_dir, input_optimization=input_optimization, **kwargs)
     return session_cfg
 
-def get_jai_session_cfg(input_optimization=None, input_data_layout=constants.NCHW,
+def get_onnx_bgr_quant_session_cfg(settings, work_dir=None, input_optimization=False, **kwargs):
+    session_cfg = get_onnx_bgr_session_cfg(settings, work_dir, input_optimization=input_optimization, **kwargs)
+    return session_cfg
+
+def get_jai_session_cfg(settings, work_dir=None, input_optimization=True, input_data_layout=constants.NCHW,
                  input_mean=(128.0, 128.0, 128.0), input_scale=(1/64.0, 1/64.0, 1/64.0), **kwargs):
-    session_cfg = get_common_session_cfg(input_optimization=input_optimization, input_data_layout=input_data_layout,
+    session_cfg = get_common_session_cfg(settings, work_dir, input_optimization=input_optimization, input_data_layout=input_data_layout,
                  input_mean=input_mean, input_scale=input_scale, **kwargs)
     return session_cfg
 
-def get_jai_quant_session_cfg(input_optimization=None, **kwargs):
-    session_cfg = get_jai_session_cfg(input_optimization=False, **kwargs)
+def get_jai_quant_session_cfg(settings, work_dir=None, input_optimization=False, **kwargs):
+    session_cfg = get_jai_session_cfg(settings, work_dir, input_optimization=input_optimization, **kwargs)
     return session_cfg
 
-def get_mxnet_session_cfg(input_optimization=None, input_data_layout=constants.NCHW,
+def get_mxnet_session_cfg(settings, work_dir=None, input_optimization=True, input_data_layout=constants.NCHW,
                   input_mean=(123.675, 116.28, 103.53), input_scale=(0.017125, 0.017507, 0.017429), **kwargs):
-    session_cfg = get_common_session_cfg(input_optimization=input_optimization, input_data_layout=input_data_layout,
+    session_cfg = get_common_session_cfg(settings, work_dir, input_optimization=input_optimization, input_data_layout=input_data_layout,
                  input_mean=input_mean, input_scale=input_scale, **kwargs)
     return session_cfg
 
-def get_tflite_session_cfg(input_optimization=None, input_data_layout=constants.NHWC,
+def get_tflite_session_cfg(settings, work_dir=None, input_optimization=True, input_data_layout=constants.NHWC,
                  input_mean=(128.0, 128.0, 128.0), input_scale=(1/128.0, 1/128.0, 1/128.0), **kwargs):
-    session_cfg = get_common_session_cfg(input_optimization=input_optimization, input_data_layout=input_data_layout,
+    session_cfg = get_common_session_cfg(settings, work_dir, input_optimization=input_optimization, input_data_layout=input_data_layout,
                  input_mean=input_mean, input_scale=input_scale, **kwargs)
     return session_cfg
 
-def get_tflite_quant_session_cfg(input_optimization=None, input_data_layout=constants.NHWC,
+def get_tflite_quant_session_cfg(settings, work_dir=None, input_optimization=False, input_data_layout=constants.NHWC,
                  input_mean=(0.0, 0.0, 0.0), input_scale=(1.0, 1.0, 1.0), **kwargs):
-    session_cfg = get_common_session_cfg(input_optimization=False, input_data_layout=input_data_layout,
+    session_cfg = get_common_session_cfg(settings, work_dir, input_optimization=input_optimization, input_data_layout=input_data_layout,
                  input_mean=input_mean, input_scale=input_scale, **kwargs)
     return session_cfg
