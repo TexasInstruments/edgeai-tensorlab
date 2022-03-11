@@ -56,7 +56,11 @@ def get_configs(settings, work_dir):
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
     onnx_session_cfg = sessions.get_onnx_session_cfg(work_dir=work_dir, target_device=settings.target_device,
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    onnx_quant_session_cfg = sessions.get_onnx_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
     jai_session_cfg = sessions.get_jai_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    jai_quant_session_cfg = sessions.get_jai_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
     mxnet_session_cfg = sessions.get_mxnet_session_cfg(work_dir=work_dir, target_device=settings.target_device,
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
@@ -112,14 +116,14 @@ def get_configs(settings, work_dir):
         # jai-devkit: classification mobilenetv2_1p4_224x224 expected_metric: 75.22% top-1 accuracy, QAT: 75.22%
         'cl-6151':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=hr_input_sizes[0], crop=hr_input_sizes[0]),
-            session=onnx_session_type(**onnx_session_cfg,
+            session=onnx_session_type(**onnx_quant_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_qat(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/edgeai-tv/mobilenet_v2_1p4_qat-p2_20210112_{hr_input_sizes_x[0]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None})
         ),
         'cl-6152':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=hr_input_sizes[1], crop=hr_input_sizes[1]),
-            session=onnx_session_type(**onnx_session_cfg,
+            session=onnx_session_type(**onnx_quant_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_qat(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/edgeai-tv/mobilenet_v2_1p4_qat-p2_20210112_{hr_input_sizes_x[1]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None})

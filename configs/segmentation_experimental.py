@@ -80,7 +80,11 @@ def get_configs(settings, work_dir):
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
     onnx_session_cfg = sessions.get_onnx_session_cfg(work_dir=work_dir, target_device=settings.target_device,
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    onnx_quant_session_cfg = sessions.get_onnx_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
     jai_session_cfg = sessions.get_jai_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    jai_quant_session_cfg = sessions.get_jai_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
     mxnet_session_cfg = sessions.get_mxnet_session_cfg(work_dir=work_dir, target_device=settings.target_device,
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
@@ -99,7 +103,7 @@ def get_configs(settings, work_dir):
         #------------------------robokit models-----------------------
         'ss-robokit1-qat': utils.dict_update(robokitseg_cfg,
             preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
-            session=onnx_session_type(**jai_session_cfg,
+            session=onnx_session_type(**jai_quant_session_cfg,
                 runtime_options=settings.runtime_options_onnx_qat(),
                 model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432_qat-p2.onnx'),
             postprocess=postproc_transforms.get_transform_segmentation_onnx(),
@@ -190,7 +194,7 @@ def get_configs(settings, work_dir):
         #  PTQ accuracy is good. Will remove in future.
         # 'ss-8618':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
-        #     session=onnx_session_type(**jai_session_cfg,
+        #     session=onnx_session_type(**jai_quant_session_cfg,
         #         runtime_options=settings.runtime_options_onnx_qat(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailtie_512x512_20210308_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
@@ -198,7 +202,7 @@ def get_configs(settings, work_dir):
         # ),
         # 'ss-8638':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
-        #     session=onnx_session_type(**jai_session_cfg,
+        #     session=onnx_session_type(**jai_quant_session_cfg,
         #         runtime_options=settings.runtime_options_onnx_qat(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/unetlite_aspp_mobilenetv2_512x512_ade20k32_20210306_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
@@ -207,7 +211,7 @@ def get_configs(settings, work_dir):
         #  PTQ accuracy is good. Will remove in future.
         # 'ss-8658':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
-        #     session=onnx_session_type(**jai_session_cfg,
+        #     session=onnx_session_type(**jai_quant_session_cfg,
         #         runtime_options=settings.runtime_options_onnx_qat(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpn_aspp_mobilenetv2_edgeailite_512x512_20210306_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
@@ -216,7 +220,7 @@ def get_configs(settings, work_dir):
         #  PTQ accuracy is good. Will remove in future.
         # 'ss-8678':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
-        #     session=onnx_session_type(**jai_session_cfg,
+        #     session=onnx_session_type(**jai_quant_session_cfg,
         #         runtime_options=settings.runtime_options_onnx_qat(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpn_aspp_mobilenetv2_1p4_edgeailite_512x512_20210307_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,

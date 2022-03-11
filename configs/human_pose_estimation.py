@@ -56,7 +56,11 @@ def get_configs(settings, work_dir):
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
     onnx_session_cfg = sessions.get_onnx_session_cfg(work_dir=work_dir, target_device=settings.target_device,
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    onnx_quant_session_cfg = sessions.get_onnx_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
     jai_session_cfg = sessions.get_jai_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    jai_quant_session_cfg = sessions.get_jai_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
     mxnet_session_cfg = sessions.get_mxnet_session_cfg(work_dir=work_dir, target_device=settings.target_device,
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)

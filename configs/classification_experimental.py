@@ -50,7 +50,11 @@ def get_configs(settings, work_dir):
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
     onnx_session_cfg = sessions.get_onnx_session_cfg(work_dir=work_dir, target_device=settings.target_device,
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    onnx_quant_session_cfg = sessions.get_onnx_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
     jai_session_cfg = sessions.get_jai_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+                            tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
+    jai_quant_session_cfg = sessions.get_jai_quant_session_cfg(work_dir=work_dir, target_device=settings.target_device,
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
     mxnet_session_cfg = sessions.get_mxnet_session_cfg(work_dir=work_dir, target_device=settings.target_device,
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
@@ -73,7 +77,7 @@ def get_configs(settings, work_dir):
         # jai-devkit: classification mobilenetv3_large_lite qat expected_metric: 71.614% top-1 accuracy
         'cl-6508':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**onnx_session_cfg,
+            session=onnx_session_type(**onnx_quant_session_cfg,
                 runtime_options=settings.runtime_options_onnx_qat(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_qat-p2_20210507.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.614})
