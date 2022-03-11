@@ -94,12 +94,12 @@ class TVMDLRSession(BaseRTSession):
         #
 
         calib_list = []
-        for c_data in calib_data:
-            c_data = utils.as_tuple(c_data)
+        for in_data in calib_data:
+            in_data = utils.as_tuple(in_data)
             if self.input_normalizer is not None:
-                c_data, _ = self.input_normalizer(c_data, {})
+                in_data, _ = self.input_normalizer(in_data, {})
             #
-            c_dict = {d_name:d for d_name, d in zip(input_keys,c_data)}
+            c_dict = {d_name:d for d_name, d in zip(input_keys,in_data)}
             calib_list.append(c_dict)
         #
 

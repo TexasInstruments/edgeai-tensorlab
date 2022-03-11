@@ -56,13 +56,13 @@ class ONNXRTSession(BaseRTSession):
             self.kwargs['input_shape'] = self._get_input_shape_onnxrt()
         #
         # provide the calibration data and run the import
-        for c_data in calib_data:
+        for in_data in calib_data:
             input_keys = list(self.kwargs['input_shape'].keys())
-            c_data = utils.as_tuple(c_data)
+            in_data = utils.as_tuple(in_data)
             if self.input_normalizer is not None:
-                c_data, _ = self.input_normalizer(c_data, {})
+                in_data, _ = self.input_normalizer(in_data, {})
             #
-            calib_dict = {d_name:d for d_name, d in zip(input_keys,c_data)}
+            calib_dict = {d_name:d for d_name, d in zip(input_keys,in_data)}
             # model may need additional inputs given in extra_inputs
             if self.kwargs['extra_inputs'] is not None:
                 calib_dict.update(self.kwargs['extra_inputs'])
@@ -90,7 +90,7 @@ class ONNXRTSession(BaseRTSession):
         input_keys = list(self.kwargs['input_shape'].keys())
         in_data = utils.as_tuple(input)
         if self.input_normalizer is not None:
-            c_data, _ = self.input_normalizer(c_data, {})
+            in_data, _ = self.input_normalizer(in_data, {})
         #
         input_dict = {d_name:d for d_name, d in zip(input_keys,in_data)}
         # model needs additional inputs given in extra_inputs

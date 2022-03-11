@@ -52,12 +52,12 @@ class TFLiteRTSession(BaseRTSession):
 
         input_details = self.interpreter.get_input_details()
         output_details = self.interpreter.get_output_details()
-        for c_data in calib_data:
-            c_data = utils.as_tuple(c_data)
+        for in_data in calib_data:
+            in_data = utils.as_tuple(in_data)
             if self.input_normalizer is not None:
-                c_data, _ = self.input_normalizer(c_data, {})
+                in_data, _ = self.input_normalizer(in_data, {})
             #
-            for c_data_entry_idx, c_data_entry in enumerate(c_data):
+            for c_data_entry_idx, c_data_entry in enumerate(in_data):
                 self._set_tensor(input_details[c_data_entry_idx], c_data_entry)
             #
             self.interpreter.invoke()
@@ -76,11 +76,11 @@ class TFLiteRTSession(BaseRTSession):
         super().infer_frame(input, info_dict)
         input_details = self.interpreter.get_input_details()
         output_details = self.interpreter.get_output_details()
-        c_data = utils.as_tuple(input)
+        in_data = utils.as_tuple(input)
         if self.input_normalizer is not None:
-            c_data, _ = self.input_normalizer(c_data, {})
+            in_data, _ = self.input_normalizer(in_data, {})
         #
-        for c_data_entry_idx, c_data_entry in enumerate(c_data):
+        for c_data_entry_idx, c_data_entry in enumerate(in_data):
             self._set_tensor(input_details[c_data_entry_idx], c_data_entry)
         #
         # measure the time across only interpreter.run
