@@ -80,8 +80,8 @@ def get_onnx_session_cfg(input_optimization=None, input_data_layout=constants.NC
                  input_mean=input_mean, input_scale=input_scale, **kwargs)
     return session_cfg
 
-def get_onnx_quant_session_cfg(input_optimization=False, **kwargs):
-    session_cfg = get_onnx_session_cfg(input_optimization=input_optimization, **kwargs)
+def get_onnx_quant_session_cfg(input_optimization=None, **kwargs):
+    session_cfg = get_onnx_session_cfg(input_optimization=False, **kwargs)
     return session_cfg
 
 def get_jai_session_cfg(input_optimization=None, input_data_layout=constants.NCHW,
@@ -90,8 +90,8 @@ def get_jai_session_cfg(input_optimization=None, input_data_layout=constants.NCH
                  input_mean=input_mean, input_scale=input_scale, **kwargs)
     return session_cfg
 
-def get_jai_quant_session_cfg(input_optimization=False, **kwargs):
-    session_cfg = get_jai_session_cfg(input_optimization=input_optimization, **kwargs)
+def get_jai_quant_session_cfg(input_optimization=None, **kwargs):
+    session_cfg = get_jai_session_cfg(input_optimization=False, **kwargs)
     return session_cfg
 
 def get_mxnet_session_cfg(input_optimization=None, input_data_layout=constants.NCHW,
@@ -106,8 +106,8 @@ def get_tflite_session_cfg(input_optimization=None, input_data_layout=constants.
                  input_mean=input_mean, input_scale=input_scale, **kwargs)
     return session_cfg
 
-def get_tflite_quant_session_cfg(input_optimization=False, input_data_layout=constants.NHWC,
+def get_tflite_quant_session_cfg(input_optimization=None, input_data_layout=constants.NHWC,
                  input_mean=(0.0, 0.0, 0.0), input_scale=(1.0, 1.0, 1.0), **kwargs):
-    session_cfg = get_common_session_cfg(input_optimization=input_optimization, input_data_layout=input_data_layout,
+    session_cfg = get_common_session_cfg(input_optimization=False, input_data_layout=input_data_layout,
                  input_mean=input_mean, input_scale=input_scale, **kwargs)
     return session_cfg
