@@ -90,13 +90,13 @@ def get_mxnet_session_cfg(input_optimization=True, input_data_layout=constants.N
                  input_mean=input_mean, input_scale=input_scale, **kwargs)
     return session_cfg
 
-def get_tflite_session_cfg(input_optimization=True, input_data_layout=constants.NCHW,
+def get_tflite_session_cfg(input_optimization=True, input_data_layout=constants.NHWC,
                  input_mean=(128.0, 128.0, 128.0), input_scale=(1/128.0, 1/128.0, 1/128.0), **kwargs):
     session_cfg = get_common_session_cfg(input_optimization=input_optimization, input_data_layout=input_data_layout,
                  input_mean=input_mean, input_scale=input_scale, **kwargs)
     return session_cfg
 
-def get_tflite_quant_session_cfg(input_optimization=False, input_data_layout=constants.NCHW,
+def get_tflite_quant_session_cfg(input_optimization=False, input_data_layout=constants.NHWC,
                  input_mean=(0.0, 0.0, 0.0), input_scale=(1.0, 1.0, 1.0), **kwargs):
     session_cfg = get_common_session_cfg(input_optimization=input_optimization, input_data_layout=input_data_layout,
                  input_mean=input_mean, input_scale=input_scale, **kwargs)
