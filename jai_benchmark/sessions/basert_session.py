@@ -121,7 +121,7 @@ class BaseRTSession(utils.ParamsBase):
                 tarfile_name = utils.download_file(tarfile_name, work_dir, extract_root=run_dir)
             #
             # extract the tar file
-            if (not os.path.exists(run_dir)) and os.path.exists(tarfile_name):
+            if (not os.path.exists(run_dir)) and tarfile_name is not None and os.path.exists(tarfile_name):
                 os.makedirs(run_dir, exist_ok=True)
                 tfp = tarfile.open(tarfile_name)
                 tfp.extractall(run_dir)
@@ -357,52 +357,47 @@ class BaseRTSession(utils.ParamsBase):
         run_dir = os.path.join(work_dir, f'{run_name}')
         return run_dir
 
-    def get_model(self):
+    def get_model(self, meta_file_key='object_detection:meta_layers_names_list'):
         model_folder = self.kwargs['model_folder']
 
         # download the file if it is an http or https link
         model_path = self.kwargs['model_path']
         # make a local copy
         model_file = utils.get_local_path(model_path, model_folder)
-        is_new_file = (not utils.file_exists(model_file))
+        model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
         print(utils.log_color('INFO', 'model_path', model_path))
         print(utils.log_color('INFO', 'model_file', model_file))
 
-        if not utils.file_exists(model_file):
-            model_path = utils.download_file(model_path, root=model_folder)
-        #
-        if not utils.file_exists(model_file):
-            utils.copy_files(model_path, model_file)
+        is_new_model_file = (not utils.file_exists(model_file0))
+        if not utils.file_exists(model_file0):
+            model_path = utils.download_files(model_path, root=model_folder)
         #
         # self.kwargs['model_file'] is what is used in the session
         # we could have just used self.kwargs['model_path'], but do this for legacy reasons
         self.kwargs['model_file'] = model_file
 
         # meta_file
-        od_meta_names_key = 'object_detection:meta_layers_names_list'
-        meta_path = self.kwargs['runtime_options'].get(od_meta_names_key, None)
+        meta_path = self.kwargs['runtime_options'].get(meta_file_key, None)
         if meta_path is not None:
             # make a local copy
             meta_file = utils.get_local_path(meta_path, model_folder)
             if not utils.file_exists(meta_file):
                 meta_path = utils.download_file(meta_path, root=model_folder)
             #
-            if not utils.file_exists(meta_file):
-                utils.copy_files(meta_path, meta_file)
-            #
             # write the local path
-            self.kwargs['runtime_options'][od_meta_names_key] = meta_file
+            self.kwargs['runtime_options'][meta_file_key] = meta_file
         #
         # optimize the model to speedup inference.
         # for example, the input of the model can be converted to 8bit and mean/scale can be moved inside the model
         optimization_done = False
-        if self.kwargs['input_optimization'] and self.kwargs['tensor_bits'] == 8:
-            optimization_done = self._optimize_model(is_new_file)
+        if self.kwargs['input_optimization'] and self.kwargs['tensor_bits'] == 8 and \
+                self.kwargs['input_mean'] is not None and self.kwargs['input_scale'] is not None:
+            optimization_done = self._optimize_model(is_new_model_file)
         #
         if optimization_done:
-            # set the mean and scale in kwarges to unity
-            self.kwargs['input_mean'] = tuple([0.0 for _ in self.kwargs['input_mean']])
-            self.kwargs['input_scale'] = tuple([1.0 for _ in self.kwargs['input_scale']])
+            # set the mean and scale in kwargs to None as they have been absorbed inside.
+            self.kwargs['input_mean'] = None
+            self.kwargs['input_scale'] = None
         else:
             # mean scale could not be absorbed inside the model - do it explicitly
             self.input_normalizer = ImageNormMeanScale(

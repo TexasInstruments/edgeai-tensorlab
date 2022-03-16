@@ -65,6 +65,7 @@
 import os
 import os.path
 import sys
+import shutil
 import hashlib
 import gzip
 import re
@@ -77,11 +78,34 @@ from tqdm.auto import tqdm
 from . import model_utils
 
 
-def download_file(url, root=None, extract_root=None, filename=None, md5=None, mode=None, force_download=False, force_linkfile=True):
-    fpath = None
-    if not isinstance(url, str):
-        return url
+def copy_file(file_path, file_path_local):
+    os.makedirs(os.path.dirname(file_path_local), exist_ok=True)
+    shutil.copy2(file_path, file_path_local)
+
+
+def copy_files(file_path, file_path_local):
+    file_paths = misc_utils.as_list(file_path)
+    file_paths_local = misc_utils.as_list(file_path_local)
+    for m, lm in zip(file_paths, file_paths_local):
+        copy_file(m, lm)
     #
+
+
+def download_file(url, root=None, extract_root=None, filename=None, md5=None, mode=None, force_download=False, force_linkfile=True):
+    if not isinstance(url, str):
+        return None
+    elif not (url.startswith('http://') or url.startswith('https://')):
+        try:
+            filename = filename or os.path.basename(url)
+            local_file = os.path.join(root, os.path.basename(url))
+            copy_file(url, local_file)
+            return local_file
+        except FileNotFoundError:
+            return None
+        #
+    #
+
+    fpath = None
     root = os.path.abspath('./') if root is None else root
     if url.endswith('.link'):
         with open(url) as fp:

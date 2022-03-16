@@ -43,15 +43,6 @@ def get_local_path(file_path, dest_dir):
     return file_path_local
 
 
-def copy_files(file_path, file_path_local):
-    file_paths = misc_utils.as_list(file_path)
-    file_paths_local = misc_utils.as_list(file_path_local)
-    for m, lm in zip(file_paths, file_paths_local):
-        os.makedirs(os.path.dirname(lm), exist_ok=True)
-        shutil.copy2(m, lm)
-    #
-
-
 def file_exists(file_path):
     has_file = True
     if isinstance(file_path, (list,tuple)):
