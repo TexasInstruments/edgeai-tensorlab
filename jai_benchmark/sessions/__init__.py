@@ -85,11 +85,11 @@ def get_onnx_bgr_session_cfg(settings, work_dir=None, input_optimization=True, i
                  input_mean=input_mean, input_scale=input_scale, **kwargs)
     return session_cfg
 
-def get_onnx_quant_session_cfg(settings, work_dir=None, input_optimization=False, **kwargs):
+def get_onnx_quant_session_cfg(settings, work_dir=None, input_optimization=True, **kwargs):
     session_cfg = get_onnx_session_cfg(settings, work_dir, input_optimization=input_optimization, **kwargs)
     return session_cfg
 
-def get_onnx_bgr_quant_session_cfg(settings, work_dir=None, input_optimization=False, **kwargs):
+def get_onnx_bgr_quant_session_cfg(settings, work_dir=None, input_optimization=True, **kwargs):
     session_cfg = get_onnx_bgr_session_cfg(settings, work_dir, input_optimization=input_optimization, **kwargs)
     return session_cfg
 
