@@ -64,12 +64,6 @@ session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
 # examples: [cl-0000, od-2020, ss-2580, cl-3410, od-5020, ss-5720, cl-6360, od-8050, od-8220, od-8420, ss-8610, kd-7060]
 model_selection : null
 
-# exclude from running, these models
-# examples: ['mxnet']
-# examples: ['coco']
-# examples: [cl-0000, od-2020, ss-2580, cl-3410, od-5020, ss-5720, cl-6360, od-8050, od-8220, od-8420, ss-8610, kd-7060]
-model_exclusion : null
-
 # wild card list to match against the tasks. it null, all tasks will be run
 # example: ['classification', 'detection', 'segmentation', 'depth_estimation', 'human_pose_estimation', 'detection_3d']
 # example: 'classification'
@@ -104,9 +98,6 @@ with_udp : True
 
 # it will add horizontally flipped images in info_dict and run inference over the flipped image also
 flip_test : False
-
-# the transformation that needs to be applied to the model itself. Note: this is different from pre-processing transforms
-model_transformation_dict : null
 
 # enable use of experimental models - these model files may not be available in modelzoo in some cases
 experimental_models : False
