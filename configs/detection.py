@@ -276,33 +276,8 @@ def get_configs(settings, work_dir):
             # TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 25.8})
-            ),
-
-        # edgeai-torchvision models
-        'od-8160':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**onnx_session_cfg,
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
-                                      {'object_detection:meta_arch_type': 3,
-                                       'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-tv/ssdlite_mobilenet_v2_fpn_lite_512x512_20211015_dummypp.prototxt'
-                                       }),
-                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-tv/ssdlite_mobilenet_v2_fpn_lite_512x512_20211015_dummypp.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_tv_onnx(),
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':25.0})
         ),
-        'od-8170':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**onnx_session_cfg,
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
-                                      {'object_detection:meta_arch_type': 3,
-                                       'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-tv/ssdlite_regnet_x_800mf_fpn_lite_20211030_dummypp.prototxt'
-                                       }),
-                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-tv/ssdlite_regnet_x_800mf_fpn_lite_20211030_dummypp.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_tv_onnx(),
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':30.3})
-        ),
+        # od-8160 and od-8170 are moved to detection_experimental.py
         # yolox lite versions from edgeai-mmdet
         'od-8200':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
