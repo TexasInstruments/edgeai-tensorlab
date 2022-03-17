@@ -220,60 +220,60 @@ def get_configs(settings, work_dir):
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':53.01})
         # ),
-        'ss-8740':utils.dict_update(cocoseg21_cfg,
-            preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
-            session=onnx_session_type(**jai_session_cfg,
-                runtime_options=settings.runtime_options_onnx_p2(),
-                model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/lraspp_mobilenet_v3_large_lite_512x512_20210527.onnx'),
-            postprocess=postproc_segmentation_onnx,
-            model_info=dict(metric_reference={'accuracy_mean_iou%':59.80})
-        ),
-        #################################################################
-        #       MXNET MODELS
-        #################################################################
-        'ss-5810':utils.dict_update(cocoseg21_cfg,
-            preprocess=preproc_transforms.get_transform_onnx((480,480), (480,480), backend='cv2'),
-            session=mxnet_session_type(**onnx_session_cfg,
-                runtime_options=settings.runtime_options_mxnet_np2(),
-                model_path=[f'{settings.models_path}/vision/segmentation/cocoseg21/gluoncv-mxnet/fcn_resnet101_coco-symbol.json',
-                            f'{settings.models_path}/vision/segmentation/cocoseg21/gluoncv-mxnet/fcn_resnet101_coco-0000.params'],
-                model_type='mxnet', input_shape={'data':(1,3,480,480)}),
-            postprocess=postproc_segmentation_onnx,
-            model_info=dict(metric_reference={'accuracy_mean_iou%':None})
-        ),
-        'ss-5820':utils.dict_update(cocoseg21_cfg,
-            preprocess=preproc_transforms.get_transform_onnx((480,480), (480,480), backend='cv2'),
-            session=mxnet_session_type(**onnx_session_cfg,
-                runtime_options=settings.runtime_options_mxnet_np2(),
-                model_path=[f'{settings.models_path}/vision/segmentation/cocoseg21/gluoncv-mxnet/deeplab_resnet101_coco-symbol.json',
-                            f'{settings.models_path}/vision/segmentation/cocoseg21/gluoncv-mxnet/deeplab_resnet101_coco-0000.params'],
-                model_type='mxnet', input_shape={'data':(1,3,480,480)}),
-            postprocess=postproc_segmentation_onnx,
-            model_info=dict(metric_reference={'accuracy_mean_iou%':None})
-        ),
-        'ss-5830':utils.dict_update(ade20k_cfg,
-            preprocess=preproc_transforms.get_transform_mxnet((480,480), (480,480), backend='cv2', resize_with_pad=True),
-            session=mxnet_session_type(**mxnet_session_cfg,
-                runtime_options=settings.runtime_options_mxnet_np2(),
-                model_path=[f'{settings.models_path}/vision/segmentation/ade20k/gluoncv-mxnet/fcn_resnet50_ade-symbol.json',
-                            f'{settings.models_path}/vision/segmentation/ade20k/gluoncv-mxnet/fcn_resnet50_ade-0000.params'],
-                model_type='mxnet', input_shape={'data':(1,3,480,480)}),
-            postprocess=postproc_segmentation_onnx,
-            metric=dict(label_offset_target=-1),
-            model_info=dict(metric_reference={'accuracy_mean_iou%':39.5})
-        ),
-        #################################################################
-        #       TFLITE MODELS
-        #################mlperf models###################################
-        # tensorflow-deeplab-cityscapes-segmentation- deeplabv3_mnv2_cityscapes_train - expected_metric: 73.57% MeanIoU.
-        'ss-2550': utils.dict_update(cityscapes_cfg,
-            preprocess=preproc_transforms.get_transform_tflite((1024, 2048), (1024, 2048), backend='cv2'),
-            session=tflite_session_type(**utils.dict_update(tflite_session_cfg, input_mean=(127.5, 127.5, 127.5), input_scale=(1/127.5, 1/127.5, 1/127.5)),
-                runtime_options=settings.runtime_options_tflite_np2(),
-                model_path=f'{settings.models_path}/vision/segmentation/cityscapes/tf1-models/deeplabv3_mnv2_cityscapes_train_1024x2048.tflite'),
-            postprocess=postproc_segmenation_tflite,
-            model_info=dict(metric_reference={'accuracy_mean_iou%':73.57})
-        ),
+        # 'ss-8740':utils.dict_update(cocoseg21_cfg,
+        #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
+        #     session=onnx_session_type(**jai_session_cfg,
+        #         runtime_options=settings.runtime_options_onnx_p2(),
+        #         model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/lraspp_mobilenet_v3_large_lite_512x512_20210527.onnx'),
+        #     postprocess=postproc_segmentation_onnx,
+        #     model_info=dict(metric_reference={'accuracy_mean_iou%':59.80})
+        # ),
+        # #################################################################
+        # #       MXNET MODELS
+        # #################################################################
+        # 'ss-5810':utils.dict_update(cocoseg21_cfg,
+        #     preprocess=preproc_transforms.get_transform_onnx((480,480), (480,480), backend='cv2'),
+        #     session=mxnet_session_type(**onnx_session_cfg,
+        #         runtime_options=settings.runtime_options_mxnet_np2(),
+        #         model_path=[f'{settings.models_path}/vision/segmentation/cocoseg21/gluoncv-mxnet/fcn_resnet101_coco-symbol.json',
+        #                     f'{settings.models_path}/vision/segmentation/cocoseg21/gluoncv-mxnet/fcn_resnet101_coco-0000.params'],
+        #         model_type='mxnet', input_shape={'data':(1,3,480,480)}),
+        #     postprocess=postproc_segmentation_onnx,
+        #     model_info=dict(metric_reference={'accuracy_mean_iou%':None})
+        # ),
+        # 'ss-5820':utils.dict_update(cocoseg21_cfg,
+        #     preprocess=preproc_transforms.get_transform_onnx((480,480), (480,480), backend='cv2'),
+        #     session=mxnet_session_type(**onnx_session_cfg,
+        #         runtime_options=settings.runtime_options_mxnet_np2(),
+        #         model_path=[f'{settings.models_path}/vision/segmentation/cocoseg21/gluoncv-mxnet/deeplab_resnet101_coco-symbol.json',
+        #                     f'{settings.models_path}/vision/segmentation/cocoseg21/gluoncv-mxnet/deeplab_resnet101_coco-0000.params'],
+        #         model_type='mxnet', input_shape={'data':(1,3,480,480)}),
+        #     postprocess=postproc_segmentation_onnx,
+        #     model_info=dict(metric_reference={'accuracy_mean_iou%':None})
+        # ),
+        # 'ss-5830':utils.dict_update(ade20k_cfg,
+        #     preprocess=preproc_transforms.get_transform_mxnet((480,480), (480,480), backend='cv2', resize_with_pad=True),
+        #     session=mxnet_session_type(**mxnet_session_cfg,
+        #         runtime_options=settings.runtime_options_mxnet_np2(),
+        #         model_path=[f'{settings.models_path}/vision/segmentation/ade20k/gluoncv-mxnet/fcn_resnet50_ade-symbol.json',
+        #                     f'{settings.models_path}/vision/segmentation/ade20k/gluoncv-mxnet/fcn_resnet50_ade-0000.params'],
+        #         model_type='mxnet', input_shape={'data':(1,3,480,480)}),
+        #     postprocess=postproc_segmentation_onnx,
+        #     metric=dict(label_offset_target=-1),
+        #     model_info=dict(metric_reference={'accuracy_mean_iou%':39.5})
+        # ),
+        # #################################################################
+        # #       TFLITE MODELS
+        # #################mlperf models###################################
+        # # tensorflow-deeplab-cityscapes-segmentation- deeplabv3_mnv2_cityscapes_train - expected_metric: 73.57% MeanIoU.
+        # 'ss-2550': utils.dict_update(cityscapes_cfg,
+        #     preprocess=preproc_transforms.get_transform_tflite((1024, 2048), (1024, 2048), backend='cv2'),
+        #     session=tflite_session_type(**utils.dict_update(tflite_session_cfg, input_mean=(127.5, 127.5, 127.5), input_scale=(1/127.5, 1/127.5, 1/127.5)),
+        #         runtime_options=settings.runtime_options_tflite_np2(),
+        #         model_path=f'{settings.models_path}/vision/segmentation/cityscapes/tf1-models/deeplabv3_mnv2_cityscapes_train_1024x2048.tflite'),
+        #     postprocess=postproc_segmenation_tflite,
+        #     model_info=dict(metric_reference={'accuracy_mean_iou%':73.57})
+        # ),
     }
     return pipeline_configs
 

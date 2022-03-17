@@ -45,6 +45,7 @@ def get_configs(settings, work_dir):
     }
 
     common_session_cfg = sessions.get_common_session_cfg(settings, work_dir=work_dir)
+    nomeanscale_session_cfg = sessions.get_nomeanscale_session_cfg(settings, work_dir=work_dir)
     onnx_session_cfg = sessions.get_onnx_session_cfg(settings, work_dir=work_dir)
     onnx_bgr_session_cfg = sessions.get_onnx_bgr_session_cfg(settings, work_dir=work_dir)
     onnx_quant_session_cfg = sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir)
@@ -66,10 +67,9 @@ def get_configs(settings, work_dir):
         #################################################################
         #       ONNX MODELS
         ################# onnx models ###############################
-
         '3dod-7100':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_lidar_base(),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**nomeanscale_session_cfg,
                 runtime_options=utils.dict_update(runtime_options_3dod_7100,
                                     {'object_detection:meta_arch_type': 7,
                                      'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection_3d/kitti/mmdet3d/lidar_point_pillars_10k_496x432.prototxt',

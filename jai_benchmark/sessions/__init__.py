@@ -73,6 +73,12 @@ def get_common_session_cfg(settings, work_dir=None, input_optimization=True, inp
                               **kwargs)
     return common_session_cfg
 
+def get_nomeanscale_session_cfg(settings, work_dir=None, input_optimization=False, input_data_layout=constants.NCHW,
+                 input_mean=None, input_scale=None, **kwargs):
+    session_cfg = get_common_session_cfg(settings, work_dir, input_optimization=input_optimization,
+                input_data_layout=input_data_layout, input_mean=input_mean, input_scale=input_scale, **kwargs)
+    return session_cfg
+
 def get_onnx_session_cfg(settings, work_dir=None, input_optimization=True, input_data_layout=constants.NCHW,
                  input_mean=(123.675, 116.28, 103.53), input_scale=(0.017125, 0.017507, 0.017429), **kwargs):
     session_cfg = get_common_session_cfg(settings, work_dir, input_optimization=input_optimization,
