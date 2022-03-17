@@ -19,3 +19,4 @@ graphviz
 h5py
 scipy
 pillow
+git+https://github.com/TexasInstruments/edgeai-tidl-tools.git#subdirectory=scripts
