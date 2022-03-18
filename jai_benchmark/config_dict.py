@@ -178,6 +178,8 @@ class ConfigDict(dict):
         self.model_transformation_dict = None
         # include perfsim stats in the report or not
         self.report_perfsim = False
+        # use TIDL offload to speedup inference
+        self.tidl_offload = True
         # input optimization to improve FPS: False or None
         # None will cause the default value set in sessions.__init__ to be used.
         self.input_optimization = None

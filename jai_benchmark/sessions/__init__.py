@@ -68,7 +68,7 @@ def get_common_session_cfg(settings, work_dir=None, input_optimization=True, inp
     # if it set to None from outside, change it to True (default value)
     input_optimization = input_optimization if settings.input_optimization is None else settings.input_optimization
     common_session_cfg = dict(work_dir=work_dir, target_device=settings.target_device, tidl_offload=settings.tidl_offload,
-                              input_optimization=settings.input_optimization, input_data_layout=input_data_layout,
+                              input_optimization=input_optimization, input_data_layout=input_data_layout,
                               input_mean=input_mean, input_scale=input_scale,
                               **kwargs)
     return common_session_cfg

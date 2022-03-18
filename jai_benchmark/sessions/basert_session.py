@@ -364,34 +364,23 @@ class BaseRTSession(utils.ParamsBase):
         model_path = self.kwargs['model_path']
         # make a local copy
         model_file = utils.get_local_path(model_path, model_folder)
-        model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
-        print(utils.log_color('INFO', 'model_path', model_path))
-        print(utils.log_color('INFO', 'model_file', model_file))
-
-        is_new_model_file = (not utils.file_exists(model_file0))
-        if not utils.file_exists(model_file0):
-            model_path = utils.download_files(model_path, root=model_folder)
-        #
         # self.kwargs['model_file'] is what is used in the session
         # we could have just used self.kwargs['model_path'], but do this for legacy reasons
         self.kwargs['model_file'] = model_file
 
-        # meta_file
-        meta_path = self.kwargs['runtime_options'].get(meta_file_key, None)
-        if meta_path is not None:
-            # make a local copy
-            meta_file = utils.get_local_path(meta_path, model_folder)
-            if not utils.file_exists(meta_file):
-                meta_path = utils.download_file(meta_path, root=model_folder)
-            #
-            # write the local path
-            self.kwargs['runtime_options'][meta_file_key] = meta_file
+        print(utils.log_color('INFO', 'model_path', model_path))
+        print(utils.log_color('INFO', 'model_file', model_file))
+
+        model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
+        model_file_exists = utils.file_exists(model_file0)
+        if not model_file_exists:
+            model_path = utils.download_files(model_path, root=model_folder)
         #
         # optimize the model to speedup inference.
         # for example, the input of the model can be converted to 8bit and mean/scale can be moved inside the model
         if self.kwargs['input_optimization'] and self.kwargs['tensor_bits'] == 8 and \
                 self.kwargs['input_mean'] is not None and self.kwargs['input_scale'] is not None:
-            optimization_done = self._optimize_model(is_new_model_file)
+            optimization_done = self._optimize_model(is_new_file=(not model_file_exists))
             if optimization_done:
                 # set the mean and scale in kwargs to None as they have been absorbed inside.
                 self.kwargs['input_mean'] = None
@@ -403,6 +392,17 @@ class BaseRTSession(utils.ParamsBase):
             self.input_normalizer = ImageNormMeanScale(
                 self.kwargs['input_mean'], self.kwargs['input_scale'],
                 self.kwargs['input_data_layout'])
+        #
+        # meta_file
+        meta_path = self.kwargs['runtime_options'].get(meta_file_key, None)
+        if meta_path is not None:
+            # make a local copy
+            meta_file = utils.get_local_path(meta_path, model_folder)
+            if not utils.file_exists(meta_file):
+                meta_path = utils.download_file(meta_path, root=model_folder)
+            #
+            # write the local path
+            self.kwargs['runtime_options'][meta_file_key] = meta_file
         #
 
     def _optimize_model(self, is_new_file=True):
