@@ -44,4 +44,4 @@ Also, the download may take several hours even with a good internet connection.
 
 Because of all these reasons **some datasets may need to be manually downloaded (especially ImageNet).** To make the datasets manually available, they should be placed at the locations specified for each dataset inside the folder **./dependencies/datasets/** - if you have the datasets stored somewhere else, create symbolic links as necessary.
 
-The following link explains how to **[Obtain Datasets](./docs/datasets.md)** for benchmarking.
+The following link explains how to **[Obtain Datasets](./datasets.md)** for benchmarking.
