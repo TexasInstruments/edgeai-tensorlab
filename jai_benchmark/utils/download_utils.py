@@ -127,7 +127,7 @@ def download_file(url, root=None, extract_root=None, filename=None, md5=None, mo
     return fpath
 
 
-def download_files(dataset_urls, root, extract_root=None, save_filenames=None):
+def download_files(dataset_urls, root, extract_root=None, save_filenames=None, message=''):
     dataset_urls = dataset_urls if isinstance(dataset_urls, (list,tuple)) else [dataset_urls]
     save_filenames = save_filenames if isinstance(save_filenames, (list,tuple)) else \
         ([None]*len(dataset_urls) if save_filenames is None else [save_filenames])
