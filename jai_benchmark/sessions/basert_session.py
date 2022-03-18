@@ -209,6 +209,14 @@ class BaseRTSession(utils.ParamsBase):
         #
         return stats_dict
 
+    def get_session_name(self):
+        session_name = self.kwargs['session_name']
+        return session_name
+
+    def get_session_short_name(self):
+        session_name = self.get_session_name()
+        return constants.SESSION_NAMES_DICT[session_name]
+
     def _tidl_infer_stats(self):
         assert self.is_imported is True, 'the given model must be an imported one.'
         benchmark_dict = self.interpreter.get_TI_benchmark_data()
