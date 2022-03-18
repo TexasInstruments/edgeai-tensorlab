@@ -280,7 +280,7 @@ def get_configs(settings, work_dir):
         # od-8160 and od-8170 are moved to detection_experimental.py
         # yolox lite versions from edgeai-mmdet
         'od-8200':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(416, 416, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
@@ -293,7 +293,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 24.8})
         ),         
         'od-8210':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(416, 416, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
@@ -306,7 +306,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5})
         ),
         'od-8220':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
@@ -319,7 +319,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 38.3})
         ),
         'od-8230':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
