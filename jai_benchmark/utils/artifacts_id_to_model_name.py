@@ -301,6 +301,7 @@ model_id_artifacts_pair = {
     # face detection
     'od-8410_onnxrt': 'ONR-OD-8410-yolox-tiny-lite-mmdet-widerface-416x416',
     'od-8420_onnxrt': 'ONR-OD-8420-yolox-s-lite-mmdet-widerface-640x640',
+    'od-8421_onnxrt': 'ONR-OD-8421-yolox-s-lite-mmdet-widerface-1024x1024',
     'od-8430_onnxrt': 'ONR-OD-8430-yolox-m-lite-mmdet-widerface-640x640',
 
     # Yolov5 series

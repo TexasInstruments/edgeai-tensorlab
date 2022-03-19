@@ -104,6 +104,19 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.widerfacedet_det_label_offset_1to1(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 31.62}, model_name='OD-8420-yolox-s-lite-mmdet-widerface-640x640')
         ),
+        'od-8421':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(1024, 1024, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            session=onnx_session_type(**common_session_cfg,
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
+                                       {'object_detection:meta_arch_type': 6,
+                                        'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_s_lite_1024x1024_20220317_model.prototxt',
+                                        'advanced_options:output_feature_16bit_names_list': '1033, 711, 712, 713, 727, 728, 728, 743, 744, 745'
+                                        }),
+                model_path=f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_s_lite_1024x1024_20220317_model.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
+            metric=dict(label_offset_pred=datasets.widerfacedet_det_label_offset_1to1(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None}, model_name='OD-8421-yolox-s-lite-mmdet-widerface-1024x1024')
+        ),
         'od-8430':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
