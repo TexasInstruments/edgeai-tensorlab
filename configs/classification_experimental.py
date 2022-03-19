@@ -61,6 +61,31 @@ def get_configs(settings, work_dir):
         #################################################################
         #       ONNX MODELS
         #################jai-devkit models###############################
+        # # pycls: classification regnetx400mf_224x224 expected_metric: 72.7% top-1 accuracy
+        # 'cl-6120':utils.dict_update(common_cfg,
+        #     preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True),
+        #     session=onnx_session_type(**onnx_bgr_session_cfg,
+        #         runtime_options=settings.runtime_options_onnx_np2(),
+        #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-400mf.onnx'),
+        #     model_info=dict(metric_reference={'accuracy_top1%':72.7})
+        # ),
+        # # pycls: classification regnetx800mf_224x224 expected_metric: 75.2% top-1 accuracy
+        # 'cl-6130':utils.dict_update(common_cfg,
+        #     preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True),
+        #     session=onnx_session_type(**onnx_bgr_session_cfg,
+        #         runtime_options=settings.runtime_options_onnx_np2(),
+        #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-800mf.onnx'),
+        #     model_info=dict(metric_reference={'accuracy_top1%':75.2})
+        # ),
+        # # pycls: classification regnetx1.6gf_224x224 expected_metric: 77.0% top-1 accuracy
+        # 'cl-6140':utils.dict_update(common_cfg,
+        #     preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True),
+        #     session=onnx_session_type(**onnx_bgr_session_cfg,
+        #         runtime_options=settings.runtime_options_onnx_np2(),
+        #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-1.6gf.onnx'),
+        #     model_info=dict(metric_reference={'accuracy_top1%':77.0})
+        # ),
+        #
         # # torchvision: classification vgg16_224x224 expected_metric: 71.59% top-1 accuracy - too slow inference
         # 'cl-6370':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(),
@@ -68,6 +93,7 @@ def get_configs(settings, work_dir):
         #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/vgg16.onnx'),
         #     model_info=dict(metric_reference={'accuracy_top1%':71.59})
         # ),
+        #
         # # jai-devkit: classification mobilenetv3_large_lite qat expected_metric: 71.614% top-1 accuracy
         # 'cl-6508':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(),
@@ -84,6 +110,7 @@ def get_configs(settings, work_dir):
         #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_x2r_20210522.onnx'),
         #     model_info=dict(metric_reference={'accuracy_top1%':74.160})
         # ),
+        #
         #################github/onnx/models#############################
         # # github onnx model: classification resnet18_v2 expected_metric: 69.70% top-1 accuracy
         # 'cl-6000':utils.dict_update(common_cfg,
@@ -93,6 +120,7 @@ def get_configs(settings, work_dir):
         #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/onnx-models/resnet18-v2-7.onnx'),
         #     model_info=dict(metric_reference={'accuracy_top1%':69.70})
         # ),
+        #
         # #################################################################
         # #       MXNet MODELS
         # #################################################################
@@ -106,6 +134,7 @@ def get_configs(settings, work_dir):
         #         model_type='mxnet', input_shape={'data':(1,3,224,224)}),
         #     model_info=dict(metric_reference={'accuracy_top1%':78.2})
         # ),
+        #
         # #################################################################
         # #       TFLITE MODELS
         # ##################tensorflow models##############################
@@ -135,6 +164,7 @@ def get_configs(settings, work_dir):
         #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite2-fp32.tflite'),
         #     model_info=dict(metric_reference={'accuracy_top1%':77.6})
         # ),
+        #
         # ##################tf2-models#####################################################
         # # tf2_models: classification xception expected_metric: 79.0% top-1 accuracy
         # 'cl-0250':utils.dict_update(common_cfg,
