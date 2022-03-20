@@ -29,7 +29,7 @@
 ######################################################
 input_size = (416,416)                          #(320,320) #(416,416) #(608,608)
 dataset_type = 'CocoDataset'
-num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8}
+num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8, 'WIDERFaceDataset':1}
 num_classes = num_classes_dict[dataset_type]
 img_norm_cfg = dict(mean=[0, 0, 0], std=[255., 255., 255.], to_rgb=True)
 

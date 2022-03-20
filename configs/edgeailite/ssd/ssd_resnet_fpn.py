@@ -29,7 +29,7 @@
 ######################################################
 input_size = (512,512)                          #(512,512) #(768,768) #(1024,1024)
 dataset_type = 'CocoDataset'
-num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8}
+num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8, 'WIDERFaceDataset':1}
 num_classes = num_classes_dict[dataset_type]
 img_norm_cfg = dict(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True) #imagenet mean/std
 

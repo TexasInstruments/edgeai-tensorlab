@@ -1,7 +1,7 @@
 ######################################################
 input_size = (512,512)                          #(320,320) #(384,384) #(512,512) #(768,384) #(768,768) #(1024,512) #(1024,1024)
 dataset_type = 'CocoDataset'
-num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8}
+num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8, 'WIDERFaceDataset':1}
 num_classes = num_classes_dict[dataset_type]
 img_norm_cfg = dict(mean=[103.53, 116.28, 123.675], std=[57.375, 57.12, 58.395], to_rgb=False) #imagenet mean used in pycls (bgr)
 
