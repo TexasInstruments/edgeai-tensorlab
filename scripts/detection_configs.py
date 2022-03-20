@@ -34,7 +34,7 @@ Usage:
 (4) Recommend to run the first training with voc0712 dataset as it is widely used and reasonably small.
 (5) To convert cityscapes to coco format, run the script: tools/convert_datasets/cityscapes.py
 
-config='./configs/edgeailite/ssd/ssd_regnet_fpn_bgr_lite.py'
+config='./configs/edgeailite/ssd/ssd_regnetx_fpn_bgr_lite.py'
 config='./configs/edgeailite/ssd/ssd_mobilenet_fpn_lite.py'
 config='./configs/edgeailite/ssd/ssd_mobilenet_lite.py'
 config='./configs/edgeailite/ssd/ssd_resnet_fpn.py'
@@ -52,4 +52,4 @@ config='./configs/edgeailite/yolox/yolox_s_lite.py'
 config='./configs/edgeailite/yolox/yolox_m_lite.py'
 '''
 
-config='./configs/edgeailite/ssd/ssd_regnet_fpn_bgr_lite.py'
+config='./configs/edgeailite/ssd/ssd_regnetx_fpn_bgr_lite.py'
