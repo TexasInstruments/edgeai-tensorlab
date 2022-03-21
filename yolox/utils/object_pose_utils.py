@@ -43,7 +43,7 @@ def load_models(models_datapath, class_to_name=class_to_name):
             continue
 
         model_3D = load_model_point_cloud(model_datapath)
-        class_to_model[class_id] = torch.from_numpy(model_3D).half()
+        class_to_model[class_id] = torch.tensor(model_3D, requires_grad=False).half()
 
     return class_to_model 
 

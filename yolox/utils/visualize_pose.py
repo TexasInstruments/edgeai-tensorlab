@@ -41,6 +41,15 @@ colours = [(255, 0, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255)
 (0, 255, 125), (125, 0, 255), (255, 0, 125), (125, 255, 0), (255, 125, 0), (125, 255, 255), (255, 125, 255),
 (255, 255, 125), (255, 255, 255)]
 
+r_h = 640 / 480
+r_w = 640 / 640
+
+px = 325.26110
+py = 242.04899
+
+fx = 572.41140
+fy = 573.57043
+
 def draw_cuboid_2d(img, cuboid_corners, colour = (0, 255, 0), thickness = 2):
     box = np.copy(cuboid_corners).astype(np.int32)
 
@@ -83,8 +92,25 @@ def draw_predictions(img, predictions, num_classes, class_to_cuboid=class_to_cub
             continue
         obj_class = int(prediction[-1])
         colour = colours[obj_class]
-        rotation_vec = prediction[5:8].astype(np.float64)
-        translation_vec = prediction[8:11].astype(np.float64)
+        
+        #Rotation matrix is recovered using the formula given in the article
+        #https://towardsdatascience.com/better-rotation-representations-for-accurate-pose-estimation-e890a7e1317f
+        r1 = prediction[5:8].astype(np.float64)
+        r2 = prediction[8:11].astype(np.float64)
+        r3 = np.cross(r1, r2)
+        translation_vec = np.zeros_like(prediction[11:14].astype(np.float64))
+        #Tz was previously scaled down by 100 (converted from cm to m)
+        #Tx and Ty are recovered using the formula given on page 5 of the the paper: https://arxiv.org/pdf/2011.04307.pdf
+        #px, py, fx and fy are currently hard-coded for LINEMOD dataset
+        tz = prediction[13].astype(np.float64) * 100.0
+        tx = ((prediction[11].astype(np.float64) / r_w) - px) * tz / fx
+        ty = ((prediction[12].astype(np.float64) / r_h) - py) * tz / fy
+
+        rotation_vec = np.vstack((r1, r2, r3))
+        rotation_vec, _ = cv2.Rodrigues(rotation_vec)
+        translation_vec[0] = tx
+        translation_vec[1] = ty
+        translation_vec[2] = tz
 
         cuboid_corners_2d = project_cuboid(
             cuboid_corners=class_to_cuboid[obj_class],
@@ -106,6 +132,20 @@ def draw_ground_truths(img, ground_truths, class_to_cuboid=class_to_cuboid, came
     for ground_truth in ground_truths:
         for obj in ground_truth:
             obj_class = obj[4] - 1
+            r1 = obj[5:8]
+            r2 = obj[8:11]
+            r3 = np.cross(r1, r2)
+            translation_vec = np.zeros_like(obj[11:14])
+            tz = obj[13] * 100.0
+            tx = ((obj[11] / r_w) - px) * tz / fx
+            ty = ((obj[12] / r_h) - py) * tz / fy
+
+            rotation_vec = np.vstack((r1, r2, r3))
+            rotation_vec, _ = cv2.Rodrigues(rotation_vec)
+            translation_vec[0] = tx
+            translation_vec[1] = ty
+            translation_vec[2] = tz
+            
             rotation_vec = obj[5:8]
             translation_vec = obj[8:11]
             colour = colour

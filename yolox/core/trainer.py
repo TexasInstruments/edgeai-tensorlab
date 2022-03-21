@@ -47,6 +47,7 @@ class Trainer:
         self.local_rank = get_local_rank()
         self.device = "cuda:{}".format(self.local_rank)
         self.use_model_ema = exp.ema
+        self.state_dict_object_detect = None
 
         # data/dataloader related attr
         self.data_type = torch.float16 if args.fp16 else torch.float32
@@ -59,6 +60,15 @@ class Trainer:
 
         if self.rank == 0:
             os.makedirs(self.file_name, exist_ok=True)
+
+        if exp.object_pose and args.od_weights is not None:
+            file_name = os.path.basename(os.path.normpath(args.od_weights))
+            if '.ckpt' or '.pth' in file_name:
+                ckpt = torch.load(args.od_weights, map_location=self.device)
+                self.state_dict_object_detect = ckpt["model"]
+
+            else:
+                self.state_dict_object_detect = torch.load(args.od_weights, map_location=self.device)
 
         setup_logger(
             self.file_name,
@@ -116,6 +126,15 @@ class Trainer:
         lr = self.lr_scheduler.update_lr(self.progress_in_iter + 1)
         for param_group in self.optimizer.param_groups:
             param_group["lr"] = lr
+        
+        if self.state_dict_object_detect is not None:    
+            state_dict_object_pose = self.model.state_dict()
+
+            for key in self.state_dict_object_detect.keys():
+                state_dict_object_pose[key] = self.state_dict_object_detect[key]
+                state_dict_object_pose[key].requires_grad = False
+
+            self.model.load_state_dict(state_dict_object_pose, strict=False)
 
         iter_end_time = time.time()
         self.meter.update(
@@ -172,6 +191,16 @@ class Trainer:
         self.model = model
         self.model.train()
 
+        if self.state_dict_object_detect is not None:    
+            state_dict_object_pose = self.model.state_dict()
+
+            for key in self.state_dict_object_detect.keys():
+                state_dict_object_pose[key] = self.state_dict_object_detect[key]
+                state_dict_object_pose[key].requires_grad = False
+
+            self.model.load_state_dict(state_dict_object_pose, strict=False)
+            logger.warning("GRADIENTS FOR ALL 2DOD LAYERS HAVE BEEN DISABLED!")
+
         self.evaluator = self.exp.get_evaluator(
             batch_size=self.args.batch_size, is_distributed=self.is_distributed
         )
@@ -217,7 +246,7 @@ class Trainer:
         `after_iter` contains two parts of logic:
             * log information
             * reset setting of resize
-        """
+        """      
         # log needed information
         if (self.iter + 1) % self.exp.print_interval == 0:
             # TODO check ETA logic
@@ -306,6 +335,14 @@ class Trainer:
             evalmodel, self.evaluator, self.is_distributed
         )
         self.model.train()
+        if self.state_dict_object_detect is not None:                
+            state_dict_object_pose = self.model.state_dict()
+
+            for key in self.state_dict_object_detect.keys():
+                state_dict_object_pose[key] = self.state_dict_object_detect[key]
+                state_dict_object_pose[key].requires_grad = False
+
+            self.model.load_state_dict(state_dict_object_pose, strict=False)
         if self.rank == 0:
             self.tblogger.add_scalar("val/COCOAP50", ap50, self.epoch + 1)
             self.tblogger.add_scalar("val/COCOAP50_95", ap50_95, self.epoch + 1)

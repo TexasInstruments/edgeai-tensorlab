@@ -42,8 +42,6 @@ class YOLOXObjectPoseHead(nn.Module):
         self.num_classes = num_classes
         self.decode_in_inference = True  # for deploy, set to False
 
-        self.models = load_models(models_datapath="/home/a0492969/datasets/Linemod_preprocessed/models")
-
         self.cls_convs = nn.ModuleList()
         self.reg_convs = nn.ModuleList()
         self.rot_convs = nn.ModuleList()
@@ -51,7 +49,8 @@ class YOLOXObjectPoseHead(nn.Module):
         self.cls_preds = nn.ModuleList()
         self.reg_preds = nn.ModuleList()
         self.rot_preds = nn.ModuleList()
-        self.trn_preds = nn.ModuleList()
+        self.trn_preds_xy = nn.ModuleList()
+        self.trn_preds_z = nn.ModuleList()
         self.obj_preds = nn.ModuleList()
         self.stems = nn.ModuleList()
         Conv = DWConv if depthwise else BaseConv
@@ -123,12 +122,26 @@ class YOLOXObjectPoseHead(nn.Module):
                             stride=1,
                             act=act,
                         ),
+                        Conv(
+                            in_channels=int(256 * width),
+                            out_channels=int(256 * width),
+                            ksize=3,
+                            stride=1,
+                            act=act,
+                        ),
                     ]
                 )
             )
             self.trn_convs.append(
                 nn.Sequential(
                     *[
+                        Conv(
+                            in_channels=int(256 * width),
+                            out_channels=int(256 * width),
+                            ksize=3,
+                            stride=1,
+                            act=act,
+                        ),
                         Conv(
                             in_channels=int(256 * width),
                             out_channels=int(256 * width),
@@ -176,18 +189,27 @@ class YOLOXObjectPoseHead(nn.Module):
             self.rot_preds.append(
                 nn.Conv2d(
                     in_channels=int(256 * width),
-                    out_channels=self.n_anchors * 3,
+                    out_channels=self.n_anchors * 6,
                     kernel_size=1,
-                    padding=0
+                    padding=0,
                 )
             )
-            self.trn_preds.append(
+            self.trn_preds_xy.append(
                 nn.Conv2d(
                     in_channels=int(256 * width),
-                    out_channels=self.n_anchors * 3,
+                    out_channels=self.n_anchors * 2,
                     kernel_size=1,
                     stride=1,
-                    padding=0
+                    padding=0,
+                )
+            )
+            self.trn_preds_z.append(
+                nn.Conv2d(
+                    in_channels=int(256 * width),
+                    out_channels=self.n_anchors * 1,
+                    kernel_size=1,
+                    stride=1,
+                    padding=0,
                 )
             )
 
@@ -196,6 +218,7 @@ class YOLOXObjectPoseHead(nn.Module):
         self.bcewithlog_loss = nn.BCEWithLogitsLoss(reduction="none")
         self.iou_loss = IOUloss(reduction="none")
         self.mse_loss = nn.MSELoss(reduction="none")
+        self.mae_loss = nn.L1Loss(reduction="none")
         self.strides = strides
         self.grids = [torch.zeros(1)] * len(in_channels)
 
@@ -233,13 +256,17 @@ class YOLOXObjectPoseHead(nn.Module):
             obj_output = self.obj_preds[k](reg_feat)
 
             rot_feat = rot_conv(rot_x)  #NEW
-            rot_output = self.rot_preds[k](rot_feat)
+            rot_preproc = self.rot_preds[k](rot_feat)
+            rot_c1 = F.normalize(rot_preproc[:, :3, :, :], dim=1)
+            rot_c2 = F.normalize(rot_preproc[:, 3:, :, :] - torch.sum(rot_c1 * rot_preproc[:, 3:, :, :], dim=1, keepdim=True) * rot_c1, dim=1)
+            rot_output = torch.cat([rot_c1, rot_c2], dim=1)
             
             trn_feat = trn_conv(trn_x)  #NEW
-            trn_output = self.trn_preds[k](trn_feat)
+            trn_xy_output = self.trn_preds_xy[k](trn_feat)
+            trn_z_output = self.trn_preds_z[k](trn_feat)
 
             if self.training:
-                output = torch.cat([reg_output, obj_output, rot_output, trn_output, cls_output], 1)
+                output = torch.cat([reg_output, obj_output, rot_output, trn_xy_output, trn_z_output, cls_output], 1)
                 output, grid = self.get_output_and_grid(
                     output, k, stride_this_level, xin[0].type()
                 )
@@ -263,7 +290,7 @@ class YOLOXObjectPoseHead(nn.Module):
 
             else:
                 output = torch.cat(
-                    [reg_output, obj_output.sigmoid(), rot_output, trn_output, cls_output.sigmoid()], 1
+                    [reg_output, obj_output.sigmoid(), rot_output, trn_xy_output, trn_z_output, cls_output.sigmoid()], 1
                 )
 
             outputs.append(output)
@@ -295,7 +322,7 @@ class YOLOXObjectPoseHead(nn.Module):
         grid = self.grids[k]
 
         batch_size = output.shape[0]
-        n_ch = 11 + self.num_classes #Replace 11 with variable for features
+        n_ch = 14 + self.num_classes #Replace 14 with variable for features
         hsize, wsize = output.shape[-2:]
         if grid.shape[2:4] != output.shape[2:4]:
             yv, xv = torch.meshgrid([torch.arange(hsize), torch.arange(wsize)])
@@ -341,14 +368,17 @@ class YOLOXObjectPoseHead(nn.Module):
     ):
         bbox_preds = outputs[:, :, :4]  # [batch, n_anchors_all, 4]
         obj_preds = outputs[:, :, 4].unsqueeze(-1)  # [batch, n_anchors_all, 1]
-        rot_preds = outputs[:, :, 5:8] # [batch, n_anchors_all, 3]
-        trn_preds = outputs[:, :, 8:11] # [batch, n_anchors_all, 3]
-        cls_preds = outputs[:, :, 11:]  # [batch, n_anchors_all, n_cls]
+        rot_preds = outputs[:, :, 5:11] # [batch, n_anchors_all, 6]
+        trn_preds = outputs[:, :, 11:14] # [batch, n_anchors_all, 3]
+        trn_xy_preds = outputs[:, :, 11:13] # [batch, n_anchors_all, 2]
+        trn_z_preds = outputs[:, :, 13] # [batch, n_anchors_all, 1]
+        trn_z_preds = trn_z_preds.unsqueeze(-1)
+        cls_preds = outputs[:, :, 14:]  # [batch, n_anchors_all, n_cls]
 
         # calculate targets
-        mixup = labels.shape[2] > 11 #change to 11 from 5
+        mixup = labels.shape[2] > 14 #change to 14 from 5
         if mixup:
-            label_cut = labels[..., :11]
+            label_cut = labels[..., :14]
         else:
             label_cut = labels
         nlabel = (label_cut.sum(dim=2) > 0).sum(dim=1)  # number of objects
@@ -366,6 +396,8 @@ class YOLOXObjectPoseHead(nn.Module):
         obj_targets = []
         rot_targets = []
         trn_targets = []
+        trn_xy_targets = []
+        trn_z_targets = []
         fg_masks = []
 
         num_fg = 0.0
@@ -377,15 +409,16 @@ class YOLOXObjectPoseHead(nn.Module):
             if num_gt == 0:
                 cls_target = outputs.new_zeros((0, self.num_classes))
                 reg_target = outputs.new_zeros((0, 4))
-                rot_target = outputs.new_zeros((0, 3))
+                rot_target = outputs.new_zeros((0, 6))
                 trn_target = outputs.new_zeros((0, 3))
                 l1_target = outputs.new_zeros((0, 4))
                 obj_target = outputs.new_zeros((total_num_anchors, 1))
                 fg_mask = outputs.new_zeros(total_num_anchors).bool()
             else:
                 gt_bboxes_per_image = labels[batch_idx, :num_gt, 1:5]
-                gt_rots_per_image = labels[batch_idx, :num_gt, 5:8]
-                gt_trns_per_image = labels[batch_idx, :num_gt, 8:11]
+                gt_rots_per_image = labels[batch_idx, :num_gt, 5:11]
+                gt_trns_xy_per_image = labels[batch_idx, :num_gt, 11:13]
+                gt_trns_z_per_image = labels[batch_idx, :num_gt, 13]
                 gt_classes = labels[batch_idx, :num_gt, 0]
                 bboxes_preds_per_image = bbox_preds[batch_idx]
 
@@ -452,7 +485,8 @@ class YOLOXObjectPoseHead(nn.Module):
                 obj_target = fg_mask.unsqueeze(-1)
                 reg_target = gt_bboxes_per_image[matched_gt_inds]
                 rot_target = gt_rots_per_image[matched_gt_inds]
-                trn_target = gt_trns_per_image[matched_gt_inds]
+                trn_xy_target = gt_trns_xy_per_image[matched_gt_inds]
+                trn_z_target = gt_trns_z_per_image[matched_gt_inds]
                 if self.use_l1:
                     l1_target = self.get_l1_target(
                         outputs.new_zeros((num_fg_img, 4)),
@@ -465,7 +499,8 @@ class YOLOXObjectPoseHead(nn.Module):
             cls_targets.append(cls_target)
             reg_targets.append(reg_target)
             rot_targets.append(rot_target)
-            trn_targets.append(trn_target)
+            trn_xy_targets.append(trn_xy_target)
+            trn_z_targets.append(trn_z_target)
             obj_targets.append(obj_target.to(dtype))
             fg_masks.append(fg_mask)
             if self.use_l1:
@@ -474,7 +509,9 @@ class YOLOXObjectPoseHead(nn.Module):
         cls_targets = torch.cat(cls_targets, 0)
         reg_targets = torch.cat(reg_targets, 0)
         rot_targets = torch.cat(rot_targets, 0)
-        trn_targets = torch.cat(trn_targets, 0)
+        trn_xy_targets = torch.cat(trn_xy_targets, 0)
+        trn_z_targets = torch.cat(trn_z_targets, 0)
+        trn_z_targets = trn_z_targets.unsqueeze(-1)
         obj_targets = torch.cat(obj_targets, 0)
         fg_masks = torch.cat(fg_masks, 0)
         if self.use_l1:
@@ -492,47 +529,21 @@ class YOLOXObjectPoseHead(nn.Module):
                 cls_preds.view(-1, self.num_classes)[fg_masks], cls_targets
             )
         ).sum() / num_fg
-        loss_rot = 0
-        for i, (rot_pred, rot_gt) in enumerate(zip(rot_preds.view(-1, 3)[fg_masks], rot_targets)):
-            obj_class = int(torch.argmax(cls_targets[i]))
-            loss_rot += 0.1 * (
-                self.mse_loss(
-                    calculate_model_rotation(self.models[obj_class], rot_pred),
-                    calculate_model_rotation(self.models[obj_class], rot_gt)
-                ).sum() / (int(self.models[obj_class].shape[0]) * num_fg) #int(self.models[obj_class].shape[0])
+        loss_rot = (
+            self.mae_loss(
+                rot_preds.view(-1, 6)[fg_masks], rot_targets
             )
-        #loss_rot /= num_fg
-        #loss_rot = (
-        #    self.mse_loss(
-        #        rot_preds.view(-1, 3)[fg_masks]% (2 * math.pi), rot_targets
-        #    )
-        #).sum() / num_fg
-        #print(trn_targets.max())
-        #print(trn_preds.view(-1, 3)[fg_masks].shape)
-        #print(trn_targets.shape)
-        #print(trn_preds.view(-1, 3)[fg_masks].min())
-        #print(trn_preds.view(-1, 3)[fg_masks].max())
-        #print(trn_targets.min())
-        
-        loss_trn = 0 * (
-            self.mse_loss(
-                trn_preds.view(-1, 3)[fg_masks], trn_targets
+        ).sum() / num_fg
+        loss_trn_xy = (
+            self.mae_loss(
+                trn_xy_preds.view(-1, 2)[fg_masks], trn_xy_targets
             )
-        ).sum() / (num_fg * trn_targets.norm(dim=1).sum())
-
-        #dummy_input = torch.randn(rot_targets.shape[0], rot_targets.shape[1], requires_grad=True)
-        #dummy_target
-        #rot_preds.view(-1, 3)[fg_masks]  = trn_targets
-        #loss_rot = (
-        #    self.mse_loss(
-        #        rot_preds.view(-1, 3)[fg_masks] , rot_targets
-        #)
-        #).sum() / num_fg 
-        
-        #loss_rot = 0
-        #loss_trn = 0
-
-       
+        ).sum() / num_fg
+        loss_trn_z = (
+            self.mae_loss(
+                trn_z_preds.view(-1, 1)[fg_masks], trn_z_targets
+            )
+        ).sum() / num_fg 
         if self.use_l1:
             loss_l1 = (
                 self.l1_loss(origin_preds.view(-1, 4)[fg_masks], l1_targets)
@@ -541,7 +552,7 @@ class YOLOXObjectPoseHead(nn.Module):
             loss_l1 = 0.0
 
         reg_weight = 5.0
-        loss = reg_weight * loss_iou + loss_obj + loss_cls + loss_rot + loss_trn + loss_l1
+        loss = reg_weight * loss_iou + loss_obj + loss_cls + loss_rot + loss_trn_xy + loss_trn_z + loss_l1
 
         return (
             loss,
@@ -549,7 +560,8 @@ class YOLOXObjectPoseHead(nn.Module):
             loss_obj,
             loss_cls,
             loss_rot,
-            loss_trn,
+            loss_trn_xy,
+            loss_trn_z,
             loss_l1,
             num_fg / max(num_gts, 1),
         )

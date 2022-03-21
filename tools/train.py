@@ -68,6 +68,13 @@ def make_parser():
     parser.add_argument("--task", default=None, type=str, help="type of task for model eval")
     parser.add_argument("-c", "--ckpt", default=None, type=str, help="checkpoint file")
     parser.add_argument(
+        "-odw", 
+        "--od-weights", 
+        default=None, 
+        type=str, 
+        help="weights for trained 2DOD network"
+    )
+    parser.add_argument(
         "-e",
         "--start_epoch",
         default=None,

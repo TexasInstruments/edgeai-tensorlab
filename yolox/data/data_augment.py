@@ -199,7 +199,7 @@ class TrainTransform:
         self.human_pose = human_pose
         self.flip_index = flip_index
         if self.object_pose:
-            self.target_size = 11
+            self.target_size = 14  #5 + 9
         elif self.human_pose:
             self.target_size = 39  # 5+ 2*17
         else:
@@ -209,7 +209,7 @@ class TrainTransform:
         boxes = targets[:, :4].copy()
         labels = targets[:, 4].copy()
         if self.object_pose:
-            object_poses = targets[:, 5:11].copy()
+            object_poses = targets[:, 5:14].copy()
         if self.human_pose:
             human_kpts = targets[:, 5:].copy()
         else:
@@ -225,7 +225,7 @@ class TrainTransform:
         boxes_o = targets_o[:, :4]
         labels_o = targets_o[:, 4]
         if self.object_pose:
-            object_poses_o = targets_o[:, 5:11]
+            object_poses_o = targets_o[:, 5:14]
         elif self.human_pose:
             human_kpts_o = targets_o[:, 5:]
         # bbox_o: [xyxy] to [c_x,c_y,w,h]
