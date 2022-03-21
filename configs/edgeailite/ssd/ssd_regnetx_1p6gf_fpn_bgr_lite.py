@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ######################################################
-input_size = (512,512)                          #(320,320) #(384,384) #(512,512) #(768,384) #(768,768) #(1024,512) #(1024,1024)
+input_size = (768,768)                          #(320,320) #(384,384) #(512,512) #(768,384) #(768,768) #(1024,512) #(1024,1024)
 dataset_type = 'CocoDataset'
 num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8, 'WIDERFaceDataset':1}
 num_classes = num_classes_dict[dataset_type]
