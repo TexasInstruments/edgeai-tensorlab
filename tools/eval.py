@@ -25,7 +25,7 @@ _VAL_ANN = {
 }
 _SUPPORTED_TASKS = {
     "coco":["2dod"],
-    "linemod":["2dod", "6dpose"],
+    "linemod":["2dod", "object_pose"],
     "coco_kpts": ["2dod", "human_pose"],
 }
 
@@ -174,7 +174,7 @@ def main(exp, args, num_gpu):
             args.task in _SUPPORTED_TASKS[args.dataset] if args.dataset is not None else args.task == "2dod"
         ), "The specified task cannot be performed with the given dataset!"
         if args.dataset == "linemod":
-            if args.task == "6dpose":
+            if args.task == "object_pose":
                 exp.object_pose = True
         elif args.dataset == "coco_kpts":
             if args.task == "human_pose":

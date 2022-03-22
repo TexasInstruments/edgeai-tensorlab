@@ -28,7 +28,7 @@ _TRAIN_ANN = {
 }
 _SUPPORTED_TASKS = {
     "coco":["2dod"],
-    "linemod":["2dod", "6dpose"],
+    "linemod":["2dod", "object_pose"],
     "coco_kpts": ["2dod", "human_pose"]
 }
 
@@ -156,8 +156,8 @@ def main(exp, args):
                 args.task in _SUPPORTED_TASKS[args.dataset]
             ), "The specified task cannot be performed with the given dataset!"
             if args.dataset == "linemod":
-                #exp.pose = True if args.task == "6dpose" else exp.pose = False
-                if args.task == "6dpose":
+                #exp.pose = True if args.task == "object_pose" else exp.pose = False
+                if args.task == "object_pose":
                     exp.object_pose = True
             elif args.dataset=="coco_kpts":
                 if args.task == "human_pose":

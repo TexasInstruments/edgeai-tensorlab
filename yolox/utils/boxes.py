@@ -11,7 +11,7 @@ import torchvision
 __all__ = [
     "filter_box",
     "postprocess",
-    "postprocess_pose",
+    "postprocess_object_pose",
     "bboxes_iou",
     "matrix_iou",
     "adjust_box_anns",
@@ -85,7 +85,7 @@ def postprocess(prediction, num_classes, conf_thre=0.7, nms_thre=0.45, class_agn
 
     return output
 
-def postprocess_pose(prediction, num_classes, conf_thre=0.7, nms_thre=0.45, class_agnostic=False):
+def postprocess_object_pose(prediction, num_classes, conf_thre=0.7, nms_thre=0.45, class_agnostic=False):
     box_corner = prediction.new(prediction.shape)
     box_corner[:, :, 0] = prediction[:, :, 0] - prediction[:, :, 2] / 2
     box_corner[:, :, 1] = prediction[:, :, 1] - prediction[:, :, 3] / 2

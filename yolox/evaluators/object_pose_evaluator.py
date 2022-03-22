@@ -11,8 +11,8 @@ import time
 import os
 from loguru import logger
 from tqdm import tqdm
-from cv2 import imread, imwrite
-from ..utils  import visualize_pose
+import cv2
+from ..utils  import visualize_object_pose
 
 import torch
 
@@ -20,7 +20,7 @@ from yolox.utils import (
     gather,
     is_main_process,
     postprocess,
-    postprocess_pose,
+    postprocess_object_pose,
     synchronize,
     time_synchronized,
     xyxy2xywh
@@ -34,7 +34,7 @@ class ObjectPoseEvaluator:
     """
 
     def __init__(
-        self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False, visualize = False
+        self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False, visualize = False, output_dir=None
     ):
         """
         Args:
@@ -52,9 +52,7 @@ class ObjectPoseEvaluator:
         self.num_classes = num_classes
         self.testdev = testdev
         self.visualize = visualize
-        self.eval_img_path = "/home/a0492969/edgeai-yolox/eval_images"
-        if self.visualize:
-            os.makedirs(self.eval_img_path, exist_ok=True)
+        self.output_dir = output_dir
 
     def evaluate(
         self,
@@ -126,12 +124,16 @@ class ObjectPoseEvaluator:
                 )
                 
                 if self.visualize:
-                    predictions = postprocess_pose(outputs, self.num_classes, self.confthre, self.nmsthre)
-                    image_name = "{:04}.png".format(int(ids))
-                    current_img = imread(os.path.join("/home/a0492969/datasets/Occlusion_COCO/test", image_name))
-                    visualize_pose.draw_ground_truths(img=current_img, ground_truths=targets)
-                    visualize_pose.draw_predictions(img=current_img, predictions=predictions[0], num_classes=self.num_classes)
-                    imwrite(os.path.join("/home/a0492969/edgeai-yolox/eval_images",image_name), current_img)
+                    predictions_pose = postprocess_object_pose(outputs, self.num_classes, self.confthre, self.nmsthre)
+                    os.makedirs(os.path.join(self.output_dir, "vis_pose"), exist_ok=True)
+                    for output_idx in range(len(predictions_pose)):
+                        img = imgs[output_idx]
+                        vis_gt_pose = visualize_object_pose.draw_ground_truths(img=img, ground_truths=targets)
+                        vis_pred_pose = visualize_object_pose.draw_predictions(img=img, predictions=predictions_pose[0], num_classes=self.num_classes)
+                        outfile_gt = os.path.join(self.output_dir, "vis_pose", "{0:012}_gt.png".format(ids[output_idx][0]))
+                        cv2.imwrite(outfile_gt, vis_gt_pose)
+                        output_pred  = os.path.join(self.output_dir, "vis_pose", "{0:012}_pred.png".format(ids[output_idx][0]))
+                        cv2.imwrite(output_pred, vis_pred_pose)
 
                 outputs = postprocess(
                     outputs_2dod, self.num_classes, self.confthre, self.nmsthre

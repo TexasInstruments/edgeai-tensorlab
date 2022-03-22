@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from torch import is_tensor
+import copy
 
 #Based on code from https://github.com/ybkscht/EfficientPose/blob/main/utils/visualization.py
 
@@ -82,7 +83,12 @@ def project_cuboid(cuboid_corners, rotation_vec, translation_vec, camera_matrix)
    return cuboid_corners_2d
 
 def draw_predictions(img, predictions, num_classes, class_to_cuboid=class_to_cuboid, camera_matrix=camera_matrix, colours=colours, conf = 0.5):
- 
+
+    if is_tensor(img):
+        img = copy.deepcopy(img).cpu().numpy().transpose(1, 2, 0)
+        img = np.asarray(img, dtype=np.uint8)
+        img = np.ascontiguousarray(img)
+
     if is_tensor(predictions):
         predictions = predictions.cpu()
         predictions = predictions.numpy()
@@ -98,13 +104,13 @@ def draw_predictions(img, predictions, num_classes, class_to_cuboid=class_to_cub
         r1 = prediction[5:8].astype(np.float64)
         r2 = prediction[8:11].astype(np.float64)
         r3 = np.cross(r1, r2)
-        translation_vec = np.zeros_like(prediction[11:14].astype(np.float64))
+        translation_vec = prediction[11:14].astype(np.float64)
         #Tz was previously scaled down by 100 (converted from cm to m)
         #Tx and Ty are recovered using the formula given on page 5 of the the paper: https://arxiv.org/pdf/2011.04307.pdf
         #px, py, fx and fy are currently hard-coded for LINEMOD dataset
         tz = prediction[13].astype(np.float64) * 100.0
-        tx = ((prediction[11].astype(np.float64) / r_w) - px) * tz / fx
-        ty = ((prediction[12].astype(np.float64) / r_h) - py) * tz / fy
+        tx = ((prediction[11].astype(np.float64) / r_w )- px) * tz / fx
+        ty = ((prediction[12].astype(np.float64) / r_h ) - py) * tz / fy
 
         rotation_vec = np.vstack((r1, r2, r3))
         rotation_vec, _ = cv2.Rodrigues(rotation_vec)
@@ -124,8 +130,15 @@ def draw_predictions(img, predictions, num_classes, class_to_cuboid=class_to_cub
             cuboid_corners=cuboid_corners_2d,
             colour=colour
         )
+    return img
 
 def draw_ground_truths(img, ground_truths, class_to_cuboid=class_to_cuboid, camera_matrix=camera_matrix, colour=(0, 255, 0)):
+
+    if is_tensor(img):
+        img = copy.deepcopy(img).cpu().numpy().transpose(1, 2, 0)
+        img = np.asarray(img, dtype=np.uint8)
+        img = np.ascontiguousarray(img)
+
     if is_tensor(ground_truths):
         ground_truths = ground_truths.numpy()
 
@@ -135,10 +148,10 @@ def draw_ground_truths(img, ground_truths, class_to_cuboid=class_to_cuboid, came
             r1 = obj[5:8]
             r2 = obj[8:11]
             r3 = np.cross(r1, r2)
-            translation_vec = np.zeros_like(obj[11:14])
+            translation_vec = obj[11:14]
             tz = obj[13] * 100.0
-            tx = ((obj[11] / r_w) - px) * tz / fx
-            ty = ((obj[12] / r_h) - py) * tz / fy
+            tx = ((obj[11] / r_w) - px )* tz / fx
+            ty = ((obj[12] / r_h) - py )* tz / fy
 
             rotation_vec = np.vstack((r1, r2, r3))
             rotation_vec, _ = cv2.Rodrigues(rotation_vec)
@@ -147,7 +160,7 @@ def draw_ground_truths(img, ground_truths, class_to_cuboid=class_to_cuboid, came
             translation_vec[2] = tz
             
             rotation_vec = obj[5:8]
-            translation_vec = obj[8:11]
+            #translation_vec = obj[8:11]
             colour = colour
 
             cuboid_corners_2d = project_cuboid(
@@ -162,3 +175,5 @@ def draw_ground_truths(img, ground_truths, class_to_cuboid=class_to_cuboid, came
                 cuboid_corners=cuboid_corners_2d,
                 colour=colour
             )
+
+    return img

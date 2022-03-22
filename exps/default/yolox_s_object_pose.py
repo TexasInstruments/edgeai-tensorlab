@@ -43,6 +43,7 @@ class Exp(MyExp):
         self.nmsthre = 0.65
         self.data_set = "linemod"
         self.object_pose  = True
+        self.visualize = True
         self.od_weights = None
 
     def get_model(self):
@@ -121,7 +122,6 @@ class Exp(MyExp):
                 mosaic_scale=self.mosaic_scale,
                 mixup_scale=self.mixup_scale,
                 shear=self.shear,
-                perspective=self.perspective,
                 enable_mixup=self.enable_mixup,
                 mosaic_prob=self.mosaic_prob,
                 mixup_prob=self.mixup_prob,
@@ -156,6 +156,7 @@ class Exp(MyExp):
             from yolox.evaluators import ObjectPoseEvaluator
 
             val_loader = self.get_eval_loader(batch_size, is_distributed, testdev, legacy)
+            output_dir = os.path.join(self.output_dir, self.exp_name)
             evaluator = ObjectPoseEvaluator(
                 dataloader=val_loader,
                 img_size=self.test_size,
@@ -163,7 +164,8 @@ class Exp(MyExp):
                 nmsthre=self.nmsthre,
                 num_classes=self.num_classes,
                 testdev=testdev,
-                visualize=self.visualize  
+                visualize=self.visualize,
+                output_dir=output_dir
                 )
 
             return evaluator

@@ -31,7 +31,7 @@ _TRAIN_ANN = {
 }
 _SUPPORTED_TASKS = {
     "coco":["2dod"],
-    "linemod":["2dod", "6dpose"]
+    "linemod":["2dod", "object_pose"]
 }
 
 def make_parser():
@@ -135,7 +135,7 @@ def main():
                 args.task in _SUPPORTED_TASKS[args.dataset]
             ), "The specified task cannot be performed with the given dataset!"
             if args.dataset == "linemod":
-                if args.task == "6dpose":
+                if args.task == "object_pose":
                     exp.object_pose = True
     exp.merge(args.opts)
 

@@ -5,7 +5,7 @@ from plyfile import PlyData
 from loguru import logger
 from math import cos, sin
 from .dist import get_local_rank
-from .visualize_pose import class_to_cuboid
+from .visualize_object_pose import class_to_cuboid
 
 #Order is same as https://github.com/ybkscht/EfficientPose/blob/main/generators/occlusion.py since we use the same dataset
 class_to_name = {0: "ape", 1: "can", 2: "cat", 3: "driller", 4: "duck", 5: "eggbox", 6: "glue", 7: "holepuncher", 8: "benchvise", 9: "bowl", 10: "cup", 11: "iron", 12: "lamp", 13: "phone", 14: "cam"}
