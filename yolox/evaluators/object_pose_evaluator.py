@@ -132,8 +132,8 @@ class ObjectPoseEvaluator:
                         vis_pred_pose = visualize_object_pose.draw_predictions(img=img, predictions=predictions_pose[0], num_classes=self.num_classes)
                         outfile_gt = os.path.join(self.output_dir, "vis_pose", "{0:012}_gt.png".format(ids[output_idx][0]))
                         cv2.imwrite(outfile_gt, vis_gt_pose)
-                        output_pred  = os.path.join(self.output_dir, "vis_pose", "{0:012}_pred.png".format(ids[output_idx][0]))
-                        cv2.imwrite(output_pred, vis_pred_pose)
+                        outfile_pred  = os.path.join(self.output_dir, "vis_pose", "{0:012}_pred.png".format(ids[output_idx][0]))
+                        cv2.imwrite(outfile_pred, vis_pred_pose)
 
                 outputs = postprocess(
                     outputs_2dod, self.num_classes, self.confthre, self.nmsthre
