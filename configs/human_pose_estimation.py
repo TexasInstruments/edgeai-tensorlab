@@ -71,7 +71,7 @@ def get_configs(settings, work_dir):
         'kd-7000':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True,
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
-            session=onnx_session_type(**onnx_session_cfg,
+            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
                     'advanced_options:output_feature_16bit_names_list': first_last_layer['mobilenetv2_fpn_spp_udp']
                     }),
@@ -82,7 +82,7 @@ def get_configs(settings, work_dir):
         'kd-7010':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True,
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
-            session=onnx_session_type(**onnx_session_cfg,
+            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['resnet50_fpn_spp_udp']
                         }),
@@ -93,7 +93,7 @@ def get_configs(settings, work_dir):
         'kd-7020':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True, 
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
-            session=onnx_session_type(**onnx_session_cfg,
+            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['mobilenetv2_pan_spp_udp']
                         }),
@@ -104,7 +104,7 @@ def get_configs(settings, work_dir):
         'kd-7030':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True, 
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
-            session=onnx_session_type(**onnx_session_cfg,
+            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), {
                         'advanced_options:output_feature_16bit_names_list': first_last_layer['resnet50_pan_spp_udp']
                         }),
@@ -114,7 +114,7 @@ def get_configs(settings, work_dir):
         # yolov5 based keypoint/pose estimation - post processing is handled completely by TIDL
         'kd-7040':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True,  backend='cv2', pad_color=[114,114,114]),
-            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_mean=(0.0, 0.0, 0.0),  input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
+            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_optimization=False, input_mean=(0.0, 0.0, 0.0),  input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                         {'tensor_bits': 16,
                          'object_detection:meta_arch_type': 6,
@@ -128,7 +128,7 @@ def get_configs(settings, work_dir):
         ),
         'kd-7050':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
-            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_mean=(0.0, 0.0, 0.0),  input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
+            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_optimization=False, input_mean=(0.0, 0.0, 0.0),  input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                         {'object_detection:meta_arch_type': 6,
                          'object_detection:meta_layers_names_list': f'../edgeai-yolov5/pretrained_models/models/keypoint/coco/edgeai-yolov5/yolov5s6_pose_640_ti_lite_metaarch.prototxt',
@@ -142,7 +142,7 @@ def get_configs(settings, work_dir):
         # yolox based keypoint/pose estimation - post processing is handled completely by TIDL
         'kd-7060':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114,114,114]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**utils.dict_update(common_session_cfg, input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                         {'object_detection:meta_arch_type': 6,
                          'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_metaarch.prototxt',
