@@ -130,6 +130,19 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.widerfacedet_det_label_offset_1to1(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 33.6}, model_name='OD-8430-yolox-m-lite-mmdet-widerface-640x640')
         ),
+        'od-8430':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, backend='cv2', pad_color=[114, 114, 114]),
+            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
+                                       {'object_detection:meta_arch_type': 6,
+                                        'object_detection:meta_layers_names_list': f'../edgeai-yolov5/pretrained_models/models/detection/widerface/edgeai-yolov5/yolov5s6_640_ti_lite_metaarch.prototxt',
+                                        'advanced_options:output_feature_16bit_names_list': '168, 370, 432, 494, 556'
+                                        }),
+                model_path=f'../edgeai-yolov5/pretrained_models/models/detection/widerface/edgeai-yolov5/yolov5s6_640_ti_lite_71p53.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
+            metric=dict(label_offset_pred=datasets.widerfacedet_det_label_offset_1to1(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 37.74})
+        ),
+
     }
     return pipeline_configs
-
