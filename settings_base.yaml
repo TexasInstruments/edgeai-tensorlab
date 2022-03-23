@@ -83,7 +83,7 @@ tidl_offload : True
 input_optimization : null
 
 # detection threshold
-detection_thr : 0.01
+detection_thr : 0.3
 
 # verbose mode - print out more information
 verbose : False
