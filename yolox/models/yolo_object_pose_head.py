@@ -335,6 +335,8 @@ class YOLOXObjectPoseHead(nn.Module):
         )
         grid = grid.view(1, -1, 2)
         output[..., :2] = (output[..., :2] + grid) * stride
+        output[..., 11:13] = (output[..., 11:13] + grid) * stride
+        output[..., 13:14] = torch.exp(output[..., 13:14])
         output[..., 2:4] = torch.exp(output[..., 2:4]) * stride
         return output, grid
 
@@ -352,6 +354,8 @@ class YOLOXObjectPoseHead(nn.Module):
         strides = torch.cat(strides, dim=1).type(dtype)
 
         outputs[..., :2] = (outputs[..., :2] + grids) * strides
+        outputs[..., 11:13] = (outputs[..., 11:13] + grids) * strides
+        outputs[..., 13:14] = torch.exp(outputs[..., 13:14])
         outputs[..., 2:4] = torch.exp(outputs[..., 2:4]) * strides
         return outputs
 
@@ -366,14 +370,12 @@ class YOLOXObjectPoseHead(nn.Module):
         origin_preds,
         dtype,
     ):
-        bbox_preds = outputs[:, :, :4]  # [batch, n_anchors_all, 4]
-        obj_preds = outputs[:, :, 4].unsqueeze(-1)  # [batch, n_anchors_all, 1]
-        rot_preds = outputs[:, :, 5:11] # [batch, n_anchors_all, 6]
-        trn_preds = outputs[:, :, 11:14] # [batch, n_anchors_all, 3]
-        trn_xy_preds = outputs[:, :, 11:13] # [batch, n_anchors_all, 2]
-        trn_z_preds = outputs[:, :, 13] # [batch, n_anchors_all, 1]
-        trn_z_preds = trn_z_preds.unsqueeze(-1)
-        cls_preds = outputs[:, :, 14:]  # [batch, n_anchors_all, n_cls]
+        bbox_preds = outputs[..., :4]  # [batch, n_anchors_all, 4]
+        obj_preds = outputs[..., 4:5]  # [batch, n_anchors_all, 1]
+        rot_preds = outputs[..., 5:11] # [batch, n_anchors_all, 6]
+        trn_xy_preds = outputs[..., 11:13] # [batch, n_anchors_all, 2]
+        trn_z_preds = outputs[..., 13:14] # [batch, n_anchors_all, 1]
+        cls_preds = outputs[..., 14:]  # [batch, n_anchors_all, n_cls]
 
         # calculate targets
         mixup = labels.shape[2] > 14 #change to 14 from 5
@@ -526,23 +528,14 @@ class YOLOXObjectPoseHead(nn.Module):
         ).sum() / num_fg
         loss_cls = (
             self.bcewithlog_loss(
-                cls_preds.view(-1, self.num_classes)[fg_masks], cls_targets
-            )
+                cls_preds.view(-1, self.num_classes)[fg_masks], cls_targets)
         ).sum() / num_fg
-        loss_rot = (
-            self.mae_loss(
-                rot_preds.view(-1, 6)[fg_masks], rot_targets
-            )
+        loss_rot = (self.mae_loss(
+                rot_preds.view(-1, 6)[fg_masks], rot_targets)
         ).sum() / num_fg
-        loss_trn_xy = (
-            self.mae_loss(
-                trn_xy_preds.view(-1, 2)[fg_masks], trn_xy_targets
-            )
+        loss_trn_xy = (self.kpts_loss(trn_xy_preds.view(-1, 2)[fg_masks], trn_xy_targets, reg_targets)
         ).sum() / num_fg
-        loss_trn_z = (
-            self.mae_loss(
-                trn_z_preds.view(-1, 1)[fg_masks], trn_z_targets
-            )
+        loss_trn_z = (self.mae_loss(trn_z_preds.view(-1, 1)[fg_masks], trn_z_targets)
         ).sum() / num_fg 
         if self.use_l1:
             loss_l1 = (
@@ -552,7 +545,7 @@ class YOLOXObjectPoseHead(nn.Module):
             loss_l1 = 0.0
 
         reg_weight = 5.0
-        loss = reg_weight * loss_iou + loss_obj + loss_cls + loss_rot + loss_trn_xy + loss_trn_z + loss_l1
+        loss = reg_weight * loss_iou + loss_obj + loss_cls + loss_rot + reg_weight * loss_trn_xy + loss_trn_z + loss_l1
 
         return (
             loss,
@@ -790,3 +783,23 @@ class YOLOXObjectPoseHead(nn.Module):
             fg_mask_inboxes
         ]
         return num_fg, gt_matched_classes, pred_ious_this_matching, matched_gt_inds
+
+
+    def kpts_loss(self, kpts_preds, kpts_targets, bbox_targets):
+        sigmas = torch.tensor([.26], device=kpts_preds.device) / 10.0
+        kpts_preds_x, kpts_targets_x = kpts_preds[:, 0:1], kpts_targets[:, 0:1]
+        kpts_preds_y, kpts_targets_y = kpts_preds[:, 1:2], kpts_targets[:, 1:2]
+        # OKS based loss
+        d = (kpts_preds_x - kpts_targets_x) ** 2 + (kpts_preds_y - kpts_targets_y) ** 2
+        bbox_scale = torch.prod(bbox_targets[:, -2:], dim=1, keepdim=True)  #scale derived from bbox gt
+        oks = torch.exp(-d / (bbox_scale * (4 * sigmas**2) + 1e-9))
+        lkpt = (1 - oks).mean(axis=1)
+        return lkpt
+
+    def kpts_loss_3d(self, kpts_preds, kpts_targets, bbox_targets, cuboid_targets):
+        "Implement a generalized version of oks loss for 3d keypoints"
+        pass
+
+    def iou_loss_3d(self, kpts_preds, kpts_targets, bbox_targets, cuboid_targets):
+        "Implemet a generalized version of iou loss based on top view, front view and side view of a box"
+        pass

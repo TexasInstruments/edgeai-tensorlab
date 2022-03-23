@@ -82,7 +82,7 @@ def project_cuboid(cuboid_corners, rotation_vec, translation_vec, camera_matrix)
 
    return cuboid_corners_2d
 
-def draw_predictions(img, predictions, num_classes, class_to_cuboid=class_to_cuboid, camera_matrix=camera_matrix, colours=colours, conf = 0.5):
+def draw_predictions(img, predictions, num_classes, class_to_cuboid=class_to_cuboid, camera_matrix=camera_matrix, colours=colours, conf = 0.8):
 
     if is_tensor(img):
         img = copy.deepcopy(img).cpu().numpy().transpose(1, 2, 0)
@@ -109,9 +109,10 @@ def draw_predictions(img, predictions, num_classes, class_to_cuboid=class_to_cub
         #Tx and Ty are recovered using the formula given on page 5 of the the paper: https://arxiv.org/pdf/2011.04307.pdf
         #px, py, fx and fy are currently hard-coded for LINEMOD dataset
         tz = prediction[13].astype(np.float64) * 100.0
+        print("prediction",obj_class, tz)
         tx = ((prediction[11].astype(np.float64) / r_w )- px) * tz / fx
         ty = ((prediction[12].astype(np.float64) / r_h ) - py) * tz / fy
-
+        img = cv2.circle(img, (int(prediction[11]), int(prediction[12])), 3, (0, 0, 255), -1)
         rotation_mat = np.hstack((r1, r2, r3))
         rotation_vec, _ = cv2.Rodrigues(rotation_mat)
         translation_vec[0] = tx
@@ -119,7 +120,7 @@ def draw_predictions(img, predictions, num_classes, class_to_cuboid=class_to_cub
         translation_vec[2] = tz
 
         cuboid_corners_2d = project_cuboid(
-            cuboid_corners=class_to_cuboid[obj_class],
+            cuboid_corners=class_to_cuboid[obj_class-1],
             rotation_vec=rotation_vec,
             translation_vec=translation_vec,
             camera_matrix=camera_matrix
@@ -152,7 +153,7 @@ def draw_ground_truths(img, ground_truths, class_to_cuboid=class_to_cuboid, came
             tz = obj[13] * 100.0
             tx = ((obj[11] / r_w) - px )* tz / fx
             ty = ((obj[12] / r_h) - py )* tz / fy
-
+            print("gt", obj_class, tz)
             img = cv2.circle(img, (int(obj[11]), int(obj[12])), 3, (0, 0, 255), -1)
 
             rotation_mat = np.hstack((r1, r2, r3))
