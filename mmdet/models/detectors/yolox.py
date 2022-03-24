@@ -115,7 +115,8 @@ class YOLOX(SingleStageDetector):
         return img, gt_bboxes
 
     def _random_resize(self):
-        tensor = torch.LongTensor(2).cuda()
+        device = next(self.parameters()).device
+        tensor = torch.LongTensor(2).to(device)
 
         if self.rank == 0:
             size = random.randint(*self._random_size_range)
