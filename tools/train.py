@@ -244,7 +244,7 @@ def main(args=None):
     rank, world_size = get_dist_info()
     if rank == 0 and hasattr(cfg, 'export_model') and cfg.export_model:
         model_cpu = copy.deepcopy(model).cpu()
-        pytorch2onnx_file = 'deployment.pytorch2onnx'
+        pytorch2onnx_file = 'tools.deployment.pytorch2onnx'
         pytorch2onnx_module = importlib.import_module(pytorch2onnx_file, __name__)
         input_img = osp.join(osp.dirname(__file__), '../demo/demo.jpg')
         input_size = (1, 3) + tuple(cfg.input_size) if len(cfg.input_size) == 2 else cfg.input_size
