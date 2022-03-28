@@ -49,7 +49,6 @@ class ModelRunner():
                 project_path=None,
                 task_type=None,
                 target_device=None,
-                use_date=False
             ),
             dataset=dict(
                 enable=True,
@@ -70,6 +69,7 @@ class ModelRunner():
             ),
             training=dict(
                 enable=True,
+                timestamp=datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
                 model_key=None,
                 training_backend=None,
                 model_name=None,
@@ -141,13 +141,11 @@ class ModelRunner():
         if verbose:
             [print(key, ':', value) for key, value in vars(self.params).items()]
         #
-        self.date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S.%f")
         # normalize the paths
         self.params.common.projects_path = utils.absolute_path(self.params.common.projects_path)
         self.params.dataset.input_data_path = utils.absolute_path(self.params.dataset.input_data_path)
         self.params.dataset.input_annotation_path = utils.absolute_path(self.params.dataset.input_annotation_path)
         self.params.common.project_path = os.path.join(self.params.common.projects_path, self.params.dataset.dataset_name)
-        self.params.common.project_path = os.path.join(self.params.common.project_path, self.date) if self.params.common.use_date else self.params.common.project_path
         self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
 
         if self.params.common.target_device in self.params.training.target_devices:

@@ -49,6 +49,7 @@ class ModelCompilation():
         self.params = self.init_params(*args, **kwargs)
         self.quit_event = quit_event
         self.params.compilation.compilation_path = os.path.join(self.params.common.project_path, 'compilation')
+
         self.settings_file = jai_benchmark.get_settings_file(target_device=self.params.compilation.target_device, with_model_import=True)
         self.settings = self._get_settings(model_selection=self.params.training.model_id)
 
@@ -170,7 +171,7 @@ class ModelCompilation():
             return log_dir
 
     def _has_logs(self):
-        log_dir = self.get_log_dir()
+        log_dir = self._get_log_dir()
         if (log_dir is None) or (not os.path.exists(log_dir)):
             return False
         #

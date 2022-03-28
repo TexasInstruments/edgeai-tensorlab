@@ -204,7 +204,12 @@ class ModelTraining:
     def __init__(self, *args, quit_event=None, **kwargs):
         self.params = self.init_params(*args, **kwargs)
         self.quit_event = quit_event
-        self.params.training.training_path = os.path.join(self.params.common.project_path, 'training', self.params.training.model_key)
+
+        model_training_folder = self.params.training.model_key
+        if self.params.training.timestamp is not None:
+            model_training_folder = f'{self.params.training.timestamp}_{model_training_folder}'
+        #
+        self.params.training.training_path = os.path.join(self.params.common.project_path, 'training', model_training_folder)
 
         # num classes
         self.train_ann_file = f'{self.params.dataset.dataset_path}/annotations/labels_train.json'
