@@ -1,0 +1,60 @@
+
+common:
+    ai_backend_name: 'vision'
+    task_type: 'classification'
+    target_device: 'TDA4VM'
+
+dataset:
+    # enable/disable dataset loading
+    enable: True #False
+
+    dataset_download: False #True
+    dataset_reload: True #False
+    # max_num_files: [1000, 250] #None
+
+    # Image Classification Example 1: Provide a known dataset name that is part of datasets module to download
+    dataset_name: 'oxford_flowers102'
+
+    # Image Classification Example 2: Provide the path of the train and val split folder containing images arranged in folders
+    # # provide a common annotation file - to be split into train and val
+    # example: https://www.kaggle.com/datasets/concaption/pepsico-lab-potato-quality-control
+    # download and make the dataset available at the following path
+    # dataset_name: 'potatatochips_classification'
+    # input_data_path: ('./data/labelling/potatatochips_classification/train', './data/labelling/potatatochips_classification/val')
+    # input_annotation_path: (None, None)
+    # annotation_format: 'image_folders'
+
+    # Image Classification Example 3: Provide the path of the parent folder containing the train and val split folders
+    # # provide a common annotation file - to be split into train and val
+    # example: https://www.kaggle.com/datasets/concaption/pepsico-lab-potato-quality-control
+    # download and make the dataset available at the following path
+    # dataset_name: 'potatatochips_classification'
+    # input_data_path: './data/labelling/potatatochips_classification'
+    # input_annotation_path: null
+    # annotation_format: 'image_folders'
+
+    # Image Classification Example 4: Provide the path of images folder and json-min annotation file from LabelStudio
+    # # provide a common annotation file - to be split into train and val
+    # dataset_name: 'animal_classification'
+    # input_data_path: './data/labelling/animal_classification/images'
+    # input_annotation_path: './data/labelling/animal_classification/annotations/labels_json_min.json'
+    # annotation_format: 'labelstudio_json_min'
+
+training:
+    # enable/disable training
+    enable: True #False
+
+    # Image Classification model chosen can be changed here if needed
+    # #'mobilenet_v2_lite_tv' #'mobilenet_v3_large_lite_tv' #'mobilenet_v3_small_lite_tv' #'regnet_x_400mf_tv' #'regnet_x_800mf_tv' #'regnet_x_1_6gf_tv'
+    # model_key: 'mobilenet_v2_lite_tv'
+
+    training_epochs: 30 #10
+    batch_size: 64 #8 #32
+    # learning_rate: 0.005
+    num_gpus: 0 #0 #1 #4
+
+compilation:
+    # enable/disable compilation
+    enable: True #False
+
+    # tensor_bits: 8 #8 #16 #32

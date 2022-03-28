@@ -1,0 +1,49 @@
+
+common:
+    ai_backend_name: 'vision'
+    task_type: 'detection'
+    target_device: 'TDA4VM'
+
+dataset:
+    # enable/disable dataset loading
+    enable: True #False
+    dataset_download: True #False #True
+    dataset_reload: True #False #True
+    # max_num_files: [750, 250] #None
+
+    # Object Detection Example 1: Provide a known dataset name that is part of datasets module to download
+    # # detection: 'widerface_detection', 'pascal_voc0712', 'coco_detection', 'udacity_selfdriving', 'tomato_detection', 'tiscapes2017_driving'
+    dataset_name: 'tiscapes2017_driving'
+
+    # Object Detection Example 2: Provide the path of images folder and COCO json format annotation file from LabelStudio
+    # # provide a common annotation file - to be split into train and val
+    # dataset_name: 'animal_detection'
+    # input_data_path: './data/labelling/animal_detection/images'
+    # input_annotation_path: './data/labelling/animal_detection/annotations/instances.json'
+    # annotation_format: 'labelstudio_coco_json'
+
+    # Object Detection Example 3: Provide the path of images folders and COCO json format annotation files from LabelStudio
+    # model_key: 'yolox_s_lite_mmdet'
+    # dataset_name: 'coco_detection'
+    # input_data_path: ('./data/labelling/coco_detection/train2017', './data/projects/coco_detection/val2017')
+    # input_annotation_path: ('./data/labelling/coco_detection/annotations/instances_train2017.json', './data/labelstudio/coco_detection/annotations/instances_val2017.json')
+    # annotation_format: 'coco_json'
+
+training:
+    # enable/disable training
+    enable: True
+
+    # Object Detection model chosen can be changed here if needed
+    # SSD: #'ssd_mobilenetv2_fpn_lite_mmdet' 'ssd_regnetx_800mf_fpn_bgr_lite_mmdet' #'ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet'
+    # YOLOX:'yolox_nano_lite_mmdet', 'yolox_tiny_lite_mmdet', 'yolox_s_lite_mmdet', 'yolox_m_lite_mmdet'
+    # model_key: 'yolox_s_lite_mmdet'
+
+    training_epochs: 30 #10
+    # batch_size: 8 #32
+    # learning_rate: 0.005
+    num_gpus: 0 #0 #1 #4
+
+compilation:
+    # enable/disable compilation
+    enable: True #False
+    # tensor_bits: 8 #8 #16 #32
