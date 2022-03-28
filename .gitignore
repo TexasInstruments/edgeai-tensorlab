@@ -1,0 +1,5 @@
+.idea/
+data/projects/
+!data/projects/readme.txt
+*.pyc
+
