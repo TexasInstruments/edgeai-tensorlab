@@ -353,6 +353,10 @@ model_id_artifacts_pair = {
     'ss-8730_onnxrt': 'ONR-SS-8730-deeplabv3-mobv3-lite-large-cocoseg21-512x512', #added in SDK8.0
     'ss-8731_onnxrt': 'ONR-SS-8731-lraspp-mobV3-ti-lite-large-cocoseg21-512x512', #added in SDK8.0 #'ss-21-105-0'
 
+    # Models for Robokit
+    'ss-8810_onnxrt': 'ONR-SS-8810-deeplabv3lite-mobv2-robokit-768x432',
+    'ss-8818_onnxrt': 'ONR-SS-8818-deeplabv3lite-mobv2-qat-robokit-768x432',
+
     #ONNX key point detections
     'kd-7000_onnxrt': 'ONR-KD-7000-human-pose-ae-mobv2-fpn-spp-udp-512x512',
     'kd-7010_onnxrt': 'ONR-KD-7010-human-pose-ae-res50v2-fpn-spp-udp-512x512',
@@ -368,10 +372,6 @@ model_id_artifacts_pair = {
     # ONNX depth estimation
     'de-7300_onnxrt': 'ONR-DE-7300-depth-est-fast-depth-224x224',
     'de-7310_onnxrt': 'ONR-DE-7310-depth-est-midas-small-256x256',
-
-    # Models for Robokit - TODO: assign a model id for these
-    'ss-robokit1-qat_onnxrt': 'ONR-SS-robokit1-qat-deeplabv3lite-mobv2-768x432',
-    'ss-robokit2': 'ONR-SS-robokit2-deeplabv3lite-mobv2-768x432'
 }
 
 removed_model_list = {
@@ -499,9 +499,9 @@ removed_model_list = {
     'od-2150_tflitert':'TFL-OD-2150-efficientdet-lite1-relu-384x384',
     'od-2170_tflitert':'TFL-OD-2170-efficientdet-lite3-relu-512x512',
 
-    # Models for Robokit - TODO: assign a model id for these
-    'ss-robokit1-qat_onnxrt': 'ONR-SS-robokit1-qat-deeplabv3lite-mobv2-768x432',
-    'ss-robokit2': 'ONR-SS-robokit2-deeplabv3lite-mobv2-768x432'
+    # High resolution models
+    'cl-6151_onnxrt': 'ONR-CL-6151-mobileNetV2-1p4-qat-512x512',
+    'cl-6152_onnxrt': 'ONR-CL-6152-mobileNetV2-1p4-qat-1024x1024',
 }
 
 removed_models_from_plots = {
