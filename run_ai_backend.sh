@@ -35,4 +35,4 @@ export PYTHONPATH=.:$PYTHONPATH
 export TIDL_TOOLS_PATH='../edgeai-benchmark/tidl_tools'
 export LD_LIBRARY_PATH=${TIDL_TOOLS_PATH}
 
-python ./run_ai_backend.py $@
+python ./scripts/run_ai_backend.py $@
