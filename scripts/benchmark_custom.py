@@ -153,14 +153,25 @@ def create_configs(settings, work_dir):
     preproc_transforms = preprocess.PreProcessTransforms(settings)
     postproc_transforms = postprocess.PostProcessTransforms(settings)
 
+    common_session_cfg = sessions.get_common_session_cfg(settings, work_dir=work_dir)
+    onnx_session_cfg = sessions.get_onnx_session_cfg(settings, work_dir=work_dir)
+    onnx_bgr_session_cfg = sessions.get_onnx_bgr_session_cfg(settings, work_dir=work_dir)
+    onnx_quant_session_cfg = sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir)
+    onnx_bgr_quant_session_cfg = sessions.get_onnx_bgr_quant_session_cfg(settings, work_dir=work_dir)
+    jai_session_cfg = sessions.get_jai_session_cfg(settings, work_dir=work_dir)
+    jai_quant_session_cfg = sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir)
+    mxnet_session_cfg = sessions.get_mxnet_session_cfg(settings, work_dir=work_dir)
+    tflite_session_cfg = sessions.get_tflite_session_cfg(settings, work_dir=work_dir)
+    tflite_quant_session_cfg = sessions.get_tflite_quant_session_cfg(settings, work_dir=work_dir)
+
     pipeline_configs = {
         'imagecls-1': dict(
             task_type='classification',
             calibration_dataset=imagecls_calib_dataset,
             input_dataset=imagecls_val_dataset,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=sessions.ONNXRTSession(
-                work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_onnxrt,
+            session=sessions.ONNXRTSession(**onnx_session_cfg,
+                runtime_options=runtime_options_onnxrt,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv.onnx'),
             postprocess=postproc_transforms.get_transform_classification(),
             model_info=dict(metric_reference={'accuracy_top1%':71.88})
@@ -170,8 +181,8 @@ def create_configs(settings, work_dir):
             calibration_dataset=imagecls_calib_dataset,
             input_dataset=imagecls_val_dataset,
             preprocess=preproc_transforms.get_transform_tflite(),
-            session=sessions.TFLiteRTSession(
-                work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_tflitert,
+            session=sessions.TFLiteRTSession(**tflite_session_cfg,
+                runtime_options=runtime_options_tflitert,
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_1.0_224.tflite'),
             postprocess=postproc_transforms.get_transform_classification(),
             metric=dict(label_offset_pred=-1),
@@ -182,8 +193,8 @@ def create_configs(settings, work_dir):
             calibration_dataset=imageseg_calib_dataset,
             input_dataset=imageseg_val_dataset,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
-            session=sessions.ONNXRTSession(
-                work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_onnxrt,
+            session=sessions.ONNXRTSession(**jai_session_cfg,
+                runtime_options=runtime_options_onnxrt,
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/deeplabv3lite_mobilenetv2_cocoseg21_512x512_20210405.onnx'),
             postprocess=postproc_transforms.get_transform_segmentation_onnx(),
             model_info=dict(metric_reference={'accuracy_mean_iou%':57.77})
@@ -193,8 +204,8 @@ def create_configs(settings, work_dir):
             calibration_dataset=imagedet_calib_dataset,
             input_dataset=imagedet_val_dataset,
             preprocess=preproc_transforms.get_transform_tflite((300,300), (300,300), backend='cv2'),
-            session=sessions.TFLiteRTSession(
-                work_dir=work_dir, target_device=settings.target_device, runtime_options=runtime_options_tflitert,
+            session=sessions.TFLiteRTSession(**tflite_session_cfg,
+                runtime_options=runtime_options_tflitert,
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_20180128.tflite'),
             postprocess=postproc_transforms.get_transform_detection_tflite(),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
