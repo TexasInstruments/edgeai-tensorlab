@@ -31,7 +31,7 @@ dataset:
 
 training:
     # enable/disable training
-    enable: True
+    enable: True #False
 
     # Object Detection model chosen can be changed here if needed
     # SSD: #'ssd_mobilenetv2_fpn_lite_mmdet' 'ssd_regnetx_800mf_fpn_bgr_lite_mmdet' #'ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet'

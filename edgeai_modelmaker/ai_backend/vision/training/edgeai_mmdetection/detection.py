@@ -173,6 +173,11 @@ _pretrained_models = {
                 constants.TRAINING_DEVICE_CPU: True,
                 constants.TRAINING_DEVICE_CUDA: True,
             }
+        ),
+        compilation=dict(
+            runtime_options={
+                'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
+            }
         )
     ),
     'yolox_m_lite_mmdet': dict(
@@ -227,12 +232,6 @@ class ModelTraining:
     def __init__(self, *args, quit_event=None, **kwargs):
         self.params = self.init_params(*args, **kwargs)
         self.quit_event = quit_event
-
-        model_training_folder = self.params.training.model_key
-        if self.params.training.timestamp is not None:
-            model_training_folder = f'{self.params.training.timestamp}_{model_training_folder}'
-        #
-        self.params.training.training_path = os.path.join(self.params.common.project_path, 'training', model_training_folder)
 
         # num_classes
         self.train_ann_file = f'{self.params.dataset.dataset_path}/annotations/instances_train.json'

@@ -29,6 +29,7 @@
 #
 #################################################################################
 import os
+import datetime
 import sys
 import argparse
 import yaml
@@ -52,6 +53,9 @@ def main(config):
 
     # update the params with the pretrained model
     params = ai_backend_module.runner.ModelRunner.set_pretrined_model(params, pretrained_model)
+
+    # give a run_name for the run
+    params.common.run_name = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
     # create the runner
     model_runner = ai_backend_module.runner.ModelRunner(

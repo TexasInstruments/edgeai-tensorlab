@@ -49,6 +49,7 @@ class ModelRunner():
                 project_path=None,
                 task_type=None,
                 target_device=None,
+                run_name=datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
             ),
             dataset=dict(
                 enable=True,
@@ -69,7 +70,6 @@ class ModelRunner():
             ),
             training=dict(
                 enable=True,
-                timestamp=datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
                 model_key=None,
                 training_backend=None,
                 model_name=None,
@@ -148,6 +148,10 @@ class ModelRunner():
         self.params.common.project_path = os.path.join(self.params.common.projects_path, self.params.dataset.dataset_name)
         self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
 
+        run_folder = self.params.common.run_name if self.params.common.run_name else ''
+        self.params.training.training_path = os.path.join(self.params.common.project_path, 'run', run_folder, 'training', self.params.training.model_key)
+        self.params.compilation.compilation_path = os.path.join(self.params.common.project_path, 'run', run_folder, 'compilation')
+
         if self.params.common.target_device in self.params.training.target_devices:
             target_device_data = self.params.training.target_devices[self.params.common.target_device]
             performance_fps = target_device_data['performance_fps']
@@ -165,29 +169,29 @@ class ModelRunner():
         #####################################################################
         # dataset loading, splitting, limiting files etc.
         dataset_handling = datasets.DatasetHandling(self.params)
+        self.params.update(dataset_handling.get_params())
         if self.params.dataset.enable:
             dataset_handling.clear()
             dataset_handling.run()
         #
-        self.params.update(dataset_handling.get_params())
 
         #####################################################################
         # model training
         training_backend_module = training.get_backend_module(self.params.training.training_backend,
                                                               self.params.common.task_type)
         model_training = training_backend_module.ModelTraining(self.params)
+        self.params.update(model_training.get_params())
         if self.params.training.enable:
             model_training.clear()
             model_training.run()
         #
-        self.params.update(model_training.get_params())
 
         #####################################################################
         # model compilation
         model_compilation = compilation.edgeai_benchmark.ModelCompilation(self.params)
+        self.params.update(model_compilation.get_params())
         if self.params.compilation.enable:
             model_compilation.clear()
             model_compilation.run()
         #
-        self.params.update(model_compilation.get_params())
         return self.params

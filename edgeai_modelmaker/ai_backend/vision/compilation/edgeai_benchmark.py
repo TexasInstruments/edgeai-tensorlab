@@ -48,8 +48,6 @@ class ModelCompilation():
     def __init__(self, *args, quit_event=None, **kwargs):
         self.params = self.init_params(*args, **kwargs)
         self.quit_event = quit_event
-        self.params.compilation.compilation_path = os.path.join(self.params.common.project_path, 'compilation')
-
         self.settings_file = jai_benchmark.get_settings_file(target_device=self.params.compilation.target_device, with_model_import=True)
         self.settings = self._get_settings(model_selection=self.params.training.model_id)
 
@@ -105,6 +103,7 @@ class ModelCompilation():
         if meta_layers_names_list in runtime_options:
             runtime_options[meta_layers_names_list] = self.params.training.model_proto_path
         #
+        runtime_options.update(self.params.compilation.get('runtime_options', {}))
         # the metric reference defined in benchmark code is for the pretrained model - remove it.
         metric_reference = pipeline_configs0['model_info']['metric_reference']
         for k, v in metric_reference.items():
