@@ -28,7 +28,7 @@
 #################################################################################
 import os
 
-#ver:32 2021-08-14
+#ver:33 2022-03-29
 
 # Conventions
 # RunTime  Task                  start_id
@@ -303,6 +303,7 @@ model_id_artifacts_pair = {
     'od-8420_onnxrt': 'ONR-OD-8420-yolox-s-lite-mmdet-widerface-640x640',
     'od-8421_onnxrt': 'ONR-OD-8421-yolox-s-lite-mmdet-widerface-1024x1024',
     'od-8430_onnxrt': 'ONR-OD-8430-yolox-m-lite-mmdet-widerface-640x640',
+    'od-8450_onnxrt': 'ONR-OD-8450-yolov5-s6-lite-widerface-640x640',
 
     # Yolov5 series
     'od-8100_onnxrt': 'ONR-OD-8100-yolov5-s6-ti-lite-coco-640x640',
@@ -458,10 +459,10 @@ removed_model_list = {
     #'vseg-5720_tvmdlr' : 'TVM-SS-5720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
 
     # During SDK7.3 removed low accuracy models where drop is more wrt reference accuracy. This will be corrected in the future.
-    'ss-2540_tflitert' : 'TFL-SS-2540-deeplabv3-mobv2-ade20k-512x512',
-    'ss-2590_tflitert' : 'TFL-SS-2590-deeplabv3_mobv2-dm05-pascal-trainaug-512x512',
+    'ss-2540_tflitert' : 'TFL-SS-2540-deeplabv3-mobv2-ade20k-512x512', #still bad in SDK8.2
+    'ss-2590_tflitert' : 'TFL-SS-2590-deeplabv3_mobv2-dm05-pascal-trainaug-512x512', #still bad in SDK8.2
     'cl-0060_tflitert' : 'TFL-CL-0060-resNet50V2',
-    'ss-2600_tflitert' : 'TFL-SS-2600-deeplabv3_mobv2-pascal-trainaug-512x512',
+    'ss-2600_tflitert' : 'TFL-SS-2600-deeplabv3_mobv2-pascal-trainaug-512x512', #still bad in SDK8.2
     'cl-0218_tflitert' : 'TFL-CL-0218-mobileNetV1-qat',
     'cl-0010_tflitert' : 'TFL-CL-0010-mobileNetV2',
     #'cl-6080_onnxrt' : 'ONR-CL-6080-shuffleNetV2',, 50k val as well as EVM give good accuracy so not removing now
@@ -491,8 +492,8 @@ removed_model_list = {
     'ss-5830_tvmdlr' : 'TVM-SS-5830-fcn-resNet50-ade20k-gluon-mxnet-480x480',
 
     # During SDK8.1, these models were marked as removed - not running on device (may be due to large memory requirement)
-    'cl-6450_onnxrt': 'ONR-CL-6450-harDNet85',
-    'od-8060_onnxrt': 'ONR-OD-8060-ssd-lite-regNetX-1.6gf-fpn-bgr-coco-768x768',
+    #'cl-6450_onnxrt': 'ONR-CL-6450-harDNet85', #working in SDK8.2 onwards
+    #'od-8060_onnxrt': 'ONR-OD-8060-ssd-lite-regNetX-1.6gf-fpn-bgr-coco-768x768', #working in SDK8.2 onwards
     'od-8120_onnxrt': 'ONR-OD-8120-yolov5-m6-ti-lite-coco-640x640',
     'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640',
 
@@ -502,6 +503,9 @@ removed_model_list = {
     # High resolution models
     'cl-6151_onnxrt': 'ONR-CL-6151-mobileNetV2-1p4-qat-512x512',
     'cl-6152_onnxrt': 'ONR-CL-6152-mobileNetV2-1p4-qat-1024x1024',
+
+    'od-8160_onnxrt': 'ONR-OD-8160-ssdlite-mobv2-fpn-lite-512x512', #Manu removed it in SDK8.2
+    'od-8170_onnxrt': 'ONR-OD-8170-ssdlite-regNetX-800mf-fpn-lite-512x512', #Manu removed it in SDK8.2
 }
 
 removed_models_from_plots = {
