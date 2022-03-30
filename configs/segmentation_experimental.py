@@ -101,7 +101,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432.onnx'),
             postprocess=postproc_transforms.get_transform_segmentation_onnx(),
-            model_info=dict(metric_reference={'accuracy_mean_iou%':None})
+            model_info=dict(metric_reference={'accuracy_mean_iou%':54.1})
         ),
         'ss-8818': utils.dict_update(robokitseg_cfg,
             preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
@@ -109,7 +109,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_qat(),
                 model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432_qat-p2.onnx'),
             postprocess=postproc_transforms.get_transform_segmentation_onnx(),
-            model_info=dict(metric_reference={'accuracy_mean_iou%':None})
+            model_info=dict(metric_reference={'accuracy_mean_iou%':54.1})
         ),
         #------------------------cityscapes models-----------------------
         # # edgeai: segmentation - deeplabv3lite_mobilenetv2_768x384_20190626-085932 expected_metric: 69.13% mean-iou
