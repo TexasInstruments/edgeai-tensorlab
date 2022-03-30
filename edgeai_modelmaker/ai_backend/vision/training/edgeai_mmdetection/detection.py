@@ -344,7 +344,6 @@ class ModelTraining:
             args = train_module.parse_args()
             train_module.main(args)
         #
-
         return self.params
 
     def stop(self):

@@ -11,23 +11,10 @@ dataset:
     dataset_reload: True #False #True
     # max_num_files: [750, 250] #None
 
-    # Object Detection Example 1: Provide a known dataset name that is part of datasets module to download
-    # # detection: 'widerface_detection', 'pascal_voc0712', 'coco_detection', 'udacity_selfdriving', 'tomato_detection', 'tiscapes2017_driving'
-    dataset_name: 'tiscapes2017_driving'
-
-    # Object Detection Example 2: Provide the path of images folder and COCO json format annotation file from LabelStudio
-    # # provide a common annotation file - to be split into train and val
-    # dataset_name: 'animal_detection'
-    # input_data_path: './data/labelling/animal_detection/images'
-    # input_annotation_path: './data/labelling/animal_detection/annotations/instances.json'
-    # annotation_format: 'labelstudio_coco_json'
-
-    # Object Detection Example 3: Provide the path of images folders and COCO json format annotation files from LabelStudio
-    # model_key: 'yolox_s_lite_mmdet'
-    # dataset_name: 'coco_detection'
-    # input_data_path: ('./data/labelling/coco_detection/train2017', './data/projects/coco_detection/val2017')
-    # input_annotation_path: ('./data/labelling/coco_detection/annotations/instances_train2017.json', './data/labelstudio/coco_detection/annotations/instances_val2017.json')
-    # annotation_format: 'coco_json'
+    # Object Detection Dataset Examples:
+    # detection (builtin datasets): 'widerface_detection', 'pascal_voc0712', 'coco_detection', 'udacity_selfdriving', 'tomato_detection', 'tiscapes2017_driving'
+    # detection (dataset path examples): './data/labelling/tiscapes2017_driving.zip', './data/labelling/animal_detection.zip'
+    dataset_name: './data/examples/datasets/tiscapes2017_driving.zip'
 
 training:
     # enable/disable training

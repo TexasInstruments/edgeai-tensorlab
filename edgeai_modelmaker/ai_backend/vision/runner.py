@@ -62,10 +62,10 @@ class ModelRunner():
                 input_data_path=None, # input images
                 input_annotation_path=None, # annotation file
                 data_path_splits=None,
+                data_dir='images',
                 annotation_path_splits=None,
                 annotation_dir='annotations',
-                annotation_prefix=None,
-                annotation_format='labelstudio_json_min',
+                annotation_prefix='instances',
                 dataset_download=True,
                 dataset_reload=False
             ),
@@ -146,8 +146,17 @@ class ModelRunner():
         self.params.common.projects_path = utils.absolute_path(self.params.common.projects_path)
         self.params.dataset.input_data_path = utils.absolute_path(self.params.dataset.input_data_path)
         self.params.dataset.input_annotation_path = utils.absolute_path(self.params.dataset.input_annotation_path)
-        self.params.common.project_path = os.path.join(self.params.common.projects_path, self.params.dataset.dataset_name)
-        self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
+        if self.params.dataset.dataset_name.startswith('/') or self.params.dataset.dataset_name.startswith('./'):
+            dataset_name = os.path.splitext(os.path.basename(self.params.dataset.dataset_name))[0]
+            self.params.common.project_path = os.path.join(self.params.common.projects_path, dataset_name)
+            self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
+            self.params.dataset.input_data_path = os.path.join(self.params.dataset.dataset_path, self.params.dataset.data_dir)
+            self.params.dataset.input_annotation_path = os.path.join(self.params.dataset.dataset_path, self.params.dataset.annotation_dir,
+                                                 f'{self.params.dataset.annotation_prefix}.json')
+        else:
+            self.params.common.project_path = os.path.join(self.params.common.projects_path, self.params.dataset.dataset_name)
+            self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
+        #
 
         run_folder = self.params.common.run_name if self.params.common.run_name else ''
         self.params.training.training_path = os.path.join(self.params.common.project_path, 'run', run_folder, 'training', self.params.training.model_key)

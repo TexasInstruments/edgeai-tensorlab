@@ -42,12 +42,11 @@ from . import udacity_selfdriving
 from . import coco_detection
 from . import tomato_detection
 from . import oxford_flowers102
-from . import tiscapes2017_driving
 
 
 def get_datasets_list(task_type=None):
     if task_type == 'detection':
-        return ['widerface_detection', 'pascal_voc0712', 'coco_detection', 'udacity_selfdriving', 'tomato_detection', 'tiscapes2017_driving']
+        return ['widerface_detection', 'pascal_voc0712', 'coco_detection', 'udacity_selfdriving', 'tomato_detection']
     elif task_type == 'classification':
         return ['oxford_flowers102']
     else:
@@ -73,28 +72,30 @@ class DatasetHandling:
     def __init__(self, *args, quit_event=None, **kwargs):
         self.params = self.init_params(*args, **kwargs)
         self.quit_event = quit_event
-
         # check if dataset splits are already given
         self.has_dataset_splits = isinstance(self.params.dataset.input_data_path, (list,tuple)) and \
                                   isinstance(self.params.dataset.input_annotation_path, (list,tuple))
+
+        # create annotation paths
+        self.params.dataset.data_path_splits = []
+        self.params.dataset.annotation_path_splits = []
         if self.has_dataset_splits:
             assert len(self.params.dataset.input_data_path) == len(self.params.dataset.split_names), \
                 'data path splits must be a list/tuple of size 2'
             assert len(self.params.dataset.input_annotation_path) == len(self.params.dataset.split_names), \
                 'annotation path splits must be a list/tuple of size 2'
-        #
-
-        # create annotation paths
-        self.params.dataset.annotation_prefix = self.params.dataset.annotation_prefix or \
-            dataset_utils.annotation_prefix_dict[self.params.common.task_type]
-        self.params.dataset.data_path_splits = []
-        self.params.dataset.annotation_path_splits = []
-        for split_idx, split_name in enumerate(self.params.dataset.split_names):
-            self.params.dataset.data_path_splits.append(
-                os.path.join(self.params.dataset.dataset_path, split_name))
-            self.params.dataset.annotation_path_splits.append(
-                os.path.join(self.params.dataset.dataset_path, self.params.dataset.annotation_dir,
-                f'{self.params.dataset.annotation_prefix}_{split_name}.json'))
+            for split_idx, split_name in enumerate(self.params.dataset.split_names):
+                self.params.dataset.data_path_splits.append(self.params.dataset.input_data_path[split_idx])
+                self.params.dataset.annotation_path_splits.append(self.params.dataset.input_annotation_path[split_idx])
+            #
+        else:
+            for split_idx, split_name in enumerate(self.params.dataset.split_names):
+                self.params.dataset.data_path_splits.append(
+                    os.path.join(self.params.dataset.dataset_path, split_name))
+                self.params.dataset.annotation_path_splits.append(
+                    os.path.join(self.params.dataset.dataset_path, self.params.dataset.annotation_dir,
+                    f'{self.params.dataset.annotation_prefix}_{split_name}.json'))
+            #
         #
 
     def clear(self):
@@ -130,7 +131,15 @@ class DatasetHandling:
                 os.makedirs(os.path.dirname(self.params.dataset.data_path_splits[split_idx]), exist_ok=True)
                 os.makedirs(os.path.dirname(self.params.dataset.annotation_path_splits[split_idx]), exist_ok=True)
             #
-            if self.params.dataset.input_data_path is not None:
+            if self.params.dataset.dataset_name.startswith('/') or self.params.dataset.dataset_name.startswith('./'):
+                dataset_utils.download_file(self.params.dataset.dataset_name, self.params.dataset.dataset_path, self.params.dataset.dataset_path)
+                with open(self.params.dataset.input_annotation_path) as afp:
+                    dataset_store = json.load(afp)
+                #
+                # split the dataset into train/val
+                dataset_splits = dataset_utils.dataset_split(dataset_store,
+                    self.params.dataset.split_factor, self.params.dataset.split_names)
+            elif self.params.dataset.input_data_path is not None:
                 dataset_store = dataset_utils.dataset_load(self.params.common.task_type,
                     self.params.dataset.input_data_path, self.params.dataset.input_annotation_path,
                     annotation_format=self.params.dataset.annotation_format)

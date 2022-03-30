@@ -45,11 +45,6 @@ def convert_cityscapes(args):
     source_image_suffix = '.png'
     dest_image_suffix = '.jpg'
 
-    # the background class is anything except the other four classes
-    # background class is not fully annotated - so should not be used for training
-    # it is basically used to indicated an area that overlaps with a fully annotated class, only whenever that happens.
-    classes_selected = ['background', 'road', 'human', 'roadsign', 'vehicle']
-
     classes_mapping = {
         'background': 'background',
         'unlabeled': 'background',
@@ -88,17 +83,27 @@ def convert_cityscapes(args):
         'bicycle': 'vehicle',
         'license plate': 'background',
     }
-    background_class = 'background'
+
+    classes_selected = list(classes_mapping.values())
+
+    # the background class is anything except the other four classes
+    # background class is not fully annotated - so should not be used for training
+    # it is basically used to indicated an area that overlaps with a fully annotated class, only whenever that happens.
+    if args.remove_background:
+        if classes_selected[0] == args.background_class:
+            classes_selected.pop(0)
+        #
+    #
 
     ann_data = {}
     annotations = []
     images = []
     image_id = 0
     annotation_id = 0
-    category_id_start = 0 #1
+    category_id_start = 1
     categories = [dict(id=class_id+category_id_start, name=class_name) for class_id, class_name in enumerate(classes_selected)]
 
-    os.makedirs(args.dest_anno, exist_ok=True)
+    os.makedirs(os.path.dirname(args.dest_anno), exist_ok=True)
 
     for split_name in split_names:
         json_files = glob.glob(f'{args.source_anno}/{split_name}/*/*{polygon_suffix}')
@@ -151,14 +156,14 @@ def convert_cityscapes(args):
                     bbox_xyxy[3] = max(bbox_xyxy[3], p[1])
                 #
                 segmentation = [round(s, 2) for s in segmentation]
-                if label_mapped != background_class:
-                    bbox_xywh = [bbox_xyxy[0], bbox_xyxy[1], bbox_xyxy[2]-bbox_xyxy[0], bbox_xyxy[3]-bbox_xyxy[1]]
-                    bbox_xywh = [round(v, 2) for v in bbox_xywh]
-                    area = bbox_xywh[2]*bbox_xywh[3]
-                else:
-                    bbox_xywh = None
-                    area = None
+                if args.remove_background and label_mapped == args.background_class:
+                    annotation_id += 1
+                    continue
                 #
+                bbox_xywh = [bbox_xyxy[0], bbox_xyxy[1], bbox_xyxy[2]-bbox_xyxy[0], bbox_xyxy[3]-bbox_xyxy[1]]
+                bbox_xywh = [round(v, 2) for v in bbox_xywh]
+                area = bbox_xywh[2]*bbox_xywh[3]
+
                 category_id = classes_selected.index(label_mapped) + category_id_start
                 annotation_info = {
                     'bbox': bbox_xywh,
@@ -190,6 +195,7 @@ def convert_cityscapes(args):
 
 
 def convert_labelstudio_detection(args):
+    category_id_start = 1
     dataset_store = dict(info=dict(), categories=list(),
                          images=[], annotations=[])
     with open(args.source_anno) as afp:
@@ -202,10 +208,9 @@ def convert_labelstudio_detection(args):
         image_labels = [label_info['rectanglelabels'][0] for label_info in image_info_json_min['label']]
         all_labels += image_labels
     #
-    categories = list(set(all_labels))
-    # add a dummy class so that the index() find category_id will start from 1
-    categories_temp = ['background'] + categories
-    dataset_store['categories'] = [dict(id=id, name=name) for id, name in enumerate(categories_temp)]
+    categories = sorted(list(set(all_labels)))
+    # category_id will start from 1
+    dataset_store['categories'] = [dict(id=id+category_id_start, name=name) for id, name in enumerate(categories)]
     for image_info_json_min in dataset_json_min:
         # image info
         image_id = image_info_json_min['id']
@@ -218,10 +223,10 @@ def convert_labelstudio_detection(args):
         # annotation
         for label_info in image_info_json_min['label']:
             label_name = label_info['rectanglelabels'][0]
-            category_id = categories_temp.index(label_name)
+            category_id = categories.index(label_name) + category_id_start
             bbox_info = [label_info['x'], label_info['y'], label_info['width'], label_info['height']]
-            annotation_info = {"id": annotation_id, "image_id": image_id, "category_id": category_id, "segmentation": [],
-                                "bbox": bbox_info, "ignore": 0, "iscrowd": 0, "area": 0}
+            annotation_info = {"id":annotation_id, "image_id": image_id, "category_id":category_id, "segmentation":[],
+                               "bbox":bbox_info, "ignore":0, "iscrowd":0, "area":0}
             dataset_store['annotations'].append(annotation_info)
             annotation_id += 1
         #
@@ -232,6 +237,7 @@ def convert_labelstudio_detection(args):
 
 
 def convert_labelstudio_classification(args):
+    category_id_start = 1
     dataset_store = dict(info=dict(), categories=list(),
                          images=[], annotations=[])
     with open(args.source_anno) as afp:
@@ -244,10 +250,9 @@ def convert_labelstudio_classification(args):
         image_labels = [image_info_json_min['choice']]
         all_labels += image_labels
     #
-    categories = list(set(all_labels))
-    # add a dummy class so that the index() find category_id will start from 1
-    categories_temp = ['background'] + categories
-    dataset_store['categories'] = [dict(id=id, name=name) for id, name in enumerate(categories_temp)]
+    categories = sorted(list(set(all_labels)))
+    # category_id will start from 1
+    dataset_store['categories'] = [dict(id=id+category_id_start, name=name) for id, name in enumerate(categories)]
     for image_info_json_min in dataset_json_min:
         # image info
         image_id = image_info_json_min['id']
@@ -260,8 +265,8 @@ def convert_labelstudio_classification(args):
         dataset_store['images'].append(image_info)
         # annotation
         label_name = image_info_json_min['choice']
-        category_id = categories_temp.index(label_name)
-        annotation_info = {"id": annotation_id, "image_id": image_id, "category_id": category_id, "segmentation": [],
+        category_id = categories.index(label_name) + category_id_start
+        annotation_info = {"id": annotation_id, "image_id": image_id, "category_id":category_id, "segmentation":[],
                            "bbox": None, "ignore": 0, "iscrowd": 0, "area": 0}
         dataset_store['annotations'].append(annotation_info)
         annotation_id += 1
@@ -314,6 +319,7 @@ def convert_coco_splits(args):
 
 
 def convert_image_folders(args, is_dataset_split=False, supported_image_types=('.jpeg', '.jpg', '.png', '.webp', '.bmp')):
+    category_id_start = 1
     if is_dataset_split:
         split_folders = ['']
     else:
@@ -327,7 +333,7 @@ def convert_image_folders(args, is_dataset_split=False, supported_image_types=('
         split_folder_path = os.path.join(args.source_data, split_name)
         categories = sorted(os.listdir(split_folder_path))
         for image_class_id, image_class in enumerate(categories):
-            category_id = image_class_id + 1
+            category_id = image_class_id + category_id_start
             image_class_path = os.path.join(split_folder_path, image_class)
             image_files = os.listdir(image_class_path)
             for image_file in image_files:
@@ -355,7 +361,7 @@ def convert_image_folders(args, is_dataset_split=False, supported_image_types=('
         'description': 'Classification Dataset',
         'format': 'COCO 2017, https://cocodataset.org'
     }
-    dataset_store['categories'] = [dict(id=cat_id+1, supercategory=cat_name, name=cat_name) for cat_id, cat_name in enumerate(categories)]
+    dataset_store['categories'] = [dict(id=cat_id+category_id_start, supercategory=cat_name, name=cat_name) for cat_id, cat_name in enumerate(categories)]
     with open(args.dest_anno, 'w') as jfp:
         json.dump(dataset_store, jfp)
     #
@@ -390,6 +396,8 @@ if __name__ == '__main__':
     parser.add_argument('--source_anno', type=str, default=None)
     parser.add_argument('--source_format', type=str, default=None)
     parser.add_argument('--dest_anno', type=str, default=None)
+    parser.add_argument('--remove_background', type=bool, default=True)
+    parser.add_argument('--background_class', type=str, default='background')
     args = parser.parse_args()
 
     main(args)

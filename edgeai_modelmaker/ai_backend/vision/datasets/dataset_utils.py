@@ -233,7 +233,14 @@ def download_file(dataset_url, download_root, extract_root=None, save_filename=N
             save_filename = save_filename or os.path.basename(dataset_url)
             local_file = os.path.join(download_root, save_filename)
             if not extract_files(dataset_url, extract_root):
-                copy_file(dataset_url, local_file)
+                if os.path.isfile(dataset_url):
+                    copy_file(dataset_url, local_file)
+                else:
+                    if os.path.islink(local_file):
+                        os.unlink(local_file)
+                    #
+                    os.symlink(dataset_url, local_file)
+                #
             #
             return True, '', local_file
         except FileNotFoundError:

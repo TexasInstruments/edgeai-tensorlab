@@ -8,37 +8,15 @@ dataset:
     # enable/disable dataset loading
     enable: True #False
 
+    annotation_prefix: 'labels'
     dataset_download: False #True
     dataset_reload: True #False
     # max_num_files: [1000, 250] #None
 
-    # Image Classification Example 1: Provide a known dataset name that is part of datasets module to download
-    dataset_name: 'oxford_flowers102'
-
-    # Image Classification Example 2: Provide the path of the train and val split folder containing images arranged in folders
-    # # provide a common annotation file - to be split into train and val
-    # example: https://www.kaggle.com/datasets/concaption/pepsico-lab-potato-quality-control
-    # download and make the dataset available at the following path
-    # dataset_name: 'potatatochips_classification'
-    # input_data_path: ('./data/labelling/potatatochips_classification/train', './data/labelling/potatatochips_classification/val')
-    # input_annotation_path: (None, None)
-    # annotation_format: 'image_folders'
-
-    # Image Classification Example 3: Provide the path of the parent folder containing the train and val split folders
-    # # provide a common annotation file - to be split into train and val
-    # example: https://www.kaggle.com/datasets/concaption/pepsico-lab-potato-quality-control
-    # download and make the dataset available at the following path
-    # dataset_name: 'potatatochips_classification'
-    # input_data_path: './data/labelling/potatatochips_classification'
-    # input_annotation_path: null
-    # annotation_format: 'image_folders'
-
-    # Image Classification Example 4: Provide the path of images folder and json-min annotation file from LabelStudio
-    # # provide a common annotation file - to be split into train and val
-    # dataset_name: 'animal_classification'
-    # input_data_path: './data/labelling/animal_classification/images'
-    # input_annotation_path: './data/labelling/animal_classification/annotations/labels_json_min.json'
-    # annotation_format: 'labelstudio_json_min'
+    # Image Classification Dataset Examples:
+    # dataset (builtin datasets): 'oxford_flowers102'
+    # datset (dataset path examples): './data/labelling/animal_classification.zip'
+    dataset_name: './data/examples/datasets/animal_classification.zip'
 
 training:
     # enable/disable training
