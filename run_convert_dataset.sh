@@ -1,3 +1,5 @@
+#!/bin/env bash
+
 #################################################################################
 # Copyright (c) 2018-2022, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
@@ -29,20 +31,14 @@
 #
 #################################################################################
 
-import os
-import sys
-import json
-import glob
-import PIL
-import PIL.Image
+#python ./script/convert_dataset.py --source_format=image_splits --source_data=./data/labelling/potatatochips_classification/images --dest_anno=./data/labelling/potatatochips_classification/annotations/instances.json
 
-source_dir = '.'
-png_files = glob.glob(f'{source_dir}/*/*/*/*.png')
+#python ./script/convert_dataset.py --source_format=labelstudio_detection --source_anno=./data/labelling/animal_detection/annotations/instances_labelstudio-detection-json-min.json --source_data=./data/labelling/animal_detection/images --dest_anno=./data/labelling/animal_detection/annotations/instances.json
 
-for png_file in png_files:
-    jpg_file = f'{os.path.splitext(png_file)[0]}.jpg'
-    print(png_file, jpg_file)
-    png_img = PIL.Image.open(png_file)
-    png_img = png_img.convert("RGB")
-    png_img.save(jpg_file)
+#python ./script/convert_dataset.py --source_format=labelstudio_classification --source_anno=./data/labelling/animal_classification/annotations/labels_labelstudio-classification-json-min.json --source_data=./data/labelling/animal_classification/images --dest_anno=./data/labelling/animal_classification/annotations/labels.json
+
+#python ./script/convert_dataset.py --source_format=cityscapes --source_anno /data/ssd/files/a0393608/work/code/ti/algoref/vision-dataset/annotatedJSON/tiscapes/data/gtFine --source_data=/data/ssd/files/a0393608/work/code/ti/algoref/vision-dataset/annotatedJSON/tiscapes/data/leftImg8bit --dest_anno=/data/ssd/files/a0393608/work/code/ti/algoref/vision-dataset/annotatedJSON/tiscapes/data/annotations/instances.json
+
+#python ./script/convert_dataset.py --source_format=coco_splits --source_anno=./data/labelling/coco_detection/annotations/instances_train2017.json,./data/labelling/coco_detection/annotations/instances_val2017.json --source_data=./data/labelling/coco_detection/train2017,./data/labelling/coco_detection/val2017 --dest_anno=./data/labelling/coco_detection/annotations/instances.json
+
 

@@ -64,7 +64,8 @@ def dataset_reload(state, example_project_path, force_download=False, log_writer
     return dataset_download(state, example_project_path, force_download, log_writer=log_writer, progressbar_creator=progressbar_creator)
 
 
-def dataset_download(state, example_project_path, force_download=False, log_writer=None, progressbar_creator=None):
+def dataset_download(state, example_project_path, force_download=False, log_writer=None, progressbar_creator=None,
+                     remove_category='background'):
     max_annotations_per_image = 1000
     example_dataset_path = os.path.join(example_project_path, 'dataset')
     example_project_files_path = os.path.join(example_dataset_path, 'images')
@@ -93,7 +94,9 @@ def dataset_download(state, example_project_path, force_download=False, log_writ
     with open(example_project_annotation_file_name) as fp:
         dataset_store = json.load(fp)
     #
-    dataset_store['categories'].pop(0)
+    if dataset_store['categories'][0]['name'] == remove_category:
+        dataset_store['categories'].pop(0)
+    #
     annotations = []
     for anno_id, anno in enumerate(dataset_store['annotations']):
         if anno['category_id'] != 0:
