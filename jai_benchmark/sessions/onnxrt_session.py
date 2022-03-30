@@ -30,8 +30,14 @@ import os
 import time
 import numpy as np
 import warnings
-import onnx
 import onnxruntime
+
+try:
+    import onnx
+except:
+    #warnings.warn('onnx could not be imported - this is not required for inference, but may be required for import')
+    pass
+
 from .. import utils
 from .. import constants
 from .basert_session import BaseRTSession

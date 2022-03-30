@@ -32,9 +32,14 @@ import argparse
 import functools
 import warnings
 import copy
-import onnx
 import warnings
 from jai_benchmark import *
+
+try:
+    import onnx
+except:
+    #warnings.warn('onnx could not be imported - this is not required for inference, but may be required for import')
+    pass
 
 # the cwd must be the root of the respository
 if os.path.split(os.getcwd())[-1] == 'scripts':
