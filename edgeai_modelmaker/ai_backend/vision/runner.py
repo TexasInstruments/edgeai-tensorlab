@@ -56,6 +56,8 @@ class ModelRunner():
                 enable=True,
                 dataset_name=None,
                 dataset_path=None, # dataset split will be created here
+                download_path=None,
+                extract_path=None,
                 split_factor=0.75,
                 split_names=('train', 'val'),
                 max_num_files=None,
@@ -146,17 +148,10 @@ class ModelRunner():
         self.params.common.projects_path = utils.absolute_path(self.params.common.projects_path)
         self.params.dataset.input_data_path = utils.absolute_path(self.params.dataset.input_data_path)
         self.params.dataset.input_annotation_path = utils.absolute_path(self.params.dataset.input_annotation_path)
-        if self.params.dataset.dataset_name.startswith('/') or self.params.dataset.dataset_name.startswith('./'):
-            dataset_name = os.path.splitext(os.path.basename(self.params.dataset.dataset_name))[0]
-            self.params.common.project_path = os.path.join(self.params.common.projects_path, dataset_name)
-            self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
-            self.params.dataset.input_data_path = os.path.join(self.params.dataset.dataset_path, self.params.dataset.data_dir)
-            self.params.dataset.input_annotation_path = os.path.join(self.params.dataset.dataset_path, self.params.dataset.annotation_dir,
-                                                 f'{self.params.dataset.annotation_prefix}.json')
-        else:
-            self.params.common.project_path = os.path.join(self.params.common.projects_path, self.params.dataset.dataset_name)
-            self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
-        #
+        self.params.common.project_path = os.path.join(self.params.common.projects_path, self.params.dataset.dataset_name)
+        self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
+        self.params.dataset.download_path = os.path.join(self.params.dataset.dataset_path, 'other', 'download')
+        self.params.dataset.extract_path = os.path.join(self.params.dataset.dataset_path, 'other', 'extract')
 
         run_folder = self.params.common.run_name if self.params.common.run_name else ''
         self.params.training.training_path = os.path.join(self.params.common.project_path, 'run', run_folder, 'training', self.params.training.model_key)
@@ -179,7 +174,6 @@ class ModelRunner():
     def dataset_handing(self):
         # create folders
         os.makedirs(self.params.common.project_path, exist_ok=True)
-        os.makedirs(self.params.dataset.dataset_path, exist_ok=True)
 
         #####################################################################
         # dataset loading, splitting, limiting files etc.

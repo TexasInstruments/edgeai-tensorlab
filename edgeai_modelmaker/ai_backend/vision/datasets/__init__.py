@@ -72,30 +72,12 @@ class DatasetHandling:
     def __init__(self, *args, quit_event=None, **kwargs):
         self.params = self.init_params(*args, **kwargs)
         self.quit_event = quit_event
-        # check if dataset splits are already given
-        self.has_dataset_splits = isinstance(self.params.dataset.input_data_path, (list,tuple)) and \
-                                  isinstance(self.params.dataset.input_annotation_path, (list,tuple))
-
-        # create annotation paths
         self.params.dataset.data_path_splits = []
         self.params.dataset.annotation_path_splits = []
-        if self.has_dataset_splits:
-            assert len(self.params.dataset.input_data_path) == len(self.params.dataset.split_names), \
-                'data path splits must be a list/tuple of size 2'
-            assert len(self.params.dataset.input_annotation_path) == len(self.params.dataset.split_names), \
-                'annotation path splits must be a list/tuple of size 2'
-            for split_idx, split_name in enumerate(self.params.dataset.split_names):
-                self.params.dataset.data_path_splits.append(self.params.dataset.input_data_path[split_idx])
-                self.params.dataset.annotation_path_splits.append(self.params.dataset.input_annotation_path[split_idx])
-            #
-        else:
-            for split_idx, split_name in enumerate(self.params.dataset.split_names):
-                self.params.dataset.data_path_splits.append(
-                    os.path.join(self.params.dataset.dataset_path, split_name))
-                self.params.dataset.annotation_path_splits.append(
-                    os.path.join(self.params.dataset.dataset_path, self.params.dataset.annotation_dir,
-                    f'{self.params.dataset.annotation_prefix}_{split_name}.json'))
-            #
+        for split_idx, split_name in enumerate(self.params.dataset.split_names):
+            self.params.dataset.data_path_splits.append(os.path.join(self.params.dataset.dataset_path, split_name))
+            self.params.dataset.annotation_path_splits.append(os.path.join(self.params.dataset.dataset_path, self.params.dataset.annotation_dir,
+                f'{self.params.dataset.annotation_prefix}_{split_name}.json'))
         #
 
     def clear(self):
@@ -106,46 +88,43 @@ class DatasetHandling:
             if isinstance(self.params.dataset.max_num_files, (list,tuple)) \
             else [self.params.dataset.max_num_files for _ in self.params.dataset.split_names]
 
-        if self.has_dataset_splits:
-            # load the dataset splits
+        if isinstance(self.params.dataset.input_data_path, (list,tuple)) and \
+            isinstance(self.params.dataset.input_annotation_path, (list,tuple)):
+            # dataset splits are directly given
             dataset_splits = dict()
             for split_idx, split_name in enumerate(self.params.dataset.split_names):
                 dataset_splits[split_name] = dataset_utils.dataset_load(self.params.common.task_type,
-                    self.params.dataset.input_data_path[split_idx],
-                    self.params.dataset.input_annotation_path[split_idx],
-                    annotation_format=self.params.dataset.annotation_format,
-                    is_dataset_split=self.has_dataset_splits)
+                    self.params.dataset.input_data_path[split_idx], self.params.dataset.input_annotation_path[split_idx],
+                    annotation_format=self.params.dataset.annotation_format, is_dataset_split=self.has_dataset_splits)
                 dataset_splits[split_name] = dataset_utils.dataset_split_limit(dataset_splits[split_name],
                     max_num_files[split_idx])
                 dataset_utils.dataset_split_write(
                     self.params.dataset.input_data_path[split_idx], dataset_splits[split_name],
-                    self.params.dataset.data_path_splits[split_idx],
-                    self.params.dataset.annotation_path_splits[split_idx])
+                    self.params.dataset.data_path_splits[split_idx], self.params.dataset.annotation_path_splits[split_idx])
                 dataset_utils.dataset_split_link(
                     self.params.dataset.input_data_path[split_idx], dataset_splits[split_name],
-                    self.params.dataset.data_path_splits[split_idx],
-                    self.params.dataset.annotation_path_splits[split_idx])
+                    self.params.dataset.data_path_splits[split_idx], self.params.dataset.annotation_path_splits[split_idx])
             #
         else:
-            for split_idx, split_name in enumerate(self.params.dataset.split_names):
-                os.makedirs(os.path.dirname(self.params.dataset.data_path_splits[split_idx]), exist_ok=True)
-                os.makedirs(os.path.dirname(self.params.dataset.annotation_path_splits[split_idx]), exist_ok=True)
-            #
-            if self.params.dataset.dataset_name.startswith('/') or self.params.dataset.dataset_name.startswith('./'):
-                dataset_utils.download_file(self.params.dataset.dataset_name, self.params.dataset.dataset_path, self.params.dataset.dataset_path)
-                with open(self.params.dataset.input_annotation_path) as afp:
-                    dataset_store = json.load(afp)
-                #
-                # split the dataset into train/val
-                dataset_splits = dataset_utils.dataset_split(dataset_store,
-                    self.params.dataset.split_factor, self.params.dataset.split_names)
-            elif self.params.dataset.input_data_path is not None:
+            if self.params.dataset.input_data_path is not None and self.params.dataset.input_annotation_path is not None:
+                # data (images) folder and annotation folder are given
                 dataset_store = dataset_utils.dataset_load(self.params.common.task_type,
                     self.params.dataset.input_data_path, self.params.dataset.input_annotation_path,
                     annotation_format=self.params.dataset.annotation_format)
                 # split the dataset into train/val
                 dataset_splits = dataset_utils.dataset_split(dataset_store,
                     self.params.dataset.split_factor, self.params.dataset.split_names)
+            elif self.params.dataset.input_data_path is not None:
+                input_annotation_path = os.path.join(self.params.dataset.dataset_path, self.params.dataset.annotation_dir,
+                                                     f'{self.params.dataset.annotation_prefix}.json')
+                dataset_utils.download_file(self.params.dataset.input_data_path, self.params.dataset.download_path,
+                    self.params.dataset.dataset_path)
+                with open(input_annotation_path) as afp:
+                    dataset_store = json.load(afp)
+                #
+                # split the dataset into train/val
+                dataset_splits = dataset_utils.dataset_split(dataset_store, self.params.dataset.split_factor,
+                    self.params.dataset.split_names)
             elif self.params.dataset.dataset_name in get_datasets_list(self.params.common.task_type):
                 dataset_backend = get_backend_module(self.params.dataset.dataset_name)
                 if self.params.dataset.dataset_reload:

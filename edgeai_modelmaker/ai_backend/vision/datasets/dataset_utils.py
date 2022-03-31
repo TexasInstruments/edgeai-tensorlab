@@ -227,46 +227,41 @@ def download_and_extract(dataset_url, download_root, extract_root=None, save_fil
 
 def download_file(dataset_url, download_root, extract_root=None, save_filename=None, progressbar_creator=None, force_linkfile=True):
     if not isinstance(dataset_url, str):
-        return None
+        return False, '', ''
     elif not (dataset_url.startswith('http://') or dataset_url.startswith('https://')):
         try:
-            save_filename = save_filename or os.path.basename(dataset_url)
-            local_file = os.path.join(download_root, save_filename)
             if not extract_files(dataset_url, extract_root):
-                if os.path.isfile(dataset_url):
-                    copy_file(dataset_url, local_file)
-                else:
-                    if os.path.islink(local_file):
-                        os.unlink(local_file)
+                if os.path.isdir(dataset_url):
+                    if os.path.islink(extract_root):
+                        os.unlink(extract_root)
                     #
-                    os.symlink(dataset_url, local_file)
+                    os.symlink(dataset_url, extract_root)
+                else:
+                    return False, '', ''
                 #
             #
-            return True, '', local_file
         except FileNotFoundError:
-            return None, '', ''
+            return False, '', ''
         #
+        return True, '', extract_root
     #
 
     download_root = os.path.abspath('./') if download_root is None else download_root
     if dataset_url.endswith('.link'):
         with open(dataset_url) as fp:
-            url = fp.read().rstrip()
+            dataset_url = fp.read().rstrip()
         #
-    elif os.path.exists(dataset_url):
-        # if the given source is a file and if it exists, nothing todo.
-        pass
-    elif force_linkfile:
+    elif force_linkfile and not os.path.exists(dataset_url):
         url_link = dataset_url+'.link'
         if os.path.exists(url_link):
             with open(url_link) as fp:
-                url = fp.readline().rstrip()
+                dataset_url = fp.readline().rstrip()
             #
         #
     #
-    fpath = download_and_extract(url, download_root, extract_root=extract_root, save_filename=save_filename,
+    fpath = download_and_extract(dataset_url, download_root, extract_root=extract_root, save_filename=save_filename,
                                  progressbar_creator=progressbar_creator)
-    return fpath
+    return True, '', fpath
 
 
 def download_files(dataset_urls, download_root, extract_root=None, save_filenames=None, log_writer=None, progressbar_creator=None):
