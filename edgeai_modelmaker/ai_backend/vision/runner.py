@@ -172,6 +172,11 @@ class ModelRunner():
         pass
 
     def run(self):
+        self.dataset_handing()
+        self.model_training()
+        self.model_compilation()
+
+    def dataset_handing(self):
         # create folders
         os.makedirs(self.params.common.project_path, exist_ok=True)
         os.makedirs(self.params.dataset.dataset_path, exist_ok=True)
@@ -185,6 +190,7 @@ class ModelRunner():
             dataset_handling.run()
         #
 
+    def model_training(self):
         #####################################################################
         # model training
         training_backend_module = training.get_backend_module(self.params.training.training_backend,
@@ -196,6 +202,7 @@ class ModelRunner():
             model_training.run()
         #
 
+    def model_compilation(self):
         #####################################################################
         # model compilation
         model_compilation = compilation.edgeai_benchmark.ModelCompilation(self.params)
