@@ -265,7 +265,7 @@ def package_artifacts(settings, work_dir, out_dir, include_results=False):
     packaged_artifacts_keys = list(packaged_artifacts_dict.values())[0].keys()
     packaged_artifacts_list = [','.join([str(v) for v in artifact_entry.values()]) \
                                for artifact_entry in packaged_artifacts_dict.values()]
-    with open(os.path.join(out_dir,'artifacts.list'), 'w') as fp:
+    with open(os.path.join(out_dir,'artifacts.csv'), 'w') as fp:
         fp.write(','.join(packaged_artifacts_keys))
         fp.write('\n')
         fp.write('\n'.join(packaged_artifacts_list))
