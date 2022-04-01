@@ -303,13 +303,13 @@ model_id_artifacts_pair = {
     'od-8420_onnxrt': 'ONR-OD-8420-yolox-s-lite-mmdet-widerface-640x640',
     'od-8421_onnxrt': 'ONR-OD-8421-yolox-s-lite-mmdet-widerface-1024x1024',
     'od-8430_onnxrt': 'ONR-OD-8430-yolox-m-lite-mmdet-widerface-640x640',
-    'od-8450_onnxrt': 'ONR-OD-8450-yolov5-s6-lite-widerface-640x640',
 
-    # Yolov5 series
+    # Edgeai-Yolov5
     'od-8100_onnxrt': 'ONR-OD-8100-yolov5-s6-ti-lite-coco-640x640',
     'od-8110_onnxrt': 'ONR-OD-8110-yolov5-s6-ti-lite-coco-384x384',
     'od-8120_onnxrt': 'ONR-OD-8120-yolov5-m6-ti-lite-coco-640x640',
     'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640',
+    'od-8450_onnxrt': 'ONR-OD-8450-yolov5-s6-ti-lite-widerface-640x640',
 
     # Edgeai-Yolox
     'od-8140_onnxrt': 'ONR-OD-8140-yolox-s-ti-lite_640x640',
