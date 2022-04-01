@@ -324,7 +324,9 @@ def get_datasets(settings, download=False):
                 split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/train_img_gt_pair.txt',
                 num_classes=19,
                 shuffle=True,
-                num_frames=min(settings.calibration_frames,150))
+                num_frames=min(settings.calibration_frames,150),
+                name='ti-robokit_semseg'
+            )
 
             # dataset parameters for actual inference
             dataset_val_cfg = dict(
@@ -332,7 +334,9 @@ def get_datasets(settings, download=False):
                 split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/val_img_gt_pair.txt',
                 num_classes=19,
                 shuffle=True,
-                num_frames=min(settings.num_frames,49))
+                num_frames=min(settings.num_frames,49),
+                name='ti-robokit_semseg'
+            )
 
             dataset_cache['ti-robokit_semseg_zed1hd']['calibration_dataset'] = ImageSegmentation(**dataset_calib_cfg, download=False)
             dataset_cache['ti-robokit_semseg_zed1hd']['input_dataset'] = ImageSegmentation(**dataset_val_cfg, download=False)
