@@ -83,8 +83,8 @@ from .dataset_base import *
 __all__ = ['CityscapesSegmentation']
 
 class CityscapesSegmentation(DatasetBase):
-    def __init__(self, num_classes=19, download=False, **kwargs):
-        super().__init__(num_classes=num_classes, **kwargs)
+    def __init__(self, num_classes=19, download=False, num_frames=None, name="cityscapes", **kwargs):
+        super().__init__(num_classes=num_classes, num_frames=num_frames, name=name, **kwargs)
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must provided'
         path = self.kwargs['path']
         if not (os.path.exists(path) or os.path.isdir(path)) and download:
@@ -99,7 +99,6 @@ class CityscapesSegmentation(DatasetBase):
                   f'{Fore.RESET}\n')
             assert False, f'input path {path} must contain the dataset'
         #
-        self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
 
         # mapping for cityscapes 19 class segmentation
         self.num_classes = num_classes
@@ -128,7 +127,7 @@ class CityscapesSegmentation(DatasetBase):
             random.seed(int(shuffle))
             random.shuffle(self.labels)
         #
-        self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
+        self.num_frames = self.kwargs['num_frames'] = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
 
     def __getitem__(self, idx, with_label=False):

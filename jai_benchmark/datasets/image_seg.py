@@ -6,10 +6,11 @@ from .image_pix2pix import ImagePixel2Pixel
 
 
 class ImageSegmentation(ImagePixel2Pixel):
-    def __init__(self, download=False, dest_dir=None, **kwargs):
-        super().__init__(download=download, dest_dir=dest_dir, **kwargs)
+    def __init__(self, download=False, dest_dir=None, num_frames=None, name=None, **kwargs):
+        super().__init__(download=download, dest_dir=dest_dir, num_frames=num_frames, name=name, **kwargs)
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must be provided in kwargs'
         assert 'num_classes' in kwargs, f'num_classes must be provided while creating {self.__class__.__name__}'
+        assert name is not None, 'Please provide a name for this dataset'
         self.num_classes = self.kwargs['num_classes']
 
     def __call__(self, predictions, **kwargs):

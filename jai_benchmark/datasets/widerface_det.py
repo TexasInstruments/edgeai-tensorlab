@@ -58,7 +58,8 @@ __all__ = ['WiderFaceDetection', 'widerfacedet_det_label_offset_1to1']
 
 
 class WiderFaceDetection(coco_det.COCODetection):
-    def __init__(self, num_classes=1, download=False, image_dir=None, annotation_file=None, verbose_mode=True, **kwargs):
+    def __init__(self, num_classes=1, download=False, image_dir=None, annotation_file=None, verbose_mode=True,
+                 num_frames=None, name='widerface', **kwargs):
         self.verbose_mode = verbose_mode
         if image_dir is None or annotation_file is None:
             self.force_download = True if download == 'always' else False
@@ -88,7 +89,7 @@ class WiderFaceDetection(coco_det.COCODetection):
         #
         categories = dataset_store['categories']
         num_classes = num_classes or len(num_classes)
-        super().__init__(num_classes=num_classes, **kwargs)
+        super().__init__(num_classes=num_classes, num_frames=num_frames, name=name, **kwargs)
         self._load_dataset()
 
     def get_categories(self, project_path):

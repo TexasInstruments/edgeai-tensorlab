@@ -121,8 +121,8 @@ __all__ = ['COCOSegmentation']
 
 
 class COCOSegmentation(DatasetBase):
-    def __init__(self, num_classes=21, download=False, **kwargs):
-        super().__init__(num_classes=num_classes, **kwargs)
+    def __init__(self, num_classes=21, download=False, num_frames=None, name="cocoseg21", **kwargs):
+        super().__init__(num_classes=num_classes, num_frames=num_frames, name=name, **kwargs)
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'kwargs must have path and split'
         path = self.kwargs['path']
@@ -179,7 +179,7 @@ class COCOSegmentation(DatasetBase):
 
         self.cat_ids = self.coco_dataset.getCatIds()
         self.img_ids = self.coco_dataset.getImgIds()
-        self.num_frames = num_frames
+        self.num_frames = self.kwargs['num_frames'] = num_frames
 
         run_dir = self.kwargs.get('run_dir', None)
         if run_dir is None:

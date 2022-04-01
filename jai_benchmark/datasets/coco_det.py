@@ -121,8 +121,8 @@ __all__ = ['COCODetection', 'coco_det_label_offset_80to90', 'coco_det_label_offs
 
 
 class COCODetection(DatasetBase):
-    def __init__(self, num_classes=90, download=False, image_dir=None, annotation_file=None, **kwargs):
-        super().__init__(num_classes=num_classes, **kwargs)
+    def __init__(self, num_classes=90, download=False, image_dir=None, annotation_file=None, num_frames=None, name='coco', **kwargs):
+        super().__init__(num_classes=num_classes, num_frames=num_frames, name=name, **kwargs)
         if image_dir is None or annotation_file is None:
             self.force_download = True if download == 'always' else False
             assert 'path' in self.kwargs and 'split' in self.kwargs, 'kwargs must have path and split'
@@ -185,7 +185,7 @@ class COCODetection(DatasetBase):
 
         self.cat_ids = self.coco_dataset.getCatIds()
         self.img_ids = self.coco_dataset.getImgIds()
-        self.num_frames = num_frames
+        self.num_frames = self.kwargs['num_frames'] = num_frames
         self.tempfiles = []
 
     def download(self, path, split):

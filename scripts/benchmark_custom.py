@@ -49,7 +49,9 @@ def get_imagecls_dataset_loaders(settings, download=False):
         split=f'{settings.datasets_path}/imagenet/val.txt',
         num_classes=1000,
         shuffle=True,
-        num_frames=min(settings.calibration_frames,50000))
+        num_frames=min(settings.calibration_frames,50000),
+        name='imagenet'
+    )
 
     # dataset parameters for actual inference
     dataset_val_cfg = dict(
@@ -57,7 +59,9 @@ def get_imagecls_dataset_loaders(settings, download=False):
         split=f'{settings.datasets_path}/imagenet/val.txt',
         num_classes=1000,
         shuffle=True,
-        num_frames=min(settings.num_frames,50000))
+        num_frames=min(settings.num_frames,50000),
+        name='imagenet'
+    )
 
     # you are free to use any other data loaded provided in datasets folder or write your own instead of this
     calib_dataset = datasets.ImageClassification(**dataset_calib_cfg, download=download)
@@ -75,7 +79,9 @@ def get_imageseg_dataset_loaders(settings, download=False):
         split=f'{settings.datasets_path}/coco-seg21-converted/val2017.txt',
         num_classes=21,
         shuffle=True,
-        num_frames=min(settings.calibration_frames,5000))
+        num_frames=min(settings.calibration_frames,5000),
+        name='cocoseg21'
+    )
 
     # dataset parameters for actual inference
     dataset_val_cfg = dict(
@@ -83,7 +89,9 @@ def get_imageseg_dataset_loaders(settings, download=False):
         split=f'{settings.datasets_path}/coco-seg21-converted/val2017.txt',
         num_classes=21,
         shuffle=True,
-        num_frames=min(settings.num_frames,5000))
+        num_frames=min(settings.num_frames,5000),
+        name='cocoseg21'
+    )
 
     # you are free to use any other data loaded provided in datasets folder or write your own instead of this
     calib_dataset = datasets.ImageSegmentation(**dataset_calib_cfg, download=download)

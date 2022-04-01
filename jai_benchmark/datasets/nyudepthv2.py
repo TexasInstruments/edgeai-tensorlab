@@ -40,8 +40,8 @@ from .. import utils
 from .dataset_base import *
 
 class NYUDepthV2(DatasetBase):
-    def __init__(self, num_classes=151, ignore_label=None, download=False, **kwargs):
-        super().__init__(num_classes=num_classes, **kwargs)
+    def __init__(self, num_classes=151, ignore_label=None, download=False, num_frames=None, name='nyudepthv2', **kwargs):
+        super().__init__(num_classes=num_classes, num_frames=num_frames, name=name, **kwargs)
 
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must be provided'
@@ -53,7 +53,6 @@ class NYUDepthV2(DatasetBase):
             self.download(path, split)
         #
 
-        self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
         self.name = "NYUDEPTHV2"
         self.ignore_label = ignore_label
         #self.label_dir_txt = os.path.join(self.kwargs['path'], 'objectInfo150.txt')
@@ -69,7 +68,7 @@ class NYUDepthV2(DatasetBase):
         self.labels = sorted(labels)
         assert len(self.imgs) == len(self.labels), 'mismatch in the number f images and labels'
 
-        self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
+        self.num_frames = self.kwargs['num_frames'] = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
 
     def download(self, path, split):

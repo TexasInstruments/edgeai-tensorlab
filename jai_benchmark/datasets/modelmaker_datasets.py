@@ -34,22 +34,21 @@ from . import coco_det
 
 
 class ModelMakerDetectionDataset(coco_det.COCODetection):
-    def __init__(self, num_classes=90, download=False, num_frames=None, **kwargs):
+    def __init__(self, num_classes=90, download=False, num_frames=None, name='modelmaker', **kwargs):
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
         path = kwargs['path']
         split = kwargs['split']
         image_dir = os.path.join(path, split)
         annotation_file = os.path.join(path, 'annotations', f'instances_{split}.json')
-        self.num_frames = num_frames
         super().__init__(num_classes=num_classes, image_dir=image_dir, annotation_file=annotation_file,
-                         download=False, **kwargs)
+                         download=False, num_frames=num_frames, name=name, **kwargs)
 
     def download(self, path, split):
         return
 
 
 class ModelMakerClassificationDataset(DatasetBase):
-    def __init__(self, num_classes=None, download=False, num_frames=None, **kwargs):
+    def __init__(self, num_classes=None, download=False, num_frames=None, name='modelmaker', **kwargs):
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
         path = kwargs['path']
         split = kwargs['split']
@@ -73,7 +72,7 @@ class ModelMakerClassificationDataset(DatasetBase):
         #
         self.num_frames = num_frames
         super().__init__(num_classes=num_classes, image_dir=self.image_dir, annotation_file=self.annotation_file,
-                         download=False, **kwargs)
+                         download=False, num_frames=num_frames, name=name, **kwargs)
 
     def download(self, path, split):
         return

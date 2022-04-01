@@ -144,8 +144,8 @@ def _get_mapping_id_name(imgs):
     return id2name, name2id
 
 class COCOKeypoints(DatasetBase):
-    def __init__(self, num_joints=17, download=False, **kwargs):
-        super().__init__(num_joints=num_joints, **kwargs)
+    def __init__(self, num_joints=17, download=False, num_frames=None, name="cocokpts", **kwargs):
+        super().__init__(num_joints=num_joints, num_frames=num_frames, name=name, **kwargs)
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'kwargs must have path and split'
         path = self.kwargs['path']
@@ -211,7 +211,7 @@ class COCOKeypoints(DatasetBase):
         self._class_to_coco_ind = dict(zip(self.cats, self.coco_dataset.getCatIds()))
         self.img_ids = self.coco_dataset.getImgIds()       
 
-        self.num_frames = num_frames
+        self.num_frames = self.kwargs['num_frames'] = num_frames
         self.tempfiles = []
         
         self.ann_info = {}

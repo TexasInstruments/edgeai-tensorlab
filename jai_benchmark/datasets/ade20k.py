@@ -52,8 +52,8 @@ from .dataset_base import *
 __all__ = ['ADE20KSegmentation']
 
 class ADE20KSegmentation(DatasetBase):
-    def __init__(self, num_classes=151, ignore_label=None, download=False, **kwargs):
-        super().__init__(num_classes=num_classes, **kwargs)
+    def __init__(self, num_classes=151, ignore_label=None, download=False, num_frames=None, name="ADE20K", **kwargs):
+        super().__init__(num_classes=num_classes, num_frames=num_frames, name=name, **kwargs)
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must be provided'
         assert num_classes <= 151, 'maximum 151 classes (including background) are supported'
@@ -64,8 +64,6 @@ class ADE20KSegmentation(DatasetBase):
             self.download(path, split)
         #
 
-        self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
-        self.name = "ADE20K"
         self.num_classes_ = num_classes
         self.ignore_label = ignore_label
         self.label_dir_txt = os.path.join(self.kwargs['path'], 'objectInfo150.txt')
@@ -93,7 +91,7 @@ class ADE20KSegmentation(DatasetBase):
             random.seed(int(shuffle))
             random.shuffle(self.labels)
         #
-        self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
+        self.num_frames = self.kwargs['num_frames'] = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
 
     def download(self, path, split):

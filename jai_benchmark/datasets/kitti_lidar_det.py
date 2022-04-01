@@ -34,8 +34,8 @@ from .dataset_base import *
 import numpy as np
 
 class KittiLidar3D(DatasetBase):
-    def __init__(self, download=False, read_anno=True, dest_dir=None, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, download=False, read_anno=True, dest_dir=None, num_frames=None, name='kitti_lidar_det', **kwargs):
+        super().__init__(num_frames=num_frames, name=name, **kwargs)
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must be provided in kwargs'
         assert 'num_classes' in self.kwargs, f'num_classes must be provided while creating {self.__class__.__name__}'
@@ -54,7 +54,7 @@ class KittiLidar3D(DatasetBase):
 
         # create list of images and classes
         self.imgs = utils.get_data_list(input= path + "/ImageSets/val.txt", dest_dir=dest_dir)
-        self.num_frames = self.kwargs.get('num_frames',len(self.imgs))
+        self.num_frames = self.kwargs['num_frames'] = self.kwargs.get('num_frames',len(self.imgs))
         shuffle = self.kwargs.get('shuffle', False)
         if shuffle:
             random.seed(int(shuffle))

@@ -49,8 +49,8 @@ from .dataset_base import *
 __all__ = ['VOC2012Segmentation']
 
 class VOC2012Segmentation(DatasetBase):
-    def __init__(self, num_classes=21, ignore_label=255, download=False, **kwargs):
-        super().__init__(num_classes=num_classes, **kwargs)
+    def __init__(self, num_classes=21, ignore_label=255, download=False, num_frames=None, name='voc2012', **kwargs):
+        super().__init__(num_classes=num_classes, num_frames=num_frames, name=name, **kwargs)
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'kwargs must have path and split'
 
@@ -85,7 +85,7 @@ class VOC2012Segmentation(DatasetBase):
             random.seed(int(shuffle))
             random.shuffle(self.labels)
         #
-        self.num_frames = min(self.kwargs['num_frames'], len(self.imgs)) \
+        self.num_frames = self.kwargs['num_frames'] = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
 
     def download(self, path, split=None):

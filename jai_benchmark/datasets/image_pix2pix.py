@@ -4,10 +4,12 @@ from .. import utils
 from .dataset_base import *
 
 class ImagePixel2Pixel(DatasetBase):
-    def __init__(self, download=False, dest_dir=None, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, download=False, dest_dir=None, num_frames=None, name=None, **kwargs):
+        super().__init__(num_frames=num_frames, name=name, **kwargs)
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must be provided in kwargs'
+        assert name is not None, 'Please provide a name for this dataset'
+        
         path = self.kwargs['path']
         split_file = self.kwargs['split']
         # download the data if needed
@@ -30,7 +32,7 @@ class ImagePixel2Pixel(DatasetBase):
             self.imgs = in_files
         #
 
-        self.num_frames = self.kwargs.get('num_frames',len(self.imgs))
+        self.num_frames = self.kwargs['num_frames'] = self.kwargs.get('num_frames',len(self.imgs))
         shuffle = self.kwargs.get('shuffle', False)
         if shuffle:
             random.seed(int(shuffle))

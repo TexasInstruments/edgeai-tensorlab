@@ -45,11 +45,11 @@ Download: http://imagenetv2public.s3-website-us-west-2.amazonaws.com/
 
 
 class ImageNetV2(ImageClassification):
-    def __init__(self, *args, num_classes=1000, url=None, download=False, **kwargs):
+    def __init__(self, *args, num_classes=1000, url=None, download=False, num_frames=None, name=None, **kwargs):
         self.url = url
         self.class_names_dict = None
         self.class_ids_dict = None
-        super().__init__(*args, num_classes=num_classes, download=download, **kwargs)
+        super().__init__(*args, num_classes=num_classes, download=download, num_frames=num_frames, name=name, **kwargs)
 
     def get_notice(self):
         notice = f'{Fore.YELLOW}' \
@@ -102,18 +102,18 @@ class ImageNetV2(ImageClassification):
 
 
 class ImageNetV2A(ImageNetV2):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, name='imagenetv2c', **kwargs):
         url = 'https://s3-us-west-2.amazonaws.com/imagenetv2public/imagenetv2-threshold0.7.tar.gz'
-        super().__init__(*args, url=url, **kwargs)
+        super().__init__(*args, url=url, name=name, **kwargs)
 
 
 class ImageNetV2B(ImageNetV2):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, name='imagenetv2b', **kwargs):
         url = 'https://s3-us-west-2.amazonaws.com/imagenetv2public/imagenetv2-matched-frequency.tar.gz'
-        super().__init__(*args, url=url, **kwargs)
+        super().__init__(*args, url=url, name=name, **kwargs)
 
 
 class ImageNetV2C(ImageNetV2):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, name='imagenetv2c', **kwargs):
         url = 'https://s3-us-west-2.amazonaws.com/imagenetv2public/imagenetv2-top-images.tar.gz'
-        super().__init__(*args, url=url, **kwargs)
+        super().__init__(*args, url=url, name=name, **kwargs)

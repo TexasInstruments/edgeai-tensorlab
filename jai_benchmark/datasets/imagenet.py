@@ -45,10 +45,11 @@ class BaseImageNetCls(ImageClassification):
     Andrej Karpathy, Aditya Khosla, Michael Bernstein, Alexander C. Berg and Li Fei-Fei. (* = equal contribution)
     International Journal of Computer Vision, 2015.
     """
-    def __init__(self, *args, download=False, **kwargs):
+    def __init__(self, *args, download=False, num_frames=None, name='imagenet', **kwargs):
         self.class_names_dict = None
         self.class_ids_dict = None
-        super().__init__(*args, download=download, **kwargs)
+        super().__init__(*args, download=download, num_frames=num_frames, name=name, **kwargs)
+        assert name is not None, 'Please provide a name for this dataset'
 
     def get_notice(self):
         notice = f'{Fore.YELLOW}' \
@@ -113,8 +114,8 @@ class ImageNetCls(BaseImageNetCls):
     International Journal of Computer Vision, 2015.
     Download page: http://image-net.org/download-images
     """
-    def __init__(self, *args, num_classes=1000, **kwargs):
-        super().__init__(*args, num_classes=num_classes, **kwargs)
+    def __init__(self, *args, num_classes=1000, num_frames=None, name=None, **kwargs):
+        super().__init__(*args, num_classes=num_classes, num_frames=num_frames, name=name, **kwargs)
 
     def download(self, path, split_file):
         root = self._get_root(path)
