@@ -325,7 +325,7 @@ def get_datasets(settings, download=False):
                 num_classes=19,
                 shuffle=True,
                 num_frames=min(settings.calibration_frames,150),
-                name='ti-robokit_semseg'
+                name='ti-ti-robokit_semseg_zed1hd'
             )
 
             # dataset parameters for actual inference
@@ -335,7 +335,7 @@ def get_datasets(settings, download=False):
                 num_classes=19,
                 shuffle=True,
                 num_frames=min(settings.num_frames,49),
-                name='ti-robokit_semseg'
+                name='ti-ti-robokit_semseg_zed1hd'
             )
 
             dataset_cache['ti-robokit_semseg_zed1hd']['calibration_dataset'] = ImageSegmentation(**dataset_calib_cfg, download=False)

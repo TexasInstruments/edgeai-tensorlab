@@ -357,6 +357,8 @@ model_id_artifacts_pair = {
     # Models for Robokit
     'ss-8810_onnxrt': 'ONR-SS-8810-deeplabv3lite-mobv2-robokit-768x432',
     'ss-8818_onnxrt': 'ONR-SS-8818-deeplabv3lite-mobv2-qat-robokit-768x432',
+    'ss-5810_tvmdlr': 'TVM-SS-5810-deeplabv3lite-mobv2-robokit-768x432',
+    'ss-5818_tvmdlr': 'TVM-SS-5818-deeplabv3lite-mobv2-qat-robokit-768x432',
 
     #ONNX key point detections
     'kd-7000_onnxrt': 'ONR-KD-7000-human-pose-ae-mobv2-fpn-spp-udp-512x512',
