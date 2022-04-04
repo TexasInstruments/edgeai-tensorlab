@@ -28,7 +28,7 @@
 #################################################################################
 import os
 
-#ver:33 2022-03-29
+#ver:34 2022-04-04
 
 # Conventions
 # RunTime  Task                  start_id
@@ -460,22 +460,22 @@ removed_model_list = {
     # During SDK7.3 removed low accuracy models where drop is more wrt reference accuracy. This will be corrected in the future.
     'ss-2540_tflitert' : 'TFL-SS-2540-deeplabv3-mobv2-ade20k-512x512', #still bad in SDK8.2
     'ss-2590_tflitert' : 'TFL-SS-2590-deeplabv3_mobv2-dm05-pascal-trainaug-512x512', #still bad in SDK8.2
-    'cl-0060_tflitert' : 'TFL-CL-0060-resNet50V2',
+    'cl-0060_tflitert' : 'TFL-CL-0060-resNet50V2', #float accuracy is around 5% lower than ref, SDK8.2
     'ss-2600_tflitert' : 'TFL-SS-2600-deeplabv3_mobv2-pascal-trainaug-512x512', #still bad in SDK8.2
-    'cl-0218_tflitert' : 'TFL-CL-0218-mobileNetV1-qat',
-    'cl-0010_tflitert' : 'TFL-CL-0010-mobileNetV2',
+    'cl-0218_tflitert' : 'TFL-CL-0218-mobileNetV1-qat', #acruacy 1.6% below float
+    'cl-0010_tflitert' : 'TFL-CL-0010-mobileNetV2', #sdk8.2, accuracy around 3% down compared to float
     #'cl-6080_onnxrt' : 'ONR-CL-6080-shuffleNetV2',, 50k val as well as EVM give good accuracy so not removing now
-    'cl-0200_tflitert' : 'TFL-CL-0200-mobileNetV2-1p4',
+    'cl-0200_tflitert' : 'TFL-CL-0200-mobileNetV2-1p4', #sdk8.2, accuracy around 3% down compared to float
     #'vcls-3430_tvmdlr' : 'TVM-CL-3430-gluoncv-mxnet-xception', #enabled during SDK8.0
 
     # During SDK8.0 removed low accuracy models where drop is more wrt reference accuracy.
-    'od-2100_tflitert':'TFL-OD-2100-ssd-res50V1-fpn-coco-tpu-8-640x640',
+    'od-2100_tflitert':'TFL-OD-2100-ssd-res50V1-fpn-coco-tpu-8-640x640', #7 % drop wrt accuracy
     'od-5030_tvmdlr': 'TVM-OD-5030-ssd-res50v1-gluon-mxnet-512x512',
-    'cl-0270_tflitert': 'TFL-CL-0270-mobv3-small-minimalistic',
-    'od-5040_tvmdlr': 'TVM-OD-5040-ssd-mobv1-coco-gluon-mxnet-512x512', #renamed mobv1 model in SDK8.0
+    'cl-0270_tflitert': 'TFL-CL-0270-mobv3-small-minimalistic', #huge drop (>30%) in 8 bit accuracy wrt float
+    #'od-5040_tvmdlr': 'TVM-OD-5040-ssd-mobv1-coco-gluon-mxnet-512x512', #accuracy looks ok now, SDK8.2
 
-    'od-8070_onnxrt': 'ONR-OD-8070-yolov3-d53-relu-coco-416x416',   #large model - issue in evm
-    'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640', #large model - issue in evm
+    #'od-8070_onnxrt': 'ONR-OD-8070-yolov3-d53-relu-coco-416x416',   #large model - issue in evm, #fixed in SDK8.2
+    #'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640', #large model - issue in evm, #fixed in SDK8.2
 
     # models for which artifacts are not getting generated during SDK8.0
     'cl-3510_tvmdlr' :  'TVM-CL-3510-hrnet-w30-c-gluon-mxnet',
@@ -493,8 +493,8 @@ removed_model_list = {
     # During SDK8.1, these models were marked as removed - not running on device (may be due to large memory requirement)
     #'cl-6450_onnxrt': 'ONR-CL-6450-harDNet85', #working in SDK8.2 onwards
     #'od-8060_onnxrt': 'ONR-OD-8060-ssd-lite-regNetX-1.6gf-fpn-bgr-coco-768x768', #working in SDK8.2 onwards
-    'od-8120_onnxrt': 'ONR-OD-8120-yolov5-m6-ti-lite-coco-640x640',
-    'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640',
+    #'od-8120_onnxrt': 'ONR-OD-8120-yolov5-m6-ti-lite-coco-640x640', #working in SDK8.2 onwards
+    #'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640', #working in SDK8.2 onwards
 
     'od-2150_tflitert':'TFL-OD-2150-efficientdet-lite1-relu-384x384',
     'od-2170_tflitert':'TFL-OD-2170-efficientdet-lite3-relu-512x512',
@@ -635,6 +635,17 @@ super_set = [
 'ss-21-110-0_onnxrt',
 ]
 
+def find_compiled_artifact_in_removed_list():
+    import yaml
+    compiled_artifacts_file = '/data/hdd/a0875091/files/work/bitbucket/model-selection-tool/utils/cloud_eval/perf_acc_rel_8.2_202203/compiled_artifacts.yaml'
+    with open(compiled_artifacts_file) as file:
+        compiled_artifacts = yaml.full_load(file)
+    
+        for key, value in compiled_artifacts.items():
+            if key in removed_model_list:
+                print("{} for which artifacts are available but model part of removed model list".format(key))
+
+
 def test_against_super_set():
     for artifacts_id in super_set:
         if not artifacts_id in model_id_artifacts_pair:
@@ -749,6 +760,7 @@ def is_recommended_model(artifact_id):
 
 
 if __name__ == '__main__':
+    find_compiled_artifact_in_removed_list()
     generate_list_mising_models = True
 
     test_against_super_set()
