@@ -280,7 +280,7 @@ model_id_artifacts_pair = {
     'cl-6510_onnxrt': 'ONR-CL-6510-mobv3-ti-lite-large-x2r', #added in SDK8.0 #'cl-10-107-0'
 
     # ONNX - OD
-    'od-8000_onnxrt': 'ONR-OD-8000-ssd1200-resNet34-mlperf-1200x1200',
+    'od-8000_onnxrt': 'ONR-OD-8000-ssd1200-resNet34-mlperf-coco-1200x1200',
     'od-8010_onnxrt': 'ONR-OD-8010-yolov3-416x416',
 
     # Edgeai-MMdetection
@@ -472,7 +472,7 @@ removed_model_list = {
     'od-2100_tflitert':'TFL-OD-2100-ssd-res50V1-fpn-coco-tpu-8-640x640', #7 % drop wrt accuracy
     'od-5030_tvmdlr': 'TVM-OD-5030-ssd-res50v1-gluon-mxnet-512x512',
     'cl-0270_tflitert': 'TFL-CL-0270-mobv3-small-minimalistic', #huge drop (>30%) in 8 bit accuracy wrt float
-    #'od-5040_tvmdlr': 'TVM-OD-5040-ssd-mobv1-coco-gluon-mxnet-512x512', #accuracy looks ok now, SDK8.2
+    'od-5040_tvmdlr': 'TVM-OD-5040-ssd-mobv1-coco-gluon-mxnet-512x512', #accuracy looks ok now, but EVM run fails, SDK8.2
 
     #'od-8070_onnxrt': 'ONR-OD-8070-yolov3-d53-relu-coco-416x416',   #large model - issue in evm, #fixed in SDK8.2
     #'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640', #large model - issue in evm, #fixed in SDK8.2
@@ -509,6 +509,9 @@ removed_model_list = {
     'cl-0038_tflitert': 'TFL-CL-0038-InceptionNetV1', #Kumar reported issue with SDK8.2
     'cl-0150_tflitert': 'TFL-CL-0150-denseNet', #Kumar reported issue with SDK8.2
     'ss-8670_onnxrt': 'ONR-SS-8670-fpnlite-aspp-mobv2-1p4-ade20k32-512x512', #Paula reported issue with SDK8.2 TIDL-1589
+
+    'de-7300_onnxrt': 'ONR-DE-7300-depth-est-fast-depth-224x224', #artifacts get generated. Inference did not run on PC ref, SDK8.2
+    'ss-5670_tvmdlr': 'TVM-SS-5670-fpnlite-aspp-mobv2-1p4-ade20k32-512x512', #looks like removed from the run. Artifacts were not there.SDK8.2
 }
 
 removed_models_from_plots = {
