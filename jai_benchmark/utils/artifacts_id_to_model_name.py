@@ -63,6 +63,7 @@ model_id_artifacts_pair = {
     'cl-0000_tflitert': 'TFL-CL-0000-mobileNetV1-mlperf',
     'cl-0010_tflitert': 'TFL-CL-0010-mobileNetV2',
     'cl-0020_tflitert': 'TFL-CL-0020-SqueezeNet',
+    'cl-0038_tflitert': 'TFL-CL-0038-InceptionNetV1',
     'cl-0040_tflitert': 'TFL-CL-0040-InceptionNetV3',
     'cl-0050_tflitert': 'TFL-CL-0050-resNet50V1',
     'cl-0060_tflitert': 'TFL-CL-0060-resNet50V2',
@@ -72,6 +73,7 @@ model_id_artifacts_pair = {
     'cl-0100_tflitert': 'TFL-CL-0100-efficientNet-edgeTPU-m',
     'cl-0130_tflitert': 'TFL-CL-0130-efficientNet-lite0',
     'cl-0140_tflitert': 'TFL-CL-0140-efficientNet-lite4',
+    'cl-0150_tflitert': 'TFL-CL-0150-denseNet',
     'cl-0160_tflitert': 'TFL-CL-0160-resNet50V1p5-mlperf',
     'cl-0170_tflitert': 'TFL-CL-0170-efficientNet-lite1',
     'cl-0180_tflitert': 'TFL-CL-0180-efficientNet-lite2',
@@ -341,6 +343,7 @@ model_id_artifacts_pair = {
     'ss-8638_onnxrt': 'ONR-SS-8638-unetlite-aspp-mobv2-tv-ade20k32-qat-512x512',
     'ss-8650_onnxrt': 'ONR-SS-8650-fpnlite-aspp-mobv2-ade20k32-512x512',
     'ss-8658_onnxrt': 'ONR-SS-8658-fpnlite-aspp-mobv2-ade20k32-qat-512x512',
+    'ss-8670_onnxrt': 'ONR-SS-8670-fpnlite-aspp-mobv2-1p4-ade20k32-512x512',
     'ss-8678_onnxrt': 'ONR-SS-8678-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512',
     'ss-8690_onnxrt': 'ONR-SS-8690-fpnlite-aspp-regnetx400mf-ade20k32-384x384',
     'ss-8700_onnxrt': 'ONR-SS-8700-fpnlite-aspp-regnetx800mf-ade20k32-512x512',
@@ -431,7 +434,6 @@ removed_model_list = {
 
     'cl-6040_onnxrt': 'ONR-CL-6040-nasNet-mobile-tflite', # not part of benchmarking script yet. tflite model with TVM.
     'od-8010_onnxrt': 'ONR-OD-8010-yolov3-coco-416x416', # not supported yet
-    'cl-0150_tflitert': 'TFL-CL-0150-denseNet', # too far from optimal pareto line
 
     #removed from ONNX-RT
     'cl-6410_onnxrt': 'ONR-CL-6410-gluoncv-mxnet-mobv2',
