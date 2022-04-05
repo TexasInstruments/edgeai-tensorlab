@@ -29,6 +29,7 @@
 from .. import constants
 from .. import utils
 from .transforms import *
+from .keypoints import *
 
 
 class PostProcessTransforms(utils.TransformsCompose):

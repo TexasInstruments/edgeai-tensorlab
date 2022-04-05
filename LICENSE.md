@@ -95,8 +95,8 @@ either expressed or implied, of the FreeBSD Project.
 
 ----------------------------------------------------------------------
 
-Also includes parts from: https://github.com/open-mmlab/mmpose 
-License: https://github.com/open-mmlab/mmpose/blob/master/LICENSE
+Also includes parts from: https://github.com/open-mmlab/mmpose, https://github.com/open-mmlab/mmdetection3d
+License: https://github.com/open-mmlab/mmpose/blob/master/LICENSE, https://github.com/open-mmlab/mmdetection3d/blob/master/LICENSE
 
 Copyright 2018-2020 Open-MMLab. All rights reserved.
 
