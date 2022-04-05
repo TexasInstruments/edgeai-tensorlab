@@ -118,3 +118,8 @@ additional_models : False
 
 # enable use of experimental models - these model files may not be available in modelzoo in some cases
 experimental_models : False
+
+# dataset type to use if there are multiple variants for each dataset
+# imagenetv2c is available for quick download - so use it in the release branch
+dataset_type_dict:
+  'imagenet': 'imagenetv2c'
