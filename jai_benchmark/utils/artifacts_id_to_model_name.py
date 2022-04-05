@@ -99,7 +99,7 @@ model_id_artifacts_pair = {
     'od-2080_tflitert':'TFL-OD-2080-ssd-mobV2-fpnlite-coco-tpu-8-320x320',
     'od-2090_tflitert':'TFL-OD-2090-ssd-mobV2-fpnlite-coco-tpu-8-640x640',
     'od-2100_tflitert':'TFL-OD-2100-ssd-res50V1-fpn-coco-tpu-8-640x640',
-    'od-2110_tflitert':'TFL-OD-2110-efficient-det-ti-lite0-512x512',
+    'od-2110_tflitert':'TFL-OD-2110-efficient-det-ti-lite0-coco-512x512',
     'od-2120_tflitert':'TFL-OD-2120-ssd-res50V1-fpn-coco-tpu-8-1024x1024', #'od-12-415-0'
     'od-2130_tflitert':'TFL-OD-2130-ssd-mobV2-coco-tpu-8-320x320', #'od-12-411-0'
 
@@ -172,7 +172,7 @@ model_id_artifacts_pair = {
     # TVM - OD
     'od-5000_tvmdlr': 'TVM-OD-5000-ssd1200-resNet34-mlperf-1200x1200',
     'od-5010_tvmdlr': 'TVM-OD-5010-yolov3-416x416',
-    'od-5020_tvmdlr': 'TVM-OD-5020-yolov3-mobv1-gluon-mxnet-416x416',
+    'od-5020_tvmdlr': 'TVM-OD-5020-yolov3-mobv1-gluon-mxnet-coco-416x416',
 
     'od-5030_tvmdlr': 'TVM-OD-5030-ssd-res50v1-gluon-mxnet-512x512', #added in SDK8.0
     'od-5040_tvmdlr': 'TVM-OD-5040-ssd-mobv1-coco-gluon-mxnet-512x512', #renamed mobv1 model in SDK8.0
@@ -281,7 +281,7 @@ model_id_artifacts_pair = {
 
     # ONNX - OD
     'od-8000_onnxrt': 'ONR-OD-8000-ssd1200-resNet34-mlperf-coco-1200x1200',
-    'od-8010_onnxrt': 'ONR-OD-8010-yolov3-416x416',
+    'od-8010_onnxrt': 'ONR-OD-8010-yolov3-coco-416x416',
 
     # Edgeai-MMdetection
     'od-8020_onnxrt': 'ONR-OD-8020-ssd-lite-mobv2-mmdet-coco-512x512',
@@ -310,14 +310,14 @@ model_id_artifacts_pair = {
     'od-8450_onnxrt': 'ONR-OD-8450-yolov5-s6-ti-lite-widerface-640x640',
 
     # Edgeai-Yolox
-    'od-8140_onnxrt': 'ONR-OD-8140-yolox-s-ti-lite_640x640',
-    'od-8150_onnxrt': 'ONR-OD-8140-yolox-m-ti-lite_640x640',
-    'od-8180_onnxrt': 'ONR-OD-8140-yolox-tiny-ti-lite_416x416',
-    'od-8190_onnxrt': 'ONR-OD-8140-yolox-nano-ti-lite_416x416',
+    'od-8140_onnxrt': 'ONR-OD-8140-yolox-s-ti-lite-coco-640x640',
+    'od-8150_onnxrt': 'ONR-OD-8140-yolox-m-ti-lite-coco-640x640',
+    'od-8180_onnxrt': 'ONR-OD-8140-yolox-tiny-ti-lite-coco-416x416',
+    'od-8190_onnxrt': 'ONR-OD-8140-yolox-nano-ti-lite-coco-416x416',
 
     # EdgeAI-Torchvision
-    'od-8160_onnxrt': 'ONR-OD-8160-ssdlite-mobv2-fpn-lite-512x512',
-    'od-8170_onnxrt': 'ONR-OD-8170-ssdlite-regNetX-800mf-fpn-lite-512x512',
+    'od-8160_onnxrt': 'ONR-OD-8160-ssdlite-mobv2-fpn-lite-coco-512x512',
+    'od-8170_onnxrt': 'ONR-OD-8170-ssdlite-regNetX-800mf-fpn-lite-coco-512x512',
 
     # ONNX - SS - CS
     'ss-8500_onnxrt': 'ONR-SS-8500-deeplabv3lite-mobv2-cs-768x384',
@@ -366,8 +366,8 @@ model_id_artifacts_pair = {
     'kd-7050_onnxrt': 'ONR-KD-7050-human-pose-yolov5s6-mixp-640x640',
     'kd-7060_onnxrt': 'ONR-KD-7060-human-pose-yolox-s-640x640',
 
-    'od-2150_tflitert':'TFL-OD-2150-efficientdet-lite1-relu-384x384',
-    'od-2170_tflitert':'TFL-OD-2170-efficientdet-lite3-relu-512x512',
+    'od-2150_tflitert':'TFL-OD-2150-efficientdet-lite1-relu-coco-384x384',
+    'od-2170_tflitert':'TFL-OD-2170-efficientdet-lite3-relu-coco-512x512',
 
     # ONNX depth estimation
     'de-7300_onnxrt': 'ONR-DE-7300-depth-est-fast-depth-224x224',
@@ -377,7 +377,7 @@ model_id_artifacts_pair = {
 removed_model_list = {
     'cl-3020_tvmdlr' : 'TVM-CL-3020-xceptionNet-mxnet', # This is replaced with tflite model now (that was also eventually removed)
     'cl-0230_tflitert': 'TFL-CL-0230-mobileNetV2-qat',  # QAT model is not giving good accuracy so keep only float
-    'od-5000_tvmdlr': 'TVM-OD-5000-ssd1200-resNet34-mlperf-1200x1200', # Using ONNX RT for this.
+    'od-5000_tvmdlr': 'TVM-OD-5000-ssd1200-resNet34-mlperf-coco-1200x1200', # Using ONNX RT for this.
     'cl-0210_tflitert': 'TFL-CL-0210-mobileNetV1', #duplicate same as cl-0000 mlperf model.
     ################ CS models
     # cityscapes model not part of Model Zoo
@@ -427,10 +427,10 @@ removed_model_list = {
     'od-2050_tflitert': 'TFL-OD-2050-ssd-mobV2-mnas-fpn-coco-320x320', # does not run, import crashes. Manu
 
     'cl-3040_tvmdlr': 'TVM-CL-3040-nasNet-mobile-tflite', # not part of benchmarking script yet. tflite model with TVM.
-    'od-5010_tvmdlr': 'TVM-OD-5010-yolov3-416x416', # not supported yet
+    'od-5010_tvmdlr': 'TVM-OD-5010-yolov3-coco-416x416', # not supported yet
 
     'cl-6040_onnxrt': 'ONR-CL-6040-nasNet-mobile-tflite', # not part of benchmarking script yet. tflite model with TVM.
-    'od-8010_onnxrt': 'ONR-OD-8010-yolov3-416x416', # not supported yet
+    'od-8010_onnxrt': 'ONR-OD-8010-yolov3-coco-416x416', # not supported yet
     'cl-0150_tflitert': 'TFL-CL-0150-denseNet', # too far from optimal pareto line
 
     #removed from ONNX-RT
@@ -470,7 +470,7 @@ removed_model_list = {
 
     # During SDK8.0 removed low accuracy models where drop is more wrt reference accuracy.
     'od-2100_tflitert':'TFL-OD-2100-ssd-res50V1-fpn-coco-tpu-8-640x640', #7 % drop wrt accuracy
-    'od-5030_tvmdlr': 'TVM-OD-5030-ssd-res50v1-gluon-mxnet-512x512',
+    'od-5030_tvmdlr': 'TVM-OD-5030-ssd-res50v1-gluon-mxnet-coco-512x512',
     'cl-0270_tflitert': 'TFL-CL-0270-mobv3-small-minimalistic', #huge drop (>30%) in 8 bit accuracy wrt float
     'od-5040_tvmdlr': 'TVM-OD-5040-ssd-mobv1-coco-gluon-mxnet-512x512', #accuracy looks ok now, but EVM run fails, SDK8.2
 
@@ -496,15 +496,15 @@ removed_model_list = {
     #'od-8120_onnxrt': 'ONR-OD-8120-yolov5-m6-ti-lite-coco-640x640', #working in SDK8.2 onwards
     #'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640', #working in SDK8.2 onwards
 
-    'od-2150_tflitert':'TFL-OD-2150-efficientdet-lite1-relu-384x384',
-    'od-2170_tflitert':'TFL-OD-2170-efficientdet-lite3-relu-512x512',
+    'od-2150_tflitert':'TFL-OD-2150-efficientdet-lite1-relu-coco-384x384',
+    'od-2170_tflitert':'TFL-OD-2170-efficientdet-lite3-relu-coco-512x512',
 
     # High resolution models
     'cl-6151_onnxrt': 'ONR-CL-6151-mobileNetV2-1p4-qat-512x512',
     'cl-6152_onnxrt': 'ONR-CL-6152-mobileNetV2-1p4-qat-1024x1024',
 
-    'od-8160_onnxrt': 'ONR-OD-8160-ssdlite-mobv2-fpn-lite-512x512', #Manu removed it in SDK8.2
-    'od-8170_onnxrt': 'ONR-OD-8170-ssdlite-regNetX-800mf-fpn-lite-512x512', #Manu removed it in SDK8.2
+    'od-8160_onnxrt': 'ONR-OD-8160-ssdlite-mobv2-fpn-lite-coco-512x512', #Manu removed it in SDK8.2
+    'od-8170_onnxrt': 'ONR-OD-8170-ssdlite-regNetX-800mf-fpn-lite-coco-512x512', #Manu removed it in SDK8.2
 
     'cl-0038_tflitert': 'TFL-CL-0038-InceptionNetV1', #Kumar reported issue with SDK8.2
     'cl-0150_tflitert': 'TFL-CL-0150-denseNet', #Kumar reported issue with SDK8.2
@@ -524,7 +524,7 @@ recommended_model_list = {
     'od-2020_tflitert': 'TFL-OD-2020-ssdLite-mobDet-DSP-coco-320x320',
     'ss-2580_tflitert': 'TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512',
     'cl-3410_tvmdlr': 'TVM-CL-3410-gluoncv-mxnet-mobv2',
-    'od-5020_tvmdlr': 'TVM-OD-5020-yolov3-mobv1-gluon-mxnet-416x416',
+    'od-5020_tvmdlr': 'TVM-OD-5020-yolov3-mobv1-gluon-mxnet-coco-416x416',
     'ss-5720_tvmdlr' : 'TVM-SS-5720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
     'cl-6360_onnxrt': 'ONR-CL-6360-regNetx-200mf',
     'od-8050_onnxrt': 'ONR-OD-8050-ssd-lite-regNetX-800mf-fpn-bgr-coco-512x512',
