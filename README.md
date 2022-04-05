@@ -18,26 +18,29 @@ If you have not visited the following landing pages, please do so before attempt
 ## ModelZoo / pre-trained models collection & documentation
 
 #### Image classification
-[Image Classification Model Zoo](./models/vision/classification/)
+- [Image Classification Models](./models/vision/classification/)
 
 #### Object detection
-[Object Detection Model Zoo](./models/vision/detection/)
+- [Object Detection Models](./models/vision/detection/)
+- [Face Detection Models](./models/vision/detection/) See the section on Face Detection Models at the bottom of the page in this link.
 
 #### Semantic segmentation
-[Semantic Segmentation Model Zoo](./models/vision/segmentation/)
+- [Semantic Segmentation Models](./models/vision/segmentation/)
 
 #### Depth estimation
-[Depth Estimation Model Zoo](./models/vision/depth_estimation/)
+- [Depth Estimation Models](./models/vision/depth_estimation/)
 
 #### 3D object detection
-[3D Object Detection Model Zoo](./models/vision/3d_detection/)
+- [3D Object Detection Models](./models/vision/detection_3d/)
 
 #### Public benchmarks
-[MLPerf Machine Learning Model Zoo](./models/docs/mlperf/)
+- [MLPerf Machine Learning Models](./models/docs/mlperf/)
 
 
 <hr>
 
+## Pre-complied model artifacts 
+See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md) that we provide with this repository.
 
 ## Compiling models
 [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) provide information on compiling models for our SoCs. That is a good starting point to get familiarized with import/calibration and inference of models.
@@ -107,4 +110,6 @@ Please see the License under which this repository is made available: [LICENSE](
 
 [14] **GluonCV**: GluonCV and GluonNLP: Deep Learning in Computer Vision and Natural Language Processing
 Jian Guo, He He, Tong He, Leonard Lausen, Mu Li, Haibin Lin, Xingjian Shi, Chenguang Wang, Junyuan Xie, Sheng Zha, Aston Zhang, Hang Zhang, Zhi Zhang, Zhongyue Zhang, Shuai Zheng, Yi Zhu, https://arxiv.org/abs/1907.04433
+
+[15] **WIDER FACE**: A Face Detection Benchmark, Yang, Shuo and Luo, Ping and Loy, Chen Change and Tang, Xiaoou, IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2016, http://shuoyang1213.me/WIDERFACE/
 

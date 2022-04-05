@@ -74,6 +74,9 @@ Torchvision from Pytorch is one of the most popular packages for DNN training us
 |ImageNet |ResNet18[4,10]      |224x224   |1.814   |69.76          |Y        |      |
 |ImageNet |ResNet50[4,10]      |224x224   |4.087   |76.15          |Y        |      |
 |ImageNet |VGG16[1,10]         |224x224   |15.35   |71.59          |         |      |
+|ImageNet |RegNetX-400MF[6]    |224x224   |0.415   |72.83          |Y        |      |
+|ImageNet |RegNetX-800MF[6]    |224x224   |0.800   |75.21          |Y        |      |
+|ImageNet |RegNetX-1.6GF[6]    |224x224   |1.605   |77.04          |Y        |      |
 |-
 |ImageNet |MobileNetV2-QAT     |224x224   |0.300   |71.31          |Y        |QAT* Model|
 

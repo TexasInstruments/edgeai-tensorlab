@@ -51,7 +51,7 @@ YOLOX is another excellent set of models with low complexity and high accuracy. 
 - [Models Link](./coco/edgeai-mmdet/)
 - [**Training Source Code**](https://github.com/TexasInstruments/edgeai-mmdetection)
 
-This is our fork of the popular mmdetection training framework for object detection. We provide several optimized, embedded friendly configurations that provide high throughput on our SoCs. One can train and export models to onnx format, and can then be used in our fork of onnxruntime. Please visit the link above for more information.
+This is our fork of the popular mmdetection training framework for object detection. We provide several optimized, embedded friendly configurations that provide high throughput on our SoCs. One can train and export models to onnx format, and can then be used in our fork of onnxruntime. Most of the models listed here have been trained using configs in [edgeai-mmdetection/configs/edgeailite](https://github.com/TexasInstruments/edgeai-mmdetection/tree/master/configs/edgeailite). Please visit the link above for more information.
 
 |Dataset |Model Name                       |Input Size |GigaMACS  |AP[0.5:0.95]%, AP50%|Available|Notes |
 |--------|---------------------------------|-----------|----------|--------------------|---------|----- |
@@ -74,6 +74,11 @@ This is our fork of the popular mmdetection training framework for object detect
 |COCO    |ResNet50+FPN+SSD                 |512x512    |**30.77** |**31.2**, 52.2      |Y        |      |
 |        |**RetinaNet models**
 |COCO    |RegNetX800MF+FPN+RetinaNetLite   |512x512    |**11.08** |**33.0**, 50.8      |Y        |      |
+|-
+|COCO    |YOLOX-m-Lite                     |640x640    |**36.9**  |**44.4**, 62.9      |Y        |      |
+|COCO    |YOLOX-s-Lite                     |640x640    |**13.43** |**38.3**, 56.9      |Y        |      |
+|COCO    |YOLOX-tiny-Lite                  |416x416    |**3.240** |**30.5**, 47.4      |Y        |      |
+|COCO    |YOLOX-nano-Lite                  |416x416    |**0.552** |**24.8**, 40.1      |Y        |      |
 
 
 ### Open-MMLab/MMDetection
@@ -146,6 +151,23 @@ Note: EfficientDet-Lite (or efficientdet-lite) is the embedded friendly variant 
 - [More Information - github.com/onnx/models](https://github.com/onnx/models)
 
 
+## Face Detection with EdgeAI-MMDetection
+- [Models Link](./widerface/) Trained on WIDER FACE Dataset [9]
+- [**Training Source Code**](https://github.com/TexasInstruments/edgeai-mmdetection) These models have been trained using configs in [edgeai-mmdetection/configs/edgeailite](https://github.com/TexasInstruments/edgeai-mmdetection/tree/master/configs/edgeailite).
+
+|Dataset      |Model Name                       |Input Size |GigaMACS  |AP[0.5:0.95]%, AP50%|Available|Notes |
+|-------------|---------------------------------|-----------|----------|--------------------|---------|----- |
+|             |**SSD models**               
+|WIDERFace    |RegNetX800MF+FPN+SSDLite         |512x512    |**5.44**  |**23.7**, 49.2      |         |      |
+|WIDERFace    |RegNetX1.6GF+FPN+SSDLite         |768x768    |**10.10** |**27.3**, 54.7      |         |      |
+|             |**YOLOX models**
+|WIDERFace    |YOLOX-tiny-Lite                  |416x416    |**3.19**  |**23.5**, 49.1      |Y        |      |
+|WIDERFace    |YOLOX-tiny-Lite                  |1024x1024  |**19.35** |**---**, 68.6       |         |      |
+|WIDERFace    |YOLOX-s-Lite                     |640x640    |**13.29** |**31.62**, 64.4     |Y        |      |
+|WIDERFace    |YOLOX-s-Lite                     |1024x1024  |**34.03** |**---**, 72.3       |Y        |      |
+|WIDERFace    |YOLOX-m-Lite                     |640x640    |**36.67** |**33.6**, 67.5      |Y        |      |
+
+
 ## Notes
 - GigaMACS: Complexity in Giga Multiply-Accumulations (lower is better). This is an important metric to watch out for when selecting models for embedded inference.<br>
 - Accuracy for Object Detection on COCO dataset primarily uses two accuracy metrics AP[0.5:0.95] and AP50 (in percentages). AP[0.5:0.95] is the Mean of Average Precision values computed at IOUs ranging from 0.5 to 0.95 and averaged. AP50 is the Average Precision computed at 0.5 IoU. If only one accuracy metric is mentioned in a table cell, then it is AP[0.5:0.95]. Be sure to compare using the same metric when comparing across various detectors or configurations.
@@ -178,9 +200,5 @@ International Journal of Computer Vision, 88(2), 303-338, 2010, http://host.robo
 
 [8] EfficientDet: Scalable and Efficient Object Detection, Mingxing Tan, Ruoming Pang, Quoc V. Le, https://arxiv.org/abs/1911.09070
 
-
-
-
-
-
+[9] WIDER FACE: A Face Detection Benchmark, Yang, Shuo and Luo, Ping and Loy, Chen Change and Tang, Xiaoou, IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2016, http://shuoyang1213.me/WIDERFACE/
 

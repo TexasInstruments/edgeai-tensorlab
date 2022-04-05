@@ -1,0 +1,1 @@
+2022-02-28 10:15:16,037 - mmdet - INFO - OrderedDict([('bbox_mAP', 0.383), ('bbox_mAP_50', 0.569), ('bbox_mAP_75', 0.411), ('bbox_mAP_s', 0.213), ('bbox_mAP_m', 0.428), ('bbox_mAP_l', 0.504), ('bbox_mAP_copypaste', '0.383 0.569 0.411 0.213 0.428 0.504')])
