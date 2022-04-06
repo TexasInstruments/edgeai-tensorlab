@@ -40,6 +40,28 @@ from . import training
 from . import compilation
 
 
+def get_pretrained_models(params):
+    if params.training.model_key is not None:
+        pretrained_model = training.get_pretrained_model(params.training.model_key)
+        pretrained_models = {params.training.model_key: pretrained_model}
+    else:
+        # populate a good pretrained model for the given task
+        pretrained_models = training.get_pretrained_models(task_type=params.common.task_type,
+                                                           target_device=params.common.target_device,
+                                                           training_device=params.training.training_device)
+    #
+    return pretrained_models
+
+
+def set_pretrained_model(params, pretrained_model):
+    assert pretrained_model is not None, f'could not find pretrained model for {params.training.model_key}'
+    assert params.common.task_type == pretrained_model['common']['task_type'], \
+        f'task_type: {params.common.task_type} does not match the pretrained model'
+    # get pretrained model checkpoint and other details
+    params.update(pretrained_model)
+    return params
+
+
 class ModelRunner():
     @classmethod
     def init_params(self, *args, **kwargs):
@@ -115,27 +137,13 @@ class ModelRunner():
         params = utils.ConfigDict(params, *args, **kwargs)
         return params
 
-    @classmethod
-    def get_pretrained_models(self, params):
-        if params.training.model_key is not None:
-            pretrained_model = training.get_pretrained_model(params.training.model_key)
-            pretrained_models = {params.training.model_key: pretrained_model}
-        else:
-            # populate a good pretrained model for the given task
-            pretrained_models = training.get_pretrained_models(task_type=params.common.task_type,
-                                                               target_device=params.common.target_device,
-                                                               training_device=params.training.training_device)
-        #
-        return pretrained_models
+    @staticmethod
+    def get_pretrained_models(*args, **kwargs):
+        return get_pretrained_models(*args, **kwargs)
 
-    @classmethod
-    def set_pretrined_model(self, params, pretrained_model):
-        assert pretrained_model is not None, f'could not find pretrained model for {params.training.model_key}'
-        assert params.common.task_type == pretrained_model['common']['task_type'], \
-            f'task_type: {params.common.task_type} does not match the pretrained model'
-        # get pretrained model checkpoint and other details
-        params.update(pretrained_model)
-        return params
+    @staticmethod
+    def set_pretrained_model(*args, **kwargs):
+        return set_pretrained_model(*args, **kwargs)
 
     def __init__(self, *args, verbose=True, **kwargs):
         self.params = self.init_params(*args, **kwargs)
@@ -160,18 +168,18 @@ class ModelRunner():
         if self.params.common.target_device in self.params.training.target_devices:
             target_device_data = self.params.training.target_devices[self.params.common.target_device]
             performance_fps = target_device_data['performance_fps']
-            print(f'DLModel:{self.params.training.model_key} TargetDevice:{self.params.common.target_device} FPS(Estimate):{performance_fps}')
+            print(f'Model:{self.params.training.model_key} TargetDevice:{self.params.common.target_device} FPS(Estimate):{performance_fps}')
         #
 
     def clear(self):
         pass
 
     def run(self):
-        self.dataset_handing()
-        self.model_training()
-        self.model_compilation()
+        self._dataset_handing()
+        self._model_training()
+        self._model_compilation()
 
-    def dataset_handing(self):
+    def _dataset_handing(self):
         # create folders
         os.makedirs(self.params.common.project_path, exist_ok=True)
 
@@ -184,7 +192,7 @@ class ModelRunner():
             dataset_handling.run()
         #
 
-    def model_training(self):
+    def _model_training(self):
         #####################################################################
         # model training
         training_backend_module = training.get_backend_module(self.params.training.training_backend,
@@ -196,7 +204,7 @@ class ModelRunner():
             model_training.run()
         #
 
-    def model_compilation(self):
+    def _model_compilation(self):
         #####################################################################
         # model compilation
         model_compilation = compilation.edgeai_benchmark.ModelCompilation(self.params)

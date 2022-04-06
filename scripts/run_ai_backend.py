@@ -42,19 +42,17 @@ def main(config):
     # get the ai backend module
     ai_backend_module = ai_backend.get_backend_module(config['common']['ai_backend_name'])
 
-    # get the init params
+    # get params for the given config
     params = ai_backend_module.runner.ModelRunner.init_params(config)
 
     # get supported pretrained models for the given params
     pretrained_models = ai_backend_module.runner.ModelRunner.get_pretrained_models(params)
 
-    # select a pretrained model
+    # select a pretrained model and update the params with it
     pretrained_model = list(pretrained_models.values())[0]
+    params.update(pretrained_model)
 
-    # update the params with the pretrained model
-    params = ai_backend_module.runner.ModelRunner.set_pretrined_model(params, pretrained_model)
-
-    # give a run_name for the run
+    # modify or set any other parameters as required.
     params.common.run_name = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
     # create the runner
