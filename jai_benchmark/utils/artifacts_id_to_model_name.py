@@ -468,7 +468,6 @@ removed_model_list = {
     'cl-0010_tflitert' : 'TFL-CL-0010-mobileNetV2', #sdk8.2, accuracy around 3% down compared to float
     #'cl-6080_onnxrt' : 'ONR-CL-6080-shuffleNetV2',, 50k val as well as EVM give good accuracy so not removing now
     'cl-0200_tflitert' : 'TFL-CL-0200-mobileNetV2-1p4', #sdk8.2, accuracy around 3% down compared to float
-    #'vcls-3430_tvmdlr' : 'TVM-CL-3430-gluoncv-mxnet-xception', #enabled during SDK8.0
 
     # During SDK8.0 removed low accuracy models where drop is more wrt reference accuracy.
     'od-2100_tflitert':'TFL-OD-2100-ssd-res50V1-fpn-coco-tpu-8-640x640', #7 % drop wrt accuracy
@@ -514,6 +513,9 @@ removed_model_list = {
 
     'de-7300_onnxrt': 'ONR-DE-7300-depth-est-fast-depth-224x224', #artifacts get generated. Inference did not run on PC ref, SDK8.2
     'ss-5670_tvmdlr': 'TVM-SS-5670-fpnlite-aspp-mobv2-1p4-ade20k32-512x512', #looks like removed from the run. Artifacts were not there.SDK8.2
+
+    'cl-3430_tvmdlr': 'TVM-CL-3430-gluoncv-mxnet-xception', #removed in SDK8.2 size 299 is not supported in SDK/gstreamer
+    'cl-0040_tflitert': 'TFL-CL-0040-InceptionNetV3', #removed in SDK8.2 size 299 is not supported in SDK/gstreamer
 }
 
 removed_models_from_plots = {
