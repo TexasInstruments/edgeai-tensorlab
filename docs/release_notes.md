@@ -1,4 +1,17 @@
 
+## Release 8.2 (08_02_00_11)
+- Date: 6 April 2022
+- Release tag: r8.2
+- [Models Code & Documentation](https://github.com/TexasInstruments/edgeai-modelzoo/tree/r8.2)
+- [Compiled Model artifacts list at ti.com](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_02_00_11/modelartifacts/8bits/artifacts.csv)
+- [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_02_00_11/manifest.html)
+
+#### Other models
+- [Models Code & Documentation edgeai-yolov5](https://github.com/TexasInstruments/edgeai-yolov5/tree/r8.2)
+- [Compiled Model artifacts list for edgeai-yolov5](https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/modelartifacts/8bits/artifacts.csv)
+- [Release Manifest for edgeai-yolov5](https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/manifest.html)
+
+
 ## Release 8.1 (08_01_00_05)
 - Date: 21 December 2021
 - Software manifest: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_01_00_05/edgeai-modelzoo_08_01_manifest.html

@@ -1,7 +1,0 @@
-serial_num,model_id,runtime_name,task_type,input_resolution,model_path,metric_name,metric_8bits,metric_16bits,metric_32bits,metric_reference,num_subgraphs,infer_time_core_ms,ddr_transfer_mb,perfsim_time_ms,perfsim_ddr_transfer_mb,perfsim_gmacs,run_dir,artifact_name
-1,cl-0000,tflitert,classification,224,mobilenet_v1_1.0_224.tflite,accuracy_top1%,None,71.57,71.56,71.676,0,183.897156,0.0,0.0,0.0,0.0,cl-0000_tflitert_mlperf_mobilenet_v1_1.0_224_tflite,TFL-CL-0000-mobileNetV1-mlperf
-2,cl-0010,tflitert,classification,224,mobilenet_v2_1.0_224.tflite,accuracy_top1%,None,71.55,71.61,71.9,0,142.636162,0.0,0.0,0.0,0.0,cl-0010_tflitert_tf1-models_mobilenet_v2_1.0_224_tflite,TFL-CL-0010-mobileNetV2
-3,cl-0160,tflitert,classification,224,resnet50_v1.5.tflite,accuracy_top1%,None,76.12,None,76.456,0,1275.59609,0.0,0.0,0.0,0.0,cl-0160_tflitert_mlperf_resnet50_v1.5_tflite,TFL-CL-0160-resNet50V1p5-mlperf
-4,cl-6120,onnxrt,classification,224,regnetx-400mf.onnx,accuracy_top1%,None,73.16,73.15,72.7,1,141.119312,0.0,0.0,0.0,0.0,cl-6120_onnxrt_fbr-pycls_regnetx-400mf_onnx,ONR-CL-6120-regNetX-400mf
-5,cl-6130,onnxrt,classification,224,regnetx-800mf.onnx,accuracy_top1%,None,75.04,75.16,75.2,1,263.724237,0.0,0.0,0.0,0.0,cl-6130_onnxrt_fbr-pycls_regnetx-800mf_onnx,ONR-CL-6130-regNetX-800mf
-6,cl-6140,onnxrt,classification,224,regnetx-1.6gf.onnx,accuracy_top1%,None,76.54,77.13,77.0,1,456.665464,0.0,0.0,0.0,0.0,cl-6140_onnxrt_fbr-pycls_regnetx-1.6gf_onnx,ONR-CL-6140-regNetX-1.6gf
