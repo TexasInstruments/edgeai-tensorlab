@@ -89,9 +89,9 @@ detection,onnxrt,od-8110_onnxrt_coco_edgeai-yolov5_yolov5s6_384_ti_lite_32p8_51p
 detection,onnxrt,od-8120_onnxrt_coco_edgeai-yolov5_yolov5m6_640_ti_lite_44p1_62p9_onnx,ONR-OD-8120-yolov5-m6-ti-lite-coco-640x640,141740710,True,False
 detection,onnxrt,od-8130_onnxrt_coco_edgeai-yolov5_yolov5l6_640_ti_lite_47p1_65p6_onnx,ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640,299744941,True,False
 detection,onnxrt,od-8140_onnxrt_coco_edgeai-yolox_yolox-s-ti-lite_39p1_57p9_onnx,ONR-OD-8140-yolox-s-ti-lite-coco-640x640,41219617,True,False
-detection,onnxrt,od-8150_onnxrt_coco_edgeai-yolox_yolox_m_ti_lite_45p5_64p2_onnx,ONR-OD-8140-yolox-m-ti-lite-coco-640x640,112191381,True,False
-detection,onnxrt,od-8180_onnxrt_coco_edgeai-yolox_yolox_tiny_ti_lite_32p0_49p5_onnx,ONR-OD-8140-yolox-tiny-ti-lite-coco-416x416,23128301,True,False
-detection,onnxrt,od-8190_onnxrt_coco_edgeai-yolox_yolox_nano_ti_lite_26p1_41p8_onnx,ONR-OD-8140-yolox-nano-ti-lite-coco-416x416,10904825,True,False
+detection,onnxrt,od-8150_onnxrt_coco_edgeai-yolox_yolox_m_ti_lite_45p5_64p2_onnx,ONR-OD-8150-yolox-m-ti-lite-coco-640x640,112191381,True,False
+detection,onnxrt,od-8180_onnxrt_coco_edgeai-yolox_yolox_tiny_ti_lite_32p0_49p5_onnx,ONR-OD-8180-yolox-tiny-ti-lite-coco-416x416,23128301,True,False
+detection,onnxrt,od-8190_onnxrt_coco_edgeai-yolox_yolox_nano_ti_lite_26p1_41p8_onnx,ONR-OD-8190-yolox-nano-ti-lite-coco-416x416,10904825,True,False
 detection,onnxrt,od-8200_onnxrt_coco_edgeai-mmdet_yolox_nano_lite_416x416_20220214_model_onnx,ONR-OD-8200-yolox-nano-lite-mmdet-coco-416x416,10150507,True,False
 detection,onnxrt,od-8210_onnxrt_coco_edgeai-mmdet_yolox_tiny_lite_416x416_20220217_model_onnx,ONR-OD-8210-yolox-tiny-lite-mmdet-coco-416x416,22342590,True,False
 detection,onnxrt,od-8220_onnxrt_coco_edgeai-mmdet_yolox_s_lite_640x640_20220221_model_onnx,ONR-OD-8220-yolox-s-lite-mmdet-coco-640x640,39199391,True,True

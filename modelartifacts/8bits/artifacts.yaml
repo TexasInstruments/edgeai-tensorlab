@@ -783,7 +783,7 @@ od-8140_onnxrt:
   size: 41219617
   task_type: detection
 od-8150_onnxrt:
-  model_name: ONR-OD-8140-yolox-m-ti-lite-coco-640x640
+  model_name: ONR-OD-8150-yolox-m-ti-lite-coco-640x640
   recommended: false
   run_dir: od-8150_onnxrt_coco_edgeai-yolox_yolox_m_ti_lite_45p5_64p2_onnx
   session_name: onnxrt
@@ -791,7 +791,7 @@ od-8150_onnxrt:
   size: 112191381
   task_type: detection
 od-8180_onnxrt:
-  model_name: ONR-OD-8140-yolox-tiny-ti-lite-coco-416x416
+  model_name: ONR-OD-8180-yolox-tiny-ti-lite-coco-416x416
   recommended: false
   run_dir: od-8180_onnxrt_coco_edgeai-yolox_yolox_tiny_ti_lite_32p0_49p5_onnx
   session_name: onnxrt
@@ -799,7 +799,7 @@ od-8180_onnxrt:
   size: 23128301
   task_type: detection
 od-8190_onnxrt:
-  model_name: ONR-OD-8140-yolox-nano-ti-lite-coco-416x416
+  model_name: ONR-OD-8190-yolox-nano-ti-lite-coco-416x416
   recommended: false
   run_dir: od-8190_onnxrt_coco_edgeai-yolox_yolox_nano_ti_lite_26p1_41p8_onnx
   session_name: onnxrt
