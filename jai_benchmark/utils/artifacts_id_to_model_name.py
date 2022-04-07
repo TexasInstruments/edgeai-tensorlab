@@ -313,9 +313,9 @@ model_id_artifacts_pair = {
 
     # Edgeai-Yolox
     'od-8140_onnxrt': 'ONR-OD-8140-yolox-s-ti-lite-coco-640x640',
-    'od-8150_onnxrt': 'ONR-OD-8140-yolox-m-ti-lite-coco-640x640',
-    'od-8180_onnxrt': 'ONR-OD-8140-yolox-tiny-ti-lite-coco-416x416',
-    'od-8190_onnxrt': 'ONR-OD-8140-yolox-nano-ti-lite-coco-416x416',
+    'od-8150_onnxrt': 'ONR-OD-8150-yolox-m-ti-lite-coco-640x640',
+    'od-8180_onnxrt': 'ONR-OD-8180-yolox-tiny-ti-lite-coco-416x416',
+    'od-8190_onnxrt': 'ONR-OD-8190-yolox-nano-ti-lite-coco-416x416',
 
     # EdgeAI-Torchvision
     'od-8160_onnxrt': 'ONR-OD-8160-ssdlite-mobv2-fpn-lite-coco-512x512',
