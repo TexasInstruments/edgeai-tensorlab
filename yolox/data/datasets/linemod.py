@@ -9,6 +9,8 @@ import cv2
 import numpy as np
 from math import acos, sin, sqrt, copysign
 from pycocotools.coco import COCO
+from plyfile import PlyData
+import yaml
 
 from ..dataloading import get_yolox_datadir
 from .datasets_wrapper import Dataset
@@ -28,7 +30,8 @@ class LINEMODDataset(Dataset):
         img_size=(416, 416),
         preproc=None,
         cache=False,
-        object_pose=False
+        object_pose=False,
+        symmetric_objects={"glue", 11, "eggbox", 10},
     ):
         """
         LINEMOD dataset initialization. Annotation data are read into memory by COCO API.
@@ -57,6 +60,15 @@ class LINEMODDataset(Dataset):
         if preproc is not None:
             self.preproc = preproc
         self.annotations = self._load_coco_annotations()
+        self.cad_models_path = os.path.join(self.data_dir, "models")
+        self.models_dict_path = os.path.join(self.cad_models_path, "models_info.yml")
+        self.models_dict = yaml.safe_load(open(self.models_dict_path, 'r'))
+        self.models_corners, self.models_diameter = self.get_models_params()
+        self.class_to_name = {1: "ape", 2: "can", 3: "cat", 4: "driller", 5: "duck", 6: "eggbox", 7: "glue",
+                         8: "holepuncher", 9: "benchvise", 10: "bowl", 11: "cup", 12: "iron", 13: "lamp", 14: "phone",
+                         15: "cam"}
+        self.class_to_model = self.load_cad_models()
+        self.symmetric_objects = symmetric_objects
         if cache:
             self._cache_images()
 
@@ -204,6 +216,54 @@ class LINEMODDataset(Dataset):
         assert img is not None
 
         return img
+
+    def load_cad_models(self):
+        class_to_model = {class_id: None for class_id in self.class_to_name.keys()}
+        logger.info("Loading 3D models...")
+        for class_id, name in self.class_to_name.items():
+            file = "obj_{:02}.ply".format(class_id)
+            cad_model_path = os.path.join(self.cad_models_path, file)
+
+            if not os.path.isfile(cad_model_path):
+                logger.warning(
+                    "The file {} model for class {} was not found".format(file, name)
+                )
+                continue
+            logger.info("Loading 3D model {}".format(name))
+            class_to_model[class_id] = self.load_model_point_cloud(cad_model_path)
+
+        return class_to_model
+
+    def load_model_point_cloud(self, datapath):
+        model = PlyData.read(datapath)
+        vertex = model['vertex']
+        points = np.stack([vertex[:]['x'], vertex[:]['y'], vertex[:]['z']], axis=-1).astype(np.float64)
+        return points
+
+    def get_models_params(self):
+        """
+        Convert model corners from LINEMOD format (min_x, min_y, min_z, size_x, size_y, size_z) to actual coordinates format of dimension (8,3)
+        Return the corner coordinates and the diameters of each models
+        """
+        models_corners_3d = {}
+        models_diameter = {}
+        for model_id, model_param in self.models_dict.items():
+            min_x, max_x = model_param['min_x'], model_param['min_x'] + model_param['size_x']
+            min_y, max_y = model_param['min_y'], model_param['min_y'] + model_param['size_y']
+            min_z, max_z = model_param['min_z'], model_param['min_z'] + model_param['size_z']
+            corners_3d = np.array([
+                [min_x, min_y, min_z],
+                [min_x, min_y, max_z],
+                [min_x, max_y, max_z],
+                [min_x, max_y, min_z],
+                [max_x, min_y, min_z],
+                [max_x, min_y, max_z],
+                [max_x, max_y, max_z],
+                [max_x, max_y, min_z],
+            ])
+            models_corners_3d.update({model_id: corners_3d})
+            models_diameter.update({model_id: model_param['diameter']})
+        return models_corners_3d, models_diameter
 
     def pull_item(self, index):
         id_ = self.ids[index]
