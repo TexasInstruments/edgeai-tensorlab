@@ -67,28 +67,21 @@ preprocess:
   # Can specify null to use linear interpolation irrespective of the backend.
   interpolation: null
 
-  # List of Mean values to be subtracted from the input tensor
-  # The number of entries in the list must mach the number of channels in input tensor.
-  mean:
-  - 128.0
-  - 128.0
-  - 128.0
-
   # Resize size - used to resize the input.
   # Options: a single integer or a list of two integers.
   #   if this is a single integer, the smallest side of the image is resized to this size.
   #   if this is a list [height,width], a rectangular resize is done to fit the size exactly.
   resize: 256
 
+  # If this option is enabled, aspect ration preserving resize is done
+  # and the remaining region outside is filled with pad_color
+  resize_with_pad: false
+
+  # Pad color that is used only when resize_with_pad is set
+  pad_color: 0
+  
   # Reverse the order of channels - for example to convert RGB format to BGR.
   reverse_channels: false
-
-  # A list specifying scaling/multiplication to be done to the input values.
-  # The number of entries in the list must mach the number of channels in input tensor.
-  scale:
-  - 0.008
-  - 0.008
-  - 0.008
 
 # Parameters used to process or format the output prediction of the model
 postprocess: {}
@@ -120,3 +113,25 @@ session:
   # Options: tflitert, onnxrt, tvmdlr
   session_name: tflitert
 
+  # List of Mean values to be subtracted from the input tensor
+  # The number of entries in the list must mach the number of channels in input tensor.
+  input_mean:
+  - 123.675
+  - 116.28
+  - 103.53
+
+  # A list specifying scaling/multiplication to be done to the input values.
+  # The number of entries in the list must mach the number of channels in input tensor.
+  input_scale:
+  - 0.017125
+  - 0.017507
+  - 0.017429
+
+  # whether the input_mean and input_scale has been absorbed insode the model via operation inside the model or not
+  # if this is true input_mean and input_scale should be null.
+  input_optimization: false
+
+  # Data layout of the input tensor to be given out of pre-processing.
+  # Options: NHWC, NCHW
+  #   Typically tensorflow/tflite models use NHWC format, where as PyTorch/onnx models and MXNet models use NCHW format.
+  input_data_layout: NHWC
