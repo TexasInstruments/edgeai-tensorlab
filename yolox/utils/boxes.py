@@ -112,14 +112,14 @@ def postprocess_object_pose(prediction, num_classes, conf_thre=0.7, nms_thre=0.4
         if class_agnostic:
             nms_out_index = torchvision.ops.nms(
                 detections[:, :4],
-                detections[:, 4] * detections[:, 5],
+                detections[:, 4] * detections[:, -2],
                 nms_thre,
             )
         else:
             nms_out_index = torchvision.ops.batched_nms(
                 detections[:, :4],
-                detections[:, 4] * detections[:, 5],
-                detections[:, 6],
+                detections[:, 4] * detections[:, -2],
+                detections[:, -1],
                 nms_thre,
             )
 

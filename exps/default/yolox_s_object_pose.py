@@ -40,7 +40,7 @@ class Exp(MyExp):
         # -----------------  testing config ------------------ #
         self.test_size = (640, 640)
         self.test_conf = 0.01
-        self.nmsthre = 0.65
+        self.nmsthre = 0.001
         self.data_set = "linemod"
         self.object_pose  = True
         self.visualize = True
