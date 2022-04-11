@@ -66,7 +66,7 @@ class PointPillarsScatter(nn.Module):
         canvas[:, indices] = voxels
         # Undo the column stacking to final 4-dim tensor
         canvas = canvas.view(1, self.in_channels, self.ny, self.nx)
-        return [canvas] # canvas looks like a bug
+        return canvas
 
     def forward_batch(self, voxel_features, coors, batch_size):
         """Scatter features of single sample.
@@ -93,7 +93,7 @@ class PointPillarsScatter(nn.Module):
             indices = this_coors[:, 2] * self.nx + this_coors[:, 3]
             indices = indices.type(torch.long)
             voxels = voxel_features[batch_mask, :]
-            voxels = voxels.t()
+            voxels = voxels.t() #changing from PxC to CxP as canvas is in Cxw*h format
 
             # Now scatter the blob back to the canvas.
             canvas[:, indices] = voxels

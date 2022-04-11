@@ -6,7 +6,7 @@ import torch
 from mmcv.parallel import DataContainer as DC
 from mmcv.runner import auto_fp16
 
-from mmdet3d.core import Box3DMode, Coord3DMode, show_result, show_multi_modality_result, LiDARInstance3DBoxes
+from mmdet3d.core import Box3DMode, Coord3DMode, show_result
 from mmdet.models.detectors import BaseDetector
 
 
@@ -111,13 +111,12 @@ class Base3DDetector(BaseDetector):
                                                   == Box3DMode.LIDAR):
                 points = Coord3DMode.convert_point(points, Coord3DMode.LIDAR,
                                                    Coord3DMode.DEPTH)
-                #pred_bboxes = Box3DMode.convert(pred_bboxes, box_mode_3d,
-                #                                Box3DMode.DEPTH)
+                pred_bboxes = Box3DMode.convert(pred_bboxes, box_mode_3d,
+                                                Box3DMode.DEPTH)
             elif box_mode_3d != Box3DMode.DEPTH:
                 ValueError(
                     f'Unsupported box_mode_3d {box_mode_3d} for conversion!')
             pred_bboxes = pred_bboxes.tensor.cpu().numpy()
-<<<<<<< HEAD
             show_result(
                 points,
                 None,
@@ -126,21 +125,3 @@ class Base3DDetector(BaseDetector):
                 file_name,
                 show=show,
                 pred_labels=pred_labels)
-=======
-
-            pts_filename = data['img_metas'][0].data[0][0]['pts_filename']
-            file_name = osp.split(pts_filename)[-1].split('.')[0]+".png"
-            img_filename = osp.join('data/kitti/training/image_2',file_name)
-            img = mmcv.imread(img_filename)
-            show_bboxes = LiDARInstance3DBoxes(pred_bboxes, origin=(0.5, 0.5, 0))
-            show_multi_modality_result(
-                img,
-                None,
-                show_bboxes,
-                data['img_metas'][0].data[0][0]['lidar2img'],
-                out_dir,
-                file_name,
-                show=True)
-
-            #show_result(points, None, pred_bboxes, out_dir, file_name)
->>>>>>> changes related to 10k model

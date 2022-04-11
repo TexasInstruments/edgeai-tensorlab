@@ -45,21 +45,23 @@ class VoxelNet(SingleStage3DDetector):
         """Extract features from points."""
         voxels, num_points, coors = self.voxelize(points)
 
-        if(self.max_num_voxel < voxels.shape[0]):
-            self.max_num_voxel = voxels.shape[0]
-            print('maximum number of voxel is', self.max_num_voxel)
+        count_max_voxel_cnt = False
+        if count_max_voxel_cnt == True:
+            if(self.max_num_voxel < voxels.shape[0]):
+                self.max_num_voxel = voxels.shape[0]
+                print('maximum number of voxel is', self.max_num_voxel)
 
-        if(self.max_num_points_per_voxel < num_points.max()):
-            self.max_num_points_per_voxel = num_points.max()
-            print('maximum number of point in voxel is', self.max_num_points_per_voxel)
+            if(self.max_num_points_per_voxel < num_points.max()):
+                self.max_num_points_per_voxel = num_points.max()
+                print('maximum number of point in voxel is', self.max_num_points_per_voxel)
 
-        if os.path.split(img_metas[0]['pts_filename'])[1] == '00000x.bin':
+        if os.path.split(img_metas[0]['pts_filename'])[1] == 'x01918.bin':
             dump_voxel          = True
             dump_voxel_feature  = True
             dump_middle_encoder = True
             dump_backbone       = True
             dump_neck           = True
-            dump_raw_voxel_feat = True
+            dump_raw_voxel_feat = False
         else:
             dump_voxel          = False
             dump_voxel_feature  = False
@@ -82,16 +84,19 @@ class VoxelNet(SingleStage3DDetector):
         scatter_op_flow = False
 
         if self.middle_encoder.use_scatter_op == True and batch_size == 1:
-            # use the scatter operator only in this flow
+            # use the scatter operator only in this flow. This happens at inference time when batch size is 1
+            # when batch size is not 1, then multiple frame data is combined in singel tensor hence difficult to use scatter operator
             coors = coors[:, 2] * self.middle_encoder.nx + coors[:, 3]
             coors = coors.long()
             coors = coors.repeat(self.middle_encoder.in_channels,1)
             scatter_op_flow = True
 
-        if (scatter_op_flow == False) and (self.voxel_encoder.pfn_layers.replace_mat_mul == True):
-
-            # in this scenario voxel_features is generated in 64xP format favourable to scatter operator
-            # hence putting back the voxel_feature in default format
+        if ((scatter_op_flow == False) and (self.voxel_encoder.pfn_layers.replace_mat_mul == True)) or ((scatter_op_flow == True) and (self.voxel_encoder.pfn_layers.replace_mat_mul == False)):
+            # when replace_mat_mul is True then voxel_features is in form of 64(C)xP, this flow is introduced by TI
+            # when replace_mat_mul is False then voxel_features is in form of PxC, this flow is original default flow
+            # when use_scatter_op is enabled then voxel feature is needed in CxP form. This flow is introduced by TI
+            # when use_scatter_op is disabled then voxel feature is needed in PxC form. This flow is original default flow
+            # when complete flow is of TI or original mmdetd3d one then this transofrmation is not needed, otherwise it is needed to make data compatible
             voxel_features = voxel_features.t()
 
         x = self.middle_encoder(voxel_features, coors, batch_size)

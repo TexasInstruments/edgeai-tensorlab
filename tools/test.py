@@ -34,7 +34,7 @@ except ImportError:
 
 class CombinedModel(torch.nn.Module):
 
-    def __init__(self, pfn_layers, middle_encoder, backbone, neck, conv_cls, conv_dir_cls,conv_reg):
+    def __init__(self, pfn_layers, middle_encoder, backbone, neck, conv_cls, conv_dir_cls,conv_reg,num_class):
         super().__init__()
         self.pfn_layers     = pfn_layers
         self.middle_encoder = middle_encoder
@@ -43,6 +43,7 @@ class CombinedModel(torch.nn.Module):
         self.conv_cls       = conv_cls
         self.conv_dir_cls   = conv_dir_cls
         self.conv_reg       = conv_reg
+        self.num_ancohors   = num_class * 2  # for each classs two anchors at 90 degree of placement is used
 
     def forward(self, raw_voxel_feat, coors, data):
 
@@ -54,7 +55,7 @@ class CombinedModel(torch.nn.Module):
         y1= self.conv_dir_cls(x[0])
         y2= self.conv_reg(x[0])
         y = torch.cat((y0, y1, y2), 1)
-        y = torch.reshape(y,(-1,10))
+        y = torch.reshape(y,(-1,(int)((y0.shape[-3]+y1.shape[-3]+y2.shape[-3])/self.num_ancohors)))
         return y
 
 def parse_args():
@@ -238,10 +239,38 @@ def main():
     if args.fuse_conv_bn:
         model = fuse_conv_bn(model)
 
-    save_onnx_model = False
+    import torch.nn.utils.prune as prune
 
-    if save_onnx_model == True:
-        save_model(model)
+    def parseConv(module, prefix=''):
+
+        if isinstance(module, torch.nn.Conv2d):
+            #prune.l1_unstructured(module, name='weight', amount=0.1)
+            prune.ln_structured(module, name="weight", amount=0.1, n=float('-inf'), dim=1)
+            print("Sparsity in {} {:.2f}%".format(prefix+"Conv2d",
+                    100. * float(torch.sum(module.weight == 0))
+                    / float(module.weight.nelement())
+                )
+            )
+            #prune.remove(module, 'weight')
+
+        elif isinstance(module, torch.nn.Linear):
+            prune.l1_unstructured(module, name='weight', amount=0.1)
+            #prune.ln_structured(module, name="weight", amount=0.1, n=2, dim=3)
+            print("Sparsity in {} {:.2f}%".format(prefix+"Linear",
+                    100. * float(torch.sum(module.weight == 0))
+                    / float(module.weight.nelement())
+                )
+            )
+            #prune.remove(module, 'weight')
+
+        for name, child in module._modules.items():
+            if child is not None:
+                parseConv(child, prefix + name + '.')
+
+    sparsify_model = False
+
+    if sparsify_model == True:
+        parseConv(model)
 
     # old versions did not save class info in checkpoints, this walkaround is
     # for backward compatibility
@@ -255,6 +284,11 @@ def main():
     elif hasattr(dataset, 'PALETTE'):
         # segmentation dataset has `PALETTE` attribute
         model.PALETTE = dataset.PALETTE
+
+    save_onnx_model = False
+
+    if save_onnx_model == True:
+        save_model(model)
 
     if not distributed:
         model = MMDataParallel(model, device_ids=cfg.gpu_ids)
@@ -293,7 +327,8 @@ def save_model(model, save_onnx_model=True):
                                     model.neck,
                                     model.bbox_head.conv_cls,
                                     model.bbox_head.conv_dir_cls,
-                                    model.bbox_head.conv_reg
+                                    model.bbox_head.conv_reg,
+                                    len(model.CLASSES)
                                     )
 
     ## Need to parameterized the contants in below three tensors

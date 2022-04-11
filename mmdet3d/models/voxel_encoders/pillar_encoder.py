@@ -93,6 +93,8 @@ class PillarFeatureNet(nn.Module):
         self.z_offset = self.vz / 2 + point_cloud_range[2]
         self.point_cloud_range = point_cloud_range
         self.feat_scale_fact   = feat_scale_fact # features are scaled by this value
+        self.max_feat = -6535
+        self.min_feat = 6535
 
     @force_fp32(out_fp16=True)
     def forward(self, features, num_points, coors, dump_raw_voxel_feat=False):
@@ -158,9 +160,25 @@ class PillarFeatureNet(nn.Module):
         features *= mask
 
         #  kind of quantizing the feature vectors
-        features = features*self.feat_scale_fact
-        features = features.to(torch.int32)
-        features = features.to(torch.float32)
+        print_max_min_feat = False
+
+        if print_max_min_feat == True:
+            if features.max() > self.max_feat:
+                self.max_feat = features.max()
+                print (self.max_feat)
+                print (self.min_feat)
+
+            if features.min() < self.min_feat:
+                self.min_feat = features.min()
+                print (self.max_feat)
+                print (self.min_feat)
+
+        if self.feat_scale_fact != 1.0 :
+            #If user provided scale fact then scale and do clipping and float conversion
+            # if user has not provided any value then feat_scale_fact will be 1 and so nothing to be done
+            features = features*self.feat_scale_fact
+            features = features.to(torch.int32)
+            features = features.to(torch.float32)
 
         if dump_raw_voxel_feat == True:
             f = open("voxel_raw_features.txt",'w')
@@ -185,7 +203,7 @@ class PillarFeatureNet(nn.Module):
                     for j, pt_w in enumerate(x_i):
                         for j, pt in enumerate(pt_w):
                             f.write("{:.2f} ".format(pt))
-                        f.write("\n");
+                        f.write("\n")
             f.close
 
         for pfn in self.pfn_layers:
