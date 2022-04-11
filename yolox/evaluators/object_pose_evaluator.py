@@ -13,6 +13,7 @@ from loguru import logger
 from tqdm import tqdm
 import cv2
 from ..utils  import visualize_object_pose
+import numpy as np
 
 import torch
 
@@ -53,6 +54,8 @@ class ObjectPoseEvaluator:
         self.testdev = testdev
         self.visualize = visualize
         self.output_dir = output_dir
+        self.class_to_model = dataloader.dataset.class_to_model
+        self.class_to_cuboid = dataloader.dataset.models_corners
 
     def evaluate(
         self,
@@ -122,27 +125,36 @@ class ObjectPoseEvaluator:
                 outputs_2dod = torch.cat(
                     (outputs[:, :, :5],outputs[:, :, -15:]), dim=2
                 )
-                
+                outputs_2d = postprocess(outputs_2dod, self.num_classes, self.confthre, self.nmsthre)
+                predictions_pose = postprocess_object_pose(outputs, self.num_classes, self.confthre, self.nmsthre)
+
                 if self.visualize:
-                    predictions_pose = postprocess_object_pose(outputs, self.num_classes, self.confthre, self.nmsthre)
                     os.makedirs(os.path.join(self.output_dir, "vis_pose"), exist_ok=True)
                     for output_idx in range(len(predictions_pose)):
                         img = imgs[output_idx]
-                        vis_gt_pose = visualize_object_pose.draw_ground_truths(img=img, ground_truths=targets)
-                        vis_pred_pose = visualize_object_pose.draw_predictions(img=img, predictions=predictions_pose[0], num_classes=self.num_classes)
-                        outfile_gt = os.path.join(self.output_dir, "vis_pose", "{0:012}_gt.png".format(ids[output_idx][0]))
-                        cv2.imwrite(outfile_gt, vis_gt_pose)
-                        outfile_pred  = os.path.join(self.output_dir, "vis_pose", "{0:012}_pred.png".format(ids[output_idx][0]))
-                        cv2.imwrite(outfile_pred, vis_pred_pose)
-
-                outputs = postprocess(
-                    outputs_2dod, self.num_classes, self.confthre, self.nmsthre
-                )
+                        vis_gt_pose, vis_gt_mask = visualize_object_pose.draw_ground_truths(img=img, ground_truths=targets, class_to_model=self.class_to_model,
+                                                                                            class_to_cuboid=self.class_to_cuboid)
+                        vis_pred_pose, vis_pred_mask = visualize_object_pose.draw_predictions(img=img, predictions=predictions_pose[0], class_to_model=self.class_to_model,
+                                                                                               class_to_cuboid=self.class_to_cuboid)
+                        vis_gt_box = visualize_object_pose.draw_bbox_2d(img, targets[0][:,:5], gt=True)
+                        vis_pred_box = visualize_object_pose.draw_bbox_2d(img, outputs_2d[0])
+                        outfile_gt_pose = os.path.join(self.output_dir, "vis_pose", "{0:012}_gt_pose.png".format(ids[output_idx][0]))
+                        outfile_gt_mask = os.path.join(self.output_dir, "vis_pose", "{0:012}_gt_mask.png".format(ids[output_idx][0]))
+                        outfile_gt_2d_od = os.path.join(self.output_dir, "vis_pose", "{0:012}_gt_2d_od.png".format(ids[output_idx][0]))
+                        cv2.imwrite(outfile_gt_pose, vis_gt_pose)
+                        cv2.imwrite(outfile_gt_mask, vis_gt_mask)
+                        cv2.imwrite(outfile_gt_2d_od, vis_gt_box)
+                        outfile_pred_pose  = os.path.join(self.output_dir, "vis_pose", "{0:012}_pred_pose.png".format(ids[output_idx][0]))
+                        outfile_pred_mask  = os.path.join(self.output_dir, "vis_pose", "{0:012}_pred_mask.png".format(ids[output_idx][0]))
+                        outfile_pred_2d_od = os.path.join(self.output_dir, "vis_pose", "{0:012}_pred_2d_od.png".format(ids[output_idx][0]))
+                        cv2.imwrite(outfile_pred_pose, vis_pred_pose)
+                        cv2.imwrite(outfile_pred_mask, vis_pred_mask)
+                        cv2.imwrite(outfile_pred_2d_od, vis_pred_box)
                 if is_time_record:
                     nms_end = time_synchronized()
                     nms_time += nms_end - infer_end
 
-            data_list.extend(self.convert_to_coco_format(outputs, info_imgs, ids))
+            data_list.extend(self.convert_to_coco_format(outputs_2d, info_imgs, ids))
 
         statistics = torch.cuda.FloatTensor([inference_time, nms_time, n_samples])
         if distributed:
@@ -241,3 +253,7 @@ class ObjectPoseEvaluator:
             return cocoEval.stats[0], cocoEval.stats[1], info
         else:
             return 0, 0, info
+
+
+    def evaluate_prediction_6dpose(self, data_dict, statistics):
+        pass

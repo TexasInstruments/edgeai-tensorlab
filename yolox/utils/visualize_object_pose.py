@@ -3,41 +3,8 @@ import numpy as np
 from torch import is_tensor
 import copy
 
-#Based on code from https://github.com/ybkscht/EfficientPose/blob/main/utils/visualization.py
+camera_matrix = np.array([572.4114, 0.0, 325.2611, 0.0, 573.57043, 242.04899, 0.0, 0.0, 1.0], dtype=np.float32)
 
-class_to_cuboid = [
-    np.array([[-37.9343, -38.7996, 45.8845], [-37.9343, 38.7996, 45.8845], [37.9343, 38.7996, 45.8845], [37.9343, -38.7996, 45.8845],
-    [-37.9343, -38.7996, -45.8845], [-37.9343, 38.7996, -45.8845], [37.9343, 38.7996, -45.8845], [37.9343, -38.7996, -45.8845]]),
-    np.array([[-107.835, -60.9279, 109.705], [-107.835, 60.9279, 109.705], [107.835, 60.9279, 109.705], [107.835, -60.9279, 109.705],
-    [-107.835, -60.9279, -109.705], [-107.835, 60.9279, -109.705], [107.835, 60.9279, -109.705], [107.835, -60.9279, -109.705]]),
-    np.array([[-83.2162, -82.6591, 37.2364], [-83.2162, 82.6591, 37.2364], [83.2162, 82.6591, 37.2364], [83.2162, -82.6591, 37.2364],
-    [-83.2162, -82.6591, -37.2364], [-83.2162, 82.6591, -37.2364], [83.2162, 82.6591, -37.2364], [83.2162, -82.6591, -37.2364]]),
-    np.array([[-68.3297, -71.5151, 50.2485], [-68.3297, 71.5151, 50.2485], [68.3297, 71.5151, 50.2485], [68.3297, -71.5151, 50.2485],
-    [-68.3297, -71.5151, -50.2485], [-68.3297, 71.5151, -50.2485], [68.3297, 71.5151, -50.2485], [68.3297, -71.5151, -50.2485]]),
-    np.array([[-50.3958, -90.8979, 96.867], [-50.3958, 90.8979, 96.867], [50.3958, 90.8979, 96.867], [50.3958, -90.8979, 96.867],
-    [-50.3958, -90.8979, -96.867], [-50.3958, 90.8979, -96.867], [50.3958, 90.8979, -96.867], [50.3958, -90.8979, -96.867]]),
-    np.array([[-33.5054, -63.8165, 58.7283], [-33.5054, 63.8165, 58.7283], [33.5054, 63.8165, 58.7283], [33.5054, -63.8165, 58.7283],
-    [-33.5054, -63.8165, -58.7283], [-33.5054, 63.8165, -58.7283], [33.5054, 63.8165, -58.7283], [33.5054, -63.8165, -58.7283]]),
-    np.array([[-58.7899, -45.7556, 47.3112], [-58.7899, 45.7556, 47.3112], [58.7899, 45.7556, 47.3112], [58.7899, -45.7556, 47.3112],
-    [-58.7899, -45.7556, -47.3112], [-58.7899, 45.7556, -47.3112], [58.7899, 45.7556, -47.3112], [58.7899, -45.7556, -47.3112]]),
-    np.array([[-114.738, -37.7357, 104.001], [-114.738, 37.7357, 104.001], [114.738, 37.7357, 104.001], [114.738, -37.7357, 104.001],
-    [-114.738, -37.7357, -104.001], [-114.738, 37.7357, -104.001], [114.738, 37.7357, -104.001], [114.738, -37.7357, -104.001]]),
-    np.array([[-52.2146, -38.7038, 42.8485], [-52.2146, 38.7038, 42.8485], [52.2146, 38.7038, 42.8485], [52.2146, -38.7038, 42.8485],
-    [-52.2146, -38.7038, -42.8485], [-52.2146, 38.7038, -42.8485], [52.2146, 38.7038, -42.8485], [52.2146, -38.7038, -42.8485]]),
-    np.array([[-75.0923, -53.5375, 34.6207], [-75.0923, 53.5375, 34.6207], [75.0923, 53.5375, 34.6207], [75.0923, -53.5375, 34.6207],
-    [-75.0923, -53.5375, -34.6207], [-75.0923, 53.5375, -34.6207], [75.0923, 53.5375, -34.6207], [75.0923, -53.5375, -34.6207]]),
-    np.array([[-18.3605, -38.933, 86.4079], [-18.3605, 38.933, 86.4079], [18.3605, 38.933, 86.4079], [18.3605, -38.933, 86.4079],
-    [-18.3605, -38.933, -86.4079], [-18.3605, 38.933, -86.4079], [18.3605, 38.933, -86.4079], [18.3605, -38.933, -86.4079]]),
-    np.array([[-50.4439, -54.2485, 45.4], [-50.4439, 54.2485, 45.4], [50.4439, 54.2485, 45.4], [50.4439, -54.2485, 45.4],
-    [-50.4439, -54.2485, -45.4], [-50.4439, 54.2485, -45.4], [50.4439, 54.2485, -45.4], [50.4439, -54.2485, -45.4]]),
-    np.array([[-129.113, -59.241, 70.5662], [-129.113, 59.241, 70.5662], [129.113, 59.241, 70.5662], [129.113, -59.241, 70.5662],
-    [-129.113, -59.241, -70.5662], [-129.113, 59.241, -70.5662], [129.113, 59.241, -70.5662], [129.113, -59.241, -70.5662]]),
-    np.array([[-101.573, -58.8763, 106.558], [-101.573, 58.8763, 106.558], [101.573, 58.8763, 106.558], [101.573, -58.8763, 106.558],
-    [-101.573, -58.8763, -106.558], [-101.573, 58.8763, -106.558], [101.573, 58.8763, -106.558], [101.573, -58.8763, -106.558]]),
-    np.array([[-46.9591, -73.7167, 92.3737], [-46.9591, 73.7167, 92.3737], [46.9591, 73.7167, 92.3737], [46.9591, -73.7167, 92.3737],
-    [-46.9591, -73.7167, -92.3737], [-46.9591, 73.7167, -92.3737], [46.9591, 73.7167, -92.3737], [46.9591, -73.7167, -92.3737]])
-]
-camera_matrix = np.array([572.4114, 0.0, 325.2611, 0.0, 573.57043, 242.04899, 0.0, 0.0, 1.0])
 colours = [(255, 0, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (0, 125, 255), 
 (0, 255, 125), (125, 0, 255), (255, 0, 125), (125, 255, 0), (255, 125, 0), (125, 255, 255), (255, 125, 255),
 (255, 255, 125), (255, 255, 255)]
@@ -51,15 +18,41 @@ py = 242.04899
 fx = 572.41140
 fy = 573.57043
 
+
+def draw_bbox_2d(img, boxes,  conf = 0.6, colours=colours, thickness=1, gt=False):
+    if is_tensor(img):
+        img = copy.deepcopy(img).cpu().numpy().transpose(1, 2, 0)
+        img = np.asarray(img, dtype=np.uint8)
+        img = np.ascontiguousarray(img)
+
+    for i in range(len(boxes)):
+        box = boxes[i][0:4]
+        cls_id = int(boxes[i][4])
+        if not gt:
+            score = boxes[i][5]*boxes[i][6]
+            cls_id = int(boxes[i][-1])
+            if score < conf:
+                continue
+        x0 = int(box[0])
+        y0 = int(box[1])
+        x1 = int(box[2])
+        y1 = int(box[3])
+
+        color = colours[cls_id]
+        cv2.rectangle(img, (x0, y0), (x1, y1), color, 2)
+
+    return img
+
+
 def draw_cuboid_2d(img, cuboid_corners, colour = (0, 255, 0), thickness = 2):
     box = np.copy(cuboid_corners).astype(np.int32)
 
-    #upper level
+    #front
     cv2.line(img, box[0], box[1], colour, thickness)
     cv2.line(img, box[1], box[2], colour, thickness)
     cv2.line(img, box[2], box[3], colour, thickness)
     cv2.line(img, box[0], box[3], colour, thickness)
-    #lower level
+    #back
     cv2.line(img, box[4], box[5], colour, thickness)
     cv2.line(img, box[5], box[6], colour, thickness)
     cv2.line(img, box[6], box[7], colour, thickness)
@@ -69,6 +62,7 @@ def draw_cuboid_2d(img, cuboid_corners, colour = (0, 255, 0), thickness = 2):
     cv2.line(img, box[1], box[5], colour, thickness)
     cv2.line(img, box[2], box[6], colour, thickness)
     cv2.line(img, box[3], box[7], colour, thickness)
+
 
 def project_cuboid(cuboid_corners, rotation_vec, translation_vec, camera_matrix):
    cuboid_corners_2d, _ = cv2.projectPoints(
@@ -82,12 +76,27 @@ def project_cuboid(cuboid_corners, rotation_vec, translation_vec, camera_matrix)
 
    return cuboid_corners_2d
 
-def draw_predictions(img, predictions, num_classes, class_to_cuboid=class_to_cuboid, camera_matrix=camera_matrix, colours=colours, conf = 0.8):
+
+def project_cad_model(cad_model, rotation_vec, translation_vec, camera_matrix):
+   cad_model_2d, _ = cv2.projectPoints(
+       objectPoints=cad_model,
+       rvec=rotation_vec,
+       tvec=translation_vec,
+       cameraMatrix=camera_matrix.reshape((3,3)),
+       distCoeffs=None
+    )
+   cad_model_2d = np.squeeze(cad_model_2d)
+
+   return cad_model_2d
+
+
+def draw_predictions(img, predictions, class_to_cuboid=None, camera_matrix=camera_matrix, colours=colours, conf = 0.6, class_to_model=None):
 
     if is_tensor(img):
         img = copy.deepcopy(img).cpu().numpy().transpose(1, 2, 0)
         img = np.asarray(img, dtype=np.uint8)
         img = np.ascontiguousarray(img)
+        img_mask = copy.deepcopy(img)
 
     if is_tensor(predictions):
         predictions = predictions.cpu()
@@ -109,8 +118,8 @@ def draw_predictions(img, predictions, num_classes, class_to_cuboid=class_to_cub
         #Tx and Ty are recovered using the formula given on page 5 of the the paper: https://arxiv.org/pdf/2011.04307.pdf
         #px, py, fx and fy are currently hard-coded for LINEMOD dataset
         tz = prediction[13].astype(np.float64) * 100.0
-        print("prediction",obj_class, tz)
-        tx = ((prediction[11].astype(np.float64) / r_w )- px) * tz / fx
+        #print("prediction",obj_class, tz)
+        tx = ((prediction[11].astype(np.float64) / r_w ) - px) * tz / fx
         ty = ((prediction[12].astype(np.float64) / r_h ) - py) * tz / fy
         img = cv2.circle(img, (int(prediction[11]), int(prediction[12])), 3, (0, 0, 255), -1)
         rotation_mat = np.hstack((r1, r2, r3))
@@ -119,8 +128,16 @@ def draw_predictions(img, predictions, num_classes, class_to_cuboid=class_to_cub
         translation_vec[1] = ty
         translation_vec[2] = tz
 
+        cad_model_2d = project_cad_model(class_to_model[obj_class], rotation_vec, translation_vec, camera_matrix)
+        cad_model_2d = cad_model_2d.astype(np.int32)
+        cad_model_2d[cad_model_2d >= 640] = 639
+        cad_model_2d[cad_model_2d < 0] = 0
+        img_mask[cad_model_2d[:, 1], cad_model_2d[:, 0]] = colour
+        #print(int(prediction[11]), int(prediction[12]))
+        img_mask = cv2.circle(img_mask, (int(prediction[11]), int(prediction[12])), 3, (0, 0, 255), -1)
+
         cuboid_corners_2d = project_cuboid(
-            cuboid_corners=class_to_cuboid[obj_class-1],
+            cuboid_corners=class_to_cuboid[obj_class],
             rotation_vec=rotation_vec,
             translation_vec=translation_vec,
             camera_matrix=camera_matrix
@@ -131,29 +148,29 @@ def draw_predictions(img, predictions, num_classes, class_to_cuboid=class_to_cub
             cuboid_corners=cuboid_corners_2d,
             colour=colour
         )
-    return img
+    return img, img_mask
 
-def draw_ground_truths(img, ground_truths, class_to_cuboid=class_to_cuboid, camera_matrix=camera_matrix, colour=(0, 255, 0)):
+def draw_ground_truths(img, ground_truths, class_to_cuboid=None, camera_matrix=camera_matrix, colours=colours, class_to_model=None):
 
     if is_tensor(img):
         img = copy.deepcopy(img).cpu().numpy().transpose(1, 2, 0)
         img = np.asarray(img, dtype=np.uint8)
         img = np.ascontiguousarray(img)
+        img_mask = copy.deepcopy(img)
 
     if is_tensor(ground_truths):
         ground_truths = ground_truths.numpy()
 
     for ground_truth in ground_truths:
         for obj in ground_truth:
-            obj_class = obj[4] - 1
+            obj_class = int(obj[4])
             r1 = np.expand_dims(obj[5:8], axis=1)
             r2 = np.expand_dims(obj[8:11], axis=1)
             r3 = np.cross(r1.T, r2.T).T
-            translation_vec = obj[11:14]
+            translation_vec = copy.deepcopy(obj[11:14])
             tz = obj[13] * 100.0
             tx = ((obj[11] / r_w) - px )* tz / fx
             ty = ((obj[12] / r_h) - py )* tz / fy
-            print("gt", obj_class, tz)
             img = cv2.circle(img, (int(obj[11]), int(obj[12])), 3, (0, 0, 255), -1)
 
             rotation_mat = np.hstack((r1, r2, r3))
@@ -164,8 +181,13 @@ def draw_ground_truths(img, ground_truths, class_to_cuboid=class_to_cuboid, came
 
             #rotation_vec = obj[5:8]
             #translation_vec = obj[8:11]
-            colour = colour
-
+            colour = colours[obj_class]
+            cad_model_2d = project_cad_model(class_to_model[obj_class], rotation_vec, translation_vec, camera_matrix)
+            cad_model_2d = cad_model_2d.astype(np.int32)
+            cad_model_2d[cad_model_2d >= 640] = 639
+            cad_model_2d[cad_model_2d < 0] = 0
+            img_mask[cad_model_2d[:, 1], cad_model_2d[:, 0]] = colour
+            img_mask = cv2.circle(img_mask, (int(obj[11]), int(obj[12])), 3, (0, 0, 255), -1)
             cuboid_corners_2d = project_cuboid(
                 cuboid_corners=class_to_cuboid[int(obj_class)],
                 rotation_vec=rotation_vec,
@@ -179,4 +201,4 @@ def draw_ground_truths(img, ground_truths, class_to_cuboid=class_to_cuboid, came
                 colour=colour
             )
 
-    return img
+    return img, img_mask
