@@ -14,7 +14,7 @@ from tqdm import tqdm
 import cv2
 from ..utils  import visualize_object_pose
 import numpy as np
-
+from sklearn.neighbors import KDTree
 import torch
 
 from yolox.utils import (
@@ -132,24 +132,10 @@ class ObjectPoseEvaluator:
                     os.makedirs(os.path.join(self.output_dir, "vis_pose"), exist_ok=True)
                     for output_idx in range(len(predictions_pose)):
                         img = imgs[output_idx]
-                        vis_gt_pose, vis_gt_mask = visualize_object_pose.draw_ground_truths(img=img, ground_truths=targets, class_to_model=self.class_to_model,
-                                                                                            class_to_cuboid=self.class_to_cuboid)
-                        vis_pred_pose, vis_pred_mask = visualize_object_pose.draw_predictions(img=img, predictions=predictions_pose[0], class_to_model=self.class_to_model,
-                                                                                               class_to_cuboid=self.class_to_cuboid)
-                        vis_gt_box = visualize_object_pose.draw_bbox_2d(img, targets[0][:,:5], gt=True)
-                        vis_pred_box = visualize_object_pose.draw_bbox_2d(img, outputs_2d[0])
-                        outfile_gt_pose = os.path.join(self.output_dir, "vis_pose", "{0:012}_gt_pose.png".format(ids[output_idx][0]))
-                        outfile_gt_mask = os.path.join(self.output_dir, "vis_pose", "{0:012}_gt_mask.png".format(ids[output_idx][0]))
-                        outfile_gt_2d_od = os.path.join(self.output_dir, "vis_pose", "{0:012}_gt_2d_od.png".format(ids[output_idx][0]))
-                        cv2.imwrite(outfile_gt_pose, vis_gt_pose)
-                        cv2.imwrite(outfile_gt_mask, vis_gt_mask)
-                        cv2.imwrite(outfile_gt_2d_od, vis_gt_box)
-                        outfile_pred_pose  = os.path.join(self.output_dir, "vis_pose", "{0:012}_pred_pose.png".format(ids[output_idx][0]))
-                        outfile_pred_mask  = os.path.join(self.output_dir, "vis_pose", "{0:012}_pred_mask.png".format(ids[output_idx][0]))
-                        outfile_pred_2d_od = os.path.join(self.output_dir, "vis_pose", "{0:012}_pred_2d_od.png".format(ids[output_idx][0]))
-                        cv2.imwrite(outfile_pred_pose, vis_pred_pose)
-                        cv2.imwrite(outfile_pred_mask, vis_pred_mask)
-                        cv2.imwrite(outfile_pred_2d_od, vis_pred_box)
+                        visualize_object_pose.draw_6d_pose(img, targets[0], class_to_model=self.class_to_model,
+                                                                    class_to_cuboid=self.class_to_cuboid, out_dir=self.output_dir, id=ids[output_idx][0])
+                        visualize_object_pose.draw_6d_pose(img, predictions_pose[0], class_to_model=self.class_to_model,
+                                                                    class_to_cuboid=self.class_to_cuboid, gt=False, out_dir=self.output_dir,id=ids[output_idx][0])
                 if is_time_record:
                     nms_end = time_synchronized()
                     nms_time += nms_end - infer_end
@@ -256,4 +242,51 @@ class ObjectPoseEvaluator:
 
 
     def evaluate_prediction_6dpose(self, data_dict, statistics):
-        pass
+        if args.object_name in ['eggbox', 'glue']:
+            compute_score = compute_adds_score
+        else:
+            compute_score = compute_add_score
+
+        score = compute_score(pts3d,
+                                   diameter,
+                                   (record['R_gt'], record['t_gt']),
+                                   (record['R_init'], record['t_init']))
+        print('ADD(-S) score of initial prediction is: {}'.format(score))
+
+
+
+    def compute_add_score(pts3d, diameter, pose_gt, pose_pred, percentage=0.1):
+        R_gt, t_gt = pose_gt
+        R_pred, t_pred = pose_pred
+        count = R_gt.shape[0]
+        mean_distances = np.zeros((count,), dtype=np.float32)
+        for i in range(count):
+            pts_xformed_gt = R_gt[i] * pts3d.transpose() + t_gt[i]
+            pts_xformed_pred = R_pred[i] * pts3d.transpose() + t_pred[i]
+            distance = np.linalg.norm(pts_xformed_gt - pts_xformed_pred, axis=0)
+            mean_distances[i] = np.mean(distance)
+
+        threshold = diameter * percentage
+        score = (mean_distances < threshold).sum() / count
+        return score
+
+
+
+    def compute_adds_score(pts3d, diameter, pose_gt, pose_pred, percentage=0.1):
+        R_gt, t_gt = pose_gt
+        R_pred, t_pred = pose_pred
+
+        count = R_gt.shape[0]
+        mean_distances = np.zeros((count,), dtype=np.float32)
+        for i in range(count):
+            if np.isnan(np.sum(t_pred[i])):
+                mean_distances[i] = np.inf
+                continue
+            pts_xformed_gt = R_gt[i] * pts3d.transpose() + t_gt[i]
+            pts_xformed_pred = R_pred[i] * pts3d.transpose() + t_pred[i]
+            kdt = KDTree(pts_xformed_gt.transpose(), metric='euclidean')
+            distance, _ = kdt.query(pts_xformed_pred.transpose(), k=1)
+            mean_distances[i] = np.mean(distance)
+        threshold = diameter * percentage
+        score = (mean_distances < threshold).sum() / count
+        return score

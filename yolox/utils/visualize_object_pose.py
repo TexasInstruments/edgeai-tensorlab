@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from torch import is_tensor
 import copy
+import os
 
 camera_matrix = np.array([572.4114, 0.0, 325.2611, 0.0, 573.57043, 242.04899, 0.0, 0.0, 1.0], dtype=np.float32)
 
@@ -92,7 +93,7 @@ def project_cad_model(cad_model, rotation_vec, translation_vec, camera_matrix):
    return cad_model_2d
 
 
-def draw_6d_pose(img, poses, class_to_cuboid=None, camera_matrix=camera_matrix, colours=colours, conf = 0.6, class_to_model=None, gt=True):
+def draw_6d_pose(img, poses, class_to_cuboid=None, camera_matrix=camera_matrix, colours=colours, conf = 0.6, class_to_model=None, gt=True, out_dir=None, id=None):
 
     if is_tensor(img):
         img_cuboid = copy.deepcopy(img).cpu().numpy().transpose(1, 2, 0)
@@ -152,5 +153,13 @@ def draw_6d_pose(img, poses, class_to_cuboid=None, camera_matrix=camera_matrix, 
             colour=colour
         )
     img_2d = draw_bbox_2d(img_2d, poses, conf=0.6, thickness=1, gt=gt)
+
+    pose_type = "gt" if gt else "pred"
+    outfile_gt_pose = os.path.join(out_dir, "vis_pose", "{:012}_{}_pose.png".format(id, pose_type))
+    outfile_gt_mask = os.path.join(out_dir, "vis_pose", "{:012}_{}_mask.png".format(id, pose_type))
+    outfile_gt_2d_od = os.path.join(out_dir, "vis_pose", "{:012}_{}_2d_od.png".format(id, pose_type))
+    cv2.imwrite(outfile_gt_pose, img_cuboid)
+    cv2.imwrite(outfile_gt_mask, img_mask)
+    cv2.imwrite(outfile_gt_2d_od, img_2d)
 
     return img_cuboid, img_mask, img_2d
