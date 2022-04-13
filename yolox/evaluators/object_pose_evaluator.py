@@ -124,10 +124,6 @@ class ObjectPoseEvaluator:
                     infer_end = time_synchronized()
                     inference_time += infer_end - start
 
-                outputs_2dod = torch.cat(
-                    (outputs[:, :, :5],outputs[:, :, -15:]), dim=2
-                )
-                outputs_2d = postprocess(outputs_2dod, self.num_classes, self.confthre, self.nmsthre)
                 predicted_pose = postprocess_object_pose(outputs, self.num_classes, self.confthre, self.nmsthre)
 
                 frame_data_list, frame_pred_data_list = self.convert_to_coco_format(predicted_pose, targets, info_imgs, ids)

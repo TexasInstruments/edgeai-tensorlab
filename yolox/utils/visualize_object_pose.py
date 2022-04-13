@@ -107,23 +107,6 @@ def draw_6d_pose(img, data_list, class_to_cuboid=None, camera_matrix=camera_matr
             np.array(pose['rotation_{}'.format(pose_type)]), np.array(pose['translation_{}'.format(pose_type)]), pose['bbox_{}'.format(pose_type)], pose['xy_{}'.format(pose_type)], pose['category_id']
         colour = colours[label]
 
-        # r1 = np.expand_dims(pose[5:8].astype(np.float64), axis=1)
-        # r2 = np.expand_dims(pose[8:11].astype(np.float64), axis=1)
-        # r3 = np.cross(r1.T, r2.T).T
-        # translation_vec = pose[11:14].astype(np.float64)
-        #Tz was previously scaled down by 100 (converted from cm to m)
-        #Tx and Ty are recovered using the formula given on page 5 of the the paper: https://arxiv.org/pdf/2011.04307.pdf
-        #px, py, fx and fy are currently hard-coded for LINEMOD dataset
-        #tz = pose[13].astype(np.float64) * 100.0
-        #print("prediction",obj_class, tz)
-        #tx = ((pose[11].astype(np.float64) / r_w ) - px) * tz / fx
-        #ty = ((pose[12].astype(np.float64) / r_h ) - py) * tz / fy
-        # translation_vec[0] = tx
-        # translation_vec[1] = ty
-        # translation_vec[2] = tz
-        # rotation_mat = np.hstack((r1, r2, r3))
-        # rotation_vec, _ = cv2.Rodrigues(rotation_mat)
-
         img_cuboid = cv2.circle(img_cuboid, (int(xy[0]), int(xy[1])), 3, (0, 0, 255), -1)
 
         cad_model_2d = project_cad_model(class_to_model[label], rotation, translation, camera_matrix)
