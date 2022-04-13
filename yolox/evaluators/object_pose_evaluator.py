@@ -12,7 +12,7 @@ import os
 from loguru import logger
 from tqdm import tqdm
 import cv2
-from ..utils  import visualize_object_pose
+from ..utils  import visualize_object_pose, decode_rotation_translation
 import numpy as np
 from sklearn.neighbors import KDTree
 import torch
@@ -26,6 +26,7 @@ from yolox.utils import (
     time_synchronized,
     xyxy2xywh
 )
+
 
 
 class ObjectPoseEvaluator:
@@ -87,6 +88,7 @@ class ObjectPoseEvaluator:
             model = model.half()
         ids = []
         data_list = []
+        pred_data_list = []
         progress_bar = tqdm if is_main_process() else iter
 
         inference_time = 0
@@ -126,63 +128,105 @@ class ObjectPoseEvaluator:
                     (outputs[:, :, :5],outputs[:, :, -15:]), dim=2
                 )
                 outputs_2d = postprocess(outputs_2dod, self.num_classes, self.confthre, self.nmsthre)
-                predictions_pose = postprocess_object_pose(outputs, self.num_classes, self.confthre, self.nmsthre)
+                predicted_pose = postprocess_object_pose(outputs, self.num_classes, self.confthre, self.nmsthre)
+
+                frame_data_list, frame_pred_data_list = self.convert_to_coco_format(predicted_pose, targets, info_imgs, ids)
+                data_list.extend(frame_data_list)
+                pred_data_list.extend(frame_pred_data_list)
 
                 if self.visualize:
                     os.makedirs(os.path.join(self.output_dir, "vis_pose"), exist_ok=True)
-                    for output_idx in range(len(predictions_pose)):
+                    for output_idx in range(len(predicted_pose)):
                         img = imgs[output_idx]
-                        visualize_object_pose.draw_6d_pose(img, targets[0], class_to_model=self.class_to_model,
+                        visualize_object_pose.draw_6d_pose(img, frame_data_list, class_to_model=self.class_to_model,
                                                                     class_to_cuboid=self.class_to_cuboid, out_dir=self.output_dir, id=ids[output_idx][0])
-                        visualize_object_pose.draw_6d_pose(img, predictions_pose[0], class_to_model=self.class_to_model,
+                        visualize_object_pose.draw_6d_pose(img, frame_data_list, class_to_model=self.class_to_model,
                                                                     class_to_cuboid=self.class_to_cuboid, gt=False, out_dir=self.output_dir,id=ids[output_idx][0])
                 if is_time_record:
                     nms_end = time_synchronized()
                     nms_time += nms_end - infer_end
 
-            data_list.extend(self.convert_to_coco_format(outputs_2d, info_imgs, ids))
+
 
         statistics = torch.cuda.FloatTensor([inference_time, nms_time, n_samples])
         if distributed:
-            data_list = gather(data_list, dst=0)
-            data_list = list(itertools.chain(*data_list))
+            pred_data_list = gather(pred_data_list, dst=0)
+            pred_data_list = list(itertools.chain(*pred_data_list))
             torch.distributed.reduce(statistics, dst=0)
 
-        eval_results = self.evaluate_prediction(data_list, statistics)
+        eval_results = self.evaluate_prediction(pred_data_list, statistics)
         synchronize()
         return eval_results
 
-    def convert_to_coco_format(self, outputs, info_imgs, ids):
+    def convert_to_coco_format(self, outputs, targets, info_imgs, ids):
         data_list = []
-        for (output, img_h, img_w, img_id) in zip(
-            outputs, info_imgs[0], info_imgs[1], ids
+        pred_list = []
+        for (output, target, img_h, img_w, img_id) in zip(
+            outputs, targets, info_imgs[0], info_imgs[1], ids
         ):
             if output is None:
                 continue
-            output = output.cpu()
-
+            output, target = output.cpu(), target.cpu()
             bboxes = output[:, 0:4]
+            bboxes_gt = target[:, 0:4]
 
             # preprocessing: resize
             scale = min(
                 self.img_size[0] / float(img_h), self.img_size[1] / float(img_w)
             )
             bboxes /= scale
+            bboxes_gt /= scale
             bboxes = xyxy2xywh(bboxes)
+            bboxes_gt = xyxy2xywh(bboxes_gt)
 
-            cls = output[:, 6]
-            scores = output[:, 4] * output[:, 5]
+            cls = target[:, 4]
+            cls_pred = output[:, -1]
+            scores = output[:, 4] * output[:, -2]
             for ind in range(bboxes.shape[0]):
-                label = self.dataloader.dataset.class_ids[int(cls[ind])]
+                pred_label = self.dataloader.dataset.class_ids[int(cls_pred[ind])]
                 pred_data = {
                     "image_id": int(img_id),
-                    "category_id": label,
+                    "category_id": pred_label,
                     "bbox": bboxes[ind].numpy().tolist(),
                     "score": scores[ind].numpy().item(),
                     "segmentation": [],
                 }  # COCO json format
-                data_list.append(pred_data)
-        return data_list
+                pred_list.append(pred_data)
+
+            for ind in range(bboxes_gt.shape[0]):
+                label = self.dataloader.dataset.class_ids[int(cls[ind])]
+                if len(output[output[:, -1] == label]) ==1 :
+                    missing_det = False
+                    rotation_pred, translation_pred = decode_rotation_translation(output[output[:, -1] == label][0])
+                else:
+                    missing_det=True
+                rotation_gt, translation_gt = decode_rotation_translation(target[ind])
+                pred_gt_data = {
+                    "image_id": int(img_id),
+                    "bbox_gt": bboxes_gt[ind].numpy().tolist(),
+                    "rotation_gt": rotation_gt.tolist(),
+                    "translation_gt": translation_gt.tolist(),
+                    "xy_gt": target[ind][11:13].numpy().tolist(),
+                    "category_id": label,
+                    "missing_det": True
+                }
+                if not missing_det:
+                    pred_gt_data.update(
+                    {
+                        "image_id": int(img_id),
+                        "category_id": label,
+                        "bbox": bboxes[output[:, -1]==label][0].numpy().tolist(),
+                        "bbox_pred": bboxes[output[:, -1] == label][0].numpy().tolist(),
+                        "score": scores[output[:, -1]==label].numpy().item(),
+                        "segmentation": [],
+                        "rotation_pred" : rotation_pred.tolist(),
+                        "translation_pred": translation_pred.tolist(),
+                        "xy_pred": output[output[:, -1] == label][0][11:13].numpy().tolist(),
+                        "missing_det": False
+                    }) # COCO json format
+
+                data_list.append(pred_gt_data)
+        return data_list, pred_list
 
     def evaluate_prediction(self, data_dict, statistics):
         if not is_main_process():
