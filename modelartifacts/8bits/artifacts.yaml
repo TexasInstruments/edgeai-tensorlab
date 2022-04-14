@@ -43,7 +43,7 @@ cl-0040_tflitert:
   recommended: false
   run_dir: cl-0040_tflitert_imagenet1k_tf1-models_inception_v3_tflite
   session_name: tflitert
-  shortlisted: true
+  shortlisted: false
   size: 104972754
   task_type: classification
 cl-0050_tflitert:
@@ -203,7 +203,7 @@ cl-3430_tvmdlr:
   recommended: false
   run_dir: cl-3430_tvmdlr_imagenet1k_gluoncv-mxnet_xception-symbol_json
   session_name: tvmdlr
-  shortlisted: true
+  shortlisted: false
   size: 501102381
   task_type: classification
 cl-3480_tvmdlr:

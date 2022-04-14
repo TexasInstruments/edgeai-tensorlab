@@ -39,8 +39,6 @@ If you have not visited the following landing pages, please do so before attempt
 
 <hr>
 
-## Pre-complied model artifacts 
-See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md) that we provide with this repository.
 
 ## Compiling models
 [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) provide information on compiling models for our SoCs. That is a good starting point to get familiarized with import/calibration and inference of models.

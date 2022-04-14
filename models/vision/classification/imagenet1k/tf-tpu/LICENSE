@@ -1,5 +1,0 @@
-Source: https://github.com/tensorflow/tpu/blob/master
-Source: https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet/lite
-Source: https://github.com/tensorflow/tpu/blob/master/models/official/efficientnet/edgetpu
-License: https://github.com/tensorflow/tpu/blob/master/LICENSE
-

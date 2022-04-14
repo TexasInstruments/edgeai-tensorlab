@@ -1,3 +1,0 @@
-Model: mnasnet_1.0_224
-Input: input
-Output: output
