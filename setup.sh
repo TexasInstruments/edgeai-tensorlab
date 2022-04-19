@@ -13,9 +13,9 @@ pip3 install -r references/requirements.txt
 echo "-----------------------------------------------------------"
 echo "building torchvision"
 # may need pytorch nightly to build this package
-echo "installing pytorch for cuda 11.1"
+echo "installing pytorch for cuda 11.3"
 echo "other versions can be found here: https://pytorch.org/get-started/locally/"
-pip3 install torch==1.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
+pip3 install torch==1.11.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html
 
 pip3 install onnx==1.8.1
 pip3 install torchinfo
@@ -33,4 +33,4 @@ python3 setup.py develop
 echo "-----------------------------------------------------------"
 echo "copying the .so files to make running from this folder work"
 BUILD_LIB_PATH=$(find "build/" -maxdepth 1 |grep "/lib.")
-cp -f ${BUILD_LIB_PATH}/torchvision/*.so ./torchvision/
+cp -f -r ${BUILD_LIB_PATH}/torchvision/*.so ./torchvision/

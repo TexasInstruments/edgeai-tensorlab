@@ -148,12 +148,12 @@ def get_config():
     args.save_mod_files = False                 # saves modified files after last commit. Also  stores commit id.
     args.gpu_mode = True                        #False will make inference run on CPU
     args.write_layer_ip_op=False                #True will make it tap inputs outputs for layers
-    args.write_layer_ip_op_names=None           #name of the layers to write out 
+    args.write_layer_ip_op_names=None           #name of the layers to write out
     args.file_format = 'none'                   #Ip/Op tapped points for each layer: None : it will not be written but print will still appear
     args.save_onnx = True
     args.remove_ignore_lbls_in_pred = False     #True: if in the pred where GT has ignore label do not visualize for GT visualization
     args.do_pred_cordi_f2r = False              #true: Do f2r operation on detected location for interet point task
-    args.depth_cmap_plasma = False      
+    args.depth_cmap_plasma = False
     args.visualize_gt = False                   #to vis pred or GT
     args.viz_depth_color_type = 'plasma'        #color type for dpeth visualization
     args.depth = [False]
@@ -237,14 +237,14 @@ def main(args):
         #store all the files after the last commit.
         mod_files_path = save_path+'/mod_files'
         os.makedirs(mod_files_path)
-        
+
         cmd = "git ls-files --modified | xargs -i cp {} {}".format("{}", mod_files_path)
-        print("cmd:", cmd)    
+        print("cmd:", cmd)
         os.system(cmd)
 
-        #stoe last commit id. 
+        #stoe last commit id.
         cmd = "git log -n 1  >> {}".format(mod_files_path + '/commit_id.txt')
-        print("cmd:", cmd)    
+        print("cmd:", cmd)
         os.system(cmd)
 
     transforms = get_transforms(args) if args.transforms is None else args.transforms
@@ -255,7 +255,7 @@ def main(args):
     if args.dataset is not None:
         dataset = args.dataset
     else:
-        dataset = xvision.datasets.__dict__[args.dataset_name](args.dataset_config, args.data_path, split=split_arg, transforms=transforms)
+        dataset = xvision.datasets.__dict__[args.dataset_name](args.dataset_config, args.data_path, split=split_arg, transforms=[transforms,transforms], additional_info=True)
     #
 
     # if a pair is given, take the second one
@@ -334,7 +334,7 @@ def main(args):
 
     #################################################
     assign_write_layer_ip_op_hook(model=model, save_path=save_path, args=args, file_format='npy')
-    
+
     args.loss_modules = copy.deepcopy(args.losses)
     for task_dx, task_losses in enumerate(args.losses):
         for loss_idx, loss_fn in enumerate(task_losses):
@@ -432,12 +432,12 @@ def validate(args, val_dataset, val_loader, model, epoch, infer_path):
             output = outputs[task_index]
             gt_target = target_list[task_index] if target_list else None
             if args.visualize_gt and target_list:
-                if args.model_config.output_type[task_index] is 'depth':
+                if args.model_config.output_type[task_index] == 'depth':
                     output = gt_target
                 else:
                     output = gt_target.to(dtype=torch.int8)
-                
-            if args.remove_ignore_lbls_in_pred and not (args.model_config.output_type[task_index] is 'depth') and target_list :
+
+            if args.remove_ignore_lbls_in_pred and not (args.model_config.output_type[task_index] == 'depth') and target_list :
                 output[gt_target == 255] = args.palette[task_index-1].shape[0]-1
             for index in range(output.shape[0]):
                 if args.frame_IOU:
@@ -450,7 +450,7 @@ def validate(args, val_dataset, val_loader, model, epoch, infer_path):
 
                 if target_list:
                     label = np.squeeze(np.array(target_list[task_index][index]))
-                    if not args.model_config.output_type[task_index] is 'depth':
+                    if not args.model_config.output_type[task_index] == 'depth':
                         if args.en_accuracy_measurement:
                             confusion_matrix[task_index] = eval_output(args, prediction, label, confusion_matrix[task_index], args.model_config.output_channels[task_index])
                             accuracy, mean_iou, iou, f1_score= compute_accuracy(args, confusion_matrix[task_index], args.model_config.output_channels[task_index])
@@ -462,7 +462,7 @@ def validate(args, val_dataset, val_loader, model, epoch, infer_path):
                             if index == output.shape[0]-1:
                                 print('Task={},\npixel_accuracy={},\nmean_iou={},\niou={},\nf1_score = {}'.format(task_index, accuracy, mean_iou, iou, f1_score))
                                 sys.stdout.flush()
-                    elif args.model_config.output_type[task_index] is 'depth':
+                    elif args.model_config.output_type[task_index] == 'depth':
                         valid = (label != 0)
                         gt = torch.tensor(label[valid]).float()
                         inference = torch.tensor(prediction[valid]).float()
@@ -493,8 +493,8 @@ def validate(args, val_dataset, val_loader, model, epoch, infer_path):
                     output_name = os.path.join(infer_path[task_index], seq + '_' + input_path[-1][index].split('/')[-3] + '_' + base_file)
                     output_name_short = os.path.join(infer_path[task_index], os.path.basename(input_path[-1][index]))
                     wrapper_write_desc(args=args, target_list=target_list, task_index=task_index, outputs=outputs, index=index, output_name=output_name, output_name_short=output_name_short)
-                    
-                if args.model_config.output_type[task_index] is 'depth':
+
+                if args.model_config.output_type[task_index] == 'depth':
                     output_name = os.path.join(infer_path[task_index], seq + '_' + input_path[-1][index].split('/')[-3] + '_' + base_file)
                     viz_depth(prediction = prediction, args=args, output_name = output_name, input_name=input_path[-1][task_index])
                     print('{}/{}'.format((args.batch_size * iter + index), len(val_dataset)))
@@ -611,13 +611,13 @@ def store_desc(args=[], output_name=[], write_dense=False, desc_tensor=[], predi
 
 
       #utils_hist.hist_tensor2D(x_ch = prediction, dir='score', name='score', en=True, log=True)
-    else:  
+    else:
       prediction[prediction < 0.0] = 0.0
-      
+
       if learn_scaled_values:
         img_interest_pt_cur = prediction.astype(np.uint16)
         score_th = 127
-      else:  
+      else:
         img_interest_pt_cur = prediction
         score_th = 0.001
 
@@ -671,7 +671,7 @@ def viz_depth(prediction = [], args=[], output_name=[], input_name=[]):
         # output_image[(label[:,:,0]==1)|(label[:,:,0]==4)]=255
     elif args.viz_depth_color_type == 'plasma':
         plt.imsave(output_name, output_image, cmap='plasma', vmin=0, vmax=max_value_depth)
-    elif args.viz_depth_color_type == 'log_greys':        
+    elif args.viz_depth_color_type == 'log_greys':
         plt.imsave(output_name, np.log10(output_image), cmap='Greys', vmin=0, vmax=np.log10(max_value_depth))
         #plt.imsave(output_name, output_image, cmap='Greys', vmin=0, vmax=max_value_depth)
     else:
@@ -803,18 +803,18 @@ def eval_output(args, output, label, confusion_matrix, n_classes):
             confusion_matrix[r,c] += np.sum((gt_labels_valid==r) & (det_labels_valid==c))
 
     return confusion_matrix
-    
+
 def compute_accuracy(args, confusion_matrix, n_classes):
     num_selected_classes = n_classes
     tp = np.zeros(n_classes)
     population = np.zeros(n_classes)
     det = np.zeros(n_classes)
     iou = np.zeros(n_classes)
-    
+
     for r in range(n_classes):
       for c in range(n_classes):
         population[r] += confusion_matrix[r][c]
-        det[c] += confusion_matrix[r][c]   
+        det[c] += confusion_matrix[r][c]
         if r == c:
           tp[r] += confusion_matrix[r][c]
 
@@ -828,10 +828,10 @@ def compute_accuracy(args, confusion_matrix, n_classes):
     for pop in population:
       if pop>0:
         num_nonempty_classes += 1
-          
+
     mean_iou = np.sum(iou) / num_nonempty_classes if num_nonempty_classes else 0
     accuracy = np.sum(tp) / np.sum(population) if np.sum(population) else 0
-    
+
     #F1 score calculation
     fp = np.zeros(n_classes)
     fn = np.zeros(n_classes)
@@ -843,12 +843,12 @@ def compute_accuracy(args, confusion_matrix, n_classes):
         fp[cls] = det[cls] - tp[cls]
         fn[cls] = population[cls] - tp[cls]
         precision[cls] = tp[cls] / (det[cls] + 1e-10)
-        recall[cls] = tp[cls] / (tp[cls] + fn[cls] + 1e-10)        
+        recall[cls] = tp[cls] / (tp[cls] + fn[cls] + 1e-10)
         f1_score[cls] = 2 * precision[cls]*recall[cls] / (precision[cls] + recall[cls] + 1e-10)
 
     return accuracy, mean_iou, iou, f1_score
-    
-        
+
+
 def infer_video(args, net):
     videoIpHandle = imageio.get_reader(args.input, 'ffmpeg')
     fps = math.ceil(videoIpHandle.get_meta_data()['fps'])
@@ -860,8 +860,8 @@ def infer_video(args, net):
         sys.stdout.flush()
         input_blob = videoIpHandle.get_data(num)
         input_blob = input_blob[...,::-1]    #RGB->BGR
-        output_blob = infer_blob(args, net, input_blob)     
-        output_blob = output_blob[...,::-1]  #BGR->RGB            
+        output_blob = infer_blob(args, net, input_blob)
+        output_blob = output_blob[...,::-1]  #BGR->RGB
         videoOpHandle.append_data(output_blob)
     videoOpHandle.close()
     return
@@ -912,7 +912,7 @@ def assign_write_layer_ip_op_hook(model=None, save_path=None, args=None, file_fo
         for name, module in model.named_modules():
             module.name = name
             print(name)
-            
+
             en_write_layer = False
             if args.write_layer_ip_op_names == None:
                 #write all layers
@@ -922,7 +922,7 @@ def assign_write_layer_ip_op_hook(model=None, save_path=None, args=None, file_fo
                     if layer_name_to_write in name:
                         en_write_layer = True
                         break
-            
+
             if en_write_layer:
                 module.register_forward_hook(write_tensor_hook_function_save_path)
                 print('{:7} {:33} {:12} {:8} {:6} {:30} : {:17} : {:4} : {:11} : {:7} : {:7}'.format("type",  "name", "layer", "min", "max", "tensor_shape", "dtype", "scale", "dtype", "min", "max"))
