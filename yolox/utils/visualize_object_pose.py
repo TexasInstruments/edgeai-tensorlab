@@ -30,7 +30,7 @@ def draw_bbox_2d(img, box, label, score, conf = 0.6, colours=colours, thickness=
 
     color = colours[cls_id]
     cv2.rectangle(img, (x0, y0), (x1, y1), color, thickness)
-
+    cv2.putText(img, str(label), (x0, y0), cv2.FONT_HERSHEY_SIMPLEX, 1, color, thickness=thickness)
     return img
 
 
@@ -98,7 +98,7 @@ def draw_6d_pose(img, data_list, class_to_cuboid=None, camera_matrix=camera_matr
         #Rotation matrix is recovered using the formula given in the article
         #https://towardsdatascience.com/better-rotation-representations-for-accurate-pose-estimation-e890a7e1317f
         pose_type = "gt" if gt else "pred"
-        if pose['missing_det']:
+        if pose['missing_det'] and not gt:
             continue
         score = pose['score'] if pose_type == "pred" else 1.0
         if score < conf:
@@ -121,7 +121,7 @@ def draw_6d_pose(img, data_list, class_to_cuboid=None, camera_matrix=camera_matr
         )
         img_cuboid = draw_cuboid_2d(img=img_cuboid, cuboid_corners=cuboid_corners_2d, colour=colour)
 
-        img_2dod = draw_bbox_2d(img_2dod, bbox, label, score, conf=0.6, thickness=1, gt=gt)
+        img_2dod = draw_bbox_2d(img_2dod, bbox, label, score, conf=0.6, thickness=2, gt=gt)
 
     outfile_pose = os.path.join(out_dir, "vis_pose", "{:012}_{}_pose.png".format(id, pose_type))
     outfile_mask = os.path.join(out_dir, "vis_pose", "{:012}_{}_mask.png".format(id, pose_type))

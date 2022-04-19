@@ -57,6 +57,9 @@ class ObjectPoseEvaluator:
         self.output_dir = output_dir
         self.class_to_model = dataloader.dataset.class_to_model
         self.class_to_cuboid = dataloader.dataset.models_corners
+        self.class_to_name = dataloader.dataset.class_to_name
+        self.class_to_diameter = dataloader.dataset.models_diameter
+        self.symmetric_objects = dataloader.dataset.symmetric_objects
 
     def evaluate(
         self,
@@ -150,9 +153,11 @@ class ObjectPoseEvaluator:
             pred_data_list = list(itertools.chain(*pred_data_list))
             torch.distributed.reduce(statistics, dst=0)
 
-        eval_results = self.evaluate_prediction(pred_data_list, statistics)
+        eval_results_6dpose = self.evaluate_prediction_6dpose(data_list, statistics)
+        eval_results_2d_od = self.evaluate_prediction_2d_od(pred_data_list, statistics)
+        result_summary = eval_results_2d_od[-1] + eval_results_6dpose[-1]
         synchronize()
-        return eval_results
+        return  eval_results_6dpose, eval_results_2d_od, result_summary
 
     def convert_to_coco_format(self, outputs, targets, info_imgs, ids):
         data_list = []
@@ -191,7 +196,7 @@ class ObjectPoseEvaluator:
 
             for ind in range(bboxes_gt.shape[0]):
                 label = self.dataloader.dataset.class_ids[int(cls[ind])]
-                if len(output[output[:, -1] == label]) ==1 :
+                if len(output[output[:, -1] == label]) == 1 :
                     missing_det = False
                     rotation_pred, translation_pred = decode_rotation_translation(output[output[:, -1] == label][0])
                 else:
@@ -224,7 +229,7 @@ class ObjectPoseEvaluator:
                 data_list.append(pred_gt_data)
         return data_list, pred_list
 
-    def evaluate_prediction(self, data_dict, statistics):
+    def evaluate_prediction_2d_od(self, data_dict, statistics):
         if not is_main_process():
             return 0, 0, None
 
@@ -282,51 +287,85 @@ class ObjectPoseEvaluator:
 
 
     def evaluate_prediction_6dpose(self, data_dict, statistics):
-        if args.object_name in ['eggbox', 'glue']:
-            compute_score = compute_adds_score
-        else:
-            compute_score = compute_add_score
+        data_dict_asym = []
+        data_dict_sym = []
+        for pred_data in data_dict:
+            if not pred_data['missing_det']:
+                if self.class_to_name[pred_data['category_id']] not in self.symmetric_objects.values():
+                    data_dict_asym.extend([pred_data])
+                else:
+                    data_dict_sym.extend([pred_data])
+        score_dict_asym = self.compute_add_score(data_dict_asym)
+        score_dict_sym = self.compute_adds_score(data_dict_sym)
+        score_dict = {}
+        for metric in score_dict_asym.keys():
+            score_dict[metric] = {**score_dict_asym[metric], **score_dict_sym[metric]}
+            score_dict[metric + "_avg"] = np.mean(list(score_dict[metric].values()))
 
-        score = compute_score(pts3d,
-                                   diameter,
-                                   (record['R_gt'], record['t_gt']),
-                                   (record['R_init'], record['t_init']))
-        print('ADD(-S) score of initial prediction is: {}'.format(score))
+        score_dict_summmary = ""
+        for metric in score_dict.keys():
+            score_dict_summmary += metric + "\n"
+            if "avg" not in metric:
+                for cls in score_dict[metric].keys():
+                    score_dict_summmary += str(cls) + " : " + "{0:2f}".format(score_dict[metric][cls]) + "\n"
+            else:
+                score_dict_summmary += "{0:2f}".format(score_dict[metric]) + "\n"
+
+        return score_dict, score_dict_summmary
 
 
-
-    def compute_add_score(pts3d, diameter, pose_gt, pose_pred, percentage=0.1):
-        R_gt, t_gt = pose_gt
-        R_pred, t_pred = pose_pred
-        count = R_gt.shape[0]
-        mean_distances = np.zeros((count,), dtype=np.float32)
-        for i in range(count):
-            pts_xformed_gt = R_gt[i] * pts3d.transpose() + t_gt[i]
-            pts_xformed_pred = R_pred[i] * pts3d.transpose() + t_pred[i]
+    def compute_add_score(self, data_dict, percentage=0.1):
+        distance_category = np.zeros((len(data_dict), 2))
+        for index, pred_data in enumerate(data_dict):
+            R_gt, t_gt = np.array(pred_data['rotation_gt']), np.array(pred_data['translation_gt'])
+            R_gt, _ = cv2.Rodrigues(R_gt)
+            R_pred, t_pred= np.array(pred_data['rotation_pred']), np.array(pred_data['translation_pred'])
+            R_pred, _ = cv2.Rodrigues(R_pred)
+            pts3d = self.class_to_model[pred_data['category_id']]
+            #mean_distances = np.zeros((count,), dtype=np.float32)
+            pts_xformed_gt = np.matmul(R_gt,  pts3d.transpose()) + t_gt[:, None]
+            pts_xformed_pred = np.matmul(R_pred, pts3d.transpose()) + t_pred[:, None]
             distance = np.linalg.norm(pts_xformed_gt - pts_xformed_pred, axis=0)
-            mean_distances[i] = np.mean(distance)
+            distance_category[index, 0] = np.mean(distance)
+            distance_category[index, 1] = pred_data['category_id']
 
-        threshold = diameter * percentage
-        score = (mean_distances < threshold).sum() / count
-        return score
+        threshold = [self.class_to_diameter[category] * percentage for category in self.class_to_diameter.keys()]
+        score_dict = {}
+        for threshold_multiple in range(1, 6):
+            score_dict["ADD_0p{}".format(threshold_multiple)] = {}
+        for category_id, category_type in self.class_to_name.items():
+            num_instances = len(distance_category[distance_category[:, 1] == category_id][:,0])
+            if num_instances > 0:
+                for threshold_multiple in range(1,6):
+                    score = np.sum(distance_category[distance_category[:, 1] == category_id][:,0] < threshold_multiple * threshold[category_id-1]) / (num_instances + 1e-6)
+                    score_dict["ADD_0p{}".format(threshold_multiple)].update({category_id: score})
+        return score_dict
 
 
-
-    def compute_adds_score(pts3d, diameter, pose_gt, pose_pred, percentage=0.1):
-        R_gt, t_gt = pose_gt
-        R_pred, t_pred = pose_pred
-
-        count = R_gt.shape[0]
-        mean_distances = np.zeros((count,), dtype=np.float32)
-        for i in range(count):
-            if np.isnan(np.sum(t_pred[i])):
-                mean_distances[i] = np.inf
-                continue
-            pts_xformed_gt = R_gt[i] * pts3d.transpose() + t_gt[i]
-            pts_xformed_pred = R_pred[i] * pts3d.transpose() + t_pred[i]
+    def compute_adds_score(self, data_dict, percentage=0.1):
+        distance_category = np.zeros((len(data_dict), 2))
+        for index, pred_data in enumerate(data_dict):
+            R_gt, t_gt = np.array(pred_data['rotation_gt']), np.array(pred_data['translation_gt'])
+            R_gt, _ = cv2.Rodrigues(R_gt)
+            R_pred, t_pred = np.array(pred_data['rotation_pred']), np.array(pred_data['translation_pred'])
+            R_pred, _ = cv2.Rodrigues(R_pred)
+            pts3d = self.class_to_model[pred_data['category_id']]
+            pts_xformed_gt = np.matmul(R_gt, pts3d.transpose()) + t_gt[:, None]
+            pts_xformed_pred = np.matmul(R_pred, pts3d.transpose()) + t_pred[:, None]
             kdt = KDTree(pts_xformed_gt.transpose(), metric='euclidean')
             distance, _ = kdt.query(pts_xformed_pred.transpose(), k=1)
-            mean_distances[i] = np.mean(distance)
-        threshold = diameter * percentage
-        score = (mean_distances < threshold).sum() / count
-        return score
+            distance_category[index, 0] = np.mean(distance)
+            distance_category[index, 1] = pred_data['category_id']
+
+        threshold = [self.class_to_diameter[category] * percentage for category in self.class_to_diameter.keys()]
+        score_dict = {}
+        for threshold_multiple in range(1, 6):
+            score_dict["ADD_0p{}".format(threshold_multiple)] = {}
+
+        for category_id, category_type in self.class_to_name.items():
+            num_instances = len(distance_category[distance_category[:, 1] == category_id][:, 0])
+            if num_instances > 0:
+                for threshold_multiple in range(1,6):
+                    score = np.sum(distance_category[distance_category[:, 1] == category_id][:,0] < threshold_multiple * threshold[category_id-1]) / (num_instances + 1e-6)
+                    score_dict["ADD_0p{}".format(threshold_multiple)].update({category_id: score})
+        return score_dict

@@ -14,21 +14,21 @@ from yolox.core import Trainer, launch
 from yolox.exp import get_exp
 from yolox.utils import configure_nccl, configure_omp, get_num_devices
 
-_SUPPORTED_DATASETS = ["coco", "linemod", "coco_kpts"]
-_NUM_CLASSES = {"coco":80, "linemod":15, "coco_kpts":1}
+_SUPPORTED_DATASETS = ["coco", "linemod_occlusion", "coco_kpts"]
+_NUM_CLASSES = {"coco":80, "linemod_occlusion":15, "coco_kpts":1}
 _VAL_ANN = {
     "coco":"instances_val2017.json", 
-    "linemod":"instances_test.json",
+    "linemod_occlusion":"instances_test.json",
     "coco_kpts": "person_keypoints_val2017.json",
 }
 _TRAIN_ANN = {
     "coco":"instances_train2017.json", 
-    "linemod":"instances_train.json",
+    "linemod_occlusion":"instances_train.json",
     "coco_kpts": "person_keypoints_train2017.json",
 }
 _SUPPORTED_TASKS = {
     "coco":["2dod"],
-    "linemod":["2dod", "object_pose"],
+    "linemod_occlusion":["2dod", "object_pose"],
     "coco_kpts": ["2dod", "human_pose"]
 }
 
@@ -155,7 +155,7 @@ def main(exp, args):
             assert (
                 args.task in _SUPPORTED_TASKS[args.dataset]
             ), "The specified task cannot be performed with the given dataset!"
-            if args.dataset == "linemod":
+            if args.dataset == "linemod_occlusion":
                 #exp.pose = True if args.task == "object_pose" else exp.pose = False
                 if args.task == "object_pose":
                     exp.object_pose = True

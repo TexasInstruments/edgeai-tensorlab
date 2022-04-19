@@ -41,7 +41,7 @@ class Exp(MyExp):
         self.test_size = (640, 640)
         self.test_conf = 0.01
         self.nmsthre = 0.001
-        self.data_set = "linemod"
+        self.data_set = "linemod_occlusion"
         self.object_pose  = True
         self.visualize = True
         self.od_weights = None
@@ -78,7 +78,7 @@ class Exp(MyExp):
             self, batch_size, is_distributed, no_aug=True, cache_img=False
         ):
             from yolox.data import (
-                LINEMODDataset,
+                LINEMODOcclusionDataset,
                 TrainTransform,
                 YoloBatchSampler,
                 DataLoader,
@@ -94,8 +94,8 @@ class Exp(MyExp):
             local_rank = get_local_rank()
 
             with wait_for_the_master(local_rank):
-                if self.data_set == "linemod":
-                    dataset = LINEMODDataset(
+                if self.data_set == "linemod_occlusion":
+                    dataset = LINEMODOcclusionDataset(
                             data_dir=self.data_dir,
                             json_file=self.train_ann,
                             img_size=self.input_size,

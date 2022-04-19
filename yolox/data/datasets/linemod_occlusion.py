@@ -17,9 +17,9 @@ from .datasets_wrapper import Dataset
 from yolox.utils import camera_matrix
 
 
-class LINEMODDataset(Dataset):
+class LINEMODOcclusionDataset(Dataset):
     """
-    LINEMOD dataset class.
+    LINEMODOcclusion dataset class.
     """
 
     def __init__(
@@ -31,10 +31,10 @@ class LINEMODDataset(Dataset):
         preproc=None,
         cache=False,
         object_pose=False,
-        symmetric_objects={"glue", 11, "eggbox", 10},
+        symmetric_objects={10: "eggbox", 11: "glue"},
     ):
         """
-        LINEMOD dataset initialization. Annotation data are read into memory by COCO API.
+        LINEMODOcclusion dataset initialization. Annotation data are read into memory by COCO API.
         Args:
             data_dir (str): dataset root directory
             json_file (str): LINEMOD Occlusion json file name
@@ -64,9 +64,9 @@ class LINEMODDataset(Dataset):
         self.models_dict_path = os.path.join(self.cad_models_path, "models_info.yml")
         self.models_dict = yaml.safe_load(open(self.models_dict_path, 'r'))
         self.models_corners, self.models_diameter = self.get_models_params()
-        self.class_to_name = {1: "ape", 2: "can", 3: "cat", 4: "driller", 5: "duck", 6: "eggbox", 7: "glue",
-                         8: "holepuncher", 9: "benchvise", 10: "bowl", 11: "cup", 12: "iron", 13: "lamp", 14: "phone",
-                         15: "cam"}
+        self.class_to_name = {1: "ape", 2: "benchvise", 3: "bowl", 4: "cam", 5: "can", 6: "cat", 7: "cup",
+                         8: "driller", 9: "duck", 10: "eggbox", 11: "glue", 12: "holepuncher", 13: "iron", 14: "lamp",
+                         15: "phone"}
         self.class_to_model = self.load_cad_models()
         self.symmetric_objects = symmetric_objects
         if cache:
@@ -242,7 +242,7 @@ class LINEMODDataset(Dataset):
 
     def get_models_params(self):
         """
-        Convert model corners from LINEMOD format (min_x, min_y, min_z, size_x, size_y, size_z) to actual coordinates format of dimension (8,3)
+        Convert model corners from LINEMOD Occlusion format (min_x, min_y, min_z, size_x, size_y, size_z) to actual coordinates format of dimension (8,3)
         Return the corner coordinates and the diameters of each models
         """
         models_corners_3d = {}
