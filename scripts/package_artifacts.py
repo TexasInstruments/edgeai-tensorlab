@@ -39,14 +39,23 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('settings_file', type=str)
+    parser.add_argument('--work_dir', type=str)
+    parser.add_argument('--out_dir', type=str)
+
     cmds = parser.parse_args()
     settings = config_settings.ConfigSettings(cmds.settings_file)
 
-    work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
+    if cmds.work_dir is None:
+        work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
+    else:
+        work_dir = cmds.work_dir
     print(f'work_dir: {work_dir}')
 
-    package_dir = settings.modelartifacts_path + '_package'
-    out_dir = os.path.join(package_dir, f'{settings.tensor_bits}bits')
+    if cmds.out_dir is None:
+        package_dir = settings.modelartifacts_path + '_package'
+        out_dir = os.path.join(package_dir, f'{settings.tensor_bits}bits')
+    else:
+        out_dir = cmds.out_dir
     print(f'package_dir: {out_dir}')
 
     tools.run_package(settings, work_dir, out_dir)

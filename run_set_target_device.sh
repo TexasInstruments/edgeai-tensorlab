@@ -45,7 +45,9 @@ fi
 
 # "j7" or "pc"
 target_device=$1
-artifacts_base="./work_dirs/modelartifacts/8bits"
+if [ "$artifacts_base" = "" ]; then
+  artifacts_base="./work_dirs/modelartifacts/8bits"
+fi
 artifacts_folders=$(find "${artifacts_base}/" -maxdepth 1 |grep "_tvmdlr_")
 cur_dir=$(pwd)
 
