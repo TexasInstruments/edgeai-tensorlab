@@ -79,8 +79,9 @@ from . import model_utils
 
 
 def copy_file(file_path, file_path_local):
-    os.makedirs(os.path.dirname(file_path_local), exist_ok=True)
-    shutil.copy2(file_path, file_path_local)
+    if file_path != file_path_local:
+        os.makedirs(os.path.dirname(file_path_local), exist_ok=True)
+        shutil.copy2(file_path, file_path_local)
 
 
 def copy_files(file_path, file_path_local):
@@ -99,7 +100,7 @@ def download_file(url, root=None, extract_root=None, filename=None, md5=None, mo
             filename = filename or os.path.basename(url)
             local_file = os.path.join(root, os.path.basename(url))
             copy_file(url, local_file)
-            return local_file
+            #return local_file
         except FileNotFoundError:
             return None
         #
