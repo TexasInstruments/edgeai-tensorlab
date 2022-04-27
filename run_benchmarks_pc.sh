@@ -42,7 +42,7 @@ settings_file=settings_import_on_pc.yaml
 
 echo "==================================================================="
 # run all the shortlisted models with these settings
-python3 ./scripts/benchmark_modelzoo.py ${settings_file}
+python3 ./scripts/benchmark_modelzoo.py ${settings_file} "$@"
 echo "-------------------------------------------------------------------"
 
 #echo "==================================================================="

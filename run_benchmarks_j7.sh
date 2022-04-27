@@ -49,7 +49,7 @@ settings_file=settings_infer_on_j7.yaml
 
 echo "==================================================================="
 # run all the shortlisted models with these settings
-python3 ./scripts/benchmark_modelzoo.py ${settings_file}
+python3 ./scripts/benchmark_modelzoo.py ${settings_file} "$@"
 echo "-------------------------------------------------------------------"
 
 #echo "==================================================================="
