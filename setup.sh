@@ -54,6 +54,9 @@ pip3 install -e ./
 
 ######################################################################
 # Installing dependencies
+echo 'Cleaning up previous tidl_tools...'
+rm -rf tidl_tools.tar.gz tidl_tools
+
 echo 'Installing tidl_tools...'
 
 # installers for 8.2 release
