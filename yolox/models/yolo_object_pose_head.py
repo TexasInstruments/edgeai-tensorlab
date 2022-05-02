@@ -15,11 +15,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from yolox.utils import bboxes_iou, calculate_model_rotation, load_models
+from yolox.utils import bboxes_iou, calculate_model_rotation, camera_matrix
 
 from .losses import IOUloss
 from .network_blocks import BaseConv, DWConv
 
+from ..data.datasets.linemod_occlusion import CADModels
 
 class YOLOXObjectPoseHead(nn.Module):
     def __init__(
@@ -53,6 +54,7 @@ class YOLOXObjectPoseHead(nn.Module):
         self.trn_preds_z = nn.ModuleList()
         self.obj_preds = nn.ModuleList()
         self.stems = nn.ModuleList()
+        self.cad_models = CADModels()
         Conv = DWConv if depthwise else BaseConv
 
         for i in range(len(in_channels)):
@@ -393,6 +395,7 @@ class YOLOXObjectPoseHead(nn.Module):
             origin_preds = torch.cat(origin_preds, 1)
 
         cls_targets = []
+        cls_targets_raw = []
         reg_targets = []
         l1_targets = []
         obj_targets = []
@@ -484,6 +487,7 @@ class YOLOXObjectPoseHead(nn.Module):
                 cls_target = F.one_hot(
                     gt_matched_classes.to(torch.int64), self.num_classes
                 ) * pred_ious_this_matching.unsqueeze(-1)
+                cls_target_raw = gt_matched_classes  #Preserving the raw classes for fetching class_related parameters
                 obj_target = fg_mask.unsqueeze(-1)
                 reg_target = gt_bboxes_per_image[matched_gt_inds]
                 rot_target = gt_rots_per_image[matched_gt_inds]
@@ -499,6 +503,7 @@ class YOLOXObjectPoseHead(nn.Module):
                     )
 
             cls_targets.append(cls_target)
+            cls_targets_raw.append(cls_target_raw)
             reg_targets.append(reg_target)
             rot_targets.append(rot_target)
             trn_xy_targets.append(trn_xy_target)
@@ -509,6 +514,7 @@ class YOLOXObjectPoseHead(nn.Module):
                 l1_targets.append(l1_target)
 
         cls_targets = torch.cat(cls_targets, 0)
+        cls_targets_raw = torch.cat(cls_targets_raw, 0)
         reg_targets = torch.cat(reg_targets, 0)
         rot_targets = torch.cat(rot_targets, 0)
         trn_xy_targets = torch.cat(trn_xy_targets, 0)
@@ -535,8 +541,12 @@ class YOLOXObjectPoseHead(nn.Module):
         ).sum() / num_fg
         loss_trn_xy = (self.kpts_loss(trn_xy_preds.view(-1, 2)[fg_masks], trn_xy_targets, reg_targets)
         ).sum() / num_fg
-        loss_trn_z = (self.mae_loss(trn_z_preds.view(-1, 1)[fg_masks], trn_z_targets)
-        ).sum() / num_fg 
+        self.adds = False
+        if not self.adds:
+            loss_trn_z = (self.mae_loss(trn_z_preds.view(-1, 1)[fg_masks], trn_z_targets)
+                          ).sum() / num_fg
+        else:
+            loss_trn_z = self.adds_loss(trn_z_preds.view(-1, 1)[fg_masks], trn_z_targets, cls_targets_raw)
         if self.use_l1:
             loss_l1 = (
                 self.l1_loss(origin_preds.view(-1, 4)[fg_masks], l1_targets)
@@ -796,9 +806,38 @@ class YOLOXObjectPoseHead(nn.Module):
         lkpt = (1 - oks).mean(axis=1)
         return lkpt
 
-    def kpts_loss_3d(self, kpts_preds, kpts_targets, bbox_targets, cuboid_targets):
+
+    def adds_loss(self, preds, targets, cls_targets):
+        models_diameter = torch.tensor(list(self.cad_models.models_diameter.values()), device=targets.device)
+        cls_targets = cls_targets.to(torch.int64)
+        models_diameter = models_diameter[cls_targets]
+        loss_trn_z = (self.mae_loss(preds, targets)*100 / models_diameter[:, None]).sum()/len(preds)
+        return loss_trn_z
+
+
+    def kpts_loss_3d(self, preds_Z, targets_Z, preds_xy, targets_xy,  cls_targets):
         "Implement a generalized version of oks loss for 3d keypoints"
-        pass
+        sigmas = torch.tensor([.26], device=preds_Z.device) / 1.0
+        preds_x, targets_x = preds_xy[:, 0:1], targets_xy[:, 0:1]
+        preds_y, targets_y = preds_xy[:, 1:2], targets_xy[:, 1:2]
+        preds_Z = 100.0 * preds_Z
+        targets_Z = 100.0 * targets_Z
+        # transform to 3D space
+        fx, fy, px, py =  camera_matrix[0], camera_matrix[4], camera_matrix[2], camera_matrix[5]
+        preds_X = (preds_x - px) * (preds_Z /fx)
+        preds_Y = (preds_y - py) * (preds_Z /fy)
+        targets_X = (targets_x - px) * (targets_Z / fx)
+        targets_Y = (targets_y - py) * (targets_Z / fy)
+        # OKS based loss calculation
+        #d = ((preds_X - targets_X) ** 2 + (preds_Y - targets_Y) ** 2 + (preds_Z - targets_Z) ** 2)/10000
+        d = (torch.abs(preds_X - targets_X) +torch.abs(preds_X - targets_X)+ torch.abs(preds_Z - targets_Z)) /100.0
+        #cuboid_scale = torch.tensor([cuboid_volume**(2.0/3) for cuboid_volume in class_to_cuboid_volume], device=preds_Z.device)
+        #class_id = torch.argmax(cls_targets, axis=1)
+        #scale = cuboid_scale[class_id][:,None]
+        #oks = torch.exp(-d / (10000  + 1e-9))
+        #lkpt = (1-oks).mean(axis=1)
+        return d
+
 
     def iou_loss_3d(self, kpts_preds, kpts_targets, bbox_targets, cuboid_targets):
         "Implemet a generalized version of iou loss based on top view, front view and side view of a box"
