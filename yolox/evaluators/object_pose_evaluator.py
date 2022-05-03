@@ -137,27 +137,28 @@ class ObjectPoseEvaluator:
                     os.makedirs(os.path.join(self.output_dir, "vis_pose"), exist_ok=True)
                     for output_idx in range(len(predicted_pose)):
                         img = imgs[output_idx]
-                        visualize_object_pose.draw_6d_pose(img, frame_data_list, class_to_model=self.class_to_model,
-                                                                    class_to_cuboid=self.class_to_cuboid, out_dir=self.output_dir, id=ids[output_idx][0])
-                        visualize_object_pose.draw_6d_pose(img, frame_data_list, class_to_model=self.class_to_model,
+                        if len(frame_data_list) != 0:
+                            visualize_object_pose.draw_6d_pose(img, frame_data_list, class_to_model=self.class_to_model,
+                                                                        class_to_cuboid=self.class_to_cuboid, out_dir=self.output_dir, id=ids[output_idx][0])
+                            visualize_object_pose.draw_6d_pose(img, frame_data_list, class_to_model=self.class_to_model,
                                                                     class_to_cuboid=self.class_to_cuboid, gt=False, out_dir=self.output_dir,id=ids[output_idx][0])
                 if is_time_record:
                     nms_end = time_synchronized()
                     nms_time += nms_end - infer_end
 
-
-
         statistics = torch.cuda.FloatTensor([inference_time, nms_time, n_samples])
         if distributed:
             pred_data_list = gather(pred_data_list, dst=0)
+            data_list = gather(data_list, dst=0)
             pred_data_list = list(itertools.chain(*pred_data_list))
+            data_list = list(itertools.chain(*data_list))
             torch.distributed.reduce(statistics, dst=0)
 
         eval_results_6dpose = self.evaluate_prediction_6dpose(data_list, statistics)
         eval_results_2d_od = self.evaluate_prediction_2d_od(pred_data_list, statistics)
         result_summary = eval_results_2d_od[-1] + eval_results_6dpose[-1]
         synchronize()
-        return  eval_results_6dpose, eval_results_2d_od, result_summary
+        return  eval_results_2d_od[0], eval_results_2d_od[1], result_summary
 
     def convert_to_coco_format(self, outputs, targets, info_imgs, ids):
         data_list = []
@@ -287,6 +288,8 @@ class ObjectPoseEvaluator:
 
 
     def evaluate_prediction_6dpose(self, data_dict, statistics):
+        if not is_main_process():
+            return 0, 0
         data_dict_asym = []
         data_dict_sym = []
         for pred_data in data_dict:
@@ -307,7 +310,7 @@ class ObjectPoseEvaluator:
             score_dict_summmary += metric + "\n"
             if "avg" not in metric:
                 for cls in score_dict[metric].keys():
-                    score_dict_summmary += str(cls) + " : " + "{0:2f}".format(score_dict[metric][cls]) + "\n"
+                    score_dict_summmary += "{:>5}".format(cls) + " ({:>12}) : ".format(self.class_to_name[cls]) + "{0:2f}".format(score_dict[metric][cls]) + "\n"
             else:
                 score_dict_summmary += "{0:2f}".format(score_dict[metric]) + "\n"
 
