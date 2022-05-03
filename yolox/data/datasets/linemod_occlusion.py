@@ -87,7 +87,7 @@ class CADModels():
             class_to_sparse_model.update({model_id : self.class_to_model[model_id][::sample_rate, :]})
         return class_to_sparse_model
 
-cad_models = CADModels()
+#cad_models = CADModels()
 
 class LINEMODOcclusionDataset(Dataset):
     """
@@ -132,9 +132,10 @@ class LINEMODOcclusionDataset(Dataset):
         if preproc is not None:
             self.preproc = preproc
         self.annotations = self._load_coco_annotations()
-        self.models_corners, self.models_diameter = cad_models.models_corners, cad_models.models_diameter
-        self.class_to_name = cad_models.class_to_name
-        self.class_to_model = cad_models.class_to_model
+        self.cad_models = CADModels()
+        self.models_corners, self.models_diameter = self.cad_models.models_corners, self.cad_models.models_diameter
+        self.class_to_name = self.cad_models.class_to_name
+        self.class_to_model = self.cad_models.class_to_model
         self.symmetric_objects = symmetric_objects
         if cache:
             self._cache_images()

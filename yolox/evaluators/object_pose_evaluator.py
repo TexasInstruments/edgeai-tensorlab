@@ -155,10 +155,9 @@ class ObjectPoseEvaluator:
             torch.distributed.reduce(statistics, dst=0)
 
         eval_results_6dpose = self.evaluate_prediction_6dpose(data_list, statistics)
-        eval_results_2d_od = self.evaluate_prediction_2d_od(pred_data_list, statistics)
-        result_summary = eval_results_2d_od[-1] + eval_results_6dpose[-1]
+        eval_results_2d_od = self.evaluate_prediction_2d_od(pred_data_list, statistics, eval_results_6dpose[-1])
         synchronize()
-        return  eval_results_2d_od[0], eval_results_2d_od[1], result_summary
+        return  eval_results_2d_od
 
     def convert_to_coco_format(self, outputs, targets, info_imgs, ids):
         data_list = []
@@ -230,7 +229,7 @@ class ObjectPoseEvaluator:
                 data_list.append(pred_gt_data)
         return data_list, pred_list
 
-    def evaluate_prediction_2d_od(self, data_dict, statistics):
+    def evaluate_prediction_2d_od(self, data_dict, statistics, pose_info):
         if not is_main_process():
             return 0, 0, None
 
@@ -282,6 +281,7 @@ class ObjectPoseEvaluator:
             with contextlib.redirect_stdout(redirect_string):
                 cocoEval.summarize()
             info += redirect_string.getvalue()
+            info += pose_info
             return cocoEval.stats[0], cocoEval.stats[1], info
         else:
             return 0, 0, info
