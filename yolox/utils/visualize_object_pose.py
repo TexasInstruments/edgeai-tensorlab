@@ -58,9 +58,9 @@ def draw_cuboid_2d(img, cuboid_corners, colour = (0, 255, 0), thickness = 2):
 
 def project_3d_2d(cuboid_corners, rotation_vec, translation_vec, camera_matrix):
     rotation_mat, _ = cv2.Rodrigues(rotation_vec)
-    transformed_3d = np.matmul(cuboid_corners, rotation_mat.T) + translation_vec
-    transformed_3d[:,:3] = transformed_3d[:,:3]/transformed_3d[:,2:3]
-    projected_2d = np.matmul(transformed_3d, camera_matrix.reshape((3, 3)).T)[:, :2]
+    xformed_3d = np.matmul(cuboid_corners, rotation_mat.T) + translation_vec
+    xformed_3d[:,:3] = xformed_3d[:,:3]/xformed_3d[:,2:3]
+    projected_2d = np.matmul(xformed_3d, camera_matrix.reshape((3, 3)).T)[:, :2]
 
     return projected_2d
 

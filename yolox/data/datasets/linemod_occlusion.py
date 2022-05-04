@@ -87,7 +87,6 @@ class CADModels():
             class_to_sparse_model.update({model_id : self.class_to_model[model_id][::sample_rate, :]})
         return class_to_sparse_model
 
-#cad_models = CADModels()
 
 class LINEMODOcclusionDataset(Dataset):
     """
@@ -228,13 +227,8 @@ class LINEMODOcclusionDataset(Dataset):
             if self.object_pose:
                 temp_R, _ = cv2.Rodrigues(np.array(obj["R"]).reshape(3,3))
                 temp_R = np.squeeze(temp_R)
-                obj_centre_2d, _ = cv2.projectPoints(
-                    objectPoints=np.zeros(shape=(1, 3)),
-                    rvec=temp_R,
-                    tvec=np.array(obj["T"]),
-                    cameraMatrix=camera_matrix.reshape(3,3),
-                    distCoeffs=None
-                )
+
+                obj_centre_2d = np.matmul(camera_matrix.reshape(3,3), np.array(obj["T"])/obj["T"][2])[:2]  #rotation vec not required for the center point
                 #res[ix, 11:14] = obj["T"]
                 obj_centre_2d = np.squeeze(obj_centre_2d)
                 res[ix, 11:13] = obj_centre_2d
