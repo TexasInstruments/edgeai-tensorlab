@@ -56,30 +56,13 @@ def draw_cuboid_2d(img, cuboid_corners, colour = (0, 255, 0), thickness = 2):
     return img
 
 
-def project_cuboid(cuboid_corners, rotation_vec, translation_vec, camera_matrix):
-   cuboid_corners_2d, _ = cv2.projectPoints(
-       objectPoints=cuboid_corners,
-       rvec=rotation_vec,
-       tvec=translation_vec,
-       cameraMatrix=camera_matrix.reshape((3,3)),
-       distCoeffs=None
-    ) 
-   cuboid_corners_2d = np.squeeze(cuboid_corners_2d)
+def project_3d_2d(cuboid_corners, rotation_vec, translation_vec, camera_matrix):
+    rotation_mat, _ = cv2.Rodrigues(rotation_vec)
+    transformed_3d = np.matmul(cuboid_corners, rotation_mat.T) + translation_vec
+    transformed_3d[:,:3] = transformed_3d[:,:3]/transformed_3d[:,2:3]
+    projected_2d = np.matmul(transformed_3d, camera_matrix.reshape((3, 3)).T)[:, :2]
 
-   return cuboid_corners_2d
-
-
-def project_cad_model(cad_model, rotation_vec, translation_vec, camera_matrix):
-   cad_model_2d, _ = cv2.projectPoints(
-       objectPoints=cad_model,
-       rvec=rotation_vec,
-       tvec=translation_vec,
-       cameraMatrix=camera_matrix.reshape((3,3)),
-       distCoeffs=None
-    )
-   cad_model_2d = np.squeeze(cad_model_2d)
-
-   return cad_model_2d
+    return projected_2d
 
 
 def draw_6d_pose(img, data_list, class_to_cuboid=None, camera_matrix=camera_matrix, colours=colours, conf = 0.6, class_to_model=None, gt=True, out_dir=None, id=None):
@@ -109,14 +92,14 @@ def draw_6d_pose(img, data_list, class_to_cuboid=None, camera_matrix=camera_matr
 
         img_cuboid = cv2.circle(img_cuboid, (int(xy[0]), int(xy[1])), 3, (0, 0, 255), -1)
 
-        cad_model_2d = project_cad_model(class_to_model[label], rotation, translation, camera_matrix)
+        cad_model_2d = project_3d_2d(class_to_model[label], rotation, translation, camera_matrix)
         cad_model_2d = cad_model_2d.astype(np.int32)
         cad_model_2d[cad_model_2d >= 640] = 639
         cad_model_2d[cad_model_2d < 0] = 0
         img_mask[cad_model_2d[:, 1], cad_model_2d[:, 0]] = colour
         img_mask = cv2.circle(img_mask, (int(xy[0]), int(xy[1])), 3, (0, 0, 255), -1)
 
-        cuboid_corners_2d = project_cuboid(cuboid_corners=class_to_cuboid[label],
+        cuboid_corners_2d = project_3d_2d(cuboid_corners=class_to_cuboid[label],
             rotation_vec=rotation, translation_vec=translation, camera_matrix=camera_matrix
         )
         img_cuboid = draw_cuboid_2d(img=img_cuboid, cuboid_corners=cuboid_corners_2d, colour=colour)
