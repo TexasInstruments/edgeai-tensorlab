@@ -31,35 +31,22 @@
 #
 #################################################################################
 
-# determine if we are behind ti firewall
-ping bitbucket.itg.ti.com -c 1 > /dev/null 2>&1
-PING_CHECK="$?"
-# internal or external build
-if [ ${PING_CHECK} -eq "0" ]; then
-    REPO_LOCATION=artifactory.itg.ti.com/docker-public/library/
-    PROXY_LOCATION=http://wwwgate.ti.com:80
-    FAST_CLONE_MODELZOO="--single-branch -b release"
-else
-    REPO_LOCATION=""
-    PROXY_LOCATION=""
-    FAST_CLONE_MODELZOO=""
-fi
-# print
-echo "REPO_LOCATION="${REPO_LOCATION}
-echo "PROXY_LOCATION="${PROXY_LOCATION}
+echo "installing repositories..."
 
-# clone
-echo "cloning git repositories. this may take some time..."
-if [ -z ../edgeai-benchmark ]; then git clone ${SOURCE_LOCATION}edgeai-benchmark.git ..; fi
-if [ -z ../edgeai-mmdetection ]; then git clone ${SOURCE_LOCATION}edgeai-mmdetection.git ..; fi
-if [ -z ../edgeai-torchvision ]; then git clone ${SOURCE_LOCATION}edgeai-torchvision.git ..; fi
-if [ -z ../edgeai-modelzoo ]; then git clone ${SOURCE_LOCATION}edgeai-modelzoo.git ${FAST_CLONE_MODELZOO} ..; fi
+cd ../edgeai-torchvision
+./setup.sh
 
-# Build docker image
-echo "building docker image..."
-docker build \
-    -f Dockerfile \
-    -t modelmaker \
-    --build-arg REPO_LOCATION=${REPO_LOCATION} \
-    --build-arg PROXY_LOCATION=${PROXY_LOCATION} \
-    --no-cache .
+cd ../edgeai-mmdetection
+./setup.sh
+
+cd ../edgeai-benchmark
+# for setup.py develop mode to work, this is required
+git config --global --add safe.directory $(pwd)
+./setup.sh
+
+cd ../edgeai-modelmaker
+./setup.sh
+
+ls -d ../edgeai-*
+
+echo "installation done."
