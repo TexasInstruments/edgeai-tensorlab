@@ -117,7 +117,7 @@ class DatasetHandling:
             elif self.params.dataset.input_data_path is not None:
                 input_annotation_path = os.path.join(self.params.dataset.dataset_path, self.params.dataset.annotation_dir,
                                                      f'{self.params.dataset.annotation_prefix}.json')
-                dataset_utils.download_file(self.params.dataset.input_data_path, self.params.dataset.download_path,
+                _, _, input_data_path = dataset_utils.download_file(self.params.dataset.input_data_path, self.params.dataset.download_path,
                     self.params.dataset.dataset_path)
                 with open(input_annotation_path) as afp:
                     dataset_store = json.load(afp)
@@ -125,6 +125,7 @@ class DatasetHandling:
                 # split the dataset into train/val
                 dataset_splits = dataset_utils.dataset_split(dataset_store, self.params.dataset.split_factor,
                     self.params.dataset.split_names)
+                self.params.dataset.input_data_path, self.params.dataset.input_annotation_path = input_data_path, input_annotation_path
             elif self.params.dataset.dataset_name in get_datasets_list(self.params.common.task_type):
                 dataset_backend = get_backend_module(self.params.dataset.dataset_name)
                 if self.params.dataset.dataset_reload:
@@ -145,14 +146,15 @@ class DatasetHandling:
                 assert False, 'invalid dataset details'
             #
             for split_idx, split_name in enumerate(dataset_splits):
+                input_images_path = os.path.join(self.params.dataset.input_data_path, self.params.dataset.data_dir)
                 dataset_splits[split_name] = dataset_utils.dataset_split_limit(dataset_splits[split_name],
                     max_num_files[split_idx])
                 dataset_utils.dataset_split_write(
-                    self.params.dataset.input_data_path, dataset_splits[split_name],
+                    input_images_path, dataset_splits[split_name],
                     self.params.dataset.data_path_splits[split_idx],
                     self.params.dataset.annotation_path_splits[split_idx])
                 dataset_utils.dataset_split_link(
-                    self.params.dataset.input_data_path, dataset_splits[split_name],
+                    input_images_path, dataset_splits[split_name],
                     self.params.dataset.data_path_splits[split_idx],
                     self.params.dataset.annotation_path_splits[split_idx])
             #
