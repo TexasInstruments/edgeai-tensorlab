@@ -42,9 +42,10 @@ cont_count=`docker ps -aq | wc -l`
 if [ $cont_count -eq 0 ]
 then
     docker run -it \
-        -v ${PARENT_DIR}:/root/edgeai-base \
+        -v ${PARENT_DIR}:/home/edgeai/code \
         --privileged \
         --network host \
+        --shm-size 50G \
         modelmaker bash
 # If one container exist, execute that container.
 elif [ $cont_count -eq 1 ]
@@ -57,4 +58,3 @@ else
     echo -e "To run existing container, use [docker start] and [docker exec] command"
     echo -e "To run the new container, use [docker run] command\n"
 fi
-

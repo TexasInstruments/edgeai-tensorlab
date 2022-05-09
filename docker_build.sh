@@ -62,4 +62,6 @@ docker build \
     -t modelmaker \
     --build-arg REPO_LOCATION=${REPO_LOCATION} \
     --build-arg PROXY_LOCATION=${PROXY_LOCATION} \
+    --build-arg USER_ID=$(id -u) \
+    --build-arg USER_GID=$(id -g) \
     --no-cache .
