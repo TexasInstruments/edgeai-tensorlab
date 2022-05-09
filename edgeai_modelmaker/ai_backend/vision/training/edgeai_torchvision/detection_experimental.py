@@ -30,15 +30,22 @@
 #################################################################################
 
 import os
+import sys
 import shutil
 import json
 
 from ... import constants
 from ... import utils
-from references.detection import train
 
 
+edgeai_torchvision_path = os.path.abspath('../edgeai-torchvision')
 edgeai_modelzoo_path = os.path.abspath('../edgeai-modelzoo')
+
+
+sys.path.insert(0, edgeai_torchvision_path)
+from references.detection import train
+sys.path.pop(0)
+
 
 _pretrained_models = {
     'ssdlite_mobilenet_v2_fpn_lite_tv': dict(
