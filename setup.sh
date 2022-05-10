@@ -15,7 +15,7 @@ echo "building torchvision"
 # may need pytorch nightly to build this package
 echo "installing pytorch for cuda 11.3"
 echo "other versions can be found here: https://pytorch.org/get-started/locally/"
-pip3 install --no-input torch==1.11.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html
+pip3 install --no-input torch==1.10.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html
 
 pip3 install --no-input onnx==1.8.1
 pip3 install --no-input torchinfo
