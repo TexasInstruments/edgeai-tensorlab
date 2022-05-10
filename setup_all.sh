@@ -31,6 +31,32 @@
 #
 #################################################################################
 
+#################################################################################
+# determine if we are behind ti firewall
+ping bitbucket.itg.ti.com -c 1 > /dev/null 2>&1
+PING_CHECK="$?"
+# internal or external build
+if [ ${PING_CHECK} -eq "0" ]; then
+    SOURCE_LOCATION="ssh://git@bitbucket.itg.ti.com/edgeai-algo/"
+    FAST_CLONE_MODELZOO="--single-branch -b release"
+else
+    SOURCE_LOCATION="https://github.com/TexasInstruments/"
+    FAST_CLONE_MODELZOO=""
+fi
+# print
+echo "SOURCE_LOCATION="${SOURCE_LOCATION}
+
+#################################################################################
+# clone
+echo "cloning git repositories. this may take some time..."
+if [ -z ../edgeai-benchmark ]; then git clone ${SOURCE_LOCATION}edgeai-benchmark.git ..; fi
+if [ -z ../edgeai-mmdetection ]; then git clone ${SOURCE_LOCATION}edgeai-mmdetection.git ..; fi
+if [ -z ../edgeai-torchvision ]; then git clone ${SOURCE_LOCATION}edgeai-torchvision.git ..; fi
+if [ -z ../edgeai-modelzoo ]; then git clone ${SOURCE_LOCATION}edgeai-modelzoo.git ${FAST_CLONE_MODELZOO} ..; fi
+
+echo "cloning done."
+
+#################################################################################
 echo "installing repositories..."
 
 cd ../edgeai-torchvision

@@ -31,7 +31,7 @@ RUN echo 'apt update...' && \
     if [ ! -z $PROXY_LOCATION ]; then echo "Acquire::http::proxy \"${PROXY_LOCATION}\";" > /etc/apt/apt.conf; fi && \
     if [ ! -z $PROXY_LOCATION ]; then echo "Acquire::https::proxy \"${PROXY_LOCATION}\";" >> /etc/apt/apt.conf; fi && \
     apt update && \
-    apt install -y sudo git build-essential wget cmake libjpeg-dev zlib1g-dev libgtk2.0
+    apt install -y sudo git iputils-ping wget cmake build-essential libjpeg-dev zlib1g-dev libgtk2.0
 
 # add user, inspired by: https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user
 RUN groupadd --gid $USER_GID $USER_NAME && \

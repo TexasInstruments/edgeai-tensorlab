@@ -19,14 +19,52 @@ The following are the key functionality supported by this tool:
 These functionalities that are supported are fully integrated and the user doesn't need to do anything apart from setting some parameters in the beginning.  
 
 
-## Setup instructions
+## OS & Environment 
+
+### With docker environment
+
+Install docker if you don't have it already. The following steps are for installation on Ubuntu 18.04
+```
+sudo apt update
+sudo apt install docker.io
+sudo usermod -aG docker ${USER}
+sudo systemctl start docker
+sudo systemctl enable docker
+# logout and log back in and docker should be ready to use.
+```
+
+Build docker image:
+```
+./docker_build.sh
+```
+
+Run docker container to bring up the container terminal on docker:
+```
+./docker_run.sh
+```
+
+During docker run, we map the parent directory of this folder to /home/edgeai/code. This is to easily share code and data between the host and the docker container. Inside the docker terminal, change directory to where this folder is mapped to:
+```
+cd /home/edgeai/code/edgeai-modelmaker
+```
+
+###  With native Ubuntu environment
 We have tested this tool in Ubuntu 18.04 and with Python 3.6 (Note: Currently edgeai-tidl-tools supports only Python 3.6)
 We recommend the Miniconda Python distribution from: https://docs.conda.io/en/latest/miniconda.html
 
-The tools depends on several repositories that we have published at https://github.com/TexasInstruments
-The repositories mentioned below must be cloned into the same parent folder containing this tool. i.e. the model structure should be:
 
-parent_folder
+## Setup the model training and compilation repositories
+
+This tool depends on several repositories that we have published at https://github.com/TexasInstruments
+
+The following setup script can take care of cloning the repositories and running their setup scripts.
+```
+./setup_all.sh
+```
+
+However, for some reason, if you wish to do it manually, the repositories mentioned below are to be cloned into the same parent directory containing this folder. i.e. the folder structure should be:
+
+parent_directory
     |
     |--edgeai-benchmark
     |--edgeai-torchvision
@@ -35,10 +73,21 @@ parent_folder
     |--edgeai-modelmaker
 
 
-After cloning, go into the setup folders provided in each repository and execute them. 
-
-Note: edgeai-modelzoo doesn't have a setup script.
+Note: edgeai-modelzoo doesn't have a setup script.<br>
 Note: There is no need to clone edgeai-tidl-tools, as edgeai-benchmark takes care of the dependencies provided by edgeai-tidl-tools as well.
+
+
+## Run examples
+
+Object detection example
+```
+./run_ai_backend.sh config_detection.yaml
+```
+
+Image classification example
+```
+./run_ai_backend.sh config_classification.yaml
+```
 
 ## Data annotation
 
