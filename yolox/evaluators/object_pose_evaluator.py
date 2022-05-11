@@ -357,6 +357,8 @@ class ObjectPoseEvaluator:
             pts_xformed_pred = np.matmul(R_pred, pts3d.transpose()) + t_pred[:, None]
             kdt = KDTree(pts_xformed_gt.transpose(), metric='euclidean')
             distance, _ = kdt.query(pts_xformed_pred.transpose(), k=1)
+            # distance_np = np.sqrt(     #brute-force distance calculation
+            #     np.min(np.sum((pts_xformed_gt[:, :, None] - pts_xformed_pred[:, None, :]) ** 2, axis=0), axis=1))
             distance_category[index, 0] = np.mean(distance)
             distance_category[index, 1] = pred_data['category_id']
 

@@ -30,6 +30,7 @@ class CADModels():
         self.class_to_model = self.load_cad_models()
         self.class_to_sparse_model = self.create_sparse_models()
         self.models_corners, self.models_diameter = self.get_models_params()
+        self.symmetric_objects = {10: "eggbox", 11: "glue"}
 
     def load_cad_models(self):
         class_to_model = {class_id: None for class_id in self.class_to_name.keys()}
@@ -82,8 +83,8 @@ class CADModels():
     def create_sparse_models(self):
         class_to_sparse_model = {}
         for model_id in self.class_to_model.keys():
-            sample_rate =len(self.class_to_model[model_id])//1000
-            #sparsely sample the model to have close to 1000 points
+            sample_rate =len(self.class_to_model[model_id])//500
+            #sparsely sample the model to have close to 500 points
             class_to_sparse_model.update({model_id : self.class_to_model[model_id][::sample_rate, :]})
         return class_to_sparse_model
 
