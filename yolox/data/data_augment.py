@@ -156,9 +156,9 @@ def random_affine(
 
     return img, targets
 
-def _mirror(image, boxes, prob=0.5, human_pose=False, human_kpts=None, flip_index=None):
+def _mirror(image, boxes, prob=0.5, human_pose=False, object_pose=False, human_kpts=None, flip_index=None):
     _, width, _ = image.shape
-    if random.random() < prob:
+    if random.random() < prob or object_pose:
         image = image[:, ::-1]
         boxes[:, 0::2] = width - boxes[:, 2::-2]
         if human_pose:
@@ -234,7 +234,9 @@ class TrainTransform:
         if random.random() < self.hsv_prob:
             augment_hsv(image)
         if self.human_pose:
-            image_t, boxes, human_kpts = _mirror(image, boxes, self.flip_prob, human_pose=self.human_pose, human_kpts=human_kpts, flip_index=self.flip_index)
+            image_t, boxes, human_kpts = _mirror(image, boxes, self.flip_prob, human_pose=self.human_pose, object_pose=self.object_pose, human_kpts=human_kpts, flip_index=self.flip_index)
+        elif self.object_pose:
+            image_t, boxes = image, boxes
         else:
             image_t, boxes = _mirror(image, boxes, self.flip_prob)
 

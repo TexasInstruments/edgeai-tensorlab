@@ -107,7 +107,7 @@ class Trainer:
         targets.requires_grad = False
         inps, targets = self.exp.preprocess(inps, targets, self.input_size)
         data_end_time = time.time()
-        if self.epoch < 2 and self.iter <100 and self.args.task == "human_pose":
+        if self.epoch < 2 and self.iter <100 and (self.args.task == "human_pose" ): #or self.args.task == "object_pose"
             f = os.path.join(self.file_name, f'epoch_{self.epoch}_train_batch{self.iter}.png')  # filename
             plots.plot_images(inps, targets, fname=f)
         with torch.cuda.amp.autocast(enabled=self.amp_training):
@@ -280,9 +280,9 @@ class Trainer:
             self.meter.clear_meters()
 
         # random resizing
-        if (self.progress_in_iter + 1) % 10 == 0:
+        if (self.progress_in_iter + 1) % 10 == 0 and not self.exp.object_pose:
             self.input_size = self.exp.random_resize(
-                self.train_loader, self.epoch, self.rank, self.is_distributed
+                self.train_loader, self.epoch, self.rank, self.is_distributed,
             )
 
     @property
