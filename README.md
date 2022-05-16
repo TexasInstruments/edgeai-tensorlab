@@ -50,6 +50,7 @@ cd /home/edgeai/code/edgeai-modelmaker
 
 ###  With native Ubuntu environment
 We have tested this tool in Ubuntu 18.04 and with Python 3.6 (Note: Currently edgeai-tidl-tools supports only Python 3.6)
+
 We recommend the Miniconda Python distribution from: https://docs.conda.io/en/latest/miniconda.html
 
 
@@ -64,13 +65,13 @@ The following setup script can take care of cloning the repositories and running
 
 However, for some reason, if you wish to do it manually, the repositories mentioned below are to be cloned into the same parent directory containing this folder. i.e. the folder structure should be:
 
-parent_directory
-    |
-    |--edgeai-benchmark
-    |--edgeai-torchvision
-    |--edgeai-mmdetection
-    |--edgeai-modelzoo
-    |--edgeai-modelmaker
+parent_directory<br>
+    |<br>
+    |--edgeai-benchmark<br>
+    |--edgeai-torchvision<br>
+    |--edgeai-mmdetection<br>
+    |--edgeai-modelzoo<br>
+    |--edgeai-modelmaker<br>
 
 
 Note: edgeai-modelzoo doesn't have a setup script.<br>
