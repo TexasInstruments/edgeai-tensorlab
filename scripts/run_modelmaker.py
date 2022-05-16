@@ -35,12 +35,12 @@ import argparse
 import yaml
 import json
 
-from edgeai_modelmaker import ai_backend
+import edgeai_modelmaker
 
 
 def main(config):
     # get the ai backend module
-    ai_backend_module = ai_backend.get_backend_module(config['common']['ai_backend_name'])
+    ai_backend_module = edgeai_modelmaker.get_backend_module(config['common']['ai_backend_name'])
 
     # get params for the given config
     params = ai_backend_module.runner.ModelRunner.init_params(config)
