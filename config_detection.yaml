@@ -1,6 +1,6 @@
 
 common:
-    ai_backend_name: 'vision'
+    backend_module: 'vision'
     task_type: 'detection'
     target_device: 'TDA4VM'
 
@@ -36,7 +36,7 @@ training:
     training_epochs: 30 #10
     # batch_size: 8 #32
     # learning_rate: 0.005
-    num_gpus: 0 #0 #1 #4
+    num_gpus: 1 #0 #1 #4
 
 compilation:
     # enable/disable compilation

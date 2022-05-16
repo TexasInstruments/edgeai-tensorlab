@@ -40,7 +40,7 @@ import edgeai_modelmaker
 
 def main(config):
     # get the ai backend module
-    ai_backend_module = edgeai_modelmaker.get_backend_module(config['common']['ai_backend_name'])
+    ai_backend_module = edgeai_modelmaker.get_backend_module(config['common']['backend_module'])
 
     # get params for the given config
     params = ai_backend_module.runner.ModelRunner.init_params(config)

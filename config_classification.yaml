@@ -1,6 +1,6 @@
 
 common:
-    ai_backend_name: 'vision'
+    backend_module: 'vision'
     task_type: 'classification'
     target_device: 'TDA4VM'
 
