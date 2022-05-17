@@ -49,10 +49,10 @@ echo "SOURCE_LOCATION="${SOURCE_LOCATION}
 #################################################################################
 # clone
 echo "cloning git repositories. this may take some time..."
-if [ -z ../edgeai-benchmark ]; then git clone ${SOURCE_LOCATION}edgeai-benchmark.git ..; fi
-if [ -z ../edgeai-mmdetection ]; then git clone ${SOURCE_LOCATION}edgeai-mmdetection.git ..; fi
-if [ -z ../edgeai-torchvision ]; then git clone ${SOURCE_LOCATION}edgeai-torchvision.git ..; fi
-if [ -z ../edgeai-modelzoo ]; then git clone ${SOURCE_LOCATION}edgeai-modelzoo.git ${FAST_CLONE_MODELZOO} ..; fi
+if [ ! -d ../edgeai-benchmark ]; then git clone ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
+if [ ! -d ../edgeai-mmdetection ]; then git clone ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
+if [ ! -d ../edgeai-torchvision ]; then git clone ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
+if [ ! -d ../edgeai-modelzoo ]; then git clone ${SOURCE_LOCATION}edgeai-modelzoo.git ${FAST_CLONE_MODELZOO} ../edgeai-modelzoo; fi
 
 echo "cloning done."
 
