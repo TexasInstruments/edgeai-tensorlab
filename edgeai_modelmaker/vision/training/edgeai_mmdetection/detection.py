@@ -177,7 +177,8 @@ _pretrained_models = {
         compilation=dict(
             runtime_options={
                 'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
-            }
+            },
+            metric=dict(label_offset_pred=1)
         )
     ),
     'yolox_m_lite_mmdet': dict(

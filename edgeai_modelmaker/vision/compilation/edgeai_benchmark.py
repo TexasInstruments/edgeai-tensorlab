@@ -86,29 +86,42 @@ class ModelCompilation():
         num_pipeline_configs = len(pipeline_configs)
         assert num_pipeline_configs == 1, f'specify a unique model name in edgeai-benchmark. found {num_pipeline_configs} configs'
         pipeline_configs0 = list(pipeline_configs.values())[0]
+
         # dataset settings
         pipeline_configs0['calibration_dataset'] = calib_dataset
         pipeline_configs0['input_dataset'] = val_dataset
+
         # preprocess
         preprocess = pipeline_configs0['preprocess']
         preprocess.set_input_size(resize=self.params.training.input_resize, crop=self.params.training.input_cropsize)
+
         # session
         pipeline_configs0['session'].set_param('work_dir', work_dir)
         pipeline_configs0['session'].set_param('target_device', self.settings.target_device)
         pipeline_configs0['session'].set_param('model_path', self.params.training.model_export_path)
         # reset - will change based on the model_path given here
         pipeline_configs0['session'].set_param('run_dir', None)
+
         runtime_options = pipeline_configs0['session'].get_param('runtime_options')
         meta_layers_names_list = 'object_detection:meta_layers_names_list'
         if meta_layers_names_list in runtime_options:
             runtime_options[meta_layers_names_list] = self.params.training.model_proto_path
         #
         runtime_options.update(self.params.compilation.get('runtime_options', {}))
-        # the metric reference defined in benchmark code is for the pretrained model - remove it.
+
+        # model_info:metric_reference defined in benchmark code is for the pretrained model - remove it.
         metric_reference = pipeline_configs0['model_info']['metric_reference']
         for k, v in metric_reference.items():
             metric_reference[k] = None # TODO: get from training
         #
+
+        # metric
+        if 'metric' in pipeline_configs0:
+            pipeline_configs0['metric'].update(self.params.compilation.get('metric', {}))
+        elif 'metric' in self.params.compilation:
+            pipeline_configs0['metric'] = self.params.compilation.metric
+        #
+
         # run the accuracy pipeline
         jai_benchmark.tools.run_accuracy(self.settings, work_dir, pipeline_configs)
         self.params.compiled_path = self._get_output_file()
