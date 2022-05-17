@@ -82,12 +82,12 @@ Note: There is no need to clone edgeai-tidl-tools, as edgeai-benchmark takes car
 
 Object detection example
 ```
-./run_ai_backend.sh config_detection.yaml
+./run_modelmaker.sh config_detection.yaml
 ```
 
 Image classification example
 ```
-./run_ai_backend.sh config_classification.yaml
+./run_modelmaker.sh config_classification.yaml
 ```
 
 ## Data annotation
@@ -122,15 +122,15 @@ data / labelstudio / animal_classification
                                     |
                                     |--labels.json
 
-If the dataset has already been split into train and validation set already, ti is possible to provide those path separately. Have a look at the examples given in [run_ai_backend.py](./run_ai_backend.py)
+If the dataset has already been split into train and validation set already, ti is possible to provide those path separately. Have a look at the examples given in [run_modelmaker.py](./run_modelmaker.py)
 
 ## Model training and compilation
 
-Have a look at the parameters specified in [run_ai_backend.py](./run_ai_backend.py) and make any changes necessary. Check of the dataset paths provided are correct.
+Have a look at the parameters specified in [run_modelmaker.py](./run_modelmaker.py) and make any changes necessary. Check of the dataset paths provided are correct.
 
 This tool can be invoked for model training and compilation by running:
 ```bash
-./run_ai_backend.sh
+./run_modelmaker.sh
 ```
 
 After the model compilation, the compiled models will be available in the folder [./data/projects](./data/projects)
