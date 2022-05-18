@@ -60,9 +60,14 @@ def main(config):
         params
     )
 
+    # prepare
+    run_params_file = model_runner.prepare()
+    print(f'run params is at: {run_params_file}')
+
     # run
     model_runner.run()
-
+    print(f'trained model is at: {model_runner.get_params().training.training_path}')
+    print(f'compiled model is at: {model_runner.get_params().compilation.model_packaged_path}')
 
 if __name__ == '__main__':
     print(f'argv: {sys.argv}')

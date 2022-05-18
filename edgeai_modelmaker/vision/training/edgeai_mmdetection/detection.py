@@ -63,6 +63,12 @@ _pretrained_models = {
                 constants.TRAINING_DEVICE_CPU: True,
                 constants.TRAINING_DEVICE_CUDA: True,
             }
+        ),
+        compilation=dict(
+            runtime_options={
+                'advanced_options:output_feature_16bit_names_list': None
+            },
+            metric=dict(label_offset_pred=1)
         )
     ),
     'ssd_regnetx_800mf_fpn_bgr_lite_mmdet': dict(
@@ -85,6 +91,12 @@ _pretrained_models = {
                 constants.TRAINING_DEVICE_CPU: True,
                 constants.TRAINING_DEVICE_CUDA: True,
             }
+        ),
+        compilation=dict(
+            runtime_options={
+                'advanced_options:output_feature_16bit_names_list': None
+            },
+            metric=dict(label_offset_pred=1)
         )
     ),
     'ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet': dict(
@@ -107,6 +119,12 @@ _pretrained_models = {
                 constants.TRAINING_DEVICE_CPU: True,
                 constants.TRAINING_DEVICE_CUDA: True,
             }
+        ),
+        compilation=dict(
+            runtime_options={
+                'advanced_options:output_feature_16bit_names_list': None
+            },
+            metric=dict(label_offset_pred=1)
         )
     ),
     'yolox_nano_lite_mmdet': dict(
@@ -129,6 +147,12 @@ _pretrained_models = {
                 constants.TRAINING_DEVICE_CPU: True,
                 constants.TRAINING_DEVICE_CUDA: True,
             }
+        ),
+        compilation=dict(
+            runtime_options={
+                'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
+            },
+            metric=dict(label_offset_pred=1)
         )
     ),
     'yolox_tiny_lite_mmdet': dict(
@@ -151,6 +175,12 @@ _pretrained_models = {
                 constants.TRAINING_DEVICE_CPU: True,
                 constants.TRAINING_DEVICE_CUDA: True,
             }
+        ),
+        compilation=dict(
+            runtime_options={
+                'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
+            },
+            metric=dict(label_offset_pred=1)
         )
     ),
     'yolox_s_lite_mmdet': dict(
@@ -200,7 +230,13 @@ _pretrained_models = {
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
                 constants.TRAINING_DEVICE_CUDA: True,
-            }
+            },
+        ),
+        compilation=dict(
+            runtime_options={
+                'advanced_options:output_feature_16bit_names_list': '1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580'
+            },
+            metric=dict(label_offset_pred=1)
         )
     ),
 }
@@ -246,6 +282,7 @@ class ModelTraining:
         # update params that are specific to this backend and model
         self.params.update(
             training=utils.ConfigDict(
+                log_file_path=os.path.join(self.params.training.training_path, 'run.log'),
                 model_checkpoint_path=os.path.join(self.params.training.training_path, 'latest.pth'),
                 model_export_path=os.path.join(self.params.training.training_path, 'model.onnx'),
                 model_proto_path=os.path.join(self.params.training.training_path, 'model.prototxt'),

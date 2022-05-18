@@ -70,6 +70,7 @@ class ModelRunner():
                 verbose_mode=True,
                 projects_path='./data/projects',
                 project_path=None,
+                project_run_path=None,
                 task_type=None,
                 target_device=None,
                 run_name=datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
@@ -104,7 +105,7 @@ class ModelRunner():
                 project_path=None,
                 dataset_path=None,
                 training_path=None,
-                checkpoint_path=None,
+                log_file_path=None,
                 model_checkpoint_path=None,
                 model_export_path=None,
                 model_proto_path=None,
@@ -124,7 +125,10 @@ class ModelRunner():
             ),
             compilation=dict(
                 enable=True,
+                log_file_path=None,
                 compilation_path=None,
+                model_compiled_path=None,
+                model_packaged_path=None,
                 target_device='pc',
                 accuracy_level=1,
                 tensor_bits=8,
@@ -157,13 +161,16 @@ class ModelRunner():
         self.params.dataset.input_data_path = utils.absolute_path(self.params.dataset.input_data_path)
         self.params.dataset.input_annotation_path = utils.absolute_path(self.params.dataset.input_annotation_path)
         self.params.common.project_path = os.path.join(self.params.common.projects_path, self.params.dataset.dataset_name)
+
+        run_folder = self.params.common.run_name if self.params.common.run_name else ''
+        self.params.common.project_run_path = os.path.join(self.params.common.project_path, 'run', run_folder)
+
         self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
         self.params.dataset.download_path = os.path.join(self.params.dataset.dataset_path, 'other', 'download')
         self.params.dataset.extract_path = os.path.join(self.params.dataset.dataset_path, 'other', 'extract')
 
-        run_folder = self.params.common.run_name if self.params.common.run_name else ''
-        self.params.training.training_path = os.path.join(self.params.common.project_path, 'run', run_folder, 'training', self.params.training.model_key)
-        self.params.compilation.compilation_path = os.path.join(self.params.common.project_path, 'run', run_folder, 'compilation')
+        self.params.training.training_path = os.path.join(self.params.common.project_run_path, 'training', self.params.training.model_key)
+        self.params.compilation.compilation_path = os.path.join(self.params.common.project_run_path, 'compilation')
 
         if self.params.common.target_device in self.params.training.target_devices:
             target_device_data = self.params.training.target_devices[self.params.common.target_device]
@@ -174,43 +181,52 @@ class ModelRunner():
     def clear(self):
         pass
 
-    def run(self):
-        self._dataset_handing()
-        self._model_training()
-        self._model_compilation()
-
-    def _dataset_handing(self):
+    def prepare(self):
         # create folders
         os.makedirs(self.params.common.project_path, exist_ok=True)
+        os.makedirs(self.params.common.project_run_path, exist_ok=True)
 
         #####################################################################
-        # dataset loading, splitting, limiting files etc.
-        dataset_handling = datasets.DatasetHandling(self.params)
-        self.params.update(dataset_handling.get_params())
-        if self.params.dataset.enable:
-            dataset_handling.clear()
-            dataset_handling.run()
-        #
+        # prepare for dataset handling (loading, splitting, limiting files etc).
+        self.dataset_handling = datasets.DatasetHandling(self.params)
+        self.params.update(self.dataset_handling.get_params())
 
-    def _model_training(self):
-        #####################################################################
-        # model training
-        training_backend_module = training.get_backend_module(self.params.training.training_backend,
+        # prepare model training
+        self.training_backend_module = training.get_backend_module(self.params.training.training_backend,
                                                               self.params.common.task_type)
-        model_training = training_backend_module.ModelTraining(self.params)
-        self.params.update(model_training.get_params())
-        if self.params.training.enable:
-            model_training.clear()
-            model_training.run()
+        self.model_training = self.training_backend_module.ModelTraining(self.params)
+        self.params.update(self.model_training.get_params())
+
+        # prepare for model compilation
+        self.model_compilation = compilation.edgeai_benchmark.ModelCompilation(self.params)
+        self.params.update(self.model_compilation.get_params())
+
+        # write out the description of the current model
+        run_params_file = os.path.join(self.params.common.project_run_path, 'run.json')
+        with open(run_params_file, 'w') as jfp:
+            json.dump(self.params, jfp)
+        #
+        return run_params_file
+
+    def run(self):
+        # actual dataset handling
+        if self.params.dataset.enable:
+            self.dataset_handling.clear()
+            self.dataset_handling.run()
         #
 
-    def _model_compilation(self):
-        #####################################################################
-        # model compilation
-        model_compilation = compilation.edgeai_benchmark.ModelCompilation(self.params)
-        self.params.update(model_compilation.get_params())
-        if self.params.compilation.enable:
-            model_compilation.clear()
-            model_compilation.run()
+        # actual model training
+        if self.params.training.enable:
+            self.model_training.clear()
+            self.model_training.run()
         #
+
+        # actual model compilation
+        if self.params.compilation.enable:
+            self.model_compilation.clear()
+            self.model_compilation.run()
+        #
+        return self.params
+
+    def get_params(self):
         return self.params

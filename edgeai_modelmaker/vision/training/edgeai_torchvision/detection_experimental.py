@@ -135,6 +135,7 @@ class ModelTraining:
         # update params that are specific to this backend and model
         self.params.update(
             training=utils.ConfigDict(
+                log_file_path=os.path.join(self.params.training.training_path, 'run.log'),
                 model_checkpoint_path=os.path.join(self.params.training.training_path, 'checkpoint.pth'),
                 model_export_path=os.path.join(self.params.training.training_path, 'model-proto.onnx'),
                 model_proto_path=os.path.join(self.params.training.training_path, 'model-proto.prototxt'),
