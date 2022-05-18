@@ -1,5 +1,6 @@
 .idea/
 data/labelstudio/
+!data/labelstudio/readme.txt
 data/projects/
 !data/projects/readme.txt
 *.pyc
