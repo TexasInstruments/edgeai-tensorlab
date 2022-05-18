@@ -99,7 +99,7 @@ class BaseRTSession(utils.ParamsBase):
 
     def initialize(self):
         # make run_dir path
-        self.kwargs['run_dir'] = self._make_run_dir()
+        self.kwargs['run_dir'] = self.get_run_dir()
         self.kwargs['artifacts_folder'] = os.path.join(self.kwargs['run_dir'], 'artifacts')
         self.kwargs['model_folder'] = os.path.join(self.kwargs['run_dir'], 'model')
         super().initialize()
@@ -335,7 +335,7 @@ class BaseRTSession(utils.ParamsBase):
         #
         return subgraph_perfsim_dict
 
-    def _make_run_dir(self):
+    def get_run_dir(self):
         run_dir_candidate = self.kwargs.get('run_dir', None)
         if run_dir_candidate is not None:
             return run_dir_candidate
