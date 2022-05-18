@@ -31,7 +31,7 @@
 #
 #################################################################################
 
-python ./scripts/convert_dataset.py --source_format=cityscapes --source_anno /user/a0393608/work//code/ti/algoref/vision-dataset/annotatedJSON/tiscapes/data/gtFine --source_data=/user/a0393608/work//code/ti/algoref/vision-dataset/annotatedJSON/tiscapes/data/leftImg8bit --dest_anno=/user/a0393608/work//code/ti/algoref/vision-dataset/annotatedJSON/tiscapes/data/annotations/instances.json
+#python ./scripts/convert_dataset.py --source_format=cityscapes --source_anno /user/a0393608/work//code/ti/algoref/vision-dataset/annotatedJSON/tiscapes/data/gtFine --source_data=/user/a0393608/work//code/ti/algoref/vision-dataset/annotatedJSON/tiscapes/data/leftImg8bit --dest_anno=/user/a0393608/work//code/ti/algoref/vision-dataset/annotatedJSON/tiscapes/data/annotations/instances.json
 
 #python ./scripts/convert_dataset.py --source_format=image_splits --source_data=./data/examples/datasets/potatatochips_classification/images --dest_anno=./data/examples/datasets/potatatochips_classification/annotations/instances.json
 
