@@ -193,7 +193,13 @@ def main(gpu, args):
         args.output_dir = os.path.join('./data/checkpoints/detection', f'{args.dataset}_{args.model}')
 
     utils.mkdir(args.output_dir)
-    logger = xnn.utils.TeeLogger(os.path.join(args.output_dir, f'run_{args.date}.log'))
+    log_file = os.path.join(args.output_dir, f'run_{args.date}.log')
+    logger = xnn.utils.TeeLogger(log_file)
+    log_file_latest = os.path.join(args.output_dir, f'run.log')
+    if os.path.exists(log_file_latest):
+        os.unlink(log_file_latest)
+    #
+    os.symlink(log_file, log_file_latest)
 
     if args.lr_steps is None:
         args.lr_steps = [int(args.epochs*0.5), int(args.epochs*0.75)]

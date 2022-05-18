@@ -64,10 +64,12 @@ def export_model_proto(cfg, model, example_input, output_onnx_file, input_names,
         # training=torch.onnx.TrainingMode.PRESERVE,
         opset_version=opset_version)
     onnx_model = onnx.load(output_onnx_file)
+    # remove the intermediate feature names that were only required to get the names to generate the prototxt
     feature_names = [node.name for node in onnx_model.graph.output[3:]]
     for opt in onnx_model.graph.output[3:]:
         onnx_model.graph.output.remove(opt)
     #
+    # change the model output to those given in output_names
     for opt_name, opt in zip(output_names, onnx_model.graph.output[:3]):
         name_changed = False
         for node in onnx_model.graph.node:
@@ -97,33 +99,33 @@ def export_model_proto(cfg, model, example_input, output_onnx_file, input_names,
     _save_model_proto(cfg, model, example_input, output_filename=output_onnx_file,
                       feature_names=feature_names, output_names=output_names_proto)
 
-    # export prototxt file for detection model_copy without preprocess or postprocess
-    output_onnx_file_ext = os.path.splitext(output_onnx_file)
-    output_onnxproto_file = output_onnx_file_ext[0] + '-proto' + output_onnx_file_ext[1]
-    model.configure_forward(with_preprocess=False, with_postprocess=False, with_intermediate_outputs=True)
-    torch.onnx.export(
-        model,
-        example_input,
-        output_onnxproto_file,
-        input_names=input_names,
-        output_names=None,
-        # export_params=True,
-        # keep_initializers_as_inputs=True,
-        # do_constant_folding=False,
-        # verbose=False,
-        # training=torch.onnx.TrainingMode.PRESERVE,
-        opset_version=opset_version)
-    onnx_model = onnx.load(output_onnxproto_file)
-    feature_names = [node.name for node in onnx_model.graph.output]
-    _save_model_proto(cfg, model, example_input, output_filename=output_onnxproto_file,
-                      feature_names=feature_names, output_names=output_names_proto)
-    # add the postprocessing operator
-    if add_postproc_op:
-        _add_dummydetection_operator(cfg, model, output_onnxproto_file, feature_names, opset_version=opset_version)
-        # _add_detection_operator(cfg, model, output_onnxproto_file, feature_names, opset_version=opset_version)
-    #
-    # shape inference to make it easy for inference
-    onnx.shape_inference.infer_shapes_path(output_onnxproto_file, output_onnxproto_file)
+    # # export prototxt file for detection model_copy without preprocess or postprocess
+    # output_onnx_file_ext = os.path.splitext(output_onnx_file)
+    # output_onnxproto_file = output_onnx_file_ext[0] + '-proto' + output_onnx_file_ext[1]
+    # model.configure_forward(with_preprocess=False, with_postprocess=False, with_intermediate_outputs=True)
+    # torch.onnx.export(
+    #     model,
+    #     example_input,
+    #     output_onnxproto_file,
+    #     input_names=input_names,
+    #     output_names=None,
+    #     # export_params=True,
+    #     # keep_initializers_as_inputs=True,
+    #     # do_constant_folding=False,
+    #     # verbose=False,
+    #     # training=torch.onnx.TrainingMode.PRESERVE,
+    #     opset_version=opset_version)
+    # onnx_model = onnx.load(output_onnxproto_file)
+    # feature_names = [node.name for node in onnx_model.graph.output]
+    # _save_model_proto(cfg, model, example_input, output_filename=output_onnxproto_file,
+    #                   feature_names=feature_names, output_names=output_names_proto)
+    # # add the postprocessing operator
+    # if add_postproc_op:
+    #     _add_dummydetection_operator(cfg, model, output_onnxproto_file, feature_names, opset_version=opset_version)
+    #     # _add_detection_operator(cfg, model, output_onnxproto_file, feature_names, opset_version=opset_version)
+    # #
+    # # shape inference to make it easy for inference
+    # onnx.shape_inference.infer_shapes_path(output_onnxproto_file, output_onnxproto_file)
 
     # restore the model
     model.configure_forward()

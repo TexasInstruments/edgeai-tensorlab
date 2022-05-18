@@ -196,8 +196,15 @@ def main(gpu, args):
 
     if not args.output_dir:
         args.output_dir = os.path.join('./data/checkpoints/classification',  f'{args.dataset}_{args.model}')
-	#
+    #
     utils.mkdir(args.output_dir)
+    log_file = os.path.join(args.output_dir, f'run_{args.date}.log')
+    logger = xnn.utils.TeeLogger(log_file)
+    log_file_latest = os.path.join(args.output_dir, f'run.log')
+    if os.path.exists(log_file_latest):
+        os.unlink(log_file_latest)
+    #
+    os.symlink(log_file, log_file_latest)
 
     utils.init_distributed_mode(args)
     print(args)
@@ -439,6 +446,7 @@ def get_args_parser(add_help=True):
         help='decay factor for Exponential Moving Average of model parameters(default: 0.9)')
     parser.add_argument('--image-mean', default=[123.675, 116.28, 103.53], type=float, nargs=3, help='mean subtraction of input')
     parser.add_argument('--image-scale', default=[0.017125, 0.017507, 0.017429], type=float, nargs=3, help='scale for multiplication of input')
+    parser.add_argument('--date', default=datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), help='current date')
     return parser
 
 
