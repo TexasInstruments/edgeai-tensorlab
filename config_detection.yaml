@@ -16,10 +16,10 @@ dataset:
     # Example 1, (known datasets): 'widerface_detection', 'pascal_voc0712', 'coco_detection', 'udacity_selfdriving', 'tomato_detection', 'tiscapes2017_driving'
     # dataset_name: widerface_detection
     # -------------------------------------
-    # Example 2, give a dataset name and input_data_path (zip file, tar file or folder)
-    # for input_data_path these are provided as examples: './data/labelling/tiscapes2017_driving.zip', './data/labelling/animal_detection.zip'
-    # dataset_name: tiscapes2017_driving
-    # input_data_path: './data/examples/datasets/tiscapes2017_driving.zip'
+    # Example 2, give a dataset name and input_data_path.
+    # input_data_path could be a zip file, tar file or folder
+    # for input_data_path these are provided in this repository as examples:
+    # './data/examples/datasets/tiscapes2017_driving.zip', './data/examples/datasets/animal_detection.zip'
     # -------------------------------------
     dataset_name: tiscapes2017_driving
     input_data_path: './data/examples/datasets/tiscapes2017_driving.zip'

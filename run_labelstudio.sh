@@ -47,7 +47,7 @@ export LOCAL_FILES_DOCUMENT_ROOT=${DATASET_PATH}
 # the dataset path
 export LABEL_STUDIO_BASE_DATA_DIR=${DATASET_PATH}
 
-# can use predefined unsername/password (after it has been registered in the GUI)
+# can use a predefined username/password in Label Studio (after it has been registered in the GUI)
 #export LABEL_STUDIO_USERNAME=foo@bar.baz
 #export LABEL_STUDIO_PASSWORD=foobarbaz
 

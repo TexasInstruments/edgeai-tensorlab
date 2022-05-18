@@ -18,10 +18,10 @@ dataset:
     # Example 1, (known datasets): 'oxford_flowers102'
     # dataset_name: oxford_flowers102
     # -------------------------------------
-    # Example 2, give a dataset_name and input_data_path (zip file, tar file or folder)
-    # for input_data_path these are provided as examples: './data/examples/datasets/animal_classification.zip'
-    # dataset_name: animal_classification
-    # input_data_path: './data/examples/datasets/animal_classification.zip'
+    # Example 2, give a dataset_name and input_data_path.
+    # input_data_path could be a zip file, tar file or folder
+    # for input_data_path these are provided in this repository as examples:
+    # './data/examples/datasets/animal_classification.zip'
     # -------------------------------------
     dataset_name: animal_classification
     input_data_path: './data/examples/datasets/animal_classification.zip'

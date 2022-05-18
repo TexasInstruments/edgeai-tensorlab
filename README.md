@@ -95,38 +95,50 @@ Image classification example
 Currently [COCO JSON format](https://cocodataset.org/#format-data) and LabelStudio JSOM-Min format are supported. LabelStudio supports exporting dataset to COCO JSON format and JSOM-Min format.
 
 ### Annotation Instructions:
+- Data Annotation can be done in any suitable tool as long as the format of the annotated is supported in this repository. The following description to use Label Studio is just an example.
 - Install [Label Studio](https://labelstud.io/) following the instructions given in that website.
 - Once installed, it can be launched by running
 ```bash
-./run_label_studio.sh
+./run_labelstudio.sh
 ```
-- Create a task such as Image classification or Object detection. Upload annotation and export the annotations into COCO JSON or JSON-Min formats.
-- Copy the json file and int images to a suitable folder. Have a look at the following example. It is not neccarry to follow the same exact directory structore as below, but he key points to remember are (1) there must be an "images" folder containing (2) there must be an annotations folder containing the annotation json file.
 
-data / labelstudio / animal_detection
-                              |
-                              |-images
-                              |     |--copy the image files here
-                              |
-                              |-annotations
-                                    |
-                                    |--instances.json
+- Create a project such as "Image classification" or "Object detection" in Label Studio. Import the images into the project and do the annotation.
+- After the annotation, export the annotations into COCO JSON or JSON-Min formats.
 
+## Make the dataset available to ModelMaker
+- Copy the json file and images to a suitable folder. Have a look at the following example. It is not necessary to follow the same exact directory structure as below, but the key points to remember are (1) there must be an "images" folder containing (2) there must be an annotations folder containing the annotation json file with the name given below.
 
-data / labelstudio / animal_classification
-                              |
-                              |-images
-                              |     |--copy the image files here
-                              |
-                              |-annotations
-                                    |
-                                    |--labels.json
+### Object Detection example
+- An object detection dataset should look like this:
+data / datasets / animal_detection<br>
+                              |<br>
+                              |-images<br>
+                              |     |--copy the image files here<br>
+                              |<br>
+                              |-annotations<br>
+                                    |<br>
+                                    |--instances.json<br>
+- In the config yaml file, provide the name of the dataset (animal_detection in this example) in the field dataset_name and provide the path (./data/datasets/animal_detection in this example) in the field input_data_path.
 
-If the dataset has already been split into train and validation set already, ti is possible to provide those path separately. Have a look at the examples given in [run_modelmaker.py](./run_modelmaker.py)
+### Image Classification example
+- An image classification dataset should look like this:
+data / datasets / animal_classification<br>
+                              |<br>
+                              |-images<br>
+                              |     |--copy the image files here<br>
+                              |<br>
+                              |-annotations<br>
+                                    |<br>
+                                    |--labels.json<br>
+
+- In the config yaml file, provide the name of the dataset (animal_classification in this example) in the field dataset_name and provide the path (./data/datasets/animal_classification in this example) in the field input_data_path.
+
 
 ## Model training and compilation
 
-Have a look at the parameters specified in [run_modelmaker.py](./run_modelmaker.py) and make any changes necessary. Check of the dataset paths provided are correct.
+Have a look at the parameters specified in [run_modelmaker.sh](./run_modelmaker.sh), [run_modelmaker.py](./scripts/run_modelmaker.py) and the config yaml files and make any changes necessary. Check if the dataset path provided in input_data_path is correct.
+
+Note: If the dataset has already been split into train and validation set already, it is possible to provide those paths separately as a tuple in input_data_path.
 
 This tool can be invoked for model training and compilation by running:
 ```bash
@@ -138,5 +150,5 @@ After the model compilation, the compiled models will be available in the folder
 
 ## Mode deployment
 The compiled model has all the side information required to easily run the model on our EdgeAI-StarterKit EVM and SDK. 
-- Purchase the [EdgeAI-StarterKit EVM](https://www.ti.com/tool/SK-TDA4VM) if you do not have it: it costs only a maximum of $200
+- Purchase the [EdgeAI-StarterKit EVM](https://www.ti.com/tool/SK-TDA4VM) if you do not have it.
 - Download the [EdgeAI-StarterKit SDK](https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM) and follow the instructions given there.
