@@ -144,26 +144,26 @@ def pytorch2onnx(args,
     save_model_proto(cfg, model, img_list, output_file, feature_names=feature_names, output_names=output_names)
     model.with_intermediate_outputs = False
 
-    # export the partial onnx file
-    onnx_proto_file = osp.splitext(output_file)[0] + '-proto.onnx'
-    model.forward = model.forward_dummy
-    torch.onnx.export(
-        model,
-        img_list[0],
-        onnx_proto_file,
-        input_names=[input_name],
-        output_names=None,
-        export_params=True,
-        keep_initializers_as_inputs=True,
-        do_constant_folding=True,
-        verbose=show,
-        opset_version=opset_version,
-        dynamic_axes=dynamic_axes)
-    onnx_model = onnx.load(onnx_proto_file)
-    feature_names = [node.name for node in onnx_model.graph.output]
-    # shape inference is required to support onnx+proto detection models in edgeai-tidl-tools
-    onnx.shape_inference.infer_shapes_path(onnx_proto_file, onnx_proto_file)
-    save_model_proto(cfg, model, img_list, onnx_proto_file, feature_names=feature_names, output_names=output_names)
+    # # export the partial onnx file
+    # onnx_proto_file = osp.splitext(output_file)[0] + '-proto.onnx'
+    # model.forward = model.forward_dummy
+    # torch.onnx.export(
+    #     model,
+    #     img_list[0],
+    #     onnx_proto_file,
+    #     input_names=[input_name],
+    #     output_names=None,
+    #     export_params=True,
+    #     keep_initializers_as_inputs=True,
+    #     do_constant_folding=True,
+    #     verbose=show,
+    #     opset_version=opset_version,
+    #     dynamic_axes=dynamic_axes)
+    # onnx_model = onnx.load(onnx_proto_file)
+    # feature_names = [node.name for node in onnx_model.graph.output]
+    # # shape inference is required to support onnx+proto detection models in edgeai-tidl-tools
+    # onnx.shape_inference.infer_shapes_path(onnx_proto_file, onnx_proto_file)
+    # save_model_proto(cfg, model, img_list, onnx_proto_file, feature_names=feature_names, output_names=output_names)
 
     model.forward = origin_forward
 
