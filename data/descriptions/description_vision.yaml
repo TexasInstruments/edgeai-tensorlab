@@ -1,0 +1,1067 @@
+model_descriptions:
+  mobilenet_v2_lite_tv:
+    common:
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: 20220519-191749
+      target_device: null
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      accuracy_level: 1
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      enable: true
+      log_file_path: null
+      metric:
+        label_offset_pred: 1
+      model_compiled_path: null
+      model_packaged_path: null
+      num_frames: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
+          1563, 1564, 1578, 1579, 1580
+      save_output: true
+      target_device: pc
+      tensor_bits: 8
+    dataset:
+      annotation_dir: annotations
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      download_path: null
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_id: cl-6180
+      model_key: regnet_x_1_6gf_tv
+      model_name: regnet_x_1_6gf
+      model_proto_path: null
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
+      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      project_path: null
+      target_devices:
+        TDA4VM:
+          performance_fps: null
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 30
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  mobilenet_v3_large_lite_tv:
+    common:
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: 20220519-191749
+      target_device: null
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      accuracy_level: 1
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      enable: true
+      log_file_path: null
+      metric:
+        label_offset_pred: 1
+      model_compiled_path: null
+      model_packaged_path: null
+      num_frames: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
+          1563, 1564, 1578, 1579, 1580
+      save_output: true
+      target_device: pc
+      tensor_bits: 8
+    dataset:
+      annotation_dir: annotations
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      download_path: null
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_id: cl-6180
+      model_key: regnet_x_1_6gf_tv
+      model_name: regnet_x_1_6gf
+      model_proto_path: null
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
+      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      project_path: null
+      target_devices:
+        TDA4VM:
+          performance_fps: null
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 30
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  mobilenet_v3_small_lite_tv:
+    common:
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: 20220519-191749
+      target_device: null
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      accuracy_level: 1
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      enable: true
+      log_file_path: null
+      metric:
+        label_offset_pred: 1
+      model_compiled_path: null
+      model_packaged_path: null
+      num_frames: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
+          1563, 1564, 1578, 1579, 1580
+      save_output: true
+      target_device: pc
+      tensor_bits: 8
+    dataset:
+      annotation_dir: annotations
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      download_path: null
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_id: cl-6180
+      model_key: regnet_x_1_6gf_tv
+      model_name: regnet_x_1_6gf
+      model_proto_path: null
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
+      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      project_path: null
+      target_devices:
+        TDA4VM:
+          performance_fps: null
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 30
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  regnet_x_1_6gf_tv:
+    common:
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: 20220519-191749
+      target_device: null
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      accuracy_level: 1
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      enable: true
+      log_file_path: null
+      metric:
+        label_offset_pred: 1
+      model_compiled_path: null
+      model_packaged_path: null
+      num_frames: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
+          1563, 1564, 1578, 1579, 1580
+      save_output: true
+      target_device: pc
+      tensor_bits: 8
+    dataset:
+      annotation_dir: annotations
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      download_path: null
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_id: cl-6180
+      model_key: regnet_x_1_6gf_tv
+      model_name: regnet_x_1_6gf
+      model_proto_path: null
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
+      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      project_path: null
+      target_devices:
+        TDA4VM:
+          performance_fps: null
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 30
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  regnet_x_400mf_tv:
+    common:
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: 20220519-191749
+      target_device: null
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      accuracy_level: 1
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      enable: true
+      log_file_path: null
+      metric:
+        label_offset_pred: 1
+      model_compiled_path: null
+      model_packaged_path: null
+      num_frames: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
+          1563, 1564, 1578, 1579, 1580
+      save_output: true
+      target_device: pc
+      tensor_bits: 8
+    dataset:
+      annotation_dir: annotations
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      download_path: null
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_id: cl-6180
+      model_key: regnet_x_1_6gf_tv
+      model_name: regnet_x_1_6gf
+      model_proto_path: null
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
+      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      project_path: null
+      target_devices:
+        TDA4VM:
+          performance_fps: null
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 30
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  regnet_x_800mf_tv:
+    common:
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: 20220519-191749
+      target_device: null
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      accuracy_level: 1
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      enable: true
+      log_file_path: null
+      metric:
+        label_offset_pred: 1
+      model_compiled_path: null
+      model_packaged_path: null
+      num_frames: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
+          1563, 1564, 1578, 1579, 1580
+      save_output: true
+      target_device: pc
+      tensor_bits: 8
+    dataset:
+      annotation_dir: annotations
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      download_path: null
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_id: cl-6180
+      model_key: regnet_x_1_6gf_tv
+      model_name: regnet_x_1_6gf
+      model_proto_path: null
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
+      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      project_path: null
+      target_devices:
+        TDA4VM:
+          performance_fps: null
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 30
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  ssd_mobilenetv2_fpn_lite_mmdet:
+    common:
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: 20220519-191749
+      target_device: null
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      accuracy_level: 1
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      enable: true
+      log_file_path: null
+      metric:
+        label_offset_pred: 1
+      model_compiled_path: null
+      model_packaged_path: null
+      num_frames: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
+          1563, 1564, 1578, 1579, 1580
+      save_output: true
+      target_device: pc
+      tensor_bits: 8
+    dataset:
+      annotation_dir: annotations
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      download_path: null
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_id: cl-6180
+      model_key: regnet_x_1_6gf_tv
+      model_name: regnet_x_1_6gf
+      model_proto_path: null
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
+      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      project_path: null
+      target_devices:
+        TDA4VM:
+          performance_fps: null
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 30
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet:
+    common:
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: 20220519-191749
+      target_device: null
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      accuracy_level: 1
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      enable: true
+      log_file_path: null
+      metric:
+        label_offset_pred: 1
+      model_compiled_path: null
+      model_packaged_path: null
+      num_frames: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
+          1563, 1564, 1578, 1579, 1580
+      save_output: true
+      target_device: pc
+      tensor_bits: 8
+    dataset:
+      annotation_dir: annotations
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      download_path: null
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_id: cl-6180
+      model_key: regnet_x_1_6gf_tv
+      model_name: regnet_x_1_6gf
+      model_proto_path: null
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
+      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      project_path: null
+      target_devices:
+        TDA4VM:
+          performance_fps: null
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 30
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  ssd_regnetx_800mf_fpn_bgr_lite_mmdet:
+    common:
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: 20220519-191749
+      target_device: null
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      accuracy_level: 1
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      enable: true
+      log_file_path: null
+      metric:
+        label_offset_pred: 1
+      model_compiled_path: null
+      model_packaged_path: null
+      num_frames: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
+          1563, 1564, 1578, 1579, 1580
+      save_output: true
+      target_device: pc
+      tensor_bits: 8
+    dataset:
+      annotation_dir: annotations
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      download_path: null
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_id: cl-6180
+      model_key: regnet_x_1_6gf_tv
+      model_name: regnet_x_1_6gf
+      model_proto_path: null
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
+      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      project_path: null
+      target_devices:
+        TDA4VM:
+          performance_fps: null
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 30
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  yolox_m_lite_mmdet:
+    common:
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: 20220519-191749
+      target_device: null
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      accuracy_level: 1
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      enable: true
+      log_file_path: null
+      metric:
+        label_offset_pred: 1
+      model_compiled_path: null
+      model_packaged_path: null
+      num_frames: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
+          1563, 1564, 1578, 1579, 1580
+      save_output: true
+      target_device: pc
+      tensor_bits: 8
+    dataset:
+      annotation_dir: annotations
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      download_path: null
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_id: cl-6180
+      model_key: regnet_x_1_6gf_tv
+      model_name: regnet_x_1_6gf
+      model_proto_path: null
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
+      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      project_path: null
+      target_devices:
+        TDA4VM:
+          performance_fps: null
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 30
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  yolox_nano_lite_mmdet:
+    common:
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: 20220519-191749
+      target_device: null
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      accuracy_level: 1
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      enable: true
+      log_file_path: null
+      metric:
+        label_offset_pred: 1
+      model_compiled_path: null
+      model_packaged_path: null
+      num_frames: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
+          1563, 1564, 1578, 1579, 1580
+      save_output: true
+      target_device: pc
+      tensor_bits: 8
+    dataset:
+      annotation_dir: annotations
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      download_path: null
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_id: cl-6180
+      model_key: regnet_x_1_6gf_tv
+      model_name: regnet_x_1_6gf
+      model_proto_path: null
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
+      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      project_path: null
+      target_devices:
+        TDA4VM:
+          performance_fps: null
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 30
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  yolox_s_lite_mmdet:
+    common:
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: 20220519-191749
+      target_device: null
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      accuracy_level: 1
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      enable: true
+      log_file_path: null
+      metric:
+        label_offset_pred: 1
+      model_compiled_path: null
+      model_packaged_path: null
+      num_frames: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
+          1563, 1564, 1578, 1579, 1580
+      save_output: true
+      target_device: pc
+      tensor_bits: 8
+    dataset:
+      annotation_dir: annotations
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      download_path: null
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_id: cl-6180
+      model_key: regnet_x_1_6gf_tv
+      model_name: regnet_x_1_6gf
+      model_proto_path: null
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
+      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      project_path: null
+      target_devices:
+        TDA4VM:
+          performance_fps: null
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 30
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  yolox_tiny_lite_mmdet:
+    common:
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: 20220519-191749
+      target_device: null
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      accuracy_level: 1
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      enable: true
+      log_file_path: null
+      metric:
+        label_offset_pred: 1
+      model_compiled_path: null
+      model_packaged_path: null
+      num_frames: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
+          1563, 1564, 1578, 1579, 1580
+      save_output: true
+      target_device: pc
+      tensor_bits: 8
+    dataset:
+      annotation_dir: annotations
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      download_path: null
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_id: cl-6180
+      model_key: regnet_x_1_6gf_tv
+      model_name: regnet_x_1_6gf
+      model_proto_path: null
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
+      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      project_path: null
+      target_devices:
+        TDA4VM:
+          performance_fps: null
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 30
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
