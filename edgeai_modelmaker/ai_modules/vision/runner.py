@@ -166,8 +166,8 @@ class ModelRunner():
         self.params.common.project_run_path = os.path.join(self.params.common.project_path, 'run', run_folder)
 
         self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
-        self.params.dataset.download_path = os.path.join(self.params.dataset.dataset_path, 'other', 'download')
-        self.params.dataset.extract_path = os.path.join(self.params.dataset.dataset_path, 'other', 'extract')
+        self.params.dataset.download_path = os.path.join(self.params.common.project_path, 'other', 'download')
+        self.params.dataset.extract_path = self.params.dataset.dataset_path
 
         self.params.training.training_path = os.path.join(self.params.common.project_run_path, 'training', self.params.training.model_key)
         self.params.compilation.compilation_path = os.path.join(self.params.common.project_run_path, 'compilation')

@@ -17,12 +17,13 @@ dataset:
     # dataset_name: widerface_detection
     # -------------------------------------
     # Example 2, give a dataset name and input_data_path.
-    # input_data_path could be a zip file, tar file or folder
-    # for input_data_path these are provided in this repository as examples:
-    # './data/examples/datasets/tiscapes2017_driving.zip', './data/examples/datasets/animal_detection.zip'
+    # input_data_path could be a path to zip file, tar file, folder OR http, https link to zip or tar files
+    # for input_data_path these are provided with this repository as examples:
+    #    'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip'
+    #    'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip'
     # -------------------------------------
     dataset_name: tiscapes2017_driving
-    input_data_path: './data/examples/datasets/tiscapes2017_driving.zip'
+    input_data_path: 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip'
 
 training:
     # enable/disable training

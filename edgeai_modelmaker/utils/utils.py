@@ -37,8 +37,14 @@ import yaml
 
 from . import config_dict
 
+
 def _absolute_path(relpath):
-    return os.path.abspath(os.path.expanduser(os.path.normpath(relpath))) if relpath else relpath
+    if relpath is None:
+        return relpath
+    elif relpath.startswith('http://') or relpath.startswith('https://'):
+        return relpath
+    else:
+        return os.path.abspath(os.path.expanduser(os.path.normpath(relpath)))
 
 
 def absolute_path(relpath):

@@ -118,7 +118,7 @@ class DatasetHandling:
                 input_annotation_path = os.path.join(self.params.dataset.dataset_path, self.params.dataset.annotation_dir,
                                                      f'{self.params.dataset.annotation_prefix}.json')
                 _, _, input_data_path = dataset_utils.download_file(self.params.dataset.input_data_path, self.params.dataset.download_path,
-                    self.params.dataset.dataset_path)
+                    self.params.dataset.extract_path)
                 with open(input_annotation_path) as afp:
                     dataset_store = json.load(afp)
                 #

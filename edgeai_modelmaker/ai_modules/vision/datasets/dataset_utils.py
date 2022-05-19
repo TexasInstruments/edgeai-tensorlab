@@ -201,26 +201,36 @@ def extract_files(download_file, extract_root):
 
 
 def download_and_extract(dataset_url, download_root, extract_root=None, save_filename=None, progressbar_creator=None):
+    progressbar_creator = progressbar_creator or ProgressBarUpdater
     download_path = None
     exception_message = ''
     try:
         save_filename = save_filename if save_filename else os.path.basename(dataset_url)
         download_file = os.path.join(download_root, save_filename)
         if not os.path.exists(download_file):
-            if progressbar_creator is None:
-                progressbar = ProgressBarUpdater()
-            else:
-                progressbar = progressbar_creator()
-            #
+            progressbar_obj = progressbar_creator()
             os.makedirs(download_root, exist_ok=True)
-            urllib.request.urlretrieve(dataset_url, download_file, progressbar)
+            print(f'downloading from {dataset_url} to {download_file}')
+            urllib.request.urlretrieve(dataset_url, download_file, progressbar_obj)
         #
         download_path = download_file
-        extract_files(download_path, extract_root)
         download_success = True
-    except Exception as message:
+    except urllib.error.URLError as message:
         download_success = False
         exception_message = str(message)
+        print(exception_message)
+    except urllib.error.HTTPError as message:
+        download_success = False
+        exception_message = str(message)
+        print(exception_message)
+    except Exception as message:
+        # sometimes getting exception even though download succeeded.
+        download_path = download_file
+        download_success = True
+        exception_message = str(message)
+    #
+    if download_success:
+        extract_files(download_path, extract_root)
     #
     return download_success, exception_message, download_path
 
@@ -228,7 +238,28 @@ def download_and_extract(dataset_url, download_root, extract_root=None, save_fil
 def download_file(dataset_url, download_root, extract_root=None, save_filename=None, progressbar_creator=None, force_linkfile=True):
     if not isinstance(dataset_url, str):
         return False, '', ''
-    elif not (dataset_url.startswith('http://') or dataset_url.startswith('https://')):
+
+    download_root = os.path.abspath('./') if download_root is None else download_root
+    is_url = (dataset_url.startswith('http://') or dataset_url.startswith('https://'))
+
+    if not is_url:
+        if dataset_url.endswith('.link'):
+            with open(dataset_url) as fp:
+                dataset_url = fp.read().rstrip()
+            #
+        elif force_linkfile and not os.path.exists(dataset_url):
+            url_link = dataset_url+'.link'
+            if os.path.exists(url_link):
+                with open(url_link) as fp:
+                    dataset_url = fp.readline().rstrip()
+                #
+            #
+        #
+    #
+    # update, based on the content of the .link file
+    is_url = (dataset_url.startswith('http://') or dataset_url.startswith('https://'))
+
+    if not is_url:
         try:
             if not extract_files(dataset_url, extract_root):
                 if os.path.isdir(dataset_url):
@@ -246,22 +277,8 @@ def download_file(dataset_url, download_root, extract_root=None, save_filename=N
         return True, '', extract_root
     #
 
-    download_root = os.path.abspath('./') if download_root is None else download_root
-    if dataset_url.endswith('.link'):
-        with open(dataset_url) as fp:
-            dataset_url = fp.read().rstrip()
-        #
-    elif force_linkfile and not os.path.exists(dataset_url):
-        url_link = dataset_url+'.link'
-        if os.path.exists(url_link):
-            with open(url_link) as fp:
-                dataset_url = fp.readline().rstrip()
-            #
-        #
-    #
-    fpath = download_and_extract(dataset_url, download_root, extract_root=extract_root, save_filename=save_filename,
+    return download_and_extract(dataset_url, download_root, extract_root=extract_root, save_filename=save_filename,
                                  progressbar_creator=progressbar_creator)
-    return True, '', fpath
 
 
 def download_files(dataset_urls, download_root, extract_root=None, save_filenames=None, log_writer=None, progressbar_creator=None):

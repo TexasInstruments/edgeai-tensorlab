@@ -19,12 +19,12 @@ dataset:
     # dataset_name: oxford_flowers102
     # -------------------------------------
     # Example 2, give a dataset_name and input_data_path.
-    # input_data_path could be a zip file, tar file or folder
-    # for input_data_path these are provided in this repository as examples:
-    # './data/examples/datasets/animal_classification.zip'
+    # input_data_path could be a path to zip file, tar file, folder OR http, https link to zip or tar files
+    # for input_data_path these are provided with this repository as examples:
+    #    'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip'
     # -------------------------------------
     dataset_name: animal_classification
-    input_data_path: './data/examples/datasets/animal_classification.zip'
+    input_data_path: 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip'
 
 training:
     # enable/disable training
