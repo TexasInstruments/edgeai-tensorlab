@@ -35,6 +35,7 @@ import importlib
 import json
 import yaml
 
+from . import config_dict
 
 def _absolute_path(relpath):
     return os.path.abspath(os.path.expanduser(os.path.normpath(relpath))) if relpath else relpath
@@ -62,14 +63,33 @@ def import_file_or_folder(folder_or_file_name):
     return imported_module
 
 
+def simplify_dict(in_dict):
+    '''
+    simplify dict so that it can be written using yaml(pyyaml) package
+    '''
+    assert isinstance(in_dict, (dict, config_dict.ConfigDict)), 'input must of type dict or ConfigDict'
+    d = dict()
+    for k, v in in_dict.items():
+        if isinstance(v, (dict,config_dict.ConfigDict)):
+            d[k] = simplify_dict(v)
+        elif isinstance(v, tuple):
+            d[k] = list(v)
+        else:
+            d[k] = v
+        #
+    #
+    return d
+
+
 def write_dict(dict_obj, filename, write_json=True, write_yaml=True):
     if write_json:
         filename_json = os.path.splitext(filename)[0] + '.json'
         with open(filename_json, 'w') as fp:
-            json.dump(dict_obj, fp)
+            json.dump(dict_obj, fp, indent=4, separators=[',',':'])
         #
     #
     if write_yaml:
+        dict_obj = simplify_dict(dict_obj)
         filename_yaml = os.path.splitext(filename)[0] + '.yaml'
         with open(filename_yaml, 'w') as fp:
             yaml.safe_dump(dict_obj, fp)
