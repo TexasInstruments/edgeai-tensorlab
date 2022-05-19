@@ -156,6 +156,9 @@ _pretrained_models = {
                 constants.TRAINING_DEVICE_CPU: True,
                 constants.TRAINING_DEVICE_CUDA: True,
             }
+        ),
+        compilation=dict(
+            metric=dict(label_offset_pred=1)
         )
     ),
     'regnet_x_1_6gf_tv': dict(

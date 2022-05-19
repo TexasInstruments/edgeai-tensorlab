@@ -190,7 +190,12 @@ class ModelRunner():
         # prepare for dataset handling (loading, splitting, limiting files etc).
         self.dataset_handling = datasets.DatasetHandling(self.params)
         self.params.update(self.dataset_handling.get_params())
-
+        # actual dataset handling
+        if self.params.dataset.enable:
+            self.dataset_handling.clear()
+            self.dataset_handling.run()
+        #
+        
         # prepare model training
         self.training_target_module = training.get_target_module(self.params.training.training_backend,
                                                               self.params.common.task_type)
@@ -201,20 +206,12 @@ class ModelRunner():
         self.model_compilation = compilation.edgeai_benchmark.ModelCompilation(self.params)
         self.params.update(self.model_compilation.get_params())
 
-        # write out the description of the current model
-        run_params_file = os.path.join(self.params.common.project_run_path, 'run.json')
-        with open(run_params_file, 'w') as jfp:
-            json.dump(self.params, jfp)
-        #
+        # write out the description of the current run
+        run_params_file = os.path.join(self.params.common.project_run_path, 'run.yaml')
+        utils.write_dict(self.params, run_params_file)
         return run_params_file
 
     def run(self):
-        # actual dataset handling
-        if self.params.dataset.enable:
-            self.dataset_handling.clear()
-            self.dataset_handling.run()
-        #
-
         # actual model training
         if self.params.training.enable:
             self.model_training.clear()
