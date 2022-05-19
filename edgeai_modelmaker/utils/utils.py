@@ -85,7 +85,7 @@ def write_dict(dict_obj, filename, write_json=True, write_yaml=True):
     if write_json:
         filename_json = os.path.splitext(filename)[0] + '.json'
         with open(filename_json, 'w') as fp:
-            json.dump(dict_obj, fp, indent=4, separators=[',',':'])
+            json.dump(dict_obj, fp, indent=2, separators=[',',':'])
         #
     #
     if write_yaml:

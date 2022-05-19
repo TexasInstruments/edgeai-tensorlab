@@ -31,6 +31,7 @@
 import os
 import datetime
 import sys
+import copy
 import argparse
 import yaml
 import json
@@ -47,11 +48,18 @@ def main(args):
 
     # get supported pretrained models for the given params
     supported_models = ai_target_module.runner.ModelRunner.get_supported_models(params)
-    for supported_model in supported_models.values():
-        supported_model.update(params)
+
+    # generate description
+    supported_models_desc = dict()
+    for k, v in supported_models.items():
+        s = copy.deepcopy(params)
+        s.update(v)
+        supported_models_desc[k] = s
     #
-    description = dict(supported_models=supported_models)
-    description_file = os.path.join(args.description_path, args.target_module + '.yaml')
+    description = dict(supported_models=supported_models_desc)
+
+    # write description
+    description_file = os.path.join(args.description_path, f'description_{args.target_module}' + '.yaml')
     edgeai_modelmaker.utils.write_dict(description, description_file)
     print(f'description is written at: {description_file}')
 
