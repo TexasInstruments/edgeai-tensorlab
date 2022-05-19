@@ -141,6 +141,8 @@ class ModelCompilation():
         '''
         # run the accuracy pipeline
         jai_benchmark.tools.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
+        # package artifacts
+        jai_benchmark.tools.package_artifacts(self.settings, self.work_dir, out_dir=self.package_dir)
         return self.params
 
     def _get_settings(self, model_selection=None):
