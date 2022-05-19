@@ -166,6 +166,15 @@ After the model compilation, the compiled models will be available in a folder i
 
 If you have a dataset in another format, use the script provided to convert it into the COCO jSON format. See the examples given in [run_convert_dataset.sh](./run_convert_dataset.sh) for example conversions.
 
+
+## Accelerated Training using GPUs
+This tool can train models either on CPU or on GPUs. By default, CPU based training is used. 
+
+It is possible to speedup model training significantly using GPUs (with CUDA support). The PyTorch version that we install is capable of supporting CUDA GPUs. However, the user has to install CUDA manually. See the [CUDA download instructions](https://developer.nvidia.com/cuda-downloads). The CUDA version that is installed must match the CUDA version used in the PyTorch installer - see [our PyTorch installer](https://github.com/TexasInstruments/edgeai-torchvision/blob/master/setup.sh) to understand the CUDA version used. The user also has to install an appropriate NVIDIA GPU driver that supports the GPU being used.
+
+Once the above drivers are installed, set a value for num_gpus to a value greater than 0 (should not exceed the number of GPUs in the system) to enable GPU based training.
+
+
 ## Model deployment
 The compiled model has all the side information required to easily run the model on our EdgeAI-StarterKit EVM and SDK. 
 - Purchase the [EdgeAI-StarterKit EVM](https://www.ti.com/tool/SK-TDA4VM) if you do not have it.
