@@ -68,6 +68,9 @@ _pretrained_models = {
                 constants.TRAINING_DEVICE_CPU: True,
                 constants.TRAINING_DEVICE_CUDA: True,
             }
+        ),
+        compilation=dict(
+            metric=dict(label_offset_pred=1)
         )
     ),
     'mobilenet_v3_large_lite_tv': dict(
@@ -90,6 +93,9 @@ _pretrained_models = {
                 constants.TRAINING_DEVICE_CPU: True,
                 constants.TRAINING_DEVICE_CUDA: True,
             }
+        ),
+        compilation=dict(
+            metric=dict(label_offset_pred=1)
         )
     ),
     'mobilenet_v3_small_lite_tv': dict(
@@ -112,6 +118,9 @@ _pretrained_models = {
                 constants.TRAINING_DEVICE_CPU: True,
                 constants.TRAINING_DEVICE_CUDA: True,
             }
+        ),
+        compilation=dict(
+            metric=dict(label_offset_pred=1)
         )
     ),
     'regnet_x_400mf_tv': dict(
@@ -134,6 +143,9 @@ _pretrained_models = {
                 constants.TRAINING_DEVICE_CPU: True,
                 constants.TRAINING_DEVICE_CUDA: True,
             }
+        ),
+        compilation=dict(
+            metric=dict(label_offset_pred=1)
         )
     ),
     'regnet_x_800mf_tv': dict(
@@ -181,6 +193,9 @@ _pretrained_models = {
                 constants.TRAINING_DEVICE_CPU: True,
                 constants.TRAINING_DEVICE_CUDA: True,
             }
+        ),
+        compilation=dict(
+            metric=dict(label_offset_pred=1)
         )
     ),
 }

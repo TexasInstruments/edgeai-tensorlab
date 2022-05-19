@@ -208,7 +208,7 @@ class ModelRunner():
 
         # write out the description of the current run
         run_params_file = os.path.join(self.params.common.project_run_path, 'run.yaml')
-        utils.write_dict(self.params, run_params_file)
+        utils.write_dict(self.params, run_params_file, write_yaml=False)
         return run_params_file
 
     def run(self):
