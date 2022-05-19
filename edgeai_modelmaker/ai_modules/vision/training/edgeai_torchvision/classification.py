@@ -47,7 +47,7 @@ from references.classification import train
 sys.path.pop(0)
 
 
-_supported_models = {
+_model_descriptions = {
     'mobilenet_v2_lite_tv': dict(
         common=dict(
             task_type=constants.TASK_TYPE_CLASSIFICATION,
@@ -201,18 +201,18 @@ _supported_models = {
 }
 
 
-def get_supported_models(task_type=None):
+def get_model_descriptions(task_type=None):
     if task_type is not None:
-        supported_models_selected = {k:v for k, v in _supported_models.items() if v['task_type'] == task_type}
+        model_descriptions_selected = {k:v for k, v in _model_descriptions.items() if v['task_type'] == task_type}
     else:
-        supported_models_selected = _supported_models
+        model_descriptions_selected = _model_descriptions
     #
-    return supported_models_selected
+    return model_descriptions_selected
 
 
-def get_supported_model(model_key):
-    supported_models = get_supported_models()
-    return supported_models[model_key] if model_key in supported_models else None
+def get_model_description(model_key):
+    model_descriptions = get_model_descriptions()
+    return model_descriptions[model_key] if model_key in model_descriptions else None
 
 
 class ModelTraining:

@@ -46,11 +46,11 @@ def main(config):
     params = ai_target_module.runner.ModelRunner.init_params(config)
 
     # get supported pretrained models for the given params
-    supported_models = ai_target_module.runner.ModelRunner.get_supported_models(params)
+    model_descriptions = ai_target_module.runner.ModelRunner.get_model_descriptions(params)
 
     # select a pretrained model and update the params with it
-    supported_model = list(supported_models.values())[0]
-    params.update(supported_model)
+    model_description = list(model_descriptions.values())[0]
+    params.update(model_description)
 
     # modify or set any other parameters as required.
     params.common.run_name = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")

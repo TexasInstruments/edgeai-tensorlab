@@ -47,16 +47,16 @@ def main(args):
     params = ai_target_module.runner.ModelRunner.init_params()
 
     # get supported pretrained models for the given params
-    supported_models = ai_target_module.runner.ModelRunner.get_supported_models(params)
+    model_descriptions = ai_target_module.runner.ModelRunner.get_model_descriptions(params)
 
     # generate description
-    supported_models_desc = dict()
-    for k, v in supported_models.items():
+    model_descriptions_desc = dict()
+    for k, v in model_descriptions.items():
         s = copy.deepcopy(params)
         s.update(v)
-        supported_models_desc[k] = s
+        model_descriptions_desc[k] = s
     #
-    description = dict(supported_models=supported_models_desc)
+    description = dict(model_descriptions=model_descriptions_desc)
 
     # write description
     description_file = os.path.join(args.description_path, f'description_{args.target_module}' + '.yaml')

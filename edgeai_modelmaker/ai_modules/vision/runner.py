@@ -40,25 +40,25 @@ from . import training
 from . import compilation
 
 
-def get_supported_models(params):
+def get_model_descriptions(params):
     if params.training.model_key is not None:
-        supported_model = training.get_supported_model(params.training.model_key)
-        supported_models = {params.training.model_key: supported_model}
+        model_description = training.get_model_description(params.training.model_key)
+        model_descriptions = {params.training.model_key: model_description}
     else:
         # populate a good pretrained model for the given task
-        supported_models = training.get_supported_models(task_type=params.common.task_type,
+        model_descriptions = training.get_model_descriptions(task_type=params.common.task_type,
                                                          target_device=params.common.target_device,
                                                          training_device=params.training.training_device)
     #
-    return supported_models
+    return model_descriptions
 
 
-def set_supported_model(params, supported_model):
-    assert supported_model is not None, f'could not find pretrained model for {params.training.model_key}'
-    assert params.common.task_type == supported_model['common']['task_type'], \
+def set_model_description(params, model_description):
+    assert model_description is not None, f'could not find pretrained model for {params.training.model_key}'
+    assert params.common.task_type == model_description['common']['task_type'], \
         f'task_type: {params.common.task_type} does not match the pretrained model'
     # get pretrained model checkpoint and other details
-    params.update(supported_model)
+    params.update(model_description)
     return params
 
 
@@ -142,12 +142,12 @@ class ModelRunner():
         return params
 
     @staticmethod
-    def get_supported_models(*args, **kwargs):
-        return get_supported_models(*args, **kwargs)
+    def get_model_descriptions(*args, **kwargs):
+        return get_model_descriptions(*args, **kwargs)
 
     @staticmethod
-    def set_supported_model(*args, **kwargs):
-        return set_supported_model(*args, **kwargs)
+    def set_model_description(*args, **kwargs):
+        return set_model_description(*args, **kwargs)
 
     def __init__(self, *args, verbose=True, **kwargs):
         self.params = self.init_params(*args, **kwargs)

@@ -32,35 +32,35 @@ from . import edgeai_mmdetection
 
 
 # list all the modules here to add pretrained models
-_supported_models = {}
+_model_descriptions = {}
 
 # detection models
-_supported_models.update(edgeai_mmdetection.detection.get_supported_models())
+_model_descriptions.update(edgeai_mmdetection.detection.get_model_descriptions())
 # the detection models in edgeai-mmdetection are superior to edgeai-torchvision, so commenting out these for now.
-#_supported_models.update(edgeai_torchvision.detection.get_supported_models())
+#_model_descriptions.update(edgeai_torchvision.detection.get_model_descriptions())
 
 # classification models
-_supported_models.update(edgeai_torchvision.classification.get_supported_models())
+_model_descriptions.update(edgeai_torchvision.classification.get_model_descriptions())
 
 
-def get_supported_models(task_type=None, target_device=None, training_device=None):
-    supported_models_selected = copy.deepcopy(_supported_models)
+def get_model_descriptions(task_type=None, target_device=None, training_device=None):
+    model_descriptions_selected = copy.deepcopy(_model_descriptions)
     if task_type is not None:
-        supported_models_selected = {k:v for k, v in supported_models_selected.items() if v['common']['task_type'] == task_type}
+        model_descriptions_selected = {k:v for k, v in model_descriptions_selected.items() if v['common']['task_type'] == task_type}
     #
     if target_device is not None:
-        supported_models_selected = {k:v for k, v in supported_models_selected.items() if target_device in v['training']['target_devices']}
+        model_descriptions_selected = {k:v for k, v in model_descriptions_selected.items() if target_device in v['training']['target_devices']}
     #
     if training_device is not None:
-        supported_models_selected = {k:v for k, v in supported_models_selected.items() if training_device in \
+        model_descriptions_selected = {k:v for k, v in model_descriptions_selected.items() if training_device in \
                                       v['training']['training_devices'] and v['training']['training_devices']}
     #
-    return supported_models_selected
+    return model_descriptions_selected
 
 
-def get_supported_model(model_key):
-    supported_models = get_supported_models()
-    return supported_models[model_key] if model_key in supported_models else None
+def get_model_description(model_key):
+    model_descriptions = get_model_descriptions()
+    return model_descriptions[model_key] if model_key in model_descriptions else None
 
 
 def get_target_module(backend_name, task_type):
