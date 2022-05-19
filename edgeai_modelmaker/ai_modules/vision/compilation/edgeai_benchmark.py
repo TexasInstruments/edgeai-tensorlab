@@ -32,7 +32,7 @@
 import os
 import shutil
 import jai_benchmark
-from .. import utils
+from .... import utils
 
 
 class ModelCompilation():

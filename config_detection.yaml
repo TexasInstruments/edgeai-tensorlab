@@ -1,6 +1,6 @@
 
 common:
-    backend_module: 'vision'
+    target_module: 'vision'
     task_type: 'detection'
     target_device: 'TDA4VM'
 

@@ -37,7 +37,7 @@ import json
 from torch.distributed import launch as distributed_launch
 
 from ... import constants
-from ... import utils
+from ..... import utils
 
 
 edgeai_modelzoo_path = os.path.abspath('../edgeai-modelzoo')

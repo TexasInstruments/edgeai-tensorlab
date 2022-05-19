@@ -34,7 +34,7 @@ import random
 import itertools
 import PIL
 
-from .. import utils
+from .... import utils
 from . import dataset_utils
 from . import widerface_detection
 from . import pascal_voc0712
@@ -53,10 +53,10 @@ def get_datasets_list(task_type=None):
         assert False, 'unknown task type for get_datasets_list'
 
 
-def get_backend_module(backend_name):
+def get_target_module(backend_name):
     this_module = sys.modules[__name__]
-    backend_module = getattr(this_module, backend_name)
-    return backend_module
+    target_module = getattr(this_module, backend_name)
+    return target_module
 
 
 class DatasetHandling:
@@ -127,7 +127,7 @@ class DatasetHandling:
                     self.params.dataset.split_names)
                 self.params.dataset.input_data_path, self.params.dataset.input_annotation_path = input_data_path, input_annotation_path
             elif self.params.dataset.dataset_name in get_datasets_list(self.params.common.task_type):
-                dataset_backend = get_backend_module(self.params.dataset.dataset_name)
+                dataset_backend = get_target_module(self.params.dataset.dataset_name)
                 if self.params.dataset.dataset_reload:
                     dataset_download_paths = dataset_backend.dataset_reload(self.params, self.params.common.project_path)
                 elif self.params.dataset.dataset_download:

@@ -63,8 +63,8 @@ def get_pretrained_model(model_key):
     return pretrained_models[model_key] if model_key in pretrained_models else None
 
 
-def get_backend_module(backend_name, task_type):
+def get_target_module(backend_name, task_type):
     this_module = sys.modules[__name__]
     backend_package = getattr(this_module, backend_name)
-    backend_module = getattr(backend_package, task_type)
-    return backend_module
+    target_module = getattr(backend_package, task_type)
+    return target_module

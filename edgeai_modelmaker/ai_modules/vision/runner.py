@@ -34,7 +34,7 @@ import os
 import datetime
 
 from . import constants
-from .. import utils
+from ... import utils
 from . import datasets
 from . import training
 from . import compilation
@@ -192,9 +192,9 @@ class ModelRunner():
         self.params.update(self.dataset_handling.get_params())
 
         # prepare model training
-        self.training_backend_module = training.get_backend_module(self.params.training.training_backend,
+        self.training_target_module = training.get_target_module(self.params.training.training_backend,
                                                               self.params.common.task_type)
-        self.model_training = self.training_backend_module.ModelTraining(self.params)
+        self.model_training = self.training_target_module.ModelTraining(self.params)
         self.params.update(self.model_training.get_params())
 
         # prepare for model compilation

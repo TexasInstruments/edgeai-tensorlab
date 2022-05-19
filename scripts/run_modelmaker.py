@@ -40,13 +40,13 @@ import edgeai_modelmaker
 
 def main(config):
     # get the ai backend module
-    ai_backend_module = edgeai_modelmaker.get_backend_module(config['common']['backend_module'])
+    ai_target_module = edgeai_modelmaker.ai_modules.get_target_module(config['common']['target_module'])
 
     # get params for the given config
-    params = ai_backend_module.runner.ModelRunner.init_params(config)
+    params = ai_target_module.runner.ModelRunner.init_params(config)
 
     # get supported pretrained models for the given params
-    pretrained_models = ai_backend_module.runner.ModelRunner.get_pretrained_models(params)
+    pretrained_models = ai_target_module.runner.ModelRunner.get_pretrained_models(params)
 
     # select a pretrained model and update the params with it
     pretrained_model = list(pretrained_models.values())[0]
@@ -56,7 +56,7 @@ def main(config):
     params.common.run_name = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
     # create the runner
-    model_runner = ai_backend_module.runner.ModelRunner(
+    model_runner = ai_target_module.runner.ModelRunner(
         params
     )
 
@@ -68,6 +68,7 @@ def main(config):
     model_runner.run()
     print(f'trained model is at: {model_runner.get_params().training.training_path}')
     print(f'compiled model is at: {model_runner.get_params().compilation.model_packaged_path}')
+
 
 if __name__ == '__main__':
     print(f'argv: {sys.argv}')

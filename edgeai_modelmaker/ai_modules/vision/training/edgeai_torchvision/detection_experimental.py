@@ -35,7 +35,7 @@ import shutil
 import json
 
 from ... import constants
-from ... import utils
+from ..... import utils
 
 
 edgeai_torchvision_path = os.path.abspath('../edgeai-torchvision')
