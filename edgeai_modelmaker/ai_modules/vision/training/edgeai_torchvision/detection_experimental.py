@@ -47,7 +47,7 @@ from references.detection import train
 sys.path.pop(0)
 
 
-_pretrained_models = {
+_supported_models = {
     'ssdlite_mobilenet_v2_fpn_lite_tv': dict(
         common=dict(
             task_type=constants.TASK_TYPE_DETECTION,
@@ -95,18 +95,18 @@ _pretrained_models = {
 }
 
 
-def get_pretrained_models(task_type=None):
+def get_supported_models(task_type=None):
     if task_type is not None:
-        pretrained_models_selected = {k:v for k, v in _pretrained_models.items() if v['task_type'] == task_type}
+        supported_models_selected = {k:v for k, v in _supported_models.items() if v['task_type'] == task_type}
     else:
-        pretrained_models_selected = _pretrained_models
+        supported_models_selected = _supported_models
     #
-    return pretrained_models_selected
+    return supported_models_selected
 
 
-def get_pretrained_model(model_key):
-    pretrained_models = get_pretrained_models()
-    return pretrained_models[model_key] if model_key in pretrained_models else None
+def get_supported_model(model_key):
+    supported_models = get_supported_models()
+    return supported_models[model_key] if model_key in supported_models else None
 
 
 class ModelTraining:

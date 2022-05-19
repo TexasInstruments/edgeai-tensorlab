@@ -40,25 +40,25 @@ from . import training
 from . import compilation
 
 
-def get_pretrained_models(params):
+def get_supported_models(params):
     if params.training.model_key is not None:
-        pretrained_model = training.get_pretrained_model(params.training.model_key)
-        pretrained_models = {params.training.model_key: pretrained_model}
+        supported_model = training.get_supported_model(params.training.model_key)
+        supported_models = {params.training.model_key: supported_model}
     else:
         # populate a good pretrained model for the given task
-        pretrained_models = training.get_pretrained_models(task_type=params.common.task_type,
-                                                           target_device=params.common.target_device,
-                                                           training_device=params.training.training_device)
+        supported_models = training.get_supported_models(task_type=params.common.task_type,
+                                                         target_device=params.common.target_device,
+                                                         training_device=params.training.training_device)
     #
-    return pretrained_models
+    return supported_models
 
 
-def set_pretrained_model(params, pretrained_model):
-    assert pretrained_model is not None, f'could not find pretrained model for {params.training.model_key}'
-    assert params.common.task_type == pretrained_model['common']['task_type'], \
+def set_supported_model(params, supported_model):
+    assert supported_model is not None, f'could not find pretrained model for {params.training.model_key}'
+    assert params.common.task_type == supported_model['common']['task_type'], \
         f'task_type: {params.common.task_type} does not match the pretrained model'
     # get pretrained model checkpoint and other details
-    params.update(pretrained_model)
+    params.update(supported_model)
     return params
 
 
@@ -142,12 +142,12 @@ class ModelRunner():
         return params
 
     @staticmethod
-    def get_pretrained_models(*args, **kwargs):
-        return get_pretrained_models(*args, **kwargs)
+    def get_supported_models(*args, **kwargs):
+        return get_supported_models(*args, **kwargs)
 
     @staticmethod
-    def set_pretrained_model(*args, **kwargs):
-        return set_pretrained_model(*args, **kwargs)
+    def set_supported_model(*args, **kwargs):
+        return set_supported_model(*args, **kwargs)
 
     def __init__(self, *args, verbose=True, **kwargs):
         self.params = self.init_params(*args, **kwargs)
@@ -208,7 +208,7 @@ class ModelRunner():
 
         # write out the description of the current run
         run_params_file = os.path.join(self.params.common.project_run_path, 'run.yaml')
-        utils.write_dict(self.params, run_params_file, write_yaml=False)
+        utils.write_dict(self.params, run_params_file)
         return run_params_file
 
     def run(self):

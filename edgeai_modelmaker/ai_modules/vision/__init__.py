@@ -35,4 +35,4 @@ from . import datasets
 from . import training
 from . import runner
 
-from .training import get_pretrained_models, get_pretrained_model
+from .training import get_supported_models, get_supported_model
