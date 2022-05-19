@@ -66,14 +66,15 @@ The following setup script can take care of cloning the repositories and running
 
 However, for some reason, if you wish to do it manually, the repositories mentioned below are to be cloned into the same parent directory containing this folder. i.e. the folder structure should be:
 
-parent_directory<br>
-    |<br>
-    |--edgeai-benchmark<br>
-    |--edgeai-torchvision<br>
-    |--edgeai-mmdetection<br>
-    |--edgeai-modelzoo<br>
-    |--edgeai-modelmaker<br>
-
+<pre>
+parent_directory
+    |
+    |--edgeai-benchmark
+    |--edgeai-torchvision
+    |--edgeai-mmdetection
+    |--edgeai-modelzoo
+    |--edgeai-modelmaker
+</pre>
 
 Note: edgeai-modelzoo doesn't have a setup script.<br>
 Note: There is no need to clone edgeai-tidl-tools, as edgeai-benchmark takes care of the dependencies provided by edgeai-tidl-tools as well.
@@ -124,14 +125,15 @@ pip install -r requirements-labelstudio.txt
 
 ### Object Detection example
 - An object detection dataset should look like this:
-data / datasets / animal_detection<br>
-                              |<br>
-                              |-images<br>
-                              |     |--copy the image files here<br>
-                              |<br>
-                              |-annotations<br>
-                                    |<br>
-                                    |--instances.json<br>
+<pre>
+data / datasets / animal_detection
+                              |
+                              |--images
+                              |     |--copy the image files here
+                              |
+                              |--annotations
+                                    |--instances.json
+</pre>
 
 - In the config yaml file, provide the name of the dataset (animal_detection in this example) in the field dataset_name and provide the path (./data/datasets/animal_detection in this example) in the field input_data_path.
 - This ModelMaker tool can be invoked for model training and compilation by running run_modelmaker.sh with a suitable config yaml file:
@@ -141,14 +143,15 @@ data / datasets / animal_detection<br>
 
 ### Image Classification example
 - An image classification dataset should look like this:
-data / datasets / animal_classification<br>
-                              |<br>
-                              |-images<br>
-                              |     |--copy the image files here<br>
-                              |<br>
-                              |-annotations<br>
-                                    |<br>
-                                    |--labels.json<br>
+<pre>
+data / datasets / animal_classification
+                              |
+                              |--images
+                              |     |--copy the image files here
+                              |
+                              |--annotations
+                                    |--labels.json
+</pre>
 
 - In the config yaml file, provide the name of the dataset (animal_classification in this example) in the field dataset_name and provide the path (./data/datasets/animal_classification in this example) in the field input_data_path.
 - This ModelMaker tool can be invoked for model training and compilation by running run_modelmaker.sh with a suitable config yaml file:
@@ -159,7 +162,7 @@ data / datasets / animal_classification<br>
 ### Notes
 If the dataset has already been split into train and validation set already, it is possible to provide those paths separately as a tuple in input_data_path.
 
-After the model compilation, the compiled models will be available in the folder [./data/projects](./data/projects)
+After the model compilation, the compiled models will be available in a folder inside [./data/projects](./data/projects)
 
 If you have a dataset in another format, use the script provided to convert it into the COCO jSON format. See the examples given in [run_convert_dataset.sh](./run_convert_dataset.sh) for example conversions.
 
