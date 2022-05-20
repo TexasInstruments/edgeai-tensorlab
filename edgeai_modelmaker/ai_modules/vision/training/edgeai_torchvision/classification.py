@@ -40,6 +40,7 @@ from ..... import utils
 
 edgeai_torchvision_path = os.path.abspath('../edgeai-torchvision')
 edgeai_modelzoo_path = os.path.abspath('../edgeai-modelzoo')
+www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest'
 
 
 sys.path.insert(0, edgeai_torchvision_path)
@@ -60,7 +61,7 @@ _model_descriptions = {
             model_architecture='backbone',
             input_resize=256,
             input_cropsize=224,
-            pretrained_checkpoint=f'{edgeai_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth',
+            pretrained_checkpoint=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=455)
             },
@@ -85,7 +86,7 @@ _model_descriptions = {
             model_architecture='backbone',
             input_resize=256,
             input_cropsize=224,
-            pretrained_checkpoint=f'{edgeai_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth',
+            pretrained_checkpoint=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None)
             },
@@ -110,7 +111,7 @@ _model_descriptions = {
             model_architecture='backbone',
             input_resize=256,
             input_cropsize=224,
-            pretrained_checkpoint=f'{edgeai_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth',
+            pretrained_checkpoint=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None)
             },

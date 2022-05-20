@@ -40,6 +40,7 @@ from ..... import utils
 
 edgeai_torchvision_path = os.path.abspath('../edgeai-torchvision')
 edgeai_modelzoo_path = os.path.abspath('../edgeai-modelzoo')
+www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest'
 
 
 sys.path.insert(0, edgeai_torchvision_path)
@@ -60,7 +61,7 @@ _model_descriptions = {
             model_architecture='ssd',
             input_resize=(512,512),
             input_cropsize=(512,512),
-            pretrained_checkpoint=f'{edgeai_modelzoo_path}/models/vision/detection/coco/edgeai-tv/ssdlite_mobilenet_v2_fpn_lite_512x512_20211108_checkpoint.pth',
+            pretrained_checkpoint=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-tv/ssdlite_mobilenet_v2_fpn_lite_512x512_20211108_checkpoint.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=156)
             },
@@ -82,7 +83,7 @@ _model_descriptions = {
             model_architecture='ssd',
             input_resize=(512,512),
             input_cropsize=(512,512),
-            pretrained_checkpoint_path=f'{edgeai_modelzoo_path}/models/vision/detection/coco/edgeai-tv/ssdlite_regnet_x_800mf_fpn_lite_20211030_checkpoint.pth',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-tv/ssdlite_regnet_x_800mf_fpn_lite_20211030_checkpoint.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=103)
             },

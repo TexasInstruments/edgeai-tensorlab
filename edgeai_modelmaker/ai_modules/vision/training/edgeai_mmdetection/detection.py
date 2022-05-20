@@ -41,6 +41,8 @@ from ..... import utils
 
 
 edgeai_modelzoo_path = os.path.abspath('../edgeai-modelzoo')
+www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest'
+
 
 _model_descriptions = {
     'ssd_mobilenetv2_fpn_lite_mmdet': dict(
@@ -55,7 +57,7 @@ _model_descriptions = {
             model_architecture='ssd',
             input_resize=(512,512),
             input_cropsize=(512,512),
-            pretrained_checkpoint_path=f'{edgeai_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_checkpoint.pth',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_checkpoint.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=172)
             },
@@ -83,7 +85,7 @@ _model_descriptions = {
             model_architecture='ssd',
             input_resize=(512,512),
             input_cropsize=(512,512),
-            pretrained_checkpoint_path=f'{edgeai_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_checkpoint.pth',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_checkpoint.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=92)
             },
@@ -111,7 +113,7 @@ _model_descriptions = {
             model_architecture='ssd',
             input_resize=(768,768),
             input_cropsize=(768,768),
-            pretrained_checkpoint_path=f'{edgeai_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-1.6gf_fpn_bgr_lite_768x768_20200923_checkpoint.pth',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-1.6gf_fpn_bgr_lite_768x768_20200923_checkpoint.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=45)
             },
@@ -139,7 +141,7 @@ _model_descriptions = {
             model_architecture='yolox',
             input_resize=416,
             input_cropsize=416,
-            pretrained_checkpoint_path=f'{edgeai_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=386)
             },
@@ -167,7 +169,7 @@ _model_descriptions = {
             model_architecture='yolox',
             input_resize=416,
             input_cropsize=416,
-            pretrained_checkpoint_path=f'{edgeai_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=264)
             },
@@ -195,7 +197,7 @@ _model_descriptions = {
             model_architecture='yolox',
             input_resize=640,
             input_cropsize=640,
-            pretrained_checkpoint_path=f'{edgeai_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=107)
             },
@@ -223,7 +225,7 @@ _model_descriptions = {
             model_architecture='yolox',
             input_resize=640,
             input_cropsize=640,
-            pretrained_checkpoint_path=f'{edgeai_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=46)
             },
