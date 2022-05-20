@@ -5,6 +5,10 @@ If you have not visited the following landing pages, please do so before attempt
 - https://www.ti.com/edgeai 
 - https://github.com/TexasInstruments/edgeai
 
+This repository uses git lfs. Please install it before cloning this repository.
+```
+sudo apt install -y git-lfs
+```
 
 <hr>
 

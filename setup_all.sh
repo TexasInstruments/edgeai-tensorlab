@@ -47,10 +47,6 @@ fi
 echo "SOURCE_LOCATION="${SOURCE_LOCATION}
 
 #################################################################################
-# this repository uses git lfs. install it
-sudo apt install -y git-lfs
-
-#################################################################################
 # clone
 echo "cloning git repositories. this may take some time..."
 if [ ! -d ../edgeai-benchmark ]; then git clone ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
