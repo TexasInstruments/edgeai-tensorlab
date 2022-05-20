@@ -49,7 +49,7 @@ def decode_rotation_translation(pose):
     # Rotation matrix is recovered using the formula given in the article
     # https://towardsdatascience.com/better-rotation-representations-for-accurate-pose-estimation-e890a7e1317f
     if torch.is_tensor(pose):
-        pose = pose.cpu().numpy()
+        pose = pose.cpu().numpy().copy()
 
     r1 = pose[5:8, None]
     r2 = pose[8:11, None]
