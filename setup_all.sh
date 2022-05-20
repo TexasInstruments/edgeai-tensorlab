@@ -48,7 +48,7 @@ echo "SOURCE_LOCATION="${SOURCE_LOCATION}
 
 #################################################################################
 # this repository uses git lfs. install it
-sudo apt install git-lfs
+sudo apt install -y git-lfs
 
 #################################################################################
 # clone
