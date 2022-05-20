@@ -163,6 +163,17 @@ class MosaicDetection(Dataset):
         else:
             self._dataset._input_dim = self.input_dim
             img, label, img_info, img_id = self._dataset.pull_item(idx)
+            img, label = random_affine(
+                img,
+                label,
+                target_size=self.input_dim,
+                degrees=self.degrees,
+                translate=self.translate,
+                scales=self.scale,
+                shear=self.shear,
+                human_pose=self.preproc.human_pose,
+                object_pose= self.preproc.object_pose,
+            )  # border to remove
             #if self.preproc is not None: #Temporary fix
             #    img, label = self.preproc(img, label, self.input_dim)
             img, label = self.preproc(img, label, self.input_dim)

@@ -15,7 +15,7 @@ import random
 import cv2
 import numpy as np
 
-from yolox.utils import xyxy2cxcywh
+from yolox.utils import xyxy2cxcywh, camera_matrix
 
 
 def augment_hsv(img, hgain=5, sgain=30, vgain=30):
@@ -51,6 +51,7 @@ def get_affine_matrix(
     translate=0.1,
     scales=0.1,
     shear=10,
+    object_pose=False,
 ):
     twidth, theight = target_size
 
@@ -60,8 +61,11 @@ def get_affine_matrix(
 
     if scale <= 0.0:
         raise ValueError("Argument scale should be positive")
-
-    R = cv2.getRotationMatrix2D(angle=angle, center=(0, 0), scale=scale)
+    if object_pose:
+        center = (camera_matrix[2], camera_matrix[5])
+        R = cv2.getRotationMatrix2D(angle=angle, center=center, scale=scale) #Rotate around the principle axis
+    else:
+        R = cv2.getRotationMatrix2D(angle=angle, center=(0, 0), scale=scale)
 
     M = np.ones([2, 3])
     # Shear
@@ -75,10 +79,10 @@ def get_affine_matrix(
     translation_x = get_aug_params(translate) * twidth  # x translation (pixels)
     translation_y = get_aug_params(translate) * theight  # y translation (pixels)
 
-    M[0, 2] = translation_x
-    M[1, 2] = translation_y
+    M[0, 2] += translation_x
+    M[1, 2] += translation_y
 
-    return M, scale
+    return M, scale, angle
 
 
 def apply_affine_to_bboxes(targets, target_size, M, scale):
@@ -133,6 +137,29 @@ def apply_affine_to_kpts(targets, target_size, M, scale):
 
     return targets
 
+def apply_affine_to_object_pose(targets, target_size, M, scale, angle):
+    num_gts = len(targets)
+    # warp object center points [tx, ty]
+    twidth, theight = target_size
+    target_kpts = np.ones((num_gts, 3))
+    target_kpts[:, :2] = targets[:, 11:13]
+    target_kpts = target_kpts @ M.T  # transform
+    targets[:, 11:13] = target_kpts
+    #transform Rotation
+    r1 = targets[:, 5:8, None]
+    r2 = targets[:, 8:11, None]
+    r3 = np.cross(r1, r2, axis=1)
+    rotation_mat = np.concatenate((r1, r2, r3), axis=-1)
+    deltaR = cv2.getRotationMatrix2D(angle=angle, center=(0, 0), scale=scale)
+    deltaR = np.vstack( (deltaR, np.array([[0, 0, 1.0]])) )
+    rotation_mat = deltaR @ rotation_mat
+    targets[:, 5:8] = rotation_mat[:, :, 0]
+    targets[:, 8:11] = rotation_mat[:, :, 1]
+    # transform depth
+    # There is no change in depth for rotation around z axis. Scaling reduces depth by the amount of scaling
+    targets[:, 13:] = targets[:, 13:] / scale
+    return targets
+
 
 def random_affine(
     img,
@@ -143,8 +170,9 @@ def random_affine(
     scales=0.1,
     shear=10,
     human_pose=False,
+    object_pose=False,
 ):
-    M, scale = get_affine_matrix(target_size, degrees, translate, scales, shear)
+    M, scale, angle = get_affine_matrix(target_size, degrees, translate, scales, shear, object_pose)
 
     img = cv2.warpAffine(img, M, dsize=target_size, borderValue=(114, 114, 114))
 
@@ -153,6 +181,8 @@ def random_affine(
         targets = apply_affine_to_bboxes(targets, target_size, M, scale)
         if human_pose:
             targets = apply_affine_to_kpts(targets, target_size, M, scale)
+        elif object_pose:
+            targets = apply_affine_to_object_pose(targets, target_size, M, scale, angle)
 
     return img, targets
 

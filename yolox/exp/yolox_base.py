@@ -70,6 +70,7 @@ class Exp(BaseExp):
         self.nmsthre = 0.65
         self.data_set = "coco"
         self.object_pose = False
+        self.human_pose = False
         self.visualize = False
 
     def get_model(self):

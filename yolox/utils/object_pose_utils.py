@@ -51,19 +51,19 @@ def decode_rotation_translation(pose):
     if torch.is_tensor(pose):
         pose = pose.cpu().numpy()
 
-    r1 = np.expand_dims(pose[5:8].astype(np.float64), axis=1)
-    r2 = np.expand_dims(pose[8:11].astype(np.float64), axis=1)
-    r3 = np.cross(r1.T, r2.T).T
-    translation_vec = pose[11:14].astype(np.float64)
+    r1 = pose[5:8, None]
+    r2 = pose[8:11, None]
+    r3 = np.cross(r1, r2, axis=0)
+    translation_vec = pose[11:14]
     # Tz was previously scaled down by 100 (converted from cm to m)
     # Tx and Ty are recovered using the formula given on page 5 of the the paper: https://arxiv.org/pdf/2011.04307.pdf
     # px, py, fx and fy are currently hard-coded for LINEMOD dataset
-    tz = pose[13].astype(np.float64) * 100.0
+    tz = pose[13] * 100.0
     # print("prediction",obj_class, tz)
-    tx = ((pose[11].astype(np.float64) / r_w) - px) * tz / fx
-    ty = ((pose[12].astype(np.float64) / r_h) - py) * tz / fy
-    rotation_mat = np.hstack((r1, r2, r3))
-    rotation_vec, _ = cv2.Rodrigues(rotation_mat)
+    tx = ((pose[11] / r_w) - px) * tz / fx
+    ty = ((pose[12] / r_h) - py) * tz / fy
+    rotation_mat = np.concatenate((r1, r2, r3), axis=1)
+    rotation_vec, _ = cv2.Rodrigues(np.asarray(rotation_mat, dtype=np.float32))
     translation_vec[0] = tx
     translation_vec[1] = ty
     translation_vec[2] = tz
