@@ -549,7 +549,6 @@ class YOLOXObjectPoseHead(nn.Module):
                           ).sum() / num_fg
         else:
             loss_trn_z = self.adds_loss_z(trn_z_preds.view(-1, 1)[fg_masks], trn_z_targets, cls_targets_raw)
-            loss_trn_z = 0.0
         if self.adds:
             pose_targets = torch.cat([trn_xy_targets, trn_z_targets, rot_targets], 1)
             pose_preds = torch.cat([trn_xy_preds.view(-1, 2)[fg_masks], trn_z_preds.view(-1, 1)[fg_masks], rot_preds.view(-1, 6)[fg_masks]], 1)

@@ -27,16 +27,18 @@ class Exp(MyExp):
         # --------------- transform config ----------------- #
         self.mosaic_prob = 0.0
         self.mixup_prob = 0.0
-        self.hsv_prob = 0.0
+        self.hsv_prob = 1.0
         self.flip_prob = 0.0
         self.degrees = 10.0
         self.translate = 0.1
-        self.mosaic_scale = (0.1, 2)
-        self.mixup_scale = (0.5, 1.5)
-        self.shear = 2.0
+        self.mosaic_scale = (0.8, 1.2)
+        self.mixup_scale = (1.0, 1.0)
+        self.shear = 0.0
         self.perspective = 0.0
         self.enable_mixup = False
-
+        # --------------  training config --------------------- #
+        self.max_epoch = 900
+        self.eval_interval = 10
         # -----------------  testing config ------------------ #
         self.test_size = (640, 640)
         self.test_conf = 0.01

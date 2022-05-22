@@ -107,14 +107,15 @@ class Trainer:
         targets.requires_grad = False
         inps, targets = self.exp.preprocess(inps, targets, self.input_size)
         data_end_time = time.time()
-        if self.epoch < 2 and self.iter <100 and (self.args.task == "human_pose" or self.args.task == "object_pose"):
+        if self.epoch < 2 and self.iter <100 and (self.args.task == "human_pose" or self.args.task == "object_pose") and self.exp.visualize:
             human_pose = self.args.task=="human_pose"
             object_pose = self.args.task=="object_pose"
             f = os.path.join(self.file_name, f'epoch_{self.epoch}_train_batch{self.iter}.png')  # filename
             if not object_pose:
                 plots.plot_images(inps, targets, fname=f, human_pose=human_pose, object_pose=object_pose)
             else:
-                plots.plot_images(inps, targets, fname=f, human_pose=human_pose, object_pose=object_pose, cad_models=self.model.head.cad_models)
+                cad_models = self.train_loader.dataset._dataset.cad_models
+                plots.plot_images(inps, targets, fname=f, human_pose=human_pose, object_pose=object_pose, cad_models=cad_models)
         with torch.cuda.amp.autocast(enabled=self.amp_training):
             outputs = self.model(inps, targets)
 
