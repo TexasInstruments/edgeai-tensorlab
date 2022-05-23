@@ -70,6 +70,11 @@ model_selection : null
 # example: null (Note: null means no filter - run all the tasks)
 task_selection : null
 
+# wild card list to match against runtime name. if null, all runtimes will be considered
+# example: ['onnxrt', 'tflitert', 'tvmdlr']
+# example: ['onnxrt']
+runtime_selection : null
+
 # wild card list to match against dataset type - if null, all datasets will be shortlisted
 # example: ['coco']
 # example: ['imagenet', 'cocoseg21', 'ade20k', 'cocokpts', 'kitti_lidar_det', 'ti-robokit_semseg_zed1hd']

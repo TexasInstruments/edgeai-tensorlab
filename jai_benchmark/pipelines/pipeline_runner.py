@@ -182,6 +182,18 @@ class PipelineRunner():
             return False
         #
         selected_model = True
+        if settings.runtime_selection is not None:
+            runtime_selection = utils.as_list(settings.runtime_selection)
+            if pipeline_config['session'].get_session_name() not in runtime_selection:
+                selected_model = False
+            #
+        #
+        if settings.task_selection is not None:
+            task_selection = utils.as_list(settings.task_selection)
+            if pipeline_config['task_type'] not in task_selection:
+                selected_model = False
+            #
+        #
         if settings.model_selection is not None:
             model_selection = utils.as_list(settings.model_selection)
             selected_model = self._str_match_plus_any(model_selection, (model_path0,model_id,model_type))
@@ -191,26 +203,6 @@ class PipelineRunner():
             excluded_model = self._str_match_plus_any(model_exclusion, (model_path0,model_id,model_type))
             selected_model = selected_model and (not excluded_model)
         #
-        if settings.task_selection is not None:
-            task_selection = utils.as_list(settings.task_selection)
-            if pipeline_config['task_type'] not in task_selection:
-                selected_model = False
-            #
-        #
-        # calibration_dataset = pipeline_config['calibration_dataset']
-        # if settings.run_import and calibration_dataset is None:
-        #     if settings.verbose:
-        #         warnings.warn(f'settings.run_import was set, but calibration_dataset={calibration_dataset}, removing model {model_id}:{model_path0}')
-        #     #
-        #     selected_model = False
-        # #
-        # input_dataset = pipeline_config['input_dataset']
-        # if settings.run_inference and input_dataset is None:
-        #     if settings.verbose:
-        #         warnings.warn(f'settings.run_inference was set, but input_dataset={input_dataset}, removing model {model_id}:{model_path0}')
-        #     #
-        #     selected_model = False
-        # #
         return selected_model
 
     def get_input_shape_onnx(self, onnx_model, num_inputs=1):
