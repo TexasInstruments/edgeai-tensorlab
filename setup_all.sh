@@ -66,7 +66,7 @@ cd ../edgeai-mmdetection
 ./setup.sh
 
 cd ../edgeai-benchmark
-# for setup.py develop mode to work, this is required
+# for setup.py develop mode to work inside docker environment, this is required
 git config --global --add safe.directory $(pwd)
 ./setup.sh
 
