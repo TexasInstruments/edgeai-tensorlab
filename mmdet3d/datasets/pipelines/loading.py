@@ -373,6 +373,7 @@ class LoadPointsFromFile(object):
                  coord_type,
                  load_dim=6,
                  use_dim=[0, 1, 2],
+                 color_dim = 0,
                  shift_height=False,
                  use_color=False,
                  file_client_args=dict(backend='disk')):
@@ -389,6 +390,7 @@ class LoadPointsFromFile(object):
         self.use_dim = use_dim
         self.file_client_args = file_client_args.copy()
         self.file_client = None
+        self.color_dim = color_dim
 
     def _load_points(self, pts_filename):
         """Private function to load point clouds data.
@@ -425,7 +427,9 @@ class LoadPointsFromFile(object):
 
                 - points (:obj:`BasePoints`): Point clouds data.
         """
+
         pts_filename = results['pts_filename']
+
         points = self._load_points(pts_filename)
         points = points.reshape(-1, self.load_dim)
         points = points[:, self.use_dim]
@@ -443,12 +447,8 @@ class LoadPointsFromFile(object):
             assert len(self.use_dim) >= 6
             if attribute_dims is None:
                 attribute_dims = dict()
-            attribute_dims.update(
-                dict(color=[
-                    points.shape[1] - 3,
-                    points.shape[1] - 2,
-                    points.shape[1] - 1,
-                ]))
+
+            attribute_dims.update(dict(color=[len(self.use_dim) - idx - 1 for idx in range(self.color_dim)][::-1]))
 
         points_class = get_points_type(self.coord_type)
         points = points_class(

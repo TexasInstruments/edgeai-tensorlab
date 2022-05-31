@@ -43,6 +43,7 @@ class PillarFeatureNet(nn.Module):
                  with_distance=False,
                  with_cluster_center=True,
                  with_voxel_center=True,
+                 point_color_dim=0,
                  voxel_size=(0.2, 0.2, 4),
                  point_cloud_range=(0, -40, -3, 70.4, 40, 1),
                  replace_mat_mul=False,
@@ -59,6 +60,7 @@ class PillarFeatureNet(nn.Module):
             in_channels += 3
         if with_distance:
             in_channels += 1
+        in_channels += point_color_dim
         self._with_distance = with_distance
         self._with_cluster_center = with_cluster_center
         self._with_voxel_center = with_voxel_center
@@ -209,7 +211,7 @@ class PillarFeatureNet(nn.Module):
         for pfn in self.pfn_layers:
             features = pfn(features, num_points)
 
-        return features.squeeze(1)
+        return features.squeeze() # changed by TI to squeeze all dimension here, that is what is the expectation asfter this. #features.squeeze(1)
 
 
 @VOXEL_ENCODERS.register_module()

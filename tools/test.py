@@ -333,7 +333,7 @@ def save_model(model, save_onnx_model=True):
 
     ## Need to parameterized the contants in below three tensors
     max_num_3d_points = 10000
-    raw_voxel_feat = torch.ones(1, 9, 32, max_num_3d_points)
+    raw_voxel_feat = torch.ones(1, 10, 32, max_num_3d_points)
     data = torch.zeros(1, 64, 496*432)
     coors = torch.ones(1, 64, max_num_3d_points)
     coors = coors.long()
