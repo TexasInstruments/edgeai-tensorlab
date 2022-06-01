@@ -26,9 +26,54 @@ These functionalities that are supported are fully integrated and the user can c
 
 ## OS & Environment 
 
-### With docker environment
+This repository can be used from native Ubuntu bash terminal directly or from within a docker environment.
 
-Install docker if you don't have it already. The following steps are for installation on Ubuntu 18.04
+###  Option 1: With native Ubuntu environment
+We have tested this tool in Ubuntu 18.04 and with Python 3.6 (Note: Currently edgeai-tidl-tools supports only Python 3.6). We have not tested this on other Linux distributions, but it might work.
+
+We recommend the Miniconda Python distribution from: https://docs.conda.io/en/latest/miniconda.html
+
+
+Step 1: Install Miniconda:
+```
+HOME_DIR=${HOME}
+APPS_PATH=${HOME_DIR}/apps
+DOWNLOADS_PATH=${HOME_DIR}/Downloads
+CONDA_INSTALLER="Miniconda3-latest-Linux-x86_64.sh"
+CONDA_URL=https://repo.anaconda.com/miniconda/${CONDA_INSTALLER}
+CONDA_PATH=${APPS_PATH}/conda
+CONDA_BIN=${CONDA_PATH}/bin
+
+echo "Installing MiniConda..." && \
+  mkdir -p ${DOWNLOADS_PATH} && \
+  if [ ! -f ${CONDA_INSTALLER} ]; then wget -q --show-progress --progress=bar:force:noscroll ${CONDA_URL} -O ${DOWNLOADS_PATH}/${CONDA_INSTALLER}; fi && \
+  chmod +x ${DOWNLOADS_PATH}/${CONDA_INSTALLER} && \
+  ${DOWNLOADS_PATH}/${CONDA_INSTALLER} -b -p ${CONDA_PATH}
+```
+
+
+Step 2: Add conda init script to .bashrc (this is for bash shell):
+```
+echo ". ${CONDA_PATH}/etc/profile.d/conda.sh" >> ${HOME_DIR}/.bashrc
+```
+
+
+Step 3: At this point, conda installation is complete. Close your current terminal and start a new one. This is so that the change that we wrote to tbe .bashrc takes effect. Create conda Python 3.6 environment with a suitable name (py36 below - but, it can be anything):
+```
+conda create -y -n py36 python=3.6
+```
+
+**These conda installation steps above need to be done only once for a user.** 
+
+
+Step 4: **Activate the Python environment.** This activation step needs to be done everytime one starts a new terminal or shell. (Alternately, this also can be written to the .bashrc, so that this will be the default conda environment).
+```
+conda activate py36
+```
+
+### Option 2: With docker environment
+
+Step 1: Install docker if you don't have it already. The following steps are for installation on Ubuntu 18.04
 ```
 sudo apt update
 sudo apt install docker.io
@@ -38,12 +83,12 @@ sudo systemctl enable docker
 # logout and log back in and docker should be ready to use.
 ```
 
-Build docker image:
+Step 2: Build docker image:
 ```
 ./docker_build.sh
 ```
 
-Run docker container to bring up the container terminal on docker:
+Step 3: Run docker container to bring up the container terminal on docker:
 ```
 ./docker_run.sh
 ```
@@ -52,12 +97,6 @@ During docker run, we map the parent directory of this folder to /home/edgeai/co
 ```
 cd /home/edgeai/code/edgeai-modelmaker
 ```
-
-###  With native Ubuntu environment
-We have tested this tool in Ubuntu 18.04 and with Python 3.6 (Note: Currently edgeai-tidl-tools supports only Python 3.6)
-
-We recommend the Miniconda Python distribution from: https://docs.conda.io/en/latest/miniconda.html
-
 
 ## Setup the model training and compilation repositories
 
@@ -179,11 +218,24 @@ The config file can be in .yaml or in .json format
 
 
 ## Accelerated Training using GPUs
+
+Note: **This section is for advanced users only**. Familiarity with NVIDIA GPU and CUDA driver installation is assumed.
+
 This tool can train models either on CPU or on GPUs. By default, CPU based training is used. 
 
-It is possible to speedup model training significantly using GPUs (with CUDA support) - if you have those GPUs in the PC. The PyTorch version that we install is capable of supporting CUDA GPUs. However, the user has to install CUDA manually. See the [CUDA download instructions](https://developer.nvidia.com/cuda-downloads). The CUDA version that is installed must match the CUDA version used in the PyTorch installer - see [our edgeai-torchvision setup script](https://github.com/TexasInstruments/edgeai-torchvision/blob/master/setup.sh) to understand the CUDA version used. The user also has to install an appropriate NVIDIA GPU driver that supports the GPU being used.
+It is possible to speedup model training significantly using GPUs (with CUDA support) - if you have those GPUs in the PC. The PyTorch version that we install is capable of supporting CUDA GPUs. However, there are additional steps to be followed to enable GPU support in training.
 
-Once the above drivers are installed, in the config file, set a value for num_gpus to a value greater than 0 (should not exceed the number of GPUs in the system) to enable GPU based training.
+Once the drivers are installed (as described in the appropriate section below), in the config file, set a value for num_gpus to a value greater than 0 (should not exceed the number of GPUs in the system) to enable GPU based training.
+
+### Option 1: When using Native Ubuntu Environment
+
+The user has to install an appropriate NVIDIA GPU driver that supports the GPU being used.
+
+The user also has to install CUDA Toolkit. See the [CUDA download instructions](https://developer.nvidia.com/cuda-downloads). The CUDA version that is installed must match the CUDA version used in the PyTorch installer - see [our edgeai-torchvision setup script](https://github.com/TexasInstruments/edgeai-torchvision/blob/master/setup.sh) to understand the CUDA version used. 
+
+### Option 2: When using docker environment
+
+Enabling CUDA GPU support inside a docker environment requires several additional steps. Please follow the instructions given in: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
 
 
 ## Model deployment
