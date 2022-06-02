@@ -41,7 +41,7 @@ if [ ${PING_CHECK} -eq "0" ]; then
     REPO_LOCATION=artifactory.itg.ti.com/docker-public/library/
 else
     PROXY_LOCATION=""
-    REPO_LOCATION=artifactory.itg.ti.com/docker-public/library/
+    REPO_LOCATION=""
 fi
 # print
 echo "PROXY_LOCATION="${PROXY_LOCATION}
