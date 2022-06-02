@@ -1,6 +1,6 @@
 # EdgeAI-ModelMaker
 
-### Notice
+#### Notice
 If you have not visited the following landing pages, please do so before attempting to use this repository.
 - https://www.ti.com/edgeai 
 - https://github.com/TexasInstruments/edgeai
@@ -24,7 +24,7 @@ These functionalities that are supported are fully integrated and the user can c
 
 This repository can be used from native Ubuntu bash terminal directly or from within a docker environment.
 
-###  Option 1: With native Ubuntu environment
+####  Option 1: With native Ubuntu environment
 We have tested this tool in Ubuntu 18.04 and with Python 3.6 (Note: Currently edgeai-tidl-tools supports only Python 3.6). We have not tested this on other Linux distributions, but it might work.
 
 We recommend the Miniconda Python distribution from: https://docs.conda.io/en/latest/miniconda.html
@@ -67,7 +67,7 @@ Step 4: **Activate the Python environment.** This activation step needs to be do
 conda activate py36
 ```
 
-### Option 2: With docker environment
+#### Option 2: With docker environment
 
 Step 1: Install docker if you don't have it already. The following steps are for installation on Ubuntu 18.04
 ```
@@ -150,7 +150,7 @@ pip install -r requirements-labelstudio.txt
 ./run_labelstudio.sh
 ```
 
-### How to use Label Studio for data annotation
+#### How to use Label Studio for data annotation
 - Create a new project in Label Studio and give it a name in the "Project Name" tab. 
 - In the Data Import tab upload your images. (You can upload multiple times if your images are located in various folders in the source location).
 - In the tab named "Labelling Setup" choose "Object Detction with Bounding Boxes" or "Image classification" depending on the task that you would like to annotate for.
@@ -167,7 +167,7 @@ pip install -r requirements-labelstudio.txt
 - Copy the annotated json file and images to a suitable folder with the dataset name. Under the folder with dataset name the following folders must exist: (1) there must be an "images" folder containing the images (2) there must be an annotations folder containing the annotation json file with the name given below.
 - This step has to be done manually.
 
-### Object Detection dataset example
+#### Object Detection dataset example
 - An object detection dataset should look like this. (Use a suitable dataset name instead of animal_detection). The annotation file name for object detection must be instances.json
 <pre>
 data/datasets/animal_detection
@@ -185,7 +185,7 @@ data/datasets/animal_detection
 ./run_modelmaker.sh config_detection.yaml
 ```
 
-### Image Classification dataset example
+#### Image Classification dataset example
 - An image classification dataset should look like this. (Use a suitable dataset name instead of animal_classification). The annotation file name for image classification must be labels.json
 <pre>
 data/datasets/animal_classification
@@ -203,7 +203,7 @@ data/datasets/animal_classification
 ./run_modelmaker.sh config_classification.yaml
 ```
 
-### Notes
+#### Notes
 If the dataset has already been split into train and validation set already, it is possible to provide those paths separately as a tuple in input_data_path.
 
 After the model compilation, the compiled models will be available in a folder inside [./data/projects](./data/projects)
@@ -223,13 +223,13 @@ It is possible to speedup model training significantly using GPUs (with CUDA sup
 
 Once the drivers are installed (as described in the appropriate section below), in the config file, set a value for num_gpus to a value greater than 0 (should not exceed the number of GPUs in the system) to enable GPU based training.
 
-### Option 1: When using Native Ubuntu Environment
+#### Option 1: When using Native Ubuntu Environment
 
 The user has to install an appropriate NVIDIA GPU driver that supports the GPU being used.
 
 The user also has to install CUDA Toolkit. See the [CUDA download instructions](https://developer.nvidia.com/cuda-downloads). The CUDA version that is installed must match the CUDA version used in the PyTorch installer - see [our edgeai-torchvision setup script](https://github.com/TexasInstruments/edgeai-torchvision/blob/master/setup.sh) to understand the CUDA version used. 
 
-### Option 2: When using docker environment
+#### Option 2: When using docker environment
 
 Enabling CUDA GPU support inside a docker environment requires several additional steps. Please follow the instructions given in: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
 
