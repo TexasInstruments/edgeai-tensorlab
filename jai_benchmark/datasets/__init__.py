@@ -314,9 +314,12 @@ def get_datasets(settings, download=False):
                 num_classes=1,
                 shuffle=False,
                 num_frames=min(settings.num_frames, 3769))
-
-            dataset_cache['kitti_lidar_det']['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False, read_anno=False)
-            dataset_cache['kitti_lidar_det']['input_dataset'] = KittiLidar3D(**dataset_val_cfg, download=False, read_anno=True)
+            try:
+                dataset_cache['kitti_lidar_det']['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False, read_anno=False)
+                dataset_cache['kitti_lidar_det']['input_dataset'] = KittiLidar3D(**dataset_val_cfg, download=False, read_anno=True)
+            except Exception as message:
+                print(f'KittiLidar3D dataset loader could not be created: {message}')
+            #
         #
         if in_dataset_loading(settings, 'ti-robokit_semseg_zed1hd'):
             dataset_calib_cfg = dict(

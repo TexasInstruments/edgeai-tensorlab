@@ -228,14 +228,6 @@ def get_configs(settings, work_dir):
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':53.01})
         # ),
-        # 'ss-8740':utils.dict_update(cocoseg21_cfg,
-        #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
-        #     session=onnx_session_type(**jai_session_cfg,
-        #         runtime_options=settings.runtime_options_onnx_p2(),
-        #         model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/lraspp_mobilenet_v3_large_lite_512x512_20210527.onnx'),
-        #     postprocess=postproc_segmentation_onnx,
-        #     model_info=dict(metric_reference={'accuracy_mean_iou%':59.80})
-        # ),
         # #################################################################
         # #       MXNET MODELS
         # #################################################################
