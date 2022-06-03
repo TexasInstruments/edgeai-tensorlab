@@ -174,36 +174,39 @@ def copy_file(file_path, file_path_local):
 
 def extract_files(download_file, extract_root):
     extract_success = False
-    if extract_root is not None:
-        if download_file.endswith('.tar'):
-            with tarfile.open(download_file, 'r') as tar:
-                tar.extractall(path=extract_root)
-            #
-            extract_success = True
-        elif download_file.endswith('.tar.gz') or download_file.endswith('.tgz'):
-            with tarfile.open(download_file, 'r:gz') as tar:
-                tar.extractall(path=extract_root)
-            #
-            extract_success = True
-        elif download_file.endswith('.gz'):
-            to_path = os.path.join(extract_root, os.path.splitext(os.path.basename(download_file))[0])
-            with open(to_path, "wb") as out_f, gzip.GzipFile(download_file) as zip_f:
-                out_f.write(zip_f.read())
-            #
-            extract_success = True
-        elif download_file.endswith('.zip'):
-            with zipfile.ZipFile(download_file, 'r') as z:
-                z.extractall(extract_root)
-            #
-            extract_success = True
+    if extract_root is None:
+        extract_root = os.path.dirname(download_file)
+    #
+    if download_file.endswith('.tar'):
+        with tarfile.open(download_file, 'r') as tar:
+            tar.extractall(path=extract_root)
         #
-        return extract_success
+        extract_success = True
+    elif download_file.endswith('.tar.gz') or download_file.endswith('.tgz'):
+        with tarfile.open(download_file, 'r:gz') as tar:
+            tar.extractall(path=extract_root)
+        #
+        extract_success = True
+    elif download_file.endswith('.gz'):
+        to_path = os.path.join(extract_root, os.path.splitext(os.path.basename(download_file))[0])
+        with open(to_path, "wb") as out_f, gzip.GzipFile(download_file) as zip_f:
+            out_f.write(zip_f.read())
+        #
+        extract_success = True
+    elif download_file.endswith('.zip'):
+        with zipfile.ZipFile(download_file, 'r') as z:
+            z.extractall(extract_root)
+        #
+        extract_success = True
+    #
+    return extract_success
 
 
-def download_and_extract(dataset_url, download_root, extract_root=None, save_filename=None, progressbar_creator=None):
+def download_and_extract(dataset_url, download_root, extract_root=None, save_filename=None, progressbar_creator=None, extract=True):
     progressbar_creator = progressbar_creator or ProgressBarUpdater
     download_path = None
     exception_message = ''
+
     try:
         save_filename = save_filename if save_filename else os.path.basename(dataset_url)
         download_file = os.path.join(download_root, save_filename)
@@ -229,10 +232,20 @@ def download_and_extract(dataset_url, download_root, extract_root=None, save_fil
         download_success = True
         exception_message = str(message)
     #
+
+    extract_root = extract_root or os.path.dirname(download_path)
     if download_success:
-        extract_files(download_path, extract_root)
+        if extract:
+            extract_success = extract_files(download_path, extract_root)
+            if extract_success:
+                return extract_success, exception_message, extract_root
+            #
+        else:
+            return download_success, exception_message, download_path
+        #
+    else:
+        return False, None, None
     #
-    return download_success, exception_message, download_path
 
 
 def download_file(dataset_url, download_root, extract_root=None, save_filename=None, progressbar_creator=None, force_linkfile=True):
