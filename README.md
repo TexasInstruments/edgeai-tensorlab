@@ -20,41 +20,29 @@ The following are the key functionality supported by this tool:
 These functionalities that are supported are fully integrated and the user can control it by setting  parameters in the config file.  
 
 
-## OS & Environment 
+## Step 1: OS & Environment 
 
 This repository can be used from native Ubuntu bash terminal directly or from within a docker environment.
 
-####  Option 1: With native Ubuntu environment
+####  Step 1, Option 1: With native Ubuntu environment
 We have tested this tool in Ubuntu 18.04 and with Python 3.6 (Note: Currently edgeai-tidl-tools supports only Python 3.6). We have not tested this on other Linux distributions, but it might work.
 
 We recommend the Miniconda Python distribution from: https://docs.conda.io/en/latest/miniconda.html
 
 
-Step 1: Install Miniconda:
+Step 1.1a: Install Miniconda Python distribution:
 ```
-HOME_DIR=${HOME}
-APPS_PATH=${HOME_DIR}/apps
-DOWNLOADS_PATH=${HOME_DIR}/Downloads
-CONDA_INSTALLER="Miniconda3-latest-Linux-x86_64.sh"
-CONDA_URL=https://repo.anaconda.com/miniconda/${CONDA_INSTALLER}
-CONDA_PATH=${APPS_PATH}/conda
-CONDA_BIN=${CONDA_PATH}/bin
-
-echo "Installing MiniConda..." && \
-  mkdir -p ${DOWNLOADS_PATH} && \
-  if [ ! -f ${CONDA_INSTALLER} ]; then wget -q --show-progress --progress=bar:force:noscroll ${CONDA_URL} -O ${DOWNLOADS_PATH}/${CONDA_INSTALLER}; fi && \
-  chmod +x ${DOWNLOADS_PATH}/${CONDA_INSTALLER} && \
-  ${DOWNLOADS_PATH}/${CONDA_INSTALLER} -b -p ${CONDA_PATH}
+conda_install.sh
 ```
 
 
-Step 2: Add conda init script to .bashrc (this is for bash shell):
+Step 1.2a: Add conda init script to .bashrc (this is for bash shell):
 ```
 echo ". ${CONDA_PATH}/etc/profile.d/conda.sh" >> ${HOME_DIR}/.bashrc
 ```
 
 
-Step 3: At this point, conda installation is complete. Close your current terminal and start a new one. This is so that the change that we wrote to tbe .bashrc takes effect. Create conda Python 3.6 environment with a suitable name (py36 below - but, it can be anything):
+Step 1.3a: At this point, conda installation is complete. Close your current terminal and start a new one. This is so that the change that we wrote to tbe .bashrc takes effect. Create conda Python 3.6 environment with a suitable name (py36 below - but, it can be anything):
 ```
 conda create -y -n py36 python=3.6
 ```
@@ -62,14 +50,14 @@ conda create -y -n py36 python=3.6
 **These conda installation steps above need to be done only once for a user.** 
 
 
-Step 4: **Activate the Python environment.** This activation step needs to be done everytime one starts a new terminal or shell. (Alternately, this also can be written to the .bashrc, so that this will be the default conda environment).
+Step 1.4a: **Activate the Python environment.** This activation step needs to be done everytime one starts a new terminal or shell. (Alternately, this also can be written to the .bashrc, so that this will be the default conda environment).
 ```
 conda activate py36
 ```
 
-#### Option 2: With docker environment
+#### Step 1, Option 2: With docker environment
 
-Step 1: Install docker if you don't have it already. The following steps are for installation on Ubuntu 18.04
+Step 1.1b: Install docker if you don't have it already. The following steps are for installation on Ubuntu 18.04
 ```
 sudo apt update
 sudo apt install docker.io
@@ -79,22 +67,22 @@ sudo systemctl enable docker
 # logout and log back in and docker should be ready to use.
 ```
 
-Step 2: Build docker image:
+Step 1.2b: Build docker image:
 ```
 ./docker_build.sh
 ```
 
-Step 3: Run docker container to bring up the container terminal on docker:
+Step 1.3b: Run docker container to bring up the container terminal on docker:
 ```
 ./docker_run.sh
 ```
 
-During docker run, we map the parent directory of this folder to /home/edgeai/code. This is to easily share code and data between the host and the docker container. Inside the docker terminal, change directory to where this folder is mapped to:
+Step 1.4b: During docker run, we map the parent directory of this folder to /home/edgeai/code. This is to easily share code and data between the host and the docker container. Inside the docker terminal, change directory to where this folder is mapped to:
 ```
 cd /home/edgeai/code/edgeai-modelmaker
 ```
 
-## Setup the model training and compilation repositories
+## Step 2: Setup the model training and compilation repositories
 
 This tool depends on several repositories that we have published at https://github.com/TexasInstruments
 
@@ -125,7 +113,7 @@ pip list | grep 'torch\|torchvision'
 </pre>
 
 
-## Run examples
+## Step 3: Run the ready-made examples
 
 Object detection example
 ```
@@ -137,20 +125,24 @@ Image classification example
 ./run_modelmaker.sh config_classification.yaml
 ```
 
-## Data annotation
+## Step 4: Prepare your own dataset with your own images and object types (Data annotation)
+- This section explains how to create and annotate your own dataset with your own object classes.
 - Data Annotation can be done in any suitable tool as long as the format of the annotated is supported in this repository. The following description to use Label Studio is just an example.
 - The annotation file must be in [COCO JSON](https://cocodataset.org/#format-data) format. LabelStudio supports exporting the dataset to COCO JSON format for Object Detection. For Image Classification, Label Studio can export in JSOM-Min format and this tool provides a converter script to convert to COCO JSON like format.
+
+#### Step 4.1: Install LabelStudio
 - Label Studio can be installed using the following command:
 ```bash
 pip install -r requirements-labelstudio.txt
 ```
 
+#### Step 4.2: Run LabelStudio
 - Once installed, it can be launched by running
 ```bash
 ./run_labelstudio.sh
 ```
 
-#### How to use Label Studio for data annotation
+#### Step 4.3: How to use Label Studio for data annotation
 - Create a new project in Label Studio and give it a name in the "Project Name" tab. 
 - In the Data Import tab upload your images. (You can upload multiple times if your images are located in various folders in the source location).
 - In the tab named "Labelling Setup" choose "Object Detction with Bounding Boxes" or "Image classification" depending on the task that you would like to annotate for.
@@ -163,11 +155,11 @@ pip install -r requirements-labelstudio.txt
 - However, the JSON-MIN format has to be converted to the COCO-JSON format by using an example given in [run_convert_dataset.sh](./run_convert_dataset.sh). For Image Classification task, use source_format as labelstudio_classification. Label Studio can also export into JSON-MIN for Object detection. In case you did that, use source_format as labelstudio_detection for the converter script.
 
 
-## Model Training and Compilation
+## Step 5: Using your dataset to do Model Training and Compilation
 - Copy the annotated json file and images to a suitable folder with the dataset name. Under the folder with dataset name the following folders must exist: (1) there must be an "images" folder containing the images (2) there must be an annotations folder containing the annotation json file with the name given below.
 - This step has to be done manually.
 
-#### Object Detection dataset example
+#### Step 5.1a: Object Detection dataset example
 - An object detection dataset should look like this. (Use a suitable dataset name instead of animal_detection). The annotation file name for object detection must be instances.json
 <pre>
 data/datasets/animal_detection
@@ -185,7 +177,7 @@ data/datasets/animal_detection
 ./run_modelmaker.sh config_detection.yaml
 ```
 
-#### Image Classification dataset example
+#### Step 5.1b: Image Classification dataset example
 - An image classification dataset should look like this. (Use a suitable dataset name instead of animal_classification). The annotation file name for image classification must be labels.json
 <pre>
 data/datasets/animal_classification
@@ -213,7 +205,7 @@ If you have a dataset in another format, use the script provided to convert it i
 The config file can be in .yaml or in .json format
 
 
-## Accelerated Training using GPUs
+## Step 6: Accelerated Training using GPUs (Optional) 
 
 Note: **This section is for advanced users only**. Familiarity with NVIDIA GPU and CUDA driver installation is assumed.
 
@@ -233,8 +225,9 @@ The user also has to install CUDA Toolkit. See the [CUDA download instructions](
 
 Enabling CUDA GPU support inside a docker environment requires several additional steps. Please follow the instructions given in: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
 
+Once CUDA is installed, you will be able to model training much faster.
 
-## Model deployment
+## Step 7: Model deployment
 The compiled model has all the side information required to run the model on our Edge AI StarterKit EVM and SDK.
-- Purchase the Edge AI StarterKit EVM and download the Edge AI StarterKit SDK to use our model deployment tools.
+- Purchase the Edge AI StarterKit EVM and download the [Edge AI StarterKit SDK](https://github.com/TexasInstruments/edgeai/blob/master/readme_sdk.md) to use our model deployment tools.
 - For more information, see this link: https://www.ti.com/edgeai 
