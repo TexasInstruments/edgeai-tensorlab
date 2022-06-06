@@ -38,6 +38,7 @@ from ... import utils
 from . import datasets
 from . import training
 from . import compilation
+from .params import init_params
 
 
 def get_model_descriptions(params):
@@ -65,81 +66,7 @@ def set_model_description(params, model_description):
 class ModelRunner():
     @classmethod
     def init_params(self, *args, **kwargs):
-        params = dict(
-            common=dict(
-                verbose_mode=True,
-                projects_path='./data/projects',
-                project_path=None,
-                project_run_path=None,
-                task_type=None,
-                target_device=None,
-                run_name=datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
-            ),
-            dataset=dict(
-                enable=True,
-                dataset_name=None,
-                dataset_path=None, # dataset split will be created here
-                download_path=None,
-                extract_path=None,
-                split_factor=0.75,
-                split_names=('train', 'val'),
-                max_num_files=None,
-                input_data_path=None, # input images
-                input_annotation_path=None, # annotation file
-                data_path_splits=None,
-                data_dir='images',
-                annotation_path_splits=None,
-                annotation_dir='annotations',
-                annotation_prefix='instances',
-                dataset_download=True,
-                dataset_reload=False
-            ),
-            training=dict(
-                enable=True,
-                model_key=None,
-                training_backend=None,
-                model_name=None,
-                model_id=None,
-                pretrained_checkpoint_path=None,
-                target_devices={},
-                project_path=None,
-                dataset_path=None,
-                training_path=None,
-                log_file_path=None,
-                model_checkpoint_path=None,
-                model_export_path=None,
-                model_proto_path=None,
-                training_epochs=30,
-                warmup_epochs=1,
-                num_last_epochs=5,
-                batch_size=8,
-                learning_rate=2e-3,
-                num_classes=None,
-                weight_decay=1e-4,
-                input_resize=(512,512),
-                input_cropsize=(512,512),
-                training_device=None, #'cpu', 'cuda'
-                num_gpus=0, #0,1..4
-                distributed=True,
-                training_master_port=29500
-            ),
-            compilation=dict(
-                enable=True,
-                log_file_path=None,
-                compilation_path=None,
-                model_compiled_path=None,
-                model_packaged_path=None,
-                target_device='pc',
-                accuracy_level=1,
-                tensor_bits=8,
-                calibration_frames=10,
-                calibration_iterations=10,
-                num_frames=None, # inference frame for accuracy test example: 100
-                detection_thr=0.3, # threshold for detection: 0.3 for best performance(fps), 0.05 for best accuracy
-                save_output=True # save inference outputs
-            ),
-        )
-        params = utils.ConfigDict(params, *args, **kwargs)
+        params = init_params(*args, **kwargs)
         return params
 
     @staticmethod
