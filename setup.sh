@@ -42,7 +42,11 @@ conda install -y cython
 ######################################################################
 # Dependencies for building pillow-simd
 #echo 'Installing dependencies to build pillow-simd. If you dont have sudo access, comment the below line and replace pillow-simd with pillow in the requirements file'
-#sudo apt-get -y install libjpeg-dev zlib1g-dev
+#sudo apt-get install -y libjpeg-dev zlib1g-dev
+
+# Dependencies for TIDL graph visualization
+echo 'Installing dependencies for TIDL graph visualization'
+sudo apt-get install -y graphviz graphviz-dev
 
 echo 'Installing python packages...'
 pip3 install --no-input -r ./requirements_pc.txt
