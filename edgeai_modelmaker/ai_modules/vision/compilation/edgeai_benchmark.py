@@ -156,9 +156,10 @@ class ModelCompilation():
                         calibration_iterations=self.params.compilation.calibration_iterations,
                         num_frames=self.params.compilation.num_frames,
                         runtime_options=runtime_options,
+                        detection_thr=self.params.compilation.detection_thr,
                         parallel_devices=None,
                         dataset_loading=False,
-                        save_output=True)
+                        save_output=self.params.compilation.save_output)
         return settings
 
     def _get_log_dir(self,):

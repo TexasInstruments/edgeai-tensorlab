@@ -135,6 +135,7 @@ class ModelRunner():
                 calibration_frames=10,
                 calibration_iterations=10,
                 num_frames=None, # inference frame for accuracy test example: 100
+                detection_thr=0.3, # threshold for detection: 0.3 for best performance(fps), 0.05 for best accuracy
                 save_output=True # save inference outputs
             ),
         )
