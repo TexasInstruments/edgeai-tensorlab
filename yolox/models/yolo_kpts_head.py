@@ -435,7 +435,7 @@ class YOLOXHeadKPTS(nn.Module):
 
                 cls_target = F.one_hot(
                     gt_matched_classes.to(torch.int64), self.num_classes
-                ) * 1.0
+                ) * 1.0  #* pred_ious_this_matching.unsqueeze(-1)  #Modified for single class detecetion. This is probably not needed for single class detection
                 obj_target = fg_mask.unsqueeze(-1)
                 reg_target = gt_bboxes_per_image[matched_gt_inds]
                 kpts_target = gt_kpts_per_image[matched_gt_inds]
