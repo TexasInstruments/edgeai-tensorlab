@@ -32,16 +32,15 @@
 #################################################################################
 
 #################################################################################
-# determine if we are behind ti firewall
-ping bitbucket.itg.ti.com -c 1 > /dev/null 2>&1
-PING_CHECK="$?"
-# internal or external build
-if [ ${PING_CHECK} -eq "0" ]; then
-    SOURCE_LOCATION="ssh://git@bitbucket.itg.ti.com/edgeai-algo/"
-    FAST_CLONE_MODELZOO="--single-branch -b release"
-else
+# internal or external repositories
+USE_INTERNAL_REPO=0
+
+if [[ ${USE_INTERNAL_REPO} -eq 0 ]]; then
     SOURCE_LOCATION="https://github.com/TexasInstruments/"
     FAST_CLONE_MODELZOO=""
+else
+    SOURCE_LOCATION="ssh://git@bitbucket.itg.ti.com/edgeai-algo/"
+    FAST_CLONE_MODELZOO="--single-branch -b release"
 fi
 # print
 echo "SOURCE_LOCATION="${SOURCE_LOCATION}
