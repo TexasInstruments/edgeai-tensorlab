@@ -34,7 +34,7 @@ from colorama import Fore
 
 def log_color(tag, title, message):
     date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    if 'FATAL - {date}' in tag:
+    if 'FATAL' in tag:
         msg = f'{Fore.RED}{tag}:{Fore.YELLOW}{date}: {title} - {Fore.RESET}{message}'
     elif 'ERROR' in tag:
         msg = f'{Fore.MAGENTA}{tag}:{Fore.YELLOW}{date}: {title} - {Fore.RESET}{message}'

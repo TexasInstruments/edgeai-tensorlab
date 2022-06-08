@@ -32,9 +32,15 @@ import warnings
 import copy
 import struct
 import numpy as np
-import tflite_runtime.interpreter as tflitert_interpreter
+
 from .. import constants
 from .. import utils
+
+try:
+    import tflite_runtime.interpreter as tflitert_interpreter
+except:
+    print(utils.log_color("WARNING", "import error", "tflite_runtime could not be imported. Please check if it is installed properly and is compatible with your platform"))
+
 from .basert_session import BaseRTSession
 
 
