@@ -45,4 +45,7 @@ echo "Installing MiniConda..." && \
   chmod +x ${DOWNLOADS_PATH}/${CONDA_INSTALLER} && \
   ${DOWNLOADS_PATH}/${CONDA_INSTALLER} -b -p ${CONDA_PATH}
 
+echo "Adding conda init script to .bashrc, so that condabin is in PATH"
+echo ". ${CONDA_PATH}/etc/profile.d/conda.sh" >> ${HOME_DIR}/.bashrc
+
 echo "MiniConda has been installed."

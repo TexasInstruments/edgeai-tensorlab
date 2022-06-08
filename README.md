@@ -29,20 +29,17 @@ We have tested this tool in Ubuntu 18.04 and with Python 3.6 (Note: Currently ed
 
 We recommend the Miniconda Python distribution from: https://docs.conda.io/en/latest/miniconda.html
 
-
-Step 1.1a: Install Miniconda Python distribution:
+Step 1.1a: Make sure that you are using bash shell. If it is not bash shell, change it to bash. Verify it by typing:
 ```
-conda_install.sh
-```
-
-
-Step 1.2a: Add conda init script to .bashrc (this is for bash shell):
-```
-echo ". ${CONDA_PATH}/etc/profile.d/conda.sh" >> ${HOME_DIR}/.bashrc
+echo ${SHELL}
 ```
 
+Step 1.2a: Install Miniconda Python distribution:
+```
+./conda_install.sh
+```
 
-Step 1.3a: At this point, conda installation is complete. Close your current terminal and start a new one. This is so that the change that we wrote to tbe .bashrc takes effect. Create conda Python 3.6 environment with a suitable name (py36 below - but, it can be anything):
+Step 1.3a: At this point, conda installation is complete. Close your current terminal and start a new one. This is so that the change that the install script wrote to .bashrc takes effect. Create conda Python 3.6 environment with a suitable name (py36 below - but, it can be anything):
 ```
 conda create -y -n py36 python=3.6
 ```
