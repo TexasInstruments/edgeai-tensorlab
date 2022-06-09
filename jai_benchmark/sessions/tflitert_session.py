@@ -35,12 +35,6 @@ import numpy as np
 
 from .. import constants
 from .. import utils
-
-try:
-    import tflite_runtime.interpreter as tflitert_interpreter
-except:
-    print(utils.log_color("WARNING", "import error", "tflite_runtime could not be imported. Please check if it is installed properly and is compatible with your platform"))
-
 from .basert_session import BaseRTSession
 
 
@@ -104,6 +98,7 @@ class TFLiteRTSession(BaseRTSession):
         return self.kwargs["runtime_options"].get(option, default)
 
     def _create_interpreter(self, is_import):
+        import tflite_runtime.interpreter as tflitert_interpreter
         if self.kwargs['tidl_offload']:
             if is_import:
                 self.kwargs["runtime_options"]["import"] = "yes"
