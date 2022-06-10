@@ -98,6 +98,8 @@ class TFLiteRTSession(BaseRTSession):
         return self.kwargs["runtime_options"].get(option, default)
 
     def _create_interpreter(self, is_import):
+        # move the import inside the function, so that tflite_runtime needs to be installed
+        # only if some one wants to use it
         import tflite_runtime.interpreter as tflitert_interpreter
         if self.kwargs['tidl_offload']:
             if is_import:

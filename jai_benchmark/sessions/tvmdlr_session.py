@@ -29,17 +29,9 @@
 import os
 import time
 
-# mxnet is required only for import (and that too for mxnet models)
-# but doing the import inside the code, conditionally is causing an error, so do it here.
-try:
-    import mxnet
-except:
-    pass
-
-from dlr import DLRModel
 from .. import constants
-from .basert_session import BaseRTSession
 from ..import utils
+from .basert_session import BaseRTSession
 
 
 class TVMDLRSession(BaseRTSession):
@@ -206,6 +198,9 @@ class TVMDLRSession(BaseRTSession):
             return self.kwargs["runtime_options"].get(option, default)
 
     def _create_interpreter(self, is_import=False):
+        # move the import inside the function, so that dlr needs to be installed
+        # only if some one wants to use it
+        from dlr import DLRModel
         artifacts_folder = self.kwargs['artifacts_folder']
         if not os.path.exists(artifacts_folder):
             return False

@@ -30,13 +30,6 @@ import os
 import time
 import numpy as np
 import warnings
-import onnxruntime
-
-try:
-    import onnx
-except:
-    #warnings.warn('onnx could not be imported - this is not required for inference, but may be required for import')
-    pass
 
 from .. import utils
 from .. import constants
@@ -119,6 +112,9 @@ class ONNXRTSession(BaseRTSession):
         return self.kwargs["runtime_options"].get(option, default)
 
     def _create_interpreter(self, is_import):
+        # move the import inside the function, so that onnxruntime needs to be installed
+        # only if some one wants to use it
+        import onnxruntime
         # pass options to pybind
         if is_import:
             self.kwargs["runtime_options"]["import"] = "yes"
