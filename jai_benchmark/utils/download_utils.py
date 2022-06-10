@@ -82,47 +82,46 @@ def copy_file(file_path, file_path_local):
     if file_path != file_path_local:
         os.makedirs(os.path.dirname(file_path_local), exist_ok=True)
         shutil.copy2(file_path, file_path_local)
+    #
+    return file_path_local
 
 
 def copy_files(file_path, file_path_local):
     file_paths = misc_utils.as_list(file_path)
     file_paths_local = misc_utils.as_list(file_path_local)
+    output_files = []
     for m, lm in zip(file_paths, file_paths_local):
-        copy_file(m, lm)
+        output = copy_file(m, lm)
+        output_files.append(output)
     #
+    return output_files
 
 
 def download_file(url, root=None, extract_root=None, filename=None, md5=None, mode=None, force_download=False, force_linkfile=True):
     if not isinstance(url, str):
+        print(f"invalid file or url: {url}")
         return None
-    elif not (url.startswith('http://') or url.startswith('https://')):
-        try:
-            filename = filename or os.path.basename(url)
-            local_file = os.path.join(root, os.path.basename(url))
-            copy_file(url, local_file)
-            #return local_file
-        except FileNotFoundError:
-            return None
-        #
-    #
 
-    fpath = None
     root = os.path.abspath('./') if root is None else root
-    if url.endswith('.link'):
-        with open(url) as fp:
-            url = fp.read().rstrip()
-        #
-    elif os.path.exists(url):
-        # if the given source is a file and if it exists, nothing todo.
-        pass
-    elif force_linkfile:
-        url_link = url+'.link'
-        if model_utils.file_exists(url_link):
-            with open(url_link) as fp:
-                url = fp.readline().rstrip()
+
+    is_linkfile = url.endswith('.link')
+    is_url = url.startswith('http://') or url.startswith('https://')
+    if (not is_url):
+        if os.path.exists(url):
+            filename = filename or os.path.basename(url)
+            local_file = os.path.join(root, filename)
+            copy_file(url, local_file)
+            url = local_file
+        elif is_linkfile or force_linkfile:
+            url_link = url if is_linkfile else url + '.link'
+            if os.path.exists(url_link):
+                with open(url_link) as fp:
+                    url = fp.read().rstrip()
+                #
             #
         #
     #
+
     fpath = download_and_extract_archive(url, root, extract_root=extract_root, filename=filename,
                                          md5=md5, mode=mode,force_download=force_download)
     return fpath
