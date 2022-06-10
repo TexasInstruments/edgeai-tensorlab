@@ -38,6 +38,7 @@ import collections
 import json
 import datetime
 
+from .... import utils
 from . import dataset_utils
 
 
@@ -89,7 +90,7 @@ def dataset_download(state, example_project_path, force_download=False, log_writ
     dataset_urls = ['https://arcraftimages.s3-accelerate.amazonaws.com/Datasets/Tomato/TomatoPascalVOC.zip']
 
     download_root = os.path.join(example_project_path, 'other', 'download')
-    dataset_utils.download_files(dataset_urls, download_root=download_root, extract_root=extract_root, log_writer=log_writer, progressbar_creator=progressbar_creator)
+    utils.download_files(dataset_urls, download_root=download_root, extract_root=extract_root, log_writer=log_writer, progressbar_creator=progressbar_creator)
 
     # prepare the merge
     os.makedirs(example_project_files_path, exist_ok=True)

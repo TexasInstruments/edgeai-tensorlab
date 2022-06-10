@@ -38,6 +38,7 @@ import json
 import datetime
 import PIL
 
+from .... import utils
 from . import dataset_utils
 
 
@@ -91,12 +92,12 @@ def dataset_download(state, example_project_path, force_download=False, log_writ
                     'http://shuoyang1213.me/WIDERFACE/support/bbx_annotation/wider_face_split.zip']
 
     download_root = os.path.join(example_project_path, 'other', 'download')
-    dataset_utils.download_files(dataset_urls, download_root=download_root, extract_root=extract_root,
+    utils.download_files(dataset_urls, download_root=download_root, extract_root=extract_root,
                                  log_writer=log_writer, progressbar_creator=progressbar_creator)
 
     # the extracted files still contains some zip - extract them as well
-    dataset_utils.download_file(os.path.join(extract_root, 'WIDER_train.zip'), download_root=extract_root, extract_root=extract_root)
-    dataset_utils.download_file(os.path.join(extract_root, 'WIDER_val.zip'), download_root=extract_root, extract_root=extract_root)
+    utils.download_file(os.path.join(extract_root, 'WIDER_train.zip'), download_root=extract_root, extract_root=extract_root)
+    utils.download_file(os.path.join(extract_root, 'WIDER_val.zip'), download_root=extract_root, extract_root=extract_root)
 
     # prepare the dataset folder
     os.makedirs(example_project_files_path, exist_ok=True)

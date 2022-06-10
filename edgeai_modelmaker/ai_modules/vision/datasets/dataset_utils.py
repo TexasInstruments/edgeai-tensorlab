@@ -32,14 +32,10 @@ import random
 import glob
 import base64
 import collections
-import urllib
-import gzip
-import tarfile
-import zipfile
 import numpy as np
 import json
-import shutil
-import progressbar
+
+
 import PIL
 from PIL import ImageOps
 from xml.etree.ElementTree import Element as ET_Element
@@ -52,22 +48,6 @@ except ImportError:
 from typing import Any, Callable, Dict, Optional, Tuple, List
 
 from .. import constants
-
-
-class ProgressBarUpdater():
-    def __init__(self):
-        self.pbar = None
-
-    def __call__(self, block_num, block_size, total_size):
-        if self.pbar is None:
-            self.pbar = progressbar.ProgressBar(maxval=total_size)
-            self.pbar.start()
-        #
-        cur_size = block_num*block_size
-        self.pbar.update(cur_size)
-        if cur_size >= total_size:
-            self.pbar.finish()
-        #
 
 
 def parse_voc_xml_file(annotation_file_name: str) -> Dict[str, Any]:
@@ -165,158 +145,6 @@ def adjust_categories(categories_list, category_names_new, missing_category_name
     #
     categories_list_out = add_missing_categories(categories_list_out, missing_category_name)
     return categories_list_out
-
-
-def copy_file(file_path, file_path_local):
-    os.makedirs(os.path.dirname(file_path_local), exist_ok=True)
-    shutil.copy2(file_path, file_path_local)
-
-
-def extract_files(download_file, extract_root):
-    extract_success = False
-    if extract_root is None:
-        extract_root = os.path.dirname(download_file)
-    #
-    if download_file.endswith('.tar'):
-        with tarfile.open(download_file, 'r') as tar:
-            tar.extractall(path=extract_root)
-        #
-        extract_success = True
-    elif download_file.endswith('.tar.gz') or download_file.endswith('.tgz'):
-        with tarfile.open(download_file, 'r:gz') as tar:
-            tar.extractall(path=extract_root)
-        #
-        extract_success = True
-    elif download_file.endswith('.gz'):
-        to_path = os.path.join(extract_root, os.path.splitext(os.path.basename(download_file))[0])
-        with open(to_path, "wb") as out_f, gzip.GzipFile(download_file) as zip_f:
-            out_f.write(zip_f.read())
-        #
-        extract_success = True
-    elif download_file.endswith('.zip'):
-        with zipfile.ZipFile(download_file, 'r') as z:
-            z.extractall(extract_root)
-        #
-        extract_success = True
-    #
-    return extract_success
-
-
-def download_and_extract(dataset_url, download_root, extract_root=None, save_filename=None, progressbar_creator=None, extract=True):
-    progressbar_creator = progressbar_creator or ProgressBarUpdater
-    download_path = None
-    exception_message = ''
-
-    try:
-        save_filename = save_filename if save_filename else os.path.basename(dataset_url)
-        download_file = os.path.join(download_root, save_filename)
-        if not os.path.exists(download_file):
-            progressbar_obj = progressbar_creator()
-            os.makedirs(download_root, exist_ok=True)
-            print(f'downloading from {dataset_url} to {download_file}')
-            urllib.request.urlretrieve(dataset_url, download_file, progressbar_obj)
-        #
-        download_path = download_file
-        download_success = True
-    except urllib.error.URLError as message:
-        download_success = False
-        exception_message = str(message)
-        print(exception_message)
-    except urllib.error.HTTPError as message:
-        download_success = False
-        exception_message = str(message)
-        print(exception_message)
-    except Exception as message:
-        # sometimes getting exception even though download succeeded.
-        download_path = download_file
-        download_success = True
-        exception_message = str(message)
-    #
-
-    extract_root = extract_root or os.path.dirname(download_path)
-    if download_success:
-        if extract:
-            extract_success = extract_files(download_path, extract_root)
-            if extract_success:
-                return extract_success, exception_message, extract_root
-            #
-        else:
-            return download_success, exception_message, download_path
-        #
-    else:
-        return False, None, None
-    #
-
-
-def download_file(dataset_url, download_root, extract_root=None, save_filename=None, progressbar_creator=None, force_linkfile=True):
-    if not isinstance(dataset_url, str):
-        return False, '', ''
-
-    download_root = os.path.abspath('./') if download_root is None else download_root
-    is_url = (dataset_url.startswith('http://') or dataset_url.startswith('https://'))
-
-    if not is_url:
-        if dataset_url.endswith('.link'):
-            with open(dataset_url) as fp:
-                dataset_url = fp.read().rstrip()
-            #
-        elif force_linkfile and not os.path.exists(dataset_url):
-            url_link = dataset_url+'.link'
-            if os.path.exists(url_link):
-                with open(url_link) as fp:
-                    dataset_url = fp.readline().rstrip()
-                #
-            #
-        #
-    #
-    # update, based on the content of the .link file
-    is_url = (dataset_url.startswith('http://') or dataset_url.startswith('https://'))
-
-    if not is_url:
-        try:
-            if not extract_files(dataset_url, extract_root):
-                if os.path.isdir(dataset_url):
-                    if os.path.islink(extract_root):
-                        os.unlink(extract_root)
-                    #
-                    os.symlink(dataset_url, extract_root)
-                else:
-                    return False, '', ''
-                #
-            #
-        except FileNotFoundError:
-            return False, '', ''
-        #
-        return True, '', extract_root
-    #
-
-    return download_and_extract(dataset_url, download_root, extract_root=extract_root, save_filename=save_filename,
-                                 progressbar_creator=progressbar_creator)
-
-
-def download_files(dataset_urls, download_root, extract_root=None, save_filenames=None, log_writer=None, progressbar_creator=None):
-    if log_writer is not None:
-        success_writer, warning_writer = log_writer[:2]
-    else:
-        success_writer, warning_writer = print, print
-    #
-    dataset_urls = dataset_urls if isinstance(dataset_urls, (list,tuple)) else [dataset_urls]
-    save_filenames = save_filenames if isinstance(save_filenames, (list,tuple)) else \
-        ([None]*len(dataset_urls) if save_filenames is None else [save_filenames])
-
-    download_paths = []
-    for dataset_url_id, (dataset_url, save_filename) in enumerate(zip(dataset_urls, save_filenames)):
-        success_writer(f'Downloading {dataset_url_id+1}/{len(dataset_urls)}: {dataset_url}')
-        download_success, message, download_path = download_file(dataset_url, download_root=download_root, extract_root=extract_root,
-                                                      save_filename=save_filename, progressbar_creator=progressbar_creator)
-        if download_success:
-            success_writer(f'Download done for {dataset_url}')
-        else:
-            warning_writer(f'Download failed for {dataset_url} {str(message)}')
-        #
-        download_paths.append(download_path)
-    #
-    return download_success, message, download_paths
 
 
 def get_file_list(dataset_path):

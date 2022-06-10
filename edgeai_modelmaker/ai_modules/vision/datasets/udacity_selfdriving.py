@@ -40,6 +40,7 @@ import json
 import datetime
 import PIL
 
+from .... import utils
 from . import dataset_utils
 
 
@@ -95,7 +96,7 @@ def dataset_download(state, example_project_path, force_download=False, log_writ
     save_filenames = ['object-dataset.tar.gz']
 
     download_root = os.path.join(example_project_path, 'other', 'download')
-    dataset_utils.download_files(dataset_urls, download_root=download_root, extract_root=extract_root, save_filenames=save_filenames,
+    utils.download_files(dataset_urls, download_root=download_root, extract_root=extract_root, save_filenames=save_filenames,
                          log_writer=log_writer, progressbar_creator=progressbar_creator)
 
     # prepare the merge

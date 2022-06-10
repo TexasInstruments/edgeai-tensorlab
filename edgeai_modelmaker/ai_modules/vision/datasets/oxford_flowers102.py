@@ -38,6 +38,8 @@ import datetime
 import shutil
 import scipy
 import PIL
+
+from .... import utils
 from . import dataset_utils
 
 
@@ -96,7 +98,7 @@ def dataset_download(state, example_project_path, force_download=False, log_writ
                     'https://www.robots.ox.ac.uk/~vgg/data/flowers/102/setid.mat']
 
     download_root = os.path.join(example_project_path, 'other', 'download')
-    download_success, message, download_paths = dataset_utils.download_files(dataset_urls, download_root=download_root,
+    download_success, message, download_paths = utils.download_files(dataset_urls, download_root=download_root,
                                                     extract_root=extract_root, log_writer=log_writer,
                                                     progressbar_creator=progressbar_creator)
 
