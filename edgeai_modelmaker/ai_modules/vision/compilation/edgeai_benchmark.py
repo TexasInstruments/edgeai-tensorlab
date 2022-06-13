@@ -117,6 +117,7 @@ class ModelCompilation():
         runtime_options = pipeline_config['session'].get_param('runtime_options')
         meta_layers_names_list = 'object_detection:meta_layers_names_list'
         if meta_layers_names_list in runtime_options:
+            self._replace_confidence_threshold(self.params.training.model_proto_path)
             runtime_options[meta_layers_names_list] = self.params.training.model_proto_path
         #
         runtime_options.update(self.params.compilation.get('runtime_options', {}))
@@ -188,6 +189,38 @@ class ModelCompilation():
         work_dir = os.path.join(self.settings.modelartifacts_path, 'modelartifacts', f'{self.settings.tensor_bits}bits')
         package_dir = os.path.join(f'{self.settings.modelartifacts_path}', 'modelartifacts_package', f'{self.settings.tensor_bits}bits')
         return work_dir, package_dir
+
+    def _replace_confidence_threshold(self, filename):
+        if not filename.endswith('.prototxt'):
+            return
+        #
+        space_string = ' '
+        with open(filename) as fp:
+            lines = fp.readlines()
+        #
+        for line_index, line in enumerate(lines):
+            line = line.rstrip()
+            match_str1 = 'confidence_threshold:'
+            replacement_key1 = line.lstrip(space_string).split(space_string)[0]
+            if match_str1 == replacement_key1: # exact match
+                replacement_str1 = f'{replacement_key1} {self.settings.detection_thr}'
+                leading_spaces = len(line) - len(line.lstrip(space_string))
+                line = space_string * leading_spaces + replacement_str1
+            #
+            if self.settings.detection_thr < 0.3:
+                match_str2 = 'top_k:'
+                replacement_key2 = line.lstrip(space_string).split(space_string)[0]
+                if match_str2 == replacement_key2: # exact match
+                    replacement_str2 = f'{replacement_key2} 500'
+                    leading_spaces = len(line) - len(line.lstrip(space_string))
+                    line = space_string * leading_spaces + replacement_str2
+                #
+            #
+            lines[line_index] = line
+        #
+        with open(filename, 'w') as fp:
+            fp.write('\n'.join(lines))
+        #
 
     def get_params(self):
         return self.params

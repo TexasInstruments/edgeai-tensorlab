@@ -52,8 +52,8 @@ def main(config):
     model_description = list(model_descriptions.values())[0]
     params.update(model_description)
 
-    # modify or set any other parameters as required.
-    params.common.run_name = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    # modify or set any parameters here as required.
+    # params.common.run_name = ""
 
     # create the runner
     model_runner = ai_target_module.runner.ModelRunner(
@@ -79,6 +79,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('config_file', type=str, default=None)
+    parser.add_argument('--run_name', type=str)
     parser.add_argument('--task_type', type=str)
     parser.add_argument('--model_key', type=str)
     parser.add_argument('--target_device', type=str)
@@ -99,6 +100,9 @@ if __name__ == '__main__':
 
     # override with supported commandline args
     kwargs = vars(args)
+    if 'run_name' in kwargs:
+        config['common']['run_name'] = kwargs['run_name']
+    #
     if 'task_type' in kwargs:
         config['common']['task_type'] = kwargs['task_type']
     #
