@@ -82,3 +82,4 @@ class ConfigDict(AttrDict):
                 self[k] = v
             #
         #
+        return self

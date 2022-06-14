@@ -42,16 +42,19 @@ from .params import init_params
 
 
 def get_model_descriptions(params):
-    if params.training.model_key is not None:
-        model_description = training.get_model_description(params.training.model_key)
-        model_descriptions = {params.training.model_key: model_description}
-    else:
-        # populate a good pretrained model for the given task
-        model_descriptions = training.get_model_descriptions(task_type=params.common.task_type,
+    # populate a good pretrained model for the given task
+    model_descriptions = training.get_model_descriptions(task_type=params.common.task_type,
                                                          target_device=params.common.target_device,
                                                          training_device=params.training.training_device)
-    #
     return model_descriptions
+
+
+def get_model_description(params, model_key=None):
+    model_key = (model_key or params.training.model_key)
+    assert model_key, 'model_key must be specified for get_model_description().' \
+                      'if model_key is not known, use the method get_model_descriptions() that returns all models.'
+    model_description = training.get_model_description(model_key=model_key)
+    return model_description
 
 
 def set_model_description(params, model_description):
@@ -72,6 +75,10 @@ class ModelRunner():
     @staticmethod
     def get_model_descriptions(*args, **kwargs):
         return get_model_descriptions(*args, **kwargs)
+
+    @staticmethod
+    def get_model_description(*args, **kwargs):
+        return get_model_description(*args, **kwargs)
 
     @staticmethod
     def set_model_description(*args, **kwargs):

@@ -42,15 +42,14 @@ def main(config):
     # get the ai backend module
     ai_target_module = edgeai_modelmaker.ai_modules.get_target_module(config['common']['target_module'])
 
-    # get params for the given config
-    params = ai_target_module.runner.ModelRunner.init_params(config)
+    # get default params
+    params = ai_target_module.runner.ModelRunner.init_params()
 
-    # get supported pretrained models for the given params
-    model_descriptions = ai_target_module.runner.ModelRunner.get_model_descriptions(params)
+    # get pretrained model for the given model_key
+    model_description = ai_target_module.runner.ModelRunner.get_model_description(params, config['training']['model_key'])
 
-    # select a pretrained model and update the params with it
-    model_description = list(model_descriptions.values())[0]
-    params.update(model_description)
+    # update the params with model_description and config
+    params = params.update(model_description).update(config)
 
     # modify or set any parameters here as required.
     if params.common.run_name and '{date-time}' in params.common.run_name:
