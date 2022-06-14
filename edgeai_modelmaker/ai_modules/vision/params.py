@@ -42,7 +42,10 @@ def init_params(*args, **kwargs):
             project_run_path=None,
             task_type=None,
             target_device=None,
-            run_name=datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
+            # run_name can be any string
+            # if {date-time} is given in run_name it will be considered special.
+            # will be replaced with datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            run_name='{date-time}',
         ),
         dataset=dict(
             enable=True,

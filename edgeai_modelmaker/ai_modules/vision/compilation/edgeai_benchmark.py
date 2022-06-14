@@ -115,10 +115,9 @@ class ModelCompilation():
         pipeline_config['session'].set_param('run_dir', None)
 
         runtime_options = pipeline_config['session'].get_param('runtime_options')
-        meta_layers_names_list = 'object_detection:meta_layers_names_list'
-        if meta_layers_names_list in runtime_options:
-            self._replace_confidence_threshold(self.params.training.model_proto_path)
-            runtime_options[meta_layers_names_list] = self.params.training.model_proto_path
+        self.meta_layers_names_list = 'object_detection:meta_layers_names_list'
+        if self.meta_layers_names_list in runtime_options:
+            runtime_options[self.meta_layers_names_list] = self.params.training.model_proto_path
         #
         runtime_options.update(self.params.compilation.get('runtime_options', {}))
 
@@ -140,6 +139,13 @@ class ModelCompilation():
         ''''
         The actual compilation function. Move this to a worker process, if this function is called from a GUI.
         '''
+        # modify the confidence threshold for detection, if required
+        pipeline_config = list(self.pipeline_configs.values())[0]
+        runtime_options = pipeline_config['session'].get_param('runtime_options')
+        if self.meta_layers_names_list in runtime_options:
+            self._replace_confidence_threshold(self.params.training.model_proto_path)
+            runtime_options[self.meta_layers_names_list] = self.params.training.model_proto_path
+        #
         # run the accuracy pipeline
         jai_benchmark.tools.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
         # package artifacts

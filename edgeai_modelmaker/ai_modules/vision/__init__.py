@@ -34,5 +34,3 @@ from ... import utils
 from . import datasets
 from . import training
 from . import runner
-
-from .training import get_model_descriptions, get_model_description

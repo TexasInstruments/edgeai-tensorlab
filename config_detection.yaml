@@ -3,6 +3,10 @@ common:
     target_module: 'vision'
     task_type: 'detection'
     target_device: 'TDA4VM'
+    # run_name can be any string
+    # if {date-time} is given in run_name it will be considered special.
+    # will be replaced with datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    run_name: '{date-time}'
 
 dataset:
     # enable/disable dataset loading
