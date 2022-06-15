@@ -36,7 +36,7 @@ def draw_bbox_2d(img, box, label, score, conf = 0.6, colours=colours, thickness=
 
 def draw_cuboid_2d(img, cuboid_corners, colour = (0, 255, 0), thickness = 2):
     box = np.copy(cuboid_corners).astype(np.int32)
-
+    box = [tuple(kpt) for kpt in box]
     #front??? to check
     cv2.line(img, box[0], box[1], colour, thickness)
     cv2.line(img, box[1], box[2], colour, thickness)
