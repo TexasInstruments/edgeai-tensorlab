@@ -46,7 +46,7 @@ def main(config):
     params = ai_target_module.runner.ModelRunner.init_params()
 
     # get pretrained model for the given model_key
-    model_description = ai_target_module.runner.ModelRunner.get_model_description(params, config['training']['model_key'])
+    model_description = ai_target_module.runner.ModelRunner.get_model_description(config['training']['model_key'])
 
     # update the params with model_description and config
     params = params.update(model_description).update(config)

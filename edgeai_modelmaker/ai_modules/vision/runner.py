@@ -49,11 +49,10 @@ def get_model_descriptions(params):
     return model_descriptions
 
 
-def get_model_description(params, model_key=None):
-    model_key = (model_key or params.training.model_key)
+def get_model_description(model_key):
     assert model_key, 'model_key must be specified for get_model_description().' \
-                      'if model_key is not known, use the method get_model_descriptions() that returns all models.'
-    model_description = training.get_model_description(model_key=model_key)
+        'if model_key is not known, use the method get_model_descriptions() that returns supported models.'
+    model_description = training.get_model_description(model_key)
     return model_description
 
 
