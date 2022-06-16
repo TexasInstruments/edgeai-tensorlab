@@ -79,7 +79,7 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################onnx models#####################################
         'od-8410':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(416, 416, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
@@ -92,7 +92,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 23.5}, model_name='OD-8410-yolox-tiny-lite-mmdet-widerface-416x416')
         ),
         'od-8420':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
@@ -105,7 +105,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 31.62}, model_name='OD-8420-yolox-s-lite-mmdet-widerface-640x640')
         ),
         'od-8421':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(1024, 1024, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(1024, 1024, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
@@ -118,7 +118,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None}, model_name='OD-8421-yolox-s-lite-mmdet-widerface-1024x1024')
         ),
         'od-8430':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,

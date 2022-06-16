@@ -239,7 +239,7 @@ def create_configs(settings, work_dir):
             task_type='detection',
             calibration_dataset=imagedet_calib_dataset,
             input_dataset=imagedet_val_dataset,
-            preprocess = preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            preprocess = preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session = sessions.ONNXRTSession(**common_session_cfg,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                                {'object_detection:meta_arch_type': 6,
