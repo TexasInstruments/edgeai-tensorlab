@@ -11,7 +11,7 @@ num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8, 'W
 dataset_root_dict = {'CocoDataset':'data/coco/', 'VOCDataset':'data/VOCdevkit/', 'CityscapesDataset':'data/cityscapes/', 'WIDERFaceDataset':'data/WIDERFace/'}
 num_classes = num_classes_dict[dataset_type]
 data_root = dataset_root_dict[dataset_type]
-img_norm_cfg = dict(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], to_rgb=True)
+img_norm_cfg = dict(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], to_rgb=False)
 
 # replace complex activation functions with ReLU.
 # Also replace regular convolutions with depthwise-separable convolutions.
