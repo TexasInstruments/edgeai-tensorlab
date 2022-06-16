@@ -219,6 +219,39 @@ def create_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':23.0})
         ),
+        'imagedet-5': dict(
+            task_type='detection',
+            calibration_dataset=imagedet_calib_dataset,
+            input_dataset=imagedet_val_dataset,
+            preprocess=preproc_transforms.get_transform_onnx((512, 512), (512, 512), backend='cv2', reverse_channels=True),
+            session=sessions.ONNXRTSession(**onnx_bgr_session_cfg,
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
+                                                {'object_detection:meta_arch_type': 3,
+                                                 'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_model.prototxt'
+                                                 }),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_model.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None,
+                            normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 32.8})
+        ),
+        'imagedet-6': dict(
+            task_type='detection',
+            calibration_dataset=imagedet_calib_dataset,
+            input_dataset=imagedet_val_dataset,
+            preprocess = preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            session = sessions.ONNXRTSession(**common_session_cfg,
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
+                                               {'object_detection:meta_arch_type': 6,
+                                                'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_model.prototxt',
+                                                 'advanced_options:output_feature_16bit_names_list': ''
+                                                }),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_model.onnx'),
+           postprocess = postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None,
+                            normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
+           metric = dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+           model_info = dict(metric_reference={'accuracy_ap[.5:.95]%': 38.3})
+        )
     }
     return pipeline_configs
 
@@ -231,8 +264,10 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('settings_file', type=str)
+    parser.add_argument('--model_selection', type=str, default=None, nargs='*')
+
     cmds = parser.parse_args()
-    settings = config_settings.ConfigSettings(cmds.settings_file, model_shortlist=None)
+    settings = config_settings.ConfigSettings(cmds.settings_file, model_selection=cmds.model_selection)
 
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir = {work_dir}')
