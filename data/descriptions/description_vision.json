@@ -6,9 +6,9 @@
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
-        "task_type":"classification",
+        "task_type":"detection",
         "target_device":null,
-        "run_name":"20220519-191749"
+        "run_name":"{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -34,14 +34,14 @@
       },
       "training":{
         "enable":true,
-        "model_key":"regnet_x_1_6gf_tv",
-        "training_backend":"edgeai_torchvision",
-        "model_name":"regnet_x_1_6gf",
-        "model_id":"cl-6180",
-        "pretrained_checkpoint_path":"/data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
+        "model_key":"ssd_mobilenetv2_fpn_lite_mmdet",
+        "training_backend":"edgeai_mmdetection",
+        "model_name":"ssd_mobilenet_fpn_lite",
+        "model_id":"od-8030",
+        "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":null
+            "performance_fps":172
           }
         },
         "project_path":null,
@@ -58,18 +58,23 @@
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
-        "input_resize":256,
-        "input_cropsize":224,
+        "input_resize":[
+          512,
+          512
+        ],
+        "input_cropsize":[
+          512,
+          512
+        ],
         "training_device":null,
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
-        "model_architecture":"backbone",
+        "model_architecture":"ssd",
         "training_devices":{
           "cpu":true,
           "cuda":true
-        },
-        "pretrained_checkpoint":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth"
+        }
       },
       "compilation":{
         "enable":true,
@@ -83,9 +88,10 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "detection_thr":0.3,
         "save_output":true,
         "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
+          "advanced_options:output_feature_16bit_names_list":null
         },
         "metric":{
           "label_offset_pred":1
@@ -98,9 +104,9 @@
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
-        "task_type":"classification",
+        "task_type":"detection",
         "target_device":null,
-        "run_name":"20220519-191749"
+        "run_name":"{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -126,14 +132,14 @@
       },
       "training":{
         "enable":true,
-        "model_key":"regnet_x_1_6gf_tv",
-        "training_backend":"edgeai_torchvision",
-        "model_name":"regnet_x_1_6gf",
-        "model_id":"cl-6180",
-        "pretrained_checkpoint_path":"/data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
+        "model_key":"ssd_regnetx_800mf_fpn_bgr_lite_mmdet",
+        "training_backend":"edgeai_mmdetection",
+        "model_name":"ssd_regnetx_800mf_fpn_bgr_lite",
+        "model_id":"od-8050",
+        "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":null
+            "performance_fps":92
           }
         },
         "project_path":null,
@@ -150,18 +156,23 @@
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
-        "input_resize":256,
-        "input_cropsize":224,
+        "input_resize":[
+          512,
+          512
+        ],
+        "input_cropsize":[
+          512,
+          512
+        ],
         "training_device":null,
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
-        "model_architecture":"backbone",
+        "model_architecture":"ssd",
         "training_devices":{
           "cpu":true,
           "cuda":true
-        },
-        "pretrained_checkpoint":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth"
+        }
       },
       "compilation":{
         "enable":true,
@@ -175,9 +186,10 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "detection_thr":0.3,
         "save_output":true,
         "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
+          "advanced_options:output_feature_16bit_names_list":null
         },
         "metric":{
           "label_offset_pred":1
@@ -190,9 +202,9 @@
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
-        "task_type":"classification",
+        "task_type":"detection",
         "target_device":null,
-        "run_name":"20220519-191749"
+        "run_name":"{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -218,14 +230,14 @@
       },
       "training":{
         "enable":true,
-        "model_key":"regnet_x_1_6gf_tv",
-        "training_backend":"edgeai_torchvision",
-        "model_name":"regnet_x_1_6gf",
-        "model_id":"cl-6180",
-        "pretrained_checkpoint_path":"/data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
+        "model_key":"ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet",
+        "training_backend":"edgeai_mmdetection",
+        "model_name":"ssd_regnetx_1p6gf_fpn_bgr_lite",
+        "model_id":"od-8060",
+        "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-1.6gf_fpn_bgr_lite_768x768_20200923_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":null
+            "performance_fps":45
           }
         },
         "project_path":null,
@@ -242,18 +254,23 @@
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
-        "input_resize":256,
-        "input_cropsize":224,
+        "input_resize":[
+          768,
+          768
+        ],
+        "input_cropsize":[
+          768,
+          768
+        ],
         "training_device":null,
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
-        "model_architecture":"backbone",
+        "model_architecture":"ssd",
         "training_devices":{
           "cpu":true,
           "cuda":true
-        },
-        "pretrained_checkpoint":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth"
+        }
       },
       "compilation":{
         "enable":true,
@@ -267,9 +284,10 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "detection_thr":0.3,
         "save_output":true,
         "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
+          "advanced_options:output_feature_16bit_names_list":null
         },
         "metric":{
           "label_offset_pred":1
@@ -282,9 +300,9 @@
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
-        "task_type":"classification",
+        "task_type":"detection",
         "target_device":null,
-        "run_name":"20220519-191749"
+        "run_name":"{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -310,14 +328,14 @@
       },
       "training":{
         "enable":true,
-        "model_key":"regnet_x_1_6gf_tv",
-        "training_backend":"edgeai_torchvision",
-        "model_name":"regnet_x_1_6gf",
-        "model_id":"cl-6180",
-        "pretrained_checkpoint_path":"/data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
+        "model_key":"yolox_nano_lite_mmdet",
+        "training_backend":"edgeai_mmdetection",
+        "model_name":"yolox_nano_lite",
+        "model_id":"od-8200",
+        "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":null
+            "performance_fps":386
           }
         },
         "project_path":null,
@@ -334,18 +352,17 @@
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
-        "input_resize":256,
-        "input_cropsize":224,
+        "input_resize":416,
+        "input_cropsize":416,
         "training_device":null,
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
-        "model_architecture":"backbone",
+        "model_architecture":"yolox",
         "training_devices":{
           "cpu":true,
           "cuda":true
-        },
-        "pretrained_checkpoint":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth"
+        }
       },
       "compilation":{
         "enable":true,
@@ -359,9 +376,10 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "detection_thr":0.3,
         "save_output":true,
         "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
+          "advanced_options:output_feature_16bit_names_list":"1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179"
         },
         "metric":{
           "label_offset_pred":1
@@ -374,9 +392,9 @@
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
-        "task_type":"classification",
+        "task_type":"detection",
         "target_device":null,
-        "run_name":"20220519-191749"
+        "run_name":"{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -402,14 +420,14 @@
       },
       "training":{
         "enable":true,
-        "model_key":"regnet_x_1_6gf_tv",
-        "training_backend":"edgeai_torchvision",
-        "model_name":"regnet_x_1_6gf",
-        "model_id":"cl-6180",
-        "pretrained_checkpoint_path":"/data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
+        "model_key":"yolox_tiny_lite_mmdet",
+        "training_backend":"edgeai_mmdetection",
+        "model_name":"yolox_tiny_lite",
+        "model_id":"od-8210",
+        "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":null
+            "performance_fps":264
           }
         },
         "project_path":null,
@@ -426,18 +444,17 @@
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
-        "input_resize":256,
-        "input_cropsize":224,
+        "input_resize":416,
+        "input_cropsize":416,
         "training_device":null,
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
-        "model_architecture":"backbone",
+        "model_architecture":"yolox",
         "training_devices":{
           "cpu":true,
           "cuda":true
-        },
-        "pretrained_checkpoint":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth"
+        }
       },
       "compilation":{
         "enable":true,
@@ -451,9 +468,10 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "detection_thr":0.3,
         "save_output":true,
         "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
+          "advanced_options:output_feature_16bit_names_list":"1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179"
         },
         "metric":{
           "label_offset_pred":1
@@ -466,9 +484,9 @@
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
-        "task_type":"classification",
+        "task_type":"detection",
         "target_device":null,
-        "run_name":"20220519-191749"
+        "run_name":"{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -494,14 +512,14 @@
       },
       "training":{
         "enable":true,
-        "model_key":"regnet_x_1_6gf_tv",
-        "training_backend":"edgeai_torchvision",
-        "model_name":"regnet_x_1_6gf",
-        "model_id":"cl-6180",
-        "pretrained_checkpoint_path":"/data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
+        "model_key":"yolox_s_lite_mmdet",
+        "training_backend":"edgeai_mmdetection",
+        "model_name":"yolox_s_lite",
+        "model_id":"od-8220",
+        "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":null
+            "performance_fps":107
           }
         },
         "project_path":null,
@@ -518,18 +536,17 @@
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
-        "input_resize":256,
-        "input_cropsize":224,
+        "input_resize":640,
+        "input_cropsize":640,
         "training_device":null,
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
-        "model_architecture":"backbone",
+        "model_architecture":"yolox",
         "training_devices":{
           "cpu":true,
           "cuda":true
-        },
-        "pretrained_checkpoint":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth"
+        }
       },
       "compilation":{
         "enable":true,
@@ -543,9 +560,10 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "detection_thr":0.3,
         "save_output":true,
         "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
+          "advanced_options:output_feature_16bit_names_list":"1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179"
         },
         "metric":{
           "label_offset_pred":1
@@ -558,9 +576,9 @@
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
-        "task_type":"classification",
+        "task_type":"detection",
         "target_device":null,
-        "run_name":"20220519-191749"
+        "run_name":"{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -586,14 +604,14 @@
       },
       "training":{
         "enable":true,
-        "model_key":"regnet_x_1_6gf_tv",
-        "training_backend":"edgeai_torchvision",
-        "model_name":"regnet_x_1_6gf",
-        "model_id":"cl-6180",
-        "pretrained_checkpoint_path":"/data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
+        "model_key":"yolox_m_lite_mmdet",
+        "training_backend":"edgeai_mmdetection",
+        "model_name":"yolox_m_lite",
+        "model_id":"od-8230",
+        "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":null
+            "performance_fps":46
           }
         },
         "project_path":null,
@@ -610,18 +628,17 @@
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
-        "input_resize":256,
-        "input_cropsize":224,
+        "input_resize":640,
+        "input_cropsize":640,
         "training_device":null,
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
-        "model_architecture":"backbone",
+        "model_architecture":"yolox",
         "training_devices":{
           "cpu":true,
           "cuda":true
-        },
-        "pretrained_checkpoint":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth"
+        }
       },
       "compilation":{
         "enable":true,
@@ -635,6 +652,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "detection_thr":0.3,
         "save_output":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
@@ -652,7 +670,7 @@
         "project_run_path":null,
         "task_type":"classification",
         "target_device":null,
-        "run_name":"20220519-191749"
+        "run_name":"{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -678,14 +696,14 @@
       },
       "training":{
         "enable":true,
-        "model_key":"regnet_x_1_6gf_tv",
+        "model_key":"mobilenet_v2_lite_tv",
         "training_backend":"edgeai_torchvision",
-        "model_name":"regnet_x_1_6gf",
-        "model_id":"cl-6180",
-        "pretrained_checkpoint_path":"/data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
+        "model_name":"mobilenet_v2_lite",
+        "model_id":"cl-6070",
+        "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":null
+            "performance_fps":455
           }
         },
         "project_path":null,
@@ -712,8 +730,7 @@
         "training_devices":{
           "cpu":true,
           "cuda":true
-        },
-        "pretrained_checkpoint":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth"
+        }
       },
       "compilation":{
         "enable":true,
@@ -727,10 +744,8 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "detection_thr":0.3,
         "save_output":true,
-        "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
-        },
         "metric":{
           "label_offset_pred":1
         }
@@ -744,7 +759,7 @@
         "project_run_path":null,
         "task_type":"classification",
         "target_device":null,
-        "run_name":"20220519-191749"
+        "run_name":"{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -770,11 +785,11 @@
       },
       "training":{
         "enable":true,
-        "model_key":"regnet_x_1_6gf_tv",
+        "model_key":"mobilenet_v3_large_lite_tv",
         "training_backend":"edgeai_torchvision",
-        "model_name":"regnet_x_1_6gf",
-        "model_id":"cl-6180",
-        "pretrained_checkpoint_path":"/data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
+        "model_name":"mobilenet_v3_large_lite",
+        "model_id":"cl-6490",
+        "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
             "performance_fps":null
@@ -804,8 +819,7 @@
         "training_devices":{
           "cpu":true,
           "cuda":true
-        },
-        "pretrained_checkpoint":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth"
+        }
       },
       "compilation":{
         "enable":true,
@@ -819,10 +833,8 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "detection_thr":0.3,
         "save_output":true,
-        "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
-        },
         "metric":{
           "label_offset_pred":1
         }
@@ -836,7 +848,7 @@
         "project_run_path":null,
         "task_type":"classification",
         "target_device":null,
-        "run_name":"20220519-191749"
+        "run_name":"{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -862,11 +874,11 @@
       },
       "training":{
         "enable":true,
-        "model_key":"regnet_x_1_6gf_tv",
+        "model_key":"mobilenet_v3_small_lite_tv",
         "training_backend":"edgeai_torchvision",
-        "model_name":"regnet_x_1_6gf",
-        "model_id":"cl-6180",
-        "pretrained_checkpoint_path":"/data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
+        "model_name":"mobilenet_v3_small_lite",
+        "model_id":"cl-6490",
+        "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
             "performance_fps":null
@@ -896,8 +908,7 @@
         "training_devices":{
           "cpu":true,
           "cuda":true
-        },
-        "pretrained_checkpoint":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth"
+        }
       },
       "compilation":{
         "enable":true,
@@ -911,10 +922,8 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "detection_thr":0.3,
         "save_output":true,
-        "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
-        },
         "metric":{
           "label_offset_pred":1
         }
@@ -928,7 +937,7 @@
         "project_run_path":null,
         "task_type":"classification",
         "target_device":null,
-        "run_name":"20220519-191749"
+        "run_name":"{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -954,11 +963,11 @@
       },
       "training":{
         "enable":true,
-        "model_key":"regnet_x_1_6gf_tv",
+        "model_key":"regnet_x_400mf_tv",
         "training_backend":"edgeai_torchvision",
-        "model_name":"regnet_x_1_6gf",
-        "model_id":"cl-6180",
-        "pretrained_checkpoint_path":"/data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
+        "model_name":"regnet_x_400mf",
+        "model_id":"cl-6160",
+        "pretrained_checkpoint_path":"https://download.pytorch.org/models/regnet_x_400mf-adf1edd5.pth",
         "target_devices":{
           "TDA4VM":{
             "performance_fps":null
@@ -988,8 +997,7 @@
         "training_devices":{
           "cpu":true,
           "cuda":true
-        },
-        "pretrained_checkpoint":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth"
+        }
       },
       "compilation":{
         "enable":true,
@@ -1003,10 +1011,8 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "detection_thr":0.3,
         "save_output":true,
-        "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
-        },
         "metric":{
           "label_offset_pred":1
         }
@@ -1020,7 +1026,7 @@
         "project_run_path":null,
         "task_type":"classification",
         "target_device":null,
-        "run_name":"20220519-191749"
+        "run_name":"{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -1046,11 +1052,11 @@
       },
       "training":{
         "enable":true,
-        "model_key":"regnet_x_1_6gf_tv",
+        "model_key":"regnet_x_800mf_tv",
         "training_backend":"edgeai_torchvision",
-        "model_name":"regnet_x_1_6gf",
-        "model_id":"cl-6180",
-        "pretrained_checkpoint_path":"/data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
+        "model_name":"regnet_x_800mf",
+        "model_id":"cl-6170",
+        "pretrained_checkpoint_path":"https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth",
         "target_devices":{
           "TDA4VM":{
             "performance_fps":null
@@ -1080,8 +1086,7 @@
         "training_devices":{
           "cpu":true,
           "cuda":true
-        },
-        "pretrained_checkpoint":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth"
+        }
       },
       "compilation":{
         "enable":true,
@@ -1095,10 +1100,8 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "detection_thr":0.3,
         "save_output":true,
-        "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
-        },
         "metric":{
           "label_offset_pred":1
         }
@@ -1112,7 +1115,7 @@
         "project_run_path":null,
         "task_type":"classification",
         "target_device":null,
-        "run_name":"20220519-191749"
+        "run_name":"{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -1142,7 +1145,7 @@
         "training_backend":"edgeai_torchvision",
         "model_name":"regnet_x_1_6gf",
         "model_id":"cl-6180",
-        "pretrained_checkpoint_path":"/data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
+        "pretrained_checkpoint_path":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth",
         "target_devices":{
           "TDA4VM":{
             "performance_fps":null
@@ -1172,8 +1175,7 @@
         "training_devices":{
           "cpu":true,
           "cuda":true
-        },
-        "pretrained_checkpoint":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth"
+        }
       },
       "compilation":{
         "enable":true,
@@ -1187,10 +1189,8 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "detection_thr":0.3,
         "save_output":true,
-        "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
-        },
         "metric":{
           "label_offset_pred":1
         }

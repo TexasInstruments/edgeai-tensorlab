@@ -4,7 +4,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: 20220519-191749
+      run_name: '{date-time}'
       target_device: null
       task_type: classification
       verbose_mode: true
@@ -13,6 +13,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
@@ -20,9 +21,6 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
-      runtime_options:
-        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
-          1563, 1564, 1578, 1579, 1580
       save_output: true
       target_device: pc
       tensor_bits: 8
@@ -58,19 +56,18 @@ model_descriptions:
       model_architecture: backbone
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6180
-      model_key: regnet_x_1_6gf_tv
-      model_name: regnet_x_1_6gf
+      model_id: cl-6070
+      model_key: mobilenet_v2_lite_tv
+      model_name: mobilenet_v2_lite
       model_proto_path: null
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
-      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
       project_path: null
       target_devices:
         TDA4VM:
-          performance_fps: null
+          performance_fps: 455
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -86,7 +83,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: 20220519-191749
+      run_name: '{date-time}'
       target_device: null
       task_type: classification
       verbose_mode: true
@@ -95,6 +92,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
@@ -102,9 +100,6 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
-      runtime_options:
-        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
-          1563, 1564, 1578, 1579, 1580
       save_output: true
       target_device: pc
       tensor_bits: 8
@@ -140,15 +135,14 @@ model_descriptions:
       model_architecture: backbone
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6180
-      model_key: regnet_x_1_6gf_tv
-      model_name: regnet_x_1_6gf
+      model_id: cl-6490
+      model_key: mobilenet_v3_large_lite_tv
+      model_name: mobilenet_v3_large_lite
       model_proto_path: null
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
-      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth
       project_path: null
       target_devices:
         TDA4VM:
@@ -168,7 +162,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: 20220519-191749
+      run_name: '{date-time}'
       target_device: null
       task_type: classification
       verbose_mode: true
@@ -177,6 +171,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
@@ -184,9 +179,6 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
-      runtime_options:
-        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
-          1563, 1564, 1578, 1579, 1580
       save_output: true
       target_device: pc
       tensor_bits: 8
@@ -222,15 +214,14 @@ model_descriptions:
       model_architecture: backbone
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6180
-      model_key: regnet_x_1_6gf_tv
-      model_name: regnet_x_1_6gf
+      model_id: cl-6490
+      model_key: mobilenet_v3_small_lite_tv
+      model_name: mobilenet_v3_small_lite
       model_proto_path: null
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
-      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth
       project_path: null
       target_devices:
         TDA4VM:
@@ -250,7 +241,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: 20220519-191749
+      run_name: '{date-time}'
       target_device: null
       task_type: classification
       verbose_mode: true
@@ -259,6 +250,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
@@ -266,9 +258,6 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
-      runtime_options:
-        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
-          1563, 1564, 1578, 1579, 1580
       save_output: true
       target_device: pc
       tensor_bits: 8
@@ -311,8 +300,7 @@ model_descriptions:
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
-      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      pretrained_checkpoint_path: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
       project_path: null
       target_devices:
         TDA4VM:
@@ -332,7 +320,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: 20220519-191749
+      run_name: '{date-time}'
       target_device: null
       task_type: classification
       verbose_mode: true
@@ -341,6 +329,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
@@ -348,9 +337,6 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
-      runtime_options:
-        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
-          1563, 1564, 1578, 1579, 1580
       save_output: true
       target_device: pc
       tensor_bits: 8
@@ -386,15 +372,14 @@ model_descriptions:
       model_architecture: backbone
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6180
-      model_key: regnet_x_1_6gf_tv
-      model_name: regnet_x_1_6gf
+      model_id: cl-6160
+      model_key: regnet_x_400mf_tv
+      model_name: regnet_x_400mf
       model_proto_path: null
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
-      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      pretrained_checkpoint_path: https://download.pytorch.org/models/regnet_x_400mf-adf1edd5.pth
       project_path: null
       target_devices:
         TDA4VM:
@@ -414,7 +399,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: 20220519-191749
+      run_name: '{date-time}'
       target_device: null
       task_type: classification
       verbose_mode: true
@@ -423,6 +408,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
@@ -430,9 +416,6 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
-      runtime_options:
-        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
-          1563, 1564, 1578, 1579, 1580
       save_output: true
       target_device: pc
       tensor_bits: 8
@@ -468,15 +451,14 @@ model_descriptions:
       model_architecture: backbone
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6180
-      model_key: regnet_x_1_6gf_tv
-      model_name: regnet_x_1_6gf
+      model_id: cl-6170
+      model_key: regnet_x_800mf_tv
+      model_name: regnet_x_800mf
       model_proto_path: null
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
-      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      pretrained_checkpoint_path: https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth
       project_path: null
       target_devices:
         TDA4VM:
@@ -496,15 +478,16 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: 20220519-191749
+      run_name: '{date-time}'
       target_device: null
-      task_type: classification
+      task_type: detection
       verbose_mode: true
     compilation:
       accuracy_level: 1
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
@@ -513,8 +496,7 @@ model_descriptions:
       model_packaged_path: null
       num_frames: null
       runtime_options:
-        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
-          1563, 1564, 1578, 1579, 1580
+        advanced_options:output_feature_16bit_names_list: null
       save_output: true
       target_device: pc
       tensor_bits: 8
@@ -543,27 +525,30 @@ model_descriptions:
       dataset_path: null
       distributed: true
       enable: true
-      input_cropsize: 224
-      input_resize: 256
+      input_cropsize:
+      - 512
+      - 512
+      input_resize:
+      - 512
+      - 512
       learning_rate: 0.002
       log_file_path: null
-      model_architecture: backbone
+      model_architecture: ssd
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6180
-      model_key: regnet_x_1_6gf_tv
-      model_name: regnet_x_1_6gf
+      model_id: od-8030
+      model_key: ssd_mobilenetv2_fpn_lite_mmdet
+      model_name: ssd_mobilenet_fpn_lite
       model_proto_path: null
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
-      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_checkpoint.pth
       project_path: null
       target_devices:
         TDA4VM:
-          performance_fps: null
-      training_backend: edgeai_torchvision
+          performance_fps: 172
+      training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
         cpu: true
@@ -578,15 +563,16 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: 20220519-191749
+      run_name: '{date-time}'
       target_device: null
-      task_type: classification
+      task_type: detection
       verbose_mode: true
     compilation:
       accuracy_level: 1
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
@@ -595,8 +581,7 @@ model_descriptions:
       model_packaged_path: null
       num_frames: null
       runtime_options:
-        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
-          1563, 1564, 1578, 1579, 1580
+        advanced_options:output_feature_16bit_names_list: null
       save_output: true
       target_device: pc
       tensor_bits: 8
@@ -625,27 +610,30 @@ model_descriptions:
       dataset_path: null
       distributed: true
       enable: true
-      input_cropsize: 224
-      input_resize: 256
+      input_cropsize:
+      - 768
+      - 768
+      input_resize:
+      - 768
+      - 768
       learning_rate: 0.002
       log_file_path: null
-      model_architecture: backbone
+      model_architecture: ssd
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6180
-      model_key: regnet_x_1_6gf_tv
-      model_name: regnet_x_1_6gf
+      model_id: od-8060
+      model_key: ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet
+      model_name: ssd_regnetx_1p6gf_fpn_bgr_lite
       model_proto_path: null
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
-      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-1.6gf_fpn_bgr_lite_768x768_20200923_checkpoint.pth
       project_path: null
       target_devices:
         TDA4VM:
-          performance_fps: null
-      training_backend: edgeai_torchvision
+          performance_fps: 45
+      training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
         cpu: true
@@ -660,15 +648,16 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: 20220519-191749
+      run_name: '{date-time}'
       target_device: null
-      task_type: classification
+      task_type: detection
       verbose_mode: true
     compilation:
       accuracy_level: 1
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
@@ -677,8 +666,7 @@ model_descriptions:
       model_packaged_path: null
       num_frames: null
       runtime_options:
-        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
-          1563, 1564, 1578, 1579, 1580
+        advanced_options:output_feature_16bit_names_list: null
       save_output: true
       target_device: pc
       tensor_bits: 8
@@ -707,27 +695,30 @@ model_descriptions:
       dataset_path: null
       distributed: true
       enable: true
-      input_cropsize: 224
-      input_resize: 256
+      input_cropsize:
+      - 512
+      - 512
+      input_resize:
+      - 512
+      - 512
       learning_rate: 0.002
       log_file_path: null
-      model_architecture: backbone
+      model_architecture: ssd
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6180
-      model_key: regnet_x_1_6gf_tv
-      model_name: regnet_x_1_6gf
+      model_id: od-8050
+      model_key: ssd_regnetx_800mf_fpn_bgr_lite_mmdet
+      model_name: ssd_regnetx_800mf_fpn_bgr_lite
       model_proto_path: null
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
-      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_checkpoint.pth
       project_path: null
       target_devices:
         TDA4VM:
-          performance_fps: null
-      training_backend: edgeai_torchvision
+          performance_fps: 92
+      training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
         cpu: true
@@ -742,15 +733,16 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: 20220519-191749
+      run_name: '{date-time}'
       target_device: null
-      task_type: classification
+      task_type: detection
       verbose_mode: true
     compilation:
       accuracy_level: 1
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
@@ -789,27 +781,26 @@ model_descriptions:
       dataset_path: null
       distributed: true
       enable: true
-      input_cropsize: 224
-      input_resize: 256
+      input_cropsize: 640
+      input_resize: 640
       learning_rate: 0.002
       log_file_path: null
-      model_architecture: backbone
+      model_architecture: yolox
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6180
-      model_key: regnet_x_1_6gf_tv
-      model_name: regnet_x_1_6gf
+      model_id: od-8230
+      model_key: yolox_m_lite_mmdet
+      model_name: yolox_m_lite
       model_proto_path: null
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
-      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
       project_path: null
       target_devices:
         TDA4VM:
-          performance_fps: null
-      training_backend: edgeai_torchvision
+          performance_fps: 46
+      training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
         cpu: true
@@ -824,15 +815,16 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: 20220519-191749
+      run_name: '{date-time}'
       target_device: null
-      task_type: classification
+      task_type: detection
       verbose_mode: true
     compilation:
       accuracy_level: 1
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
@@ -841,8 +833,8 @@ model_descriptions:
       model_packaged_path: null
       num_frames: null
       runtime_options:
-        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
-          1563, 1564, 1578, 1579, 1580
+        advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
+          1196, 1195, 1181, 1180, 1179
       save_output: true
       target_device: pc
       tensor_bits: 8
@@ -871,27 +863,26 @@ model_descriptions:
       dataset_path: null
       distributed: true
       enable: true
-      input_cropsize: 224
-      input_resize: 256
+      input_cropsize: 416
+      input_resize: 416
       learning_rate: 0.002
       log_file_path: null
-      model_architecture: backbone
+      model_architecture: yolox
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6180
-      model_key: regnet_x_1_6gf_tv
-      model_name: regnet_x_1_6gf
+      model_id: od-8200
+      model_key: yolox_nano_lite_mmdet
+      model_name: yolox_nano_lite
       model_proto_path: null
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
-      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
       project_path: null
       target_devices:
         TDA4VM:
-          performance_fps: null
-      training_backend: edgeai_torchvision
+          performance_fps: 386
+      training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
         cpu: true
@@ -906,15 +897,16 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: 20220519-191749
+      run_name: '{date-time}'
       target_device: null
-      task_type: classification
+      task_type: detection
       verbose_mode: true
     compilation:
       accuracy_level: 1
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
@@ -923,8 +915,8 @@ model_descriptions:
       model_packaged_path: null
       num_frames: null
       runtime_options:
-        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
-          1563, 1564, 1578, 1579, 1580
+        advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
+          1196, 1195, 1181, 1180, 1179
       save_output: true
       target_device: pc
       tensor_bits: 8
@@ -953,27 +945,26 @@ model_descriptions:
       dataset_path: null
       distributed: true
       enable: true
-      input_cropsize: 224
-      input_resize: 256
+      input_cropsize: 640
+      input_resize: 640
       learning_rate: 0.002
       log_file_path: null
-      model_architecture: backbone
+      model_architecture: yolox
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6180
-      model_key: regnet_x_1_6gf_tv
-      model_name: regnet_x_1_6gf
+      model_id: od-8220
+      model_key: yolox_s_lite_mmdet
+      model_name: yolox_s_lite
       model_proto_path: null
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
-      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
       project_path: null
       target_devices:
         TDA4VM:
-          performance_fps: null
-      training_backend: edgeai_torchvision
+          performance_fps: 107
+      training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
         cpu: true
@@ -988,15 +979,16 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: 20220519-191749
+      run_name: '{date-time}'
       target_device: null
-      task_type: classification
+      task_type: detection
       verbose_mode: true
     compilation:
       accuracy_level: 1
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
@@ -1005,8 +997,8 @@ model_descriptions:
       model_packaged_path: null
       num_frames: null
       runtime_options:
-        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
-          1563, 1564, 1578, 1579, 1580
+        advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
+          1196, 1195, 1181, 1180, 1179
       save_output: true
       target_device: pc
       tensor_bits: 8
@@ -1035,27 +1027,26 @@ model_descriptions:
       dataset_path: null
       distributed: true
       enable: true
-      input_cropsize: 224
-      input_resize: 256
+      input_cropsize: 416
+      input_resize: 416
       learning_rate: 0.002
       log_file_path: null
-      model_architecture: backbone
+      model_architecture: yolox
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6180
-      model_key: regnet_x_1_6gf_tv
-      model_name: regnet_x_1_6gf
+      model_id: od-8210
+      model_key: yolox_tiny_lite_mmdet
+      model_name: yolox_tiny_lite
       model_proto_path: null
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
-      pretrained_checkpoint_path: /data/files/a0393608/work/code/ti/edgeai-algo/edgeai-modelmaker/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
       project_path: null
       target_devices:
         TDA4VM:
-          performance_fps: null
-      training_backend: edgeai_torchvision
+          performance_fps: 264
+      training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
         cpu: true
