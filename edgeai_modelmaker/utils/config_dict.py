@@ -32,36 +32,79 @@
 import copy
 
 
-# a simple config node class
-class AttrDict(dict):
-    def __init__(self):
+class ConfigDict(dict):
+    def __init__(self, input=None, *args, **kwargs):
         super().__init__()
-        self.__dict__ = self
-
-    def merge_from(self, src_cfg):
-        if src_cfg is not None:
-            for src_key, src_val in src_cfg.items():
-                self[src_key] = src_val
+        # initialize with default values
+        self._initialize()
+        # read the given settings file
+        input_dict = dict()
+        settings_file = None
+        if isinstance(input, str):
+            ext = os.path.splitext(input)[1]
+            assert ext == '.yaml', f'unrecognized file type for: {input}'
+            with open(input) as fp:
+                input_dict = yaml.safe_load(fp)
+            #
+            settings_file = input
+        elif isinstance(input, dict):
+            input_dict = input
+        elif input is not None:
+            assert False, 'got invalid input'
+        #
+        # override the entries with args
+        for value in args:
+            if isinstance(value, (dict, ConfigDict)):
+                input_dict.update(value)
             #
         #
-        return self
+        # override the entries with kwargs
+        for key, value in kwargs.items():
+            input_dict[key] = value
+        #
+        for key, value in input_dict.items():
+            if key == 'include_files' and input_dict['include_files'] is not None:
+                include_base_path = os.path.dirname(settings_file) if settings_file is not None else './'
+                idict = self._parse_include_files(value, include_base_path)
+                self.update(idict)
+            else:
+                value = ConfigDict(value) if isinstance(value, dict) else value
+                self.__setattr__(key, value)
+            #
+        #
 
-    def clone(self):
-        new_cfg = type(self)()
-        new_cfg.merge_from(self)
-        return new_cfg
+    def __getattr__(self, key):
+        try:
+            return self[key]
+        except KeyError:
+            raise AttributeError(key)
 
-    def __deepcopy__(self, memodict):
-        new_config = self.clone()
-        memodict[id(self)] = new_config
-        return new_config
+    def __setattr__(self, key, value):
+        self[key] = value
 
+    # pickling used by multiprocessing did not work without defining __getstate__
+    def __getstate__(self):
+        self.__dict__.copy()
 
-# ConfigDict is derived from AttrDict
-class ConfigDict(AttrDict):
-    def __init__(self, *args, **kwargs):
-        super().__init__()
-        self.update(*args, **kwargs)
+    # this seems to be not required by multiprocessing
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+
+    def _initialize(self):
+        pass
+
+    def _parse_include_files(self, include_files, include_base_path):
+        input_dict = {}
+        include_files = utils.as_list(include_files)
+        for include_file in include_files:
+            append_base = not (include_file.startswith('/') and include_file.startswith('./'))
+            include_file = os.path.join(include_base_path, include_file) if append_base else include_file
+            with open(include_file) as ifp:
+                idict = yaml.safe_load(ifp)
+                input_dict.update(idict)
+            #
+        #
+        return input_dict
 
     def update(self, *args, **kwargs):
         for arg in args:
@@ -71,14 +114,14 @@ class ConfigDict(AttrDict):
         #
         for k, v in kwargs.items():
             if k in self:
-                if isinstance(self[k], (dict, ConfigDict)) and isinstance(v, (dict, ConfigDict)):
+                if isinstance(v, (dict, ConfigDict)):
+                    v = ConfigDict(v) if isinstance(v, dict) else v
                     self[k].update(v)
                 else:
                     self[k] = v
                 #
-            elif isinstance(v, dict):
-                self[k] = ConfigDict(v)
             else:
+                v = ConfigDict(v) if isinstance(v, dict) else v
                 self[k] = v
             #
         #
