@@ -53,7 +53,7 @@ def main(args):
     model_descriptions_desc = dict()
     for k, v in model_descriptions.items():
         s = copy.deepcopy(params)
-        s.update(v)
+        s.update(copy.deepcopy(v))
         model_descriptions_desc[k] = s
     #
     description = dict(model_descriptions=model_descriptions_desc)
