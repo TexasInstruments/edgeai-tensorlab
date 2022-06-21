@@ -61,7 +61,7 @@ _model_descriptions = {
             model_architecture='ssd',
             input_resize=(512,512),
             input_cropsize=(512,512),
-            pretrained_checkpoint=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-tv/ssdlite_mobilenet_v2_fpn_lite_512x512_20211108_checkpoint.pth',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-tv/ssdlite_mobilenet_v2_fpn_lite_512x512_20211108_checkpoint.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=156)
             },

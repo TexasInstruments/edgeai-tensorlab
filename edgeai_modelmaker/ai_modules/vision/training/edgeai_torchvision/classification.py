@@ -61,7 +61,7 @@ _model_descriptions = {
             model_architecture='backbone',
             input_resize=256,
             input_cropsize=224,
-            pretrained_checkpoint=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=455)
             },
@@ -86,7 +86,7 @@ _model_descriptions = {
             model_architecture='backbone',
             input_resize=256,
             input_cropsize=224,
-            pretrained_checkpoint=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None)
             },
@@ -111,7 +111,7 @@ _model_descriptions = {
             model_architecture='backbone',
             input_resize=256,
             input_cropsize=224,
-            pretrained_checkpoint=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None)
             },
@@ -136,7 +136,7 @@ _model_descriptions = {
             model_architecture='backbone',
             input_resize=256,
             input_cropsize=224,
-            pretrained_checkpoint=f'https://download.pytorch.org/models/regnet_x_400mf-adf1edd5.pth',
+            pretrained_checkpoint_path=f'https://download.pytorch.org/models/regnet_x_400mf-adf1edd5.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None)
             },
@@ -161,7 +161,7 @@ _model_descriptions = {
             model_architecture='backbone',
             input_resize=256,
             input_cropsize=224,
-            pretrained_checkpoint=f'https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth',
+            pretrained_checkpoint_path=f'https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None)
             },
@@ -186,7 +186,7 @@ _model_descriptions = {
             model_architecture='backbone',
             input_resize=256,
             input_cropsize=224,
-            pretrained_checkpoint=f'https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth',
+            pretrained_checkpoint_path=f'https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None)
             },
@@ -264,7 +264,7 @@ class ModelTraining:
         device = 'cuda' if self.params.training.num_gpus > 0 else 'cpu'
         # training params
         argv = ['--model', f'{self.params.training.model_name}',
-                '--pretrained', f'{self.params.training.pretrained_checkpoint}',
+                '--pretrained', f'{self.params.training.pretrained_checkpoint_path}',
                 '--dataset', 'modelmaker',
                 '--data-path', f'{self.params.dataset.dataset_path}',
                 #'--num-classes', f'{self.params.training.num_classes}',
