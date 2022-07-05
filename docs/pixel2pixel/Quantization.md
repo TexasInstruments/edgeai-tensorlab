@@ -10,13 +10,13 @@ Inference engines use fixed point arithmetic to implement neural networks. For e
 
 Fixed point mode, especially the 8-bit mode can have accuracy degradation. The tools and guidelines provided here help to avoid accuracy degradation with quantization.
 
-If you are getting accuracy degradation with 8-bit inference, the first thing to check is 16-bit inference. If 16-bit inference provides accuracy close to floating point and 8-bit has an accuracy degradation, there it is likely that the degradation si due to quantization. However, if there is substantial accuracy degradation with 16-bit inference itself, then it is likely that there there is some issue other than quantization.  
+If you are getting accuracy degradation with 8-bit inference, the first thing to check is 16-bit inference. If 16-bit inference provides accuracy close to floating point and 8-bit has an accuracy degradation, there it is likely that the degradation si due to quantization. However, if there is substantial accuracy degradation with 16-bit inference itself, then it is likely that there is some issue other than quantization.  
 
 
 #### Quantization Schemes
-Post Training Calibration & Quantization (Calibration): Calibration often involves range estimation for weights and activations and also minor tweaks to the model (such as bias adjustments). Fixed point inference engines such as TIDL can accept a floating point model and Calibrate it using a few sample images. The Calibration is done during the import of the model, in the case of TIDL.<br>
+Post Training Quantization (PTQ): Post Training Quantization involves range estimation for weights and activations and also minor tweaks to the model (such as bias adjustments). TIDL can accept a floating point model and do PTQ using a few sample images. This is done during the import of the model in TIDL.<br>
 
-Quantization Aware Training (QAT): This is needed if accuracy obtained with Calibration is not satisfactory (eg. Quantization Accuracy Drop >2%). QAT operates as a second phase after the initial training in floating point is done. 
+Quantization Aware Training (QAT): This is needed if accuracy obtained with Calibration is not satisfactory. QAT operates as a second phase after the initial training in floating point is done. 
 
 
 ## Guidelines For Training To Get Best Accuracy With Quantization
@@ -42,7 +42,7 @@ To get best accuracy at the quantization stage, it is important that the model i
 
 **Use Modules instead of functionals or tensor operations** (by Module we mean classes derived from torch.nn.Module). We make use of Modules heavily in our quantization tools - in order to do range collection, in order to merge Convolution/BatchNorm/ReLU in order to decide whether to quantize a certain tensor and so on. For example use torch.nn.ReLU instead of torch.nn.functional.relu(), torch.nn.AdaptiveAvgPool2d() instead of torch.nn.functional.adaptive_avg_pool2d(), torch.nn.Flatten() instead of torch.nn.functional.flatten() etc.<br>
 
-Other notable modules provided are: [xnn.layers.AddBlock](../../torchvision/xnn/layers/common_blocks.py) to do elementwise addition and [xnn.layers.CatBlock](../../torchvision/xnn/layers/common_blocks.py) to do concatenation of tensors. Use these in the models instead of tensor operations. Note that if there are multiple element wise additions in a model, each of them should use a different instance of xnn.layers.AddBlock (since the same module should not be re-used multiple times - see above). The same restriction applies for xnn.layers.CatBlock or any other module as well.
+Other notable modules provided are: [xnn.layers.AddBlock](../../torchvision/edgeailite/xnn/layers/common_blocks.py) to do elementwise addition and [xnn.layers.CatBlock](../../torchvision/edgeailite/xnn/layers/common_blocks.py) to do concatenation of tensors. Use these in the models instead of tensor operations. Note that if there are multiple element wise additions in a model, each of them should use a different instance of xnn.layers.AddBlock (since the same module should not be re-used multiple times - see above). The same restriction applies for xnn.layers.CatBlock or any other module as well.
 
 **Interpolation/Upsample/Resize** has been tricky in PyTorch in the sense that the ONNX graph generated used to be unnecessarily complicated. Recent versions of PyTorch has fixed it - but the right options must be used to get the clean graph. We have provided a functional form as well as a module form of this operator with the capability to export a clean ONNX graph [xnn.layers.resize_with, xnn.layers.ResizeWith](../../torchvision/xnn/layers/resize_blocks.py)
 
@@ -55,14 +55,14 @@ However, if a function does not change the range of feature map, it is not criti
 If your training/calibration crashes because of insufficient GPU memory, reduce the batch size and try again.
 
 ### Instructions for compiling models in TIDL (until TIDL version 2.0)
-If you are using TIDL to infer a model trained using QAT (or Calibrated model using the PTQ Calibration that is simulated here) tools provided in this repository, please set the following in the import config file of TIDL for best accuracy: <br>
+If you are using TIDL to infer a model trained using QAT tools provided in this repository, please set the following in the import config file of TIDL for best accuracy: <br>
 ```
 quantizationStyle = 3  #to use power of 2 quantization.
 calibrationOption = 0  #to avoid further Calibration in TIDL.
 ```
 
 ### Updated instructions for compiling models in TIDL 8.0 (August 2021) onwards:
-From TIDL 8.0 onwards, the right calibrationOption is 64 for QAT/Calibrated models:
+From TIDL 8.0 onwards, the right calibrationOption is 64 for QAT models:
 ```
 quantizationStyle = 3  #to use power of 2 quantization.
 calibrationOption = 64 #to avoid further Calibration in TIDL.
@@ -70,7 +70,7 @@ calibrationOption = 64 #to avoid further Calibration in TIDL.
 
 ### Instructions for compiling models in Open Source Runtimes of TIDL 8.0 (August 2021) onwards:
 TIDL offers Open Source Runtimes such as ONNXRuntime, TFLiteRuntime and TVM+DLR.
-The compilation options to use in these runtimes for QAT/Calibrated models in ONNXRuntime, TFLiteRuntime are:
+The compilation options to use in these runtimes for QAT models in ONNXRuntime, TFLiteRuntime are:
 ```
 accuracy_level =     0                            #to avoid further Calibration in TIDL.
 advanced_options:quantization_scale_type = 1      #to use power of 2 quantization.
@@ -81,18 +81,6 @@ For model compilation in TVM for use in DLR, advanced_options must be a dictiona
 accuracy_level =     0                            #to avoid further Calibration in TIDL.
 advanced_options = {quantization_scale_type = 1}  #to use power of 2 quantization.
 ```
-
-
-## Post Training Calibration For Quantization (PTQ a.k.a. Calibration)
-**Note: this is not our recommended method in PyTorch.**<br>
-
-Post Training Calibration or simply Calibration is a method to reduce the accuracy loss with quantization. This is an approximate method and does not require ground truth or back-propagation - hence it is suitable for implementation in an Import/Calibration tool. 
-
-For example, PTQ with Advanced Calibration can be enabled in TIDL by setting **calibrationOption = 7**. Please consult the TIDL documentation for further explanation fo this option.
-
-We have simulated PTQ with Advanced Calibration in PyTorch. If you are interested, you can take a look at the [documentation of Calibration here](Calibration.md).<br>
-
-However, in a training frame work such as PyTorch, it is possible to get better accuracy with Quantization Aware Training (QAT) and we recommend to use that (next section).
 
 
 ## Quantization Aware Training (QAT)
@@ -178,46 +166,54 @@ Cityscapes Semantic Segmentation:<br>
 python ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 --pretrained ./data/modelzoo/pytorch/semantic_segmentation/cityscapes/jacinto_ai/deeplabv3plus_edgeailite_mobilenetv2_tv_resize768x384_best.pth.tar --batch_size 6 --quantize True --epochs 50 --lr 1e-5 --evaluate_start False
 ```
 
-For more examples, please see the files run_qunatization_example.sh and examples/quantization_example.py
+For more examples, please see the files run_edgeailite_qunatization_example.sh and references/edgeailite/scripts/quantize_classification_example.py
 
 
 ## Results
 
-The table below shows the Quantized Accuracy with various Calibration and methods and also QAT. Some of the commands used to generate these results are summarized in the file **run_quantization.sh** for convenience.
+The table below shows accuracy fo several models with QAT. 
 
-###### Dataset: ImageNet Classification (Image Classification)
 
-|Mode Name          |Backbone   |Stride|Resolution|Float Acc%|Simple Calib Acc%|Adv Calib Acc%|Adv DW Calib Acc%|QAT Acc% |Acc Drop-Adv Calib|Acc Drop - QAT|
-|----------         |-----------|------|----------|--------- |---              |---           |---              |---      |---               |---          |
-|ResNet50(TV)       |ResNet50   |32    |224x224   |**76.15** |75.56            |**75.56**     |75.56            |**76.05**|-0.59             |-0.10        |
-|MobileNetV2(TV)    |MobileNetV2|32    |224x224   |**71.89** |67.77            |**68.39**     |69.34            |**70.74**|-3.50             |-1.34        |
-|MobileNetV2(Shicai)|MobileNetV2|32    |224x224   |**71.44** |0.0              |**68.81**     |70.65            |**70.54**|-2.63             |-0.9         |
+| Task                  | Dataset    | Model Name                   | Input Size | GigaMACs | Accuracy(Float)% | Accuracy(TIDL PTQ)% | Accuracy(QAT)% | Accuracy(QAT Model in TIDL)% |
+|-----------------------|------------|------------------------------|------------|----------|------------------|---------------------|-----------|------------------------------|
+| Image Classification  | ImageNet   | MobileNetV1                  | 224x224    | 0.568    | 71.83            | 70.512              |           |                              |
+| Image Classification  | ImageNet   | MobileNetV2                  | 224x224    | 0.296    | 72.13            | 71.062              | 71.76     | 71.706                       |
+| Image Classification  | ImageNet   | MobilenetV2(TV)              | 224x224    | 0.300    | 72.00            | 67.642              | 71.31     | 71.116                       |
+| Image Classification  | ImageNet   | MobileNetV3Lite-Small        | 224x224    | 0.054    | 62.688           | 58.462              | 61.836    | 61.578                       |
+| Image Classification  | ImageNet   | MobileNetV3Lite-Large        | 224x224    | 0.213    | 72.122           | 71.04               | 71.614    |                              |
+| -
+| Semantic Segmentation | Cityscapes | MobileNetV2S16+DeepLabV3Lite | 768x384    | 3.54     | 69.13            | 66.83               | 68.77     |                              |
+| Semantic Segmentation | Cityscapes | MobileNetV2+UNetLite         | 768x384    | 2.20     | 68.94            | 66.06               | 68.18     |                              |
+| Semantic Segmentation | Cityscapes | MobileNetV2+FPNLite          | 768x384    | 3.84     | 70.39            | 67.24               | 69.88     |                              |
+| Semantic Segmentation | Cityscapes | RegNetX800MF+FPNLite         | 768x384    | 8.90     | 72.01            | 71.81               |           |                              |
+| Semantic Segmentation | Cityscapes | RegNetX1.6GF+FPNLite         | 1024x512   | 26.49    | 75.84            | 75.45               |           |                              |
+| Semantic Segmentation | Cityscapes | RegNetX3.2GF+FPNLite         | 1536x768   | 111.46   | 78.90            | 78.80               |           |                              |
+
 
 Notes:<br>
-- For Image Classification, the accuracy measure used is % Top-1 Classification Accuracy. 'Top-1 Classification Accuracy' is abbreviated by Acc in the above table.<br>
-- (TV) Stands for TochVision: https://github.com/pytorch/vision
-- MobileNetV2(Shicai) model is from https://github.com/shicai/MobileNet-Caffe (converted from caffe to PyTorch) - this model was selected as this is a tough case for quantization.<br>
+- For Image Classification, the accuracy measure used is % Top-1 Classification Accuracy. <br>
+- For Semantic Segmentation, the accuracy measure used in % MeanIoU Accuracy.
+- The PTQ and QAT results use Power-Of-2, Symmetric, Per-Tensor, 8-bit Quantization.<br>
+- PTQ in TIDL produces reasonable accuracy and should be sufficient for most models. But QAT is able to reduce the Accuracy gap even further.<br>
+- (TV) indicates that the model is from torchvision Model Zoo<br>
+- More details of these models can be seen in [edgeai-modelzoo](https://github.com/TexasInstruments/edgeai-modelzoo)<br>
+- The TIDL results were obtained using [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) which in turn uses [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) and the release version used was 8.2<br>
 
 
-###### Dataset: Cityscapes Segmentation (Semantic Segmentation)
+## Post Training Calibration For Quantization (Calibration)
+**Note: this is not our recommended method in PyTorch.**<br>
 
-|Mode Name    |Backbone   |Stride|Resolution|Float Acc%|Simple Calib Acc%|Adv Calib Acc%|Adv DW Calib Acc%|QAT Acc% |Acc Drop-Advanced Calib|Acc Drop - QAT|
-|----------   |-----------|------|----------|----------|---              |---           |---              |---      |---                    |---           |
-|DeepLabV3PlusEdgeAILite|MobileNetV2|16    |768x384   |**69.13** |61.71            |**67.95**     |68.47            |**68.44**|-1.18                  |-0.69         |
+We also have a faster, but less accurate alternative for called Calibration. Post Training Calibration or simply Calibration is a method to reduce the accuracy loss with quantization. This is an approximate method and does not use ground truth or back-propagation. 
 
-Note:<br>
-- For Semantic Segmentation, the accuracy measure used in MeanIoU Accuracy. 'MeanIoU Accuracy' is abbreviated by Acc in the above table.
+If you are interested, you can take a look at the [documentation of Calibration here](Calibration.md). However, in a training framework such as PyTorch, it is possible to get better accuracy with QAT and we recommend to use that.<br>
 
-**Terminology:**<br>
-All of these are variants of Power-Of-2, Symmetric, Per-Tensor Quantization, depending on how the parameters are adjusted for Quantization.<br>
-- Simple Calib: Calibration based on min/max ranges<br>
-- Adv Calib: Includes histogram based ranges, calibration of weight/bias parameters to compensate for quantization accuracy loss.<br>
-- Adv DW Calib: Also includes Per-Channel Weight Quantization for Depthwise layers<br>
-- QAT: Quantization Aware Training with EdgeAI-TorchVision (Does not use Per-Channel Weight Quantization)<br>
 
-**Conclusion based on Simulation Results:**<br>
-- Advanced Calibration Methods may have >2% Accuracy Drop in some cases.<br>
-- Quantization Aware Training (QAT) is consistently able to produce <2% Accuracy drop.<br>
+## Post Training Calibration For Quantization (Calibration)
+**Note: this is not our recommended method in PyTorch.**<br>
+
+We also have a faster, but less accurate alternative for called Calibration. Post Training Calibration or simply Calibration is a method to reduce the accuracy loss with quantization. This is an approximate method and does not use ground truth or back-propagation. 
+
+If you are interested, you can take a look at the [documentation of Calibration here](Calibration.md). However, in a training framework such as PyTorch, it is possible to get better accuracy with QAT and we recommend to use that.<br>
 
 
 ## References 

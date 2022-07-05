@@ -14,9 +14,18 @@ This code also includes tools for **Quantization Aware Training** that can outpu
 <br><hr><br>
 
 
-## Examples
-Below are some of the examples are currently available. Click on each of the links above to go into the full description of the example.
+## Quantization
+Quantization (especially 8-bit Quantization) is important to get best throughput for inference. Quantization can be done using either **Post Training Quantization (PTQ)** or **Quantization Aware Training (QAT)**.
 
+TI Deep Learning Library (TIDL) that is part of the Processor SDK for Jacinto7 natively supports **PTQ** - TIDL can take floating point models and can quantize them using advanced calibration methods. Please visit our edgeai landing page at [https://github.com/TexasInstruments/edgeai](https://github.com/TexasInstruments/edgeai) for information on model compilation (which includes PTQ) using edgeai-tidl-tools and model benchmarking using edgeai-benchmark.
+
+In this repository, we have  guidelines on how to choose models and how train them to get best accuracy with Quantization. It is unlikely that there will be significant accuracy drop with **PTQ** if these guidelines are followed. In spite of this, if there are models that have significant accuracy drop with quantization, it is possible to improve the accuracy using **QAT**. Please read more details in the documentation for QAT.
+
+[**Quantization Aware Training**](docs/pixel2pixel/Quantization.md)<br>
+
+
+
+## Models and Training
 [Image Classification](docs/pixel2pixel/Image_Classification.md)<br>
 
 [Semantic Segmentation](docs/pixel2pixel/Semantic_Segmentation.md)<br>
@@ -31,24 +40,6 @@ Below are some of the examples are currently available. Click on each of the lin
 
 [Object Keypoint detection / Human Pose Estimation](docs/pixel2pixel/Keypoint_Estimation.md)
 
-[**Quantization**](docs/pixel2pixel/Quantization.md)<br>
-
-
-<br><hr><br>
-
-
-## Model Quantization
-Quantization (especially 8-bit Quantization) is important to get best throughput for inference. Quantization can be done using either **Post Training Quantization (PTQ)** or **Quantization Aware Training (QAT)**.
-
-TI Deep Learning Library (TIDL) that is part of the Processor SDK for Jacinto7 natively supports **PTQ** - TIDL can take floating point models and can quantize them using advanced calibration methods. Please visit our edgeai landing page at github (see the link below) for information on model compilation (which includes PTQ) using edgeai-tidl-tools and model benchmarking using edgeai-benchmark.
-
-In this repository, we have  guidelines on how to choose models and how train them to get best accuracy with Quantization. It is unlikely that there will be significant accuracy drop with **PTQ** if these guidelines are followed. In spite of this, if there are models that have significant accuracy drop with quantization, it is possible to improve the accuracy using **QAT**. Please read more details in the documentation on **[Quantization](docs/pixel2pixel/Quantization.md)**.
-
-<br><hr><br>
-
-
-## Additional Information
-- Landing Page for our SDK, models, training and quantization scripts: [https://github.com/TexasInstruments/edgeai](https://github.com/TexasInstruments/edgeai) <br>
 
 <br><hr><br>
 

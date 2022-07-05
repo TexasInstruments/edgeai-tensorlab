@@ -56,9 +56,11 @@ We have three categories of models and scripts in this repository:
 
 **[See documentation of our edgeailite extensions to torchvision](README_edgeailite.md)**
 
-torchvision originally had only classification models and also did not have an implementation of Quantization Aware Training (QAT). So we went ahead added embedded friendly models and training scripts for tasks such as Semantic Segmentation, Depth Estimation, Multi-Task Estimation etc and also QAT. These models, transforms and utility functions are located in [./torchvision/edgeailite](./torchvision/edgeailite) and the corresponding training scrpts are in [./references/edgeailite](./references/edgeailite). The models trained using these scripts will carry a keyword "edgeailite". See the list of "edgeailite" models here: [./torchvision/edgeailite/xvision/models](./torchvision/edgeailite/xvision/models)
+torchvision originally had only classification models and also did not have an implementation of Quantization Aware Training (QAT). So we went ahead added embedded friendly models and training scripts for tasks such as Semantic Segmentation, Depth Estimation, Multi-Task Estimation etc and also QAT. 
 
-Scripts are provided for training low complexity DNN models for tasks such as:
+Tools and scripts for **Quantization Aware Training (QAT)** that is best suited for our devices are provided.
+
+Scripts are provided for training low complexity DNN models for a variety of tasks:
 
 - Image Classification
 - Semantic Segmentation
@@ -67,7 +69,7 @@ Scripts are provided for training low complexity DNN models for tasks such as:
 - Multi-Task Estimation
 - And more...
 
-Tools and scripts for **Quantization Aware Training (QAT)** that is best suited for our devices are also provided. 
+These models, transforms and utility functions are located in [./torchvision/edgeailite](./torchvision/edgeailite) and the corresponding training scrpts are in [./references/edgeailite](./references/edgeailite). The models trained using these scripts will carry a keyword "edgeailite". See the list of "edgeailite" models here: [./torchvision/edgeailite/xvision/models](./torchvision/edgeailite/xvision/models)
 
 The shell scripts run_edgeailite_....sh can be used to train, evaluate or export these "edgeailite" models. 
 
