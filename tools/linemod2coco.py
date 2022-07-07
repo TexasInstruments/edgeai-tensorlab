@@ -19,7 +19,7 @@ def convert_to_coco_json(merge=False):
         with open(data_path + '/gt.yml') as yaml_file:
             gt_dict = yaml.safe_load(yaml_file)
         print("Loading completed {}".format(data_path + '/gt.yml'))
-        with open(data_path + '/train.txt', 'r') as f:
+        with open(data_path + '/test.txt', 'r') as f:
             test_list = list(f)
             test_list = [idx.rstrip() for idx in test_list]
 
@@ -60,7 +60,8 @@ def convert_to_coco_json(merge=False):
                     ("id", image_num),
                     ("file_name", filename),
                     ("height", height),
-                    ("width", width)
+                    ("width", width),
+                    ("type", "real" )
                 ])
 
                 annotation = dict([

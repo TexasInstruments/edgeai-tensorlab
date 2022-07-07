@@ -41,7 +41,6 @@ def convert_to_coco_json(merge=False):
 
             obj_count = 0
 
-        #pbar = tqdm(enumerate(annotations_gt['scene_gt_info'].items()), total=len(annotations_gt['scene_gt_info']))
         pbar = tqdm(enumerate(zip(list(annotations_gt['scene_gt'].items()), list(annotations_gt['scene_gt_info'].items()))), total=len(annotations_gt['scene_gt_info']))
         for image_num, objects in pbar:
             objects_gt, objects_gt_info = objects[0], objects[1]
@@ -77,6 +76,14 @@ def convert_to_coco_json(merge=False):
 
     if merge:
         mmcv.dump(coco_train, outfile_train_merged)
+    merge_linemod_real = True #
+    if merge_linemod_real:
+        linemod_real_path = "/data/ssd/6d_pose/LINEMOD_Occlusion_COCO/annotations/instances_train.json"
+        with open(linemod_real_path) as foo:
+            linemod_real_gt = json.load(foo)
+            print("loading real LINEMOD gt data")
+            coco_train["annotations"].append(linemod_real_gt["annotations"])
+            coco_train["images"].append(linemod_real_gt["images"])
 
 
 def sort_images(src, train_dst, test_dst, test_list):
