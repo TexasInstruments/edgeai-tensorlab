@@ -121,7 +121,7 @@ class Exp(MyExp):
         return train_loader
 
     def get_eval_loader(self, batch_size, is_distributed, testdev=False, legacy=False):
-        from yolox.data import COCODataset, COCOKPTSDataset, LINEMODOcclusionDataset, ValTransform
+        from yolox.data import COCODataset, COCOKPTSDataset, ValTransform
 
         if self.data_set == "coco_kpts":
             valdataset = COCOKPTSDataset(

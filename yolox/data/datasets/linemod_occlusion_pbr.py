@@ -15,81 +15,9 @@ import yaml
 from ..dataloading import get_yolox_datadir
 from .datasets_wrapper import Dataset
 from yolox.utils import camera_matrix
+from .linemod_occlusion import CADModels
 
-class CADModels():
-    def __init__(self, data_dir=None):
-        if data_dir is None:
-            data_dir = os.path.join(get_yolox_datadir(), "LINEMOD_Occlusion_COCO")
-        self.data_dir = data_dir
-        self.cad_models_path = os.path.join(self.data_dir, "models")
-        self.class_to_name = {1: "ape", 2: "benchvise", 3: "bowl", 4: "cam", 5: "can", 6: "cat", 7: "cup",
-                         8: "driller", 9: "duck", 10: "eggbox", 11: "glue", 12: "holepuncher", 13: "iron", 14: "lamp",
-                         15: "phone"}
-        self.models_dict_path = os.path.join(self.cad_models_path, "models_info.yml")
-        self.models_dict = yaml.safe_load(open(self.models_dict_path, 'r'))
-        self.class_to_model = self.load_cad_models()
-        self.class_to_sparse_model = self.create_sparse_models()
-        self.models_corners, self.models_diameter = self.get_models_params()
-        self.symmetric_objects = {10: "eggbox", 11: "glue"}
-
-    def load_cad_models(self):
-        class_to_model = {class_id: None for class_id in self.class_to_name.keys()}
-        logger.info("Loading 3D models...")
-        for class_id, name in self.class_to_name.items():
-            file = "obj_{:02}.ply".format(class_id)
-            cad_model_path = os.path.join(self.cad_models_path, file)
-
-            if not os.path.isfile(cad_model_path):
-                logger.warning(
-                    "The file {} model for class {} was not found".format(file, name)
-                )
-                continue
-            logger.info("Loading 3D model {}".format(name))
-            class_to_model[class_id] = self.load_model_point_cloud(cad_model_path)
-
-        return class_to_model
-
-    def load_model_point_cloud(self, datapath):
-        model = PlyData.read(datapath)
-        vertex = model['vertex']
-        points = np.stack([vertex[:]['x'], vertex[:]['y'], vertex[:]['z']], axis=-1).astype(np.float64)
-        return points
-
-    def get_models_params(self):
-        """
-        Convert model corners from LINEMOD Occlusion format (min_x, min_y, min_z, size_x, size_y, size_z) to actual coordinates format of dimension (8,3)
-        Return the corner coordinates and the diameters of each models
-        """
-        models_corners_3d = {}
-        models_diameter = {}
-        for model_id, model_param in self.models_dict.items():
-            min_x, max_x = model_param['min_x'], model_param['min_x'] + model_param['size_x']
-            min_y, max_y = model_param['min_y'], model_param['min_y'] + model_param['size_y']
-            min_z, max_z = model_param['min_z'], model_param['min_z'] + model_param['size_z']
-            corners_3d = np.array([
-                [min_x, min_y, min_z],
-                [min_x, min_y, max_z],
-                [min_x, max_y, max_z],
-                [min_x, max_y, min_z],
-                [max_x, min_y, min_z],
-                [max_x, min_y, max_z],
-                [max_x, max_y, max_z],
-                [max_x, max_y, min_z],
-            ])
-            models_corners_3d.update({model_id: corners_3d})
-            models_diameter.update({model_id: model_param['diameter']})
-        return models_corners_3d, models_diameter
-
-    def create_sparse_models(self):
-        class_to_sparse_model = {}
-        for model_id in self.class_to_model.keys():
-            sample_rate =len(self.class_to_model[model_id])//500
-            #sparsely sample the model to have close to 500 points
-            class_to_sparse_model.update({model_id : self.class_to_model[model_id][::sample_rate, :]})
-        return class_to_sparse_model
-
-
-class LINEMODOcclusionDataset(Dataset):
+class LINEMODOcclusionPBRDataset(Dataset):
     """
     LINEMODOcclusion dataset class.
     """
@@ -116,7 +44,7 @@ class LINEMODOcclusionDataset(Dataset):
         """
         super().__init__(img_size)
         if data_dir is None:
-            data_dir = os.path.join(get_yolox_datadir(), "LINEMOD_Occlusion_COCO")
+            data_dir = os.path.join(get_yolox_datadir(), "LINEMOD_Occlusion_COCO_PBR")
         self.data_dir = data_dir
         self.json_file = json_file
         self.object_pose = object_pose 

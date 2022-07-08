@@ -8,4 +8,5 @@ from .datasets_wrapper import ConcatDataset, Dataset, MixConcatDataset
 from .mosaicdetection import MosaicDetection
 from .voc import VOCDetection
 from .linemod_occlusion import LINEMODOcclusionDataset
+from .linemod_occlusion_pbr import LINEMODOcclusionPBRDataset
 from .coco_kpts import COCOKPTSDataset

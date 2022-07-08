@@ -98,6 +98,7 @@ class Exp(BaseExp):
         from yolox.data import (
             COCODataset,
             LINEMODOcclusionDataset,
+            LINEMODOcclusionPBRDataset,
             COCOKPTSDataset,
             TrainTransform,
             YoloBatchSampler,
@@ -124,6 +125,19 @@ class Exp(BaseExp):
                         flip_prob=self.flip_prob,
                         hsv_prob=self.hsv_prob),
                     cache=cache_img,
+                )
+            elif self.data_set == "linemod_occlusion_pbr":
+               dataset = LINEMODOcclusionPBRDataset(
+                    data_dir=self.data_dir,
+                    json_file=self.train_ann,
+                    img_size=self.input_size,
+                    preproc=TrainTransform(
+                        max_labels=50,
+                        flip_prob=self.flip_prob,
+                        hsv_prob=self.hsv_prob,
+                        object_pose=self.object_pose),
+                    cache=cache_img,
+                    object_pose=self.object_pose
                 )
             elif self.data_set == "linemod_occlusion":
                dataset = LINEMODOcclusionDataset(
@@ -271,7 +285,7 @@ class Exp(BaseExp):
         return scheduler
 
     def get_eval_loader(self, batch_size, is_distributed, testdev=False, legacy=False):
-        from yolox.data import COCODataset, LINEMODOcclusionDataset, COCOKPTSDataset, ValTransform
+        from yolox.data import COCODataset, LINEMODOcclusionDataset, LINEMODOcclusionPBRDataset, COCOKPTSDataset, ValTransform
 
         if self.data_set == "coco":
             valdataset = COCODataset(
@@ -289,6 +303,15 @@ class Exp(BaseExp):
                 img_size=self.test_size,
                 preproc=ValTransform(legacy=legacy, visualize=self.visualize),
                 object_pose=self.object_pose 
+            )
+        elif self.dataset == "linemod_occlusion_pbr":
+            valdataset = LINEMODOcclusionPBRDataset(
+                data_dir=self.data_dir,
+                json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
+                name="test", #if not testdev else "test2017",
+                img_size=self.test_size,
+                preproc=ValTransform(legacy=legacy, visualize=self.visualize),
+                object_pose=self.object_pose
             )
         elif self.data_set ==  "coco_kpts":
             valdataset = COCOKPTSDataset(
