@@ -304,7 +304,7 @@ class Exp(BaseExp):
                 preproc=ValTransform(legacy=legacy, visualize=self.visualize),
                 object_pose=self.object_pose 
             )
-        elif self.dataset == "linemod_occlusion_pbr":
+        elif self.data_set == "linemod_occlusion_pbr":
             valdataset = LINEMODOcclusionPBRDataset(
                 data_dir=self.data_dir,
                 json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",

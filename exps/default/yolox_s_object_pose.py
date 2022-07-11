@@ -31,7 +31,7 @@ class Exp(MyExp):
         self.flip_prob = 0.0
         self.degrees = 10.0
         self.translate = 0.1
-        self.mosaic_scale = (0.8, 1.2)
+        self.mosaic_scale = (0.5, 1.5)
         self.mixup_scale = (1.0, 1.0)
         self.shear = 0.0
         self.perspective = 0.0
@@ -43,7 +43,7 @@ class Exp(MyExp):
         self.test_size = (640, 640)
         self.test_conf = 0.01
         self.nmsthre = 0.001
-        self.data_set = "linemod_occlusion"
+        self.data_set = "linemod_occlusion_pbr" # "linemod_occlusion"
         self.object_pose  = True
         self.visualize = True
         self.od_weights = None
@@ -81,6 +81,7 @@ class Exp(MyExp):
         ):
             from yolox.data import (
                 LINEMODOcclusionDataset,
+                LINEMODOcclusionPBRDataset,
                 TrainTransform,
                 YoloBatchSampler,
                 DataLoader,
@@ -108,7 +109,20 @@ class Exp(MyExp):
                                 object_pose=self.object_pose),
                             cache=cache_img,
                             object_pose=self.object_pose
-                        ) 
+                        )
+                elif self.data_set == "linemod_occlusion_pbr":
+                    dataset = LINEMODOcclusionPBRDataset(
+                            data_dir=self.data_dir,
+                            json_file=self.train_ann,
+                            img_size=self.input_size,
+                            preproc=TrainTransform(
+                                max_labels=50,
+                                flip_prob=self.flip_prob,
+                                hsv_prob=self.hsv_prob,
+                                object_pose=self.object_pose),
+                            cache=cache_img,
+                            object_pose=self.object_pose
+                        )
 
             dataset = MosaicDetection(
                 dataset,

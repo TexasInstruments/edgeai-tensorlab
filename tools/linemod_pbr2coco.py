@@ -10,7 +10,7 @@ def convert_to_coco_json(merge=False):
     data_folders = sorted(os.listdir(basepath))
 
     if merge:
-        outfile_train_merged = '/data/ssd/6d_pose/LINEMOD_Occlusion_COCO_PBR/instances_train.json'
+        outfile_train_merged = '/data/ssd/6d_pose/LINEMOD_Occlusion_COCO_pbr/instances_train.json'
 
     for data_folder_idx, data_folder in enumerate(data_folders):
         data_path = os.path.join(basepath, data_folder)
@@ -42,13 +42,14 @@ def convert_to_coco_json(merge=False):
             obj_count = 0
 
         pbar = tqdm(enumerate(zip(list(annotations_gt['scene_gt'].items()), list(annotations_gt['scene_gt_info'].items()))), total=len(annotations_gt['scene_gt_info']))
-        for image_num, objects in pbar:
+        num_images = len(list(annotations_gt['scene_gt'].items()))
+        for image_index, objects in pbar:
             objects_gt, objects_gt_info = objects[0], objects[1]
-            filename = "{:06}".format(image_num) + '.jpg'
+            filename = "{:06}".format(image_index) + '.jpg'
             height, width = mmcv.imread(data_path + '/rgb/' + filename).shape[:2]
             image = dict([
                 ("image_folder", data_folder),
-                ("id", image_num),
+                ("id", image_index+num_images*data_folder_idx), #
                 ("file_name", filename),
                 ("height", height),
                 ("width", width),
@@ -58,12 +59,12 @@ def convert_to_coco_json(merge=False):
             for object_gt, object_gt_info  in zip(objects_gt[1], objects_gt_info[1]):
                 if object_gt_info['visib_fract'] > 0:
                     annotation = dict([
-                        ("image_id", image_num),
+                        ("image_id", image_index+num_images*data_folder_idx),
                         ("id", obj_count),
                         ("bbox", object_gt_info["bbox_obj"]),
                         ("area", object_gt_info["bbox_obj"][2] * object_gt_info["bbox_obj"][3]),
                         ("iscrowd", 0),
-                        ("category_id", object_gt["obj_id"]),
+                        ("category_id", object_gt["obj_id"]-1),
                         ("R", object_gt["cam_R_m2c"]),
                         ("T", object_gt["cam_t_m2c"])
                     ])
@@ -74,17 +75,26 @@ def convert_to_coco_json(merge=False):
             outfile_train = '/data/ssd/6d_pose/LINEMOD_COCO/instances_train_{}.json'.format(data_folder)
             mmcv.dump(coco_train, outfile_train)
 
-    if merge:
-        mmcv.dump(coco_train, outfile_train_merged)
+
     merge_linemod_real = True #
     if merge_linemod_real:
         linemod_real_path = "/data/ssd/6d_pose/LINEMOD_Occlusion_COCO/annotations/instances_train.json"
         with open(linemod_real_path) as foo:
             linemod_real_gt = json.load(foo)
             print("loading real LINEMOD gt data")
-            coco_train["annotations"].append(linemod_real_gt["annotations"])
-            coco_train["images"].append(linemod_real_gt["images"])
+            for image_dict in linemod_real_gt["images"]:
+                image_dict['id'] = image_dict['id'] + num_images * 50
+                print("image_dict", image_dict['id'])
 
+            for annotation_dict in linemod_real_gt["annotations"]:
+                annotation_dict['image_id'] = annotation_dict['image_id'] + num_images*50 # num_folders=50. TO remove the hard-coding
+                print("annotation_dict", annotation_dict['image_id'])
+
+            coco_train["annotations"].extend(linemod_real_gt["annotations"])
+            coco_train["images"].extend(linemod_real_gt["images"])
+
+    if merge:
+        mmcv.dump(coco_train, outfile_train_merged)
 
 def sort_images(src, train_dst, test_dst, test_list):
     for image_num in range(1214):

@@ -44,7 +44,7 @@ class LINEMODOcclusionPBRDataset(Dataset):
         """
         super().__init__(img_size)
         if data_dir is None:
-            data_dir = os.path.join(get_yolox_datadir(), "LINEMOD_Occlusion_COCO_PBR")
+            data_dir = os.path.join(get_yolox_datadir(), "LINEMOD_Occlusion_COCO_pbr")
         self.data_dir = data_dir
         self.json_file = json_file
         self.object_pose = object_pose 
@@ -55,6 +55,7 @@ class LINEMODOcclusionPBRDataset(Dataset):
         cats = self.coco.loadCats(self.coco.getCatIds())
         self._classes = tuple([c["name"] for c in cats])
         self.imgs = None
+        self.imgs_coco = self.coco.imgs
         self.name = name
         self.img_size = img_size
         if preproc is not None:
@@ -200,8 +201,13 @@ class LINEMODOcclusionPBRDataset(Dataset):
 
     def load_image(self, index):
         file_name = self.annotations[index][3]
+        img_index = list(self.imgs_coco)[index]
+        if self.name=='train' and self.imgs_coco[img_index]['type'] == 'synthetic':
+            image_folder = self.imgs_coco[int(index)]['image_folder']
 
-        img_file = os.path.join(self.data_dir, self.name, file_name)
+            img_file = os.path.join(self.data_dir, self.name+"_pbr", image_folder, 'rgb', file_name)
+        else:
+            img_file = os.path.join(self.data_dir, self.name, file_name)
 
         img = cv2.imread(img_file)
         assert img is not None
