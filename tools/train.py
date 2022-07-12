@@ -31,6 +31,7 @@ _TRAIN_ANN = {
 _SUPPORTED_TASKS = {
     "coco":["2dod"],
     "linemod_occlusion":["2dod", "object_pose"],
+    "linemod_occlusion_pbr": ["2dod", "object_pose"],
     "coco_kpts": ["2dod", "human_pose"]
 }
 

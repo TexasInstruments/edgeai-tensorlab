@@ -29,7 +29,7 @@ def convert_to_coco_json(merge=False):
             coco_train["categories"] = []
             coco_train["annotations"] = []
 
-            class_to_name = {0: "ape", 1: "benchvise", 2: "bowl", 3: "can", 4: "cat", 5: "cup", 6: "driller", 7: "duck", 8: "glue", 9: "holepuncher", 10: "iron", 11: "lamp", 12: "phone", 13: "cam", 14: "eggbox"}
+            class_to_name = {1: "ape", 2: "benchvise", 3: "bowl", 4: "can", 5: "cat", 6: "cup", 7: "driller", 8: "duck", 9: "glue", 10: "holepuncher", 11: "iron", 12: "lamp", 13: "phone", 14: "cam", 15: "eggbox"}
             for obj_class in class_to_name:
                 category = dict([
                     ("supercategory", "object"),
@@ -64,7 +64,7 @@ def convert_to_coco_json(merge=False):
                         ("bbox", object_gt_info["bbox_obj"]),
                         ("area", object_gt_info["bbox_obj"][2] * object_gt_info["bbox_obj"][3]),
                         ("iscrowd", 0),
-                        ("category_id", object_gt["obj_id"]-1),
+                        ("category_id", object_gt["obj_id"]),
                         ("R", object_gt["cam_R_m2c"]),
                         ("T", object_gt["cam_t_m2c"])
                     ])

@@ -61,8 +61,8 @@ For more details, please refer to Megvii's [report on Arxiv](https://arxiv.org/a
 <summary>Reproduce our results on COCO</summary>
 
 ```shell
-python -m yolox.tools.train -n yolox-s-object-pose -d 2 -b 64 --fp16 -o --dataset linemod_occlusion_pbr --ckpt /user/a0132471/Files/bit-bucket/pytorch/edgeai-yolox/pretrained_models/orig/yolox_s.pth
-python -m yolox.tools.train -n yolox-s-object-pose -d 2 -b 64 --fp16 -o --dataset linemod_occlusion --ckpt /user/a0132471/Files/bit-bucket/pytorch/edgeai-yolox/pretrained_models/orig/yolox_s.pth
+python -m yolox.tools.train -n yolox-s-object-pose -d 2 -b 64 --fp16 -o --dataset linemod_occlusion_pbr --task object_pose --ckpt /user/a0132471/Files/bit-bucket/pytorch/edgeai-yolox/pretrained_models/orig/yolox_s.pth
+python -m yolox.tools.train -n yolox-s-object-pose -d 2 -b 64 --fp16 -o --dataset linemod_occlusion --task object_pose --ckpt /user/a0132471/Files/bit-bucket/pytorch/edgeai-yolox/pretrained_models/orig/yolox_s.pth
 ```
 * -d: number of gpu devices
 * -b: total batch size, the recommended number for -b is num-gpu * 8
