@@ -120,3 +120,8 @@ serial_num,model_id,runtime_name,task_type,input_resolution,model_path,metric_na
 119,ss-8720,onnxrt,segmentation,512x512,fpn_aspp_regnetx800mf_edgeailite_512x512_20210405.onnx,accuracy_mean_iou%,60.392952,59.81156,61.09,1,0,0,ss-8720_onnxrt_cocoseg21_edgeai-tv_fpn_aspp_regnetx800mf_edgeailite_512x512_20210405_onnx,ONR-SS-8720-deeplabv3lite-regnetx800mf-cocoseg21-512x512
 120,ss-8730,onnxrt,segmentation,512x512,deeplabv3_mobilenet_v3_large_lite_512x512_20210527.onnx,accuracy_mean_iou%,60.013252,62.733173,60.8,1,0,0,ss-8730_onnxrt_cocoseg21_edgeai-tv_deeplabv3_mobilenet_v3_large_lite_512x512_20210527_onnx,ONR-SS-8730-deeplabv3-mobv3-lite-large-cocoseg21-512x512
 121,ss-8818,onnxrt,segmentation,432x768,deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432_qat-p2.onnx,accuracy_mean_iou%,54.202586,48.613202,54.1,1,0,0,ss-8818_onnxrt_ti-robokit_edgeai-tv_deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432_qat-p2_onnx,ONR-SS-8818-deeplabv3lite-mobv2-qat-robokit-768x432
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+Report Name:,report_tda4vm_20220401.csv,,,,,,,,,,,,,
+Release Version,r8.2,,,,,,,,,,,,,
