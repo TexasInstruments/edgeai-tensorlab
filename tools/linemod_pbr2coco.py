@@ -88,6 +88,7 @@ def convert_to_coco_json(merge=False):
 
             for annotation_dict in linemod_real_gt["annotations"]:
                 annotation_dict['image_id'] = annotation_dict['image_id'] + num_images*50 # num_folders=50. TO remove the hard-coding
+                annotation_dict['id'] = annotation_dict['id'] + obj_count
                 print("annotation_dict", annotation_dict['image_id'])
 
             coco_train["annotations"].extend(linemod_real_gt["annotations"])
