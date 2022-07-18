@@ -171,10 +171,9 @@ For more examples, please see the files run_edgeailite_qunatization_example.sh a
 
 ## Results
 
-The table below shows accuracy fo several models with QAT. 
+The table below shows accuracy of several models obtained using QAT and comparison with PTQ models. 
 
-
-| Task                  | Dataset    | Model Name                   | Input Size | GigaMACs | Accuracy(Float)% | Accuracy(TIDL PTQ)% | Accuracy(QAT)% | Accuracy(QAT Model in TIDL)% |
+| Task                  | Dataset    | Model Name                   | Input Size | GigaMACs | Accuracy(Float)% PyTorch| Accuracy(Int8)% TIDL-PTQ | Accuracy(Int8)% PyTorch-QAT | Accuracy(Int8)% TIDL-QAT |
 |-----------------------|------------|------------------------------|------------|----------|------------------|---------------------|-----------|------------------------------|
 | Image Classification  | ImageNet   | MobileNetV1                  | 224x224    | 0.568    | 71.83            | 70.512              |           |                              |
 | Image Classification  | ImageNet   | MobileNetV2                  | 224x224    | 0.296    | 72.13            | 71.062              | 71.76     | 71.706                       |
