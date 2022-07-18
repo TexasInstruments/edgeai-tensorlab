@@ -133,6 +133,12 @@ class ModelCompilation():
         elif 'metric' in self.params.compilation:
             pipeline_config['metric'] = self.params.compilation.metric
         #
+        if isinstance(pipeline_config['metric'], dict) and 'label_offset_pred' in pipeline_config['metric']:
+            dataset_info = val_dataset.get_dataset_info()
+            categories = dataset_info['categories']
+            min_cat_id = min([cat['id'] for cat in categories])
+            pipeline_config['metric']['label_offset_pred'] = min_cat_id
+        #
         self.pipeline_configs = pipeline_configs
 
     def run(self):
