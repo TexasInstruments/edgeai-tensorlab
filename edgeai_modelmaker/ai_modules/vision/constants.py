@@ -82,9 +82,11 @@ compute partition
 750 MHz, 96 GFLOPS, 6 Gpix/sec
 * Custom-designed interconnect fabric supporting
 near max processing entitlement    
-* For more information, 
-- see the product page: https://www.ti.com/product/TDA4VM
-- and the datasheet: https://www.ti.com/lit/ds/symlink/tda4vm.pdf
+* For more information, see the following links:
+- product page: https://www.ti.com/product/TDA4VM
+- datasheet: https://www.ti.com/lit/ds/symlink/tda4vm.pdf
+- starterkit: https://www.ti.com/tool/SK-TDA4VM
+- top level landing page: https://ti.com/edgeai
 '''
 }
 
