@@ -35,7 +35,6 @@ TASK_TYPES = [
     TASK_TYPE_DETECTION
 ]
 
-
 # target_device
 TARGET_DEVICE_TDA4VM = 'TDA4VM'
 
@@ -52,3 +51,50 @@ TRAINING_DEVICES = [
     TRAINING_DEVICE_CPU,
     TRAINING_DEVICE_CUDA
 ]
+
+TARGET_DEVICE_DESCRIPTIONS = {
+    TARGET_DEVICE_TDA4VM : \
+'''
+* C7x floating point, vector DSP, up to 1.0 GHz, 80
+GFLOPS, 256 GOPS
+* Deep-learning matrix multiply accelerator (MMA),
+up to 8 TOPS (8b) at 1.0 GHz
+* Vision Processing Accelerators (VPAC) with Image
+Signal Processor (ISP) and multiple vision assist
+accelerators
+* Depth and Motion Processing Accelerators
+(DMPAC)
+* Dual 64-bit Arm® Cortex®-A72 microprocessor
+subsystem at up to 2.0 GHz
+– 1MB shared L2 cache per dual-core Cortex®-
+A72 cluster
+– 32KB L1 DCache and 48KB L1 ICache per
+Cortex®-A72 core
+* Six Arm® Cortex®-R5F MCUs at up to 1.0 GHz
+– 16K I-Cache, 16K D-Cache, 64K L2 TCM
+– Two Arm® Cortex®-R5F MCUs in isolated MCU
+subsystem
+– Four Arm® Cortex®-R5F MCUs in general
+compute partition
+* Two C66x floating point DSP, up to 1.35 GHz,
+40 GFLOPS, 160 GOPS
+* 3D GPU PowerVR® Rogue 8XE GE8430, up to
+750 MHz, 96 GFLOPS, 6 Gpix/sec
+* Custom-designed interconnect fabric supporting
+near max processing entitlement    
+* For more information, 
+- see the product page: https://www.ti.com/product/TDA4VM
+- and the datasheet: https://www.ti.com/lit/ds/symlink/tda4vm.pdf
+'''
+}
+
+SAMPLE_DATASET_DESCRIPTIONS = {
+    'animal_classification': {
+        'task_type': TASK_TYPE_CLASSIFICATION,
+        'download_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip'
+    },
+    'tiscapes2017_driving' : {
+        'task_type': TASK_TYPE_DETECTION,
+        'download_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip'
+    }
+}

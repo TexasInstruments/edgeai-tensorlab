@@ -49,14 +49,27 @@ def main(args):
     # get supported pretrained models for the given params
     model_descriptions = ai_target_module.runner.ModelRunner.get_model_descriptions(params)
 
-    # generate description
+    # update descriptions
     model_descriptions_desc = dict()
     for k, v in model_descriptions.items():
         s = copy.deepcopy(params)
         s.update(copy.deepcopy(v))
         model_descriptions_desc[k] = s
     #
-    description = dict(model_descriptions=model_descriptions_desc)
+
+    # get presets
+    preset_descriptions = ai_target_module.runner.ModelRunner.get_preset_descriptions(params)
+
+    # get target device descriptions
+    target_device_descriptions = ai_target_module.runner.ModelRunner.get_target_device_descriptions(params)
+
+    # sample dataset descriptions
+    sample_dataset_descriptions = ai_target_module.runner.ModelRunner.get_sample_dataset_descriptions(params)
+
+    description = dict(model_descriptions=model_descriptions_desc,
+                       preset_descriptions=preset_descriptions,
+                       target_device_descriptions=target_device_descriptions,
+                       sample_dataset_descriptions=sample_dataset_descriptions)
 
     # write description
     description_file = os.path.join(args.description_path, f'description_{args.target_module}' + '.yaml')

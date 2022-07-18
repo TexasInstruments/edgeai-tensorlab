@@ -65,6 +65,35 @@ def set_model_description(params, model_description):
     return params
 
 
+def get_preset_descriptions(params):
+    presets = dict(
+        default_preset=None,  # not specified here - use the models values
+        high_speed_preset=dict(
+            compilation=dict(
+                calibration_frames=10,
+                calibration_iterations=10,
+                detection_thr=0.3
+            )
+        ),
+        high_accuracy_preset=dict(
+            compilation=dict(
+                calibration_frames=50,
+                calibration_iterations=50,
+                detection_thr=0.05
+            )
+        )
+    )
+    return presets
+
+
+def get_target_device_descriptions(params):
+    return constants.TARGET_DEVICE_DESCRIPTIONS
+
+
+def get_sample_dataset_descriptions(params):
+    return constants.SAMPLE_DATASET_DESCRIPTIONS
+
+
 class ModelRunner():
     @classmethod
     def init_params(self, *args, **kwargs):
@@ -82,6 +111,18 @@ class ModelRunner():
     @staticmethod
     def set_model_description(*args, **kwargs):
         return set_model_description(*args, **kwargs)
+
+    @staticmethod
+    def get_preset_descriptions(*args, **kwargs):
+        return get_preset_descriptions(*args, **kwargs)
+
+    @staticmethod
+    def get_target_device_descriptions(*args, **kwargs):
+        return get_target_device_descriptions(*args, **kwargs)
+
+    @staticmethod
+    def get_sample_dataset_descriptions(*args, **kwargs):
+        return get_sample_dataset_descriptions(*args, **kwargs)
 
     def __init__(self, *args, verbose=True, **kwargs):
         self.params = self.init_params(*args, **kwargs)
