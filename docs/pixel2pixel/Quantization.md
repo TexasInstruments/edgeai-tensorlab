@@ -173,20 +173,20 @@ For more examples, please see the files run_edgeailite_qunatization_example.sh a
 
 The table below shows accuracy of several models obtained using QAT and comparison with PTQ models. 
 
-| Task                  | Dataset    | Model Name                   | Input Size | GigaMACs | Accuracy(Float)% PyTorch| Accuracy(Int8)% TIDL-PTQ | Accuracy(Int8)% PyTorch-QAT | Accuracy(Int8)% TIDL-QAT |
-|-----------------------|------------|------------------------------|------------|----------|------------------|---------------------|-----------|------------------------------|
-| Image Classification  | ImageNet   | MobileNetV1                  | 224x224    | 0.568    | 71.83            | 70.512              |           |                              |
-| Image Classification  | ImageNet   | MobileNetV2                  | 224x224    | 0.296    | 72.13            | 71.062              | 71.76     | 71.706                       |
-| Image Classification  | ImageNet   | MobilenetV2(TV)              | 224x224    | 0.300    | 72.00            | 67.642              | 71.31     | 71.116                       |
-| Image Classification  | ImageNet   | MobileNetV3Lite-Small        | 224x224    | 0.054    | 62.688           | 58.462              | 61.836    | 61.578                       |
-| Image Classification  | ImageNet   | MobileNetV3Lite-Large        | 224x224    | 0.213    | 72.122           | 71.04               | 71.614    |                              |
+| Task                  | Dataset    | Model Name                   | Input Size | GigaMACs | Accuracy(Float)% PyTorch | Accuracy(Int8)% TIDL-PTQ  | Accuracy(Int8)% PyTorch-QAT | Accuracy(Int8)% QAT Model in TIDL |
+|-----------------------|------------|------------------------------|------------|----------|--------------------------|---------------------------|-----------------------------|-----------------------------------|
+| Image Classification  | ImageNet   | MobileNetV1                  | 224x224    | 0.568    | 71.83                    | 70.512                    |                             |                                   |
+| Image Classification  | ImageNet   | MobileNetV2                  | 224x224    | 0.296    | 72.13                    | 71.062                    | 71.76                       | 71.706                            |
+| Image Classification  | ImageNet   | MobilenetV2(TV)              | 224x224    | 0.300    | 72.00                    | 67.642                    | 71.31                       | 71.116                            |
+| Image Classification  | ImageNet   | MobileNetV3Lite-Small        | 224x224    | 0.054    | 62.688                   | 58.462                    | 61.836                      | 61.578                            |
+| Image Classification  | ImageNet   | MobileNetV3Lite-Large        | 224x224    | 0.213    | 72.122                   | 71.04                     | 71.614                      |                                   |
 | -
-| Semantic Segmentation | Cityscapes | MobileNetV2S16+DeepLabV3Lite | 768x384    | 3.54     | 69.13            | 66.83               | 68.77     |                              |
-| Semantic Segmentation | Cityscapes | MobileNetV2+UNetLite         | 768x384    | 2.20     | 68.94            | 66.06               | 68.18     |                              |
-| Semantic Segmentation | Cityscapes | MobileNetV2+FPNLite          | 768x384    | 3.84     | 70.39            | 67.24               | 69.88     |                              |
-| Semantic Segmentation | Cityscapes | RegNetX800MF+FPNLite         | 768x384    | 8.90     | 72.01            | 71.81               |           |                              |
-| Semantic Segmentation | Cityscapes | RegNetX1.6GF+FPNLite         | 1024x512   | 26.49    | 75.84            | 75.45               |           |                              |
-| Semantic Segmentation | Cityscapes | RegNetX3.2GF+FPNLite         | 1536x768   | 111.46   | 78.90            | 78.80               |           |                              |
+| Semantic Segmentation | Cityscapes | MobileNetV2S16+DeepLabV3Lite | 768x384    | 3.54     | 69.13                    | 66.83                     | 68.77                       |                                   |
+| Semantic Segmentation | Cityscapes | MobileNetV2+UNetLite         | 768x384    | 2.20     | 68.94                    | 66.06                     | 68.18                       |                                   |
+| Semantic Segmentation | Cityscapes | MobileNetV2+FPNLite          | 768x384    | 3.84     | 70.39                    | 67.24                     | 69.88                       |                                   |
+| Semantic Segmentation | Cityscapes | RegNetX800MF+FPNLite         | 768x384    | 8.90     | 72.01                    | 71.81                     |                             |                                   |
+| Semantic Segmentation | Cityscapes | RegNetX1.6GF+FPNLite         | 1024x512   | 26.49    | 75.84                    | 75.45                     |                             |                                   |
+| Semantic Segmentation | Cityscapes | RegNetX3.2GF+FPNLite         | 1536x768   | 111.46   | 78.90                    | 78.80                     |                             |                                   |
 
 
 Notes:<br>
@@ -197,14 +197,6 @@ Notes:<br>
 - (TV) indicates that the model is from torchvision Model Zoo<br>
 - More details of these models can be seen in [edgeai-modelzoo](https://github.com/TexasInstruments/edgeai-modelzoo)<br>
 - The TIDL results were obtained using [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) which in turn uses [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) and the release version used was 8.2<br>
-
-
-## Post Training Calibration For Quantization (Calibration)
-**Note: this is not our recommended method in PyTorch.**<br>
-
-We also have a faster, but less accurate alternative for called Calibration. Post Training Calibration or simply Calibration is a method to reduce the accuracy loss with quantization. This is an approximate method and does not use ground truth or back-propagation. 
-
-If you are interested, you can take a look at the [documentation of Calibration here](Calibration.md). However, in a training framework such as PyTorch, it is possible to get better accuracy with QAT and we recommend to use that.<br>
 
 
 ## Post Training Calibration For Quantization (Calibration)
