@@ -70,7 +70,7 @@ def convert_to_coco_json(merge=False):
                     ("bbox", object["obj_bb"]),
                     ("area", object["obj_bb"][2] * object["obj_bb"][3]),
                     ("iscrowd", 0),
-                    ("category_id", object["obj_id"]),
+                    ("category_id", object["obj_id"] - 1),
                     ("R", object["cam_R_m2c"]),
                     ("T", object["cam_t_m2c"])
                 ])
@@ -109,4 +109,4 @@ def sort_images(src, train_dst, test_dst, test_list):
 
 
 if __name__ == "__main__":
-        convert_to_coco_json(merge=True)
+        convert_to_coco_json(merge=False)

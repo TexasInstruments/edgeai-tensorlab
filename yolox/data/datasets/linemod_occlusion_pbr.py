@@ -31,7 +31,7 @@ class LINEMODOcclusionPBRDataset(Dataset):
         preproc=None,
         cache=False,
         object_pose=False,
-        symmetric_objects={10: "eggbox", 11: "glue"},
+        symmetric_objects={9: "eggbox", 10: "glue"},
     ):
         """
         LINEMODOcclusion dataset initialization. Annotation data are read into memory by COCO API.
