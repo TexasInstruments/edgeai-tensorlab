@@ -41,7 +41,8 @@
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":172
+            "performance_fps":172,
+            "accuracy_factor":27.2
           }
         },
         "project_path":null,
@@ -85,8 +86,8 @@
         "target_device":"pc",
         "accuracy_level":1,
         "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
+        "calibration_frames":50,
+        "calibration_iterations":50,
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
@@ -94,7 +95,7 @@
           "advanced_options:output_feature_16bit_names_list":null
         },
         "metric":{
-          "label_offset_pred":1
+          "label_offset_pred":0
         }
       }
     },
@@ -139,7 +140,8 @@
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":92
+            "performance_fps":92,
+            "accuracy_factor":32.8
           }
         },
         "project_path":null,
@@ -183,8 +185,8 @@
         "target_device":"pc",
         "accuracy_level":1,
         "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
+        "calibration_frames":50,
+        "calibration_iterations":50,
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
@@ -192,7 +194,7 @@
           "advanced_options:output_feature_16bit_names_list":null
         },
         "metric":{
-          "label_offset_pred":1
+          "label_offset_pred":0
         }
       }
     },
@@ -237,7 +239,8 @@
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-1.6gf_fpn_bgr_lite_768x768_20200923_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":45
+            "performance_fps":45,
+            "accuracy_factor":37.0
           }
         },
         "project_path":null,
@@ -281,8 +284,8 @@
         "target_device":"pc",
         "accuracy_level":1,
         "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
+        "calibration_frames":50,
+        "calibration_iterations":50,
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
@@ -290,7 +293,7 @@
           "advanced_options:output_feature_16bit_names_list":null
         },
         "metric":{
-          "label_offset_pred":1
+          "label_offset_pred":0
         }
       }
     },
@@ -335,7 +338,8 @@
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":386
+            "performance_fps":386,
+            "accuracy_factor":24.8
           }
         },
         "project_path":null,
@@ -373,8 +377,8 @@
         "target_device":"pc",
         "accuracy_level":1,
         "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
+        "calibration_frames":50,
+        "calibration_iterations":50,
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
@@ -382,7 +386,7 @@
           "advanced_options:output_feature_16bit_names_list":"1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179"
         },
         "metric":{
-          "label_offset_pred":1
+          "label_offset_pred":0
         }
       }
     },
@@ -427,7 +431,8 @@
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":264
+            "performance_fps":264,
+            "accuracy_factor":30.5
           }
         },
         "project_path":null,
@@ -465,8 +470,8 @@
         "target_device":"pc",
         "accuracy_level":1,
         "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
+        "calibration_frames":50,
+        "calibration_iterations":50,
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
@@ -474,7 +479,7 @@
           "advanced_options:output_feature_16bit_names_list":"1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179"
         },
         "metric":{
-          "label_offset_pred":1
+          "label_offset_pred":0
         }
       }
     },
@@ -519,7 +524,8 @@
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":107
+            "performance_fps":107,
+            "accuracy_factor":38.3
           }
         },
         "project_path":null,
@@ -557,8 +563,8 @@
         "target_device":"pc",
         "accuracy_level":1,
         "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
+        "calibration_frames":50,
+        "calibration_iterations":50,
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
@@ -566,7 +572,7 @@
           "advanced_options:output_feature_16bit_names_list":"1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179"
         },
         "metric":{
-          "label_offset_pred":1
+          "label_offset_pred":0
         }
       }
     },
@@ -611,7 +617,8 @@
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":46
+            "performance_fps":46,
+            "accuracy_factor":44.4
           }
         },
         "project_path":null,
@@ -649,8 +656,8 @@
         "target_device":"pc",
         "accuracy_level":1,
         "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
+        "calibration_frames":50,
+        "calibration_iterations":50,
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
@@ -658,7 +665,7 @@
           "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
         },
         "metric":{
-          "label_offset_pred":1
+          "label_offset_pred":0
         }
       }
     },
@@ -703,7 +710,8 @@
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":455
+            "performance_fps":455,
+            "accuracy_factor":72.13
           }
         },
         "project_path":null,
@@ -741,8 +749,8 @@
         "target_device":"pc",
         "accuracy_level":1,
         "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
+        "calibration_frames":50,
+        "calibration_iterations":50,
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
@@ -792,7 +800,8 @@
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":null
+            "performance_fps":267,
+            "accuracy_factor":72.12
           }
         },
         "project_path":null,
@@ -830,8 +839,8 @@
         "target_device":"pc",
         "accuracy_level":1,
         "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
+        "calibration_frames":50,
+        "calibration_iterations":50,
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
@@ -877,11 +886,12 @@
         "model_key":"mobilenet_v3_small_lite_tv",
         "training_backend":"edgeai_torchvision",
         "model_name":"mobilenet_v3_small_lite",
-        "model_id":"cl-6490",
+        "model_id":"cl-6480",
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":null
+            "performance_fps":750,
+            "accuracy_factor":null
           }
         },
         "project_path":null,
@@ -919,8 +929,8 @@
         "target_device":"pc",
         "accuracy_level":1,
         "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
+        "calibration_frames":50,
+        "calibration_iterations":50,
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
@@ -970,7 +980,8 @@
         "pretrained_checkpoint_path":"https://download.pytorch.org/models/regnet_x_400mf-adf1edd5.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":null
+            "performance_fps":288,
+            "accuracy_factor":72.834
           }
         },
         "project_path":null,
@@ -1008,8 +1019,8 @@
         "target_device":"pc",
         "accuracy_level":1,
         "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
+        "calibration_frames":50,
+        "calibration_iterations":50,
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
@@ -1059,7 +1070,8 @@
         "pretrained_checkpoint_path":"https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":null
+            "performance_fps":272,
+            "accuracy_factor":75.212
           }
         },
         "project_path":null,
@@ -1097,8 +1109,8 @@
         "target_device":"pc",
         "accuracy_level":1,
         "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
+        "calibration_frames":50,
+        "calibration_iterations":50,
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
@@ -1148,7 +1160,8 @@
         "pretrained_checkpoint_path":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth",
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":null
+            "performance_fps":237,
+            "accuracy_factor":77.04
           }
         },
         "project_path":null,
@@ -1186,8 +1199,8 @@
         "target_device":"pc",
         "accuracy_level":1,
         "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
+        "calibration_frames":50,
+        "calibration_iterations":50,
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
@@ -1195,6 +1208,36 @@
           "label_offset_pred":1
         }
       }
+    }
+  },
+  "preset_descriptions":{
+    "default_preset":null,
+    "high_speed_preset":{
+      "compilation":{
+        "calibration_frames":10,
+        "calibration_iterations":10,
+        "detection_thr":0.3
+      }
+    },
+    "high_accuracy_preset":{
+      "compilation":{
+        "calibration_frames":50,
+        "calibration_iterations":50,
+        "detection_thr":0.05
+      }
+    }
+  },
+  "target_device_descriptions":{
+    "TDA4VM":"\n* C7x floating point, vector DSP, up to 1.0 GHz, 80\nGFLOPS, 256 GOPS\n* Deep-learning matrix multiply accelerator (MMA),\nup to 8 TOPS (8b) at 1.0 GHz\n* Vision Processing Accelerators (VPAC) with Image\nSignal Processor (ISP) and multiple vision assist\naccelerators\n* Depth and Motion Processing Accelerators\n(DMPAC)\n* Dual 64-bit Arm\u00ae Cortex\u00ae-A72 microprocessor\nsubsystem at up to 2.0 GHz\n\u2013 1MB shared L2 cache per dual-core Cortex\u00ae-\nA72 cluster\n\u2013 32KB L1 DCache and 48KB L1 ICache per\nCortex\u00ae-A72 core\n* Six Arm\u00ae Cortex\u00ae-R5F MCUs at up to 1.0 GHz\n\u2013 16K I-Cache, 16K D-Cache, 64K L2 TCM\n\u2013 Two Arm\u00ae Cortex\u00ae-R5F MCUs in isolated MCU\nsubsystem\n\u2013 Four Arm\u00ae Cortex\u00ae-R5F MCUs in general\ncompute partition\n* Two C66x floating point DSP, up to 1.35 GHz,\n40 GFLOPS, 160 GOPS\n* 3D GPU PowerVR\u00ae Rogue 8XE GE8430, up to\n750 MHz, 96 GFLOPS, 6 Gpix/sec\n* Custom-designed interconnect fabric supporting\nnear max processing entitlement    \n* For more information, \n- see the product page: https://www.ti.com/product/TDA4VM\n- and the datasheet: https://www.ti.com/lit/ds/symlink/tda4vm.pdf\n"
+  },
+  "sample_dataset_descriptions":{
+    "animal_classification":{
+      "task_type":"classification",
+      "download_path":"http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip"
+    },
+    "tiscapes2017_driving":{
+      "task_type":"detection",
+      "download_path":"http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip"
     }
   }
 }

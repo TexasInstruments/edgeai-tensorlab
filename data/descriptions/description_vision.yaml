@@ -10,8 +10,8 @@ model_descriptions:
       verbose_mode: true
     compilation:
       accuracy_level: 1
-      calibration_frames: 10
-      calibration_iterations: 10
+      calibration_frames: 50
+      calibration_iterations: 50
       compilation_path: null
       detection_thr: 0.3
       enable: true
@@ -67,6 +67,7 @@ model_descriptions:
       project_path: null
       target_devices:
         TDA4VM:
+          accuracy_factor: 72.13
           performance_fps: 455
       training_backend: edgeai_torchvision
       training_device: null
@@ -89,8 +90,8 @@ model_descriptions:
       verbose_mode: true
     compilation:
       accuracy_level: 1
-      calibration_frames: 10
-      calibration_iterations: 10
+      calibration_frames: 50
+      calibration_iterations: 50
       compilation_path: null
       detection_thr: 0.3
       enable: true
@@ -146,7 +147,8 @@ model_descriptions:
       project_path: null
       target_devices:
         TDA4VM:
-          performance_fps: null
+          accuracy_factor: 72.12
+          performance_fps: 267
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -168,8 +170,8 @@ model_descriptions:
       verbose_mode: true
     compilation:
       accuracy_level: 1
-      calibration_frames: 10
-      calibration_iterations: 10
+      calibration_frames: 50
+      calibration_iterations: 50
       compilation_path: null
       detection_thr: 0.3
       enable: true
@@ -214,7 +216,7 @@ model_descriptions:
       model_architecture: backbone
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6490
+      model_id: cl-6480
       model_key: mobilenet_v3_small_lite_tv
       model_name: mobilenet_v3_small_lite
       model_proto_path: null
@@ -225,7 +227,8 @@ model_descriptions:
       project_path: null
       target_devices:
         TDA4VM:
-          performance_fps: null
+          accuracy_factor: null
+          performance_fps: 750
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -247,8 +250,8 @@ model_descriptions:
       verbose_mode: true
     compilation:
       accuracy_level: 1
-      calibration_frames: 10
-      calibration_iterations: 10
+      calibration_frames: 50
+      calibration_iterations: 50
       compilation_path: null
       detection_thr: 0.3
       enable: true
@@ -304,7 +307,8 @@ model_descriptions:
       project_path: null
       target_devices:
         TDA4VM:
-          performance_fps: null
+          accuracy_factor: 77.04
+          performance_fps: 237
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -326,8 +330,8 @@ model_descriptions:
       verbose_mode: true
     compilation:
       accuracy_level: 1
-      calibration_frames: 10
-      calibration_iterations: 10
+      calibration_frames: 50
+      calibration_iterations: 50
       compilation_path: null
       detection_thr: 0.3
       enable: true
@@ -383,7 +387,8 @@ model_descriptions:
       project_path: null
       target_devices:
         TDA4VM:
-          performance_fps: null
+          accuracy_factor: 72.834
+          performance_fps: 288
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -405,8 +410,8 @@ model_descriptions:
       verbose_mode: true
     compilation:
       accuracy_level: 1
-      calibration_frames: 10
-      calibration_iterations: 10
+      calibration_frames: 50
+      calibration_iterations: 50
       compilation_path: null
       detection_thr: 0.3
       enable: true
@@ -462,7 +467,8 @@ model_descriptions:
       project_path: null
       target_devices:
         TDA4VM:
-          performance_fps: null
+          accuracy_factor: 75.212
+          performance_fps: 272
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -484,14 +490,14 @@ model_descriptions:
       verbose_mode: true
     compilation:
       accuracy_level: 1
-      calibration_frames: 10
-      calibration_iterations: 10
+      calibration_frames: 50
+      calibration_iterations: 50
       compilation_path: null
       detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
-        label_offset_pred: 1
+        label_offset_pred: 0
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -547,6 +553,7 @@ model_descriptions:
       project_path: null
       target_devices:
         TDA4VM:
+          accuracy_factor: 27.2
           performance_fps: 172
       training_backend: edgeai_mmdetection
       training_device: null
@@ -569,14 +576,14 @@ model_descriptions:
       verbose_mode: true
     compilation:
       accuracy_level: 1
-      calibration_frames: 10
-      calibration_iterations: 10
+      calibration_frames: 50
+      calibration_iterations: 50
       compilation_path: null
       detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
-        label_offset_pred: 1
+        label_offset_pred: 0
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -632,6 +639,7 @@ model_descriptions:
       project_path: null
       target_devices:
         TDA4VM:
+          accuracy_factor: 37.0
           performance_fps: 45
       training_backend: edgeai_mmdetection
       training_device: null
@@ -654,14 +662,14 @@ model_descriptions:
       verbose_mode: true
     compilation:
       accuracy_level: 1
-      calibration_frames: 10
-      calibration_iterations: 10
+      calibration_frames: 50
+      calibration_iterations: 50
       compilation_path: null
       detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
-        label_offset_pred: 1
+        label_offset_pred: 0
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -717,6 +725,7 @@ model_descriptions:
       project_path: null
       target_devices:
         TDA4VM:
+          accuracy_factor: 32.8
           performance_fps: 92
       training_backend: edgeai_mmdetection
       training_device: null
@@ -739,14 +748,14 @@ model_descriptions:
       verbose_mode: true
     compilation:
       accuracy_level: 1
-      calibration_frames: 10
-      calibration_iterations: 10
+      calibration_frames: 50
+      calibration_iterations: 50
       compilation_path: null
       detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
-        label_offset_pred: 1
+        label_offset_pred: 0
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -799,6 +808,7 @@ model_descriptions:
       project_path: null
       target_devices:
         TDA4VM:
+          accuracy_factor: 44.4
           performance_fps: 46
       training_backend: edgeai_mmdetection
       training_device: null
@@ -821,14 +831,14 @@ model_descriptions:
       verbose_mode: true
     compilation:
       accuracy_level: 1
-      calibration_frames: 10
-      calibration_iterations: 10
+      calibration_frames: 50
+      calibration_iterations: 50
       compilation_path: null
       detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
-        label_offset_pred: 1
+        label_offset_pred: 0
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -881,6 +891,7 @@ model_descriptions:
       project_path: null
       target_devices:
         TDA4VM:
+          accuracy_factor: 24.8
           performance_fps: 386
       training_backend: edgeai_mmdetection
       training_device: null
@@ -903,14 +914,14 @@ model_descriptions:
       verbose_mode: true
     compilation:
       accuracy_level: 1
-      calibration_frames: 10
-      calibration_iterations: 10
+      calibration_frames: 50
+      calibration_iterations: 50
       compilation_path: null
       detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
-        label_offset_pred: 1
+        label_offset_pred: 0
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -963,6 +974,7 @@ model_descriptions:
       project_path: null
       target_devices:
         TDA4VM:
+          accuracy_factor: 38.3
           performance_fps: 107
       training_backend: edgeai_mmdetection
       training_device: null
@@ -985,14 +997,14 @@ model_descriptions:
       verbose_mode: true
     compilation:
       accuracy_level: 1
-      calibration_frames: 10
-      calibration_iterations: 10
+      calibration_frames: 50
+      calibration_iterations: 50
       compilation_path: null
       detection_thr: 0.3
       enable: true
       log_file_path: null
       metric:
-        label_offset_pred: 1
+        label_offset_pred: 0
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -1045,6 +1057,7 @@ model_descriptions:
       project_path: null
       target_devices:
         TDA4VM:
+          accuracy_factor: 30.5
           performance_fps: 264
       training_backend: edgeai_mmdetection
       training_device: null
@@ -1056,3 +1069,38 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
+preset_descriptions:
+  default_preset: null
+  high_accuracy_preset:
+    compilation:
+      calibration_frames: 50
+      calibration_iterations: 50
+      detection_thr: 0.05
+  high_speed_preset:
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      detection_thr: 0.3
+sample_dataset_descriptions:
+  animal_classification:
+    download_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip
+    task_type: classification
+  tiscapes2017_driving:
+    download_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip
+    task_type: detection
+target_device_descriptions:
+  TDA4VM: "\n* C7x floating point, vector DSP, up to 1.0 GHz, 80\nGFLOPS, 256 GOPS\n\
+    * Deep-learning matrix multiply accelerator (MMA),\nup to 8 TOPS (8b) at 1.0 GHz\n\
+    * Vision Processing Accelerators (VPAC) with Image\nSignal Processor (ISP) and\
+    \ multiple vision assist\naccelerators\n* Depth and Motion Processing Accelerators\n\
+    (DMPAC)\n* Dual 64-bit Arm\xAE Cortex\xAE-A72 microprocessor\nsubsystem at up\
+    \ to 2.0 GHz\n\u2013 1MB shared L2 cache per dual-core Cortex\xAE-\nA72 cluster\n\
+    \u2013 32KB L1 DCache and 48KB L1 ICache per\nCortex\xAE-A72 core\n* Six Arm\xAE\
+    \ Cortex\xAE-R5F MCUs at up to 1.0 GHz\n\u2013 16K I-Cache, 16K D-Cache, 64K L2\
+    \ TCM\n\u2013 Two Arm\xAE Cortex\xAE-R5F MCUs in isolated MCU\nsubsystem\n\u2013\
+    \ Four Arm\xAE Cortex\xAE-R5F MCUs in general\ncompute partition\n* Two C66x floating\
+    \ point DSP, up to 1.35 GHz,\n40 GFLOPS, 160 GOPS\n* 3D GPU PowerVR\xAE Rogue\
+    \ 8XE GE8430, up to\n750 MHz, 96 GFLOPS, 6 Gpix/sec\n* Custom-designed interconnect\
+    \ fabric supporting\nnear max processing entitlement    \n* For more information,\
+    \ \n- see the product page: https://www.ti.com/product/TDA4VM\n- and the datasheet:\
+    \ https://www.ti.com/lit/ds/symlink/tda4vm.pdf\n"
