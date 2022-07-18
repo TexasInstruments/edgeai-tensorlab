@@ -1102,5 +1102,6 @@ target_device_descriptions:
     \ point DSP, up to 1.35 GHz,\n40 GFLOPS, 160 GOPS\n* 3D GPU PowerVR\xAE Rogue\
     \ 8XE GE8430, up to\n750 MHz, 96 GFLOPS, 6 Gpix/sec\n* Custom-designed interconnect\
     \ fabric supporting\nnear max processing entitlement    \n* For more information,\
-    \ \n- see the product page: https://www.ti.com/product/TDA4VM\n- and the datasheet:\
-    \ https://www.ti.com/lit/ds/symlink/tda4vm.pdf\n"
+    \ see the following links:\n- product page: https://www.ti.com/product/TDA4VM\n\
+    - datasheet: https://www.ti.com/lit/ds/symlink/tda4vm.pdf\n- starterkit: https://www.ti.com/tool/SK-TDA4VM\n\
+    - top level landing page: https://ti.com/edgeai\n"
