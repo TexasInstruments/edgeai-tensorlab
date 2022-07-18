@@ -63,7 +63,7 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=455)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=455, accuracy_factor=72.13)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -88,7 +88,7 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=267, accuracy_factor=72.12)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -105,7 +105,7 @@ _model_descriptions = {
         ),
         training=dict(
             training_backend='edgeai_torchvision',
-            model_id='cl-6490',
+            model_id='cl-6480',
             model_name='mobilenet_v3_small_lite',
             model_key='mobilenet_v3_small_lite_tv',
             model_architecture='backbone',
@@ -113,7 +113,7 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=750, accuracy_factor=None)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -138,7 +138,7 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'https://download.pytorch.org/models/regnet_x_400mf-adf1edd5.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=288, accuracy_factor=72.834)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -163,7 +163,7 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=272, accuracy_factor=75.212)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -188,7 +188,7 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=237, accuracy_factor=77.040)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
