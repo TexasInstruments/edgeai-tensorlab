@@ -158,6 +158,8 @@ However, if a function does not change the range of feature map, it is not criti
 
 If your training crashes because of insufficient GPU memory, reduce the batch size and try again.
 
+It is seen to be beneficial (for higher accuracy) to freeze the BatchNorm and Quantization ranges after a few epochs during QAT. The utility functions xnn.utils.freeze_bn(model) and xnn.layers.freeze_quant_range(model) can be used for this. See example usage of these functions [here](../../references/edgeailite/scripts/quantize_classification_example.py)
+
 
 ### Compilation of QAT Models in TIDL
 
