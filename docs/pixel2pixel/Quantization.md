@@ -13,13 +13,20 @@ Fixed point mode, especially the 8-bit mode can have accuracy degradation. The t
 If you are getting accuracy degradation with 8-bit inference, the first thing to check is 16-bit inference. If 16-bit inference provides accuracy close to floating point and 8-bit has an accuracy degradation, there it is likely that the degradation si due to quantization. However, if there is substantial accuracy degradation with 16-bit inference itself, then it is likely that there is some issue other than quantization.  
 
 
-#### Quantization Schemes
+### Quantization Schemes
 Post Training Quantization (PTQ): Post Training Quantization involves range estimation for weights and activations and also minor tweaks to the model (such as bias adjustments). TIDL can accept a floating point model and do PTQ using a few sample images. This is done during the import of the model in TIDL.<br>
 
-Quantization Aware Training (QAT): This is needed if accuracy obtained with Calibration is not satisfactory. QAT operates as a second phase after the initial training in floating point is done. 
+Quantization Aware Training (QAT): This is needed only if the accuracy obtained with PTQ is not satisfactory. QAT operates as a second phase after the initial training in floating point, in the training framework. 
 
 
-## Guidelines For Training To Get Best Accuracy With Quantization
+## Post Training Quantization in TIDL (PTQ)
+Please consult the TIDL documentation to understand the options to be used for getting the best accuracy with PTQ. If you are using Open Source Runtimes (OSRT) of TIDL, then [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) has the documentation and examples. Additional examples are provided in [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark), which provides model compilation options for the models in [edgeai-modelzoo](https://github.com/TexasInstruments/edgeai-modelzoo). 
+
+Certain models such that has regression (continuous) outputs may need special handling to get the best accuracy with PTQ. Examples for such models are Object Detection models and Depth Estimation models. It is seen that Mixed Precision is a good way to improve the accuracy of such models. Mixed Precision here means using 16 bits for a some selected layers. It is seen that it is especially beneficial to put the first and last convolutional layers into 16 bits. 16bit layers can be easily specified by 'advanced_options:output_feature_16bit_names_list' in TIDL's OSRT options. Please see the examples [here](https://github.com/TexasInstruments/edgeai-benchmark/blob/master/configs/depth_estimation.py) and [here](https://github.com/TexasInstruments/edgeai-benchmark/blob/master/configs/detection.py)
+
+
+### Guidelines For Training To Get Best Accuracy With PTQ
+
 **These are important** - we are listing these guidelines upfront because it is important to follow these.
 
 We recommend that the training uses **sufficient amount of regularization (weight decay) for all parameters**. Regularization / weight decay ensures that the weights, biases and other parameters (if any) are small and compact - this is good for quantization. These features are supported in most of the popular training framework.<br>
@@ -30,61 +37,38 @@ We also highly recommend to use **Batch Normalization immediately after every Co
 
 There are several model types out there including MobileNets, ResNets, DenseNets, EfficientNets(Lite), RegNetX [9] etc. that are popular in the embedded community. The models using Depthwise convolutions (such as MobileNets) are more difficult to quantize - expect higher accuracy drop with quantization when using such models. We would like to **recommend RegNetX [9] models** as the most embedded friendly as they balance accuracy for a given complexity and the ease of quantization due to their use of grouped convolutions with carefully selected group sizes.<br>
 
-To get best accuracy at the quantization stage, it is important that the model is trained carefully, following the guidelines (even during the floating point training). Having spent a lot of time solving quantization issues, we would like to highlight that following these guidelines are of at most importance. Otherwise, there is a high risk that the tools and techniques described here may not be completely effective in solving the accuracy drop due to quantization. To summarize, if you are getting poor accuracy with quantization, please check the following:<br>
+To get the best accuracy at the quantization stage, it is important that the model is trained carefully, following the guidelines (even during the floating point training). Having spent a lot of time solving quantization issues, we would like to highlight that following these guidelines are of at most importance. Otherwise, there is a high risk that the tools and techniques described here may not be completely effective in solving the accuracy drop due to quantization. To summarize, if you are getting poor accuracy with quantization, please check the following:<br>
 - Weight decay is applied to all layers / parameters and that weight decay factor is good.<br>
 - Ensure that the Convolution layers in the network have Batch Normalization layers immediately after that. The only exception allowed to this rule is for the very last Convolution layer in the network (for example the prediction layer in a segmentation network or detection network, where adding Batch normalization might hurt the floating point accuracy).<br>
 
 
-## Implementation Notes, Limitations & Recommendations
-**Please read carefully** - closely following these recommendations can save hours or days of debug related to quantization accuracy issues.
+### PTQ Compilation options for TIDL
 
-**The same module should not be re-used multiple times within the module** in order that the feature map range estimation is correct. Unfortunately, in the torchvision ResNet models, the ReLU module in the BasicBlock and BottleneckBlock are re-used multiple times. We have corrected this by defining separate ReLU modules. This change is minor and **does not** affect the loading of existing pretrained weights. See the [our modified ResNet model definition here](../../torchvision/models/resnet.py).<br>
-
-**Use Modules instead of functionals or tensor operations** (by Module we mean classes derived from torch.nn.Module). We make use of Modules heavily in our quantization tools - in order to do range collection, in order to merge Convolution/BatchNorm/ReLU in order to decide whether to quantize a certain tensor and so on. For example use torch.nn.ReLU instead of torch.nn.functional.relu(), torch.nn.AdaptiveAvgPool2d() instead of torch.nn.functional.adaptive_avg_pool2d(), torch.nn.Flatten() instead of torch.nn.functional.flatten() etc.<br>
-
-Other notable modules provided are: [xnn.layers.AddBlock](../../torchvision/edgeailite/xnn/layers/common_blocks.py) to do elementwise addition and [xnn.layers.CatBlock](../../torchvision/edgeailite/xnn/layers/common_blocks.py) to do concatenation of tensors. Use these in the models instead of tensor operations. Note that if there are multiple element wise additions in a model, each of them should use a different instance of xnn.layers.AddBlock (since the same module should not be re-used multiple times - see above). The same restriction applies for xnn.layers.CatBlock or any other module as well.
-
-**Interpolation/Upsample/Resize** has been tricky in PyTorch in the sense that the ONNX graph generated used to be unnecessarily complicated. Recent versions of PyTorch has fixed it - but the right options must be used to get the clean graph. We have provided a functional form as well as a module form of this operator with the capability to export a clean ONNX graph [xnn.layers.resize_with, xnn.layers.ResizeWith](../../torchvision/xnn/layers/resize_blocks.py)
-
-If you have done QAT and is getting poor accuracy either in the Python code or during inference in the platform, please inspect your model carefully to see if the above recommendations have been followed - some of these can be easily missed by oversight - and can result in painful debugging that could have been avoided.<br>
-
-However, if a function does not change the range of feature map, it is not critical to use it in Module form. An example of this is torch.nn.functional.interpolate<br>
-
-**Multi-GPU training/validation with DataParallel** is supported with our QAT module QuantTrainModule and Test module QuantTestModule. This takes care of a major concern that was earlier there in doing QAT with QuantTrainModule. (However it is not supported for QuantCalibrateModule - calibration take much less time - so hopefully this is not a big issue. In our example training scripts train_classification.py and train_pixel2pixel.py in [references/edgeailite/engine](../../references/edgeailite/engine), we do not wrap the model in DataParallel if the model is QuantCalibrateModule, but we do that for QuantTrainModule and QuantTestModule).<br>
-
-If your training/calibration crashes because of insufficient GPU memory, reduce the batch size and try again.
-
-### Instructions for compiling models in TIDL (until TIDL version 2.0)
-If you are using TIDL to infer a model trained using QAT tools provided in this repository, please set the following in the import config file of TIDL for best accuracy: <br>
+#### Instructions for PTQ compiling models in TIDL
+If you are using TIDL to infer a model trained using QAT tools provided in this repository, please set the following in the import config file of TIDL for best accuracy with PTQ: <br>
 ```
-quantizationStyle = 3  #to use power of 2 quantization.
-calibrationOption = 0  #to avoid further Calibration in TIDL.
+calibrationOption = 7  #advanced PTQ option
+numFrames = 50
+biasCalibrationIterations = 50
 ```
 
-### Updated instructions for compiling models in TIDL 8.0 (August 2021) onwards:
-From TIDL 8.0 onwards, the right calibrationOption is 64 for QAT models:
-```
-quantizationStyle = 3  #to use power of 2 quantization.
-calibrationOption = 64 #to avoid further Calibration in TIDL.
-```
 
-### Instructions for compiling models in Open Source Runtimes of TIDL 8.0 (August 2021) onwards:
-TIDL offers Open Source Runtimes such as ONNXRuntime, TFLiteRuntime and TVM+DLR.
-The compilation options to use in these runtimes for QAT models in ONNXRuntime, TFLiteRuntime are:
+#### Instructions for PTQ compiling models in Open Source Runtimes of TIDL:
+The compilation options to be used to get the best accuracy with PTQ in ONNXRuntime and TFLiteRuntime for TIDL are:
 ```
-accuracy_level =     0                            #to avoid further Calibration in TIDL.
-advanced_options:quantization_scale_type = 1      #to use power of 2 quantization.
-```
-
-For model compilation in TVM for use in DLR, advanced_options must be a dictionary - otherwise the values are same as above.
-```
-accuracy_level =     0                            #to avoid further Calibration in TIDL.
-advanced_options = {quantization_scale_type = 1}  #to use power of 2 quantization.
+'accuracy_level': 1  #enable advanced PTQ
+'advanced_options:calibration_frames': 50
+'advanced_options:calibration_iterations': 50
+'advanced_options:activation_clipping': 1
+'advanced_options:weight_clipping': 1
+'advanced_options:bias_calibration': 1
 ```
 
 
 ## Quantization Aware Training (QAT)
-Quantization Aware Training (QAT) is easy to incorporate into an existing PyTorch training code. We provide a wrapper module called QuantTrainModule to automate all the tasks required for QAT. The user simply needs to wrap his model in QuantTrainModule and do the training.
+QAT is needed only if the accuracy obtained with PTQ is not satisfactory.
+
+QAT is easy to incorporate into an existing PyTorch training code. We provide a wrapper module called QuantTrainModule to automate all the tasks required for QAT. The user simply needs to wrap his model in QuantTrainModule and do the training.
 
 The overall flow of training is as follows:<br>
 - Step 1:Train your model in floating point as usual.<br>
@@ -155,19 +139,55 @@ As can be seen, it is easy to incorporate QuantTrainModule in your existing trai
 Optional: We have provided a utility function called torchvision.edgeailite.xnn.utils.load_weights() that prints which parameters are loaded correctly and which are not - you can use this load function if needed to ensure that your parameters are loaded correctly.
 
 
-####  Example commands for QAT
-ImageNet Classification: *In this example, only a fraction of the training samples are used in each training epoch to speedup training. Remove the argument --epoch_size to use all the training samples.*
+### Implementation Notes, Recommendations & Limitations for QAT
+**Please read carefully** - closely following these recommendations can save hours or days of debug related to quantization accuracy issues.
+
+**The same module should not be re-used multiple times within the module** in order that the feature map range estimation is correct. Unfortunately, in the torchvision ResNet models, the ReLU module in the BasicBlock and BottleneckBlock are re-used multiple times. We have corrected this by defining separate ReLU modules. This change is minor and **does not** affect the loading of existing pretrained weights. See the [our modified ResNet model definition here](../../torchvision/models/resnet.py).<br>
+
+**Use Modules instead of functionals or tensor operations** (by Module we mean classes derived from torch.nn.Module). We make use of Modules heavily in our quantization tools - in order to do range collection, in order to merge Convolution/BatchNorm/ReLU in order to decide whether to quantize a certain tensor and so on. For example use torch.nn.ReLU instead of torch.nn.functional.relu(), torch.nn.AdaptiveAvgPool2d() instead of torch.nn.functional.adaptive_avg_pool2d(), torch.nn.Flatten() instead of torch.nn.functional.flatten() etc.<br>
+
+Other notable modules provided are: [xnn.layers.AddBlock](../../torchvision/edgeailite/xnn/layers/common_blocks.py) to do elementwise addition and [xnn.layers.CatBlock](../../torchvision/edgeailite/xnn/layers/common_blocks.py) to do concatenation of tensors. Use these in the models instead of tensor operations. Note that if there are multiple element wise additions in a model, each of them should use a different instance of xnn.layers.AddBlock (since the same module should not be re-used multiple times - see above). The same restriction applies for xnn.layers.CatBlock or any other module as well.
+
+**Interpolation/Upsample/Resize** has been tricky in PyTorch in the sense that the ONNX graph generated used to be unnecessarily complicated. Recent versions of PyTorch has fixed it - but the right options must be used to get the clean graph. We have provided a functional form as well as a module form of this operator with the capability to export a clean ONNX graph [xnn.layers.resize_with, xnn.layers.ResizeWith](../../torchvision/xnn/layers/resize_blocks.py)
+
+If you have done QAT and is getting poor accuracy either in the Python code or during inference in the platform, please inspect your model carefully to see if the above recommendations have been followed - some of these can be easily missed by oversight - and can result in painful debugging that could have been avoided.<br>
+
+However, if a function does not change the range of feature map, it is not critical to use it in Module form. An example of this is torch.nn.functional.interpolate<br>
+
+**Multi-GPU training/validation with DataParallel** is supported with our QAT module QuantTrainModule and Test module QuantTestModule. This takes care of a major concern that was earlier there in doing QAT with QuantTrainModule. (However it is not supported for QuantCalibrateModule - calibration take much less time - so hopefully this is not a big issue. In our example training scripts train_classification.py and train_pixel2pixel.py in [references/edgeailite/engine](../../references/edgeailite/engine), we do not wrap the model in DataParallel if the model is QuantCalibrateModule, but we do that for QuantTrainModule and QuantTestModule).<br>
+
+If your training crashes because of insufficient GPU memory, reduce the batch size and try again.
+
+
+### Compilation of QAT Models in TIDL
+
+#### Instructions for compiling models in TIDL (until TIDL version 2.0)
+If you are using TIDL to infer a model trained using QAT tools provided in this repository, please set the following in the import config file of TIDL for best accuracy: <br>
 ```
-python ./references/edgeailite/scripts/train_classification_main.py --dataset_name image_folder_classification --model_name mobilenetv2_tv_x1 --data_path ./data/datasets/image_folder_classification --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --batch_size 64 --quantize True --epochs 50 --epoch_size 0.1 --lr 1e-5 --evaluate_start False
+quantizationStyle = 3  #to use power of 2 quantization.
+calibrationOption = 0  #to avoid further Calibration in TIDL.
 ```
 
-Cityscapes Semantic Segmentation:<br>
+#### Updated instructions for compiling models in TIDL 8.0 (August 2021) onwards:
+From TIDL 8.0 onwards, the right calibrationOption is 64 for QAT models:
 ```
-python ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 --pretrained ./data/modelzoo/pytorch/semantic_segmentation/cityscapes/jacinto_ai/deeplabv3plus_edgeailite_mobilenetv2_tv_resize768x384_best.pth.tar --batch_size 6 --quantize True --epochs 50 --lr 1e-5 --evaluate_start False
+quantizationStyle = 3  #to use power of 2 quantization.
+calibrationOption = 64 #to avoid further Calibration in TIDL.
 ```
 
-For more examples, please see the files run_edgeailite_qunatization_example.sh and references/edgeailite/scripts/quantize_classification_example.py
+#### Instructions for compiling models in Open Source Runtimes of TIDL 8.0 (August 2021) onwards:
+TIDL offers Open Source Runtimes such as ONNXRuntime, TFLiteRuntime and TVM+DLR.
+The compilation options to use in these runtimes for QAT models in ONNXRuntime, TFLiteRuntime are:
+```
+accuracy_level =     0                            #to avoid further Calibration in TIDL.
+advanced_options:quantization_scale_type = 1      #to use power of 2 quantization.
+```
 
+For model compilation in TVM for use in DLR, advanced_options must be a dictionary - otherwise the values are same as above.
+```
+accuracy_level =     0                            #to avoid further Calibration in TIDL.
+advanced_options = {quantization_scale_type = 1}  #to use power of 2 quantization.
+```
 
 ## Results
 
@@ -197,6 +217,20 @@ Notes:<br>
 - (TV) indicates that the model is from torchvision Model Zoo<br>
 - More details of these models can be seen in [edgeai-modelzoo](https://github.com/TexasInstruments/edgeai-modelzoo)<br>
 - The TIDL results were obtained using [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) which in turn uses [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) and the release version used was 8.2<br>
+
+
+####  Example training commands for QAT in this repository
+ImageNet Classification: *In this example, only a fraction of the training samples are used in each training epoch to speedup training. Remove the argument --epoch_size to use all the training samples.*
+```
+python ./references/edgeailite/scripts/train_classification_main.py --dataset_name image_folder_classification --model_name mobilenetv2_tv_x1 --data_path ./data/datasets/image_folder_classification --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --batch_size 64 --quantize True --epochs 50 --epoch_size 0.1 --lr 1e-5 --evaluate_start False
+```
+
+Cityscapes Semantic Segmentation:<br>
+```
+python ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 --pretrained ./data/modelzoo/pytorch/semantic_segmentation/cityscapes/jacinto_ai/deeplabv3plus_edgeailite_mobilenetv2_tv_resize768x384_best.pth.tar --batch_size 6 --quantize True --epochs 50 --lr 1e-5 --evaluate_start False
+```
+
+For more examples, please see the files run_edgeailite_qunatization_example.sh and references/edgeailite/scripts/quantize_classification_example.py
 
 
 ## Post Training Calibration For Quantization (Calibration)
