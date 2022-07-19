@@ -4,6 +4,23 @@ import yaml
 import shutil
 from tqdm import tqdm
 import json
+import argparse
+
+parser = argparse.ArgumentParser("LINEMOD_PBR2COCO_PARSER")
+parser.add_argument("--syn", default=False, action="store_true", help="Use only snthetic data")
+parser.add_argument("--lm", default=False, action="store_true", help="Select only LM classes")
+parser.add_argument("--lmo", default=False, action="store_true", help="Select only LMO classes ")
+parser.add_argument("--lmob", default=False, action="store_true", help="Select only LMO classes including benchvise")
+
+args = parser.parse_args()
+
+class_to_id = {"ape": 1, "benchvise": 2, "bowl": 3, "cam": 4, "can": 5, "cat": 6, "cup": 7,
+                 "driller": 8, "duck": 9, "eggbox": 10, "glue": 11, "holepuncher": 12, "iron": 13,
+                 "lamp": 14, "phone": 15}
+
+lme = [3, 7]  #linemod excluded , 15-2=13
+lmoe = [2, 3, 4, 7, 13, 14, 15]  #15-7=8
+lmoeb = [3, 4, 7, 13, 14, 15]  #15-6=9
 
 def convert_to_coco_json(merge=False):
     basepath = '/data/ssd/6d_pose/LINEMO_Synthetic/train_pbr'
@@ -58,6 +75,12 @@ def convert_to_coco_json(merge=False):
             coco_train["images"].append(image)
             for object_gt, object_gt_info  in zip(objects_gt[1], objects_gt_info[1]):
                 if object_gt_info['visib_fract'] > 0:
+                    if args.lm:
+                        if object_gt["obj_id"] in lme: continue
+                    if args.lmo:
+                        if object_gt["obj_id"] in lmoe: continue
+                    if args.lmob:
+                        if object_gt["obj_id"] in lmoeb: continue
                     annotation = dict([
                         ("image_id", image_index+num_images*data_folder_idx),
                         ("id", obj_count),
@@ -76,7 +99,7 @@ def convert_to_coco_json(merge=False):
             mmcv.dump(coco_train, outfile_train)
 
 
-    merge_linemod_real = True #
+    merge_linemod_real = False #
     if merge_linemod_real:
         linemod_real_path = "/data/ssd/6d_pose/LINEMOD_Occlusion_COCO/annotations/instances_train.json"
         with open(linemod_real_path) as foo:
