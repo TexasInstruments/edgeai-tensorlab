@@ -91,5 +91,5 @@ python ./references/edgeailite/scripts/train_segmentation_main.py --phase calibr
 ```
 
 ## Guidelines, Implementation Notes, Limitations & Recommendations
-- Please refer to the section on Quantization Aware Training, as the same guidelines, recomendations & limitations apply to QuantCalibrateModule.<br>
-- An additional limitation is that multi gpu processing with DataParallel / DistributedDataParallel is not supported for QuantCalibrateModule (also for QuantTestModule). In our example training scripts train_classification.py and train_pixel2pixel.py in [references/edgeailite/engine](../../references/edgeailite/engine), we do not wrap the model in DataParallel if the model is QuantCalibrateModule or QuantTestModule. The original floating point training (without quantization) can use Multi-GPU as usual and we do not have any restrictions on that. (However multi gpu support with DataParallel works for QuantTrainModule - more details of this in the QAT section).<br>
+- Please refer to the section on Quantization Aware Training, as the same guidelines, recommendations & limitations apply to QuantCalibrateModule.<br>
+- An additional limitation is that multi gpu processing with DataParallel or DistributedDataParallel is not supported for QuantCalibrateModule. <br>

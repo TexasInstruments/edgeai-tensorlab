@@ -154,7 +154,7 @@ If you have done QAT and is getting poor accuracy either in the Python code or d
 
 However, if a function does not change the range of feature map, it is not critical to use it in Module form. An example of this is torch.nn.functional.interpolate<br>
 
-**Multi-GPU training/validation with DataParallel** is supported with our QAT module QuantTrainModule and Test module QuantTestModule. This takes care of a major concern that was earlier there in doing QAT with QuantTrainModule. (However it is not supported for QuantCalibrateModule - calibration take much less time - so hopefully this is not a big issue. In our example training scripts train_classification.py and train_pixel2pixel.py in [references/edgeailite/engine](../../references/edgeailite/engine), we do not wrap the model in DataParallel if the model is QuantCalibrateModule, but we do that for QuantTrainModule and QuantTestModule).<br>
+**Multi-GPU training/validation** with DataParallel or DistributedDataParallel is supported with our QAT modules, QuantTrainModule and QuantTestModule.<br>
 
 If your training crashes because of insufficient GPU memory, reduce the batch size and try again.
 
