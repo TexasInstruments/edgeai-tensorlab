@@ -340,7 +340,7 @@ class ObjectPoseEvaluator:
             num_instances = len(distance_category[distance_category[:, 1] == category_id][:,0])
             if num_instances > 0:
                 for threshold_multiple in range(1,6):
-                    score = np.sum(distance_category[distance_category[:, 1] == category_id][:,0] < threshold_multiple * threshold[category_id-1]) / (num_instances + 1e-6)
+                    score = np.sum(distance_category[distance_category[:, 1] == category_id][:,0] < threshold_multiple * threshold[category_id]) / (num_instances + 1e-6)
                     score_dict["ADD_0p{}".format(threshold_multiple)].update({category_id: score})
         return score_dict
 
@@ -371,6 +371,6 @@ class ObjectPoseEvaluator:
             num_instances = len(distance_category[distance_category[:, 1] == category_id][:, 0])
             if num_instances > 0:
                 for threshold_multiple in range(1,6):
-                    score = np.sum(distance_category[distance_category[:, 1] == category_id][:,0] < threshold_multiple * threshold[category_id-1]) / (num_instances + 1e-6)
+                    score = np.sum(distance_category[distance_category[:, 1] == category_id][:,0] < threshold_multiple * threshold[category_id]) / (num_instances + 1e-6)
                     score_dict["ADD_0p{}".format(threshold_multiple)].update({category_id: score})
         return score_dict
