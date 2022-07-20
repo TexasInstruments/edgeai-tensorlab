@@ -77,10 +77,8 @@ python -m yolox.tools.train -f exps/default/yolox_s_ti_lite.py -d 8 -b 64 --fp16
 
 
 ```shell
-python -m yolox.tools.eval -n  yolox-s-ti-lite -c yolox_s.pth -b 64 -d 8 --conf 0.001 [--fp16] [--fuse]
-                               yolox-m-ti-lite
-                               yolox-tiny-ti-lite
-                               yolox-nano-ti-lite
+python -m yolox.tools.eval -n  yolox-s-object-pose -c ./YOLOX_outputs/yolox_s_object_pose_64p10_no_rotation_refinement/best_ckpt.pth -b 1 -d 1 --task object_pose --fp16 --fuse --dataset linemod_occlusion
+python -m yolox.tools.eval -n  yolox-s-object-pose -c ./YOLOX_outputs/yolox_s_object_pose_64p10_no_rotation_refinement/best_ckpt.pth -b 1 -d 1 --task object_pose --fp16 --fuse --dataset linemod_oclusion_pbr
 ```
 * --fuse: fuse conv and bn
 * -d: number of GPUs used for evaluation. DEFAULT: All GPUs available will be used.
