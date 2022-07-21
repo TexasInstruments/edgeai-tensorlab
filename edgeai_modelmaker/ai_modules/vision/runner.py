@@ -39,59 +39,7 @@ from . import datasets
 from . import training
 from . import compilation
 from .params import init_params
-
-
-def get_model_descriptions(params):
-    # populate a good pretrained model for the given task
-    model_descriptions = training.get_model_descriptions(task_type=params.common.task_type,
-                                                         target_device=params.common.target_device,
-                                                         training_device=params.training.training_device)
-    return model_descriptions
-
-
-def get_model_description(model_key):
-    assert model_key, 'model_key must be specified for get_model_description().' \
-        'if model_key is not known, use the method get_model_descriptions() that returns supported models.'
-    model_description = training.get_model_description(model_key)
-    return model_description
-
-
-def set_model_description(params, model_description):
-    assert model_description is not None, f'could not find pretrained model for {params.training.model_key}'
-    assert params.common.task_type == model_description['common']['task_type'], \
-        f'task_type: {params.common.task_type} does not match the pretrained model'
-    # get pretrained model checkpoint and other details
-    params.update(model_description)
-    return params
-
-
-def get_preset_descriptions(params):
-    presets = dict(
-        default_preset=None,  # not specified here - use the models values
-        high_speed_preset=dict(
-            compilation=dict(
-                calibration_frames=10,
-                calibration_iterations=10,
-                detection_thr=0.3
-            )
-        ),
-        high_accuracy_preset=dict(
-            compilation=dict(
-                calibration_frames=50,
-                calibration_iterations=50,
-                detection_thr=0.05
-            )
-        )
-    )
-    return presets
-
-
-def get_target_device_descriptions(params):
-    return constants.TARGET_DEVICE_DESCRIPTIONS
-
-
-def get_sample_dataset_descriptions(params):
-    return constants.SAMPLE_DATASET_DESCRIPTIONS
+from . import descriptions
 
 
 class ModelRunner():
@@ -99,30 +47,6 @@ class ModelRunner():
     def init_params(self, *args, **kwargs):
         params = init_params(*args, **kwargs)
         return params
-
-    @staticmethod
-    def get_model_descriptions(*args, **kwargs):
-        return get_model_descriptions(*args, **kwargs)
-
-    @staticmethod
-    def get_model_description(*args, **kwargs):
-        return get_model_description(*args, **kwargs)
-
-    @staticmethod
-    def set_model_description(*args, **kwargs):
-        return set_model_description(*args, **kwargs)
-
-    @staticmethod
-    def get_preset_descriptions(*args, **kwargs):
-        return get_preset_descriptions(*args, **kwargs)
-
-    @staticmethod
-    def get_target_device_descriptions(*args, **kwargs):
-        return get_target_device_descriptions(*args, **kwargs)
-
-    @staticmethod
-    def get_sample_dataset_descriptions(*args, **kwargs):
-        return get_sample_dataset_descriptions(*args, **kwargs)
 
     def __init__(self, *args, verbose=True, **kwargs):
         self.params = self.init_params(*args, **kwargs)
@@ -202,3 +126,27 @@ class ModelRunner():
 
     def get_params(self):
         return self.params
+
+    @staticmethod
+    def get_model_descriptions(*args, **kwargs):
+        return descriptions.get_model_descriptions(*args, **kwargs)
+
+    @staticmethod
+    def get_model_description(*args, **kwargs):
+        return descriptions.get_model_description(*args, **kwargs)
+
+    @staticmethod
+    def set_model_description(*args, **kwargs):
+        return descriptions.set_model_description(*args, **kwargs)
+
+    @staticmethod
+    def get_preset_descriptions(*args, **kwargs):
+        return descriptions.get_preset_descriptions(*args, **kwargs)
+
+    @staticmethod
+    def get_target_device_descriptions(*args, **kwargs):
+        return descriptions.get_target_device_descriptions(*args, **kwargs)
+
+    @staticmethod
+    def get_sample_dataset_descriptions(*args, **kwargs):
+        return descriptions.get_sample_dataset_descriptions(*args, **kwargs)
