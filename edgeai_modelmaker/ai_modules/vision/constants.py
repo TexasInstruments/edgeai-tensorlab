@@ -42,6 +42,14 @@ TARGET_DEVICES = [
     TARGET_DEVICE_TDA4VM,
 ]
 
+TARGET_DEVICE_TYPE_MPU = 'MPU'
+TARGET_DEVICE_TYPE_MCU = 'MCU'
+
+TARGET_DEVICE_TYPES = [
+    TARGET_DEVICE_TYPE_MPU,
+    TARGET_DEVICE_TYPE_MCU
+]
+
 # training_device
 TRAINING_DEVICE_CPU = 'cpu'
 TRAINING_DEVICE_CUDA = 'cuda'
@@ -53,8 +61,10 @@ TRAINING_DEVICES = [
 ]
 
 TARGET_DEVICE_DESCRIPTIONS = {
-    TARGET_DEVICE_TDA4VM : \
-'''
+    TARGET_DEVICE_TDA4VM : {
+        'device_name' : TARGET_DEVICE_TDA4VM,
+        'device_type' : TARGET_DEVICE_TYPE_MPU,
+        'device_details' : '''
 * C7x floating point, vector DSP, up to 1.0 GHz, 80
 GFLOPS, 256 GOPS
 * Deep-learning matrix multiply accelerator (MMA),
@@ -88,6 +98,7 @@ near max processing entitlement
 - starterkit: https://www.ti.com/tool/SK-TDA4VM
 - top level landing page: https://ti.com/edgeai
 '''
+    }
 }
 
 SAMPLE_DATASET_DESCRIPTIONS = {
