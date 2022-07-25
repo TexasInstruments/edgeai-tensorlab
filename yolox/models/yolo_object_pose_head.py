@@ -416,9 +416,11 @@ class YOLOXObjectPoseHead(nn.Module):
             num_gts += num_gt
             if num_gt == 0:
                 cls_target = outputs.new_zeros((0, self.num_classes))
+                cls_target_raw = outputs.new_zeros((0,))
                 reg_target = outputs.new_zeros((0, 4))
                 rot_target = outputs.new_zeros((0, 6))
-                trn_target = outputs.new_zeros((0, 3))
+                trn_xy_target = outputs.new_zeros((0, 2))
+                trn_z_target = outputs.new_zeros((0))
                 l1_target = outputs.new_zeros((0, 4))
                 obj_target = outputs.new_zeros((total_num_anchors, 1))
                 fg_mask = outputs.new_zeros(total_num_anchors).bool()
