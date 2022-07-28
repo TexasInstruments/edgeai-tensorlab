@@ -67,10 +67,11 @@ def get_common_session_cfg(settings, work_dir=None, input_optimization=True, inp
                            input_mean=(0.0, 0.0, 0.0), input_scale=(1.0, 1.0, 1.0), **kwargs):
     # if it set to None from outside, change it to True (default value)
     input_optimization = input_optimization if settings.input_optimization is None else settings.input_optimization
-    common_session_cfg = dict(work_dir=work_dir, target_machine=settings.target_machine, tidl_offload=settings.tidl_offload,
-                              input_optimization=input_optimization, input_data_layout=input_data_layout,
-                              input_mean=input_mean, input_scale=input_scale,
-                              **kwargs)
+    common_session_cfg = dict(work_dir=work_dir, target_machine=settings.target_machine,
+              target_device=settings.target_device, run_suffix=settings.run_suffix, tidl_offload=settings.tidl_offload,
+              input_optimization=input_optimization, input_data_layout=input_data_layout,
+              input_mean=input_mean, input_scale=input_scale,
+              **kwargs)
     return common_session_cfg
 
 def get_nomeanscale_session_cfg(settings, work_dir=None, input_optimization=False, input_data_layout=constants.NCHW,

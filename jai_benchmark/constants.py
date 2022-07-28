@@ -35,6 +35,9 @@ TIDL_PLATFORM = "J7"
 TIDL_VERSION = (8,2)
 TIDL_VERSION_STR = '8.2'
 
+# target devices/socs supported
+TARGET_DEVICE_TDA4VM = 'TDA4VM'
+
 # data layout constants
 NCHW = 'NCHW'
 NHWC = 'NHWC'

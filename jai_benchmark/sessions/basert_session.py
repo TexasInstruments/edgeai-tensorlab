@@ -53,6 +53,8 @@ class BaseRTSession(utils.ParamsBase):
         self.is_start_infer_done = False
         self.input_normalizer = None
 
+        self.kwargs['target_machine'] = self.kwargs.get('target_machine', 'pc')
+        self.kwargs['target_device'] = self.kwargs.get('target_device', None)
         # set tidl_offload to False to disable offloading to TIDL
         self.kwargs['tidl_offload'] = self.kwargs.get('tidl_offload', True)
 
@@ -65,6 +67,7 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['work_dir'] = self.kwargs.get('work_dir', None)
         # run_dir for individual model
         self.kwargs['run_dir'] = self.kwargs.get('run_dir', None)
+        self.kwargs['run_suffix'] = self.kwargs.get('run_suffix', None)
         self.kwargs['dir_tree_depth'] = self.kwargs.get('dir_tree_depth', 3)
 
         # parameters related to models
@@ -87,12 +90,12 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['tensor_bits'] = self.kwargs.get('tensor_bits', 8)
 
         # check the target_machine
-        self.kwargs['supported_devices'] = self.kwargs.get('supported_devices', None) #TODO: change to => ('j7', 'pc')
-        if self.kwargs['supported_devices'] is not None:
-            assert isinstance(self.kwargs['supported_devices'], (list,tuple)), \
-                f'supported_device must be a list or tuple'
-            assert self.kwargs['target_machine'] in self.kwargs['supported_devices'], \
-                f"unsupported target device, must be one of {self.kwargs['supported_devices']}"
+        self.kwargs['supported_machines'] = self.kwargs.get('supported_machines', None) #TODO: change to => ('j7', 'pc')
+        if self.kwargs['supported_machines'] is not None:
+            assert isinstance(self.kwargs['supported_machines'], (list,tuple)), \
+                f'supported_machines must be a list or tuple'
+            assert self.kwargs['target_machine'] in self.kwargs['supported_machines'], \
+                f"unsupported target machine, must be one of {self.kwargs['supported_machines']}"
         #
         # store the current directory so that we can go back there any time
         self.cwd = os.getcwd()
@@ -361,7 +364,11 @@ class BaseRTSession(utils.ParamsBase):
         #
         model_id = self.kwargs['model_id']
         session_name = self.kwargs['session_name']
-        run_name = '_'.join([model_id] + [session_name] + model_name_splits + [model_ext])
+        run_name = [model_id] + [session_name] + model_name_splits + [model_ext]
+        if self.kwargs['run_suffix']:
+            run_name += [self.kwargs['run_suffix']]
+        #
+        run_name = '_'.join(run_name)
         run_dir = os.path.join(work_dir, f'{run_name}')
         return run_dir
 

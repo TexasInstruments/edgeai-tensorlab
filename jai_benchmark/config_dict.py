@@ -111,9 +111,14 @@ class ConfigDict(dict):
         # create your datasets under this folder
         self.datasets_path = f'./dependencies/datasets'
         # important parameter. set this to 'pc' to do import and inference in pc
-        # set this to 'j7' to run inference in device. for inference on device run_import
+        # set this to 'j7' to run inference in device/soc. for inference on device run_import
         # below should be switched off and it is assumed that the artifacts are already created.
         self.target_machine = 'pc' #'j7' #'pc'
+        # target device/soc configuration being used.
+        # This depends on the tidl_tools that is installed. So, we will leave this for the user to populate if desired.
+        self.target_device = None
+        # artifacts - suffix : attach this suffix to the run_dir where artifacts are created
+        self.run_suffix = None
         # for parallel execution on pc only (cpu or gpu(. if you don't have gpu, these actual numbers don't matter,
         # but the size of the list determines the number of parallel processes
         # if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
