@@ -1108,3 +1108,20 @@ target_device_descriptions:
       - starterkit: https://www.ti.com/tool/SK-TDA4VM\n- top level landing page: https://ti.com/edgeai\n"
     device_name: TDA4VM
     device_type: MPU
+task_descriptions:
+  classification:
+    stages:
+    - dataset
+    - training
+    - compilation
+    target_devices:
+    - TDA4VM
+    target_module: vision
+  detection:
+    stages:
+    - dataset
+    - training
+    - compilation
+    target_devices:
+    - TDA4VM
+    target_module: vision
