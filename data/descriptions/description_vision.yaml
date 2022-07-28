@@ -6,6 +6,7 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}'
       target_device: null
+      target_machine: j7
       task_type: classification
       verbose_mode: true
     compilation:
@@ -22,7 +23,6 @@ model_descriptions:
       model_packaged_path: null
       num_frames: null
       save_output: true
-      target_device: pc
       tensor_bits: 8
     dataset:
       annotation_dir: annotations
@@ -86,6 +86,7 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}'
       target_device: null
+      target_machine: j7
       task_type: classification
       verbose_mode: true
     compilation:
@@ -102,7 +103,6 @@ model_descriptions:
       model_packaged_path: null
       num_frames: null
       save_output: true
-      target_device: pc
       tensor_bits: 8
     dataset:
       annotation_dir: annotations
@@ -166,6 +166,7 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}'
       target_device: null
+      target_machine: j7
       task_type: classification
       verbose_mode: true
     compilation:
@@ -182,7 +183,6 @@ model_descriptions:
       model_packaged_path: null
       num_frames: null
       save_output: true
-      target_device: pc
       tensor_bits: 8
     dataset:
       annotation_dir: annotations
@@ -246,6 +246,7 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}'
       target_device: null
+      target_machine: j7
       task_type: classification
       verbose_mode: true
     compilation:
@@ -262,7 +263,6 @@ model_descriptions:
       model_packaged_path: null
       num_frames: null
       save_output: true
-      target_device: pc
       tensor_bits: 8
     dataset:
       annotation_dir: annotations
@@ -326,6 +326,7 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}'
       target_device: null
+      target_machine: j7
       task_type: classification
       verbose_mode: true
     compilation:
@@ -342,7 +343,6 @@ model_descriptions:
       model_packaged_path: null
       num_frames: null
       save_output: true
-      target_device: pc
       tensor_bits: 8
     dataset:
       annotation_dir: annotations
@@ -406,6 +406,7 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}'
       target_device: null
+      target_machine: j7
       task_type: classification
       verbose_mode: true
     compilation:
@@ -422,7 +423,6 @@ model_descriptions:
       model_packaged_path: null
       num_frames: null
       save_output: true
-      target_device: pc
       tensor_bits: 8
     dataset:
       annotation_dir: annotations
@@ -486,6 +486,7 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}'
       target_device: null
+      target_machine: j7
       task_type: detection
       verbose_mode: true
     compilation:
@@ -504,7 +505,6 @@ model_descriptions:
       runtime_options:
         advanced_options:output_feature_16bit_names_list: null
       save_output: true
-      target_device: pc
       tensor_bits: 8
     dataset:
       annotation_dir: annotations
@@ -572,6 +572,7 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}'
       target_device: null
+      target_machine: j7
       task_type: detection
       verbose_mode: true
     compilation:
@@ -590,7 +591,6 @@ model_descriptions:
       runtime_options:
         advanced_options:output_feature_16bit_names_list: null
       save_output: true
-      target_device: pc
       tensor_bits: 8
     dataset:
       annotation_dir: annotations
@@ -658,6 +658,7 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}'
       target_device: null
+      target_machine: j7
       task_type: detection
       verbose_mode: true
     compilation:
@@ -676,7 +677,6 @@ model_descriptions:
       runtime_options:
         advanced_options:output_feature_16bit_names_list: null
       save_output: true
-      target_device: pc
       tensor_bits: 8
     dataset:
       annotation_dir: annotations
@@ -744,6 +744,7 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}'
       target_device: null
+      target_machine: j7
       task_type: detection
       verbose_mode: true
     compilation:
@@ -763,7 +764,6 @@ model_descriptions:
         advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
           1563, 1564, 1578, 1579, 1580
       save_output: true
-      target_device: pc
       tensor_bits: 8
     dataset:
       annotation_dir: annotations
@@ -827,6 +827,7 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}'
       target_device: null
+      target_machine: j7
       task_type: detection
       verbose_mode: true
     compilation:
@@ -846,7 +847,6 @@ model_descriptions:
         advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
           1196, 1195, 1181, 1180, 1179
       save_output: true
-      target_device: pc
       tensor_bits: 8
     dataset:
       annotation_dir: annotations
@@ -910,6 +910,7 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}'
       target_device: null
+      target_machine: j7
       task_type: detection
       verbose_mode: true
     compilation:
@@ -929,7 +930,6 @@ model_descriptions:
         advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
           1196, 1195, 1181, 1180, 1179
       save_output: true
-      target_device: pc
       tensor_bits: 8
     dataset:
       annotation_dir: annotations
@@ -993,6 +993,7 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}'
       target_device: null
+      target_machine: j7
       task_type: detection
       verbose_mode: true
     compilation:
@@ -1012,7 +1013,6 @@ model_descriptions:
         advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
           1196, 1195, 1181, 1180, 1179
       save_output: true
-      target_device: pc
       tensor_bits: 8
     dataset:
       annotation_dir: annotations
