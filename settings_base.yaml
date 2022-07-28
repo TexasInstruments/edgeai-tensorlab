@@ -5,7 +5,7 @@ pipeline_type : 'accuracy'
 # set this to 'j7' to run inference in device. for inference on device run_import
 # below should be switched off and it is assumed that the artifacts are already created.
 # supported values: 'j7' 'pc'
-target_device : 'pc'
+target_machine : 'pc'
 
 # quantization bit precision
 # options are: 8 16 32

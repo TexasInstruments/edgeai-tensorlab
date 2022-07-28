@@ -86,12 +86,12 @@ class BaseRTSession(utils.ParamsBase):
         # other parameters
         self.kwargs['tensor_bits'] = self.kwargs.get('tensor_bits', 8)
 
-        # check the target_device
+        # check the target_machine
         self.kwargs['supported_devices'] = self.kwargs.get('supported_devices', None) #TODO: change to => ('j7', 'pc')
         if self.kwargs['supported_devices'] is not None:
             assert isinstance(self.kwargs['supported_devices'], (list,tuple)), \
                 f'supported_device must be a list or tuple'
-            assert self.kwargs['target_device'] in self.kwargs['supported_devices'], \
+            assert self.kwargs['target_machine'] in self.kwargs['supported_devices'], \
                 f"unsupported target device, must be one of {self.kwargs['supported_devices']}"
         #
         # store the current directory so that we can go back there any time

@@ -44,7 +44,7 @@ if [[ $# -ne 1 ]]; then
 fi
 
 # "j7" or "pc"
-target_device=$1
+target_machine=$1
 if [ "$artifacts_base" = "" ]; then
   artifacts_base="./work_dirs/modelartifacts/8bits"
 fi
@@ -59,9 +59,9 @@ do
   cd ${artifact_folder}/"artifacts"
   for artifact_file in "${artifact_files[@]}"
   do
-    if [[ -f ${artifact_file}.${target_device} ]]; then
-      echo "creating symbolic link to ${artifact_file}.${target_device}"
-      ln -snf ${artifact_file}.${target_device} ${artifact_file}
+    if [[ -f ${artifact_file}.${target_machine} ]]; then
+      echo "creating symbolic link to ${artifact_file}.${target_machine}"
+      ln -snf ${artifact_file}.${target_machine} ${artifact_file}
     fi
   done
   cd ${cur_dir}

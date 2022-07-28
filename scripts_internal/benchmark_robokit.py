@@ -91,7 +91,7 @@ def create_configs(settings, work_dir):
     preproc_transforms = preprocess.PreProcessTransforms(settings)
     postproc_transforms = postprocess.PostProcessTransforms(settings)
 
-    jai_session_cfg = sessions.get_jai_session_cfg(work_dir=work_dir, target_device=settings.target_device,
+    jai_session_cfg = sessions.get_jai_session_cfg(work_dir=work_dir, target_machine=settings.target_machine,
                             tidl_offload=settings.tidl_offload, input_optimization=settings.input_optimization)
 
     pipeline_configs = {

@@ -39,9 +39,9 @@ class TVMDLRSession(BaseRTSession):
         super().__init__(session_name=session_name, **kwargs)
         self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NCHW)
         self.interpreter = None
-        self.supported_devices = ('pc', 'j7')
-        target_device = self.kwargs['target_device']
-        assert target_device in self.supported_devices, f'invalid target_device {target_device}'
+        self.supported_machines = ('pc', 'j7')
+        target_machine = self.kwargs['target_machine']
+        assert target_machine in self.supported_machines, f'invalid target_machine {target_machine}'
 
     def import_model(self, calib_data, info_dict=None):
         # onnx and tvm are required only for model import
@@ -109,15 +109,15 @@ class TVMDLRSession(BaseRTSession):
         deploy_graph = 'deploy_graph.json'
         deploy_params = 'deploy_params.params'
 
-        for target_device in self.supported_devices:
-            if target_device == 'j7':
+        for target_machine in self.supported_machines:
+            if target_machine == 'j7':
                 build_target = 'llvm -device=arm_cpu -mtriple=aarch64-linux-gnu'
                 cross_cc_args = {'cc' : os.path.join(os.environ['ARM64_GCC_PATH'], 'bin', 'aarch64-none-linux-gnu-gcc')}
-            elif target_device == 'pc':
+            elif target_machine == 'pc':
                 build_target = 'llvm'
                 cross_cc_args = {}
             else:
-                assert False, f'unsupported target device {target_device}'
+                assert False, f'unsupported target device {target_machine}'
             #
 
             # build the relay module into deployables
@@ -128,9 +128,9 @@ class TVMDLRSession(BaseRTSession):
             tidl.remove_tidl_params(params)
 
             # save the deployables
-            path_lib = os.path.join(artifacts_folder, f'{deploy_lib}.{target_device}')
-            path_graph = os.path.join(artifacts_folder, f'{deploy_graph}.{target_device}')
-            path_params = os.path.join(artifacts_folder, f'{deploy_params}.{target_device}')
+            path_lib = os.path.join(artifacts_folder, f'{deploy_lib}.{target_machine}')
+            path_graph = os.path.join(artifacts_folder, f'{deploy_graph}.{target_machine}')
+            path_params = os.path.join(artifacts_folder, f'{deploy_params}.{target_machine}')
 
             lib.export_library(path_lib, **cross_cc_args)
             with open(path_graph, "w") as fo:
@@ -141,12 +141,12 @@ class TVMDLRSession(BaseRTSession):
             #
         #
 
-        # create a symbolic link to the deploy_lib specified in target_device
+        # create a symbolic link to the deploy_lib specified in target_machine
         os.chdir(artifacts_folder)
-        target_device = self.kwargs['target_device']
+        target_machine = self.kwargs['target_machine']
         artifact_files = [deploy_lib, deploy_graph, deploy_params]
         for artifact_file in artifact_files:
-            os.symlink(f'{artifact_file}.{target_device}', artifact_file)
+            os.symlink(f'{artifact_file}.{target_machine}', artifact_file)
         #
         os.chdir(self.cwd)
         return info_dict

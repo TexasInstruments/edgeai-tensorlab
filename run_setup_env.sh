@@ -45,7 +45,7 @@ fi
 
 # tvmdlr artifacts are different for pc and j7 device
 # point to the right artifact before this script executes
-source run_set_target_device.sh $1
+source run_set_target_machine.sh $1
 
 # setup the environment
 # source run_setupenv_pc.sh
