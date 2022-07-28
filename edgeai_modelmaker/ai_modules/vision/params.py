@@ -41,6 +41,7 @@ def init_params(*args, **kwargs):
             project_path=None,
             project_run_path=None,
             task_type=None,
+            target_machine='j7',
             target_device=None,
             # run_name can be any string
             # if {date-time} is given in run_name it will be considered special.
@@ -101,7 +102,6 @@ def init_params(*args, **kwargs):
             compilation_path=None,
             model_compiled_path=None,
             model_packaged_path=None,
-            target_device='pc',
             accuracy_level=1,
             tensor_bits=8,
             calibration_frames=50,

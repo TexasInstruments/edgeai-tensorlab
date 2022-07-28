@@ -48,7 +48,7 @@ class ModelCompilation():
     def __init__(self, *args, quit_event=None, **kwargs):
         self.params = self.init_params(*args, **kwargs)
         self.quit_event = quit_event
-        self.settings_file = jai_benchmark.get_settings_file(target_device=self.params.compilation.target_device, with_model_import=True)
+        self.settings_file = jai_benchmark.get_settings_file(target_machine=self.params.common.target_machine, with_model_import=True)
         self.settings = self._get_settings(model_selection=self.params.training.model_id)
         # prepare for model compilation
         self._prepare()
@@ -166,6 +166,7 @@ class ModelCompilation():
         runtime_options = dict(accuracy_level=self.params.compilation.accuracy_level)
         settings = jai_benchmark.config_settings.ConfigSettings(
                         self.settings_file,
+                        target_device=self.params.common.target_device,
                         model_selection=model_selection,
                         modelartifacts_path=self.params.compilation.compilation_path,
                         tensor_bits=self.params.compilation.tensor_bits,
