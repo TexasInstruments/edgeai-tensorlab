@@ -53,15 +53,15 @@ else:
 #
 
 
-def get_dataset(name, image_set, transform, data_path, num_classes=None):
+def get_dataset(name, image_set, transform, data_path, num_classes=None, annotation_prefix='instances'):
     paths = {
         "coco": (data_path, get_coco, 91),
         "coco_kp": (data_path, get_coco_kp, 2),
-        "modelmaker": (data_path, get_detection_modelmaker, num_classes+1 if num_classes else 91)
+        "modelmaker": (data_path, get_detection_modelmaker, num_classes+1 if num_classes else 91, annotation_prefix)
     }
-    p, ds_fn, num_classes = paths[name]
+    p, ds_fn, num_classes, annotation_prefix = paths[name]
 
-    ds = ds_fn(p, image_set=image_set, transforms=transform)
+    ds = ds_fn(p, image_set=image_set, transforms=transform, annotation_prefix=annotation_prefix)
     return ds, num_classes
 
 
@@ -80,6 +80,7 @@ def get_args_parser(add_help=True):
 
     parser.add_argument('--data-path', default='./data/datasets/coco', help='dataset')
     parser.add_argument('--dataset', default='coco', help='dataset')
+    parser.add_argument('--annotation-prefix', default='instances', help='annotation-prefix')
     parser.add_argument('--model', default='ssdlite_mobilenet_v2_fpn_lite', help='model')
     parser.add_argument('--device', default='cuda', help='device')
     parser.add_argument('-b', '--batch-size', default=4, type=int,
@@ -177,7 +178,7 @@ def load_train_anno(args=None):
     anno_train = None
     if args.save_imgs_path or args.save_op_txt_path:
         import json
-        anno_train = json.load(open(os.path.join(args.data_path, 'annotations', 'instances_train.json')))
+        anno_train = json.load(open(os.path.join(args.data_path, 'annotations', f'{args.annotation_prefix}_train.json')))
     return anno_train
 
 def main(gpu, args):
@@ -230,8 +231,9 @@ def main(gpu, args):
     print("Loading data")
 
     dataset, num_classes = get_dataset(args.dataset, "train", get_transform(args, True, args.data_augmentation),
-                                       args.data_path, args.num_classes)
-    dataset_test, _ = get_dataset(args.dataset, "val", get_transform(args, False, args.data_augmentation), args.data_path)
+                                       args.data_path, args.num_classes, args.annotation_prefix)
+    dataset_test, _ = get_dataset(args.dataset, "val", get_transform(args, False, args.data_augmentation),
+                                  args.data_path, args.annotation_prefix)
 
     print("Creating data loaders")
     if args.distributed:
@@ -277,7 +279,6 @@ def main(gpu, args):
             kwargs["rpn_score_thresh"] = args.rpn_score_thresh
     model = torchvision.models.detection.__dict__[args.model](num_classes=num_classes, pretrained=args.pretrained,
                                                               pretrained_backbone=args.pretrained_backbone, **kwargs)
-
 
     if args.export_only:
         export(args, model, args.model)

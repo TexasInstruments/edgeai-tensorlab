@@ -128,7 +128,7 @@ def load_data(traindir, valdir, args):
                                               image_mean=args.image_mean, image_scale=args.image_scale)
         if args.dataset == 'modelmaker':
             train_folders = os.path.normpath(traindir).split(os.sep)
-            train_anno = os.path.join(os.sep.join(train_folders[:-1]), 'annotations', 'labels_train.json')
+            train_anno = os.path.join(os.sep.join(train_folders[:-1]), 'annotations', f'{args.annotation_prefix}_train.json')
             dataset = torchvision.datasets.CocoClassification(traindir, train_anno, train_transform)
         elif args.dataset == 'imagelist':
             dataset = torchvision.datasets.ImageListClassification(traindir, traindir+'.txt', train_transform)
@@ -153,7 +153,7 @@ def load_data(traindir, valdir, args):
                                              image_mean=args.image_mean, image_scale=args.image_scale)
         if args.dataset == 'modelmaker':
             val_folders = os.path.normpath(valdir).split(os.sep)
-            val_anno = os.path.join(os.sep.join(val_folders[:-1]), 'annotations', 'labels_val.json')
+            val_anno = os.path.join(os.sep.join(val_folders[:-1]), 'annotations', f'{args.annotation_prefix}_val.json')
             dataset_test = torchvision.datasets.CocoClassification(valdir, val_anno, val_transform)
         elif args.dataset == 'imagelist':
             dataset_test = torchvision.datasets.ImageListClassification(valdir, valdir+'.txt', val_transform)
@@ -356,6 +356,7 @@ def get_args_parser(add_help=True):
 
     parser.add_argument('--data-path', default='./data/datasets/imagenet', help='dataset')
     parser.add_argument('--dataset', default='folder', help='dataset')
+    parser.add_argument('--annotation-prefix', default='instances', help='annotation-prefix')
     parser.add_argument('--model', default='resnet18', help='model')
     parser.add_argument('--device', default='cuda', help='device')
     parser.add_argument('--gpus', default=1, type=int, help='number of gpus')
