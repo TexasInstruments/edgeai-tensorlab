@@ -63,12 +63,16 @@ def main(args):
     # get target device descriptions
     target_device_descriptions = ai_target_module.runner.ModelRunner.get_target_device_descriptions(params)
 
+    # task descriptions
+    task_descriptions = ai_target_module.runner.ModelRunner.get_task_descriptions(params)
+
     # sample dataset descriptions
     sample_dataset_descriptions = ai_target_module.runner.ModelRunner.get_sample_dataset_descriptions(params)
 
     description = dict(model_descriptions=model_descriptions_desc,
                        preset_descriptions=preset_descriptions,
                        target_device_descriptions=target_device_descriptions,
+                       task_descriptions=task_descriptions,
                        sample_dataset_descriptions=sample_dataset_descriptions)
 
     # write description

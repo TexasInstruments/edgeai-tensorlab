@@ -148,5 +148,9 @@ class ModelRunner():
         return descriptions.get_target_device_descriptions(*args, **kwargs)
 
     @staticmethod
+    def get_task_descriptions(*args, **kwargs):
+        return descriptions.get_task_descriptions(*args, **kwargs)
+
+    @staticmethod
     def get_sample_dataset_descriptions(*args, **kwargs):
         return descriptions.get_sample_dataset_descriptions(*args, **kwargs)

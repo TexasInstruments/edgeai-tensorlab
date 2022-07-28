@@ -159,6 +159,7 @@ class ModelTraining:
                 '--pretrained', f'{self.params.training.pretrained_checkpoint_path}',
                 '--dataset', 'modelmaker',
                 '--data-path', f'{self.params.dataset.dataset_path}',
+                '--annotation-prefix', f'{self.params.dataset.annotation_prefix}',
                 '--num-classes', f'{self.params.training.num_classes}',
                 '--gpus', f'{self.params.training.num_gpus}',
                 '--output-dir', f'{self.params.training.training_path}',

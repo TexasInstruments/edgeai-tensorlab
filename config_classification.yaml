@@ -11,10 +11,6 @@ common:
 dataset:
     # enable/disable dataset loading
     enable: True #False
-
-    annotation_prefix: 'labels'
-    dataset_download: False #True
-    dataset_reload: True #False
     # max_num_files: [1000, 250] #None
 
     # Image Classification Dataset Examples:
@@ -29,6 +25,7 @@ dataset:
     # -------------------------------------
     dataset_name: animal_classification
     input_data_path: 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip'
+    annotation_prefix: 'labels'
 
 training:
     # enable/disable training

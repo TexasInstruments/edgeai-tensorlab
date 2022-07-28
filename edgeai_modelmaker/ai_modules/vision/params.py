@@ -62,7 +62,7 @@ def init_params(*args, **kwargs):
             data_dir='images',
             annotation_path_splits=None,
             annotation_dir='annotations',
-            annotation_prefix='instances',
+            annotation_prefix='instances', # change this if your dataset has a different annotation prefix
             dataset_download=True,
             dataset_reload=False
         ),

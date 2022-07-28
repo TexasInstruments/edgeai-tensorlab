@@ -89,3 +89,7 @@ def get_target_device_descriptions(params):
 
 def get_sample_dataset_descriptions(params):
     return constants.SAMPLE_DATASET_DESCRIPTIONS
+
+
+def get_task_descriptions(params):
+    return constants.TASK_DESCRIPTIONS

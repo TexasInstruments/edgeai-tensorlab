@@ -231,8 +231,8 @@ class ModelTraining:
         self.quit_event = quit_event
 
         # num classes
-        self.train_ann_file = f'{self.params.dataset.dataset_path}/annotations/labels_train.json'
-        self.val_ann_file = f'{self.params.dataset.dataset_path}/annotations/labels_val.json'
+        self.train_ann_file = f'{self.params.dataset.dataset_path}/annotations/{self.params.dataset.annotation_prefix}_train.json'
+        self.val_ann_file = f'{self.params.dataset.dataset_path}/annotations/{self.params.dataset.annotation_prefix}_val.json'
         with open(self.train_ann_file) as train_ann_fp:
             train_anno = json.load(train_ann_fp)
             categories = train_anno['categories']
@@ -267,6 +267,7 @@ class ModelTraining:
                 '--pretrained', f'{self.params.training.pretrained_checkpoint_path}',
                 '--dataset', 'modelmaker',
                 '--data-path', f'{self.params.dataset.dataset_path}',
+                '--annotation-prefix', f'{self.params.dataset.annotation_prefix}',
                 #'--num-classes', f'{self.params.training.num_classes}',
                 '--gpus', f'{self.params.training.num_gpus}',
                 '--output-dir', f'{self.params.training.training_path}',

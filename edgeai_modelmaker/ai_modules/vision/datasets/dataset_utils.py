@@ -279,12 +279,6 @@ def pretty_json_dump(file_name, data):
         del encoder.FLOAT_REPR
 
 
-annotation_prefix_dict = {
-    constants.TASK_TYPE_CLASSIFICATION : 'labels',
-    constants.TASK_TYPE_DETECTION : 'instances'
-}
-
-
 def _find_annotations_info(dataset_store):
     image_id_to_file_id_dict = dict()
     file_id_to_image_id_dict = dict()

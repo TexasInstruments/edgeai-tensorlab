@@ -101,6 +101,21 @@ near max processing entitlement
     }
 }
 
+
+TASK_DESCRIPTIONS = {
+    TASK_TYPE_CLASSIFICATION: {
+        'target_module': 'vision',
+        'target_devices': [TARGET_DEVICE_TDA4VM],
+        'stages': ['dataset', 'training', 'compilation'],
+    },
+    TASK_TYPE_DETECTION: {
+        'target_module': 'vision',
+        'target_devices': [TARGET_DEVICE_TDA4VM],
+        'stages': ['dataset', 'training', 'compilation'],
+    }
+}
+
+
 SAMPLE_DATASET_DESCRIPTIONS = {
     'animal_classification': {
         'task_type': TASK_TYPE_CLASSIFICATION,
@@ -111,3 +126,4 @@ SAMPLE_DATASET_DESCRIPTIONS = {
         'download_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip'
     }
 }
+

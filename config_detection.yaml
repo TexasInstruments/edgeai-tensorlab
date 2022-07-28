@@ -11,8 +11,6 @@ common:
 dataset:
     # enable/disable dataset loading
     enable: True #False
-    dataset_download: True #False #True
-    dataset_reload: True #False #True
     # max_num_files: [750, 250] #None
 
     # Object Detection Dataset Examples:

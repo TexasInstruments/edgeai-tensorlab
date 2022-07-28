@@ -86,12 +86,16 @@ class ModelCompilation():
             path=self.params.dataset.dataset_path,
             split='train',
             shuffle=True,
-            num_frames=self.params.compilation.calibration_frames) # num_frames is not critical here
+            num_frames=self.params.compilation.calibration_frames, # num_frames is not critical here,
+            annotation_prefix=self.params.dataset.annotation_prefix
+        )
         val_dataset = dataset_loader(
             path=self.params.dataset.dataset_path,
             split='val',
             shuffle=False, # can be set to True as well, if needed
-            num_frames=self.params.compilation.num_frames) # this num_frames is important for accuracy calculation
+            num_frames=self.params.compilation.num_frames, # this num_frames is important for accuracy calculation
+            annotation_prefix=self.params.dataset.annotation_prefix
+        )
 
         # it may be easier to get the existing config and modify the aspects that need to be changed
         pipeline_configs = jai_benchmark.tools.select_configs(self.settings, self.work_dir)

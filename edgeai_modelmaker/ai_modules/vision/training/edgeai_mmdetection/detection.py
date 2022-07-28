@@ -273,8 +273,8 @@ class ModelTraining:
         self.quit_event = quit_event
 
         # num_classes
-        self.train_ann_file = f'{self.params.dataset.dataset_path}/annotations/instances_train.json'
-        self.val_ann_file = f'{self.params.dataset.dataset_path}/annotations/instances_val.json'
+        self.train_ann_file = f'{self.params.dataset.dataset_path}/annotations/{self.params.dataset.annotation_prefix}_train.json'
+        self.val_ann_file = f'{self.params.dataset.dataset_path}/annotations/{self.params.dataset.annotation_prefix}_val.json'
         with open(self.train_ann_file) as train_ann_fp:
             train_anno = json.load(train_ann_fp)
             categories = train_anno['categories']
