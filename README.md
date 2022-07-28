@@ -183,7 +183,7 @@ data/datasets/animal_classification
                              |     |--copy the image files here
                              |
                              |--annotations
-                                   |--labels.json
+                                   |--instances.json
 </pre>
 
 - In the config file, provide the name of the dataset (animal_classification in this example) in the field dataset_name and provide the path (./data/datasets/animal_classification in this example) in the field input_data_path.

@@ -55,7 +55,7 @@ def dataset_paths(state, example_project_path, **kwargs):
     example_dataset_path = os.path.join(example_project_path, 'dataset')
     example_project_files_path = os.path.join(example_dataset_path, 'images')
     example_project_annotations_path = os.path.join(example_dataset_path, 'annotations')
-    example_project_annotation_file_name = os.path.join(example_project_annotations_path, 'labels.json')
+    example_project_annotation_file_name = os.path.join(example_project_annotations_path, 'instances.json')
     return (example_project_files_path,example_project_annotation_file_name)
 
 
@@ -72,7 +72,7 @@ def dataset_download(state, example_project_path, force_download=False, log_writ
     example_dataset_path = os.path.join(example_project_path, 'dataset')
     example_project_files_path = os.path.join(example_dataset_path, 'images')
     example_project_annotations_path = os.path.join(example_dataset_path, 'annotations')
-    example_project_annotation_file_name = os.path.join(example_project_annotations_path, 'labels.json')
+    example_project_annotation_file_name = os.path.join(example_project_annotations_path, 'instances.json')
 
     print(f'''
         Downloading and preparing dataset, this may take some time.
