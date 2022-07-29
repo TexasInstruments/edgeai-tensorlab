@@ -164,9 +164,11 @@ class ModelCompilation():
 
     def _get_settings(self, model_selection=None):
         runtime_options = dict(accuracy_level=self.params.compilation.accuracy_level)
+        target_device_suffix = self.params.common.target_device.lower()
         settings = jai_benchmark.config_settings.ConfigSettings(
                         self.settings_file,
                         target_device=self.params.common.target_device,
+                        run_suffix=target_device_suffix,
                         model_selection=model_selection,
                         modelartifacts_path=self.params.compilation.compilation_path,
                         tensor_bits=self.params.compilation.tensor_bits,

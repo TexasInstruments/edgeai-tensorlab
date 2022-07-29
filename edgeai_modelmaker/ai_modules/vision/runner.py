@@ -69,7 +69,8 @@ class ModelRunner():
         self.params.dataset.extract_path = self.params.dataset.dataset_path
 
         self.params.training.training_path = os.path.join(self.params.common.project_run_path, 'training', self.params.training.model_key)
-        self.params.compilation.compilation_path = os.path.join(self.params.common.project_run_path, 'compilation', self.params.common.target_device)
+        target_device_compilation_folder = self.params.common.target_device.lower()
+        self.params.compilation.compilation_path = os.path.join(self.params.common.project_run_path, 'compilation', target_device_compilation_folder)
 
         if self.params.common.target_device in self.params.training.target_devices:
             target_device_data = self.params.training.target_devices[self.params.common.target_device]
