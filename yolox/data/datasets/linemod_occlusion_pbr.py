@@ -44,7 +44,7 @@ class LINEMODOcclusionPBRDataset(Dataset):
         """
         super().__init__(img_size)
         if data_dir is None:
-            data_dir = os.path.join(get_yolox_datadir(), "LINEMOD_Occlusion_COCO_pbr")
+            data_dir = os.path.join(get_yolox_datadir(), "LINEMOD_Occlusion_COCO_PBR")
         self.data_dir = data_dir
         self.json_file = json_file
         self.object_pose = object_pose 
