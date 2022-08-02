@@ -166,7 +166,7 @@ def get_configs(settings, work_dir):
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':59.80})
         ),
-        # this model is repeated here and hard-coded to use tvmdlr session to generate an example tvmdlr artifact
+        # complied for TVM - this model is repeated here and hard-coded to use tvmdlr session to generate an example tvmdlr artifact
         'ss-5720':utils.dict_update(cocoseg21_cfg,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
             session=sessions.TVMDLRSession(**jai_session_cfg,
