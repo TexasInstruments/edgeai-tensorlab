@@ -228,7 +228,7 @@ model_id_artifacts_pair = {
     'cl-6120_onnxrt': 'ONR-CL-6120-regNetX-400mf',
     'cl-6130_onnxrt': 'ONR-CL-6130-regNetX-800mf',
     'cl-6140_onnxrt': 'ONR-CL-6140-regNetX-1.6gf',
-    'cl-6150_onnxrt': 'ONR-CL-6150-mobileNetV2-1p4-qat',
+    'cl-6158_onnxrt': 'ONR-CL-6158-mobileNetV2-1p4-qat',
     'cl-6160_onnxrt': 'ONR-CL-6160-regNetX-400mf',
     'cl-6170_onnxrt': 'ONR-CL-6170-regNetX-800mf',
     'cl-6180_onnxrt': 'ONR-CL-6180-regNetX-1.6gf',

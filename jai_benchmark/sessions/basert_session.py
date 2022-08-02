@@ -135,7 +135,9 @@ class BaseRTSession(utils.ParamsBase):
         # create run_dir
         os.makedirs(self.kwargs['run_dir'], exist_ok=True)
         os.makedirs(self.kwargs['model_folder'], exist_ok=True)
+        # download or copy the model and add any optimizations required
         self.get_model()
+        # set the flag
         self.is_started = True
 
     def import_model(self, calib_data, info_dict=None):
@@ -401,6 +403,12 @@ class BaseRTSession(utils.ParamsBase):
                 self.kwargs['input_mean'] = None
                 self.kwargs['input_scale'] = None
             #
+        #
+        # run onnx shape inference on the model - tidl may thow errors if the onnx model doesn't have shapes
+        # run this only one time - that is what the (not model_file_exists) check does
+        if (not model_file_exists) and model_file0.endswith('.onnx'):
+            import onnx
+            onnx.shape_inference.infer_shapes_path(model_file0, model_file0)
         #
         if self.kwargs['input_mean'] is not None and self.kwargs['input_scale'] is not None:
             # mean scale could not be absorbed inside the model - do it explicitly

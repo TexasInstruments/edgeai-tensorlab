@@ -54,14 +54,14 @@ if __name__ == '__main__':
         os.chdir('../')
     #
     model_selection_default = [
-                       'edgeai-tv/mobilenet_v1_20190906.onnx',
-                       'edgeai-tv/mobilenet_v2_20191224.onnx',
-                       'edgeai-tv/mobilenet_v2_1p4_qat-p2_20210112.onnx',
-                       'torchvision/resnet18.onnx',
-                       'torchvision/resnet50.onnx',
-                       'fbr-pycls/regnetx-400mf.onnx',
-                       'fbr-pycls/regnetx-800mf.onnx',
-                       'fbr-pycls/regnetx-1.6gf.onnx'
+                       'cl-6060',
+                       'cl-6090',
+                       'cl-6158',
+                       'cl-6100',
+                       'cl-6110',
+                       'cl-6160',
+                       'cl-6170',
+                       'cl-6180'
                       ]
 
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)

@@ -38,7 +38,6 @@ from .model_transformation import *
 from .accuracy_pipeline import *
 from jai_benchmark import preprocess
 
-#from prototxt_parser.prototxt import parse as prototxt_parse
 
 class PipelineRunner():
     def __init__(self, settings, pipeline_configs):
@@ -204,52 +203,3 @@ class PipelineRunner():
             selected_model = selected_model and (not excluded_model)
         #
         return selected_model
-
-    def get_input_shape_onnx(self, onnx_model, num_inputs=1):
-        input_shape = {}
-        for input_idx in range(num_inputs):
-            input_i = onnx_model.graph.input[input_idx]
-            name = input_i.name
-            shape = [dim.dim_value for dim in input_i.type.tensor_type.shape.dim]
-            input_shape.update({name: shape})
-        #
-        return input_shape
-
-
-    def get_output_shape_onnx(self, onnx_model, num_outputs=1):
-        output_shape = {}
-        num_outputs = 1
-        for output_idx in range(num_outputs):
-            output_i = onnx_model.graph.output[output_idx]
-            name = output_i.name
-            shape = [dim.dim_value for dim in output_i.type.tensor_type.shape.dim]
-            output_shape.update({name:shape})
-        #
-        return output_shape
-
-
-    # def _parse_prototxt(self, prototxt_filename):
-    #     try:
-    #         with open(prototxt_filename) as fp:
-    #             file_lines = fp.readlines()
-    #             prototxt_lines = []
-    #             for line in file_lines:
-    #                 line = line.rstrip()
-    #                 # prototxt_parser doesnt line comments - remove them
-    #                 line_out = ''
-    #                 for c in line:
-    #                     if c == '#':
-    #                         break
-    #                     else:
-    #                         line_out += c
-    #                     #
-    #                 #
-    #                 prototxt_lines.append(line_out)
-    #             #
-    #             prototxt_str = '\n'.join(prototxt_lines)
-    #             meta_info = prototxt_parse(prototxt_str)
-    #         #
-    #     except:
-    #         meta_info = None
-    #     #
-    #     return meta_info

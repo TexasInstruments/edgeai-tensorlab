@@ -53,3 +53,27 @@ def file_exists(file_path):
         has_file = os.path.exists(file_path)
     #
     return has_file
+
+
+def get_input_shape_onnx(onnx_model, num_inputs=1):
+    input_shape = {}
+    for input_idx in range(num_inputs):
+        input_i = onnx_model.graph.input[input_idx]
+        name = input_i.name
+        shape = [dim.dim_value for dim in input_i.type.tensor_type.shape.dim]
+        input_shape.update({name: shape})
+    #
+    return input_shape
+
+
+def get_output_shape_onnx(onnx_model, num_outputs=1):
+    output_shape = {}
+    num_outputs = 1
+    for output_idx in range(num_outputs):
+        output_i = onnx_model.graph.output[output_idx]
+        name = output_i.name
+        shape = [dim.dim_value for dim in output_i.type.tensor_type.shape.dim]
+        output_shape.update({name:shape})
+    #
+    return output_shape
+
