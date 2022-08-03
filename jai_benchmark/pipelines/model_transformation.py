@@ -1,3 +1,7 @@
+import os
+import sys
+import copy
+import warnings
 
 try:
     import onnx
@@ -10,6 +14,9 @@ try:
 except:
     #warnings.warn('onnxsim could not be imported - this is not required for inference, but may be required for import')
     pass
+
+from .. import utils
+from .. import preprocess
 
 
 def model_transformation(settings, pipeline_configs_in):
@@ -79,13 +86,13 @@ def model_transformation(settings, pipeline_configs_in):
             linkfile_name = run_dir + '.tar.gz.link'
             if (not os.path.exists(run_dir)) and (not os.path.exists(tarfile_name)) and (not os.path.exists(linkfile_name)):
                 onnx_model = onnx.load(model_path)
-                input_name_shapes = self.get_input_shape_onnx(onnx_model)
+                input_name_shapes = utils.get_input_shape_onnx(onnx_model)
                 assert len(input_name_shapes) == 1
                 input_name = None
                 for k, v in input_name_shapes.items():
                     input_name = k
                 #
-                out_name_shapes = self.get_output_shape_onnx(onnx_model)
+                out_name_shapes = utils.get_output_shape_onnx(onnx_model)
 
                 # variable shape model
                 input_var_shapes = {input_name: ['b', 3, 'w', 'h']}
@@ -95,11 +102,13 @@ def model_transformation(settings, pipeline_configs_in):
                 input_name_shapes[input_name] = [1, 3, input_size, input_size]
                 # change to fixed shape model
                 try:
-                    onnx_model, check = simplify(onnx_model, skip_shape_inference=False, input_shapes=input_name_shapes)
-                except:
-                    warnings.warn(f'please install onnx-simplifier : onnxsim.simplify() - changing the size of {model_path} did not work - skipping')
+                    onnx_model, check = simplify(onnx_model, skip_shape_inference=False, overwrite_input_shapes=input_name_shapes)
+                except Exception as e:
+                    warnings.warn(f'please install onnx-simplifier : onnxsim.simplify()')
+                    warnings.warn(f'changing the size of {model_path} did not work - skipping')
+                    warnings.warn(f'{e}')
                     continue
-                #
+
                 # save model in model_folder
                 os.makedirs(model_folder, exist_ok=True)
                 #print("saving modified model :{}".format(model_path_out))

@@ -331,43 +331,10 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 44.4})
         ),
-
         #################################################################
         #       MXNET MODELS
         #################################################################
-        # mxnet : gluoncv model : detection - yolo3_mobilenet1.0_coco - accuracy: 28.6% ap[0.5:0.95], 48.9% ap50
-        'od-5020':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx((416,416), (416,416), backend='cv2'),
-            session=mxnet_session_type(**mxnet_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
-                model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-symbol.json',
-                            f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-0000.params'],
-                model_type='mxnet', input_shape={'data':(1,3,416,416)}),
-            postprocess=postproc_detection_mxnet,
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.6})
-        ),
-        # mxnet : gluoncv model : detection - ssd_512_resnet50_v1_coco - accuracy: 30.6% ap[0.5:0.95], 50.0% ap50
-        'od-5030':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=mxnet_session_type(**mxnet_session_cfg, runtime_options=settings.runtime_options_mxnet_p2(),
-                model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_resnet50_v1_coco-symbol.json',
-                            f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_resnet50_v1_coco-0000.params'],
-                model_type='mxnet', input_shape={'data':(1,3,512,512)}),
-            postprocess=postproc_detection_mxnet,
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':30.6})
-        ),
-        # mxnet : gluoncv model : detection - ssd_512_mobilenet1.0_coco - accuracy: 21.7% ap[0.5:0.95], 39.2% ap50
-        'od-5040':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=mxnet_session_type(**mxnet_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
-                model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-symbol.json',
-                            f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-0000.params'],
-                model_type='mxnet', input_shape={'data':(1,3,512,512)}),
-            postprocess=postproc_detection_mxnet,
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':21.7})
-        ),
+        # moved to experimental
         #################################################################
         #       TFLITE MODELS
         #################tflite models###################################
@@ -510,6 +477,26 @@ def get_configs(settings, work_dir):
                                                            formatter=postprocess.DetectionFormatting(dst_indices=(0,1,2,3,4,5), src_indices=(1,0,3,2,5,4)), resize_with_pad=True),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 38.33})
+        ),
+        ###################################################################
+        # complied for TVM - this model is repeated here and hard-coded to use tvmdlr session to generate an example tvmdlr artifact
+        # mlperf edge: detection - ssd_mobilenet_v1_coco_2018_01_28 expected_metric: 23.0% ap[0.5:0.95] accuracy
+        'od-5100':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_tflite((300,300), (300,300), backend='cv2'),
+            session=sessions.TVMDLRSession(**tflite_session_cfg, runtime_options=runtime_options_tflite_np2,
+                model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_20180128.tflite'),
+            postprocess=postproc_detection_tflite,
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':23.0})
+        ),
+        # tensorflow1.0 models: detection - ssdlite_mobiledet_dsp_320x320_coco_2020_05_19 expected_metric: 28.9% ap[0.5:0.95] accuracy
+        'od-5120':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_tflite((320,320), (320,320), backend='cv2'),
+            session=sessions.TVMDLRSession(**tflite_session_cfg, runtime_options=runtime_options_tflite_np2,
+                model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_20200519.tflite'),
+            postprocess=postproc_detection_tflite,
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.9})
         ),
     }
     return pipeline_configs

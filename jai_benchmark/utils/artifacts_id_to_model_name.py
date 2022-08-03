@@ -228,7 +228,7 @@ model_id_artifacts_pair = {
     'cl-6120_onnxrt': 'ONR-CL-6120-regNetX-400mf',
     'cl-6130_onnxrt': 'ONR-CL-6130-regNetX-800mf',
     'cl-6140_onnxrt': 'ONR-CL-6140-regNetX-1.6gf',
-    'cl-6150_onnxrt': 'ONR-CL-6150-mobileNetV2-1p4-qat',
+    'cl-6158_onnxrt': 'ONR-CL-6158-mobileNetV2-1p4-qat',
     'cl-6160_onnxrt': 'ONR-CL-6160-regNetX-400mf',
     'cl-6170_onnxrt': 'ONR-CL-6170-regNetX-800mf',
     'cl-6180_onnxrt': 'ONR-CL-6180-regNetX-1.6gf',
@@ -375,6 +375,10 @@ model_id_artifacts_pair = {
     # ONNX depth estimation
     'de-7300_onnxrt': 'ONR-DE-7300-depth-est-fast-depth-224x224',
     'de-7310_onnxrt': 'ONR-DE-7310-depth-est-midas-small-256x256',
+
+    # additional models compiled for TVM
+    'od-5100_tvmdlr': 'TVM-OD-5100-ssd-mobV1-coco-mlperf-300x300',
+    'od-5120_tvmdlr': 'TVM-OD-5120-ssdLite-mobDet-DSP-coco-320x320',
 }
 
 removed_model_list = {
@@ -527,9 +531,10 @@ recommended_model_list = {
     'cl-0000_tflitert': 'TFL-CL-0000-mobileNetV1-mlperf',
     'od-2020_tflitert': 'TFL-OD-2020-ssdLite-mobDet-DSP-coco-320x320',
     'ss-2580_tflitert': 'TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512',
-    'cl-3410_tvmdlr': 'TVM-CL-3410-gluoncv-mxnet-mobv2',
-    'od-5020_tvmdlr': 'TVM-OD-5020-yolov3-mobv1-gluon-mxnet-coco-416x416',
-    'ss-5720_tvmdlr' : 'TVM-SS-5720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
+    'cl-3090_tvmdlr': 'TVM-CL-3090-mobileNetV2-tv',
+    'cl-3500_tvmdlr': 'TVM-CL-3500-mobileNetV1',
+    'od-5120_tvmdlr': 'TVM-OD-5120-ssdLite-mobDet-DSP-coco-320x320',
+    'ss-5720_tvmdlr': 'TVM-SS-5720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
     'cl-6360_onnxrt': 'ONR-CL-6360-regNetx-200mf',
     'od-8050_onnxrt': 'ONR-OD-8050-ssd-lite-regNetX-800mf-fpn-bgr-coco-512x512',
     'od-8220_onnxrt': 'ONR-OD-8220-yolox-s-lite-mmdet-coco-640x640',

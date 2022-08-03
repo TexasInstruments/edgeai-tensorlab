@@ -121,9 +121,49 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_top1%':69.70})
         # ),
         #
-        # #################################################################
-        # #       MXNet MODELS
-        # #################################################################
+        #################################################################
+        #       MXNet MODELS
+        #################################################################
+        # mxnet : gluoncv model : classification - mobilenetv2_1.0 - accuracy: 72.04% top1
+        'cl-3410':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(backend='cv2'),
+            session=mxnet_session_type(**mxnet_session_cfg,
+                runtime_options=settings.runtime_options_mxnet_np2(),
+                model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-symbol.json',
+                            f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/mobilenetv2_1.0-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,3,224,224)}),
+            model_info=dict(metric_reference={'accuracy_top1%':72.04})
+        ),
+        # mxnet : gluoncv model : classification - resnet50_v1d - accuracy: 79.15% top1
+        'cl-3420':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(backend='cv2'),
+            session=mxnet_session_type(**mxnet_session_cfg,
+                runtime_options=settings.runtime_options_mxnet_p2(),
+                model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/resnet50_v1d-symbol.json',
+                            f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/resnet50_v1d-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,3,224,224)}),
+            model_info=dict(metric_reference={'accuracy_top1%':79.15})
+        ),
+        # mxnet : gluoncv model : classification - xception - accuracy: 79.56% top1
+        'cl-3430':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(342, 299, backend='cv2'),
+            session=mxnet_session_type(**mxnet_session_cfg,
+                runtime_options=settings.runtime_options_mxnet_p2(),
+                model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/xception-symbol.json',
+                            f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/xception-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,3,299,299)}),
+            model_info=dict(metric_reference={'accuracy_top1%':79.56})
+        ),
+        # mxnet : gluoncv model : classification - hrnet_w18_small_v2_c - reference accuracy: is from hrnet website, not from gluoncv
+        'cl-3480':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(backend='cv2'),
+            session=mxnet_session_type(**mxnet_session_cfg,
+                runtime_options=settings.runtime_options_mxnet_p2(),
+                model_path=[f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/hrnet_w18_small_v2_c-symbol.json',
+                            f'{settings.models_path}/vision/classification/imagenet1k/gluoncv-mxnet/hrnet_w18_small_v2_c-0000.params'],
+                model_type='mxnet', input_shape={'data':(1,3,224,224)}),
+            model_info=dict(metric_reference={'accuracy_top1%':75.1})
+        ),
         # # mxnet : gluoncv model : classification - hrnet_w30_c - - reference accuracy: is from hrnet website, not from gluoncv
         # 'cl-3510':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(backend='cv2'),
@@ -164,6 +204,24 @@ def get_configs(settings, work_dir):
         #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite2-fp32.tflite'),
         #     model_info=dict(metric_reference={'accuracy_top1%':77.6})
         # ),
+        # tf hosted models: classification squeezenet_1 expected_metric: 49.0% top-1 accuracy
+        'cl-0020':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_tflite(),
+            session=tflite_session_type(**utils.dict_update(tflite_session_cfg, input_mean=(123.68, 116.78, 103.94), input_scale=(1/255, 1/255, 1/255)),
+                runtime_options=settings.runtime_options_tflite_np2(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/squeezenet.tflite'),
+            metric=dict(label_offset_pred=-1),
+            model_info=dict(metric_reference={'accuracy_top1%':49.0})
+        ),
+        # tf hosted models: classification densenet expected_metric: 74.98% top-1 accuracy (from publication)
+        'cl-0150':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_tflite(),
+            session=tflite_session_type(**utils.dict_update(tflite_session_cfg, input_mean=(123.68, 116.78, 103.94), input_scale=(1/255, 1/255, 1/255)),
+                runtime_options=settings.runtime_options_tflite_np2(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/densenet.tflite'),
+            metric=dict(label_offset_pred=-1),
+            model_info=dict(metric_reference={'accuracy_top1%':74.98})
+        ),
         #
         # ##################tf2-models#####################################################
         # # tf2_models: classification xception expected_metric: 79.0% top-1 accuracy

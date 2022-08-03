@@ -61,7 +61,7 @@ session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
 # only models matching these criteria will be considered - even for model_selection
 # examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
 # examples: ['resnet18.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision'] ['coco']
-# examples: [cl-0000, od-2020, ss-2580, cl-3410, od-5020, ss-5720, cl-6360, od-8050, od-8220, od-8420, ss-8610, kd-7060]
+# examples: [cl-0000, od-2020, ss-2580, cl-3090, cl-3500, od-5120, ss-5720, cl-6360, od-8050, od-8220, od-8420, ss-8610, kd-7060]
 model_selection : null
 
 # wild card list to match against the tasks. it null, all tasks will be run
