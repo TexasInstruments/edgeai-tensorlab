@@ -11,6 +11,9 @@ parser.add_argument("--syn", default=False, action="store_true", help="Use only 
 parser.add_argument("--lm", default=False, action="store_true", help="Select only LM classes")
 parser.add_argument("--lmo", default=False, action="store_true", help="Select only LMO classes ")
 parser.add_argument("--lmob", default=False, action="store_true", help="Select only LMO classes including benchvise")
+parser.add_argument("--merge_lm", default=False, action="store_true", help="Merge PBR with LINEMOD dataset")
+parser.add_argument("--mere_lmo", default=False, action="store_true", help="Merge PBR with LINEMOD_Occlusion dataset")
+
 
 args = parser.parse_args()
 
@@ -98,24 +101,41 @@ def convert_to_coco_json(merge=False):
             outfile_train = '/data/ssd/6d_pose/LINEMOD_COCO/instances_train_{}.json'.format(data_folder)
             mmcv.dump(coco_train, outfile_train)
 
-
-    merge_linemod_real = False #
-    if merge_linemod_real:
-        linemod_real_path = "/data/ssd/6d_pose/LINEMOD_Occlusion_COCO/annotations/instances_train.json"
-        with open(linemod_real_path) as foo:
-            linemod_real_gt = json.load(foo)
-            print("loading real LINEMOD gt data")
-            for image_dict in linemod_real_gt["images"]:
+    #Merge either with the LINEMOD or LINEMOD Occlusion dataset.
+    if args.merge_lm:
+        lm_real_path = "/data/ssd/6d_pose/LINEMOD_Occlusion_COCO/annotations/instances_train.json"
+        with open(lm_real_path) as foo:
+            lm_real_gt = json.load(foo)
+            print("loading real LINEMOD Occlusion gt data")
+            for image_dict in lm_real_gt["images"]:
                 image_dict['id'] = image_dict['id'] + num_images * 50
                 print("image_dict", image_dict['id'])
 
-            for annotation_dict in linemod_real_gt["annotations"]:
+            for annotation_dict in lm_real_gt["annotations"]:
                 annotation_dict['image_id'] = annotation_dict['image_id'] + num_images*50 # num_folders=50. TO remove the hard-coding
                 annotation_dict['id'] = annotation_dict['id'] + obj_count
                 print("annotation_dict", annotation_dict['image_id'])
 
-            coco_train["annotations"].extend(linemod_real_gt["annotations"])
-            coco_train["images"].extend(linemod_real_gt["images"])
+            coco_train["annotations"].extend(lm_real_gt["annotations"])
+            coco_train["images"].extend(lm_real_gt["images"])
+
+    elif args.merge_lmo:
+        lmo_real_path = "/data/ssd/6d_pose/LINEMOD_Occlusion_COCO/annotations/instances_train.json"
+        with open(lmo_real_path) as foo:
+            lm_real_gt = json.load(foo)
+            print("loading real LINEMOD Occlusion gt data")
+            for image_dict in lm_real_gt["images"]:
+                image_dict['id'] = image_dict['id'] + num_images * 50
+                print("image_dict", image_dict['id'])
+
+            for annotation_dict in lm_real_gt["annotations"]:
+                annotation_dict['image_id'] = annotation_dict['image_id'] + num_images*50 # num_folders=50. TO remove the hard-coding
+                annotation_dict['id'] = annotation_dict['id'] + obj_count
+                print("annotation_dict", annotation_dict['image_id'])
+
+            coco_train["annotations"].extend(lm_real_gt["annotations"])
+            coco_train["images"].extend(lm_real_gt["images"])
+
 
     if merge:
         mmcv.dump(coco_train, outfile_train_merged)

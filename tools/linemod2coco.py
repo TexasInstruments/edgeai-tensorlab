@@ -3,8 +3,24 @@ import mmcv
 import yaml
 import shutil
 from tqdm import tqdm
+import argparse
+
+
+parser = argparse.ArgumentParser("LINEMOD_PBR2COCO_PARSER")
+parser.add_argument("--lm", default=False, action="store_true", help="Select only LM classes")
+parser.add_argument("--lmo", default=False, action="store_true", help="Select only LMO classes")
+parser.add_argument("--lmob", default=False, action="store_true", help="Select only LMO classes including benchvise")
+
+args = parser.parse_args()
+
+lme = [3, 7]  #linemod excluded , 15-2=13
+lmoe = [2, 3, 4, 7, 13, 14, 15]  #15-7=8
+lmoeb = [3, 4, 7, 13, 14, 15]  #15-6=9
+
 
 def convert_to_coco_json(merge=False):
+    image_count = 0
+    obj_count = 0
 
     basepath = '/data/ssd/6d_pose/Linemod_preprocessed/data/'
     data_folders = sorted(os.listdir(basepath))
@@ -14,6 +30,13 @@ def convert_to_coco_json(merge=False):
         outfile_test_merged = '/data/ssd/6d_pose/LINEMOD_COCO/instances_test.json'
 
     for data_folder_idx, data_folder in enumerate(data_folders):
+        if args.lm:
+            if int(data_folder) in lme: continue
+        if args.lmo:
+            if int(data_folder) in lmoe: continue
+        if args.lmob:
+            if int(data_folder) in lmoeb: continue
+
         data_path = os.path.join(basepath, data_folder)
         print("Loading {}".format(data_path + '/gt.yml'))
         with open(data_path + '/gt.yml') as yaml_file:
@@ -47,25 +70,24 @@ def convert_to_coco_json(merge=False):
                 coco_train["categories"].append(category)
                 coco_test["categories"].append(category)
 
-            obj_count = 0
-            prev_image_num = -1
-
         pbar = tqdm(enumerate(gt_dict.items()), total=len(gt_dict))
         for image_num, objects in pbar:
-            for object in objects[1]:
-                filename = "{:04}".format(image_num) + '.png'
-                height, width = mmcv.imread(data_path + '/rgb/' + filename).shape[:2]
-                image = dict([
-                    ("image_folder", data_folder),
-                    ("id", image_num),
-                    ("file_name", filename),
-                    ("height", height),
-                    ("width", width),
-                    ("type", "real" )
-                ])
+            filename = "{:04}".format(image_num) + '.png'
+            height, width = mmcv.imread(data_path + '/rgb/' + filename).shape[:2]
+            image = dict([
+                ("image_folder", data_folder),
+                ("id", image_count),
+                ("file_name", filename),
+                ("height", height),
+                ("width", width),
+                ("type", "lm_real" )
+            ])
 
+            coco_test["images"].append(image) if filename[:-4] in test_list else coco_train["images"].append(image)
+
+            for object in objects[1]:
                 annotation = dict([
-                    ("image_id", image_num),
+                    ("image_id", image_count),
                     ("id", obj_count),
                     ("bbox", object["obj_bb"]),
                     ("area", object["obj_bb"][2] * object["obj_bb"][3]),
@@ -74,19 +96,9 @@ def convert_to_coco_json(merge=False):
                     ("R", object["cam_R_m2c"]),
                     ("T", object["cam_t_m2c"])
                 ])
-
                 obj_count += 1
-
-                if filename[:-4] in test_list:
-                    if prev_image_num != image_num:
-                        coco_test["images"].append(image)
-                        prev_image_num = image_num
-                    coco_test["annotations"].append(annotation)
-                else:
-                    if prev_image_num != image_num:
-                        coco_train["images"].append(image)
-                        prev_image_num = image_num
-                    coco_train["annotations"].append(annotation)
+                coco_test["annotations"].append(annotation) if filename[:-4] in test_list else coco_train["annotations"].append(annotation)
+            image_count += 1
         pbar.close()
         if not merge:
             outfile_train = '/data/ssd/6d_pose/LINEMOD_COCO/instances_train_{}.json'.format(data_folder)
@@ -109,4 +121,4 @@ def sort_images(src, train_dst, test_dst, test_list):
 
 
 if __name__ == "__main__":
-        convert_to_coco_json(merge=False)
+        convert_to_coco_json(merge=True)
