@@ -375,6 +375,10 @@ model_id_artifacts_pair = {
     # ONNX depth estimation
     'de-7300_onnxrt': 'ONR-DE-7300-depth-est-fast-depth-224x224',
     'de-7310_onnxrt': 'ONR-DE-7310-depth-est-midas-small-256x256',
+
+    # additional models compiled for TVM
+    'od-5100_tvmdlr': 'TVM-OD-5100-ssd-mobV1-coco-mlperf-300x300',
+    'od-5120_tvmdlr': 'TVM-OD-5120-ssdLite-mobDet-DSP-coco-320x320',
 }
 
 removed_model_list = {
@@ -529,8 +533,8 @@ recommended_model_list = {
     'ss-2580_tflitert': 'TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512',
     'cl-3090_tvmdlr': 'TVM-CL-3090-mobileNetV2-tv',
     'cl-3500_tvmdlr': 'TVM-CL-3500-mobileNetV1',
-    'od-5100_tvmdlr':'TVM-OD-5100-ssd-mobV1-coco-mlperf-300x300',
-    'ss-5720_tvmdlr' : 'TVM-SS-5720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
+    'od-5120_tvmdlr': 'TVM-OD-5120-ssdLite-mobDet-DSP-coco-320x320',
+    'ss-5720_tvmdlr': 'TVM-SS-5720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
     'cl-6360_onnxrt': 'ONR-CL-6360-regNetx-200mf',
     'od-8050_onnxrt': 'ONR-OD-8050-ssd-lite-regNetX-800mf-fpn-bgr-coco-512x512',
     'od-8220_onnxrt': 'ONR-OD-8220-yolox-s-lite-mmdet-coco-640x640',
