@@ -34,13 +34,13 @@ from . import config_settings
 
 
 def get_settings_file(target_machine='pc', with_model_import=False):
-    supported_machines = ('pc', constants.TIDL_PLATFORM.lower())
+    supported_machines = ('pc', 'evm')
     assert target_machine in supported_machines, f'target_machine must be one of {supported_machines}'
     if target_machine == 'pc' or with_model_import:
         settings_file = os.path.abspath(
             os.path.join(os.path.dirname(os.path.abspath(__file__)), '../settings_import_on_pc.yaml'))
-    elif target_machine == constants.TIDL_PLATFORM.lower():
+    elif target_machine == 'evm':
         settings_file = os.path.abspath(
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), '../settings_infer_on_j7.yaml'))
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), '../settings_infer_on_evm.yaml'))
     #
     return settings_file

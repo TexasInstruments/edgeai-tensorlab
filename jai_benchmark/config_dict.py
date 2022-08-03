@@ -111,9 +111,9 @@ class ConfigDict(dict):
         # create your datasets under this folder
         self.datasets_path = f'./dependencies/datasets'
         # important parameter. set this to 'pc' to do import and inference in pc
-        # set this to 'j7' to run inference in device/soc. for inference on device run_import
+        # set this to 'evm' to run inference in device/soc. for inference on device run_import
         # below should be switched off and it is assumed that the artifacts are already created.
-        self.target_machine = 'pc' #'j7' #'pc'
+        self.target_machine = 'pc' #'evm' #'pc'
         # target device/soc configuration being used.
         # This depends on the tidl_tools that is installed. So, we will leave this for the user to populate if desired.
         self.target_device = None
@@ -127,10 +127,10 @@ class ConfigDict(dict):
         self.tensor_bits = 8 #8 #16 #32
         # runtime_options can be specified as a dict. eg {'accuracy_level': 0}
         self.runtime_options = None
-        # run import of the model - only to be used in pc - set this to False for j7 evm
+        # run import of the model - only to be used in pc - set this to False for evm
         # for pc this can be True or False
         self.run_import = True
-        # run inference - for inferene in j7 evm, it is assumed that the artifaacts folders are already available
+        # run inference - for inferene in evm, it is assumed that the artifaacts folders are already available
         self.run_inference = True
         # run only models for which the results are missing. if this is False, all configs will be run
         self.run_missing = True

@@ -5,7 +5,7 @@ The following Jupyter Notebooks shows how to compile a custom model: **[tutorial
 
 The following script can be modified to run custom model compilation from command line: **[scripts/benchmark_custom.py](../scripts/benchmark_custom.py)**. This can be invoked by running [run_custom_pc.sh](../run_custom_pc.sh).
 
-Runt the script [run_package_artifacts_j7.sh](../run_package_artifacts_j7.sh) to package the artifacts for use in the target device.
+Runt the script [run_package_artifacts_evm.sh](../run_package_artifacts_evm.sh) to package the artifacts for use in the target device.
 
 In this repository, we have created a symbolic link [modelartifacts](../work_dirs/modelartifacts) to the actual modelartifacts folder in edgeai-modelzoo. You may want to rename that symbolic link to something else before attempting to compile custom models - in order to avoid confusion with existing pre-compiled artifacts.
 

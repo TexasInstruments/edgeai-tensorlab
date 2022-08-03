@@ -31,12 +31,12 @@
 ##################################################################
 
 # set environment variables
-# also point to the right type of artifacts (pc or j7)
+# also point to the right type of artifacts (pc or evm)
 # source run_setup_env.sh pc
 
 
 # specify one of the following settings - options can be changed inside the yaml
-#settings_file=settings_infer_on_j7.yaml
+#settings_file=settings_infer_on_evm.yaml
 #settings_file=settings_import_on_pc.yaml
 settings_file=settings_import_on_pc.yaml
 
