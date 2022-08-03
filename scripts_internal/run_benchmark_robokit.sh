@@ -32,7 +32,7 @@
 
 
 # setup the environment
-source run_setup_env.sh pc
+source run_set_env.sh pc
 
 # specify one of the following settings - options can be changed inside the yaml
 #settings_file=settings_infer_on_evm.yaml

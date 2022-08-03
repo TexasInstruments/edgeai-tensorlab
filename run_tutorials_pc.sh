@@ -33,7 +33,7 @@
 
 # set environment variables
 # also point to the right type of artifacts (pc or evm)
-source run_setup_env.sh pc
+source run_set_env.sh pc
 
 # run the script
 jupyter notebook --ip=localhost

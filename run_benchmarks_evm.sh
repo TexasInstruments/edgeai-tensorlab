@@ -32,7 +32,7 @@
 
 # set environment variables
 # also point to the right type of artifacts (pc or evm)
-source run_setup_env.sh evm
+source run_set_env.sh evm
 
 echo "==================================================================="
 echo "Please install EdgeAI Linux SDK StarterKit for TDA4VM"

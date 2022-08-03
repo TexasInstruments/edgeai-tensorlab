@@ -32,7 +32,7 @@
 
 # set environment variables
 # also point to the right type of artifacts (pc or evm)
-source run_setup_env.sh pc
+source run_set_env.sh pc
 
 
 # specify one of the following settings - options can be changed inside the yaml
