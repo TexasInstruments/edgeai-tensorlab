@@ -20,7 +20,7 @@ This repository is generic and can be used with a variety of runtimes and models
 
 If this is present, compilation will be skipped, those model artifacts will be downloaded automatically and inference/benchmark will be performed.
 
-[run_benchmarks_j7.sh](../run_benchmarks_j7.sh) can be used to run these model artifacts on device. 
+[run_benchmarks_evm.sh](../run_benchmarks_evm.sh) can be used to run these model artifacts on device. 
 
 
 ## Compile models in the model zoo
@@ -32,7 +32,7 @@ If this is present, compilation will be skipped, those model artifacts will be d
 * result.yaml file, if present in each model artifacts folder indicates that the model inference is complete. If result.yaml is present, inference is also skipped. Manually delete result.yaml if it is present (i.e. if you have done it once already) to do the inference - otherwise, the script will merely print the result information from result.yaml.
 
 The imported artifacts can be used to run inference on the target device (eg. EVM):
-* If you have compiled models yourself and would like to run those model artifacts in the target device, run the script [run_package_artifacts_j7.sh](../run_package_artifacts_j7.sh) to package the artifacts for use in the target device.
+* If you have compiled models yourself and would like to run those model artifacts in the target device, run the script [run_package_artifacts_evm.sh](../run_package_artifacts_evm.sh) to package the artifacts for use in the target device.
 * These packaged artifacts can be copied to the device to run inference there.
 
 

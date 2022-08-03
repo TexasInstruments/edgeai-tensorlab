@@ -31,19 +31,19 @@
 ##################################################################
 
 
-# for onnxruntime and tflite_runtime, the artifacts are same for pc and j7 devices
-# however for tvmdlr, there are two sets of artifacts - one for pc and one for j7 device
-# deploy_lib.so.pc is for pc and deploy_lib.so.j7 is for j7 device
+# for onnxruntime and tflite_runtime, the artifacts are same for pc and evm devices
+# however for tvmdlr, there are two sets of artifacts - one for pc and one for evm device
+# deploy_lib.so.pc is for pc and deploy_lib.so.evm is for evm device
 # a symbolic link called deploy_lib.so needs to be created, depending on where we plan to run the inference.
 # this can be done after the import has been done and artifacts generated.
 # by default it points to deploy_lib.so.pc, so nothing needs to be done for inference on pc
 
 if [[ $# -ne 1 ]]; then
-  echo "please provide exactly one argument - either pc or j7"
+  echo "please provide exactly one argument - either pc or evm"
   exit 1
 fi
 
-# "j7" or "pc"
+# "evm" or "pc"
 target_machine=$1
 if [ "$artifacts_base" = "" ]; then
   artifacts_base="./work_dirs/modelartifacts/8bits"

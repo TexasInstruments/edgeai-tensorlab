@@ -30,37 +30,18 @@
 
 ##################################################################
 
-# set environment variables
-# also point to the right type of artifacts (pc or j7)
-source run_setup_env.sh j7
 
-echo "==================================================================="
-echo "Please install EdgeAI Linux SDK StarterKit for TDA4VM"
-echo "from: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM"
-echo "All the required dependencies are available in the SDK"
-echo "For more information, please visit: https://www.ti.com/tool/SK-TDA4VM"
-echo "-------------------------------------------------------------------"
+# set environment variables
+# also point to the right type of artifacts (pc or evm)
+source run_setup_env.sh evm
 
 
 # specify one of the following settings - options can be changed inside the yaml
-#settings_file=settings_infer_on_j7.yaml
+#settings_file=settings_infer_on_evm.yaml
 #settings_file=settings_import_on_pc.yaml
-settings_file=settings_infer_on_j7.yaml
+settings_file=settings_infer_on_evm.yaml
 
 echo "==================================================================="
-# run all the shortlisted models with these settings
-python3 ./scripts/benchmark_modelzoo.py ${settings_file} "$@"
-echo "-------------------------------------------------------------------"
-
-#echo "==================================================================="
-### run few selected models with these settings
-#python3 ./scripts/benchmark_modelzoo.py ${settings_file} \
-#        --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
-#        --task_selection classification segmentation \
-#        --model_selection onnx
-#echo "-------------------------------------------------------------------"
-
-echo "==================================================================="
-# generate the final report with results for all the artifacts generated
-python3 ./scripts/generate_report.py ${settings_file}
+# package the artifacts generated
+python3 ./scripts/package_artifacts.py ${settings_file}
 echo "-------------------------------------------------------------------"
