@@ -166,15 +166,6 @@ def get_configs(settings, work_dir):
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':59.80})
         ),
-        # complied for TVM - this model is repeated here and hard-coded to use tvmdlr session to generate an example tvmdlr artifact
-        'ss-5720':utils.dict_update(cocoseg21_cfg,
-            preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
-            session=sessions.TVMDLRSession(**jai_session_cfg,
-                runtime_options=settings.runtime_options_onnx_p2(),
-                model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/fpn_aspp_regnetx800mf_edgeailite_512x512_20210405.onnx'),
-            postprocess=postproc_segmentation_onnx,
-            model_info=dict(metric_reference={'accuracy_mean_iou%':61.09})
-        ),
         #################################################################
         #       MXNET MODELS
         #################################################################
@@ -218,6 +209,16 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/segmentation/voc2012/tf1-models/deeplabv3_mnv2_pascal_trainaug_512x512.tflite'),
             postprocess=postproc_segmenation_tflite,
             model_info=dict(metric_reference={'accuracy_mean_iou%':77.33})
+        ),
+        ###################################################################
+        # complied for TVM - this model is repeated here and hard-coded to use tvmdlr session to generate an example tvmdlr artifact
+        'ss-5720':utils.dict_update(cocoseg21_cfg,
+            preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
+            session=sessions.TVMDLRSession(**jai_session_cfg,
+                runtime_options=settings.runtime_options_onnx_p2(),
+                model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/fpn_aspp_regnetx800mf_edgeailite_512x512_20210405.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':61.09})
         ),
     }
     return pipeline_configs

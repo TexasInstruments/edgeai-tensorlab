@@ -222,32 +222,6 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':77.040})
         ),
         #################################################################
-        # complied for TVM - these models are repeated here and hard-coded to use tvmdlr session to generate an example tvmdlr artifact
-        # torchvision: classification mobilenetv2_224x224 expected_metric: 71.88% top-1 accuracy
-        'cl-3090':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(),
-            session=sessions.TVMDLRSession(**onnx_session_cfg,
-                runtime_options=settings.runtime_options_onnx_p2(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':71.88})
-        ),
-        # torchvision: classification mobilenetv2_224x224 expected_metric: 71.88% top-1 accuracy, QAT: 71.31%
-        'cl-3098':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(),
-            session=sessions.TVMDLRSession(**onnx_quant_session_cfg,
-                runtime_options=settings.runtime_options_onnx_qat(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_qat-p2.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':71.31})
-        ),
-        # torchvision: classification resnet50_224x224 expected_metric: 76.15% top-1 accuracy
-        'cl-3110':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(),
-            session=sessions.TVMDLRSession(**onnx_session_cfg,
-                runtime_options=settings.runtime_options_onnx_p2(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet50.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':76.15})
-        ),
-        #################################################################
         #       TFLITE MODELS
         ##################tensorflow models##############################
         # mlperf/tf1 model: classification mobilenet_v1_224x224 expected_metric: 71.676 top-1 accuracy
@@ -420,7 +394,32 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':80.62})
         ),
+        ###################################################################
         # complied for TVM - this model is repeated here and hard-coded to use tvmdlr session to generate an example tvmdlr artifact
+        # torchvision: classification mobilenetv2_224x224 expected_metric: 71.88% top-1 accuracy
+        'cl-3090':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=sessions.TVMDLRSession(**onnx_session_cfg,
+                runtime_options=settings.runtime_options_onnx_p2(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':71.88})
+        ),
+        # torchvision: classification mobilenetv2_224x224 expected_metric: 71.88% top-1 accuracy, QAT: 71.31%
+        'cl-3098':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=sessions.TVMDLRSession(**onnx_quant_session_cfg,
+                runtime_options=settings.runtime_options_onnx_qat(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_qat-p2.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':71.31})
+        ),
+        # torchvision: classification resnet50_224x224 expected_metric: 76.15% top-1 accuracy
+        'cl-3110':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=sessions.TVMDLRSession(**onnx_session_cfg,
+                runtime_options=settings.runtime_options_onnx_p2(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet50.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':76.15})
+        ),
         # tensorflow/models: classification mobilenetv1_224x224 expected_metric: 71.0% top-1 accuracy (or is it 71.676% as this seems same as mlperf model)
         'cl-3500':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),

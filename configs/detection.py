@@ -478,6 +478,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 38.33})
         ),
+        ###################################################################
         # complied for TVM - this model is repeated here and hard-coded to use tvmdlr session to generate an example tvmdlr artifact
         # mlperf edge: detection - ssd_mobilenet_v1_coco_2018_01_28 expected_metric: 23.0% ap[0.5:0.95] accuracy
         'od-5100':utils.dict_update(common_cfg,
@@ -487,6 +488,15 @@ def get_configs(settings, work_dir):
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':23.0})
+        ),
+        # tensorflow1.0 models: detection - ssdlite_mobiledet_dsp_320x320_coco_2020_05_19 expected_metric: 28.9% ap[0.5:0.95] accuracy
+        'od-5120':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_tflite((320,320), (320,320), backend='cv2'),
+            session=sessions.TVMDLRSession(**tflite_session_cfg, runtime_options=runtime_options_tflite_np2,
+                model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_20200519.tflite'),
+            postprocess=postproc_detection_tflite,
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.9})
         ),
     }
     return pipeline_configs
