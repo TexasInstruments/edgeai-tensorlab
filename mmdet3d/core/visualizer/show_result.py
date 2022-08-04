@@ -79,7 +79,7 @@ def show_result(points,
                 out_dir,
                 filename,
                 show=False,
-                snapshot=False,
+                snapshot=True,
                 pred_labels=None):
     """Convert results into format that is directly readable for meshlab.
 

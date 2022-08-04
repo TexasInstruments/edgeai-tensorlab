@@ -31,14 +31,13 @@ def single_gpu_test(model,
     Returns:
         list[dict]: The prediction results.
     """
-    show = False
-    out_dir = './show-dir'
     model.eval()
     results = []
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
     dump_txt_op = False
     read_txt_op = False
+    en_img_draw = True
     for i, data in enumerate(data_loader):
         #if i >=100:
         #    break
@@ -57,6 +56,53 @@ def single_gpu_test(model,
                 f.write("{:.4f}".format(det_tensor[6]))
                 f.write("\n")
             f.close()
+        if en_img_draw:
+            import cv2
+            import numpy as np
+
+            from mmdet3d.core.visualizer import image_vis
+
+            ip_img_folder = 'data/kitti/training/image_2'
+            op_img_folder = '/user/a0393749/deepak_files/temp/output'
+            vis_score_th  = 0.6
+            color=(0, 255, 0)
+            
+            img_metas = data['img_metas'][0].data[0][0]
+            file_name = osp.split(img_metas['pts_filename'])[1].replace('.bin','.png')
+            
+            ip_file_name = osp.join(ip_img_folder,file_name)
+            op_file_name = osp.join(op_img_folder,file_name)
+            
+            img = cv2.imread(ip_file_name)
+            valid_ids = result[0]['scores_3d'] > vis_score_th
+            boxes3d = result[0]['boxes_3d']
+
+            corners_3d = boxes3d.corners
+            num_bbox = corners_3d.shape[0]
+            pts_4d = np.concatenate(
+                [corners_3d.reshape(-1, 3),
+                np.ones((num_bbox * 8, 1))], axis=-1)
+            lidar2img_rt = img_metas['lidar2img'].reshape(4, 4)
+            if isinstance(lidar2img_rt, torch.Tensor):
+                lidar2img_rt = lidar2img_rt.cpu().numpy()
+            pts_2d = pts_4d @ lidar2img_rt.T
+
+            pts_2d[:, 2] = np.clip(pts_2d[:, 2], a_min=1e-5, a_max=1e5)
+            pts_2d[:, 0] /= pts_2d[:, 2]
+            pts_2d[:, 1] /= pts_2d[:, 2]
+            imgfov_pts_2d = pts_2d[..., :2].reshape(num_bbox, 8, 2)
+            
+            for obj_id in range(num_bbox):
+                if result[0]['scores_3d'][obj_id] > vis_score_th:
+                    if result[0]['labels_3d'][obj_id] == 0:
+                        color = (255,0,0)
+                    elif result[0]['labels_3d'][obj_id] == 1:
+                        color = (0,255,0)
+                    else:
+                        color = (0,0,255)
+                    image_vis.plot_rect3d_on_img(img, 1, imgfov_pts_2d[[obj_id],:], color, 1)
+
+            cv2.imwrite(op_file_name, img)
 
         if read_txt_op:
             img_metas = data['img_metas'][0].data[0][0]
@@ -85,7 +131,7 @@ def single_gpu_test(model,
             # 'show_results' is MMdetection3D visualization API
             models_3d = (Base3DDetector, Base3DSegmentor,
                          SingleStageMono3DDetector)
-            if isinstance(model.module, models_3d):
+            if isinstance(model.module, models_3d) and en_img_draw == False:
                 model.module.show_results(
                     data,
                     result,
