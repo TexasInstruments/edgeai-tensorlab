@@ -157,7 +157,7 @@ pip install -r requirements-labelstudio.txt
 - This step has to be done manually.
 
 #### Step 5.1a: Object Detection dataset example
-- An object detection dataset should look like this. (Use a suitable dataset name instead of animal_detection). The annotation file name for object detection must be instances.json
+- An object detection dataset should look like this. (Use a suitable dataset name instead of animal_detection). The default annotation file name for object detection is instances.json
 <pre>
 data/datasets/animal_detection
                              |
@@ -175,7 +175,7 @@ data/datasets/animal_detection
 ```
 
 #### Step 5.1b: Image Classification dataset example
-- An image classification dataset should look like this. (Use a suitable dataset name instead of animal_classification). The annotation file name for image classification must be labels.json
+- An image classification dataset should look like this. (Use a suitable dataset name instead of animal_classification). The default annotation file name for image classification is instances.json
 <pre>
 data/datasets/animal_classification
                              |
