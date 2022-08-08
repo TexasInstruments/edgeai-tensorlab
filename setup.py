@@ -57,12 +57,12 @@ if __name__ == '__main__':
     setup(
         name='jai_benchmark',
         version=get_version(),
-        description='AI/Deep Learning Accuracy Benchmarking For Jacinto 7',
+        description='Edge AI Benchmark',
         long_description=long_description,
         long_description_content_type='text/markdown',
-        url='https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-benchmark/browse',
-        author='TIDL & Jacinto AI DevKit Team',
-        author_email='jacinto-ai-devkit@list.ti.com',
+        url='https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-benchmark/browse',
+        author='EdgeAI, TIDL & Analytics Algo Teams',
+        author_email='edgeai-devkit@list.ti.com',
         classifiers=[
             'Development Status :: 4 - Beta'
             'Programming Language :: Python :: 3.7'
@@ -73,7 +73,7 @@ if __name__ == '__main__':
         include_package_data=True,
         install_requires=[],
         project_urls={
-            'Source': 'https://bitbucket.itg.ti.com/projects/JACINTO-AI/repos/jacinto-ai-benchmark/browse',
+            'Source': 'https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-benchmark/browse',
             'Bug Reports': 'https://e2e.ti.com/support/processors/f/791/tags/jacinto_2D00_ai_2D00_devkit',
         },
     )
