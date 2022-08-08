@@ -3,8 +3,9 @@ import torch
 import torch.quantization.quantize_fx as quantize_fx
 
 
-class QuantTrainFx():
+class QuantTrainFx(torch.nn.Module):
     def __init__(self, module, qconfig_dict=None):
+        super().__init__()
         if qconfig_dict is None:
             qconfig_dict = {"": torch.quantization.get_default_qat_qconfig('qnnpack')}
         #
@@ -13,7 +14,9 @@ class QuantTrainFx():
         self.module = module
 
     def forward(self, *args, **kwargs):
-        self.module(*args, **kwargs)
+        return self.module(*args, **kwargs)
 
     def convert(self):
         self.module = quantize_fx.convert_fx(self.module)
+        return self
+
