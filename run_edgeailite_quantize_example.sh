@@ -81,5 +81,5 @@ for model in "${!model_pretrained[@]}"; do
                --arch $model --batch_size $batch_size --lr $lr --epoch_size $epoch_size --epoch_size_val $epoch_size_val \
                --epochs $epochs --pretrained $pretrained --save_path $save_path \
                --img_resize 256 --img_crop 224 \
-               --quantize_torch False --quantize qat --use_gpu True
+               --quantize True --use_gpu True
 done

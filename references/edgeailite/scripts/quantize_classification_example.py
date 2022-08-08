@@ -109,14 +109,14 @@ def str2bool(v):
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 parser.add_argument('data', metavar='DIR',
                     help='path to dataset')
-parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet18',
+parser.add_argument('-a', '--arch', metavar='ARCH', default='mobilenetv2_x1',
                     choices=model_names,
                     help='model architecture: ' +
                         ' | '.join(model_names) +
-                        ' (default: resnet18)')
+                        ' (default: mobilenetv2_x1)')
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=90, type=int, metavar='N',
+parser.add_argument('--epochs', default=10, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--epoch_size', default=0, type=float, metavar='N',
                     help='fraction of training epoch to use. 0 (default) means full training epoch')
@@ -129,7 +129,7 @@ parser.add_argument('-b', '--batch_size', default=256, type=int,
                     help='mini-batch size (default: 256), this is the total '
                          'batch size of all GPUs on the current node when '
                          'using Data Parallel or Distributed Data Parallel')
-parser.add_argument('--lr', '--learning_rate', default=0.1, type=float,
+parser.add_argument('--lr', '--learning_rate', default=1e-5, type=float,
                     metavar='LR', help='initial learning rate', dest='lr')
 parser.add_argument('--lr_step_size', default=30, type=int,
                     metavar='N', help='number of steps before learning rate is reduced')
@@ -167,10 +167,8 @@ parser.add_argument('--multiprocessing_distributed', action='store_true',
                          'multi node data parallel training')
 parser.add_argument('--save_path', type=str, default='./data/checkpoints/quantization',
                     help='path to save the logs and models')
-parser.add_argument('--quantize', default=False, choices=[False, 'ptq', 'distill', 'qat', True],
+parser.add_argument('--quantize', default=True, type=bool,
                     help='Enable Quantization')
-parser.add_argument('--quantize_torch', default=False, type=str2bool,
-                    help='Enable PyTorch Quantization')
 parser.add_argument('--opset_version', default=11, type=int,
                     help='opset version for onnx export')
 parser.add_argument('--img_resize', type=int, default=256,
@@ -231,6 +229,12 @@ def main_worker(gpu, ngpus_per_node, args):
     if args.gpu is not None:
         print("Use GPU: {} for training".format(args.gpu))
 
+    if args.quantize:
+        assert args.pretrained is not None and args.pretrained is not False, \
+            'pretrained checkpoint must be provided for QAT'
+
+    dummy_input = torch.rand((1, 3, args.img_crop, args.img_crop))
+
     if args.distributed:
         if args.dist_url == "env://" and args.rank == -1:
             args.rank = int(os.environ["RANK"])
@@ -245,40 +249,22 @@ def main_worker(gpu, ngpus_per_node, args):
     model = models.__dict__[args.arch]()
     model, change_names_dict = model if isinstance(model, (list,tuple)) else (model, None)
 
-    if args.quantize is not False:
-        if args.use_gpu:
-            warnings.warn('quantized inference/test may fail as it is not yet supported in gpu: '
-                          'use_gpu should not be set while quantizing')
-        #
-        # DistributedDataParallel / DataParallel are supported with QuantTrainModule and QuantTestModule
-        # but other Quant Modules may not support it.
-        dummy_input = torch.rand((1, 3, args.img_crop, args.img_crop))
-        if args.quantize_torch:
-            # GPU/CUDA is not yet support for Torch quantization
-            if args.evaluate:
-                model = xnn.quantize_torch.QuantTorchEagerTestModule(model, dummy_input=dummy_input)
-            elif (args.do_ptq and args.quantize == 'distill'):
-                model = xnn.quantize_torch.QuantTorchEagerDistillModule(model, dummy_input=dummy_input, learning_rate=args.lr)
-            elif args.do_ptq:
-                model = xnn.quantize_torch.QuantTorchEagerCalibrateModule(model, dummy_input=dummy_input)
-            else:
-                model = xnn.quantize_torch.QuantTorchEagerTrainModule(model, dummy_input=dummy_input)
-            #
+    if args.quantize:
+        model = xnn.quantize.QuantTrainModule(model, dummy_input=dummy_input)
+    #
+
+    if args.pretrained is not None:
+        print("=> using pre-trained model for {} from {}".format(args.arch, args.pretrained))
+	    # for QAT, the original one is in model.module
+        model_orig = model.module if args.quantize else model
+        if hasattr(model_orig, 'load_weights'):
+            model_orig.load_weights(args.pretrained, download_root='./data/downloads', change_names_dict=change_names_dict)
         else:
-            if args.evaluate:
-                model = xnn.quantize.QuantTestModule(model, dummy_input=dummy_input)
-            elif args.do_ptq:
-                model = xnn.quantize.QuantCalibrateModule(model, dummy_input=dummy_input)
-            else:
-                model = xnn.quantize.QuantTrainModule(model, dummy_input=dummy_input)
-            #
-        #
-        if args.use_gpu:
-            model = model.cuda(args.gpu)
-        #
+            xnn.utils.load_weights(model_orig, args.pretrained, download_root='./data/downloads', change_names_dict=change_names_dict)
+        #		
 
     if args.use_gpu:
-        if args.distributed and (not args.do_ptq):
+        if args.distributed:
             # For multiprocessing distributed, DistributedDataParallel constructor
             # should always set the single device scope, otherwise,
             # DistributedDataParallel will use all available devices.
@@ -299,41 +285,16 @@ def main_worker(gpu, ngpus_per_node, args):
         elif args.gpu is not None:
             torch.cuda.set_device(args.gpu)
             model = model.cuda(args.gpu)
-        elif (not args.do_ptq):
-            # DataParallel will divide and allocate batch_size to all available GPUs
-            if args.arch.startswith('alexnet') or args.arch.startswith('vgg'):
-                model.features = torch.nn.DataParallel(model.features)
-                model.cuda()
-            else:
-                model = torch.nn.DataParallel(model).cuda()
-
-    if args.pretrained is not None:
-        model_orig = model.module if isinstance(model, (torch.nn.parallel.DistributedDataParallel, torch.nn.parallel.DataParallel)) else model
-        model_orig = model_orig.module if args.quantize else model_orig
-        print("=> using pre-trained model for {} from {}".format(args.arch, args.pretrained))
-        if hasattr(model_orig, 'load_weights'):
-            model_orig.load_weights(args.pretrained, download_root='./data/downloads', change_names_dict=change_names_dict)
         else:
-            xnn.utils.load_weights(model_orig, args.pretrained, download_root='./data/downloads', change_names_dict=change_names_dict)
-        #
-
-    if args.quantize:
-        model_quant = model.module if isinstance(model, (torch.nn.parallel.DistributedDataParallel, torch.nn.parallel.DataParallel)) else model
-        if hasattr(model_quant, 'fuse_model') and callable(model_quant.fuse_model):
-            model_quant.fuse_model()
-
-        if hasattr(model_quant, 'prepare') and callable(model_quant.prepare):
-            model_quant.prepare()
+            # DataParallel will divide and allocate batch_size to all available GPUs
+            model = torch.nn.DataParallel(model).cuda()
 
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda(args.gpu)
 
-    if not args.do_ptq:
-        optimizer = torch.optim.SGD(model.parameters(), args.lr,
+    optimizer = torch.optim.SGD(model.parameters(), args.lr,
                                     momentum=args.momentum,
                                     weight_decay=args.weight_decay)
-    else:
-        optimizer = None
 
     # optionally resume from a checkpoint
     if args.resume:
@@ -438,11 +399,10 @@ def main_worker(gpu, ngpus_per_node, args):
                 'optimizer': (optimizer.state_dict() if optimizer is not None else None),
             }
             save_checkpoint(checkpoint_dict, is_best, filename=save_filename)
-            # onnx model cannot be exported for torch quantization mode
-            if not args.quantize_torch:
-                save_onnxname = os.path.splitext(save_filename)[0]+'.onnx'
-                write_onnx_model(args, model_orig, is_best, filename=save_onnxname)
-            #
+            # onnx model export
+            save_onnxname = os.path.splitext(save_filename)[0]+'.onnx'
+            write_onnx_model(args, model_orig, is_best, filename=save_onnxname)
+
 
     if args.quantize and hasattr(model, 'convert') and callable(model.convert):
         model_quant.eval()
