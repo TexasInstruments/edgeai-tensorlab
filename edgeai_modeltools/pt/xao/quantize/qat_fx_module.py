@@ -3,7 +3,7 @@ import torch
 import torch.quantization.quantize_fx as quantize_fx
 
 
-class QuantTrainFx(torch.nn.Module):
+class QATFxModule(torch.nn.Module):
     def __init__(self, module, qconfig_dict=None):
         super().__init__()
         if qconfig_dict is None:
