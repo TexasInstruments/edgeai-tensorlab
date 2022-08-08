@@ -57,6 +57,8 @@ os.makedirs(save_path, exist_ok=True)
 rand_input = torch.rand(1, 3, rand_crop[0], rand_crop[1])
 
 for model_name in model_names:
+    print(f'saving to: {save_path}')
+    
     # create the model - replace with your model
     model = models.__dict__[model_name](pretrained=True)
     model.eval()
