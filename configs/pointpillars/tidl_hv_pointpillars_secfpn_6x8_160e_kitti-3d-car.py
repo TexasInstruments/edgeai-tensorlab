@@ -29,7 +29,7 @@ model = dict(
             _delete_=True,
             type='Anchor3DRangeGenerator',
             ranges=[[0, -39.68, -1.78, 69.12, 39.68, -1.78]],
-            sizes=[[1.6, 3.9, 1.56]],
+            sizes=[[3.9, 1.6, 1.56]],
             rotations=[0, 1.57],
             reshape_out=True)),
     # model training and testing settings
@@ -104,9 +104,48 @@ test_pipeline = [
 ]
 
 data = dict(
+    samples_per_gpu=4,
+    workers_per_gpu=4,
+
     train=dict(
         type='RepeatDataset',
         times=2,
         dataset=dict(pipeline=train_pipeline, classes=class_names)),
     val=dict(pipeline=test_pipeline, classes=class_names),
     test=dict(pipeline=test_pipeline, classes=class_names))
+
+save_onnx_model = True
+quantize = True
+
+if quantize == False:
+    lr = 0.001
+    optimizer = dict(lr=lr)
+    # max_norm=35 is slightly better than 10 for PointPillars in the earlier
+    # development of the codebase thus we keep the setting. But we does not
+    # specifically tune this parameter.
+    optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
+    # PointPillars usually need longer schedule than second, we simply double
+    # the training schedule. Do remind that since we use RepeatDataset and
+    # repeat factor is 2, so we actually train 160 epochs.
+    runner = dict(max_epochs=80)
+
+    # Use evaluation interval=2 reduce the number of evaluation timese
+    evaluation = dict(interval=2)
+else:
+    lr = 0.0001
+    optimizer = dict(lr=lr)
+    # max_norm=35 is slightly better than 10 for PointPillars in the earlier
+    # development of the codebase thus we keep the setting. But we does not
+    # specifically tune this parameter.
+    optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
+    # PointPillars usually need longer schedule than second, we simply double
+    # the training schedule. Do remind that since we use RepeatDataset and
+    # repeat factor is 2, so we actually train 160 epochs.
+    runner = dict(max_epochs=20)
+
+    # Use evaluation interval=2 reduce the number of evaluation timese
+    evaluation = dict(interval=1)
+
+    #resume_from = '/user/a0393749/deepak_files/github/mmdetection3d-work/edgeai-mmdetection3d/work_dirs/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car/latest.pth'
+    load_from = './work_dirs/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car/latest.pth'
+    work_dir = './work_dirs/quant_train_dir/'

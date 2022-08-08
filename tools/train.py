@@ -22,6 +22,10 @@ from mmdet3d.utils import collect_env, get_root_logger
 from mmdet.apis import set_random_seed
 from mmseg import __version__ as mmseg_version
 
+from torchvision.edgeailite import xnn
+from mmdet3d.utils.quantize import XMMDetQuantTrainModule
+import mmdet3d.utils.runner
+
 try:
     # If mmdet version > 2.20.0, setup_multi_processes would be imported and
     # used from mmdet instead of mmdet3d.
@@ -112,11 +116,20 @@ def parse_args():
 
     return args
 
+def get_device():
+
+    """Returns an available device, cpu, cuda or mlu."""
+    is_device_available = {
+    'cuda': torch.cuda.is_available(),
+    }
+    device_list = [k for k, v in is_device_available.items() if v]
+    return device_list[0] if len(device_list) == 1 else 'cpu'
 
 def main():
     args = parse_args()
 
     cfg = Config.fromfile(args.config)
+    cfg["device"] = get_device()
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
 
@@ -251,6 +264,26 @@ def main():
             if hasattr(datasets[0], 'PALETTE') else None)
     # add an attribute for visualization convenience
     model.CLASSES = datasets[0].CLASSES
+
+    if cfg.quantize == True:
+        from torchvision.edgeailite import xnn
+        from test import CombinedModel
+        import numpy as np
+
+        raw_voxel_feat = np.fromfile("./data/kitti/training/velodyne/000000.bin")
+        raw_voxel_feat = torch.tensor(raw_voxel_feat.reshape((-1,4)))
+
+        model = XMMDetQuantTrainModule(model, [raw_voxel_feat,raw_voxel_feat])
+
+        combined_model = CombinedModel(model.module.voxel_encoder.pfn_layers._modules['0'],
+                                        model.module.middle_encoder,
+                                        model.module.backbone,
+                                        model.module.neck,
+                                        model.module.bbox_head.conv_cls,
+                                        model.module.bbox_head.conv_dir_cls,
+                                        model.module.bbox_head.conv_reg,
+                                        len(model.module.CLASSES)
+                                        )
     train_model(
         model,
         datasets,
@@ -259,6 +292,31 @@ def main():
         validate=(not args.no_validate),
         timestamp=timestamp,
         meta=meta)
+
+    if cfg.save_onnx_model == True:
+        
+        model.eval()
+        max_num_3d_points = 10000
+        raw_voxel_feat = torch.ones([1, 10, 32, max_num_3d_points],device=torch.device('cuda:0'))
+        data = torch.zeros([1, 64, 496*432],device=torch.device('cuda:0'))
+        coors = torch.ones([1, 64, max_num_3d_points],device=torch.device('cuda:0'))
+        coors = coors.long()
+
+        torch.onnx.export(combined_model,
+                (raw_voxel_feat,coors,data),
+                "combined_model.onnx",
+                opset_version=11,
+                verbose=False)
+                
+        import onnx
+        model = onnx.load("combined_model.onnx")
+        graph = model.graph
+
+        for inp in graph.input:
+            if inp.name == 'coors' and inp.type.tensor_type.elem_type == onnx.TensorProto.INT64 :
+                inp.type.tensor_type.elem_type = onnx.TensorProto.INT32
+
+        onnx.save(model, "combined_model_int32.onnx")
 
 
 if __name__ == '__main__':

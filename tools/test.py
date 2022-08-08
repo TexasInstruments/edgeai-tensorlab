@@ -285,7 +285,7 @@ def main():
         # segmentation dataset has `PALETTE` attribute
         model.PALETTE = dataset.PALETTE
 
-    save_onnx_model = False
+    save_onnx_model = True
 
     if save_onnx_model == True:
         save_model(model)

@@ -55,7 +55,7 @@ class VoxelNet(SingleStage3DDetector):
                 self.max_num_points_per_voxel = num_points.max()
                 print('maximum number of point in voxel is', self.max_num_points_per_voxel)
 
-        if os.path.split(img_metas[0]['pts_filename'])[1] == 'x01918.bin':
+        if (img_metas is not None) and os.path.split(img_metas[0]['pts_filename'])[1] == 'x01918.bin':
             dump_voxel          = True
             dump_voxel_feature  = True
             dump_middle_encoder = True
