@@ -39,10 +39,10 @@ import torch
 from .. import layers
 from .. import utils
 from .quant_torch_qconfig import *
-from .quant_torch_qconfig_qat import *
+
 
 ###########################################################
-class QuantTorchBaseModule(torch.nn.Module):
+class QuantTorchModule(torch.nn.Module):
     def __init__(self, module, dummy_input, *args,  backend='fbgemm', symmetric=True, per_channel_q=False, #'depthwise'
                  with_fakequantize=True, is_qat=False, power2_weight_range=True, power2_activation_range=True,
                  histogram=False, constrain_weights=False, freeze_bn=False, clamp_params=False, **kwargs):

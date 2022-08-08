@@ -79,7 +79,7 @@ def get_custom_qconfig(backend='fbgemm', bitwidth=8, symmetric=False,  per_chann
     qconfig = torch.quantization.QConfig(activation=activation_observer, weight=weight_observer)
     return qconfig
 
-######################################################################
+
 def get_custom_qconfig_with_fakequantize(backend='fbgemm', bitwidth=8, symmetric=False,  per_channel=False,
                        power2_weight_range=False, power2_activation_range=False,
                        reduce_range=False, quantize_weights=True, quantize_activation=True, histogram=True):
@@ -98,6 +98,14 @@ def get_custom_qconfig_with_fakequantize(backend='fbgemm', bitwidth=8, symmetric
     #
     qconfig = torch.quantization.QConfig(activation=activation_observer, weight=weight_observer)
     return qconfig
+
+
+def get_custom_qconfig_qat(*args, histogram=False, **kwargs):
+    '''
+    torch.quantization comments says that histogram is too slow for QAT
+    disable it by degfault for now.
+    '''
+    return get_custom_qconfig_with_fakequantize(*args, histogram=histogram, **kwargs)
 
 
 ######################################################################
