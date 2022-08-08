@@ -5,3 +5,5 @@ data/datasets
 !data/datasets/readme.txt
 data/checkpoints
 !data/checkpoints/readme.txt
+data/downloads
+!data/downloads/readme.txt
