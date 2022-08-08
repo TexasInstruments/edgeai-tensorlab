@@ -35,10 +35,10 @@
       },
       "training":{
         "enable":true,
-        "model_key":"ssd_mobilenetv2_fpn_lite_mmdet",
-        "training_backend":"edgeai_mmdetection",
-        "model_name":"ssd_mobilenet_fpn_lite",
+        "model_name":"ssd_mobilenetv2_fpn_lite_mmdet",
+        "model_key":"ssd_mobilenet_fpn_lite",
         "model_id":"od-8030",
+        "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
@@ -134,10 +134,10 @@
       },
       "training":{
         "enable":true,
-        "model_key":"ssd_regnetx_800mf_fpn_bgr_lite_mmdet",
-        "training_backend":"edgeai_mmdetection",
-        "model_name":"ssd_regnetx_800mf_fpn_bgr_lite",
+        "model_name":"ssd_regnetx_800mf_fpn_bgr_lite_mmdet",
+        "model_key":"ssd_regnetx_800mf_fpn_bgr_lite",
         "model_id":"od-8050",
+        "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
@@ -233,10 +233,10 @@
       },
       "training":{
         "enable":true,
-        "model_key":"ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet",
-        "training_backend":"edgeai_mmdetection",
-        "model_name":"ssd_regnetx_1p6gf_fpn_bgr_lite",
+        "model_name":"ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet",
+        "model_key":"ssd_regnetx_1p6gf_fpn_bgr_lite",
         "model_id":"od-8060",
+        "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-1.6gf_fpn_bgr_lite_768x768_20200923_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
@@ -332,10 +332,10 @@
       },
       "training":{
         "enable":true,
-        "model_key":"yolox_nano_lite_mmdet",
-        "training_backend":"edgeai_mmdetection",
-        "model_name":"yolox_nano_lite",
+        "model_name":"yolox_nano_lite_mmdet",
+        "model_key":"yolox_nano_lite",
         "model_id":"od-8200",
+        "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
@@ -425,10 +425,10 @@
       },
       "training":{
         "enable":true,
-        "model_key":"yolox_tiny_lite_mmdet",
-        "training_backend":"edgeai_mmdetection",
-        "model_name":"yolox_tiny_lite",
+        "model_name":"yolox_tiny_lite_mmdet",
+        "model_key":"yolox_tiny_lite",
         "model_id":"od-8210",
+        "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
@@ -518,10 +518,10 @@
       },
       "training":{
         "enable":true,
-        "model_key":"yolox_s_lite_mmdet",
-        "training_backend":"edgeai_mmdetection",
-        "model_name":"yolox_s_lite",
+        "model_name":"yolox_s_lite_mmdet",
+        "model_key":"yolox_s_lite",
         "model_id":"od-8220",
+        "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
@@ -611,10 +611,10 @@
       },
       "training":{
         "enable":true,
-        "model_key":"yolox_m_lite_mmdet",
-        "training_backend":"edgeai_mmdetection",
-        "model_name":"yolox_m_lite",
+        "model_name":"yolox_m_lite_mmdet",
+        "model_key":"yolox_m_lite",
         "model_id":"od-8230",
+        "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
@@ -704,10 +704,10 @@
       },
       "training":{
         "enable":true,
-        "model_key":"mobilenet_v2_lite_tv",
-        "training_backend":"edgeai_torchvision",
-        "model_name":"mobilenet_v2_lite",
+        "model_name":"mobilenet_v2_lite_tv",
+        "model_key":"mobilenet_v2_lite",
         "model_id":"cl-6070",
+        "training_backend":"edgeai_torchvision",
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
@@ -794,10 +794,10 @@
       },
       "training":{
         "enable":true,
-        "model_key":"mobilenet_v3_large_lite_tv",
-        "training_backend":"edgeai_torchvision",
-        "model_name":"mobilenet_v3_large_lite",
+        "model_name":"mobilenet_v3_large_lite_tv",
+        "model_key":"mobilenet_v3_large_lite",
         "model_id":"cl-6490",
+        "training_backend":"edgeai_torchvision",
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
@@ -884,10 +884,10 @@
       },
       "training":{
         "enable":true,
-        "model_key":"mobilenet_v3_small_lite_tv",
-        "training_backend":"edgeai_torchvision",
-        "model_name":"mobilenet_v3_small_lite",
+        "model_name":"mobilenet_v3_small_lite_tv",
+        "model_key":"mobilenet_v3_small_lite",
         "model_id":"cl-6480",
+        "training_backend":"edgeai_torchvision",
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth",
         "target_devices":{
           "TDA4VM":{
@@ -974,10 +974,10 @@
       },
       "training":{
         "enable":true,
-        "model_key":"regnet_x_400mf_tv",
-        "training_backend":"edgeai_torchvision",
-        "model_name":"regnet_x_400mf",
+        "model_name":"regnet_x_400mf_tv",
+        "model_key":"regnet_x_400mf",
         "model_id":"cl-6160",
+        "training_backend":"edgeai_torchvision",
         "pretrained_checkpoint_path":"https://download.pytorch.org/models/regnet_x_400mf-adf1edd5.pth",
         "target_devices":{
           "TDA4VM":{
@@ -1064,10 +1064,10 @@
       },
       "training":{
         "enable":true,
-        "model_key":"regnet_x_800mf_tv",
-        "training_backend":"edgeai_torchvision",
-        "model_name":"regnet_x_800mf",
+        "model_name":"regnet_x_800mf_tv",
+        "model_key":"regnet_x_800mf",
         "model_id":"cl-6170",
+        "training_backend":"edgeai_torchvision",
         "pretrained_checkpoint_path":"https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth",
         "target_devices":{
           "TDA4VM":{
@@ -1154,10 +1154,10 @@
       },
       "training":{
         "enable":true,
-        "model_key":"regnet_x_1_6gf_tv",
-        "training_backend":"edgeai_torchvision",
-        "model_name":"regnet_x_1_6gf",
+        "model_name":"regnet_x_1_6gf_tv",
+        "model_key":"regnet_x_1_6gf",
         "model_id":"cl-6180",
+        "training_backend":"edgeai_torchvision",
         "pretrained_checkpoint_path":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth",
         "target_devices":{
           "TDA4VM":{

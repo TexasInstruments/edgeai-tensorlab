@@ -57,8 +57,8 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_id: cl-6070
-      model_key: mobilenet_v2_lite_tv
-      model_name: mobilenet_v2_lite
+      model_key: mobilenet_v2_lite
+      model_name: mobilenet_v2_lite_tv
       model_proto_path: null
       num_classes: null
       num_gpus: 0
@@ -137,8 +137,8 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_id: cl-6490
-      model_key: mobilenet_v3_large_lite_tv
-      model_name: mobilenet_v3_large_lite
+      model_key: mobilenet_v3_large_lite
+      model_name: mobilenet_v3_large_lite_tv
       model_proto_path: null
       num_classes: null
       num_gpus: 0
@@ -217,8 +217,8 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_id: cl-6480
-      model_key: mobilenet_v3_small_lite_tv
-      model_name: mobilenet_v3_small_lite
+      model_key: mobilenet_v3_small_lite
+      model_name: mobilenet_v3_small_lite_tv
       model_proto_path: null
       num_classes: null
       num_gpus: 0
@@ -297,8 +297,8 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_id: cl-6180
-      model_key: regnet_x_1_6gf_tv
-      model_name: regnet_x_1_6gf
+      model_key: regnet_x_1_6gf
+      model_name: regnet_x_1_6gf_tv
       model_proto_path: null
       num_classes: null
       num_gpus: 0
@@ -377,8 +377,8 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_id: cl-6160
-      model_key: regnet_x_400mf_tv
-      model_name: regnet_x_400mf
+      model_key: regnet_x_400mf
+      model_name: regnet_x_400mf_tv
       model_proto_path: null
       num_classes: null
       num_gpus: 0
@@ -457,8 +457,8 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_id: cl-6170
-      model_key: regnet_x_800mf_tv
-      model_name: regnet_x_800mf
+      model_key: regnet_x_800mf
+      model_name: regnet_x_800mf_tv
       model_proto_path: null
       num_classes: null
       num_gpus: 0
@@ -543,8 +543,8 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_id: od-8030
-      model_key: ssd_mobilenetv2_fpn_lite_mmdet
-      model_name: ssd_mobilenet_fpn_lite
+      model_key: ssd_mobilenet_fpn_lite
+      model_name: ssd_mobilenetv2_fpn_lite_mmdet
       model_proto_path: null
       num_classes: null
       num_gpus: 0
@@ -629,8 +629,8 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_id: od-8060
-      model_key: ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet
-      model_name: ssd_regnetx_1p6gf_fpn_bgr_lite
+      model_key: ssd_regnetx_1p6gf_fpn_bgr_lite
+      model_name: ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet
       model_proto_path: null
       num_classes: null
       num_gpus: 0
@@ -715,8 +715,8 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_id: od-8050
-      model_key: ssd_regnetx_800mf_fpn_bgr_lite_mmdet
-      model_name: ssd_regnetx_800mf_fpn_bgr_lite
+      model_key: ssd_regnetx_800mf_fpn_bgr_lite
+      model_name: ssd_regnetx_800mf_fpn_bgr_lite_mmdet
       model_proto_path: null
       num_classes: null
       num_gpus: 0
@@ -798,8 +798,8 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_id: od-8230
-      model_key: yolox_m_lite_mmdet
-      model_name: yolox_m_lite
+      model_key: yolox_m_lite
+      model_name: yolox_m_lite_mmdet
       model_proto_path: null
       num_classes: null
       num_gpus: 0
@@ -881,8 +881,8 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_id: od-8200
-      model_key: yolox_nano_lite_mmdet
-      model_name: yolox_nano_lite
+      model_key: yolox_nano_lite
+      model_name: yolox_nano_lite_mmdet
       model_proto_path: null
       num_classes: null
       num_gpus: 0
@@ -964,8 +964,8 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_id: od-8220
-      model_key: yolox_s_lite_mmdet
-      model_name: yolox_s_lite
+      model_key: yolox_s_lite
+      model_name: yolox_s_lite_mmdet
       model_proto_path: null
       num_classes: null
       num_gpus: 0
@@ -1047,8 +1047,8 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_id: od-8210
-      model_key: yolox_tiny_lite_mmdet
-      model_name: yolox_tiny_lite
+      model_key: yolox_tiny_lite
+      model_name: yolox_tiny_lite_mmdet
       model_proto_path: null
       num_classes: null
       num_gpus: 0
