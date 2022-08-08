@@ -12,12 +12,6 @@ import cv2
 r_h = 640 / 640
 r_w = 640 / 640
 
-px = 325.26110
-py = 242.04899
-
-fx = 572.41140
-fy = 573.57043
-
 def calculate_model_rotation(point_cloud, rvec):
     #rvec = rvec.cpu()
     point_cloud = point_cloud.to(device="cuda:{}".format(get_local_rank()))
@@ -37,7 +31,7 @@ def calculate_model_rotation(point_cloud, rvec):
     return points_transformed
 
 
-def decode_rotation_translation(pose):
+def decode_rotation_translation(pose, camera_matrix=None):
     """
         Args:
             pose : Pose predicted by the model or ground truth pose
@@ -60,8 +54,8 @@ def decode_rotation_translation(pose):
     # px, py, fx and fy are currently hard-coded for LINEMOD dataset
     tz = pose[13] * 100.0
     # print("prediction",obj_class, tz)
-    tx = ((pose[11] / r_w) - px) * tz / fx
-    ty = ((pose[12] / r_h) - py) * tz / fy
+    tx = ((pose[11] / r_w) - camera_matrix[2]) * tz / camera_matrix[0]
+    ty = ((pose[12] / r_h) - camera_matrix[5]) * tz / camera_matrix[4]
     rotation_mat = np.concatenate((r1, r2, r3), axis=1)
     rotation_vec, _ = cv2.Rodrigues(np.asarray(rotation_mat, dtype=np.float32))
     translation_vec[0] = tx

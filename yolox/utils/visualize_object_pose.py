@@ -56,16 +56,16 @@ def draw_cuboid_2d(img, cuboid_corners, colour = (0, 255, 0), thickness = 2):
     return img
 
 
-def project_3d_2d(cuboid_corners, rotation_vec, translation_vec, camera_matrix):
+def project_3d_2d(pts_3d, rotation_vec, translation_vec, camera_matrix):
     rotation_mat, _ = cv2.Rodrigues(rotation_vec)
-    xformed_3d = np.matmul(cuboid_corners, rotation_mat.T) + translation_vec
+    xformed_3d = np.matmul(pts_3d, rotation_mat.T) + translation_vec
     xformed_3d[:,:3] = xformed_3d[:,:3]/xformed_3d[:,2:3]
     projected_2d = np.matmul(xformed_3d, camera_matrix.reshape((3, 3)).T)[:, :2]
 
     return projected_2d
 
 
-def draw_6d_pose(img, data_list, class_to_cuboid=None, camera_matrix=camera_matrix, colours=colours, conf = 0.6, class_to_model=None, gt=True, out_dir=None, id=None):
+def draw_6d_pose(img, data_list , camera_matrix, class_to_cuboid=None, colours=colours, conf = 0.6, class_to_model=None, gt=True, out_dir=None, id=None):
 
     if is_tensor(img):
         img_cuboid = copy.deepcopy(img).cpu().numpy().transpose(1, 2, 0)

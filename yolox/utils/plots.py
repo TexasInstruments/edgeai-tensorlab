@@ -268,7 +268,7 @@ def plot_images(images, targets, paths=None, fname='images.png', names=None, max
                         elif object_pose:
                             pose = {}
                             pose['xy'] = copy.deepcopy(image_targets[j][11:13])
-                            rotation_vec, translation_vec = decode_rotation_translation(image_targets[j])
+                            rotation_vec, translation_vec = decode_rotation_translation(image_targets[j], camera_matrix=cad_models.camera_matrix)
                             pose["rotation_vec"] = rotation_vec
                             pose["translation_vec"] = translation_vec
                             plot_one_box(box, mosaic, im_cuboid=mosaic_cuboid, im_mask=mosaic_mask, label=label, color=color, line_thickness=tl, object_pose=object_pose,
