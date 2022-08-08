@@ -9,4 +9,5 @@ from .mosaicdetection import MosaicDetection
 from .voc import VOCDetection
 from .linemod_occlusion import LINEMODOcclusionDataset
 from .linemod_occlusion_pbr import LINEMODOcclusionPBRDataset
+from .ycb import YCBDataset
 from .coco_kpts import COCOKPTSDataset

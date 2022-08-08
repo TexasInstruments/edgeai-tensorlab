@@ -73,7 +73,7 @@ def plot_object_pose(im, im_cuboid, im_mask, pose, cad_models, color, label, blo
     xy = pose['xy']
 
     img_cuboid = cv2.circle(im_cuboid, (int(xy[0])+block_x, int(xy[1])+block_y), 3, (0, 0, 255), -1)
-    cad_model_2d = project_3d_2d(cad_models.class_to_model[int(label)], rotation, translation, camera_matrix)
+    cad_model_2d = project_3d_2d(cad_models.class_to_model[int(label)], rotation, translation, cad_models.camera_matrix)
     cad_model_2d = cad_model_2d.astype(np.int32)
     cad_model_2d[cad_model_2d >= 640] = 639
     cad_model_2d[cad_model_2d < 0] = 0

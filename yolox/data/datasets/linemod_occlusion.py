@@ -16,7 +16,7 @@ from ..dataloading import get_yolox_datadir
 from .datasets_wrapper import Dataset
 from yolox.utils import camera_matrix
 
-class CADModels():
+class CADModelsLM():
     def __init__(self, data_dir=None):
         if data_dir is None:
             data_dir = os.path.join(get_yolox_datadir(), "LINEMOD_Occlusion_COCO")
@@ -31,6 +31,7 @@ class CADModels():
         self.class_to_sparse_model = self.create_sparse_models()
         self.models_corners, self.models_diameter = self.get_models_params()
         self.symmetric_objects = {9: "eggbox", 10: "glue"}
+        self.camera_matrix = None
 
     def load_cad_models(self):
         class_to_model = {class_id: None for class_id in self.class_to_name.keys()}

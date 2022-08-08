@@ -15,7 +15,7 @@ import yaml
 from ..dataloading import get_yolox_datadir
 from .datasets_wrapper import Dataset
 from yolox.utils import camera_matrix
-from .linemod_occlusion import CADModels
+from .linemod_occlusion import CADModelsLM
 
 class LINEMODOcclusionPBRDataset(Dataset):
     """
@@ -61,7 +61,7 @@ class LINEMODOcclusionPBRDataset(Dataset):
         if preproc is not None:
             self.preproc = preproc
         self.annotations = self._load_coco_annotations()
-        self.cad_models = CADModels()
+        self.cad_models = CADModelsLM()
         self.models_corners, self.models_diameter = self.cad_models.models_corners, self.cad_models.models_diameter
         self.class_to_name = self.cad_models.class_to_name
         self.class_to_model = self.cad_models.class_to_model

@@ -11,11 +11,99 @@ from math import acos, sin, sqrt, copysign
 from pycocotools.coco import COCO
 from plyfile import PlyData
 import yaml
+import json
 
 from ..dataloading import get_yolox_datadir
 from .datasets_wrapper import Dataset
 from yolox.utils import camera_matrix
-from .linemod_occlusion import CADModels
+
+class CADModelsYCB():
+    def __init__(self, data_dir=None):
+        if data_dir is None:
+            data_dir = os.path.join(get_yolox_datadir(), "ycb")
+        self.data_dir = data_dir
+        self.cad_models_path = os.path.join(self.data_dir, "models_eval")
+        self.class_to_name = {
+                    0: "002_master_chef_can" , 1: "003_cracker_box" ,  2: "004_sugar_box" , 3: "005_tomato_soup_can",  4: "006_mustard_bottle",
+                    5: "007_tuna_fish_can",  6: "008_pudding_box" , 7: "009_gelatin_box", 8: "010_potted_meat_can",  9: "011_banana",
+                    10: "019_pitcher_base", 11: "021_bleach_cleanser",  12: "024_bowl", 13: "025_mug", 14: "035_power_drill",
+                    15: "036_wood_block", 16: "037_scissors", 17: "040_large_marker", 18: "051_large_clamp", 19: "052_extra_large_clamp",
+                    20: "061_foam_brick"
+                    }
+
+        self.models_dict_path = os.path.join(self.cad_models_path, "models_info.json")
+        with open(self.models_dict_path) as foo:
+            self.models_dict  = json.load(foo)
+        self.class_to_model = self.load_cad_models()
+        self.class_to_sparse_model = self.create_sparse_models()
+        self.models_corners, self.models_diameter = self.get_models_params()
+        self.camera_matrix = self.get_camera_params()
+        self.symmetric_objects = { 1 : "002_master_chef_can" , 13 : "024_bowl" , 14 : "025_mug", 16 : "036_wood_block",
+                                    18 : "040_large_marker", 19 : "051_large_clamp", 20 : "052_extra_large_clamp", 21 : "061_foam_brick" }
+
+    def get_camera_params(self):
+        camera_params_path = os.path.join(self.data_dir, "base", "camera_uw.json")
+        with open(camera_params_path) as foo:
+            camera_params = json.load(foo)
+        camera_matrix = np.array([camera_params['fx'], 0, camera_params['cx'], 0.0, camera_params['fy'], camera_params['cy'], 0.0, 0.0, 1.0])
+        return camera_matrix
+
+    def load_cad_models(self):
+        class_to_model = {class_id: None for class_id in self.class_to_name.keys()}
+        logger.info("Loading 3D models...")
+        for class_id, name in self.class_to_name.items():
+            file = "obj_{:06}.ply".format(class_id + 1)
+            cad_model_path = os.path.join(self.cad_models_path, file)
+
+            if not os.path.isfile(cad_model_path):
+                logger.warning(
+                    "The file {} model for class {} was not found".format(file, name)
+                )
+                continue
+            logger.info("Loading 3D model {}".format(name))
+            class_to_model[class_id] = self.load_model_point_cloud(cad_model_path)
+
+        return class_to_model
+
+    def load_model_point_cloud(self, datapath):
+        model = PlyData.read(datapath)
+        vertex = model['vertex']
+        points = np.stack([vertex[:]['x'], vertex[:]['y'], vertex[:]['z']], axis=-1).astype(np.float64)
+        return points
+
+    def get_models_params(self):
+        """
+        Convert model corners from LINEMOD Occlusion format (min_x, min_y, min_z, size_x, size_y, size_z) to actual coordinates format of dimension (8,3)
+        Return the corner coordinates and the diameters of each models
+        """
+        models_corners_3d = {}
+        models_diameter = {}
+        for model_id, model_param in self.models_dict.items():
+            min_x, max_x = model_param['min_x'], model_param['min_x'] + model_param['size_x']
+            min_y, max_y = model_param['min_y'], model_param['min_y'] + model_param['size_y']
+            min_z, max_z = model_param['min_z'], model_param['min_z'] + model_param['size_z']
+            corners_3d = np.array([
+                [min_x, min_y, min_z],
+                [min_x, min_y, max_z],
+                [min_x, max_y, max_z],
+                [min_x, max_y, min_z],
+                [max_x, min_y, min_z],
+                [max_x, min_y, max_z],
+                [max_x, max_y, max_z],
+                [max_x, max_y, min_z],
+            ])
+            models_corners_3d.update({int(model_id)-1: corners_3d})
+            models_diameter.update({int(model_id)-1: model_param['diameter']})
+        return models_corners_3d, models_diameter
+
+    def create_sparse_models(self):
+        class_to_sparse_model = {}
+        for model_id in self.class_to_model.keys():
+            sample_rate =len(self.class_to_model[model_id])//500
+            #sparsely sample the model to have close to 500 points
+            class_to_sparse_model.update({model_id : self.class_to_model[model_id][::sample_rate, :]})
+        return class_to_sparse_model
+
 
 class YCBDataset(Dataset):
     """
@@ -31,8 +119,7 @@ class YCBDataset(Dataset):
         preproc=None,
         cache=False,
         object_pose=False,
-        symmetric_objects= { 1 : "002_master_chef_can" , 13 : "024_bowl" , 14 : "025_mug", 16 : "036_wood_block",
-                            18 : "040_large_marker", 19 : "051_large_clamp", 20 : "052_extra_large_clamp", 21 : "061_foam_brick"}
+        symmetric_objects=None
     ):
         """
         LINEMODOcclusion dataset initialization. Annotation data are read into memory by COCO API.
@@ -62,11 +149,11 @@ class YCBDataset(Dataset):
         if preproc is not None:
             self.preproc = preproc
         self.annotations = self._load_coco_annotations()
-        self.cad_models = CADModels()
+        self.cad_models = CADModelsYCB()
         self.models_corners, self.models_diameter = self.cad_models.models_corners, self.cad_models.models_diameter
         self.class_to_name = self.cad_models.class_to_name
         self.class_to_model = self.cad_models.class_to_model
-        self.symmetric_objects = symmetric_objects
+        self.symmetric_objects = self.cad_models.symmetric_objects
         if cache:
             self._cache_images()
 
@@ -203,13 +290,9 @@ class YCBDataset(Dataset):
     def load_image(self, index):
         file_name = self.annotations[index][3]
         img_index = list(self.imgs_coco)[index]
-        if self.name=='train' and self.imgs_coco[img_index]['type'] == 'synthetic':
-            image_folder = self.imgs_coco[int(index)]['image_folder']
-
-            img_file = os.path.join(self.data_dir, self.name+"_pbr", image_folder, 'rgb', file_name)
-        else:
-            img_file = os.path.join(self.data_dir, self.name, file_name)
-
+        image_folder = self.imgs_coco[int(img_index)]['image_folder']
+        type = self.imgs_coco[img_index]['type']
+        img_file = os.path.join(self.data_dir, self.name + '_' + type, image_folder, 'rgb', file_name)
         img = cv2.imread(img_file)
         assert img is not None
 

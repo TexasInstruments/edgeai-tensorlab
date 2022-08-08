@@ -20,7 +20,8 @@ from yolox.utils import bboxes_iou, calculate_model_rotation, camera_matrix
 from .losses import IOUloss
 from .network_blocks import BaseConv, DWConv
 
-from ..data.datasets.linemod_occlusion import CADModels
+from ..data.datasets.linemod_occlusion import CADModelsLM
+from ..data.datasets.ycb import CADModelsYCB
 
 class YOLOXObjectPoseHead(nn.Module):
     def __init__(
@@ -31,6 +32,7 @@ class YOLOXObjectPoseHead(nn.Module):
         in_channels=[256, 512, 1024],
         act="silu",
         depthwise=False,
+        dataset = "linemod"
     ):
         """
         Args:
@@ -54,7 +56,10 @@ class YOLOXObjectPoseHead(nn.Module):
         self.trn_preds_z = nn.ModuleList()
         self.obj_preds = nn.ModuleList()
         self.stems = nn.ModuleList()
-        self.cad_models = CADModels()
+        if "linemod" in dataset:
+            self.cad_models = CADModelsLM()
+        elif "ycb" in dataset:
+            self.cad_models = CADModelsYCB()
         self.adds = True
         self.adds_z = True
         self.symmetric = True
