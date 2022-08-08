@@ -69,10 +69,10 @@ def init_params(*args, **kwargs):
         ),
         training=dict(
             enable=True,
-            model_key=None,
-            training_backend=None,
             model_name=None,
+            model_key=None,
             model_id=None,
+            training_backend=None,
             pretrained_checkpoint_path=None,
             target_devices={},
             project_path=None,

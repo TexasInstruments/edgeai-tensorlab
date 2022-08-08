@@ -32,7 +32,7 @@ training:
 
     # Image Classification model chosen can be changed here if needed
     # #'mobilenet_v2_lite_tv' #'mobilenet_v3_large_lite_tv' #'mobilenet_v3_small_lite_tv' #'regnet_x_400mf_tv' #'regnet_x_800mf_tv' #'regnet_x_1_6gf_tv'
-    model_key: 'regnet_x_800mf_tv'
+    model_name: 'regnet_x_800mf_tv'
 
     training_epochs: 30 #10
     batch_size: 64 #8 #32

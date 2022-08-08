@@ -58,9 +58,9 @@ def get_model_descriptions(task_type=None, target_device=None, training_device=N
     return model_descriptions_selected
 
 
-def get_model_description(model_key):
+def get_model_description(model_name):
     model_descriptions = get_model_descriptions()
-    return model_descriptions[model_key] if model_key in model_descriptions else None
+    return model_descriptions[model_name] if model_name in model_descriptions else None
 
 
 def get_target_module(backend_name, task_type):

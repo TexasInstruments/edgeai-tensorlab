@@ -46,15 +46,15 @@ def get_model_descriptions(params):
     return model_descriptions
 
 
-def get_model_description(model_key):
-    assert model_key, 'model_key must be specified for get_model_description().' \
-        'if model_key is not known, use the method get_model_descriptions() that returns supported models.'
-    model_description = training.get_model_description(model_key)
+def get_model_description(model_name):
+    assert model_name, 'model_name must be specified for get_model_description().' \
+        'if model_name is not known, use the method get_model_descriptions() that returns supported models.'
+    model_description = training.get_model_description(model_name)
     return model_description
 
 
 def set_model_description(params, model_description):
-    assert model_description is not None, f'could not find pretrained model for {params.training.model_key}'
+    assert model_description is not None, f'could not find pretrained model for {params.training.model_name}'
     assert params.common.task_type == model_description['common']['task_type'], \
         f'task_type: {params.common.task_type} does not match the pretrained model'
     # get pretrained model checkpoint and other details

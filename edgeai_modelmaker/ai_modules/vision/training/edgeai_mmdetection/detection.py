@@ -52,8 +52,8 @@ _model_descriptions = {
         training=dict(
             training_backend='edgeai_mmdetection',
             model_id='od-8030',
-            model_key='ssd_mobilenetv2_fpn_lite_mmdet',
-            model_name='ssd_mobilenet_fpn_lite',
+            model_name='ssd_mobilenetv2_fpn_lite_mmdet',
+            model_key='ssd_mobilenet_fpn_lite',
             model_architecture='ssd',
             input_resize=(512,512),
             input_cropsize=(512,512),
@@ -80,8 +80,8 @@ _model_descriptions = {
         training=dict(
             training_backend='edgeai_mmdetection',
             model_id='od-8050',
-            model_key='ssd_regnetx_800mf_fpn_bgr_lite_mmdet',
-            model_name='ssd_regnetx_800mf_fpn_bgr_lite',
+            model_name='ssd_regnetx_800mf_fpn_bgr_lite_mmdet',
+            model_key='ssd_regnetx_800mf_fpn_bgr_lite',
             model_architecture='ssd',
             input_resize=(512,512),
             input_cropsize=(512,512),
@@ -108,8 +108,8 @@ _model_descriptions = {
         training=dict(
             training_backend='edgeai_mmdetection',
             model_id='od-8060',
-            model_key='ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet',
-            model_name='ssd_regnetx_1p6gf_fpn_bgr_lite',
+            model_name='ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet',
+            model_key='ssd_regnetx_1p6gf_fpn_bgr_lite',
             model_architecture='ssd',
             input_resize=(768,768),
             input_cropsize=(768,768),
@@ -136,8 +136,8 @@ _model_descriptions = {
         training=dict(
             training_backend='edgeai_mmdetection',
             model_id='od-8200',
-            model_key='yolox_nano_lite_mmdet',
-            model_name='yolox_nano_lite',
+            model_name='yolox_nano_lite_mmdet',
+            model_key='yolox_nano_lite',
             model_architecture='yolox',
             input_resize=416,
             input_cropsize=416,
@@ -164,8 +164,8 @@ _model_descriptions = {
         training=dict(
             training_backend='edgeai_mmdetection',
             model_id='od-8210',
-            model_key='yolox_tiny_lite_mmdet',
-            model_name='yolox_tiny_lite',
+            model_name='yolox_tiny_lite_mmdet',
+            model_key='yolox_tiny_lite',
             model_architecture='yolox',
             input_resize=416,
             input_cropsize=416,
@@ -192,8 +192,8 @@ _model_descriptions = {
         training=dict(
             training_backend='edgeai_mmdetection',
             model_id='od-8220',
-            model_key='yolox_s_lite_mmdet',
-            model_name='yolox_s_lite',
+            model_name='yolox_s_lite_mmdet',
+            model_key='yolox_s_lite',
             model_architecture='yolox',
             input_resize=640,
             input_cropsize=640,
@@ -220,8 +220,8 @@ _model_descriptions = {
         training=dict(
             training_backend='edgeai_mmdetection',
             model_id='od-8230',
-            model_key='yolox_m_lite_mmdet',
-            model_name='yolox_m_lite',
+            model_name='yolox_m_lite_mmdet',
+            model_key='yolox_m_lite',
             model_architecture='yolox',
             input_resize=640,
             input_cropsize=640,
@@ -253,9 +253,9 @@ def get_model_descriptions(task_type=None):
     return model_descriptions_selected
 
 
-def get_model_description(model_key):
+def get_model_description(model_name):
     model_descriptions = get_model_descriptions()
-    return model_descriptions[model_key] if model_key in model_descriptions else None
+    return model_descriptions[model_name] if model_name in model_descriptions else None
 
 
 class ModelTraining:
@@ -306,9 +306,9 @@ class ModelTraining:
         dataset_style = 'coco' #'voc' #'coco'
         input_size = self.params.training.input_cropsize if isinstance(self.params.training.input_cropsize, (list,tuple)) else \
             (self.params.training.input_cropsize,self.params.training.input_cropsize)
-        base_config_path = os.path.join(mmdet_path, 'configs', 'edgeailite', self.params.training.model_architecture, self.params.training.model_name)
+        base_config_path = os.path.join(mmdet_path, 'configs', 'edgeailite', self.params.training.model_architecture, self.params.training.model_key)
 
-        config_file = os.path.join(self.params.training.training_path, f'{self.params.training.model_key}.py')
+        config_file = os.path.join(self.params.training.training_path, f'{self.params.training.model_name}.py')
         config_strs = []
         config_strs += [f'_base_   = ['
                         f'"{base_config_path}.py"]\n']

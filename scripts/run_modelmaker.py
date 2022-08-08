@@ -45,8 +45,8 @@ def main(config):
     # get default params
     params = ai_target_module.runner.ModelRunner.init_params()
 
-    # get pretrained model for the given model_key
-    model_description = ai_target_module.runner.ModelRunner.get_model_description(config['training']['model_key'])
+    # get pretrained model for the given model_name
+    model_description = ai_target_module.runner.ModelRunner.get_model_description(config['training']['model_name'])
 
     # update the params with model_description and config
     params = params.update(model_description).update(config)
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     parser.add_argument('config_file', type=str, default=None)
     parser.add_argument('--run_name', type=str)
     parser.add_argument('--task_type', type=str)
-    parser.add_argument('--model_key', type=str)
+    parser.add_argument('--model_name', type=str)
     parser.add_argument('--target_device', type=str)
     parser.add_argument('--num_gpus', type=int)
     parser.add_argument('--batch_size', type=int)
@@ -111,8 +111,8 @@ if __name__ == '__main__':
     if 'target_device' in kwargs:
         config['common']['target_device'] = kwargs['target_device']
     #
-    if 'model_key' in kwargs:
-        config['training']['model_key'] = kwargs['model_key']
+    if 'model_name' in kwargs:
+        config['training']['model_name'] = kwargs['model_name']
     #
     if 'num_gpus' in kwargs:
         config['training']['num_gpus'] = kwargs['num_gpus']

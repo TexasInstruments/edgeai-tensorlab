@@ -68,14 +68,14 @@ class ModelRunner():
         self.params.dataset.download_path = os.path.join(self.params.common.project_path, 'other', 'download')
         self.params.dataset.extract_path = self.params.dataset.dataset_path
 
-        self.params.training.training_path = os.path.join(self.params.common.project_run_path, 'training', self.params.training.model_key)
+        self.params.training.training_path = os.path.join(self.params.common.project_run_path, 'training', self.params.training.model_name)
         target_device_compilation_folder = self.params.common.target_device.lower()
         self.params.compilation.compilation_path = os.path.join(self.params.common.project_run_path, 'compilation', target_device_compilation_folder)
 
         if self.params.common.target_device in self.params.training.target_devices:
             target_device_data = self.params.training.target_devices[self.params.common.target_device]
             performance_fps = target_device_data['performance_fps']
-            print(f'Model:{self.params.training.model_key} TargetDevice:{self.params.common.target_device} FPS(Estimate):{performance_fps}')
+            print(f'Model:{self.params.training.model_name} TargetDevice:{self.params.common.target_device} FPS(Estimate):{performance_fps}')
         #
 
     def clear(self):
