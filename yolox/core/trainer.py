@@ -102,6 +102,7 @@ class Trainer:
         iter_start_time = time.time()
 
         inps, targets = self.prefetcher.next()
+        data_index = self.prefetcher.data_index
         inps = inps.to(self.data_type)
         targets = targets.to(self.data_type)
         targets.requires_grad = False
@@ -114,8 +115,7 @@ class Trainer:
             if not object_pose:
                 plots.plot_images(inps, targets, fname=f, human_pose=human_pose, object_pose=object_pose)
             else:
-                cad_models = self.train_loader.dataset._dataset.cad_models
-                plots.plot_images(inps, targets, fname=f, human_pose=human_pose, object_pose=object_pose, cad_models=cad_models)
+                plots.plot_images(inps, targets, fname=f, human_pose=human_pose, object_pose=object_pose, dataset=self.train_loader.dataset._dataset, data_index=data_index)
         with torch.cuda.amp.autocast(enabled=self.amp_training):
             outputs = self.model(inps, targets)
 

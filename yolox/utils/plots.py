@@ -19,6 +19,7 @@ from PIL import Image, ImageDraw, ImageFont
 from .boxes import cxcywh2xyxy, xyxy2cxcywh
 from .visualize_object_pose import project_3d_2d, camera_matrix, draw_cuboid_2d, draw_bbox_2d
 from .object_pose_utils import decode_rotation_translation
+from ..data.datasets.ycb import YCBDataset
 
 # Settings
 matplotlib.rc('font', **{'size': 11})
@@ -44,7 +45,7 @@ colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
 def plot_one_box(x, im, im_cuboid=None, im_mask=None, color=None, label=None, line_thickness=3, human_pose=False, object_pose=False, kpts=None, steps=2, orig_shape=None, pose=None,
-                 cad_models=None, block_x=None, block_y=None):
+                 cad_models=None, camera_matrix=None, block_x=None, block_y=None):
     # Plots one bounding box on image 'im' using OpenCV
     assert im.data.contiguous, 'Image not contiguous. Apply np.ascontiguousarray(im) to plot_on_box() input image.'
     tl = line_thickness or round(0.002 * (im.shape[0] + im.shape[1]) / 2) + 1  # line/font thickness
@@ -62,9 +63,9 @@ def plot_one_box(x, im, im_cuboid=None, im_mask=None, color=None, label=None, li
     if human_pose:
         plot_skeleton_kpts(im, kpts, steps, orig_shape=orig_shape)
     elif object_pose:
-        plot_object_pose(im, im_cuboid, im_mask, pose, cad_models, color, label, block_x, block_y)
+        plot_object_pose(im, im_cuboid, im_mask, pose, cad_models, camera_matrix, color, label, block_x, block_y)
 
-def plot_object_pose(im, im_cuboid, im_mask, pose, cad_models, color, label, block_x, block_y):
+def plot_object_pose(im, im_cuboid, im_mask, pose, cad_models, camera_matrix, color, label, block_x, block_y):
 
     img_2dod = copy.deepcopy(im)
 
@@ -74,7 +75,7 @@ def plot_object_pose(im, im_cuboid, im_mask, pose, cad_models, color, label, blo
 
     img_cuboid = cv2.circle(im_cuboid, (int(xy[0])+block_x, int(xy[1])+block_y), 3, (0, 0, 255), -1)
     cad_model_2d = project_3d_2d(pts_3d=cad_models.class_to_model[int(label)],
-                                 rotation_vec=rotation, translation_vec=translation, camera_matrix=cad_models.camera_matrix)
+                                 rotation_vec=rotation, translation_vec=translation, camera_matrix=camera_matrix)
     cad_model_2d = cad_model_2d.astype(np.int32)
     cad_model_2d[cad_model_2d >= 640] = 639
     cad_model_2d[cad_model_2d < 0] = 0
@@ -85,7 +86,7 @@ def plot_object_pose(im, im_cuboid, im_mask, pose, cad_models, color, label, blo
     img_mask = cv2.circle(im_mask, (int(xy[0])+block_x, int(xy[1])+block_y), 3, (0, 0, 255), -1)
 
     cuboid_corners_2d = project_3d_2d(pts_3d=cad_models.models_corners[int(label)],
-                                rotation_vec=rotation, translation_vec=translation, camera_matrix=cad_models.camera_matrix
+                                rotation_vec=rotation, translation_vec=translation, camera_matrix=camera_matrix
     )
     cuboid_corners_2d[:, 0] += block_x
     cuboid_corners_2d[:, 1] += block_y
@@ -171,9 +172,10 @@ def output_to_target(output):
     return np.array(targets)
 
 
-def plot_images(images, targets, paths=None, fname='images.png', names=None, max_size=640, max_subplots=16, human_pose=False, object_pose=False, steps=2, orig_shape=None, cad_models=None):
+def plot_images(images, targets, paths=None, fname='images.png', names=None, max_size=640, max_subplots=16, human_pose=False, object_pose=False,
+                steps=2, orig_shape=None, dataset=None, data_index=None):
     # Plot image grid with labels
-
+    cad_models = dataset.cad_models
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()  #create a copy
     if isinstance(targets, torch.Tensor):
@@ -266,13 +268,22 @@ def plot_images(images, targets, paths=None, fname='images.png', names=None, max
                         if human_pose:
                             plot_one_box(box, mosaic, label=label, color=color, line_thickness=tl, human_pose=human_pose, kpts=kpts[:,j], steps=steps, orig_shape=(h,w))
                         elif object_pose:
+                            if isinstance(dataset, YCBDataset):
+                                img_index = list(dataset.imgs_coco)[data_index]
+                                image_folder = dataset.imgs_coco[int(img_index)]['image_folder']
+                                if int(image_folder)<60:
+                                    camera_matrix = cad_models.camera_matrix['camera_uw']
+                                else:
+                                    camera_matrix = cad_models.camera_matrix['camera_cmu']
+                            else :
+                                camera_matrix = cad_models.camera_matrix
                             pose = {}
                             pose['xy'] = copy.deepcopy(image_targets[j][11:13])
-                            rotation_vec, translation_vec = decode_rotation_translation(image_targets[j], camera_matrix=cad_models.camera_matrix)
+                            rotation_vec, translation_vec = decode_rotation_translation(image_targets[j], camera_matrix=camera_matrix)
                             pose["rotation_vec"] = rotation_vec
                             pose["translation_vec"] = translation_vec
                             plot_one_box(box, mosaic, im_cuboid=mosaic_cuboid, im_mask=mosaic_mask, label=label, color=color, line_thickness=tl, object_pose=object_pose,
-                                         orig_shape=(h, w), cad_models=cad_models, pose=pose, block_x=block_x, block_y=block_y)
+                                         orig_shape=(h, w), cad_models=cad_models, camera_matrix=camera_matrix, pose=pose, block_x=block_x, block_y=block_y)
                         else:
                             plot_one_box(box, mosaic, label=label, color=color, line_thickness=tl, human_pose=human_pose, orig_shape=orig_shape)
                         #cv2.imwrite(Path(paths[i]).name.split('.')[0] + "_box_{}.".format(j) + Path(paths[i]).name.split('.')[1], mosaic[:,:,::-1]) # used for debugging the dataloader pipeline

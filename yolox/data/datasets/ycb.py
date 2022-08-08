@@ -42,10 +42,15 @@ class CADModelsYCB():
                                     18 : "040_large_marker", 19 : "051_large_clamp", 20 : "052_extra_large_clamp", 21 : "061_foam_brick" }
 
     def get_camera_params(self):
-        camera_params_path = os.path.join(self.data_dir, "base", "camera_uw.json")
-        with open(camera_params_path) as foo:
-            camera_params = json.load(foo)
-        camera_matrix = np.array([camera_params['fx'], 0, camera_params['cx'], 0.0, camera_params['fy'], camera_params['cy'], 0.0, 0.0, 1.0])
+        camera_params_paths = [os.path.join(self.data_dir, "base", "camera_uw.json"),
+                                    os.path.join(self.data_dir, "base", "camera_cmu.json")]
+        camera_matrix = {}
+        for camera_param_path in camera_params_paths:
+            with open(camera_param_path) as foo:
+                camera_params = json.load(foo)
+            camera_name = os.path.basename(camera_param_path)
+            camera_matrix[camera_name.split(".")[0]] = \
+                np.array([camera_params['fx'], 0, camera_params['cx'], 0.0, camera_params['fy'], camera_params['cy'], 0.0, 0.0, 1.0])
         return camera_matrix
 
     def load_cad_models(self):
@@ -243,10 +248,12 @@ class YCBDataset(Dataset):
             #Convert the rotation matrix to angle axis format using Rodrigues formula
             #https://www.ccs.neu.edu/home/rplatt/cs5335_fall2017/slides/euler_quaternions.pdf
             if self.object_pose:
-                temp_R, _ = cv2.Rodrigues(np.array(obj["R"]).reshape(3,3))
-                temp_R = np.squeeze(temp_R)
-
-                obj_centre_2d = np.matmul(self.cad_models.camera_matrix.reshape(3,3), np.array(obj["T"])/obj["T"][2])[:2]  #rotation vec not required for the center point
+                image_folder  = int(im_ann['image_folder'])
+                if image_folder < 60:
+                    camera_matrix = self.cad_models.camera_matrix['camera_uw']
+                else:
+                    camera_matrix = self.cad_models.camera_matrix['camera_cmu']
+                obj_centre_2d = np.matmul(camera_matrix.reshape(3,3), np.array(obj["T"])/obj["T"][2])[:2]  #rotation vec not required for the center point
                 #res[ix, 11:14] = obj["T"]
                 obj_centre_2d = np.squeeze(obj_centre_2d)
                 res[ix, 11:13] = obj_centre_2d
@@ -308,7 +315,7 @@ class YCBDataset(Dataset):
         else:
             img = self.load_resized_img(index)
 
-        return img, res.copy(), img_info, np.array([id_])
+        return img, res.copy(), img_info, index
 
     @Dataset.mosaic_getitem
     def __getitem__(self, index):

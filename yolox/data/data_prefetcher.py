@@ -22,7 +22,7 @@ class DataPrefetcher:
 
     def preload(self):
         try:
-            self.next_input, self.next_target, _, _ = next(self.loader)
+            self.next_input, self.next_target, _, self.data_index = next(self.loader)
         except StopIteration:
             self.next_input = None
             self.next_target = None
