@@ -73,7 +73,8 @@ def plot_object_pose(im, im_cuboid, im_mask, pose, cad_models, color, label, blo
     xy = pose['xy']
 
     img_cuboid = cv2.circle(im_cuboid, (int(xy[0])+block_x, int(xy[1])+block_y), 3, (0, 0, 255), -1)
-    cad_model_2d = project_3d_2d(cad_models.class_to_model[int(label)], rotation, translation, cad_models.camera_matrix)
+    cad_model_2d = project_3d_2d(pts_3d=cad_models.class_to_model[int(label)],
+                                 rotation_vec=rotation, translation_vec=translation, camera_matrix=cad_models.camera_matrix)
     cad_model_2d = cad_model_2d.astype(np.int32)
     cad_model_2d[cad_model_2d >= 640] = 639
     cad_model_2d[cad_model_2d < 0] = 0
@@ -83,8 +84,8 @@ def plot_object_pose(im, im_cuboid, im_mask, pose, cad_models, color, label, blo
     im_mask[cad_model_2d[:, 1], cad_model_2d[:, 0]] = color
     img_mask = cv2.circle(im_mask, (int(xy[0])+block_x, int(xy[1])+block_y), 3, (0, 0, 255), -1)
 
-    cuboid_corners_2d = project_3d_2d(cuboid_corners=cad_models.models_corners[int(label)],
-        rotation_vec=rotation, translation_vec=translation, camera_matrix=camera_matrix
+    cuboid_corners_2d = project_3d_2d(pts_3d=cad_models.models_corners[int(label)],
+                                rotation_vec=rotation, translation_vec=translation, camera_matrix=cad_models.camera_matrix
     )
     cuboid_corners_2d[:, 0] += block_x
     cuboid_corners_2d[:, 1] += block_y
