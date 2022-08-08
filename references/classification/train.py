@@ -19,14 +19,14 @@ except ImportError:
     amp = None
 
 
-if __name__ == '__main__':
-    import presets
-    import transforms
-    import utils
-else:
+if __package__:
     from . import presets
     from . import transforms
     from . import utils
+else:
+    import presets
+    import transforms
+    import utils
 #
 
 

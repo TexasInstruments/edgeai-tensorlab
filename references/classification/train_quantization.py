@@ -8,6 +8,9 @@ import torch.utils.data
 from torch import nn
 import torchvision
 import torch.quantization
+
+from torchvision.edgeailite import xnn
+
 import utils
 from train import train_one_epoch, evaluate, load_data
 
@@ -117,7 +120,7 @@ def main(args):
             train_sampler.set_epoch(epoch)
         print('Starting training for epoch', epoch)
         train_one_epoch(model, criterion, optimizer, data_loader, device, epoch,
-                        args.print_freq)
+                        print_freq=args.print_freq)
         lr_scheduler.step()
         with torch.no_grad():
             if epoch >= args.num_observer_update_epochs:
@@ -166,8 +169,10 @@ def get_args_parser(add_help=True):
     parser = argparse.ArgumentParser(description='PyTorch Quantized Classification Training', add_help=add_help)
 
     parser.add_argument('--data-path',
-                        default='/datasets01/imagenet_full_size/061417/',
+                        default='./data/datasets/imagenet',
                         help='dataset')
+    parser.add_argument('--dataset', default='folder', help='dataset')
+    parser.add_argument('--annotation-prefix', default='instances', help='annotation-prefix')
     parser.add_argument('--model',
                         default='mobilenet_v2',
                         help='model')
@@ -242,6 +247,15 @@ def get_args_parser(add_help=True):
         action="store_true",
     )
 
+    # Mixed precision training parameters
+    parser.add_argument('--apex', action='store_true',
+                        help='Use apex for mixed precision training')
+    parser.add_argument('--apex-opt-level', default='O1', type=str,
+                        help='For apex mixed precision training'
+                             'O0 for FP32 training, O1 for mixed precision training.'
+                             'For further detail, see https://github.com/NVIDIA/apex/tree/master/examples/imagenet'
+                        )
+
     # distributed training parameters
     parser.add_argument('--world-size', default=1, type=int,
                         help='number of distributed processes')
@@ -249,6 +263,18 @@ def get_args_parser(add_help=True):
                         default='env://',
                         help='url used to set up distributed training')
 
+    parser.add_argument("--distributed", default=None, type=xnn.utils.str2bool_or_none,
+                        help="use dstributed training even if this script is not launched using torch.disctibuted.launch or run")
+
+    parser.add_argument(
+        '--model-ema', action='store_true',
+        help='enable tracking Exponential Moving Average of model parameters')
+    parser.add_argument(
+        '--model-ema-decay', type=float, default=0.9,
+        help='decay factor for Exponential Moving Average of model parameters(default: 0.9)')
+    parser.add_argument('--image-mean', default=[123.675, 116.28, 103.53], type=float, nargs=3, help='mean subtraction of input')
+    parser.add_argument('--image-scale', default=[0.017125, 0.017507, 0.017429], type=float, nargs=3, help='scale for multiplication of input')
+    parser.add_argument('--date', default=datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), help='current date')
     return parser
 
 
