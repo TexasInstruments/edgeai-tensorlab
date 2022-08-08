@@ -17,11 +17,12 @@ tutorials/.ipynb_checkpoints/
 tidl_tools
 tidl_tools/
 tidl_tools_*/
+backup/
 
 .vscode/
 *.npy
 *.jpg
-*.csv
+#*.csv
 *.ods
 *.zip
 *.tar.gz
