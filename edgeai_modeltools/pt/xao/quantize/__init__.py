@@ -1,4 +1,2 @@
 
-from .qat_fx_module import *
-from .qat_module import *
-
+from .quant_fx_module import *

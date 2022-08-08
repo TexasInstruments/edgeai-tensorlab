@@ -4,19 +4,19 @@ import torch.quantization.quantize_fx as quantize_fx
 from ... import xnn
 
 
-class QATFxModule(torch.nn.Module):
-    def __init__(self, module, qconfig_dict=None, pretrained=None, pretrained_after=True):
+class QuantFxModule(torch.nn.Module):
+    def __init__(self, module, qconfig_dict=None, pretrained=None, pretrained_after_prepare=True):
         super().__init__()
         if qconfig_dict is None:
             qconfig_dict = {"": torch.quantization.get_default_qat_qconfig('qnnpack')}
         #
         module.train()
-        if not pretrained_after:
+        if not pretrained_after_prepare:
             self.load_weights_(module, pretrained=pretrained)
         #
         module = quantize_fx.prepare_qat_fx(module, qconfig_dict)
         self.module = module
-        if pretrained_after:
+        if pretrained_after_prepare:
             self.load_weights_(module, pretrained=pretrained)
 
     def forward(self, *args, **kwargs):

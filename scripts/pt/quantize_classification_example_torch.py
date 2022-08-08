@@ -253,8 +253,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
     if args.quantize:
         is_qat_evaluation = (args.quantize and args.evaluate)
-        pretrained_after = is_qat_evaluation
-        model = pt_tools.xao.quantize.QATFxModule(model, pretrained=args.pretrained, pretrained_after=pretrained_after)
+        model = pt_tools.xao.quantize.QuantFxModule(model, pretrained=args.pretrained, pretrained_after_prepare=is_qat_evaluation)
 
     if args.use_gpu:
         if args.distributed:
