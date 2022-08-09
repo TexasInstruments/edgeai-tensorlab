@@ -32,12 +32,6 @@
 #################################################################################
 
 # ----------------------------------
-# Quantization Aware Training (QAT) Example
-# Texas Instruments (C) 2018-2020
-# All Rights Reserved
-# ----------------------------------
-
-# ----------------------------------
 date_var=`date '+%Y-%m-%d_%H-%M-%S'`
 base_dir="./data/checkpoints/quantization_example"
 save_path="$base_dir"/"$date_var"_quantization_example
@@ -51,10 +45,9 @@ exec &> >(tee -a "$log_file")
 # ----------------------------------
 # model names and pretrained paths from torchvision - add more as required
 declare -A model_pretrained=(
-  [mobilenetv2_tv_x1]=https://download.pytorch.org/models/mobilenet_v2-b0353104.pth
-  #[resnet50_x1]=https://download.pytorch.org/models/resnet50-19c8e357.pth
+  [mobilenet_v2]=https://download.pytorch.org/models/mobilenet_v2-b0353104.pth
+  #[resnet50]=https://download.pytorch.org/models/resnet50-19c8e357.pth
   #[shufflenet_v2_x1_0]=https://download.pytorch.org/models/shufflenetv2_x1-5666bf0f80.pth
-  #[mobilenetv2_shicai]='./data/modelzoo/pytorch/image_classification/imagenet1k/shicai/mobilenetv2_shicai_rgb.pth'
 )
 
 # ----------------------------------
@@ -65,7 +58,6 @@ lr_step_size=10     # adjust lr after so many epochs
 batch_size=256      # use a relatively smaller batch size as quantization aware training does not use multi-gpu
 epochs=10           # number of epochs to train
 epoch_size=0        # use a fraction to limit the number of images used in one epoch - set to 0 to use the full training epoch
-epoch_size_val=0    # use a fraction to limit the number of images used in one epoch - set to 0 to use the full validation epoch
 
 
 # ----------------------------------
@@ -77,9 +69,8 @@ for model in "${!model_pretrained[@]}"; do
   echo Quantization Aware Training for $model
   # note: this example uses only a part of the training epoch and only 10 such (partial) epochs during quantized training to save time,
   # but it may necessary to use the full training epoch if the accuracy is not satisfactory.
-  python3 -u ./scripts/pt/quantize_classification_example_torch.py ./data/datasets/image_folder_classification \
-               --arch $model --batch_size $batch_size --lr $lr --epoch_size $epoch_size --epoch_size_val $epoch_size_val \
-               --epochs $epochs --pretrained $pretrained --save_path $save_path \
-               --img_resize 256 --img_crop 224 \
-               --quantize True --use_gpu True
+  python3 -u ./scripts/pt/classification/train_quantization_edgeailite.py \
+               --data-path ./data/datasets/imagenet \
+               --model $model --batch-size $batch_size --lr $lr --epoch-size $epoch_size \
+               --epochs $epochs --output-dir ./data/checkpoints/quantization/$model
 done
