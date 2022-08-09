@@ -7,8 +7,8 @@ import json
 import argparse
 
 parser = argparse.ArgumentParser("LINEMOD_PBR2COCO_PARSER")
-parser.add_argument("--syn", default=False, action="store_true", help="Use only snthetic data")
-parser.add_argument("--keyframes", default=None,type=str, help="path to the keyframes file list")
+parser.add_argument("--type", default="real", type=str, help="real, pbr or synt")
+parser.add_argument("--keyframes", default="/data/ssd/6d_pose/ycb/YCB_dataset/image_sets/keyframe.txt", type=str, help="path to the keyframes file list")
 parser.add_argument("--split", default='train', type=str, help="Use selected frames")
 parser.add_argument("--lm", default=False, action="store_true", help="Select only LM classes")
 parser.add_argument("--lmo", default=False, action="store_true", help="Select only LMO classes ")
@@ -28,7 +28,7 @@ class_to_name = {
 }
 
 def convert_to_coco_json(merge=False):
-    basepath = '/data/ssd/6d_pose/ycb/{}_real'.format(args.split)
+    basepath = '/data/ssd/6d_pose/ycb/{}_{}'.format(args.split, args.type)
     data_folders = sorted(os.listdir(basepath))
 
     outfile = '/data/ssd/6d_pose/ycb/annotations/instances_{}.json'.format(args.split)
@@ -65,33 +65,43 @@ def convert_to_coco_json(merge=False):
                 coco_train["categories"].append(category)
 
             obj_count = 0
+            img_count = 0
 
         pbar = tqdm(enumerate(zip(list(annotations_gt['scene_gt'].items()), list(annotations_gt['scene_gt_info'].items()))), total=len(annotations_gt['scene_gt_info']))
         num_images = len(list(annotations_gt['scene_gt'].items()))
         for image_index, objects in pbar:
             objects_gt, objects_gt_info = objects[0], objects[1]
-            filename = "{:06}".format(image_index+1) + '.png'
-            if args.keyframes is not None and args.split is not 'train':
+            if args.type == "real":
+                filename = "{:06}".format(image_index+1) + '.png'
+            elif args.type == "pbr":
+                filename = "{:06}".format(image_index) + '.jpg'
+            if args.keyframes is not None and args.split != 'train':
                 print(os.path.join(data_folder, filename))
                 if os.path.join(data_folder, filename) not in keyframes_list :
                     continue
-            elif image_index%10 != 0:
+            elif image_index%10 != 0 and args.type!="pbr":
                 continue
 
             height, width = mmcv.imread(data_path + '/rgb/' + filename).shape[:2]
             image = dict([
                 ("image_folder", data_folder),
-                ("id", image_index+num_images*data_folder_idx), #
+                ("id", img_count), #
                 ("file_name", filename),
                 ("height", height),
                 ("width", width),
-                ("type", 'synthetic') if 'real' not in path else ("type", 'real')
             ])
+            if "real" in path:
+                image.update({'type': "real"})
+            elif "pbr" in path:
+                image.update({'type': "pbr"})
+            else:
+                image.update({'type': "syn"})
+
             coco_train["images"].append(image)
             for object_gt, object_gt_info  in zip(objects_gt[1], objects_gt_info[1]):
                 if object_gt_info['visib_fract'] > 0:
                     annotation = dict([
-                        ("image_id", image_index+num_images*data_folder_idx),
+                        ("image_id", img_count),
                         ("id", obj_count),
                         ("bbox", object_gt_info["bbox_obj"]),
                         ("area", object_gt_info["bbox_obj"][2] * object_gt_info["bbox_obj"][3]),
@@ -102,6 +112,7 @@ def convert_to_coco_json(merge=False):
                     ])
                     obj_count += 1
                     coco_train["annotations"].append(annotation)
+            img_count += 1
         pbar.close()
 
     #Merge either with the LINEMOD or LINEMOD Occlusion dataset.
