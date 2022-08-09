@@ -70,8 +70,7 @@ def init_params(*args, **kwargs):
         training=dict(
             enable=True,
             model_name=None,
-            model_key=None,
-            model_id=None,
+            model_training_id=None,
             training_backend=None,
             pretrained_checkpoint_path=None,
             target_devices={},
@@ -98,6 +97,7 @@ def init_params(*args, **kwargs):
         ),
         compilation=dict(
             enable=True,
+            model_compilation_id=None,
             log_file_path=None,
             compilation_path=None,
             model_compiled_path=None,

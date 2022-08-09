@@ -51,9 +51,8 @@ _model_descriptions = {
         ),
         training=dict(
             training_backend='edgeai_mmdetection',
-            model_id='od-8030',
             model_name='ssd_mobilenetv2_fpn_lite_mmdet',
-            model_key='ssd_mobilenet_fpn_lite',
+            model_training_id='ssd_mobilenet_fpn_lite',
             model_architecture='ssd',
             input_resize=(512,512),
             input_cropsize=(512,512),
@@ -67,6 +66,7 @@ _model_descriptions = {
             }
         ),
         compilation=dict(
+            model_compilation_id='od-8030',
             runtime_options={
                 'advanced_options:output_feature_16bit_names_list': None
             },
@@ -79,9 +79,8 @@ _model_descriptions = {
         ),
         training=dict(
             training_backend='edgeai_mmdetection',
-            model_id='od-8050',
             model_name='ssd_regnetx_800mf_fpn_bgr_lite_mmdet',
-            model_key='ssd_regnetx_800mf_fpn_bgr_lite',
+            model_training_id='ssd_regnetx_800mf_fpn_bgr_lite',
             model_architecture='ssd',
             input_resize=(512,512),
             input_cropsize=(512,512),
@@ -95,6 +94,7 @@ _model_descriptions = {
             }
         ),
         compilation=dict(
+            model_compilation_id='od-8050',
             runtime_options={
                 'advanced_options:output_feature_16bit_names_list': None
             },
@@ -107,9 +107,8 @@ _model_descriptions = {
         ),
         training=dict(
             training_backend='edgeai_mmdetection',
-            model_id='od-8060',
             model_name='ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet',
-            model_key='ssd_regnetx_1p6gf_fpn_bgr_lite',
+            model_training_id='ssd_regnetx_1p6gf_fpn_bgr_lite',
             model_architecture='ssd',
             input_resize=(768,768),
             input_cropsize=(768,768),
@@ -123,6 +122,7 @@ _model_descriptions = {
             }
         ),
         compilation=dict(
+            model_compilation_id='od-8060',
             runtime_options={
                 'advanced_options:output_feature_16bit_names_list': None
             },
@@ -135,9 +135,8 @@ _model_descriptions = {
         ),
         training=dict(
             training_backend='edgeai_mmdetection',
-            model_id='od-8200',
             model_name='yolox_nano_lite_mmdet',
-            model_key='yolox_nano_lite',
+            model_training_id='yolox_nano_lite',
             model_architecture='yolox',
             input_resize=416,
             input_cropsize=416,
@@ -151,6 +150,7 @@ _model_descriptions = {
             }
         ),
         compilation=dict(
+            model_compilation_id='od-8200',
             runtime_options={
                 'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
             },
@@ -163,9 +163,8 @@ _model_descriptions = {
         ),
         training=dict(
             training_backend='edgeai_mmdetection',
-            model_id='od-8210',
             model_name='yolox_tiny_lite_mmdet',
-            model_key='yolox_tiny_lite',
+            model_training_id='yolox_tiny_lite',
             model_architecture='yolox',
             input_resize=416,
             input_cropsize=416,
@@ -179,6 +178,7 @@ _model_descriptions = {
             }
         ),
         compilation=dict(
+            model_compilation_id='od-8210',
             runtime_options={
                 'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
             },
@@ -191,9 +191,8 @@ _model_descriptions = {
         ),
         training=dict(
             training_backend='edgeai_mmdetection',
-            model_id='od-8220',
             model_name='yolox_s_lite_mmdet',
-            model_key='yolox_s_lite',
+            model_training_id='yolox_s_lite',
             model_architecture='yolox',
             input_resize=640,
             input_cropsize=640,
@@ -207,6 +206,7 @@ _model_descriptions = {
             }
         ),
         compilation=dict(
+            model_compilation_id='od-8220',
             runtime_options={
                 'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
             },
@@ -219,9 +219,8 @@ _model_descriptions = {
         ),
         training=dict(
             training_backend='edgeai_mmdetection',
-            model_id='od-8230',
             model_name='yolox_m_lite_mmdet',
-            model_key='yolox_m_lite',
+            model_training_id='yolox_m_lite',
             model_architecture='yolox',
             input_resize=640,
             input_cropsize=640,
@@ -235,6 +234,7 @@ _model_descriptions = {
             },
         ),
         compilation=dict(
+            model_compilation_id='od-8230',
             runtime_options={
                 'advanced_options:output_feature_16bit_names_list': '1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580'
             },
@@ -306,7 +306,7 @@ class ModelTraining:
         dataset_style = 'coco' #'voc' #'coco'
         input_size = self.params.training.input_cropsize if isinstance(self.params.training.input_cropsize, (list,tuple)) else \
             (self.params.training.input_cropsize,self.params.training.input_cropsize)
-        base_config_path = os.path.join(mmdet_path, 'configs', 'edgeailite', self.params.training.model_architecture, self.params.training.model_key)
+        base_config_path = os.path.join(mmdet_path, 'configs', 'edgeailite', self.params.training.model_architecture, self.params.training.model_training_id)
 
         config_file = os.path.join(self.params.training.training_path, f'{self.params.training.model_name}.py')
         config_strs = []

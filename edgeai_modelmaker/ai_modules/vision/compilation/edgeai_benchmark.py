@@ -49,7 +49,7 @@ class ModelCompilation():
         self.params = self.init_params(*args, **kwargs)
         self.quit_event = quit_event
         self.settings_file = jai_benchmark.get_settings_file(target_machine=self.params.common.target_machine, with_model_import=True)
-        self.settings = self._get_settings(model_selection=self.params.training.model_id)
+        self.settings = self._get_settings(model_selection=self.params.compilation.model_compilation_id)
         # prepare for model compilation
         self._prepare()
         # update params that are specific to this backend and model

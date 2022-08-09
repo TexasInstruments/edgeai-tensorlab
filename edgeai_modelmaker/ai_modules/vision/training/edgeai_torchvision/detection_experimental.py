@@ -55,8 +55,7 @@ _model_descriptions = {
         ),
         training=dict(
             training_backend='edgeai_torchvision',
-            model_id='od-8160',
-            model_key='ssdlite_mobilenet_v2_fpn_lite',
+            model_training_id='ssdlite_mobilenet_v2_fpn_lite',
             model_name='ssdlite_mobilenet_v2_fpn_lite_tv',
             model_architecture='ssd',
             input_resize=(512,512),
@@ -69,6 +68,9 @@ _model_descriptions = {
                 constants.TRAINING_DEVICE_CPU: True,
                 constants.TRAINING_DEVICE_CUDA: True,
             }
+        ),
+        compilation=dict(
+            model_compilation_id='od-8160',
         )
     ),
     'ssdlite_regnet_x_800mf_fpn_lite_tv': dict(
@@ -77,8 +79,7 @@ _model_descriptions = {
         ),
         training=dict(
             training_backend='edgeai_torchvision',
-            model_id='od-8170',
-            model_key='ssdlite_regnet_x_800mf_fpn_lite',
+            model_training_id='ssdlite_regnet_x_800mf_fpn_lite',
             model_name='ssdlite_regnet_x_800mf_fpn_lite_tv',
             model_architecture='ssd',
             input_resize=(512,512),
@@ -91,6 +92,9 @@ _model_descriptions = {
                 constants.TRAINING_DEVICE_CPU: True,
                 constants.TRAINING_DEVICE_CUDA: True,
             }
+        ),
+        compilation=dict(
+            model_compilation_id='od-8170',
         )
     )
 }
@@ -155,7 +159,7 @@ class ModelTraining:
         os.makedirs(self.params.training.training_path, exist_ok=True)
         device = 'cuda' if self.params.training.num_gpus > 0 else 'cpu'
         # training params
-        argv = ['--model', f'{self.params.training.model_key}',
+        argv = ['--model', f'{self.params.training.model_training_id}',
                 '--pretrained', f'{self.params.training.pretrained_checkpoint_path}',
                 '--dataset', 'modelmaker',
                 '--data-path', f'{self.params.dataset.dataset_path}',

@@ -55,8 +55,7 @@ _model_descriptions = {
         ),
         training=dict(
             training_backend='edgeai_torchvision',
-            model_id='cl-6070',
-            model_key='mobilenet_v2_lite',
+            model_training_id='mobilenet_v2_lite',
             model_name='mobilenet_v2_lite_tv',
             model_architecture='backbone',
             input_resize=256,
@@ -71,6 +70,7 @@ _model_descriptions = {
             }
         ),
         compilation=dict(
+            model_compilation_id='cl-6070',
             metric=dict(label_offset_pred=1)
         )
     ),
@@ -80,8 +80,7 @@ _model_descriptions = {
         ),
         training=dict(
             training_backend='edgeai_torchvision',
-            model_id='cl-6490',
-            model_key='mobilenet_v3_large_lite',
+            model_training_id='mobilenet_v3_large_lite',
             model_name='mobilenet_v3_large_lite_tv',
             model_architecture='backbone',
             input_resize=256,
@@ -96,6 +95,7 @@ _model_descriptions = {
             }
         ),
         compilation=dict(
+            model_compilation_id='cl-6490',
             metric=dict(label_offset_pred=1)
         )
     ),
@@ -105,8 +105,7 @@ _model_descriptions = {
         ),
         training=dict(
             training_backend='edgeai_torchvision',
-            model_id='cl-6480',
-            model_key='mobilenet_v3_small_lite',
+            model_training_id='mobilenet_v3_small_lite',
             model_name='mobilenet_v3_small_lite_tv',
             model_architecture='backbone',
             input_resize=256,
@@ -121,6 +120,7 @@ _model_descriptions = {
             }
         ),
         compilation=dict(
+            model_compilation_id='cl-6480',
             metric=dict(label_offset_pred=1)
         )
     ),
@@ -130,8 +130,7 @@ _model_descriptions = {
         ),
         training=dict(
             training_backend='edgeai_torchvision',
-            model_id='cl-6160',
-            model_key='regnet_x_400mf',
+            model_training_id='regnet_x_400mf',
             model_name='regnet_x_400mf_tv',
             model_architecture='backbone',
             input_resize=256,
@@ -146,6 +145,7 @@ _model_descriptions = {
             }
         ),
         compilation=dict(
+            model_compilation_id='cl-6160',
             metric=dict(label_offset_pred=1)
         )
     ),
@@ -155,8 +155,7 @@ _model_descriptions = {
         ),
         training=dict(
             training_backend='edgeai_torchvision',
-            model_id='cl-6170',
-            model_key='regnet_x_800mf',
+            model_training_id='regnet_x_800mf',
             model_name='regnet_x_800mf_tv',
             model_architecture='backbone',
             input_resize=256,
@@ -171,6 +170,7 @@ _model_descriptions = {
             }
         ),
         compilation=dict(
+            model_compilation_id='cl-6170',
             metric=dict(label_offset_pred=1)
         )
     ),
@@ -180,8 +180,7 @@ _model_descriptions = {
         ),
         training=dict(
             training_backend='edgeai_torchvision',
-            model_id='cl-6180',
-            model_key='regnet_x_1_6gf',
+            model_training_id='regnet_x_1_6gf',
             model_name='regnet_x_1_6gf_tv',
             model_architecture='backbone',
             input_resize=256,
@@ -196,6 +195,7 @@ _model_descriptions = {
             }
         ),
         compilation=dict(
+            model_compilation_id='cl-6180',
             metric=dict(label_offset_pred=1)
         )
     ),
@@ -263,7 +263,7 @@ class ModelTraining:
         distributed = self.params.training.num_gpus > 1
         device = 'cuda' if self.params.training.num_gpus > 0 else 'cpu'
         # training params
-        argv = ['--model', f'{self.params.training.model_key}',
+        argv = ['--model', f'{self.params.training.model_training_id}',
                 '--pretrained', f'{self.params.training.pretrained_checkpoint_path}',
                 '--dataset', 'modelmaker',
                 '--data-path', f'{self.params.dataset.dataset_path}',
