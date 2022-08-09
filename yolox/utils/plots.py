@@ -204,6 +204,16 @@ def plot_images(images, targets, paths=None, fname='images.png', names=None, max
     for i, img in enumerate(images):
         if i == max_subplots:  # if last batch has fewer images than we expect
             break
+        if object_pose:
+            if isinstance(dataset, YCBDataset):
+                img_index = list(dataset.imgs_coco)[data_index[i]]
+                image_folder = dataset.imgs_coco[int(img_index)]['image_folder']
+                if int(image_folder)<60:
+                    camera_matrix = cad_models.camera_matrix['camera_uw']
+                else:
+                    camera_matrix = cad_models.camera_matrix['camera_cmu']
+            else :
+                camera_matrix = cad_models.camera_matrix
 
         block_x = int(w * (i // ns))
         block_y = int(h * (i % ns))
@@ -268,15 +278,6 @@ def plot_images(images, targets, paths=None, fname='images.png', names=None, max
                         if human_pose:
                             plot_one_box(box, mosaic, label=label, color=color, line_thickness=tl, human_pose=human_pose, kpts=kpts[:,j], steps=steps, orig_shape=(h,w))
                         elif object_pose:
-                            if isinstance(dataset, YCBDataset):
-                                img_index = list(dataset.imgs_coco)[data_index]
-                                image_folder = dataset.imgs_coco[int(img_index)]['image_folder']
-                                if int(image_folder)<60:
-                                    camera_matrix = cad_models.camera_matrix['camera_uw']
-                                else:
-                                    camera_matrix = cad_models.camera_matrix['camera_cmu']
-                            else :
-                                camera_matrix = cad_models.camera_matrix
                             pose = {}
                             pose['xy'] = copy.deepcopy(image_targets[j][11:13])
                             rotation_vec, translation_vec = decode_rotation_translation(image_targets[j], camera_matrix=camera_matrix)

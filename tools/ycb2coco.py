@@ -8,7 +8,7 @@ import argparse
 
 parser = argparse.ArgumentParser("LINEMOD_PBR2COCO_PARSER")
 parser.add_argument("--syn", default=False, action="store_true", help="Use only snthetic data")
-parser.add_argument("--keyframes", default=None,type=str, help="path to the keyframes file list")
+parser.add_argument("--keyframes", default="/data/ssd/6d_pose/ycb/YCB_dataset/image_sets/keyframe.txt", type=str, help="path to the keyframes file list")
 parser.add_argument("--split", default='train', type=str, help="Use selected frames")
 parser.add_argument("--lm", default=False, action="store_true", help="Select only LM classes")
 parser.add_argument("--lmo", default=False, action="store_true", help="Select only LMO classes ")
@@ -65,6 +65,7 @@ def convert_to_coco_json(merge=False):
                 coco_train["categories"].append(category)
 
             obj_count = 0
+            img_count = 0
 
         pbar = tqdm(enumerate(zip(list(annotations_gt['scene_gt'].items()), list(annotations_gt['scene_gt_info'].items()))), total=len(annotations_gt['scene_gt_info']))
         num_images = len(list(annotations_gt['scene_gt'].items()))
@@ -81,7 +82,7 @@ def convert_to_coco_json(merge=False):
             height, width = mmcv.imread(data_path + '/rgb/' + filename).shape[:2]
             image = dict([
                 ("image_folder", data_folder),
-                ("id", image_index+num_images*data_folder_idx), #
+                ("id", img_count), #
                 ("file_name", filename),
                 ("height", height),
                 ("width", width),
@@ -91,7 +92,7 @@ def convert_to_coco_json(merge=False):
             for object_gt, object_gt_info  in zip(objects_gt[1], objects_gt_info[1]):
                 if object_gt_info['visib_fract'] > 0:
                     annotation = dict([
-                        ("image_id", image_index+num_images*data_folder_idx),
+                        ("image_id", img_count),
                         ("id", obj_count),
                         ("bbox", object_gt_info["bbox_obj"]),
                         ("area", object_gt_info["bbox_obj"][2] * object_gt_info["bbox_obj"][3]),
@@ -102,6 +103,7 @@ def convert_to_coco_json(merge=False):
                     ])
                     obj_count += 1
                     coco_train["annotations"].append(annotation)
+            img_count += 1
         pbar.close()
 
     #Merge either with the LINEMOD or LINEMOD Occlusion dataset.

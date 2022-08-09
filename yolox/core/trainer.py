@@ -101,8 +101,7 @@ class Trainer:
     def train_one_iter(self):
         iter_start_time = time.time()
 
-        inps, targets = self.prefetcher.next()
-        data_index = self.prefetcher.data_index
+        inps, targets, data_index = self.prefetcher.next()
         inps = inps.to(self.data_type)
         targets = targets.to(self.data_type)
         targets.requires_grad = False
