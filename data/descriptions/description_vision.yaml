@@ -19,6 +19,7 @@ model_descriptions:
       log_file_path: null
       metric:
         label_offset_pred: 1
+      model_compilation_id: cl-6070
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -56,10 +57,9 @@ model_descriptions:
       model_architecture: backbone
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6070
-      model_key: mobilenet_v2_lite
       model_name: mobilenet_v2_lite_tv
       model_proto_path: null
+      model_training_id: mobilenet_v2_lite
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
@@ -99,6 +99,7 @@ model_descriptions:
       log_file_path: null
       metric:
         label_offset_pred: 1
+      model_compilation_id: cl-6490
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -136,10 +137,9 @@ model_descriptions:
       model_architecture: backbone
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6490
-      model_key: mobilenet_v3_large_lite
       model_name: mobilenet_v3_large_lite_tv
       model_proto_path: null
+      model_training_id: mobilenet_v3_large_lite
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
@@ -179,6 +179,7 @@ model_descriptions:
       log_file_path: null
       metric:
         label_offset_pred: 1
+      model_compilation_id: cl-6480
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -216,10 +217,9 @@ model_descriptions:
       model_architecture: backbone
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6480
-      model_key: mobilenet_v3_small_lite
       model_name: mobilenet_v3_small_lite_tv
       model_proto_path: null
+      model_training_id: mobilenet_v3_small_lite
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
@@ -259,6 +259,7 @@ model_descriptions:
       log_file_path: null
       metric:
         label_offset_pred: 1
+      model_compilation_id: cl-6180
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -296,10 +297,9 @@ model_descriptions:
       model_architecture: backbone
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6180
-      model_key: regnet_x_1_6gf
       model_name: regnet_x_1_6gf_tv
       model_proto_path: null
+      model_training_id: regnet_x_1_6gf
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
@@ -339,6 +339,7 @@ model_descriptions:
       log_file_path: null
       metric:
         label_offset_pred: 1
+      model_compilation_id: cl-6160
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -376,10 +377,9 @@ model_descriptions:
       model_architecture: backbone
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6160
-      model_key: regnet_x_400mf
       model_name: regnet_x_400mf_tv
       model_proto_path: null
+      model_training_id: regnet_x_400mf
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
@@ -419,6 +419,7 @@ model_descriptions:
       log_file_path: null
       metric:
         label_offset_pred: 1
+      model_compilation_id: cl-6170
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -456,10 +457,9 @@ model_descriptions:
       model_architecture: backbone
       model_checkpoint_path: null
       model_export_path: null
-      model_id: cl-6170
-      model_key: regnet_x_800mf
       model_name: regnet_x_800mf_tv
       model_proto_path: null
+      model_training_id: regnet_x_800mf
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
@@ -499,6 +499,7 @@ model_descriptions:
       log_file_path: null
       metric:
         label_offset_pred: 0
+      model_compilation_id: od-8030
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -542,10 +543,9 @@ model_descriptions:
       model_architecture: ssd
       model_checkpoint_path: null
       model_export_path: null
-      model_id: od-8030
-      model_key: ssd_mobilenet_fpn_lite
       model_name: ssd_mobilenetv2_fpn_lite_mmdet
       model_proto_path: null
+      model_training_id: ssd_mobilenet_fpn_lite
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
@@ -585,6 +585,7 @@ model_descriptions:
       log_file_path: null
       metric:
         label_offset_pred: 0
+      model_compilation_id: od-8060
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -628,10 +629,9 @@ model_descriptions:
       model_architecture: ssd
       model_checkpoint_path: null
       model_export_path: null
-      model_id: od-8060
-      model_key: ssd_regnetx_1p6gf_fpn_bgr_lite
       model_name: ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet
       model_proto_path: null
+      model_training_id: ssd_regnetx_1p6gf_fpn_bgr_lite
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
@@ -671,6 +671,7 @@ model_descriptions:
       log_file_path: null
       metric:
         label_offset_pred: 0
+      model_compilation_id: od-8050
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -714,10 +715,9 @@ model_descriptions:
       model_architecture: ssd
       model_checkpoint_path: null
       model_export_path: null
-      model_id: od-8050
-      model_key: ssd_regnetx_800mf_fpn_bgr_lite
       model_name: ssd_regnetx_800mf_fpn_bgr_lite_mmdet
       model_proto_path: null
+      model_training_id: ssd_regnetx_800mf_fpn_bgr_lite
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
@@ -757,6 +757,7 @@ model_descriptions:
       log_file_path: null
       metric:
         label_offset_pred: 0
+      model_compilation_id: od-8230
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -797,10 +798,9 @@ model_descriptions:
       model_architecture: yolox
       model_checkpoint_path: null
       model_export_path: null
-      model_id: od-8230
-      model_key: yolox_m_lite
       model_name: yolox_m_lite_mmdet
       model_proto_path: null
+      model_training_id: yolox_m_lite
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
@@ -840,6 +840,7 @@ model_descriptions:
       log_file_path: null
       metric:
         label_offset_pred: 0
+      model_compilation_id: od-8200
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -880,10 +881,9 @@ model_descriptions:
       model_architecture: yolox
       model_checkpoint_path: null
       model_export_path: null
-      model_id: od-8200
-      model_key: yolox_nano_lite
       model_name: yolox_nano_lite_mmdet
       model_proto_path: null
+      model_training_id: yolox_nano_lite
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
@@ -923,6 +923,7 @@ model_descriptions:
       log_file_path: null
       metric:
         label_offset_pred: 0
+      model_compilation_id: od-8220
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -963,10 +964,9 @@ model_descriptions:
       model_architecture: yolox
       model_checkpoint_path: null
       model_export_path: null
-      model_id: od-8220
-      model_key: yolox_s_lite
       model_name: yolox_s_lite_mmdet
       model_proto_path: null
+      model_training_id: yolox_s_lite
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
@@ -1006,6 +1006,7 @@ model_descriptions:
       log_file_path: null
       metric:
         label_offset_pred: 0
+      model_compilation_id: od-8210
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
@@ -1046,10 +1047,9 @@ model_descriptions:
       model_architecture: yolox
       model_checkpoint_path: null
       model_export_path: null
-      model_id: od-8210
-      model_key: yolox_tiny_lite
       model_name: yolox_tiny_lite_mmdet
       model_proto_path: null
+      model_training_id: yolox_tiny_lite
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
