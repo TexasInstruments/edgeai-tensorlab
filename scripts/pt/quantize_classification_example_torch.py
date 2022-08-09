@@ -234,8 +234,6 @@ def main_worker(gpu, ngpus_per_node, args):
         assert args.pretrained is not None and args.pretrained is not False, \
             'pretrained checkpoint must be provided for QAT'
 
-    dummy_input = torch.rand((1, 3, args.img_crop, args.img_crop))
-
     if args.distributed:
         if args.dist_url == "env://" and args.rank == -1:
             args.rank = int(os.environ["RANK"])
@@ -544,7 +542,7 @@ def save_checkpoint(state, is_best, filename='checkpoint.pth'):
         shutil.copyfile(filename, os.path.splitext(filename)[0]+'_best.pth')
 
 
-def create_rand_inputs(is_cuda):
+def create_rand_inputs(args, is_cuda):
     dummy_input = torch.rand((1, 3, args.img_crop, args.img_crop))
     dummy_input = dummy_input.cuda() if is_cuda else dummy_input
     return dummy_input
@@ -553,7 +551,7 @@ def create_rand_inputs(is_cuda):
 def write_onnx_model(args, model, is_best, filename='checkpoint.onnx'):
     model.eval()
     is_cuda = next(model.parameters()).is_cuda
-    dummy_input = create_rand_inputs(is_cuda)
+    dummy_input = create_rand_inputs(args, is_cuda)
     torch.onnx.export(model, dummy_input, filename, export_params=True, verbose=False,
                       do_constant_folding=True, opset_version=args.opset_version)
     onnx.shape_inference.infer_shapes_path(filename, filename)
