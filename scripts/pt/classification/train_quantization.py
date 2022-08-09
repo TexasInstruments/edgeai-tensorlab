@@ -37,10 +37,7 @@ def main(args):
     val_dir = os.path.join(args.data_path, 'val')
 
     dataset, dataset_test, train_sampler, test_sampler = load_data(train_dir, val_dir, args)
-    if args.num_training_batches is not None and args.num_training_batches > 0:
-        dataset = torch.utils.data.Subset(dataset,
-            indices=list(range(args.batch_size * args.num_calibration_batches)))
-    #
+
     data_loader = torch.utils.data.DataLoader(
         dataset, batch_size=args.batch_size,
         sampler=train_sampler, num_workers=args.workers, pin_memory=True)
@@ -198,10 +195,6 @@ def get_args_parser(add_help=True):
                         default=32, type=int, metavar='N',
                         help='number of batches of training set for \
                               observer calibration ')
-    parser.add_argument('--num-training-batches',
-                        default=None, type=int, metavar='N',
-                        help='number of batches of training set for \
-                              qat ')
 
     parser.add_argument('-j', '--workers', default=16, type=int, metavar='N',
                         help='number of data loading workers (default: 16)')
@@ -249,6 +242,11 @@ def get_args_parser(add_help=True):
         help="Post training quantize the model",
         action="store_true",
     )
+    parser.add_argument('--epoch-size', type=float, default=0,
+        help='epoch size. options are: 0, fraction or number. '
+              '0 will use the full epoch. '
+              'using a number will cause the epoch to have that many images. '
+              'using a fraction will reduce the number of images used for one epoch. ')
 
     # distributed training parameters
     parser.add_argument('--world-size', default=1, type=int,

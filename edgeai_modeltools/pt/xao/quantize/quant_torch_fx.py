@@ -47,69 +47,106 @@ def set_quant_backend(backend=None):
     #
 
 
-def load_weights(module, pretrained=None, change_names_dict=None):
+def load_weights(model, pretrained=None, change_names_dict=None):
     # Load weights for accuracy evaluation of a QAT model
     if pretrained is not None and pretrained is not False:
         print("=> using pre-trained model from {}".format(pretrained))
-        if hasattr(module, 'load_weights'):
-            module.load_weights(pretrained, download_root='./data/downloads', change_names_dict=change_names_dict)
+        if hasattr(model, 'load_weights'):
+            model.load_weights(pretrained, download_root='./data/downloads', change_names_dict=change_names_dict)
         else:
-            xnn.utils.load_weights(module, pretrained, download_root='./data/downloads', change_names_dict=change_names_dict)
+            xnn.utils.load_weights(model, pretrained, download_root='./data/downloads', change_names_dict=change_names_dict)
         #
     #
 
 
-def prepare(module, qconfig_dict=None, inplace=False, pretrained=None, pretrained_after_prepare=False, backend=None):
+def prepare(model, qconfig_dict=None, pretrained=None, pretrained_after_prepare=False, backend=None,
+            num_batch_norm_update_epochs=None, num_observer_update_epochs=None):
     set_quant_backend(backend=backend)
     if qconfig_dict is None:
         qconfig_dict = {"": torch.quantization.get_default_qat_qconfig(backend)}
     #
-    module.train()
+    model.train()
     if not pretrained_after_prepare:
-        load_weights(module, pretrained=pretrained)
+        load_weights(model, pretrained=pretrained)
     #
-    module = quantize_fx.prepare_qat_fx(module, qconfig_dict)
+    model = quantize_fx.prepare_qat_fx(model, qconfig_dict)
     if pretrained_after_prepare:
-        load_weights(module, pretrained=pretrained)
+        load_weights(model, pretrained=pretrained)
     #
     # fake quantization for qat
-    module.apply(torch.ao.quantization.enable_fake_quant)
+    model.apply(torch.ao.quantization.enable_fake_quant)
     # observes for range estimation
-    module.apply(torch.ao.quantization.enable_observer)
-    return module
+    model.apply(torch.ao.quantization.enable_observer)
+    # store additional information
+    model.__quant_info__ = dict(num_batch_norm_update_epochs=num_batch_norm_update_epochs,
+                                 num_observer_update_epochs=num_observer_update_epochs,
+                                 num_epochs_tracked=0)
+    return model
 
 
-def freeze(module, freeze_bn=True, freeze_observers=True):
+def freeze(model, freeze_bn=True, freeze_observers=True):
     if freeze_observers is True:
-        module.apply(torch.ao.quantization.disable_observer)
+        model.apply(torch.ao.quantization.disable_observer)
     elif freeze_observers is False:
-        module.apply(torch.ao.quantization.enable_observer)
+        model.apply(torch.ao.quantization.enable_observer)
     #
     if freeze_bn is True:
-        module.apply(torch.nn.intrinsic.qat.freeze_bn_stats)
+        model.apply(torch.nn.intrinsic.qat.freeze_bn_stats)
     elif freeze_bn is False:
-        module.apply(torch.nn.intrinsic.qat.update_bn_stats)
+        model.apply(torch.nn.intrinsic.qat.update_bn_stats)
     #
-    return module
+    return model
 
 
-def unfreeze(module, unfreeze_bn=True, unfreeze_observers=True):
-    freeze(module, not unfreeze_bn, not unfreeze_observers)
-    return module
+def unfreeze(model, unfreeze_bn=True, unfreeze_observers=True):
+    freeze(model, not unfreeze_bn, not unfreeze_observers)
+    return model
 
 
-def train(module):
-    module.train()
-    unfreeze(module, unfreeze_bn=True, unfreeze_observers=True)
-    return module
+def get_quant_info(model):
+    for m in model.modules():
+        if hasattr(m, '__quant_info__'):
+            return m.__quant_info__
+        #
+    #
+    return None
 
 
-def eval(module):
-    module.eval()
-    freeze(module, freeze_bn=True, freeze_observers=True)
-    return module
+def train(model):
+    # put the model in train mode
+    model.train()
+    # freezing ranges after a few epochs improve accuracy
+    __quant_info__ = get_quant_info(model)
+    if __quant_info__ is not None:
+        num_batch_norm_update_epochs = __quant_info__['num_batch_norm_update_epochs']
+        num_observer_update_epochs = __quant_info__['num_observer_update_epochs']
+        num_epochs_tracked = __quant_info__['num_epochs_tracked']
+        __quant_info__['num_epochs_tracked'] += 1
+    else:
+        num_batch_norm_update_epochs = None
+        num_observer_update_epochs = None
+        num_epochs_tracked = 0
+    #
+    num_batch_norm_update_epochs = num_batch_norm_update_epochs or 4
+    num_observer_update_epochs = num_observer_update_epochs or 6
+    freeze(model, freeze_bn=(num_epochs_tracked>=num_batch_norm_update_epochs),
+           freeze_observers=(num_epochs_tracked>=num_observer_update_epochs))
+    return model
 
 
-def convert(module, inplace=False):
-    module = quantize_fx.convert_fx(module)
-    return module
+def eval(model):
+    model.eval()
+    freeze(model, freeze_bn=True, freeze_observers=True)
+    return model
+
+
+def convert(model):
+    # make a copy inorder not to alter the original
+    model = copy.deepcopy(model)
+    # convert requires observers
+    model = unfreeze(model)
+    # convert requires cpu model
+    model = model.to(torch.device('cpu'))
+    # now do the actual conversion
+    model = quantize_fx.convert_fx(model)
+    return model

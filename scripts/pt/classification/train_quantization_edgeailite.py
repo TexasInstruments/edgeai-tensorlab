@@ -47,7 +47,9 @@ def main(args):
     # when training quantized models, we always start from a pre-trained fp32 reference model
     model = torchvision.models.quantization.__dict__[args.model](pretrained=True, quantize=args.test_only)
     # prepare model for quantization
-    model = edgeai_pt_tools.xao.quantize.quant_torch_fx.prepare(model)
+    model = edgeai_pt_tools.xao.quantize.quant_torch_fx.prepare(model,
+        num_batch_norm_update_epochs=args.num_batch_norm_update_epochs,
+        num_observer_update_epochs=args.num_observer_update_epochs)
     # use cuda if set
     model.to(device)
 
@@ -90,26 +92,20 @@ def main(args):
             train_sampler.set_epoch(epoch)
 
         print('Starting training for epoch', epoch)
+        # put in train() mode and enable observers
         edgeai_pt_tools.xao.quantize.quant_torch_fx.train(model)
-        edgeai_pt_tools.xao.quantize.quant_torch_fx.freeze(model,
-            freeze_bn=(epoch>=args.num_batch_norm_update_epochs),
-            freeze_observers=(epoch>=args.num_observer_update_epochs))
-
+        # training epoch
         train_one_epoch(model, criterion, optimizer, data_loader, device, epoch,
             print_freq=args.print_freq)
 
         lr_scheduler.step()
         with torch.no_grad():
-            print('Evaluate QAT model')
+            print('Evaluate QAT model with Fake Quant Ops')
             edgeai_pt_tools.xao.quantize.quant_torch_fx.eval(model)
             evaluate(model, criterion, data_loader_test, device=device)
 
-            print('Evaluate Quantized model')
-            quantized_eval_model = copy.deepcopy(model_without_ddp)
-            # convert requires observers - so use the train() function
-            quantized_eval_model.train()
-            quantized_eval_model.to(torch.device('cpu'))
-            quantized_eval_model = edgeai_pt_tools.xao.quantize.quant_torch_fx.convert(quantized_eval_model)
+            print('Evaluate Quantized Int model')
+            quantized_eval_model = edgeai_pt_tools.xao.quantize.quant_torch_fx.convert(model_without_ddp)
             evaluate(quantized_eval_model, criterion, data_loader_test,
                      device=torch.device('cpu'))
 
