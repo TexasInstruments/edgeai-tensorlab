@@ -10,12 +10,6 @@ parser = argparse.ArgumentParser("LINEMOD_PBR2COCO_PARSER")
 parser.add_argument("--type", default="real", type=str, help="real, pbr or synt")
 parser.add_argument("--keyframes", default="/data/ssd/6d_pose/ycb/YCB_dataset/image_sets/keyframe.txt", type=str, help="path to the keyframes file list")
 parser.add_argument("--split", default='train', type=str, help="Use selected frames")
-parser.add_argument("--lm", default=False, action="store_true", help="Select only LM classes")
-parser.add_argument("--lmo", default=False, action="store_true", help="Select only LMO classes ")
-parser.add_argument("--lmob", default=False, action="store_true", help="Select only LMO classes including benchvise")
-parser.add_argument("--merge_lm", default=False, action="store_true", help="Merge PBR with LINEMOD dataset")
-parser.add_argument("--merge_lmo", default=False, action="store_true", help="Merge PBR with LINEMOD_Occlusion dataset")
-
 
 args = parser.parse_args()
 
@@ -49,11 +43,11 @@ def convert_to_coco_json(merge=False):
                     annotations_gt[f.split('.')[0]] = json.load(foo)
 
         if not merge or data_folder_idx==0:
-            coco_train = dict()
-            coco_train["images"] = []
-            coco_train["type"] = "instance"
-            coco_train["categories"] = []
-            coco_train["annotations"] = []
+            coco = dict()
+            coco["images"] = []
+            coco["type"] = "instance"
+            coco["categories"] = []
+            coco["annotations"] = []
 
             for obj_class in class_to_name:
                 category = dict([
@@ -62,7 +56,7 @@ def convert_to_coco_json(merge=False):
                     ("name", class_to_name[obj_class])
                 ])
 
-                coco_train["categories"].append(category)
+                coco["categories"].append(category)
 
             obj_count = 0
             img_count = 0
@@ -97,7 +91,7 @@ def convert_to_coco_json(merge=False):
             else:
                 image.update({'type': "syn"})
 
-            coco_train["images"].append(image)
+            coco["images"].append(image)
             for object_gt, object_gt_info  in zip(objects_gt[1], objects_gt_info[1]):
                 if object_gt_info['visib_fract'] > 0:
                     annotation = dict([
@@ -111,7 +105,7 @@ def convert_to_coco_json(merge=False):
                         ("T", object_gt["cam_t_m2c"])
                     ])
                     obj_count += 1
-                    coco_train["annotations"].append(annotation)
+                    coco["annotations"].append(annotation)
             img_count += 1
         pbar.close()
 
@@ -130,8 +124,8 @@ def convert_to_coco_json(merge=False):
                 annotation_dict['id'] = annotation_dict['id'] + obj_count
                 print("annotation_dict", annotation_dict['image_id'])
 
-            coco_train["annotations"].extend(lm_real_gt["annotations"])
-            coco_train["images"].extend(lm_real_gt["images"])
+            coco["annotations"].extend(lm_real_gt["annotations"])
+            coco["images"].extend(lm_real_gt["images"])
 
     elif args.merge_lmo:
         lmo_real_path = "/data/ssd/6d_pose/LINEMOD_Occlusion_COCO/annotations/instances_train.json"
@@ -147,11 +141,11 @@ def convert_to_coco_json(merge=False):
                 annotation_dict['id'] = annotation_dict['id'] + obj_count
                 print("annotation_dict", annotation_dict['image_id'])
 
-            coco_train["annotations"].extend(lm_real_gt["annotations"])
-            coco_train["images"].extend(lm_real_gt["images"])
+            coco["annotations"].extend(lm_real_gt["annotations"])
+            coco["images"].extend(lm_real_gt["images"])
 
 
-    mmcv.dump(coco_train, outfile)
+    mmcv.dump(coco, outfile)
 
 def sort_images(src, train_dst, test_dst, test_list):
     for image_num in range(1214):

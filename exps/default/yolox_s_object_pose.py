@@ -37,7 +37,7 @@ class Exp(MyExp):
         self.perspective = 0.0
         self.enable_mixup = False
         # --------------  training config --------------------- #
-        self.max_epoch = 900
+        self.max_epoch = 300
         self.eval_interval = 10
         # -----------------  testing config ------------------ #
         self.test_size = (640, 640)
@@ -60,7 +60,7 @@ class Exp(MyExp):
         if getattr(self, "model", None) is None:
             in_channels = [256, 512, 1024]
             backbone = YOLOPAFPN(self.depth, self.width, in_channels=in_channels)
-            head = YOLOXObjectPoseHead(self.num_classes, self.width, in_channels=in_channels)
+            head = YOLOXObjectPoseHead(self.num_classes, self.width, in_channels=in_channels, dataset=self.data_set)
             self.model = YOLOX(backbone, head)
 
         self.model.apply(init_yolo)
@@ -82,6 +82,7 @@ class Exp(MyExp):
             from yolox.data import (
                 LINEMODOcclusionDataset,
                 LINEMODOcclusionPBRDataset,
+                YCBDataset,
                 TrainTransform,
                 YoloBatchSampler,
                 DataLoader,
@@ -112,6 +113,19 @@ class Exp(MyExp):
                         )
                 elif self.data_set == "linemod_occlusion_pbr":
                     dataset = LINEMODOcclusionPBRDataset(
+                            data_dir=self.data_dir,
+                            json_file=self.train_ann,
+                            img_size=self.input_size,
+                            preproc=TrainTransform(
+                                max_labels=50,
+                                flip_prob=self.flip_prob,
+                                hsv_prob=self.hsv_prob,
+                                object_pose=self.object_pose),
+                            cache=cache_img,
+                            object_pose=self.object_pose
+                        )
+                elif self.data_set == "ycb":
+                    dataset = YCBDataset(
                             data_dir=self.data_dir,
                             json_file=self.train_ann,
                             img_size=self.input_size,
