@@ -1,3 +1,6 @@
 progressbar
-
-
+colorama
+opencv-python
+scipy
+matplotlib
+pyyaml
