@@ -125,6 +125,17 @@ def main(args):
                 os.path.join(args.output_dir, 'checkpoint.pth'))
         print('Saving models after epoch ', epoch)
 
+    # onnx export
+    model_without_ddp.eval()
+    dummy_input = torch.rand((1, 3, 224, 224)).to(device)
+    torch.onnx.export(model_without_ddp, dummy_input, os.path.join(args.output_dir, '_qat_model.onnx'),
+                      export_params=True, verbose=False, do_constant_folding=True, opset_version=11)
+
+    dummy_input = dummy_input.to('cpu')
+    # operator_export_type=torch.onnx.OperatorExportTypes.ONNX_ATEN_FALLBACK
+    torch.onnx.export(quantized_eval_model, dummy_input, os.path.join(args.output_dir, '_int_model.onnx'),
+                      export_params=True, verbose=False, do_constant_folding=True, opset_version=11)
+
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))

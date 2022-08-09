@@ -143,8 +143,6 @@ def eval(model):
 def convert(model):
     # make a copy inorder not to alter the original
     model = copy.deepcopy(model)
-    # convert requires observers
-    model = unfreeze(model)
     # convert requires cpu model
     model = model.to(torch.device('cpu'))
     # now do the actual conversion
