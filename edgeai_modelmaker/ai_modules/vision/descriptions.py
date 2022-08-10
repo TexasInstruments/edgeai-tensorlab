@@ -38,11 +38,56 @@ from . import compilation
 from .params import init_params
 
 
+def get_paretto_front(performance_fps, accuracy_factor, inverse_relaionship=True):
+    xy_list = [(performance_fps[i], accuracy_factor[i], i) for i in range(len(performance_fps))]
+    xy_list = sorted(xy_list, key=lambda x:x[0], reverse=inverse_relaionship)
+    paretto_front = [xy_list[0]]
+    for xy in xy_list[1:]:
+        if xy[1] >= paretto_front[-1][1]:
+            paretto_front.append(xy)
+        #
+    #
+    paretto_indices = [xy[2] for xy in paretto_front]
+    return paretto_indices
+
+
+def set_model_selection_factor(model_descriptions):
+    for m in model_descriptions.values():
+        for target_device in m.training.target_devices.keys():
+            m.training.target_devices[target_device].model_selection_factor = None
+        #
+    #
+
+    task_types = set([m.common.task_type for m in model_descriptions.values()])
+    target_devices = [list(m.training.target_devices.keys()) for m in model_descriptions.values()]
+    target_devices = set([t for t_list in target_devices for t in t_list])
+    for target_device in target_devices:
+        for task_type in task_types:
+            model_desc_list = [m for m in model_descriptions.values() if m.common.task_type == task_type]
+            model_desc_list = [m for m in model_desc_list if target_device in list(m.training.target_devices.keys())]
+            model_desc_list = [m for m in model_desc_list \
+                                   if m.training.target_devices[target_device].performance_fps is not None and
+                                      m.training.target_devices[target_device].accuracy_factor is not None]
+            performance_fps = [m.training.target_devices[target_device].performance_fps for m in model_desc_list]
+            accuracy_factor = [m.training.target_devices[target_device].accuracy_factor for m in model_desc_list]
+            paretto_indices = get_paretto_front(performance_fps, accuracy_factor)
+            for pi in paretto_indices:
+                m = model_desc_list[pi]
+                m.training.target_devices[target_device].model_selection_factor = pi
+            #
+        #
+    #
+
+
 def get_model_descriptions(params):
     # populate a good pretrained model for the given task
     model_descriptions = training.get_model_descriptions(task_type=params.common.task_type,
                                                          target_device=params.common.target_device,
                                                          training_device=params.training.training_device)
+
+    #
+    model_descriptions = utils.ConfigDict(model_descriptions)
+    set_model_selection_factor(model_descriptions)
     return model_descriptions
 
 
