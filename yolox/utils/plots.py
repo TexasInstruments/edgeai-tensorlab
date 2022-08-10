@@ -8,8 +8,7 @@ import copy
 from pathlib import Path
 
 import cv2
-import matplotlib
-import matplotlib.pyplot as plt
+
 import numpy as np
 import torch
 import yaml
@@ -17,29 +16,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 #from utils.general import xywh2xyxy, xyxy2xywh
 from .boxes import cxcywh2xyxy, xyxy2cxcywh
-from .visualize_object_pose import project_3d_2d, camera_matrix, draw_cuboid_2d, draw_bbox_2d
+from .visualize_object_pose import project_3d_2d, draw_cuboid_2d, draw_bbox_2d, Colors
 from .object_pose_utils import decode_rotation_translation
 from ..data.datasets.ycb import YCBDataset
-
-# Settings
-matplotlib.rc('font', **{'size': 11})
-matplotlib.use('Agg')  # for writing to files only
-
-
-class Colors:
-    # Ultralytics color palette https://ultralytics.com/
-    def __init__(self):
-        self.palette = [self.hex2rgb(c) for c in matplotlib.colors.TABLEAU_COLORS.values()]
-        self.n = len(self.palette)
-
-    def __call__(self, i, bgr=False):
-        c = self.palette[int(i) % self.n]
-        return (c[2], c[1], c[0]) if bgr else c
-
-    @staticmethod
-    def hex2rgb(h):  # rgb order (PIL)
-        return tuple(int(h[1 + i:1 + i + 2], 16) for i in (0, 2, 4))
-
 
 colors = Colors()  # create instance for 'from utils.plots import colors'
 
@@ -65,10 +44,10 @@ def plot_one_box(x, im, im_cuboid=None, im_mask=None, color=None, label=None, li
     elif object_pose:
         plot_object_pose(im, im_cuboid, im_mask, pose, cad_models, camera_matrix, color, label, block_x, block_y)
 
+
 def plot_object_pose(im, im_cuboid, im_mask, pose, cad_models, camera_matrix, color, label, block_x, block_y):
 
     img_2dod = copy.deepcopy(im)
-
     rotation = pose['rotation_vec']
     translation = pose['translation_vec']
     xy = pose['xy']

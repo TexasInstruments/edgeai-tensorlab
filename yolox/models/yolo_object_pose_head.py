@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from yolox.utils import bboxes_iou, calculate_model_rotation, camera_matrix
+from yolox.utils import bboxes_iou
 
 from .losses import IOUloss
 from .network_blocks import BaseConv, DWConv
@@ -870,6 +870,7 @@ class YOLOXObjectPoseHead(nn.Module):
 
 
     def xy2XY(self, pose):
+        camera_matrix = self.cad_models.camera_matrix
         fx, fy, px, py = camera_matrix[0], camera_matrix[4], camera_matrix[2], camera_matrix[5]
         pose[:, 0:1] = (pose[:, 0:1] - px) * ((100.0 * pose[:, 2:3])/fx)
         pose[:, 1:2] = (pose[:, 1:2] - py) * ((100.0 * pose[:, 2:3])/fy)
@@ -883,6 +884,7 @@ class YOLOXObjectPoseHead(nn.Module):
         preds_Z = 100.0 * preds_Z
         targets_Z = 100.0 * targets_Z
         # transform to 3D space
+        camera_matrix = self.cad_models.camera_matrix
         fx, fy, px, py =  camera_matrix[0], camera_matrix[4], camera_matrix[2], camera_matrix[5]
         preds_X = (preds_x - px) * (preds_Z /fx)
         preds_Y = (preds_y - py) * (preds_Z /fy)
@@ -890,7 +892,7 @@ class YOLOXObjectPoseHead(nn.Module):
         targets_Y = (targets_y - py) * (targets_Z / fy)
         # OKS based loss calculation
         #d = ((preds_X - targets_X) ** 2 + (preds_Y - targets_Y) ** 2 + (preds_Z - targets_Z) ** 2)/10000
-        d = (torch.abs(preds_X - targets_X) +torch.abs(preds_X - targets_X)+ torch.abs(preds_Z - targets_Z)) /100.0
+        d = (torch.abs(preds_X - targets_X) +torch.abs(preds_Y - targets_Y)+ torch.abs(preds_Z - targets_Z)) /100.0
         #cuboid_scale = torch.tensor([cuboid_volume**(2.0/3) for cuboid_volume in class_to_cuboid_volume], device=preds_Z.device)
         #class_id = torch.argmax(cls_targets, axis=1)
         #scale = cuboid_scale[class_id][:,None]

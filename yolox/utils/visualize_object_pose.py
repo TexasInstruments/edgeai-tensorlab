@@ -3,24 +3,27 @@ import numpy as np
 from torch import is_tensor
 import copy
 import os
+import matplotlib
 
-camera_matrix = np.array([572.4114, 0.0, 325.2611, 0.0, 573.57043, 242.04899, 0.0, 0.0, 1.0], dtype=np.float32)
+class Colors:
+    # Ultralytics color palette https://ultralytics.com/
+    def __init__(self):
+        self.palette = [self.hex2rgb(c) for c in matplotlib.colors.TABLEAU_COLORS.values()]
+        self.n = len(self.palette)
 
-colours = [(255, 0, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (0, 125, 255), 
-(0, 255, 125), (125, 0, 255), (255, 0, 125), (125, 255, 0), (255, 125, 0), (125, 255, 255), (255, 125, 255),
-(255, 255, 125), (255, 255, 255)]
+    def __call__(self, i, bgr=False):
+        c = self.palette[int(i) % self.n]
+        return (c[2], c[1], c[0]) if bgr else c
 
-r_h = 640 / 640
-r_w = 640 / 640
-
-px = 325.26110
-py = 242.04899
-
-fx = 572.41140
-fy = 573.57043
+    @staticmethod
+    def hex2rgb(h):  # rgb order (PIL)
+        return tuple(int(h[1 + i:1 + i + 2], 16) for i in (0, 2, 4))
 
 
-def draw_bbox_2d(img, box, label, score, conf = 0.6, colours=colours, thickness=1, gt=False):
+colors = Colors()  # create instance for 'from utils.plots import colors'
+
+
+def draw_bbox_2d(img, box, label, score, conf = 0.6, thickness=1, gt=False):
 
     cls_id = int(label)
     if score < conf:
@@ -28,7 +31,7 @@ def draw_bbox_2d(img, box, label, score, conf = 0.6, colours=colours, thickness=
     x0, y0 = int(box[0]), int(box[1])
     x1, y1 = int(box[0] + box[2]), int(box[1] + box[3])
 
-    color = colours[cls_id]
+    color = colors(cls_id)
     cv2.rectangle(img, (x0, y0), (x1, y1), color, thickness)
     cv2.putText(img, str(label), (x0, y0), cv2.FONT_HERSHEY_SIMPLEX, 1, color, thickness=thickness)
     return img
@@ -61,11 +64,16 @@ def project_3d_2d(pts_3d, rotation_vec, translation_vec, camera_matrix):
     xformed_3d = np.matmul(pts_3d, rotation_mat.T) + translation_vec
     xformed_3d[:,:3] = xformed_3d[:,:3]/xformed_3d[:,2:3]
     projected_2d = np.matmul(xformed_3d, camera_matrix.reshape((3, 3)).T)[:, :2]
+    #projected_2d_corrected = copy.deepcopy(projected_2d)
+    #projected_2d_corrected = cv2.undistortPoints(projected_2d_corrected, camera_matrix.reshape(3,3), np.array([0.04112172, -0.4798174, 0.0, 0.0, 1.890084 ]))
+    #projected_2d_corrected = np.squeeze(projected_2d_corrected)
+    #projected_2d_corrected[:, 0] = camera_matrix[0] * projected_2d_corrected[:, 0] + camera_matrix[2]
+    #projected_2d_corrected[:, 1] = camera_matrix[4] * projected_2d_corrected[:, 1] + camera_matrix[5]
 
     return projected_2d
 
 
-def draw_6d_pose(img, data_list , camera_matrix, class_to_cuboid=None, colours=colours, conf = 0.6, class_to_model=None, gt=True, out_dir=None, id=None):
+def draw_6d_pose(img, data_list , camera_matrix, class_to_cuboid=None, conf = 0.6, class_to_model=None, gt=True, out_dir=None, id=None):
 
     if is_tensor(img):
         img_cuboid = copy.deepcopy(img).cpu().numpy().transpose(1, 2, 0)
@@ -88,7 +96,7 @@ def draw_6d_pose(img, data_list , camera_matrix, class_to_cuboid=None, colours=c
             continue
         rotation, translation, bbox, xy,  label = \
             np.array(pose['rotation_{}'.format(pose_type)]), np.array(pose['translation_{}'.format(pose_type)]), pose['bbox_{}'.format(pose_type)], pose['xy_{}'.format(pose_type)], pose['category_id']
-        colour = colours[label]
+        colour = colors(label)
 
         img_cuboid = cv2.circle(img_cuboid, (int(xy[0]), int(xy[1])), 3, (0, 0, 255), -1)
 
@@ -99,9 +107,7 @@ def draw_6d_pose(img, data_list , camera_matrix, class_to_cuboid=None, colours=c
         img_mask[cad_model_2d[:, 1], cad_model_2d[:, 0]] = colour
         img_mask = cv2.circle(img_mask, (int(xy[0]), int(xy[1])), 3, (0, 0, 255), -1)
 
-        cuboid_corners_2d = project_3d_2d(cuboid_corners=class_to_cuboid[label],
-            rotation_vec=rotation, translation_vec=translation, camera_matrix=camera_matrix
-        )
+        cuboid_corners_2d = project_3d_2d(class_to_cuboid[label], rotation, translation, camera_matrix)
         img_cuboid = draw_cuboid_2d(img=img_cuboid, cuboid_corners=cuboid_corners_2d, colour=colour)
 
         img_2dod = draw_bbox_2d(img_2dod, bbox, label, score, conf=0.6, thickness=2, gt=gt)

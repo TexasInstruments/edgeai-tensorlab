@@ -15,7 +15,6 @@ import json
 
 from ..dataloading import get_yolox_datadir
 from .datasets_wrapper import Dataset
-from yolox.utils import camera_matrix
 
 class CADModelsYCB():
     def __init__(self, data_dir=None):

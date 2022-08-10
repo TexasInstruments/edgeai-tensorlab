@@ -12,7 +12,8 @@ import os
 from loguru import logger
 from tqdm import tqdm
 import cv2
-from ..utils  import visualize_object_pose, decode_rotation_translation
+from ..utils  import visualize_object_pose
+from ..utils.object_pose_utils  import decode_rotation_translation
 import numpy as np
 from sklearn.neighbors import KDTree
 import torch
@@ -128,8 +129,8 @@ class ObjectPoseEvaluator:
                     inference_time += infer_end - start
 
                 predicted_pose = postprocess_object_pose(outputs, self.num_classes, self.confthre, self.nmsthre)
-
-                frame_data_list, frame_pred_data_list = self.convert_to_coco_format(predicted_pose, targets, info_imgs, ids)
+                camera_matrix = self.dataloader.dataset.cad_models.camera_matrix['camera_uw']
+                frame_data_list, frame_pred_data_list = self.convert_to_coco_format(predicted_pose, targets, info_imgs, ids, camera_matrix)
                 data_list.extend(frame_data_list)
                 pred_data_list.extend(frame_pred_data_list)
 
@@ -138,10 +139,10 @@ class ObjectPoseEvaluator:
                     for output_idx in range(len(predicted_pose)):
                         img = imgs[output_idx]
                         if len(frame_data_list) != 0:
-                            visualize_object_pose.draw_6d_pose(img, frame_data_list, class_to_model=self.class_to_model,
-                                                                        class_to_cuboid=self.class_to_cuboid, out_dir=self.output_dir, id=ids[output_idx][0])
-                            visualize_object_pose.draw_6d_pose(img, frame_data_list, class_to_model=self.class_to_model,
-                                                                    class_to_cuboid=self.class_to_cuboid, gt=False, out_dir=self.output_dir,id=ids[output_idx][0])
+                            visualize_object_pose.draw_6d_pose(img, frame_data_list, camera_matrix, class_to_model=self.class_to_model,
+                                                                        class_to_cuboid=self.class_to_cuboid, out_dir=self.output_dir, id=ids[output_idx])
+                            visualize_object_pose.draw_6d_pose(img, frame_data_list, camera_matrix, class_to_model=self.class_to_model,
+                                                                    class_to_cuboid=self.class_to_cuboid, gt=False, out_dir=self.output_dir, id=ids[output_idx])
                 if is_time_record:
                     nms_end = time_synchronized()
                     nms_time += nms_end - infer_end
@@ -159,7 +160,7 @@ class ObjectPoseEvaluator:
         synchronize()
         return  eval_results_2d_od
 
-    def convert_to_coco_format(self, outputs, targets, info_imgs, ids):
+    def convert_to_coco_format(self, outputs, targets, info_imgs, ids, camera_matrix):
         data_list = []
         pred_list = []
         for (output, target, img_h, img_w, img_id) in zip(
@@ -198,10 +199,10 @@ class ObjectPoseEvaluator:
                 label = self.dataloader.dataset.class_ids[int(cls[ind])]
                 if len(output[output[:, -1] == label]) == 1 :
                     missing_det = False
-                    rotation_pred, translation_pred = decode_rotation_translation(output[output[:, -1] == label][0])
+                    rotation_pred, translation_pred = decode_rotation_translation(output[output[:, -1] == label][0], camera_matrix)
                 else:
                     missing_det=True
-                rotation_gt, translation_gt = decode_rotation_translation(target[ind])
+                rotation_gt, translation_gt = decode_rotation_translation(target[ind], camera_matrix)
                 pred_gt_data = {
                     "image_id": int(img_id),
                     "bbox_gt": bboxes_gt[ind].numpy().tolist(),
