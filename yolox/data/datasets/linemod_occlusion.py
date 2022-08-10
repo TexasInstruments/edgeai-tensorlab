@@ -10,11 +10,10 @@ import numpy as np
 from math import acos, sin, sqrt, copysign
 from pycocotools.coco import COCO
 from plyfile import PlyData
-import yaml
+import yaml, json
 
 from ..dataloading import get_yolox_datadir
 from .datasets_wrapper import Dataset
-from yolox.utils import camera_matrix
 
 class CADModelsLM():
     def __init__(self, data_dir=None):
@@ -31,7 +30,14 @@ class CADModelsLM():
         self.class_to_sparse_model = self.create_sparse_models()
         self.models_corners, self.models_diameter = self.get_models_params()
         self.symmetric_objects = {9: "eggbox", 10: "glue"}
-        self.camera_matrix = None
+        self.camera_matrix =  self.get_camera_params()
+
+    def get_camera_params(self):
+        camera_params_path = os.path.join(self.data_dir, "lm", "camera.json")
+        with open(camera_params_path) as foo:
+            camera_params = json.load(foo)
+        camera_matrix = np.array([camera_params['fx'], 0, camera_params['cx'], 0.0, camera_params['fy'], camera_params['cy'], 0.0, 0.0, 1.0])
+        return camera_matrix
 
     def load_cad_models(self):
         class_to_model = {class_id: None for class_id in self.class_to_name.keys()}
@@ -128,15 +134,16 @@ class LINEMODOcclusionDataset(Dataset):
         cats = self.coco.loadCats(self.coco.getCatIds())
         self._classes = tuple([c["name"] for c in cats])
         self.imgs = None
+        self.imgs_coco = self.coco.imgs
         self.name = name
         self.img_size = img_size
-        if preproc is not None:
-            self.preproc = preproc
-        self.annotations = self._load_coco_annotations()
-        self.cad_models = CADModels()
+        self.cad_models = CADModelsLM()
         self.models_corners, self.models_diameter = self.cad_models.models_corners, self.cad_models.models_diameter
         self.class_to_name = self.cad_models.class_to_name
         self.class_to_model = self.cad_models.class_to_model
+        if preproc is not None:
+            self.preproc = preproc
+        self.annotations = self._load_coco_annotations()
         self.symmetric_objects = symmetric_objects
         if cache:
             self._cache_images()
@@ -227,10 +234,7 @@ class LINEMODOcclusionDataset(Dataset):
             #Convert the rotation matrix to angle axis format using Rodrigues formula
             #https://www.ccs.neu.edu/home/rplatt/cs5335_fall2017/slides/euler_quaternions.pdf
             if self.object_pose:
-                temp_R, _ = cv2.Rodrigues(np.array(obj["R"]).reshape(3,3))
-                temp_R = np.squeeze(temp_R)
-
-                obj_centre_2d = np.matmul(camera_matrix.reshape(3,3), np.array(obj["T"])/obj["T"][2])[:2]  #rotation vec not required for the center point
+                obj_centre_2d = np.matmul(self.cad_models.camera_matrix.reshape(3,3), np.array(obj["T"])/obj["T"][2])[:2]  #rotation vec not required for the center point
                 #res[ix, 11:14] = obj["T"]
                 obj_centre_2d = np.squeeze(obj_centre_2d)
                 res[ix, 11:13] = obj_centre_2d
@@ -273,8 +277,13 @@ class LINEMODOcclusionDataset(Dataset):
 
     def load_image(self, index):
         file_name = self.annotations[index][3]
+        img_index = list(self.imgs_coco)[index]
+        if self.name=='train' and self.imgs_coco[img_index]['type'] == 'synthetic':
+            image_folder = self.imgs_coco[int(index)]['image_folder']
 
-        img_file = os.path.join(self.data_dir, self.name, file_name)
+            img_file = os.path.join(self.data_dir, self.name+"_pbr", image_folder, 'rgb', file_name)
+        else:
+            img_file = os.path.join(self.data_dir, self.name, file_name)
 
         img = cv2.imread(img_file)
         assert img is not None

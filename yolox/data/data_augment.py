@@ -15,7 +15,7 @@ import random
 import cv2
 import numpy as np
 
-from yolox.utils import xyxy2cxcywh, camera_matrix
+from yolox.utils import xyxy2cxcywh
 
 
 def augment_hsv(img, hgain=5, sgain=30, vgain=30):
@@ -52,6 +52,7 @@ def get_affine_matrix(
     scales=0.1,
     shear=10,
     object_pose=False,
+    camera_matrix= None
 ):
     twidth, theight = target_size
 
@@ -171,8 +172,9 @@ def random_affine(
     shear=10,
     human_pose=False,
     object_pose=False,
+    camera_matrix=None
 ):
-    M, scale, angle = get_affine_matrix(target_size, degrees, translate, scales, shear, object_pose)
+    M, scale, angle = get_affine_matrix(target_size, degrees, translate, scales, shear, object_pose, camera_matrix)
 
     img = cv2.warpAffine(img, M, dsize=target_size, borderValue=(114, 114, 114))
 

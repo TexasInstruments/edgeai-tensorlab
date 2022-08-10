@@ -870,7 +870,10 @@ class YOLOXObjectPoseHead(nn.Module):
 
 
     def xy2XY(self, pose):
-        camera_matrix = self.cad_models.camera_matrix
+        if isinstance(self.cad_models.camera_matrix, dict):  #has to be taken care of properly
+            camera_matrix = self.cad_models.camera_matrix['camera_uw']
+        else:
+            camera_matrix = self.cad_models.camera_matrix
         fx, fy, px, py = camera_matrix[0], camera_matrix[4], camera_matrix[2], camera_matrix[5]
         pose[:, 0:1] = (pose[:, 0:1] - px) * ((100.0 * pose[:, 2:3])/fx)
         pose[:, 1:2] = (pose[:, 1:2] - py) * ((100.0 * pose[:, 2:3])/fy)

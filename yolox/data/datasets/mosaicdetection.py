@@ -11,6 +11,7 @@ from yolox.utils import adjust_box_anns, adjust_kpts_anns, get_local_rank
 
 from ..data_augment import random_affine
 from .datasets_wrapper import Dataset
+from .ycb import YCBDataset
 
 
 def get_mosaic_coordinate(mosaic_image, mosaic_index, xc, yc, w, h, input_h, input_w):
@@ -60,6 +61,10 @@ class MosaicDetection(Dataset):
         """
         super().__init__(img_size, mosaic=mosaic)
         self._dataset = dataset
+        if hasattr(self._dataset, 'cad_models'):
+            self.camera_matrix = dataset.cad_models.camera_matrix
+        else:
+            self.camera_matrix = None
         self.preproc = preproc
         self.degrees = degrees
         self.translate = translate
@@ -163,6 +168,16 @@ class MosaicDetection(Dataset):
         else:
             self._dataset._input_dim = self.input_dim
             img, label, img_info, img_id = self._dataset.pull_item(idx)
+            if isinstance(self._dataset, YCBDataset):
+                img_index = list(self._dataset.imgs_coco)[img_id]
+                image_folder = self._dataset.imgs_coco[int(img_index)]['image_folder']
+                if int(image_folder)<60:
+                    camera_matrix = self._dataset.cad_models.camera_matrix['camera_uw']
+                else:
+                    camera_matrix = self._dataset.cad_models.camera_matrix['camera_cmu']
+            else:
+                camera_matrix = self._dataset.cad_models.camera_matrix
+
             img, label = random_affine(
                 img,
                 label,
@@ -173,6 +188,7 @@ class MosaicDetection(Dataset):
                 shear=self.shear,
                 human_pose=self.preproc.human_pose,
                 object_pose= self.preproc.object_pose,
+                camera_matrix=camera_matrix
             )  # border to remove
             #if self.preproc is not None: #Temporary fix
             #    img, label = self.preproc(img, label, self.input_dim)

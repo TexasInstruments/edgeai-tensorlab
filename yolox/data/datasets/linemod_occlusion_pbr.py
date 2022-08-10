@@ -14,7 +14,6 @@ import yaml
 
 from ..dataloading import get_yolox_datadir
 from .datasets_wrapper import Dataset
-from yolox.utils import camera_matrix
 from .linemod_occlusion import CADModelsLM
 
 class LINEMODOcclusionPBRDataset(Dataset):
@@ -58,13 +57,13 @@ class LINEMODOcclusionPBRDataset(Dataset):
         self.imgs_coco = self.coco.imgs
         self.name = name
         self.img_size = img_size
-        if preproc is not None:
-            self.preproc = preproc
-        self.annotations = self._load_coco_annotations()
         self.cad_models = CADModelsLM()
         self.models_corners, self.models_diameter = self.cad_models.models_corners, self.cad_models.models_diameter
         self.class_to_name = self.cad_models.class_to_name
         self.class_to_model = self.cad_models.class_to_model
+        if preproc is not None:
+            self.preproc = preproc
+        self.annotations = self._load_coco_annotations()
         self.symmetric_objects = symmetric_objects
         if cache:
             self._cache_images()
@@ -155,10 +154,7 @@ class LINEMODOcclusionPBRDataset(Dataset):
             #Convert the rotation matrix to angle axis format using Rodrigues formula
             #https://www.ccs.neu.edu/home/rplatt/cs5335_fall2017/slides/euler_quaternions.pdf
             if self.object_pose:
-                temp_R, _ = cv2.Rodrigues(np.array(obj["R"]).reshape(3,3))
-                temp_R = np.squeeze(temp_R)
-
-                obj_centre_2d = np.matmul(camera_matrix.reshape(3,3), np.array(obj["T"])/obj["T"][2])[:2]  #rotation vec not required for the center point
+                obj_centre_2d = np.matmul(self.cad_models.camera_matrix.reshape(3,3), np.array(obj["T"])/obj["T"][2])[:2]  #rotation vec not required for the center point
                 #res[ix, 11:14] = obj["T"]
                 obj_centre_2d = np.squeeze(obj_centre_2d)
                 res[ix, 11:13] = obj_centre_2d
