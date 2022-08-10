@@ -98,7 +98,6 @@ class Exp(BaseExp):
         from yolox.data import (
             COCODataset,
             LINEMODOcclusionDataset,
-            LINEMODOcclusionPBRDataset,
             YCBDataset,
             COCOKPTSDataset,
             TrainTransform,
@@ -301,7 +300,7 @@ class Exp(BaseExp):
         return scheduler
 
     def get_eval_loader(self, batch_size, is_distributed, testdev=False, legacy=False):
-        from yolox.data import COCODataset, LINEMODOcclusionDataset, LINEMODOcclusionPBRDataset, YCBDataset, COCOKPTSDataset, ValTransform
+        from yolox.data import COCODataset, LINEMODOcclusionDataset, YCBDataset, COCOKPTSDataset, ValTransform
 
         if self.data_set == "coco":
             valdataset = COCODataset(
@@ -322,15 +321,6 @@ class Exp(BaseExp):
                 object_pose=self.object_pose,
                 base_dir=base_dir
             )
-        # elif self.data_set == "linemod_occlusion_pbr":
-        #     valdataset = LINEMODOcclusionPBRDataset(
-        #         data_dir=self.data_dir,
-        #         json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
-        #         name="test", #if not testdev else "test2017",
-        #         img_size=self.test_size,
-        #         preproc=ValTransform(legacy=legacy, visualize=self.visualize),
-        #         object_pose=self.object_pose
-        #     )
         elif self.data_set == "ycb":
             valdataset = YCBDataset(
                 data_dir=self.data_dir,
