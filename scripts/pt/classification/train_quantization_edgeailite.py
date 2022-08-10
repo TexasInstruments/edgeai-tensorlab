@@ -106,8 +106,7 @@ def main(args):
 
             print('Evaluate Quantized Int model')
             quantized_eval_model = edgeai_pt_tools.xao.quantize.quant_torch_fx.convert(model_without_ddp)
-            evaluate(quantized_eval_model, criterion, data_loader_test,
-                     device=torch.device('cpu'))
+            evaluate(quantized_eval_model, criterion, data_loader_test, device=torch.device('cpu'))
 
         if args.output_dir:
             checkpoint = {
@@ -125,15 +124,11 @@ def main(args):
                 os.path.join(args.output_dir, 'checkpoint.pth'))
         print('Saving models after epoch ', epoch)
 
-    # onnx export
-    model_without_ddp.eval()
-    dummy_input = torch.rand((1, 3, 224, 224)).to(device)
-    torch.onnx.export(model_without_ddp, dummy_input, os.path.join(args.output_dir, '_qat_model.onnx'),
-                      export_params=True, verbose=False, do_constant_folding=True, opset_version=11)
-
-    dummy_input = dummy_input.to('cpu')
-    # operator_export_type=torch.onnx.OperatorExportTypes.ONNX_ATEN_FALLBACK
-    torch.onnx.export(quantized_eval_model, dummy_input, os.path.join(args.output_dir, '_int_model.onnx'),
+    # onnx export int model
+    dummy_input = torch.rand((1, 3, 224, 224)).to('cpu')
+    quantized_ts_model = torch.jit.script(quantized_eval_model)
+    torch.jit.save(quantized_ts_model, os.path.join(args.output_dir, 'model_int_ts.pt'))
+    torch.onnx.export(quantized_eval_model, dummy_input, os.path.join(args.output_dir, 'model_int.onnx'),
                       export_params=True, verbose=False, do_constant_folding=True, opset_version=11)
 
     total_time = time.time() - start_time
