@@ -68,7 +68,7 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 72.13
-          model_selection_factor: 0
+          model_selection_factor: 3
           performance_fps: 455
       training_backend: edgeai_torchvision
       training_device: null
@@ -311,7 +311,7 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 77.04
-          model_selection_factor: 4
+          model_selection_factor: 0
           performance_fps: 237
       training_backend: edgeai_torchvision
       training_device: null
@@ -473,7 +473,7 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 75.212
-          model_selection_factor: 3
+          model_selection_factor: 1
           performance_fps: 272
       training_backend: edgeai_torchvision
       training_device: null
@@ -818,7 +818,7 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 44.4
-          model_selection_factor: 6
+          model_selection_factor: 0
           performance_fps: 46
       training_backend: edgeai_mmdetection
       training_device: null
@@ -986,7 +986,7 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 38.3
-          model_selection_factor: 5
+          model_selection_factor: 1
           performance_fps: 107
       training_backend: edgeai_mmdetection
       training_device: null
@@ -1070,7 +1070,7 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 30.5
-          model_selection_factor: 4
+          model_selection_factor: 2
           performance_fps: 264
       training_backend: edgeai_mmdetection
       training_device: null

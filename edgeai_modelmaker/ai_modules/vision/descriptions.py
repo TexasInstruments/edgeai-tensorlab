@@ -38,17 +38,17 @@ from . import compilation
 from .params import init_params
 
 
-def get_paretto_front(performance_fps, accuracy_factor, inverse_relaionship=True):
-    xy_list = [(performance_fps[i], accuracy_factor[i], i) for i in range(len(performance_fps))]
-    xy_list = sorted(xy_list, key=lambda x:x[0], reverse=inverse_relaionship)
+def get_paretto_front(xy_list, x_index=0, y_index=1, inverse_relaionship=True):
+    xy_list = sorted(xy_list, key=lambda x:x[x_index], reverse=inverse_relaionship)
     paretto_front = [xy_list[0]]
     for xy in xy_list[1:]:
-        if xy[1] >= paretto_front[-1][1]:
+        if xy[y_index] >= paretto_front[-1][y_index]:
             paretto_front.append(xy)
         #
     #
-    paretto_indices = [xy[2] for xy in paretto_front]
-    return paretto_indices
+    # sort based on first index
+    paretto_front = sorted(paretto_front, key=lambda x:x[x_index])
+    return paretto_front
 
 
 def set_model_selection_factor(model_descriptions):
@@ -70,10 +70,12 @@ def set_model_selection_factor(model_descriptions):
                                       m.training.target_devices[target_device].accuracy_factor is not None]
             performance_fps = [m.training.target_devices[target_device].performance_fps for m in model_desc_list]
             accuracy_factor = [m.training.target_devices[target_device].accuracy_factor for m in model_desc_list]
-            paretto_indices = get_paretto_front(performance_fps, accuracy_factor)
-            for pi in paretto_indices:
-                m = model_desc_list[pi]
-                m.training.target_devices[target_device].model_selection_factor = pi
+            xy_list = [(performance_fps[i], accuracy_factor[i], i) for i in range(len(performance_fps))]
+            xy_list = get_paretto_front(xy_list)
+            for paretto_id, xy in enumerate(xy_list):
+                xy_id = xy[2]
+                m = model_desc_list[xy_id]
+                m.training.target_devices[target_device].model_selection_factor = paretto_id
             #
         #
     #

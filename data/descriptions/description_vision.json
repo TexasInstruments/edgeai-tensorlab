@@ -437,7 +437,7 @@
           "TDA4VM":{
             "performance_fps":264,
             "accuracy_factor":30.5,
-            "model_selection_factor":4
+            "model_selection_factor":2
           }
         },
         "project_path":null,
@@ -531,7 +531,7 @@
           "TDA4VM":{
             "performance_fps":107,
             "accuracy_factor":38.3,
-            "model_selection_factor":5
+            "model_selection_factor":1
           }
         },
         "project_path":null,
@@ -625,7 +625,7 @@
           "TDA4VM":{
             "performance_fps":46,
             "accuracy_factor":44.4,
-            "model_selection_factor":6
+            "model_selection_factor":0
           }
         },
         "project_path":null,
@@ -719,7 +719,7 @@
           "TDA4VM":{
             "performance_fps":455,
             "accuracy_factor":72.13,
-            "model_selection_factor":0
+            "model_selection_factor":3
           }
         },
         "project_path":null,
@@ -1083,7 +1083,7 @@
           "TDA4VM":{
             "performance_fps":272,
             "accuracy_factor":75.212,
-            "model_selection_factor":3
+            "model_selection_factor":1
           }
         },
         "project_path":null,
@@ -1174,7 +1174,7 @@
           "TDA4VM":{
             "performance_fps":237,
             "accuracy_factor":77.04,
-            "model_selection_factor":4
+            "model_selection_factor":0
           }
         },
         "project_path":null,
