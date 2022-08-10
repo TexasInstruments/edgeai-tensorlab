@@ -3,17 +3,19 @@
 ## Introduction
 * Efficientdet family of object detectors are based on efficientnet backbone and Bi_FPN feature extractor.<br>
 * Efficientnet-lite is lighter version of efficientnet for edge applications. Similarly, lighter versions of Efficientdet with similar changes are called Efficientdet-lite. 
+  
+## Model Defintition and Training
 * Here, we list certain models that are built on Efficientdet to make them TIDL friendly.
 - Following changes were made from EfficientDet to get EfficientDet-lite:
     * Remove Squeeze and excitations.
     * Replace swish activations with ReLU.
     * Fast normalization feature fusion replaced with Simple addition
 - Now, we list down changes specific to our models:
-  * *EfficientDet-lite0_BiFPN_MaxPool2x2_ReLU* : This is a legacy model that we defined before Google came up with the EfficientDet-lite models. Following are the changes from  EfficientDet-lite:
+  * **EfficientDet-lite0_BiFPN_MaxPool2x2_ReLU** : This is a legacy model that we defined before Google came up with the EfficientDet-lite models. Following are the changes from  EfficientDet-lite:
     * (K=3,S=2) max-pooling replaced with (k=2,s=2) max-pooling.  
     * All max-pooling has a ReLU before it. 
     * ReLU activation instead of ReLU6.
-  * *EfficientDet-lite_relu* : These models are our latest offering and are almost same as official EfficientDet-lite models with similar accuracy. 
+  * **EfficientDet-lite_relu** : These models are our latest offering and are almost same as official EfficientDet-lite models with similar accuracy. 
     * The only difference being the activation function. These models use ReLU activation instead of ReLU6.
     * These models are finetuned from official ckpts for 3 epochs by running the following command:
       ```
@@ -25,10 +27,22 @@
           * h.learning_rate = 0.01 (default h.learning_rate = 0.08)
           * h.lr_warmup_init = 0.001 (default h.lr_warmup_init = 0.008)
 
+## Model Export
 * All models can be exported using the script provided in [google/automl](https://github.com/google/automl/tree/master/efficientdet)  repository. Exported models are different than the EfficientDet-lite models that are hosted in [TF hub](https://hub.tensorflow.google.cn/tensorflow/efficientdet/lite0/detection/1). Currently, TIDL supports lite models exported using [automl](https://github.com/google/automl/tree/master/efficientdet) repository. Run the follwing command to generate tflite models that can be accelerated on TIDL using TFLite Runtime: 
   ```
         python model_inspect.py --runmode=saved_model --model_name=efficientdet-lite0   --ckpt_path=checkpoints/efficientdet-lite0  --saved_model_dir=checkpoints/efficientdet-lite0/tflite --tflite_path=checkpoints/efficientdet-lite0/tflite/efficientdet-lite0.tflite
   ```
+  
+* Unlike the official models, our example models don't have any preprocessing as part of the model as shown below. This will result in efficient inference. 
+<br/> 
+<p align="center">
+<img width="800" src="./assets/efficientdet-preprocessing.png">
+</p>     
+
+  
+* In order to disable the preprocesing inside the tflite model during export, apply this [patch](./assets/0001-Disable-pre-processing.patch) on commit id **39c39e5**:
+
+## Hosted Models  
 * Given below is the summary of the models that we have trained and compare them against the official models.
 
     |Dataset |Model Name                              |Input Size |GigaMACS  |AP[0.5:0.95]|Available|Notes |
