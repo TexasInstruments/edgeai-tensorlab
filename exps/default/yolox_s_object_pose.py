@@ -98,7 +98,8 @@ class Exp(MyExp):
             local_rank = get_local_rank()
 
             with wait_for_the_master(local_rank):
-                if self.data_set == "linemod_occlusion":
+                if self.data_set == "linemod_occlusion" or self.data_set == "linemod_occlusion_pbr":
+                    base_dir = "LINEMOD_Occlusion_COCO" if self.data_set == "linemod_occlusion" else "LINEMOD_Occlusion_COCO_PBR"
                     dataset = LINEMODOcclusionDataset(
                             data_dir=self.data_dir,
                             json_file=self.train_ann,
@@ -109,21 +110,22 @@ class Exp(MyExp):
                                 hsv_prob=self.hsv_prob,
                                 object_pose=self.object_pose),
                             cache=cache_img,
-                            object_pose=self.object_pose
+                            object_pose=self.object_pose,
+                            base_dir=base_dir
                         )
-                elif self.data_set == "linemod_occlusion_pbr":
-                    dataset = LINEMODOcclusionPBRDataset(
-                            data_dir=self.data_dir,
-                            json_file=self.train_ann,
-                            img_size=self.input_size,
-                            preproc=TrainTransform(
-                                max_labels=50,
-                                flip_prob=self.flip_prob,
-                                hsv_prob=self.hsv_prob,
-                                object_pose=self.object_pose),
-                            cache=cache_img,
-                            object_pose=self.object_pose
-                        )
+                # elif self.data_set == "linemod_occlusion_pbr":
+                #     dataset = LINEMODOcclusionPBRDataset(
+                #             data_dir=self.data_dir,
+                #             json_file=self.train_ann,
+                #             img_size=self.input_size,
+                #             preproc=TrainTransform(
+                #                 max_labels=50,
+                #                 flip_prob=self.flip_prob,
+                #                 hsv_prob=self.hsv_prob,
+                #                 object_pose=self.object_pose),
+                #             cache=cache_img,
+                #             object_pose=self.object_pose
+                #         )
                 elif self.data_set == "ycb":
                     dataset = YCBDataset(
                             data_dir=self.data_dir,

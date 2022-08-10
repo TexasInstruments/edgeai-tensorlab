@@ -111,6 +111,7 @@ class LINEMODOcclusionDataset(Dataset):
         cache=False,
         object_pose=False,
         symmetric_objects={9: "eggbox", 10: "glue"},
+        base_dir = "LINEMOD_Occlusion_COCO"
     ):
         """
         LINEMODOcclusion dataset initialization. Annotation data are read into memory by COCO API.
@@ -123,7 +124,7 @@ class LINEMODOcclusionDataset(Dataset):
         """
         super().__init__(img_size)
         if data_dir is None:
-            data_dir = os.path.join(get_yolox_datadir(), "LINEMOD_Occlusion_COCO")
+            data_dir = os.path.join(get_yolox_datadir(), base_dir)
         self.data_dir = data_dir
         self.json_file = json_file
         self.object_pose = object_pose 

@@ -127,20 +127,8 @@ class Exp(BaseExp):
                         hsv_prob=self.hsv_prob),
                     cache=cache_img,
                 )
-            elif self.data_set == "linemod_occlusion_pbr":
-               dataset = LINEMODOcclusionPBRDataset(
-                    data_dir=self.data_dir,
-                    json_file=self.train_ann,
-                    img_size=self.input_size,
-                    preproc=TrainTransform(
-                        max_labels=50,
-                        flip_prob=self.flip_prob,
-                        hsv_prob=self.hsv_prob,
-                        object_pose=self.object_pose),
-                    cache=cache_img,
-                    object_pose=self.object_pose
-                )
-            elif self.data_set == "linemod_occlusion":
+            elif self.data_set == "linemod_occlusion_pbr" or self.data_set == "linemod_occlusion":
+               base_dir = "LINEMOD_Occlusion_COCO" if self.data_set == "linemod_occlusion" else "LINEMOD_Occlusion_COCO_PBR"
                dataset = LINEMODOcclusionDataset(
                     data_dir=self.data_dir,
                     json_file=self.train_ann,
@@ -151,8 +139,22 @@ class Exp(BaseExp):
                         hsv_prob=self.hsv_prob,
                         object_pose=self.object_pose),
                     cache=cache_img,
-                    object_pose=self.object_pose
+                    object_pose=self.object_pose,
+                   base_dir=base_dir
                 )
+            # elif self.data_set == "linemod_occlusion":
+            #    dataset = LINEMODOcclusionDataset(
+            #         data_dir=self.data_dir,
+            #         json_file=self.train_ann,
+            #         img_size=self.input_size,
+            #         preproc=TrainTransform(
+            #             max_labels=50,
+            #             flip_prob=self.flip_prob,
+            #             hsv_prob=self.hsv_prob,
+            #             object_pose=self.object_pose),
+            #         cache=cache_img,
+            #         object_pose=self.object_pose
+            #     )
             elif self.data_set == "ycb":
                dataset = YCBDataset(
                     data_dir=self.data_dir,
@@ -309,24 +311,26 @@ class Exp(BaseExp):
                 img_size=self.test_size,
                 preproc=ValTransform(legacy=legacy),
             )
-        elif self.data_set == "linemod_occlusion":
+        elif self.data_set == "linemod_occlusion" or self.data_set == "linemod_occlusion_pbr":
+            base_dir = "LINEMOD_Occlusion_COCO" if self.data_set == "linemod_occlusion" else "LINEMOD_Occlusion_COCO_PBR"
             valdataset = LINEMODOcclusionDataset(
                 data_dir=self.data_dir,
                 json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
                 name="test", #if not testdev else "test2017",
                 img_size=self.test_size,
                 preproc=ValTransform(legacy=legacy, visualize=self.visualize),
-                object_pose=self.object_pose 
+                object_pose=self.object_pose,
+                base_dir=base_dir
             )
-        elif self.data_set == "linemod_occlusion_pbr":
-            valdataset = LINEMODOcclusionPBRDataset(
-                data_dir=self.data_dir,
-                json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
-                name="test", #if not testdev else "test2017",
-                img_size=self.test_size,
-                preproc=ValTransform(legacy=legacy, visualize=self.visualize),
-                object_pose=self.object_pose
-            )
+        # elif self.data_set == "linemod_occlusion_pbr":
+        #     valdataset = LINEMODOcclusionPBRDataset(
+        #         data_dir=self.data_dir,
+        #         json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
+        #         name="test", #if not testdev else "test2017",
+        #         img_size=self.test_size,
+        #         preproc=ValTransform(legacy=legacy, visualize=self.visualize),
+        #         object_pose=self.object_pose
+        #     )
         elif self.data_set == "ycb":
             valdataset = YCBDataset(
                 data_dir=self.data_dir,
