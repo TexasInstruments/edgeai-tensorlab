@@ -14,8 +14,12 @@ We have published several repositories for model training, model compilation and
 
 The following are the key functionality supported by this tool:
 - Dataset handling: This dataset formats supported by this tool is described in a section below. This can convert dataset formats and can automatically split the given dataset into train and validation sets (if it is not already split).
-- Model training: Model training repositories such as [edgeai-torchvision](https://github.com/TexasInstruments/edgeai-torchvision) and [edgeai-mmdetection](https://github.com/TexasInstruments/edgeai-mmdetection) are integrated. Several models with pretrained checkpoints are incorporated for each of these repositories.
-- Model compilation: Model compilation tools [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) and [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) for TI's edgeai SoCs have been integrated.
+- Model training: Model training repositories such as [edgeai-torchvision](https://github.com/TexasInstruments/edgeai-torchvision) and [edgeai-mmdetection](https://github.com/TexasInstruments/edgeai-mmdetection) are integrated. Several models with pretrained checkpoints are incorporated for each of these repositories. We also plan to integrate [edgeai-yolov5](https://github.com/TexasInstruments/edgeai-yolov5) soon.
+- Model compilation: Model compilation tools [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) and [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) for TI's EdgeAI SoCs have been integrated.
+
+Tasks and Models
+- Image classification and Object detection tasks are supported currently.
+- The models supported and their parameters are collected in a [description file](./data/descriptions/description_vision.yaml) for convenience.
 
 These functionalities that are supported are fully integrated and the user can control it by setting  parameters in the config file.  
 
