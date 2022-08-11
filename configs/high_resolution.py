@@ -39,8 +39,8 @@ def get_configs(settings, work_dir):
     postproc_transforms = postprocess.PostProcessTransforms(settings)
 
     # overriding with a small number as these take too much time.
-    calibration_frames = min(settings.calibration_frames, 10)
-    num_frames = min(settings.num_frames, 100)
+    calibration_frames = min(settings.calibration_frames or 10, 10)
+    num_frames = min(settings.num_frames or 100, 100)
 
     # configs for each model pipeline
     common_cfg = {
