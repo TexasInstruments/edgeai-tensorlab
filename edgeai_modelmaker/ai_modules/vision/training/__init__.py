@@ -29,6 +29,7 @@ import copy
 import sys
 from . import edgeai_torchvision
 from . import edgeai_mmdetection
+from . import edgeai_yolov5
 
 
 # list all the modules here to add pretrained models
