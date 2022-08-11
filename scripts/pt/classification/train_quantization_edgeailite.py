@@ -47,7 +47,8 @@ def main(args):
     # when training quantized models, we always start from a pre-trained fp32 reference model
     model = torchvision.models.quantization.__dict__[args.model](pretrained=True, quantize=args.test_only)
     # prepare model for quantization
-    model = edgeai_pt_tools.xao.quantize.quant_torch_fx.prepare(model,
+    # pytorch supports varius quantized backends - eg.  'qnnpack', 'fbgemm' (default is fbgemm)
+    model = edgeai_pt_tools.xao.quantize.quant_torch_fx.prepare(model, backend=None,
         num_batch_norm_update_epochs=args.num_batch_norm_update_epochs,
         num_observer_update_epochs=args.num_observer_update_epochs)
     # use cuda if set

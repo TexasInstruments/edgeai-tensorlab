@@ -35,10 +35,10 @@ import torch.quantization.quantize_fx as quantize_fx
 from ... import xnn
 
 
-__all__ = ['prepare', 'freeze', 'convert', 'train', 'eval']
+__all__ = ['prepare', 'load_weights', 'freeze', 'train', 'eval', 'convert']
 
 
-def set_quant_backend(backend=None):
+def _set_quant_backend(backend=None):
     if backend:
         if backend not in torch.backends.quantized.supported_engines:
             raise RuntimeError("Quantized backend not supported: " + str(backend))
@@ -61,7 +61,7 @@ def load_weights(model, pretrained=None, change_names_dict=None):
 
 def prepare(model, qconfig_dict=None, pretrained=None, pretrained_after_prepare=False, backend=None,
             num_batch_norm_update_epochs=None, num_observer_update_epochs=None):
-    set_quant_backend(backend=backend)
+    _set_quant_backend(backend=backend)
     if qconfig_dict is None:
         qconfig_dict = {"": torch.quantization.get_default_qat_qconfig(backend)}
     #
@@ -103,7 +103,7 @@ def unfreeze(model, unfreeze_bn=True, unfreeze_observers=True):
     return model
 
 
-def get_quant_info(model):
+def _get_quant_info(model):
     for m in model.modules():
         if hasattr(m, '__quant_info__'):
             return m.__quant_info__
@@ -116,7 +116,7 @@ def train(model):
     # put the model in train mode
     model.train()
     # freezing ranges after a few epochs improve accuracy
-    __quant_info__ = get_quant_info(model)
+    __quant_info__ = _get_quant_info(model)
     if __quant_info__ is not None:
         num_batch_norm_update_epochs = __quant_info__['num_batch_norm_update_epochs']
         num_observer_update_epochs = __quant_info__['num_observer_update_epochs']
@@ -148,3 +148,34 @@ def convert(model):
     # now do the actual conversion
     model = quantize_fx.convert_fx(model)
     return model
+
+
+##################################################################
+# this is a convenient Module form of the above APIs
+class QuantTorchFxModule(torch.nn.Module):
+    def __int__(self, module, qconfig_dict=None, pretrained=None,
+            pretrained_after_prepare=False, backend=None,
+            num_batch_norm_update_epochs=None, num_observer_update_epochs=None):
+        super().__init__()
+        self.module = prepare(module, qconfig_dict=qconfig_dict, pretrained=pretrained,
+            pretrained_after_prepare=pretrained_after_prepare, backend=backend,
+            num_batch_norm_update_epochs=num_batch_norm_update_epochs,
+            num_observer_update_epochs=num_observer_update_epochs)
+
+    def load_weights(self, pretrained):
+        load_weights(self.module, pretrained=pretrained)
+
+    def train(self):
+        self.module = train(self.module)
+
+    def eval(self):
+        self.module = eval(self.module)
+
+    def freeze(self):
+        self.module = freeze(self.module)
+
+    def unfreeze(self):
+        self.module = freeze(self.module)
+
+    def convert(self):
+        return convert(self.module)
