@@ -560,7 +560,7 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 27.2
-          model_selection_factor: null
+          model_selection_factor: 2
           performance_fps: 172
       training_backend: edgeai_mmdetection
       training_device: null
@@ -902,7 +902,7 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 24.8
-          model_selection_factor: 3
+          model_selection_factor: 4
           performance_fps: 386
       training_backend: edgeai_mmdetection
       training_device: null
@@ -1070,7 +1070,7 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 30.5
-          model_selection_factor: 2
+          model_selection_factor: 3
           performance_fps: 264
       training_backend: edgeai_mmdetection
       training_device: null
