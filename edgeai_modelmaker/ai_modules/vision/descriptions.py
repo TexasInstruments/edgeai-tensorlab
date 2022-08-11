@@ -38,7 +38,7 @@ from . import compilation
 from .params import init_params
 
 
-def get_paretto_front(xy_list, x_index=0, y_index=1, inverse_relaionship=True):
+def _get_paretto_front_best(xy_list, x_index=0, y_index=1, inverse_relaionship=True):
     xy_list = sorted(xy_list, key=lambda x:x[x_index], reverse=inverse_relaionship)
     paretto_front = [xy_list[0]]
     for xy in xy_list[1:]:
@@ -46,6 +46,42 @@ def get_paretto_front(xy_list, x_index=0, y_index=1, inverse_relaionship=True):
             paretto_front.append(xy)
         #
     #
+    # sort based on first index
+    paretto_front = sorted(paretto_front, key=lambda x:x[x_index])
+    return paretto_front
+
+
+def _get_paretto_front_approx(xy_list, x_index=0, y_index=1, inverse_relaionship=True):
+    # normalize the values
+    min_x = min(xy[0] for xy in xy_list)
+    max_x = max(xy[0] for xy in xy_list)
+    min_y = min(xy[1] for xy in xy_list)
+    max_y = max(xy[1] for xy in xy_list)
+    norm_xy_list = [[(xy[0]-min_x+1)/(max_x-min_x+1), (xy[1]-min_y+1)/(max_y-min_y+1), xy[2]] for xy in xy_list]
+    if inverse_relaionship:
+        efficiency_list = [list(xy)+[xy[y_index]*xy[x_index]] for xy in norm_xy_list]
+    else:
+        efficiency_list = [list(xy)+[xy[y_index]/xy[x_index]] for xy in norm_xy_list]
+    #
+    efficiency_list = sorted(efficiency_list, key=lambda x:x[-1], reverse=True)
+    # take the good models
+    num_models_selected = max(len(efficiency_list)//2, 1)
+    efficiency_list = efficiency_list[:num_models_selected]
+    selected_indices = [xy[2] for xy in efficiency_list]
+    selected_entries = [xy for xy in xy_list if xy[2] in selected_indices]
+    # sort based on first index
+    paretto_front = sorted(selected_entries, key=lambda x:x[x_index])
+    return paretto_front
+
+
+def get_paretto_front_combined(xy_list, x_index=0, y_index=1, inverse_relaionship=True):
+    paretto_front_best = _get_paretto_front_best(xy_list, x_index=x_index, y_index=y_index, inverse_relaionship=inverse_relaionship)
+    paretto_front_approx = _get_paretto_front_approx(xy_list, x_index=x_index, y_index=y_index, inverse_relaionship=inverse_relaionship)
+    paretto_front_combined = paretto_front_best + paretto_front_approx
+    # de-duplicate
+    selected_indices = [xy[2] for xy in paretto_front_combined]
+    selected_indices = set(selected_indices)
+    paretto_front = [xy for xy in xy_list if xy[2] in selected_indices]
     # sort based on first index
     paretto_front = sorted(paretto_front, key=lambda x:x[x_index])
     return paretto_front
@@ -71,7 +107,7 @@ def set_model_selection_factor(model_descriptions):
             performance_fps = [m.training.target_devices[target_device].performance_fps for m in model_desc_list]
             accuracy_factor = [m.training.target_devices[target_device].accuracy_factor for m in model_desc_list]
             xy_list = [(performance_fps[i], accuracy_factor[i], i) for i in range(len(performance_fps))]
-            xy_list = get_paretto_front(xy_list)
+            xy_list = get_paretto_front_combined(xy_list)
             for paretto_id, xy in enumerate(xy_list):
                 xy_id = xy[2]
                 m = model_desc_list[xy_id]

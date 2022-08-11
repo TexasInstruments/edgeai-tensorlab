@@ -43,7 +43,7 @@
           "TDA4VM":{
             "performance_fps":172,
             "accuracy_factor":27.2,
-            "model_selection_factor":null
+            "model_selection_factor":2
           }
         },
         "project_path":null,
@@ -343,7 +343,7 @@
           "TDA4VM":{
             "performance_fps":386,
             "accuracy_factor":24.8,
-            "model_selection_factor":3
+            "model_selection_factor":4
           }
         },
         "project_path":null,
@@ -437,7 +437,7 @@
           "TDA4VM":{
             "performance_fps":264,
             "accuracy_factor":30.5,
-            "model_selection_factor":2
+            "model_selection_factor":3
           }
         },
         "project_path":null,
