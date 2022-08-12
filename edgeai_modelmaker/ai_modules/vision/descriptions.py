@@ -147,21 +147,39 @@ def set_model_description(params, model_description):
 
 def get_preset_descriptions(params):
     presets = dict(
-        default_preset=None,  # not specified here - use the models values
-        high_speed_preset=dict(
+        best_accuracy_preset=dict(
             compilation=dict(
-                calibration_frames=10,
-                calibration_iterations=10,
-                detection_thr=0.3
+                calibration_frames=50,
+                calibration_iterations=50,
+                detection_thr=0.05,
+                tensor_bits=16,
             )
         ),
         high_accuracy_preset=dict(
             compilation=dict(
                 calibration_frames=50,
                 calibration_iterations=50,
-                detection_thr=0.05
+                detection_thr=0.3,
+                tensor_bits=8,
             )
-        )
+        ),
+        default_preset=None,  # not specified here - use the models values
+        high_speed_preset=dict(
+            compilation=dict(
+                calibration_frames=10,
+                calibration_iterations=10,
+                detection_thr=0.3,
+                tensor_bits=8,
+            )
+        ),
+        best_speed_preset=dict(
+            compilation=dict(
+                calibration_frames=10,
+                calibration_iterations=1,
+                detection_thr=0.3,
+                tensor_bits=8,
+            )
+        ),
     )
     return presets
 
