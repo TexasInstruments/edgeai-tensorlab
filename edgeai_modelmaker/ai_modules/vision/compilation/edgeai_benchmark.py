@@ -163,7 +163,6 @@ class ModelCompilation():
         return self.params
 
     def _get_settings(self, model_selection=None):
-        runtime_options = dict(accuracy_level=self.params.compilation.accuracy_level)
         target_device_suffix = self.params.common.target_device.lower()
         settings = jai_benchmark.config_settings.ConfigSettings(
                         self.settings_file,
@@ -175,7 +174,7 @@ class ModelCompilation():
                         calibration_frames=self.params.compilation.calibration_frames,
                         calibration_iterations=self.params.compilation.calibration_iterations,
                         num_frames=self.params.compilation.num_frames,
-                        runtime_options=runtime_options,
+                        runtime_options=None,
                         detection_thr=self.params.compilation.detection_thr,
                         parallel_devices=None,
                         dataset_loading=False,

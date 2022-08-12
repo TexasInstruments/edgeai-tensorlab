@@ -102,10 +102,10 @@ def init_params(*args, **kwargs):
             compilation_path=None,
             model_compiled_path=None,
             model_packaged_path=None,
-            accuracy_level=1,
+            # accuracy_level=1,
             tensor_bits=8,
-            calibration_frames=50,
-            calibration_iterations=50,
+            calibration_frames=10,
+            calibration_iterations=10,
             num_frames=None, # inference frame for accuracy test example: 100
             detection_thr=0.3, # threshold for detection: 0.3 for best performance(fps), 0.05 for best accuracy
             save_output=True # save inference outputs
