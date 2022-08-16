@@ -64,6 +64,7 @@ def init_params(*args, **kwargs):
             annotation_path_splits=None,
             annotation_dir='annotations',
             annotation_prefix='instances', # change this if your dataset has a different annotation prefix
+            annotation_format='coco_json',
             dataset_download=True,
             dataset_reload=False
         ),
