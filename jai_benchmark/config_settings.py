@@ -160,6 +160,10 @@ class QuantizationParams():
             # only if the accuracy_level in basic options is set to 9
             'advanced_options:activation_clipping': 1,
             'advanced_options:weight_clipping': 1,
+            # if bias_clipping is set to 0 (default), weight scale will be adjusted to avoid bias_clipping
+            # if bias_clipping is set to 1, weight scale is computed solely based on weight range.
+            # this should only affect the mode where the bias is clipped to 16bits (default in TDA4VM).
+            #'advanced_options:bias_clipping': 1,
             'advanced_options:bias_calibration': 1,
             'advanced_options:channel_wise_quantization': 0,
             # mixed precision options - this is just a placeholder
