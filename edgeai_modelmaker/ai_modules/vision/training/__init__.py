@@ -39,6 +39,7 @@ _model_descriptions = {}
 _model_descriptions.update(edgeai_mmdetection.detection.get_model_descriptions())
 # the detection models in edgeai-mmdetection are superior to edgeai-torchvision, so commenting out these for now.
 #_model_descriptions.update(edgeai_torchvision.detection.get_model_descriptions())
+_model_descriptions.update(edgeai_yolov5.detection.get_model_descriptions())
 
 # classification models
 _model_descriptions.update(edgeai_torchvision.classification.get_model_descriptions())
