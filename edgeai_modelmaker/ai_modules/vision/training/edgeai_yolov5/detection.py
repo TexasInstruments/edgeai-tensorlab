@@ -171,15 +171,30 @@ def json2yolo(src_path, dst_path, split='train'):
         with open(dst_txt_path, 'a') as foo:
             foo.write('./{}/{}'.format('images', img['file_name']) + '\n')
 
+    duplicate_ids = []
+    for gt_annotation in gt_annotations:
+        if gt_annotation['id'] in duplicate_ids:
+            continue
+        gt_bboxes = [gt_ann['bbox'] for gt_ann in gt_annotations if gt_ann['image_id']==gt_annotation['image_id']]
+        gt_bboxes_id = [gt_ann['id'] for gt_ann in gt_annotations if gt_ann['image_id']==gt_annotation['image_id']]
+        gt_box = gt_annotation['bbox']
+        for box, box_id in zip(gt_bboxes, gt_bboxes_id):
+            if box_id in duplicate_ids:
+                continue
+            if box == gt_box and box_id != gt_annotation['id']:
+                duplicate_ids.append(box_id)
+
     for gt_annotation in gt_annotations:
         if gt_annotation['iscrowd']:
             continue
-
+        if gt_annotation['id'] in duplicate_ids:
+            continue
         img = gt_imgs[gt_annotation['image_id']]
         height =img['height']
         width = img['width']
         file_name = img['file_name']
         gt_box = np.array(gt_annotation['bbox'], dtype=np.float64)
+
         gt_box[:2] += gt_box[2:]/2
         gt_box[[0, 2]] /= width
         gt_box[[1, 3]] /= height
