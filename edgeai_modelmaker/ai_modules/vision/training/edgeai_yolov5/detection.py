@@ -195,7 +195,7 @@ def json2yolo(src_path, dst_path, split='train'):
 def create_data_dict(dataset, categories):
     data_dict = {
     'path' : dataset.dataset_path,
-    'train' : 'tain.txt' ,
+    'train' : 'train.txt' ,
     'val' : 'val.txt' ,
     'test' : 'test.txt' ,
     'nc': len(categories) ,
@@ -227,8 +227,9 @@ class ModelTraining:
         self.val_ann_file = f'{self.params.dataset.dataset_path}/annotations/{self.params.dataset.annotation_prefix}_val.json'
         self.train_ann_file_yolo = os.path.dirname(self.train_ann_file).replace("annotations", "labels")
         self.val_ann_file_yolo = os.path.dirname(self.val_ann_file).replace("annotations", "labels")
-        json2yolo(self.train_ann_file, self.train_ann_file_yolo, split='train')
-        json2yolo(self.val_ann_file, self.val_ann_file_yolo, split='val')
+        if not os.path.exists(self.train_ann_file_yolo):
+            json2yolo(self.train_ann_file, self.train_ann_file_yolo, split='train')
+            json2yolo(self.val_ann_file, self.val_ann_file_yolo, split='val')
         #create_data_dict()
         #create txt file for annotation
         with open(self.train_ann_file) as train_ann_fp:
@@ -268,27 +269,33 @@ class ModelTraining:
             devices = "cpu"
         #--data  coco.yaml --cfg yolov5s6.yaml --weights '' --batch - size 63
         # training params
-        hyp_path = os.path.join(edgeai_yolov5_path, 'data', 'hyps', 'hyps.scratch.yaml')
-        devices = [range(self.params.training.num_gpus)]
+        hyp_path = os.path.join(edgeai_yolov5_path, 'data', 'hyps', 'hyp.scratch.yaml')
+        device = list(range(self.params.training.num_gpus))
+        device = ','.join([str(id) for id in device])
+        project_path = self.params.training['training_path']
+        data_yaml = os.path.join(edgeai_yolov5_path, 'data', self.params.dataset.dataset_name + '.yaml' )
+        yolo_cfg = os.path.join(edgeai_yolov5_path, 'models', 'hub', self.params.training.model_training_id + '.yaml')
 
-        argv = ['--cfg', f'{self.params.training.model_training_id}.yaml',
-                '--weights', f'{self.params.training.pretrained_checkpoint_path}',
-                '--data', f'{self.params.dataset.dataset_name}.yaml',  #This needs to be written for each dataset
-                '--devices', f'{devices}',
-                '--output-dir', f'{self.params.training.training_path}',
-                '--epochs', f'{self.params.training.training_epochs}',
-                '--batch-size', f'{self.params.training.batch_size}',
-                '--img', f'{640}',
-                '--hyp' f'{hyp_path}',
-                ]
+        args_yolo = {'cfg': f'{yolo_cfg}',
+                    'weights': f'{self.params.training.pretrained_checkpoint_path}',
+                    'data' : f'{data_yaml}',  #This needs to be written for each dataset
+                    'device' : f'{device}',
+                    'epochs' : self.params.training.training_epochs,
+                    'batch-size' : self.params.training.batch_size,
+                    'img': 640,
+                    'hyp': f'{hyp_path}',
+                    'project': f'{project_path}'
+                    }
         #input_size = self.params.training.input_cropsize if isinstance(self.params.training.input_cropsize, (list,tuple)) else \
         #    (self.params.training.input_cropsize,self.params.training.input_cropsize)
         #argv += ['--input-size', f'{input_size[0]}', f'{input_size[1]}']
-        args = train.get_args_parser().parse_args(argv)
-        args.quit_event = self.quit_event
+        # args = train.get_args_parser().parse_args(argv)
+        # args.quit_event = self.quit_event
         # launch the training
-        train.run(args)
-
+        train.run(cfg=args_yolo['cfg'], weights=args_yolo['weights'], data=args_yolo['data'],
+                  devices=args_yolo['device'], epochs=args_yolo['epochs'],
+                  batch_size=args_yolo['batch-size'], img=args_yolo['img'],
+                  hyp=args_yolo['hyp'], project=args_yolo['project'])
         return self.params
 
     def stop(self):
