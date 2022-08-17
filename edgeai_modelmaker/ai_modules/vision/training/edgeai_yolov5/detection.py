@@ -150,14 +150,22 @@ def get_model_description(model_name):
     model_descriptions = get_model_descriptions()
     return model_descriptions[model_name] if model_name in model_descriptions else None
 
-def json2yolo(src_path, dst_path):
+
+def json2yolo(src_path, dst_path, split='train'):
+    """
+    Convert the json file to txt file per image as expected by YOLOv5 training framework
+    """
     os.makedirs(dst_path, exist_ok=True)
+    dst_txt_path = os.path.join(dst_path, '..', split + ".txt")
     with open(src_path) as foo:
         gt = json.load(foo)
+
     gt_annotations = gt['annotations']
     gt_imgs = {}
     for img in gt["images"]:
         gt_imgs[img['id']] = img
+        with open(dst_txt_path, 'a') as foo:
+            foo.write('./{}/{}'.format('images', img['file_name']) + '\n')
 
     for gt_annotation in gt_annotations:
         if gt_annotation['iscrowd']:
@@ -180,6 +188,22 @@ def json2yolo(src_path, dst_path):
                 foo.write(('%g ' * len(gt_line)).rstrip() % gt_line + '\n')
 
 
+# def create_data_dict(params):
+#         data_dict = {
+#         'path' : '' ,
+#         'train' : '' ,
+#         'val' : '' ,
+#         'nc': '' ,
+#         'names': []
+#         }
+#
+#         dict_obj = simplify_dict(dict_obj)
+#         filename_yaml = os.path.splitext(filename)[0] + '.yaml'
+#         with open(filename_yaml, 'w') as fp:
+#             yaml.safe_dump(dict_obj, fp)
+
+
+
 class ModelTraining:
     @classmethod
     def init_params(self, *args, **kwargs):
@@ -197,11 +221,11 @@ class ModelTraining:
         # num classes
         self.train_ann_file = f'{self.params.dataset.dataset_path}/annotations/{self.params.dataset.annotation_prefix}_train.json'
         self.val_ann_file = f'{self.params.dataset.dataset_path}/annotations/{self.params.dataset.annotation_prefix}_val.json'
-        self.train_ann_file_yolo = os.path.join(os.path.dirname(self.train_ann_file).replace("annotations", "labels"), "train")
-        self.val_ann_file_yolo = os.path.join(os.path.dirname(self.val_ann_file).replace("annotations", "labels"), "val")
-        json2yolo(self.train_ann_file, self.train_ann_file_yolo)
-        json2yolo(self.val_ann_file, self.val_ann_file_yolo)
-
+        self.train_ann_file_yolo = os.path.dirname(self.train_ann_file).replace("annotations", "labels")
+        self.val_ann_file_yolo = os.path.dirname(self.val_ann_file).replace("annotations", "labels")
+        json2yolo(self.train_ann_file, self.train_ann_file_yolo, split='train')
+        json2yolo(self.val_ann_file, self.val_ann_file_yolo, split='val')
+        #create_data_dict()
         #create txt file for annotation
         with open(self.train_ann_file) as train_ann_fp:
             train_anno = json.load(train_ann_fp)
@@ -241,6 +265,7 @@ class ModelTraining:
         # training params
         hyp_path = os.path.join(edgeai_yolov5_path, 'data', 'hyps', 'hyps.scratch.yaml')
         devices = [range(self.params.training.num_gpus)]
+
         argv = ['--cfg', f'{self.params.training.model_training_id}.yaml',
                 '--weights', f'{self.params.training.pretrained_checkpoint_path}',
                 '--data', f'{self.params.dataset.dataset_name}.yaml',  #This needs to be written for each dataset
