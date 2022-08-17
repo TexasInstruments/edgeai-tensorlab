@@ -1121,6 +1121,7 @@ target_device_descriptions:
       \ page: https://www.ti.com/product/TDA4VM\n- datasheet: https://www.ti.com/lit/ds/symlink/tda4vm.pdf\n\
       - starterkit: https://www.ti.com/tool/SK-TDA4VM\n- top level landing page: https://ti.com/edgeai\n"
     device_name: TDA4VM
+    device_selection_factor: 0
     device_type: MPU
 task_descriptions:
   classification:
