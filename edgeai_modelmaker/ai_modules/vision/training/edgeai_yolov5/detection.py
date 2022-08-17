@@ -34,6 +34,7 @@ import sys
 import shutil
 import json
 import numpy as np
+import yaml
 
 from ... import constants
 from ..... import utils
@@ -157,6 +158,8 @@ def json2yolo(src_path, dst_path, split='train'):
     """
     os.makedirs(dst_path, exist_ok=True)
     dst_txt_path = os.path.join(dst_path, '..', split + ".txt")
+    if os.path.exists(dst_txt_path):
+        os.remove(dst_txt_path)
     with open(src_path) as foo:
         gt = json.load(foo)
 
@@ -164,6 +167,7 @@ def json2yolo(src_path, dst_path, split='train'):
     gt_imgs = {}
     for img in gt["images"]:
         gt_imgs[img['id']] = img
+        # Add the image to rain or val list
         with open(dst_txt_path, 'a') as foo:
             foo.write('./{}/{}'.format('images', img['file_name']) + '\n')
 
@@ -188,20 +192,20 @@ def json2yolo(src_path, dst_path, split='train'):
                 foo.write(('%g ' * len(gt_line)).rstrip() % gt_line + '\n')
 
 
-# def create_data_dict(params):
-#         data_dict = {
-#         'path' : '' ,
-#         'train' : '' ,
-#         'val' : '' ,
-#         'nc': '' ,
-#         'names': []
-#         }
-#
-#         dict_obj = simplify_dict(dict_obj)
-#         filename_yaml = os.path.splitext(filename)[0] + '.yaml'
-#         with open(filename_yaml, 'w') as fp:
-#             yaml.safe_dump(dict_obj, fp)
-
+def create_data_dict(dataset, categories):
+    data_dict = {
+    'path' : dataset.dataset_path,
+    'train' : 'tain.txt' ,
+    'val' : 'val.txt' ,
+    'test' : 'test.txt' ,
+    'nc': len(categories) ,
+    'names': [category['name'] for category in categories]  #Need to check whether the classes need to be inside quote
+    }
+    filename_yaml = os.path.join(edgeai_yolov5_path, 'data', dataset.dataset_name+'.yaml')
+    if os.path.exists(filename_yaml):
+        os.remove(filename_yaml)
+    with open(filename_yaml, 'w') as foo:
+        yaml.safe_dump(data_dict, foo,default_flow_style=None)
 
 
 class ModelTraining:
@@ -232,6 +236,7 @@ class ModelTraining:
             categories = train_anno['categories']
             self.object_categories = [cat['name'] for cat in categories]
         #
+        create_data_dict(self.params.dataset, categories)
 
         # update params that are specific to this backend and model
         self.params.update(
