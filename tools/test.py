@@ -17,6 +17,7 @@ from mmdet3d.datasets import build_dataloader, build_dataset
 from mmdet3d.models import build_model
 from mmdet.apis import multi_gpu_test, set_random_seed
 from mmdet.datasets import replace_ImageToTensor
+from mmdet3d.utils.runner import XMMDetEpochBasedRunner
 
 if mmdet.__version__ > '2.23.0':
     # If mmdet version > 2.23.0, setup_multi_processes would be imported and
@@ -232,10 +233,24 @@ def main():
     cfg.model.train_cfg = None
     model = build_model(cfg.model, test_cfg=cfg.get('test_cfg'))
 
+    if cfg.quantize == True:
+        from mmdet3d.utils.quantize import XMMDetQuantTrainModule
+        import numpy as np
+
+        raw_voxel_feat = np.fromfile("./data/kitti/training/velodyne/000000.bin")
+        raw_voxel_feat = torch.tensor(raw_voxel_feat.reshape((-1,4)))
+
+        model = XMMDetQuantTrainModule(model, [raw_voxel_feat,raw_voxel_feat])
+
     fp16_cfg = cfg.get('fp16', None)
     if fp16_cfg is not None:
         wrap_fp16_model(model)
-    checkpoint = load_checkpoint(model, args.checkpoint, map_location='cpu')
+
+    if cfg.quantize == True:        
+        checkpoint = load_checkpoint(model.module, args.checkpoint, map_location='cpu')
+    else:
+        checkpoint = load_checkpoint(model, args.checkpoint, map_location='cpu')
+
     if args.fuse_conv_bn:
         model = fuse_conv_bn(model)
 
@@ -268,7 +283,6 @@ def main():
                 parseConv(child, prefix + name + '.')
 
     sparsify_model = False
-
     if sparsify_model == True:
         parseConv(model)
 
@@ -285,10 +299,8 @@ def main():
         # segmentation dataset has `PALETTE` attribute
         model.PALETTE = dataset.PALETTE
 
-    save_onnx_model = True
-
-    if save_onnx_model == True:
-        save_model(model)
+    if cfg.save_onnx_model == True:
+        save_onnx_model(model,os.path.dirname(args.checkpoint))
 
     if not distributed:
         model = MMDataParallel(model, device_ids=cfg.gpu_ids)
@@ -320,38 +332,53 @@ def main():
             eval_kwargs.update(dict(metric=args.eval, **kwargs))
             print(dataset.evaluate(outputs, **eval_kwargs))
 
-def save_model(model, save_onnx_model=True):
-    combined_model = CombinedModel(model.voxel_encoder.pfn_layers._modules['0'],
-                                    model.middle_encoder,
-                                    model.backbone,
-                                    model.neck,
-                                    model.bbox_head.conv_cls,
-                                    model.bbox_head.conv_dir_cls,
-                                    model.bbox_head.conv_reg,
-                                    len(model.CLASSES)
-                                    )
+def save_onnx_model(model,path):
 
-    ## Need to parameterized the contants in below three tensors
-    max_num_3d_points = 10000
-    raw_voxel_feat = torch.ones(1, 10, 32, max_num_3d_points)
-    data = torch.zeros(1, 64, 496*432)
-    coors = torch.ones(1, 64, max_num_3d_points)
-    coors = coors.long()
+        print('onnx export started, at path {}'.format(path))
+        print('Only one GPU can be used for ONNX export')
 
-    torch.onnx.export(combined_model,
-            (raw_voxel_feat,coors,data),
-            "combined_model.onnx",
-            opset_version=11,
-            verbose=False)
-    import onnx
-    model = onnx.load("combined_model.onnx")
-    graph = model.graph
+        device_ids=[torch.cuda.current_device()]
+        
+        if len(device_ids) > 1:
+            print('Multiple GPUs visible, Currently only one GPU can be used for onnx export')
+            
+        from test import CombinedModel
+        model.eval()
 
-    for inp in graph.input:
-        if inp.name == 'coors' and inp.type.tensor_type.elem_type == onnx.TensorProto.INT64 :
-            inp.type.tensor_type.elem_type = onnx.TensorProto.INT32
+        max_num_3d_points = 10000
+        # Accessing one layer to find wheather wegihts are on cpu or cuda
+        device = model.module.voxel_encoder.pfn_layers._modules['0'].linear.weight.device
+        raw_voxel_feat = torch.ones([1, 10, 32, max_num_3d_points],device=torch.device(device))
+        data = torch.zeros([1, 64, 496*432],device=torch.device(device))
+        coors = torch.ones([1, 64, max_num_3d_points],device=torch.device(device))
+        coors = coors.long()
 
-    onnx.save(model, "combined_model_int32.onnx")
+        combined_model = CombinedModel(model.module.voxel_encoder.pfn_layers._modules['0'],
+                                        model.module.middle_encoder,
+                                        model.module.backbone,
+                                        model.module.neck,
+                                        model.module.bbox_head.conv_cls,
+                                        model.module.bbox_head.conv_dir_cls,
+                                        model.module.bbox_head.conv_reg,
+                                        len(model.CLASSES)
+                                        )
+
+        torch.onnx.export(combined_model,
+                (raw_voxel_feat,coors,data),
+                os.path.join(path,"combined_model.onnx"),
+                opset_version=11,
+                verbose=False)
+                
+        import onnx
+        model = onnx.load(os.path.join(path,"combined_model.onnx"))
+        graph = model.graph
+
+        for inp in graph.input:
+            if inp.name == 'coors' and inp.type.tensor_type.elem_type == onnx.TensorProto.INT64 :
+                inp.type.tensor_type.elem_type = onnx.TensorProto.INT32
+
+        onnx.save(model, os.path.join(path,"combined_model_int32.onnx"))
+
 
 if __name__ == '__main__':
     main()

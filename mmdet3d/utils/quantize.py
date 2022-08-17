@@ -44,7 +44,7 @@ class XMMDetQuantCalibrateModule(xnn.quantize.QuantCalibrateModule):
 
 class XMMDetQuantTrainModule(xnn.quantize.QuantTrainModule):
     def __init__(self, model,  dummy_input, *args, forward_analyze_method='forward_dummy', **kwargs):
-        super().__init__(model, dummy_input, *args, forward_analyze_method=forward_analyze_method, **kwargs)
+        super().__init__(model, dummy_input, *args,bitwidth_weights=8, bitwidth_activations=8, forward_analyze_method=forward_analyze_method, **kwargs)
 
     def forward(self, *args, return_loss=True, **kwargs):
         return super().forward(return_loss, *args, **kwargs)
