@@ -12,8 +12,7 @@ import utils
 from train import train_one_epoch, evaluate, load_data
 
 from edgeai_modeltools import pt as edgeai_pt_tools
-# import edgeai_modeltools.pt.xao.quantization.quant_torch_fx as qat_module
-import edgeai_modeltools.pt.xao.quantization.quant_torch_eager as qat_module
+import edgeai_modeltools.pt.xao.quantization.quant_torch_fx as qat_module
 
 
 def main(args):
@@ -47,7 +46,8 @@ def main(args):
 
     print("Creating model", args.model)
     # when training quantized models, we always start from a pre-trained fp32 reference model
-    model = torchvision.models.quantization.__dict__[args.model](pretrained=True, quantize=args.test_only)
+    # model = torchvision.models.quantization.__dict__[args.model](pretrained=True, quantize=args.test_only)
+    model = torchvision.models.__dict__[args.model](pretrained=True)
     # prepare model for quantization
     # pytorch supports varius quantized backends - eg.  'qnnpack', 'fbgemm' (default is fbgemm)
     model = qat_module.prepare(model, backend=None,

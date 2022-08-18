@@ -60,7 +60,7 @@ def load_weights(model, pretrained=None, change_names_dict=None):
 
 
 def prepare(model, qconfig_dict=None, pretrained=None, pretrained_after_prepare=False, backend=None,
-            num_batch_norm_update_epochs=None, num_observer_update_epochs=None, prepare_fn=None):
+            num_batch_norm_update_epochs=None, num_observer_update_epochs=None, prepare_fn=None, is_qat=True):
     _set_quant_backend(backend=backend)
     if qconfig_dict is None:
         qconfig_dict = {"": torch.quantization.get_default_qat_qconfig(backend)}

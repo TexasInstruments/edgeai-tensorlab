@@ -69,7 +69,7 @@ for model in "${!model_pretrained[@]}"; do
   echo Quantization Aware Training for $model
   # note: this example uses only a part of the training epoch and only 10 such (partial) epochs during quantized training to save time,
   # but it may necessary to use the full training epoch if the accuracy is not satisfactory.
-  python3 -u ./scripts/pt/classification/train_quantization_edgeailite_fx.py \
+  python3 -u ./scripts/pt/classification/train_quantization_edgeailite_eager.py \
                --data-path ./data/datasets/imagenet \
                --model $model --batch-size $batch_size --lr $lr --epoch-size $epoch_size \
                --epochs $epochs --output-dir ./data/checkpoints/quantization/$model

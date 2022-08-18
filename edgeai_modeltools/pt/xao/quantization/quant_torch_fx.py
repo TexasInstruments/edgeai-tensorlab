@@ -42,7 +42,7 @@ def load_weights(model, *args, **kwargs):
     return quant_torch_base.load_weights(model, *args, **kwargs)
 
 
-def prepare(model, *args, prepare_fn=quantize_fx.prepare_qat_fx, **kwargs):
+def prepare(model, *args, prepare_fn=quantize_fx.prepare_qat_fx, is_qat=True, **kwargs):
     model = quant_torch_base.prepare(model, *args, prepare_fn=prepare_fn, **kwargs)
     return model
 
