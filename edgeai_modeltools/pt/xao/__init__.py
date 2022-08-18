@@ -1,2 +1,2 @@
 
-from . import quantize
+from . import quantization

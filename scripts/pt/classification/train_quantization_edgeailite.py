@@ -12,6 +12,8 @@ import utils
 from train import train_one_epoch, evaluate, load_data
 
 from edgeai_modeltools import pt as edgeai_pt_tools
+# import edgeai_modeltools.pt.xao.quantization.quant_torch_fx as quant_torch_package
+import edgeai_modeltools.pt.xao.quantization.quant_torch_eager as quant_torch_package
 
 
 def main(args):
@@ -48,7 +50,7 @@ def main(args):
     model = torchvision.models.quantization.__dict__[args.model](pretrained=True, quantize=args.test_only)
     # prepare model for quantization
     # pytorch supports varius quantized backends - eg.  'qnnpack', 'fbgemm' (default is fbgemm)
-    model = edgeai_pt_tools.xao.quantize.quant_torch_fx.prepare(model, backend=None,
+    model = quant_torch_package.prepare(model, backend=None,
         num_batch_norm_update_epochs=args.num_batch_norm_update_epochs,
         num_observer_update_epochs=args.num_observer_update_epochs)
     # use cuda if set
@@ -83,7 +85,7 @@ def main(args):
         args.start_epoch = checkpoint['epoch'] + 1
 
     if args.test_only:
-        edgeai_pt_tools.xao.quantize.quant_torch_fx.eval(model)
+        quant_torch_package.eval(model)
         evaluate(model, criterion, data_loader_test, device=device)
         return
 
@@ -94,7 +96,7 @@ def main(args):
 
         print('Starting training for epoch', epoch)
         # put in train() mode and enable observers
-        edgeai_pt_tools.xao.quantize.quant_torch_fx.train(model)
+        quant_torch_package.train(model)
         # training epoch
         train_one_epoch(model, criterion, optimizer, data_loader, device, epoch,
             print_freq=args.print_freq)
@@ -102,11 +104,11 @@ def main(args):
         lr_scheduler.step()
         with torch.no_grad():
             print('Evaluate QAT model with Fake Quant Ops')
-            edgeai_pt_tools.xao.quantize.quant_torch_fx.eval(model)
+            quant_torch_package.eval(model)
             evaluate(model, criterion, data_loader_test, device=device)
 
             print('Evaluate Quantized Int model')
-            quantized_eval_model = edgeai_pt_tools.xao.quantize.quant_torch_fx.convert(model_without_ddp)
+            quantized_eval_model = quant_torch_package.convert(model_without_ddp)
             evaluate(quantized_eval_model, criterion, data_loader_test, device=torch.device('cpu'))
 
         if args.output_dir:

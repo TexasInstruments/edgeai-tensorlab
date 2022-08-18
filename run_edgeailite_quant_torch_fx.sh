@@ -57,7 +57,7 @@ lr=1e-5             # initial learning rate for quantization aware training - re
 lr_step_size=10     # adjust lr after so many epochs
 batch_size=256      # use a relatively smaller batch size as quantization aware training does not use multi-gpu
 epochs=10           # number of epochs to train
-epoch_size=0        # use a fraction to limit the number of images used in one epoch - set to 0 to use the full training epoch
+epoch_size=0.1      # use a fraction to limit the number of images used in one epoch - set to 0 to use the full training epoch
 
 
 # ----------------------------------
