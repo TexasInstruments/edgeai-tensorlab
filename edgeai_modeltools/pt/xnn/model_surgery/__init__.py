@@ -110,20 +110,53 @@ key: a torch.nn.Module that has to be replaced OR a callable which takes a modul
 value: a list. the fist entry is a constructor or a callable that creates the replacement module
                the remaining entries are properties that have to be copied from old module to newly created module.
 '''
-REPLACEMENTS_DICT_DEFAULT = {
+REPLACEMENTS_DICT_LITE = {
     torch.nn.ReLU6: [torch.nn.ReLU, 'inplace'],
     torch.nn.Hardswish: [torch.nn.ReLU, 'inplace'],
     torch.nn.SiLU: [torch.nn.ReLU, 'inplace'],
     SqueezeExcitation: [torch.nn.Identity],
-    torch.nn.Conv2d: [_replace_conv2d],
     # just a dummy entry to show that the key and value can be a functions
     # the key should return a boolean and the first entry of value(list) should return an instance of torch.nn.Module
     _check_dummy: [_replace_dummy]
 }
 
+REPLACEMENTS_DICT_LITE_DEPTHWISE = {
+    torch.nn.ReLU6: [torch.nn.ReLU, 'inplace'],
+    torch.nn.Hardswish: [torch.nn.ReLU, 'inplace'],
+    torch.nn.SiLU: [torch.nn.ReLU, 'inplace'],
+    SqueezeExcitation: [torch.nn.Identity],
+    # with_normalization: whether to insert BN after replacing 3x3/5x5 conv etc. with dw-seperable conv
+    # with_activation: whether to insert ReLU after replacing conv with dw-seperable conv
+    torch.nn.Conv2d: [_replace_conv2d, dict(groups_dw=None, group_size_dw=1, with_normalization=(True,False), with_activation=(True,False))],
+    # just a dummy entry to show that the key and value can be a functions
+    # the key should return a boolean and the first entry of value(list) should return an instance of torch.nn.Module
+    _check_dummy: [_replace_dummy]
+}
 
-def get_replacements_dict():
-    return REPLACEMENTS_DICT_DEFAULT
+def get_replacements_dict_default():
+    # shouldn't this be changed to REPLACEMENTS_DICT_LITE?
+    return REPLACEMENTS_DICT_LITE_DEPTHWISE
+
+
+def replace_modules(model, inplace=True, replacements_dict=None, **kwargs):
+    assert replacements_dict is not None, 'replacements_dict must be provided'
+    model = model if inplace else copy.deepcopy(inplace)
+    num_trails = len(list(model.modules()))
+    for trial_id in range(num_trails):
+        for p_name, p in model.named_modules():
+            is_replaced = False
+            for c_name, c in p.named_children():
+                is_replaced = _replace_with_new_module(p, c_name, c, replacements_dict, **kwargs)
+                if is_replaced:
+                    break
+                #
+            #
+            if is_replaced:
+                break
+            #
+        #
+    #
+    return model
 
 
 # this function can be used after creating the model to transform it into a lite model.
@@ -137,8 +170,7 @@ def create_lite_model(model_function, pretrained_backbone_names=None, pretrained
     return model
 
 
-def _create_lite_model_impl(model_function, pretrained_backbone_names=None, groups_dw=None, group_size_dw=1,
-                           with_normalization=(True,False), with_activation=(True,False), replacements_dict=None, **kwargs):
+def _create_lite_model_impl(model_function, pretrained_backbone_names=None, replacements_dict=None, **kwargs):
     pretrained = kwargs.pop('pretrained', None)
     pretrained_backbone = kwargs.pop('pretrained_backbone', None)
     # if pretrained is set to true, we will try to hanlde it inside model
@@ -147,9 +179,7 @@ def _create_lite_model_impl(model_function, pretrained_backbone_names=None, grou
     else:
         model = model_function(pretrained=(pretrained is True), **kwargs)
     #
-    model = convert_to_lite_model(model, groups_dw=groups_dw, group_size_dw=group_size_dw,
-                                  with_normalization=with_normalization, with_activation=with_activation,
-                                  replacements_dict=replacements_dict)
+    model = convert_to_lite_model(model, replacements_dict=replacements_dict, **kwargs)
     if pretrained and pretrained is not True:
         utils.load_weights(model, pretrained, state_dict_name=['state_dict', 'model'])
     elif pretrained_backbone and pretrained_backbone is not True:
@@ -160,37 +190,9 @@ def _create_lite_model_impl(model_function, pretrained_backbone_names=None, grou
     return model
 
 
-def convert_to_lite_model(model, inplace=True, groups_dw=None, group_size_dw=1,
-                          with_normalization=(True,False), with_activation=(True,False),
-                          replacements_dict=None):
-    '''
-    with_normalization: whether to insert BN after replacing 3x3/5x5 conv etc. with dw-seperable conv
-    with_activation: whether to insert ReLU after replacing conv with dw-seperable conv
-    '''
-    replacements_dict = replacements_dict or REPLACEMENTS_DICT_DEFAULT
-    model = model if inplace else copy.deepcopy(inplace)
-    num_trails = len(list(model.modules()))
-    for trial_id in range(num_trails):
-        for p_name, p in model.named_modules():
-            is_replaced = False
-            for c_name, c in p.named_children():
-                # replacing Conv2d is not trivial. it needs several arguments
-                if isinstance(c, torch.nn.Conv2d):
-                    replace_kwargs = dict(groups_dw=groups_dw, group_size_dw=group_size_dw,
-                                          with_normalization=with_normalization, with_activation=with_activation)
-                else:
-                    replace_kwargs = dict()
-                #
-                is_replaced = _replace_with_new_module(p, c_name, c, replacements_dict, **replace_kwargs)
-                if is_replaced:
-                    break
-                #
-            #
-            if is_replaced:
-                break
-            #
-        #
-    #
+def convert_to_lite_model(model, inplace=True, replacements_dict=None, **kwargs):
+    replacements_dict = replacements_dict or get_replacements_dict_default()
+    model = replace_modules(model, inplace=inplace, replacements_dict=replacements_dict, **kwargs)
     return model
 
 
@@ -208,6 +210,10 @@ def _replace_with_new_module(parent, c_name, current_m, replacements_dict, **kwa
             assert callable(new_constructor), f'the value in replacements_dict must be a class or function: {new_constructor}'
             # the parameters of the new moulde that has to be copied from current
             new_args = {}
+            if isinstance(v_params[-1], dict):
+                new_args.update(v_params[-1])
+                v_params = v_params[:-1]
+            #
             for k in v_params[1:]:
                 new_args.update({k:getattr(current_m,k)})
             #
