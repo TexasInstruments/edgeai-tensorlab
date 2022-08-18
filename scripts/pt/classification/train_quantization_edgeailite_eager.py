@@ -27,7 +27,6 @@ def main(args):
     # Set backend engine to ensure that quantized model runs on the correct kernels
     if args.backend not in torch.backends.quantized.supported_engines:
         raise RuntimeError("Quantized backend not supported: " + str(args.backend))
-    torch.backends.quantized.engine = args.backend
 
     device = torch.device(args.device)
     torch.backends.cudnn.benchmark = True
@@ -57,7 +56,7 @@ def main(args):
         # prepare model for quantization
         # pytorch supports varius quantized backends - eg.  'qnnpack', 'fbgemm' (default is fbgemm)
         dummy_input = torch.rand((1, 3, 224, 224)).to('cpu')		
-        model = qat_module.prepare(model, backend=None,
+        model = qat_module.prepare(model, backend=args.backend,
             num_batch_norm_update_epochs=args.num_batch_norm_update_epochs,
             num_observer_update_epochs=args.num_observer_update_epochs, dummy_input=dummy_input)
 
@@ -106,8 +105,8 @@ def main(args):
             model = qat_module.eval(model)
             evaluate(model, criterion, data_loader_test, device=device, log_suffix="QAT")
 
-            print("Evaluate Quantized model")
-            evaluate(quantized_eval_model, criterion, data_loader_test, device=torch.device("cpu"))
+            print("Converting to Quantized model")
+            quantized_eval_model = qat_module.convert(model_without_ddp)
 
         if args.output_dir:
             checkpoint = {
@@ -121,6 +120,9 @@ def main(args):
             utils.save_on_master(checkpoint, os.path.join(args.output_dir, f"model_{epoch}.pth"))
             utils.save_on_master(checkpoint, os.path.join(args.output_dir, "checkpoint.pth"))
         print("Saving models after epoch ", epoch)
+
+    print("Evaluate Quantized model")
+    evaluate(quantized_eval_model, criterion, data_loader_test, device=torch.device("cpu"))
 
     # onnx export quantized model
     dummy_input = torch.rand((1, 3, 224, 224)).to('cpu')
