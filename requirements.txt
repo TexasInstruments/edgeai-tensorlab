@@ -1,6 +1,6 @@
 progressbar
 colorama
-opencv-python
+opencv-python==4.2.0.34
 scipy
 matplotlib
 pyyaml
