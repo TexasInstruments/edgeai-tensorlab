@@ -120,6 +120,7 @@ REPLACEMENTS_DICT_LITE = {
     _check_dummy: [_replace_dummy]
 }
 
+
 REPLACEMENTS_DICT_LITE_DEPTHWISE = {
     torch.nn.ReLU6: [torch.nn.ReLU, 'inplace'],
     torch.nn.Hardswish: [torch.nn.ReLU, 'inplace'],
@@ -132,6 +133,7 @@ REPLACEMENTS_DICT_LITE_DEPTHWISE = {
     # the key should return a boolean and the first entry of value(list) should return an instance of torch.nn.Module
     _check_dummy: [_replace_dummy]
 }
+
 
 def get_replacements_dict_default():
     # shouldn't this be changed to REPLACEMENTS_DICT_LITE?

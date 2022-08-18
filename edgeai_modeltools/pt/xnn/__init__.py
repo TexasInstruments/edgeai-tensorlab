@@ -36,5 +36,3 @@ from . import utils
 from . import onnx
 from . import model_surgery
 
-try: from . import quantize_torch_internal as quantize_torch
-except: pass
