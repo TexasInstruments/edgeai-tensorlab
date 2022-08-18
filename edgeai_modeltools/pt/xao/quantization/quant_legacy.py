@@ -29,12 +29,5 @@
 #
 #################################################################################
 
-from . import layers
-from . import optim
-from . import utils
-#from . import quantize
-from . import onnx
-from . import model_surgery
+from .quant_legacy import *
 
-try: from . import quantize_torch_internal as quantize_torch
-except: pass
