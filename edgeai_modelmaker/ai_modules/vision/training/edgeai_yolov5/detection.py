@@ -75,7 +75,7 @@ _model_descriptions = {
         compilation=dict(
             model_compilation_id='od-8100',
             runtime_options={
-                'advanced_options:output_feature_16bit_names_list': None
+                'advanced_options:output_feature_16bit_names_list': '370, 426, 482, 538'
             },
             metric=dict(label_offset_pred=0)
         )
