@@ -46,7 +46,7 @@ www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3'
 
 
 sys.path.insert(0, edgeai_yolov5_path)
-import train
+import train, export
 sys.path.pop(0)
 
 
@@ -75,7 +75,7 @@ _model_descriptions = {
         compilation=dict(
             model_compilation_id='od-8100',
             runtime_options={
-                'advanced_options:output_feature_16bit_names_list': '370, 680, 990, 1300'
+                'advanced_options:output_feature_16bit_names_list': None
             },
             metric=dict(label_offset_pred=0)
         )
@@ -259,9 +259,9 @@ class ModelTraining:
         self.params.update(
             training=utils.ConfigDict(
                 log_file_path=os.path.join(self.params.training.training_path, 'run.log'),
-                checkpoint_path=os.path.join(self.params.training.training_path, 'checkpoint.pth'),
-                model_export_path=os.path.join(self.params.training.training_path, 'model.onnx'),
-                model_proto_path=None,
+                checkpoint_path=os.path.join(self.params.training.training_path, 'exp', 'weights','best.pt'),
+                model_export_path=os.path.join(self.params.training.training_path, 'exp', 'weights', 'best.onnx'),
+                model_proto_path=os.path.join(self.params.training.training_path, 'exp', 'weights', 'best.prototxt'),
                 num_classes=len(self.object_categories),
             )
         )
@@ -312,6 +312,21 @@ class ModelTraining:
                   devices=args_yolo['device'], epochs=args_yolo['epochs'],
                   batch_size=args_yolo['batch-size'], img=args_yolo['img'],
                   hyp=args_yolo['hyp'], project=args_yolo['project'])
+
+        args_yolo_export = {
+            'weights': self.params.training['checkpoint_path'],
+            'img': (640, 640),
+            'simplify': True,
+            'batch_size': 1,
+            'opset': 11,
+            'export-nms': True,
+            'include': ('onnx')
+        }
+
+        export.run(weights=args_yolo_export['weights'], img_size=args_yolo_export['img'], simplify=args_yolo_export['simplify'],
+                   batch_size=args_yolo_export['batch_size'], opset=args_yolo_export['opset'], export_nms=args_yolo_export['export-nms'])
+
+
         return self.params
 
     def stop(self):
