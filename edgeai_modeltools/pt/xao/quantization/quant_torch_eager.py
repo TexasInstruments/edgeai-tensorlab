@@ -43,7 +43,7 @@ def load_weights(model, *args, **kwargs):
     return quant_torch_base.load_weights(model, *args, **kwargs)
 
 
-def _get_fuse_list(self, module, dummy_input):
+def _get_fuse_list(module, dummy_input):
     for name, m in module.named_modules():
         m.__track_modules_name__ = name
     #
@@ -127,10 +127,15 @@ def _get_fuse_list(self, module, dummy_input):
 
 
 def prepare(model, *args, dummy_input=None, prepare_fn=quantization.prepare_qat, inplace=False, **kwargs):
+    # eager mode fusion is supported only in eval mode
+    model = model.eval()
     if hasattr(model, 'fuse_model'):
         model.fuse_model()
     else:
-        device = next(self.module.parameters()).device
+        # replace ReLU6 by ReLU as torch.ao.quantization cannot fuse ReLU6
+        xnn.model_surgery.replace_modules(model, inplace=True, replacements_dict={torch.nn.ReLU6:[torch.nn.ReLU, 'inplace']})
+        # now do the actual fusing
+        device = next(model.parameters()).device
         dummy_input = dummy_input.to(device=device)
         fuse_list = _get_fuse_list(model, dummy_input)
         model = torch.ao.quantization.fuse_modules(model, fuse_list, inplace=inplace)
