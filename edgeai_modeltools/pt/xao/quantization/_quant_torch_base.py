@@ -147,7 +147,7 @@ def eval(model):
     return model
 
 
-def convert(model, convert_fn=quantize_fx.convert_fx):
+def convert(model, convert_fn=quantize_fx.convert_fx, inplace=False):
     # make a copy inorder not to alter the original
     model = copy.deepcopy(model)
     # convert requires cpu model

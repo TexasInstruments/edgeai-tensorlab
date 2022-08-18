@@ -33,8 +33,8 @@
 
 # ----------------------------------
 date_var=`date '+%Y-%m-%d_%H-%M-%S'`
-base_dir="./data/checkpoints/quantization_example"
-save_path="$base_dir"/"$date_var"_quantization_example
+base_dir="./data/checkpoints/quantization"
+save_path=$base_dir
 log_file=$save_path/run.log
 echo Logging the output to: $log_file
 
@@ -56,8 +56,8 @@ declare -A model_pretrained=(
 lr=1e-5             # initial learning rate for quantization aware training - recommend to use 1e-5 (or at max 5e-5)
 lr_step_size=10     # adjust lr after so many epochs
 batch_size=256      # use a relatively smaller batch size as quantization aware training does not use multi-gpu
-epochs=1 #10           # number of epochs to train
-epoch_size=0.1      # use a fraction to limit the number of images used in one epoch - set to 0 to use the full training epoch
+epochs=10           # number of epochs to train
+epoch_size=1        # use a fraction to limit the number of images used in one epoch - set to 0 to use the full training epoch
 
 
 # ----------------------------------
@@ -69,8 +69,8 @@ for model in "${!model_pretrained[@]}"; do
   echo Quantization Aware Training for $model
   # note: this example uses only a part of the training epoch and only 10 such (partial) epochs during quantized training to save time,
   # but it may necessary to use the full training epoch if the accuracy is not satisfactory.
-  python3 -u ./scripts/pt/classification/train_quantization_edgeailite_eager.py \
+  python3 -u ./scripts/pt/classification/train_quantization_edgeailite_fx.py \
                --data-path ./data/datasets/imagenet \
                --model $model --batch-size $batch_size --lr $lr --epoch-size $epoch_size \
-               --epochs $epochs --output-dir ./data/checkpoints/quantization/$model
+               --epochs $epochs --output-dir ${save_path}/$model
 done

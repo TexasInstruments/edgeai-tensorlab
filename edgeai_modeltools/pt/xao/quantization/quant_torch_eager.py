@@ -185,8 +185,8 @@ def eval(model):
     return model
 
 
-def convert(model, convert_fn=quantization.convert):
-    model = quant_torch_base.convert(model, convert_fn=convert_fn)
+def convert(model, convert_fn=quantization.convert, inplace=False):
+    model = quant_torch_base.convert(model, convert_fn=convert_fn, inplace=inplace)
     return model
 
 
