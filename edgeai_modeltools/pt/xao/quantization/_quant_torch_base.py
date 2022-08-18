@@ -60,7 +60,7 @@ def load_weights(model, pretrained=None, change_names_dict=None):
 
 
 def prepare(model, qconfig_dict=None, pretrained=None, pretrained_after_prepare=False, backend=None,
-            num_batch_norm_update_epochs=None, num_observer_update_epochs=None, prepare_fn=None, is_qat=True):
+            num_batch_norm_update_epochs=None, num_observer_update_epochs=None, prepare_fn=None, is_qat=True, is_eager=False):
     _set_quant_backend(backend=backend)
     if qconfig_dict is None:
         qconfig_dict = {"": torch.quantization.get_default_qat_qconfig(backend)}
@@ -69,6 +69,13 @@ def prepare(model, qconfig_dict=None, pretrained=None, pretrained_after_prepare=
     if not pretrained_after_prepare:
         load_weights(model, pretrained=pretrained)
     #
+    # this is required only for eager mode quant - 2022-8-22
+    # eager mode prepare() function seems to be expecting the qconfig to be in the module.
+    # why is the eager mode and fx mode apis not matching? is this a temporary issue?
+    if is_eager:
+        model.qconfig = qconfig_dict
+    #
+    # prepare for quantization
     model = prepare_fn(model, qconfig_dict)
     if pretrained_after_prepare:
         load_weights(model, pretrained=pretrained)

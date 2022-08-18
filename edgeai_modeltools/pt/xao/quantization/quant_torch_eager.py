@@ -161,8 +161,7 @@ def prepare(model, *args, dummy_input=None, prepare_fn=quantization.prepare_qat,
         fuse_modules_fn = torch.ao.quantization.fuse_modules_qat if is_qat else torch.ao.quantization.fuse_modules
         model = fuse_modules_fn(model, fuse_list, inplace=inplace)
     #
-
-    model = quant_torch_base.prepare(model, *args, prepare_fn=prepare_fn, **kwargs)
+    model = quant_torch_base.prepare(model, *args, prepare_fn=prepare_fn, is_eager=True, **kwargs)
     return model
 
 

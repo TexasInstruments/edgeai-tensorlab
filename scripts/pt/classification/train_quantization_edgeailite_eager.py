@@ -129,12 +129,14 @@ def main(args):
                 os.path.join(args.output_dir, 'checkpoint.pth'))
         print('Saving models after epoch ', epoch)
 
-    # onnx export int model
+    # onnx export quantized model
     dummy_input = torch.rand((1, 3, 224, 224)).to('cpu')
-    quantized_ts_model = torch.jit.script(quantized_eval_model)
-    torch.jit.save(quantized_ts_model, os.path.join(args.output_dir, 'model_int_ts.pt'))
     torch.onnx.export(quantized_eval_model, dummy_input, os.path.join(args.output_dir, 'model_int.onnx'),
                       export_params=True, verbose=False, do_constant_folding=True, opset_version=11)
+
+    # torchscript export int model
+    quantized_ts_model = torch.jit.script(quantized_eval_model)
+    torch.jit.save(quantized_ts_model, os.path.join(args.output_dir, 'model_int_ts.pt'))
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
