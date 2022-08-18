@@ -29,6 +29,10 @@
 #
 #################################################################################
 
+# for an initial version of this (2020 November) see:
+# https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-torchvision/browse/torchvision/edgeailite/xnn/quantize_torch_internal?at=refs%2Fheads%2Flatest
+
+
 import copy
 import torch
 import torch.quantization as quantization

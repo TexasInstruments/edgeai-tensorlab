@@ -121,7 +121,7 @@ def main(args):
         print("Saving models after epoch ", epoch)
 
     print("Evaluate Quantized model")
-    evaluate(quantized_eval_model, criterion, data_loader_test, device=torch.device("cpu"))
+    evaluate(quantized_eval_model, criterion, data_loader_test, device=torch.device("cpu"), log_suffix="INT8")
 
     # onnx export quantized model
     dummy_input = torch.rand((1, 3, 224, 224)).to('cpu')

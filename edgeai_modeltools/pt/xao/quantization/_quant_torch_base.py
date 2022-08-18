@@ -36,6 +36,7 @@ import typing
 import torch
 import torch.quantization.quantize_fx as quantize_fx
 from ... import xnn
+from .import qconfig
 
 
 __all__ = ['prepare', 'load_weights', 'freeze', 'train', 'eval', 'convert']
@@ -66,7 +67,7 @@ def prepare(model, qconfig_dict=None, pretrained=None, pretrained_after_prepare=
             num_batch_norm_update_epochs=None, num_observer_update_epochs=None, prepare_fn=None, is_qat=True, is_eager=False):
     _set_quant_backend(backend=backend)
     if qconfig_dict is None:
-        qconfig_dict = {"": torch.quantization.get_default_qat_qconfig(backend)}
+        qconfig_dict = {"": qconfig.get_basic_qat_qconfig(backend)}
     #
     model.train()
     if not pretrained_after_prepare:
