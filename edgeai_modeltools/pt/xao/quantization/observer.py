@@ -48,6 +48,10 @@ class MovingAverageMinMaxObserverPower2(quantization.MovingAverageMinMaxObserver
     @torch.jit.export
     def calculate_qparams(self):
         scale, zero_point = super().calculate_qparams()
+        eps = 1e-3
+        if float(scale) <= eps:
+            scale = scale * 0.0 + eps
+        #
         scale = xnn.layers.functional.ceil2_g(scale)
         return scale, zero_point
 
@@ -64,6 +68,10 @@ class MovingAveragePerChannelMinMaxObserverPower2(quantization.MovingAveragePerC
 
     @torch.jit.export
     def calculate_qparams(self):
+        eps = 1e-3
         scale, zero_point = super().calculate_qparams()
+        if float(torch.max(scale)) <= eps:
+            scale = scale * 0.0 + eps
+        #
         scale = xnn.layers.functional.ceil2_g(scale)
         return scale, zero_point
