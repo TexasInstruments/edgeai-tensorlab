@@ -103,7 +103,7 @@ _model_descriptions = {
         compilation=dict(
             model_compilation_id='od-8120',
             runtime_options={
-                'advanced_options:output_feature_16bit_names_list': '228, 498, 808, 1118, 1428'
+                'advanced_options:output_feature_16bit_names_list': '228, 498, 554, 610, 666'
             },
             metric=dict(label_offset_pred=0)
         )
@@ -131,7 +131,7 @@ _model_descriptions = {
         compilation=dict(
             model_compilation_id='od-8130',
             runtime_options={
-                'advanced_options:output_feature_16bit_names_list': '288, 626, 936, 1246, 1556'
+                'advanced_options:output_feature_16bit_names_list': '288, 626, 682, 738, 794'
             },
             metric=dict(label_offset_pred=0)
         )
@@ -259,9 +259,9 @@ class ModelTraining:
         self.params.update(
             training=utils.ConfigDict(
                 log_file_path=os.path.join(self.params.training.training_path, 'run.log'),
-                checkpoint_path=os.path.join(self.params.training.training_path, 'exp', 'weights','best.pt'),
-                model_export_path=os.path.join(self.params.training.training_path, 'exp', 'weights', 'best.onnx'),
-                model_proto_path=os.path.join(self.params.training.training_path, 'exp', 'weights', 'best.prototxt'),
+                checkpoint_path=os.path.join(self.params.training.training_path, 'weights','best.pt'),
+                model_export_path=os.path.join(self.params.training.training_path, 'weights', 'best.onnx'),
+                model_proto_path=os.path.join(self.params.training.training_path,  'weights', 'best.prototxt'),
                 num_classes=len(self.object_categories),
             )
         )
@@ -274,7 +274,7 @@ class ModelTraining:
         ''''
         The actual training function. Move this to a worker process, if this function is called from a GUI.
         '''
-        os.makedirs(self.params.training.training_path, exist_ok=True)
+        #os.makedirs(self.params.training.training_path, exist_ok=True)
         distributed = self.params.training.num_gpus > 1
         hyp_path = os.path.join(edgeai_yolov5_path, 'data', 'hyps', 'hyp.scratch.yaml')
         device = list(range(self.params.training.num_gpus))
@@ -297,7 +297,7 @@ class ModelTraining:
         train.run(cfg=args_yolo['cfg'], weights=args_yolo['weights'], data=args_yolo['data'],
                   device=args_yolo['device'], epochs=args_yolo['epochs'],
                   batch_size=args_yolo['batch-size'], img=args_yolo['img'],
-                  hyp=args_yolo['hyp'], project=args_yolo['project'])
+                  hyp=args_yolo['hyp'], project=args_yolo['project'], name='')
 
         args_yolo_export = {
             'weights': self.params.training['checkpoint_path'],
@@ -306,11 +306,12 @@ class ModelTraining:
             'batch_size': 1,
             'opset': 11,
             'export-nms': True,
-            'include': ('onnx')
+            'include': ['onnx']
         }
         #launch export
         export.run(weights=args_yolo_export['weights'], img_size=args_yolo_export['img'], simplify=args_yolo_export['simplify'],
-                   batch_size=args_yolo_export['batch_size'], opset=args_yolo_export['opset'], export_nms=args_yolo_export['export-nms'])
+                   batch_size=args_yolo_export['batch_size'], opset=args_yolo_export['opset'], export_nms=args_yolo_export['export-nms'],
+                   include=args_yolo_export['include'])
 
 
         return self.params
