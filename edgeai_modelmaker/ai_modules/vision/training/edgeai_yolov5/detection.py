@@ -275,19 +275,10 @@ class ModelTraining:
         The actual training function. Move this to a worker process, if this function is called from a GUI.
         '''
         os.makedirs(self.params.training.training_path, exist_ok=True)
-
         distributed = self.params.training.num_gpus > 1
-        if self.params.training.num_gpus > 0:
-            devices = list(range(0, self.params.training.num_gpus))
-            devices = [str(device) for device in devices]
-            devices = ",".join(devices)
-        else:
-            devices = "cpu"
-        #--data  coco.yaml --cfg yolov5s6.yaml --weights '' --batch - size 63
-        # training params
         hyp_path = os.path.join(edgeai_yolov5_path, 'data', 'hyps', 'hyp.scratch.yaml')
         device = list(range(self.params.training.num_gpus))
-        device = ','.join([str(id) for id in device])
+        device = ','.join([str(id) for id in device]) if len(device)>0 else 'cpu'
         project_path = self.params.training['training_path']
         data_yaml = os.path.join(edgeai_yolov5_path, 'data', self.params.dataset.dataset_name + '.yaml' )
         yolo_cfg = os.path.join(edgeai_yolov5_path, 'models', 'hub', self.params.training.model_training_id + '.yaml')
@@ -302,14 +293,9 @@ class ModelTraining:
                     'hyp': f'{hyp_path}',
                     'project': f'{project_path}'
                     }
-        #input_size = self.params.training.input_cropsize if isinstance(self.params.training.input_cropsize, (list,tuple)) else \
-        #    (self.params.training.input_cropsize,self.params.training.input_cropsize)
-        #argv += ['--input-size', f'{input_size[0]}', f'{input_size[1]}']
-        # args = train.get_args_parser().parse_args(argv)
-        # args.quit_event = self.quit_event
         # launch the training
         train.run(cfg=args_yolo['cfg'], weights=args_yolo['weights'], data=args_yolo['data'],
-                  devices=args_yolo['device'], epochs=args_yolo['epochs'],
+                  device=args_yolo['device'], epochs=args_yolo['epochs'],
                   batch_size=args_yolo['batch-size'], img=args_yolo['img'],
                   hyp=args_yolo['hyp'], project=args_yolo['project'])
 
@@ -322,7 +308,7 @@ class ModelTraining:
             'export-nms': True,
             'include': ('onnx')
         }
-
+        #launch export
         export.run(weights=args_yolo_export['weights'], img_size=args_yolo_export['img'], simplify=args_yolo_export['simplify'],
                    batch_size=args_yolo_export['batch_size'], opset=args_yolo_export['opset'], export_nms=args_yolo_export['export-nms'])
 
