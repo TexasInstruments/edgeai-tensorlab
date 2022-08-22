@@ -35,7 +35,7 @@ from . import observer
 
 
 def _get_qat_qconfig(backend=None, weight_observer=None, activation_observer=None,
-                     weight_qscheme=torch.per_tensor_symmetric, activation_qscheme=None):
+                     weight_qscheme=None, activation_qscheme=None):
     weight_config = quantization.FusedMovingAvgObsFakeQuantize.with_args(
         observer=weight_observer, quant_min=-128, quant_max=127, dtype=torch.qint8, qscheme=weight_qscheme)
     if backend == 'fbgemm':
@@ -56,17 +56,25 @@ def _get_qat_qconfig(backend=None, weight_observer=None, activation_observer=Non
     return qconfig
 
 
-def get_per_tensor_symmetric_power2_qat_qconfig(backend=None, weight_observer=observer.MovingAverageMinMaxObserverPower2,
+def get_per_tensor_symmetric_power2_qat_qconfig(backend=None,
+                                      weight_observer=observer.MovingAverageMinMaxObserverPower2,
                                       activation_observer=observer.MovingAverageMinMaxObserverPower2,
+                                      weight_qscheme=torch.per_tensor_symmetric,
                                       activation_qscheme=torch.per_tensor_symmetric):
-    return _get_qat_qconfig(backend=backend, weight_observer=weight_observer, activation_observer=activation_observer,
+    return _get_qat_qconfig(backend=backend, weight_observer=weight_observer,
+                            activation_observer=activation_observer,
+                            weight_qscheme=weight_qscheme,
                             activation_qscheme=activation_qscheme)
 
 
-def get_per_channel_affine_qat_qconfig(backend=None, weight_observer=quantization.MovingAveragePerChannelMinMaxObserver,
-                                activation_observer=quantization.MovingAverageMinMaxObserver,
-                                activation_qscheme=torch.per_tensor_affine):
-    return _get_qat_qconfig(backend=backend, weight_observer=weight_observer, activation_observer=activation_observer,
+def get_per_channel_affine_qat_qconfig(backend=None,
+                                       weight_observer=quantization.MovingAveragePerChannelMinMaxObserver,
+                                       activation_observer=quantization.MovingAverageMinMaxObserver,
+                                       weight_qscheme=torch.per_channel_symmetric,
+                                       activation_qscheme=torch.per_tensor_affine):
+    return _get_qat_qconfig(backend=backend, weight_observer=weight_observer,
+                            activation_observer=activation_observer,
+                            weight_qscheme=weight_qscheme,
                             activation_qscheme=activation_qscheme)
 
 
