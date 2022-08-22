@@ -82,14 +82,13 @@ def prepare(model, qconfig_dict=None, pretrained=None, pretrained_after_prepare=
     # insert quant, dequant stubs - if it is not present
     has_quant_stub = [isinstance(m, torch.quantization.QuantStub) for m in model.modules()]
     if not any(has_quant_stub):
-        model.quant = torch.quantization.QuantStub()
-        model.dequant = torch.quantization.QuantStub()
+        model.quant = torch.ao.quantization.QuantStub()
+        model.dequant = torch.ao.quantization.QuantStub()
         def _new_forward(model, *input: typing.Any):
             x = model.quant(*input)
             x = model.forward(x)
             x = model.dequant(x)
             return x
-
         #
         model.forward = types.MethodType(_new_forward, model)
     #

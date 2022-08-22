@@ -240,7 +240,7 @@ def get_args_parser(add_help=True):
         "--train-crop-size", default=224, type=int, help="the random crop size used for training (default: 224)"
     )
     parser.add_argument("--clip-grad-norm", default=None, type=float, help="the maximum gradient norm (default None)")
-    parser.add_argument("--weights", default=torchvision.models.MobileNet_V2_Weights.DEFAULT, type=str, help="the weights enum name to load")
+    parser.add_argument("--weights", default=torchvision.models.MobileNet_V2_Weights.IMAGENET1K_V1, type=str, help="the weights enum name to load")
     parser.add_argument('--epoch-size', type=float, default=0,
         help='epoch size. options are: 0, fraction or number. '
               '0 will use the full epoch. '
