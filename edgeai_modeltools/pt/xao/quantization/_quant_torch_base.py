@@ -30,6 +30,9 @@
 #################################################################################
 
 import copy
+import types
+import typing
+
 import torch
 import torch.quantization.quantize_fx as quantize_fx
 from ... import xnn
@@ -74,6 +77,20 @@ def prepare(model, qconfig_dict=None, pretrained=None, pretrained_after_prepare=
     # why is the eager mode and fx mode apis not matching? is this a temporary issue?
     if is_eager:
         model.qconfig = qconfig_dict
+    #
+    # insert quant, dequant stubs - if it is not present
+    has_quant_stub = [isinstance(m, torch.quantization.QuantStub) for m in model.modules()]
+    if not any(has_quant_stub):
+        model.quant = torch.quantization.QuantStub()
+        model.dequant = torch.quantization.QuantStub()
+        def _new_forward(model, *input: typing.Any):
+            x = model.quant(*input)
+            x = model.forward(x)
+            x = model.dequant(x)
+            return x
+
+        #
+        model.forward = types.MethodType(_new_forward, model)
     #
     # prepare for quantization
     model = prepare_fn(model, qconfig_dict)
