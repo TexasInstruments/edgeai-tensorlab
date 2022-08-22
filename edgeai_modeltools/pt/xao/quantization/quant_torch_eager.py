@@ -131,33 +131,10 @@ def _get_fuse_list(module, dummy_input):
 
 
 def prepare(model, *args, dummy_input=None, prepare_fn=quantization.prepare_qat, inplace=False, is_qat=True, **kwargs):
+    model = xnn.model_surgery.replace_modules(model, replacements_dict={torch.nn.ReLU6: [torch.nn.ReLU, 'inplace']})
     if hasattr(model, 'fuse_model'):
         model.fuse_model(is_qat=is_qat)
     else:
-        # replace ReLU6 by ReLU as torch.ao.quantization cannot fuse ReLU6
-        # also use modules that torch natively understands instead of our custom blocks
-        for p in model.modules():
-            for n, m in p.named_children():
-                is_replaced = False
-                if isinstance(m, torch.nn.ReLU6):
-                    is_replaced = True
-                    new_m = torch.nn.ReLU()
-                elif isinstance(m, xnn.layers.AddBlock):
-                    is_replaced = True
-                    new_m = xnn.layers.FloatFunctionalBlock('add')
-                elif isinstance(m, xnn.layers.MultBlock):
-                    is_replaced = True
-                    new_m = xnn.layers.FloatFunctionalBlock('mul')
-                elif isinstance(m, xnn.layers.CatBlock):
-                    is_replaced = True
-                    new_m = xnn.layers.FloatFunctionalBlock('cat')
-                #
-                if is_replaced:
-                    new_m.train(m.training)
-                    setattr(p, n, new_m)
-                #
-            #
-        #
         # now do the actual fusing
         device = next(model.parameters()).device
         dummy_input = dummy_input.to(device=device)

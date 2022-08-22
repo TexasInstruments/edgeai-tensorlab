@@ -43,6 +43,13 @@ def load_weights(model, *args, **kwargs):
 
 
 def prepare(model, *args, prepare_fn=quantize_fx.prepare_qat_fx, is_qat=True, **kwargs):
+    model = xnn.model_surgery.replace_modules(model, replacements_dict={torch.nn.ReLU6: [torch.nn.ReLU, 'inplace']})
+    # if qat fx, fusion is needed/supported only for eval
+    # if hasattr(model, 'fuse_model'):
+    #     model.fuse_model(is_qat=is_qat)
+    # else:
+    #     model = quantize_fx.fuse_fx(model)
+    # #
     model = quant_torch_base.prepare(model, *args, prepare_fn=prepare_fn, **kwargs)
     return model
 
