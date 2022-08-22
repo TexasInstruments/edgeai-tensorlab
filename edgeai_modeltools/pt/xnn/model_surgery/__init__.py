@@ -33,6 +33,7 @@ import copy
 import functools
 import torch
 import inspect
+import math
 
 from torchvision.ops.misc import SqueezeExcitation
 from .. import utils
@@ -135,7 +136,7 @@ REPLACEMENTS_DICT_LITE_DEPTHWISE = {
 }
 
 
-def get_replacements_dict_default():
+def get_replacements_dict():
     # shouldn't this be changed to REPLACEMENTS_DICT_LITE?
     return REPLACEMENTS_DICT_LITE_DEPTHWISE
 
@@ -143,18 +144,10 @@ def get_replacements_dict_default():
 def replace_modules(model, inplace=True, replacements_dict=None, **kwargs):
     assert replacements_dict is not None, 'replacements_dict must be provided'
     model = model if inplace else copy.deepcopy(inplace)
-    num_trails = len(list(model.modules()))
-    for trial_id in range(num_trails):
-        for p_name, p in model.named_modules():
-            is_replaced = False
-            for c_name, c in p.named_children():
-                is_replaced = _replace_with_new_module(p, c_name, c, replacements_dict, **kwargs)
-                if is_replaced:
-                    break
-                #
-            #
-            if is_replaced:
-                break
+    for p_name, parent_m in model.named_modules():
+        for c_name, current_m in parent_m.named_children():
+            if not _replace_with_new_module(parent_m, c_name, current_m, replacements_dict, **kwargs):
+                replace_modules(current_m, inplace=inplace, replacements_dict=replacements_dict, **kwargs)
             #
         #
     #
@@ -193,7 +186,7 @@ def _create_lite_model_impl(model_function, pretrained_backbone_names=None, repl
 
 
 def convert_to_lite_model(model, inplace=True, replacements_dict=None, **kwargs):
-    replacements_dict = replacements_dict or get_replacements_dict_default()
+    replacements_dict = replacements_dict or get_replacements_dict()
     model = replace_modules(model, inplace=inplace, replacements_dict=replacements_dict, **kwargs)
     return model
 
