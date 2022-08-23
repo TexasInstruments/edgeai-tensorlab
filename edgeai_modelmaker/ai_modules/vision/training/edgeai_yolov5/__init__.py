@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 #################################################################################
 # Copyright (c) 2018-2022, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
@@ -31,51 +29,4 @@
 #
 #################################################################################
 
-#################################################################################
-# internal or external repositories
-USE_INTERNAL_REPO=0
-
-if [[ ${USE_INTERNAL_REPO} -eq 0 ]]; then
-    SOURCE_LOCATION="https://github.com/TexasInstruments/"
-    FAST_CLONE_MODELZOO=""
-else
-    SOURCE_LOCATION="ssh://git@bitbucket.itg.ti.com/edgeai-algo/"
-    FAST_CLONE_MODELZOO="--single-branch -b release"
-fi
-# print
-echo "SOURCE_LOCATION="${SOURCE_LOCATION}
-
-#################################################################################
-# clone
-echo "cloning git repositories. this may take some time..."
-if [ ! -d ../edgeai-benchmark ]; then git clone ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
-if [ ! -d ../edgeai-mmdetection ]; then git clone ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
-if [ ! -d ../edgeai-torchvision ]; then git clone ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
-if [ ! -d ../edgeai-modelzoo ]; then git clone ${SOURCE_LOCATION}edgeai-modelzoo.git ${FAST_CLONE_MODELZOO} ../edgeai-modelzoo; fi
-if [ ! -d ../edgeai-yolov5 ]; then git clone ${SOURCE_LOCATION}edgeai-yolov5.git ../edgeai-yolov5; fi
-
-echo "cloning done."
-
-#################################################################################
-echo "installing repositories..."
-
-cd ../edgeai-torchvision
-./setup.sh
-
-cd ../edgeai-mmdetection
-./setup.sh
-
-cd ../edgeai-yolov5
-./setup.sh
-
-cd ../edgeai-benchmark
-# for setup.py develop mode to work inside docker environment, this is required
-git config --global --add safe.directory $(pwd)
-./setup.sh
-
-cd ../edgeai-modelmaker
-./setup.sh
-
-ls -d ../edgeai-*
-
-echo "installation done."
+from . import detection

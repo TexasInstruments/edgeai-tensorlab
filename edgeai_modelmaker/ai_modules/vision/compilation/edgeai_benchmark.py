@@ -178,7 +178,9 @@ class ModelCompilation():
                         detection_thr=self.params.compilation.detection_thr,
                         parallel_devices=None,
                         dataset_loading=False,
-                        save_output=self.params.compilation.save_output)
+                        save_output=self.params.compilation.save_output,
+                        input_optimization=False
+        )
         return settings
 
     def _get_log_dir(self,):

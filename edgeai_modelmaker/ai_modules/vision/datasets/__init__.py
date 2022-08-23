@@ -95,7 +95,7 @@ class DatasetHandling:
             for split_idx, split_name in enumerate(self.params.dataset.split_names):
                 dataset_splits[split_name] = dataset_utils.dataset_load(self.params.common.task_type,
                     self.params.dataset.input_data_path[split_idx], self.params.dataset.input_annotation_path[split_idx],
-                    annotation_format=self.params.dataset.annotation_format, is_dataset_split=self.has_dataset_splits)
+                    annotation_format=self.params.dataset.annotation_format)
                 dataset_splits[split_name] = dataset_utils.dataset_split_limit(dataset_splits[split_name],
                     max_num_files[split_idx])
                 dataset_utils.dataset_split_write(
