@@ -32,7 +32,10 @@ class YOLOXObjectPoseHead(nn.Module):
         in_channels=[256, 512, 1024],
         act="silu",
         depthwise=False,
-        dataset = "linemod"
+        dataset = "linemod",
+        adds = True,
+        shape_loss = False,
+        adds_z = True
     ):
         """
         Args:
@@ -60,9 +63,9 @@ class YOLOXObjectPoseHead(nn.Module):
             self.cad_models = CADModelsLM()
         elif "ycb" in dataset:
             self.cad_models = CADModelsYCB()
-        self.adds = True
-        self.adds_z = True
-        self.symmetric = True
+        self.adds = adds
+        self.shape_loss = shape_loss
+        self.adds_z = adds_z
         Conv = DWConv if depthwise else BaseConv
 
         for i in range(len(in_channels)):
@@ -556,15 +559,16 @@ class YOLOXObjectPoseHead(nn.Module):
                           ).sum() / num_fg
         else:
             loss_trn_z = self.adds_loss_z(trn_z_preds.view(-1, 1)[fg_masks], trn_z_targets, cls_targets_raw)
-        if self.adds:
+        if self.adds_loss:
             pose_targets = torch.cat([trn_xy_targets, trn_z_targets, rot_targets], 1)
             pose_preds = torch.cat([trn_xy_preds.view(-1, 2)[fg_masks], trn_z_preds.view(-1, 1)[fg_masks], rot_preds.view(-1, 6)[fg_masks]], 1)
-            pose_targets = self.xy2XY(pose_targets)
-            pose_preds = self.xy2XY(pose_preds)
+            if not self.shape_loss:
+                pose_targets = self.xy2XY(pose_targets)
+                pose_preds = self.xy2XY(pose_preds)
             loss_adds = self.adds_loss(
                 pose_preds, pose_targets,
-                cls_targets_raw
-                )
+                cls_targets_raw,
+                shape_loss = self.shape_loss)
         else:
             loss_adds = 0
         if self.use_l1:
@@ -839,9 +843,10 @@ class YOLOXObjectPoseHead(nn.Module):
         return loss_trn_z
 
 
-    def adds_loss(self, pose_preds, pose_gt, cls_targets):
+    def adds_loss(self, pose_preds, pose_gt, cls_targets, shape_loss=False):
         """
         Find out the actual ADD(S) score that can be used as a loss
+        shape_loss: if set to True, don't use the translation component of the loss. This is called shape loss.
         """
         pose_preds[:, 2] *= 100.0
         pose_gt[:, 2] *= 100.0
@@ -853,8 +858,13 @@ class YOLOXObjectPoseHead(nn.Module):
         for model_idx, sparse_model in self.cad_models.class_to_sparse_model.items():
             cls_idx = cls_targets==model_idx
             sparse_model = torch.tensor(sparse_model, device=cls_targets.device, dtype=cls_targets.dtype)
-            pred_transformed_model = torch.matmul(R_pred[cls_idx], sparse_model.T) + pose_preds[cls_idx][:, :3, None]
-            gt_transformed_model = torch.matmul(R_gt[cls_idx], sparse_model.T) + pose_gt[cls_idx][:, :3, None]
+            if not shape_loss:
+                pred_transformed_model = torch.matmul(R_pred[cls_idx], sparse_model.T) + pose_preds[cls_idx][:, :3, None]
+                gt_transformed_model = torch.matmul(R_gt[cls_idx], sparse_model.T) + pose_gt[cls_idx][:, :3, None]
+            else:
+                pred_transformed_model = torch.matmul(R_pred[cls_idx], sparse_model.T)
+                gt_transformed_model = torch.matmul(R_gt[cls_idx], sparse_model.T)
+
             if model_idx not in self.cad_models.symmetric_objects.keys():
                 mse = ((pred_transformed_model - gt_transformed_model) ** 2).mean(axis=-1).sum(axis=-1)
             else:
@@ -880,7 +890,9 @@ class YOLOXObjectPoseHead(nn.Module):
         return pose
 
     def kpts_loss_3d(self, preds_Z, targets_Z, preds_xy, targets_xy,  cls_targets):
-        "Implement a generalized version of oks loss for 3d keypoints"
+        """Implement a generalized version of oks loss for 3d keypoints
+            Not used curently.
+        """
         sigmas = torch.tensor([.26], device=preds_Z.device) / 1.0
         preds_x, targets_x = preds_xy[:, 0:1], targets_xy[:, 0:1]
         preds_y, targets_y = preds_xy[:, 1:2], targets_xy[:, 1:2]
