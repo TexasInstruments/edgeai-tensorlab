@@ -99,6 +99,7 @@ parent_directory
     |--edgeai-modelzoo
     |--edgeai-torchvision
     |--edgeai-mmdetection
+    |--edgeai-yolov5
     |--edgeai-benchmark
     |--edgeai-modelmaker
 </pre>
