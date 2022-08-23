@@ -30,6 +30,3 @@
 #################################################################################
 
 from . import detection
-
-# the detection models in edgeai-mmdetection are superior to edgeai-torchvision, so commenting out these for now.
-# from . import detection_experimental as detection
