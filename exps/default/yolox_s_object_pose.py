@@ -36,6 +36,7 @@ class Exp(MyExp):
         self.shear = 0.0
         self.perspective = 0.0
         self.enable_mixup = False
+        self.shape_loss = False
         # --------------  training config --------------------- #
         self.max_epoch = 300
         self.eval_interval = 10
@@ -60,7 +61,7 @@ class Exp(MyExp):
         if getattr(self, "model", None) is None:
             in_channels = [256, 512, 1024]
             backbone = YOLOPAFPN(self.depth, self.width, in_channels=in_channels)
-            head = YOLOXObjectPoseHead(self.num_classes, self.width, in_channels=in_channels, dataset=self.data_set)
+            head = YOLOXObjectPoseHead(self.num_classes, self.width, in_channels=in_channels, dataset=self.data_set, shape_loss=self.shape_loss)
             self.model = YOLOX(backbone, head)
 
         self.model.apply(init_yolo)
