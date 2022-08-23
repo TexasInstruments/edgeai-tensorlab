@@ -52,6 +52,7 @@ if [ ! -d ../edgeai-benchmark ]; then git clone ${SOURCE_LOCATION}edgeai-benchma
 if [ ! -d ../edgeai-mmdetection ]; then git clone ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
 if [ ! -d ../edgeai-torchvision ]; then git clone ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
 if [ ! -d ../edgeai-modelzoo ]; then git clone ${SOURCE_LOCATION}edgeai-modelzoo.git ${FAST_CLONE_MODELZOO} ../edgeai-modelzoo; fi
+if [ ! -d ../edgeai-yolov5 ]; then git clone ${SOURCE_LOCATION}edgeai-yolov5.git ../edgeai-yolov5; fi
 
 echo "cloning done."
 
@@ -62,6 +63,9 @@ cd ../edgeai-torchvision
 ./setup.sh
 
 cd ../edgeai-mmdetection
+./setup.sh
+
+cd ../edgeai-yolov5
 ./setup.sh
 
 cd ../edgeai-benchmark
