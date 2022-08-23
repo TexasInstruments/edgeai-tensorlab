@@ -445,7 +445,8 @@ def get_configs(settings, work_dir):
         # https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md
         'od-2130':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((300,300), (300,300), backend='cv2'),
-            session=sessions.get_tflite_session_cfg(settings, work_dir=work_dir, runtime_options=runtime_options_tflite_np2,
+            session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
+                runtime_options=runtime_options_tflite_np2,
                 model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_mobilenet_v2_320x320_coco17_tpu-8.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
