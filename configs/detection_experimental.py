@@ -53,17 +53,6 @@ def get_configs(settings, work_dir):
         'calibration_dataset': settings.dataset_cache['coco']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['coco']['input_dataset'],
     }
-    
-    common_session_cfg = sessions.get_common_session_cfg(settings, work_dir=work_dir)
-    onnx_session_cfg = sessions.get_onnx_session_cfg(settings, work_dir=work_dir)
-    onnx_bgr_session_cfg = sessions.get_onnx_bgr_session_cfg(settings, work_dir=work_dir)
-    onnx_quant_session_cfg = sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir)
-    onnx_bgr_quant_session_cfg = sessions.get_onnx_bgr_quant_session_cfg(settings, work_dir=work_dir)
-    jai_session_cfg = sessions.get_jai_session_cfg(settings, work_dir=work_dir)
-    jai_quant_session_cfg = sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir)
-    mxnet_session_cfg = sessions.get_mxnet_session_cfg(settings, work_dir=work_dir)
-    tflite_session_cfg = sessions.get_tflite_session_cfg(settings, work_dir=work_dir)
-    tflite_quant_session_cfg = sessions.get_tflite_quant_session_cfg(settings, work_dir=work_dir)
 
     postproc_detection_onnx = postproc_transforms.get_transform_detection_onnx()
     postproc_detection_tflite = postproc_transforms.get_transform_detection_tflite()
@@ -76,7 +65,7 @@ def get_configs(settings, work_dir):
         # edgeai-torchvision models
         # 'od-8160':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-        #     session=onnx_session_type(**onnx_session_cfg,
+        #     session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
         #                               {'object_detection:meta_arch_type': 3,
         #                                'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-tv/ssdlite_mobilenet_v2_fpn_lite_512x512_20211015_dummypp.prototxt'
@@ -88,7 +77,7 @@ def get_configs(settings, work_dir):
         # ),
         # 'od-8170':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-        #     session=onnx_session_type(**onnx_session_cfg,
+        #     session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
         #                               {'object_detection:meta_arch_type': 3,
         #                                'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-tv/ssdlite_regnet_x_800mf_fpn_lite_20211030_dummypp.prototxt'
@@ -101,7 +90,7 @@ def get_configs(settings, work_dir):
         # # yolov3: detection - yolov3 416x416 - expected_metric: 31.0% COCO AP[0.5-0.95]
         # 'od-8010':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((416,416), (416,416), backend='cv2'),
-        #     session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_mean=(0.0, 0.0, 0.0), input_scale=(1/255.0, 1/255.0, 1/255.0)),
+        #     session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0.0, 0.0, 0.0), input_scale=(1/255.0, 1/255.0, 1/255.0)),
         #         runtime_options=settings.runtime_options_onnx_p2(),
         #         model_path=f'{settings.models_path}/vision/detection/coco/onnx-models/yolov3-10.onnx',
         #         input_shape=dict(input_1=(1,3,416,416), image_shape=(1,2)),
@@ -116,7 +105,8 @@ def get_configs(settings, work_dir):
         # # mxnet : gluoncv model : detection - yolo3_darknet53_coco - accuracy: 36.0% ap[0.5:0.95], 57.2% ap50
         # 'od-5050':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((416,416), (416,416), backend='cv2'),
-        #     session=mxnet_session_type(**mxnet_session_cfg, runtime_options=settings.runtime_options_mxnet_p2(),
+        #     session=mxnet_session_type(**sessions.get_mxnet_session_cfg(settings, work_dir=work_dir),
+        #         runtime_options=settings.runtime_options_mxnet_p2(),
         #         model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/yolo3_darknet53_coco-symbol.json',
         #                     f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/yolo3_darknet53_coco-0000.params'],
         #         model_type='mxnet', input_shape={'data':(1,3,416,416)}),
@@ -127,7 +117,8 @@ def get_configs(settings, work_dir):
         # # mxnet : gluoncv model : detection - center_net_resnet18_v1b_coco - accuracy: 26.6% ap[0.5:0.95], 28.1% ap50
         # 'od-5060':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-        #     session=mxnet_session_type(**onnx_session_cfg, runtime_options=settings.runtime_options_mxnet_p2(),
+        #     session=mxnet_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+        #         runtime_options=settings.runtime_options_mxnet_p2(),
         #         model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/center_net_resnet18_v1b_coco-symbol.json',
         #                     f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/center_net_resnet18_v1b_coco-0000.params'],
         #         model_type='mxnet', input_shape={'data':(1,3,512,512)}),
@@ -138,7 +129,8 @@ def get_configs(settings, work_dir):
         # mxnet : gluoncv model : detection - yolo3_mobilenet1.0_coco - accuracy: 28.6% ap[0.5:0.95], 48.9% ap50
         'od-5020':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((416,416), (416,416), backend='cv2'),
-            session=mxnet_session_type(**mxnet_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
+            session=mxnet_session_type(**sessions.get_mxnet_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_mxnet_np2(),
                 model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-symbol.json',
                             f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/yolo3_mobilenet1.0_coco-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,416,416)}),
@@ -149,7 +141,8 @@ def get_configs(settings, work_dir):
         # mxnet : gluoncv model : detection - ssd_512_resnet50_v1_coco - accuracy: 30.6% ap[0.5:0.95], 50.0% ap50
         'od-5030':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=mxnet_session_type(**mxnet_session_cfg, runtime_options=settings.runtime_options_mxnet_p2(),
+            session=mxnet_session_type(**sessions.get_mxnet_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_mxnet_p2(),
                 model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_resnet50_v1_coco-symbol.json',
                             f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_resnet50_v1_coco-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,512,512)}),
@@ -160,7 +153,8 @@ def get_configs(settings, work_dir):
         # mxnet : gluoncv model : detection - ssd_512_mobilenet1.0_coco - accuracy: 21.7% ap[0.5:0.95], 39.2% ap50
         'od-5040':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=mxnet_session_type(**mxnet_session_cfg, runtime_options=settings.runtime_options_mxnet_np2(),
+            session=mxnet_session_type(**sessions.get_mxnet_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_mxnet_np2(),
                 model_path=[f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-symbol.json',
                             f'{settings.models_path}/vision/detection/coco/gluoncv-mxnet/ssd_512_mobilenet1.0_coco-0000.params'],
                 model_type='mxnet', input_shape={'data':(1,3,512,512)}),
@@ -173,7 +167,8 @@ def get_configs(settings, work_dir):
         #################tflite models###################################
         # 'od-2120':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_tflite((1024,1024), (1024,1024), backend='cv2'),
-        #     session=tflite_session_type(**tflite_session_cfg, runtime_options=runtime_options_tflite_np2,
+        #     session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
+        #         runtime_options=runtime_options_tflite_np2,
         #         model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_resnet50_v1_fpn_1024x1024_coco17_tpu-8.tflite'),
         #     postprocess=postproc_detection_tflite,
         #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),

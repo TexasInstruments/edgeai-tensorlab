@@ -56,17 +56,6 @@ def get_configs(settings, work_dir):
         'input_dataset': settings.dataset_cache['widerface']['input_dataset'],
     }
 
-    common_session_cfg = sessions.get_common_session_cfg(settings, work_dir=work_dir)
-    onnx_session_cfg = sessions.get_onnx_session_cfg(settings, work_dir=work_dir)
-    onnx_bgr_session_cfg = sessions.get_onnx_bgr_session_cfg(settings, work_dir=work_dir)
-    onnx_quant_session_cfg = sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir)
-    onnx_bgr_quant_session_cfg = sessions.get_onnx_bgr_quant_session_cfg(settings, work_dir=work_dir)
-    jai_session_cfg = sessions.get_jai_session_cfg(settings, work_dir=work_dir)
-    jai_quant_session_cfg = sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir)
-    mxnet_session_cfg = sessions.get_mxnet_session_cfg(settings, work_dir=work_dir)
-    tflite_session_cfg = sessions.get_tflite_session_cfg(settings, work_dir=work_dir)
-    tflite_quant_session_cfg = sessions.get_tflite_quant_session_cfg(settings, work_dir=work_dir)
-
     postproc_detection_onnx = postproc_transforms.get_transform_detection_onnx()
     postproc_detection_tflite = postproc_transforms.get_transform_detection_tflite()
     postproc_detection_efficientdet_ti_lite_tflite = postproc_transforms.get_transform_detection_tflite(normalized_detections=False, ignore_index=0,
@@ -80,7 +69,7 @@ def get_configs(settings, work_dir):
         #################onnx models#####################################
         'od-8410':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
                                         'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_tiny_lite_416x416_20220318_model.prototxt',
@@ -93,7 +82,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8420':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
                                         'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_s_lite_640x640_20220307_model.prototxt',
@@ -106,7 +95,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8421':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(1024, 1024, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
                                         'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_s_lite_1024x1024_20220317_model.prototxt',
@@ -119,7 +108,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8430':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
-            session=onnx_session_type(**common_session_cfg,
+            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
                                         'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_m_lite_640x640_20220318_model.prototxt',
@@ -132,7 +121,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8450':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, backend='cv2', pad_color=[114, 114, 114]),
-            session=onnx_session_type(**utils.dict_update(onnx_session_cfg, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
                                        {'object_detection:meta_arch_type': 6,
                                         'object_detection:meta_layers_names_list': f'../edgeai-yolov5/pretrained_models/models/detection/widerface/edgeai-yolov5/yolov5s6_640_ti_lite_metaarch.prototxt',
