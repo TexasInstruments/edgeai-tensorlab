@@ -299,6 +299,8 @@ class ModelTraining:
                   batch_size=args_yolo['batch-size'], img=args_yolo['img'],
                   hyp=args_yolo['hyp'], project=args_yolo['project'], name='')
 
+        os.symlink(os.path.join(project_path, 'results.csv'), os.path.join(project_path, 'run.log'))
+
         args_yolo_export = {
             'weights': self.params.training['checkpoint_path'],
             'img': (640, 640),
@@ -306,12 +308,13 @@ class ModelTraining:
             'batch_size': 1,
             'opset': 11,
             'export-nms': True,
-            'include': ['onnx']
+            'include': ['onnx'],
+            'simple_search': True
         }
         #launch export
         export.run(weights=args_yolo_export['weights'], img_size=args_yolo_export['img'], simplify=args_yolo_export['simplify'],
                    batch_size=args_yolo_export['batch_size'], opset=args_yolo_export['opset'], export_nms=args_yolo_export['export-nms'],
-                   include=args_yolo_export['include'])
+                   include=args_yolo_export['include'], simple_search=args_yolo_export['simple_search'])
 
 
         return self.params
