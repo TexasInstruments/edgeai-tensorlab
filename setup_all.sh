@@ -66,7 +66,7 @@ cd ../edgeai-mmdetection
 ./setup.sh
 
 cd ../edgeai-yolov5
-./setup.sh
+./setup_for_modelmaker.sh
 
 cd ../edgeai-benchmark
 # for setup.py develop mode to work inside docker environment, this is required
