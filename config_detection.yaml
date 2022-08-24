@@ -24,8 +24,10 @@ dataset:
     #    'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip'
     #    'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip'
     # -------------------------------------
-    # Example 3, give a dataset with available split
-    # input_data_path: ["./data/projects/coco_detection/dataset/train2017", "./data/projects/coco_detection/dataset/val2017"]
+    # Example 3, give image folders with annotation files (require list with values for both train and val splits)
+    # dataset_name: coco_detection
+    # input_data_path: ["./data/projects/coco_detection/dataset/train2017",
+    #                        "./data/projects/coco_detection/dataset/val2017"]
     # input_annotation_path: ["./data/projects/coco_detection/dataset/annotations/instances_train2017.json",
     #                        "./data/projects/coco_detection/dataset/annotations/instances_val2017.json"]
     # -------------------------------------
