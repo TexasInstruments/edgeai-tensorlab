@@ -38,7 +38,7 @@ import math
 from torchvision.ops.misc import SqueezeExcitation
 from .. import utils
 from .. import layers
-from . import replace_modules
+from .replace_modules import replace_modules as replace_modules_func
 
 
 #################################################################################################
@@ -56,8 +56,7 @@ from . import replace_modules
 #################################################################################################
 
 
-__all__ = {'convert_to_lite_model', 'create_lite_model', 'get_replacements_dict'}
-
+__all__ = ['convert_to_lite_model', 'create_lite_model', 'get_replacements_dict']
 
 
 def _check_dummy(current_m):
@@ -176,6 +175,6 @@ def _create_lite_model_impl(model_function, pretrained_backbone_names=None, repl
 
 def convert_to_lite_model(model, inplace=True, replacements_dict=None, **kwargs):
     replacements_dict = replacements_dict or get_replacements_dict()
-    model = replace_modules(model, inplace=inplace, replacements_dict=replacements_dict, **kwargs)
+    model = replace_modules_func(model, inplace=inplace, replacements_dict=replacements_dict, **kwargs)
     return model
 

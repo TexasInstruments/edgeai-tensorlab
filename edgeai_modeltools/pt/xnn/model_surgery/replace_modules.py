@@ -40,7 +40,7 @@ from .. import utils
 from .. import layers
 
 
-__all__ = {'replace_modules'}
+__all__ = ['replace_modules']
 
 
 def replace_modules(model, inplace=True, replacements_dict=None, **kwargs):
