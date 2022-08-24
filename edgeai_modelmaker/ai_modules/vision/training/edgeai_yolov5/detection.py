@@ -281,7 +281,7 @@ class ModelTraining:
             hyp_config = yaml.safe_load(fp)
         hyp_config['lr0'] = self.params.training.learning_rate
         hyp_config['weight_decay'] = self.params.training.weight_decay
-        hyp_path = os.path.join(self.params.training.training_path, 'hyp.scratch.yaml')
+        hyp_path = os.path.join(self.params.training.training_path, 'hyp.yaml')
         with open(hyp_path, 'w') as fp:
             yaml.safe_dump(hyp_config, fp)
 
