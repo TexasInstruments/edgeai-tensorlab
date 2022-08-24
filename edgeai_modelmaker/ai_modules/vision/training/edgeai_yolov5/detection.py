@@ -274,18 +274,33 @@ class ModelTraining:
         ''''
         The actual training function. Move this to a worker process, if this function is called from a GUI.
         '''
-        #os.makedirs(self.params.training.training_path, exist_ok=True)
+        os.makedirs(self.params.training.training_path, exist_ok=True)
         distributed = self.params.training.num_gpus > 1
         hyp_path = os.path.join(edgeai_yolov5_path, 'data', 'hyps', 'hyp.scratch.yaml')
+        with open(hyp_path) as fp:
+            hyp_config = yaml.safe_load(fp)
+        hyp_config['lr0'] = self.params.training.learning_rate
+        hyp_config['weight_decay'] = self.params.training.weight_decay
+        hyp_path = os.path.join(self.params.training.training_path, 'hyp.scratch.yaml')
+        with open(hyp_path, 'w') as fp:
+            yaml.safe_dump(hyp_config, fp)
+
         device = list(range(self.params.training.num_gpus))
         device = ','.join([str(id) for id in device]) if len(device)>0 else 'cpu'
         project_path = self.params.training['training_path']
-        data_yaml = os.path.join(edgeai_yolov5_path, 'data', self.params.dataset.dataset_name + '.yaml' )
+
+        data_yaml_path = os.path.join(edgeai_yolov5_path, 'data', self.params.dataset.dataset_name + '.yaml' )
+        with open(data_yaml_path) as fp:
+            data_config = yaml.safe_load(fp)
+        data_yaml_path = os.path.join(self.params.training.training_path, self.params.dataset.dataset_name + '.yaml' )
+        with open(data_yaml_path, 'w') as fp:
+            yaml.safe_dump(data_config, fp)
+
         yolo_cfg = os.path.join(edgeai_yolov5_path, 'models', 'hub', self.params.training.model_training_id + '.yaml')
 
         args_yolo = {'cfg': f'{yolo_cfg}',
                     'weights': f'{self.params.training.pretrained_checkpoint_path}',
-                    'data' : f'{data_yaml}',  #This needs to be written for each dataset
+                    'data' : f'{data_yaml_path}',  #This needs to be written for each dataset
                     'device' : f'{device}',
                     'epochs' : self.params.training.training_epochs,
                     'batch-size' : self.params.training.batch_size,
@@ -297,7 +312,7 @@ class ModelTraining:
         train.run(cfg=args_yolo['cfg'], weights=args_yolo['weights'], data=args_yolo['data'],
                   device=args_yolo['device'], epochs=args_yolo['epochs'],
                   batch_size=args_yolo['batch-size'], img=args_yolo['img'],
-                  hyp=args_yolo['hyp'], project=args_yolo['project'], name='')
+                  hyp=args_yolo['hyp'], project=args_yolo['project'], name='',exist_ok=True)
 
         os.symlink(os.path.join(project_path, 'results.csv'), os.path.join(project_path, 'run.log'))
 
