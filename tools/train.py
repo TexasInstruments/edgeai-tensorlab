@@ -228,6 +228,12 @@ def main():
     meta['seed'] = seed
     meta['exp_name'] = osp.basename(args.config)
 
+    if hasattr(cfg,'save_onnx_model') is False:
+        cfg.save_onnx_model = False
+
+    if hasattr(cfg,'quantize') is False:
+        cfg.quantize = False
+
     model = build_model(
         cfg.model,
         train_cfg=cfg.get('train_cfg'),

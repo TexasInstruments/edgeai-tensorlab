@@ -133,7 +133,7 @@ data = dict(
     test=dict(pipeline=test_pipeline, classes=class_names))
 
 save_onnx_model = False
-quantize = False 
+quantize = True
 # max_norm=35 is slightly better than 10 for PointPillars in the earlier
 # development of the codebase thus we keep the setting. But we does not
 # specifically tune this parameter.

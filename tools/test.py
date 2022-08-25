@@ -32,6 +32,8 @@ try:
     from mmdet.utils import compat_cfg
 except ImportError:
     from mmdet3d.utils import compat_cfg
+from mmdet3d.utils.proto import tidl_meta_arch_pb2
+from google.protobuf import text_format
 
 class CombinedModel(torch.nn.Module):
 
@@ -139,6 +141,7 @@ def parse_args():
         default='none',
         help='job launcher')
     parser.add_argument('--local_rank', type=int, default=0)
+    
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
@@ -225,6 +228,12 @@ def main():
     if args.seed is not None:
         set_random_seed(args.seed, deterministic=args.deterministic)
 
+    if hasattr(cfg,'save_onnx_model') is False:
+        cfg.save_onnx_model = False
+
+    if hasattr(cfg,'quantize') is False:
+        cfg.quantize = False
+
     # build the dataloader
     dataset = build_dataset(cfg.data.test)
     data_loader = build_dataloader(dataset, **test_loader_cfg)
@@ -300,7 +309,8 @@ def main():
         model.PALETTE = dataset.PALETTE
 
     if cfg.save_onnx_model == True:
-        save_onnx_model(model,os.path.dirname(args.checkpoint))
+        save_onnx_model(cfg, model, os.path.dirname(args.checkpoint),cfg.quantize)
+        save_tidl_prototext(cfg, os.path.dirname(args.checkpoint))
 
     if not distributed:
         model = MMDataParallel(model, device_ids=cfg.gpu_ids)
@@ -332,7 +342,7 @@ def main():
             eval_kwargs.update(dict(metric=args.eval, **kwargs))
             print(dataset.evaluate(outputs, **eval_kwargs))
 
-def save_onnx_model(model,path):
+def save_onnx_model(cfg, model,path,quantized_model=True):
 
         print('onnx export started, at path {}'.format(path))
         print('Only one GPU can be used for ONNX export')
@@ -345,23 +355,44 @@ def save_onnx_model(model,path):
         from test import CombinedModel
         model.eval()
 
-        max_num_3d_points = 10000
+        bev_size_x = (int)((cfg.point_cloud_range[3] - cfg.point_cloud_range[0])/cfg.voxel_size[0])
+        bev_size_y = (int)((cfg.point_cloud_range[4] - cfg.point_cloud_range[1])/cfg.voxel_size[1])
+
         # Accessing one layer to find wheather wegihts are on cpu or cuda
-        device = model.module.voxel_encoder.pfn_layers._modules['0'].linear.weight.device
-        raw_voxel_feat = torch.ones([1, 10, 32, max_num_3d_points],device=torch.device(device))
-        data = torch.zeros([1, 64, 496*432],device=torch.device(device))
-        coors = torch.ones([1, 64, max_num_3d_points],device=torch.device(device))
+        if quantized_model == True:
+            device = model.module.voxel_encoder.pfn_layers._modules['0'].linear.weight.device
+        else:
+            device = model.voxel_encoder.pfn_layers._modules['0'].linear.weight.device
+
+        raw_voxel_feat = torch.ones([1, cfg.model.voxel_encoder.in_channels+6, 
+                                        cfg.model.voxel_layer.max_num_points, 
+                                        cfg.model.voxel_layer.max_voxels[2]],
+                                        device=torch.device(device))
+
+        data = torch.zeros([1, cfg.model.voxel_encoder.feat_channels[0], bev_size_x*bev_size_y],device=torch.device(device))
+        coors = torch.ones([1, cfg.model.voxel_encoder.feat_channels[0], cfg.model.voxel_layer.max_voxels[2]],device=torch.device(device))
         coors = coors.long()
 
-        combined_model = CombinedModel(model.module.voxel_encoder.pfn_layers._modules['0'],
-                                        model.module.middle_encoder,
-                                        model.module.backbone,
-                                        model.module.neck,
-                                        model.module.bbox_head.conv_cls,
-                                        model.module.bbox_head.conv_dir_cls,
-                                        model.module.bbox_head.conv_reg,
-                                        len(model.CLASSES)
-                                        )
+        if quantized_model == True:
+            combined_model = CombinedModel(model.module.voxel_encoder.pfn_layers._modules['0'],
+                                            model.module.middle_encoder,
+                                            model.module.backbone,
+                                            model.module.neck,
+                                            model.module.bbox_head.conv_cls,
+                                            model.module.bbox_head.conv_dir_cls,
+                                            model.module.bbox_head.conv_reg,
+                                            len(model.CLASSES)
+                                            )
+        else:
+            combined_model = CombinedModel(model.voxel_encoder.pfn_layers._modules['0'],
+                                            model.middle_encoder,
+                                            model.backbone,
+                                            model.neck,
+                                            model.bbox_head.conv_cls,
+                                            model.bbox_head.conv_dir_cls,
+                                            model.bbox_head.conv_reg,
+                                            len(model.CLASSES)
+                                            )
 
         torch.onnx.export(combined_model,
                 (raw_voxel_feat,coors,data),
@@ -369,6 +400,8 @@ def save_onnx_model(model,path):
                 opset_version=11,
                 verbose=False)
                 
+        # change the data type from int64 to int32 for co-ordinates in scatter layer, as TIDL doesnt supprt that
+        # it can not be changes in pytorch operator as int32 is not supported there.
         import onnx
         model = onnx.load(os.path.join(path,"combined_model.onnx"))
         graph = model.graph
@@ -379,6 +412,92 @@ def save_onnx_model(model,path):
 
         onnx.save(model, os.path.join(path,"combined_model_int32.onnx"))
 
+def save_tidl_prototext(cfg, path):
+
+    import onnx
+    prototext_file = os.path.join(path,"pointPillars.prototxt")
+    model = onnx.load(os.path.join(path,"combined_model_int32.onnx"))
+    graph = model.graph
+    
+    box_input = []
+    dir_input = []
+    cls_input = []
+
+    for node in graph.node:
+        for inp in node.input:
+            if 'conv_cls' in inp and (len(cls_input) == 0):
+                cls_input.append(node.output)
+            if 'conv_dir' in inp and (len(dir_input) == 0):
+                dir_input.append(node.output)
+            if 'conv_reg' in inp and (len(box_input) == 0):
+                box_input.append(node.output)
+
+    if cfg.quantize == True:
+        for node in graph.node:
+            if node.op_type == 'Clip':
+                for inp in node.input:
+                    if cls_input[0][0] == inp and (len(cls_input) <= 1):
+                        cls_input = []
+                        cls_input.append(node.output)
+                    if dir_input[0][0] == inp and (len(dir_input) <= 1):
+                        dir_input = []
+                        dir_input.append(node.output)
+                    if box_input[0][0] == inp and (len(box_input) <= 1):
+                        box_input = []
+                        box_input.append(node.output)
+
+
+    bev_size_x = (int)((cfg.point_cloud_range[3] - cfg.point_cloud_range[0])/cfg.voxel_size[0])
+    bev_size_y = (int)((cfg.point_cloud_range[4] - cfg.point_cloud_range[1])/cfg.voxel_size[1])
+
+    step_x = (cfg.point_cloud_range[3] - cfg.point_cloud_range[0])/(bev_size_x/2 - 1) 
+    step_y = (cfg.point_cloud_range[4] - cfg.point_cloud_range[1])/(bev_size_y/2 - 1)   
+    step_z = 1
+
+    offset_x = cfg.point_cloud_range[0]/step_x
+    offset_y = cfg.point_cloud_range[1]/step_y
+    offset_z = -1.00 #
+    offset_dir= -cfg.model.bbox_head.anchor_generator.rotations[1]    
+    prior_box_param = []
+    
+    prior_box_param.append(tidl_meta_arch_pb2.PriorBox3DODParameter(anchor_width=[cfg.model.bbox_head.anchor_generator.sizes[0][0]], 
+                                                                    anchor_height=[cfg.model.bbox_head.anchor_generator.sizes[0][1]], 
+                                                                    anchor_length=[cfg.model.bbox_head.anchor_generator.sizes[0][2]],
+                                                                    step_x=step_x, step_y=step_y, step_z=step_z,
+                                                                    offset_x=offset_x, offset_y=offset_y, offset_z=offset_z,
+                                                                    offset_dir = offset_dir,
+                                                                    rotation=cfg.model.bbox_head.anchor_generator.rotations))
+    
+    nms_param = tidl_meta_arch_pb2.TIDLNmsParam(nms_threshold=cfg.model.test_cfg.nms_thr,top_k=cfg.model.test_cfg.nms_pre)
+    
+    detection_param   = tidl_meta_arch_pb2.TIDLOdPostProc(num_classes=cfg.model.bbox_head.num_classes,
+                                                          share_location=True,
+                                                          background_label_id=-1,
+                                                          code_type="CODE_TYPE_3DOD",
+                                                          keep_top_k=cfg.model.test_cfg.max_num,
+                                                          confidence_threshold=cfg.model.test_cfg.score_thr,
+                                                          nms_param=nms_param
+                                                        )                                            
+
+    
+    od3d = tidl_meta_arch_pb2.TidlMa3DOD(name="point_pillars", 
+                                            min_x=cfg.point_cloud_range[0],
+                                            max_x=cfg.point_cloud_range[3],
+                                            min_y=cfg.point_cloud_range[1],
+                                            max_y=cfg.point_cloud_range[4],
+                                            min_z=cfg.point_cloud_range[2], 
+                                            max_z=cfg.point_cloud_range[5],
+                                            voxel_size_x=cfg.voxel_size[0],voxel_size_y=cfg.voxel_size[1],voxel_size_z=cfg.voxel_size[2],
+                                            max_points_per_voxel=cfg.model.voxel_layer.max_num_points,
+                                            box_input=box_input[0],class_input=cls_input[0],dir_input=dir_input[0],
+                                            prior_box_3dod_param=prior_box_param,
+                                            detection_output_param=detection_param)
+
+    arch = tidl_meta_arch_pb2.TIDLMetaArch(name='3dod_ssd',  tidl_3dod=[od3d])
+
+    with open(prototext_file, 'wt') as pfile:
+        txt_message = text_format.MessageToString(arch)
+        pfile.write(txt_message)
 
 if __name__ == '__main__':
     main()

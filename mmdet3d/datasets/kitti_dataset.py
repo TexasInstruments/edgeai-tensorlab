@@ -411,6 +411,7 @@ class KittiDataset(Custom3DDataset):
         Returns:
             list[dict]: A list of dictionaries with the kitti format.
         """
+        #self.data_infos = self.data_infos[:200]
         assert len(net_outputs) == len(self.data_infos), \
             'invalid list length of network outputs'
         if submission_prefix is not None:

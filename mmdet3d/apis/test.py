@@ -37,9 +37,9 @@ def single_gpu_test(model,
     prog_bar = mmcv.ProgressBar(len(dataset))
     dump_txt_op = False
     read_txt_op = False
-    en_img_draw = True
+    en_img_draw = False
     for i, data in enumerate(data_loader):
-        #if i >=100:
+        #if i >=200:
         #    break
         with torch.no_grad():
             result = model(return_loss=False, rescale=True, **data)
@@ -56,6 +56,29 @@ def single_gpu_test(model,
                 f.write("{:.4f}".format(det_tensor[6]))
                 f.write("\n")
             f.close()
+
+        if read_txt_op:
+            img_metas = data['img_metas'][0].data[0][0]
+            file_name = osp.split(img_metas['pts_filename'])[1]
+            file_name = osp.join('/user/a0393749/deepak_files/ti/c7x-mma-tidl-before/ti_dl/test/testvecs/output',file_name)
+            f = open(file_name+'.txt','r')
+            lines = f.readlines()
+            det_tensor = torch.empty((len(lines),7), dtype=torch.float32, device = 'cpu')
+
+            result[0]['scores_3d'] = torch.empty((len(lines)), dtype=torch.float32, device = 'cpu')
+            result[0]['labels_3d'] = torch.empty((len(lines)), dtype=torch.float32, device = 'cpu')
+            result[0]['boxes_3d']  = img_metas['box_type_3d'](det_tensor, box_dim=7)
+
+            for i, line in enumerate(lines):
+                det = line.strip().split()
+                result[0]['labels_3d'][i] = float(det[0])
+                result[0]['scores_3d'][i] = float(det[1])
+                for j in range(7):
+                    det_tensor[i][j] = float(det[j+2])
+            result[0]['boxes_3d'] = img_metas['box_type_3d'](det_tensor, box_dim=7)
+
+            f.close()
+
         if en_img_draw:
             import cv2
             import numpy as np
@@ -63,7 +86,7 @@ def single_gpu_test(model,
             from mmdet3d.core.visualizer import image_vis
 
             ip_img_folder = 'data/kitti/training/image_2'
-            op_img_folder = '/user/a0393749/deepak_files/temp/output'
+            op_img_folder = '/user/a0393749/deepak_files/temp/output_platform'
             vis_score_th  = 0.6
             color=(0, 255, 0)
             
@@ -103,28 +126,6 @@ def single_gpu_test(model,
                     image_vis.plot_rect3d_on_img(img, 1, imgfov_pts_2d[[obj_id],:], color, 1)
 
             cv2.imwrite(op_file_name, img)
-
-        if read_txt_op:
-            img_metas = data['img_metas'][0].data[0][0]
-            file_name = osp.split(img_metas['pts_filename'])[1]
-            file_name = osp.join('/user/a0393749/deepak_files/ti/c7x-mma-tidl/ti_dl/test/testvecs/output',file_name)
-            f = open(file_name+'.txt','r')
-            lines = f.readlines()
-            det_tensor = torch.empty((len(lines),7), dtype=torch.float32, device = 'cpu')
-
-            result[0]['scores_3d'] = torch.empty((len(lines)), dtype=torch.float32, device = 'cpu')
-            result[0]['labels_3d'] = torch.empty((len(lines)), dtype=torch.float32, device = 'cpu')
-            result[0]['boxes_3d']  = img_metas['box_type_3d'](det_tensor, box_dim=7)
-
-            for i, line in enumerate(lines):
-                det = line.strip().split()
-                result[0]['labels_3d'][i] = float(det[0])
-                result[0]['scores_3d'][i] = float(det[1])
-                for j in range(7):
-                    det_tensor[i][j] = float(det[j+2])
-            result[0]['boxes_3d'] = img_metas['box_type_3d'](det_tensor, box_dim=7)
-
-            f.close()
 
         if show:
             # Visualize the results of MMDetection3D model
