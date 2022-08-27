@@ -51,6 +51,9 @@ class ImageClassification(DatasetBase):
             else:
                 self.download(path, split_file)
             #
+            if hasattr(self, 'download_extra'):
+                self.download_extra(path, split_file)
+            #
         #
         assert os.path.exists(path) and os.path.isdir(path), \
             utils.log_color('\nERROR', 'dataset path is empty', path)

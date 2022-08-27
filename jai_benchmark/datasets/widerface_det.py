@@ -91,6 +91,13 @@ class WiderFaceDetection(coco_det.COCODetection):
         num_classes = num_classes or len(num_classes)
         super().__init__(num_classes=num_classes, num_frames=num_frames, name=name, **kwargs)
         self._load_dataset()
+        # create the dataset info
+        categories = [{'id':1, 'name':'face'}]
+        info = dict(description='WIDERFACE: A Face Detection Dataset', url='http://shuoyang1213.me/WIDERFACE/', version='1.5',
+                    year='2017', contributor='Multimedia Laboratory, Department of Information Engineering, The Chinese University of Hong Kong',
+                    date_created='2017/mar/31')
+        self.dataset_store = dict(info=info, categories=categories)
+        self.kwargs['dataset_info'] = self._get_dataset_info()
 
     def get_categories(self, project_path):
         widerface_categories = [dict(id=1, supercategory='face', name='face')]
@@ -250,6 +257,16 @@ class WiderFaceDetection(coco_det.COCODetection):
         path = path.rstrip('/')
         root = os.sep.join(os.path.split(path)[:-1])
         return root
+
+    def _get_dataset_info(self):
+        # return only info and categories for now as the whole thing could be quite large.
+        dataset_store = dict()
+        for key in ('info', 'categories'):
+            if key in self.dataset_store.keys():
+                dataset_store.update({key: self.dataset_store[key]})
+            #
+        #
+        return dataset_store
 
 
 def widerfacedet_det_label_offset_1to1(label_offset=1, num_classes=1):

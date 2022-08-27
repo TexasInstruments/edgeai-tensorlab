@@ -34,6 +34,7 @@ import time
 import itertools
 from .. import utils, constants
 
+
 class AccuracyPipeline():
     def __init__(self, settings, pipeline_config):
         self.info_dict = dict()
@@ -49,6 +50,14 @@ class AccuracyPipeline():
         # these files willbe written after import and inference respectively
         self.param_yaml = os.path.join(self.run_dir, 'param.yaml')
         self.result_yaml = os.path.join(self.run_dir, 'result.yaml')
+        # pop out dataset info from the pipeline config,
+        # because it will increase the size of the para.yaml and result.yaml files
+        self.pipeline_config['calibration_dataset'].get_param('kwargs').pop('dataset_info', None)
+        self.dataset_info = self.pipeline_config['input_dataset'].get_param('kwargs').pop('dataset_info', None)
+        dataset_info_file = 'dataset.yaml'
+        self.dataset_info_file = os.path.join(self.run_dir, dataset_info_file)
+        self.pipeline_config['input_dataset'].get_param('kwargs')['dataset_info'] = dataset_info_file
+        self.pipeline_config['calibration_dataset'].get_param('kwargs')['dataset_info'] = dataset_info_file
 
     def __enter__(self):
         return self
@@ -99,6 +108,13 @@ class AccuracyPipeline():
         # log some info
         self.write_log(utils.log_color('\nINFO', 'running', os.path.basename(self.run_dir)))
         self.write_log(utils.log_color('\nINFO', 'pipeline_config', self.pipeline_config))
+
+        # write the dataset_info file
+        if self.dataset_info is not None:
+            with open(self.dataset_info_file, 'w') as fp:
+                yaml.safe_dump(self.dataset_info, fp, sort_keys=False)
+            #
+        #
 
         # now actually run the import and inference
         param_result = self._run(description=description)

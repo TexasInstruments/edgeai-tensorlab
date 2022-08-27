@@ -113,6 +113,7 @@ import tempfile
 from colorama import Fore
 from pycocotools.coco import COCO
 from pycocotools import mask as coco_mask
+import json
 
 from .. import utils
 from .dataset_base import *
@@ -156,7 +157,8 @@ class COCOSegmentation(DatasetBase):
         image_split_dirs = os.listdir(image_base_dir)
         self.image_dir = os.path.join(image_base_dir, split)
 
-        self.coco_dataset = COCO(os.path.join(annotations_dir, f'instances_{split}.json'))
+        self.annotation_file = os.path.join(annotations_dir, f'instances_{split}.json')
+        self.coco_dataset = COCO(self.annotation_file)
 
         self.cat_ids = self.coco_dataset.getCatIds()
         img_ids = self.coco_dataset.getImgIds()
@@ -188,6 +190,10 @@ class COCOSegmentation(DatasetBase):
             self.tempfiles.append(temp_dir)
         #
         self.label_dir = os.path.join(run_dir, 'labels')
+        with open(self.annotation_file) as afp:
+            self.dataset_store = json.load(afp)
+        #
+        self.kwargs['dataset_info'] = self._get_dataset_info()
 
     def download(self, path, split):
         root = path
@@ -273,6 +279,16 @@ class COCOSegmentation(DatasetBase):
         #
         accuracy = utils.segmentation_accuracy(cmatrix)
         return accuracy
+
+    def _get_dataset_info(self):
+        # return only info and categories for now as the whole thing could be quite large.
+        dataset_store = dict()
+        for key in ('info', 'categories'):
+            if key in self.dataset_store.keys():
+                dataset_store.update({key: self.dataset_store[key]})
+            #
+        #
+        return dataset_store
 
     def _remove_images_without_annotations(self, img_ids):
         ids = []

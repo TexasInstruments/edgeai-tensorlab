@@ -53,11 +53,6 @@ dataset_info_dict = {
     'imagenetv2c':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetV2C, 'size':10000, 'split':'val'},
     'imagenetv2b':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetV2B, 'size':10000, 'split':'val'},
     'imagenetv2a':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetV2A, 'size':10000, 'split':'val'},
-    # smaller versions of the original ImageNet
-    'tiny-imagenet200':{'task_type':'classification', 'category':'imagenet', 'type':TinyImageNet200Cls, 'size':10000, 'split':'val'},
-    'imagenet-dogs120':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetDogs120Cls, 'size':20580, 'split':'train'},
-    'imagenet-pseudo120':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetPseudo120Cls, 'size':20580, 'split':'train'},
-    'imagenet-resized-64x64':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetResized64x64Cls, 'size':50000, 'split':'val'},
     #------------------------object detection datasets--------------------------#
     'coco': {'task_type':'detection', 'category':'coco', 'type':COCODetection, 'size':5000, 'split':'val2017'},
     'widerface': {'task_type':'detection', 'category':'widerface', 'type':WiderFaceDetection, 'size':3226, 'split':'val'},
