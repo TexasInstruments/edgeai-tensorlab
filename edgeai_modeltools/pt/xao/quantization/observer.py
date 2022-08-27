@@ -29,7 +29,6 @@
 #
 #################################################################################
 
-
 import torch
 import torch.ao.quantization as quantization
 from ... import xnn
@@ -48,30 +47,5 @@ class MovingAverageMinMaxObserverPower2(quantization.MovingAverageMinMaxObserver
     @torch.jit.export
     def calculate_qparams(self):
         scale, zero_point = super().calculate_qparams()
-        eps = 1e-3
-        if float(scale) <= eps:
-            scale = scale * 0.0 + eps
-        #
-        scale = xnn.layers.functional.ceil2_g(scale)
-        return scale, zero_point
-
-
-class MovingAveragePerChannelMinMaxObserverPower2(quantization.MovingAveragePerChannelMinMaxObserver):
-    def __int__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    # def forward(self, x_orig: torch.Tensor) -> torch.Tensor:
-    #     x_orig = super().forward(x_orig)
-    #     self.min_val = xnn.layers.functional.ceil2_g(self.min_val)
-    #     self.max_val = xnn.layers.functional.ceil2_g(self.max_val)
-    #     return x_orig
-
-    @torch.jit.export
-    def calculate_qparams(self):
-        eps = 1e-3
-        scale, zero_point = super().calculate_qparams()
-        if float(torch.max(scale)) <= eps:
-            scale = scale * 0.0 + eps
-        #
         scale = xnn.layers.functional.ceil2_g(scale)
         return scale, zero_point
