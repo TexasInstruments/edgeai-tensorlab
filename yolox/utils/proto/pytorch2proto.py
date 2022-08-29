@@ -30,7 +30,6 @@
 import os
 import numpy as np
 
-import mmcv
 import onnx
 import torch
 #from xmmdet.utils import save_model_proto

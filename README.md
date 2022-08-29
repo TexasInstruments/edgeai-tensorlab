@@ -1,5 +1,5 @@
 # YOLOX-ti-lite Object Detection Models
-This repository is based on [Megvii/YOLOX](https://github.com/Megvii-BaseDetection/YOLOX). As per the [Official documentation](./README_megvii.md), YOLOX is an anchor-free version of YOLO, with a simpler design but better performance! It aims to bridge the gap between research and industrial communities. It has the following major differences rom YOLOv3:
+This repository is based on [Megvii/YOLOX](https://github.com/Megvii-BaseDetection/YOLOX). As per the [Official documentation](./README_megvii.md), YOLOX is an anchor-free version of YOLO, with a simpler design but better performance! It aims to bridge the gap between research and industrial communities. It has the following major differences rom YOLOv3: 
 
 * Darknet-csp backbone instead of vanilla Darknet. Reduces complexity by 30%. 
 * PANet feature extractor instead of FPN.
@@ -14,7 +14,9 @@ This repository is based on [Megvii/YOLOX](https://github.com/Megvii-BaseDetecti
 * All models are trained from scratch. There is no need for imagenet pretraining because of strong augmentation.
 * YOLOX-Nano-ti-lite uses regular convolution instead of depth-wise convolution.
 
-For more details, please refer to Megvii's [report on Arxiv](https://arxiv.org/abs/2107.08430).
+Please follow the installation [instructions](./README_megvii.md) from here to get started.
+
+please refer to Megvii's [report on Arxiv](https://arxiv.org/abs/2107.08430).
 
 ### Official Models from Megvii.
 
