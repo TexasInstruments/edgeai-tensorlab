@@ -137,7 +137,8 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
         r'netLog.txt$',
         r'layer_info.txt$',
         r'.svg$',
-        r'onnxrtMetaData.txt'
+        r'onnxrtMetaData.txt',
+        r'dataset.yaml'
     ]
     for f, pf in zip(artifacts_files, package_artifacts_files):
         if match_string(artifacts_patterns, f):
