@@ -306,13 +306,15 @@ class ModelTraining:
                     'batch-size' : self.params.training.batch_size,
                     'img': 640,
                     'hyp': f'{hyp_path}',
-                    'project': f'{project_path}'
+                    'project': f'{project_path}',
+                    'noautoanchor': False, #Set this to True to disable autoanchor
                     }
         # launch the training
         train.run(cfg=args_yolo['cfg'], weights=args_yolo['weights'], data=args_yolo['data'],
                   device=args_yolo['device'], epochs=args_yolo['epochs'],
                   batch_size=args_yolo['batch-size'], img=args_yolo['img'],
-                  hyp=args_yolo['hyp'], project=args_yolo['project'], name='',exist_ok=True)
+                  hyp=args_yolo['hyp'], project=args_yolo['project'], name='',
+                  exist_ok=True, noautoanchor=args_yolo['noautoanchor'])
 
         os.symlink(os.path.join(project_path, 'results.csv'), os.path.join(project_path, 'run.log'))
 
