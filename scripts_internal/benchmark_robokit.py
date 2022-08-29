@@ -130,8 +130,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('settings_file', type=str)
     cmds = parser.parse_args()
-    settings = config_settings.ConfigSettings(cmds.settings_file, model_shortlist=None,
-                                              models_path='../edgeai-modelforest/models')
+    settings = config_settings.ConfigSettings(cmds.settings_file, models_path='../edgeai-modelforest/models')
 
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir = {work_dir}')

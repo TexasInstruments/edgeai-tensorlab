@@ -140,9 +140,6 @@ class ConfigDict(dict):
         self.detection_max = 1000
         # save detection, segmentation output
         self.save_output = False
-        # wild card list to match against model_path, model_id or model_type - if null, all models wil be shortlisted
-        # only models matching these criteria will be considered - even for model_selection
-        self.model_shortlist = None
         # wild card list to match against model_path, model_id or model_type - if null, all models wil be selected
         # examples: ['classification'] ['imagenet1k'] ['torchvision']
         # examples: ['resnet18.onnx', 'resnet50_v1.tflite']
