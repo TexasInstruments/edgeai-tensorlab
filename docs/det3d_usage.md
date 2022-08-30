@@ -9,15 +9,28 @@ Refer mmdetection3d documentation [Inference and Train with standard dataset](./
 
 
 2. First do normal training using the command 
-    "./tools/dist_test.sh configs/pointpillars/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car.py"
+    "./tools/dist_train.sh configs/pointpillars/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car.py <num_gpus>"
 
+    E.g. to use 2 GPUs use the command
+```bash
+    ./tools/dist_train.sh configs/pointpillars/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car.py 2
+```
 
 3. Do QAT training with loading the weights from previous step using the command 
-    "./tools/dist_test.sh configs/pointpillars/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car_qat.py"
+    "./tools/dist_train.sh configs/pointpillars/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car_qat.py <num_gpus>"
+
+    Note: Check the load_from option in cfg file. It tries to load weights from previously trained model. If that path is not correct then change the cfg accordingly.
 
 
 4.  Do Evalution using the command 
-    "python ./tools/test.py tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car_qat.py" 
+
+    "python ./tools/test.py tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car_qat.py <latest.pth file generated from previous step #3> --eval mAP" 
+
+    e.g.
+
+```bash
+    python ./tools/test.py ./configs/pointpillars/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car_qat.py ./work_dirs_quant/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car_qat/latest.pth --eval mAP
+```
 
 
 5. To save TIDL friendly onnx file and related prototxt file set the flag "save_onnx_model" = True in the config file "tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car_qat.py" and repeat the previous step of evaluation. 

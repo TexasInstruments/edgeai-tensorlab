@@ -14,10 +14,38 @@ See notes about recent changes/updates in this repository in [release notes](./d
 
 
 ## Installation
-Follow installation steps of [edgeai-torchvision](https://github.com/TexasInstruments/edgeai-torchvision) to install edgeai-torchvision. In same environment install [mmdetection3d](README_mmdet3d.md) by skipping pytorch and CUDA installtion step mentioned in the [mmdetection3d Installation Guide](./docs/en/getting_started.md#installation). As pytorch and CUDA must have been installed as part of edgeai-torchvision installation. It has been tested for torch==1.10.0 and cuda = 11.3. edgeai-torchvision installation is required for QAT training only.
+Follow installation steps of [edgeai-torchvision](https://github.com/TexasInstruments/edgeai-torchvision) to install edgeai-torchvision. In same environment install [mmdetection3d](README_mmdet3d.md) by skipping pytorch and CUDA installtion step mentioned in the [mmdetection3d Installation Guide](./docs/en/getting_started.md#installation). Current repository tested for specific version of mmcv = 1.5.0, mmdet = 2.25.0, mmseg = 0.27.0. As pytorch and CUDA must have been installed as part of edgeai-torchvision installation. It has been tested for torch==1.10.0 and cuda = 11.3. edgeai-torchvision installation is required for QAT training only. Use following command for mmdetection3d installation 
 
-If QAT is not needed then edgeai-torchvision installation can be skipped and complete steps of mmdetection3d installation has to be followed. 
+```bash
+pip3 install openmim
 
+mim install mmcv-full==1.5.0
+
+mim install mmdet==2.25.0
+
+mim install mmsegmentation==0.27.0
+
+git clone https://github.com/TexasInstruments/edgeai-mmdetection3d.git
+
+cd edgeai-mmdetection3d
+
+pip3 install -e .
+
+install other additional requirements by typing 
+
+pip install -r ./requirements.txt
+```
+Prepare dataset as per original mmdetection3d documentation [dataset preperation](./docs/en/data_preparation.md). 
+**Currently only KITTI dataset with pointPillars network is supported**
+
+
+If QAT is not needed then edgeai-torchvision installation can be skipped and then complete steps of mmdetection3d installation has to be followed. 
+
+Note: It may ask to downgrade protobuf. In that case uninstall exisitng protobuf and downgrade to 3.20.0 using the command 
+```bash
+pip uninstall protobuf
+pip install protobuf==3.20.0
+```
 ## Get Started
 Please see [Usage](./docs/det3d_usage.md) for training and testing with this repository.
 

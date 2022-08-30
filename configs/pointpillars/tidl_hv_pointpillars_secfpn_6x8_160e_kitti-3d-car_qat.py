@@ -161,4 +161,5 @@ else:
     evaluation = dict(interval=2)
 
     load_from = './work_dirs/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car/latest.pth'
+    work_dir  = './work_dirs_quant/'
     custom_hooks = dict(type='FreezeRangeHook')
