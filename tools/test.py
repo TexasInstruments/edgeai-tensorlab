@@ -234,6 +234,9 @@ def main():
     if hasattr(cfg,'quantize') is False:
         cfg.quantize = False
 
+    if hasattr(cfg,'match_tidl_nms') is False:
+        cfg.match_tidl_nms = True
+
     # build the dataloader
     dataset = build_dataset(cfg.data.test)
     data_loader = build_dataloader(dataset, **test_loader_cfg)
@@ -310,8 +313,8 @@ def main():
 
     if cfg.save_onnx_model == True:
         save_onnx_model(cfg, model, os.path.dirname(args.checkpoint),cfg.quantize)
-        save_tidl_prototext(cfg, os.path.dirname(args.checkpoint))
-
+        save_tidl_prototxt(cfg, os.path.dirname(args.checkpoint))
+    
     if not distributed:
         model = MMDataParallel(model, device_ids=cfg.gpu_ids)
         outputs = single_gpu_test(model, data_loader, args.show, args.show_dir)
@@ -341,6 +344,40 @@ def main():
                 eval_kwargs.pop(key, None)
             eval_kwargs.update(dict(metric=args.eval, **kwargs))
             print(dataset.evaluate(outputs, **eval_kwargs))
+
+    if cfg.match_tidl_nms == True:
+        print('TIDL doesnt support 3D NMS right now, hence to match TIDL NMS another evaluation is happeing now with upright rectangle NMS with threshold nms_th=0.5')
+        cfg.model.test_cfg.use_rotate_nms = False
+        cfg.model.test_cfg.nms_thr = 0.5
+        if not distributed:
+            model = MMDataParallel(model, device_ids=cfg.gpu_ids)
+            outputs = single_gpu_test(model, data_loader, args.show, args.show_dir)
+        else:
+            model = MMDistributedDataParallel(
+                model.cuda(),
+                device_ids=[torch.cuda.current_device()],
+                broadcast_buffers=False)
+            outputs = multi_gpu_test(model, data_loader, args.tmpdir,
+                                    args.gpu_collect)
+
+        rank, _ = get_dist_info()
+        if rank == 0:
+            if args.out:
+                print(f'\nwriting results to {args.out}')
+                mmcv.dump(outputs, args.out)
+            kwargs = {} if args.eval_options is None else args.eval_options
+            if args.format_only:
+                dataset.format_results(outputs, **kwargs)
+            if args.eval:
+                eval_kwargs = cfg.get('evaluation', {}).copy()
+                # hard-code way to remove EvalHook args
+                for key in [
+                        'interval', 'tmpdir', 'start', 'gpu_collect', 'save_best',
+                        'rule'
+                ]:
+                    eval_kwargs.pop(key, None)
+                eval_kwargs.update(dict(metric=args.eval, **kwargs))
+                print(dataset.evaluate(outputs, **eval_kwargs))
 
 def save_onnx_model(cfg, model,path,quantized_model=True):
 
@@ -412,10 +449,10 @@ def save_onnx_model(cfg, model,path,quantized_model=True):
 
         onnx.save(model, os.path.join(path,"combined_model_int32.onnx"))
 
-def save_tidl_prototext(cfg, path):
+def save_tidl_prototxt(cfg, path):
 
     import onnx
-    prototext_file = os.path.join(path,"pointPillars.prototxt")
+    prototxt_file = os.path.join(path,"pointPillars.prototxt")
     model = onnx.load(os.path.join(path,"combined_model_int32.onnx"))
     graph = model.graph
     
@@ -495,7 +532,7 @@ def save_tidl_prototext(cfg, path):
 
     arch = tidl_meta_arch_pb2.TIDLMetaArch(name='3dod_ssd',  tidl_3dod=[od3d])
 
-    with open(prototext_file, 'wt') as pfile:
+    with open(prototxt_file, 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)
         pfile.write(txt_message)
 

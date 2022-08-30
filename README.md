@@ -1,14 +1,10 @@
 # EdgeAI-MMDetection3D
 
-### Notice
-- If you have not visited the landing page of at https://github.com/TexasInstruments/edgeai, please do so before attempting to use this repository. We skip most of the introduction in this repository.
-- This repository is located in Github at: https://github.com/TexasInstruments/edgeai-torchvision
 
-<hr>
 
-This repository is an extension of the popular [mmdetection3d](https://github.com/open-mmlab/mmdetection3d) open source repository for 3d object detection training. While mmdetection3d focuses on a wide variety of models, typically at high complexity, we focus on models that are optimized for speed and accuracy so that they run efficiently on embedded devices. For this purpose, we have added a set of embedded friendly model configurations and scripts - please see the [Usage](./docs/det3d_usage.md) for more information.
+This repository is an extension of the popular [mmdetection3d](https://github.com/open-mmlab/mmdetection3d) open source repository for 3d object detection. While mmdetection3d focuses on a wide variety of models, typically at high complexity, we focus on models that are optimized for speed and accuracy so that they run efficiently on embedded devices. For this purpose, we have added a set of embedded friendly model configurations and scripts.
 
-If the accuracy degradation with Post Training Quantization (PTQ) is higher than expected, this repository provides instructions and functionality required to do Quantization Aware Training (QAT).
+If the accuracy degradation with Post Training Quantization (PTQ) is higher than expected, for that pupose this repository provides instructions and functionality to do Quantization Aware Training (QAT).
 
 <hr>
 
@@ -18,7 +14,9 @@ See notes about recent changes/updates in this repository in [release notes](./d
 
 
 ## Installation
-Follow installation steps of [edgeai-torchvision](https://github.com/TexasInstruments/edgeai-torchvision) to install edgeai-torchvision. In same environment install [mmdetection3d](README.md) by skipping pytorch installtion as it must have been installed as part of edgeai-torchvision installation. It has been tested for torch==1.10.0 and cuda = 11.3. edgeai-torchvision installation is required for QAT training only.
+Follow installation steps of [edgeai-torchvision](https://github.com/TexasInstruments/edgeai-torchvision) to install edgeai-torchvision. In same environment install [mmdetection3d](README_mmdet3d.md) by skipping pytorch and CUDA installtion step mentioned in the [mmdetection3d Installation Guide](./docs/en/getting_started.md#installation). As pytorch and CUDA must have been installed as part of edgeai-torchvision installation. It has been tested for torch==1.10.0 and cuda = 11.3. edgeai-torchvision installation is required for QAT training only.
+
+If QAT is not needed then edgeai-torchvision installation can be skipped and complete steps of mmdetection3d installation has to be followed. 
 
 ## Get Started
 Please see [Usage](./docs/det3d_usage.md) for training and testing with this repository.
@@ -41,11 +39,8 @@ For more information please see [Usage](./docs/det3d_usage.md)
 
 
 ## Advanced documentation
-Kindly take time to read through the documentation of the original [mmdetection3d](README_mmdet3d.md) before attempting to use extensions added this repository.
+Kindly take time to read through the documentation of the original [mmdetection3d](README_mmdet3d.md) before attempting to use extensions added to this repository.
 
-The setup script [setup.sh](setup.sh) in this repository has the commonly used settings. If your CUDA version is different or your Python version is different or if you have some missing packages in your system, this script can fail. In those scenarios, please refer to [installation instructions for original mmdetection3d](./docs/get_started.md) for detailed installation instructions. 
-
-Also see [documentation of MMDetection3d](./docs/index.rst) for the basic usage of original mmdetection. 
 
  
 ## Acknowledgement
@@ -67,6 +62,15 @@ Now MMDeploy has supported some MMDetection3D model deployment. Please refer to 
 ## Citation
 
 This package/toolbox is an extension of mmdetection3d (https://github.com/open-mmlab/mmdetection3d). If you use this repository or benchmark in your research or work, please cite the following:
+
+```
+@article{EdgeAI-MMDetection3D,
+  title   = {{EdgeAI-MMDetection3D}: An Extension To Open MMLab Detection Toolbox and Benchmark},
+  author  = {Texas Instruments EdgeAI Development Team, edgeai-devkit@list.ti.com},
+  journal = {https://github.com/TexasInstruments/edgeai},
+  year={2022}
+}
+```
 
 ```
 @misc{mmdet3d2020,
