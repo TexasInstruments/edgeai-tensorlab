@@ -559,7 +559,7 @@ class YOLOXObjectPoseHead(nn.Module):
                           ).sum() / num_fg
         else:
             loss_trn_z = self.adds_loss_z(trn_z_preds.view(-1, 1)[fg_masks], trn_z_targets, cls_targets_raw)
-        if self.adds_loss:
+        if self.adds:
             pose_targets = torch.cat([trn_xy_targets, trn_z_targets, rot_targets], 1)
             pose_preds = torch.cat([trn_xy_preds.view(-1, 2)[fg_masks], trn_z_preds.view(-1, 1)[fg_masks], rot_preds.view(-1, 6)[fg_masks]], 1)
             if not self.shape_loss:
@@ -854,7 +854,7 @@ class YOLOXObjectPoseHead(nn.Module):
                             torch.cross(pose_preds[:, 3:6, None], pose_preds[:, 6:9, None], dim=1)], dim=-1)
         R_gt = torch.cat([pose_gt[:, 3:6, None], pose_gt[:, 6:9, None],
                           torch.cross(pose_gt[:, 3:6, None], pose_gt[:, 6:9, None], dim=1)], dim=-1)
-        adds_loss = None
+        loss_adds = None
         for model_idx, sparse_model in self.cad_models.class_to_sparse_model.items():
             cls_idx = cls_targets==model_idx
             sparse_model = torch.tensor(sparse_model, device=cls_targets.device, dtype=cls_targets.dtype)
@@ -870,13 +870,13 @@ class YOLOXObjectPoseHead(nn.Module):
             else:
                 mse = torch.min(((pred_transformed_model[:, :, None, :] - gt_transformed_model[:, :, :, None]) ** 2).sum(axis=1), dim=1)[0]
                 mse = mse.mean(axis=-1)
-            adds = torch.sqrt(mse) / (self.cad_models.models_diameter[model_idx])  #adds_0.1
-            if adds_loss is None:
-                adds_loss = adds
+            adds_0p1 = torch.sqrt(mse) / (self.cad_models.models_diameter[model_idx])  #adds_0.1
+            if loss_adds is None:
+                loss_adds = adds_0p1
             else:
-                adds_loss = torch.hstack((adds_loss, adds))
-        adds_loss = adds_loss.mean()
-        return adds_loss
+                loss_adds = torch.hstack((loss_adds, adds_0p1))
+        loss_adds = loss_adds.mean()
+        return loss_adds
 
 
     def xy2XY(self, pose):

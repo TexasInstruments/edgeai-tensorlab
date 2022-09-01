@@ -31,7 +31,7 @@ class Exp(MyExp):
         self.flip_prob = 0.0
         self.degrees = 10.0
         self.translate = 0.1
-        self.mosaic_scale = (0.5, 1.5)
+        self.mosaic_scale = (1.0, 1.0)
         self.mixup_scale = (1.0, 1.0)
         self.shear = 0.0
         self.perspective = 0.0
