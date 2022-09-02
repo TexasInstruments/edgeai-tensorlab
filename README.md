@@ -14,7 +14,7 @@ We have published several repositories for model training, model compilation and
 
 The following are the key functionality supported by this tool:
 - Dataset handling: This dataset formats supported by this tool is described in a section below. This can convert dataset formats and can automatically split the given dataset into train and validation sets (if it is not already split).
-- Model training: Model training repositories such as [edgeai-torchvision](https://github.com/TexasInstruments/edgeai-torchvision) and [edgeai-mmdetection](https://github.com/TexasInstruments/edgeai-mmdetection) are integrated. Several models with pretrained checkpoints are incorporated for each of these repositories. We also plan to integrate [edgeai-yolov5](https://github.com/TexasInstruments/edgeai-yolov5) soon.
+- Model training: Model training repositories such as [edgeai-torchvision](https://github.com/TexasInstruments/edgeai-torchvision) and [edgeai-mmdetection](https://github.com/TexasInstruments/edgeai-mmdetection) are integrated. Several models with pretrained checkpoints are incorporated for each of these repositories. 
 - Model compilation: Model compilation tools [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) and [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) for TI's EdgeAI SoCs have been integrated.
 
 Tasks and Models
@@ -99,7 +99,6 @@ parent_directory
     |--edgeai-modelzoo
     |--edgeai-torchvision
     |--edgeai-mmdetection
-    |--edgeai-yolov5
     |--edgeai-benchmark
     |--edgeai-modelmaker
 </pre>
@@ -113,6 +112,15 @@ Also, PyTorch and its related packages will be installed (This torchvision packa
 <pre>
 pip list | grep 'torch\|torchvision'
 </pre>
+
+
+### Installing additional components
+
+Additional plugins can be added by running:
+```
+./setup_plugins_gpl.sh
+```
+This installs [edgeai-yolov5](https://github.com/TexasInstruments/edgeai-yolov5) and enables support for YOLOv5 ti_lite models.
 
 
 ## Step 3: Run the ready-made examples
