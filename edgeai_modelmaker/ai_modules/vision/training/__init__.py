@@ -76,6 +76,16 @@ def get_model_description(model_name):
 
 def get_target_module(backend_name, task_type):
     this_module = sys.modules[__name__]
-    backend_package = getattr(this_module, backend_name)
-    target_module = getattr(backend_package, task_type)
+    try:
+        backend_package = getattr(this_module, backend_name)
+    except Exception as e:
+        print(f"get_target_module(): The requested module could not be found: {backend_name}. {str(e)}")
+        return None
+    #
+    try:
+        target_module = getattr(backend_package, task_type)
+    except Exception as e:
+        print(f"get_target_module(): The task_type {task_type} could not be found in the module {backend_name}. {str(e)}")
+        return None
+    #
     return target_module

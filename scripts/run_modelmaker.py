@@ -46,7 +46,12 @@ def main(config):
     params = ai_target_module.runner.ModelRunner.init_params()
 
     # get pretrained model for the given model_name
-    model_description = ai_target_module.runner.ModelRunner.get_model_description(config['training']['model_name'])
+    model_name = config['training']['model_name']
+    model_description = ai_target_module.runner.ModelRunner.get_model_description(model_name)
+    if model_description is None:
+        print(f"please check if the given model_name is a supported one: {model_name}")
+        return False
+    #
 
     # update the params with model_description and config
     params = params.update(model_description).update(config)
@@ -68,8 +73,10 @@ def main(config):
 
     # run
     model_runner.run()
+
     print(f'trained model is at: {model_runner.get_params().training.training_path}')
     print(f'compiled model is at: {model_runner.get_params().compilation.model_packaged_path}')
+    return True
 
 
 if __name__ == '__main__':
