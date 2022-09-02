@@ -48,23 +48,14 @@ echo "SOURCE_LOCATION="${SOURCE_LOCATION}
 #################################################################################
 # clone
 echo "cloning git repositories. this may take some time..."
-if [ ! -d ../edgeai-benchmark ]; then git clone ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
-if [ ! -d ../edgeai-mmdetection ]; then git clone ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
-if [ ! -d ../edgeai-torchvision ]; then git clone ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
-if [ ! -d ../edgeai-modelzoo ]; then git clone ${SOURCE_LOCATION}edgeai-modelzoo.git ${FAST_CLONE_MODELZOO} ../edgeai-modelzoo; fi
+if [ ! -d ../edgeai-yolov5 ]; then git clone ${SOURCE_LOCATION}edgeai-yolov5.git ../edgeai-yolov5; fi
 
 echo "cloning done."
 
 #################################################################################
-echo "installing repositories..."
-
-echo "installing: https://github.com/TexasInstruments/edgeai-torchvision"
-cd ../edgeai-torchvision
-./setup.sh
-
-echo "installing: https://github.com/TexasInstruments/edgeai-mmdetection"
-cd ../edgeai-mmdetection
-./setup.sh
+echo "installing: https://github.com/TexasInstruments/edgeai-yolov5 (GPLv3 Licensed)"
+cd ../edgeai-yolov5
+./setup_for_modelmaker.sh
 
 echo "installing: https://github.com/TexasInstruments/edgeai-benchmark"
 cd ../edgeai-benchmark
@@ -75,6 +66,8 @@ git config --global --add safe.directory $(pwd)
 echo "installing edgeai-modelmaker"
 cd ../edgeai-modelmaker
 ./setup.sh
+
+sed -i s/'PLUGINS_ENABLE_GPL = False'/'PLUGINS_ENABLE_GPL = True'/g ./edgeai_modelmaker/ai_modules/vision/constants.py
 
 ls -d ../edgeai-*
 

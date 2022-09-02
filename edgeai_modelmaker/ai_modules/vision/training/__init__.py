@@ -27,22 +27,31 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import copy
 import sys
-from . import edgeai_torchvision
-from . import edgeai_mmdetection
-from . import edgeai_yolov5
+
+from .. import constants
 
 
 # list all the modules here to add pretrained models
 _model_descriptions = {}
 
-# detection models
-_model_descriptions.update(edgeai_mmdetection.detection.get_model_descriptions())
+
+# edgeai-torchvision
+from . import edgeai_torchvision
+_model_descriptions.update(edgeai_torchvision.classification.get_model_descriptions())
 # the detection models in edgeai-mmdetection are superior to edgeai-torchvision, so commenting out these for now.
 #_model_descriptions.update(edgeai_torchvision.detection.get_model_descriptions())
-_model_descriptions.update(edgeai_yolov5.detection.get_model_descriptions())
 
-# classification models
-_model_descriptions.update(edgeai_torchvision.classification.get_model_descriptions())
+
+# edgeai-mmdetection
+from . import edgeai_mmdetection
+_model_descriptions.update(edgeai_mmdetection.detection.get_model_descriptions())
+
+
+# edgeai-yolov5
+if constants.PLUGINS_ENABLE_GPL:
+    from . import edgeai_yolov5
+    _model_descriptions.update(edgeai_yolov5.detection.get_model_descriptions())
+#
 
 
 def get_model_descriptions(task_type=None, target_device=None, training_device=None):
