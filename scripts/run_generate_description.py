@@ -36,10 +36,10 @@ import argparse
 import yaml
 import json
 
-import edgeai_modelmaker
-
 
 def main(args):
+    import edgeai_modelmaker
+
     # get the ai backend module
     ai_target_module = edgeai_modelmaker.ai_modules.get_target_module(args.target_module)
 
