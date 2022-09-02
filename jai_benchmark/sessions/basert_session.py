@@ -54,15 +54,7 @@ class BaseRTSession(utils.ParamsBase):
         self.input_normalizer = None
 
         self.kwargs['target_machine'] = self.kwargs.get('target_machine', 'pc')
-
-        self.target_device = self.kwargs.get('target_device', None)
-        self.target_device_type = None
-        if self.target_device is not None:
-            self.target_device = self.target_device.lower()
-            assert self.target_device in constants.TARGET_DEVICES_DICT, \
-                f'unknown target_device: {self.target_device}'
-            self.target_device_type = constants.TARGET_DEVICES_DICT[self.target_device]['device_type']
-        #
+        self.kwargs['target_device'] = self.kwargs.get('target_device', None)
 
         # set tidl_offload to False to disable offloading to TIDL
         self.kwargs['tidl_offload'] = self.kwargs.get('tidl_offload', True)
@@ -112,9 +104,7 @@ class BaseRTSession(utils.ParamsBase):
     def initialize(self):
         # make run_dir path
         self.kwargs['run_dir'] = self.get_run_dir()
-        artifacts_base_folder = os.path.join(self.kwargs['run_dir'], 'artifacts')
-        self.kwargs['artifacts_folder'] = os.path.join(artifacts_base_folder, self.target_device_type) \
-            if self.target_device_type is not None else artifacts_base_folder
+        self.kwargs['artifacts_folder'] = os.path.join(self.kwargs['run_dir'], 'artifacts')
         self.kwargs['model_folder'] = os.path.join(self.kwargs['run_dir'], 'model')
         super().initialize()
 
