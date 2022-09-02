@@ -103,6 +103,8 @@ def run_report(settings, rewrite_results=True):
         return
     #
 
+    print(f'results found for {results_max_len} models')
+
     metric_keys = ['accuracy_top1%', 'accuracy_mean_iou%', 'accuracy_ap[.5:.95]%', 'accuracy_delta_1%', 'accuracy_ap_3d_moderate%']
     performance_keys = ['num_subgraphs', 'infer_time_core_ms', 'ddr_transfer_mb']
     if report_perfsim:
