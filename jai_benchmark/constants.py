@@ -35,8 +35,11 @@ TIDL_PLATFORM = "J7"
 TIDL_VERSION = (8,2)
 TIDL_VERSION_STR = '8.2'
 
-# target devices/socs supported
+# target devices/socs supported. these are marketting names
 TARGET_DEVICE_TDA4VM = 'TDA4VM'
+
+# target device/soc types supported. thee are actual hardware names
+TARGET_DEVICE_TYPE_J721E = 'j721e'
 
 # data layout constants
 NCHW = 'NCHW'
@@ -69,3 +72,6 @@ SESSION_NAME_TFLITERT = 'tflitert'
 SESSION_NAME_ONNXRT = 'onnxrt'
 SESSION_NAMES = [SESSION_NAME_TVMDLR, SESSION_NAME_TFLITERT, SESSION_NAME_ONNXRT]
 SESSION_NAMES_DICT = {SESSION_NAME_TVMDLR:'TVM', SESSION_NAME_TFLITERT:'TFL', SESSION_NAME_ONNXRT:'ONR'}
+
+TARGET_DEVICES_DICT = {TARGET_DEVICE_TDA4VM.lower():{'device_type':'j721e'},
+                       TARGET_DEVICE_TYPE_J721E.lower():{'device_type':'j721e'}}

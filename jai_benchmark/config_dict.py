@@ -110,6 +110,13 @@ class ConfigDict(dict):
         self.modelartifacts_path = './work_dirs/modelartifacts'
         # create your datasets under this folder
         self.datasets_path = f'./dependencies/datasets'
+        # target_device indicates the SoC for which the model compilation will take place
+        # target_device indicates the SoC for which the model compilation will take place
+        # see device_types for various devices in constants.TARGET_DEVICES_DICT
+        # the model artifacts folder will be created in a folder with name device_type
+        # the user can either specify the marketting name (eg. TDA4VM) or the device type (eg. j721e)
+        # (if marketting names such as TDA4VM is set, the underlying device_type eg. j721e will be used automatically)
+        self.target_device = None
         # important parameter. set this to 'pc' to do import and inference in pc
         # set this to 'evm' to run inference in device/soc. for inference on device run_import
         # below should be switched off and it is assumed that the artifacts are already created.
