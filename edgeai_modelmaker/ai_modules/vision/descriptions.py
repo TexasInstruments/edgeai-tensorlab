@@ -117,6 +117,15 @@ def set_model_selection_factor(model_descriptions):
     #
 
 
+def get_training_module_descriptions(params):
+    # populate a good pretrained model for the given task
+    training_module_descriptions = training.get_training_module_descriptions(target_device=params.common.target_device,
+                                                         training_device=params.training.training_device)
+    #
+    training_module_descriptions = utils.ConfigDict(training_module_descriptions)
+    return training_module_descriptions
+
+
 def get_model_descriptions(params):
     # populate a good pretrained model for the given task
     model_descriptions = training.get_model_descriptions(task_type=params.common.task_type,

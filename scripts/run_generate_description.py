@@ -46,6 +46,9 @@ def main(args):
     # get params for the given config
     params = ai_target_module.runner.ModelRunner.init_params()
 
+    # get_training_module_descriptions
+    training_module_descriptions = ai_target_module.runner.ModelRunner.get_training_module_descriptions(params)
+
     # get supported pretrained models for the given params
     model_descriptions = ai_target_module.runner.ModelRunner.get_model_descriptions(params)
 
@@ -69,7 +72,8 @@ def main(args):
     # sample dataset descriptions
     sample_dataset_descriptions = ai_target_module.runner.ModelRunner.get_sample_dataset_descriptions(params)
 
-    description = dict(model_descriptions=model_descriptions_desc,
+    description = dict(training_module_descriptions=training_module_descriptions,
+                       model_descriptions=model_descriptions_desc,
                        preset_descriptions=preset_descriptions,
                        target_device_descriptions=target_device_descriptions,
                        task_descriptions=task_descriptions,

@@ -33,6 +33,7 @@ from .. import constants
 
 # list all the modules here to add pretrained models
 _model_descriptions = {}
+_training_module_descriptions = {}
 
 
 # edgeai-torchvision
@@ -40,18 +41,25 @@ from . import edgeai_torchvision
 _model_descriptions.update(edgeai_torchvision.classification.get_model_descriptions())
 # the detection models in edgeai-mmdetection are superior to edgeai-torchvision, so commenting out these for now.
 #_model_descriptions.update(edgeai_torchvision.detection.get_model_descriptions())
+_training_module_descriptions.update({'edgeai_torchvision':[constants.TASK_TYPE_CLASSIFICATION]})
 
 
 # edgeai-mmdetection
 from . import edgeai_mmdetection
 _model_descriptions.update(edgeai_mmdetection.detection.get_model_descriptions())
+_training_module_descriptions.update({'edgeai_mmdetection':[constants.TASK_TYPE_DETECTION]})
 
 
 # edgeai-yolov5
 if constants.PLUGINS_ENABLE_GPL:
     from . import edgeai_yolov5
     _model_descriptions.update(edgeai_yolov5.detection.get_model_descriptions())
+    _training_module_descriptions.update({'edgeai_yolov5':[constants.TASK_TYPE_DETECTION]})
 #
+
+
+def get_training_module_descriptions(target_device=None, training_device=None):
+    return _training_module_descriptions
 
 
 def get_model_descriptions(task_type=None, target_device=None, training_device=None):
