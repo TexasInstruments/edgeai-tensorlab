@@ -69,15 +69,17 @@ class BaseImageNetCls(ImageClassification):
             #
             self.class_names_dict = {k:self.class_names_dict[k] for k in sorted(self.class_names_dict.keys())}
             self.class_ids_dict = {k:id for id,(k,v) in enumerate(self.class_names_dict.items())}
+            categories = [{'id':i, 'name':v, 'wnid':k} for i, (k,v) in enumerate(self.class_names_dict.items())]
+            info = dict(description='ImageNet1K (ILSVRC 2012)', url='https://www.image-net.org/', version='1.0',
+                        year='2012',
+                        contributor='ImageNet Research Team: Prof. Li Fei-Fei, PI, Stanford University; Prof. Jia Deng, '
+                                    'Princeton University; Prof. Olga Russakovsky, Princeton University; Prof. Alex Berg, '
+                                    'UNC Chapel Hill, Facebook, Shopagon; Prof. Kai Li, Princeton University ',
+                        date_created='2012/june/12')
+            self.dataset_store = dict(info=info, categories=categories)
+        else:
+            self.dataset_store = None
         #
-        categories = [{'id':i, 'name':v, 'wnid':k} for i, (k,v) in enumerate(self.class_names_dict.items())]
-        info = dict(description='ImageNet1K (ILSVRC 2012)', url='https://www.image-net.org/', version='1.0',
-                    year='2012',
-                    contributor='ImageNet Research Team: Prof. Li Fei-Fei, PI, Stanford University; Prof. Jia Deng, '
-                                'Princeton University; Prof. Olga Russakovsky, Princeton University; Prof. Alex Berg, '
-                                'UNC Chapel Hill, Facebook, Shopagon; Prof. Kai Li, Princeton University ',
-                    date_created='2012/june/12')
-        self.dataset_store = dict(info=info, categories=categories)
         self.kwargs['dataset_info'] = self._get_dataset_info()
 
     def get_notice(self):
@@ -107,17 +109,16 @@ class BaseImageNetCls(ImageClassification):
             print(utils.log_color('\nINFO', 'dataset info exists - will reuse', extra_root))
             return extra_root
         #
+        
         extra_url = 'http://dl.caffe.berkeleyvision.org/caffe_ilsvrc12.tar.gz'
-
         extra_path = utils.download_file(extra_url, root=download_root, extract_root=extra_root,
                                          force_download=self.force_download)
         if split_file is not None:
-            if not os.path.exists(split_file):
-                for f in ['train.txt', 'val.txt', 'test.txt']:
-                    dest_file = os.path.join(root, f)
-                    if not os.path.exists(dest_file):
-                        shutil.copy2(os.path.join(extra_path, f), dest_file)
-                    #
+            for f in ['train.txt', 'val.txt', 'test.txt']:
+                source_file = os.path.join(extra_path, f)
+                dest_file = os.path.join(root, f)
+                if os.path.exists(source_file) and not os.path.exists(dest_file):
+                    shutil.copy2(source_file, dest_file)
                 #
             #
         #
@@ -130,6 +131,9 @@ class BaseImageNetCls(ImageClassification):
         return root
 
     def _get_dataset_info(self):
+        if self.dataset_store is None:
+            return None
+        #
         # return only info and categories for now as the whole thing could be quite large.
         dataset_store = dict()
         for key in ('info', 'categories'):
