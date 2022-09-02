@@ -92,7 +92,7 @@ def run_report(settings, rewrite_results=True):
         #
         settings_names.append(settings_name)
     #
-    if len(results_collection) == 0:
+    if len(results_collection) == 0 or results_max_name is None:
         print('no results found - no report to generate.')
         return
     #
