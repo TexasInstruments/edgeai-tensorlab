@@ -41,6 +41,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('settings_file', type=str, default=None)
+    parser.add_argument('--target_device', type=str)
     parser.add_argument('--tensor_bits', type=utils.str_to_int)
     parser.add_argument('--configs_path', type=str)
     parser.add_argument('--models_path', type=str)

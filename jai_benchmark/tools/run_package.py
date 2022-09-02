@@ -91,6 +91,7 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
 
     # local artifacts folder
     relative_artifacts_dir = artifacts_folder.replace(run_dir, '')
+    relative_artifacts_dir = relative_artifacts_dir.lstrip(os.sep)
 
     # create the param file in source folder with relative paths
     param_file = os.path.join(run_dir, 'param.yaml')
