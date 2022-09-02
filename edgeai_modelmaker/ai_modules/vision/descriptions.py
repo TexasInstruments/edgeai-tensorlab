@@ -65,7 +65,7 @@ def _get_paretto_front_approx(xy_list, x_index=0, y_index=1, inverse_relaionship
     #
     efficiency_list = sorted(efficiency_list, key=lambda x:x[-1], reverse=True)
     # take the good models
-    num_models_selected = max(len(efficiency_list)//2, 1)
+    num_models_selected = max(len(efficiency_list)*2//3, 1)
     efficiency_list = efficiency_list[:num_models_selected]
     selected_indices = [xy[2] for xy in efficiency_list]
     selected_entries = [xy for xy in xy_list if xy[2] in selected_indices]
