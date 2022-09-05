@@ -18,20 +18,28 @@ from google.protobuf import text_format
 from yolox.utils.proto.pytorch2proto import prepare_model_for_layer_outputs, retrieve_onnx_names
 
 import cv2
-
-_SUPPORTED_DATASETS = ["coco", "linemod", "coco_kpts"]
-_NUM_CLASSES = {"coco":80, "linemod":15, "coco_kpts":57}
+_SUPPORTED_DATASETS = ["coco", "linemod_occlusion","linemod_occlusion_pbr", "ycb", "coco_kpts"]
+_NUM_CLASSES = {"coco":80, "linemod_occlusion":15, "linemod_occlusion_pbr":15, "ycb": 21, "coco_kpts":1}
 _VAL_ANN = {
     "coco":"instances_val2017.json", 
-    "linemod":"instances_test.json"
+    "linemod_occlusion":"instances_test.json",
+    "linemod_occlusion_pbr":"instances_test.json",
+    "ycb": "instances_test.json",
+    "coco_kpts": "person_keypoints_val2017.json",
 }
 _TRAIN_ANN = {
-    "coco":"instances_train2017.json", 
-    "linemod":"instances_train.json"
+    "coco":"instances_train2017.json",
+    "linemod_occlusion":"instances_train.json",
+    "linemod_occlusion_pbr":"instances_train.json",
+    "ycb": "instances_train.json",
+    "coco_kpts": "person_keypoints_train2017.json",
 }
 _SUPPORTED_TASKS = {
     "coco":["2dod"],
-    "linemod":["2dod", "object_pose"]
+    "linemod_occlusion":["2dod", "object_pose"],
+    "linemod_occlusion_pbr":["2dod", "object_pose"],
+    "ycb":["2dod", "object_pose"],
+    "coco_kpts": ["2dod", "human_pose"],
 }
 
 def make_parser():
