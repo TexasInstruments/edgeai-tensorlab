@@ -270,15 +270,19 @@ class YOLOXObjectPoseHead(nn.Module):
 
             rot_feat = rot_conv(rot_x)  #NEW
             rot_preproc = self.rot_preds[k](rot_feat)
-            rot_c1 = F.normalize(rot_preproc[:, :3, :, :], dim=1)
-            rot_c2 = F.normalize(rot_preproc[:, 3:, :, :] - torch.sum(rot_c1 * rot_preproc[:, 3:, :, :], dim=1, keepdim=True) * rot_c1, dim=1)
-            rot_output = torch.cat([rot_c1, rot_c2], dim=1)
+            # rot_c1 = F.normalize(rot_preproc[:, :3, :, :], dim=1)
+            # rot_c2 = F.normalize(rot_preproc[:, 3:, :, :] - torch.sum(rot_c1 * rot_preproc[:, 3:, :, :], dim=1, keepdim=True) * rot_c1, dim=1)
+            # rot_output = torch.cat([rot_c1, rot_c2], dim=1)
             
             trn_feat = trn_conv(trn_x)  #NEW
             trn_xy_output = self.trn_preds_xy[k](trn_feat)
             trn_z_output = self.trn_preds_z[k](trn_feat)
 
             if self.training:
+                rot_c1 = F.normalize(rot_preproc[:, :3, :, :], dim=1)
+                rot_c2 = F.normalize(rot_preproc[:, 3:, :, :] - torch.sum(rot_c1 * rot_preproc[:, 3:, :, :], dim=1, keepdim=True) * rot_c1, dim=1)
+                rot_output = torch.cat([rot_c1, rot_c2], dim=1)
+
                 output = torch.cat([reg_output, obj_output, rot_output, trn_xy_output, trn_z_output, cls_output], 1)
                 output, grid = self.get_output_and_grid(
                     output, k, stride_this_level, xin[0].type()
@@ -303,8 +307,14 @@ class YOLOXObjectPoseHead(nn.Module):
 
             else:
                 output = torch.cat(
-                    [reg_output, obj_output.sigmoid(), rot_output, trn_xy_output, trn_z_output, cls_output.sigmoid()], 1
+                    [reg_output, obj_output, rot_preproc, trn_xy_output, trn_z_output, cls_output], 1
                 )
+                output[:, 4:5, :, :] = torch.sigmoid(output[:, 4:5, :, :])
+                output[:, 14:, :, :] = torch.sigmoid(output[:, 14:, :, :])
+
+                rot_c1 = F.normalize(output[:, 5:8, :, :], dim=1)
+                rot_c2 = F.normalize(output[:, 8:11, :, :] - torch.sum(rot_c1 * output[:, 8:11, :, :], dim=1, keepdim=True) * rot_c1, dim=1)
+                output[:, 5:11, :, :] = torch.cat([rot_c1, rot_c2], dim=1)
 
             outputs.append(output)
 
@@ -865,6 +875,7 @@ class YOLOXObjectPoseHead(nn.Module):
                 pred_transformed_model = torch.matmul(R_pred[cls_idx], sparse_model.T)
                 gt_transformed_model = torch.matmul(R_gt[cls_idx], sparse_model.T)
 
+            #if torch.sum(cls_idx) != 0:
             if model_idx not in self.cad_models.symmetric_objects.keys():
                 mse = ((pred_transformed_model - gt_transformed_model) ** 2).mean(axis=-1).sum(axis=-1)
             else:
