@@ -143,6 +143,8 @@ class ConfigDict(dict):
         self.run_missing = True
         # detection threshold
         self.detection_thr = 0.3
+        # detection  - top_k boxes that go into nms (this is not the final boxes that are kept - that is keep_top_k, detection_max)
+        self.detection_top_k = 200
         # max number of detections
         self.detection_max = 1000
         # save detection, segmentation output

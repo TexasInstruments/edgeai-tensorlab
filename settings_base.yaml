@@ -97,6 +97,9 @@ input_optimization : null
 # detection threshold
 detection_thr : 0.3
 
+# detection  - top_k boxes that go into nms (this is not the final boxes that are kept - that is keep_top_k, detection_max)
+detection_top_k : 200
+
 # verbose mode - print out more information
 verbose : False
 
