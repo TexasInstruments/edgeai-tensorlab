@@ -30,14 +30,6 @@ from jai_benchmark import constants, utils, datasets, preprocess, sessions, post
 
 
 def get_configs(settings, work_dir):
-
-    # to define the names of first and last layer for 16 bit conversion
-    first_last_layer = {
-        'mobilenetv2_fpn_spp_udp': '363,561',
-        'resnet50_fpn_spp_udp': '369,590',
-        'mobilenetv2_pan_spp_udp': '669,1384', 
-        'resnet50_pan_spp_udp': '675,1416' 
-    }
     # get the sessions types to use for each model type
     onnx_session_type = settings.get_session_type(constants.MODEL_TYPE_ONNX)
 
@@ -45,6 +37,11 @@ def get_configs(settings, work_dir):
     postproc_transforms = postprocess.PostProcessTransforms(settings)
 
     # configs for each model pipeline
+    # TIDL has post processing (simlar to object detection post processing) inside it for keypoint estimation
+    # These models use that keypoint post processing
+    # YOLO-Pose: Enhancing YOLO for Multi Person Pose Estimation Using Object Keypoint Similarity Loss
+    # Debapriya Maji, Soyeb Nagori, Manu Mathew, Deepak Poddar
+    # https://arxiv.org/abs/2204.06806
     common_cfg = {
         'task_type': 'human_pose_estimation',
         'calibration_dataset': settings.dataset_cache['cocokpts']['calibration_dataset'],
@@ -56,50 +53,6 @@ def get_configs(settings, work_dir):
         #################################################################
         #       ONNX MODELS
         ################# onnx models ###############################
-        # human pose estimation : mobilenetv2 + fpn_spp + udp, Expected AP : 42.31
-        'kd-7000':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True,
-                backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
-                    'advanced_options:output_feature_16bit_names_list': first_last_layer['mobilenetv2_fpn_spp_udp']
-                    }),
-                model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/mobilenetv2_fpn_spp_udp_512_20210610.onnx'),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':42.31})
-        ),
-        # human pose estimation : resnet50 + fpn_spp, Expected AP : 50.4
-        'kd-7010':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True,
-                backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
-                        'advanced_options:output_feature_16bit_names_list': first_last_layer['resnet50_fpn_spp_udp']
-                        }),
-                model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/resnet50_fpn_spp_udp_512_20210610.onnx'),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':50.4})
-        ),
-        # human pose estimation : mobilenetv2 + pan_spp + udp, Expected AP : 45.41
-        'kd-7020':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True, 
-                backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), {
-                        'advanced_options:output_feature_16bit_names_list': first_last_layer['mobilenetv2_pan_spp_udp']
-                        }),
-                model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/mobilenetv2_pan_spp_udp_512_20210617.onnx'),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':45.41})
-        ),
-        # human pose estimation : resnet50 + pan_spp + udp, Expected AP : 51.62
-        'kd-7030':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True, 
-                backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), {
-                        'advanced_options:output_feature_16bit_names_list': first_last_layer['resnet50_pan_spp_udp']
-                        }),
-                model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/resnet50_pan_spp_udp_512_20210616.onnx'),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':51.62})
-        ),
         # yolov5 based keypoint/pose estimation - post processing is handled completely by TIDL
         'kd-7040':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True,  backend='cv2', pad_color=[114,114,114]),
