@@ -143,22 +143,22 @@ def apply_affine_to_object_pose(targets, target_size, M, scale, angle):
     # warp object center points [tx, ty]
     twidth, theight = target_size
     target_kpts = np.ones((num_gts, 3))
-    target_kpts[:, :2] = targets[:, 11:13]
+    target_kpts[:, :2] = targets[:, -3:-1]
     target_kpts = target_kpts @ M.T  # transform
-    targets[:, 11:13] = target_kpts
+    targets[:, -3:-1] = target_kpts
     #transform Rotation
-    r1 = targets[:, 5:8, None]
-    r2 = targets[:, 8:11, None]
+    r1 = targets[:, -9:-6, None]
+    r2 = targets[:, -6:-3, None]
     r3 = np.cross(r1, r2, axis=1)
     rotation_mat = np.concatenate((r1, r2, r3), axis=-1)
     deltaR = cv2.getRotationMatrix2D(angle=angle, center=(0, 0), scale=scale)
     deltaR = np.vstack( (deltaR, np.array([[0, 0, 1.0]])) )
     rotation_mat = deltaR @ rotation_mat
-    targets[:, 5:8] = rotation_mat[:, :, 0]
-    targets[:, 8:11] = rotation_mat[:, :, 1]
+    targets[:, -9:-6] = rotation_mat[:, :, 0]
+    targets[:, -6:-3] = rotation_mat[:, :, 1]
     # transform depth
     # There is no change in depth for rotation around z axis. Scaling reduces depth by the amount of scaling
-    targets[:, 13:] = targets[:, 13:] / scale
+    targets[:, -1] = targets[:, -1] / scale
     return targets
 
 

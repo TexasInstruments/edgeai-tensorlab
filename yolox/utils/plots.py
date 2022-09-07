@@ -225,7 +225,7 @@ def plot_images(images, targets, paths=None, fname='images.png', names=None, max
                 else:
                     kpts = image_targets[:, 6:].T    #kpts for prediction
             elif object_pose:
-                image_targets[:, 11:13] *= scale_factor
+                image_targets[:, -3:-1] *= scale_factor
             else:
                 kpts = None
 
@@ -258,7 +258,7 @@ def plot_images(images, targets, paths=None, fname='images.png', names=None, max
                             plot_one_box(box, mosaic, label=label, color=color, line_thickness=tl, human_pose=human_pose, kpts=kpts[:,j], steps=steps, orig_shape=(h,w))
                         elif object_pose:
                             pose = {}
-                            pose['xy'] = copy.deepcopy(image_targets[j][11:13])
+                            pose['xy'] = copy.deepcopy(image_targets[j][-3:-1])
                             rotation_vec, translation_vec = decode_rotation_translation(image_targets[j], camera_matrix=camera_matrix)
                             pose["rotation_vec"] = rotation_vec
                             pose["translation_vec"] = translation_vec

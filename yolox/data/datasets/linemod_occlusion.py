@@ -238,19 +238,19 @@ class LINEMODOcclusionDataset(Dataset):
                 obj_centre_2d = np.matmul(self.cad_models.camera_matrix.reshape(3,3), np.array(obj["T"])/obj["T"][2])[:2]  #rotation vec not required for the center point
                 #res[ix, 11:14] = obj["T"]
                 obj_centre_2d = np.squeeze(obj_centre_2d)
-                res[ix, 11:13] = obj_centre_2d
-                res[ix, 13] = obj["T"][2] / 100.0
+                res[ix, -3:-1] = obj_centre_2d
+                res[ix, -1] = obj["T"][2] / 100.0
                 #obj["R_aa"], _ = cv2.Rodrigues(np.array(obj["R"]).reshape(3,3))
                 #obj["R_aa"] = np.squeeze(obj["R_aa"])
                 #Use Gram-Schmidt to make the rotation representation continuous and in 6D
                 #https://towardsdatascience.com/better-rotation-representations-for-accurate-pose-estimation-e890a7e1317f
                 R_gs = np.array(obj["R"]).reshape(3,3)
                 obj["R_gs"] = np.squeeze(R_gs[:, :2].transpose().reshape(6, 1))
-                res[ix, 5:11] = obj["R_gs"]
+                res[ix, -9:-3] = obj["R_gs"]
             #print(res[ix, 11:13])
         r = min(self.img_size[0] / height, self.img_size[1] / width)
         res[:, :4] *= r
-        res[:, 11:13] *= r
+        res[:, -3:-1] *= r
 
         img_info = (height, width)
         resized_info = (int(height * r), int(width * r))

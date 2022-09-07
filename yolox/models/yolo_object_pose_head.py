@@ -282,8 +282,7 @@ class YOLOXObjectPoseHead(nn.Module):
                 rot_c1 = F.normalize(rot_preproc[:, :3, :, :], dim=1)
                 rot_c2 = F.normalize(rot_preproc[:, 3:, :, :] - torch.sum(rot_c1 * rot_preproc[:, 3:, :, :], dim=1, keepdim=True) * rot_c1, dim=1)
                 rot_output = torch.cat([rot_c1, rot_c2], dim=1)
-
-                output = torch.cat([reg_output, obj_output, rot_output, trn_xy_output, trn_z_output, cls_output], 1)
+                output = torch.cat([reg_output, obj_output, cls_output,  rot_output, trn_xy_output, trn_z_output], 1)
                 output, grid = self.get_output_and_grid(
                     output, k, stride_this_level, xin[0].type()
                 )
@@ -307,14 +306,13 @@ class YOLOXObjectPoseHead(nn.Module):
 
             else:
                 output = torch.cat(
-                    [reg_output, obj_output, rot_preproc, trn_xy_output, trn_z_output, cls_output], 1
+                    [reg_output, obj_output, cls_output,  rot_preproc, trn_xy_output, trn_z_output], 1
                 )
-                output[:, 4:5, :, :] = torch.sigmoid(output[:, 4:5, :, :])
-                output[:, 14:, :, :] = torch.sigmoid(output[:, 14:, :, :])
+                output[:, 4:5+self.num_classes, :, :] = torch.sigmoid(output[:, 4:5+self.num_classes, :, :])
 
-                rot_c1 = F.normalize(output[:, 5:8, :, :], dim=1)
-                rot_c2 = F.normalize(output[:, 8:11, :, :] - torch.sum(rot_c1 * output[:, 8:11, :, :], dim=1, keepdim=True) * rot_c1, dim=1)
-                output[:, 5:11, :, :] = torch.cat([rot_c1, rot_c2], dim=1)
+                rot_c1 = F.normalize(output[:, -9:-6, :, :], dim=1)
+                rot_c2 = F.normalize(output[:, -6:-3, :, :] - torch.sum(rot_c1 * output[:, -6:-3, :, :], dim=1, keepdim=True) * rot_c1, dim=1)
+                output[:, -9:-3, :, :] = torch.cat([rot_c1, rot_c2], dim=1)
 
             outputs.append(output)
 
@@ -345,7 +343,7 @@ class YOLOXObjectPoseHead(nn.Module):
         grid = self.grids[k]
 
         batch_size = output.shape[0]
-        n_ch = 14 + self.num_classes #Replace 14 with variable for features
+        n_ch = 14 + self.num_classes  # box_params=4, objectness_score=1, pose_params=9 (rotation=6, translation=3)
         hsize, wsize = output.shape[-2:]
         if grid.shape[2:4] != output.shape[2:4]:
             yv, xv = torch.meshgrid([torch.arange(hsize), torch.arange(wsize)])
@@ -358,8 +356,8 @@ class YOLOXObjectPoseHead(nn.Module):
         )
         grid = grid.view(1, -1, 2)
         output[..., :2] = (output[..., :2] + grid) * stride
-        output[..., 11:13] = (output[..., 11:13] + grid) * stride
-        output[..., 13:14] = torch.exp(output[..., 13:14])
+        output[..., -3:-1] = (output[..., -3:-1] + grid) * stride
+        output[..., -1:] = torch.exp(output[..., -1:])
         output[..., 2:4] = torch.exp(output[..., 2:4]) * stride
         return output, grid
 
@@ -377,8 +375,8 @@ class YOLOXObjectPoseHead(nn.Module):
         strides = torch.cat(strides, dim=1).type(dtype)
 
         outputs[..., :2] = (outputs[..., :2] + grids) * strides
-        outputs[..., 11:13] = (outputs[..., 11:13] + grids) * strides
-        outputs[..., 13:14] = torch.exp(outputs[..., 13:14])
+        outputs[..., -3:-1] = (outputs[..., -3:-1] + grids) * strides
+        outputs[..., -1:] = torch.exp(outputs[..., -1:])
         outputs[..., 2:4] = torch.exp(outputs[..., 2:4]) * strides
         return outputs
 
@@ -395,10 +393,10 @@ class YOLOXObjectPoseHead(nn.Module):
     ):
         bbox_preds = outputs[..., :4]  # [batch, n_anchors_all, 4]
         obj_preds = outputs[..., 4:5]  # [batch, n_anchors_all, 1]
-        rot_preds = outputs[..., 5:11] # [batch, n_anchors_all, 6]
-        trn_xy_preds = outputs[..., 11:13] # [batch, n_anchors_all, 2]
-        trn_z_preds = outputs[..., 13:14] # [batch, n_anchors_all, 1]
-        cls_preds = outputs[..., 14:]  # [batch, n_anchors_all, n_cls]
+        rot_preds = outputs[..., -9:-3] # [batch, n_anchors_all, 6]
+        trn_xy_preds = outputs[..., -3:-1] # [batch, n_anchors_all, 2]
+        trn_z_preds = outputs[..., -1:] # [batch, n_anchors_all, 1]
+        cls_preds = outputs[..., 5:5+self.num_classes]  # [batch, n_anchors_all, n_cls]
 
         # calculate targets
         mixup = labels.shape[2] > 14 #change to 14 from 5
@@ -444,9 +442,9 @@ class YOLOXObjectPoseHead(nn.Module):
                 fg_mask = outputs.new_zeros(total_num_anchors).bool()
             else:
                 gt_bboxes_per_image = labels[batch_idx, :num_gt, 1:5]
-                gt_rots_per_image = labels[batch_idx, :num_gt, 5:11]
-                gt_trns_xy_per_image = labels[batch_idx, :num_gt, 11:13]
-                gt_trns_z_per_image = labels[batch_idx, :num_gt, 13]
+                gt_rots_per_image = labels[batch_idx, :num_gt, -9:-3]
+                gt_trns_xy_per_image = labels[batch_idx, :num_gt, -3:-1]
+                gt_trns_z_per_image = labels[batch_idx, :num_gt, -1:]
                 gt_classes = labels[batch_idx, :num_gt, 0]
                 bboxes_preds_per_image = bbox_preds[batch_idx]
 
