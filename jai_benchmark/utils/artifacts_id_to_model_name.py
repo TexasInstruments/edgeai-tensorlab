@@ -355,7 +355,7 @@ model_id_artifacts_pair = {
     'ss-8710_onnxrt': 'ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512',
     'ss-8720_onnxrt': 'ONR-SS-8720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
     'ss-8730_onnxrt': 'ONR-SS-8730-deeplabv3-mobv3-lite-large-cocoseg21-512x512', #added in SDK8.0
-    'ss-8731_onnxrt': 'ONR-SS-8731-lraspp-mobV3-ti-lite-large-cocoseg21-512x512', #added in SDK8.0 #'ss-21-105-0'
+    'ss-8740_onnxrt': 'ONR-SS-8740-lraspp-mobV3-ti-lite-large-cocoseg21-512x512', #added in SDK8.0 #'ss-21-105-0'
 
     # Models for Robokit
     'ss-8810_onnxrt': 'ONR-SS-8810-deeplabv3lite-mobv2-robokit-768x432',
