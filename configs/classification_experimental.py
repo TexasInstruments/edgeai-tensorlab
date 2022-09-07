@@ -194,15 +194,6 @@ def get_configs(settings, work_dir):
         #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite2-fp32.tflite'),
         #     model_info=dict(metric_reference={'accuracy_top1%':77.6})
         # ),
-        # tf hosted models: classification squeezenet_1 expected_metric: 49.0% top-1 accuracy
-        'cl-0020':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_tflite(),
-            session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_mean=(123.68, 116.78, 103.94), input_scale=(1/255, 1/255, 1/255)),
-                runtime_options=settings.runtime_options_tflite_np2(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/squeezenet.tflite'),
-            metric=dict(label_offset_pred=-1),
-            model_info=dict(metric_reference={'accuracy_top1%':49.0})
-        ),
         # tf hosted models: classification densenet expected_metric: 74.98% top-1 accuracy (from publication)
         'cl-0150':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
