@@ -419,7 +419,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':76.15})
         ),
         # tensorflow/models: classification mobilenetv1_224x224 expected_metric: 71.0% top-1 accuracy (or is it 71.676% as this seems same as mlperf model)
-        'cl-3500':utils.dict_update(common_cfg,
+        'cl-3520':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=sessions.TVMDLRSession(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_tflite_np2(),
@@ -428,7 +428,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':71.0})
         ),
         # tf1 models: classification resnet50_v1 expected_metric: 75.2% top-1 accuracy
-        'cl-3510':utils.dict_update(common_cfg,
+        'cl-3530':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=sessions.TVMDLRSession(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.28, 103.53), input_scale=(1.0, 1.0, 1.0)),
                 runtime_options=settings.runtime_options_tflite_p2(),

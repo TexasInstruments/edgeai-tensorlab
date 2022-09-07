@@ -171,6 +171,9 @@ model_id_artifacts_pair = {
     'cl-3500_tvmdlr': 'TVM-CL-3500-mobv3-ti-lite-large-x2r', #added in SDK8.0 #'cl-10-107-0'
     'cl-3510_tvmdlr': 'TVM-CL-3510-hrnet-w30-c-gluon-mxnet', #added in SDK8.0 #'cl-10-064-0'
 
+    'cl-3520_tvmdlr': 'TVM-CL-3520-mobileNetV1',             #added in SDK8.4
+    'cl-3530_tvmdlr': 'TVM-CL-3530-resNet50V1',              #added in SDK8.4
+
     # TVM - OD
     'od-5000_tvmdlr': 'TVM-OD-5000-ssd1200-resNet34-mlperf-1200x1200',
     'od-5010_tvmdlr': 'TVM-OD-5010-yolov3-416x416',
@@ -532,7 +535,7 @@ recommended_model_list = {
     'od-2020_tflitert': 'TFL-OD-2020-ssdLite-mobDet-DSP-coco-320x320',
     'ss-2580_tflitert': 'TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512',
     'cl-3090_tvmdlr': 'TVM-CL-3090-mobileNetV2-tv',
-    'cl-3500_tvmdlr': 'TVM-CL-3500-mobileNetV1',
+    'cl-3520_tvmdlr': 'TVM-CL-3520-mobileNetV1',
     'od-5120_tvmdlr': 'TVM-OD-5120-ssdLite-mobDet-DSP-coco-320x320',
     'ss-5720_tvmdlr': 'TVM-SS-5720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
     'cl-6360_onnxrt': 'ONR-CL-6360-regNetx-200mf',
