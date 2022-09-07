@@ -14,38 +14,67 @@ See notes about recent changes/updates in this repository in [release notes](./d
 
 
 ## Installation
-Follow installation steps of [edgeai-torchvision](https://github.com/TexasInstruments/edgeai-torchvision) to install edgeai-torchvision. In same environment install [mmdetection3d](README_mmdet3d.md) by skipping pytorch and CUDA installtion step mentioned in the [mmdetection3d Installation Guide](./docs/en/getting_started.md#installation). Current repository tested for specific version of mmcv = 1.5.0, mmdet = 2.25.0, mmseg = 0.27.0. As pytorch and CUDA must have been installed as part of edgeai-torchvision installation. It has been tested for torch==1.10.0 and cuda = 11.3. edgeai-torchvision installation is required for QAT training only. Use following command for mmdetection3d installation 
+Follow installation steps of [edgeai-torchvision](https://github.com/TexasInstruments/edgeai-torchvision) to install edgeai-torchvision. In same environment install [mmdetection3d](README_mmdet3d.md) by skipping pytorch and CUDA installtion step mentioned in the [mmdetection3d Installation Guide](./docs/en/getting_started.md#installation). Current repository tested for specific version of mmcv = 1.5.0, mmdet = 2.25.0, mmseg = 0.27.0. As pytorch and CUDA must have been installed as part of edgeai-torchvision installation. It has been tested for torch==1.10.0 and cuda = 11.3. edgeai-torchvision installation is required for QAT training only. Use following command for mmdetection3d installation. 
 
+Steps to create working conda environment 
 ```bash
-pip3 install openmim
+conda create python=3.7 -n mmdet3d
+conda activate mmdet3d
+```
+Steps to install edgeai-torchvision (Can be avoided if QAT is not needed)
+```bash
+git clone https://github.com/TexasInstruments/edgeai-torchvision.git
+cd <edgeai-torchvision>
+./setup.sh
+```
 
-mim install mmcv-full==1.5.0
+Steps to install torch-onnx-torchinfo (Needed only when edgeai-torchvision is not installed)
+```bash
+pip3 install --no-input torch==1.10.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html
+pip3 install --no-input onnx==1.8.1
+pip3 install --no-input torchinfo
+```
 
-mim install mmdet==2.25.0
-
-mim install mmsegmentation==0.27.0
-
+Steps to install edgeai-mmdetection3d
+```bash
 git clone https://github.com/TexasInstruments/edgeai-mmdetection3d.git
-
-cd edgeai-mmdetection3d
-
+cd <edgeai-mmdetection3d>
+pip3 install openmim
+mim install mmcv-full==1.5.0
+mim install mmdet==2.25.0
+mim install mmsegmentation==0.27.0
 pip3 install -e .
-
 install other additional requirements by typing 
-
 pip install -r ./requirements.txt
 ```
-Prepare dataset as per original mmdetection3d documentation [dataset preperation](./docs/en/data_preparation.md). 
-**Currently only KITTI dataset with pointPillars network is supported**
-
-
-If QAT is not needed then edgeai-torchvision installation can be skipped and then complete steps of mmdetection3d installation has to be followed. 
-
 Note: It may ask to downgrade protobuf. In that case uninstall exisitng protobuf and downgrade to 3.20.0 using the command 
 ```bash
 pip uninstall protobuf
 pip install protobuf==3.20.0
 ```
+
+## Dataset Preperation
+Prepare dataset as per original mmdetection3d documentation [dataset preperation](./docs/en/data_preparation.md). 
+
+**Note: Currently only KITTI dataset with pointPillars network is supported. For KITTI dataset optional plane data can be downloaded from [KITTI Plane data](https://download.openmmlab.com/mmdetection3d/data/train_planes.zip). For preparing the KITTI data with plane, please refer the mmdetection3d external link [dataset preperation external Link](https://mmdetection3d.readthedocs.io/en/latest/datasets/kitti_det.html) and use below command from there**
+
+Steps for Kitti Dataset preperation
+```bash
+# Creating dataset folders
+cd <edgeai-mmdetection3d>
+mkdir ./data/kitti/ && mkdir ./data/kitti/ImageSets
+
+# Download data split
+wget -c https://raw.githubusercontent.com/traveller59/second.pytorch/master/second/data/ImageSets/test.txt --no-check-certificate --content-disposition -O ./data/kitti/ImageSets/test.txt
+wget -c  https://raw.githubusercontent.com/traveller59/second.pytorch/master/second/data/ImageSets/train.txt --no-check-certificate --content-disposition -O ./data/kitti/ImageSets/train.txt
+wget -c  https://raw.githubusercontent.com/traveller59/second.pytorch/master/second/data/ImageSets/val.txt --no-check-certificate --content-disposition -O ./data/kitti/ImageSets/val.txt
+wget -c  https://raw.githubusercontent.com/traveller59/second.pytorch/master/second/data/ImageSets/trainval.txt --no-check-certificate --content-disposition -O ./data/kitti/ImageSets/trainval.txt
+
+# Preparing the dataset
+cd <edgeai-mmdetection3d>
+python tools/create_data.py kitti --root-path ./data/kitti --out-dir ./data/kitti --extra-tag kitti --with-plane
+```
+
 ## Get Started
 Please see [Usage](./docs/det3d_usage.md) for training and testing with this repository.
 

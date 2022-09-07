@@ -18,6 +18,12 @@ Refer mmdetection3d documentation [Inference and Train with standard dataset](./
 
 3. Do QAT training with loading the weights from previous step using the command 
     "./tools/dist_train.sh configs/pointpillars/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car_qat.py <num_gpus>"
+    
+    E.g. 
+
+```bash
+    ./tools/dist_train.sh configs/pointpillars/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car_qat.py 2
+```
 
     Note: Check the load_from option in cfg file. It tries to load weights from previously trained model. If that path is not correct then change the cfg accordingly.
 
@@ -31,9 +37,9 @@ Refer mmdetection3d documentation [Inference and Train with standard dataset](./
 ```bash
     python ./tools/test.py ./configs/pointpillars/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car_qat.py ./work_dirs_quant/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car_qat/latest.pth --eval mAP
 ```
+    Note: This is single GPU evalution command. "./dist_test.sh" can be used for multiple GPU evalution process.
 
-
-5. To save TIDL friendly onnx file and related prototxt file set the flag "save_onnx_model" = True in the config file "tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car_qat.py" and repeat the previous step of evaluation. 
+5. To save TIDL friendly onnx file and related prototxt file set the flag "save_onnx_model" = True in the config file "tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car_qat.py" and repeat the previous step of evaluation. Saving of onnx model is supprted for only one GPU flow.
 
 
 ## ONNX & Prototxt Export
