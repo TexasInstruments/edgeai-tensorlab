@@ -537,7 +537,7 @@ recommended_model_list = {
     'cl-3090_tvmdlr': 'TVM-CL-3090-mobileNetV2-tv',
     'cl-3520_tvmdlr': 'TVM-CL-3520-mobileNetV1',
     'od-5120_tvmdlr': 'TVM-OD-5120-ssdLite-mobDet-DSP-coco-320x320',
-    'ss-5720_tvmdlr': 'TVM-SS-5720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
+    'ss-5710_tvmdlr': 'TVM-SS-5710-deeplabv3lite-mobv2-cocoseg21-512x512', # replaced with ss-5720 with ss-5710
     'cl-6360_onnxrt': 'ONR-CL-6360-regNetx-200mf',
     'od-8050_onnxrt': 'ONR-OD-8050-ssd-lite-regNetX-800mf-fpn-bgr-coco-512x512',
     'od-8220_onnxrt': 'ONR-OD-8220-yolox-s-lite-mmdet-coco-640x640',
