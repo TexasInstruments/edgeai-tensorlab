@@ -70,7 +70,7 @@ echo "installing: https://github.com/TexasInstruments/edgeai-benchmark"
 cd ../edgeai-benchmark
 # for setup.py develop mode to work inside docker environment, this is required
 git config --global --add safe.directory $(pwd)
-./setup.sh
+./setup_pc.sh
 
 echo "installing edgeai-modelmaker"
 cd ../edgeai-modelmaker
