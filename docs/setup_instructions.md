@@ -9,7 +9,7 @@ conda activate benchmark
 ## Installation Instructions
 After cloning this repository, install it as a Python package by running:
 ```
-./setup.sh
+./setup_pc.sh
 ```
 In the [requirements_pc.txt](../requirements_pc.txt), we have pillow-simd (as it is faster), but you can replace it with pillow if pillow-simd installation fails.
 
