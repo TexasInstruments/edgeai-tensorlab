@@ -134,20 +134,22 @@ Torchvision from Pytorch is one of the most popular packages for DNN training us
 ### TensorFlow Model Garden - Models Using Tensorflow 1.0 APIs
 - [Models Link](./imagenet1k/tf1-models/)
 - [Training Source Code](https://github.com/tensorflow/models)
-- [More Information - Hosted Models](https://www.tensorflow.org/lite/guide/hosted_models)
+- [More Information - Hosted Models](https://www.tensorflow.org/lite/models)
 - [More Information - Slim Models](https://github.com/tensorflow/models/tree/master/research/slim)
 
-|Dataset  |Model Name                   |Input Size|GigaMACs|Top-1 Accuracy%|Available|Notes |
-|---------|----------                   |----------|--------|--------       |---------|------|
-|ImageNet |MobileNetV1[2,11]            |224x224   |0.569   |71.0           |Y        |      |
-|ImageNet |MobileNetV2[3,11]            |224x224   |0.301   |71.9           |Y        |      |
-|ImageNet |MobileNetV2-1.4[3,11]        |224x224   |0.583   |75.0           |Y        |      |
-|ImageNet |SqueezeNet[12]               |224x224   |0.844   |49.0           |Y        |      |
-|ImageNet |DenseNet[13]                 |224x224   |3.08    |74.98          |Y        |      |
-|ImageNet |InceptionV1[14,11]           |224x224   |1.512   |69.63          |Y        |      |
-|ImageNet |InceptionV3[15,11]           |224x224   |5.74    |78.0           |Y        |      |
-|ImageNet |MNasNet[16,11]               |224x224   |0.315   |74.08          |Y        |      |
-|ImageNet |NasNetMobile[17,11]          |224x224   |0.136   |73.9           |Y        |      |
+|Dataset  | Model Name                         |Input Size| GigaMACs | Top-1 Accuracy% |Available| Notes |
+|---------|------------------------------------|----------|----------|-----------------|---------|---|
+|ImageNet | MobileNetV1[2,11]                  |224x224   | 0.569    | 71.0            |Y        |   |
+|ImageNet | MobileNetV2[3,11]                  |224x224   | 0.301    | 71.9            |Y        |   |
+|ImageNet | MobileNetV2-1.4[3,11]              |224x224   | 0.583    | 75.0            |Y        |   |
+|ImageNet | SqueezeNet[12]                     |224x224   | 0.844    | 49.0            |Y        |   |
+|ImageNet | DenseNet[13]                       |224x224   | 3.08     | 74.98           |Y        |   |
+|ImageNet | InceptionV1[14,11]                 |224x224   | 1.512    | 69.63           |Y        |   |
+|ImageNet | InceptionV3[15,11]                 |224x224   | 5.74     | 78.0            |Y        |   |
+|ImageNet | MNasNet[16,11]                     |224x224   | 0.315    | 74.08           |Y        |   |
+|ImageNet | NasNetMobile[17,11]                |224x224   | 0.136    | 73.9            |Y        |https://github.com/tensorflow/models/tree/master/research/slim/nets/nasnet   |
+|ImageNet | MobileNetV3-Large-Minimalistic[20] |224x224   | 0.2099   | 72.3            |Y        |https://github.com/tensorflow/models/tree/master/research/slim/nets/mobilenet   |
+|ImageNet | MobileNetV3-Small-Minimalistic[20] |224x224   | 0.0526   | 61.9            |Y        |https://github.com/tensorflow/models/tree/master/research/slim/nets/mobilenet   |
 
 </a>
 
