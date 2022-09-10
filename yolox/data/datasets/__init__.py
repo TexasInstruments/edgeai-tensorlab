@@ -4,9 +4,11 @@
 
 from .coco import COCODataset
 from .coco_classes import COCO_CLASSES
+from .linemod_classes import LINEMOD_CLASSES
+from .ycb_classes import YCB_CLASSES
 from .datasets_wrapper import ConcatDataset, Dataset, MixConcatDataset
 from .mosaicdetection import MosaicDetection
 from .voc import VOCDetection
-from .linemod_occlusion import LINEMODOcclusionDataset
-from .ycb import YCBDataset
+from .linemod_occlusion import LINEMODOcclusionDataset, CADModelsLM
+from .ycb import YCBDataset, CADModelsYCB
 from .coco_kpts import COCOKPTSDataset

@@ -10,13 +10,19 @@ from loguru import logger
 import cv2
 
 import torch
+import copy
+import numpy as np
 
 from yolox.data.data_augment import ValTransform
-from yolox.data.datasets import COCO_CLASSES
+from yolox.data.datasets import COCO_CLASSES, YCB_CLASSES, LINEMOD_CLASSES
+from yolox.data import CADModelsYCB, CADModelsLM
 from yolox.exp import get_exp
-from yolox.utils import fuse_model, get_model_info, postprocess, vis
+from yolox.utils import fuse_model, get_model_info, postprocess, postprocess_object_pose, vis
+from yolox.utils.object_pose_utils  import decode_rotation_translation
+from yolox.utils.plots import plot_one_box, colors
 
 IMAGE_EXT = [".jpg", ".jpeg", ".webp", ".bmp", ".png"]
+_NUM_CLASSES = {"coco":80, "linemod_occlusion":15, "linemod_occlusion_pbr": 15, "ycb": 21, "coco_kpts":1}
 
 
 def make_parser():
@@ -46,6 +52,8 @@ def make_parser():
         help="pls input your experiment description file",
     )
     parser.add_argument("-c", "--ckpt", default=None, type=str, help="ckpt for eval")
+    parser.add_argument( "--dataset", default=None, type=str, help="dataset is required for object_pose or human_pose estimation")
+    parser.add_argument( "--task", default="2dod", type=str, help="dataset is required for object_pose or human_pose estimation")
     parser.add_argument(
         "--device",
         default="cpu",
@@ -108,6 +116,8 @@ class Predictor(object):
         device="cpu",
         fp16=False,
         legacy=False,
+        task="2dod",
+        data_set="coco"
     ):
         self.model = model
         self.cls_names = cls_names
@@ -119,6 +129,9 @@ class Predictor(object):
         self.device = device
         self.fp16 = fp16
         self.preproc = ValTransform(legacy=legacy)
+        self.task = task
+        self.data_set = data_set
+        self.cad_models = model.head.cad_models
         if trt_file is not None:
             from torch2trt import TRTModule
 
@@ -146,6 +159,7 @@ class Predictor(object):
         img_info["ratio"] = ratio
 
         img, _ = self.preproc(img, None, self.test_size)
+        img_info["img"] = img.transpose(1, 2, 0)
         img = torch.from_numpy(img).unsqueeze(0)
         img = img.float()
         if self.device == "gpu":
@@ -158,10 +172,16 @@ class Predictor(object):
             outputs = self.model(img)
             if self.decoder is not None:
                 outputs = self.decoder(outputs, dtype=outputs.type())
-            outputs = postprocess(
-                outputs, self.num_classes, self.confthre,
-                self.nmsthre, class_agnostic=True
-            )
+            if self.task == "object_pose":
+                outputs = postprocess_object_pose(
+                    outputs, self.num_classes, self.confthre,
+                    self.nmsthre, class_agnostic=True
+                )
+            else:
+                outputs = postprocess(
+                    outputs, self.num_classes, self.confthre,
+                    self.nmsthre, class_agnostic=True
+                )
             logger.info("Infer time: {:.4f}s".format(time.time() - t0))
         return outputs, img_info
 
@@ -183,6 +203,29 @@ class Predictor(object):
         vis_res = vis(img, bboxes, scores, cls, cls_conf, self.cls_names)
         return vis_res
 
+    def visual_object_pose(self, output, img_info, cls_conf):
+        img = np.ascontiguousarray(img_info["img"])
+        im_cuboid = copy.deepcopy(img)
+        im_mask = copy.deepcopy(img)
+        camera_matrix = self.cad_models.camera_matrix
+        if output is None:
+            return img
+        output = output.cpu()
+        if isinstance(camera_matrix, dict):
+            camera_matrix = camera_matrix['camera_uw']
+        for ind in range(output.shape[0]):
+            pose = {}
+            pose['xy'] = output[ind, 11:13]
+            rotation_vec, translation_vec = decode_rotation_translation(output[ind], camera_matrix=camera_matrix)
+            pose["rotation_vec"] = rotation_vec
+            pose["translation_vec"] = translation_vec
+            cls = output[ind][-1]
+            color = colors(cls)
+            plot_one_box(output[ind], img, im_cuboid=im_cuboid, im_mask=im_mask, color=color, object_pose=True, label=str(int(cls.numpy())),
+                  cad_models=self.cad_models, camera_matrix=camera_matrix, pose=pose, block_x=0, block_y=0)
+        return [img, im_cuboid, im_mask]
+
+
 
 def image_demo(predictor, vis_folder, path, current_time, save_result):
     if os.path.isdir(path):
@@ -192,15 +235,26 @@ def image_demo(predictor, vis_folder, path, current_time, save_result):
     files.sort()
     for image_name in files:
         outputs, img_info = predictor.inference(image_name)
-        result_image = predictor.visual(outputs[0], img_info, predictor.confthre)
+        if predictor.task == "object_pose":
+            result_image = predictor.visual_object_pose(outputs[0], img_info, predictor.confthre)
+        else:
+            result_image = predictor.visual(outputs[0], img_info, predictor.confthre)
         if save_result:
             save_folder = os.path.join(
                 vis_folder, time.strftime("%Y_%m_%d_%H_%M_%S", current_time)
             )
             os.makedirs(save_folder, exist_ok=True)
-            save_file_name = os.path.join(save_folder, os.path.basename(image_name))
-            logger.info("Saving detection result in {}".format(save_file_name))
-            cv2.imwrite(save_file_name, result_image)
+            if isinstance(result_image, list):
+                images_type = ["box", "cuboid", "mask"]
+                for image, image_type  in zip(result_image, images_type):
+                    os.makedirs(os.path.join(save_folder, image_type), exist_ok=True)
+                    save_file_name = os.path.join(save_folder, image_type, os.path.basename(image_name))
+                    logger.info("Saving detection result in {}".format(save_file_name))
+                    cv2.imwrite(save_file_name, image)
+            else:
+                save_file_name = os.path.join(save_folder, os.path.basename(image_name))
+                logger.info("Saving detection result in {}".format(save_file_name))
+                cv2.imwrite(save_file_name, result_image)
         ch = cv2.waitKey(0)
         if ch == 27 or ch == ord("q") or ch == ord("Q"):
             break
@@ -297,10 +351,16 @@ def main(exp, args):
     else:
         trt_file = None
         decoder = None
+    if exp.data_set == "ycb":
+        cls_names = YCB_CLASSES
+    elif exp.data_set == "linemod_occlusion":
+        cls_names = LINEMOD_CLASSES
+    else:
+        cls_names = COCO_CLASSES
 
     predictor = Predictor(
-        model, exp, COCO_CLASSES, trt_file, decoder,
-        args.device, args.fp16, args.legacy,
+        model, exp, cls_names, trt_file, decoder,
+        args.device, args.fp16, args.legacy, args.task, exp.data_set
     )
     current_time = time.localtime()
     if args.demo == "image":
@@ -312,5 +372,6 @@ def main(exp, args):
 if __name__ == "__main__":
     args = make_parser().parse_args()
     exp = get_exp(args.exp_file, args.name)
-
+    exp.data_set = args.dataset if args.dataset is not None else exp.data_set
+    exp.num_classes = _NUM_CLASSES[args.dataset]
     main(exp, args)
