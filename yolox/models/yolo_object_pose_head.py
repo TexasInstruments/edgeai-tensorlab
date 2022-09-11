@@ -540,7 +540,7 @@ class YOLOXObjectPoseHead(nn.Module):
         rot_targets = torch.cat(rot_targets, 0)
         trn_xy_targets = torch.cat(trn_xy_targets, 0)
         trn_z_targets = torch.cat(trn_z_targets, 0)
-        trn_z_targets = trn_z_targets.unsqueeze(-1)
+        #trn_z_targets = trn_z_targets.unsqueeze(-1)
         obj_targets = torch.cat(obj_targets, 0)
         fg_masks = torch.cat(fg_masks, 0)
         if self.use_l1:
