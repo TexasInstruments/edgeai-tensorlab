@@ -76,7 +76,7 @@ class PipelineRunner():
         self.pipeline_configs = pipelines_selected
 
     def run(self):
-        if self.settings.parallel_devices is not None:
+        if self.settings.parallel_devices is not None and len(self.settings.parallel_devices) > 0:
             return self._run_pipelines_parallel()
         else:
             return self._run_pipelines_sequential()
