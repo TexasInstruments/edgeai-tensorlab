@@ -4,7 +4,7 @@
 
 This repository is an extension of the popular [mmdetection3d](https://github.com/open-mmlab/mmdetection3d) open source repository for 3d object detection. While mmdetection3d focuses on a wide variety of models, typically at high complexity, we focus on models that are optimized for speed and accuracy so that they run efficiently on embedded devices. For this purpose, we have added a set of embedded friendly model configurations and scripts.
 
-If the accuracy degradation with Post Training Quantization (PTQ) is higher than expected, for that pupose this repository provides instructions and functionality to do Quantization Aware Training (QAT).
+This repository also supports Quantization Aware Training (QAT).
 
 <hr>
 
@@ -13,29 +13,22 @@ If the accuracy degradation with Post Training Quantization (PTQ) is higher than
 See notes about recent changes/updates in this repository in [release notes](./docs/det3d_release_notes.md)
 
 
-## Installation
-Follow installation steps of [edgeai-torchvision](https://github.com/TexasInstruments/edgeai-torchvision) to install edgeai-torchvision. In same environment install [mmdetection3d](README_mmdet3d.md) by skipping pytorch and CUDA installtion step mentioned in the [mmdetection3d Installation Guide](./docs/en/getting_started.md#installation). Current repository tested for specific version of mmcv = 1.5.0, mmdet = 2.25.0, mmseg = 0.27.0. As pytorch and CUDA must have been installed as part of edgeai-torchvision installation. It has been tested for torch==1.10.0 and cuda = 11.3. edgeai-torchvision installation is required for QAT training only. Use following command for mmdetection3d installation. 
+## Installation Steps for QAT Training
+Follow installation steps of [edgeai-torchvision](https://github.com/TexasInstruments/edgeai-torchvision) to install edgeai-torchvision. In same environment install [mmdetection3d](README_mmdet3d.md) by skipping pytorch and CUDA installtion step mentioned in the [mmdetection3d Installation Guide](./docs/en/getting_started.md#installation). As pytorch and CUDA must have been installed as part of edgeai-torchvision installation.
 
-Steps to create working conda environment 
+Steps #1 create working conda environment 
 ```bash
 conda create python=3.7 -n mmdet3d
 conda activate mmdet3d
 ```
-Steps to install edgeai-torchvision (Can be avoided if QAT is not needed)
+Steps #2 Install edgeai-torchvision (Can be avoided if QAT is not needed)
 ```bash
 git clone https://github.com/TexasInstruments/edgeai-torchvision.git
 cd <edgeai-torchvision>
 ./setup.sh
 ```
 
-Steps to install torch-onnx-torchinfo (Needed only when edgeai-torchvision is not installed)
-```bash
-pip3 install --no-input torch==1.10.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html
-pip3 install --no-input onnx==1.8.1
-pip3 install --no-input torchinfo
-```
-
-Steps to install edgeai-mmdetection3d
+Steps #3 edgeai-mmdetection3d
 ```bash
 git clone https://github.com/TexasInstruments/edgeai-mmdetection3d.git
 cd <edgeai-mmdetection3d>
@@ -47,6 +40,17 @@ pip3 install -e .
 install other additional requirements by typing 
 pip install -r ./requirements.txt
 ```
+## Installation Steps for Float Training
+
+Follow the previouly mentioned steps of installation for QAT training, with exception of step #2 (edgeai-torchvision installation). Instead of above step #2 execute below commands to just install torch, onnx, torchinfo instead of complete edgeai-torchvision.
+
+Alternative Steps #2, Install torch-onnx-torchinfo (Needed only when edgeai-torchvision is not installed)
+```bash
+pip3 install --no-input torch==1.10.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html
+pip3 install --no-input onnx==1.8.1
+pip3 install --no-input torchinfo
+```
+
 Note: It may ask to downgrade protobuf. In that case uninstall exisitng protobuf and downgrade to 3.20.0 using the command 
 ```bash
 pip uninstall protobuf
@@ -56,7 +60,7 @@ pip install protobuf==3.20.0
 ## Dataset Preperation
 Prepare dataset as per original mmdetection3d documentation [dataset preperation](./docs/en/data_preparation.md). 
 
-**Note: Currently only KITTI dataset with pointPillars network is supported. For KITTI dataset optional plane data can be downloaded from [KITTI Plane data](https://download.openmmlab.com/mmdetection3d/data/train_planes.zip). For preparing the KITTI data with plane, please refer the mmdetection3d external link [dataset preperation external Link](https://mmdetection3d.readthedocs.io/en/latest/datasets/kitti_det.html) and use below command from there**
+**Note: Currently only KITTI dataset with pointPillars network is supported. For KITTI dataset optional ground plane data can be downloaded from [KITTI Plane data](https://download.openmmlab.com/mmdetection3d/data/train_planes.zip). For preparing the KITTI data with ground plane, please refer the mmdetection3d external link [dataset preperation external Link](https://mmdetection3d.readthedocs.io/en/latest/datasets/kitti_det.html) and use below command from there**
 
 Steps for Kitti Dataset preperation
 ```bash

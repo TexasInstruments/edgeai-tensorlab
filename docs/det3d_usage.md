@@ -2,13 +2,13 @@
 
 ## Training/Evaluation/Testing
 
-Refer mmdetection3d documentation [Inference and Train with standard dataset](./en/1_exist_data_model.md) for training/evaluation/testing steps for standard dataset.
+Refer mmdetection3d documentation [Inference and Train with standard dataset](./en/1_exist_data_model.md) for floating point training/evaluation/testing steps for standard dataset. For QAT training floow the below steps.
 
 ### Steps for QAT training for pointpillars
 1. cd to installation directory <install_dir>/edgeai-mmdetection3d
 
 
-2. First do normal training using the command 
+2. First do float training using the command 
     "./tools/dist_train.sh configs/pointpillars/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car.py <num_gpus>"
 
     E.g. to use 2 GPUs use the command
@@ -39,11 +39,9 @@ Refer mmdetection3d documentation [Inference and Train with standard dataset](./
 ```
     Note: This is single GPU evalution command. "./dist_test.sh" can be used for multiple GPU evalution process.
 
-5. To save TIDL friendly onnx file and related prototxt file set the flag "save_onnx_model" = True in the config file "tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car_qat.py" and repeat the previous step of evaluation. Saving of onnx model is supprted for only one GPU flow.
-
 
 ## ONNX & Prototxt Export
-Make sure that the appropriate config file is selected while training/evalution and set the field "save_onnx_model = True" in that config file, then onnx file and the prototxt file will be saved at the reload checkpoint location. This flow is supported for single GPU mode only.
+Make sure that the appropriate config file is selected while evalution and set the field "save_onnx_model = True" in that config file, then onnx file and the prototxt file will be saved at the reload checkpoint location. This flow is supported for single GPU mode only.
 
 Note: If you did QAT, then the flag quantize in the config file must be set to True even at this stage. 
 
