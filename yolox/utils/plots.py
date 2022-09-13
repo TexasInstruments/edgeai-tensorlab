@@ -24,7 +24,7 @@ colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
 def plot_one_box(x, im, im_cuboid=None, im_mask=None, color=None, label=None, line_thickness=3, human_pose=False, object_pose=False, kpts=None, steps=2, orig_shape=None, pose=None,
-                 cad_models=None, camera_matrix=None, block_x=None, block_y=None):
+                 cad_models=None, camera_matrix=None, block_x=None, block_y=None, cls_names=None):
     # Plots one bounding box on image 'im' using OpenCV
     assert im.data.contiguous, 'Image not contiguous. Apply np.ascontiguousarray(im) to plot_on_box() input image.'
     tl = line_thickness or round(0.002 * (im.shape[0] + im.shape[1]) / 2) + 1  # line/font thickness
@@ -39,6 +39,23 @@ def plot_one_box(x, im, im_cuboid=None, im_mask=None, color=None, label=None, li
             c2 = c1[0] + t_size[0], c1[1] - t_size[1] - 3
             cv2.rectangle(im, c1, c2, color, -1, cv2.LINE_AA)  # filled
             cv2.putText(im, label, (c1[0], c1[1] - 2), 0, tl / 6, [225, 255, 255], thickness=tf//2, lineType=cv2.LINE_AA)
+
+    if cls_names is not None:  #This block is enabled from demo.py. Have to be enabled for
+        score = x[4] * x[-2]
+        text = '{} : {:.1f}%'.format(cls_names[int(x[-1])], score * 100)
+        txt_color = color
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        txt_size = cv2.getTextSize(text, font, 0.4, 1)[0]
+        txt_bk_color = (np.array(color) * 0.7).astype(np.uint8).tolist()
+        cv2.rectangle(
+            im,
+            (c1[0], c1[1] + 1),
+            (c1[0] + txt_size[0] + 1, c1[1] + int(1.5*txt_size[1])),
+            txt_bk_color,
+            -1
+        )
+        cv2.putText(im, text, (c1[0], c1[1] + txt_size[1]), font, 0.4, txt_color, thickness=1)
+
     if human_pose:
         plot_skeleton_kpts(im, kpts, steps, orig_shape=orig_shape)
     elif object_pose:

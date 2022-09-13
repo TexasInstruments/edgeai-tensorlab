@@ -205,6 +205,7 @@ class Predictor(object):
 
     def visual_object_pose(self, output, img_info, cls_conf):
         img = np.ascontiguousarray(img_info["img"])
+        img_2d = copy.deepcopy(img)
         im_cuboid = copy.deepcopy(img)
         im_mask = copy.deepcopy(img)
         camera_matrix = self.cad_models.camera_matrix
@@ -221,9 +222,9 @@ class Predictor(object):
             pose["translation_vec"] = translation_vec
             cls = output[ind][-1]
             color = colors(cls)
-            plot_one_box(output[ind], img, im_cuboid=im_cuboid, im_mask=im_mask, color=color, object_pose=True, label=str(int(cls.numpy())),
-                  cad_models=self.cad_models, camera_matrix=camera_matrix, pose=pose, block_x=0, block_y=0)
-        return [img, im_cuboid, im_mask]
+            plot_one_box(output[ind], img_2d, im_cuboid=im_cuboid, im_mask=im_mask, color=color, object_pose=True, label=str(int(cls.numpy())),
+                  cad_models=self.cad_models, camera_matrix=camera_matrix, pose=pose, block_x=0, block_y=0, cls_names=self.cls_names)
+        return [img, img_2d, im_cuboid, im_mask]
 
 
 
@@ -245,7 +246,7 @@ def image_demo(predictor, vis_folder, path, current_time, save_result):
             )
             os.makedirs(save_folder, exist_ok=True)
             if isinstance(result_image, list):
-                images_type = ["box", "cuboid", "mask"]
+                images_type = ["raw_img", "box", "cuboid", "mask"]
                 for image, image_type  in zip(result_image, images_type):
                     os.makedirs(os.path.join(save_folder, image_type), exist_ok=True)
                     save_file_name = os.path.join(save_folder, image_type, os.path.basename(image_name))
@@ -255,6 +256,15 @@ def image_demo(predictor, vis_folder, path, current_time, save_result):
                 save_file_name = os.path.join(save_folder, os.path.basename(image_name))
                 logger.info("Saving detection result in {}".format(save_file_name))
                 cv2.imwrite(save_file_name, result_image)
+            save_txt = True
+            if save_txt:
+                os.makedirs(os.path.join(save_folder, 'txt'), exist_ok=True)
+                save_file_name = os.path.join(save_folder, 'txt', os.path.basename(image_name).split('.')[0]+'.txt')
+                with open(save_file_name, 'a') as f:
+                    for output in outputs[0]:
+                        line = output.tolist()
+                        f.write(('%8.5g  ' * len(line)).rstrip() % tuple(line) + '\n')
+
         ch = cv2.waitKey(0)
         if ch == 27 or ch == ord("q") or ch == ord("Q"):
             break
