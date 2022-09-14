@@ -36,61 +36,68 @@ from . import observer
 
 def _get_qat_qconfig(backend=None, weight_observer=None, activation_observer=None,
                      weight_qscheme=None, activation_qscheme=None):
-    weight_config = quantization.FusedMovingAvgObsFakeQuantize.with_args(
-        observer=weight_observer, quant_min=-128, quant_max=127, dtype=torch.qint8, qscheme=weight_qscheme)
-    if backend == 'fbgemm':
-        activation_config = quantization.FusedMovingAvgObsFakeQuantize.with_args(
-            observer=activation_observer, quant_min=0, quant_max=255, reduce_range=True, qscheme=activation_qscheme)
-        qconfig = quantization.QConfig(activation=activation_config, weight=weight_config)
-    elif backend == 'qnnpack':
-        activation_config = quantization.FusedMovingAvgObsFakeQuantize.with_args(
-            observer=activation_observer, quant_min=0, quant_max=255, reduce_range=False, qscheme=activation_qscheme)
-        qconfig = quantization.QConfig(activation=activation_config, weight=weight_config)
-    elif backend == 'onednn':
-        activation_config = quantization.FusedMovingAvgObsFakeQuantize.with_args(
-            observer=activation_observer, quant_min=0, quant_max=255, qscheme=activation_qscheme)
-        qconfig = quantization.QConfig(activation=activation_config, weight=weight_config)
+    # we support only symmetric types (per tensor or per channel) for weight
+    assert weight_qscheme in (torch.per_tensor_symmetric, torch.per_channel_symmetric), 'weight_qscheme must be one of the symmetric types'
+    weight_dtype = torch.qint8
+    weight_quant_min = -127
+    weight_quant_max = 127
+
+    # we can support both symmetric and affine types for activation
+    if activation_qscheme in (torch.per_tensor_symmetric, torch.per_channel_symmetric):
+        activation_dtype = torch.qint8
+        activation_quant_min = -127
+        activation_quant_max = 127
     else:
-        assert False, 'backend must be provided'
+        activation_dtype = torch.quint8
+        activation_quant_min = 0
+        activation_quant_max = 255
     #
+    activation_reduce_range = (backend == 'fbgemm') and (activation_qscheme != torch.per_tensor_symmetric)
+
+    weight_config = quantization.FusedMovingAvgObsFakeQuantize.with_args(
+        observer=weight_observer,
+        quant_min=weight_quant_min, quant_max=weight_quant_max,
+        dtype=weight_dtype,
+        qscheme=weight_qscheme)
+
+    activation_config = quantization.FusedMovingAvgObsFakeQuantize.with_args(
+        observer=activation_observer,
+        quant_min=activation_quant_min, quant_max=activation_quant_max,
+        reduce_range=activation_reduce_range,
+        dtype=activation_dtype, qscheme=activation_qscheme)
+
+    qconfig = quantization.QConfig(activation=activation_config, weight=weight_config)
     return qconfig
 
 
-def get_per_tensor_symmetric_power2_qat_qconfig(backend=None,
-                                      weight_observer=observer.MovingAverageMinMaxObserverPower2,
-                                      activation_observer=observer.MovingAverageMinMaxObserverPower2,
-                                      weight_qscheme=torch.per_tensor_symmetric,
-                                      activation_qscheme=torch.per_tensor_symmetric):
-    return _get_qat_qconfig(backend=backend, weight_observer=weight_observer,
-                            activation_observer=activation_observer,
-                            weight_qscheme=weight_qscheme,
-                            activation_qscheme=activation_qscheme)
+def get_per_tensor_symmetric_power2_qat_qconfig(backend=None):
+    return _get_qat_qconfig(backend=backend,
+                            weight_observer=observer.MovingAverageMinMaxObserverPower2,
+                            activation_observer=observer.MovingAverageMinMaxObserverPower2,
+                            weight_qscheme=torch.per_tensor_symmetric,
+                            activation_qscheme=torch.per_tensor_symmetric)
+
+get_basic_qat_qconfig = get_per_tensor_symmetric_power2_qat_qconfig
 
 
-def get_per_channel_affine_qat_qconfig(backend=None,
-                                       weight_observer=quantization.MovingAveragePerChannelMinMaxObserver,
-                                       activation_observer=quantization.MovingAverageMinMaxObserver,
-                                       weight_qscheme=torch.per_channel_symmetric,
-                                       activation_qscheme=torch.per_tensor_affine):
-    return _get_qat_qconfig(backend=backend, weight_observer=weight_observer,
-                            activation_observer=activation_observer,
-                            weight_qscheme=weight_qscheme,
-                            activation_qscheme=activation_qscheme)
+def get_per_channel_affine_qat_qconfig(backend=None):
+    return _get_qat_qconfig(backend=backend,
+                            weight_observer=quantization.MovingAveragePerChannelMinMaxObserver,
+                            activation_observer=quantization.HistogramObserver,
+                            weight_qscheme=torch.per_channel_symmetric,
+                            activation_qscheme=torch.per_tensor_affine)
+
+get_advanced_qat_qconfig = get_per_channel_affine_qat_qconfig
 
 
-def get_basic_qat_qconfig(backend):
-    return get_per_tensor_symmetric_power2_qat_qconfig(backend)
-
-
-def get_default_qat_qconfig(backend):
-    return quantization.get_default_qat_qconfig(backend)
+# can also use torch.ao.quantization.get_default_qat_qconfig
 
 
 def get_qat_qconfig_for_target_device(backend, target_device='TDA4VM'):
     ''''this is initial implementation. we can implement more target_device specific qconfigs later'''
     if target_device is None:
-        return get_default_qat_qconfig(backend=backend) # pytorch default qconfig
+        return get_basic_qat_qconfig(backend=backend) # pytorch default qconfig
     elif target_device.lower() == 'tda4vm':
         return get_basic_qat_qconfig(backend=backend)
     else:
-        return get_per_channel_affine_qat_qconfig(backend=backend)
+        return get_advanced_qat_qconfig(backend=backend)
