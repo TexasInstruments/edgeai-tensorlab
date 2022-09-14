@@ -243,7 +243,10 @@ import random
 from colorama import Fore
 from .. import utils
 from .dataset_base import *
+from .kitti_object_eval_python import kitti_common as kitti
+from .kitti_object_eval_python.eval import get_official_eval_result, get_coco_eval_result
 import numpy as np
+import cv2
 
 class KittiLidar3D(DatasetBase):
     def __init__(self, download=False, read_anno=True, dest_dir=None, num_frames=None, name='kitti_lidar_det', **kwargs):
@@ -253,9 +256,8 @@ class KittiLidar3D(DatasetBase):
         assert 'num_classes' in self.kwargs, f'num_classes must be provided while creating {self.__class__.__name__}'
 
         path = self.kwargs['path']
-        split_folder = self.kwargs['split']
 
-        from tools.data_converter import kitti_converter as kitti
+        split_folder = self.kwargs['split']
 
         # download the data if needed
         if download:
@@ -265,39 +267,12 @@ class KittiLidar3D(DatasetBase):
             utils.log_color('\nERROR', 'dataset path is empty', path)
 
         # create list of images and classes
-        self.imgs = utils.get_data_list(input= path + "/ImageSets/val.txt", dest_dir=dest_dir)
-        self.num_frames = self.kwargs['num_frames'] = self.kwargs.get('num_frames',len(self.imgs))
+        self.val_image_ids = utils.get_data_list(input= path + "/ImageSets/val.txt", dest_dir=dest_dir)
+        self.num_frames = self.kwargs['num_frames'] = self.kwargs.get('num_frames',len(self.val_image_ids))
         shuffle = self.kwargs.get('shuffle', False)
         if shuffle:
             random.seed(int(shuffle))
-            random.shuffle(self.imgs)
-        #
-        if read_anno == True:
-            import pickle
-
-            if os.path.exists(os.path.join(self.kwargs['path'],'kitti_infos_val.pkl')) == False:
-                self.kitti_data_prep(root_path = self.kwargs['path'],
-                                info_prefix='kitti',
-                                version='v1.0',
-                                out_dir=self.kwargs['path'] + '/kitti_temp')
-
-            pipeline = [{'type':'LoadPointsFromFile', 'coord_type':'LIDAR', 'load_dim':4, 'use_dim':4},
-                        {'type': 'MultiScaleFlipAug3D', 'img_scale': (1333, 800), 'pts_scale_ratio': 1, 'flip': False, 'transforms': [{'type': 'GlobalRotScaleTrans', 'rot_range': [0, 0], 'scale_ratio_range': [1.0, 1.0], 'translation_std': [0, 0, 0]}, {'type': 'RandomFlip3D'}, {'type': 'PointsRangeFilter', 'point_cloud_range': [0, -39.68, -3, 69.12, 39.68, 1]}, {'type': 'DefaultFormatBundle3D', 'class_names': ['Car'], 'with_label': False}, {'type': 'Collect3D', 'keys': ['points']}]}
-                        ]
-
-            from mmdet3d.datasets import KittiDataset
-
-            self.kitti_dataset = KittiDataset(self.kwargs['path'],os.path.join(self.kwargs['path'],'kitti_infos_val.pkl'),
-                         self.kwargs['path'],
-                         pipeline=pipeline,
-                         pts_prefix='velodyne_reduced',
-                         modality = {'use_lidar':True, 'use_camera':False},
-                         classes=['Car'],
-                         test_mode=True)
-            assert self.num_frames <= len(self.kitti_dataset.data_infos), \
-                'Number of frames is higher than length of dataset \n'
-
-            self.kitti_dataset.data_infos = self.kitti_dataset.data_infos[:self.num_frames]
+            random.shuffle(self.val_image_ids)
 
         self.num_classes = kwargs['num_classes']
         self.class_to_name = {
@@ -308,40 +283,20 @@ class KittiLidar3D(DatasetBase):
                                 4: 'Person_sitting',
                         }
 
-    def kitti_data_prep(self, root_path, info_prefix, version, out_dir):
-        """Prepare data related to Kitti dataset.
+        self.class_names =[self.class_to_name[i] for i in range(self.num_classes)]
 
-        Related data consists of '.pkl' files recording basic infos,
-        2D annotations and groundtruth database.
+        self.pcd_limit_range = [0, -39.68, -3, 69.12, 39.68, 1]
 
-        Args:
-            root_path (str): Path of dataset root.
-            info_prefix (str): The prefix of info filenames.
-            version (str): Dataset version.
-            out_dir (str): Output directory of the groundtruth database info.
-        """
-        from tools.data_converter import kitti_converter as kitti
-        kitti.create_kitti_info_file(root_path, info_prefix)
-        kitti.create_reduced_point_cloud(root_path, info_prefix)
+        self.data_infos = []
 
-        info_train_path = osp.join(root_path, f'{info_prefix}_infos_train.pkl')
-        info_val_path = osp.join(root_path, f'{info_prefix}_infos_val.pkl')
-        info_trainval_path = osp.join(root_path,
-                                    f'{info_prefix}_infos_trainval.pkl')
-        info_test_path = osp.join(root_path, f'{info_prefix}_infos_test.pkl')
-        kitti.export_2d_annotation(root_path, info_train_path)
-        kitti.export_2d_annotation(root_path, info_val_path)
-        kitti.export_2d_annotation(root_path, info_trainval_path)
-        kitti.export_2d_annotation(root_path, info_test_path)
+        if read_anno:
+            #for idx in self.val_image_ids:
+            #    self.data_infos.append(self.read_db_info(idx))
 
-        create_groundtruth_database(
-            'KittiDataset',
-            root_path,
-            info_prefix,
-            f'{out_dir}/{info_prefix}_infos_train.pkl',
-            relative_path=False,
-            mask_anno_path='instances_train.json',
-            with_mask=(version == 'mask'))
+            self.gt_annos = kitti.get_label_annos(os.path.join(self.kwargs['path'],self.kwargs['split'],'label_2'), self.val_image_ids)
+
+            assert self.num_frames <= len(self.gt_annos), \
+                'Number of frames is higher than length of annotations available \n'
 
     def download(self, path, split_file):
         return None
@@ -349,7 +304,7 @@ class KittiLidar3D(DatasetBase):
     def __getitem__(self, idx, **kwargs):
 
         with_label = kwargs.get('with_label', False)
-        words = self.imgs[idx].split(' ')
+        words = self.val_image_ids[idx].split(' ')
         image_name = os.path.join(self.kwargs['path'],self.kwargs['split'],self.kwargs['pts_prefix']) + '/' + words[0] + '.bin'
         if with_label:
             assert len(words)>0, f'ground truth requested, but missing at the dataset entry for {words}'
@@ -363,21 +318,44 @@ class KittiLidar3D(DatasetBase):
         return self.num_frames
 
     def __call__(self, predictions, **kwargs):
-
-        acc = self.kitti_dataset.evaluate(predictions, metric='mAP')
+        dt_annos = self.bbox2result_kitti(predictions,self.class_names)
+        acc = get_official_eval_result(self.gt_annos, dt_annos, 0)(predictions, metric='mAP')
         ap_dict = {'KITTI/Car_3D_moderate_strict':acc}
         return ap_dict
 
-    def load_kitti_3d_obj_annotation(self, anno_path, split_file):
+    # https://github.com/open-mmlab/mmdetection3d/
+    def bbox2result_kitti(self,
+                          net_outputs,
+                          class_names,
+                          pklfile_prefix=None,
+                          submission_prefix=None):
+        """Convert 3D detection results to kitti format for evaluation and test
+        submission.
 
-        annos = []
+        Args:
+            net_outputs (list[np.ndarray]): List of array storing the
+                inferenced bounding boxes and scores.
+            class_names (list[String]): A list of class names.
+            pklfile_prefix (str): The prefix of pkl file.
+            submission_prefix (str): The prefix of submission file.
 
-        with open(split_file, 'r') as sf:
-            in_files = sf.readlines()
+        Returns:
+            list[dict]: A list of dictionaries with the kitti format.
+        """
+        assert len(net_outputs) == len(self.data_infos), \
+            'invalid list length of network outputs'
+        if submission_prefix is not None:
+            os.mkdir(submission_prefix)
 
-        for file in in_files:
-            annotations = {}
-            annotations.update({
+        det_annos = []
+        print('\nConverting prediction to KITTI format')
+        for idx, pred in enumerate(net_outputs):
+            annos = []
+            info = self.data_infos[idx]
+            sample_idx = info['image']['image_idx']
+            image_shape = info['image']['image_shape'][:2]
+            box_dict = self.convert_valid_bboxes(pred, info)
+            anno = {
                 'name': [],
                 'truncated': [],
                 'occluded': [],
@@ -385,39 +363,320 @@ class KittiLidar3D(DatasetBase):
                 'bbox': [],
                 'dimensions': [],
                 'location': [],
-                'rotation_y': []
-            })
-            with open(os.path.join(anno_path, file.strip())+'.txt', 'r') as f:
-                lines = f.readlines()
-            # if len(lines) == 0 or len(lines[0]) < 15:
-            #     content = []
-            # else:
-            content = [line.strip().split(' ') for line in lines]
-            num_objects = len([x[0] for x in content if x[0] != 'DontCare'])
-            annotations['name'] = np.array([x[0] for x in content])
-            num_gt = len(annotations['name'])
-            annotations['truncated'] = np.array([float(x[1]) for x in content])
-            annotations['occluded'] = np.array([int(x[2]) for x in content])
-            annotations['alpha'] = np.array([float(x[3]) for x in content])
-            annotations['bbox'] = np.array([[float(info) for info in x[4:8]]
-                                            for x in content]).reshape(-1, 4)
-            # dimensions will convert hwl format to standard lhw(camera) format.
-            annotations['dimensions'] = np.array([[float(info) for info in x[8:11]]
-                                                for x in content
-                                                ]).reshape(-1, 3)[:, [2, 0, 1]]
-            annotations['location'] = np.array([[float(info) for info in x[11:14]]
-                                                for x in content]).reshape(-1, 3)
-            annotations['rotation_y'] = np.array([float(x[14])
-                                                for x in content]).reshape(-1)
-            if len(content) != 0 and len(content[0]) == 16:  # have score
-                annotations['score'] = np.array([float(x[15]) for x in content])
+                'rotation_y': [],
+                'score': []
+            }
+            if len(box_dict['bbox']) > 0:
+                box_2d_preds = box_dict['bbox']
+                box_preds = box_dict['box3d_camera']
+                scores = box_dict['scores']
+                box_preds_lidar = box_dict['box3d_lidar']
+                label_preds = box_dict['label_preds']
+
+                for box, box_lidar, bbox, score, label in zip(
+                        box_preds, box_preds_lidar, box_2d_preds, scores,
+                        label_preds):
+                    bbox[2:] = np.minimum(bbox[2:], image_shape[::-1])
+                    bbox[:2] = np.maximum(bbox[:2], [0, 0])
+                    anno['name'].append(class_names[int(label)])
+                    anno['truncated'].append(0.0)
+                    anno['occluded'].append(0)
+                    anno['alpha'].append(
+                        -np.arctan2(-box_lidar[1], box_lidar[0]) + box[6])
+                    anno['bbox'].append(bbox)
+                    anno['dimensions'].append(box[3:6])
+                    anno['location'].append(box[:3])
+                    anno['rotation_y'].append(box[6])
+                    anno['score'].append(score)
+
+                anno = {k: np.stack(v) for k, v in anno.items()}
+                annos.append(anno)
             else:
-                annotations['score'] = np.zeros((annotations['bbox'].shape[0], ))
-            index = list(range(num_objects)) + [-1] * (num_gt - num_objects)
-            annotations['index'] = np.array(index, dtype=np.int32)
-            annotations['group_ids'] = np.arange(num_gt, dtype=np.int32)
+                anno = {
+                    'name': np.array([]),
+                    'truncated': np.array([]),
+                    'occluded': np.array([]),
+                    'alpha': np.array([]),
+                    'bbox': np.zeros([0, 4]),
+                    'dimensions': np.zeros([0, 3]),
+                    'location': np.zeros([0, 3]),
+                    'rotation_y': np.array([]),
+                    'score': np.array([]),
+                }
+                annos.append(anno)
 
-            annos.append(annotations)
+            annos[-1]['sample_idx'] = np.array(
+                [sample_idx] * len(annos[-1]['score']), dtype=np.int64)
 
-        return annos
+            det_annos += annos
 
+        return det_annos
+
+    # https://github.com/open-mmlab/mmdetection3d/
+    def convert_valid_bboxes(self, pred, info):
+        """Convert the predicted boxes into valid ones.
+
+        Args:
+            box_dict (dict): Box dictionaries to be converted.
+
+                - boxes_3d (:obj:`LiDARInstance3DBoxes`): 3D bounding boxes.
+                - scores_3d (torch.Tensor): Scores of boxes.
+                - labels_3d (torch.Tensor): Class labels of boxes.
+            info (dict): Data info.
+
+        Returns:
+            dict: Valid predicted boxes.
+
+                - bbox (np.ndarray): 2D bounding boxes.
+                - box3d_camera (np.ndarray): 3D bounding boxes in
+                    camera coordinate.
+                - box3d_lidar (np.ndarray): 3D bounding boxes in
+                    LiDAR coordinate.
+                - scores (np.ndarray): Scores of boxes.
+                - label_preds (np.ndarray): Class label predictions.
+                - sample_idx (int): Sample index.
+        """
+        # TODO: refactor this function
+        box_preds = pred[:, 3:6]
+        scores = pred[:, 2]
+        labels = pred[:, 1]
+        sample_idx = info['image']['image_idx']
+        offset = 0.5
+        period = np.pi
+        limited_val = pred[9] - np.floor(pred[9] / period + offset) * period
+
+        if len(box_preds) == 0:
+            return dict(
+                bbox=np.zeros([0, 4]),
+                box3d_camera=np.zeros([0, 7]),
+                box3d_lidar=np.zeros([0, 7]),
+                scores=np.zeros([0]),
+                label_preds=np.zeros([0, 4]),
+                sample_idx=sample_idx)
+
+        rect = info['calib']['R0_rect'].astype(np.float32)
+        Trv2c = info['calib']['Tr_velo_to_cam'].astype(np.float32)
+        P2 = info['calib']['P2'].astype(np.float32)
+        img_shape = info['image']['image_shape']
+        P2 = box_preds.tensor.new_tensor(P2)
+
+        z = np.ones((len(box_preds),1))
+        box_preds_with_ones = np.append(box_preds, z, axis=1)
+
+        box_preds_camera = box_preds_with_ones @ (rect @ Trv2c)
+
+        box_corners = self.boxes3d_to_corners3d_lidar(box_preds_camera)
+
+        box_corners_in_image = self.points_cam2img(box_corners, P2)
+        # box_corners_in_image: [N, 8, 2]
+        minxy = torch.min(box_corners_in_image, dim=1)[0]
+        maxxy = torch.max(box_corners_in_image, dim=1)[0]
+        box_2d_preds = torch.cat([minxy, maxxy], dim=1)
+        # Post-processing
+        # check box_preds_camera
+        image_shape = box_preds.tensor.new_tensor(img_shape)
+        valid_cam_inds = ((box_2d_preds[:, 0] < image_shape[1]) &
+                          (box_2d_preds[:, 1] < image_shape[0]) &
+                          (box_2d_preds[:, 2] > 0) & (box_2d_preds[:, 3] > 0))
+        # check box_preds
+        limit_range = box_preds.tensor.new_tensor(self.pcd_limit_range)
+        valid_pcd_inds = ((box_preds.center > limit_range[:3]) &
+                          (box_preds.center < limit_range[3:]))
+        valid_inds = valid_cam_inds & valid_pcd_inds.all(-1)
+
+        if valid_inds.sum() > 0:
+            return dict(
+                bbox=box_2d_preds[valid_inds, :].numpy(),
+                box3d_camera=box_preds_camera[valid_inds].tensor.numpy(),
+                box3d_lidar=box_preds[valid_inds].tensor.numpy(),
+                scores=scores[valid_inds].numpy(),
+                label_preds=labels[valid_inds].numpy(),
+                sample_idx=sample_idx)
+        else:
+            return dict(
+                bbox=np.zeros([0, 4]),
+                box3d_camera=np.zeros([0, 7]),
+                box3d_lidar=np.zeros([0, 7]),
+                scores=np.zeros([0]),
+                label_preds=np.zeros([0, 4]),
+                sample_idx=sample_idx)
+
+    # https://github.com/open-mmlab/mmdetection3d/
+    def read_db_info(self, idx, velodyne = True, with_imageshape=True, calib=True, with_plane = False, label_info = True, extend_matrix = True):
+        info = {}
+        pc_info = {'num_features': 4}
+        calib_info = {}
+
+        image_info = {'image_idx': idx}
+        annotations = None
+        relative_path = False
+        root_path =''
+        if velodyne:
+            pc_info['velodyne_path'] = os.path.join(self.kwargs['path'],self.kwargs['split'],self.kwargs['pts_prefix'], idx) + '.bin'
+        image_info['image_path'] = os.path.join(self.kwargs['path'],self.kwargs['split'],'image_2', idx) + '.png'
+
+        if with_imageshape:
+            img_path = image_info['image_path']
+            if relative_path:
+                img_path = str(root_path / img_path)
+            image_info['image_shape'] = np.array(
+                cv2.imread(img_path).shape[:2], dtype=np.int32)
+        if label_info:
+            label_path = os.path.join(self.kwargs['path'],self.kwargs['split'],'label_2', idx) + '.txt'
+            if relative_path:
+                label_path = str(root_path / label_path)
+            #annotations = get_label_anno(label_path)
+        info['image'] = image_info
+        info['point_cloud'] = pc_info
+        if calib:
+            calib_path = os.path.join(self.kwargs['path'], self.kwargs['split'],'calib', idx) + '.txt'
+            with open(calib_path, 'r') as f:
+                lines = f.readlines()
+            P0 = np.array([float(info) for info in lines[0].split(' ')[1:13]
+                           ]).reshape([3, 4])
+            P1 = np.array([float(info) for info in lines[1].split(' ')[1:13]
+                           ]).reshape([3, 4])
+            P2 = np.array([float(info) for info in lines[2].split(' ')[1:13]
+                           ]).reshape([3, 4])
+            P3 = np.array([float(info) for info in lines[3].split(' ')[1:13]
+                           ]).reshape([3, 4])
+            if extend_matrix:
+                P0 = self._extend_matrix(P0)
+                P1 = self._extend_matrix(P1)
+                P2 = self._extend_matrix(P2)
+                P3 = self._extend_matrix(P3)
+            R0_rect = np.array([float(info) for info in lines[4].split(' ')[1:10]]).reshape([3, 3])
+            if extend_matrix:
+                rect_4x4 = np.zeros([4, 4], dtype=R0_rect.dtype)
+                rect_4x4[3, 3] = 1.
+                rect_4x4[:3, :3] = R0_rect
+            else:
+                rect_4x4 = R0_rect
+
+            Tr_velo_to_cam = np.array([float(info) for info in lines[5].split(' ')[1:13]]).reshape([3, 4])
+            Tr_imu_to_velo = np.array([float(info) for info in lines[6].split(' ')[1:13]]).reshape([3, 4])
+            if extend_matrix:
+                Tr_velo_to_cam = self._extend_matrix(Tr_velo_to_cam)
+                Tr_imu_to_velo = self._extend_matrix(Tr_imu_to_velo)
+            calib_info['P0'] = P0
+            calib_info['P1'] = P1
+            calib_info['P2'] = P2
+            calib_info['P3'] = P3
+            calib_info['R0_rect'] = rect_4x4
+            calib_info['Tr_velo_to_cam'] = Tr_velo_to_cam
+            calib_info['Tr_imu_to_velo'] = Tr_imu_to_velo
+            info['calib'] = calib_info
+
+        return info
+
+    def _extend_matrix(self, mat):
+        mat = np.concatenate([mat, np.array([[0., 0., 0., 1.]])], axis=0)
+        return mat
+    #https://github.com/open-mmlab/mmdetection3d/
+    def boxes3d_to_corners3d_lidar(boxes3d, bottom_center=True):
+        """Convert kitti center boxes to corners.
+
+            7 -------- 4
+           /|         /|
+          6 -------- 5 .
+          | |        | |
+          . 3 -------- 0
+          |/         |/
+          2 -------- 1
+
+        Args:
+            boxes3d (np.ndarray): Boxes with shape of (N, 7) \
+                [x, y, z, w, l, h, ry] in LiDAR coords, see the definition of ry \
+                in KITTI dataset.
+            bottom_center (bool): Whether z is on the bottom center of object.
+
+        Returns:
+            np.ndarray: Box corners with the shape of [N, 8, 3].
+        """
+        boxes_num = boxes3d.shape[0]
+        w, l, h = boxes3d[:, 3], boxes3d[:, 4], boxes3d[:, 5]
+        x_corners = np.array(
+            [w / 2., -w / 2., -w / 2., w / 2., w / 2., -w / 2., -w / 2., w / 2.],
+            dtype=np.float32).T
+        y_corners = np.array(
+            [-l / 2., -l / 2., l / 2., l / 2., -l / 2., -l / 2., l / 2., l / 2.],
+            dtype=np.float32).T
+
+        if bottom_center:
+            z_corners = np.zeros((boxes_num, 8), dtype=np.float32)
+            z_corners[:, 4:8] = h.reshape(boxes_num, 1).repeat(4, axis=1)  # (N, 8)
+        else:
+            z_corners = np.array([
+                -h / 2., -h / 2., -h / 2., -h / 2., h / 2., h / 2., h / 2., h / 2.
+            ],
+                                 dtype=np.float32).T
+
+        ry = boxes3d[:, 6]
+        zeros, ones = np.zeros(
+            ry.size, dtype=np.float32), np.ones(
+                ry.size, dtype=np.float32)
+        rot_list = np.array([[np.cos(ry), -np.sin(ry), zeros],
+                             [np.sin(ry), np.cos(ry), zeros], [zeros, zeros,
+                                                               ones]])  # (3, 3, N)
+        R_list = np.transpose(rot_list, (2, 0, 1))  # (N, 3, 3)
+
+        temp_corners = np.concatenate((x_corners.reshape(
+            -1, 8, 1), y_corners.reshape(-1, 8, 1), z_corners.reshape(-1, 8, 1)),
+                                      axis=2)  # (N, 8, 3)
+        rotated_corners = np.matmul(temp_corners, R_list)  # (N, 8, 3)
+        x_corners = rotated_corners[:, :, 0]
+        y_corners = rotated_corners[:, :, 1]
+        z_corners = rotated_corners[:, :, 2]
+
+        x_loc, y_loc, z_loc = boxes3d[:, 0], boxes3d[:, 1], boxes3d[:, 2]
+
+        x = x_loc.reshape(-1, 1) + x_corners.reshape(-1, 8)
+        y = y_loc.reshape(-1, 1) + y_corners.reshape(-1, 8)
+        z = z_loc.reshape(-1, 1) + z_corners.reshape(-1, 8)
+
+        corners = np.concatenate(
+            (x.reshape(-1, 8, 1), y.reshape(-1, 8, 1), z.reshape(-1, 8, 1)),
+            axis=2)
+
+        return corners.astype(np.float32)
+
+    #https://github.com/open-mmlab/mmdetection3d/
+    def points_cam2img(points_3d, proj_mat, with_depth=False):
+        """Project points in camera coordinates to image coordinates.
+
+        Args:
+            points_3d (torch.Tensor | np.ndarray): Points in shape (N, 3)
+            proj_mat (torch.Tensor | np.ndarray):
+                Transformation matrix between coordinates.
+            with_depth (bool, optional): Whether to keep depth in the output.
+                Defaults to False.
+
+        Returns:
+            (torch.Tensor | np.ndarray): Points in image coordinates,
+                with shape [N, 2] if `with_depth=False`, else [N, 3].
+        """
+        points_shape = list(points_3d.shape)
+        points_shape[-1] = 1
+
+        assert len(proj_mat.shape) == 2, 'The dimension of the projection'\
+            f' matrix should be 2 instead of {len(proj_mat.shape)}.'
+        d1, d2 = proj_mat.shape[:2]
+        assert (d1 == 3 and d2 == 3) or (d1 == 3 and d2 == 4) or (
+            d1 == 4 and d2 == 4), 'The shape of the projection matrix'\
+            f' ({d1}*{d2}) is not supported.'
+        if d1 == 3:
+            proj_mat_expanded = torch.eye(
+                4, device=proj_mat.device, dtype=proj_mat.dtype)
+            proj_mat_expanded[:d1, :d2] = proj_mat
+            proj_mat = proj_mat_expanded
+
+        # previous implementation use new_zeros, new_one yields better results
+        points_4 = torch.cat([points_3d, points_3d.new_ones(points_shape)], dim=-1)
+
+        point_2d = points_4 @ proj_mat.T
+        point_2d_res = point_2d[..., :2] / point_2d[..., 2:3]
+
+        if with_depth:
+            point_2d_res = torch.cat([point_2d_res, point_2d[..., 2:3]], dim=-1)
+
+        return point_2d_res

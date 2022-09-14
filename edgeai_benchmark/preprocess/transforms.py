@@ -423,11 +423,12 @@ class Voxelization(object):
         self.max_z = 1.0
         self.voxel_size_x= 0.16
         self.voxel_size_y= 0.16
+        self.voxel_size_z= 4.0
         self.num_voxel_x = (self.max_x - self.min_x)/self.voxel_size_x
         self.num_voxel_y = (self.max_y - self.min_y)/self.voxel_size_y
         self.max_points_per_voxel = 32
         self.nw_max_num_voxels  = 10000
-        self.num_feat_per_voxel = 9
+        self.num_feat_per_voxel = 10
         self.num_channel = 64
         self.scale_fact = 32.0
 
@@ -505,6 +506,7 @@ class Voxelization(object):
             channel_pitch = self.max_points_per_voxel * line_pitch
             x_offset = self.voxel_size_x / 2 + self.min_x
             y_offset = self.voxel_size_y / 2 + self.min_y
+            z_offset = self.voxel_size_z / 2 + self.min_z
 
             for i in range(num_non_empty_voxels):
                 x = 0
@@ -529,17 +531,23 @@ class Voxelization(object):
                 voxel_center_y *= self.voxel_size_y
                 voxel_center_y += y_offset
 
+                voxel_center_z = 0
+                voxel_center_z *= self.voxel_size_z
+                voxel_center_z += z_offset
+
                 for j in range(num_points[i]):
                     input0[0][4][j][i] = input0[0][0][j][i] - x_avg
                     input0[0][5][j][i] = input0[0][1][j][i] - y_avg
                     input0[0][6][j][i] = input0[0][2][j][i] - z_avg
                     input0[0][7][j][i] = input0[0][0][j][i] - voxel_center_x * self.scale_fact
                     input0[0][8][j][i] = input0[0][1][j][i] - voxel_center_y * self.scale_fact
+                    input0[0][9][j][i] = input0[0][2][j][i] - voxel_center_z * self.scale_fact
 
                 #/*looks like bug in python mmdetection3d code, hence below code is to mimic the mmdetect behaviour*/
                 for j in range (num_points[i]):
                     input0[0][0][j][i] = input0[0][7][j][i]
                     input0[0][1][j][i] = input0[0][8][j][i]
+                    input0[0][2][j][i] = input0[0][9][j][i]
 
             input2[0][0][num_non_empty_voxels] = -1 # TIDL doesnt know valid number of voxels, hence this act as marker field.
             input2[0][1:64] = input2[0][0] # replicating the firsh channel indices to all channels. As scatter is same for all channels.

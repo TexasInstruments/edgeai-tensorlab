@@ -45,11 +45,12 @@ def get_configs(settings, work_dir):
     }
 
     # to define the names of first and last layer for 16 bit conversion
-    first_last_layer_3dod_7100 = '205,206,207,input.1'
-    runtime_options_3dod_7100 = settings.runtime_options_onnx_np2()
-    #For point pillars model number of iterations required is double for ggod accuracy
-    runtime_options_3dod_7100['advanced_options:calibration_iterations'] = \
-        runtime_options_3dod_7100['advanced_options:calibration_iterations']*2
+    first_last_layer_3dod_7100 = ''
+    runtime_options_3dod_7100 = settings.runtime_options_onnx_qat()
+
+    #For point pillars model number of iterations required is double for good accuracy
+    #runtime_options_3dod_7100['advanced_options:calibration_iterations'] = \
+    #    runtime_options_3dod_7100['advanced_options:calibration_iterations']*2
 
     pipeline_configs = {
         #################################################################
@@ -67,7 +68,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection_3d/kitti/mmdet3d/lidar_point_pillars_10k_496x432.onnx'),
             postprocess=postproc_transforms.get_transform_lidar_base(),
             metric=dict(label_offset_pred=None),
-            model_info=dict(metric_reference={'accuracy_ap_3d_moderate%':71.72})
+            model_info=dict(metric_reference={'accuracy_ap_3d_moderate%':76.50})
         )
     }
 
