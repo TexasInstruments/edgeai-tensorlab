@@ -32,6 +32,7 @@
 import torch
 import torch.ao.quantization as quantization
 from . import observer
+from . import qsettings
 
 
 def _get_qat_qconfig(backend=None, weight_observer=None, activation_observer=None,
@@ -39,29 +40,29 @@ def _get_qat_qconfig(backend=None, weight_observer=None, activation_observer=Non
     # we support only symmetric types (per tensor or per channel) for weight
     assert weight_qscheme in (torch.per_tensor_symmetric, torch.per_channel_symmetric), 'weight_qscheme must be one of the symmetric types'
     weight_dtype = torch.qint8
-    weight_quant_min = -128 #-127
-    weight_quant_max = 127
+    # weight_quant_min = qsettings.INT8_DTYPE_MIN_VALUE
+    # weight_quant_max = qsettings.INT8_DTYPE_MAX_VALUE
 
-    # we can support both symmetric and affine types for activation
     if activation_qscheme in (torch.per_tensor_symmetric, torch.per_channel_symmetric):
-        # onnx export doesn't work in this case yet.
-        activation_dtype = torch.qint8
-        activation_quant_min = -128 #-127
-        activation_quant_max = 127
+        # there is an onnx export issue if we use torch.qint8 dtype
+        # so use toch.quint8 even for the symmetric case
+        activation_dtype = torch.quint8 if qsettings.UINT8_DTYPE_FOR_SYMMETIRC else torch.qint8
+        # activation_quant_min = qsettings.UINT8_DTYPE_MIN_VALUE if qsettings.UINT8_DTYPE_FOR_SYMMETIRC else qsettings.INT8_DTYPE_MIN_VALUE
+        # activation_quant_max = qsettings.UINT8_DTYPE_MAX_VALUE if qsettings.UINT8_DTYPE_FOR_SYMMETIRC else qsettings.INT8_DTYPE_MAX_VALUE
     else:
         activation_dtype = torch.quint8
-        activation_quant_min = 0
-        activation_quant_max = 255
+        # activation_quant_min = qsettings.UINT8_DTYPE_MIN_VALUE
+        # activation_quant_max = qsettings.UINT8_DTYPE_MAX_VALUE
     #
 
     weight_fake_quant = quantization.FakeQuantize.with_args(
                                     observer=weight_observer,
-                                    quant_min=weight_quant_min, quant_max=weight_quant_max,
+                                    # quant_min=weight_quant_min, quant_max=weight_quant_max,
                                     dtype=weight_dtype, qscheme=weight_qscheme, reduce_range=False)
 
     activation_fake_quant = quantization.FakeQuantize.with_args(
                                     observer=activation_observer,
-                                    quant_min=activation_quant_min, quant_max=activation_quant_max,
+                                    # quant_min=activation_quant_min, quant_max=activation_quant_max,
                                     dtype=activation_dtype, qscheme=activation_qscheme, reduce_range=False)
 
     qconfig = quantization.QConfig(activation=activation_fake_quant, weight=weight_fake_quant)
