@@ -64,10 +64,11 @@ def load_weights(model, pretrained=None, change_names_dict=None):
 
 
 def prepare(model, qconfig_dict=None, pretrained=None, pretrained_after_prepare=False, backend=None,
-            num_batch_norm_update_epochs=None, num_observer_update_epochs=None, prepare_fn=None, is_qat=True, is_eager=False):
+            num_batch_norm_update_epochs=None, num_observer_update_epochs=None, prepare_fn=None,
+            is_qat=True, is_eager=False):
     _set_quant_backend(backend=backend)
     if qconfig_dict is None:
-        qconfig_dict = {"": qconfig.get_basic_qat_qconfig(backend)}
+        qconfig_dict = {"": qconfig.get_qat_qconfig_for_target_device(backend, target_device=None)}
     #
     model.train()
     if not pretrained_after_prepare:

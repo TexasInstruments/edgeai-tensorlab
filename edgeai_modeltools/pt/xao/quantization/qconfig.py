@@ -39,65 +39,82 @@ def _get_qat_qconfig(backend=None, weight_observer=None, activation_observer=Non
     # we support only symmetric types (per tensor or per channel) for weight
     assert weight_qscheme in (torch.per_tensor_symmetric, torch.per_channel_symmetric), 'weight_qscheme must be one of the symmetric types'
     weight_dtype = torch.qint8
-    weight_quant_min = -127
+    weight_quant_min = -128 #-127
     weight_quant_max = 127
 
     # we can support both symmetric and affine types for activation
     if activation_qscheme in (torch.per_tensor_symmetric, torch.per_channel_symmetric):
+        # onnx export doesn't work in this case yet.
         activation_dtype = torch.qint8
-        activation_quant_min = -127
+        activation_quant_min = -128 #-127
         activation_quant_max = 127
     else:
         activation_dtype = torch.quint8
         activation_quant_min = 0
         activation_quant_max = 255
     #
-    activation_reduce_range = (backend == 'fbgemm') and (activation_qscheme != torch.per_tensor_symmetric)
 
-    weight_config = quantization.FusedMovingAvgObsFakeQuantize.with_args(
-        observer=weight_observer,
-        quant_min=weight_quant_min, quant_max=weight_quant_max,
-        dtype=weight_dtype,
-        qscheme=weight_qscheme)
+    weight_fake_quant = quantization.FakeQuantize.with_args(
+                                    observer=weight_observer,
+                                    quant_min=weight_quant_min, quant_max=weight_quant_max,
+                                    dtype=weight_dtype, qscheme=weight_qscheme, reduce_range=False)
 
-    activation_config = quantization.FusedMovingAvgObsFakeQuantize.with_args(
-        observer=activation_observer,
-        quant_min=activation_quant_min, quant_max=activation_quant_max,
-        reduce_range=activation_reduce_range,
-        dtype=activation_dtype, qscheme=activation_qscheme)
+    activation_fake_quant = quantization.FakeQuantize.with_args(
+                                    observer=activation_observer,
+                                    quant_min=activation_quant_min, quant_max=activation_quant_max,
+                                    dtype=activation_dtype, qscheme=activation_qscheme, reduce_range=False)
 
-    qconfig = quantization.QConfig(activation=activation_config, weight=weight_config)
+    qconfig = quantization.QConfig(activation=activation_fake_quant, weight=weight_fake_quant)
     return qconfig
 
 
-def get_per_tensor_symmetric_power2_qat_qconfig(backend=None):
+def get_per_tensor_symmetric_power2_qat_qconfig(backend=None, histogram_observer=False):
     return _get_qat_qconfig(backend=backend,
-                            weight_observer=observer.MovingAverageMinMaxObserverPower2,
-                            activation_observer=observer.MovingAverageMinMaxObserverPower2,
+                            weight_observer=(observer.HistogramObserverPower2 if histogram_observer else observer.MovingAverageMinMaxObserverPower2),
+                            activation_observer=(observer.HistogramObserverPower2 if histogram_observer else observer.MovingAverageMinMaxObserverPower2),
                             weight_qscheme=torch.per_tensor_symmetric,
                             activation_qscheme=torch.per_tensor_symmetric)
+
 
 get_basic_qat_qconfig = get_per_tensor_symmetric_power2_qat_qconfig
 
 
-def get_per_channel_affine_qat_qconfig(backend=None):
+def get_per_tensor_affine_qat_qconfig(backend=None, histogram_observer=False):
     return _get_qat_qconfig(backend=backend,
-                            weight_observer=quantization.MovingAveragePerChannelMinMaxObserver,
-                            activation_observer=quantization.HistogramObserver,
-                            weight_qscheme=torch.per_channel_symmetric,
+                            weight_observer=(quantization.HistogramObserver if histogram_observer else quantization.MovingAverageMinMaxObserver),
+                            activation_observer=(quantization.HistogramObserver if histogram_observer else quantization.MovingAverageMinMaxObserver),
+                            weight_qscheme=torch.per_tensor_symmetric,
                             activation_qscheme=torch.per_tensor_affine)
 
-get_advanced_qat_qconfig = get_per_channel_affine_qat_qconfig
+
+def get_per_channel_affine_qat_qconfig(backend=None, histogram_observer=False):
+    return _get_qat_qconfig(backend=backend,
+                            weight_observer=quantization.MovingAveragePerChannelMinMaxObserver,
+                            activation_observer=(quantization.HistogramObserver if histogram_observer else quantization.MovingAverageMinMaxObserver),
+                            weight_qscheme=torch.per_channel_symmetric,
+                            activation_qscheme=torch.per_tensor_affine)
 
 
 # can also use torch.ao.quantization.get_default_qat_qconfig
 
 
-def get_qat_qconfig_for_target_device(backend, target_device='TDA4VM'):
+def get_qat_qconfig_for_target_device(backend, target_device=None, histogram_observer=False, per_channel_weight_quant=False):
     ''''this is initial implementation. we can implement more target_device specific qconfigs later'''
-    if target_device is None:
-        return get_basic_qat_qconfig(backend=backend) # pytorch default qconfig
-    elif target_device.lower() == 'tda4vm':
-        return get_basic_qat_qconfig(backend=backend)
+    if target_device is None or target_device.lower() in ('tda4vm', 'j7es', 'j721e'):
+        '''
+        This configuration will work on all our devices (but may be slightly lower accuracy compared to other options). 
+        We use this if target_device is None or if target_device is explicitly specified as TDA4VM
+        '''
+        return get_per_tensor_symmetric_power2_qat_qconfig(backend=backend, histogram_observer=histogram_observer)
+    elif per_channel_weight_quant:
+        '''
+        per_channel_affine is supported in devices that have MMAv2 (TDA4AL/J7AEP, TDA4VH/J7AHP, AM62A)
+        But it comes with some performance cost (lower FPS). So using it only if it is explicitly requested.
+        '''
+        return get_per_channel_affine_qat_qconfig(backend=backend, histogram_observer=histogram_observer)
     else:
-        return get_advanced_qat_qconfig(backend=backend)
+        '''
+        For devices that have MMAv2 (TDA4AL/J7AEP, TDA4VH/J7AHP, AM62A), 
+        it is possible to use per tensor affine quantization without performance cost.
+        '''
+        return get_per_tensor_affine_qat_qconfig(backend=backend, histogram_observer=histogram_observer)

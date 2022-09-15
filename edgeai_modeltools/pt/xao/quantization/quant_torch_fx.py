@@ -31,7 +31,7 @@
 
 import copy
 import torch
-import torch.quantization.quantize_fx as quantize_fx
+import torch.ao.quantization.quantize_fx as quantize_fx
 from ... import xnn
 from . import _quant_torch_base as quant_torch_base
 
@@ -50,7 +50,7 @@ def prepare(model, *args, prepare_fn=quantize_fx.prepare_qat_fx, is_qat=True, **
     # else:
     #     model = quantize_fx.fuse_fx(model)
     # #
-    model = quant_torch_base.prepare(model, *args, prepare_fn=prepare_fn, **kwargs)
+    model = quant_torch_base.prepare(model, *args, prepare_fn=prepare_fn, is_qat=is_qat, **kwargs)
     return model
 
 
