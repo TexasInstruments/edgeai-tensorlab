@@ -33,13 +33,25 @@
 # so use toch.quint8 even for the symmetric case
 USE_UINT8_DTYPE_FOR_SYMMETRIC = True #False
 
-# the implementation of observers in torch doesn't handle symmetirc case optimally
-# for example after ReLU, the output is unsigned and we can use all the 256 levels to quantize it
-# but the implementation in base class only uses 127 levels.
-USE_FULL_RANGE_FOR_SYMMETRIC = True #False
+# COMPUTE_ACCURATE_QPARAMS enables accurate computation of scale and zero_point in Power2 mode.
+# In addition FULL_RANGE_QPARAMS enables better utilization of range in symmetric mode
+# calculate_qparams in the base class does not handle unsigned tensors in symmetric case correctly
+# ideally unsigned tensors (such as the output of ReLU) can be quantized with 256 levels (0-255),
+# but calculate_qparams in original observers uses 127 levels only:
+#     (0to127 out ot -128to127 if qscheme is torch.int8)
+#     (128to255 out ot -128to127 if qscheme is torch.uint8)
+# however, enabling this flag changes the behaviour in the Power2 observers
+# which are used in our qconfig.get_basic_qat_qconfig()
+COMPUTE_ACCURATE_QPARAMS = True
+FULL_RANGE_QPARAMS_FOR_SYMMETRIC = True #False
 
 # the defaults are fine, but can be modified here if needed.
 UINT8_DTYPE_MIN_VALUE = 0
 UINT8_DTYPE_MAX_VALUE = 255
 INT8_DTYPE_MIN_VALUE = -128 #-127
 INT8_DTYPE_MAX_VALUE = 127
+
+# default value for USE_HISTOGRAM_OBSERVER
+# setting to False since Histogram observer is quite slow
+# this can be overriden while calling the get_qconfig_xx()
+USE_HISTOGRAM_OBSERVER_DEFAULT = False #True

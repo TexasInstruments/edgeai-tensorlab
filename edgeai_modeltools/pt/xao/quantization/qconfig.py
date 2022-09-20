@@ -70,7 +70,7 @@ def _get_qat_qconfig(backend=None, weight_observer=None, activation_observer=Non
     return qconfig
 
 
-def get_per_tensor_symmetric_power2_qat_qconfig(backend=None, histogram_observer=False):
+def get_per_tensor_symmetric_power2_qat_qconfig(backend=None, histogram_observer=qsettings.USE_HISTOGRAM_OBSERVER_DEFAULT):
     return _get_qat_qconfig(backend=backend,
                             weight_observer=(observer.HistogramObserverPower2 if histogram_observer else observer.MovingAverageMinMaxObserverPower2),
                             activation_observer=(observer.HistogramObserverPower2 if histogram_observer else observer.MovingAverageMinMaxObserverPower2),
@@ -81,7 +81,7 @@ def get_per_tensor_symmetric_power2_qat_qconfig(backend=None, histogram_observer
 get_basic_qat_qconfig = get_per_tensor_symmetric_power2_qat_qconfig
 
 
-def get_per_tensor_affine_qat_qconfig(backend=None, histogram_observer=False):
+def get_per_tensor_affine_qat_qconfig(backend=None, histogram_observer=qsettings.USE_HISTOGRAM_OBSERVER_DEFAULT):
     return _get_qat_qconfig(backend=backend,
                             weight_observer=(quantization.HistogramObserver if histogram_observer else quantization.MovingAverageMinMaxObserver),
                             activation_observer=(quantization.HistogramObserver if histogram_observer else quantization.MovingAverageMinMaxObserver),
@@ -89,7 +89,7 @@ def get_per_tensor_affine_qat_qconfig(backend=None, histogram_observer=False):
                             activation_qscheme=torch.per_tensor_affine)
 
 
-def get_per_channel_affine_qat_qconfig(backend=None, histogram_observer=False):
+def get_per_channel_affine_qat_qconfig(backend=None, histogram_observer=qsettings.USE_HISTOGRAM_OBSERVER_DEFAULT):
     return _get_qat_qconfig(backend=backend,
                             weight_observer=quantization.MovingAveragePerChannelMinMaxObserver,
                             activation_observer=(quantization.HistogramObserver if histogram_observer else quantization.MovingAverageMinMaxObserver),
@@ -100,7 +100,8 @@ def get_per_channel_affine_qat_qconfig(backend=None, histogram_observer=False):
 # can also use torch.ao.quantization.get_default_qat_qconfig
 
 
-def get_qat_qconfig_for_target_device(backend, target_device=None, histogram_observer=False, per_channel_weight_quant=False):
+def get_qat_qconfig_for_target_device(backend, target_device=None, histogram_observer=qsettings.USE_HISTOGRAM_OBSERVER_DEFAULT,
+                                      per_channel_weight_quant=False):
     ''''this is initial implementation. we can implement more target_device specific qconfigs later'''
     if target_device is None or target_device.lower() in ('tda4vm', 'j7es', 'j721e'):
         '''
