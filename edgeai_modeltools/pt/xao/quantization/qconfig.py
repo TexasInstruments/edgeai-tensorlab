@@ -46,9 +46,9 @@ def _get_qat_qconfig(backend=None, weight_observer=None, activation_observer=Non
     if activation_qscheme in (torch.per_tensor_symmetric, torch.per_channel_symmetric):
         # there is an onnx export issue if we use torch.qint8 dtype
         # so use toch.quint8 even for the symmetric case
-        activation_dtype = torch.quint8 if qsettings.UINT8_DTYPE_FOR_SYMMETIRC else torch.qint8
-        # activation_quant_min = qsettings.UINT8_DTYPE_MIN_VALUE if qsettings.UINT8_DTYPE_FOR_SYMMETIRC else qsettings.INT8_DTYPE_MIN_VALUE
-        # activation_quant_max = qsettings.UINT8_DTYPE_MAX_VALUE if qsettings.UINT8_DTYPE_FOR_SYMMETIRC else qsettings.INT8_DTYPE_MAX_VALUE
+        activation_dtype = torch.quint8 if qsettings.USE_UINT8_DTYPE_FOR_SYMMETRIC else torch.qint8
+        # activation_quant_min = qsettings.UINT8_DTYPE_MIN_VALUE if qsettings.USE_UINT8_DTYPE_FOR_SYMMETRIC else qsettings.INT8_DTYPE_MIN_VALUE
+        # activation_quant_max = qsettings.UINT8_DTYPE_MAX_VALUE if qsettings.USE_UINT8_DTYPE_FOR_SYMMETRIC else qsettings.INT8_DTYPE_MAX_VALUE
     else:
         activation_dtype = torch.quint8
         # activation_quant_min = qsettings.UINT8_DTYPE_MIN_VALUE

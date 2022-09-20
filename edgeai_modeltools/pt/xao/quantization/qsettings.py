@@ -31,8 +31,15 @@
 
 # there is an onnx export issue if we use torch.qint8 dtype
 # so use toch.quint8 even for the symmetric case
-UINT8_DTYPE_FOR_SYMMETIRC = True #False
+USE_UINT8_DTYPE_FOR_SYMMETRIC = True #False
 
+# the implementation of observers in torch doesn't handle symmetirc case optimally
+# for example after ReLU, the output is unsigned and we can use all the 256 levels to quantize it
+# but the implementation in base class only uses 127 levels.
+USE_FULL_RANGE_FOR_SYMMETRIC = True #False
+
+# there is an onnx export issue if we specify the ranges explicitly. do not use it for now.
+#
 # UINT8_DTYPE_MIN_VALUE = 0
 # UINT8_DTYPE_MAX_VALUE = 255
 #

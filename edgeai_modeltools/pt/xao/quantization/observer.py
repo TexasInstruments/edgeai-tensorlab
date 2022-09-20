@@ -32,22 +32,52 @@
 import torch
 import torch.ao.quantization as quantization
 from ... import xnn
+from . import qsettings
 
 
 class MovingAverageMinMaxObserverPower2(quantization.MovingAverageMinMaxObserver):
     def __int__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    # def forward(self, x_orig: torch.Tensor) -> torch.Tensor:
-    #     x_orig = super().forward(x_orig)
-    #     self.min_val = xnn.layers.functional.ceil2_g(self.min_val)
-    #     self.max_val = xnn.layers.functional.ceil2_g(self.max_val)
-    #     return x_orig
-
     @torch.jit.export
     def calculate_qparams(self):
-        scale, zero_point = super().calculate_qparams()
+        # for unsigned tensor, the implementation in base class does not use the full range
+        if qsettings.USE_FULL_RANGE_FOR_SYMMETRIC and \
+            self.qscheme in (torch.per_tensor_symmetric, torch.per_channel_symmetric) and float(self.min_val) >= 0:
+            scale, zero_point = self._calculate_qparams_unsigned()
+        else:
+            scale, zero_point = super().calculate_qparams()
+        #
         scale = xnn.layers.functional.ceil2_g(scale)
+        return scale, zero_point
+
+    def _calculate_qparams_unsigned(self):
+        quant_min, quant_max = self.quant_min, self.quant_max
+        min_val_neg = torch.min(self.min_val, torch.zeros_like(self.min_val))
+        max_val_pos = torch.max(self.max_val, torch.zeros_like(self.max_val))
+        max_val_pos = torch.max(-min_val_neg, max_val_pos)
+
+        device = min_val_neg.device
+        scale = (max_val_pos - min_val_neg) / float(quant_max - quant_min)
+        scale = torch.max(scale, self.eps)
+        zero_point = quant_min - torch.round(min_val_neg / scale).to(torch.int)
+        zero_point = torch.clamp(zero_point, quant_min, quant_max)
+
+        # For scalar values, cast them to Tensors of size 1 to keep the shape
+        # consistent with default values in FakeQuantize.
+        if len(scale.shape) == 0:
+            # TODO: switch to scale.item() after adding JIT support
+            scale = torch.tensor([float(scale)], dtype=scale.dtype, device=device)
+        if len(zero_point.shape) == 0:
+            # TODO: switch to zero_point.item() after adding JIT support
+            zero_point = torch.tensor(
+                [int(zero_point)], dtype=zero_point.dtype, device=device
+            )
+            if self.qscheme == torch.per_channel_affine_float_qparams:
+                zero_point = torch.tensor(
+                    [float(zero_point)], dtype=zero_point.dtype, device=device
+                )
+
         return scale, zero_point
 
 
@@ -55,15 +85,43 @@ class HistogramObserverPower2(quantization.HistogramObserver):
     def __int__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    # def forward(self, x_orig: torch.Tensor) -> torch.Tensor:
-    #     x_orig = super().forward(x_orig)
-    #     self.min_val = xnn.layers.functional.ceil2_g(self.min_val)
-    #     self.max_val = xnn.layers.functional.ceil2_g(self.max_val)
-    #     return x_orig
-
     @torch.jit.export
     def calculate_qparams(self):
-        scale, zero_point = super().calculate_qparams()
+        # for unsigned tensor, the implementation in base class does not use the full range
+        if qsettings.USE_FULL_RANGE_FOR_SYMMETRIC and \
+            self.qscheme in (torch.per_tensor_symmetric, torch.per_channel_symmetric) and float(self.min_val) >= 0:
+            scale, zero_point = self._calculate_qparams_unsigned()
+        else:
+            scale, zero_point = super().calculate_qparams()
+        #
         scale = xnn.layers.functional.ceil2_g(scale)
         return scale, zero_point
 
+    def _calculate_qparams_unsigned(self):
+        quant_min, quant_max = self.quant_min, self.quant_max
+        min_val_neg = torch.min(self.min_val, torch.zeros_like(self.min_val))
+        max_val_pos = torch.max(self.max_val, torch.zeros_like(self.max_val))
+        max_val_pos = torch.max(-min_val_neg, max_val_pos)
+
+        device = min_val_neg.device
+        scale = (max_val_pos - min_val_neg) / float(quant_max - quant_min)
+        scale = torch.max(scale, self.eps)
+        zero_point = quant_min - torch.round(min_val_neg / scale).to(torch.int)
+        zero_point = torch.clamp(zero_point, quant_min, quant_max)
+
+        # For scalar values, cast them to Tensors of size 1 to keep the shape
+        # consistent with default values in FakeQuantize.
+        if len(scale.shape) == 0:
+            # TODO: switch to scale.item() after adding JIT support
+            scale = torch.tensor([float(scale)], dtype=scale.dtype, device=device)
+        if len(zero_point.shape) == 0:
+            # TODO: switch to zero_point.item() after adding JIT support
+            zero_point = torch.tensor(
+                [int(zero_point)], dtype=zero_point.dtype, device=device
+            )
+            if self.qscheme == torch.per_channel_affine_float_qparams:
+                zero_point = torch.tensor(
+                    [float(zero_point)], dtype=zero_point.dtype, device=device
+                )
+
+        return scale, zero_point
