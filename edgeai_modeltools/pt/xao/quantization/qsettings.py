@@ -38,12 +38,8 @@ USE_UINT8_DTYPE_FOR_SYMMETRIC = True #False
 # but the implementation in base class only uses 127 levels.
 USE_FULL_RANGE_FOR_SYMMETRIC = True #False
 
-# there is an onnx export issue if we specify the ranges explicitly. do not use it for now.
-#
-# UINT8_DTYPE_MIN_VALUE = 0
-# UINT8_DTYPE_MAX_VALUE = 255
-#
-# INT8_DTYPE_MIN_VALUE = -128 #-127
-# INT8_DTYPE_MAX_VALUE = 127
-
-
+# the defaults are fine, but can be modified here if needed.
+UINT8_DTYPE_MIN_VALUE = 0
+UINT8_DTYPE_MAX_VALUE = 255
+INT8_DTYPE_MIN_VALUE = -128 #-127
+INT8_DTYPE_MAX_VALUE = 127
