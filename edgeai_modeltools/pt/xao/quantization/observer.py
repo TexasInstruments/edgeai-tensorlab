@@ -75,48 +75,27 @@ def _calculate_qparams_accurate(
     unsigned_tensor = float(min_val) >= 0
     signed_tensor = (not unsigned_tensor)
 
-    if (
-        qscheme == torch.per_tensor_symmetric
-        or qscheme == torch.per_channel_symmetric
-    ):
+    if qscheme == torch.per_tensor_symmetric or qscheme == torch.per_channel_symmetric:
         max_val_pos = torch.max(-min_val_neg, max_val_pos)
-        if qsettings.FULL_RANGE_QPARAMS_FOR_SYMMETRIC and unsigned_tensor:
+        if qsettings.USE_FULL_RANGE_FOR_SYMMETRIC and unsigned_tensor:
             scale = max_val_pos / float(quant_max - quant_min)
         else:
+            # this is the original method used in torch observers
             scale = max_val_pos / (float(quant_max - quant_min) / 2)
         #
         scale = torch.max(scale, eps)
         if power2:
             scale = xnn.layers.functional.ceil2_g(scale)
         #
-        if not qsettings.FULL_RANGE_QPARAMS_FOR_SYMMETRIC:
-            # this is the original method used in torch observers
+        if signed_tensor and dtype == torch.quint8:
             if has_customized_qrange:
                 # When customized quantization range is used, down-rounded midpoint of the range is chosen.
-                zero_point = zero_point.new_full(
-                    zero_point.size(), (quant_min + quant_max) // 2
-                )
+                zero_point = zero_point.new_full(zero_point.size(), (quant_min + quant_max + 1)//2) #128
             else:
-                zero_point = zero_point.new_full(zero_point.size(), 128)
+                zero_point = zero_point.new_full(zero_point.size(), (quant_max + 1)//2) #128
             #
-        elif dtype == torch.qint8 and unsigned_tensor:
-            if has_customized_qrange:
-                # When customized quantization range is used, down-rounded midpoint of the range is chosen.
-                zero_point = zero_point.new_full(
-                    zero_point.size(), quant_min
-                )
-            else:
-                zero_point = zero_point.new_full(zero_point.size(), qsettings.INT8_DTYPE_MIN_VALUE) #-128
-            #
-        elif dtype == torch.quint8 and signed_tensor:
-            if has_customized_qrange:
-                # When customized quantization range is used, down-rounded midpoint of the range is chosen.
-                zero_point = zero_point.new_full(
-                    zero_point.size(), (quant_min + quant_max) // 2
-                )
-            else:
-                zero_point = zero_point.new_full(zero_point.size(), -qsettings.INT8_DTYPE_MIN_VALUE) #128
-            #
+        elif unsigned_tensor and dtype == torch.qint8:
+            zero_point = zero_point.new_full(zero_point.size(), quant_min) #-128
         #
     elif qscheme == torch.per_channel_affine_float_qparams:
         scale = (max_val - min_val) / float(quant_max - quant_min)

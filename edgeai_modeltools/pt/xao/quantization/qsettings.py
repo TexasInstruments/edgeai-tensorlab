@@ -31,19 +31,23 @@
 
 # there is an onnx export issue if we use torch.qint8 dtype
 # so use toch.quint8 even for the symmetric case
-USE_UINT8_DTYPE_FOR_SYMMETRIC = True #False
+# accuracy is poor when setting this to false - suspect some bugs in torch quantization
+USE_INT8_DTYPE_FOR_SYMMETRIC = True #False
 
 # COMPUTE_ACCURATE_QPARAMS enables accurate computation of scale and zero_point in Power2 mode.
-# In addition FULL_RANGE_QPARAMS enables better utilization of range in symmetric mode
+# if this set, we use custom scale and zero_point computation code
+COMPUTE_ACCURATE_QPARAMS = False #True
+
+# In addition USE_FULL_RANGE_FOR_SYMMETRIC enables better utilization of range in symmetric mode
 # calculate_qparams in the base class does not handle unsigned tensors in symmetric case correctly
 # ideally unsigned tensors (such as the output of ReLU) can be quantized with 256 levels (0-255),
-# but calculate_qparams in original observers uses 127 levels only:
+# but calculate_qparams in original torch observers uses 127 levels only in symmetric mode:
 #     (0to127 out ot -128to127 if qscheme is torch.int8)
 #     (128to255 out ot -128to127 if qscheme is torch.uint8)
 # however, enabling this flag changes the behaviour in the Power2 observers
 # which are used in our qconfig.get_basic_qat_qconfig()
-COMPUTE_ACCURATE_QPARAMS = True
-FULL_RANGE_QPARAMS_FOR_SYMMETRIC = True #False
+# This has effect only if COMPUTE_ACCURATE_QPARAMS is set.
+USE_FULL_RANGE_FOR_SYMMETRIC = False #True
 
 # the defaults are fine, but can be modified here if needed.
 UINT8_DTYPE_MIN_VALUE = 0
