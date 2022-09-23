@@ -45,6 +45,8 @@ find . -name *.json -delete
 find . -name *.params -delete
 find . -name *.prototxt -delete
 find . -name *.caffemodel -delete
+find . -name *.tar -delete
+find . -name *.zip -delete
 
 git add -u
 
