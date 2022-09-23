@@ -177,7 +177,14 @@ def main():
     if not args.export_det:
         model.head.decode_in_inference = False
     if args.export_det:
-        post_process = PostprocessExport(conf_thre=0.25, nms_thre=0.45, num_classes=80)
+        if args.task == "object_pose":
+            if args.dataset == 'ycb':
+                camera_matrix = model.head.cad_models.camera_matrix['camera_uw']  #camera_matrix for val split
+            elif args.dataset == 'linemod':
+                camera_matrix = model.head.cad_models.camera_matrix
+            post_process = PostprocessExport(conf_thre=0.4, nms_thre=0.01, num_classes=exp.num_classes, object_pose=True, camera_matrix=camera_matrix)
+        else:
+            post_process = PostprocessExport(conf_thre=0.25, nms_thre=0.45, num_classes=exp.num_classes)
         model_det = nn.Sequential(model, post_process)
         model_det.eval()
         args.output = 'detections'

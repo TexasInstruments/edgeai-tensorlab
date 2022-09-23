@@ -93,7 +93,7 @@ def retrieve_onnx_names(input_data, partial_model, full_model_path):
 
     input_numpy = input_data.detach().numpy() if isinstance(input_data, torch.Tensor) else input_data
     full_outputs = full_infer.run(full_output_names, {full_input_name:input_numpy})
-    partial_model.head.export_proto = True
+    partial_model.head.export_proto = True  #Ensure that we get outputs for each head separately
     with torch.no_grad():
         partial_model.eval()
         partial_outputs = partial_model(input_data)
@@ -104,10 +104,13 @@ def retrieve_onnx_names(input_data, partial_model, full_model_path):
         matched_name = None
         bs,  no, ny, nx = po.shape
         for fname, fo in zip(full_output_names, full_outputs):
-            fo[:,4:5+num_classes, ...] = 1.0/(1.0 + np.exp(-fo[:, 4:5+num_classes, ...]))
-            if similar_tensor(po, fo):
-                matched_name = fname
-                break
+            if len(fo.shape) == 4:  #OD final conv layer output must have dim=4
+                fo = fo[:, :5+num_classes, ...] #Consider only box and class confidence for comparison
+                po = po[:, :5+num_classes, ...] #Consider only box and class confidence for comparison
+                fo[:,4:5+num_classes, ...] = 1.0/(1.0 + np.exp(-fo[:, 4:5+num_classes, ...]))
+                if similar_tensor(po, fo):
+                    matched_name = fname
+                    break
             #
         #
         if matched_name is None:
