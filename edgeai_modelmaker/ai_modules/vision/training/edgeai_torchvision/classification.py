@@ -38,8 +38,8 @@ from ... import constants
 from ..... import utils
 
 
-edgeai_torchvision_path = os.path.abspath('../edgeai-torchvision')
-edgeai_modelzoo_path = os.path.abspath('../edgeai-modelzoo')
+edgeai_torchvision_path = os.path.join(os.getcwd(), 'edgeai-torchvision')
+edgeai_modelzoo_path = os.path.join(os.getcwd(), 'edgeai-modelzoo')
 www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest'
 
 

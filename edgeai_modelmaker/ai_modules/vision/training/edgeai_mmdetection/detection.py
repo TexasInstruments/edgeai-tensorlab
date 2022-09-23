@@ -40,7 +40,7 @@ from ... import constants
 from ..... import utils
 
 
-edgeai_modelzoo_path = os.path.abspath('../edgeai-modelzoo')
+edgeai_modelzoo_path = os.path.join(os.getcwd(), 'edgeai-modelzoo')
 www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest'
 
 
@@ -316,7 +316,7 @@ class ModelTraining:
         '''
         os.makedirs(self.params.training.training_path, exist_ok=True)
         # training params
-        mmdet_path = os.path.abspath('../edgeai-mmdetection')
+        mmdet_path = os.path.join(os.getcwd(), 'edgeai-mmdetection')
         dataset_style = 'coco' #'voc' #'coco'
         input_size = self.params.training.input_cropsize if isinstance(self.params.training.input_cropsize, (list,tuple)) else \
             (self.params.training.input_cropsize,self.params.training.input_cropsize)

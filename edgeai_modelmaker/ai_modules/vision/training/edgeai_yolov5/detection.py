@@ -40,8 +40,8 @@ from ... import constants
 from ..... import utils
 
 
-edgeai_yolov5_path = os.path.abspath('../edgeai-yolov5')
-edgeai_modelzoo_path = os.path.abspath('../edgeai-modelzoo')
+edgeai_yolov5_path = os.path.join(os.getcwd(), 'edgeai-yolov5')
+edgeai_modelzoo_path = os.path.join(os.getcwd(), 'edgeai-modelzoo')
 www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3'
 
 
