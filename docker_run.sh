@@ -46,6 +46,7 @@ then
         --privileged \
         --network host \
         --shm-size 50G \
+        --gpus all \
         modelmaker bash
 # If one container exist, execute that container.
 elif [ $cont_count -eq 1 ]
