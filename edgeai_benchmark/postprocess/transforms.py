@@ -447,17 +447,8 @@ class OD3DOutPutPorcess(object):
 
     def __call__(self, tidl_op, info_dict):
 
-        from mmdet3d.core.bbox import structures
-        import torch
-
         tidl_op     =  tidl_op[0][0][0]
-        selected_op =  tidl_op[tidl_op[:,1] > 0.01]
+        selected_op =  tidl_op[tidl_op[:,1] > 0.1]
 
-        det_op = {}
-
-        det_op['labels_3d'] = torch.as_tensor([class_id for class_id in selected_op[:,0]])
-        det_op['scores_3d'] = torch.as_tensor([score for score in selected_op[:,1]])
-        det_op['boxes_3d']  = structures.lidar_box3d.LiDARInstance3DBoxes(torch.as_tensor(selected_op[:,2:]))
-
-        return det_op, info_dict
+        return np.array(selected_op), info_dict
 

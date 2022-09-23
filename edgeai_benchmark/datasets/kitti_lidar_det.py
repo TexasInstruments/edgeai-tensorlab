@@ -290,10 +290,10 @@ class KittiLidar3D(DatasetBase):
         self.data_infos = []
 
         if read_anno:
-            #for idx in self.val_image_ids:
-            #    self.data_infos.append(self.read_db_info(idx))
+            for idx in self.val_image_ids[:self.num_frames]:
+                self.data_infos.append(self.read_db_info(idx))
 
-            self.gt_annos = kitti.get_label_annos(os.path.join(self.kwargs['path'],self.kwargs['split'],'label_2'), self.val_image_ids)
+            self.gt_annos = kitti.get_label_annos(os.path.join(self.kwargs['path'],self.kwargs['split'],'label_2'), self.val_image_ids[:self.num_frames])
 
             assert self.num_frames <= len(self.gt_annos), \
                 'Number of frames is higher than length of annotations available \n'
@@ -318,9 +318,10 @@ class KittiLidar3D(DatasetBase):
         return self.num_frames
 
     def __call__(self, predictions, **kwargs):
+        #predictions = np.load('/user/a0393749/deepak_files/github/mmdetection3d-work/edgeai-mmdetection3d/bin_out.bin.npy',allow_pickle=True)
         dt_annos = self.bbox2result_kitti(predictions,self.class_names)
-        acc = get_official_eval_result(self.gt_annos, dt_annos, 0)(predictions, metric='mAP')
-        ap_dict = {'KITTI/Car_3D_moderate_strict':acc}
+        acc = get_official_eval_result(self.gt_annos, dt_annos, 0)
+        ap_dict = {'KITTI_official_eval_result':acc[0]}
         return ap_dict
 
     # https://github.com/open-mmlab/mmdetection3d/
@@ -349,6 +350,7 @@ class KittiLidar3D(DatasetBase):
 
         det_annos = []
         print('\nConverting prediction to KITTI format')
+
         for idx, pred in enumerate(net_outputs):
             annos = []
             info = self.data_infos[idx]
@@ -437,13 +439,13 @@ class KittiLidar3D(DatasetBase):
                 - sample_idx (int): Sample index.
         """
         # TODO: refactor this function
-        box_preds = pred[:, 3:6]
-        scores = pred[:, 2]
-        labels = pred[:, 1]
+
+        # box predictions are in lidar refrence co-ordinate. Kitti ground truths are in kitti camera co0ordinates
+        box_preds = pred[:, 2:8] # x y z l w h
+        scores = pred[:, 1]
+        labels = pred[:, 0]
         sample_idx = info['image']['image_idx']
-        offset = 0.5
-        period = np.pi
-        limited_val = pred[9] - np.floor(pred[9] / period + offset) * period
+        pred[:,8] = self.limit_period(pred[:,8], offset = 0.5, period = np.pi*2)
 
         if len(box_preds) == 0:
             return dict(
@@ -458,39 +460,50 @@ class KittiLidar3D(DatasetBase):
         Trv2c = info['calib']['Tr_velo_to_cam'].astype(np.float32)
         P2 = info['calib']['P2'].astype(np.float32)
         img_shape = info['image']['image_shape']
-        P2 = box_preds.tensor.new_tensor(P2)
+        #P2 = box_preds.tensor.new_tensor(P2)
 
         z = np.ones((len(box_preds),1))
-        box_preds_with_ones = np.append(box_preds, z, axis=1)
+        box_preds_with_ones = np.append(box_preds[:,0:3], z, axis=1)
 
-        box_preds_camera = box_preds_with_ones @ (rect @ Trv2c)
+        box_preds_camera = box_preds_with_ones @ ((rect @ Trv2c).transpose())[:,:3]
 
-        box_corners = self.boxes3d_to_corners3d_lidar(box_preds_camera)
+        box_size_camera = box_preds[:, 3:6].copy()
+        #swap index 2 and 1, as height is length in camera view
+        box_size_camera[:,2] = box_preds[:,4].copy()
+        box_size_camera[:, 1] = box_preds[:, 5].copy()
+
+        yaw_in_camera_view = -pred[:,8] - np.pi / 2
+        yaw_in_camera_view = self.limit_period(yaw_in_camera_view, period=np.pi * 2)
+
+        box_preds_camera = np.concatenate((box_preds_camera, box_size_camera, yaw_in_camera_view.reshape(-1, 1)), axis=1)
+        box_corners = self.corners(box_preds_camera) # from camera co-ordinate
 
         box_corners_in_image = self.points_cam2img(box_corners, P2)
         # box_corners_in_image: [N, 8, 2]
-        minxy = torch.min(box_corners_in_image, dim=1)[0]
-        maxxy = torch.max(box_corners_in_image, dim=1)[0]
-        box_2d_preds = torch.cat([minxy, maxxy], dim=1)
+        minxy = np.min(box_corners_in_image, axis=1)
+        maxxy = np.max(box_corners_in_image, axis=1)
+        box_2d_preds = np.concatenate((minxy, maxxy), axis=1)
         # Post-processing
         # check box_preds_camera
-        image_shape = box_preds.tensor.new_tensor(img_shape)
-        valid_cam_inds = ((box_2d_preds[:, 0] < image_shape[1]) &
-                          (box_2d_preds[:, 1] < image_shape[0]) &
+        #image_shape = box_preds.tensor.new_tensor(img_shape)
+        valid_cam_inds = ((box_2d_preds[:, 0] < img_shape[1]) &
+                          (box_2d_preds[:, 1] < img_shape[0]) &
                           (box_2d_preds[:, 2] > 0) & (box_2d_preds[:, 3] > 0))
         # check box_preds
-        limit_range = box_preds.tensor.new_tensor(self.pcd_limit_range)
-        valid_pcd_inds = ((box_preds.center > limit_range[:3]) &
-                          (box_preds.center < limit_range[3:]))
+        #limit_range = box_preds.tensor.new_tensor(self.pcd_limit_range)
+        limit_range = self.pcd_limit_range
+
+        valid_pcd_inds = ((box_preds[:,:3] > limit_range[:3]) &
+                          (box_preds[:,:3] < limit_range[3:]))
         valid_inds = valid_cam_inds & valid_pcd_inds.all(-1)
 
         if valid_inds.sum() > 0:
             return dict(
-                bbox=box_2d_preds[valid_inds, :].numpy(),
-                box3d_camera=box_preds_camera[valid_inds].tensor.numpy(),
-                box3d_lidar=box_preds[valid_inds].tensor.numpy(),
-                scores=scores[valid_inds].numpy(),
-                label_preds=labels[valid_inds].numpy(),
+                bbox=box_2d_preds[valid_inds, :],
+                box3d_camera=box_preds_camera[valid_inds],
+                box3d_lidar=box_preds[valid_inds],
+                scores=scores[valid_inds],
+                label_preds=labels[valid_inds],
                 sample_idx=sample_idx)
         else:
             return dict(
@@ -573,75 +586,8 @@ class KittiLidar3D(DatasetBase):
         mat = np.concatenate([mat, np.array([[0., 0., 0., 1.]])], axis=0)
         return mat
     #https://github.com/open-mmlab/mmdetection3d/
-    def boxes3d_to_corners3d_lidar(boxes3d, bottom_center=True):
-        """Convert kitti center boxes to corners.
-
-            7 -------- 4
-           /|         /|
-          6 -------- 5 .
-          | |        | |
-          . 3 -------- 0
-          |/         |/
-          2 -------- 1
-
-        Args:
-            boxes3d (np.ndarray): Boxes with shape of (N, 7) \
-                [x, y, z, w, l, h, ry] in LiDAR coords, see the definition of ry \
-                in KITTI dataset.
-            bottom_center (bool): Whether z is on the bottom center of object.
-
-        Returns:
-            np.ndarray: Box corners with the shape of [N, 8, 3].
-        """
-        boxes_num = boxes3d.shape[0]
-        w, l, h = boxes3d[:, 3], boxes3d[:, 4], boxes3d[:, 5]
-        x_corners = np.array(
-            [w / 2., -w / 2., -w / 2., w / 2., w / 2., -w / 2., -w / 2., w / 2.],
-            dtype=np.float32).T
-        y_corners = np.array(
-            [-l / 2., -l / 2., l / 2., l / 2., -l / 2., -l / 2., l / 2., l / 2.],
-            dtype=np.float32).T
-
-        if bottom_center:
-            z_corners = np.zeros((boxes_num, 8), dtype=np.float32)
-            z_corners[:, 4:8] = h.reshape(boxes_num, 1).repeat(4, axis=1)  # (N, 8)
-        else:
-            z_corners = np.array([
-                -h / 2., -h / 2., -h / 2., -h / 2., h / 2., h / 2., h / 2., h / 2.
-            ],
-                                 dtype=np.float32).T
-
-        ry = boxes3d[:, 6]
-        zeros, ones = np.zeros(
-            ry.size, dtype=np.float32), np.ones(
-                ry.size, dtype=np.float32)
-        rot_list = np.array([[np.cos(ry), -np.sin(ry), zeros],
-                             [np.sin(ry), np.cos(ry), zeros], [zeros, zeros,
-                                                               ones]])  # (3, 3, N)
-        R_list = np.transpose(rot_list, (2, 0, 1))  # (N, 3, 3)
-
-        temp_corners = np.concatenate((x_corners.reshape(
-            -1, 8, 1), y_corners.reshape(-1, 8, 1), z_corners.reshape(-1, 8, 1)),
-                                      axis=2)  # (N, 8, 3)
-        rotated_corners = np.matmul(temp_corners, R_list)  # (N, 8, 3)
-        x_corners = rotated_corners[:, :, 0]
-        y_corners = rotated_corners[:, :, 1]
-        z_corners = rotated_corners[:, :, 2]
-
-        x_loc, y_loc, z_loc = boxes3d[:, 0], boxes3d[:, 1], boxes3d[:, 2]
-
-        x = x_loc.reshape(-1, 1) + x_corners.reshape(-1, 8)
-        y = y_loc.reshape(-1, 1) + y_corners.reshape(-1, 8)
-        z = z_loc.reshape(-1, 1) + z_corners.reshape(-1, 8)
-
-        corners = np.concatenate(
-            (x.reshape(-1, 8, 1), y.reshape(-1, 8, 1), z.reshape(-1, 8, 1)),
-            axis=2)
-
-        return corners.astype(np.float32)
-
     #https://github.com/open-mmlab/mmdetection3d/
-    def points_cam2img(points_3d, proj_mat, with_depth=False):
+    def points_cam2img(self, points_3d, proj_mat, with_depth=False):
         """Project points in camera coordinates to image coordinates.
 
         Args:
@@ -671,12 +617,175 @@ class KittiLidar3D(DatasetBase):
             proj_mat = proj_mat_expanded
 
         # previous implementation use new_zeros, new_one yields better results
-        points_4 = torch.cat([points_3d, points_3d.new_ones(points_shape)], dim=-1)
+        points_4 = np.concatenate([points_3d, np.ones(points_shape)], axis=-1)
 
         point_2d = points_4 @ proj_mat.T
         point_2d_res = point_2d[..., :2] / point_2d[..., 2:3]
 
         if with_depth:
-            point_2d_res = torch.cat([point_2d_res, point_2d[..., 2:3]], dim=-1)
+            point_2d_res = np.concatenate([point_2d_res, point_2d[..., 2:3]], axis=-1)
 
         return point_2d_res
+
+    def boxes3d_lidar_to_kitti_camera(self, boxes3d_lidar, calib):
+        """
+        :param boxes3d_lidar: (N, 7) [x, y, z, dx, dy, dz, heading], (x, y, z) is the box center
+        :param calib:
+        :return:
+            boxes3d_camera: (N, 7) [x, y, z, l, h, w, r] in rect camera coords
+        """
+        boxes3d_lidar_copy = copy.deepcopy(boxes3d_lidar)
+        xyz_lidar = boxes3d_lidar_copy[:, 0:3]
+        l, w, h = boxes3d_lidar_copy[:, 3:4], boxes3d_lidar_copy[:, 4:5], boxes3d_lidar_copy[:, 5:6]
+        r = boxes3d_lidar_copy[:, 6:7]
+
+        xyz_lidar[:, 2] -= h.reshape(-1) / 2
+        xyz_cam = calib.lidar_to_rect(xyz_lidar)
+        # xyz_cam[:, 1] += h.reshape(-1) / 2
+        r = -r - np.pi / 2
+        return np.concatenate([xyz_cam, l, h, w, r], axis=-1)
+
+    def limit_period(self, val, offset=0.5, period=np.pi):
+        """Limit the value into a period for periodic function.
+
+        Args:
+            val (torch.Tensor | np.ndarray): The value to be converted.
+            offset (float, optional): Offset to set the value range.
+                Defaults to 0.5.
+            period ([type], optional): Period of the value. Defaults to np.pi.
+
+        Returns:
+            (torch.Tensor | np.ndarray): Value in the range of
+                [-offset * period, (1-offset) * period]
+        """
+        limited_val = val - np.floor(val / period + offset) * period
+        return limited_val
+
+    def corners(self, tensor):
+        """torch.Tensor: Coordinates of corners of all the boxes in
+                         shape (N, 8, 3).
+
+        Convert the boxes to  in clockwise order, in the form of
+        (x0y0z0, x0y0z1, x0y1z1, x0y1z0, x1y0z0, x1y0z1, x1y1z1, x1y1z0)
+
+        .. code-block:: none
+
+                         front z
+                              /
+                             /
+               (x0, y0, z1) + -----------  + (x1, y0, z1)
+                           /|            / |
+                          / |           /  |
+            (x0, y0, z0) + ----------- +   + (x1, y1, z1)
+                         |  /      .   |  /
+                         | / origin    | /
+            (x0, y1, z0) + ----------- + -------> x right
+                         |             (x1, y1, z0)
+                         |
+                         v
+                    down y
+        """
+        if np.size(tensor) == 0:
+            return np.empty([0, 8, 3])
+
+        dims = tensor[:,3:6]
+        corners_norm = np.stack(np.unravel_index(np.arange(8), [2] * 3), axis=1)
+        corners_norm = corners_norm[[0, 1, 3, 2, 4, 5, 7, 6]]
+        # use relative origin [0.5, 1, 0.5]
+        corners_norm = corners_norm - np.array([0.5, 1, 0.5])
+        corners = np.expand_dims(dims, axis=1) * corners_norm.reshape([1, 8, 3])
+
+        corners = self.rotation_3d_in_axis(
+            corners, tensor[:, 6], axis=1)
+        corners += np.expand_dims(tensor[:, :3], axis=1)
+        return corners
+
+    def rotation_3d_in_axis(self, points,
+                            angles,
+                            axis=0,
+                            return_mat=False,
+                            clockwise=False):
+        """Rotate points by angles according to axis.
+
+        Args:
+            points (np.ndarray | torch.Tensor | list | tuple ):
+                Points of shape (N, M, 3).
+            angles (np.ndarray | torch.Tensor | list | tuple | float):
+                Vector of angles in shape (N,)
+            axis (int, optional): The axis to be rotated. Defaults to 0.
+            return_mat: Whether or not return the rotation matrix (transposed).
+                Defaults to False.
+            clockwise: Whether the rotation is clockwise. Defaults to False.
+
+        Raises:
+            ValueError: when the axis is not in range [0, 1, 2], it will
+                raise value error.
+
+        Returns:
+            (torch.Tensor | np.ndarray): Rotated points in shape (N, M, 3).
+        """
+        batch_free = len(points.shape) == 2
+        if batch_free:
+            points = points[None]
+
+        if isinstance(angles, float) or len(angles.shape) == 0:
+            angles = torch.full(points.shape[:1], angles)
+
+        assert len(points.shape) == 3 and len(angles.shape) == 1 \
+            and points.shape[0] == angles.shape[0], f'Incorrect shape of points ' \
+            f'angles: {points.shape}, {angles.shape}'
+
+        assert points.shape[-1] in [2, 3], \
+            f'Points size should be 2 or 3 instead of {points.shape[-1]}'
+
+        rot_sin = np.sin(angles)
+        rot_cos = np.cos(angles)
+        ones = np.ones_like(rot_cos)
+        zeros = np.zeros_like(rot_cos)
+
+        if points.shape[-1] == 3:
+            if axis == 1 or axis == -2:
+                rot_mat_T = np.stack([
+                    np.stack([rot_cos, zeros, -rot_sin]),
+                    np.stack([zeros, ones, zeros]),
+                    np.stack([rot_sin, zeros, rot_cos])
+                ])
+            elif axis == 2 or axis == -1:
+                rot_mat_T = np.stack([
+                    np.stack([rot_cos, rot_sin, zeros]),
+                    np.stack([-rot_sin, rot_cos, zeros]),
+                    np.stack([zeros, zeros, ones])
+                ])
+            elif axis == 0 or axis == -3:
+                rot_mat_T = np.stack([
+                    np.stack([ones, zeros, zeros]),
+                    np.stack([zeros, rot_cos, rot_sin]),
+                    np.stack([zeros, -rot_sin, rot_cos])
+                ])
+            else:
+                raise ValueError(f'axis should in range '
+                                 f'[-3, -2, -1, 0, 1, 2], got {axis}')
+        else:
+            rot_mat_T = np.stack([
+                np.stack([rot_cos, rot_sin]),
+                np.stack([-rot_sin, rot_cos])
+            ])
+
+        if clockwise:
+            rot_mat_T = rot_mat_T.transpose(0, 1)
+
+        if points.shape[0] == 0:
+            points_new = points
+        else:
+            points_new = np.einsum('aij,jka->aik', points, rot_mat_T)
+
+        if batch_free:
+            points_new = points_new.squeeze(0)
+
+        if return_mat:
+            rot_mat_T = np.einsum('jka->ajk', rot_mat_T)
+            if batch_free:
+                rot_mat_T = rot_mat_T.squeeze(0)
+            return points_new, rot_mat_T
+        else:
+            return points_new

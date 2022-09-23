@@ -65,7 +65,7 @@ def get_configs(settings, work_dir):
                                      "advanced_options:add_data_convert_ops" : 0,
                                      'advanced_options:output_feature_16bit_names_list': first_last_layer_3dod_7100
                                      }),
-                model_path=f'{settings.models_path}/vision/detection_3d/kitti/mmdet3d/lidar_point_pillars_10k_496x432.onnx'),
+                model_path=f'{settings.models_path}/vision/detection_3d/kitti/mmdet3d/lidar_point_pillars_10k_496x432_qat-p2.onnx'),
             postprocess=postproc_transforms.get_transform_lidar_base(),
             metric=dict(label_offset_pred=None),
             model_info=dict(metric_reference={'accuracy_ap_3d_moderate%':76.50})

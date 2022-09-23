@@ -435,9 +435,9 @@ class Voxelization(object):
 
     def __call__(self, lidar_data, info_dict):
 
-        scratch_1 =[]
         scratch_2 =[]
         enable_pre_proc = True
+        enable_opt_pre_proc = True
 
         input1 = np.zeros((1, self.num_channel, (int)(self.num_voxel_x*self.num_voxel_y)),dtype='float32')
 
@@ -445,20 +445,41 @@ class Voxelization(object):
             input0 = np.zeros((1, self.num_feat_per_voxel, self.max_points_per_voxel, self.nw_max_num_voxels),dtype='float32')
             input2 = np.zeros((1, self.num_channel, self.nw_max_num_voxels),dtype='int32')
 
-            for i, data in enumerate(lidar_data):
+            #start_time = time.time()
 
-                x = data[0]
-                y = data[1]
-                z = data[2]
+            if enable_opt_pre_proc == False:
 
-                if ((x > self.min_x) and (x < self.max_x) and (y > self.min_y) and (y < self.max_y) and
-                    (z > self.min_z) and (z < self.max_z)):
+                scratch_1 = []
+                for i, data in enumerate(lidar_data):
 
-                    x_id = (int)(((x - self.min_x) / self.voxel_size_x))
-                    y_id = (int)(((y - self.min_y) / self.voxel_size_y))
-                    scratch_1.append(y_id * self.num_voxel_x + x_id)
-                else:
-                    scratch_1.append(-1 - i) # filing unique non valid index
+                    x = data[0]
+                    y = data[1]
+                    z = data[2]
+
+                    if ((x > self.min_x) and (x < self.max_x) and (y > self.min_y) and (y < self.max_y) and
+                        (z > self.min_z) and (z < self.max_z)):
+
+                        x_id = (((x - self.min_x) / self.voxel_size_x)).astype(int)
+                        y_id = (((y - self.min_y) / self.voxel_size_y)).astype(int)
+                        scratch_1.append(y_id * self.num_voxel_x + x_id)
+                    else:
+                        scratch_1.append(-1 - i) # filing unique non valid index
+            else:
+                x = lidar_data[:, 0]
+                y = lidar_data[:, 1]
+                z = lidar_data[:, 2]
+
+                x_id = ((((x - self.min_x) / self.voxel_size_x))).astype(int)
+                y_id =  ((((y - self.min_y) / self.voxel_size_y))).astype(int)
+                valid_idx = y_id * self.num_voxel_x + x_id
+                not_valid_idx = np.ones(len(lidar_data))*-1 # -1  is the invalid index
+
+                valid_pts = (x > self.min_x)*(x < self.max_x)*(y > self.min_y)*\
+                            (y < self.max_y)*(z > self.min_z)*(z < self.max_z)
+
+                indx_write = np.where(valid_pts,valid_idx,not_valid_idx)
+
+                scratch_1  = indx_write
 
             num_points = np.zeros(self.nw_max_num_voxels,dtype=int)
 
@@ -467,40 +488,55 @@ class Voxelization(object):
             # scratch_2 is the index in valid voxels
             num_non_empty_voxels = 0
 
-            for i in range(len(lidar_data)):
-                if (scratch_1[i] >= 0):
+            lidar_data = lidar_data[np.where(scratch_1 != -1)]
+            scratch_1 = scratch_1[np.where(scratch_1 != -1)]
 
-                    find_voxel = scratch_1[i] in scratch_1[:i]
+            if enable_opt_pre_proc == False:
+                for i in range(len(lidar_data)):
+                    if (scratch_1[i] >= 0):
 
-                    if find_voxel == False:
-                        scratch_2.append(num_non_empty_voxels) # this voxel idx has come first time, hence allocate a new index for this
-                        input2[0][0][num_non_empty_voxels] = scratch_1[i]
-                        num_non_empty_voxels += 1
+                        find_voxel = scratch_1[i] in scratch_1[:i]
+
+                        if find_voxel == False:
+                            scratch_2.append(num_non_empty_voxels) # this voxel idx has come first time, hence allocate a new index for this
+                            input2[0][0][num_non_empty_voxels] = scratch_1[i]
+                            num_non_empty_voxels += 1
+                        else:
+                            if enable_opt_pre_proc == False:
+                                k = scratch_1[:i].index(scratch_1[i])
+                            else:
+                                k = (np.where(scratch_1[:i] == scratch_1[i]))[0][0]
+                            scratch_2.append(scratch_2[k]) #already this voxel is having one id hence reuse it
                     else:
-                        k = scratch_1[:i].index(scratch_1[i])
-                        scratch_2.append(scratch_2[k]) #already this voxel is having one id hence reuse it
-                else:
-                    scratch_2.append(None)
+                        scratch_2.append(None)
+            else:
+                unq_rtn = np.unique(scratch_1, return_inverse = True, return_counts = True)
+                num_non_empty_voxels = (int)(unq_rtn[2].shape[0])
+                #num_points = unq_rtn[2]
+                #num_points = np.clip(num_points,0,self.max_points_per_voxel)
+                scratch_2 = unq_rtn[1]
+                input2[0, 0, :num_non_empty_voxels] = unq_rtn[0][:num_non_empty_voxels]
+
 
             #Even though current_voxels is less than self.nw_max_num_voxels, then also arrange
             #    the data as per maximum number of voxels.
 
-            line_pitch = self.nw_max_num_voxels
-            channel_pitch = self.max_points_per_voxel * line_pitch
-            j = 0
-            tot_num_pts = 0
-
-            for i in range(len(lidar_data)):
-                if (scratch_1[i] >= 0):
+            if enable_opt_pre_proc == False:
+                tot_num_pts = 0
+                for i in range(len(lidar_data)):
+                    if (scratch_1[i] >= 0):
+                        j = scratch_2[i] #voxel index
+                        if(num_points[j]<self.max_points_per_voxel):
+                            input0[0, 0:4, num_points[j], j] = lidar_data[i, 0:4] * self.scale_fact
+                            num_points[j] = num_points[j] + 1
+                        else:
+                            tot_num_pts = tot_num_pts+1
+            else:
+                for i in range(len(lidar_data)):
                     j = scratch_2[i] #voxel index
-                    if(num_points[j]<self.max_points_per_voxel):
-                        input0[0][0][num_points[j]][j] = lidar_data[i][0] * self.scale_fact
-                        input0[0][1][num_points[j]][j] = lidar_data[i][1] * self.scale_fact
-                        input0[0][2][num_points[j]][j] = lidar_data[i][2] * self.scale_fact
-                        input0[0][3][num_points[j]][j] = lidar_data[i][3] * self.scale_fact
+                    if(num_points[j] < self.max_points_per_voxel):
+                        input0[0, 0:4, num_points[j], j] = lidar_data[i, 0:4] * self.scale_fact
                         num_points[j] = num_points[j] + 1
-                    else:
-                        tot_num_pts = tot_num_pts+1
 
             line_pitch = self.nw_max_num_voxels
             channel_pitch = self.max_points_per_voxel * line_pitch
@@ -513,10 +549,15 @@ class Voxelization(object):
                 y = 0
                 z = 0
 
-                for j in range(num_points[i]):
-                    x += input0[0][0][j][i]
-                    y += input0[0][1][j][i]
-                    z += input0[0][2][j][i]
+                if enable_opt_pre_proc == False:
+                    for j in range(num_points[i]):
+                        x += input0[0][0][j][i]
+                        y += input0[0][1][j][i]
+                        z += input0[0][2][j][i]
+                else:
+                    x = input0[0, 0, :num_points[i], i].sum()
+                    y = input0[0, 1, :num_points[i], i].sum()
+                    z = input0[0, 2, :num_points[i], i].sum()
 
                 x_avg = x / num_points[i]
                 y_avg = y / num_points[i]
@@ -534,27 +575,38 @@ class Voxelization(object):
                 voxel_center_z = 0
                 voxel_center_z *= self.voxel_size_z
                 voxel_center_z += z_offset
+                if enable_opt_pre_proc == False:
+                    for j in range(num_points[i]):
+                        input0[0][4][j][i] = input0[0][0][j][i] - x_avg
+                        input0[0][5][j][i] = input0[0][1][j][i] - y_avg
+                        input0[0][6][j][i] = input0[0][2][j][i] - z_avg
+                        input0[0][7][j][i] = input0[0][0][j][i] - voxel_center_x * self.scale_fact
+                        input0[0][8][j][i] = input0[0][1][j][i] - voxel_center_y * self.scale_fact
+                        input0[0][9][j][i] = input0[0][2][j][i] - voxel_center_z * self.scale_fact
 
-                for j in range(num_points[i]):
-                    input0[0][4][j][i] = input0[0][0][j][i] - x_avg
-                    input0[0][5][j][i] = input0[0][1][j][i] - y_avg
-                    input0[0][6][j][i] = input0[0][2][j][i] - z_avg
-                    input0[0][7][j][i] = input0[0][0][j][i] - voxel_center_x * self.scale_fact
-                    input0[0][8][j][i] = input0[0][1][j][i] - voxel_center_y * self.scale_fact
-                    input0[0][9][j][i] = input0[0][2][j][i] - voxel_center_z * self.scale_fact
+                    #/*looks like bug in python mmdetection3d code, hence below code is to mimic the mmdetect behaviour*/
+                    for j in range (num_points[i]):
+                        input0[0][0][j][i] = input0[0][7][j][i]
+                        input0[0][1][j][i] = input0[0][8][j][i]
+                        input0[0][2][j][i] = input0[0][9][j][i]
+                else:
+                    input0[0, 4, :num_points[i], i] = input0[0, 0, :num_points[i], i] - x_avg
+                    input0[0, 5, :num_points[i], i] = input0[0, 1, :num_points[i], i] - y_avg
+                    input0[0, 6, :num_points[i], i] = input0[0, 2, :num_points[i], i] - z_avg
+                    input0[0, 7, :num_points[i], i] = input0[0, 0, :num_points[i], i] - voxel_center_x * self.scale_fact
+                    input0[0, 8, :num_points[i], i] = input0[0, 1, :num_points[i], i] - voxel_center_y * self.scale_fact
+                    input0[0, 9, :num_points[i], i] = input0[0, 2, :num_points[i], i] - voxel_center_z * self.scale_fact
 
-                #/*looks like bug in python mmdetection3d code, hence below code is to mimic the mmdetect behaviour*/
-                for j in range (num_points[i]):
-                    input0[0][0][j][i] = input0[0][7][j][i]
-                    input0[0][1][j][i] = input0[0][8][j][i]
-                    input0[0][2][j][i] = input0[0][9][j][i]
+                    input0[0, 0, :num_points[i], i] = input0[0, 7, :num_points[i], i]
+                    input0[0, 1, :num_points[i], i] = input0[0, 8, :num_points[i], i]
+                    input0[0, 2, :num_points[i], i] = input0[0, 9, :num_points[i], i]
+
 
             input2[0][0][num_non_empty_voxels] = -1 # TIDL doesnt know valid number of voxels, hence this act as marker field.
             input2[0][1:64] = input2[0][0] # replicating the firsh channel indices to all channels. As scatter is same for all channels.
             input0 = input0.astype("int32")
             input0 = input0.astype("float32")
             #input2 = input2.astype("float32")
-
             #np.savetxt('input2.txt', input2.flatten(), fmt='%6.2e')
             #np.savetxt('input0.txt', input0.flatten(), fmt='%6.2e')
         else:
