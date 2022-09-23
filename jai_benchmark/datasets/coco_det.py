@@ -150,7 +150,7 @@ class COCODetection(DatasetBase):
         with open(self.annotation_file) as afp:
             self.dataset_store = json.load(afp)
         #
-        self.kwargs['dataset_info'] = self._get_dataset_info()
+        self.kwargs['dataset_info'] = self.get_dataset_info()
 
     def _load_dataset(self):
         shuffle = self.kwargs.get('shuffle', False)
@@ -279,7 +279,7 @@ class COCODetection(DatasetBase):
         accuracy = {'accuracy_ap[.5:.95]%': coco_ap*100.0, 'accuracy_ap50%': coco_ap50*100.0}
         return accuracy
 
-    def _get_dataset_info(self):
+    def get_dataset_info(self):
         # return only info and categories for now as the whole thing could be quite large.
         dataset_store = dict()
         for key in ('info', 'categories'):

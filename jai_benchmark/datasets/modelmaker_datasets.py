@@ -46,12 +46,12 @@ class ModelMakerDetectionDataset(coco_det.COCODetection):
         with open(annotation_file) as afp:
             self.dataset_store = json.load(afp)
         #
-        self.kwargs['dataset_info'] = self._get_dataset_info()
+        self.kwargs['dataset_info'] = self.get_dataset_info()
 
     def download(self, path, split):
         return
 
-    def _get_dataset_info(self):
+    def get_dataset_info(self):
         # return only info and categories for now as the whole thing could be quite large.
         dataset_store = dict()
         for key in ('info', 'categories'):
@@ -89,12 +89,12 @@ class ModelMakerClassificationDataset(DatasetBase):
         self.num_frames = num_frames
         super().__init__(num_classes=num_classes, image_dir=self.image_dir, annotation_file=self.annotation_file,
                          download=False, num_frames=num_frames, name=name, **kwargs)
-        self.kwargs['dataset_info'] = self._get_dataset_info()
+        self.kwargs['dataset_info'] = self.get_dataset_info()
 
     def download(self, path, split):
         return
 
-    def _get_dataset_info(self):
+    def get_dataset_info(self):
         # return only info and categories for now as the whole thing could be quite large.
         dataset_store = dict()
         for key in ('info', 'categories'):

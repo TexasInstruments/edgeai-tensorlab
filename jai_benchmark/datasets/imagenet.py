@@ -80,7 +80,7 @@ class BaseImageNetCls(ImageClassification):
         else:
             self.dataset_store = None
         #
-        self.kwargs['dataset_info'] = self._get_dataset_info()
+        self.kwargs['dataset_info'] = self.get_dataset_info()
 
     def get_notice(self):
         notice = f'{Fore.YELLOW}' \
@@ -130,7 +130,7 @@ class BaseImageNetCls(ImageClassification):
         root = os.sep.join(os.path.split(path)[:-1])
         return root
 
-    def _get_dataset_info(self):
+    def get_dataset_info(self):
         if self.dataset_store is None:
             return None
         #

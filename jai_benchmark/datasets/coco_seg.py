@@ -193,7 +193,7 @@ class COCOSegmentation(DatasetBase):
         with open(self.annotation_file) as afp:
             self.dataset_store = json.load(afp)
         #
-        self.kwargs['dataset_info'] = self._get_dataset_info()
+        self.kwargs['dataset_info'] = self.get_dataset_info()
 
     def download(self, path, split):
         root = path
@@ -280,7 +280,7 @@ class COCOSegmentation(DatasetBase):
         accuracy = utils.segmentation_accuracy(cmatrix)
         return accuracy
 
-    def _get_dataset_info(self):
+    def get_dataset_info(self):
         # return only info and categories for now as the whole thing could be quite large.
         dataset_store = dict()
         for key in ('info', 'categories'):

@@ -97,7 +97,7 @@ class WiderFaceDetection(coco_det.COCODetection):
                     year='2017', contributor='Multimedia Laboratory, Department of Information Engineering, The Chinese University of Hong Kong',
                     date_created='2017/mar/31')
         self.dataset_store = dict(info=info, categories=categories)
-        self.kwargs['dataset_info'] = self._get_dataset_info()
+        self.kwargs['dataset_info'] = self.get_dataset_info()
 
     def get_categories(self, project_path):
         widerface_categories = [dict(id=1, supercategory='face', name='face')]
@@ -258,7 +258,7 @@ class WiderFaceDetection(coco_det.COCODetection):
         root = os.sep.join(os.path.split(path)[:-1])
         return root
 
-    def _get_dataset_info(self):
+    def get_dataset_info(self):
         # return only info and categories for now as the whole thing could be quite large.
         dataset_store = dict()
         for key in ('info', 'categories'):
