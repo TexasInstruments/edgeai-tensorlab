@@ -56,12 +56,6 @@ def main(config):
     # update the params with model_description and config
     params = params.update(model_description).update(config)
 
-    # modify or set any parameters here as required.
-    if params.common.run_name and '{date-time}' in params.common.run_name:
-        params.common.run_name = \
-            params.common.run_name.replace('{date-time}', datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
-    #
-
     # create the runner
     model_runner = ai_target_module.runner.ModelRunner(
         params

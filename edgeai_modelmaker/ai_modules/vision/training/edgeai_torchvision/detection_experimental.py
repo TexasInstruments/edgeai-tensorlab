@@ -141,6 +141,7 @@ class ModelTraining:
         self.params.update(
             training=utils.ConfigDict(
                 log_file_path=os.path.join(self.params.training.training_path, 'run.log'),
+                summary_file_path=os.path.join(self.params.training.training_path, 'summary.yaml'),
                 model_checkpoint_path=os.path.join(self.params.training.training_path, 'checkpoint.pth'),
                 model_export_path=os.path.join(self.params.training.training_path, 'model-proto.onnx'),
                 model_proto_path=os.path.join(self.params.training.training_path, 'model-proto.prototxt'),

@@ -58,6 +58,7 @@ class ModelCompilation():
         self.params.update(
             compilation=utils.ConfigDict(
                 log_file_path=os.path.join(model_compiled_path, 'run.log'),
+                summary_file_path=os.path.join(model_compiled_path, 'summary.yaml'),
                 model_compiled_path=model_compiled_path,
                 model_packaged_path=model_packaged_path,
             )

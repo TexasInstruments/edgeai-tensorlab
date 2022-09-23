@@ -61,14 +61,15 @@ class ModelRunner():
         self.params.dataset.input_annotation_path = utils.absolute_path(self.params.dataset.input_annotation_path)
         self.params.common.project_path = os.path.join(self.params.common.projects_path, self.params.dataset.dataset_name)
 
-        run_folder = self.params.common.run_name if self.params.common.run_name else ''
-        self.params.common.project_run_path = os.path.join(self.params.common.project_path, 'run', run_folder)
+        project_run_path_base = os.path.join(self.params.common.project_path, 'run')
+        self.params.common.project_run_path = self.get_project_run_path(project_run_path_base)
 
         self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
         self.params.dataset.download_path = os.path.join(self.params.common.project_path, 'other', 'download')
         self.params.dataset.extract_path = self.params.dataset.dataset_path
 
         self.params.training.training_path = os.path.join(self.params.common.project_run_path, 'training', self.params.training.model_name)
+
         target_device_compilation_folder = self.params.common.target_device.lower()
         self.params.compilation.compilation_path = os.path.join(self.params.common.project_run_path, 'compilation', target_device_compilation_folder)
 
@@ -77,6 +78,21 @@ class ModelRunner():
             performance_fps = target_device_data['performance_fps']
             print(f'Model:{self.params.training.model_name} TargetDevice:{self.params.common.target_device} FPS(Estimate):{performance_fps}')
         #
+
+    def get_project_run_path(self, project_run_path_base):
+        if not self.params.common.run_name:
+            return ''
+        #
+        run_name = self.params.common.run_name
+        # modify or set any parameters here as required.
+        if '{date-time}' in run_name:
+            run_name = run_name.replace('{date-time}', datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+        elif '{latest}' in run_name:
+            run_latest = sorted(os.listdir(project_run_path_base))[-1]
+            run_name = run_name.replace('{latest}', run_latest)
+        #
+        project_run_path = os.path.join(project_run_path_base, run_name)
+        return project_run_path
 
     def clear(self):
         pass

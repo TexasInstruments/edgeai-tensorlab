@@ -281,10 +281,24 @@ class ModelTraining:
             self.object_categories = [cat['name'] for cat in categories]
         #
 
+        log_summary_regex = [
+            {'type':'epoch', 'name':'Epoch', 'description':'Training Epoch', 'unit':'Number', 'value':None,
+             'regex':[{'op':'search', 'pattern':r'.+INFO - Epoch\(val\).+bbox_mAP:.+\[([-+e\d\.\d]+)\]', 'group':1}],
+             },
+            {'type':'training_loss', 'name':'Loss', 'description':'Training Loss', 'unit':'Value', 'value':None,
+             'regex':[{'op':'search', 'pattern':r'TODO-Loss-TODO'}],
+             },
+            {'type':'validation_accuracy', 'name':'Accuracy', 'description':'Validation Accuracy', 'unit':'AP[0.5:.95]%', 'value':None,
+             'regex':[{'op':'search', 'pattern':r'.+INFO - Epoch\(val\).+\[([-+e\d\.\d]+)\].+bbox_mAP:.+', 'group':1}],
+             }
+        ]
+
         # update params that are specific to this backend and model
         self.params.update(
             training=utils.ConfigDict(
                 log_file_path=os.path.join(self.params.training.training_path, 'run.log'),
+                log_summary_regex=log_summary_regex,
+                summary_file_path=os.path.join(self.params.training.training_path, 'summary.yaml'),
                 model_checkpoint_path=os.path.join(self.params.training.training_path, 'latest.pth'),
                 model_export_path=os.path.join(self.params.training.training_path, 'model.onnx'),
                 model_proto_path=os.path.join(self.params.training.training_path, 'model.prototxt'),
