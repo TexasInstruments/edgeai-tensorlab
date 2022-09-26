@@ -102,7 +102,6 @@ def retrieve_onnx_names(input_data, partial_model, full_model_path):
     num_classes = partial_model.head.num_classes
     for po in partial_outputs:
         matched_name = None
-        bs,  no, ny, nx = po.shape
         for fname, fo in zip(full_output_names, full_outputs):
             if len(fo.shape) == 4:  #OD final conv layer output must have dim=4
                 fo = fo[:, :5+num_classes, ...] #Consider only box and class confidence for comparison

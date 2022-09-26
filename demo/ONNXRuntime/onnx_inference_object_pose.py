@@ -51,16 +51,10 @@ def make_parser():
         help="Specify an input shape for inference.",
     )
     parser.add_argument(
-        "--with_p6",
-        action="store_true",
-        help="Whether your model uses p6 in FPN/PAN.",
-    )
-    parser.add_argument(
         "--save-txt",
         action="store_true",
         help="Whether to write the output ",
     )
-    parser.add_argument("--export-det",  action='store_true', help='export the nms part in ONNX model')
     parser.add_argument( "--dataset", default=None, type=str, help="dataset is required for object_pose estimation")
 
     return parser

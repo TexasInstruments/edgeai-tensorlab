@@ -19,7 +19,7 @@ from .datasets_wrapper import Dataset
 class CADModelsYCB():
     def __init__(self, data_dir=None):
         if data_dir is None:
-            data_dir = os.path.join(get_yolox_datadir(), "ycb")
+            data_dir = os.path.join(get_yolox_datadir(), "ycbv")
         self.data_dir = data_dir
         self.cad_models_path = os.path.join(self.data_dir, "models_eval")
         self.class_to_name = {
@@ -111,7 +111,7 @@ class CADModelsYCB():
 
 class YCBDataset(Dataset):
     """
-    LINEMODOcclusion dataset class.
+    YCB dataset class.
     """
 
     def __init__(
@@ -126,17 +126,17 @@ class YCBDataset(Dataset):
         symmetric_objects=None
     ):
         """
-        LINEMODOcclusion dataset initialization. Annotation data are read into memory by COCO API.
+        YCB dataset initialization. Annotation data are read into memory by COCO API.
         Args:
             data_dir (str): dataset root directory
-            json_file (str): LINEMOD Occlusion json file name
-            name (str): LINEMOD Occlusion data name 
+            json_file (str): YCB json file name
+            name (str): YCB data name
             img_size (int): target image size after pre-processing
             preproc: data augmentation strategy
         """
         super().__init__(img_size)
         if data_dir is None:
-            data_dir = os.path.join(get_yolox_datadir(), "ycb")
+            data_dir = os.path.join(get_yolox_datadir(), "ycbv")
         self.data_dir = data_dir
         self.json_file = json_file
         self.object_pose = object_pose 

@@ -17,6 +17,7 @@ from ..utils.object_pose_utils  import decode_rotation_translation
 import numpy as np
 from sklearn.neighbors import KDTree
 import torch
+import csv
 
 from yolox.utils import (
     gather,
@@ -37,7 +38,7 @@ class ObjectPoseEvaluator:
     """
 
     def __init__(
-        self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False, visualize = False, output_dir=None
+        self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False, visualize = False, output_dir=None, test_bop=True
     ):
         """
         Args:
@@ -55,6 +56,9 @@ class ObjectPoseEvaluator:
         self.num_classes = num_classes
         self.testdev = testdev
         self.visualize = visualize
+        self.test_bop = test_bop  #dumps the output in BOP format
+        if self.test_bop:
+            self.test_bop_file_name = "magic_ycbv-test.csv"
         self.output_dir = output_dir
         self.class_to_model = dataloader.dataset.class_to_model
         self.class_to_cuboid = dataloader.dataset.models_corners
@@ -118,6 +122,7 @@ class ObjectPoseEvaluator:
                 # skip the the last iters since batchsize might be not enough for batch inference
                 is_time_record = cur_iter < len(self.dataloader) - 1
                 if is_time_record:
+                    import time
                     start = time.time()
 
                 outputs = model(imgs)
@@ -143,6 +148,29 @@ class ObjectPoseEvaluator:
                                                                         class_to_cuboid=self.class_to_cuboid, out_dir=self.output_dir, id=ids[output_idx])
                             visualize_object_pose.draw_6d_pose(img, frame_data_list, camera_matrix, class_to_model=self.class_to_model,
                                                                     class_to_cuboid=self.class_to_cuboid, gt=False, out_dir=self.output_dir, id=ids[output_idx])
+                    if self.test_bop:
+                        csv_file_path = os.path.join(self.output_dir, self.test_bop_file_name)
+                        with open(csv_file_path, 'a') as csv_file:
+                            csvwriter = csv.writer(csv_file)
+                            for pose_per_object in predicted_pose[output_idx]:
+                                id = int(ids[output_idx])
+                                pose_per_object = pose_per_object.cpu().numpy()
+                                scene_id = int(self.dataloader.dataset.coco.imgs[id]['image_folder'])
+                                image_id = int(self.dataloader.dataset.coco.imgs[id]['file_name'].split('.')[0])
+                                object_id = int(pose_per_object[-1] + 1)
+                                score = pose_per_object[4]
+                                r11, r21, r31, r12, r22, r32 = pose_per_object[5:11]
+                                r13, r23, r33 = np.cross(pose_per_object[5:8], pose_per_object[8:11])
+                                R = "{} {} {} {} {} {} {} {} {}".format(r11, r12, r13, r21, r22, r23, r31, r32, r33)
+                                tx, ty = pose_per_object[11:13]
+                                tz = pose_per_object[13] * 100.0
+                                tx = (tx - camera_matrix[2]) * tz / camera_matrix[0]
+                                ty = (ty - camera_matrix[5]) * tz / camera_matrix[4]
+                                T = "{} {} {}".format(tx, ty, tz)
+                                time = -1
+                                bop_pose = [scene_id, image_id, object_id, score, R, T, time]
+                                csvwriter.writerow(bop_pose)
+
                 if is_time_record:
                     nms_end = time_synchronized()
                     nms_time += nms_end - infer_end
