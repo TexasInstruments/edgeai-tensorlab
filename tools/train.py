@@ -252,17 +252,17 @@ def main():
         cfg.model,
         train_cfg=cfg.get('train_cfg'),
         test_cfg=cfg.get('test_cfg'))
-    model.init_weights()
 
     if cfg.quantize == True:
         from mmdet3d.utils.quantize import XMMDetQuantTrainModule
-        import numpy as np
 
         raw_voxel_feat = np.fromfile("./data/kitti/training/velodyne/000000.bin")
         raw_voxel_feat = torch.tensor(raw_voxel_feat.reshape((-1,4)))
 
         model = XMMDetQuantTrainModule(model, [raw_voxel_feat,raw_voxel_feat])
-
+        model.module.init_weights()
+    else:
+        model.init_weights()
 
     logger.info(f'Model:\n{model}')
     datasets = [build_dataset(cfg.data.train)]

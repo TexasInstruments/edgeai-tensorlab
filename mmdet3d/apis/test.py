@@ -38,6 +38,7 @@ def single_gpu_test(model,
     dump_txt_op = False
     read_txt_op = False
     en_img_draw = False
+    dump_bin_op = False
     for i, data in enumerate(data_loader):
         #if i >=200:
         #    break
@@ -87,8 +88,8 @@ def single_gpu_test(model,
 
             ip_img_folder = 'data/kitti/training/image_2'
             op_img_folder = '/user/a0393749/deepak_files/temp/output_platform'
-            vis_score_th  = 0.6
-            color=(0, 255, 0)
+            vis_score_th  = 0.5
+            color=(255, 255, 0)
             
             img_metas = data['img_metas'][0].data[0][0]
             file_name = osp.split(img_metas['pts_filename'])[1].replace('.bin','.png')
@@ -118,7 +119,7 @@ def single_gpu_test(model,
             for obj_id in range(num_bbox):
                 if result[0]['scores_3d'][obj_id] > vis_score_th:
                     if result[0]['labels_3d'][obj_id] == 0:
-                        color = (255,0,0)
+                        color = (0,255,255)
                     elif result[0]['labels_3d'][obj_id] == 1:
                         color = (0,255,0)
                     else:
@@ -175,4 +176,16 @@ def single_gpu_test(model,
         batch_size = len(result)
         for _ in range(batch_size):
             prog_bar.update()
+
+    if dump_bin_op == True:
+        bin_out = []
+        import numpy as np
+        for result in results:
+            tidl_format_op = np.concatenate((np.expand_dims(result['labels_3d'].cpu().numpy(),axis=1),
+            np.expand_dims(result['scores_3d'].cpu().numpy(),axis=1),
+            result['boxes_3d'].tensor.cpu().numpy()), axis=1)
+            bin_out.append(tidl_format_op)
+
+        np.save('bin_out.bin', bin_out)
+
     return results

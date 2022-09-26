@@ -93,7 +93,7 @@ data = dict(
     test=dict(pipeline=test_pipeline, classes=class_names))
 
 save_onnx_model = False
-quantize = False
+quantize = True
 
 if quantize == False:
     lr = 0.001
