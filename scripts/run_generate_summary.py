@@ -38,37 +38,83 @@ import json
 import re
 
 
-def write_summary(log_file_path, summary_file_path, log_summary_regex):
+def run_regex_py(log_lines, regex_expr):
+    value = []
+    for line in log_lines:
+        for r_entry in regex_expr:
+            r_op = r_entry['op']
+            r_pattern = r_entry['pattern']
+            if line is not None and r_op == 'search':
+                r_grp = r_entry.get('group', 0)
+                line = re.search(r_pattern, line)
+                line = line.group(r_grp) if line is not None else line
+            elif line is not None and r_op == 'split':
+                r_idx = r_entry['index']
+                line = re.split(r_pattern, line)[r_idx]
+            elif line is not None and r_op == 'findall':
+                r_idx = r_entry['index']
+                line = re.findall(r_pattern, line)[r_idx]
+            elif line is not None and r_op == 'sub':
+                r_replace = r_entry['repl']
+                line = re.sub(r_pattern, r_replace, line)
+            #
+        #
+        if line:
+            value.append(line)
+        #
+    #
+    return value
+
+
+def run_regex_js(log_lines, regex_expr):
+    import js2py
+    search_str = \
+        '''
+            function(line, pattern) {
+                console.log(line.match(pattern))
+            }
+        '''
+    search_js_fn = js2py.eval_js(search_str)
+    value = []
+    for line in log_lines:
+        for r_entry in regex_expr:
+            r_op = r_entry['op']
+            r_pattern = r_entry['pattern']
+            if line is not None and r_op == 'search':
+                # r_grp = r_entry.get('group', 0)
+                line = search_js_fn(line, r_pattern)
+                # line = line.group(r_grp) if line is not None and line != 'null' else line
+                line = line
+            #
+        #
+        if line is not None and line != 'null':
+            value.append(line)
+        #
+    #
+    return value
+
+
+def write_summary(log_file_path, summary_file_path, log_summary_regex, format='py'):
     log_summary = []
     with open(log_file_path) as fp:
         log_lines = fp.readlines()
         log_lines = [l.rstrip() for l in log_lines]
     #
+    if isinstance(log_summary_regex, dict):
+        assert format in log_summary_regex.keys(), f'format {format} not found in log_summary_regex'
+        log_summary_regex = log_summary_regex[format]
+    #
     for regex_entry in log_summary_regex:
         regex_expr = regex_entry['regex']
-        regex_entry['value'] = []
-        for line in log_lines:
-            for r_entry in regex_expr:
-                r_op = r_entry['op']
-                r_pattern = r_entry['pattern']
-                if line is not None and r_op == 'search':
-                    r_grp = r_entry.get('group', 0)
-                    line = re.search(r_pattern, line)
-                    line = line.group(r_grp) if line is not None else line
-                elif line is not None and r_op == 'split':
-                    r_idx = r_entry['index']
-                    line = re.split(r_pattern, line)[r_idx]
-                elif line is not None and r_op == 'findall':
-                    r_idx = r_entry['index']
-                    line = re.findall(r_pattern, line)[r_idx]
-                elif line is not None and r_op == 'sub':
-                    r_replace = r_entry['repl']
-                    line = re.sub(r_pattern, r_replace, line)
-                #
-            #
-            if line:
-                regex_entry['value'].append(line)
-            #
+        if format == 'py':
+            value = run_regex_py(log_lines, regex_expr)
+        elif format == 'js':
+            value = run_regex_js(log_lines, regex_expr)
+        else:
+            assert False, f'unsupported format {format}'
+        #
+        if len(value) > 0:
+            regex_entry['value'] = value
         #
         log_summary.append(regex_entry)
     #
@@ -86,19 +132,19 @@ def write_summary(log_file_path, summary_file_path, log_summary_regex):
     return log_summary
 
 
-def main(config):
+def main(args, config):
     training_log_file_path = config['training']['log_file_path']
     training_summary_file_path = config['training']['summary_file_path']
     training_log_summary_regex = config['training']['log_summary_regex']
     if training_log_summary_regex is not None:
-        write_summary(training_log_file_path, training_summary_file_path, training_log_summary_regex)
+        write_summary(training_log_file_path, training_summary_file_path, training_log_summary_regex, format=args.format)
     #
 
     compilation_log_file_path = config['compilation']['log_file_path']
     compilation_summary_file_path = config['compilation']['summary_file_path']
     compilation_log_summary_regex = config['compilation']['log_summary_regex']
     if compilation_log_summary_regex is not None:
-        write_summary(compilation_log_file_path, compilation_summary_file_path, compilation_log_summary_regex)
+        write_summary(compilation_log_file_path, compilation_summary_file_path, compilation_log_summary_regex, format=args.format)
     #
 
 
@@ -111,6 +157,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('--run_file_path', type=str)
+    parser.add_argument('--format', type=str, default='py')
     args = parser.parse_args()
 
     # read the config
@@ -124,4 +171,4 @@ if __name__ == '__main__':
         #
     #
 
-    main(config)
+    main(args, config)
