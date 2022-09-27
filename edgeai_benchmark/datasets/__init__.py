@@ -40,9 +40,15 @@ from .voc_seg import *
 from .nyudepthv2 import *
 from .modelmaker_datasets import *
 
-from .kitti_lidar_det import *
 from .coco_kpts import *
 from .widerface_det import *
+
+try:
+    from .kitti_lidar_det import KittiLidar3D
+except ImportError as e:
+    print(f'kitti_lidar_det could not be imported {str(e)}')
+    KittiLidar3D = None
+
 
 dataset_info_dict = {
     #------------------------image classification datasets--------------------------#
