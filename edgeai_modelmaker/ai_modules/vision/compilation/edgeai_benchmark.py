@@ -31,7 +31,7 @@
 
 import os
 import shutil
-import jai_benchmark
+import edgeai_benchmark
 from .... import utils
 
 
@@ -48,7 +48,7 @@ class ModelCompilation():
     def __init__(self, *args, quit_event=None, **kwargs):
         self.params = self.init_params(*args, **kwargs)
         self.quit_event = quit_event
-        self.settings_file = jai_benchmark.get_settings_file(target_machine=self.params.common.target_machine, with_model_import=True)
+        self.settings_file = edgeai_benchmark.get_settings_file(target_machine=self.params.common.target_machine, with_model_import=True)
         self.settings = self._get_settings(model_selection=self.params.compilation.model_compilation_id)
         # prepare for model compilation
         self._prepare()
@@ -75,9 +75,9 @@ class ModelCompilation():
         self.work_dir, self.package_dir = self._get_base_dirs()
 
         if self.params.common.task_type == 'detection':
-            dataset_loader = jai_benchmark.datasets.ModelMakerDetectionDataset
+            dataset_loader = edgeai_benchmark.datasets.ModelMakerDetectionDataset
         elif self.params.common.task_type == 'classification':
-            dataset_loader = jai_benchmark.datasets.ModelMakerClassificationDataset
+            dataset_loader = edgeai_benchmark.datasets.ModelMakerClassificationDataset
         else:
             dataset_loader = None
         #
@@ -99,7 +99,7 @@ class ModelCompilation():
         )
 
         # it may be easier to get the existing config and modify the aspects that need to be changed
-        pipeline_configs = jai_benchmark.tools.select_configs(self.settings, self.work_dir)
+        pipeline_configs = edgeai_benchmark.tools.select_configs(self.settings, self.work_dir)
         num_pipeline_configs = len(pipeline_configs)
         assert num_pipeline_configs == 1, f'specify a unique model name in edgeai-benchmark. found {num_pipeline_configs} configs'
         pipeline_config = list(pipeline_configs.values())[0]
@@ -158,14 +158,14 @@ class ModelCompilation():
             runtime_options[self.meta_layers_names_list] = self.params.training.model_proto_path
         #
         # run the accuracy pipeline
-        jai_benchmark.tools.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
+        edgeai_benchmark.tools.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
         # package artifacts
-        jai_benchmark.tools.package_artifacts(self.settings, self.work_dir, out_dir=self.package_dir)
+        edgeai_benchmark.tools.package_artifacts(self.settings, self.work_dir, out_dir=self.package_dir)
         return self.params
 
     def _get_settings(self, model_selection=None):
         target_device_suffix = self.params.common.target_device.lower()
-        settings = jai_benchmark.config_settings.ConfigSettings(
+        settings = edgeai_benchmark.config_settings.ConfigSettings(
                         self.settings_file,
                         target_device=self.params.common.target_device,
                         run_suffix=target_device_suffix,
