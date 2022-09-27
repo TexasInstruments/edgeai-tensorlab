@@ -106,55 +106,67 @@ https://arxiv.org/abs/1405.0312, https://cocodataset.org/
 import numbers
 import os
 import random
-import json
+import json_tricks as json
 import shutil
 import tempfile
 import numpy as np
+from collections import OrderedDict, defaultdict
 from colorama import Fore
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
-from .. import utils
-from .dataset_base import *
 
-__all__ = ['COCODetection', 'coco_det_label_offset_80to90', 'coco_det_label_offset_90to90']
+from edgeai_benchmark.utils import *
+# from ..utils import *
+from edgeai_benchmark.datasets.dataset_base import *
+# from .dataset_base import *
 
+__all__ = ['COCOKeypoints', '_get_mapping_id_name']
 
-class COCODetection(DatasetBase):
-    def __init__(self, num_classes=90, download=False, image_dir=None, annotation_file=None, num_frames=None, name='coco', **kwargs):
-        super().__init__(num_classes=num_classes, num_frames=num_frames, name=name, **kwargs)
-        if image_dir is None or annotation_file is None:
-            self.force_download = True if download == 'always' else False
-            assert 'path' in self.kwargs and 'split' in self.kwargs, 'kwargs must have path and split'
-            path = self.kwargs['path']
-            split = self.kwargs['split']
-            if download:
-                self.download(path, split)
-            #
+def _get_mapping_id_name(imgs):
+    """
+    Args:
+        imgs (dict): dict of image info.
 
-            dataset_folders = os.listdir(self.kwargs['path'])
-            assert 'annotations' in dataset_folders, 'invalid path to coco dataset annotations'
-            annotations_dir = os.path.join(self.kwargs['path'], 'annotations')
+    Returns:
+        tuple: Image name & id mapping dicts.
 
-            image_base_dir = 'images' if ('images' in dataset_folders) else ''
-            image_base_dir = os.path.join(self.kwargs['path'], image_base_dir)
-            image_split_dirs = os.listdir(image_base_dir)
-            assert self.kwargs['split'] in image_split_dirs, f'invalid path to coco dataset images/split {kwargs["split"]}'
-            self.image_dir = os.path.join(image_base_dir, self.kwargs['split'])
-            self.annotation_file = os.path.join(annotations_dir, f'instances_{self.kwargs["split"]}.json')
-        else:
-            self.image_dir = image_dir
-            self.annotation_file = annotation_file
+        - id2name (dict): Mapping image id to name.
+        - name2id (dict): Mapping image name to id.
+    """
+    id2name = {}
+    name2id = {}
+    for image_id, image in imgs.items():
+        file_name = image['file_name']
+        id2name[image_id] = file_name
+        name2id[file_name] = image_id
+
+    return id2name, name2id
+
+class COCOKeypoints(DatasetBase):
+    def __init__(self, num_joints=17, download=False, num_frames=None, name="cocokpts", **kwargs):
+        super().__init__(num_joints=num_joints, num_frames=num_frames, name=name, **kwargs)
+        self.force_download = True if download == 'always' else False
+        assert 'path' in self.kwargs and 'split' in self.kwargs, 'kwargs must have path and split'
+        path = self.kwargs['path']
+        split = self.kwargs['split']
+        if download:
+            self.download(path, split)
         #
-        self._load_dataset()
-        with open(self.annotation_file) as afp:
-            self.dataset_store = json.load(afp)
-        #
-        self.kwargs['dataset_info'] = self.get_dataset_info()
 
-    def _load_dataset(self):
+        dataset_folders = os.listdir(self.kwargs['path'])
+        assert 'annotations' in dataset_folders, 'invalid path to coco dataset annotations'
+        annotations_dir = os.path.join(self.kwargs['path'], 'annotations')
+
         shuffle = self.kwargs.get('shuffle', False)
-        self.coco_dataset = COCO(self.annotation_file)
+        image_base_dir = 'images' if ('images' in dataset_folders) else ''
+        image_base_dir = os.path.join(self.kwargs['path'], image_base_dir)
+        image_split_dirs = os.listdir(image_base_dir)
+        assert self.kwargs['split'] in image_split_dirs, f'invalid path to coco dataset images/split {kwargs["split"]}'
+        self.image_dir = os.path.join(image_base_dir, self.kwargs['split'])
+
+        self.coco_dataset = COCO(os.path.join(annotations_dir, f'person_keypoints_{self.kwargs["split"]}.json'))
+
         filter_imgs = self.kwargs['filter_imgs'] if 'filter_imgs' in self.kwargs else None
         if isinstance(filter_imgs, str):
             # filter images with the given list
@@ -166,13 +178,15 @@ class COCODetection(DatasetBase):
                 self.coco_dataset.imgs = {k: self.coco_dataset.imgs[k] for k in orig_keys}
             #
         elif filter_imgs:
-            # filter and use images with gt only
+            all_keys = self.coco_dataset.getImgIds()
             sel_keys = []
-            for img_key, img_anns in self.coco_dataset.imgToAnns.items():
-                if len(img_anns) > 0:
-                    sel_keys.append(img_key)
-                #
-            #
+            # filter and use images with gt having keypoints only.
+            for img_id in all_keys:
+                for ann in self.coco_dataset.imgToAnns[img_id]:
+                    if ann['num_keypoints'] >0 :
+                        sel_keys.append(img_id)
+                        break
+
             self.coco_dataset.imgs = {k: self.coco_dataset.imgs[k] for k in sel_keys}
         #
 
@@ -184,13 +198,50 @@ class COCODetection(DatasetBase):
         if shuffle:
             random.seed(int(shuffle))
             random.shuffle(imgs_list)
-        #
-        self.coco_dataset.imgs = {k:v for k,v in imgs_list[:num_frames]}
 
-        self.cat_ids = self.coco_dataset.getCatIds()
-        self.img_ids = self.coco_dataset.getImgIds()
+        self.coco_dataset.imgs = {k:v for k,v in imgs_list[:num_frames]}
+        
+        self.cats = [
+            cat['name'] for cat in self.coco_dataset.loadCats(self.coco_dataset.getCatIds())
+        ]
+
+        self.classes = ['__background__'] + self.cats
+        self.num_classes = len(self.classes)
+        self._class_to_ind = dict(zip(self.classes, range(self.num_classes)))
+        self._class_to_coco_ind = dict(zip(self.cats, self.coco_dataset.getCatIds()))
+        self.img_ids = self.coco_dataset.getImgIds()       
+
         self.num_frames = self.kwargs['num_frames'] = num_frames
         self.tempfiles = []
+        
+        self.ann_info = {}
+        self.ann_info['num_joints'] = num_joints
+        self.ann_info['flip_index'] = [
+            0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15
+        ]
+
+        self.ann_info['use_different_joint_weights'] = False
+        self.ann_info['joint_weights'] = np.array(
+            [
+                1., 1., 1., 1., 1., 1., 1., 1.2, 1.2, 1.5, 1.5, 1., 1., 1.2,
+                1.2, 1.5, 1.5
+            ],
+            dtype=np.float32).reshape((self.ann_info['num_joints'], 1))
+
+        # joint index starts from 1
+        self.ann_info['skeleton'] = [[16, 14], [14, 12], [17, 15], [15, 13],
+                                        [12, 13], [6, 12], [7, 13], [6, 7],
+                                        [6, 8], [7, 9], [8, 10], [9, 11], [2, 3],
+                                        [1, 2], [1, 3], [2, 4], [3, 5], [4, 6],
+                                        [5, 7]]
+
+        self.sigmas = np.array([
+                    .26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.07, 1.07,
+                    .87, .87, .89, .89
+                ]) / 10.0
+
+        self.id2name, self.name2id = _get_mapping_id_name(self.coco_dataset.imgs)
+        
 
     def download(self, path, split):
         root = path
@@ -223,17 +274,14 @@ class COCODetection(DatasetBase):
         root = os.sep.join(os.path.split(path)[:-1])
         return root
 
-    def __getitem__(self, idx, with_label=False):
+    def __getitem__(self, idx):
         img_id = self.img_ids[idx]
         img = self.coco_dataset.loadImgs([img_id])[0]
         image_path = os.path.join(self.image_dir, img['file_name'])
-        if with_label:
-            return image_path, None
-        else:
-            return image_path
+        return image_path
 
     def __len__(self):
-        return min(self.num_frames, len(self.img_ids)) if self.num_frames else len(self.img_ids)
+        return self.num_frames
 
     def __del__(self):
         for t in self.tempfiles:
@@ -243,167 +291,132 @@ class COCODetection(DatasetBase):
     def __call__(self, predictions, **kwargs):
         return self.evaluate(predictions, **kwargs)
 
-    def evaluate(self, predictions, **kwargs):
-        label_offset = kwargs.get('label_offset_pred', 0)
+    def evaluate(self, outputs, **kwargs):
+        # label_offset = kwargs.get('label_offset_pred', 0)
         #run_dir = kwargs.get('run_dir', None)
         temp_dir_obj = tempfile.TemporaryDirectory()
         temp_dir = temp_dir_obj.name
         self.tempfiles.append(temp_dir_obj)
 
-        #os.makedirs(run_dir, exist_ok=True)
-        detections_formatted_list = []
-        for frame_idx, det_frame in enumerate(predictions):
-            for det_id, det in enumerate(det_frame):
-                det = self._format_detections(det, frame_idx, label_offset=label_offset)
-                category_id = det['category_id'] if isinstance(det, dict) else det[4]
-                if category_id >= 1: # final coco categories start from 1
-                    detections_formatted_list.append(det)
-                #
-            #
-        #
-        coco_ap = 0.0
-        coco_ap50 = 0.0
-        if len(detections_formatted_list) > 0:
-            detection_file = os.path.join(temp_dir, 'detection_results.json')
-            with open(detection_file, 'w') as det_fp:
-                json.dump(detections_formatted_list, det_fp)
-            #
-            cocoDet = self.coco_dataset.loadRes(detection_file)
-            cocoEval = COCOeval(self.coco_dataset, cocoDet, iouType='bbox')
-            cocoEval.evaluate()
-            cocoEval.accumulate()
-            cocoEval.summarize()
-            coco_ap = cocoEval.stats[0]
-            coco_ap50 = cocoEval.stats[1]
-        #
-        accuracy = {'accuracy_ap[.5:.95]%': coco_ap*100.0, 'accuracy_ap50%': coco_ap50*100.0}
+        keypoints = self._valid_kpts(outputs)
+
+        data_pack = [{
+            'cat_id': self._class_to_coco_ind[cls],
+            'cls_ind': cls_ind,
+            'cls': cls,
+            'ann_type': 'keypoints',
+            'keypoints': keypoints
+        } for cls_ind, cls in enumerate(self.classes)
+                        if not cls == '__background__']
+
+        cat_id = data_pack[0]['cat_id']
+        keypoints = data_pack[0]['keypoints']
+        cat_results = []
+
+        for img_kpts in keypoints:
+            if len(img_kpts) == 0:
+                continue
+
+            _key_points = np.array(
+                [img_kpt['keypoints'] for img_kpt in img_kpts])
+            key_points = _key_points.reshape(-1,
+                                                self.ann_info['num_joints'] * 3)
+
+            for img_kpt, key_point in zip(img_kpts, key_points):
+                kpt = key_point.reshape((self.ann_info['num_joints'], 3))
+                #left_top = np.amin(kpt, axis=0)
+                #right_bottom = np.amax(kpt, axis=0)
+
+                #w = right_bottom[0] - left_top[0]
+                #h = right_bottom[1] - left_top[1]
+
+                cat_results.append({
+                    'image_id': img_kpt['image_id'],
+                    'category_id': cat_id,
+                    'keypoints': key_point.tolist(),
+                    'score': img_kpt['score'],
+                    #'bbox': [left_top[0], left_top[1], w, h]
+                })
+        
+        res_file = os.path.join(kwargs['run_dir'], 'keypoint_results.json')
+        with open(res_file, 'w') as f:
+            json.dump(cat_results, f, sort_keys=True, indent=4)
+
+        coco_det = self.coco_dataset.loadRes(res_file)
+        coco_eval = COCOeval(self.coco_dataset, coco_det, 'keypoints')
+        coco_eval.params.useSegm = None
+        coco_eval.evaluate()
+        coco_eval.accumulate()
+        coco_eval.summarize()
+        accuracy = {'accuracy_ap[.5:.95]%': coco_eval.stats[0]*100.0, 'accuracy_ap50%': coco_eval.stats[1]*100.0}
         return accuracy
 
-    def get_dataset_info(self):
-        # return only info and categories for now as the whole thing could be quite large.
-        dataset_store = dict()
-        for key in ('info', 'categories'):
-            if key in self.dataset_store.keys():
-                dataset_store.update({key: self.dataset_store[key]})
-            #
-        #
-        return dataset_store
+    def _valid_kpts(self, outputs):
 
-    def _format_detections(self, bbox_label_score, image_id, label_offset=0, class_map=None):
-        if class_map is not None:
-            assert bbox_label_score[4] in class_map, 'invalid prediction label or class_map'
-            bbox_label_score[4] = class_map[bbox_label_score[4]]
-        #
-        bbox_label_score[4] = self._detection_label_to_catid(bbox_label_score[4], label_offset)
-        output_dict = dict()
-        image_id = self.img_ids[image_id]
-        output_dict['image_id'] = image_id
-        det_bbox = bbox_label_score[:4]      # json is not support for ndarray - convert to list
-        det_bbox = self._xyxy2xywh(det_bbox) # can also be done in postprocess pipeline
-        det_bbox = self._to_list(det_bbox)
-        output_dict['bbox'] = det_bbox
-        output_dict['category_id'] = int(bbox_label_score[4])
-        output_dict['score'] = float(bbox_label_score[5])
-        return output_dict
+        preds = []
+        scores = []
+        image_paths = []
+        areas = []
+        bboxes = []
 
-    def _detection_label_to_catid(self, label, label_offset):
-        if isinstance(label_offset, (list,tuple)):
-            label = int(label)
-            assert label<len(label_offset), 'label_offset is a list/tuple, but its size is smaller than the detected label'
-            label = label_offset[label]
-        elif isinstance(label_offset, dict):
-            if np.isnan(label) or int(label) not in label_offset.keys():
-                #print(utils.log_color('\nWARNING', 'detection incorrect', f'detected label: {label}'
-                #                                                          f' is not in label_offset dict'))
-                label = 0
-            else:
-                label = label_offset[int(label)]
-            #
-        elif isinstance(label_offset, numbers.Number):
-            label = int(label + label_offset)
-        else:
-            label = int(label)
-            assert label<len(self.cat_ids), \
-                'the detected label could not be mapped to the 90 COCO categories using the default COCO.getCatIds()'
-            label = self.cat_ids[label]
-        #
-        return label
+        for output in outputs:
+            preds.append(output['preds'])
+            scores.append(output['scores'])
+            image_paths.append(output['image_paths'][0])
+            if 'area' in output.keys():
+                areas.append(output['area'])
+            if 'bbox' in output.keys():
+                bboxes.append(output['bbox'])
 
-    def _to_list(self, bbox):
-        bbox = [float(x) for x in bbox]
-        return bbox
+        kpts = defaultdict(list)
 
-    def _xyxy2xywh(self, bbox):
-        bbox = [bbox[0], bbox[1], bbox[2] - bbox[0], bbox[3] - bbox[1]]
-        return bbox
+        for idx, _preds in enumerate(preds):
+            str_image_path = image_paths[idx]
+            image_id = self.name2id[os.path.basename(str_image_path)]
+            for idx_person, kpt in enumerate(_preds):
 
+                kpts[image_id].append({
+                    'keypoints': kpt[:, 0:3],
+                    'score': scores[idx][idx_person],
+                    'image_id': image_id,
+                })
 
-# convert from 80 class index (typical output of a mmdetection detector) to 90 or 91 class
-# (original labels of coco starts from 1, and 0 is background)
-# the evalation/metric script will convert from 80 class to coco's 90 class.
-def coco_det_label_offset_80to90(label_offset=1):
-    coco_label_table = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20,
-                         21, 22, 23, 24, 25, 27, 28, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-                         41, 42, 43, 44, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
-                         61, 62, 63, 64, 65, 67, 70, 72, 73, 74, 75, 76, 77, 78, 79, 80,
-                         81, 82, 84, 85, 86, 87, 88, 89, 90]
+        valid_kpts = []
+        for img in kpts.keys():
+            img_kpts = kpts[img]
+            # if use_nms:
+            #     nms = soft_oks_nms if self.soft_nms else oks_nms
+            #     keep = nms(img_kpts, self.oks_thr, sigmas=self.sigmas)
+            #     valid_kpts.append([img_kpts[_keep] for _keep in keep])
+            # else:
+            valid_kpts.append(img_kpts)
 
-    if label_offset == 1:
-        # 0 => 1, 1 => 2, .. 79 -> 90, 80 => 91
-        coco_label_offset = {k:v for k,v in enumerate(coco_label_table)}
-        coco_label_offset.update({80:91})
-    elif label_offset == 0:
-        # 0 => 0, 1 => 1, .. 80 => 90
-        coco_label_offset = {(k+1):v for k,v in enumerate(coco_label_table)}
-        coco_label_offset.update({0:0})
-    else:
-        assert False, f'unsupported value for label_offset {label_offset}'
-    #
-    return coco_label_offset
-
-
-# convert from 90 class index (typical output of a tensorflow detector) to 90 or 91 class
-# (original labels of coco starts from 1, and 0 is background)
-def coco_det_label_offset_90to90(label_offset=1):
-    coco_label_table = range(1,91)
-    if label_offset == 1:
-        # 0 => 1, 1 => 2, .. 90 => 91
-        coco_label_offset = {k:v for k,v in enumerate(coco_label_table)}
-        coco_label_offset.update({-1:0,90:91})
-    elif label_offset == 0:
-        # 0 => 0, 1 => 1, .. 90 => 90
-        coco_label_offset = {(k+1):v for k,v in enumerate(coco_label_table)}
-        coco_label_offset.update({-1:-1,0:0})
-    else:
-        assert False, f'unsupported value for label_offset {label_offset}'
-    #
-    return coco_label_offset
-
+        return valid_kpts
 
 ################################################################################################
 if __name__ == '__main__':
     # from inside the folder jacinto_ai_benchmark, run the following:
-    # python -m jai_benchmark.datasets.coco_det
+    # python3 -m edgeai_benchmark.datasets.coco_det
     # to create a converted dataset if you wish to load it using the dataset loader ImageDetection() in image_det.py
     # to load it using CocoSegmentation dataset in this file, this conversion is not required.
     import shutil
     output_folder = './dependencies/datasets/coco-det-converted'
     split = 'val2017'
-    coco_seg = COCODetection(path='./dependencies/datasets/coco', split=split)
-    num_frames = len(coco_seg)
+    coco_keypoint = COCOKeypoints(path='./dependencies/datasets/coco', split=split)
+    num_frames = len(coco_keypoint)
 
     images_output_folder = os.path.join(output_folder, split, 'images')
     labels_output_folder = os.path.join(output_folder, split, 'labels')
-    os.makedirs(images_output_folder)
-    os.makedirs(labels_output_folder)
+    # os.makedirs(images_output_folder)
+    # os.makedirs(labels_output_folder)
 
     output_filelist = os.path.join(output_folder, f'{split}.txt')
     with open(output_filelist, 'w') as list_fp:
         for n in range(num_frames):
-            image_path, label_path = coco_seg.__getitem__(n, with_label=True)
-            # TODO: labels are not currently written to list file
+            image_path= coco_keypoint.__getitem__(n)
             image_output_filename = os.path.join(images_output_folder, os.path.basename(image_path))
             shutil.copy2(image_path, image_output_filename)
             list_fp.write(f'images/{os.path.basename(image_output_filename)}\n')
         #
     #
+    

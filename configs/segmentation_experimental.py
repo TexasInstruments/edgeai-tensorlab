@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import cv2
-from jai_benchmark import constants, utils, datasets, preprocess, sessions, postprocess, metrics
+from edgeai_benchmark import constants, utils, datasets, preprocess, sessions, postprocess, metrics
 
 
 def get_configs(settings, work_dir):

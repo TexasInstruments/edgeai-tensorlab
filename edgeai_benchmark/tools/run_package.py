@@ -34,7 +34,7 @@ import tarfile
 import yaml
 import glob
 import re
-from jai_benchmark import utils
+from edgeai_benchmark import utils
 
 
 def run_package(settings, work_dir, out_dir, include_results=False):

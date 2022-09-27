@@ -8,7 +8,7 @@ In addition to what is provided with TIDL, this repository provides igh level ut
 ## Components of this repository
 This repository is generic and can be used with a variety of runtimes and models supported by TIDL. This repository contains the following parts:
 
-- **jai_benchmark**: Core scritps for core model compilation, inference and accuracy benchmark scripts provided as a python package (that can be imported using: *import jai_benchmark* or using: *from jai_benchmark import*)
+- **edgeai_benchmark**: Core scritps for core model compilation, inference and accuracy benchmark scripts provided as a python package (that can be imported using: *import edgeai_benchmark* or using: *from edgeai_benchmark import*)
 - **scripts**: These are the top level scripts - to compile models, to infer and do accuracy & performance benchmark, to collect accuracy report and to package the generated artifacts.
 - **configs**: These are the actual configurations of to run the models in the model zoo. These configurations define the Dataset parameters, pre-processing, inference session parameters and post-processing.
 

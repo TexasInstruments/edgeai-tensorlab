@@ -29,7 +29,7 @@
 import os
 import sys
 import argparse
-from jai_benchmark import *
+from edgeai_benchmark import *
 
 
 if __name__ == '__main__':

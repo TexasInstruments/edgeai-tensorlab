@@ -15,13 +15,13 @@ In the [requirements_pc.txt](../requirements_pc.txt), we have pillow-simd (as it
 
 This setup script downloads several packages from **[edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools]** and installs them. These packages are used for model compilation and also inference on PC (simulation).
 
-It also installs the module **jai_benchmark** from this repository. Once installed, the **jai_benchmark** will be available as a module in the Python environment. It can be imported just like any other Python module:<br>
+It also installs the module **edgeai_benchmark** from this repository. Once installed, the **edgeai_benchmark** will be available as a module in the Python environment. It can be imported just like any other Python module:<br>
 ```
-import jai_benchmark
+import edgeai_benchmark
 ```
 or
 ```
-from jai_benchmark import *
+from edgeai_benchmark import *
 ```
 
 

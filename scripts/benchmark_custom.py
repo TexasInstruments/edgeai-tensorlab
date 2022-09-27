@@ -29,7 +29,7 @@
 import os
 import argparse
 import cv2
-from jai_benchmark import *
+from edgeai_benchmark import *
 
 
 def get_imagecls_dataset_loaders(settings, download=False):

@@ -55,7 +55,7 @@ if __name__ == '__main__':
         long_description = readme.read()
 
     setup(
-        name='jai_benchmark',
+        name='edgeai_benchmark',
         version=get_version(),
         description='Edge AI Benchmark',
         long_description=long_description,

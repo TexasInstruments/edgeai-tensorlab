@@ -36,7 +36,7 @@ import traceback
 from .. import utils
 from .model_transformation import *
 from .accuracy_pipeline import *
-from jai_benchmark import preprocess
+from edgeai_benchmark import preprocess
 
 
 class PipelineRunner():

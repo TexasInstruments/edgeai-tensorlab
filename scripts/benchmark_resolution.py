@@ -33,7 +33,7 @@ import functools
 import warnings
 import copy
 import warnings
-from jai_benchmark import *
+from edgeai_benchmark import *
 
 try:
     import onnx

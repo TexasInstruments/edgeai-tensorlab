@@ -28,9 +28,9 @@
 
 import os
 
-from jai_benchmark import utils
-from jai_benchmark import datasets
-from jai_benchmark.pipelines.pipeline_runner import PipelineRunner
+from edgeai_benchmark import utils
+from edgeai_benchmark import datasets
+from edgeai_benchmark.pipelines.pipeline_runner import PipelineRunner
 
 from . import classification
 from . import detection

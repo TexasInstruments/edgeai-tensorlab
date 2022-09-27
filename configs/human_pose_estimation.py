@@ -26,7 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from jai_benchmark import constants, utils, datasets, preprocess, sessions, postprocess, metrics
+from edgeai_benchmark import constants, utils, datasets, preprocess, sessions, postprocess, metrics
 
 
 def get_configs(settings, work_dir):
