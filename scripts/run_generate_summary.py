@@ -100,9 +100,23 @@ def write_summary(log_file_path, summary_file_path, log_summary_regex, format='p
         log_lines = fp.readlines()
         log_lines = [l.rstrip() for l in log_lines]
     #
+    # log_summary_regex can be a list
+    # log_summary_regex can also be a dict with the dict keys being formats supported 'py' or 'js' or ['py', 'js']
     if isinstance(log_summary_regex, dict):
-        assert format in log_summary_regex.keys(), f'format {format} not found in log_summary_regex'
-        log_summary_regex = log_summary_regex[format]
+        format_found = False
+        log_summary_regex_format = None
+        for key in log_summary_regex.keys():
+            key_split = key.split(',')
+            if isinstance(key_split, (list,tuple)) and format in key_split:
+                format_found = True
+                log_summary_regex_format = key
+            elif key == format:
+                format_found = True
+                log_summary_regex_format = key
+            #
+        #
+        assert format_found, f'format {format} not found in log_summary_regex'
+        log_summary_regex = log_summary_regex[log_summary_regex_format]
     #
     for regex_entry in log_summary_regex:
         regex_expr = regex_entry['regex']
@@ -157,7 +171,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('--run_file_path', type=str)
-    parser.add_argument('--format', type=str, default='py')
+    parser.add_argument('--format', type=str, default='js', choices=['js','py'])
     args = parser.parse_args()
 
     # read the config

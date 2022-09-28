@@ -242,7 +242,7 @@ class ModelTraining:
         #
 
         log_summary_regex = {
-            'py': [
+            'py,js': [
                 {'type':'epoch', 'name':'Epoch', 'description':'Training Epoch', 'unit':'Number', 'value':None,
                  'regex':[{'op':'search', 'pattern':r'^Epoch:\s+\[(\d+)\]\s+Total\stime:\s+', 'group':1}],
                 },
@@ -251,16 +251,6 @@ class ModelTraining:
                  },
                 {'type':'validation_accuracy', 'name':'Accuracy', 'description':'Validation Accuracy', 'unit':'AP[0.5:.95]%', 'value':None,
                  'regex':[{'op':'search', 'pattern':r'^Test:\s\sAcc@1\s([-+e\d\.\d]+)', 'group':1}],
-                 }],
-            'js': [
-                {'type':'epoch', 'name':'Epoch', 'description':'Training Epoch', 'unit':'Number', 'value':None,
-                 'regex':[{'op':'search', 'pattern':'^Epoch:\s+\[(\d+)\]\s+Total\stime:\s+', 'group':1}],
-                },
-                {'type':'training_loss', 'name':'Loss', 'description':'Training Loss', 'unit':'Value', 'value':None,
-                 'regex':[{'op':'search', 'pattern':'^Epoch:\s\[\d+\]\s\s\[\d+\/\d+\]\s\seta:.+lr:.+img\/s:.+loss:\s[-+e\d\.\d]+\s\(([-+e\d\.\d]+)\)', 'group':1}],
-                 },
-                {'type':'validation_accuracy', 'name':'Accuracy', 'description':'Validation Accuracy', 'unit':'AP[0.5:.95]%', 'value':None,
-                 'regex':[{'op':'search', 'pattern':'^Test:\s\sAcc@1\s([-+e\d\.\d]+)', 'group':1}],
                  }]
         }
 

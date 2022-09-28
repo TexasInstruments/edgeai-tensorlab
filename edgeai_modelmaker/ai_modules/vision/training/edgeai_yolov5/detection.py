@@ -257,7 +257,8 @@ class ModelTraining:
         #
         create_data_dict(self.params.dataset, categories)
 
-        log_summary_regex = [
+        log_summary_regex = {
+            'py,js' : [
             {'type':'epoch', 'name':'Epoch', 'description':'Training Epoch', 'unit':'Number', 'value':None,
              'regex':[{'op':'search', 'pattern':r'\s+(\d+),.+', 'group':1}],
             },
@@ -265,10 +266,10 @@ class ModelTraining:
              'regex':[{'op':'search', 'pattern':r'TODO-Loss-TODO'}],
              },
             {'type':'validation_accuracy', 'name':'Accuracy', 'description':'Validation Accuracy', 'unit':'AP[0.5:.95]%', 'value':None,
-             'regex':[{'op':'search', 'pattern':r'\s+[-+e\d\.\d]+\s+[-+e\d\.\d]+\s+[-+e\d\.\d]+\s+[-+e\d\.\d]+'
-                                                r'\s+[-+e\d\.\d]+\s+[-+e\d\.\d]+\s+[-+e\d\.\d]+\s+([-+e\d\.\d]+).+', 'group':1}],
-             }
-        ]
+             'regex':[{'op':'search', 'pattern':r'\s+[-+e\d\.\d]+,\s+[-+e\d\.\d]+,\s+[-+e\d\.\d]+,\s+[-+e\d\.\d]+,'
+                                                r'\s+[-+e\d\.\d]+,\s+[-+e\d\.\d]+,\s+[-+e\d\.\d]+,\s+([-+e\d\.\d]+)', 'group':1}],
+             }]
+        }
 
         # update params that are specific to this backend and model
         self.params.update(
