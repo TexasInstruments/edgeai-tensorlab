@@ -39,9 +39,12 @@ from torch.distributed import launch as distributed_launch
 from ... import constants
 from ..... import utils
 
+this_dir_path = os.path.dirname(os.path.abspath(__file__))
+repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../../'))
 
-edgeai_modelzoo_path = os.path.join(os.getcwd(), 'edgeai-modelzoo')
+edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
 www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest'
+edgeai_mmdetection_path = os.path.join(repo_parent_path, 'edgeai-mmdetection')
 
 
 _model_descriptions = {
@@ -316,11 +319,10 @@ class ModelTraining:
         '''
         os.makedirs(self.params.training.training_path, exist_ok=True)
         # training params
-        mmdet_path = os.path.join(os.getcwd(), 'edgeai-mmdetection')
         dataset_style = 'coco' #'voc' #'coco'
         input_size = self.params.training.input_cropsize if isinstance(self.params.training.input_cropsize, (list,tuple)) else \
             (self.params.training.input_cropsize,self.params.training.input_cropsize)
-        base_config_path = os.path.join(mmdet_path, 'configs', 'edgeailite', self.params.training.model_architecture, self.params.training.model_training_id)
+        base_config_path = os.path.join(edgeai_mmdetection_path, 'configs', 'edgeailite', self.params.training.model_architecture, self.params.training.model_training_id)
 
         config_file = os.path.join(self.params.training.training_path, f'{self.params.training.model_name}.py')
         config_strs = []
@@ -377,7 +379,7 @@ class ModelTraining:
         #
 
         # invoke the distributed training
-        train_module_path = f'{mmdet_path}/tools/train.py'
+        train_module_path = f'{edgeai_mmdetection_path}/tools/train.py'
         if self.params.training.distributed and self.params.training.num_gpus > 0:
             sys.argv = [sys.argv[0],
                         f'--nproc_per_node={self.params.training.num_gpus}',

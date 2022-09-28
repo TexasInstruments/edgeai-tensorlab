@@ -37,9 +37,11 @@ import json
 from ... import constants
 from ..... import utils
 
+this_dir_path = os.path.dirname(os.path.abspath(__file__))
+repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../../'))
 
-edgeai_torchvision_path = os.path.join(os.getcwd(), 'edgeai-torchvision')
-edgeai_modelzoo_path = os.path.join(os.getcwd(), 'edgeai-modelzoo')
+edgeai_torchvision_path = os.path.join(repo_parent_path, 'edgeai-torchvision')
+edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
 www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest'
 
 

@@ -39,9 +39,11 @@ import yaml
 from ... import constants
 from ..... import utils
 
+this_dir_path = os.path.dirname(os.path.abspath(__file__))
+repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../../'))
 
-edgeai_yolov5_path = os.path.join(os.getcwd(), 'edgeai-yolov5')
-edgeai_modelzoo_path = os.path.join(os.getcwd(), 'edgeai-modelzoo')
+edgeai_yolov5_path = os.path.join(repo_parent_path, 'edgeai-yolov5')
+edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
 www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3'
 
 
