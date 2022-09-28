@@ -68,11 +68,10 @@ def run_regex_py(log_lines, regex_expr):
 
 def run_regex_js(log_lines, regex_expr):
     import js2py
-    search_str = \
-        '''
-            function(line, pattern) {
-                console.log(line.match(pattern))
-            }
+    search_str = '''
+        function f(line, pattern) {
+            return line.match(pattern)
+        }
         '''
     search_js_fn = js2py.eval_js(search_str)
     value = []
@@ -80,11 +79,12 @@ def run_regex_js(log_lines, regex_expr):
         for r_entry in regex_expr:
             r_op = r_entry['op']
             r_pattern = r_entry['pattern']
-            if line is not None and r_op == 'search':
-                # r_grp = r_entry.get('group', 0)
+            if line is not None and line != 'null' and r_op == 'search':
+                r_grp = r_entry.get('group', None)
                 line = search_js_fn(line, r_pattern)
-                # line = line.group(r_grp) if line is not None and line != 'null' else line
-                line = line
+                if line is not None and line != 'null' and r_grp is not None:
+                    line = line[r_grp]
+                #
             #
         #
         if line is not None and line != 'null':
