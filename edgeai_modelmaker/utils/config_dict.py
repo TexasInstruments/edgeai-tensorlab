@@ -114,7 +114,7 @@ class ConfigDict(dict):
         #
         for k, v in kwargs.items():
             if k in self:
-                if isinstance(v, (dict, ConfigDict)):
+                if isinstance(v, (dict, ConfigDict)) and k in self and isinstance(self[k], (dict, ConfigDict)):
                     v = ConfigDict(v) if isinstance(v, dict) else v
                     self[k].update(v)
                 else:
