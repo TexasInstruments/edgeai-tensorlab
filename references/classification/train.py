@@ -194,17 +194,27 @@ def main(gpu, args):
         raise RuntimeError("Failed to import apex. Please install apex from https://www.github.com/nvidia/apex "
                            "to enable mixed-precision training.")
 
+    if args.lr_warmup_epochs > 0 and args.epochs <= args.lr_warmup_epochs:
+        print('Note: too less number of epochs - disabling warmup')
+        args.lr_warmup_epochs = 0
+    #
+
     if not args.output_dir:
         args.output_dir = os.path.join('./data/checkpoints/classification',  f'{args.dataset}_{args.model}')
     #
     utils.mkdir(args.output_dir)
     log_file = os.path.join(args.output_dir, f'run_{args.date}.log')
     logger = xnn.utils.TeeLogger(log_file)
+
+    # create a symbolic link to the log file for ease of use
     log_file_latest = os.path.join(args.output_dir, f'run.log')
     if os.path.exists(log_file_latest):
-        os.unlink(log_file_latest)
+        os.remove(log_file_latest)
     #
-    os.symlink(log_file, log_file_latest)
+    cur_dir = os.getcwd()
+    os.chdir(args.output_dir)
+    os.symlink(os.path.basename(log_file), os.path.basename(log_file_latest))
+    os.chdir(cur_dir)
 
     utils.init_distributed_mode(args)
     print(args)
