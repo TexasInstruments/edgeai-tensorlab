@@ -17,4 +17,4 @@ model=mobilenet_v3_large_lite
 #model=regnetx1p6gf
 
 
-torchrun --nproc_per_node 4 ./references/classification/train.py --data-path ./data/datasets/imagenet/ --model ${model} --export
+torchrun --nproc_per_node 4 ./references/classification/train.py --data-path ./data/datasets/imagenet/ --model ${model}

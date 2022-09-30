@@ -151,7 +151,7 @@ class MobileNetV3(nn.Module):
         self.classifier = nn.Sequential(
             nn.Linear(lastconv_output_channels, last_channel),
             nn.Hardswish(inplace=True),
-            nn.Dropout(p=0.2, inplace=True),
+            nn.Dropout(p=0.2, inplace=False), # temorary fix for crash in backward (python=3.6, torch=1.10)
             nn.Linear(last_channel, num_classes),
         )
 
