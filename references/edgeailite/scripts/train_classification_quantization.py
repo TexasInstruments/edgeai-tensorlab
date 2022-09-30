@@ -187,9 +187,6 @@ def main():
     if args.use_gpu is None:
         args.use_gpu = (not args.quantize)
 
-    args.do_ptq = (args.quantize is not False) and \
-        (args.quantize == 'ptq' or args.quantize == 'distill')
-
     if args.seed is not None:
         random.seed(args.seed)
         torch.manual_seed(args.seed)
@@ -483,12 +480,10 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
         top1.update(acc1[0], images.size(0))
         top5.update(acc5[0], images.size(0))
 
-        if not args.do_ptq:
-            # compute gradient and do SGD step
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-        #
+        # compute gradient and do SGD step
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
 
         # measure elapsed time
         batch_time.update(time.time() - end)
@@ -618,9 +613,8 @@ def adjust_learning_rate(optimizer, epoch, args):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
     lr = args.lr * (0.1 ** (epoch // args.lr_step_size))
     args.cur_lr = lr
-    if not args.do_ptq:
-        for param_group in optimizer.param_groups:
-            param_group['lr'] = lr
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
 
 
 def accuracy(output, target, topk=(1,)):
