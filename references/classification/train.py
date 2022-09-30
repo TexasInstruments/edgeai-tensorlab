@@ -200,21 +200,12 @@ def main(gpu, args):
     #
 
     if not args.output_dir:
-        args.output_dir = os.path.join('./data/checkpoints/classification',  f'{args.dataset}_{args.model}')
+        output_folder = os.path.basename(os.path.split(args.data_path)[0])
+        args.output_dir = os.path.join('./data/checkpoints/classification', output_folder, f'{args.model}', args.date)
     #
     utils.mkdir(args.output_dir)
-    log_file = os.path.join(args.output_dir, f'run_{args.date}.log')
+    log_file = os.path.join(args.output_dir, f'run.log')
     logger = xnn.utils.TeeLogger(log_file)
-
-    # create a symbolic link to the log file for ease of use
-    log_file_latest = os.path.join(args.output_dir, f'run.log')
-    if os.path.exists(log_file_latest):
-        os.remove(log_file_latest)
-    #
-    cur_dir = os.getcwd()
-    os.chdir(args.output_dir)
-    os.symlink(os.path.basename(log_file), os.path.basename(log_file_latest))
-    os.chdir(cur_dir)
 
     utils.init_distributed_mode(args)
     print(args)
