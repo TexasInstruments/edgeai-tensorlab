@@ -348,6 +348,8 @@ def main(gpu, args):
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Exporting model after training.')
     export_model(args, model)
+
+    logger.close()
     print('Training time {}'.format(total_time_str))
 
 
