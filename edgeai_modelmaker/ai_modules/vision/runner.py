@@ -62,13 +62,14 @@ class ModelRunner():
         self.params.common.project_path = os.path.join(self.params.common.projects_path, self.params.dataset.dataset_name)
 
         project_run_path_base = os.path.join(self.params.common.project_path, 'run')
-        self.params.common.project_run_path = self.get_project_run_path(project_run_path_base)
+        run_name = self.resolve_run_name(self.params.common.run_name)
+        self.params.common.project_run_path = os.path.join(project_run_path_base, run_name, self.params.training.model_name)
 
         self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
         self.params.dataset.download_path = os.path.join(self.params.common.project_path, 'other', 'download')
         self.params.dataset.extract_path = self.params.dataset.dataset_path
 
-        self.params.training.training_path = os.path.join(self.params.common.project_run_path, 'training', self.params.training.model_name)
+        self.params.training.training_path = os.path.join(self.params.common.project_run_path, 'training')
 
         target_device_compilation_folder = self.params.common.target_device.lower()
         self.params.compilation.compilation_path = os.path.join(self.params.common.project_run_path, 'compilation', target_device_compilation_folder)
@@ -79,20 +80,15 @@ class ModelRunner():
             print(f'Model:{self.params.training.model_name} TargetDevice:{self.params.common.target_device} FPS(Estimate):{performance_fps}')
         #
 
-    def get_project_run_path(self, project_run_path_base):
-        if not self.params.common.run_name:
+    def resolve_run_name(self, run_name):
+        if not run_name:
             return ''
         #
-        run_name = self.params.common.run_name
         # modify or set any parameters here as required.
         if '{date-time}' in run_name:
             run_name = run_name.replace('{date-time}', datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
-        elif '{latest}' in run_name:
-            run_latest = sorted(os.listdir(project_run_path_base))[-1]
-            run_name = run_name.replace('{latest}', run_latest)
         #
-        project_run_path = os.path.join(project_run_path_base, run_name)
-        return project_run_path
+        return run_name
 
     def clear(self):
         pass
@@ -132,12 +128,18 @@ class ModelRunner():
         if self.params.training.enable:
             self.model_training.clear()
             self.model_training.run()
+            with open(self.params.training.log_file_path, 'a') as lfp:
+                lfp.write('\nSUCCESS: ModelMaker - Training completed.')
+            #
         #
 
         # actual model compilation
         if self.params.compilation.enable:
             self.model_compilation.clear()
             self.model_compilation.run()
+            with open(self.params.compilation.log_file_path, 'a') as lfp:
+                lfp.write('\nSUCCESS: ModelMaker - Compilation completed.')
+            #
         #
         return self.params
 
