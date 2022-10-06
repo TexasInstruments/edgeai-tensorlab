@@ -71,6 +71,7 @@ def get_common_session_cfg(settings, work_dir=None, input_optimization=True, inp
               target_device=settings.target_device, run_suffix=settings.run_suffix, tidl_offload=settings.tidl_offload,
               input_optimization=input_optimization, input_data_layout=input_data_layout,
               input_mean=input_mean, input_scale=input_scale,
+              run_dir_tree_depth=settings.run_dir_tree_depth,
               **kwargs)
     return common_session_cfg
 

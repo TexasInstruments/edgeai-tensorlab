@@ -69,7 +69,7 @@ class BaseRTSession(utils.ParamsBase):
         # run_dir for individual model
         self.kwargs['run_dir'] = self.kwargs.get('run_dir', None)
         self.kwargs['run_suffix'] = self.kwargs.get('run_suffix', None)
-        self.kwargs['dir_tree_depth'] = self.kwargs.get('dir_tree_depth', 3)
+        self.kwargs['run_dir_tree_depth'] = self.kwargs.get('run_dir_tree_depth', None) or 3
 
         # parameters related to models
         self.kwargs['num_tidl_subgraphs'] = self.kwargs.get('num_tidl_subgraphs', 16)
@@ -361,9 +361,9 @@ class BaseRTSession(utils.ParamsBase):
         model_ext = model_ext[1:] if len(model_ext)>0 else model_ext
 
         model_name_splits = model_name.split(os.sep)
-        dir_tree_depth = self.kwargs['dir_tree_depth']
-        if len(model_name_splits) > dir_tree_depth:
-            model_name_splits = model_name_splits[-dir_tree_depth:]
+        run_dir_tree_depth = self.kwargs['run_dir_tree_depth']
+        if len(model_name_splits) > run_dir_tree_depth:
+            model_name_splits = model_name_splits[-run_dir_tree_depth:]
         #
         model_id = self.kwargs['model_id']
         session_name = self.kwargs['session_name']

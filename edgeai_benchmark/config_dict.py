@@ -193,6 +193,9 @@ class ConfigDict(dict):
         # input optimization to improve FPS: False or None
         # None will cause the default value set in sessions.__init__ to be used.
         self.input_optimization = None
+        # how many parent folders to be included from the model path, while creating the run_dir
+        # default value is defined in basert_session.py
+        self.run_dir_tree_depth = None
 
     def _parse_include_files(self, include_files, include_base_path):
         input_dict = {}
