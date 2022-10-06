@@ -310,9 +310,11 @@ class YOLOXObjectPoseHead(nn.Module):
                     [reg_output, obj_output, cls_output,  rot_preproc, trn_xy_output, trn_z_output], 1
                 )
                 output[:, 4:5+self.num_classes, :, :] = torch.sigmoid(output[:, 4:5+self.num_classes, :, :])
-
-                rot_c1 = F.normalize(output[:, -9:-6, :, :], dim=1)
-                rot_c2 = F.normalize(output[:, -6:-3, :, :] - torch.sum(rot_c1 * output[:, -6:-3, :, :], dim=1, keepdim=True) * rot_c1, dim=1)
+                rot_c1 = (output[:, -9:-6, :, :] / output[:, -9:-6, :, :].norm(p=2, dim=1, keepdim=True))
+                rot_c2 = output[:, -6:-3, :, :] - torch.sum(rot_c1 * output[:, -6:-3, :, :], dim=1, keepdim=True) * rot_c1
+                rot_c2 = rot_c2 / rot_c2.norm(p=2, dim=1, keepdim=True)
+                #rot_c1 = F.normalize(output[:, -9:-6, :, :], dim=1)
+                #rot_c2 = F.normalize(output[:, -6:-3, :, :] - torch.sum(rot_c1 * output[:, -6:-3, :, :], dim=1, keepdim=True) * rot_c1, dim=1)
                 output[:, -9:-3, :, :] = torch.cat([rot_c1, rot_c2], dim=1)
 
             outputs.append(output)
