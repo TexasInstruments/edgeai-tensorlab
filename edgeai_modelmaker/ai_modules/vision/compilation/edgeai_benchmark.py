@@ -117,7 +117,12 @@ class ModelCompilation():
         pipeline_config['session'].set_param('target_device', self.settings.target_device)
         pipeline_config['session'].set_param('model_path', self.params.training.model_export_path)
         # reset - will change based on the model_path given here
-        pipeline_config['session'].set_param('run_dir', None)
+        session_name = pipeline_config['session'].get_param('session_name')
+        target_device_suffix = self.params.common.target_device.lower()
+        run_dir = f'{self.params.training.model_name}_{self.params.common.run_name}_' \
+                  f'{session_name}_{target_device_suffix}'
+        run_dir = os.path.join(self.work_dir, run_dir)
+        pipeline_config['session'].set_param('run_dir', run_dir)
 
         runtime_options = pipeline_config['session'].get_param('runtime_options')
         self.meta_layers_names_list = 'object_detection:meta_layers_names_list'
@@ -164,11 +169,9 @@ class ModelCompilation():
         return self.params
 
     def _get_settings(self, model_selection=None):
-        target_device_suffix = self.params.common.target_device.lower()
         settings = edgeai_benchmark.config_settings.ConfigSettings(
                         self.settings_file,
                         target_device=self.params.common.target_device,
-                        run_suffix=target_device_suffix,
                         model_selection=model_selection,
                         modelartifacts_path=self.params.compilation.compilation_path,
                         tensor_bits=self.params.compilation.tensor_bits,
