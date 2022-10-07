@@ -23,6 +23,7 @@ from mmdet.utils import get_model_complexity_info, \
 from mmdet.utils import XMMDetQuantTrainModule, XMMDetQuantCalibrateModule
 from mmdet.utils import save_model_proto, mmdet_load_checkpoint, get_model_complexity_info, LoggerStream
 from mmdet.utils import convert_to_lite_model
+from mmdet.utils import remove_if_exists, make_symlink
 from contextlib import redirect_stdout
 import importlib
 
@@ -161,11 +162,9 @@ def main(args=None):
     timestamp = time.strftime('%Y%m%d_%H%M%S', time.localtime())
     log_file = osp.join(cfg.work_dir, f'{timestamp}.log')
     logger = get_root_logger(log_file=log_file, log_level=cfg.log_level)
+    # make a convenient symlink for the logfile
     log_file_latest = osp.join(cfg.work_dir, f'run.log')
-    if os.path.exists(log_file_latest):
-        os.unlink(log_file_latest)
-    #
-    os.symlink(log_file, log_file_latest)
+    make_symlink(log_file, log_file_latest)
 
     # init the meta dict to record some important information such as
     # environment info and seed, which will be logged

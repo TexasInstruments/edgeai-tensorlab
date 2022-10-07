@@ -11,6 +11,7 @@ from .runner import XMMDetEpochBasedRunner, XMMDetNoOptimizerHook, FreezeRangeHo
 from .save_model import save_model_proto
 from .quantize import XMMDetQuantTrainModule, XMMDetQuantCalibrateModule, XMMDetQuantTestModule, is_mmdet_quant_module
 from .model_surgery import convert_to_lite_model
+from .util_misc import remove_if_exists, make_symlink
 
 
 __all__ = [
@@ -23,5 +24,7 @@ __all__ = [
     'get_root_logger',
     'collect_env',
     'find_latest_checkpoint',
-    'setup_multi_processes'
+    'setup_multi_processes',
+    'remove_if_exists',
+    'make_symlink'
 ]
