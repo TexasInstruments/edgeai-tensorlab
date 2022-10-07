@@ -34,6 +34,8 @@ import sys
 import importlib
 import json
 import yaml
+import tqdm
+
 
 from . import config_dict
 
@@ -101,3 +103,23 @@ def write_dict(dict_obj, filename, write_json=True, write_yaml=True):
             yaml.safe_dump(dict_obj, fp)
         #
     #
+
+
+class ProgressBar():
+    def __init__(self, total_size, unit=None):
+        self.total_size = total_size
+        self.pbar = None
+        self.unit = unit
+
+    def __call__(self, cur_size):
+        if self.pbar is None:
+            # creation of pbar is delayed so that if the call happens in a different process, it will still work
+            self.pbar = tqdm.tqdm(total=self.total_size, unit=self.unit)
+        #
+        self.pbar.update(cur_size)
+        if cur_size >= self.total_size:
+            self.pbar.close()
+        #
+
+    def update(self, cur_size):
+        self.__call__(cur_size)

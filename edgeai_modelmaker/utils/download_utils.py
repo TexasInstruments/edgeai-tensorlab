@@ -35,23 +35,9 @@ import urllib
 import gzip
 import tarfile
 import zipfile
-import progressbar
+import requests
 
-
-class ProgressBarUpdater():
-    def __init__(self):
-        self.pbar = None
-
-    def __call__(self, block_num, block_size, total_size):
-        if self.pbar is None:
-            self.pbar = progressbar.ProgressBar(maxval=total_size)
-            self.pbar.start()
-        #
-        cur_size = block_num*block_size
-        self.pbar.update(cur_size)
-        if cur_size >= total_size:
-            self.pbar.finish()
-        #
+from . import misc_utils
 
 
 def copy_file(file_path, file_path_local):
@@ -105,10 +91,18 @@ def download_url(dataset_url, download_root, save_filename=None, progressbar_cre
         save_filename = save_filename if save_filename else os.path.basename(dataset_url)
         download_file = os.path.join(download_root, save_filename)
         if not os.path.exists(download_file):
-            progressbar_obj = (progressbar_creator or ProgressBarUpdater)()
-            os.makedirs(download_root, exist_ok=True)
             print(f'downloading from {dataset_url} to {download_file}')
-            urllib.request.urlretrieve(dataset_url, download_file, progressbar_obj)
+            progressbar_creator = progressbar_creator or misc_utils.ProgressBar
+            resp = requests.get(dataset_url, stream=True, allow_redirects=True)
+            total_size = int(resp.headers.get('content-length'))
+            progressbar_obj = progressbar_creator(total_size, unit='KB')
+            os.makedirs(download_root, exist_ok=True)
+            with open(download_file, 'wb') as fp:
+                for content in resp.iter_content(chunk_size=1024):
+                    fp.write(content)
+                    progressbar_obj.update(len(content))
+                #
+            #
         #
         download_path = download_file
         download_success = True
@@ -120,11 +114,15 @@ def download_url(dataset_url, download_root, save_filename=None, progressbar_cre
         download_success = False
         exception_message = str(message)
         print(exception_message)
-    except Exception as message:
-        # sometimes getting exception even though download succeeded.
-        download_path = download_file
-        download_success = True
+    except NameError as message:
+        download_success = False
         exception_message = str(message)
+        print(exception_message)
+    # except Exception as message:
+    #     # sometimes getting exception even though download succeeded.
+    #     download_path = download_file
+    #     download_success = True
+    #     exception_message = str(message)
     #
     return download_success, exception_message, download_path
 
