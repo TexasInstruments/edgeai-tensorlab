@@ -332,7 +332,8 @@ class ModelTraining:
                   device=args_yolo['device'], epochs=args_yolo['epochs'],
                   batch_size=args_yolo['batch-size'], img=args_yolo['img'],
                   hyp=args_yolo['hyp'], project=args_yolo['project'], name='',
-                  exist_ok=True, noautoanchor=args_yolo['noautoanchor'])
+                  exist_ok=True, noautoanchor=args_yolo['noautoanchor'],
+                  disable_git_status=True)
 
         os.symlink(os.path.join(project_path, 'results.csv'), os.path.join(project_path, 'run.log'))
 
