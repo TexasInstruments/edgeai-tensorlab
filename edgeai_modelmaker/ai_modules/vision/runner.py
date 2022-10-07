@@ -66,7 +66,7 @@ class ModelRunner():
         self.params.common.project_run_path = os.path.join(project_run_path_base, self.params.common.run_name, self.params.training.model_name)
 
         self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
-        self.params.dataset.download_path = os.path.join(self.params.common.project_path, 'other', 'download')
+        self.params.common.download_path = os.path.join(self.params.common.project_path, 'download')
         self.params.dataset.extract_path = self.params.dataset.dataset_path
 
         self.params.training.training_path = os.path.join(self.params.common.project_run_path, 'training')
@@ -108,6 +108,21 @@ class ModelRunner():
             self.dataset_handling.run()
         #
         
+        # fetch the pretrained checkpoint if it is a url.
+        # if it is a url and the downloaded copy is present, it will be reused.
+        pretrained_path = self.params.training.pretrained_checkpoint_path
+        if isinstance(pretrained_path, str) and (pretrained_path.startswith('http://') or pretrained_path.startswith('https://')):
+            download_root = self.params.common.download_path
+            download_success, exception_message, pretrained_path = utils.download_file(
+                pretrained_path, download_root, extract=False)
+            if download_success:
+                self.params.training.pretrained_checkpoint_path = pretrained_path
+            else:
+                print('ERROR: Pretrained checkpoint could not be downloaded')
+                return None
+            #
+        #
+
         # prepare model training
         self.training_target_module = training.get_target_module(self.params.training.training_backend,
                                                               self.params.common.task_type)

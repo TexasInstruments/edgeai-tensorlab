@@ -92,8 +92,11 @@ def extract_files(download_file, extract_root):
     return extract_success
 
 
-def download_url(dataset_url, download_root, extract_root=None, save_filename=None, progressbar_creator=None, extract=True):
-    progressbar_creator = progressbar_creator or ProgressBarUpdater
+def download_url(dataset_url, download_root, save_filename=None, progressbar_creator=None):
+    if not isinstance(dataset_url, str) or not (dataset_url.startswith('http://') or dataset_url.startswith('https://')):
+        return True, '', dataset_url
+    #
+
     download_success = False
     exception_message = ''
     download_path = None
@@ -102,7 +105,7 @@ def download_url(dataset_url, download_root, extract_root=None, save_filename=No
         save_filename = save_filename if save_filename else os.path.basename(dataset_url)
         download_file = os.path.join(download_root, save_filename)
         if not os.path.exists(download_file):
-            progressbar_obj = progressbar_creator()
+            progressbar_obj = (progressbar_creator or ProgressBarUpdater)()
             os.makedirs(download_root, exist_ok=True)
             print(f'downloading from {dataset_url} to {download_file}')
             urllib.request.urlretrieve(dataset_url, download_file, progressbar_obj)
@@ -127,26 +130,19 @@ def download_url(dataset_url, download_root, extract_root=None, save_filename=No
 
 
 def download_and_extract(dataset_url, download_root, extract_root=None, save_filename=None, progressbar_creator=None, extract=True):
-    download_success = False
-    exception_message = ''
-    if isinstance(dataset_url, str) and (dataset_url.startswith('http://') or dataset_url.startswith('https://')):
-        download_success, exception_message, dataset_url = \
-            download_url(dataset_url, download_root, extract_root, save_filename, progressbar_creator, extract)
-    #
+    download_success, exception_message, dataset_url = \
+        download_url(dataset_url, download_root, save_filename, progressbar_creator)
+
     extract_root = extract_root or os.path.dirname(dataset_url)
-    if extract:
-        extract_success = extract_files(dataset_url, extract_root)
-        if extract_success:
-            return extract_success, exception_message, extract_root
-        #
+    if extract and extract_files(dataset_url, extract_root):
+        return True, '', extract_root
     else:
         return download_success, exception_message, dataset_url
     #
-    return False, '', dataset_url
 
 
 def download_file(dataset_url, download_root, extract_root=None, save_filename=None, progressbar_creator=None,
-                  force_linkfile=True, make_symlink=True):
+                  force_linkfile=True, make_symlink=True, extract=True):
     if not isinstance(dataset_url, str):
         return False, '', ''
 
@@ -180,10 +176,11 @@ def download_file(dataset_url, download_root, extract_root=None, save_filename=N
         #
     #
     return download_and_extract(dataset_url, download_root, extract_root=extract_root, save_filename=save_filename,
-                                progressbar_creator=progressbar_creator)
+                                progressbar_creator=progressbar_creator, extract=extract)
 
 
-def download_files(dataset_urls, download_root, extract_root=None, save_filenames=None, log_writer=None, progressbar_creator=None):
+def download_files(dataset_urls, download_root, extract_root=None, save_filenames=None, log_writer=None,
+                   progressbar_creator=None, extract=True):
     if log_writer is not None:
         success_writer, warning_writer = log_writer[:2]
     else:
@@ -196,8 +193,9 @@ def download_files(dataset_urls, download_root, extract_root=None, save_filename
     download_paths = []
     for dataset_url_id, (dataset_url, save_filename) in enumerate(zip(dataset_urls, save_filenames)):
         success_writer(f'Downloading {dataset_url_id+1}/{len(dataset_urls)}: {dataset_url}')
-        download_success, message, download_path = download_file(dataset_url, download_root=download_root, extract_root=extract_root,
-                                                      save_filename=save_filename, progressbar_creator=progressbar_creator)
+        download_success, message, download_path = download_file(
+            dataset_url, download_root=download_root, extract_root=extract_root,
+            save_filename=save_filename, progressbar_creator=progressbar_creator, extract=extract)
         if download_success:
             success_writer(f'Download done for {dataset_url}')
         else:
