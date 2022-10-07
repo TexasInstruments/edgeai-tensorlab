@@ -161,13 +161,13 @@ def get_preset_descriptions(params):
                 calibration_frames=50,
                 calibration_iterations=50,
                 detection_thr=0.05,
-                tensor_bits=16,
+                tensor_bits=8,
             )
         ),
         high_accuracy_preset=dict(
             compilation=dict(
-                calibration_frames=50,
-                calibration_iterations=50,
+                calibration_frames=25,
+                calibration_iterations=25,
                 detection_thr=0.3,
                 tensor_bits=8,
             )
@@ -175,15 +175,15 @@ def get_preset_descriptions(params):
         default_preset=None,  # not specified here - use the models values
         high_speed_preset=dict(
             compilation=dict(
-                calibration_frames=10,
-                calibration_iterations=10,
+                calibration_frames=5,
+                calibration_iterations=5,
                 detection_thr=0.3,
                 tensor_bits=8,
             )
         ),
         best_speed_preset=dict(
             compilation=dict(
-                calibration_frames=10,
+                calibration_frames=5,
                 calibration_iterations=1,
                 detection_thr=0.3,
                 tensor_bits=8,
