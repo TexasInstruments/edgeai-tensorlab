@@ -33,6 +33,7 @@ import os
 import shutil
 import edgeai_benchmark
 from .... import utils
+from .. import constants
 
 
 class ModelCompilation():
@@ -55,9 +56,43 @@ class ModelCompilation():
         # update params that are specific to this backend and model
         model_compiled_path = self._get_log_dir()
         model_packaged_path = self._get_output_file()
+
+        if self.params.common.task_type == constants.TASK_TYPE_CLASSIFICATION:
+            log_summary_regex = {
+                'js': [
+                    {'type':'Progress', 'name':'Progress', 'description':'Progress of Compilation', 'unit':'Number', 'value':None,
+                     'regex':[{'op':'search', 'pattern':r'infer\\s\\:\\s.*?\\s(?<infer>\\d+)', 'group':1}],
+                    },
+                    {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Accuracy of Compilation', 'unit':'Accuracy Top-1%', 'value':None,
+                     'regex':[{'op':'search', 'pattern':r'benchmark results.*?accuracy_top1.*?\\:\\s(?<accuracy>\\d+\\.\\d+)', 'group':1, 'dtype':'float'}],
+                     },
+                    {'type':'Completed', 'name':'Completed', 'description':'Completion of Compilation', 'unit':None, 'value':None,
+                     'regex':[{'op':'search', 'pattern':r'success\\:.*compilation\\scompleted', 'group':1, 'dtype':'str', 'case_sensitive':False}],
+                     },
+                ]
+            }
+        elif self.params.common.task_type == constants.TASK_TYPE_DETECTION:
+            log_summary_regex = {
+                'js': [
+                    {'type':'Progress', 'name':'Progress', 'description':'Progress of Compilation', 'unit':'Number', 'value':None,
+                     'regex':[{'op':'search', 'pattern':'infer\s\:\s.*?\s(?<infer>\d+)', 'group':1}],
+                    },
+                    {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Accuracy of Compilation', 'unit':'mAP[0.5:.95]%', 'value':None,
+                     'regex':[{'op':'search', 'pattern':'benchmark results.*?accuracy_ap[.5:.95]\%.*?\:\s(?<accuracy>\d+\.\d+)', 'group':1, 'dtype':'float', 'case_sensitive':False}],
+                     },
+                    {'type':'Completed', 'name':'Completed', 'description':'Completion of Compilation', 'unit':None, 'value':None,
+                     'regex':[{'op':'search', 'pattern':'success\:.*compilation\scompleted', 'group':1, 'dtype':'str', 'case_sensitive':False}],
+                     },
+                ]
+            }
+        else:
+            log_summary_regex = None
+        #
+
         self.params.update(
             compilation=utils.ConfigDict(
                 log_file_path=os.path.join(model_compiled_path, 'run.log'),
+                log_summary_regex=log_summary_regex,
                 summary_file_path=os.path.join(model_compiled_path, 'summary.yaml'),
                 model_compiled_path=model_compiled_path,
                 model_packaged_path=model_packaged_path,

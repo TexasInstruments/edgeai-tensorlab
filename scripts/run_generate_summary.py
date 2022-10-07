@@ -81,9 +81,16 @@ def run_regex_js(log_lines, regex_expr):
             r_pattern = r_entry['pattern']
             if line is not None and line != 'null' and r_op == 'search':
                 r_grp = r_entry.get('group', None)
+                case_sensitive = r_entry.get('case_sensitive', True)
+                line = line if case_sensitive else line.lower()
                 line = search_js_fn(line, r_pattern)
                 if line is not None and line != 'null' and r_grp is not None:
                     line = line[r_grp]
+                    if r_entry.get('dtype',None) == 'float':
+                        line = float(line)
+                    elif r_entry.get('dtype',None) == 'int':
+                        line = int(line)
+                    #
                 #
             #
         #
