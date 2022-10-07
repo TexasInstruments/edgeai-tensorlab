@@ -44,7 +44,7 @@ repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../.
 
 edgeai_yolov5_path = os.path.join(repo_parent_path, 'edgeai-yolov5')
 edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
-www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3'
+www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/latest/edgeai-yolov5/pretrained_models'
 
 
 sys.path.insert(0, edgeai_yolov5_path)
@@ -64,7 +64,7 @@ _model_descriptions = {
             model_architecture='yolov5',
             input_resize=640,
             input_cropsize=640,
-            pretrained_checkpoint_path=f'{www_modelzoo_path}/08_00_00_05/edgeai-yolov5/pretrained_models/models/yolov5s6_640_ti_lite/weights/best.pt',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/checkpoints/detection/coco/edgeai-yolov5/yolov5s6_640_ti_lite/weights/best.pt',
             training_epochs=100,
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=134, accuracy_factor=37.4)
@@ -93,7 +93,7 @@ _model_descriptions = {
             model_architecture='yolov5',
             input_resize=640,
             input_cropsize=640,
-            pretrained_checkpoint_path=f'{www_modelzoo_path}/08_00_00_05/edgeai-yolov5/pretrained_models/models/yolov5m6_640_ti_lite/weights/best.pt',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/checkpoints/detection/coco/edgeai-yolov5/yolov5m6_640_ti_lite/weights/best.pt',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=51, accuracy_factor=44.1)
             },
@@ -121,7 +121,7 @@ _model_descriptions = {
             model_architecture='yolov5',
             input_resize=640,
             input_cropsize=640,
-            pretrained_checkpoint_path=f'{www_modelzoo_path}/08_00_00_05/edgeai-yolov5/pretrained_models/models/yolov5l6_640_ti_lite/weights/best.pt',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/detection/coco/edgeai-yolov5/yolov5l6_640_ti_lite/weights/best.pt',
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=26, accuracy_factor=47.1)
             },
