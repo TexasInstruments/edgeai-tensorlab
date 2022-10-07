@@ -37,6 +37,8 @@ PARENT_DIR=$(realpath ..)
 # Number container exist
 cont_count=`docker ps -aq | wc -l`
 
+echo "This script starts the container with GPU support."
+echo "Make sure you have installed GPUs, nvidia drivers and also nvidia-docker2."
 
 #If no container exist, then create the container.
 if [ $cont_count -eq 0 ]
@@ -46,6 +48,7 @@ then
         --privileged \
         --network host \
         --shm-size 50G \
+        --gpus all \
         modelmaker bash
 # If one container exist, execute that container.
 elif [ $cont_count -eq 1 ]
