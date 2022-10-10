@@ -29,7 +29,7 @@
 
 syntax = "proto2";
 
-package tidl_meta_arch;
+package tidl_meta_arch_mmdet;
 
 // Top level configuration for TIDL Meta Architechtures
 message TIDLMetaArch {
