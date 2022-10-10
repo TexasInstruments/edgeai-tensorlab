@@ -158,10 +158,10 @@ def get_preset_descriptions(params):
     presets = dict(
         best_accuracy_preset=dict(
             compilation=dict(
-                calibration_frames=50,
-                calibration_iterations=50,
+                calibration_frames=25,
+                calibration_iterations=25,
                 detection_thr=0.05,
-                tensor_bits=8,
+                tensor_bits=16,
             )
         ),
         high_accuracy_preset=dict(
