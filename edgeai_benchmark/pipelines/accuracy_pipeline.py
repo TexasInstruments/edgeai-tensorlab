@@ -54,10 +54,9 @@ class AccuracyPipeline():
         # because it will increase the size of the para.yaml and result.yaml files
         self.pipeline_config['calibration_dataset'].get_param('kwargs').pop('dataset_info', None)
         self.dataset_info = self.pipeline_config['input_dataset'].get_param('kwargs').pop('dataset_info', None)
-        dataset_info_file = 'dataset.yaml'
-        self.dataset_info_file = os.path.join(self.run_dir, dataset_info_file)
-        self.pipeline_config['input_dataset'].get_param('kwargs')['dataset_info'] = dataset_info_file
-        self.pipeline_config['calibration_dataset'].get_param('kwargs')['dataset_info'] = dataset_info_file
+        self.dataset_info_file = os.path.join(self.run_dir, 'dataset.yaml')
+        self.pipeline_config['input_dataset'].get_param('kwargs')['dataset_info'] = self.dataset_info_file
+        self.pipeline_config['calibration_dataset'].get_param('kwargs')['dataset_info'] = self.dataset_info_file
 
     def __enter__(self):
         return self
@@ -188,7 +187,7 @@ class AccuracyPipeline():
 
         calib_data = []
         for data_index in range(calibration_frames):
-            info_dict = {}
+            info_dict = {'dataset_info': self.dataset_info, 'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None)}
             data = calibration_dataset[data_index]
             data, info_dict = preprocess(data, info_dict)
             calib_data.append(data)
@@ -219,7 +218,7 @@ class AccuracyPipeline():
         output_list = []
         pbar_desc = f'infer {description}: {run_dir_base}'
         for data_index in utils.progress_step(range(num_frames), desc=pbar_desc, file=self.logger, position=0):
-            info_dict = {}
+            info_dict = {'dataset_info': self.dataset_info, 'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None)}
             data = input_dataset[data_index]
             data, info_dict = preprocess(data, info_dict)
             output, info_dict = self._run_with_log(session.infer_frame, data, info_dict)

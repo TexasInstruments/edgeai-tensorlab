@@ -52,6 +52,32 @@ def get_font_pil():
     return font
 
 
+def apply_label_offset(label, label_offset):
+    if label_offset is None:
+        return label
+    elif isinstance(label_offset, (list,tuple)):
+        label = int(label)
+        assert label<len(label_offset), 'label_offset is a list/tuple, but its size is smaller than the detected label'
+        label = label_offset[label]
+    elif isinstance(label_offset, dict):
+        if np.isnan(label) or int(label) not in label_offset.keys():
+            #print(utils.log_color('\nWARNING', 'detection incorrect', f'detected label: {label}'
+            #                                                          f' is not in label_offset dict'))
+            label = 0
+        else:
+            label = label_offset[int(label)]
+        #
+    elif isinstance(label_offset, numbers.Number):
+        label = int(label + label_offset)
+    else:
+        label = int(label)
+        assert label<len(self.cat_ids), \
+            'the detected label could not be mapped to the 90 COCO categories using the default COCO.getCatIds()'
+        label = self.cat_ids[label]
+    #
+    return label
+
+
 ##############################################################################
 class IndexArray():
     def __init__(self, index=0):
@@ -156,10 +182,25 @@ class ClassificationImageSave():
                        for b in range(0,256,self.color_step)]
         self.thickness = 2
         self.thickness_txt = 1
+        self.dataset_info = None
+        self.dataset_categories_map = None
+        self.label_offset_pred = None
 
     def __call__(self, output, info_dict):
         data_path = info_dict['data_path']
         img_data = info_dict['data']
+        if self.label_offset_pred is None:
+            self.label_offset_pred = info_dict.get('label_offset_pred', None)
+        #
+        if self.dataset_info is None:
+            self.dataset_info = info_dict.get('dataset_info', None)
+        #
+        if self.dataset_info is not None:
+            dataset_categories = self.dataset_info.get('categories', None)
+            self.dataset_categories_map = {0: 'background'}
+            self.dataset_categories_map.update({entry['id']: entry['name'] for entry in dataset_categories})
+        #
+
         image_name = os.path.split(data_path)[-1]
         run_dir = info_dict['run_dir']
         save_dir = os.path.join(run_dir, 'outputs')
@@ -169,7 +210,9 @@ class ClassificationImageSave():
 
         output_id = output[0] if isinstance(output, (list,tuple,np.ndarray)) else output
         output_id = output_id[0] if isinstance(output_id, (list,tuple,np.ndarray)) else output_id
-        output_txt = f'category id: {output_id}'
+        output_id = apply_label_offset(output_id, self.label_offset_pred)
+        output_name = self.dataset_categories_map[output_id] if output_id in self.dataset_categories_map else output_id
+        output_txt = f'category: {output_name}'
         label_color = self.colors[output_id % len(self.colors)]
 
         font_cv2 = get_font_cv2()
@@ -365,10 +408,25 @@ class DetectionImageSave():
                        for b in range(0,256,self.color_step)]
         self.thickness = 2
         self.thickness_txt = 1
+        self.dataset_info = None
+        self.dataset_categories_map = None
+        self.label_offset_pred = None
 
     def __call__(self, bbox, info_dict):
         data_path = info_dict['data_path']
         img_data = info_dict['data']
+        if self.label_offset_pred is None:
+            self.label_offset_pred = info_dict.get('label_offset_pred', None)
+        #
+        if self.dataset_info is None:
+            self.dataset_info = info_dict.get('dataset_info', None)
+        #
+        if self.dataset_info is not None:
+            dataset_categories = self.dataset_info.get('categories', None)
+            self.dataset_categories_map = {0: 'background'}
+            self.dataset_categories_map.update({entry['id']: entry['name'] for entry in dataset_categories})
+        #
+
         image_name = os.path.split(data_path)[-1]
         run_dir = info_dict['run_dir']
         save_dir = os.path.join(run_dir, 'outputs')
@@ -385,7 +443,9 @@ class DetectionImageSave():
                 pt1 = (int(bbox_one[0]),int(bbox_one[1]))
                 pt2 = (int(bbox_one[2]),int(bbox_one[3]))
                 cv2.rectangle(img_data, pt1, pt2, color=label_color, thickness=self.thickness)
-                output_txt = f'category id: {label}'
+                label = apply_label_offset(label, self.label_offset_pred)
+                output_name = self.dataset_categories_map[label] if label in self.dataset_categories_map else label
+                output_txt = f'category: {output_name}'
                 cv2.putText(img_data, output_txt, (pt1[0],pt1[1]-10), font_cv2, fontScale=0.5, color=label_color, thickness=self.thickness_txt)
             #
             cv2.imwrite(save_path, img_data[:,:,::-1])
@@ -397,7 +457,9 @@ class DetectionImageSave():
                 rect = (int(bbox_one[0]),int(bbox_one[1]),int(bbox_one[2]),int(bbox_one[3]))
                 img_rect.rectangle(rect, outline=label_color, width=self.thickness)
                 pos_txt = (int(bbox_one[0]),int(bbox_one[1]-10))
-                output_txt = f'category id: {label}'
+                label = apply_label_offset(label, self.label_offset_pred)
+                output_name = self.dataset_categories_map[label] if label in self.dataset_categories_map else label
+                output_txt = f'category: {output_name}'
                 img_rect.text(pos_txt, output_txt, label_color, font_pil)
             #
             img_data.save(save_path)
