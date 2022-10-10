@@ -260,14 +260,14 @@ class ModelTraining:
         log_summary_regex = {
             'js' : [
             {'type':'epoch', 'name':'Epoch', 'description':'Epochs', 'unit':'Number', 'value':None,
-             'regex':[{'op':'search', 'pattern':r'\\s+(\\d+),.+', 'group':1}],
+             'regex':[{'op':'search', 'pattern':r'\s+(\d+),.+', 'group':1}],
             },
             {'type':'training_loss', 'name':'Loss', 'description':'Training Loss', 'unit':'Value', 'value':None,
              'regex':[{'op':'search', 'pattern':r'TODO-Loss-TODO'}],
              },
             {'type':'validation_accuracy', 'name':'Accuracy', 'description':'Validation Accuracy', 'unit':'mAP[0.5:.95]%', 'value':None,
-             'regex':[{'op':'search', 'pattern':r'\\s+[-+e\\d\\.\\d]+,\\s+[-+e\\d\\.\\d]+,\\s+[-+e\\d\\.\\d]+,\\s+[-+e\\d\\.\\d]+,'
-                                                r'\\s+[-+e\\d\\.\\d]+,\\s+[-+e\\d\\.\\d]+,\\s+[-+e\\d\\.\\d]+,\\s+([-+e\\d\\.\\d]+)', 'group':1}],
+             'regex':[{'op':'search', 'pattern':r'\s+[-+e\d\.\d]+,\s+[-+e\d\.\d]+,\s+[-+e\d\.\d]+,\s+[-+e\d\.\d]+,'
+                                                r'\s+[-+e\d\.\d]+,\s+[-+e\d\.\d]+,\s+[-+e\d\.\d]+,\s+([-+e\d\.\d]+)', 'group':1}],
              }]
         }
 

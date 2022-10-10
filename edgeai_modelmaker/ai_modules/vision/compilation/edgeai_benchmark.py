@@ -75,13 +75,13 @@ class ModelCompilation():
             log_summary_regex = {
                 'js': [
                     {'type':'Progress', 'name':'Progress', 'description':'Progress of Compilation', 'unit':'Number', 'value':None,
-                     'regex':[{'op':'search', 'pattern':'infer\s\:\s.*?\s(?<infer>\d+)', 'group':1}],
+                     'regex':[{'op':'search', 'pattern':r'infer\s\:\s.*?\s(?<infer>\d+)', 'group':1}],
                     },
                     {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Accuracy of Compilation', 'unit':'mAP[0.5:.95]%', 'value':None,
-                     'regex':[{'op':'search', 'pattern':'benchmark results.*?accuracy_ap[.5:.95]\%.*?\:\s(?<accuracy>\d+\.\d+)', 'group':1, 'dtype':'float', 'case_sensitive':False}],
+                     'regex':[{'op':'search', 'pattern':r'benchmark results.*?accuracy_ap[.5:.95]\%.*?\:\s(?<accuracy>\d+\.\d+)', 'group':1, 'dtype':'float', 'case_sensitive':False}],
                      },
                     {'type':'Completed', 'name':'Completed', 'description':'Completion of Compilation', 'unit':None, 'value':None,
-                     'regex':[{'op':'search', 'pattern':'success\:.*compilation\scompleted', 'group':1, 'dtype':'str', 'case_sensitive':False}],
+                     'regex':[{'op':'search', 'pattern':r'success\:.*compilation\scompleted', 'group':1, 'dtype':'str', 'case_sensitive':False}],
                      },
                 ]
             }
