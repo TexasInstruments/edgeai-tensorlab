@@ -335,8 +335,6 @@ class ModelTraining:
                   exist_ok=True, noautoanchor=args_yolo['noautoanchor'],
                   disable_git_status=True)
 
-        os.symlink(os.path.join(project_path, 'results.csv'), os.path.join(project_path, 'run.log'))
-
         args_yolo_export = {
             'weights': self.params.training['checkpoint_path'],
             'img': (640, 640),
