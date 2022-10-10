@@ -29,13 +29,27 @@
 import os
 import sys
 import copy
+
+import PIL
 import numpy as np
 import cv2
-from PIL import ImageDraw
 from munkres import Munkres
 from numpy.lib.stride_tricks import as_strided
 import math
 from .keypoints import *
+
+
+##############################################################################
+# utils
+def get_font_cv2():
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    return font
+
+
+def get_font_pil():
+    # font = PIL.ImageFont.truetype('arial.ttf', 10)
+    font = PIL.ImageFont.load_default()
+    return font
 
 
 ##############################################################################
@@ -132,6 +146,43 @@ class IgnoreIndex():
             tensor_out = tensor
         #
         return tensor_out, info_dict
+
+
+class ClassificationImageSave():
+    def __init__(self):
+        self.color_step = 64 #32
+        self.colors = [(r,g,b) for r in range(0,256,self.color_step) \
+                       for g in range(0,256,self.color_step) \
+                       for b in range(0,256,self.color_step)]
+        self.thickness = 2
+        self.thickness_txt = 1
+
+    def __call__(self, output, info_dict):
+        data_path = info_dict['data_path']
+        img_data = info_dict['data']
+        image_name = os.path.split(data_path)[-1]
+        run_dir = info_dict['run_dir']
+        save_dir = os.path.join(run_dir, 'outputs')
+        os.makedirs(save_dir, exist_ok=True)
+        save_path = os.path.join(save_dir, image_name)
+        img_data = copy.deepcopy(img_data)
+
+        output_id = output[0] if isinstance(output, (list,tuple,np.ndarray)) else output
+        output_id = output_id[0] if isinstance(output_id, (list,tuple,np.ndarray)) else output_id
+        output_txt = f'category id: {output_id}'
+        label_color = self.colors[output_id % len(self.colors)]
+
+        font_cv2 = get_font_cv2()
+        font_pil = get_font_pil()
+        if isinstance(img_data, np.ndarray):
+            cv2.putText(img_data, output_txt, (10,10), font_cv2, fontScale=0.5, color=label_color, thickness=self.thickness_txt)
+            cv2.imwrite(save_path, img_data[:,:,::-1])
+        else:
+            img_rect = PIL.ImageDraw.Draw(img_data)
+            img_rect.text((10,10), output_txt, label_color, font_pil)
+            img_data.save(save_path)
+        #
+        return output, info_dict
 
 
 ##############################################################################
@@ -313,6 +364,7 @@ class DetectionImageSave():
                        for g in range(0,256,self.color_step) \
                        for b in range(0,256,self.color_step)]
         self.thickness = 2
+        self.thickness_txt = 1
 
     def __call__(self, bbox, info_dict):
         data_path = info_dict['data_path']
@@ -322,8 +374,10 @@ class DetectionImageSave():
         save_dir = os.path.join(run_dir, 'outputs')
         os.makedirs(save_dir, exist_ok=True)
         save_path = os.path.join(save_dir, image_name)
-
         img_data = copy.deepcopy(img_data)
+
+        font_cv2 = get_font_cv2()
+        font_pil = get_font_pil()
         if isinstance(img_data, np.ndarray):
             for bbox_one in bbox:
                 label = int(bbox_one[4])
@@ -331,20 +385,24 @@ class DetectionImageSave():
                 pt1 = (int(bbox_one[0]),int(bbox_one[1]))
                 pt2 = (int(bbox_one[2]),int(bbox_one[3]))
                 cv2.rectangle(img_data, pt1, pt2, color=label_color, thickness=self.thickness)
+                output_txt = f'category id: {label}'
+                cv2.putText(img_data, output_txt, (pt1[0],pt1[1]-10), font_cv2, fontScale=0.5, color=label_color, thickness=self.thickness_txt)
             #
             cv2.imwrite(save_path, img_data[:,:,::-1])
         else:
-            img_rect = ImageDraw.Draw(img_data)
+            img_rect = PIL.ImageDraw.Draw(img_data)
             for bbox_one in bbox:
                 label = int(bbox_one[4])
                 label_color = self.colors[label % len(self.colors)]
                 rect = (int(bbox_one[0]),int(bbox_one[1]),int(bbox_one[2]),int(bbox_one[3]))
                 img_rect.rectangle(rect, outline=label_color, width=self.thickness)
+                pos_txt = (int(bbox_one[0]),int(bbox_one[1]-10))
+                output_txt = f'category id: {label}'
+                img_rect.text(pos_txt, output_txt, label_color, font_pil)
             #
             img_data.save(save_path)
         #
         return bbox, info_dict
-
 
 
 ##############################################################################

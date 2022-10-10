@@ -42,6 +42,9 @@ class PostProcessTransforms(utils.TransformsCompose):
     ###############################################################
     def get_transform_classification(self):
         postprocess_classification = [IndexArray(), ArgMax()]
+        if self.settings.save_output:
+            postprocess_classification += [ClassificationImageSave()]
+        #
         transforms = PostProcessTransforms(None, postprocess_classification)
         return transforms
 
