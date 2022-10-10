@@ -15,6 +15,16 @@ lm_camera_matrix = np.array([[572.4114, 0.0, 325.2611],
                              [0.0, 573.57043, 242.04899],
                              [ 0.0, 0.0, 1.0]], dtype=np.float32)
 
+# camera_matrix for logitech c270 ->1280x960
+logitech_camera_matrix_raw = np.array([[1430, 0.0, 620],
+                                        [0.0, 1430, 480],
+                                        [ 0.0, 0.0, 1.0]], dtype=np.float32)
+
+# camera_matrix for logitech c270 ->640x480
+logitech_camera_matrix_resize = np.array([[715, 0.0, 310],
+                                          [0.0, 715, 240],
+                                          [0.0, 0.0, 1.0]], dtype=np.float32)
+
 #vertices for YCB21 objects
 ycb_vertices = np.array([
     [51.1445, 51.223, 70.072],
@@ -239,29 +249,30 @@ def draw_cuboid_2d(img, cuboid_corners, color = (0, 255, 0), thickness = 2):
     return img
 
 
-def draw_bbox_2d(origin_img, dets, class_names):
+def draw_bbox_2d(origin_img, dets, class_names, conf_thres=0.9):
     for det in dets:
         box, score, cls = det[:4], det[4], int(det[5])
-        cls_id = int(cls)
-        x0, y0 = int(box[0]), int(box[1])
-        x1, y1 = int(box[2]), int(box[3])
-        color = (_COLORS[cls] * 255).astype(np.uint8).tolist()
-        cv2.rectangle(origin_img, (x0, y0), (x1, y1), color, 2)
-                #Labels on cuboid
-        text = '{}:{:.1f}%'.format(class_names[cls], score * 100)
-        txt_color = (0, 0, 0) if np.mean(_COLORS[cls]) > 0.5 else (255, 255, 255)
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        txt_size = cv2.getTextSize(text, font, 0.4, 1)[0]
-        txt_bk_color = (_COLORS[cls] * 255 * 0.7).astype(np.uint8).tolist()
-        x0, y0 = int(box[0]), int(box[1])
-        cv2.rectangle(
-            origin_img,
-            (x0, y0 + 1),
-            (x0 + txt_size[0] + 1, y0 + int(1.5*txt_size[1])),
-            txt_bk_color,
-            -1
-        )
-        cv2.putText(origin_img, text, (x0, y0 + txt_size[1]), font, 0.4, txt_color, thickness=1)
+        if score>conf_thres:
+            cls_id = int(cls)
+            x0, y0 = int(box[0]), int(box[1])
+            x1, y1 = int(box[2]), int(box[3])
+            color = (_COLORS[cls] * 255).astype(np.uint8).tolist()
+            cv2.rectangle(origin_img, (x0, y0), (x1, y1), color, 2)
+                    #Labels on cuboid
+            text = '{}:{:.1f}%'.format(class_names[cls], score * 100)
+            txt_color = (0, 0, 0) if np.mean(_COLORS[cls]) > 0.5 else (255, 255, 255)
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            txt_size = cv2.getTextSize(text, font, 0.4, 1)[0]
+            txt_bk_color = (_COLORS[cls] * 255 * 0.7).astype(np.uint8).tolist()
+            x0, y0 = int(box[0]), int(box[1])
+            cv2.rectangle(
+                origin_img,
+                (x0, y0 + 1),
+                (x0 + txt_size[0] + 1, y0 + int(1.5*txt_size[1])),
+                txt_bk_color,
+                -1
+            )
+            cv2.putText(origin_img, text, (x0, y0 + txt_size[1]), font, 0.4, txt_color, thickness=1)
     return origin_img
 
 
@@ -272,30 +283,31 @@ def project_3d_2d(pts_3d, rotation_mat, translation_vec, camera_matrix):
     return projected_2d
 
 
-def draw_obj_pose(origin_img, dets, class_names, class_to_cuboid, camera_matrix):
+def draw_obj_pose(origin_img, dets, class_names, class_to_cuboid, camera_matrix, conf_thres=0.91):
     for det in dets:
         box, score, cls = det[:4], det[4], int(det[5])
-        color = (_COLORS[cls] * 255).astype(np.uint8).tolist()
-        r1, r2 = det[6:9, None], det[9:12, None]
-        r3 = np.cross(r1, r2, axis=0)
-        rotation_mat = np.concatenate((r1, r2, r3), axis=1)
-        translation_vec = det[12:15]
-        cuboid_corners_2d = project_3d_2d(class_to_cuboid[int(cls)], rotation_mat, translation_vec, camera_matrix)
-        draw_cuboid_2d(img=origin_img, cuboid_corners=cuboid_corners_2d, color=color)
+        if score>conf_thres:
+            color = (_COLORS[cls] * 255).astype(np.uint8).tolist()
+            r1, r2 = det[6:9, None], det[9:12, None]
+            r3 = np.cross(r1, r2, axis=0)
+            rotation_mat = np.concatenate((r1, r2, r3), axis=1)
+            translation_vec = det[12:15]
+            cuboid_corners_2d = project_3d_2d(class_to_cuboid[int(cls)], rotation_mat, translation_vec, camera_matrix)
+            draw_cuboid_2d(img=origin_img, cuboid_corners=cuboid_corners_2d, color=color)
 
-        #Labels on cuboid
-        text = '{}:{:.1f}%'.format(class_names[cls], score * 100)
-        txt_color = (0, 0, 0) if np.mean(_COLORS[cls]) > 0.5 else (255, 255, 255)
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        txt_size = cv2.getTextSize(text, font, 0.4, 1)[0]
-        txt_bk_color = (_COLORS[cls] * 255 * 0.7).astype(np.uint8).tolist()
-        x0, y0 = int(box[0]), int(box[1])
-        cv2.rectangle(
-            origin_img,
-            (x0, y0 + 1),
-            (x0 + txt_size[0] + 1, y0 + int(1.5*txt_size[1])),
-            txt_bk_color,
-            -1
-        )
-        cv2.putText(origin_img, text, (x0, y0 + txt_size[1]), font, 0.4, txt_color, thickness=1)
+            #Labels on cuboid
+            text = '{}:{:.1f}%'.format(class_names[cls], score * 100)
+            txt_color = (0, 0, 0) if np.mean(_COLORS[cls]) > 0.5 else (255, 255, 255)
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            txt_size = cv2.getTextSize(text, font, 0.4, 1)[0]
+            txt_bk_color = (_COLORS[cls] * 255 * 0.7).astype(np.uint8).tolist()
+            x0, y0 = int(box[0]), int(box[1])
+            cv2.rectangle(
+                origin_img,
+                (x0, y0 + 1),
+                (x0 + txt_size[0] + 1, y0 + int(1.5*txt_size[1])),
+                txt_bk_color,
+                -1
+            )
+            cv2.putText(origin_img, text, (x0, y0 + txt_size[1]), font, 0.4, txt_color, thickness=1)
     return origin_img
