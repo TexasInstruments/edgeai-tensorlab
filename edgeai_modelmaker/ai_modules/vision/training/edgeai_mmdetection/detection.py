@@ -45,6 +45,7 @@ repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../.
 edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
 www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest'
 edgeai_mmdetection_path = os.path.join(repo_parent_path, 'edgeai-mmdetection')
+edgeai_mmdetection_tools_path = os.path.join(edgeai_mmdetection_path, 'tools')
 
 
 _model_descriptions = {
@@ -392,7 +393,7 @@ class ModelTraining:
         else:
             # Non-cuda mode is currently supported only with non-distributed training
             os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
-            train_module = utils.import_file_or_folder(train_module_path)
+            train_module = utils.import_file_or_folder(train_module_path, __name__)
             # sys.argv = [sys.argv[0], f'--gpus={self.params.training.num_gpus}', '--no-validate', f'{config_file}']
             sys.argv = [sys.argv[0], f'{config_file}']
             args = train_module.parse_args()
