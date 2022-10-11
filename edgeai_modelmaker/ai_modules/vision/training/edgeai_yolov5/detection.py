@@ -47,11 +47,6 @@ edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
 www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/latest/edgeai-yolov5/pretrained_models'
 
 
-sys.path.insert(0, edgeai_yolov5_path)
-import train, export
-sys.path.pop(0)
-
-
 _model_descriptions = {
     'yolov5s6_640_ti_lite': dict(
         common=dict(
@@ -327,6 +322,11 @@ class ModelTraining:
                     'project': f'{project_path}',
                     'noautoanchor': False, #Set this to True to disable autoanchor
                     }
+
+        # import dynamically - force_import every time to avoid clashes with scripts in other repositories
+        train = utils.import_file_or_folder(os.path.join(edgeai_yolov5_path,'train'), __name__, force_import=True)
+        export = utils.import_file_or_folder(os.path.join(edgeai_yolov5_path,'export'), __name__, force_import=True)
+
         # launch the training
         train.run(cfg=args_yolo['cfg'], weights=args_yolo['weights'], data=args_yolo['data'],
                   device=args_yolo['device'], epochs=args_yolo['epochs'],

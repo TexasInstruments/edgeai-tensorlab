@@ -47,9 +47,6 @@ www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest'
 edgeai_mmdetection_path = os.path.join(repo_parent_path, 'edgeai-mmdetection')
 edgeai_mmdetection_tools_path = os.path.join(edgeai_mmdetection_path, 'tools')
 
-sys.path.insert(0, edgeai_mmdetection_tools_path)
-import train as train_module
-sys.path.pop(0)
 
 _model_descriptions = {
     'ssd_mobilenetv2_fpn_lite_mmdet': dict(
@@ -398,6 +395,9 @@ class ModelTraining:
             os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
             # sys.argv = [sys.argv[0], f'--gpus={self.params.training.num_gpus}', '--no-validate', f'{config_file}']
             sys.argv = [sys.argv[0], f'{config_file}']
+            # import dynamically - force_import every time to avoid clashes with scripts in other repositories
+            train_module = utils.import_file_or_folder(os.path.join(edgeai_mmdetection_tools_path,'train'),
+                __name__, force_import=True)
             args = train_module.parse_args()
             train_module.main(args)
         #

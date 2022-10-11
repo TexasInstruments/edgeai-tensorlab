@@ -45,11 +45,6 @@ edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
 www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest'
 
 
-sys.path.insert(0, edgeai_torchvision_path)
-from references.classification import train
-sys.path.pop(0)
-
-
 _model_descriptions = {
     'mobilenet_v2_lite_tv': dict(
         common=dict(
@@ -300,6 +295,10 @@ class ModelTraining:
         #input_size = self.params.training.input_cropsize if isinstance(self.params.training.input_cropsize, (list,tuple)) else \
         #    (self.params.training.input_cropsize,self.params.training.input_cropsize)
         #argv += ['--input-size', f'{input_size[0]}', f'{input_size[1]}']
+        # import dynamically - force_import every time to avoid clashes with scripts in other repositories
+        train = utils.import_file_or_folder(
+            os.path.join(edgeai_torchvision_path,'references','classification','train.py'),
+            __name__, force_import=True)
         args = train.get_args_parser().parse_args(argv)
         args.quit_event = self.quit_event
         # launch the training
