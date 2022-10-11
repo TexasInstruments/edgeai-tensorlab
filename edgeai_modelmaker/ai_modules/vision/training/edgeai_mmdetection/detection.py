@@ -47,6 +47,9 @@ www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest'
 edgeai_mmdetection_path = os.path.join(repo_parent_path, 'edgeai-mmdetection')
 edgeai_mmdetection_tools_path = os.path.join(edgeai_mmdetection_path, 'tools')
 
+sys.path.insert(0, edgeai_mmdetection_tools_path)
+import train as train_module
+sys.path.pop(0)
 
 _model_descriptions = {
     'ssd_mobilenetv2_fpn_lite_mmdet': dict(
@@ -378,8 +381,8 @@ class ModelTraining:
         #
 
         # invoke the distributed training
-        train_module_path = f'{edgeai_mmdetection_path}/tools/train.py'
         if self.params.training.distributed and self.params.training.num_gpus > 0:
+            train_module_path = f'{edgeai_mmdetection_path}/tools/train.py'
             sys.argv = [sys.argv[0],
                         f'--nproc_per_node={self.params.training.num_gpus}',
                         f'--nnodes=1',
@@ -393,7 +396,6 @@ class ModelTraining:
         else:
             # Non-cuda mode is currently supported only with non-distributed training
             os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
-            train_module = utils.import_file_or_folder(train_module_path, __name__)
             # sys.argv = [sys.argv[0], f'--gpus={self.params.training.num_gpus}', '--no-validate', f'{config_file}']
             sys.argv = [sys.argv[0], f'{config_file}']
             args = train_module.parse_args()
