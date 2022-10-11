@@ -29,6 +29,7 @@
 import os
 import sys
 import copy
+import numbers
 
 import PIL
 import numpy as np
