@@ -52,6 +52,9 @@ if [ ! -d ../edgeai-benchmark ]; then git clone ${SOURCE_LOCATION}edgeai-benchma
 if [ ! -d ../edgeai-mmdetection ]; then git clone ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
 if [ ! -d ../edgeai-torchvision ]; then git clone ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
 if [ ! -d ../edgeai-modelzoo ]; then git clone ${SOURCE_LOCATION}edgeai-modelzoo.git ${FAST_CLONE_MODELZOO} ../edgeai-modelzoo; fi
+# this is optional - (GPLv3 licensed)
+if [ ! -d ../edgeai-yolov5 ]; then git clone ${SOURCE_LOCATION}edgeai-yolov5.git ../edgeai-yolov5; fi
+
 
 echo "cloning done."
 
@@ -65,6 +68,10 @@ cd ../edgeai-torchvision
 echo "installing: https://github.com/TexasInstruments/edgeai-mmdetection"
 cd ../edgeai-mmdetection
 ./setup.sh
+
+echo "installing: https://github.com/TexasInstruments/edgeai-yolov5 (GPLv3 Licensed)"
+cd ../edgeai-yolov5
+./setup_for_modelmaker.sh
 
 echo "installing: https://github.com/TexasInstruments/edgeai-benchmark"
 cd ../edgeai-benchmark

@@ -100,6 +100,7 @@ parent_directory
     |--edgeai-torchvision
     |--edgeai-mmdetection
     |--edgeai-benchmark
+    |--edgeai-yolov5
     |--edgeai-modelmaker
 </pre>
 
@@ -114,13 +115,13 @@ pip list | grep 'torch\|torchvision'
 </pre>
 
 
-### Installing additional components
+### Disabling optional components
 
-Additional plugins can be added by running:
+Optional plugins can be disabled by running:
 ```
-./setup_plugins_gpl.sh
+./disable_plugins_gpl.sh
 ```
-This installs [edgeai-yolov5](https://github.com/TexasInstruments/edgeai-yolov5) and enables support for YOLOv5 ti_lite models.
+This disables [edgeai-yolov5](https://github.com/TexasInstruments/edgeai-yolov5) and removes support for YOLOv5 ti_lite models.
 
 
 ## Step 3: Run the ready-made examples

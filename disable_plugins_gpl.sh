@@ -32,43 +32,6 @@
 #################################################################################
 
 #################################################################################
-# internal or external repositories
-USE_INTERNAL_REPO=0
 
-if [[ ${USE_INTERNAL_REPO} -eq 0 ]]; then
-    SOURCE_LOCATION="https://github.com/TexasInstruments/"
-    FAST_CLONE_MODELZOO=""
-else
-    SOURCE_LOCATION="ssh://git@bitbucket.itg.ti.com/edgeai-algo/"
-    FAST_CLONE_MODELZOO="--single-branch -b release"
-fi
-# print
-echo "SOURCE_LOCATION="${SOURCE_LOCATION}
+sed -i s/'PLUGINS_ENABLE_GPL = True'/'PLUGINS_ENABLE_GPL = False'/g ./edgeai_modelmaker/ai_modules/vision/constants.py
 
-#################################################################################
-# clone
-echo "cloning git repositories. this may take some time..."
-if [ ! -d ../edgeai-yolov5 ]; then git clone ${SOURCE_LOCATION}edgeai-yolov5.git ../edgeai-yolov5; fi
-
-echo "cloning done."
-
-#################################################################################
-echo "installing: https://github.com/TexasInstruments/edgeai-yolov5 (GPLv3 Licensed)"
-cd ../edgeai-yolov5
-./setup_for_modelmaker.sh
-
-echo "installing: https://github.com/TexasInstruments/edgeai-benchmark"
-cd ../edgeai-benchmark
-# for setup.py develop mode to work inside docker environment, this is required
-git config --global --add safe.directory $(pwd)
-./setup_pc.sh
-
-echo "installing edgeai-modelmaker"
-cd ../edgeai-modelmaker
-./setup.sh
-
-sed -i s/'PLUGINS_ENABLE_GPL = False'/'PLUGINS_ENABLE_GPL = True'/g ./edgeai_modelmaker/ai_modules/vision/constants.py
-
-ls -d ../edgeai-*
-
-echo "installation done."
