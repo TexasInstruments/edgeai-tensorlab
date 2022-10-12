@@ -155,9 +155,9 @@ class ModelCompilation():
         # reset - will change based on the model_path given here
         session_name = pipeline_config['session'].get_param('session_name')
         target_device_suffix = self.params.common.target_device.lower()
-        run_dir = f'{self.params.training.model_name}_{self.params.common.run_name}_' \
-                  f'{session_name}_{target_device_suffix}'
-        run_dir = os.path.join(self.work_dir, run_dir)
+        run_dir_basename = '_'.join([self.params.training.model_name, self.params.common.run_name,
+                                    session_name, target_device_suffix])
+        run_dir = os.path.join(self.work_dir, run_dir_basename)
         pipeline_config['session'].set_param('run_dir', run_dir)
 
         runtime_options = pipeline_config['session'].get_param('runtime_options')
@@ -246,8 +246,8 @@ class ModelCompilation():
         return True
 
     def _get_base_dirs(self):
-        work_dir = os.path.join(self.settings.modelartifacts_path, 'modelartifacts', f'{self.settings.tensor_bits}bits')
-        package_dir = os.path.join(f'{self.settings.modelartifacts_path}', 'modelartifacts_package', f'{self.settings.tensor_bits}bits')
+        work_dir = os.path.join(self.settings.modelartifacts_path, 'work', f'{self.settings.tensor_bits}bits')
+        package_dir = os.path.join(self.settings.modelartifacts_path, 'pkg', f'{self.settings.tensor_bits}bits')
         return work_dir, package_dir
 
     def _replace_confidence_threshold(self, filename):
