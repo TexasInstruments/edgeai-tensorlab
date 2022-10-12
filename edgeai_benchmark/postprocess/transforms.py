@@ -32,6 +32,8 @@ import copy
 import numbers
 
 import PIL
+import PIL.ImageDraw
+import PIL.ImageFont
 import numpy as np
 import cv2
 from munkres import Munkres

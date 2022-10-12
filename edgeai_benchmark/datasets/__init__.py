@@ -46,7 +46,7 @@ from .widerface_det import *
 try:
     from .kitti_lidar_det import KittiLidar3D
 except ImportError as e:
-    print(f'kitti_lidar_det could not be imported {str(e)}')
+    print(f'WARNING: kitti_lidar_det could not be imported {str(e)}')
     KittiLidar3D = None
 
 
