@@ -95,7 +95,7 @@ def download_url(dataset_url, download_root, save_filename=None, progressbar_cre
             progressbar_creator = progressbar_creator or misc_utils.ProgressBar
             resp = requests.get(dataset_url, stream=True, allow_redirects=True)
             total_size = int(resp.headers.get('content-length'))
-            progressbar_obj = progressbar_creator(total_size, unit='KB')
+            progressbar_obj = progressbar_creator(total_size, unit='B')
             os.makedirs(download_root, exist_ok=True)
             with open(download_file, 'wb') as fp:
                 for content in resp.iter_content(chunk_size=1024):

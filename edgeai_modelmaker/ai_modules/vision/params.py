@@ -37,6 +37,7 @@ def init_params(*args, **kwargs):
     default_params = dict(
         common=dict(
             verbose_mode=True,
+            download_path='./data/download',
             projects_path='./data/projects',
             project_path=None,
             project_run_path=None,
@@ -52,7 +53,6 @@ def init_params(*args, **kwargs):
             enable=True,
             dataset_name=None,
             dataset_path=None, # dataset split will be created here
-            download_path=None,
             extract_path=None,
             split_factor=0.75,
             split_names=('train', 'val'),
@@ -101,11 +101,12 @@ def init_params(*args, **kwargs):
         compilation=dict(
             enable=True,
             model_compilation_id=None,
+            compilation_path=None, # top level compilation path
+            model_compiled_path=None, # compiled path for the model
             log_file_path=None,
             log_summary_regex=None,
             summary_file_path=None,
-            compilation_path=None,
-            model_compiled_path=None,
+            output_tensors_path=None,
             model_packaged_path=None,
             # accuracy_level=1,
             tensor_bits=8,

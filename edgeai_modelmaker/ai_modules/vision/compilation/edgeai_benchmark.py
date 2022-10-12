@@ -55,7 +55,7 @@ class ModelCompilation():
         self._prepare()
         # update params that are specific to this backend and model
         model_compiled_path = self._get_log_dir()
-        model_packaged_path = self._get_output_file()
+        model_packaged_path = self._get_compiled_package_path()
 
         if self.params.common.task_type == constants.TASK_TYPE_CLASSIFICATION:
             log_summary_regex = {
@@ -91,10 +91,11 @@ class ModelCompilation():
 
         self.params.update(
             compilation=utils.ConfigDict(
+                model_compiled_path=model_compiled_path,
                 log_file_path=os.path.join(model_compiled_path, 'run.log'),
                 log_summary_regex=log_summary_regex,
                 summary_file_path=os.path.join(model_compiled_path, 'summary.yaml'),
-                model_compiled_path=model_compiled_path,
+                output_tensors_path=os.path.join(model_compiled_path, 'outputs'),
                 model_packaged_path=model_packaged_path,
             )
         )
@@ -227,7 +228,7 @@ class ModelCompilation():
         run_dir = pipeline_config['session'].get_run_dir()
         return run_dir
 
-    def _get_output_file(self):
+    def _get_compiled_package_path(self):
         work_dir, package_dir = self._get_base_dirs()
         run_dir = self._get_log_dir()
         compiled_package_file = run_dir.replace(work_dir, package_dir) + '.tar.gz'
