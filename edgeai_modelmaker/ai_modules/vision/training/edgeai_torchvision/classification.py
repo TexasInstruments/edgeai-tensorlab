@@ -239,13 +239,13 @@ class ModelTraining:
         log_summary_regex = {
             'js': [
                 {'type':'Epoch', 'name':'Epoch', 'description':'Epochs', 'unit':'Number', 'value':None,
-                 'regex':[{'op':'search', 'pattern':r'Epoch:\s?\[(?<eid>\d+)\]\sTotal', 'group':1}],
+                 'regex':[{'op':'search', 'pattern':r'Epoch:\s+\[(?<eid>\d+)\]\s+Total', 'group':1}],
                 },
                 {'type':'Training Loss', 'name':'Loss', 'description':'Training Loss', 'unit':'Value', 'value':None,
-                 'regex':[{'op':'search', 'pattern':r'Epoch:\s\[\d+\]\sTotal\stime:\s\d.*?loss\:\s(?<loss>\d+\.\d+)', 'group':1}],
+                 'regex':[{'op':'search', 'pattern':r'Epoch:\s+\[\d+\]\s+Total\s+time:\s+\d+.*?loss\:\s+(?<loss>\d+\.\d+)', 'group':1}],
                  },
                 {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Validation Accuracy', 'unit':'Accuracy Top-1%', 'value':None,
-                 'regex':[{'op':'search', 'pattern':r'Test:\s\sAcc@1\s(?<accuracy>[-+e\d\.\d]+)', 'group':1}],
+                 'regex':[{'op':'search', 'pattern':r'Test:\s+\s+Acc@1\s+(?<accuracy>[-+e\d+\.\d+]+)', 'group':1}],
                  }]
         }
 
