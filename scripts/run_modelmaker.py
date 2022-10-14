@@ -63,13 +63,13 @@ def main(config):
 
     # prepare
     run_params_file = model_runner.prepare()
-    print(f'run params is at: {run_params_file}')
+    print(f'Run params is at: {run_params_file}')
 
     # run
     model_runner.run()
 
-    print(f'trained model is at: {model_runner.get_params().training.training_path}')
-    print(f'compiled model is at: {model_runner.get_params().compilation.model_packaged_path}')
+    print(f'Trained model is at: {model_runner.get_params().training.training_path}')
+    print(f'Compiled model is at: {model_runner.get_params().compilation.model_packaged_path}')
     return True
 
 

@@ -49,13 +49,8 @@ class ModelCompilation():
     def __init__(self, *args, quit_event=None, **kwargs):
         self.params = self.init_params(*args, **kwargs)
         self.quit_event = quit_event
-        self.settings_file = edgeai_benchmark.get_settings_file(target_machine=self.params.common.target_machine, with_model_import=True)
-        self.settings = self._get_settings(model_selection=self.params.compilation.model_compilation_id)
         # prepare for model compilation
-        self._prepare()
-        # update params that are specific to this backend and model
-        model_compiled_path = self._get_compiled_artifact_dir()
-        model_packaged_path = self._get_packaged_artifact_path()
+        self._prepare_pipeline_config()
 
         if self.params.common.task_type == constants.TASK_TYPE_CLASSIFICATION:
             log_summary_regex = {
@@ -89,6 +84,9 @@ class ModelCompilation():
             log_summary_regex = None
         #
 
+        model_compiled_path = self._get_compiled_artifact_dir()
+        model_packaged_path = self._get_packaged_artifact_path()
+
         self.params.update(
             compilation=utils.ConfigDict(
                 model_compiled_path=model_compiled_path,
@@ -96,7 +94,7 @@ class ModelCompilation():
                 log_summary_regex=log_summary_regex,
                 summary_file_path=os.path.join(model_compiled_path, 'summary.yaml'),
                 output_tensors_path=os.path.join(model_compiled_path, 'outputs'),
-                model_packaged_path=model_packaged_path,
+                model_packaged_path=self._replace_artifact_name(model_packaged_path), # this is for info
             )
         )
 
@@ -104,10 +102,12 @@ class ModelCompilation():
         # clear the dirs
         shutil.rmtree(self.params.compilation.compilation_path, ignore_errors=True)
 
-    def _prepare(self):
+    def _prepare_pipeline_config(self):
         '''
         prepare for model compilation
         '''
+        self.settings_file = edgeai_benchmark.get_settings_file(target_machine=self.params.common.target_machine, with_model_import=True)
+        self.settings = self._get_settings(model_selection=self.params.compilation.model_compilation_id)
         self.work_dir, self.package_dir = self._get_base_dirs()
 
         if self.params.common.task_type == 'detection':
@@ -154,9 +154,8 @@ class ModelCompilation():
         pipeline_config['session'].set_param('model_path', self.params.training.model_export_path)
 
         # use a short path for the compiled artifacts dir
-        final_artifact_name = self._get_final_artifact_name(pipeline_config)
-        run_dir = os.path.join(self.work_dir, final_artifact_name)
-        pipeline_config['session'].set_param('run_dir', run_dir)
+        compiled_artifact_dir = self._get_compiled_artifact_dir()
+        pipeline_config['session'].set_param('run_dir', compiled_artifact_dir)
 
         runtime_options = pipeline_config['session'].get_param('runtime_options')
         self.meta_layers_names_list = 'object_detection:meta_layers_names_list'
@@ -200,6 +199,9 @@ class ModelCompilation():
         edgeai_benchmark.tools.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
         # package artifacts
         edgeai_benchmark.tools.package_artifacts(self.settings, self.work_dir, out_dir=self.package_dir, custom_model=True)
+        # make a symlink to the packaged artifacts
+        packaged_artifact_path = self._get_packaged_artifact_path()
+        utils.make_symlink(packaged_artifact_path, self._replace_artifact_name(packaged_artifact_path))
         return self.params
 
     def _get_settings(self, model_selection=None):
@@ -221,28 +223,29 @@ class ModelCompilation():
         )
         return settings
 
-    def _get_final_artifact_name(self, pipeline_config):
-        session_name = pipeline_config['session'].get_param('session_name')
-        target_device_suffix = self.params.common.target_device.lower()
-        final_artifact_name = '_'.join([self.params.training.model_name,
-             self.params.common.run_name, session_name, target_device_suffix])
-        return final_artifact_name
-
-    def _get_compiled_artifact_dir(self,):
-        pipeline_config = list(self.pipeline_configs.values())[0]
-        run_dir = pipeline_config['session'].get_run_dir()
-        return run_dir
+    def _get_compiled_artifact_dir(self):
+        compiled_artifact_dir = os.path.join(self.work_dir, 'modelartifacts')
+        return compiled_artifact_dir
 
     def _get_packaged_artifact_path(self):
-        work_dir, package_dir = self._get_base_dirs()
-        run_dir = self._get_compiled_artifact_dir()
-        compiled_package_file = run_dir.replace(work_dir, package_dir) + '.tar.gz'
+        compiled_artifact_dir = self._get_compiled_artifact_dir()
+        compiled_package_file = compiled_artifact_dir.replace(self.work_dir, self.package_dir) + '.tar.gz'
         return compiled_package_file
 
-    # def _replace_artifact_name(self, artifact_name):
-    #     artifact_basename = os.path.splitext(os.path.basename(artifact_name))[0]
-    #     final_artifact_name = self._get_final_artifact_name()
-    #     artifact_name.replace(artifact_basename, final_artifact_name)
+    def _get_final_artifact_name(self):
+        pipeline_config = list(self.pipeline_configs.values())[0]
+        session_name = pipeline_config['session'].get_param('session_name')
+        target_device_suffix = self.params.common.target_device.lower()
+        run_name_splits = list(os.path.split(self.params.common.run_name))
+        final_artifact_name = '_'.join(run_name_splits + [session_name, target_device_suffix])
+        return final_artifact_name
+
+    def _replace_artifact_name(self, artifact_name):
+        artifact_basename = os.path.splitext(os.path.basename(artifact_name))[0]
+        artifact_basename = os.path.splitext(artifact_basename)[0]
+        final_artifact_name = self._get_final_artifact_name()
+        artifact_name = artifact_name.replace(artifact_basename, final_artifact_name)
+        return artifact_name
 
     def _has_logs(self):
         log_dir = self._get_compiled_artifact_dir()

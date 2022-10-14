@@ -35,7 +35,7 @@ import importlib
 import json
 import yaml
 import tqdm
-
+import errno
 
 from . import config_dict
 
@@ -54,6 +54,27 @@ def absolute_path(relpath):
         return [_absolute_path(f) for f in relpath]
     else:
         return _absolute_path(relpath)
+
+
+def remove_if_exists(path):
+    try:
+        os.remove(path)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+
+
+def make_symlink(source, dest):
+    remove_if_exists(dest)
+    if os.path.dirname(source) == os.path.dirname(dest):
+        base_dir = os.path.dirname(source)
+        cur_dir = os.getcwd()
+        os.chdir(base_dir)
+        os.symlink(os.path.basename(source), os.path.basename(dest))
+        os.chdir(cur_dir)
+    else:
+        os.symlink(source, dest)
+    #
 
 
 def import_file_or_folder(folder_or_file_name, package_name=None, force_import=False):

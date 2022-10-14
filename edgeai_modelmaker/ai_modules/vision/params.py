@@ -44,9 +44,9 @@ def init_params(*args, **kwargs):
             task_type=None,
             target_machine='evm',
             target_device=None,
-            # run_name can be any string
-            # if {date-time} is given in run_name it will be considered special.
-            # will be replaced with datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            # run_name can be any string, but there are some special cases:
+            # {date-time} in run_name will be replaced with datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            # {model_name} in run_name will be replaced with the name of the model
             run_name='{date-time}/{model_name}',
         ),
         dataset=dict(
