@@ -62,7 +62,7 @@ _model_descriptions = {
             input_cropsize=(512,512),
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=172, accuracy_factor=27.2)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=179, accuracy_factor=27.2)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -90,7 +90,7 @@ _model_descriptions = {
             input_cropsize=(512,512),
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=92, accuracy_factor=32.8)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=94, accuracy_factor=32.8)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -118,7 +118,7 @@ _model_descriptions = {
             input_cropsize=(768,768),
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-1.6gf_fpn_bgr_lite_768x768_20200923_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=45, accuracy_factor=37.0)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=43, accuracy_factor=37.0)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -146,7 +146,7 @@ _model_descriptions = {
             input_cropsize=416,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=386, accuracy_factor=24.8)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=287, accuracy_factor=24.8)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -174,7 +174,7 @@ _model_descriptions = {
             input_cropsize=416,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=264, accuracy_factor=30.5)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=220, accuracy_factor=30.5)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -202,7 +202,7 @@ _model_descriptions = {
             input_cropsize=640,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=107, accuracy_factor=38.3)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=102, accuracy_factor=38.3)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,

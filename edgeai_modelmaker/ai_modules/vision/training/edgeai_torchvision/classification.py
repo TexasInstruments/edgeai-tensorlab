@@ -59,7 +59,7 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=455, accuracy_factor=72.13)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=477, accuracy_factor=72.13)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -109,7 +109,7 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=750, accuracy_factor=None)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=751, accuracy_factor=None)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
