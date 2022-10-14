@@ -1,10 +1,11 @@
 model_descriptions:
   mobilenet_v2_lite_tv:
     common:
+      download_path: ./data/download
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: classification
@@ -23,6 +24,7 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
+      output_tensors_path: null
       save_output: true
       summary_file_path: null
       tensor_bits: 8
@@ -37,7 +39,6 @@ model_descriptions:
       dataset_name: null
       dataset_path: null
       dataset_reload: false
-      download_path: null
       enable: true
       extract_path: null
       input_annotation_path: null
@@ -73,7 +74,7 @@ model_descriptions:
         TDA4VM:
           accuracy_factor: 72.13
           model_selection_factor: 3
-          performance_fps: 455
+          performance_fps: 477
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -86,10 +87,11 @@ model_descriptions:
       weight_decay: 0.0001
   mobilenet_v3_large_lite_tv:
     common:
+      download_path: ./data/download
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: classification
@@ -108,6 +110,7 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
+      output_tensors_path: null
       save_output: true
       summary_file_path: null
       tensor_bits: 8
@@ -122,7 +125,6 @@ model_descriptions:
       dataset_name: null
       dataset_path: null
       dataset_reload: false
-      download_path: null
       enable: true
       extract_path: null
       input_annotation_path: null
@@ -171,10 +173,11 @@ model_descriptions:
       weight_decay: 0.0001
   mobilenet_v3_small_lite_tv:
     common:
+      download_path: ./data/download
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: classification
@@ -193,6 +196,7 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
+      output_tensors_path: null
       save_output: true
       summary_file_path: null
       tensor_bits: 8
@@ -207,7 +211,6 @@ model_descriptions:
       dataset_name: null
       dataset_path: null
       dataset_reload: false
-      download_path: null
       enable: true
       extract_path: null
       input_annotation_path: null
@@ -243,7 +246,7 @@ model_descriptions:
         TDA4VM:
           accuracy_factor: null
           model_selection_factor: null
-          performance_fps: 750
+          performance_fps: 751
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -256,10 +259,11 @@ model_descriptions:
       weight_decay: 0.0001
   regnet_x_1_6gf_tv:
     common:
+      download_path: ./data/download
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: classification
@@ -278,6 +282,7 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
+      output_tensors_path: null
       save_output: true
       summary_file_path: null
       tensor_bits: 8
@@ -292,7 +297,6 @@ model_descriptions:
       dataset_name: null
       dataset_path: null
       dataset_reload: false
-      download_path: null
       enable: true
       extract_path: null
       input_annotation_path: null
@@ -341,10 +345,11 @@ model_descriptions:
       weight_decay: 0.0001
   regnet_x_400mf_tv:
     common:
+      download_path: ./data/download
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: classification
@@ -363,6 +368,7 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
+      output_tensors_path: null
       save_output: true
       summary_file_path: null
       tensor_bits: 8
@@ -377,7 +383,6 @@ model_descriptions:
       dataset_name: null
       dataset_path: null
       dataset_reload: false
-      download_path: null
       enable: true
       extract_path: null
       input_annotation_path: null
@@ -426,10 +431,11 @@ model_descriptions:
       weight_decay: 0.0001
   regnet_x_800mf_tv:
     common:
+      download_path: ./data/download
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: classification
@@ -448,6 +454,7 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
+      output_tensors_path: null
       save_output: true
       summary_file_path: null
       tensor_bits: 8
@@ -462,7 +469,6 @@ model_descriptions:
       dataset_name: null
       dataset_path: null
       dataset_reload: false
-      download_path: null
       enable: true
       extract_path: null
       input_annotation_path: null
@@ -511,10 +517,11 @@ model_descriptions:
       weight_decay: 0.0001
   ssd_mobilenetv2_fpn_lite_mmdet:
     common:
+      download_path: ./data/download
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -533,6 +540,7 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
+      output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: null
       save_output: true
@@ -549,7 +557,6 @@ model_descriptions:
       dataset_name: null
       dataset_path: null
       dataset_reload: false
-      download_path: null
       enable: true
       extract_path: null
       input_annotation_path: null
@@ -588,8 +595,8 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 27.2
-          model_selection_factor: 6
-          performance_fps: 172
+          model_selection_factor: 5
+          performance_fps: 179
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -602,10 +609,11 @@ model_descriptions:
       weight_decay: 0.0001
   ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet:
     common:
+      download_path: ./data/download
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -624,6 +632,7 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
+      output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: null
       save_output: true
@@ -640,7 +649,6 @@ model_descriptions:
       dataset_name: null
       dataset_path: null
       dataset_reload: false
-      download_path: null
       enable: true
       extract_path: null
       input_annotation_path: null
@@ -680,7 +688,7 @@ model_descriptions:
         TDA4VM:
           accuracy_factor: 37.0
           model_selection_factor: null
-          performance_fps: 45
+          performance_fps: 43
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -693,10 +701,11 @@ model_descriptions:
       weight_decay: 0.0001
   ssd_regnetx_800mf_fpn_bgr_lite_mmdet:
     common:
+      download_path: ./data/download
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -715,6 +724,7 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
+      output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: null
       save_output: true
@@ -731,7 +741,6 @@ model_descriptions:
       dataset_name: null
       dataset_path: null
       dataset_reload: false
-      download_path: null
       enable: true
       extract_path: null
       input_annotation_path: null
@@ -770,8 +779,8 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 32.8
-          model_selection_factor: 3
-          performance_fps: 92
+          model_selection_factor: 2
+          performance_fps: 94
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -784,10 +793,11 @@ model_descriptions:
       weight_decay: 0.0001
   yolov5l6_640_ti_lite:
     common:
+      download_path: ./data/download
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -806,6 +816,7 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
+      output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 288, 626, 682, 738, 794
       save_output: true
@@ -822,7 +833,6 @@ model_descriptions:
       dataset_name: null
       dataset_path: null
       dataset_reload: false
-      download_path: null
       enable: true
       extract_path: null
       input_annotation_path: null
@@ -858,7 +868,7 @@ model_descriptions:
         TDA4VM:
           accuracy_factor: 47.1
           model_selection_factor: 0
-          performance_fps: 26
+          performance_fps: 21
       training_backend: edgeai_yolov5
       training_device: null
       training_devices:
@@ -871,10 +881,11 @@ model_descriptions:
       weight_decay: 0.0001
   yolov5m6_640_ti_lite:
     common:
+      download_path: ./data/download
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -893,6 +904,7 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
+      output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 228, 498, 554, 610, 666
       save_output: true
@@ -909,7 +921,6 @@ model_descriptions:
       dataset_name: null
       dataset_path: null
       dataset_reload: false
-      download_path: null
       enable: true
       extract_path: null
       input_annotation_path: null
@@ -944,8 +955,8 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 44.1
-          model_selection_factor: 2
-          performance_fps: 51
+          model_selection_factor: null
+          performance_fps: 46
       training_backend: edgeai_yolov5
       training_device: null
       training_devices:
@@ -958,10 +969,11 @@ model_descriptions:
       weight_decay: 0.0001
   yolov5s6_640_ti_lite:
     common:
+      download_path: ./data/download
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -980,6 +992,7 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
+      output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 370, 426, 482, 538
       save_output: true
@@ -996,7 +1009,6 @@ model_descriptions:
       dataset_name: null
       dataset_path: null
       dataset_reload: false
-      download_path: null
       enable: true
       extract_path: null
       input_annotation_path: null
@@ -1031,8 +1043,8 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 37.4
-          model_selection_factor: 5
-          performance_fps: 134
+          model_selection_factor: 4
+          performance_fps: 108
       training_backend: edgeai_yolov5
       training_device: null
       training_devices:
@@ -1045,10 +1057,11 @@ model_descriptions:
       weight_decay: 0.0001
   yolox_m_lite_mmdet:
     common:
+      download_path: ./data/download
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -1067,6 +1080,7 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
+      output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
           1563, 1564, 1578, 1579, 1580
@@ -1084,7 +1098,6 @@ model_descriptions:
       dataset_name: null
       dataset_path: null
       dataset_reload: false
-      download_path: null
       enable: true
       extract_path: null
       input_annotation_path: null
@@ -1133,10 +1146,11 @@ model_descriptions:
       weight_decay: 0.0001
   yolox_nano_lite_mmdet:
     common:
+      download_path: ./data/download
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -1155,6 +1169,7 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
+      output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
           1196, 1195, 1181, 1180, 1179
@@ -1172,7 +1187,6 @@ model_descriptions:
       dataset_name: null
       dataset_path: null
       dataset_reload: false
-      download_path: null
       enable: true
       extract_path: null
       input_annotation_path: null
@@ -1207,8 +1221,8 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 24.8
-          model_selection_factor: 8
-          performance_fps: 386
+          model_selection_factor: 7
+          performance_fps: 287
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -1221,10 +1235,11 @@ model_descriptions:
       weight_decay: 0.0001
   yolox_s_lite_mmdet:
     common:
+      download_path: ./data/download
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -1243,6 +1258,7 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
+      output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
           1196, 1195, 1181, 1180, 1179
@@ -1260,7 +1276,6 @@ model_descriptions:
       dataset_name: null
       dataset_path: null
       dataset_reload: false
-      download_path: null
       enable: true
       extract_path: null
       input_annotation_path: null
@@ -1295,8 +1310,8 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 38.3
-          model_selection_factor: 4
-          performance_fps: 107
+          model_selection_factor: 3
+          performance_fps: 102
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -1309,10 +1324,11 @@ model_descriptions:
       weight_decay: 0.0001
   yolox_tiny_lite_mmdet:
     common:
+      download_path: ./data/download
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -1331,6 +1347,7 @@ model_descriptions:
       model_compiled_path: null
       model_packaged_path: null
       num_frames: null
+      output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
           1196, 1195, 1181, 1180, 1179
@@ -1348,7 +1365,6 @@ model_descriptions:
       dataset_name: null
       dataset_path: null
       dataset_reload: false
-      download_path: null
       enable: true
       extract_path: null
       input_annotation_path: null
@@ -1383,8 +1399,8 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 30.5
-          model_selection_factor: 7
-          performance_fps: 264
+          model_selection_factor: 6
+          performance_fps: 220
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
