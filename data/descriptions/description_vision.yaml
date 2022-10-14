@@ -23,6 +23,7 @@ model_descriptions:
       model_compilation_id: cl-6070
       model_compiled_path: null
       model_packaged_path: null
+      model_visualization_path: null
       num_frames: null
       output_tensors_path: null
       save_output: true
@@ -71,6 +72,10 @@ model_descriptions:
       project_path: null
       summary_file_path: null
       target_devices:
+        AM62:
+          accuracy_factor: 72.13
+          model_selection_factor: 0
+          performance_fps: 10
         TDA4VM:
           accuracy_factor: 72.13
           model_selection_factor: 3
@@ -109,6 +114,7 @@ model_descriptions:
       model_compilation_id: cl-6490
       model_compiled_path: null
       model_packaged_path: null
+      model_visualization_path: null
       num_frames: null
       output_tensors_path: null
       save_output: true
@@ -157,6 +163,10 @@ model_descriptions:
       project_path: null
       summary_file_path: null
       target_devices:
+        AM62:
+          accuracy_factor: 72.12
+          model_selection_factor: 1
+          performance_fps: 14
         TDA4VM:
           accuracy_factor: 72.12
           model_selection_factor: null
@@ -195,6 +205,7 @@ model_descriptions:
       model_compilation_id: cl-6480
       model_compiled_path: null
       model_packaged_path: null
+      model_visualization_path: null
       num_frames: null
       output_tensors_path: null
       save_output: true
@@ -243,9 +254,13 @@ model_descriptions:
       project_path: null
       summary_file_path: null
       target_devices:
+        AM62:
+          accuracy_factor: 62.688
+          model_selection_factor: 2
+          performance_fps: 34
         TDA4VM:
-          accuracy_factor: null
-          model_selection_factor: null
+          accuracy_factor: 62.688
+          model_selection_factor: 4
           performance_fps: 751
       training_backend: edgeai_torchvision
       training_device: null
@@ -281,6 +296,7 @@ model_descriptions:
       model_compilation_id: cl-6180
       model_compiled_path: null
       model_packaged_path: null
+      model_visualization_path: null
       num_frames: null
       output_tensors_path: null
       save_output: true
@@ -367,6 +383,7 @@ model_descriptions:
       model_compilation_id: cl-6160
       model_compiled_path: null
       model_packaged_path: null
+      model_visualization_path: null
       num_frames: null
       output_tensors_path: null
       save_output: true
@@ -453,6 +470,7 @@ model_descriptions:
       model_compilation_id: cl-6170
       model_compiled_path: null
       model_packaged_path: null
+      model_visualization_path: null
       num_frames: null
       output_tensors_path: null
       save_output: true
@@ -539,6 +557,7 @@ model_descriptions:
       model_compilation_id: od-8030
       model_compiled_path: null
       model_packaged_path: null
+      model_visualization_path: null
       num_frames: null
       output_tensors_path: null
       runtime_options:
@@ -593,10 +612,111 @@ model_descriptions:
       project_path: null
       summary_file_path: null
       target_devices:
+        AM62:
+          accuracy_factor: 27.2
+          model_selection_factor: 0
+          performance_fps: 0.5
         TDA4VM:
           accuracy_factor: 27.2
           model_selection_factor: 5
           performance_fps: 179
+      training_backend: edgeai_mmdetection
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 30
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  ssd_mobilenetv2_lite_mmdet:
+    common:
+      download_path: ./data/download
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      detection_thr: 0.3
+      enable: true
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 0
+      model_compilation_id: od-8020
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      output_tensors_path: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: null
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize:
+      - 320
+      - 320
+      input_resize:
+      - 320
+      - 320
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: ssd
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: ssd_mobilenetv2_lite_mmdet
+      model_proto_path: null
+      model_training_id: ssd_mobilenet_lite_320x320
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_lite_512x512_20201214_checkpoint.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        AM62:
+          accuracy_factor: 22.1
+          model_selection_factor: 1
+          performance_fps: 1.5
+        TDA4VM:
+          accuracy_factor: 22.1
+          model_selection_factor: 8
+          performance_fps: 654
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -631,6 +751,7 @@ model_descriptions:
       model_compilation_id: od-8060
       model_compiled_path: null
       model_packaged_path: null
+      model_visualization_path: null
       num_frames: null
       output_tensors_path: null
       runtime_options:
@@ -699,6 +820,103 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
+  ssd_regnetx_200mf_fpn_bgr_lite_mmdet:
+    common:
+      download_path: ./data/download
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      detection_thr: 0.3
+      enable: true
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 0
+      model_compilation_id: od-8040
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      output_tensors_path: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: null
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize:
+      - 320
+      - 320
+      input_resize:
+      - 320
+      - 320
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: ssd
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: ssd_regnetx_200mf_fpn_bgr_lite_mmdet
+      model_proto_path: null
+      model_training_id: ssd_regnetx_200mf_fpn_bgr_lite
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-200mf_fpn_bgr_lite_320x320_20201010_checkpoint.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        AM62:
+          accuracy_factor: 20.7
+          model_selection_factor: 2
+          performance_fps: 2.3
+        TDA4VM:
+          accuracy_factor: 20.7
+          model_selection_factor: null
+          performance_fps: 183
+      training_backend: edgeai_mmdetection
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 30
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
   ssd_regnetx_800mf_fpn_bgr_lite_mmdet:
     common:
       download_path: ./data/download
@@ -723,6 +941,7 @@ model_descriptions:
       model_compilation_id: od-8050
       model_compiled_path: null
       model_packaged_path: null
+      model_visualization_path: null
       num_frames: null
       output_tensors_path: null
       runtime_options:
@@ -815,6 +1034,7 @@ model_descriptions:
       model_compilation_id: od-8130
       model_compiled_path: null
       model_packaged_path: null
+      model_visualization_path: null
       num_frames: null
       output_tensors_path: null
       runtime_options:
@@ -903,6 +1123,7 @@ model_descriptions:
       model_compilation_id: od-8120
       model_compiled_path: null
       model_packaged_path: null
+      model_visualization_path: null
       num_frames: null
       output_tensors_path: null
       runtime_options:
@@ -991,6 +1212,7 @@ model_descriptions:
       model_compilation_id: od-8100
       model_compiled_path: null
       model_packaged_path: null
+      model_visualization_path: null
       num_frames: null
       output_tensors_path: null
       runtime_options:
@@ -1079,6 +1301,7 @@ model_descriptions:
       model_compilation_id: od-8230
       model_compiled_path: null
       model_packaged_path: null
+      model_visualization_path: null
       num_frames: null
       output_tensors_path: null
       runtime_options:
@@ -1120,7 +1343,7 @@ model_descriptions:
       model_architecture: yolox
       model_checkpoint_path: null
       model_export_path: null
-      model_name: yolox_m_lite_mmdet
+      model_name: yolox_m_lite_640x640_mmdet
       model_proto_path: null
       model_training_id: yolox_m_lite
       num_classes: null
@@ -1168,6 +1391,7 @@ model_descriptions:
       model_compilation_id: od-8200
       model_compiled_path: null
       model_packaged_path: null
+      model_visualization_path: null
       num_frames: null
       output_tensors_path: null
       runtime_options:
@@ -1209,7 +1433,7 @@ model_descriptions:
       model_architecture: yolox
       model_checkpoint_path: null
       model_export_path: null
-      model_name: yolox_nano_lite_mmdet
+      model_name: yolox_nano_lite_416x416_mmdet
       model_proto_path: null
       model_training_id: yolox_nano_lite
       num_classes: null
@@ -1257,6 +1481,7 @@ model_descriptions:
       model_compilation_id: od-8220
       model_compiled_path: null
       model_packaged_path: null
+      model_visualization_path: null
       num_frames: null
       output_tensors_path: null
       runtime_options:
@@ -1298,7 +1523,7 @@ model_descriptions:
       model_architecture: yolox
       model_checkpoint_path: null
       model_export_path: null
-      model_name: yolox_s_lite_mmdet
+      model_name: yolox_s_lite_640x640_mmdet
       model_proto_path: null
       model_training_id: yolox_s_lite
       num_classes: null
@@ -1346,6 +1571,7 @@ model_descriptions:
       model_compilation_id: od-8210
       model_compiled_path: null
       model_packaged_path: null
+      model_visualization_path: null
       num_frames: null
       output_tensors_path: null
       runtime_options:
@@ -1387,7 +1613,7 @@ model_descriptions:
       model_architecture: yolox
       model_checkpoint_path: null
       model_export_path: null
-      model_name: yolox_tiny_lite_mmdet
+      model_name: yolox_tiny_lite_416x416_mmdet
       model_proto_path: null
       model_training_id: yolox_tiny_lite
       num_classes: null
@@ -1412,31 +1638,63 @@ model_descriptions:
       warmup_epochs: 1
       weight_decay: 0.0001
 preset_descriptions:
-  best_accuracy_preset:
-    compilation:
-      calibration_frames: 25
-      calibration_iterations: 25
-      detection_thr: 0.05
-      tensor_bits: 16
-  best_speed_preset:
-    compilation:
-      calibration_frames: 5
-      calibration_iterations: 1
-      detection_thr: 0.3
-      tensor_bits: 8
-  default_preset: null
-  high_accuracy_preset:
-    compilation:
-      calibration_frames: 25
-      calibration_iterations: 25
-      detection_thr: 0.3
-      tensor_bits: 8
-  high_speed_preset:
-    compilation:
-      calibration_frames: 5
-      calibration_iterations: 5
-      detection_thr: 0.3
-      tensor_bits: 8
+  AM62:
+    best_accuracy_preset:
+      compilation:
+        calibration_frames: 1
+        calibration_iterations: 1
+        detection_thr: 0.05
+        tensor_bits: 32
+    best_speed_preset:
+      compilation:
+        calibration_frames: 1
+        calibration_iterations: 1
+        detection_thr: 0.3
+        tensor_bits: 32
+    default_preset:
+      compilation:
+        calibration_frames: 1
+        calibration_iterations: 1
+        detection_thr: 0.3
+        tensor_bits: 32
+    high_accuracy_preset:
+      compilation:
+        calibration_frames: 1
+        calibration_iterations: 1
+        detection_thr: 0.3
+        tensor_bits: 32
+    high_speed_preset:
+      compilation:
+        calibration_frames: 1
+        calibration_iterations: 1
+        detection_thr: 0.3
+        tensor_bits: 32
+  TDA4VM:
+    best_accuracy_preset:
+      compilation:
+        calibration_frames: 25
+        calibration_iterations: 25
+        detection_thr: 0.05
+        tensor_bits: 8
+    best_speed_preset:
+      compilation:
+        calibration_frames: 5
+        calibration_iterations: 1
+        detection_thr: 0.3
+        tensor_bits: 8
+    default_preset: null
+    high_accuracy_preset:
+      compilation:
+        calibration_frames: 25
+        calibration_iterations: 25
+        detection_thr: 0.3
+        tensor_bits: 8
+    high_speed_preset:
+      compilation:
+        calibration_frames: 5
+        calibration_iterations: 5
+        detection_thr: 0.3
+        tensor_bits: 8
 sample_dataset_descriptions:
   animal_classification:
     download_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip
@@ -1445,25 +1703,55 @@ sample_dataset_descriptions:
     download_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip
     task_type: detection
 target_device_descriptions:
-  TDA4VM:
-    device_details: "\n* C7x floating point, vector DSP, up to 1.0 GHz, 80\nGFLOPS,\
-      \ 256 GOPS\n* Deep-learning matrix multiply accelerator (MMA),\nup to 8 TOPS\
-      \ (8b) at 1.0 GHz\n* Vision Processing Accelerators (VPAC) with Image\nSignal\
-      \ Processor (ISP) and multiple vision assist\naccelerators\n* Depth and Motion\
-      \ Processing Accelerators\n(DMPAC)\n* Dual 64-bit Arm\xAE Cortex\xAE-A72 microprocessor\n\
-      subsystem at up to 2.0 GHz\n\u2013 1MB shared L2 cache per dual-core Cortex\xAE\
-      -\nA72 cluster\n\u2013 32KB L1 DCache and 48KB L1 ICache per\nCortex\xAE-A72\
-      \ core\n* Six Arm\xAE Cortex\xAE-R5F MCUs at up to 1.0 GHz\n\u2013 16K I-Cache,\
-      \ 16K D-Cache, 64K L2 TCM\n\u2013 Two Arm\xAE Cortex\xAE-R5F MCUs in isolated\
-      \ MCU\nsubsystem\n\u2013 Four Arm\xAE Cortex\xAE-R5F MCUs in general\ncompute\
-      \ partition\n* Two C66x floating point DSP, up to 1.35 GHz,\n40 GFLOPS, 160\
-      \ GOPS\n* 3D GPU PowerVR\xAE Rogue 8XE GE8430, up to\n750 MHz, 96 GFLOPS, 6\
-      \ Gpix/sec\n* Custom-designed interconnect fabric supporting\nnear max processing\
-      \ entitlement    \n* For more information, see the following links:\n- product\
-      \ page: https://www.ti.com/product/TDA4VM\n- datasheet: https://www.ti.com/lit/ds/symlink/tda4vm.pdf\n\
-      - starterkit: https://www.ti.com/tool/SK-TDA4VM\n- top level landing page: https://ti.com/edgeai\n"
-    device_name: TDA4VM
+  AM62:
+    device_details: "\nThe low-cost AM62x Sitara\u2122 MPU family of application processors\
+      \ are built for Linux\xAE application development.\nWith scalable Arm\xAE Cortex\xAE\
+      -A53 performance and embedded features, such as: dual-display support and 3D\n\
+      graphics acceleration, along with an extensive set of peripherals that make\
+      \ the AM62x device well-suited for\na broad range of industrial and automotive\
+      \ applications while offering intelligent features and optimized power architecture\
+      \ as well.\nProcessor Cores:\n* Up to Quad 64-bit Arm\xAE Cortex\xAE-A53 microprocessor\
+      \ subsystem at up to 1.4 GHz\n* Single-core Arm\xAE Cortex\xAE-M4F MCU at up\
+      \ to 400 MHz\n* Dedicated Device and Power Manager\nMultimedia:\n* Display subsystem\n\
+      * 3D Graphics Processing Unit\n* One Camera Serial interface (CSI-Rx) - 4 Lane\n\
+      with DPHY\nFor more information, see the following links:\n- product page: https://www.ti.com/product/AM623\n\
+      - product page: https://www.ti.com/product/AM625\n- starterkit: https://www.ti.com/tool/SK-AM62\n\
+      - top level landing page: https://ti.com/edgeai\n- software development page\
+      \ - introduction: https://dev.ti.com/edgeai/\n- software development page -\
+      \ model development: https://github.com/TexasInstruments/edgeai\n- software\
+      \ development page - sdk: https://www.ti.com/tool/PROCESSOR-SDK-AM62X\n"
+    device_name: AM62
     device_selection_factor: 0
+    device_type: MPU
+  TDA4VM:
+    device_details: "\nThe TDA4VM processor family is based on the evolutionary Jacinto\u2122\
+      \ 7 architecture, targeted at ADAS, \nAutonomous Vehicle (AV) and industrial\
+      \ applications applications. \nThe unique combination high-performance compute,\
+      \ deeplearning engine, \ndedicated accelerators for signal and image processing\
+      \ in an functional safety compliant\ntargeted architecture make the TDA4VM devices\
+      \ a great fit for several industrial applications, such as: \nRobotics, Machine\
+      \ Vision, Radar, and so on. \nKey cores include next generation DSP with scalar\
+      \ and vector cores,\ndedicated deep learning and traditional algorithm accelerators,\
+      \ latest Arm and GPU processors for general\ncompute, an integrated next generation\
+      \ imaging subsystem (ISP), video codec, Ethernet hub and isolated MCU\nisland.\
+      \ All protected by automotive grade safety and security hardware accelerators.\n\
+      Processor Cores:\n* C7x floating point, vector DSP, up to 1.0 GHz, 80 GFLOPS,\
+      \ 256 GOPS\n* Deep-learning matrix multiply accelerator (MMA), up to 8 TOPS\
+      \ (8b) at 1.0 GHz\n* Vision Processing Accelerators (VPAC) with Image Signal\
+      \ Processor (ISP) and multiple vision assist accelerators\n* Depth and Motion\
+      \ Processing Accelerators (DMPAC)\n* Dual 64-bit Arm\xAE Cortex\xAE-A72 microprocessor\
+      \ subsystem at up to 2.0 GHz\n* Six Arm\xAE Cortex\xAE-R5F MCUs at up to 1.0\
+      \ GHz compute partition\n* Two C66x floating point DSP, up to 1.35 GHz, 40 GFLOPS,\
+      \ 160 GOPS\n* 3D GPU PowerVR\xAE Rogue 8XE GE8430, up to 750 MHz, 96 GFLOPS,\
+      \ 6 Gpix/sec\n* Custom-designed interconnect fabric supporting near max processing\
+      \ entitlement    \nFor more information, see the following links:\n- product\
+      \ page: https://www.ti.com/product/TDA4VM\n- starterkit: https://www.ti.com/tool/SK-TDA4VM\n\
+      - top level landing page: https://ti.com/edgeai\n- software development page\
+      \ - introduction: https://dev.ti.com/edgeai/\n- software development page -\
+      \ model development: https://github.com/TexasInstruments/edgeai\n- software\
+      \ development page - sdk: https://www.ti.com/tool/PROCESSOR-SDK-J721E\n"
+    device_name: TDA4VM
+    device_selection_factor: 1
     device_type: MPU
 task_descriptions:
   classification:
@@ -1472,6 +1760,7 @@ task_descriptions:
     - training
     - compilation
     target_devices:
+    - AM62
     - TDA4VM
     target_module: vision
   detection:
@@ -1480,6 +1769,7 @@ task_descriptions:
     - training
     - compilation
     target_devices:
+    - AM62
     - TDA4VM
     target_module: vision
 training_module_descriptions:

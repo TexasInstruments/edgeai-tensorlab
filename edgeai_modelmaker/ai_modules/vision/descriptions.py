@@ -155,42 +155,7 @@ def set_model_description(params, model_description):
 
 
 def get_preset_descriptions(params):
-    presets = dict(
-        best_accuracy_preset=dict(
-            compilation=dict(
-                calibration_frames=25,
-                calibration_iterations=25,
-                detection_thr=0.05,
-                tensor_bits=16,
-            )
-        ),
-        high_accuracy_preset=dict(
-            compilation=dict(
-                calibration_frames=25,
-                calibration_iterations=25,
-                detection_thr=0.3,
-                tensor_bits=8,
-            )
-        ),
-        default_preset=None,  # not specified here - use the models values
-        high_speed_preset=dict(
-            compilation=dict(
-                calibration_frames=5,
-                calibration_iterations=5,
-                detection_thr=0.3,
-                tensor_bits=8,
-            )
-        ),
-        best_speed_preset=dict(
-            compilation=dict(
-                calibration_frames=5,
-                calibration_iterations=1,
-                detection_thr=0.3,
-                tensor_bits=8,
-            )
-        ),
-    )
-    return presets
+    return constants.PRESET_DESCRIPTIONS
 
 
 def get_target_device_descriptions(params):

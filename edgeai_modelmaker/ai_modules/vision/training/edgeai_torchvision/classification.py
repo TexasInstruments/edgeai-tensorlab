@@ -59,7 +59,8 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=477, accuracy_factor=72.13)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=477, accuracy_factor=72.13),
+                constants.TARGET_DEVICE_AM62: dict(performance_fps=10, accuracy_factor=72.13)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -84,7 +85,8 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=267, accuracy_factor=72.12)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=267, accuracy_factor=72.12),
+                constants.TARGET_DEVICE_AM62: dict(performance_fps=14, accuracy_factor=72.12)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -109,7 +111,8 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=751, accuracy_factor=None)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=751, accuracy_factor=62.688),
+                constants.TARGET_DEVICE_AM62: dict(performance_fps=34, accuracy_factor=62.688)
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,

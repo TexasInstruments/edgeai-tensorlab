@@ -39,9 +39,10 @@ training:
     enable: True #False
 
     # Object Detection model chosen can be changed here if needed
-    # SSD: #'ssd_mobilenetv2_fpn_lite_mmdet' 'ssd_regnetx_800mf_fpn_bgr_lite_mmdet' #'ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet'
+    # SSD: 'ssd_mobilenetv2_lite_mmdet' 'ssd_mobilenetv2_fpn_lite_mmdet'
+    # SSD: 'ssd_regnetx_200mf_fpn_bgr_lite_mmdet' 'ssd_regnetx_800mf_fpn_bgr_lite_mmdet' 'ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet'
     # YOLOX:'yolox_nano_lite_mmdet', 'yolox_tiny_lite_mmdet', 'yolox_s_lite_mmdet', 'yolox_m_lite_mmdet'
-    # The following YOLOv5 models will be available only if you have installed edgeai-yolov5 using setup_plugins_gpl.sh
+    # The following YOLOv5 models will be available only if you have installed edgeai-yolov5
     # YOLOv5: 'yolov5s6_640_ti_lite', 'yolov5m6_640_ti_lite', 'yolov5l6_640_ti_lite'
     model_name: 'yolox_s_lite_mmdet'
 
