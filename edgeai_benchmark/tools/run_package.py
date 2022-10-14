@@ -37,9 +37,9 @@ import re
 from edgeai_benchmark import utils
 
 
-def run_package(settings, work_dir, out_dir, include_results=False):
+def run_package(settings, work_dir, out_dir, include_results=False, custom_model=False):
     # now write out the package
-    package_artifacts(settings, work_dir, out_dir, include_results=include_results)
+    package_artifacts(settings, work_dir, out_dir, include_results=include_results, custom_model=custom_model)
 
 
 def match_string(patterns, filename):
@@ -198,7 +198,7 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
     return package_run_dir, tarfile_size
 
 
-def package_artifacts(settings, work_dir, out_dir, include_results=False):
+def package_artifacts(settings, work_dir, out_dir, include_results=False, custom_model=False):
     print(f'packaging artifacts to {out_dir} please wait...')
     run_dirs = glob.glob(f'{work_dir}/*')
     run_dirs = sorted(run_dirs)
@@ -224,16 +224,18 @@ def package_artifacts(settings, work_dir, out_dir, include_results=False):
 
                 run_dir = pipeline_param['session']['run_dir']
                 run_dir_basename = os.path.basename(run_dir)
-                artifact_id = '_'.join(run_dir_basename.split('_')[:2])
-                runtime_name = run_dir_basename.split('_')[1]
-                model_name = utils.get_artifact_name(artifact_id) or run_dir_basename
+                run_dir_splits = run_dir_basename.split('_')
+                artifact_id = '_'.join(run_dir_splits[:2]) if not custom_model else None
+                runtime_name = pipeline_param['session']['session_name']
+                model_name = utils.get_artifact_name(artifact_id) if not custom_model else None
+                model_name = model_name or run_dir_basename
 
                 # artifacts generated using scripts/benchmark_resolution.py will not produce good accuracy
                 # that is only for performance test
-                suffix_highres = artifact_id.split('_')[0]
+                suffix_highres = artifact_id.split('_')[0] if not custom_model else ''
                 is_highres = suffix_highres.endswith('1') or suffix_highres.endswith('2')
-                is_shortlisted = utils.is_shortlisted_model(artifact_id) and (not is_highres)
-                is_recommended = utils.is_recommended_model(artifact_id)
+                is_shortlisted = utils.is_shortlisted_model(artifact_id) and (not is_highres) if not custom_model else True
+                is_recommended = utils.is_recommended_model(artifact_id) if not custom_model else True
 
                 artifacts_dict = {'task_type': task_type, 'session_name': runtime_name,
                                   'run_dir': package_run_dir, 'model_name': model_name,

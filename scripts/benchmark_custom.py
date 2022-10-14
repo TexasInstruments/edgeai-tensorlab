@@ -288,8 +288,14 @@ if __name__ == '__main__':
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir = {work_dir}')
 
+    packaged_dir = os.path.join(f'{settings.modelartifacts_path}_package', f'{settings.tensor_bits}bits')
+    print(f'packaged_dir = {packaged_dir}')
+
     # now run the actual pipeline
     pipeline_configs = create_configs(settings, work_dir)
 
     # run the accuracy pipeline
     tools.run_accuracy(settings, work_dir, pipeline_configs)
+
+    # package the artifacts
+    tools.run_package(settings, work_dir, packaged_dir, custom_model=True)
