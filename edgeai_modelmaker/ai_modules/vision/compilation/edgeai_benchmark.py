@@ -54,8 +54,8 @@ class ModelCompilation():
         # prepare for model compilation
         self._prepare()
         # update params that are specific to this backend and model
-        model_compiled_path = self._get_log_dir()
-        model_packaged_path = self._get_compiled_package_path()
+        model_compiled_path = self._get_compiled_artifact_dir()
+        model_packaged_path = self._get_packaged_artifact_path()
 
         if self.params.common.task_type == constants.TASK_TYPE_CLASSIFICATION:
             log_summary_regex = {
@@ -152,12 +152,10 @@ class ModelCompilation():
         pipeline_config['session'].set_param('work_dir', self.work_dir)
         pipeline_config['session'].set_param('target_device', self.settings.target_device)
         pipeline_config['session'].set_param('model_path', self.params.training.model_export_path)
-        # reset - will change based on the model_path given here
-        session_name = pipeline_config['session'].get_param('session_name')
-        target_device_suffix = self.params.common.target_device.lower()
-        run_dir_basename = '_'.join([self.params.training.model_name, self.params.common.run_name,
-                                    session_name, target_device_suffix])
-        run_dir = os.path.join(self.work_dir, run_dir_basename)
+
+        # use a short path for the compiled artifacts dir
+        final_artifact_name = self._get_final_artifact_name(pipeline_config)
+        run_dir = os.path.join(self.work_dir, final_artifact_name)
         pipeline_config['session'].set_param('run_dir', run_dir)
 
         runtime_options = pipeline_config['session'].get_param('runtime_options')
@@ -201,7 +199,7 @@ class ModelCompilation():
         # run the accuracy pipeline
         edgeai_benchmark.tools.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
         # package artifacts
-        edgeai_benchmark.tools.package_artifacts(self.settings, self.work_dir, out_dir=self.package_dir)
+        edgeai_benchmark.tools.package_artifacts(self.settings, self.work_dir, out_dir=self.package_dir, custom_model=True)
         return self.params
 
     def _get_settings(self, model_selection=None):
@@ -223,19 +221,31 @@ class ModelCompilation():
         )
         return settings
 
-    def _get_log_dir(self,):
+    def _get_final_artifact_name(self, pipeline_config):
+        session_name = pipeline_config['session'].get_param('session_name')
+        target_device_suffix = self.params.common.target_device.lower()
+        final_artifact_name = '_'.join([self.params.training.model_name,
+             self.params.common.run_name, session_name, target_device_suffix])
+        return final_artifact_name
+
+    def _get_compiled_artifact_dir(self,):
         pipeline_config = list(self.pipeline_configs.values())[0]
         run_dir = pipeline_config['session'].get_run_dir()
         return run_dir
 
-    def _get_compiled_package_path(self):
+    def _get_packaged_artifact_path(self):
         work_dir, package_dir = self._get_base_dirs()
-        run_dir = self._get_log_dir()
+        run_dir = self._get_compiled_artifact_dir()
         compiled_package_file = run_dir.replace(work_dir, package_dir) + '.tar.gz'
         return compiled_package_file
 
+    # def _replace_artifact_name(self, artifact_name):
+    #     artifact_basename = os.path.splitext(os.path.basename(artifact_name))[0]
+    #     final_artifact_name = self._get_final_artifact_name()
+    #     artifact_name.replace(artifact_basename, final_artifact_name)
+
     def _has_logs(self):
-        log_dir = self._get_log_dir()
+        log_dir = self._get_compiled_artifact_dir()
         if (log_dir is None) or (not os.path.exists(log_dir)):
             return False
         #
@@ -246,8 +256,8 @@ class ModelCompilation():
         return True
 
     def _get_base_dirs(self):
-        work_dir = os.path.join(self.settings.modelartifacts_path, 'work', f'{self.settings.tensor_bits}bits')
-        package_dir = os.path.join(self.settings.modelartifacts_path, 'pkg', f'{self.settings.tensor_bits}bits')
+        work_dir = os.path.join(self.settings.modelartifacts_path, 'work')
+        package_dir = os.path.join(self.settings.modelartifacts_path, 'pkg')
         return work_dir, package_dir
 
     def _replace_confidence_threshold(self, filename):
