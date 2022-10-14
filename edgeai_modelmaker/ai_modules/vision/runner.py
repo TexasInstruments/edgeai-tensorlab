@@ -62,7 +62,7 @@ class ModelRunner():
         self.params.common.project_path = os.path.join(self.params.common.projects_path, self.params.dataset.dataset_name)
 
         project_run_path_base = os.path.join(self.params.common.project_path, 'run')
-        self.params.common.run_name = self.resolve_run_name(self.params.common.run_name)
+        self.params.common.run_name = self.resolve_run_name(self.params.common.run_name, self.params.training.model_name)
         self.params.common.project_run_path = os.path.join(project_run_path_base, self.params.common.run_name, self.params.training.model_name)
 
         self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
@@ -79,13 +79,16 @@ class ModelRunner():
             print(f'Model:{self.params.training.model_name} TargetDevice:{self.params.common.target_device} FPS(Estimate):{performance_fps}')
         #
 
-    def resolve_run_name(self, run_name):
+    def resolve_run_name(self, run_name, model_name):
         if not run_name:
             return ''
         #
         # modify or set any parameters here as required.
         if '{date-time}' in run_name:
             run_name = run_name.replace('{date-time}', datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+        #
+        if '{model_name}' in run_name:
+            run_name = run_name.replace('{model_name}', model_name)
         #
         return run_name
 

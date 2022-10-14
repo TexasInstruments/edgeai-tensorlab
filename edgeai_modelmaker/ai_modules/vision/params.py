@@ -47,7 +47,7 @@ def init_params(*args, **kwargs):
             # run_name can be any string
             # if {date-time} is given in run_name it will be considered special.
             # will be replaced with datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            run_name='{date-time}',
+            run_name='{date-time}/{model_name}',
         ),
         dataset=dict(
             enable=True,
