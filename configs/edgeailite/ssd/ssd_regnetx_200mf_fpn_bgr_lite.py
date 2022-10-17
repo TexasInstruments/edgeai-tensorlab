@@ -56,7 +56,7 @@ else:
 
 ######################################################
 backbone_type = 'RegNet'
-backbone_arch = 'regnetx_800mf'                  # 'regnetx_200mf' #'regnetx_800mf' #'regnetx_1.6gf' #'regnetx_3.2gf'
+backbone_arch = 'regnetx_200mf'                  # 'regnetx_200mf' #'regnetx_800mf' #'regnetx_1.6gf' #'regnetx_3.2gf'
 to_rgb = False                                   # pycls regnet backbones are trained with bgr
 
 decoder_fpn_type = 'FPN'
