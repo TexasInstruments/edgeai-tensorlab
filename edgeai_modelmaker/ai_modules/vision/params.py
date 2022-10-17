@@ -108,6 +108,7 @@ def init_params(*args, **kwargs):
             summary_file_path=None,
             output_tensors_path=None,
             model_packaged_path=None,
+            model_visualization_path=None,
             # accuracy_level=1,
             tensor_bits=8,
             calibration_frames=10,

@@ -85,7 +85,8 @@ class ModelCompilation():
         #
 
         model_compiled_path = self._get_compiled_artifact_dir()
-        model_packaged_path = self._get_packaged_artifact_path()
+        packaged_artifact_path = self._get_packaged_artifact_path() # actual, internal, short path
+        model_packaged_path = self._replace_artifact_name(packaged_artifact_path) # a more descriptive symlink
 
         self.params.update(
             compilation=utils.ConfigDict(
@@ -94,7 +95,8 @@ class ModelCompilation():
                 log_summary_regex=log_summary_regex,
                 summary_file_path=os.path.join(model_compiled_path, 'summary.yaml'),
                 output_tensors_path=os.path.join(model_compiled_path, 'outputs'),
-                model_packaged_path=self._replace_artifact_name(model_packaged_path), # this is for info
+                model_packaged_path=model_packaged_path, # final compiled package
+                model_visualization_path=os.path.join(model_compiled_path, 'artifacts', 'tempDir', 'runtimes_visualization.svg'),
             )
         )
 
@@ -200,8 +202,10 @@ class ModelCompilation():
         # package artifacts
         edgeai_benchmark.tools.package_artifacts(self.settings, self.work_dir, out_dir=self.package_dir, custom_model=True)
         # make a symlink to the packaged artifacts
+        # internally we use a short path as tidl has file path length restrictions
+        # for use outside, create symlink to a more descriptive file
         packaged_artifact_path = self._get_packaged_artifact_path()
-        utils.make_symlink(packaged_artifact_path, self._replace_artifact_name(packaged_artifact_path))
+        utils.make_symlink(packaged_artifact_path, self.params.compilation.model_packaged_path)
         return self.params
 
     def _get_settings(self, model_selection=None):
