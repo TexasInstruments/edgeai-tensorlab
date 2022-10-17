@@ -45,9 +45,9 @@ def init_params(*args, **kwargs):
             target_machine='evm',
             target_device=None,
             # run_name can be any string, but there are some special cases:
-            # {date-time} in run_name will be replaced with datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            # {model_name} in run_name will be replaced with the name of the model
-            run_name='{date-time}/{model_name}',
+            # {date-time} will be replaced with datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            # {model_name} will be replaced with the name of the model
+            run_name='{model_name}/{date-time}',
         ),
         dataset=dict(
             enable=True,
