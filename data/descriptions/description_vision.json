@@ -21,7 +21,7 @@
         "task_type":"classification",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -123,7 +123,7 @@
         "task_type":"classification",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -225,7 +225,7 @@
         "task_type":"classification",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -327,7 +327,7 @@
         "task_type":"classification",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -424,7 +424,7 @@
         "task_type":"classification",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -521,7 +521,7 @@
         "task_type":"classification",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -618,7 +618,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -729,7 +729,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -840,7 +840,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -951,7 +951,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -1057,7 +1057,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -1163,7 +1163,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -1263,7 +1263,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -1363,7 +1363,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -1463,7 +1463,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -1563,7 +1563,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -1663,7 +1663,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,
@@ -1763,7 +1763,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{date-time}/{model_name}"
+        "run_name":"{model_name}/{date-time}"
       },
       "dataset":{
         "enable":true,

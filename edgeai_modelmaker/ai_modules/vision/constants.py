@@ -148,40 +148,40 @@ TASK_DESCRIPTIONS = {
     }
 }
 
-PRESET_DESCRIPTIONS = dict(
-    AM62 = dict(
-        best_accuracy_preset=dict(
+PRESET_DESCRIPTIONS = {
+    TARGET_DEVICE_AM62: {
+        'best_accuracy_preset': dict(
             compilation=dict(calibration_frames=1, calibration_iterations=1, detection_thr=0.05, tensor_bits=32)
         ),
-        high_accuracy_preset=dict(
+        'high_accuracy_preset': dict(
             compilation=dict(calibration_frames=1, calibration_iterations=1, detection_thr=0.3, tensor_bits=32)
         ),
-        default_preset=dict(
+        'default_preset': dict(
             compilation=dict(calibration_frames=1, calibration_iterations=1, detection_thr=0.3, tensor_bits=32)
         ),
-        high_speed_preset=dict(
+        'high_speed_preset': dict(
             compilation=dict(calibration_frames=1, calibration_iterations=1, detection_thr=0.3, tensor_bits=32)
         ),
-        best_speed_preset=dict(
+        'best_speed_preset': dict(
             compilation=dict(calibration_frames=1, calibration_iterations=1, detection_thr=0.3, tensor_bits=32)
         ),
-    ),
-    TDA4VM = dict(
-        best_accuracy_preset=dict(
+    },
+    TARGET_DEVICE_TDA4VM: {
+        'best_accuracy_preset': dict(
             compilation=dict(calibration_frames=25, calibration_iterations=25, detection_thr=0.05, tensor_bits=8)
         ),
-        high_accuracy_preset=dict(
+        'high_accuracy_preset': dict(
             compilation=dict(calibration_frames=25, calibration_iterations=25, detection_thr=0.3, tensor_bits=8)
         ),
-        default_preset=None,  # not specified here - use the models values
-        high_speed_preset=dict(
+        'default_preset': None,  # not specified here - use the models values
+        'high_speed_preset': dict(
             compilation=dict(calibration_frames=5, calibration_iterations=5, detection_thr=0.3, tensor_bits=8)
         ),
-        best_speed_preset=dict(
+        'best_speed_preset': dict(
             compilation=dict(calibration_frames=5, calibration_iterations=1, detection_thr=0.3, tensor_bits=8)
         ),
-    ),
-)
+    },
+}
 
 SAMPLE_DATASET_DESCRIPTIONS = {
     'animal_classification': {
