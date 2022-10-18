@@ -108,6 +108,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "metric":{
           "label_offset_pred":1
         }
@@ -210,6 +211,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "metric":{
           "label_offset_pred":1
         }
@@ -312,6 +314,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "metric":{
           "label_offset_pred":1
         }
@@ -409,6 +412,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "metric":{
           "label_offset_pred":1
         }
@@ -506,6 +510,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "metric":{
           "label_offset_pred":1
         }
@@ -603,6 +608,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "metric":{
           "label_offset_pred":1
         }
@@ -711,6 +717,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":null
         },
@@ -822,6 +829,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":null
         },
@@ -933,6 +941,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":null
         },
@@ -1039,6 +1048,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":null
         },
@@ -1145,6 +1155,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":null
         },
@@ -1245,6 +1256,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179"
         },
@@ -1345,6 +1357,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179"
         },
@@ -1445,6 +1458,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179"
         },
@@ -1545,6 +1559,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
         },
@@ -1645,6 +1660,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"370, 426, 482, 538"
         },
@@ -1745,6 +1761,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"228, 498, 554, 610, 666"
         },
@@ -1845,6 +1862,7 @@
         "num_frames":null,
         "detection_thr":0.3,
         "save_output":true,
+        "tidl_offload":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"288, 626, 682, 738, 794"
         },
@@ -1855,48 +1873,6 @@
     }
   },
   "preset_descriptions":{
-    "AM62":{
-      "best_accuracy_preset":{
-        "compilation":{
-          "calibration_frames":1,
-          "calibration_iterations":1,
-          "detection_thr":0.05,
-          "tensor_bits":32
-        }
-      },
-      "high_accuracy_preset":{
-        "compilation":{
-          "calibration_frames":1,
-          "calibration_iterations":1,
-          "detection_thr":0.3,
-          "tensor_bits":32
-        }
-      },
-      "default_preset":{
-        "compilation":{
-          "calibration_frames":1,
-          "calibration_iterations":1,
-          "detection_thr":0.3,
-          "tensor_bits":32
-        }
-      },
-      "high_speed_preset":{
-        "compilation":{
-          "calibration_frames":1,
-          "calibration_iterations":1,
-          "detection_thr":0.3,
-          "tensor_bits":32
-        }
-      },
-      "best_speed_preset":{
-        "compilation":{
-          "calibration_frames":1,
-          "calibration_iterations":1,
-          "detection_thr":0.3,
-          "tensor_bits":32
-        }
-      }
-    },
     "TDA4VM":{
       "best_accuracy_preset":{
         "compilation":{
@@ -1931,28 +1907,75 @@
           "tensor_bits":8
         }
       }
+    },
+    "AM62":{
+      "best_accuracy_preset":{
+        "compilation":{
+          "calibration_frames":1,
+          "calibration_iterations":1,
+          "detection_thr":0.05,
+          "tensor_bits":32,
+          "tidl_offload":false
+        }
+      },
+      "high_accuracy_preset":{
+        "compilation":{
+          "calibration_frames":1,
+          "calibration_iterations":1,
+          "detection_thr":0.3,
+          "tensor_bits":32,
+          "tidl_offload":false
+        }
+      },
+      "default_preset":{
+        "compilation":{
+          "calibration_frames":1,
+          "calibration_iterations":1,
+          "detection_thr":0.3,
+          "tensor_bits":32,
+          "tidl_offload":false
+        }
+      },
+      "high_speed_preset":{
+        "compilation":{
+          "calibration_frames":1,
+          "calibration_iterations":1,
+          "detection_thr":0.3,
+          "tensor_bits":32,
+          "tidl_offload":false
+        }
+      },
+      "best_speed_preset":{
+        "compilation":{
+          "calibration_frames":1,
+          "calibration_iterations":1,
+          "detection_thr":0.3,
+          "tensor_bits":32,
+          "tidl_offload":false
+        }
+      }
     }
   },
   "target_device_descriptions":{
-    "AM62":{
-      "device_name":"AM62",
-      "device_type":"MPU",
-      "device_selection_factor":0,
-      "device_details":"\nThe low-cost AM62x Sitara\u2122 MPU family of application processors are built for Linux\u00ae application development.\nWith scalable Arm\u00ae Cortex\u00ae-A53 performance and embedded features, such as: dual-display support and 3D\ngraphics acceleration, along with an extensive set of peripherals that make the AM62x device well-suited for\na broad range of industrial and automotive applications while offering intelligent features and optimized power architecture as well.\nProcessor Cores:\n* Up to Quad 64-bit Arm\u00ae Cortex\u00ae-A53 microprocessor subsystem at up to 1.4 GHz\n* Single-core Arm\u00ae Cortex\u00ae-M4F MCU at up to 400 MHz\n* Dedicated Device and Power Manager\nMultimedia:\n* Display subsystem\n* 3D Graphics Processing Unit\n* One Camera Serial interface (CSI-Rx) - 4 Lane\nwith DPHY\nFor more information, see the following links:\n- product page: https://www.ti.com/product/AM623\n- product page: https://www.ti.com/product/AM625\n- starterkit: https://www.ti.com/tool/SK-AM62\n- top level landing page: https://ti.com/edgeai\n- software development page - introduction: https://dev.ti.com/edgeai/\n- software development page - model development: https://github.com/TexasInstruments/edgeai\n- software development page - sdk: https://www.ti.com/tool/PROCESSOR-SDK-AM62X\n"
-    },
     "TDA4VM":{
       "device_name":"TDA4VM",
       "device_type":"MPU",
       "device_selection_factor":1,
       "device_details":"\nThe TDA4VM processor family is based on the evolutionary Jacinto\u2122 7 architecture, targeted at ADAS, \nAutonomous Vehicle (AV) and industrial applications applications. \nThe unique combination high-performance compute, deeplearning engine, \ndedicated accelerators for signal and image processing in an functional safety compliant\ntargeted architecture make the TDA4VM devices a great fit for several industrial applications, such as: \nRobotics, Machine Vision, Radar, and so on. \nKey cores include next generation DSP with scalar and vector cores,\ndedicated deep learning and traditional algorithm accelerators, latest Arm and GPU processors for general\ncompute, an integrated next generation imaging subsystem (ISP), video codec, Ethernet hub and isolated MCU\nisland. All protected by automotive grade safety and security hardware accelerators.\nProcessor Cores:\n* C7x floating point, vector DSP, up to 1.0 GHz, 80 GFLOPS, 256 GOPS\n* Deep-learning matrix multiply accelerator (MMA), up to 8 TOPS (8b) at 1.0 GHz\n* Vision Processing Accelerators (VPAC) with Image Signal Processor (ISP) and multiple vision assist accelerators\n* Depth and Motion Processing Accelerators (DMPAC)\n* Dual 64-bit Arm\u00ae Cortex\u00ae-A72 microprocessor subsystem at up to 2.0 GHz\n* Six Arm\u00ae Cortex\u00ae-R5F MCUs at up to 1.0 GHz compute partition\n* Two C66x floating point DSP, up to 1.35 GHz, 40 GFLOPS, 160 GOPS\n* 3D GPU PowerVR\u00ae Rogue 8XE GE8430, up to 750 MHz, 96 GFLOPS, 6 Gpix/sec\n* Custom-designed interconnect fabric supporting near max processing entitlement    \nFor more information, see the following links:\n- product page: https://www.ti.com/product/TDA4VM\n- starterkit: https://www.ti.com/tool/SK-TDA4VM\n- top level landing page: https://ti.com/edgeai\n- software development page - introduction: https://dev.ti.com/edgeai/\n- software development page - model development: https://github.com/TexasInstruments/edgeai\n- software development page - sdk: https://www.ti.com/tool/PROCESSOR-SDK-J721E\n"
+    },
+    "AM62":{
+      "device_name":"AM62",
+      "device_type":"MPU",
+      "device_selection_factor":0,
+      "device_details":"\nThe low-cost AM62x Sitara\u2122 MPU family of application processors are built for Linux\u00ae application development.\nWith scalable Arm\u00ae Cortex\u00ae-A53 performance and embedded features, such as: dual-display support and 3D\ngraphics acceleration, along with an extensive set of peripherals that make the AM62x device well-suited for\na broad range of industrial and automotive applications while offering intelligent features and optimized power architecture as well.\nProcessor Cores:\n* Up to Quad 64-bit Arm\u00ae Cortex\u00ae-A53 microprocessor subsystem at up to 1.4 GHz\n* Single-core Arm\u00ae Cortex\u00ae-M4F MCU at up to 400 MHz\n* Dedicated Device and Power Manager\nMultimedia:\n* Display subsystem\n* 3D Graphics Processing Unit\n* One Camera Serial interface (CSI-Rx) - 4 Lane\nwith DPHY\nFor more information, see the following links:\n- product page: https://www.ti.com/product/AM623\n- product page: https://www.ti.com/product/AM625\n- starterkit: https://www.ti.com/tool/SK-AM62\n- top level landing page: https://ti.com/edgeai\n- software development page - introduction: https://dev.ti.com/edgeai/\n- software development page - model development: https://github.com/TexasInstruments/edgeai\n- software development page - sdk: https://www.ti.com/tool/PROCESSOR-SDK-AM62X\n"
     }
   },
   "task_descriptions":{
     "classification":{
       "target_module":"vision",
       "target_devices":[
-        "AM62",
-        "TDA4VM"
+        "TDA4VM",
+        "AM62"
       ],
       "stages":[
         "dataset",
@@ -1963,8 +1986,8 @@
     "detection":{
       "target_module":"vision",
       "target_devices":[
-        "AM62",
-        "TDA4VM"
+        "TDA4VM",
+        "AM62"
       ],
       "stages":[
         "dataset",

@@ -29,6 +29,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -120,6 +121,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -211,6 +213,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -302,6 +305,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -389,6 +393,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -476,6 +481,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -565,6 +571,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -662,6 +669,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -759,6 +767,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -852,6 +861,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -949,6 +959,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1042,6 +1053,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1131,6 +1143,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1220,6 +1233,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1310,6 +1324,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1400,6 +1415,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1490,6 +1506,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1580,6 +1597,7 @@ model_descriptions:
       save_output: true
       summary_file_path: null
       tensor_bits: 8
+      tidl_offload: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1645,30 +1663,35 @@ preset_descriptions:
         calibration_iterations: 1
         detection_thr: 0.05
         tensor_bits: 32
+        tidl_offload: false
     best_speed_preset:
       compilation:
         calibration_frames: 1
         calibration_iterations: 1
         detection_thr: 0.3
         tensor_bits: 32
+        tidl_offload: false
     default_preset:
       compilation:
         calibration_frames: 1
         calibration_iterations: 1
         detection_thr: 0.3
         tensor_bits: 32
+        tidl_offload: false
     high_accuracy_preset:
       compilation:
         calibration_frames: 1
         calibration_iterations: 1
         detection_thr: 0.3
         tensor_bits: 32
+        tidl_offload: false
     high_speed_preset:
       compilation:
         calibration_frames: 1
         calibration_iterations: 1
         detection_thr: 0.3
         tensor_bits: 32
+        tidl_offload: false
   TDA4VM:
     best_accuracy_preset:
       compilation:
@@ -1760,8 +1783,8 @@ task_descriptions:
     - training
     - compilation
     target_devices:
-    - AM62
     - TDA4VM
+    - AM62
     target_module: vision
   detection:
     stages:
@@ -1769,8 +1792,8 @@ task_descriptions:
     - training
     - compilation
     target_devices:
-    - AM62
     - TDA4VM
+    - AM62
     target_module: vision
 training_module_descriptions:
   edgeai_mmdetection:
