@@ -223,7 +223,8 @@ class ModelCompilation():
                         parallel_devices=None,
                         dataset_loading=False,
                         save_output=self.params.compilation.save_output,
-                        input_optimization=False
+                        input_optimization=False,
+                        tidl_offload=self.params.compilation.tidl_offload
         )
         return settings
 
