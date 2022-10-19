@@ -26,6 +26,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import warnings
+
 from .image_cls import *
 from .image_seg import *
 from .image_det import *
@@ -46,7 +48,7 @@ from .widerface_det import *
 try:
     from .kitti_lidar_det import KittiLidar3D
 except ImportError as e:
-    print(f'WARNING: kitti_lidar_det could not be imported {str(e)}')
+    warnings.warn(f'kitti_lidar_det could not be imported - {str(e)}')
     KittiLidar3D = None
 
 
