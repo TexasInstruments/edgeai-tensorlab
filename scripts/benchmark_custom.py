@@ -152,12 +152,6 @@ def create_configs(settings, work_dir):
     imageseg_calib_dataset, imageseg_val_dataset = get_imageseg_dataset_loaders(settings)
     imagedet_calib_dataset, imagedet_val_dataset = get_imagedet_dataset_loaders(settings)
 
-    # in these examples, the session types cfgs are hardcoded for simplicity
-    # however, in the configs in the root of this repository, they depend on session_type_dict
-    runtime_options_tvmdlr = settings.get_runtime_options(constants.SESSION_NAME_TVMDLR, is_qat=False)
-    runtime_options_tflitert = settings.get_runtime_options(constants.SESSION_NAME_TFLITERT, is_qat=False)
-    runtime_options_onnxrt = settings.get_runtime_options(constants.SESSION_NAME_ONNXRT, is_qat=False)
-
     preproc_transforms = preprocess.PreProcessTransforms(settings)
     postproc_transforms = postprocess.PostProcessTransforms(settings)
 
@@ -179,7 +173,7 @@ def create_configs(settings, work_dir):
             input_dataset=imagecls_val_dataset,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=sessions.ONNXRTSession(**onnx_session_cfg,
-                runtime_options=runtime_options_onnxrt,
+                runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv.onnx'),
             postprocess=postproc_transforms.get_transform_classification(),
             model_info=dict(metric_reference={'accuracy_top1%':71.88})
@@ -190,7 +184,7 @@ def create_configs(settings, work_dir):
             input_dataset=imagecls_val_dataset,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=sessions.TFLiteRTSession(**tflite_session_cfg,
-                runtime_options=runtime_options_tflitert,
+                runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_1.0_224.tflite'),
             postprocess=postproc_transforms.get_transform_classification(),
             metric=dict(label_offset_pred=-1),
@@ -202,7 +196,7 @@ def create_configs(settings, work_dir):
             input_dataset=imageseg_val_dataset,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
             session=sessions.ONNXRTSession(**jai_session_cfg,
-                runtime_options=runtime_options_onnxrt,
+                runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/deeplabv3lite_mobilenetv2_cocoseg21_512x512_20210405.onnx'),
             postprocess=postproc_transforms.get_transform_segmentation_onnx(),
             model_info=dict(metric_reference={'accuracy_mean_iou%':57.77})
@@ -213,7 +207,7 @@ def create_configs(settings, work_dir):
             input_dataset=imagedet_val_dataset,
             preprocess=preproc_transforms.get_transform_tflite((300,300), (300,300), backend='cv2'),
             session=sessions.TFLiteRTSession(**tflite_session_cfg,
-                runtime_options=runtime_options_tflitert,
+                runtime_options=settings.runtime_options_onnx_p2(det_options=True),
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_20180128.tflite'),
             postprocess=postproc_transforms.get_transform_detection_tflite(),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
@@ -225,10 +219,10 @@ def create_configs(settings, work_dir):
             input_dataset=imagedet_val_dataset,
             preprocess=preproc_transforms.get_transform_onnx((512, 512), (512, 512), backend='cv2', reverse_channels=True),
             session=sessions.ONNXRTSession(**onnx_bgr_session_cfg,
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
-                                                {'object_detection:meta_arch_type': 3,
-                                                 'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_model.prototxt'
-                                                 }),
+                runtime_options=settings.runtime_options_onnx_p2(
+                    det_options=True, ext_options={'object_detection:meta_arch_type': 3,
+                     'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_model.prototxt'
+                     }),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None,
                             normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
@@ -241,11 +235,11 @@ def create_configs(settings, work_dir):
             input_dataset=imagedet_val_dataset,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=sessions.ONNXRTSession(**common_session_cfg,
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
-                                               {'object_detection:meta_arch_type': 6,
-                                                'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_model.prototxt',
-                                                 'advanced_options:output_feature_16bit_names_list': ''
-                                                }),
+                runtime_options=settings.runtime_options_onnx_np2(
+                   det_options=True, ext_options={'object_detection:meta_arch_type': 6,
+                    'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_model.prototxt',
+                     'advanced_options:output_feature_16bit_names_list': ''
+                    }),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_model.onnx'),
            postprocess = postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None,
                             normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
@@ -258,11 +252,11 @@ def create_configs(settings, work_dir):
             input_dataset=imagedet_val_dataset,
             preprocess=preproc_transforms.get_transform_onnx(640, 640,  resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
             session=sessions.ONNXRTSession(**utils.dict_update(onnx_session_cfg, input_optimization=False, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(),
-                                    {'object_detection:meta_arch_type': 6,
-                                     'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5/yolov5s6_640_ti_lite_metaarch.prototxt',
-                                     'advanced_options:output_feature_16bit_names_list':''
-                                     }),
+                runtime_options=settings.runtime_options_onnx_np2(
+                    det_options=True, ext_options={'object_detection:meta_arch_type': 6,
+                     'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5/yolov5s6_640_ti_lite_metaarch.prototxt',
+                     'advanced_options:output_feature_16bit_names_list':''
+                     }),
                 model_path=f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5/yolov5s6_640_ti_lite_37p4_56p0.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
