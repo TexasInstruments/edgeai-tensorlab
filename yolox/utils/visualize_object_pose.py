@@ -102,7 +102,8 @@ def draw_6d_pose(img, data_list , camera_matrix, class_to_cuboid=None, conf = 0.
 
         cad_model_2d = project_3d_2d(class_to_model[label], rotation, translation, camera_matrix)
         cad_model_2d = cad_model_2d.astype(np.int32)
-        cad_model_2d[cad_model_2d >= 640] = 639
+        cad_model_2d[:, 0][cad_model_2d[:, 0] >= img.shape[1]] = img.shape[1]
+        cad_model_2d[:, 1][cad_model_2d[:, 1] >= img.shape[0]] = img.shape[0]
         cad_model_2d[cad_model_2d < 0] = 0
         img_mask[cad_model_2d[:, 1], cad_model_2d[:, 0]] = colour
         img_mask = cv2.circle(img_mask, (int(xy[0]), int(xy[1])), 3, (0, 0, 255), -1)

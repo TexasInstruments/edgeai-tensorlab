@@ -190,7 +190,10 @@ def main():
         args.output = 'detections'
 
     logger.info("loading checkpoint done.")
-    img = cv2.imread("./assets/dog.jpg")
+    if args.dataset == 'ycb':
+        img = cv2.imread("./assets/ti_mustard.png")
+    else:
+        img = cv2.imread("./assets/dog.jpg")
     img, ratio = preprocess(img, exp.test_size)
     img = img[None, ...]
     img = img.astype('float32')

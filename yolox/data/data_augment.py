@@ -174,9 +174,9 @@ def random_affine(
     object_pose=False,
     camera_matrix=None
 ):
-    M, scale, angle = get_affine_matrix(target_size, degrees, translate, scales, shear, object_pose, camera_matrix)
+    M, scale, angle = get_affine_matrix((target_size[1],target_size[0]), degrees, translate, scales, shear, object_pose, camera_matrix)
 
-    img = cv2.warpAffine(img, M, dsize=target_size, borderValue=(114, 114, 114))
+    img = cv2.warpAffine(img, M, dsize=(target_size[1],target_size[0]), borderValue=(114, 114, 114))
 
     # Transform label coordinates
     if len(targets) > 0:

@@ -22,6 +22,9 @@ class Exp(MyExp):
         self.num_classes = 15
 
         # ---------------- dataloader config ---------------- #
+        # set worker to 4 for shorter dataloader init time
+        self.data_num_workers = 1
+        self.input_size = (480, 640)  # (height, width)
         self.train_ann = "instances_train.json"
         self.val_ann = "instances_test.json"
 
@@ -42,7 +45,7 @@ class Exp(MyExp):
         self.max_epoch = 300
         self.eval_interval = 10
         # -----------------  testing config ------------------ #
-        self.test_size = (640, 640)
+        self.test_size = (480, 640)
         self.test_conf = 0.01
         self.nmsthre = 0.001
         self.data_set = "linemod_occlusion_pbr" # "linemod_occlusion"

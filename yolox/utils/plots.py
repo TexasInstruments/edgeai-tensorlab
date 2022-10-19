@@ -59,10 +59,10 @@ def plot_one_box(x, im, im_cuboid=None, im_mask=None, color=None, label=None, li
     if human_pose:
         plot_skeleton_kpts(im, kpts, steps, orig_shape=orig_shape)
     elif object_pose:
-        plot_object_pose(im, im_cuboid, im_mask, pose, cad_models, camera_matrix, color, label, block_x, block_y)
+        plot_object_pose(im, im_cuboid, im_mask, pose, cad_models, camera_matrix, color, label, block_x, block_y, orig_shape=orig_shape)
 
 
-def plot_object_pose(im, im_cuboid, im_mask, pose, cad_models, camera_matrix, color, label, block_x, block_y):
+def plot_object_pose(im, im_cuboid, im_mask, pose, cad_models, camera_matrix, color, label, block_x, block_y, orig_shape=None):
 
     img_2dod = copy.deepcopy(im)
     rotation = pose['rotation_vec']
@@ -73,7 +73,8 @@ def plot_object_pose(im, im_cuboid, im_mask, pose, cad_models, camera_matrix, co
     cad_model_2d = project_3d_2d(pts_3d=cad_models.class_to_model[int(label)],
                                  rotation_vec=rotation, translation_vec=translation, camera_matrix=camera_matrix)
     cad_model_2d = cad_model_2d.astype(np.int32)
-    cad_model_2d[cad_model_2d >= 640] = 639
+    cad_model_2d[:, 0][cad_model_2d[:,0] >= orig_shape[1]] = orig_shape[1] - 1
+    cad_model_2d[:, 1][cad_model_2d[:,1] >= orig_shape[0]] = orig_shape[0] - 1
     cad_model_2d[cad_model_2d < 0] = 0
     cad_model_2d[:, 0] += block_x
     cad_model_2d[:, 1] += block_y

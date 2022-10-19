@@ -21,8 +21,8 @@ logitech_camera_matrix_raw = np.array([[1430, 0.0, 620],
                                         [ 0.0, 0.0, 1.0]], dtype=np.float32)
 
 # camera_matrix for logitech c270 ->640x480
-logitech_camera_matrix_resize = np.array([[715, 0.0, 310],
-                                          [0.0, 715, 240],
+logitech_camera_matrix_resize = np.array([[1066.778, 0.0, 312.9869],
+                                          [0.0, 1066.778, 241.3109],
                                           [0.0, 0.0, 1.0]], dtype=np.float32)
 
 #vertices for YCB21 objects
@@ -292,6 +292,15 @@ def draw_obj_pose(origin_img, dets, class_names, class_to_cuboid, camera_matrix,
             r3 = np.cross(r1, r2, axis=0)
             rotation_mat = np.concatenate((r1, r2, r3), axis=1)
             translation_vec = det[12:15]
+            tx = translation_vec[0]
+            ty = translation_vec[1]
+            tz = translation_vec[2]
+            x = camera_matrix[0,2] + camera_matrix[0,0] *tx/tz
+            y = camera_matrix[1,2] + camera_matrix[1,1] *ty/tz
+            X = (x - logitech_camera_matrix_resize[0,2])*tz/logitech_camera_matrix_resize[0,0]
+            Y = (y - logitech_camera_matrix_resize[1,2])*tz/logitech_camera_matrix_resize[1,1]
+            translation_vec[0] = X
+            translation_vec[1] = Y
             cuboid_corners_2d = project_3d_2d(class_to_cuboid[int(cls)], rotation_mat, translation_vec, camera_matrix)
             draw_cuboid_2d(img=origin_img, cuboid_corners=cuboid_corners_2d, color=color)
 
