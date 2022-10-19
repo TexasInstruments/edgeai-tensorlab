@@ -336,9 +336,9 @@ class DetectionResizePad():
 
 
 class DetectionFilter():
-    def __init__(self, detection_thr, detection_max=None):
+    def __init__(self, detection_thr, detection_keep_top_k=None):
         self.detection_thr = detection_thr
-        self.detection_max = detection_max
+        self.detection_keep_top_k = detection_keep_top_k
 
     def __call__(self, bbox, info_dict):
         if self.detection_thr is not None:
@@ -346,10 +346,10 @@ class DetectionFilter():
             bbox_selected = (bbox_score >= self.detection_thr)
             bbox = bbox[bbox_selected,...]
         #
-        if self.detection_max is not None and bbox.shape[0] > self.detection_max:
+        if self.detection_keep_top_k is not None and bbox.shape[0] > self.detection_keep_top_k:
             bbox = sorted(bbox, key=lambda b:b[5])
             bbox = np.stack(bbox, axis=0)
-            bbox = bbox[range(self.detection_max),...]
+            bbox = bbox[range(self.detection_keep_top_k),...]
         #
         return bbox, info_dict
 

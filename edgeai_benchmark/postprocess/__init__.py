@@ -70,7 +70,7 @@ class PostProcessTransforms(utils.TransformsCompose):
                                                     normalized_detections=normalized_detections)]
         if self.settings.detection_thr is not None:
             postprocess_detection += [DetectionFilter(detection_thr=self.settings.detection_thr,
-                                                                  detection_max=self.settings.detection_max)]
+                                                                  detection_keep_top_k=self.settings.detection_keep_top_k)]
         #
         if keypoint:
             postprocess_detection += [BboxKeypointsConfReformat()]

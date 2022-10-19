@@ -68,10 +68,10 @@ class ConfigSettings(config_dict.ConfigDict):
             # for onnx od models, od post proc options are specified in the prototxt and it is modified with these options
             # use a large top_k, keep_top_k and low confidence_threshold for accuracy measurement
             rt_det_options_ext = {
-                'object_detection:confidence_threshold': self.settings.detection_thr,
-                'object_detection:nms_threshold': 0.45,
-                'object_detection:top_k': self.settings.detection_top_k,
-                #'object_detection:keep_top_k': settings.detection_max
+                'object_detection:confidence_threshold': self.detection_thr,
+                'object_detection:nms_threshold': self.detection_nms_threshold,
+                'object_detection:top_k': self.detection_top_k,
+                'object_detection:keep_top_k': self.detection_keep_top_k
             }
             runtime_options_new.update(rt_det_options_ext)
         elif isinstance(det_options, dict):
@@ -79,7 +79,7 @@ class ConfigSettings(config_dict.ConfigDict):
         #
         # this takes care of overrides in the code given as runtime_options keyword argument
         if ext_options is not None:
-            assert isinstance(runtime_options, dict), \
+            assert isinstance(ext_options, dict), \
                 f'runtime_options provided via kwargs must be dict, got {type(ext_options)}'
             runtime_options_new.update(ext_options)
         #
@@ -91,29 +91,41 @@ class ConfigSettings(config_dict.ConfigDict):
         #
         return runtime_options_new
 
-    def runtime_options_onnx_np2(self, **kwargs):
+    def runtime_options_onnx_np2(self, ext_options=None, **kwargs):
+        ext_options = utils.dict_update({'advanced_options:quantization_scale_type': 0}, ext_options) \
+            if ext_options is not None else ext_options
         return self.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
-                runtime_options={'advanced_options:quantization_scale_type': 0}, **kwargs)
+                ext_options=ext_options, **kwargs)
 
-    def runtime_options_tflite_np2(self, **kwargs):
+    def runtime_options_tflite_np2(self, ext_options=None, **kwargs):
+        ext_options = utils.dict_update({'advanced_options:quantization_scale_type': 0}, ext_options) \
+            if ext_options is not None else ext_options
         return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,
-                runtime_options={'advanced_options:quantization_scale_type': 0}, **kwargs)
+                ext_options=ext_options, **kwargs)
 
-    def runtime_options_mxnet_np2(self, **kwargs):
+    def runtime_options_mxnet_np2(self, ext_options=None, **kwargs):
+        ext_options = utils.dict_update({'advanced_options:quantization_scale_type': 0}, ext_options) \
+            if ext_options is not None else ext_options
         return self.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,
-                runtime_options={'advanced_options:quantization_scale_type': 0}, **kwargs)
+                ext_options=ext_options, **kwargs)
 
-    def runtime_options_onnx_p2(self, **kwargs):
+    def runtime_options_onnx_p2(self, ext_options=None, **kwargs):
+        ext_options = utils.dict_update({'advanced_options:quantization_scale_type': 1}, ext_options) \
+            if ext_options is not None else ext_options
         return self.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False,
-                runtime_options={'advanced_options:quantization_scale_type': 1}, **kwargs)
+                ext_options=ext_options, **kwargs)
 
-    def runtime_options_tflite_p2(self, **kwargs):
+    def runtime_options_tflite_p2(self, ext_options=None, **kwargs):
+        ext_options = utils.dict_update({'advanced_options:quantization_scale_type': 1}, ext_options) \
+            if ext_options is not None else ext_options
         return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False,
-                runtime_options={'advanced_options:quantization_scale_type': 1}, **kwargs)
+                ext_options=ext_options, **kwargs)
 
-    def runtime_options_mxnet_p2(self, **kwargs):
+    def runtime_options_mxnet_p2(self, ext_options=None, **kwargs):
+        ext_options = utils.dict_update({'advanced_options:quantization_scale_type': 1}, ext_options) \
+            if ext_options is not None else ext_options
         return self.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False,
-                runtime_options={'advanced_options:quantization_scale_type': 1}, **kwargs)
+                ext_options=ext_options, **kwargs)
 
     def runtime_options_onnx_qat(self, **kwargs):
         return self.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=True, **kwargs)
