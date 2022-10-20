@@ -25,8 +25,10 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+import copy
+import sys
 import cv2
+
 from . import utils, preprocess, postprocess, constants, sessions
 from . import config_dict
 
@@ -56,18 +58,29 @@ class ConfigSettings(config_dict.ConfigDict):
         session_name = self.get_session_name(model_type_or_session_name)
         return sessions.get_session_name_to_type_dict()[session_name]
 
-    def get_runtime_options(self, model_type_or_session_name=None, is_qat=False, det_options=None, ext_options=None):
+    def get_runtime_options(self, model_type_or_session_name=None, is_qat=False, det_options=None, ext_options=None,
+                            min_options=None, max_options=None, **kwargs):
+        '''
+        example usage for min_options and max_options to set the limit
+            settings.runtime_options_onnx_np2(max_options=dict(calibration_frames=25, calibration_iterations=25))
+             similarly min_options can be used to set lower limit
+             currently only calibration_frames and calibration_iterations are handled in this function.
+        '''
         # runtime_params are currently common, so session_name is currently optional
         session_name = self.get_session_name(model_type_or_session_name) if \
                 model_type_or_session_name is not None else None
         # this is the default runtime_options defined above
-        runtime_options_new = self._get_runtime_options_default(session_name, is_qat, det_options=det_options)
+        runtime_options_new = self._get_runtime_options_default(
+            session_name, is_qat, det_options=det_options,
+            min_options=None, max_options=None)
         # this takes care of overrides given as ext_options keyword argument
         if ext_options is not None:
             assert isinstance(ext_options, dict), \
                 f'runtime_options provided via kwargs must be dict, got {type(ext_options)}'
             runtime_options_new.update(ext_options)
         #
+        # update with kwargs
+        runtime_options_new.update(kwargs)
         # this takes care of overrides in the settings yaml file
         if self.runtime_options is not None:
             assert isinstance(self.runtime_options, dict), \
@@ -137,7 +150,8 @@ class ConfigSettings(config_dict.ConfigDict):
         # 0 (non-power of 2, default), 1 (power of 2, might be helpful sometimes, needed for qat models)
         return 1 if is_qat else 0
 
-    def _get_runtime_options_default(self, session_name=None, is_qat=False, det_options=None):
+    def _get_runtime_options_default(self, session_name=None, is_qat=False, det_options=None,
+                                     min_options=None, max_options=None):
         '''
         Args:
             session_name: onnxrt, tflitert or tvmdlr
@@ -146,6 +160,13 @@ class ConfigSettings(config_dict.ConfigDict):
 
         Returns: runtime_options
         '''
+        min_options = min_options or dict()
+        max_options = max_options or dict()
+        calibration_frames = min(max(self.calibration_frames, min_options.get('calibration_frames', -sys.maxsize)),
+                                 max_options.get('calibration_frames', sys.maxsize))
+        calibration_iterations = min(max(self._get_calibration_iterations(is_qat), min_options.get('calibration_iterations', -sys.maxsize)),
+                                 max_options.get('calibration_iterations', sys.maxsize))
+
         runtime_options = {
             ##################################
             # basic_options
@@ -162,9 +183,9 @@ class ConfigSettings(config_dict.ConfigDict):
             'advanced_options:high_resolution_optimization': 0,
             'advanced_options:pre_batchnorm_fold': 1,
             # quantization/calibration options
-            'advanced_options:calibration_frames': self.calibration_frames,
+            'advanced_options:calibration_frames': calibration_frames,
             # note that calibration_iterations has effect only if accuracy_level>0
-            'advanced_options:calibration_iterations': self._get_calibration_iterations(is_qat),
+            'advanced_options:calibration_iterations': calibration_iterations,
             # 0 (non-power of 2, default), 1 (power of 2, might be helpful sometimes, needed for qat models)
             'advanced_options:quantization_scale_type': self._get_quantization_scale_type(is_qat),
             # further quantization/calibration options - these take effect
