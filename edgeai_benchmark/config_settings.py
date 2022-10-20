@@ -138,6 +138,14 @@ class ConfigSettings(config_dict.ConfigDict):
         return 1 if is_qat else 0
 
     def _get_runtime_options_default(self, session_name=None, is_qat=False, det_options=None):
+        '''
+        Args:
+            session_name: onnxrt, tflitert or tvmdlr
+            is_qat: True for QAT models
+            det_options: True for detection models, False for other models. Can also be a dictionary.
+
+        Returns: runtime_options
+        '''
         runtime_options = {
             ##################################
             # basic_options
@@ -182,12 +190,26 @@ class ConfigSettings(config_dict.ConfigDict):
             # for tflite models, these options are directly handled inside tidl
             # for onnx od models, od post proc options are specified in the prototxt and it is modified with these options
             # use a large top_k, keep_top_k and low confidence_threshold for accuracy measurement
-            runtime_options.update({
-                'object_detection:confidence_threshold': self.detection_threshold,
-                'object_detection:nms_threshold': self.detection_nms_threshold,
-                'object_detection:top_k': self.detection_top_k,
-                'object_detection:keep_top_k': self.detection_keep_top_k
-            })
+            if self.detection_threshold is not None:
+                runtime_options.update({
+                    'object_detection:confidence_threshold': self.detection_threshold,
+                })
+            #
+            if self.detection_top_k is not None:
+                runtime_options.update({
+                    'object_detection:top_k': self.detection_top_k,
+                })
+            #
+            if self.detection_nms_threshold is not None:
+                runtime_options.update({
+                    'object_detection:nms_threshold': self.detection_nms_threshold,
+                })
+            #
+            if self.detection_keep_top_k is not None:
+                runtime_options.update({
+                    'object_detection:keep_top_k': self.detection_keep_top_k
+                })
+            #
         elif isinstance(det_options, dict):
             runtime_options_new.update(det_options)
         #

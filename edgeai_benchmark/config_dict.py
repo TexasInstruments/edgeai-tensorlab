@@ -144,9 +144,9 @@ class ConfigDict(dict):
         # # recommend 200 for best fps, 500 for accuracy measurement
         self.detection_top_k = 200
         # detection  - NMS threshold to be used for detection
-        self.detection_nms_threshold = 0.45
+        self.detection_nms_threshold = None
         # max number of final detections
-        self.detection_keep_top_k = 200
+        self.detection_keep_top_k = None
         # save detection, segmentation output
         self.save_output = False
         # wild card list to match against model_path, model_id or model_type - if null, all models wil be selected
