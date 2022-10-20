@@ -32,6 +32,7 @@ import copy
 import numbers
 
 import PIL
+import PIL.Image
 import PIL.ImageDraw
 import PIL.ImageFont
 import numpy as np
@@ -217,18 +218,27 @@ class ClassificationImageSave():
         output_name = self.dataset_categories_map[output_id] if output_id in self.dataset_categories_map else output_id
         output_txt = f'category: {output_name}'
         label_color = self.colors[output_id % len(self.colors)]
-
-        font_cv2 = get_font_cv2()
-        font_pil = get_font_pil()
+        img_data = self.put_text(img_data, output_txt, label_color)
         if isinstance(img_data, np.ndarray):
-            cv2.putText(img_data, output_txt, (10,10), font_cv2, fontScale=0.5, color=label_color, thickness=self.thickness_txt)
             cv2.imwrite(save_path, img_data[:,:,::-1])
         else:
-            img_rect = PIL.ImageDraw.Draw(img_data)
-            img_rect.text((10,10), output_txt, label_color, font_pil)
             img_data.save(save_path)
         #
         return output, info_dict
+
+    def put_text(self, img_data, output_txt, label_color):
+        is_ndarray = isinstance(img_data, np.ndarray)
+        img_data = np.array(img_data) if not is_ndarray else img_data
+        pt = (20,20)
+        font_cv2 = get_font_cv2()
+        font_scale = 0.5
+        # fill background
+        text_size = cv2.getTextSize(output_txt, font_cv2, fontScale=font_scale, thickness=self.thickness_txt)[0]
+        cv2.rectangle(img_data, (pt[0], pt[1]-text_size[1]), (pt[0]+text_size[0], pt[1]+text_size[1]//2), (255,255,255), -1)
+        # now write the actual text
+        cv2.putText(img_data, output_txt, pt, font_cv2, fontScale=font_scale, color=label_color, thickness=self.thickness_txt)
+        img_data = PIL.Image.fromarray(img_data) if not is_ndarray else img_data
+        return img_data
 
 
 ##############################################################################
@@ -436,39 +446,47 @@ class DetectionImageSave():
         os.makedirs(save_dir, exist_ok=True)
         save_path = os.path.join(save_dir, image_name)
         img_data = copy.deepcopy(img_data)
-
-        font_cv2 = get_font_cv2()
-        font_pil = get_font_pil()
+        is_ndarray = isinstance(img_data, np.ndarray)
+        img_data = np.array(img_data) if not is_ndarray else img_data
+        for bbox_one in bbox:
+            label = int(bbox_one[4])
+            label_color = self.colors[label % len(self.colors)]
+            pt1 = (int(bbox_one[0]),int(bbox_one[1]))
+            pt2 = (int(bbox_one[2]),int(bbox_one[3]))
+            label = apply_label_offset(label, self.label_offset_pred)
+            output_name = self.dataset_categories_map[label] if label in self.dataset_categories_map else label
+            output_txt = output_name
+            img_data = self.put_text(img_data, (pt1[0],pt1[1]-5), output_txt, label_color)
+            img_data = self.put_rectangle(img_data, pt1, pt2, label_color)
+        #
+        img_data = PIL.Image.fromarray(img_data) if not is_ndarray else img_data
         if isinstance(img_data, np.ndarray):
-            for bbox_one in bbox:
-                label = int(bbox_one[4])
-                label_color = self.colors[label % len(self.colors)]
-                pt1 = (int(bbox_one[0]),int(bbox_one[1]))
-                pt2 = (int(bbox_one[2]),int(bbox_one[3]))
-                cv2.rectangle(img_data, pt1, pt2, color=label_color, thickness=self.thickness)
-                label = apply_label_offset(label, self.label_offset_pred)
-                output_name = self.dataset_categories_map[label] if label in self.dataset_categories_map else label
-                output_txt = f'category: {output_name}'
-                cv2.putText(img_data, output_txt, (pt1[0],pt1[1]-10), font_cv2, fontScale=0.5, color=label_color, thickness=self.thickness_txt)
-            #
             cv2.imwrite(save_path, img_data[:,:,::-1])
         else:
-            img_rect = PIL.ImageDraw.Draw(img_data)
-            for bbox_one in bbox:
-                label = int(bbox_one[4])
-                label_color = self.colors[label % len(self.colors)]
-                rect = (int(bbox_one[0]),int(bbox_one[1]),int(bbox_one[2]),int(bbox_one[3]))
-                img_rect.rectangle(rect, outline=label_color, width=self.thickness)
-                pos_txt = (int(bbox_one[0]),int(bbox_one[1]-10))
-                label = apply_label_offset(label, self.label_offset_pred)
-                output_name = self.dataset_categories_map[label] if label in self.dataset_categories_map else label
-                output_txt = f'category: {output_name}'
-                img_rect.text(pos_txt, output_txt, label_color, font_pil)
-            #
             img_data.save(save_path)
         #
         return bbox, info_dict
 
+    def put_text(self, img_data, pt, output_txt, label_color):
+        is_ndarray = isinstance(img_data, np.ndarray)
+        img_data = np.array(img_data) if not is_ndarray else img_data
+        font_cv2 = get_font_cv2()
+        font_scale = 0.5
+        # fill background
+        text_size = cv2.getTextSize(output_txt, font_cv2, fontScale=font_scale, thickness=self.thickness_txt)[0]
+        cv2.rectangle(img_data, (pt[0], pt[1]-text_size[1]), (pt[0]+text_size[0], pt[1]+text_size[1]//2), (255,255,255), -1)
+        # now write the actual text
+        cv2.putText(img_data, output_txt, pt, font_cv2, fontScale=font_scale, color=label_color, thickness=self.thickness_txt)
+        img_data = PIL.Image.fromarray(img_data) if not is_ndarray else img_data
+        return img_data
+
+    def put_rectangle(self, img_data, pt1, pt2, label_color):
+        font_cv2 = get_font_cv2()
+        is_ndarray = isinstance(img_data, np.ndarray)
+        img_data = np.array(img_data) if not is_ndarray else img_data
+        cv2.rectangle(img_data, pt1, pt2, label_color, self.thickness)
+        img_data = PIL.Image.fromarray(img_data) if not is_ndarray else img_data
+        return img_data
 
 ##############################################################################
 class NPTensorToImage(object):
