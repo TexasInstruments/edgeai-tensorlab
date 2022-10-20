@@ -61,23 +61,8 @@ class ConfigSettings(config_dict.ConfigDict):
         session_name = self.get_session_name(model_type_or_session_name) if \
                 model_type_or_session_name is not None else None
         # this is the default runtime_options defined above
-        runtime_options_new = self._get_runtime_options_default(session_name, is_qat)
-        if det_options is True:
-            # some of the od post proc options can be specified in runtime_options
-            # for tflite models, these options are directly handled inside tidl
-            # for onnx od models, od post proc options are specified in the prototxt and it is modified with these options
-            # use a large top_k, keep_top_k and low confidence_threshold for accuracy measurement
-            rt_det_options_ext = {
-                'object_detection:confidence_threshold': self.detection_thr,
-                'object_detection:nms_threshold': self.detection_nms_threshold,
-                'object_detection:top_k': self.detection_top_k,
-                'object_detection:keep_top_k': self.detection_keep_top_k
-            }
-            runtime_options_new.update(rt_det_options_ext)
-        elif isinstance(det_options, dict):
-            runtime_options_new.update(det_options)
-        #
-        # this takes care of overrides in the code given as runtime_options keyword argument
+        runtime_options_new = self._get_runtime_options_default(session_name, is_qat, det_options=det_options)
+        # this takes care of overrides given as ext_options keyword argument
         if ext_options is not None:
             assert isinstance(ext_options, dict), \
                 f'runtime_options provided via kwargs must be dict, got {type(ext_options)}'
@@ -152,7 +137,7 @@ class ConfigSettings(config_dict.ConfigDict):
         # 0 (non-power of 2, default), 1 (power of 2, might be helpful sometimes, needed for qat models)
         return 1 if is_qat else 0
 
-    def _get_runtime_options_default(self, session_name=None, is_qat=False):
+    def _get_runtime_options_default(self, session_name=None, is_qat=False, det_options=None):
         runtime_options = {
             ##################################
             # basic_options
@@ -191,5 +176,20 @@ class ConfigSettings(config_dict.ConfigDict):
             # optimize data conversion options by moving them from arm to c7x
             'advanced_options:add_data_convert_ops': 3,
         }
+        # if detection options are needed, set them.
+        if det_options is True:
+            # some of the od post proc options can be specified in runtime_options
+            # for tflite models, these options are directly handled inside tidl
+            # for onnx od models, od post proc options are specified in the prototxt and it is modified with these options
+            # use a large top_k, keep_top_k and low confidence_threshold for accuracy measurement
+            runtime_options.update({
+                'object_detection:confidence_threshold': self.detection_thr,
+                'object_detection:nms_threshold': self.detection_nms_threshold,
+                'object_detection:top_k': self.detection_top_k,
+                'object_detection:keep_top_k': self.detection_keep_top_k
+            })
+        elif isinstance(det_options, dict):
+            runtime_options_new.update(det_options)
+        #
         return runtime_options
 
