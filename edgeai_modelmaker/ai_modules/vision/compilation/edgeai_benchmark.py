@@ -190,13 +190,6 @@ class ModelCompilation():
         ''''
         The actual compilation function. Move this to a worker process, if this function is called from a GUI.
         '''
-        # modify the confidence threshold for detection, if required
-        pipeline_config = list(self.pipeline_configs.values())[0]
-        runtime_options = pipeline_config['session'].get_param('runtime_options')
-        if self.meta_layers_names_list in runtime_options:
-            self._replace_confidence_threshold(self.params.training.model_proto_path)
-            runtime_options[self.meta_layers_names_list] = self.params.training.model_proto_path
-        #
         # run the accuracy pipeline
         edgeai_benchmark.tools.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
         # package artifacts
@@ -219,7 +212,7 @@ class ModelCompilation():
                         calibration_iterations=self.params.compilation.calibration_iterations,
                         num_frames=self.params.compilation.num_frames,
                         runtime_options=None,
-                        detection_thr=self.params.compilation.detection_thr,
+                        detection_threshold=self.params.compilation.detection_threshold,
                         parallel_devices=None,
                         dataset_loading=False,
                         save_output=self.params.compilation.save_output,
@@ -267,38 +260,6 @@ class ModelCompilation():
         work_dir = os.path.join(self.settings.modelartifacts_path, 'work')
         package_dir = os.path.join(self.settings.modelartifacts_path, 'pkg')
         return work_dir, package_dir
-
-    def _replace_confidence_threshold(self, filename):
-        if not filename.endswith('.prototxt'):
-            return
-        #
-        space_string = ' '
-        with open(filename) as fp:
-            lines = fp.readlines()
-        #
-        for line_index, line in enumerate(lines):
-            line = line.rstrip()
-            match_str1 = 'confidence_threshold:'
-            replacement_key1 = line.lstrip(space_string).split(space_string)[0]
-            if match_str1 == replacement_key1: # exact match
-                replacement_str1 = f'{replacement_key1} {self.settings.detection_thr}'
-                leading_spaces = len(line) - len(line.lstrip(space_string))
-                line = space_string * leading_spaces + replacement_str1
-            #
-            if self.settings.detection_thr < 0.3:
-                match_str2 = 'top_k:'
-                replacement_key2 = line.lstrip(space_string).split(space_string)[0]
-                if match_str2 == replacement_key2: # exact match
-                    replacement_str2 = f'{replacement_key2} 500'
-                    leading_spaces = len(line) - len(line.lstrip(space_string))
-                    line = space_string * leading_spaces + replacement_str2
-                #
-            #
-            lines[line_index] = line
-        #
-        with open(filename, 'w') as fp:
-            fp.write('\n'.join(lines))
-        #
 
     def get_params(self):
         return self.params

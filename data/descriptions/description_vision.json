@@ -106,7 +106,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "metric":{
@@ -209,7 +209,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "metric":{
@@ -312,7 +312,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "metric":{
@@ -410,7 +410,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "metric":{
@@ -508,7 +508,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "metric":{
@@ -606,7 +606,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "metric":{
@@ -715,7 +715,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "runtime_options":{
@@ -827,7 +827,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "runtime_options":{
@@ -939,7 +939,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "runtime_options":{
@@ -1046,7 +1046,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "runtime_options":{
@@ -1153,7 +1153,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "runtime_options":{
@@ -1254,7 +1254,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "runtime_options":{
@@ -1355,7 +1355,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "runtime_options":{
@@ -1456,7 +1456,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "runtime_options":{
@@ -1557,7 +1557,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "runtime_options":{
@@ -1658,7 +1658,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "runtime_options":{
@@ -1759,7 +1759,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "runtime_options":{
@@ -1860,7 +1860,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
-        "detection_thr":0.3,
+        "detection_threshold":0.3,
         "save_output":true,
         "tidl_offload":true,
         "runtime_options":{
@@ -1878,7 +1878,7 @@
         "compilation":{
           "calibration_frames":25,
           "calibration_iterations":25,
-          "detection_thr":0.05,
+          "detection_threshold":0.05,
           "tensor_bits":8
         }
       },
@@ -1886,7 +1886,7 @@
         "compilation":{
           "calibration_frames":25,
           "calibration_iterations":25,
-          "detection_thr":0.3,
+          "detection_threshold":0.3,
           "tensor_bits":8
         }
       },
@@ -1895,7 +1895,7 @@
         "compilation":{
           "calibration_frames":5,
           "calibration_iterations":5,
-          "detection_thr":0.3,
+          "detection_threshold":0.3,
           "tensor_bits":8
         }
       },
@@ -1903,7 +1903,7 @@
         "compilation":{
           "calibration_frames":5,
           "calibration_iterations":1,
-          "detection_thr":0.3,
+          "detection_threshold":0.3,
           "tensor_bits":8
         }
       }
@@ -1913,7 +1913,7 @@
         "compilation":{
           "calibration_frames":1,
           "calibration_iterations":1,
-          "detection_thr":0.05,
+          "detection_threshold":0.05,
           "tensor_bits":32,
           "tidl_offload":false
         }
@@ -1922,7 +1922,7 @@
         "compilation":{
           "calibration_frames":1,
           "calibration_iterations":1,
-          "detection_thr":0.3,
+          "detection_threshold":0.3,
           "tensor_bits":32,
           "tidl_offload":false
         }
@@ -1931,7 +1931,7 @@
         "compilation":{
           "calibration_frames":1,
           "calibration_iterations":1,
-          "detection_thr":0.3,
+          "detection_threshold":0.3,
           "tensor_bits":32,
           "tidl_offload":false
         }
@@ -1940,7 +1940,7 @@
         "compilation":{
           "calibration_frames":1,
           "calibration_iterations":1,
-          "detection_thr":0.3,
+          "detection_threshold":0.3,
           "tensor_bits":32,
           "tidl_offload":false
         }
@@ -1949,7 +1949,7 @@
         "compilation":{
           "calibration_frames":1,
           "calibration_iterations":1,
-          "detection_thr":0.3,
+          "detection_threshold":0.3,
           "tensor_bits":32,
           "tidl_offload":false
         }
