@@ -90,7 +90,7 @@ preprocess:
 # Parameters used to process or format the output prediction of the model
 postprocess:
   # Threshold used to filter the detections based on the detection score.
-  detection_thr: 0.3
+  detection_threshold: 0.3
   
   # Parameters used to format the output detections
   formatter:

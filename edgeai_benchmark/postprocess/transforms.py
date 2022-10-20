@@ -336,14 +336,14 @@ class DetectionResizePad():
 
 
 class DetectionFilter():
-    def __init__(self, detection_thr, detection_keep_top_k=None):
-        self.detection_thr = detection_thr
+    def __init__(self, detection_threshold, detection_keep_top_k=None):
+        self.detection_threshold = detection_threshold
         self.detection_keep_top_k = detection_keep_top_k
 
     def __call__(self, bbox, info_dict):
-        if self.detection_thr is not None:
+        if self.detection_threshold is not None:
             bbox_score = bbox[:,5]
-            bbox_selected = (bbox_score >= self.detection_thr)
+            bbox_selected = (bbox_score >= self.detection_threshold)
             bbox = bbox[bbox_selected,...]
         #
         if self.detection_keep_top_k is not None and bbox.shape[0] > self.detection_keep_top_k:

@@ -457,7 +457,7 @@ class BaseRTSession(utils.ParamsBase):
         if not filename.endswith('.prototxt'):
             return
         #
-        detection_thr = self.kwargs['runtime_options'].get('object_detection:confidence_threshold', None)
+        detection_threshold = self.kwargs['runtime_options'].get('object_detection:confidence_threshold', None)
         detection_top_k = self.kwargs['runtime_options'].get('object_detection:top_k', None)
         detection_nms_threshold = self.kwargs['runtime_options'].get('object_detection:nms_threshold', None)
         detection_keep_top_k = self.kwargs['runtime_options'].get('object_detection:keep_top_k', None)
@@ -468,11 +468,11 @@ class BaseRTSession(utils.ParamsBase):
         #
         for line_index, line in enumerate(lines):
             line = line.rstrip()
-            if detection_thr is not None:
+            if detection_threshold is not None:
                 match_str1 = 'confidence_threshold:'
                 replacement_key1 = line.lstrip(space_string).split(space_string)[0]
                 if match_str1 == replacement_key1: # exact match
-                    replacement_str1 = f'{replacement_key1} {detection_thr}'
+                    replacement_str1 = f'{replacement_key1} {detection_threshold}'
                     leading_spaces = len(line) - len(line.lstrip(space_string))
                     line = space_string * leading_spaces + replacement_str1
                 #

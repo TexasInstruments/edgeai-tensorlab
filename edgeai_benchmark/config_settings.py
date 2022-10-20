@@ -183,7 +183,7 @@ class ConfigSettings(config_dict.ConfigDict):
             # for onnx od models, od post proc options are specified in the prototxt and it is modified with these options
             # use a large top_k, keep_top_k and low confidence_threshold for accuracy measurement
             runtime_options.update({
-                'object_detection:confidence_threshold': self.detection_thr,
+                'object_detection:confidence_threshold': self.detection_threshold,
                 'object_detection:nms_threshold': self.detection_nms_threshold,
                 'object_detection:top_k': self.detection_top_k,
                 'object_detection:keep_top_k': self.detection_keep_top_k

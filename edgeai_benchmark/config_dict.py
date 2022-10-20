@@ -138,7 +138,7 @@ class ConfigDict(dict):
         self.run_missing = True
         # detection threshold
         # recommend 0.3 for best fps, 0.05 for accuracy measurement
-        self.detection_thr = 0.3
+        self.detection_threshold = 0.3
         # detection  - top_k boxes that go into nms
         # (this is an intermediate set, not the final number of boxes that are kept)
         # # recommend 200 for best fps, 500 for accuracy measurement

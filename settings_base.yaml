@@ -95,7 +95,7 @@ input_optimization : null
 
 # detection threshold
 # recommend 0.3 for best fps, 0.05 for accuracy measurement
-detection_thr : 0.3
+detection_threshold : 0.3
 
 # detection  - top_k boxes that go into nms
 # (this is an intermediate set, not the final number of boxes that are kept)
