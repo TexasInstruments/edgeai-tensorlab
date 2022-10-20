@@ -241,10 +241,10 @@ class ModelTraining:
 
         log_summary_regex = {
             'js': [
-                {'type':'Epoch', 'name':'Epoch', 'description':'Epochs', 'unit':'Number', 'value':None,
+                {'type':'Epoch', 'name':'Epoch', 'description':'Epochs', 'unit':'Epoch', 'value':None,
                  'regex':[{'op':'search', 'pattern':r'Epoch:\s+\[(?<eid>\d+)\]\s+Total', 'group':1}],
                 },
-                {'type':'Training Loss', 'name':'Loss', 'description':'Training Loss', 'unit':'Value', 'value':None,
+                {'type':'Training Loss', 'name':'Loss', 'description':'Training Loss', 'unit':'Loss', 'value':None,
                  'regex':[{'op':'search', 'pattern':r'Epoch:\s\[\d+\]\sTotal\stime:[\s\S]*?loss\:\s+(?<loss>\d+\.\d+)', 'group':1}],
                  },
                 {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Validation Accuracy', 'unit':'Accuracy Top-1%', 'value':None,

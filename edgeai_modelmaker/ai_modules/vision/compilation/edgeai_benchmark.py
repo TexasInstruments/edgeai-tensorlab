@@ -55,7 +55,7 @@ class ModelCompilation():
         if self.params.common.task_type == constants.TASK_TYPE_CLASSIFICATION:
             log_summary_regex = {
                 'js': [
-                    {'type':'Progress', 'name':'Progress', 'description':'Progress of Compilation', 'unit':'Number', 'value':None,
+                    {'type':'Progress', 'name':'Progress', 'description':'Progress of Compilation', 'unit':'Frame', 'value':None,
                      'regex':[{'op':'search', 'pattern':r'infer\s+\:\s+.*?\s+(?<infer>\d+)', 'group':1}],
                     },
                     {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Accuracy of Compilation', 'unit':'Accuracy Top-1%', 'value':None,
@@ -69,10 +69,10 @@ class ModelCompilation():
         elif self.params.common.task_type == constants.TASK_TYPE_DETECTION:
             log_summary_regex = {
                 'js': [
-                    {'type':'Progress', 'name':'Progress', 'description':'Progress of Compilation', 'unit':'Number', 'value':None,
+                    {'type':'Progress', 'name':'Progress', 'description':'Progress of Compilation', 'unit':'Frame', 'value':None,
                      'regex':[{'op':'search', 'pattern':r'infer\s+\:\s+.*?\s+(?<infer>\d+)', 'group':1}],
                     },
-                    {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Accuracy of Compilation', 'unit':'mAP[0.5:.95]%', 'value':None,
+                    {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Accuracy of Compilation', 'unit':'mAP[.5:.95]%', 'value':None,
                      'regex':[{'op':'search', 'pattern':r'benchmark results.*?accuracy_ap[.5:.95]\%.*?\:\s+(?<accuracy>\d+\.\d+)', 'group':1, 'dtype':'float', 'case_sensitive':False}],
                      },
                     {'type':'Completed', 'name':'Completed', 'description':'Completion of Compilation', 'unit':None, 'value':None,
