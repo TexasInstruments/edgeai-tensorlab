@@ -68,9 +68,9 @@ class PostProcessTransforms(utils.TransformsCompose):
         #
         postprocess_detection += [DetectionResizePad(resize_with_pad=resize_with_pad, keypoint=keypoint,
                                                     normalized_detections=normalized_detections)]
-        if self.settings.detection_thr is not None:
-            postprocess_detection += [DetectionFilter(detection_thr=self.settings.detection_thr,
-                                                                  detection_max=self.settings.detection_max)]
+        if self.settings.detection_threshold is not None:
+            postprocess_detection += [DetectionFilter(detection_threshold=self.settings.detection_threshold,
+                                                                  detection_keep_top_k=self.settings.detection_keep_top_k)]
         #
         if keypoint:
             postprocess_detection += [BboxKeypointsConfReformat()]
@@ -82,7 +82,7 @@ class PostProcessTransforms(utils.TransformsCompose):
                 postprocess_detection += [HumanPoseImageSave()]
         #
         transforms = PostProcessTransforms(None, postprocess_detection,
-                                           detection_thr=self.settings.detection_thr,
+                                           detection_threshold=self.settings.detection_threshold,
                                            save_output=self.settings.save_output, formatter=formatter, resize_with_pad=resize_with_pad,
                                            normalized_detections=normalized_detections, shuffle_indices=shuffle_indices,
                                            squeeze_axis=squeeze_axis, ignore_index=ignore_index)

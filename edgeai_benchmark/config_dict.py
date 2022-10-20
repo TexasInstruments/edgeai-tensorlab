@@ -137,11 +137,16 @@ class ConfigDict(dict):
         # run only models for which the results are missing. if this is False, all configs will be run
         self.run_missing = True
         # detection threshold
-        self.detection_thr = 0.3
-        # detection  - top_k boxes that go into nms (this is not the final boxes that are kept - that is keep_top_k, detection_max)
+        # recommend 0.3 for best fps, 0.05 for accuracy measurement
+        self.detection_threshold = 0.3
+        # detection  - top_k boxes that go into nms
+        # (this is an intermediate set, not the final number of boxes that are kept)
+        # # recommend 200 for best fps, 500 for accuracy measurement
         self.detection_top_k = 200
-        # max number of detections
-        self.detection_max = 1000
+        # detection  - NMS threshold to be used for detection
+        self.detection_nms_threshold = 0.45
+        # max number of final detections
+        self.detection_keep_top_k = 200
         # save detection, segmentation output
         self.save_output = False
         # wild card list to match against model_path, model_id or model_type - if null, all models wil be selected
