@@ -272,7 +272,7 @@ class ModelTraining:
                 log_file_path=os.path.join(self.params.training.training_path, 'run.log'),
                 log_summary_regex=log_summary_regex,
                 summary_file_path=os.path.join(self.params.training.training_path, 'summary.yaml'),
-                checkpoint_path=os.path.join(self.params.training.training_path, 'weights','best.pt'),
+                model_checkpoint_path=os.path.join(self.params.training.training_path, 'weights','best.pt'),
                 model_export_path=os.path.join(self.params.training.training_path, 'weights', 'best.onnx'),
                 model_proto_path=os.path.join(self.params.training.training_path,  'weights', 'best.prototxt'),
                 num_classes=len(self.object_categories),

@@ -317,6 +317,10 @@ def dataset_split(dataset, split_factor, split_names, random_seed=1):
     annotations_info_list = _find_annotations_info(dataset)
     image_count_split = {split_name:0 for split_name in split_names}
     for image_id, (image_info, annotations) in enumerate(zip(dataset['images'], annotations_info_list)):
+        if not annotations:
+            # ignore images without annotations from the splits
+            continue
+        #
         image_info['file_name'] = os.path.basename(image_info['file_name'])
         if 'split_name' in image_info and image_info['split_name'] is not None:
             # print(f'file_name={image_info["file_name"]} split_name={image_info["split_name"]}')
@@ -327,7 +331,6 @@ def dataset_split(dataset, split_factor, split_names, random_seed=1):
             # print(f'split_name was not found in {image_info["file_name"]}')
             split_name = split_names[0] if random.random() < split_factor else split_names[1]
         #
-
         dataset_splits[split_name]['images'].append(image_info)
         dataset_splits[split_name]['annotations'].extend(annotations)
         image_count_split[split_name] += 1
@@ -353,7 +356,8 @@ def dataset_split_limit(dataset_dict, max_num_files):
     return dataset_new
 
 
-def dataset_split_write(input_data_path, dataset_dict, input_data_path_split, annotation_path_split):
+def dataset_split_write(input_data_path, dataset_dict, input_data_path_split,
+                        annotation_path_split):
     os.makedirs(os.path.dirname(annotation_path_split), exist_ok=True)
     pretty_json_dump(annotation_path_split, dataset_dict)
     return

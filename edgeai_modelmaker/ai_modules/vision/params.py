@@ -84,6 +84,7 @@ def init_params(*args, **kwargs):
             model_checkpoint_path=None,
             model_export_path=None,
             model_proto_path=None,
+            model_packaged_path=None,
             training_epochs=30,
             warmup_epochs=1,
             num_last_epochs=5,

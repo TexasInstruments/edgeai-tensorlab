@@ -64,6 +64,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: mobilenet_v2_lite_tv
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: mobilenet_v2_lite
       num_classes: null
@@ -156,6 +157,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: mobilenet_v3_large_lite_tv
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: mobilenet_v3_large_lite
       num_classes: null
@@ -248,6 +250,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: mobilenet_v3_small_lite_tv
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: mobilenet_v3_small_lite
       num_classes: null
@@ -340,6 +343,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: regnet_x_1_6gf_tv
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: regnet_x_1_6gf
       num_classes: null
@@ -428,6 +432,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: regnet_x_400mf_tv
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: regnet_x_400mf
       num_classes: null
@@ -516,6 +521,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: regnet_x_800mf_tv
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: regnet_x_800mf
       num_classes: null
@@ -610,6 +616,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: ssd_mobilenetv2_fpn_lite_mmdet
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: ssd_mobilenet_fpn_lite
       num_classes: null
@@ -708,6 +715,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: ssd_mobilenetv2_lite_mmdet
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: ssd_mobilenet_lite_320x320
       num_classes: null
@@ -806,6 +814,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: ssd_regnetx_1p6gf_fpn_bgr_lite
       num_classes: null
@@ -900,6 +909,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: ssd_regnetx_200mf_fpn_bgr_lite_mmdet
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: ssd_regnetx_200mf_fpn_bgr_lite
       num_classes: null
@@ -998,6 +1008,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: ssd_regnetx_800mf_fpn_bgr_lite_mmdet
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: ssd_regnetx_800mf_fpn_bgr_lite
       num_classes: null
@@ -1088,6 +1099,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: yolov5l6_640_ti_lite
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: yolov5l6
       num_classes: null
@@ -1178,6 +1190,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: yolov5m6_640_ti_lite
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: yolov5m6
       num_classes: null
@@ -1268,6 +1281,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: yolov5s6_640_ti_lite
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: yolov5s6
       num_classes: null
@@ -1359,6 +1373,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: yolox_m_lite_640x640_mmdet
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: yolox_m_lite
       num_classes: null
@@ -1450,6 +1465,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: yolox_nano_lite_416x416_mmdet
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: yolox_nano_lite
       num_classes: null
@@ -1541,6 +1557,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: yolox_s_lite_640x640_mmdet
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: yolox_s_lite
       num_classes: null
@@ -1632,6 +1649,7 @@ model_descriptions:
       model_checkpoint_path: null
       model_export_path: null
       model_name: yolox_tiny_lite_416x416_mmdet
+      model_packaged_path: null
       model_proto_path: null
       model_training_id: yolox_tiny_lite
       num_classes: null

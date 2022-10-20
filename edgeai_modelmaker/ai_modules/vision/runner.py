@@ -32,6 +32,7 @@
 import json
 import os
 import datetime
+import tarfile
 
 from . import constants
 from ... import utils
@@ -68,6 +69,8 @@ class ModelRunner():
         self.params.dataset.extract_path = self.params.dataset.dataset_path
 
         self.params.training.training_path = os.path.join(self.params.common.project_run_path, 'training')
+        self.params.training.model_packaged_path = os.path.join(self.params.training.training_path,
+                                    '_'.join(os.path.split(self.params.common.run_name))+'.tar.gz')
 
         target_device_compilation_folder = self.params.common.target_device.lower()
         self.params.compilation.compilation_path = os.path.join(self.params.common.project_run_path, 'compilation', target_device_compilation_folder)
@@ -75,7 +78,10 @@ class ModelRunner():
         if self.params.common.target_device in self.params.training.target_devices:
             target_device_data = self.params.training.target_devices[self.params.common.target_device]
             performance_fps = target_device_data['performance_fps']
-            print(f'Model:{self.params.training.model_name} TargetDevice:{self.params.common.target_device} FPS(Estimate):{performance_fps}')
+            print('---------------------------------------------------------------------')
+            print(f'Run Name: {self.params.common.run_name}:')
+            print(f'Model: {self.params.training.model_name},' f'TargetDevice: {self.params.common.target_device},' f'FPS(Estimate): {performance_fps}')
+            print('---------------------------------------------------------------------')
         #
 
     def resolve_run_name(self, run_name, model_name):
@@ -145,6 +151,13 @@ class ModelRunner():
         if self.params.training.enable:
             self.model_training.clear()
             self.model_training.run()
+            # training frameworks don't create a compact package after training. do it here.
+            model_training_package_files = [
+                self.params.dataset.annotation_path_splits,
+                self.params.training.model_checkpoint_path, self.params.training.model_export_path,
+                self.params.training.model_proto_path, self.params.training.log_file_path]
+            self.package_trained_model(model_training_package_files, self.params.training.model_packaged_path)
+            # we are done with training
             with open(self.params.training.log_file_path, 'a') as lfp:
                 lfp.write('\nSUCCESS: ModelMaker - Training completed.')
             #
@@ -162,6 +175,22 @@ class ModelRunner():
 
     def get_params(self):
         return self.params
+
+    def package_trained_model(self, input_files, tarfile_name):
+        tfp = tarfile.open(tarfile_name, 'w:gz', dereference=True)
+        for inpf in input_files:
+            inpf_list = inpf if isinstance(inpf, (list,tuple)) else [inpf]
+            for inpf_entry in inpf_list:
+                if inpf_entry is not None and os.path.exists(inpf_entry):
+                    outpf = os.path.basename(inpf_entry)
+                    tfp.add(inpf_entry, arcname=outpf)
+                #
+            #
+        #
+        tfp.close()
+        tarfile_size = os.path.getsize(tarfile_name)
+        return tarfile_size
+
 
     @staticmethod
     def get_training_module_descriptions(*args, **kwargs):

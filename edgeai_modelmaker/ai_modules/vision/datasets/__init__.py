@@ -100,7 +100,8 @@ class DatasetHandling:
                     max_num_files[split_idx])
                 dataset_utils.dataset_split_write(
                     self.params.dataset.input_data_path[split_idx], dataset_splits[split_name],
-                    self.params.dataset.data_path_splits[split_idx], self.params.dataset.annotation_path_splits[split_idx])
+                    self.params.dataset.data_path_splits[split_idx],
+                    self.params.dataset.annotation_path_splits[split_idx])
                 dataset_utils.dataset_split_link(
                     self.params.dataset.input_data_path[split_idx], dataset_splits[split_name],
                     self.params.dataset.data_path_splits[split_idx], self.params.dataset.annotation_path_splits[split_idx])
@@ -146,6 +147,7 @@ class DatasetHandling:
             else:
                 assert False, 'invalid dataset details'
             #
+            # write dataset splits
             for split_idx, split_name in enumerate(dataset_splits):
                 input_images_path = os.path.join(self.params.dataset.input_data_path, self.params.dataset.data_dir)
                 dataset_splits[split_name] = dataset_utils.dataset_split_limit(dataset_splits[split_name],
