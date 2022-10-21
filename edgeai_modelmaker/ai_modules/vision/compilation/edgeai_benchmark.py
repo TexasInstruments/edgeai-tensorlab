@@ -213,6 +213,7 @@ class ModelCompilation():
                         num_frames=self.params.compilation.num_frames,
                         runtime_options=None,
                         detection_threshold=self.params.compilation.detection_threshold,
+                        detection_top_k=self.params.compilation.detection_top_k,
                         parallel_devices=None,
                         dataset_loading=False,
                         save_output=self.params.compilation.save_output,

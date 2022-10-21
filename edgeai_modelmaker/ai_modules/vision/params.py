@@ -116,6 +116,7 @@ def init_params(*args, **kwargs):
             calibration_iterations=10,
             num_frames=None, # inference frame for accuracy test example: 100
             detection_threshold=0.3, # threshold for detection: 0.3 for best performance(fps), 0.05 for best accuracy
+            detection_top_k=200, # num boxes to preserve in nms: 200 for best performance(fps), 500 for best accuracy.
             save_output=True, # save inference outputs
             tidl_offload=True
         ),

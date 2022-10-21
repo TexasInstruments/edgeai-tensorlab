@@ -147,37 +147,41 @@ TASK_DESCRIPTIONS = {
     }
 }
 
+# compilation settings for various speed and accuracy tradeoffs:
+# detection_threshold & detection_top_k are written to the prototxt - inside edgeai-benchmark.
+# prototxt is not used in AM62 - so those values does not have effect in AM62 - they are given just for completeness.
+# if we really wan't to change the detections settings in AM62, we will have to modify the onnx file, but that's not easy.
 PRESET_DESCRIPTIONS = {
     TARGET_DEVICE_TDA4VM: {
         'best_accuracy_preset': dict(
-            compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, tensor_bits=8)
+            compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=8)
         ),
         'high_accuracy_preset': dict(
-            compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.3, tensor_bits=8)
+            compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
         ),
         'default_preset': None,  # not specified here - use the models values
         'high_speed_preset': dict(
-            compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, tensor_bits=8)
+            compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
         ),
         'best_speed_preset': dict(
-            compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=0.3, tensor_bits=8)
+            compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
         ),
     },
     TARGET_DEVICE_AM62: {
         'best_accuracy_preset': dict(
-            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.05, tensor_bits=32, tidl_offload=False)
+            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.05, detection_top_k=500, tensor_bits=32, tidl_offload=False)
         ),
         'high_accuracy_preset': dict(
-            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, tensor_bits=32, tidl_offload=False)
+            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, detection_top_k=200, tensor_bits=32, tidl_offload=False)
         ),
         'default_preset': dict(
-            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, tensor_bits=32, tidl_offload=False)
+            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, detection_top_k=200, tensor_bits=32, tidl_offload=False)
         ),
         'high_speed_preset': dict(
-            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, tensor_bits=32, tidl_offload=False)
+            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, detection_top_k=200, tensor_bits=32, tidl_offload=False)
         ),
         'best_speed_preset': dict(
-            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, tensor_bits=32, tidl_offload=False)
+            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, detection_top_k=200, tensor_bits=32, tidl_offload=False)
         ),
     },
 }

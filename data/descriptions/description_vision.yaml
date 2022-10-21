@@ -15,6 +15,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -108,6 +109,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -201,6 +203,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -294,6 +297,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -383,6 +387,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -472,6 +477,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -561,6 +567,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -660,6 +667,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -759,6 +767,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -854,6 +863,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -953,6 +963,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -1048,6 +1059,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -1139,6 +1151,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -1230,6 +1243,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -1321,6 +1335,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -1413,6 +1428,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -1505,6 +1521,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -1597,6 +1614,7 @@ model_descriptions:
       calibration_iterations: 10
       compilation_path: null
       detection_threshold: 0.3
+      detection_top_k: 200
       enable: true
       log_file_path: null
       log_summary_regex: null
@@ -1680,6 +1698,7 @@ preset_descriptions:
         calibration_frames: 1
         calibration_iterations: 1
         detection_threshold: 0.05
+        detection_top_k: 500
         tensor_bits: 32
         tidl_offload: false
     best_speed_preset:
@@ -1687,6 +1706,7 @@ preset_descriptions:
         calibration_frames: 1
         calibration_iterations: 1
         detection_threshold: 0.3
+        detection_top_k: 200
         tensor_bits: 32
         tidl_offload: false
     default_preset:
@@ -1694,6 +1714,7 @@ preset_descriptions:
         calibration_frames: 1
         calibration_iterations: 1
         detection_threshold: 0.3
+        detection_top_k: 200
         tensor_bits: 32
         tidl_offload: false
     high_accuracy_preset:
@@ -1701,6 +1722,7 @@ preset_descriptions:
         calibration_frames: 1
         calibration_iterations: 1
         detection_threshold: 0.3
+        detection_top_k: 200
         tensor_bits: 32
         tidl_offload: false
     high_speed_preset:
@@ -1708,6 +1730,7 @@ preset_descriptions:
         calibration_frames: 1
         calibration_iterations: 1
         detection_threshold: 0.3
+        detection_top_k: 200
         tensor_bits: 32
         tidl_offload: false
   TDA4VM:
@@ -1716,12 +1739,14 @@ preset_descriptions:
         calibration_frames: 25
         calibration_iterations: 25
         detection_threshold: 0.05
+        detection_top_k: 500
         tensor_bits: 8
     best_speed_preset:
       compilation:
         calibration_frames: 5
         calibration_iterations: 1
         detection_threshold: 0.3
+        detection_top_k: 200
         tensor_bits: 8
     default_preset: null
     high_accuracy_preset:
@@ -1729,12 +1754,14 @@ preset_descriptions:
         calibration_frames: 25
         calibration_iterations: 25
         detection_threshold: 0.3
+        detection_top_k: 200
         tensor_bits: 8
     high_speed_preset:
       compilation:
         calibration_frames: 5
         calibration_iterations: 5
         detection_threshold: 0.3
+        detection_top_k: 200
         tensor_bits: 8
 sample_dataset_descriptions:
   animal_classification:
