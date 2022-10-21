@@ -28,6 +28,7 @@
 import copy
 import sys
 import cv2
+import numpy as np
 
 from . import utils, preprocess, postprocess, constants, sessions
 from . import config_dict
@@ -162,10 +163,12 @@ class ConfigSettings(config_dict.ConfigDict):
         '''
         min_options = min_options or dict()
         max_options = max_options or dict()
-        calibration_frames = min(max(self.calibration_frames, min_options.get('calibration_frames', -sys.maxsize)),
-                                 max_options.get('calibration_frames', sys.maxsize))
-        calibration_iterations = min(max(self._get_calibration_iterations(is_qat), min_options.get('calibration_iterations', -sys.maxsize)),
-                                 max_options.get('calibration_iterations', sys.maxsize))
+        calibration_frames = np.clip(self.calibration_frames,
+                                     min_options.get('calibration_frames', -sys.maxsize),
+                                     max_options.get('calibration_frames', sys.maxsize))
+        calibration_iterations = np.clip(self._get_calibration_iterations(is_qat),
+                                     min_options.get('calibration_iterations', -sys.maxsize),
+                                     max_options.get('calibration_iterations', sys.maxsize))
 
         runtime_options = {
             ##################################
