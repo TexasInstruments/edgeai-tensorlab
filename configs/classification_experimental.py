@@ -112,6 +112,40 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_top1%':69.70})
         # ),
         #
+        # pycls: classification regnetx200mf_224x224 expected_metric: 72.17% top-1 accuracy
+        'cl-6700':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_np2(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/regnetx200mf_aligned_ch64_72p17.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':72.17})
+        ),
+        
+        # pycls: classification regnetx400mf_224x224 expected_metric: 73.94% top-1 accuracy
+        'cl-6710':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_np2(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/regnet_x_400mf_aligned_ch64_73p94.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':73.94})
+        ),
+        
+        # pycls: classification regnetx600mf_224x224 expected_metric: 75.11% top-1 accuracy
+        'cl-6720':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_np2(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/regnet_x_600mf_aligned_ch64_75p11.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':75.11})
+        ),
+        # pycls: classification regnet_x_800mf_224x224 expected_metric: 75.77% top-1 accuracy
+        'cl-6730':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_np2(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/regnet_x_800mf_aligned_ch64_75p77.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':75.77})
+        ),
         #################################################################
         #       MXNet MODELS
         #################################################################
