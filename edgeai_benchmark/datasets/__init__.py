@@ -40,6 +40,7 @@ from .cityscapes import *
 from .ade20k import *
 from .voc_seg import *
 from .nyudepthv2 import *
+from .ycbv import *
 from .modelmaker_datasets import *
 
 from .coco_kpts import *
@@ -69,10 +70,13 @@ dataset_info_dict = {
     'ade20k': {'task_type':'segmentation', 'category':'ade20k', 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
     'voc2012': {'task_type':'segmentation', 'category':'voc2012', 'type':VOC2012Segmentation, 'size':1449, 'split':'val'},
     'cocoseg21': {'task_type':'segmentation', 'category':'cocoseg21', 'type':COCOSegmentation, 'size':5000, 'split':'val2017'},
-    #------------------------pose estimation datasets--------------------------#
+    #------------------------human pose estimation datasets--------------------------#
     'cocokpts': {'task_type':'keypoint_detection', 'category':'cocokpts', 'type':COCOKeypoints, 'size':5000, 'split':'val2017'},
     #------------------------depth estimation datasets--------------------------#
     'nyudepthv2': {'task_type':'depth_estimation', 'category':'nyudepthv2', 'type':NYUDepthV2, 'size':654, 'split':'val'},
+    #------------------------object 6d pose estimation datasets--------------------------#
+    'ycbv': {'task_type':'object_6d_pose_estimation', 'category':'ycbv', 'type': YCBV, 'size':900, 'split':'test'},
+    
  }
 
 
@@ -167,6 +171,27 @@ def get_datasets(settings, download=False):
         dataset_cache['cocokpts']['calibration_dataset'] = COCOKeypoints(**coco_kpts_calib_cfg, download=download)
         dataset_cache['cocokpts']['input_dataset'] = COCOKeypoints(**coco_kpts_val_cfg, download=False)
 
+    if in_dataset_loading(settings, 'ycbv'):
+        filter_imgs = True
+        ycbv_calib_cfg = dict(
+            path=f'{settings.datasets_path}/ycbv',
+            split='test',
+            shuffle=True,
+            num_frames=settings.calibration_frames,
+            name='ycbv',
+            filter_imgs=filter_imgs)
+        ycbv_val_cfg = dict(
+            path=f'{settings.datasets_path}/ycbv',
+            split='test',
+            shuffle=False,
+            num_frames=min(settings.num_frames,900),
+            name='ycbv',
+            filter_imgs=filter_imgs)
+
+        dataset_cache['ycbv']['calibration_dataset'] = YCBV(**ycbv_calib_cfg, download=download)
+        dataset_cache['ycbv']['input_dataset'] = YCBV(**ycbv_val_cfg, download=False)
+
+    
     if in_dataset_loading(settings, 'coco'):
         coco_det_calib_cfg = dict(
             path=f'{settings.datasets_path}/coco',

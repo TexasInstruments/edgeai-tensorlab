@@ -15,11 +15,11 @@ target_machine : 'pc'
 
 # quantization bit precision
 # options are: 8 16 32
-tensor_bits : 8
+tensor_bits : 32
 
 # run import of the model - only to be used in pc - set this to False for evm
 # for pc this can be True or False
-run_import : True
+run_import : False
 
 # run inference - for inference in evm, it is assumed that the artifacts folders are already available
 run_inference : True
@@ -33,7 +33,7 @@ run_inference : True
 parallel_devices : null #[0,1,2,3]
 
 # number of frames for inference
-num_frames : 10000 #50000
+num_frames : 2 #50000
 
 # number of frames to be used for post training quantization / calibration
 calibration_frames : 50 #100
@@ -68,7 +68,7 @@ session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
 # examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
 # examples: ['resnet18.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision'] ['coco']
 # examples: [cl-0000, od-2020, ss-2580, cl-3090, cl-3520, od-5120, ss-5710, cl-6360, od-8050, od-8220, od-8420, ss-8610, kd-7060]
-model_selection : null
+model_selection : ['op-7200']
 
 # wild card list to match against the tasks. it null, all tasks will be run
 # example: ['classification', 'detection', 'segmentation', 'depth_estimation', 'human_pose_estimation', 'detection_3d']
@@ -84,7 +84,7 @@ runtime_selection : null
 # wild card list to match against dataset type - if null, all datasets will be shortlisted
 # example: ['coco']
 # example: ['imagenet', 'cocoseg21', 'ade20k', 'cocokpts', 'kitti_lidar_det', 'ti-robokit_semseg_zed1hd']
-dataset_loading : null
+dataset_loading : ['ycbv']
 
 # use TIDL offload to speedup inference
 tidl_offload : True
