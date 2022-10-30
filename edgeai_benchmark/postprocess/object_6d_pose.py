@@ -246,6 +246,7 @@ from PIL import ImageDraw
 from munkres import Munkres
 from numpy.lib.stride_tricks import as_strided
 import math
+from ..datasets.ycbv import CADModelsYCB
 
 
 class BboxObject6dPoseReformat():
@@ -273,90 +274,15 @@ class BboxObject6dPoseReformat():
         return result, info_dict
 
 
-
 class Object6dPoseImageSave:
     def __init__(self):
-        self.pose_nms_thr = 0.9
-        self.kpt_score_thr = 0.5
-        self.palette = np.array([[255, 128, 0], [255, 153, 51], [255, 178, 102],
-                        [230, 230, 0], [255, 153, 255], [153, 204, 255],
-                        [255, 102, 255], [255, 51, 255], [102, 178, 255],
-                        [51, 153, 255], [255, 153, 153], [255, 102, 102],
-                        [255, 51, 51], [153, 255, 153], [102, 255, 102],
-                        [51, 255, 51], [0, 255, 0], [0, 0, 255], [255, 0, 0],
-                        [255, 255, 255]])
-        self.radius = 5
-        self.thickness = 2
-        self.font_scale = 0.5
-        self.skeleton = [[16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12],
-                [7, 13], [6, 7], [6, 8], [7, 9], [8, 10], [9, 11], [2, 3],
-                [1, 2], [1, 3], [2, 4], [3, 5], [4, 6], [5, 7]]
-        self.pose_limb_color = self.palette[[
-            0, 0, 0, 0, 7, 7, 7, 9, 9, 9, 9, 9, 16, 16, 16, 16, 16, 16, 16
-        ]]
-        self.pose_kpt_color = self.palette[[
-            16, 16, 16, 16, 16, 9, 9, 9, 9, 9, 9, 0, 0, 0, 0, 0, 0
-        ]]
-        self.show_keypoint_weight = False
-
-
-    def draw_and_save(self, img, result):
-        img_h, img_w, _ = img.shape
-        pose_result = []
-        for res in result:
-            pose_result.append(res['keypoints'])
-
-        for kpt_index, kpts in enumerate(pose_result):
-            # draw each point on image
-            if 'bbox' in result[kpt_index].keys():
-                bbox = result[kpt_index]['bbox']
-                pt1 = (int(bbox[0]),int(bbox[1]))
-                pt2 = (int(bbox[2]),int(bbox[3]))
-                cv2.rectangle(img, pt1, pt2, color=(0,0,0), thickness=self.thickness)
-
-            if self.pose_kpt_color is not None:
-                assert len(self.pose_kpt_color) == len(kpts)
-                for kid, kpt in enumerate(kpts):
-                    x_coord, y_coord, kpt_score = int(kpt[0]), int(
-                        kpt[1]), kpt[2]
-                    if kpt_score > self.kpt_score_thr:
-                        if self.show_keypoint_weight:
-                            img_copy = img.copy()
-                            r, g, b = self.pose_kpt_color[kid]
-                            cv2.circle(img_copy, (int(x_coord), int(y_coord)),
-                                    self.radius, (int(r), int(g), int(b)), -1)
-                            transparency = max(0, min(1, kpt_score))
-                            cv2.addWeighted(
-                                img_copy,
-                                transparency,
-                                img,
-                                1 - transparency,
-                                0,
-                                dst=img)
-                        else:
-                            r, g, b = self.pose_kpt_color[kid]
-                            cv2.circle(img, (int(x_coord), int(y_coord)),
-                                    self.radius, (int(r), int(g), int(b)), -1)
-
-            # draw limbs
-            if self.skeleton is not None and self.pose_limb_color is not None:
-                assert len(self.pose_limb_color) == len(self.skeleton)
-                for sk_id, sk in enumerate(self.skeleton):
-                    pos1 = (int(kpts[sk[0] - 1, 0]), int(kpts[sk[0] - 1, 1]))
-                    pos2 = (int(kpts[sk[1] - 1, 0]), int(kpts[sk[1] - 1, 1]))
-                    if (pos1[0] > 0 and pos1[0] < img_w and pos1[1] > 0
-                            and pos1[1] < img_h and pos2[0] > 0
-                            and pos2[0] < img_w and pos2[1] > 0
-                            and pos2[1] < img_h
-                            and kpts[sk[0] - 1, 2] > self.kpt_score_thr
-                            and kpts[sk[1] - 1, 2] > self.kpt_score_thr):
-                        r, g, b = self.pose_limb_color[sk_id]
-                        cv2.line(
-                            img,
-                            pos1,
-                            pos2, (int(r), int(g), int(b)),
-                            thickness=self.thickness)
-        return img
+        self.cadmodels = CADModelsYCB(data_dir='./dependencies/datasets/ycbv/')
+        self.camera_matrix = self.cadmodels.camera_matrix['camera_uw'].reshape(3,3)
+        self.class_to_cuboid = self.cadmodels.models_corners
+        self.color_step = 32 #32
+        self.colors = [(r,g,b) for r in range(0,256,self.color_step) \
+                       for g in range(0,256,self.color_step) \
+                       for b in range(0,256,self.color_step)]
 
     def __call__(self, result, info_dict):
         data_path = info_dict['data_path']
@@ -367,35 +293,55 @@ class Object6dPoseImageSave:
         os.makedirs(save_dir, exist_ok=True)
         save_path = os.path.join(save_dir, image_name)
 
-        pose_results = []
-        if 'bbox' not in result.keys():
-            for idx, pred in enumerate(result['preds']):
-                area = (np.max(pred[:, 0]) - np.min(pred[:, 0])) * (
-                    np.max(pred[:, 1]) - np.min(pred[:, 1]))
-                pose_results.append({
-                    'keypoints': pred[:, :3],
-                    'score': result['scores'][idx],
-                    'area': area,
-                })
-
-            keep = self.oks_nms(pose_results, self.pose_nms_thr, sigmas=None)
-            pose_results = [pose_results[_keep] for _keep in keep]
-        else:
-            for idx, pred in enumerate(result['preds']):
-                pose_results.append({
-                    'keypoints': pred,
-                    'bbox': result['bbox'][idx],
-                    'score': result['scores'][idx],
-                    'area': result['area'][idx],
-                }
-            )
-
         img_data = copy.deepcopy(img_data[:,:,::-1])
         if isinstance(img_data, np.ndarray):
-            img = self.draw_and_save(img_data, pose_results)
+            img = self.draw_6d_pose(img_data, result)
             cv2.imwrite(save_path, img)
         else:
             assert False, f'PIL image type isnt supported because PIL process dont pad right now' #TODO
         #
         return result, info_dict
+
+
+    def draw_6d_pose(self, img, pose_results, conf =0.75):
+        img = np.ascontiguousarray(img)
+        num_detections = len(pose_results['bbox'])
+        for det_id in range(num_detections):
+            score =pose_results['scores'][det_id]
+            if score < conf:
+                continue
+            rotation, translation, cls_id = pose_results['rotation'][det_id].reshape(3,3), pose_results['translation'][det_id],  int(pose_results['cls'][det_id])
+            colour = self.colors[cls_id % len(self.colors)]
+            cuboid_corners_2d = self.project_3d_2d(self.class_to_cuboid[cls_id], rotation, translation, self.camera_matrix)
+            img = self.draw_cuboid_2d(img, cuboid_corners=cuboid_corners_2d, colour=colour)
+        return img
+
+
+    def draw_cuboid_2d(self, img, cuboid_corners, colour = (0, 255, 0), thickness = 2):
+        box = np.copy(cuboid_corners).astype(np.int32)
+        box = [tuple(kpt) for kpt in box]
+        #front??? to check
+        cv2.line(img, box[0], box[1], colour, thickness)
+        cv2.line(img, box[1], box[2], colour, thickness)
+        cv2.line(img, box[2], box[3], colour, thickness)
+        cv2.line(img, box[0], box[3], colour, thickness)
+        #back
+        cv2.line(img, box[4], box[5], colour, thickness)
+        cv2.line(img, box[5], box[6], colour, thickness)
+        cv2.line(img, box[6], box[7], colour, thickness)
+        cv2.line(img, box[4], box[7], colour, thickness)
+        #sides
+        cv2.line(img, box[0], box[4], colour, thickness)
+        cv2.line(img, box[1], box[5], colour, thickness)
+        cv2.line(img, box[2], box[6], colour, thickness)
+        cv2.line(img, box[3], box[7], colour, thickness)
+        return img
+
+    def project_3d_2d(self, pts_3d, rotation_mat, translation_vec, camera_matrix):
+        #rotation_mat, _ = cv2.Rodrigues(rotation_vec)
+        xformed_3d = np.matmul(pts_3d, rotation_mat.T) + translation_vec
+        xformed_3d[:,:3] = xformed_3d[:,:3]/xformed_3d[:,2:3]
+        projected_2d = np.matmul(xformed_3d, camera_matrix.T)[:, :2]
+        return projected_2d
+
 

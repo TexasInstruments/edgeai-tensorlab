@@ -145,9 +145,10 @@ def _get_mapping_id_name(imgs):
 
     return id2name, name2id
 
+
 class YCBV(DatasetBase):
-    def __init__(self, num_joints=17, download=False, num_frames=None, name="cocokpts", **kwargs):
-        super().__init__(num_joints=num_joints, num_frames=num_frames, name=name, **kwargs)
+    def __init__(self, download=False, num_frames=None, name="cocokpts", **kwargs):
+        super().__init__(num_frames=num_frames, name=name, **kwargs)
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'kwargs must have path and split'
         path = self.kwargs['path']
@@ -196,15 +197,11 @@ class YCBV(DatasetBase):
 
         self.num_frames = self.kwargs['num_frames'] = num_frames
         self.tempfiles = []
-
-        self.symmetric_objects = { 1 : "002_master_chef_can" , 13 : "024_bowl" , 14 : "025_mug", 16 : "036_wood_block",
-                                    18 : "040_large_marker", 19 : "051_large_clamp", 20 : "052_extra_large_clamp", 21 : "061_foam_brick" }
-        self.cad_models_path = os.path.join(self.kwargs['path'], "models_eval")
-        self.models_dict_path = os.path.join(self.cad_models_path, "models_info.json")
-        with open(self.models_dict_path) as foo:
-            self.models_dict  = json.load(foo)
-        self.models_corners, self.class_to_diameter = self.get_models_params()
-        self.class_to_model = self.load_cad_models()
+        self.cad_models = CADModelsYCB(data_dir=self.kwargs['path'])
+        self.symmetric_objects = self.cad_models.symmetric_objects
+        self.models_dict = self.cad_models.models_dict
+        self.models_corners, self.class_to_diameter = self.cad_models.models_corners, self.cad_models.models_diameter
+        self.class_to_model = self.cad_models.class_to_model
         self.ann_info = {}
         self.id2name, self.name2id = _get_mapping_id_name(self.coco_dataset.imgs)
 
@@ -333,46 +330,6 @@ class YCBV(DatasetBase):
     def __call__(self, predictions, **kwargs):
         return self.evaluate(predictions, **kwargs)
 
-    def load_cad_models(self):
-        class_to_model = {class_id: None for class_id in self.class_to_name.keys()}
-        for class_id, name in self.class_to_name.items():
-            file = "obj_{:06}.ply".format(class_id + 1)
-            cad_model_path = os.path.join(self.cad_models_path, file)
-            assert os.path.isfile(cad_model_path), "The file {} model for class {} was not found".format(file, name)
-            class_to_model[class_id] = self.load_model_point_cloud(cad_model_path)
-        return class_to_model
-
-    def load_model_point_cloud(self, datapath):
-        model = PlyData.read(datapath)
-        vertex = model['vertex']
-        points = np.stack([vertex[:]['x'], vertex[:]['y'], vertex[:]['z']], axis=-1).astype(np.float64)
-        return points
-
-    def get_models_params(self):
-        """
-        Convert model corners from (min_x, min_y, min_z, size_x, size_y, size_z) to actual coordinates format of dimension (8,3)
-        Return the corner coordinates and the diameters of each models
-        """
-        models_corners_3d = {}
-        models_diameter = {}
-        for model_id, model_param in self.models_dict.items():
-            min_x, max_x = model_param['min_x'], model_param['min_x'] + model_param['size_x']
-            min_y, max_y = model_param['min_y'], model_param['min_y'] + model_param['size_y']
-            min_z, max_z = model_param['min_z'], model_param['min_z'] + model_param['size_z']
-            corners_3d = np.array([
-                [min_x, min_y, min_z],
-                [min_x, min_y, max_z],
-                [min_x, max_y, max_z],
-                [min_x, max_y, min_z],
-                [max_x, min_y, min_z],
-                [max_x, min_y, max_z],
-                [max_x, max_y, max_z],
-                [max_x, max_y, min_z],
-            ])
-            models_corners_3d.update({int(model_id)-1: corners_3d})
-            models_diameter.update({int(model_id)-1: model_param['diameter']})
-        return models_corners_3d, models_diameter
-
     def evaluate(self, preds, **kwargs):
         data_list = self.convert_to_coco_format(preds)
         eval_results_6dpose = self.evaluate_prediction_6dpose(data_list)
@@ -442,9 +399,7 @@ class YCBV(DatasetBase):
         distance_category = np.zeros((len(data_dict), 2))
         for index, pred_data in enumerate(data_dict):
             R_gt, t_gt = np.array(pred_data['rotation_gt']).reshape(3,3), np.array(pred_data['translation_gt'])
-            #R_gt, _ = cv2.Rodrigues(R_gt)
             R_pred, t_pred= pred_data['rotation_pred'].reshape(3,3), pred_data['translation_pred']
-            #R_pred, _ = cv2.Rodrigues(R_pred)
             pts3d = self.class_to_model[pred_data['category_id']]
             #mean_distances = np.zeros((count,), dtype=np.float32)
             pts_xformed_gt = np.matmul(R_gt,  pts3d.transpose()) + t_gt[:, None]
@@ -470,9 +425,7 @@ class YCBV(DatasetBase):
         distance_category = np.zeros((len(data_dict), 2))
         for index, pred_data in enumerate(data_dict):
             R_gt, t_gt = np.array(pred_data['rotation_gt']).reshape(3,3), np.array(pred_data['translation_gt'])
-            #R_gt, _ = cv2.Rodrigues(R_gt)
             R_pred, t_pred = pred_data['rotation_pred'].reshape(3,3), pred_data['translation_pred']
-            #R_pred, _ = cv2.Rodrigues(R_pred)
             pts3d = self.class_to_model[pred_data['category_id']]
             pts_xformed_gt = np.matmul(R_gt, pts3d.transpose()) + t_gt[:, None]
             pts_xformed_pred = np.matmul(R_pred, pts3d.transpose()) + t_pred[:, None]
@@ -496,31 +449,89 @@ class YCBV(DatasetBase):
 
 
 
+class CADModelsYCB():
+    def __init__(self, data_dir=None):
+        self.data_dir = data_dir
+        self.cad_models_path = os.path.join(self.data_dir, "models_eval")
+        self.class_to_name = {
+                    0: "002_master_chef_can" , 1: "003_cracker_box" ,  2: "004_sugar_box" , 3: "005_tomato_soup_can",  4: "006_mustard_bottle",
+                    5: "007_tuna_fish_can",  6: "008_pudding_box" , 7: "009_gelatin_box", 8: "010_potted_meat_can",  9: "011_banana",
+                    10: "019_pitcher_base", 11: "021_bleach_cleanser",  12: "024_bowl", 13: "025_mug", 14: "035_power_drill",
+                    15: "036_wood_block", 16: "037_scissors", 17: "040_large_marker", 18: "051_large_clamp", 19: "052_extra_large_clamp",
+                    20: "061_foam_brick"
+                    }
 
-################################################################################################
-if __name__ == '__main__':
-    # from inside the folder jacinto_ai_benchmark, run the following:
-    # python3 -m edgeai_benchmark.datasets.coco_det
-    # to create a converted dataset if you wish to load it using the dataset loader ImageDetection() in image_det.py
-    # to load it using CocoSegmentation dataset in this file, this conversion is not required.
-    import shutil
-    output_folder = './dependencies/datasets/coco-det-converted'
-    split = 'test'
-    ycbv = YCBV(path='./dependencies/datasets/coco', split=split)
-    num_frames = len(ycbv)
+        self.models_dict_path = os.path.join(self.cad_models_path, "models_info.json")
+        with open(self.models_dict_path) as foo:
+            self.models_dict  = json.load(foo)
+        self.class_to_model = self.load_cad_models()
+        self.class_to_sparse_model = self.create_sparse_models()
+        self.models_corners, self.models_diameter = self.get_models_params()
+        self.camera_matrix = self.get_camera_params()
+        self.symmetric_objects = { 1 : "002_master_chef_can" , 13 : "024_bowl" , 14 : "025_mug", 16 : "036_wood_block",
+                                    18 : "040_large_marker", 19 : "051_large_clamp", 20 : "052_extra_large_clamp", 21 : "061_foam_brick" }
 
-    images_output_folder = os.path.join(output_folder, split, 'images')
-    labels_output_folder = os.path.join(output_folder, split, 'labels')
-    # os.makedirs(images_output_folder)
-    # os.makedirs(labels_output_folder)
+    def get_camera_params(self):
+        camera_params_paths = [os.path.join(self.data_dir, "camera_uw.json"),
+                                    os.path.join(self.data_dir, "camera_cmu.json")]
+        camera_matrix = {}
+        for camera_param_path in camera_params_paths:
+            with open(camera_param_path) as foo:
+                camera_params = json.load(foo)
+            camera_name = os.path.basename(camera_param_path)
+            camera_matrix[camera_name.split(".")[0]] = \
+                np.array([camera_params['fx'], 0, camera_params['cx'], 0.0, camera_params['fy'], camera_params['cy'], 0.0, 0.0, 1.0])
+        return camera_matrix
 
-    output_filelist = os.path.join(output_folder, f'{split}.txt')
-    with open(output_filelist, 'w') as list_fp:
-        for n in range(num_frames):
-            image_path= ycbv.__getitem__(n)
-            image_output_filename = os.path.join(images_output_folder, os.path.basename(image_path))
-            shutil.copy2(image_path, image_output_filename)
-            list_fp.write(f'images/{os.path.basename(image_output_filename)}\n')
-        #
-    #
+
+    def load_cad_models(self):
+        class_to_model = {class_id: None for class_id in self.class_to_name.keys()}
+        for class_id, name in self.class_to_name.items():
+            file = "obj_{:06}.ply".format(class_id + 1)
+            cad_model_path = os.path.join(self.cad_models_path, file)
+            assert os.path.isfile(cad_model_path), "The file {} model for class {} was not found".format(file, name)
+            class_to_model[class_id] = self.load_model_point_cloud(cad_model_path)
+        return class_to_model
+
+
+
+    def load_model_point_cloud(self, datapath):
+        model = PlyData.read(datapath)
+        vertex = model['vertex']
+        points = np.stack([vertex[:]['x'], vertex[:]['y'], vertex[:]['z']], axis=-1).astype(np.float64)
+        return points
+
+    def get_models_params(self):
+        """
+        Convert model corners from (min_x, min_y, min_z, size_x, size_y, size_z) to actual coordinates format of dimension (8,3)
+        Return the corner coordinates and the diameters of each models
+        """
+        models_corners_3d = {}
+        models_diameter = {}
+        for model_id, model_param in self.models_dict.items():
+            min_x, max_x = model_param['min_x'], model_param['min_x'] + model_param['size_x']
+            min_y, max_y = model_param['min_y'], model_param['min_y'] + model_param['size_y']
+            min_z, max_z = model_param['min_z'], model_param['min_z'] + model_param['size_z']
+            corners_3d = np.array([
+                [min_x, min_y, min_z],
+                [min_x, min_y, max_z],
+                [min_x, max_y, max_z],
+                [min_x, max_y, min_z],
+                [max_x, min_y, min_z],
+                [max_x, min_y, max_z],
+                [max_x, max_y, max_z],
+                [max_x, max_y, min_z],
+            ])
+            models_corners_3d.update({int(model_id)-1: corners_3d})
+            models_diameter.update({int(model_id)-1: model_param['diameter']})
+        return models_corners_3d, models_diameter
+
+    def create_sparse_models(self):
+        class_to_sparse_model = {}
+        for model_id in self.class_to_model.keys():
+            sample_rate =len(self.class_to_model[model_id])//500
+            #sparsely sample the model to have close to 500 points
+            class_to_sparse_model.update({model_id : self.class_to_model[model_id][::sample_rate, :]})
+        return class_to_sparse_model
+
 
