@@ -115,7 +115,8 @@ from colorama import Fore
 import cv2
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
-
+from plyfile import PlyData
+from sklearn.neighbors import KDTree
 
 from edgeai_benchmark.utils import *
 # from ..utils import *
@@ -172,30 +173,6 @@ class YCBV(DatasetBase):
         self.image_dir = os.path.join(self.kwargs['path'], self.kwargs['split'])
 
         self.coco_dataset = COCO(os.path.join(annotations_dir, 'instances_{}.json'.format(split)))
-
-        # filter_imgs = self.kwargs['filter_imgs'] if 'filter_imgs' in self.kwargs else None
-        # if isinstance(filter_imgs, str):
-        #     # filter images with the given list
-        #     filter_imgs = os.path.join(self.kwargs['path'], filter_imgs)
-        #     with open(filter_imgs) as filter_fp:
-        #         filter = [int(id) for id in list(filter_fp)]
-        #         orig_keys = list(self.coco_dataset.imgs)
-        #         orig_keys = [k for k in orig_keys if k in filter]
-        #         self.coco_dataset.imgs = {k: self.coco_dataset.imgs[k] for k in orig_keys}
-        #     #
-        # elif filter_imgs:
-        #     all_keys = self.coco_dataset.getImgIds()
-        #     sel_keys = []
-        #     # filter and use images with gt having keypoints only.
-        #     for img_id in all_keys:
-        #         for ann in self.coco_dataset.imgToAnns[img_id]:
-        #             if ann['num_keypoints'] >0 :
-        #                 sel_keys.append(img_id)
-        #                 break
-        #
-        #     self.coco_dataset.imgs = {k: self.coco_dataset.imgs[k] for k in sel_keys}
-        # #
-
         max_frames = len(self.coco_dataset.imgs)
         num_frames = self.kwargs.get('num_frames', None)
         num_frames = min(num_frames, max_frames) if num_frames is not None else max_frames
@@ -220,6 +197,14 @@ class YCBV(DatasetBase):
         self.num_frames = self.kwargs['num_frames'] = num_frames
         self.tempfiles = []
 
+        self.symmetric_objects = { 1 : "002_master_chef_can" , 13 : "024_bowl" , 14 : "025_mug", 16 : "036_wood_block",
+                                    18 : "040_large_marker", 19 : "051_large_clamp", 20 : "052_extra_large_clamp", 21 : "061_foam_brick" }
+        self.cad_models_path = os.path.join(self.kwargs['path'], "models_eval")
+        self.models_dict_path = os.path.join(self.cad_models_path, "models_info.json")
+        with open(self.models_dict_path) as foo:
+            self.models_dict  = json.load(foo)
+        self.models_corners, self.class_to_diameter = self.get_models_params()
+        self.class_to_model = self.load_cad_models()
         self.ann_info = {}
         self.id2name, self.name2id = _get_mapping_id_name(self.coco_dataset.imgs)
 
@@ -348,89 +333,73 @@ class YCBV(DatasetBase):
     def __call__(self, predictions, **kwargs):
         return self.evaluate(predictions, **kwargs)
 
+    def load_cad_models(self):
+        class_to_model = {class_id: None for class_id in self.class_to_name.keys()}
+        for class_id, name in self.class_to_name.items():
+            file = "obj_{:06}.ply".format(class_id + 1)
+            cad_model_path = os.path.join(self.cad_models_path, file)
+            assert os.path.isfile(cad_model_path), "The file {} model for class {} was not found".format(file, name)
+            class_to_model[class_id] = self.load_model_point_cloud(cad_model_path)
+        return class_to_model
+
+    def load_model_point_cloud(self, datapath):
+        model = PlyData.read(datapath)
+        vertex = model['vertex']
+        points = np.stack([vertex[:]['x'], vertex[:]['y'], vertex[:]['z']], axis=-1).astype(np.float64)
+        return points
+
+    def get_models_params(self):
+        """
+        Convert model corners from (min_x, min_y, min_z, size_x, size_y, size_z) to actual coordinates format of dimension (8,3)
+        Return the corner coordinates and the diameters of each models
+        """
+        models_corners_3d = {}
+        models_diameter = {}
+        for model_id, model_param in self.models_dict.items():
+            min_x, max_x = model_param['min_x'], model_param['min_x'] + model_param['size_x']
+            min_y, max_y = model_param['min_y'], model_param['min_y'] + model_param['size_y']
+            min_z, max_z = model_param['min_z'], model_param['min_z'] + model_param['size_z']
+            corners_3d = np.array([
+                [min_x, min_y, min_z],
+                [min_x, min_y, max_z],
+                [min_x, max_y, max_z],
+                [min_x, max_y, min_z],
+                [max_x, min_y, min_z],
+                [max_x, min_y, max_z],
+                [max_x, max_y, max_z],
+                [max_x, max_y, min_z],
+            ])
+            models_corners_3d.update({int(model_id)-1: corners_3d})
+            models_diameter.update({int(model_id)-1: model_param['diameter']})
+        return models_corners_3d, models_diameter
+
     def evaluate(self, preds, **kwargs):
         data_list = self.convert_to_coco_format(preds)
-
-        # label_offset = kwargs.get('label_offset_pred', 0)
-        #run_dir = kwargs.get('run_dir', None)
-        temp_dir_obj = tempfile.TemporaryDirectory()
-        temp_dir = temp_dir_obj.name
-        self.tempfiles.append(temp_dir_obj)
-
-        keypoints = self._valid_kpts(outputs)
-
-        data_pack = [{
-            'cat_id': self._class_to_coco_ind[cls],
-            'cls_ind': cls_ind,
-            'cls': cls,
-            'ann_type': 'keypoints',
-            'keypoints': keypoints
-        } for cls_ind, cls in enumerate(self.classes)
-                        if not cls == '__background__']
-
-        cat_id = data_pack[0]['cat_id']
-        keypoints = data_pack[0]['keypoints']
-        cat_results = []
-
-        for img_kpts in keypoints:
-            if len(img_kpts) == 0:
-                continue
-
-            _key_points = np.array(
-                [img_kpt['keypoints'] for img_kpt in img_kpts])
-            key_points = _key_points.reshape(-1,
-                                                self.ann_info['num_joints'] * 3)
-
-            for img_kpt, key_point in zip(img_kpts, key_points):
-                kpt = key_point.reshape((self.ann_info['num_joints'], 3))
-                #left_top = np.amin(kpt, axis=0)
-                #right_bottom = np.amax(kpt, axis=0)
-
-                #w = right_bottom[0] - left_top[0]
-                #h = right_bottom[1] - left_top[1]
-
-                cat_results.append({
-                    'image_id': img_kpt['image_id'],
-                    'category_id': cat_id,
-                    'keypoints': key_point.tolist(),
-                    'score': img_kpt['score'],
-                    #'bbox': [left_top[0], left_top[1], w, h]
-                })
-
-        res_file = os.path.join(kwargs['run_dir'], 'keypoint_results.json')
-        with open(res_file, 'w') as f:
-            json.dump(cat_results, f, sort_keys=True, indent=4)
-
-        coco_det = self.coco_dataset.loadRes(res_file)
-        coco_eval = COCOeval(self.coco_dataset, coco_det, 'keypoints')
-        coco_eval.params.useSegm = None
-        coco_eval.evaluate()
-        coco_eval.accumulate()
-        coco_eval.summarize()
-        accuracy = {'accuracy_ap[.5:.95]%': coco_eval.stats[0]*100.0, 'accuracy_ap50%': coco_eval.stats[1]*100.0}
+        eval_results_6dpose = self.evaluate_prediction_6dpose(data_list)
+        accuracy = {'add(s)_0p1': eval_results_6dpose[0]['ADD_0p1_avg']*100.0, 'add(s)_0p2': eval_results_6dpose[0]['ADD_0p2_avg']*100.0}
         return accuracy
-
 
     def convert_to_coco_format(self, preds):
         data_list = []
         targets = self.coco_dataset.imgToAnns
         for frame_index, frame_targets in targets.items():
+            if frame_index == len(preds):
+                break
+            frame_data_list = []
             pred = preds[frame_index]
             cls_pred = np.array(pred['cls'], dtype=np.int32)
-            pred_gt_data = {}
             for target in frame_targets:
-                pred_gt_data .update({
+                pred_gt_data = {
                     "image_id": target['image_id'],
                     "bbox_gt": target['bbox'],
                     "rotation_gt": target['R'],
                     "translation_gt": target['T'],
                     "category_id": target['category_id'],
                     "missing_det": True
-                })
-                if np.sum(cls_pred == target['category_id']) == 1:
+                }
+                if np.sum(cls_pred == target['category_id']) > 0:
                     matched_index =  np.where(cls_pred == target['category_id'])[0][0]
-                    pred_gt_data.update(
-                    {
+                    pred_gt_data.update({
                         "bbox_pred": pred['bbox'][matched_index],
                         "score": pred['scores'][matched_index],
                         "segmentation": [],
@@ -438,12 +407,11 @@ class YCBV(DatasetBase):
                         "translation_pred": pred['translation'][matched_index],
                         "missing_det": False
                     })
-            data_list.append(pred_gt_data)
+                frame_data_list.append(pred_gt_data)
+            data_list.extend(frame_data_list)
         return data_list
 
-    def evaluate_prediction_6dpose(self, data_dict, statistics):
-        if not is_main_process():
-            return 0, 0
+    def evaluate_prediction_6dpose(self, data_dict):
         data_dict_asym = []
         data_dict_sym = []
         for pred_data in data_dict:
@@ -473,10 +441,10 @@ class YCBV(DatasetBase):
     def compute_add_score(self, data_dict, percentage=0.1):
         distance_category = np.zeros((len(data_dict), 2))
         for index, pred_data in enumerate(data_dict):
-            R_gt, t_gt = np.array(pred_data['rotation_gt']), np.array(pred_data['translation_gt'])
-            R_gt, _ = cv2.Rodrigues(R_gt)
-            R_pred, t_pred= np.array(pred_data['rotation_pred']), np.array(pred_data['translation_pred'])
-            R_pred, _ = cv2.Rodrigues(R_pred)
+            R_gt, t_gt = np.array(pred_data['rotation_gt']).reshape(3,3), np.array(pred_data['translation_gt'])
+            #R_gt, _ = cv2.Rodrigues(R_gt)
+            R_pred, t_pred= pred_data['rotation_pred'].reshape(3,3), pred_data['translation_pred']
+            #R_pred, _ = cv2.Rodrigues(R_pred)
             pts3d = self.class_to_model[pred_data['category_id']]
             #mean_distances = np.zeros((count,), dtype=np.float32)
             pts_xformed_gt = np.matmul(R_gt,  pts3d.transpose()) + t_gt[:, None]
@@ -501,17 +469,15 @@ class YCBV(DatasetBase):
     def compute_adds_score(self, data_dict, percentage=0.1):
         distance_category = np.zeros((len(data_dict), 2))
         for index, pred_data in enumerate(data_dict):
-            R_gt, t_gt = np.array(pred_data['rotation_gt']), np.array(pred_data['translation_gt'])
-            R_gt, _ = cv2.Rodrigues(R_gt)
-            R_pred, t_pred = np.array(pred_data['rotation_pred']), np.array(pred_data['translation_pred'])
-            R_pred, _ = cv2.Rodrigues(R_pred)
+            R_gt, t_gt = np.array(pred_data['rotation_gt']).reshape(3,3), np.array(pred_data['translation_gt'])
+            #R_gt, _ = cv2.Rodrigues(R_gt)
+            R_pred, t_pred = pred_data['rotation_pred'].reshape(3,3), pred_data['translation_pred']
+            #R_pred, _ = cv2.Rodrigues(R_pred)
             pts3d = self.class_to_model[pred_data['category_id']]
             pts_xformed_gt = np.matmul(R_gt, pts3d.transpose()) + t_gt[:, None]
             pts_xformed_pred = np.matmul(R_pred, pts3d.transpose()) + t_pred[:, None]
             kdt = KDTree(pts_xformed_gt.transpose(), metric='euclidean')
             distance, _ = kdt.query(pts_xformed_pred.transpose(), k=1)
-            # distance_np = np.sqrt(     #brute-force distance calculation
-            #     np.min(np.sum((pts_xformed_gt[:, :, None] - pts_xformed_pred[:, None, :]) ** 2, axis=0), axis=1))
             distance_category[index, 0] = np.mean(distance)
             distance_category[index, 1] = pred_data['category_id']
 

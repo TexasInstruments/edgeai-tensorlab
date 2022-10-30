@@ -15,3 +15,5 @@ munkres
 h5py
 scipy
 pillow
+plyfile
+scikit-learn
