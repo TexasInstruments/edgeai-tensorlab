@@ -47,7 +47,7 @@ def init_params(*args, **kwargs):
             # run_name can be any string, but there are some special cases:
             # {date-time} will be replaced with datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             # {model_name} will be replaced with the name of the model
-            run_name='{model_name}/{date-time}',
+            run_name='{date-time}/{model_name}',
         ),
         dataset=dict(
             enable=True,
