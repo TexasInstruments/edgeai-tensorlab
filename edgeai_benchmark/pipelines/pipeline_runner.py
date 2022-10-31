@@ -31,7 +31,6 @@ import functools
 import itertools
 import warnings
 import copy
-import traceback
 
 from .. import utils
 from .model_transformation import *
@@ -128,27 +127,24 @@ class PipelineRunner():
         cwd = os.getcwd()
 
         result = {}
-        try:
-            if settings.pipeline_type == constants.PIPELINE_ACCURACY:
-                # use with statement, so that the logger and other file resources are cleaned up
-                with AccuracyPipeline(settings, pipeline_config) as accuracy_pipeline:
-                    accuracy_result = accuracy_pipeline(description)
-                    result.update(accuracy_result)
-                #
-            elif settings.pipeline_type == constants.PIPELINE_SOMETHING:
-                # this is just an example of how other pipelines can be implemented.
-                # 'something' used here is not real and it is not supported
-                with SomethingPipeline(settings, pipeline_config) as something_pipeline:
-                    something_result = something_pipeline(description)
-                    result.update(something_result)
-                #
-            else:
-                assert False, f'unknown pipeline: {settings.pipeline_type}'
+
+        if settings.pipeline_type == constants.PIPELINE_ACCURACY:
+            # use with statement, so that the logger and other file resources are cleaned up
+            with AccuracyPipeline(settings, pipeline_config) as accuracy_pipeline:
+                accuracy_result = accuracy_pipeline(description)
+                result.update(accuracy_result)
             #
-        except Exception as e:
-            print(f'\n{str(e)}')
-            traceback.print_exc()
+        elif settings.pipeline_type == constants.PIPELINE_SOMETHING:
+            # this is just an example of how other pipelines can be implemented.
+            # 'something' used here is not real and it is not supported
+            with SomethingPipeline(settings, pipeline_config) as something_pipeline:
+                something_result = something_pipeline(description)
+                result.update(something_result)
+            #
+        else:
+            assert False, f'unknown pipeline: {settings.pipeline_type}'
         #
+
         # make sure we are in cwd when we return.
         os.chdir(cwd)
         return result

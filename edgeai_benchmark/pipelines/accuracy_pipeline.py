@@ -183,7 +183,9 @@ class AccuracyPipeline():
         assert calibration_dataset is not None, f'got input_dataset={calibration_dataset}. please check settings.dataset_loading'
         preprocess = self.pipeline_config['preprocess']
         calibration_frames = self.pipeline_config.get('calibration_frames', self.settings.calibration_frames)
-        calibration_frames = min(len(calibration_dataset), calibration_frames)
+        assert len(calibration_dataset) >= calibration_frames, \
+            utils.log_color('\nERROR', 'import', f'too few calibration data - calibration dataset size ({len(calibration_dataset)}) '
+                                                 f'should be >= calibration_frames ({calibration_frames})')
 
         calib_data = []
         for data_index in range(calibration_frames):
