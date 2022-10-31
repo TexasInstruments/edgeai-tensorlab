@@ -83,10 +83,8 @@ class ModelMakerClassificationDataset(DatasetBase):
         #
         self.num_classes = num_classes
         self.annotations_info = self._find_annotations_info()
-        if num_frames is None:
-            num_frames = len(self.images_info)
-        #
-        self.num_frames = num_frames
+        max_frames = len(self.images_info)
+        self.num_frames = min(num_frames, max_frames) if num_frames is not None else max_frames
         super().__init__(num_classes=num_classes, image_dir=self.image_dir, annotation_file=self.annotation_file,
                          download=False, num_frames=num_frames, name=name, **kwargs)
         self.kwargs['dataset_info'] = self.get_dataset_info()
