@@ -108,10 +108,6 @@ class ModelCompilation():
         '''
         prepare for model compilation
         '''
-        self.settings_file = edgeai_benchmark.get_settings_file(target_machine=self.params.common.target_machine, with_model_import=True)
-        self.settings = self._get_settings(model_selection=self.params.compilation.model_compilation_id)
-        self.work_dir, self.package_dir = self._get_base_dirs()
-
         if self.params.common.task_type == 'detection':
             dataset_loader = edgeai_benchmark.datasets.ModelMakerDetectionDataset
         elif self.params.common.task_type == 'classification':
@@ -135,6 +131,10 @@ class ModelCompilation():
             num_frames=self.params.compilation.num_frames, # this num_frames is important for accuracy calculation
             annotation_prefix=self.params.dataset.annotation_prefix
         )
+
+        self.settings_file = edgeai_benchmark.get_settings_file(target_machine=self.params.common.target_machine, with_model_import=True)
+        self.settings = self._get_settings(self.params.compilation.model_compilation_id, calib_dataset, val_dataset)
+        self.work_dir, self.package_dir = self._get_base_dirs()
 
         # it may be easier to get the existing config and modify the aspects that need to be changed
         pipeline_configs = edgeai_benchmark.tools.select_configs(self.settings, self.work_dir)
@@ -201,14 +201,17 @@ class ModelCompilation():
         utils.make_symlink(packaged_artifact_path, self.params.compilation.model_packaged_path)
         return self.params
 
-    def _get_settings(self, model_selection=None):
+    def _get_settings(self, model_selection, calib_dataset, val_dataset):
+        # do not let the calibration_frames exceed calibration_dataset size
+        calibration_frames = min(self.params.compilation.calibration_frames, len(calib_dataset))
+
         settings = edgeai_benchmark.config_settings.ConfigSettings(
                         self.settings_file,
                         target_device=self.params.common.target_device,
                         model_selection=model_selection,
                         modelartifacts_path=self.params.compilation.compilation_path,
                         tensor_bits=self.params.compilation.tensor_bits,
-                        calibration_frames=self.params.compilation.calibration_frames,
+                        calibration_frames=calibration_frames,
                         calibration_iterations=self.params.compilation.calibration_iterations,
                         num_frames=self.params.compilation.num_frames,
                         runtime_options=None,
