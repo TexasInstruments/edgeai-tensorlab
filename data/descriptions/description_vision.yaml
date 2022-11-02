@@ -5,7 +5,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: classification
@@ -88,7 +88,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
@@ -99,7 +99,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: classification
@@ -182,7 +182,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
@@ -193,7 +193,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: classification
@@ -276,7 +276,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
@@ -287,7 +287,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: classification
@@ -366,7 +366,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
@@ -377,7 +377,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: classification
@@ -456,7 +456,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
@@ -467,7 +467,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: classification
@@ -546,7 +546,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
@@ -557,7 +557,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -646,7 +646,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
@@ -657,7 +657,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -746,7 +746,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
@@ -757,7 +757,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -842,7 +842,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
@@ -853,7 +853,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -942,7 +942,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
@@ -953,7 +953,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -1038,7 +1038,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
@@ -1049,7 +1049,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -1130,7 +1130,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
@@ -1141,7 +1141,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -1222,7 +1222,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
@@ -1233,7 +1233,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -1325,7 +1325,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -1407,7 +1407,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
@@ -1418,7 +1418,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -1500,7 +1500,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
@@ -1511,7 +1511,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -1593,7 +1593,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
@@ -1604,7 +1604,7 @@ model_descriptions:
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
-      run_name: '{model_name}/{date-time}'
+      run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
       task_type: detection
@@ -1686,7 +1686,7 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 30
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1

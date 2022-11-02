@@ -21,7 +21,7 @@
         "task_type":"classification",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -73,7 +73,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -126,7 +126,7 @@
         "task_type":"classification",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -178,7 +178,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -231,7 +231,7 @@
         "task_type":"classification",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -283,7 +283,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -336,7 +336,7 @@
         "task_type":"classification",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -383,7 +383,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -436,7 +436,7 @@
         "task_type":"classification",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -483,7 +483,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -536,7 +536,7 @@
         "task_type":"classification",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -583,7 +583,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -636,7 +636,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -688,7 +688,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -750,7 +750,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -802,7 +802,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -864,7 +864,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -916,7 +916,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -978,7 +978,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -1025,7 +1025,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -1087,7 +1087,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -1134,7 +1134,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -1196,7 +1196,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -1243,7 +1243,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -1299,7 +1299,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -1346,7 +1346,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -1402,7 +1402,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -1449,7 +1449,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -1505,7 +1505,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -1552,7 +1552,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -1608,7 +1608,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -1711,7 +1711,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -1758,7 +1758,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -1814,7 +1814,7 @@
         "task_type":"detection",
         "target_machine":"evm",
         "target_device":null,
-        "run_name":"{model_name}/{date-time}"
+        "run_name":"{date-time}/{model_name}"
       },
       "dataset":{
         "enable":true,
@@ -1861,7 +1861,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":30,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
