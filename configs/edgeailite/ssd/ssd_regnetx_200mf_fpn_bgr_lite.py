@@ -69,7 +69,9 @@ regnet_settings = {
                       'fpn_intermediate_channels': min(28*fpn_width_fact,256),
                       'fpn_out_channels': min(28*decoder_width_fact,256),
                       'fpn_num_blocks': decoder_depth_fact,
-                      'pretrained': './checkpoints/RegNetX-200MF_dds_8gpu_mmdet-converted.pyth'},
+                      # TODO: the following pretrained checkpoint is not correct - it is just a placeholder.
+                      # TODO: run tools/model_converters/regnet2mmdet.py on pycls checkpoint and provide the output checkpoint here.
+                      'pretrained': 'https://dl.fbaipublicfiles.com/pycls/dds_baselines/160905981/RegNetX-200MF_dds_8gpu.pyth'},
     'regnetx_400mf': {'backbone_out_channels': [32, 64, 160, 384], 'group_size_dw': 16,
                       'fpn_intermediate_channels': min(32*fpn_width_fact,256),
                       'fpn_out_channels': min(32*decoder_width_fact,256),
