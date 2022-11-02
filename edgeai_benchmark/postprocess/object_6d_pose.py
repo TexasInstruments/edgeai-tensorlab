@@ -338,7 +338,6 @@ class Object6dPoseImageSave:
         return img
 
     def project_3d_2d(self, pts_3d, rotation_mat, translation_vec, camera_matrix):
-        #rotation_mat, _ = cv2.Rodrigues(rotation_vec)
         xformed_3d = np.matmul(pts_3d, rotation_mat.T) + translation_vec
         xformed_3d[:,:3] = xformed_3d[:,:3]/xformed_3d[:,2:3]
         projected_2d = np.matmul(xformed_3d, camera_matrix.T)[:, :2]

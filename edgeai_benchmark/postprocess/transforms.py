@@ -308,7 +308,7 @@ class DetectionResizePad():
         self.resize_with_pad = resize_with_pad
         self.normalized_detections = normalized_detections
         self.keypoint = keypoint
-        self.object6dpose=object6dpose
+        self.object6dpose = object6dpose
 
     def __call__(self, bbox, info_dict):
         img_data = info_dict['data']

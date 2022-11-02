@@ -36,13 +36,10 @@ def get_configs(settings, work_dir):
     preproc_transforms = preprocess.PreProcessTransforms(settings)
     postproc_transforms = postprocess.PostProcessTransforms(settings)
 
-
-
-
     # configs for each model pipeline
-    # TIDL has post processing (simlar to object detection post processing) inside it for keypoint estimation
+    # TIDL has post processing (simlar to object detection post processing) inside it for object 6d pose estimation
     # These models use that keypoint post processing
-    # YOLO-Pose: Enhancing YOLO for Multi Person Pose Estimation Using Object Keypoint Similarity Loss
+    # YOLO-6d-Pose: Enhancing YOLO for Multi Object 6D Pose Estimation
     # Debapriya Maji, Soyeb Nagori, Manu Mathew, Deepak Poddar
     # https://arxiv.org/abs/2204.06806
     common_cfg = {
@@ -72,7 +69,7 @@ def get_configs(settings, work_dir):
         ),
 
         'op-7210':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(480, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114,114,114]),
+            preprocess=preproc_transforms.get_transform_onnx( (480,640), (480,640), reverse_channels=True, backend='cv2'),
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                         {'object_detection:meta_arch_type': 6,
