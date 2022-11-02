@@ -30,6 +30,7 @@ from .. import constants
 from .. import utils
 from .transforms import *
 from .keypoints import *
+from .object_6d_pose import *
 
 
 class PostProcessTransforms(utils.TransformsCompose):
@@ -51,7 +52,7 @@ class PostProcessTransforms(utils.TransformsCompose):
     ###############################################################
     # post process transforms for detection
     ###############################################################
-    def get_transform_detection_base(self, formatter=None, resize_with_pad=False, keypoint=False, normalized_detections=True,
+    def get_transform_detection_base(self, formatter=None, resize_with_pad=False, keypoint=False, object6dpose=False, normalized_detections=True,
                                      shuffle_indices=None, squeeze_axis=0, reshape_list=None, ignore_index=None):
         postprocess_detection = [ReshapeList(reshape_list=reshape_list),
                                  ShuffleList(indices=shuffle_indices),
@@ -66,7 +67,7 @@ class PostProcessTransforms(utils.TransformsCompose):
         if formatter is not None:
             postprocess_detection += [formatter]
         #
-        postprocess_detection += [DetectionResizePad(resize_with_pad=resize_with_pad, keypoint=keypoint,
+        postprocess_detection += [DetectionResizePad(resize_with_pad=resize_with_pad, keypoint=keypoint, object6dpose=object6dpose,
                                                     normalized_detections=normalized_detections)]
         if self.settings.detection_threshold is not None:
             postprocess_detection += [DetectionFilter(detection_threshold=self.settings.detection_threshold,
@@ -74,12 +75,16 @@ class PostProcessTransforms(utils.TransformsCompose):
         #
         if keypoint:
             postprocess_detection += [BboxKeypointsConfReformat()]
+        if object_6d_pose:
+            postprocess_detection += [BboxObject6dPoseReformat()]
 
         if self.settings.save_output:
-            if not keypoint:
-                postprocess_detection += [DetectionImageSave()]
-            else:
+            if keypoint:
                 postprocess_detection += [HumanPoseImageSave()]
+            elif object6dpose:
+                postprocess_detection += [Object6dPoseImageSave()]
+            else:
+                postprocess_detection += [DetectionImageSave()]
         #
         transforms = PostProcessTransforms(None, postprocess_detection,
                                            detection_threshold=self.settings.detection_threshold,
@@ -99,6 +104,9 @@ class PostProcessTransforms(utils.TransformsCompose):
 
     def get_transform_detection_yolov5_pose_onnx(self, formatter=None, **kwargs):
         return self.get_transform_detection_base(formatter=formatter, reshape_list=[(-1,57)], **kwargs)
+
+    def get_transform_detection_yolo_6d_object_pose_onnx(self, formatter=None, **kwargs):
+        return self.get_transform_detection_base(formatter=formatter, reshape_list=[(-1,15)], **kwargs)
 
     def get_transform_detection_tv_onnx(self, formatter=DetectionBoxSL2BoxLS(), reshape_list=[(-1,4), (-1,1), (-1,1)],
             squeeze_axis=None, normalized_detections=True, **kwargs):
