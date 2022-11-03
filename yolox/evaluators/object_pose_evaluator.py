@@ -321,12 +321,15 @@ class ObjectPoseEvaluator:
             return 0, 0
         data_dict_asym = []
         data_dict_sym = []
+        missing_det_per_class = {}
         for pred_data in data_dict:
             if not pred_data['missing_det']:
                 if self.class_to_name[pred_data['category_id']] not in self.symmetric_objects.values():
                     data_dict_asym.extend([pred_data])
                 else:
                     data_dict_sym.extend([pred_data])
+            else:
+                pass   #ToDo: Keep track of the missing detections for each class.
         score_dict_asym = self.compute_add_score(data_dict_asym)
         score_dict_sym = self.compute_adds_score(data_dict_sym)
         score_dict = {}

@@ -22,7 +22,7 @@ _VAL_ANN = {
     "coco":"instances_val2017.json", 
     "linemod_occlusion":"instances_test.json",
     "linemod_occlusion_pbr":"instances_test.json",
-    "ycb": "instances_test.json",
+    "ycb": "instances_test_bop.json",
     "coco_kpts": "person_keypoints_val2017.json",
 }
 _SUPPORTED_TASKS = {
@@ -245,7 +245,7 @@ def main(exp, args, num_gpu):
 if __name__ == "__main__":
     args = make_parser().parse_args()
     exp = get_exp(args.exp_file, args.name)
-    exp.merge(args.opts)
+    exp.merge(args.opts)  #It is possible to update the values of exp from cmd
 
     if not args.experiment_name:
         args.experiment_name = exp.exp_name

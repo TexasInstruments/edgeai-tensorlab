@@ -41,8 +41,8 @@ class CADModelsYCB():
                                     18 : "040_large_marker", 19 : "051_large_clamp", 20 : "052_extra_large_clamp", 21 : "061_foam_brick" }
 
     def get_camera_params(self):
-        camera_params_paths = [os.path.join(self.data_dir, "base", "camera_uw.json"),
-                                    os.path.join(self.data_dir, "base", "camera_cmu.json")]
+        camera_params_paths = [os.path.join(self.data_dir, "camera_uw.json"),
+                                    os.path.join(self.data_dir, "camera_cmu.json")]
         camera_matrix = {}
         for camera_param_path in camera_params_paths:
             with open(camera_param_path) as foo:
@@ -77,7 +77,7 @@ class CADModelsYCB():
 
     def get_models_params(self):
         """
-        Convert model corners from LINEMOD Occlusion format (min_x, min_y, min_z, size_x, size_y, size_z) to actual coordinates format of dimension (8,3)
+        Convert model corners from (min_x, min_y, min_z, size_x, size_y, size_z) to actual coordinates format of dimension (8,3)
         Return the corner coordinates and the diameters of each models
         """
         models_corners_3d = {}
