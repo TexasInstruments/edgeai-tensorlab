@@ -46,7 +46,7 @@ training:
     # YOLOv5: 'yolov5s6_640_ti_lite', 'yolov5m6_640_ti_lite', 'yolov5l6_640_ti_lite'
     model_name: 'yolox_s_lite_mmdet'
 
-    training_epochs: 30 #10
+    training_epochs: 15 #30
     # batch_size: 8 #32
     # learning_rate: 0.005
     num_gpus: 0 #0 #1 #4
