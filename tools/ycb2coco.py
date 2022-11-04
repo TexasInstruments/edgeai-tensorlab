@@ -6,9 +6,9 @@ from tqdm import tqdm
 import json
 import argparse
 
-parser = argparse.ArgumentParser("LINEMOD_PBR2COCO_PARSER")
-parser.add_argument("--type", default="real", type=str, help="real, pbr or synt")
-parser.add_argument("--keyframes", default="/data/ssd/6d_pose/ycb/YCB_dataset/image_sets/keyframe.txt", type=str, help="path to the keyframes file list")
+parser = argparse.ArgumentParser("YCB_PBR2COCO_PARSER")
+parser.add_argument("--type", default="real", type=str, help="real, pbr or synt or bop")
+parser.add_argument("--keyframes", default="/data/ssd/6d_pose/ycbv/keyframe.txt", type=str, help="path to the keyframes file list")
 parser.add_argument("--split", default='train', type=str, help="Use selected frames")
 
 args = parser.parse_args()
@@ -22,10 +22,10 @@ class_to_name = {
 }
 
 def convert_to_coco_json(merge=False):
-    basepath = '/data/ssd/6d_pose/ycb/{}_{}'.format(args.split, args.type)
+    basepath = '/data/ssd/6d_pose/ycbv/{}_{}'.format(args.split, args.type)
     data_folders = sorted(os.listdir(basepath))
 
-    outfile = '/data/ssd/6d_pose/ycb/annotations/instances_{}.json'.format(args.split)
+    outfile = '/data/ssd/6d_pose/ycbv/annotations/temp/instances_{}_{}.json'.format(args.split, args.type)
     if args.split == 'test':
         assert args.keyframes is not None, "keyframe file has to be specified"
         with open(args.keyframes):
@@ -97,8 +97,8 @@ def convert_to_coco_json(merge=False):
                     annotation = dict([
                         ("image_id", img_count),
                         ("id", obj_count),
-                        ("bbox", object_gt_info["bbox_obj"]),
-                        ("area", object_gt_info["bbox_obj"][2] * object_gt_info["bbox_obj"][3]),
+                        ("bbox", object_gt_info["bbox_visib"]),
+                        ("area", object_gt_info["bbox_visib"][2] * object_gt_info["bbox_visib"][3]),
                         ("iscrowd", 0),
                         ("category_id", object_gt["obj_id"]-1),
                         ("R", object_gt["cam_R_m2c"]),
@@ -108,42 +108,6 @@ def convert_to_coco_json(merge=False):
                     coco["annotations"].append(annotation)
             img_count += 1
         pbar.close()
-
-    #Merge either with the LINEMOD or LINEMOD Occlusion dataset.
-    if args.merge_lm:
-        lm_real_path = "/data/ssd/6d_pose/LINEMOD_Occlusion_COCO_pbr/annotations/lm_real_merged/08_classes/instances_train.json"
-        with open(lm_real_path) as foo:
-            lm_real_gt = json.load(foo)
-            print("loading real LINEMOD Occlusion gt data")
-            for image_dict in lm_real_gt["images"]:
-                image_dict['id'] = image_dict['id'] + num_images * 50
-                print("image_dict", image_dict['id'])
-
-            for annotation_dict in lm_real_gt["annotations"]:
-                annotation_dict['image_id'] = annotation_dict['image_id'] + num_images*50 # num_folders=50. TO remove the hard-coding
-                annotation_dict['id'] = annotation_dict['id'] + obj_count
-                print("annotation_dict", annotation_dict['image_id'])
-
-            coco["annotations"].extend(lm_real_gt["annotations"])
-            coco["images"].extend(lm_real_gt["images"])
-
-    elif args.merge_lmo:
-        lmo_real_path = "/data/ssd/6d_pose/LINEMOD_Occlusion_COCO/annotations/instances_train.json"
-        with open(lmo_real_path) as foo:
-            lm_real_gt = json.load(foo)
-            print("loading real LINEMOD Occlusion gt data")
-            for image_dict in lm_real_gt["images"]:
-                image_dict['id'] = image_dict['id'] + num_images * 50
-                print("image_dict", image_dict['id'])
-
-            for annotation_dict in lm_real_gt["annotations"]:
-                annotation_dict['image_id'] = annotation_dict['image_id'] + num_images*50 # num_folders=50. TO remove the hard-coding
-                annotation_dict['id'] = annotation_dict['id'] + obj_count
-                print("annotation_dict", annotation_dict['image_id'])
-
-            coco["annotations"].extend(lm_real_gt["annotations"])
-            coco["images"].extend(lm_real_gt["images"])
-
 
     mmcv.dump(coco, outfile)
 
