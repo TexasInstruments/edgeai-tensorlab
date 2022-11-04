@@ -180,11 +180,11 @@ def random_affine(
 
     # Transform label coordinates
     if len(targets) > 0:
-        targets = apply_affine_to_bboxes(targets, target_size, M, scale)
+        targets = apply_affine_to_bboxes(targets, (target_size[1],target_size[0]), M, scale)
         if human_pose:
             targets = apply_affine_to_kpts(targets, target_size, M, scale)
         elif object_pose:
-            targets = apply_affine_to_object_pose(targets, target_size, M, scale, angle)
+            targets = apply_affine_to_object_pose(targets, (target_size[1],target_size[0]), M, scale, angle)
 
     return img, targets
 
