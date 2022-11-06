@@ -69,11 +69,14 @@ def convert_to_coco_json(merge=False):
                 filename = "{:06}".format(image_index+1) + '.png'
             elif args.type == "pbr":
                 filename = "{:06}".format(image_index) + '.jpg'
-            if args.keyframes is not None and args.split != 'train':
+            elif args.type == "bop":
+                filename = "{:06}".format(int(objects_gt[0])) + '.png'
+
+            if args.keyframes is not None and args.split != 'train' and args.type != 'bop':
                 print(os.path.join(data_folder, filename))
                 if os.path.join(data_folder, filename) not in keyframes_list :
                     continue
-            elif image_index%10 != 0 and args.type!="pbr":
+            elif image_index%10 != 0 and args.type!="pbr" and args.type != 'bop':
                 continue
 
             height, width = mmcv.imread(data_path + '/rgb/' + filename).shape[:2]
@@ -88,6 +91,8 @@ def convert_to_coco_json(merge=False):
                 image.update({'type': "real"})
             elif "pbr" in path:
                 image.update({'type': "pbr"})
+            elif "bop" in path :
+                image.update({'type': "bop"})
             else:
                 image.update({'type': "syn"})
 
