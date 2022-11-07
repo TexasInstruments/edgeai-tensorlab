@@ -46,7 +46,7 @@ then
         --privileged \
         --network host \
         --shm-size 50G \
-        modelmaker bash
+        modelmaker:v1 bash
 # If one container exist, execute that container.
 elif [ $cont_count -eq 1 ]
 then

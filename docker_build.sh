@@ -51,7 +51,7 @@ echo "PROXY_LOCATION="${PROXY_LOCATION}
 echo "building docker image..."
 docker build \
     -f Dockerfile \
-    -t modelmaker \
+    -t modelmaker:v1 \
     --build-arg REPO_LOCATION=${REPO_LOCATION} \
     --build-arg PROXY_LOCATION=${PROXY_LOCATION} \
     --build-arg USER_ID=$(id -u) \
