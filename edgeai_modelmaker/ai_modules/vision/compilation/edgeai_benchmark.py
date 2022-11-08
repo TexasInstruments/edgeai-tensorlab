@@ -220,7 +220,7 @@ class ModelCompilation():
                         parallel_devices=None,
                         dataset_loading=False,
                         save_output=self.params.compilation.save_output,
-                        input_optimization=params.compilation.input_optimization,
+                        input_optimization=self.params.compilation.input_optimization,
                         tidl_offload=self.params.compilation.tidl_offload,
                         verbose=self.params.compilation.verbose
         )
