@@ -49,6 +49,7 @@ def get_configs(settings, work_dir):
     # this post process function used here implement post processing using associative embedding
     common_cfg = {
         'task_type': 'human_pose_estimation',
+        'dataset_category': datasets.DATASET_CATEGORY_COCOKPTS,
         'calibration_dataset': settings.dataset_cache['cocokpts']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['cocokpts']['input_dataset'],
         'postprocess': postproc_transforms.get_transform_human_pose_estimation_onnx() 

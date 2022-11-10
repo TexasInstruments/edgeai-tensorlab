@@ -81,10 +81,11 @@ task_selection : null
 # example: ['onnxrt']
 runtime_selection : null
 
-# wild card list to match against dataset type - if null, all datasets will be shortlisted
+# dataset_selection can be a list of dataset categories for which the models will be run
+# set this to null to run all the models
 # example: ['coco']
-# example: ['imagenet', 'cocoseg21', 'ade20k', 'cocokpts', 'kitti_lidar_det', 'ti-robokit_semseg_zed1hd', 'ycbv']
-dataset_loading : null
+# example: ['imagenet', 'coco', 'cocoseg21', 'ade20k', 'cocokpts', 'kitti_lidar_det', 'ti-robokit_semseg_zed1hd', 'ycbv']
+dataset_selection : null
 
 # use TIDL offload to speedup inference
 tidl_offload : True

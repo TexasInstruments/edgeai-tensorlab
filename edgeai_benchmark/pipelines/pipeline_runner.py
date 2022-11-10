@@ -202,4 +202,10 @@ class PipelineRunner():
             excluded_model = self._str_match_plus_any(model_exclusion, (model_path0,model_id,model_type))
             selected_model = selected_model and (not excluded_model)
         #
+        if settings.dataset_selection is not None:
+            dataset_selection = utils.as_list(settings.dataset_selection)
+            dataset_category = pipeline_config.get('dataset_category', None)
+            assert dataset_category is not None, f'dataset_selection is set, but dataset_category is not defined in pipeline_config: {pipeline_config}'
+            selected_model = selected_model and (dataset_category in dataset_selection)
+        #
         return selected_model
