@@ -169,9 +169,12 @@ class ConfigDict(dict):
         # example: {'imagenet':'imagenetv1'}
         # example: {'imagenet':'imagenetv2c'}
         self.dataset_type_dict = None
-        # whether to load the datasets or not. set to False to load no datasets
+        # dataset_selection can be a list of dataset categories for which the models will be run
+        self.dataset_selection = None
+        # whether to load the datasets or not. set to False or null to load no datasets
         # set to True to try and load all datasets (the dataset folders must be available in ./dependencies/datasets).
-        # for selective loading, provide a list of dataset names such as ['imagenet', 'coco', 'cityscapes', 'ade20k', 'voc2012']
+        # for selective loading, provide a list of dataset names such as
+        # ['imagenet', 'coco', 'cocoseg21', 'ade20k', 'cocokpts', 'kitti_lidar_det', 'ti-robokit_semseg_zed1hd', 'ycbv']
         self.dataset_loading = True
         # which configs to run from the default list. example [0,10] [10,null] etc.
         self.config_range = None

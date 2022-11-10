@@ -42,6 +42,7 @@ def get_configs(settings, work_dir):
     # configs for each model pipeline
     common_cfg = {
         'task_type': 'detection',
+        'dataset_category': datasets.DATASET_CATEGORY_WIDERFACE,
         'calibration_dataset': settings.dataset_cache['widerface']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['widerface']['input_dataset'],
     }

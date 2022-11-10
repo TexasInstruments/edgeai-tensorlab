@@ -45,6 +45,7 @@ def get_configs(settings, work_dir):
     # configs for each model pipeline
     common_cfg = {
         'task_type': 'classification',
+        'dataset_category': datasets.DATASET_CATEGORY_IMAGENET,
         'calibration_dataset': settings.dataset_cache['imagenet']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['imagenet']['input_dataset'],
         'postprocess': postproc_transforms.get_transform_classification(),

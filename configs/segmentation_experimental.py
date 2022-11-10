@@ -42,36 +42,42 @@ def get_configs(settings, work_dir):
     # configs for each model pipeline
     cityscapes_cfg = {
         'task_type': 'segmentation',
+        'dataset_category': datasets.DATASET_CATEGORY_CITYSCAPES,
         'calibration_dataset': settings.dataset_cache['cityscapes']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['cityscapes']['input_dataset'],
     }
 
     ade20k_cfg = {
         'task_type': 'segmentation',
+        'dataset_category': datasets.DATASET_CATEGORY_ADE20K,
         'calibration_dataset': settings.dataset_cache['ade20k']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['ade20k']['input_dataset'],
     }
 
     ade20k_cfg_class32 = {
         'task_type': 'segmentation',
+        'dataset_category': datasets.DATASET_CATEGORY_ADE20K32,
         'calibration_dataset': settings.dataset_cache['ade20k32']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['ade20k32']['input_dataset'],
     }
 
     pascal_voc_cfg = {
         'task_type': 'segmentation',
+        'dataset_category': datasets.DATASET_CATEGORY_VOC2012,
         'calibration_dataset': settings.dataset_cache['voc2012']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['voc2012']['input_dataset'],
     }
 
     cocoseg21_cfg = {
         'task_type': 'segmentation',
+        'dataset_category': datasets.DATASET_CATEGORY_COCOSEG21,
         'calibration_dataset': settings.dataset_cache['cocoseg21']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['cocoseg21']['input_dataset'],
     }
 
     robokitseg_cfg = {
         'task_type': 'segmentation',
+        'dataset_category': datasets.DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD,
         'calibration_dataset': settings.dataset_cache['ti-robokit_semseg_zed1hd']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['ti-robokit_semseg_zed1hd']['input_dataset'],
     }

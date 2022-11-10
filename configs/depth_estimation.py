@@ -41,6 +41,7 @@ def get_configs(settings, work_dir):
 
     nyudepthv2_cfg = {
         'task_type': 'depth_estimation',
+        'dataset_category': datasets.DATASET_CATEGORY_NYUDEPTHV2,
         'calibration_dataset': settings.dataset_cache['nyudepthv2']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['nyudepthv2']['input_dataset'],
     }

@@ -71,7 +71,7 @@ def _get_mapping_id_name(imgs):
 
 
 class YCBV(DatasetBase):
-    def __init__(self, download=False, num_frames=None, name="cocokpts", **kwargs):
+    def __init__(self, download=False, num_frames=None, name="ycbv", **kwargs):
         super().__init__(num_frames=num_frames, name=name, **kwargs)
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'kwargs must have path and split'

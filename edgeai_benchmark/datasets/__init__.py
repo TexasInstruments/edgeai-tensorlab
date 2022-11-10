@@ -53,39 +53,52 @@ except ImportError as e:
     KittiLidar3D = None
 
 
+DATASET_CATEGORY_IMAGENET = 'imagenet'
+DATASET_CATEGORY_COCO = 'coco'
+DATASET_CATEGORY_WIDERFACE = 'widerface'
+DATASET_CATEGORY_ADE20K32 = 'ade20k32'
+DATASET_CATEGORY_ADE20K = 'ade20k'
+DATASET_CATEGORY_VOC2012 = 'voc2012'
+DATASET_CATEGORY_COCOSEG21 = 'cocoseg21'
+DATASET_CATEGORY_COCOKPTS = 'cocokpts'
+DATASET_CATEGORY_NYUDEPTHV2 = 'nyudepthv2'
+DATASET_CATEGORY_CITYSCAPES = 'cityscapes'
+DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD = 'ti-robokit_semseg_zed1hd'
+DATASET_CATEGORY_KITTI_LIDAR_DET = 'kitti_lidar_det'
+DATASET_CATEGORY_YCBV = 'ycbv'
+
 dataset_info_dict = {
     #------------------------image classification datasets--------------------------#
     # Original ImageNet
-    'imagenet':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetCls, 'size':50000, 'split':'val'},
-    'imagenetv1':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetCls, 'size':50000, 'split':'val'},
+    'imagenet':{'task_type':'classification', 'category':DATASET_CATEGORY_IMAGENET, 'type':ImageNetCls, 'size':50000, 'split':'val'},
+    'imagenetv1':{'task_type':'classification', 'category':DATASET_CATEGORY_IMAGENET, 'type':ImageNetCls, 'size':50000, 'split':'val'},
     # ImageNetV2 as explained in imagenet_v2.py
-    'imagenetv2c':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetV2C, 'size':10000, 'split':'val'},
-    'imagenetv2b':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetV2B, 'size':10000, 'split':'val'},
-    'imagenetv2a':{'task_type':'classification', 'category':'imagenet', 'type':ImageNetV2A, 'size':10000, 'split':'val'},
+    'imagenetv2c':{'task_type':'classification', 'category':DATASET_CATEGORY_IMAGENET, 'type':ImageNetV2C, 'size':10000, 'split':'val'},
+    'imagenetv2b':{'task_type':'classification', 'category':DATASET_CATEGORY_IMAGENET, 'type':ImageNetV2B, 'size':10000, 'split':'val'},
+    'imagenetv2a':{'task_type':'classification', 'category':DATASET_CATEGORY_IMAGENET, 'type':ImageNetV2A, 'size':10000, 'split':'val'},
     #------------------------object detection datasets--------------------------#
-    'coco': {'task_type':'detection', 'category':'coco', 'type':COCODetection, 'size':5000, 'split':'val2017'},
-    'widerface': {'task_type':'detection', 'category':'widerface', 'type':WiderFaceDetection, 'size':3226, 'split':'val'},
+    'coco': {'task_type':'detection', 'category':DATASET_CATEGORY_COCO, 'type':COCODetection, 'size':5000, 'split':'val2017'},
+    'widerface': {'task_type':'detection', 'category':DATASET_CATEGORY_WIDERFACE, 'type':WiderFaceDetection, 'size':3226, 'split':'val'},
     #------------------------semantic segmentation datasets--------------------------#
-    'ade20k32': {'task_type':'segmentation', 'category':'ade20k32', 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
-    'ade20k': {'task_type':'segmentation', 'category':'ade20k', 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
-    'voc2012': {'task_type':'segmentation', 'category':'voc2012', 'type':VOC2012Segmentation, 'size':1449, 'split':'val'},
-    'cocoseg21': {'task_type':'segmentation', 'category':'cocoseg21', 'type':COCOSegmentation, 'size':5000, 'split':'val2017'},
+    'ade20k32': {'task_type':'segmentation', 'category':DATASET_CATEGORY_ADE20K32, 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
+    'ade20k': {'task_type':'segmentation', 'category':DATASET_CATEGORY_ADE20K, 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
+    'voc2012': {'task_type':'segmentation', 'category':DATASET_CATEGORY_VOC2012, 'type':VOC2012Segmentation, 'size':1449, 'split':'val'},
+    'cocoseg21': {'task_type':'segmentation', 'category':DATASET_CATEGORY_COCOSEG21, 'type':COCOSegmentation, 'size':5000, 'split':'val2017'},
     #------------------------human pose estimation datasets--------------------------#
-    'cocokpts': {'task_type':'keypoint_detection', 'category':'cocokpts', 'type':COCOKeypoints, 'size':5000, 'split':'val2017'},
+    'cocokpts': {'task_type':'keypoint_detection', 'category':DATASET_CATEGORY_COCOKPTS, 'type':COCOKeypoints, 'size':5000, 'split':'val2017'},
     #------------------------depth estimation datasets--------------------------#
-    'nyudepthv2': {'task_type':'depth_estimation', 'category':'nyudepthv2', 'type':NYUDepthV2, 'size':654, 'split':'val'},
+    'nyudepthv2': {'task_type':'depth_estimation', 'category':DATASET_CATEGORY_NYUDEPTHV2, 'type':NYUDepthV2, 'size':654, 'split':'val'},
     #------------------------object 6d pose estimation datasets--------------------------#
-    'ycbv': {'task_type':'object_6d_pose_estimation', 'category':'ycbv', 'type': YCBV, 'size':900, 'split':'test'},
-    
+    'ycbv': {'task_type':'object_6d_pose_estimation', 'category':DATASET_CATEGORY_YCBV, 'type': YCBV, 'size':900, 'split':'test'},
  }
 
 
 dataset_info_dict_experimental = {
     #------------------------semantic segmentation datasets--------------------------#
-    'cityscapes': {'task_type':'segmentation', 'category':'cityscapes', 'type':CityscapesSegmentation, 'size':500, 'split':'val'},
-    'ti-robokit_semseg_zed1hd': {'task_type':'segmentation', 'category':'ti-robokit_semseg_zed1hd', 'type':ImageSegmentation, 'size':49, 'split':'val'},
+    'cityscapes': {'task_type':'segmentation', 'category':DATASET_CATEGORY_CITYSCAPES, 'type':CityscapesSegmentation, 'size':500, 'split':'val'},
+    'ti-robokit_semseg_zed1hd': {'task_type':'segmentation', 'category':DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD, 'type':ImageSegmentation, 'size':49, 'split':'val'},
     #------------------------3D OD datasets--------------------------#
-    'kitti_lidar_det': {'task_type':'3d-detection', 'category':'kitti_lidar_det', 'type':KittiLidar3D, 'size':3769, 'split':'val'},
+    'kitti_lidar_det': {'task_type':'3d-detection', 'category':DATASET_CATEGORY_KITTI_LIDAR_DET, 'type':KittiLidar3D, 'size':3769, 'split':'val'},
  }
 
 
@@ -121,12 +134,11 @@ def get_dataset_names(settings, task_type=None):
 def get_datasets(settings, download=False):
     dataset_categories = get_dataset_categories(settings)
     dataset_cache = {ds_category:{'calibration_dataset':None, 'input_dataset':None} for ds_category in dataset_categories}
-
     dset_info_dict = get_dataset_info_dict(settings)
 
-    if in_dataset_loading(settings, 'imagenet'):
-        dataset_variant = settings.dataset_type_dict['imagenet'] if \
-            settings.dataset_type_dict is not None else 'imagenet'
+    if check_dataset_load(settings, DATASET_CATEGORY_IMAGENET):
+        dataset_variant = settings.dataset_type_dict[DATASET_CATEGORY_IMAGENET] if \
+            settings.dataset_type_dict is not None else DATASET_CATEGORY_IMAGENET
         # dataset settings
         imagenet_dataset_dict = dset_info_dict[dataset_variant]
         ImageNetDataSetType = imagenet_dataset_dict['type']
@@ -148,191 +160,191 @@ def get_datasets(settings, download=False):
         # what is provided is mechanism to select one of the imagenet variants
         # but only one is selected and assigned to the key imagenet
         # all the imagenet models will use this variant.
-        dataset_cache['imagenet']['calibration_dataset'] = ImageNetDataSetType(**imagenet_cls_calib_cfg, download=download)
-        dataset_cache['imagenet']['input_dataset'] = ImageNetDataSetType(**imagenet_cls_val_cfg, download=False)
+        dataset_cache[DATASET_CATEGORY_IMAGENET]['calibration_dataset'] = ImageNetDataSetType(**imagenet_cls_calib_cfg, download=download)
+        dataset_cache[DATASET_CATEGORY_IMAGENET]['input_dataset'] = ImageNetDataSetType(**imagenet_cls_val_cfg, download=False)
     #
-    if in_dataset_loading(settings, 'cocokpts'):
+    if check_dataset_load(settings, DATASET_CATEGORY_COCOKPTS):
         filter_imgs = True
         coco_kpts_calib_cfg = dict(
             path=f'{settings.datasets_path}/coco',
             split='val2017',
             shuffle=True,
             num_frames=settings.calibration_frames,
-            name='cocokpts',
+            name=DATASET_CATEGORY_COCOKPTS,
             filter_imgs=filter_imgs)
         coco_kpts_val_cfg = dict(
             path=f'{settings.datasets_path}/coco',
             split='val2017',
             shuffle=False, #TODO: need to make COCODetection.evaluate() work with shuffle
             num_frames=min(settings.num_frames,5000),
-            name='cocokpts',
+            name=DATASET_CATEGORY_COCOKPTS,
             filter_imgs=filter_imgs)
 
-        dataset_cache['cocokpts']['calibration_dataset'] = COCOKeypoints(**coco_kpts_calib_cfg, download=download)
-        dataset_cache['cocokpts']['input_dataset'] = COCOKeypoints(**coco_kpts_val_cfg, download=False)
-
-    if in_dataset_loading(settings, 'ycbv'):
+        dataset_cache[DATASET_CATEGORY_COCOKPTS]['calibration_dataset'] = COCOKeypoints(**coco_kpts_calib_cfg, download=download)
+        dataset_cache[DATASET_CATEGORY_COCOKPTS]['input_dataset'] = COCOKeypoints(**coco_kpts_val_cfg, download=False)
+    #
+    if check_dataset_load(settings, DATASET_CATEGORY_YCBV):
         filter_imgs = True
         ycbv_calib_cfg = dict(
             path=f'{settings.datasets_path}/ycbv',
             split='test',
             shuffle=True,
             num_frames=settings.calibration_frames,
-            name='ycbv',
+            name=DATASET_CATEGORY_YCBV,
             filter_imgs=filter_imgs)
         ycbv_val_cfg = dict(
             path=f'{settings.datasets_path}/ycbv',
             split='test',
             shuffle=False,
             num_frames=min(settings.num_frames,900),
-            name='ycbv',
+            name=DATASET_CATEGORY_YCBV,
             filter_imgs=filter_imgs)
 
-        dataset_cache['ycbv']['calibration_dataset'] = YCBV(**ycbv_calib_cfg, download=download)
-        dataset_cache['ycbv']['input_dataset'] = YCBV(**ycbv_val_cfg, download=False)
-
-    
-    if in_dataset_loading(settings, 'coco'):
+        dataset_cache[DATASET_CATEGORY_YCBV]['calibration_dataset'] = YCBV(**ycbv_calib_cfg, download=download)
+        dataset_cache[DATASET_CATEGORY_YCBV]['input_dataset'] = YCBV(**ycbv_val_cfg, download=False)
+    #
+    if check_dataset_load(settings, DATASET_CATEGORY_COCO):
         coco_det_calib_cfg = dict(
             path=f'{settings.datasets_path}/coco',
             split='val2017',
             shuffle=True,
             num_frames=settings.calibration_frames,
-            name='coco')
+            name=DATASET_CATEGORY_COCO)
         coco_det_val_cfg = dict(
             path=f'{settings.datasets_path}/coco',
             split='val2017',
             shuffle=False, # can be set to True as well, if needed
             num_frames=min(settings.num_frames,5000),
-            name='coco')
-        dataset_cache['coco']['calibration_dataset'] = COCODetection(**coco_det_calib_cfg, download=download)
-        dataset_cache['coco']['input_dataset'] = COCODetection(**coco_det_val_cfg, download=False)
+            name=DATASET_CATEGORY_COCO)
+        dataset_cache[DATASET_CATEGORY_COCO]['calibration_dataset'] = COCODetection(**coco_det_calib_cfg, download=download)
+        dataset_cache[DATASET_CATEGORY_COCO]['input_dataset'] = COCODetection(**coco_det_val_cfg, download=False)
     #
-    if in_dataset_loading(settings, 'widerface'):
+    if check_dataset_load(settings, DATASET_CATEGORY_WIDERFACE):
         widerface_det_calib_cfg = dict(
             path=f'{settings.datasets_path}/widerface',
             split='val',
             shuffle=True,
             num_frames=settings.calibration_frames,
-            name='widerface')
+            name=DATASET_CATEGORY_WIDERFACE)
         widerface_det_val_cfg = dict(
             path=f'{settings.datasets_path}/widerface',
             split='val',
             shuffle=False, # can be set to True as well, if needed
             num_frames=min(settings.num_frames,3226),
-            name='widerface')
-        dataset_cache['widerface']['calibration_dataset'] = WiderFaceDetection(**widerface_det_calib_cfg, download=download)
-        dataset_cache['widerface']['input_dataset'] = WiderFaceDetection(**widerface_det_val_cfg, download=False)
+            name=DATASET_CATEGORY_WIDERFACE)
+        dataset_cache[DATASET_CATEGORY_WIDERFACE]['calibration_dataset'] = WiderFaceDetection(**widerface_det_calib_cfg, download=download)
+        dataset_cache[DATASET_CATEGORY_WIDERFACE]['input_dataset'] = WiderFaceDetection(**widerface_det_val_cfg, download=False)
     #
-    if in_dataset_loading(settings, 'cocoseg21'):
+    if check_dataset_load(settings, DATASET_CATEGORY_COCOSEG21):
         cocoseg21_calib_cfg = dict(
             path=f'{settings.datasets_path}/coco',
             split='val2017',
             shuffle=True,
             num_frames=settings.calibration_frames,
-            name='cocoseg21')
+            name=DATASET_CATEGORY_COCOSEG21)
         cocoseg21_val_cfg = dict(
             path=f'{settings.datasets_path}/coco',
             split='val2017',
             shuffle=True,
             num_frames=min(settings.num_frames,5000),
-            name='cocoseg21')
-        dataset_cache['cocoseg21']['calibration_dataset'] = COCOSegmentation(**cocoseg21_calib_cfg, download=download)
-        dataset_cache['cocoseg21']['input_dataset'] = COCOSegmentation(**cocoseg21_val_cfg, download=False)
+            name=DATASET_CATEGORY_COCOSEG21)
+        dataset_cache[DATASET_CATEGORY_COCOSEG21]['calibration_dataset'] = COCOSegmentation(**cocoseg21_calib_cfg, download=download)
+        dataset_cache[DATASET_CATEGORY_COCOSEG21]['input_dataset'] = COCOSegmentation(**cocoseg21_val_cfg, download=False)
     #
-    if in_dataset_loading(settings, 'ade20k'):
+    if check_dataset_load(settings, DATASET_CATEGORY_ADE20K):
         ade20k_seg_calib_cfg = dict(
             path=f'{settings.datasets_path}/ADEChallengeData2016',
             split='validation',
             shuffle=True,
             num_frames=settings.calibration_frames,
-            name='ade20k')
+            name=DATASET_CATEGORY_ADE20K)
         ade20k_seg_val_cfg = dict(
             path=f'{settings.datasets_path}/ADEChallengeData2016',
             split='validation',
             shuffle=True,
             num_frames=min(settings.num_frames, 2000),
-            name='ade20k')
-        dataset_cache['ade20k']['calibration_dataset'] = ADE20KSegmentation(**ade20k_seg_calib_cfg, download=download)
-        dataset_cache['ade20k']['input_dataset'] = ADE20KSegmentation(**ade20k_seg_val_cfg, download=False)
+            name=DATASET_CATEGORY_ADE20K)
+        dataset_cache[DATASET_CATEGORY_ADE20K]['calibration_dataset'] = ADE20KSegmentation(**ade20k_seg_calib_cfg, download=download)
+        dataset_cache[DATASET_CATEGORY_ADE20K]['input_dataset'] = ADE20KSegmentation(**ade20k_seg_val_cfg, download=False)
     #
-    if in_dataset_loading(settings, 'ade20k32'):
+    if check_dataset_load(settings, DATASET_CATEGORY_ADE20K32):
         ade20k_seg_calib_cfg = dict(
             path=f'{settings.datasets_path}/ADEChallengeData2016',
             split='validation',
             shuffle=True,
             num_frames=settings.calibration_frames,
-            name='ade20k32')
+            name=DATASET_CATEGORY_ADE20K32)
         ade20k_seg_val_cfg = dict(
             path=f'{settings.datasets_path}/ADEChallengeData2016',
             split='validation',
             shuffle=True,
             num_frames=min(settings.num_frames, 2000),
-            name='ade20k32')
-        dataset_cache['ade20k32']['calibration_dataset'] = ADE20KSegmentation(**ade20k_seg_calib_cfg, num_classes=32, download=download)
-        dataset_cache['ade20k32']['input_dataset'] = ADE20KSegmentation(**ade20k_seg_val_cfg, num_classes=32, download=False)
+            name=DATASET_CATEGORY_ADE20K32)
+        dataset_cache[DATASET_CATEGORY_ADE20K32]['calibration_dataset'] = ADE20KSegmentation(**ade20k_seg_calib_cfg, num_classes=32, download=download)
+        dataset_cache[DATASET_CATEGORY_ADE20K32]['input_dataset'] = ADE20KSegmentation(**ade20k_seg_val_cfg, num_classes=32, download=False)
     #
-    if in_dataset_loading(settings, 'voc2012'):
+    if check_dataset_load(settings, DATASET_CATEGORY_VOC2012):
         voc_seg_calib_cfg = dict(
             path=f'{settings.datasets_path}/VOCdevkit/VOC2012',
             split='val',
             shuffle=True,
             num_frames=settings.calibration_frames,
-            name='voc2012')
+            name=DATASET_CATEGORY_VOC2012)
         voc_seg_val_cfg = dict(
             path=f'{settings.datasets_path}/VOCdevkit/VOC2012',
             split='val',
             shuffle=True,
             num_frames=min(settings.num_frames, 1449),
-            name='voc2012')
-        dataset_cache['voc2012']['calibration_dataset'] = VOC2012Segmentation(**voc_seg_calib_cfg, download=download)
-        dataset_cache['voc2012']['input_dataset'] = VOC2012Segmentation(**voc_seg_val_cfg, download=False)
+            name=DATASET_CATEGORY_VOC2012)
+        dataset_cache[DATASET_CATEGORY_VOC2012]['calibration_dataset'] = VOC2012Segmentation(**voc_seg_calib_cfg, download=download)
+        dataset_cache[DATASET_CATEGORY_VOC2012]['input_dataset'] = VOC2012Segmentation(**voc_seg_val_cfg, download=False)
     #
-    if in_dataset_loading(settings, 'nyudepthv2'):
+    if check_dataset_load(settings, DATASET_CATEGORY_NYUDEPTHV2):
         filter_imgs = False
         nyudepthv2_calib_cfg = dict(
             path=f'{settings.datasets_path}/nyudepthv2',
             split='val',
             shuffle=True,
             num_frames=settings.calibration_frames,
-            name='nyudepthv2')
+            name=DATASET_CATEGORY_NYUDEPTHV2)
         nyudepthv2_val_cfg = dict(
             path=f'{settings.datasets_path}/nyudepthv2',
             split='val',
             shuffle=False, #TODO: need to make COCODetection.evaluate() work with shuffle
             num_frames=min(settings.num_frames, 654),
-            name='nyudepthv2')
+            name=DATASET_CATEGORY_NYUDEPTHV2)
 
-        dataset_cache['nyudepthv2']['calibration_dataset'] = NYUDepthV2(**nyudepthv2_calib_cfg, download=download)
-        dataset_cache['nyudepthv2']['input_dataset'] = NYUDepthV2(**nyudepthv2_val_cfg, download=False)
+        dataset_cache[DATASET_CATEGORY_NYUDEPTHV2]['calibration_dataset'] = NYUDepthV2(**nyudepthv2_calib_cfg, download=download)
+        dataset_cache[DATASET_CATEGORY_NYUDEPTHV2]['input_dataset'] = NYUDepthV2(**nyudepthv2_val_cfg, download=False)
     #
     # the following are datasets cannot be downloaded automatically
     # put it under the condition of experimental_models
     if settings.experimental_models:
-        if in_dataset_loading(settings, 'cityscapes'):
+        if check_dataset_load(settings, DATASET_CATEGORY_CITYSCAPES):
             cityscapes_seg_calib_cfg = dict(
                 path=f'{settings.datasets_path}/cityscapes',
                 split='val',
                 shuffle=True,
                 num_frames=settings.calibration_frames,
-                name='cityscapes')
+                name=DATASET_CATEGORY_CITYSCAPES)
             cityscapes_seg_val_cfg = dict(
                 path=f'{settings.datasets_path}/cityscapes',
                 split='val',
                 shuffle=True,
                 num_frames=min(settings.num_frames,500),
-                name='cityscapes')
-            dataset_cache['cityscapes']['calibration_dataset'] = CityscapesSegmentation(**cityscapes_seg_calib_cfg, download=False)
-            dataset_cache['cityscapes']['input_dataset'] = CityscapesSegmentation(**cityscapes_seg_val_cfg, download=False)
+                name=DATASET_CATEGORY_CITYSCAPES)
+            dataset_cache[DATASET_CATEGORY_CITYSCAPES]['calibration_dataset'] = CityscapesSegmentation(**cityscapes_seg_calib_cfg, download=False)
+            dataset_cache[DATASET_CATEGORY_CITYSCAPES]['input_dataset'] = CityscapesSegmentation(**cityscapes_seg_val_cfg, download=False)
         #
-        if in_dataset_loading(settings, 'kitti_lidar_det'):
+        if check_dataset_load(settings, DATASET_CATEGORY_KITTI_LIDAR_DET):
             dataset_calib_cfg = dict(
                 path=f'{settings.datasets_path}/kitti_3dod/',
                 split='training',
                 pts_prefix='velodyne_reduced',
                 num_classes=1,
                 shuffle=False,
-                num_frames=min(settings.calibration_frames, 3769))
+                num_frames=min(settings.calibration_frames, 3769),
+                name=DATASET_CATEGORY_KITTI_LIDAR_DET)
 
             # dataset parameters for actual inference
             dataset_val_cfg = dict(
@@ -341,22 +353,23 @@ def get_datasets(settings, download=False):
                 pts_prefix='velodyne_reduced',
                 num_classes=1,
                 shuffle=False,
-                num_frames=min(settings.num_frames, 3769))
+                num_frames=min(settings.num_frames, 3769),
+                name=DATASET_CATEGORY_KITTI_LIDAR_DET)
             try:
-                dataset_cache['kitti_lidar_det']['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False, read_anno=False)
-                dataset_cache['kitti_lidar_det']['input_dataset'] = KittiLidar3D(**dataset_val_cfg, download=False, read_anno=True)
+                dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET]['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False, read_anno=False)
+                dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET]['input_dataset'] = KittiLidar3D(**dataset_val_cfg, download=False, read_anno=True)
             except Exception as message:
                 print(f'KittiLidar3D dataset loader could not be created: {message}')
             #
         #
-        if in_dataset_loading(settings, 'ti-robokit_semseg_zed1hd'):
+        if check_dataset_load(settings, DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD):
             dataset_calib_cfg = dict(
                 path=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd',
                 split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/train_img_gt_pair.txt',
                 num_classes=19,
                 shuffle=True,
                 num_frames=min(settings.calibration_frames,150),
-                name='ti-robokit_semseg_zed1hd'
+                name=DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD
             )
 
             # dataset parameters for actual inference
@@ -366,11 +379,11 @@ def get_datasets(settings, download=False):
                 num_classes=19,
                 shuffle=True,
                 num_frames=min(settings.num_frames,49),
-                name='ti-robokit_semseg_zed1hd'
+                name=DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD
             )
 
-            dataset_cache['ti-robokit_semseg_zed1hd']['calibration_dataset'] = ImageSegmentation(**dataset_calib_cfg, download=False)
-            dataset_cache['ti-robokit_semseg_zed1hd']['input_dataset'] = ImageSegmentation(**dataset_val_cfg, download=False)
+            dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['calibration_dataset'] = ImageSegmentation(**dataset_calib_cfg, download=False)
+            dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['input_dataset'] = ImageSegmentation(**dataset_val_cfg, download=False)
         #
     #
     return dataset_cache
@@ -384,12 +397,13 @@ def download_datasets(settings, download=True):
     return True
 
 
-def in_dataset_loading(settings, dataset_names):
-    if settings.dataset_loading is False:
+def _in_dataset_loading(settings, dataset_names):
+    if settings.dataset_loading is None or settings.dataset_loading is True:
+        return True
+    elif settings.dataset_loading is False:
         return False
     #
-    load_all_datasets = (settings.dataset_loading is True or settings.dataset_loading is None)
-    dataset_loading = get_dataset_categories(settings) if load_all_datasets else utils.as_list(settings.dataset_loading)
+    dataset_loading = utils.as_list(settings.dataset_loading)
     dataset_names = utils.as_list(dataset_names)
     for dataset_name in dataset_names:
         if dataset_name in dataset_loading:
@@ -398,3 +412,20 @@ def in_dataset_loading(settings, dataset_names):
     #
     return False
 
+def _in_dataset_selection(settings, dataset_names):
+    if settings.dataset_selection is None or settings.dataset_selection is True:
+        return True
+    elif settings.dataset_selection is False:
+        return False
+    #
+    dataset_selection = utils.as_list(settings.dataset_selection)
+    dataset_names = utils.as_list(dataset_names)
+    for dataset_name in dataset_names:
+        if dataset_name in dataset_selection:
+            return True
+        #
+    #
+    return False
+
+def check_dataset_load(settings, dataset_names):
+    return _in_dataset_loading(settings, dataset_names) and _in_dataset_selection(settings, dataset_names)
