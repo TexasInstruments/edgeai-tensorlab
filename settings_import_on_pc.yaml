@@ -14,6 +14,10 @@ run_import : True
 # run inference - for inference in evm, it is assumed that the artifacts folders are already available
 run_inference : True
 
-# parallel execution on pc only - not supported on evm device
-# models are processed in parallel if this is a list. set to null to disable parallelism
+# for parallel execution on pc only.
+# specify either a list of integers for parallel execution or null for sequentiall execution
+# if you are not using cuda compiled tidl on pc, these actual numbers in the list don't matter,
+# but the size of the list determines the number of parallel processes
+# if you have cuda compiled tidl, these integers wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
+# null will run the models sequentially.
 parallel_devices : [0] #[0,1,2,3] #null
