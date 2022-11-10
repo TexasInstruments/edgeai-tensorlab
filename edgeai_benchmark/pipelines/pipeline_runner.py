@@ -31,6 +31,7 @@ import functools
 import itertools
 import warnings
 import copy
+import traceback
 
 from .. import utils
 from .model_transformation import *
@@ -116,18 +117,8 @@ class PipelineRunner():
     # this function cannot be an instance method of PipelineRunner, as it causes an
     # error during pickling, involved in the launch of a process is parallel run. make it classmethod
     @classmethod
-    def _run_pipeline(cls, settings_in, pipeline_config_in, description=''):
-        # create a copy to avoid issues due to running multiple models
-        pipeline_config = copy.deepcopy(pipeline_config_in)
-        # note that this basic_settings() copies only the basic settings.
-        # sometimes, there is no need to copy the entire settings which includes the dataset_cache
-        settings = settings_in.basic_settings()
-
-        # capture cwd - to set it later
-        cwd = os.getcwd()
-
+    def _run_pipeline_impl(cls, settings, pipeline_config, description=''):
         result = {}
-
         if settings.pipeline_type == constants.PIPELINE_ACCURACY:
             # use with statement, so that the logger and other file resources are cleaned up
             with AccuracyPipeline(settings, pipeline_config) as accuracy_pipeline:
@@ -143,6 +134,27 @@ class PipelineRunner():
             #
         else:
             assert False, f'unknown pipeline: {settings.pipeline_type}'
+        #
+        return result
+
+    @classmethod
+    def _run_pipeline(cls, settings_in, pipeline_config_in, description=''):
+        # create a copy to avoid issues due to running multiple models
+        pipeline_config = copy.deepcopy(pipeline_config_in)
+        # note that this basic_settings() copies only the basic settings.
+        # sometimes, there is no need to copy the entire settings which includes the dataset_cache
+        settings = settings_in.basic_settings()
+
+        # capture cwd - to set it later
+        cwd = os.getcwd()
+        result = {}
+        try:
+            run_dir = pipeline_config['session'].get_param('run_dir')
+            print(utils.log_color('\nINFO', 'starting', os.path.basename(run_dir)))
+            result = cls._run_pipeline_impl(settings, pipeline_config, description)
+        except Exception as e:
+            traceback.print_exc()
+            print(str(e))
         #
 
         # make sure we are in cwd when we return.

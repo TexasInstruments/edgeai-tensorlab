@@ -54,9 +54,11 @@ class AccuracyPipeline():
         # because it will increase the size of the para.yaml and result.yaml files
         self.pipeline_config['calibration_dataset'].get_param('kwargs').pop('dataset_info', None)
         self.dataset_info = self.pipeline_config['input_dataset'].get_param('kwargs').pop('dataset_info', None)
-        self.dataset_info_file = os.path.join(self.run_dir, 'dataset.yaml')
-        self.pipeline_config['input_dataset'].get_param('kwargs')['dataset_info'] = self.dataset_info_file
-        self.pipeline_config['calibration_dataset'].get_param('kwargs')['dataset_info'] = self.dataset_info_file
+        if self.dataset_info is not None:
+            self.dataset_info_file = os.path.join(self.run_dir, 'dataset.yaml')
+            self.pipeline_config['input_dataset'].get_param('kwargs')['dataset_info'] = self.dataset_info_file
+            self.pipeline_config['calibration_dataset'].get_param('kwargs')['dataset_info'] = self.dataset_info_file
+        #
 
     def __enter__(self):
         return self

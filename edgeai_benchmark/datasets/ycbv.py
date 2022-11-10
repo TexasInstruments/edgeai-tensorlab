@@ -96,8 +96,8 @@ class YCBV(DatasetBase):
         image_split_dirs = os.listdir(self.kwargs['path'])
         assert self.kwargs['split'] in image_split_dirs, f'invalid path to coco dataset images/split {kwargs["split"]}'
         self.image_dir = os.path.join(self.kwargs['path'], self.kwargs['split'])
-
-        self.coco_dataset = COCO(os.path.join(annotations_dir, 'instances_{}.json'.format(split)))
+        self.annotation_file = os.path.join(annotations_dir, 'instances_{}.json'.format(split))
+        self.coco_dataset = COCO(self.annotation_file)
         max_frames = len(self.coco_dataset.imgs)
         num_frames = self.kwargs.get('num_frames', None)
         num_frames = min(num_frames, max_frames) if num_frames is not None else max_frames
@@ -128,7 +128,21 @@ class YCBV(DatasetBase):
         self.class_to_model = self.cad_models.class_to_model
         self.ann_info = {}
         self.id2name, self.name2id = _get_mapping_id_name(self.coco_dataset.imgs)
+        # create dataset_info
+        with open(self.annotation_file) as afp:
+            self.dataset_store = json.load(afp)
+        #
+        self.kwargs['dataset_info'] = self.get_dataset_info()
 
+    def get_dataset_info(self):
+        # return only info and categories for now as the whole thing could be quite large.
+        dataset_store = dict()
+        for key in ('info', 'categories'):
+            if key in self.dataset_store.keys():
+                dataset_store.update({key: self.dataset_store[key]})
+            #
+        #
+        return dataset_store
 
     def download(self, path, split):
         root = path
