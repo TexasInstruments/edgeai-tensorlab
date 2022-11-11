@@ -276,15 +276,22 @@ class BboxObject6dPoseReformat():
 
 class Object6dPoseImageSave:
     def __init__(self):
-        self.cadmodels = CADModelsYCB(data_dir='./dependencies/datasets/ycbv/')
-        self.camera_matrix = self.cadmodels.camera_matrix['camera_uw'].reshape(3,3)
-        self.class_to_cuboid = self.cadmodels.models_corners
+        self.cadmodels = None
+        self.camera_matrix = None
+        self.class_to_cuboid = None
         self.color_step = 32 #32
         self.colors = [(r,g,b) for r in range(0,256,self.color_step) \
                        for g in range(0,256,self.color_step) \
                        for b in range(0,256,self.color_step)]
 
     def __call__(self, result, info_dict):
+        if self.cadmodels is None:
+            data_path = info_dict.get('data_path', './dependencies/datasets/ycbv/')
+            dataset_dir = os.path.dirname(os.path.dirname(data_path))
+            self.cadmodels = CADModelsYCB(data_dir=dataset_dir)
+            self.camera_matrix = self.cadmodels.camera_matrix['camera_uw'].reshape(3,3)
+            self.class_to_cuboid = self.cadmodels.models_corners
+        #
         data_path = info_dict['data_path']
         img_data = info_dict['data']
         image_name = os.path.split(data_path)[-1]
