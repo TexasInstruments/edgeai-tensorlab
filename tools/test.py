@@ -487,23 +487,25 @@ def save_tidl_prototxt(cfg, path):
     bev_size_x = (int)((cfg.point_cloud_range[3] - cfg.point_cloud_range[0])/cfg.voxel_size[0])
     bev_size_y = (int)((cfg.point_cloud_range[4] - cfg.point_cloud_range[1])/cfg.voxel_size[1])
 
-    step_x = (cfg.point_cloud_range[3] - cfg.point_cloud_range[0])/(bev_size_x/2 - 1) 
-    step_y = (cfg.point_cloud_range[4] - cfg.point_cloud_range[1])/(bev_size_y/2 - 1)   
-    step_z = 1
-
-    offset_x = cfg.point_cloud_range[0]/step_x
-    offset_y = cfg.point_cloud_range[1]/step_y
-    offset_z = -1.00 #
     offset_dir= -cfg.model.bbox_head.anchor_generator.rotations[1]    
     prior_box_param = []
     
-    prior_box_param.append(tidl_meta_arch_pb2.PriorBox3DODParameter(anchor_width=[cfg.model.bbox_head.anchor_generator.sizes[0][0]], 
-                                                                    anchor_height=[cfg.model.bbox_head.anchor_generator.sizes[0][1]], 
-                                                                    anchor_length=[cfg.model.bbox_head.anchor_generator.sizes[0][2]],
-                                                                    step_x=step_x, step_y=step_y, step_z=step_z,
-                                                                    offset_x=offset_x, offset_y=offset_y, offset_z=offset_z,
-                                                                    offset_dir = offset_dir,
-                                                                    rotation=cfg.model.bbox_head.anchor_generator.rotations))
+    for id in range(cfg.model.bbox_head.num_classes):
+        step_x = (cfg.model.bbox_head.anchor_generator.ranges[id][3] - cfg.model.bbox_head.anchor_generator.ranges[id][0])/(bev_size_x/2) 
+        step_y = (cfg.model.bbox_head.anchor_generator.ranges[id][4] - cfg.model.bbox_head.anchor_generator.ranges[id][1])/(bev_size_y/2)   
+        step_z = 1
+
+        offset_x = (cfg.model.bbox_head.anchor_generator.ranges[id][0])/step_x + 0.5 # 0.5 = step_x/2 * step_x
+        offset_y = (cfg.model.bbox_head.anchor_generator.ranges[id][1])/step_y + 0.5 # 0.5 = step_y/2 * step_y
+        offset_z = (cfg.model.bbox_head.anchor_generator.ranges[id][2])/step_z + 0.0 # 0.0 = step_z/2 * step_z
+
+        prior_box_param.append(tidl_meta_arch_pb2.PriorBox3DODParameter(anchor_width=[cfg.model.bbox_head.anchor_generator.sizes[id][0]], 
+                                                                        anchor_height=[cfg.model.bbox_head.anchor_generator.sizes[id][1]], 
+                                                                        anchor_length=[cfg.model.bbox_head.anchor_generator.sizes[id][2]],
+                                                                        step_x=step_x, step_y=step_y, step_z=step_z,
+                                                                        offset_x=offset_x, offset_y=offset_y, offset_z=offset_z,
+                                                                        offset_dir = offset_dir,
+                                                                        rotation=cfg.model.bbox_head.anchor_generator.rotations))
     
     nms_param = tidl_meta_arch_pb2.TIDLNmsParam(nms_threshold=cfg.model.test_cfg.nms_thr,top_k=cfg.model.test_cfg.nms_pre)
     
@@ -527,6 +529,7 @@ def save_tidl_prototxt(cfg, path):
                                             voxel_size_x=cfg.voxel_size[0],voxel_size_y=cfg.voxel_size[1],voxel_size_z=cfg.voxel_size[2],
                                             max_points_per_voxel=cfg.model.voxel_layer.max_num_points,
                                             box_input=box_input[0],class_input=cls_input[0],dir_input=dir_input[0],
+                                            output=[node.name for node in model.graph.output],
                                             prior_box_3dod_param=prior_box_param,
                                             detection_output_param=detection_param)
 

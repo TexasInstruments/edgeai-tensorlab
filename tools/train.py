@@ -229,6 +229,12 @@ def main():
     meta['exp_name'] = osp.basename(args.config)
 
     #seeds are set inside mmdetection. Repeating here to control it properly
+    
+    # setting --deterministic flag makes training deterministic, even on multiple GPU, multiple worker etc
+    # only upsample layer may create difference in run to run. This should be avoided and TrasCOnv instead should be used
+    # TIDL model usages upsample layer hence for TIDL model determinisrtic behaviour is not guranteeed.
+    # To avoid forgetting setting the flag --deterministic in training, it is set to deterministic by below setting of seeds.
+    
     import numpy as np
     import random
     np.random.seed(seed)
@@ -303,7 +309,7 @@ def main():
 
     if cfg.save_onnx_model == True:
         from test import save_onnx_model
-        save_onnx_model(model,os.path.dirname(args.checkpoint))
+        save_onnx_model(cfg, model,cfg['work_dir'],quantized_model=cfg['quantize'])
 
 if __name__ == '__main__':
     main()

@@ -43,32 +43,52 @@ class SECONDFPN(BaseModule):
         deblocks = []
         for i, out_channel in enumerate(out_channels):
             stride = upsample_strides[i]
-            if stride > 1 or (stride == 1 and not use_conv_for_no_stride):
-                if upsample_cfg['type'] == 'bilinear' or upsample_cfg['type'] == 'nearest':
 
-                    conv_layer = build_conv_layer(
+            if upsample_cfg['type'] == 'bilinear' or upsample_cfg['type'] == 'nearest':
+                
+                if (stride  > 1) and (upsample_cfg['type'] == 'nearest'):
+                    kernel_size = stride + 1
+                    dw_conv_layer = build_conv_layer(
                         conv_cfg,
                         in_channels=in_channels[i],
-                        out_channels=out_channel,
-                        kernel_size=1)
-
-                    if upsample_strides[i] != 1:
-                        raw_upsample_layer = build_upsample_layer(
-                            upsample_cfg,
-                            scale_factor=upsample_strides[i])
-
-                        upsample_layer = nn.Sequential(raw_upsample_layer,conv_layer)
-                    else:
-                        upsample_layer = conv_layer
-
-
+                        out_channels=in_channels[i],
+                        kernel_size=kernel_size,
+                        padding=(int)(kernel_size/2),
+                        groups=in_channels[i]
+                        )
                 else:
-                    upsample_layer = build_upsample_layer(
+                    dw_conv_layer = None
+                
+                kernel_size = 1 # kernel size for point wise conv
+
+                pt_conv_layer = build_conv_layer(
+                    conv_cfg,
+                    in_channels=in_channels[i],
+                    out_channels=out_channel,
+                    kernel_size=kernel_size,
+                    padding=(int)(kernel_size/2))
+                
+                if dw_conv_layer is not None:
+                    conv_layer = nn.Sequential(dw_conv_layer,pt_conv_layer)
+                else:
+                    conv_layer = pt_conv_layer
+
+                if upsample_strides[i] != 1:
+                    raw_upsample_layer = build_upsample_layer(
                         upsample_cfg,
-                        in_channels=in_channels[i],
-                        out_channels=out_channel,
-                        kernel_size=upsample_strides[i],
-                        stride=upsample_strides[i])
+                        scale_factor=upsample_strides[i])
+                        
+                    upsample_layer = nn.Sequential(raw_upsample_layer,conv_layer)
+                else:
+                    upsample_layer = conv_layer
+
+            elif stride > 1 or (stride == 1 and not use_conv_for_no_stride):
+                upsample_layer = build_upsample_layer(
+                    upsample_cfg,
+                    in_channels=in_channels[i],
+                    out_channels=out_channel,
+                    kernel_size=upsample_strides[i],
+                    stride=upsample_strides[i])
             else:
                 stride = np.round(1 / stride).astype(np.int64)
                 upsample_layer = build_conv_layer(

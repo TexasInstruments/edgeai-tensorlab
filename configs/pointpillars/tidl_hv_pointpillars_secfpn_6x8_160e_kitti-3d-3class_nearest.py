@@ -30,7 +30,7 @@ model = dict(
         in_channels=[64, 128, 256],
         upsample_strides=[1, 2, 4],
         out_channels=[128, 128, 128],
-        upsample_cfg=dict(type='bilinear', align_corners=False))
+        upsample_cfg=dict(type='nearest'))
         )
 # dataset settings
 dataset_type = 'KittiDataset'
@@ -111,7 +111,7 @@ if quantize == False:
     # PointPillars usually need longer schedule than second, we simply double
     # the training schedule. Do remind that since we use RepeatDataset and
     # repeat factor is 2, so we actually train 160 epochs.
-    runner = dict(max_epochs=80)
+    runner = dict(max_epochs=100)
 
     # Use evaluation interval=2 reduce the number of evaluation timese
     evaluation = dict(interval=2)

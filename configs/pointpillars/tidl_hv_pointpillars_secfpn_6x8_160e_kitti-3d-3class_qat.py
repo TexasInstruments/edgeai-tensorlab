@@ -7,6 +7,12 @@ _base_ = [
 point_cloud_range = [0, -39.68, -3, 69.12, 39.68, 1]
 voxel_size = [0.16, 0.16, 4]
 model = dict(
+    voxel_layer=dict(
+        max_num_points=32,  # max_points_per_voxel
+        point_cloud_range=point_cloud_range,
+        voxel_size=voxel_size,
+        max_voxels=(16000, 40000, 10000)  # (training, testing, onnx) max count of voxels
+    ),
     voxel_encoder=dict(
         type='PillarFeatureNet',
         in_channels=4,
@@ -82,7 +88,7 @@ test_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=8,
+    samples_per_gpu=4,
     workers_per_gpu=4,
 
     train=dict(
@@ -109,9 +115,8 @@ if quantize == False:
 
     # Use evaluation interval=2 reduce the number of evaluation timese
     evaluation = dict(interval=2)
-    work_dir = './work_dirs/'
 else:
-    lr = 0.001
+    lr = 0.0005
     optimizer = dict(lr=lr)
 
     # max_norm=35 is slightly better than 10 for PointPillars in the earlier
@@ -122,12 +127,12 @@ else:
     # PointPillars usually need longer schedule than second, we simply double
     # the training schedule. Do remind that since we use RepeatDataset and
     # repeat factor is 2, so we actually train 160 epochs.
-    runner = dict(max_epochs=10)
+    runner = dict(max_epochs=100)
 
     # Use evaluation interval=2 reduce the number of evaluation timese
-    evaluation = dict(interval=10)
+    evaluation = dict(interval=1)
 
-    load_from = './work_dirs/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car-3class/latest.pth'
-    work_dir = './work_dirs/quant_train_dir/'
+    load_from = './work_dirs/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class/latest.pth'
+    work_dir = './work_dirs/quant_train_dir_bilinear/'
     custom_hooks = dict(type='FreezeRangeHook')
 

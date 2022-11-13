@@ -190,7 +190,7 @@ class PillarFeatureNet(nn.Module):
                 for j in range(32):
                     f.write(" {:.2f} {:.2f} {:.2f} ".format(voxel_ft[j][0],voxel_ft[j][1],voxel_ft[j][2]))
                     f.write(" {:.2f} {:.2f} {:.2f} ".format(voxel_ft[j][3],voxel_ft[j][4],voxel_ft[j][5]))
-                    f.write(" {:.2f} {:.2f} {:.2f} \n".format(voxel_ft[j][6],voxel_ft[j][7],voxel_ft[j][8], voxel_ft[j][9]))
+                    f.write(" {:.2f} {:.2f} {:.2f} {:.2f} \n".format(voxel_ft[j][6],voxel_ft[j][7],voxel_ft[j][8], voxel_ft[j][9]))
 
             f.close()
 

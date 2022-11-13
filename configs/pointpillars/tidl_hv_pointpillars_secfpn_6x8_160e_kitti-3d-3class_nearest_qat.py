@@ -30,7 +30,7 @@ model = dict(
         in_channels=[64, 128, 256],
         upsample_strides=[1, 2, 4],
         out_channels=[128, 128, 128],
-        upsample_cfg=dict(type='bilinear', align_corners=False))
+        upsample_cfg=dict(type='nearest'))
         )
 # dataset settings
 dataset_type = 'KittiDataset'
@@ -88,7 +88,7 @@ test_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=6,
+    samples_per_gpu=4,
     workers_per_gpu=4,
 
     train=dict(
@@ -99,7 +99,7 @@ data = dict(
     test=dict(pipeline=test_pipeline, classes=class_names))
 
 save_onnx_model = False
-quantize = False
+quantize = True
 
 if quantize == False:
     lr = 0.001
@@ -111,7 +111,7 @@ if quantize == False:
     # PointPillars usually need longer schedule than second, we simply double
     # the training schedule. Do remind that since we use RepeatDataset and
     # repeat factor is 2, so we actually train 160 epochs.
-    runner = dict(max_epochs=80)
+    runner = dict(max_epochs=100)
 
     # Use evaluation interval=2 reduce the number of evaluation timese
     evaluation = dict(interval=2)
@@ -127,12 +127,12 @@ else:
     # PointPillars usually need longer schedule than second, we simply double
     # the training schedule. Do remind that since we use RepeatDataset and
     # repeat factor is 2, so we actually train 160 epochs.
-    runner = dict(max_epochs=40)
+    runner = dict(max_epochs=100)
 
     # Use evaluation interval=2 reduce the number of evaluation timese
     evaluation = dict(interval=1)
 
-    load_from = './work_dirs/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class/latest.pth'
-    work_dir = './work_dirs/quant_train_dir/'
+    load_from = './work_dirs/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class_nearest/latest.pth'
+    work_dir = './work_dirs/quant_train_dir_nearest/'
     custom_hooks = dict(type='FreezeRangeHook')
 
