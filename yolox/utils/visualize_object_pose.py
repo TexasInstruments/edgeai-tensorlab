@@ -31,9 +31,16 @@ def draw_bbox_2d(img, box, label, score, conf = 0.6, thickness=1, gt=False):
     x0, y0 = int(box[0]), int(box[1])
     x1, y1 = int(box[0] + box[2]), int(box[1] + box[3])
 
-    color = colors(cls_id)
+    if gt:
+        color = (0, 255, 0)
+    else:
+        color = colors(cls_id)
+
     cv2.rectangle(img, (x0, y0), (x1, y1), color, thickness)
-    cv2.putText(img, str(label), (x0, y0), cv2.FONT_HERSHEY_SIMPLEX, 1, color, thickness=thickness)
+    if gt:
+        cv2.putText(img, str(label), ((x0+x1)//2, (y0+y1)//2), cv2.FONT_HERSHEY_SIMPLEX, 1, color, thickness=thickness)
+    else:
+        cv2.putText(img, str(label), (x0, y0), cv2.FONT_HERSHEY_SIMPLEX, 1, color, thickness=thickness)
     return img
 
 
@@ -73,18 +80,19 @@ def project_3d_2d(pts_3d, rotation_vec, translation_vec, camera_matrix):
     return projected_2d
 
 
-def draw_6d_pose(img, data_list , camera_matrix, class_to_cuboid=None, conf = 0.6, class_to_model=None, gt=True, out_dir=None, id=None):
+def draw_6d_pose(img, data_list , camera_matrix, class_to_cuboid=None, conf = 0.6, class_to_model=None, gt=True, out_dir=None, id=None, img_cuboid=None, img_mask=None, img_2dod=None):
 
     if is_tensor(img):
-        img_cuboid = copy.deepcopy(img).cpu().numpy().transpose(1, 2, 0)
-        img_cuboid = np.asarray(img_cuboid, dtype=np.uint8)
-        img_cuboid = np.ascontiguousarray(img_cuboid)
-        img_mask = copy.deepcopy(img_cuboid)
-        img_2dod = copy.deepcopy(img_cuboid)
+        img_temp = copy.deepcopy(img).cpu().numpy().transpose(1, 2, 0)
+        img_temp = np.asarray(img_temp, dtype=np.uint8)
+        img_temp = np.ascontiguousarray(img_temp)
+        if img_mask is None:
+            img_mask = copy.deepcopy(img_temp)
+        if img_cuboid is None:
+            img_cuboid = copy.deepcopy(img_temp)
+        if img_2dod is None:
+            img_2dod = copy.deepcopy(img_temp)
 
-    # if is_tensor(poses):
-    #     poses = poses.cpu().numpy()
-   
     for pose in data_list:
         #Rotation matrix is recovered using the formula given in the article
         #https://towardsdatascience.com/better-rotation-representations-for-accurate-pose-estimation-e890a7e1317f
@@ -95,15 +103,19 @@ def draw_6d_pose(img, data_list , camera_matrix, class_to_cuboid=None, conf = 0.
         if score < conf:
             continue
         rotation, translation, bbox, xy,  label = \
-            np.array(pose['rotation_{}'.format(pose_type)]), np.array(pose['translation_{}'.format(pose_type)]), pose['bbox_{}'.format(pose_type)], pose['xy_{}'.format(pose_type)], pose['category_id']
-        colour = colors(label)
+            np.array(pose['rotation_{}'.format(pose_type)]), np.array(pose['translation_{}'.format(pose_type)]), \
+                        pose['bbox_{}'.format(pose_type)], pose['xy_{}'.format(pose_type)], pose['category_id']
+        if gt:
+            colour = (0, 255, 0)
+        else:
+            colour = colors(label)
 
         img_cuboid = cv2.circle(img_cuboid, (int(xy[0]), int(xy[1])), 3, (0, 0, 255), -1)
 
         cad_model_2d = project_3d_2d(class_to_model[label], rotation, translation, camera_matrix)
         cad_model_2d = cad_model_2d.astype(np.int32)
-        cad_model_2d[:, 0][cad_model_2d[:, 0] >= img.shape[1]] = img.shape[1]
-        cad_model_2d[:, 1][cad_model_2d[:, 1] >= img.shape[0]] = img.shape[0]
+        cad_model_2d[:, 0][cad_model_2d[:, 0] >= img.shape[2]] = img.shape[2] - 1
+        cad_model_2d[:, 1][cad_model_2d[:, 1] >= img.shape[1]] = img.shape[1] - 1
         cad_model_2d[cad_model_2d < 0] = 0
         img_mask[cad_model_2d[:, 1], cad_model_2d[:, 0]] = colour
         img_mask = cv2.circle(img_mask, (int(xy[0]), int(xy[1])), 3, (0, 0, 255), -1)
@@ -116,7 +128,9 @@ def draw_6d_pose(img, data_list , camera_matrix, class_to_cuboid=None, conf = 0.
     outfile_pose = os.path.join(out_dir, "vis_pose", "{:012}_{}_pose.png".format(id, pose_type))
     outfile_mask = os.path.join(out_dir, "vis_pose", "{:012}_{}_mask.png".format(id, pose_type))
     outfile_2d_od = os.path.join(out_dir, "vis_pose", "{:012}_{}_2d_od.png".format(id, pose_type))
-    cv2.imwrite(outfile_pose, img_cuboid)
-    cv2.imwrite(outfile_mask, img_mask)
-    cv2.imwrite(outfile_2d_od, img_2dod)
+    if not gt:
+        cv2.imwrite(outfile_pose, img_cuboid)
+        cv2.imwrite(outfile_mask, img_mask)
+        cv2.imwrite(outfile_2d_od, img_2dod)
+    return img_cuboid, img_mask, img_2dod
 

@@ -144,10 +144,11 @@ class ObjectPoseEvaluator:
                     for output_idx in range(len(predicted_pose)):
                         img = imgs[output_idx]
                         if len(frame_data_list) != 0:
-                            visualize_object_pose.draw_6d_pose(img, frame_data_list, camera_matrix, class_to_model=self.class_to_model,
+                            img_cuboid, img_mask, img_2dod = visualize_object_pose.draw_6d_pose(img, frame_data_list, camera_matrix, class_to_model=self.class_to_model,
                                                                         class_to_cuboid=self.class_to_cuboid, out_dir=self.output_dir, id=ids[output_idx])
                             visualize_object_pose.draw_6d_pose(img, frame_data_list, camera_matrix, class_to_model=self.class_to_model,
-                                                                    class_to_cuboid=self.class_to_cuboid, gt=False, out_dir=self.output_dir, id=ids[output_idx])
+                                                                    class_to_cuboid=self.class_to_cuboid, gt=False, out_dir=self.output_dir, id=ids[output_idx],
+                                                                    img_cuboid=img_cuboid, img_mask=img_mask, img_2dod=img_2dod)
                     if self.test_bop:
                         csv_file_path = os.path.join(self.output_dir, self.test_bop_file_name)
                         with open(csv_file_path, 'a') as csv_file:
@@ -321,15 +322,11 @@ class ObjectPoseEvaluator:
             return 0, 0
         data_dict_asym = []
         data_dict_sym = []
-        missing_det_per_class = {}
         for pred_data in data_dict:
-            if not pred_data['missing_det']:
-                if self.class_to_name[pred_data['category_id']] not in self.symmetric_objects.values():
-                    data_dict_asym.extend([pred_data])
-                else:
-                    data_dict_sym.extend([pred_data])
+            if self.class_to_name[pred_data['category_id']] not in self.symmetric_objects.values():
+                data_dict_asym.extend([pred_data])
             else:
-                pass   #ToDo: Keep track of the missing detections for each class.
+                data_dict_sym.extend([pred_data])
         score_dict_asym = self.compute_add_score(data_dict_asym)
         score_dict_sym = self.compute_adds_score(data_dict_sym)
         score_dict = {}
@@ -350,19 +347,23 @@ class ObjectPoseEvaluator:
 
 
     def compute_add_score(self, data_dict, percentage=0.1):
-        distance_category = np.zeros((len(data_dict), 2))
+        distance_category = np.zeros((len(data_dict), 2))   #stores distance and category for each object in a row
         for index, pred_data in enumerate(data_dict):
-            R_gt, t_gt = np.array(pred_data['rotation_gt']), np.array(pred_data['translation_gt'])
-            R_gt, _ = cv2.Rodrigues(R_gt)
-            R_pred, t_pred= np.array(pred_data['rotation_pred']), np.array(pred_data['translation_pred'])
-            R_pred, _ = cv2.Rodrigues(R_pred)
-            pts3d = self.class_to_model[pred_data['category_id']]
-            #mean_distances = np.zeros((count,), dtype=np.float32)
-            pts_xformed_gt = np.matmul(R_gt,  pts3d.transpose()) + t_gt[:, None]
-            pts_xformed_pred = np.matmul(R_pred, pts3d.transpose()) + t_pred[:, None]
-            distance = np.linalg.norm(pts_xformed_gt - pts_xformed_pred, axis=0)
-            distance_category[index, 0] = np.mean(distance)
-            distance_category[index, 1] = pred_data['category_id']
+            if not pred_data['missing_det']:
+                R_gt, t_gt = np.array(pred_data['rotation_gt']), np.array(pred_data['translation_gt'])
+                R_gt, _ = cv2.Rodrigues(R_gt)
+                R_pred, t_pred= np.array(pred_data['rotation_pred']), np.array(pred_data['translation_pred'])
+                R_pred, _ = cv2.Rodrigues(R_pred)
+                pts3d = self.class_to_model[pred_data['category_id']]
+                #mean_distances = np.zeros((count,), dtype=np.float32)
+                pts_xformed_gt = np.matmul(R_gt,  pts3d.transpose()) + t_gt[:, None]
+                pts_xformed_pred = np.matmul(R_pred, pts3d.transpose()) + t_pred[:, None]
+                distance = np.linalg.norm(pts_xformed_gt - pts_xformed_pred, axis=0)
+                distance_category[index, 0] = np.mean(distance)
+                distance_category[index, 1] = pred_data['category_id']
+            else:
+                distance_category[index, 0] = 1e6 # This distance must be set to a very high value for missign detections.
+                distance_category[index, 1] = pred_data['category_id']
 
         threshold = [self.class_to_diameter[category] * percentage for category in self.class_to_diameter.keys()]
         score_dict = {}
@@ -380,19 +381,24 @@ class ObjectPoseEvaluator:
     def compute_adds_score(self, data_dict, percentage=0.1):
         distance_category = np.zeros((len(data_dict), 2))
         for index, pred_data in enumerate(data_dict):
-            R_gt, t_gt = np.array(pred_data['rotation_gt']), np.array(pred_data['translation_gt'])
-            R_gt, _ = cv2.Rodrigues(R_gt)
-            R_pred, t_pred = np.array(pred_data['rotation_pred']), np.array(pred_data['translation_pred'])
-            R_pred, _ = cv2.Rodrigues(R_pred)
-            pts3d = self.class_to_model[pred_data['category_id']]
-            pts_xformed_gt = np.matmul(R_gt, pts3d.transpose()) + t_gt[:, None]
-            pts_xformed_pred = np.matmul(R_pred, pts3d.transpose()) + t_pred[:, None]
-            kdt = KDTree(pts_xformed_gt.transpose(), metric='euclidean')
-            distance, _ = kdt.query(pts_xformed_pred.transpose(), k=1)
-            # distance_np = np.sqrt(     #brute-force distance calculation
-            #     np.min(np.sum((pts_xformed_gt[:, :, None] - pts_xformed_pred[:, None, :]) ** 2, axis=0), axis=1))
-            distance_category[index, 0] = np.mean(distance)
-            distance_category[index, 1] = pred_data['category_id']
+            if not pred_data['missing_det']:
+                R_gt, t_gt = np.array(pred_data['rotation_gt']), np.array(pred_data['translation_gt'])
+                R_gt, _ = cv2.Rodrigues(R_gt)
+                R_pred, t_pred = np.array(pred_data['rotation_pred']), np.array(pred_data['translation_pred'])
+                R_pred, _ = cv2.Rodrigues(R_pred)
+                pts3d = self.class_to_model[pred_data['category_id']]
+                pts_xformed_gt = np.matmul(R_gt, pts3d.transpose()) + t_gt[:, None]
+                pts_xformed_pred = np.matmul(R_pred, pts3d.transpose()) + t_pred[:, None]
+                kdt = KDTree(pts_xformed_gt.transpose(), metric='euclidean')
+                distance, _ = kdt.query(pts_xformed_pred.transpose(), k=1)
+                # distance_np = np.sqrt(     #brute-force distance calculation
+                #     np.min(np.sum((pts_xformed_gt[:, :, None] - pts_xformed_pred[:, None, :]) ** 2, axis=0), axis=1))
+                distance_category[index, 0] = np.mean(distance)
+                distance_category[index, 1] = pred_data['category_id']
+            else:
+                distance_category[index, 0] = 1e6 # This must be set to a very high value
+                distance_category[index, 1] = pred_data['category_id']
+
 
         threshold = [self.class_to_diameter[category] * percentage for category in self.class_to_diameter.keys()]
         score_dict = {}
