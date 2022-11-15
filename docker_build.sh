@@ -45,6 +45,7 @@ else
 fi
 # print
 echo "PROXY_LOCATION="${PROXY_LOCATION}
+echo "REPO_LOCATION="${REPO_LOCATION}
 
 #################################################################################
 # Build docker image
