@@ -23,7 +23,7 @@ class Exp(MyExp):
 
         # ---------------- dataloader config ---------------- #
         # set worker to 4 for shorter dataloader init time
-        self.data_num_workers = 1
+        self.data_num_workers = 4
         self.input_size = (480, 640)  # (height, width)
         self.train_ann = "instances_train.json"
         self.val_ann = "instances_test.json"
@@ -35,7 +35,7 @@ class Exp(MyExp):
         self.flip_prob = 0.0
         self.degrees = 10.0
         self.translate = 0.1
-        self.mosaic_scale = (1.0, 1.0)
+        self.mosaic_scale = (0.9, 1.1)
         self.mixup_scale = (1.0, 1.0)
         self.shear = 0.0
         self.perspective = 0.0
