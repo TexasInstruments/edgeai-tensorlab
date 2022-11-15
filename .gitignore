@@ -18,6 +18,7 @@ tidl_tools
 tidl_tools/
 tidl_tools_*/
 backup/
+temp_files/
 
 .vscode/
 *.npy
