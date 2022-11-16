@@ -58,27 +58,29 @@ echo "pycocotools need cython has to be installed from conda, if this is conda p
 #conda install -y cython
 #
 #######################################################################
-## Dependencies for building pillow-simd
-##echo 'Installing dependencies to build pillow-simd. If you dont have sudo access, comment the below line and replace pillow-simd with pillow in the requirements file'
-##sudo apt-get install -y libjpeg-dev zlib1g-dev
-#
-## Dependencies for TIDL graph visualization
-#echo 'Installing dependencies for TIDL graph visualization'
-#sudo apt-get install -y graphviz graphviz-dev
-#
-#echo 'Installing python packages...'
-#pip3 install --no-input -r ./requirements_pc.txt
-#
-#######################################################################
-##NOTE: THIS STEP INSTALLS THE EDITABLE LOCAL MODULE pytidl
-#echo 'Installing as a local module using setup.py'
-#python3 setup.py develop
+# Dependencies for building pillow-simd
+#echo 'Installing dependencies to build pillow-simd. If you dont have sudo access, comment the below line and replace pillow-simd with pillow in the requirements file'
+sudo apt-get install -y libjpeg-dev zlib1g-dev
+
+# Dependencies for TIDL graph visualization
+echo 'Installing dependencies for TIDL graph visualization'
+sudo apt-get install -y graphviz graphviz-dev
+
+echo 'Installing python packages...'
+pip3 install --no-input -r ./requirements_pc.txt
+
+######################################################################
+#NOTE: THIS STEP INSTALLS THE EDITABLE LOCAL MODULE pytidl
+echo 'Installing as a local module using setup.py'
+python3 setup.py develop
 
 ######################################################################
 # Installing dependencies
 # installers for nightly build
 echo 'Installing tidl_tools...'
-TIDL_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/277-2022-11-07_22-09-02/artifacts/output/
+TIDL_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/283-2022-11-16_03-50-42/artifacts/output/
+OSRT_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/277-2022-11-07_22-09-02/artifacts/output/
+
 TVM_DLR_TAR_NAME=dlr_1.10.0_x86_u18
 ONNX_TAR_NAME=onnx_1.7.0_x86_u18
 TFLITE_TAR_NAME=tflite_2.8_x86_u18
@@ -89,9 +91,9 @@ rm -rf ${TIDL_TOOLS_NAME}
 mkdir -p ${TIDL_TOOLS_NAME}
 
 conditional_wget ${TIDL_TOOLS_BUILD_PATH}/tidl_tools/${TIDL_TOOLS_NAME}.tar.gz ${TIDL_TOOLS_NAME}
-conditional_wget ${TIDL_TOOLS_BUILD_PATH}/dlr/${TVM_DLR_TAR_NAME}.tar.gz ${TIDL_TOOLS_NAME}
-conditional_wget ${TIDL_TOOLS_BUILD_PATH}/onnx/${ONNX_TAR_NAME}.tar.gz ${TIDL_TOOLS_NAME}
-conditional_wget ${TIDL_TOOLS_BUILD_PATH}/tflite_2.8/${TFLITE_TAR_NAME}.tar.gz ${TIDL_TOOLS_NAME}
+conditional_wget ${OSRT_TOOLS_BUILD_PATH}/dlr/${TVM_DLR_TAR_NAME}.tar.gz ${TIDL_TOOLS_NAME}
+conditional_wget ${OSRT_TOOLS_BUILD_PATH}/onnx/${ONNX_TAR_NAME}.tar.gz ${TIDL_TOOLS_NAME}
+conditional_wget ${OSRT_TOOLS_BUILD_PATH}/tflite_2.8/${TFLITE_TAR_NAME}.tar.gz ${TIDL_TOOLS_NAME}
 
 # extract
 conditional_untar ${TIDL_TOOLS_NAME}/${TIDL_TOOLS_NAME}.tar.gz 1
