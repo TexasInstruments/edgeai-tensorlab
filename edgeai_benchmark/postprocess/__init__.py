@@ -75,7 +75,7 @@ class PostProcessTransforms(utils.TransformsCompose):
         #
         if keypoint:
             postprocess_detection += [BboxKeypointsConfReformat()]
-        if object_6d_pose:
+        if object6dpose:
             postprocess_detection += [BboxObject6dPoseReformat()]
 
         if self.settings.save_output:
