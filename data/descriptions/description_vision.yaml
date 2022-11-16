@@ -17,6 +17,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -31,6 +32,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -77,12 +79,16 @@ model_descriptions:
       target_devices:
         AM62:
           accuracy_factor: 72.13
+          accuracy_unit: Accuracy Top-1%
           model_selection_factor: 0
           performance_fps: 10
+          performance_infer_time_ms: 100.0
         TDA4VM:
           accuracy_factor: 72.13
+          accuracy_unit: Accuracy Top-1%
           model_selection_factor: 3
           performance_fps: 477
+          performance_infer_time_ms: 2.0964360587002098
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -111,6 +117,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -125,6 +132,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -171,12 +179,16 @@ model_descriptions:
       target_devices:
         AM62:
           accuracy_factor: 72.12
+          accuracy_unit: Accuracy Top-1%
           model_selection_factor: 1
           performance_fps: 14
+          performance_infer_time_ms: 71.42857142857143
         TDA4VM:
           accuracy_factor: 72.12
+          accuracy_unit: Accuracy Top-1%
           model_selection_factor: null
           performance_fps: 267
+          performance_infer_time_ms: 3.745318352059925
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -205,6 +217,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -219,6 +232,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -265,12 +279,16 @@ model_descriptions:
       target_devices:
         AM62:
           accuracy_factor: 62.688
+          accuracy_unit: Accuracy Top-1%
           model_selection_factor: 2
           performance_fps: 34
+          performance_infer_time_ms: 29.41176470588235
         TDA4VM:
           accuracy_factor: 62.688
+          accuracy_unit: Accuracy Top-1%
           model_selection_factor: 4
           performance_fps: 751
+          performance_infer_time_ms: 1.3315579227696406
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -299,6 +317,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -313,6 +332,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -359,8 +379,10 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 77.04
+          accuracy_unit: Accuracy Top-1%
           model_selection_factor: 0
           performance_fps: 237
+          performance_infer_time_ms: 4.219409282700422
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -389,6 +411,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -403,6 +426,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -449,8 +473,10 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 72.834
+          accuracy_unit: Accuracy Top-1%
           model_selection_factor: 2
           performance_fps: 288
+          performance_infer_time_ms: 3.4722222222222223
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -479,6 +505,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -493,6 +520,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -539,8 +567,10 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 75.212
+          accuracy_unit: Accuracy Top-1%
           model_selection_factor: 1
           performance_fps: 272
+          performance_infer_time_ms: 3.676470588235294
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -569,6 +599,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -585,6 +616,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -635,12 +667,16 @@ model_descriptions:
       target_devices:
         AM62:
           accuracy_factor: 27.2
+          accuracy_unit: AP[.5:.95]%
           model_selection_factor: 0
           performance_fps: 0.5
+          performance_infer_time_ms: 2000.0
         TDA4VM:
           accuracy_factor: 27.2
+          accuracy_unit: AP[.5:.95]%
           model_selection_factor: 5
           performance_fps: 179
+          performance_infer_time_ms: 5.58659217877095
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -669,6 +705,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -685,6 +722,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -735,12 +773,16 @@ model_descriptions:
       target_devices:
         AM62:
           accuracy_factor: 22.1
+          accuracy_unit: AP[.5:.95]%
           model_selection_factor: 1
           performance_fps: 1.5
+          performance_infer_time_ms: 666.6666666666666
         TDA4VM:
           accuracy_factor: 22.1
+          accuracy_unit: AP[.5:.95]%
           model_selection_factor: 8
           performance_fps: 654
+          performance_infer_time_ms: 1.529051987767584
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -769,6 +811,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -785,6 +828,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -835,8 +879,10 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 37.0
+          accuracy_unit: AP[.5:.95]%
           model_selection_factor: null
           performance_fps: 43
+          performance_infer_time_ms: 23.25581395348837
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -865,6 +911,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -881,6 +928,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -931,12 +979,16 @@ model_descriptions:
       target_devices:
         AM62:
           accuracy_factor: 20.7
+          accuracy_unit: AP[.5:.95]%
           model_selection_factor: 2
           performance_fps: 2.3
+          performance_infer_time_ms: 434.7826086956522
         TDA4VM:
           accuracy_factor: 20.7
+          accuracy_unit: AP[.5:.95]%
           model_selection_factor: null
           performance_fps: 183
+          performance_infer_time_ms: 5.46448087431694
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -965,6 +1017,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -981,6 +1034,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1031,8 +1085,10 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 32.8
+          accuracy_unit: AP[.5:.95]%
           model_selection_factor: 2
           performance_fps: 94
+          performance_infer_time_ms: 10.638297872340425
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -1061,6 +1117,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -1077,6 +1134,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1123,8 +1181,10 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 47.1
+          accuracy_unit: AP[.5:.95]%
           model_selection_factor: 0
           performance_fps: 21
+          performance_infer_time_ms: 47.61904761904762
       training_backend: edgeai_yolov5
       training_device: null
       training_devices:
@@ -1153,6 +1213,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -1169,6 +1230,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1215,8 +1277,10 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 44.1
+          accuracy_unit: AP[.5:.95]%
           model_selection_factor: null
           performance_fps: 46
+          performance_infer_time_ms: 21.73913043478261
       training_backend: edgeai_yolov5
       training_device: null
       training_devices:
@@ -1245,6 +1309,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -1261,6 +1326,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1307,8 +1373,10 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 37.4
+          accuracy_unit: AP[.5:.95]%
           model_selection_factor: 4
           performance_fps: 108
+          performance_infer_time_ms: 9.25925925925926
       training_backend: edgeai_yolov5
       training_device: null
       training_devices:
@@ -1337,6 +1405,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -1354,6 +1423,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1400,8 +1470,10 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 44.4
+          accuracy_unit: AP[.5:.95]%
           model_selection_factor: 1
           performance_fps: 46
+          performance_infer_time_ms: 21.73913043478261
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -1430,6 +1502,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -1447,6 +1520,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1493,8 +1567,10 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 24.8
+          accuracy_unit: AP[.5:.95]%
           model_selection_factor: 7
           performance_fps: 287
+          performance_infer_time_ms: 3.484320557491289
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -1523,6 +1599,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -1540,6 +1617,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1586,8 +1664,10 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 38.3
+          accuracy_unit: AP[.5:.95]%
           model_selection_factor: 3
           performance_fps: 102
+          performance_infer_time_ms: 9.803921568627452
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -1616,6 +1696,7 @@ model_descriptions:
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
+      input_optimization: false
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -1633,6 +1714,7 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
+      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1679,8 +1761,10 @@ model_descriptions:
       target_devices:
         TDA4VM:
           accuracy_factor: 30.5
+          accuracy_unit: AP[.5:.95]%
           model_selection_factor: 6
           performance_fps: 220
+          performance_infer_time_ms: 4.545454545454546
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:

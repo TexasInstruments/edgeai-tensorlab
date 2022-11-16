@@ -62,7 +62,8 @@ _model_descriptions = {
             pretrained_checkpoint_path=f'{www_modelzoo_path}/checkpoints/detection/coco/edgeai-yolov5/yolov5s6_640_ti_lite/weights/best.pt',
             training_epochs=100,
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=108, accuracy_factor=37.4)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=108, performance_infer_time_ms=1000/108,
+                                                     accuracy_factor=37.4, accuracy_unit='AP[.5:.95]%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -90,7 +91,8 @@ _model_descriptions = {
             input_cropsize=640,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/checkpoints/detection/coco/edgeai-yolov5/yolov5m6_640_ti_lite/weights/best.pt',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=46, accuracy_factor=44.1)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=46, performance_infer_time_ms=1000/46,
+                                                     accuracy_factor=44.1, accuracy_unit='AP[.5:.95]%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -118,7 +120,8 @@ _model_descriptions = {
             input_cropsize=640,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/detection/coco/edgeai-yolov5/yolov5l6_640_ti_lite/weights/best.pt',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=21, accuracy_factor=47.1)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=21, performance_infer_time_ms=1000/21,
+                                                     accuracy_factor=47.1, accuracy_unit='AP[.5:.95]%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -260,7 +263,7 @@ class ModelTraining:
             {'type':'training_loss', 'name':'Loss', 'description':'Training Loss', 'unit':'Loss', 'value':None,
              'regex':[{'op':'search', 'pattern':r'TODO-Loss-TODO'}],
              },
-            {'type':'validation_accuracy', 'name':'Accuracy', 'description':'Validation Accuracy', 'unit':'mAP[.5:.95]%', 'value':None,
+            {'type':'validation_accuracy', 'name':'Accuracy', 'description':'Validation Accuracy', 'unit':'AP[.5:.95]%', 'value':None,
              'regex':[{'op':'search', 'pattern':r'\s+[-+e\d+\.\d+]+,\s+[-+e\d+\.\d+]+,\s+[-+e\d+\.\d+]+,\s+[-+e\d+\.\d+]+,'
                                                 r'\s+[-+e\d+\.\d+]+,\s+[-+e\d+\.\d+]+,\s+[-+e\d+\.\d+]+,\s+([-+e\d+\.\d+]+)', 'group':1}],
              }]

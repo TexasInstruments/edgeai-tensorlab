@@ -59,8 +59,10 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=477, accuracy_factor=72.13),
-                constants.TARGET_DEVICE_AM62: dict(performance_fps=10, accuracy_factor=72.13)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=477, performance_infer_time_ms=1000/477,
+                                                     accuracy_factor=72.13, accuracy_unit='Accuracy Top-1%'),
+                constants.TARGET_DEVICE_AM62: dict(performance_fps=10, performance_infer_time_ms=1000/10,
+                                                   accuracy_factor=72.13, accuracy_unit='Accuracy Top-1%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -85,8 +87,10 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=267, accuracy_factor=72.12),
-                constants.TARGET_DEVICE_AM62: dict(performance_fps=14, accuracy_factor=72.12)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=267, performance_infer_time_ms=1000/267,
+                                                     accuracy_factor=72.12, accuracy_unit='Accuracy Top-1%'),
+                constants.TARGET_DEVICE_AM62: dict(performance_fps=14, performance_infer_time_ms=1000/14,
+                                                   accuracy_factor=72.12, accuracy_unit='Accuracy Top-1%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -111,8 +115,10 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=751, accuracy_factor=62.688),
-                constants.TARGET_DEVICE_AM62: dict(performance_fps=34, accuracy_factor=62.688)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=751, performance_infer_time_ms=1000/751,
+                                                     accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%'),
+                constants.TARGET_DEVICE_AM62: dict(performance_fps=34, performance_infer_time_ms=1000/34,
+                                                   accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -137,7 +143,8 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'https://download.pytorch.org/models/regnet_x_400mf-adf1edd5.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=288, accuracy_factor=72.834)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=288, performance_infer_time_ms=1000/288,
+                                                     accuracy_factor=72.834, accuracy_unit='Accuracy Top-1%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -162,7 +169,8 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=272, accuracy_factor=75.212)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=272, performance_infer_time_ms=1000/272,
+                                                     accuracy_factor=75.212, accuracy_unit='Accuracy Top-1%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -187,7 +195,8 @@ _model_descriptions = {
             input_cropsize=224,
             pretrained_checkpoint_path=f'https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth',
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=237, accuracy_factor=77.040)
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=237, performance_infer_time_ms=1000/237,
+                                                     accuracy_factor=77.040, accuracy_unit='Accuracy Top-1%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
