@@ -224,3 +224,7 @@ class ModelRunner():
     @staticmethod
     def get_sample_dataset_descriptions(*args, **kwargs):
         return descriptions.get_sample_dataset_descriptions(*args, **kwargs)
+
+    @staticmethod
+    def get_help_descriptions(*args, **kwargs):
+        return descriptions.get_help_descriptions(*args, **kwargs)

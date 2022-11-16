@@ -136,11 +136,13 @@ TARGET_DEVICE_DESCRIPTIONS = {
 
 TASK_DESCRIPTIONS = {
     TASK_TYPE_CLASSIFICATION: {
+        'task_name': 'Image Classification',
         'target_module': 'vision',
         'target_devices': [TARGET_DEVICE_TDA4VM, TARGET_DEVICE_AM62],
         'stages': ['dataset', 'training', 'compilation'],
     },
     TASK_TYPE_DETECTION: {
+        'task_name': 'Object Detection',
         'target_module': 'vision',
         'target_devices': [TARGET_DEVICE_TDA4VM, TARGET_DEVICE_AM62],
         'stages': ['dataset', 'training', 'compilation'],

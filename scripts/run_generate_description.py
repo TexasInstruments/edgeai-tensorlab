@@ -72,12 +72,16 @@ def main(args):
     # sample dataset descriptions
     sample_dataset_descriptions = ai_target_module.runner.ModelRunner.get_sample_dataset_descriptions(params)
 
+    # help descriptions
+    help_descriptions = ai_target_module.runner.ModelRunner.get_help_descriptions(params)
+
     description = dict(training_module_descriptions=training_module_descriptions,
                        model_descriptions=model_descriptions_desc,
                        preset_descriptions=preset_descriptions,
                        target_device_descriptions=target_device_descriptions,
                        task_descriptions=task_descriptions,
-                       sample_dataset_descriptions=sample_dataset_descriptions)
+                       sample_dataset_descriptions=sample_dataset_descriptions,
+                       help_descriptions=help_descriptions)
 
     # write description
     description_file = os.path.join(args.description_path, f'description_{args.target_module}' + '.yaml')

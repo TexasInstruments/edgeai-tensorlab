@@ -168,3 +168,56 @@ def get_sample_dataset_descriptions(params):
 
 def get_task_descriptions(params):
     return constants.TASK_DESCRIPTIONS
+
+
+def get_help_descriptions(params):
+    return {
+        'common': {
+        },
+        'dataset': {
+        },
+        'training': {
+            'training_epochs': {
+                'name': 'Epochs',
+                'description': 'Epoch is a term that is used to indicate a pass over the entire training dataset. '
+                           'It is a hyper parameter that can be tuned to get best accuracy. '
+                           'Eg. A model trained for 30 Epochs may give better accuracy than a model trained for 15 Epochs.'
+            },
+            'learning_rate': {
+                'name': 'Learning Rate',
+                'description': 'Learning Rate determines the step size used by the optimization algorithm '
+                               'at each iteration while moving towards the optimal solution. '
+                               'It is a hyper parameter that can be tuned to get best accuracy. '
+                               'Eg. A small Learning Rate typically gives good accuracy while fine tuning a model for a different task.'
+            }
+        },
+        'compilation': {
+            'calibration_frames': {
+                'name': 'Calibration Frames',
+                'description': 'Calibration is a process of improving the accuracy during fixed point quantization. '
+                               'Typically, higher number of Calibration Frames give higher accuracy, but it can also be time consuming.'
+            },
+            'calibration_iterations': {
+                'name': 'Calibration Iterations',
+                'description': 'Calibration is a process of improving the accuracy during fixed point quantization. Calibration happens in iterations. '
+                               'Typically, higher number of Calibration Iterations give higher accuracy, but it can also be time consuming.'
+            },
+            'tensor_bits': {
+                'name': 'Tensor Bits',
+                'description': 'Bitdepth used to quantize the weights and activations in the neural network. '
+                               'The neural network inference happens at this bit precision. '
+            },
+            'detection_threshold': {
+                'name': 'Detection Threshold',
+                'description': 'Also called Confidence Threshold. A threshold used to select good detection boxes. '
+                               'This is typically applied before a before the Non Max Suppression. '
+                               'Higher Detection Threshold means less false detections (False Positives), '
+                               'but may also result in misses (False Negatives). '
+            },
+            'detection_top_k': {
+                'name': 'Detection TopK',
+                'description': 'Number of detection boxes to be selected during the initial shortlisting before the Non Max Suppression.'
+                               'A higher number is typically used while measuring accuracy, but may impact the performance. '
+            }
+        }
+    }

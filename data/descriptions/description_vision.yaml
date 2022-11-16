@@ -1,3 +1,46 @@
+help_descriptions:
+  common: {}
+  compilation:
+    calibration_frames:
+      description: Calibration is a process of improving the accuracy during fixed
+        point quantization. Typically, higher number of Calibration Frames give higher
+        accuracy, but it can also be time consuming.
+      name: Calibration Frames
+    calibration_iterations:
+      description: Calibration is a process of improving the accuracy during fixed
+        point quantization. Calibration happens in iterations. Typically, higher number
+        of Calibration Iterations give higher accuracy, but it can also be time consuming.
+      name: Calibration Iterations
+    detection_threshold:
+      description: 'Also called Confidence Threshold. A threshold used to select good
+        detection boxes. This is typically applied before a before the Non Max Suppression.
+        Higher Detection Threshold means less false detections (False Positives),
+        but may also result in misses (False Negatives). '
+      name: Detection Threshold
+    detection_top_k:
+      description: 'Number of detection boxes to be selected during the initial shortlisting
+        before the Non Max Suppression.A higher number is typically used while measuring
+        accuracy, but may impact the performance. '
+      name: Detection TopK
+    tensor_bits:
+      description: 'Bitdepth used to quantize the weights and activations in the neural
+        network. The neural network inference happens at this bit precision. '
+      name: Tensor Bits
+  dataset: {}
+  training:
+    learning_rate:
+      description: Learning Rate determines the step size used by the optimization
+        algorithm at each iteration while moving towards the optimal solution. It
+        is a hyper parameter that can be tuned to get best accuracy. Eg. A small Learning
+        Rate typically gives good accuracy while fine tuning a model for a different
+        task.
+      name: Learning Rate
+    training_epochs:
+      description: Epoch is a term that is used to indicate a pass over the entire
+        training dataset. It is a hyper parameter that can be tuned to get best accuracy.
+        Eg. A model trained for 30 Epochs may give better accuracy than a model trained
+        for 15 Epochs.
+      name: Epochs
 model_descriptions:
   mobilenet_v2_lite_tv:
     common:
@@ -1915,6 +1958,7 @@ task_descriptions:
     - TDA4VM
     - AM62
     target_module: vision
+    task_name: Image Classification
   detection:
     stages:
     - dataset
@@ -1924,6 +1968,7 @@ task_descriptions:
     - TDA4VM
     - AM62
     target_module: vision
+    task_name: Object Detection
 training_module_descriptions:
   edgeai_mmdetection:
   - detection
