@@ -31,7 +31,19 @@
 #
 #################################################################################
 
-PARENT_DIR=$(realpath ..)
+if [ -z $1 ]
+then
+    echo "Please provide any name/tag as argument. Pass tda4vm if you don't know what this means."
+    echo "The docker container will be tagged with this name for easy identification."
+    exit 1
+fi
+
+# target device
+target_device=${1:-tda4vm}
+parent_dir=$(realpath ..)
+docker_image_name="benchmark:v1"
+docker_container_name="benchmark-${target_device}"
+datasets_path=/data/ssd/datasets
 
 # This script is intended to work with single container.
 # Number container exist
@@ -42,17 +54,18 @@ cont_count=`docker ps -aq | wc -l`
 if [ $cont_count -eq 0 ]
 then
     docker run -it \
-        -v ${PARENT_DIR}:/home/edgeai/code \
+        --name "${docker_container_name}" \
+        -v ${parent_dir}:/home/edgeai/code \
+        -v ${datasets_path}:${datasets_path} \
         --privileged \
         --network host \
         --shm-size 30G \
-        benchmark:v1 bash
+        ${docker_image_name} bash
 # If one container exist, execute that container.
 elif [ $cont_count -eq 1 ]
 then
-    cont_id=`docker ps -q -l`
-    docker start $cont_id
-    docker exec -it $cont_id /bin/bash
+    docker start "${docker_container_name}"
+    docker exec -it "${docker_container_name}" /bin/bash
 else
     echo -e "\nMultiple containers are present, so exiting"
     echo -e "To run existing container, use [docker start] and [docker exec] command"
