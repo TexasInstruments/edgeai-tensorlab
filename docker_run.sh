@@ -45,14 +45,13 @@ docker_image_name="benchmark:v1"
 docker_container_name="benchmark-${target_device}"
 datasets_path=/data/ssd/datasets
 
-# This script is intended to work with single container.
-# Number container exist
-cont_count=`docker ps -aq | wc -l`
+# Number of containers existing with the given name
+container_count=$(docker ps -a | grep ${docker_container_name} | wc -l)
+echo "Number of containers with the given name/tag: ${container_count} "
 
-
-#If no container exist, then create the container.
-if [ $cont_count -eq 0 ]
+if [ $container_count -eq 0 ]
 then
+    echo "Starting a new container: ${docker_container_name}"
     docker run -it \
         --name "${docker_container_name}" \
         -v ${parent_dir}:/home/edgeai/code \
@@ -61,13 +60,13 @@ then
         --network host \
         --shm-size 30G \
         ${docker_image_name} bash
-# If one container exist, execute that container.
-elif [ $cont_count -eq 1 ]
+elif [ $container_count -eq 1 ]
 then
+    echo "Restarting existing container: ${docker_container_name}"
     docker start "${docker_container_name}"
     docker exec -it "${docker_container_name}" /bin/bash
 else
-    echo -e "\nMultiple containers are present, so exiting"
+    echo -e "\nMultiple containers found with similar name/tag ${docker_container_name}, so exiting"
     echo -e "To run existing container, use [docker start] and [docker exec] command"
     echo -e "To run the new container, use [docker run] command\n"
 fi

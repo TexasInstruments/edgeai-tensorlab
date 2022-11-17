@@ -31,6 +31,10 @@
 #
 #################################################################################
 
+echo "Are you sure that you want to do docker build? This takes some time."
+echo "If you have already built a docker image using docker_build.sh, docker_run.sh can use that"
+read -n 1 -r -s -p $'Press enter to continue or Ctrl+c to exit...\n'
+
 #################################################################################
 # determine if we are behind ti firewall
 ping bitbucket.itg.ti.com -c 1 > /dev/null 2>&1

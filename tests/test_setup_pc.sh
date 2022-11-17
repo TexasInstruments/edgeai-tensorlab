@@ -78,8 +78,8 @@ python3 setup.py develop
 # Installing dependencies
 # installers for nightly build
 echo 'Installing tidl_tools...'
-TIDL_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/283-2022-11-16_03-50-42/artifacts/output/
-OSRT_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/277-2022-11-07_22-09-02/artifacts/output/
+TIDL_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/291-2022-11-16_23-34-31/artifacts/output
+OSRT_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/277-2022-11-07_22-09-02/artifacts/output
 
 TVM_DLR_TAR_NAME=dlr_1.10.0_x86_u18
 ONNX_TAR_NAME=onnx_1.7.0_x86_u18
