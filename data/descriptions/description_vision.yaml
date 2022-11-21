@@ -1892,29 +1892,41 @@ preset_descriptions:
         tensor_bits: 8
 sample_dataset_descriptions:
   animal_classification:
-    description: Example cat-dog image classification dataset with 2 categories and
-      118 images
-    download_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip
-    name: Animal Classification
-    num_frames: 118
-    size: 16137224
-    task_type: classification
+    common:
+      task_type: classification
+    dataset:
+      dataset_name: animal_classification
+      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip
+    info:
+      dataset_description: Example cat-dog image classification dataset with 2 categories
+        and 118 images
+      dataset_frames: 118
+      dataset_size: 16137224
+      detailed_name: Animal classification
   animal_detection:
-    description: Example cat-dog object detection dataset with 2 categories and 99
-      images
-    download_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip
-    name: Animal Detection
-    num_frames: 99
-    size: 15290214
-    task_type: detection
+    common:
+      task_type: detection
+    dataset:
+      dataset_name: animal_detection
+      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip
+    info:
+      dataset_frames: 99
+      dataset_size: 15290214
+      description: Example cat-dog object detection dataset with 2 categories and
+        99 images
+      detailed_name: Animal detection
   tiscapes2017_driving:
-    description: Example driving scenario object detection dataset with 4 categories
-      and 2116 images
-    download_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip
-    name: TIScapes Driving Detection
-    num_frames: 2116
-    size: 461038628
-    task_type: detection
+    common:
+      task_type: detection
+    dataset:
+      dataset_name: tiscapes2017_driving
+      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip
+    info:
+      dataset_frames: 2116
+      dataset_size: 461038628
+      description: Example driving scenario object detection dataset with 4 categories
+        and 2116 images
+      detailed_name: TIScapes driving detection
 target_device_descriptions:
   AM62:
     device_details: "\nThe low-cost AM62x Sitara\u2122 MPU family of application processors\

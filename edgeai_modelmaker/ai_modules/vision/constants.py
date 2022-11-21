@@ -190,28 +190,48 @@ PRESET_DESCRIPTIONS = {
 
 SAMPLE_DATASET_DESCRIPTIONS = {
     'animal_classification': {
-        'task_type': TASK_TYPE_CLASSIFICATION,
-        'download_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip',
-        'size': 16137224,
-        'name': 'Animal Classification',
-        'description': 'Example cat-dog image classification dataset with 2 categories and 118 images',
-        'num_frames': 118,
+        'common': {
+            'task_type': TASK_TYPE_CLASSIFICATION,
+        },
+        'dataset': {
+            'dataset_name': 'animal_classification',
+            'input_data_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip',
+        },
+        'info': {
+            'detailed_name': 'Animal classification',
+            'dataset_description': 'Example cat-dog image classification dataset with 2 categories and 118 images',
+            'dataset_size': 16137224,
+            'dataset_frames': 118,
+        }
     },
     'animal_detection': {
-        'task_type': TASK_TYPE_DETECTION,
-        'download_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip',
-        'size': 15290214,
-        'name': 'Animal Detection',
-        'description': 'Example cat-dog object detection dataset with 2 categories and 99 images',
-        'num_frames': 99,
+        'common': {
+            'task_type': TASK_TYPE_DETECTION,
+        },
+        'dataset': {
+            'dataset_name': 'animal_detection',
+            'input_data_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip',
+        },
+        'info': {
+            'detailed_name': 'Animal detection',
+            'description': 'Example cat-dog object detection dataset with 2 categories and 99 images',
+            'dataset_size': 15290214,
+            'dataset_frames': 99,
+        }
     },
     'tiscapes2017_driving' : {
-        'task_type': TASK_TYPE_DETECTION,
-        'download_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip',
-        'size': 461038628,
-        'name': 'TIScapes Driving Detection',
-        'description': 'Example driving scenario object detection dataset with 4 categories and 2116 images',
-        'num_frames': 2116,
+        'common': {
+            'task_type': TASK_TYPE_DETECTION,
+        },
+        'dataset': {
+            'dataset_name': 'tiscapes2017_driving',
+            'input_data_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip',
+        },
+        'info': {
+            'detailed_name': 'TIScapes driving detection',
+            'description': 'Example driving scenario object detection dataset with 4 categories and 2116 images',
+            'dataset_size': 461038628,
+            'dataset_frames': 2116,
+        }
     }
 }
-
