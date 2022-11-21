@@ -57,7 +57,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -157,7 +157,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -257,7 +257,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -357,7 +357,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -451,7 +451,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -545,7 +545,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -639,7 +639,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -745,7 +745,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -851,7 +851,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -951,7 +951,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -1057,7 +1057,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -1157,7 +1157,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -1253,7 +1253,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -1349,7 +1349,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -1445,7 +1445,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -1542,7 +1542,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -1639,7 +1639,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -1736,7 +1736,7 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
-      detection_threshold: 0.3
+      detection_threshold: 0.6
       detection_top_k: 200
       enable: true
       input_optimization: false
@@ -1832,7 +1832,7 @@ preset_descriptions:
       compilation:
         calibration_frames: 1
         calibration_iterations: 1
-        detection_threshold: 0.3
+        detection_threshold: 0.6
         detection_top_k: 200
         tensor_bits: 32
         tidl_offload: false
@@ -1840,7 +1840,7 @@ preset_descriptions:
       compilation:
         calibration_frames: 1
         calibration_iterations: 1
-        detection_threshold: 0.3
+        detection_threshold: 0.6
         detection_top_k: 200
         tensor_bits: 32
         tidl_offload: false
@@ -1848,7 +1848,7 @@ preset_descriptions:
       compilation:
         calibration_frames: 1
         calibration_iterations: 1
-        detection_threshold: 0.3
+        detection_threshold: 0.6
         detection_top_k: 200
         tensor_bits: 32
         tidl_offload: false
@@ -1856,7 +1856,7 @@ preset_descriptions:
       compilation:
         calibration_frames: 1
         calibration_iterations: 1
-        detection_threshold: 0.3
+        detection_threshold: 0.6
         detection_top_k: 200
         tensor_bits: 32
         tidl_offload: false
@@ -1872,7 +1872,7 @@ preset_descriptions:
       compilation:
         calibration_frames: 5
         calibration_iterations: 1
-        detection_threshold: 0.3
+        detection_threshold: 0.6
         detection_top_k: 200
         tensor_bits: 8
     default_preset: null
@@ -1880,22 +1880,40 @@ preset_descriptions:
       compilation:
         calibration_frames: 25
         calibration_iterations: 25
-        detection_threshold: 0.3
+        detection_threshold: 0.6
         detection_top_k: 200
         tensor_bits: 8
     high_speed_preset:
       compilation:
         calibration_frames: 5
         calibration_iterations: 5
-        detection_threshold: 0.3
+        detection_threshold: 0.6
         detection_top_k: 200
         tensor_bits: 8
 sample_dataset_descriptions:
   animal_classification:
+    description: Example cat-dog image classification dataset with 2 categories and
+      118 images
     download_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip
+    name: Animal Classification
+    num_frames: 118
+    size: 16137224
     task_type: classification
+  animal_detection:
+    description: Example cat-dog object detection dataset with 2 categories and 99
+      images
+    download_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip
+    name: Animal Detection
+    num_frames: 99
+    size: 15290214
+    task_type: detection
   tiscapes2017_driving:
+    description: Example driving scenario object detection dataset with 4 categories
+      and 2116 images
     download_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip
+    name: TIScapes Driving Detection
+    num_frames: 2116
+    size: 461038628
     task_type: detection
 target_device_descriptions:
   AM62:

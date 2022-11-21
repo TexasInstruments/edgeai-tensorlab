@@ -159,14 +159,14 @@ PRESET_DESCRIPTIONS = {
             compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=8)
         ),
         'high_accuracy_preset': dict(
-            compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
+            compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
         ),
         'default_preset': None,  # not specified here - use the models values
         'high_speed_preset': dict(
-            compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
+            compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
         ),
         'best_speed_preset': dict(
-            compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
+            compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
         ),
     },
     TARGET_DEVICE_AM62: {
@@ -174,16 +174,16 @@ PRESET_DESCRIPTIONS = {
             compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.05, detection_top_k=500, tensor_bits=32, tidl_offload=False)
         ),
         'high_accuracy_preset': dict(
-            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, detection_top_k=200, tensor_bits=32, tidl_offload=False)
+            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=32, tidl_offload=False)
         ),
         'default_preset': dict(
-            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, detection_top_k=200, tensor_bits=32, tidl_offload=False)
+            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=32, tidl_offload=False)
         ),
         'high_speed_preset': dict(
-            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, detection_top_k=200, tensor_bits=32, tidl_offload=False)
+            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=32, tidl_offload=False)
         ),
         'best_speed_preset': dict(
-            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, detection_top_k=200, tensor_bits=32, tidl_offload=False)
+            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=32, tidl_offload=False)
         ),
     },
 }
@@ -191,11 +191,27 @@ PRESET_DESCRIPTIONS = {
 SAMPLE_DATASET_DESCRIPTIONS = {
     'animal_classification': {
         'task_type': TASK_TYPE_CLASSIFICATION,
-        'download_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip'
+        'download_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip',
+        'size': 16137224,
+        'name': 'Animal Classification',
+        'description': 'Example cat-dog image classification dataset with 2 categories and 118 images',
+        'num_frames': 118,
+    },
+    'animal_detection': {
+        'task_type': TASK_TYPE_DETECTION,
+        'download_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip',
+        'size': 15290214,
+        'name': 'Animal Detection',
+        'description': 'Example cat-dog object detection dataset with 2 categories and 99 images',
+        'num_frames': 99,
     },
     'tiscapes2017_driving' : {
         'task_type': TASK_TYPE_DETECTION,
-        'download_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip'
+        'download_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip',
+        'size': 461038628,
+        'name': 'TIScapes Driving Detection',
+        'description': 'Example driving scenario object detection dataset with 4 categories and 2116 images',
+        'num_frames': 2116,
     }
 }
 
