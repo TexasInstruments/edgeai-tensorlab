@@ -155,36 +155,76 @@ TASK_DESCRIPTIONS = {
 # if we really wan't to change the detections settings in AM62, we will have to modify the onnx file, but that's not easy.
 PRESET_DESCRIPTIONS = {
     TARGET_DEVICE_TDA4VM: {
-        'best_accuracy_preset': dict(
-            compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=8)
-        ),
-        'high_accuracy_preset': dict(
-            compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
-        ),
-        'default_preset': None,  # not specified here - use the models values
-        'high_speed_preset': dict(
-            compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
-        ),
-        'best_speed_preset': dict(
-            compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
-        ),
+        TASK_TYPE_CLASSIFICATION: {
+            'best_accuracy_preset': dict(
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+            ),
+            'high_accuracy_preset': dict(
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+            ),
+            'default_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+            ),
+            'high_speed_preset': dict(
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+            ),
+            'best_speed_preset': dict(
+                compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+            ),
+        },
+        TASK_TYPE_DETECTION: {
+            'best_accuracy_preset': dict(
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=8)
+            ),
+            'high_accuracy_preset': dict(
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
+            ),
+            'default_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
+            ),
+            'high_speed_preset': dict(
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
+            ),
+            'best_speed_preset': dict(
+                compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
+            ),
+        },
     },
     TARGET_DEVICE_AM62: {
-        'best_accuracy_preset': dict(
-            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.05, detection_top_k=500, tensor_bits=32, tidl_offload=False)
-        ),
-        'high_accuracy_preset': dict(
-            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=32, tidl_offload=False)
-        ),
-        'default_preset': dict(
-            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=32, tidl_offload=False)
-        ),
-        'high_speed_preset': dict(
-            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=32, tidl_offload=False)
-        ),
-        'best_speed_preset': dict(
-            compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=32, tidl_offload=False)
-        ),
+        TASK_TYPE_CLASSIFICATION: {
+            'best_accuracy_preset': dict(
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
+            ),
+            'high_accuracy_preset': dict(
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
+            ),
+            'default_preset': dict(
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
+            ),
+            'high_speed_preset': dict(
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
+            ),
+            'best_speed_preset': dict(
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
+            ),
+        },
+        TASK_TYPE_DETECTION: {
+            'best_accuracy_preset': dict(
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.05, detection_top_k=500, tensor_bits=32, tidl_offload=False)
+            ),
+            'high_accuracy_preset': dict(
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=32, tidl_offload=False)
+            ),
+            'default_preset': dict(
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=32, tidl_offload=False)
+            ),
+            'high_speed_preset': dict(
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=32, tidl_offload=False)
+            ),
+            'best_speed_preset': dict(
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=32, tidl_offload=False)
+            ),
+        },
     },
 }
 
@@ -198,7 +238,7 @@ SAMPLE_DATASET_DESCRIPTIONS = {
             'input_data_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip',
         },
         'info': {
-            'detailed_name': 'Animal classification',
+            'dataset_detailed_name': 'Animal classification',
             'dataset_description': 'Example cat-dog image classification dataset with 2 categories and 118 images',
             'dataset_size': 16137224,
             'dataset_frames': 118,
@@ -213,8 +253,8 @@ SAMPLE_DATASET_DESCRIPTIONS = {
             'input_data_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip',
         },
         'info': {
-            'detailed_name': 'Animal detection',
-            'description': 'Example cat-dog object detection dataset with 2 categories and 99 images',
+            'dataset_detailed_name': 'Animal detection',
+            'dataset_description': 'Example cat-dog object detection dataset with 2 categories and 99 images',
             'dataset_size': 15290214,
             'dataset_frames': 99,
         }
@@ -228,8 +268,8 @@ SAMPLE_DATASET_DESCRIPTIONS = {
             'input_data_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip',
         },
         'info': {
-            'detailed_name': 'TIScapes driving detection',
-            'description': 'Example driving scenario object detection dataset with 4 categories and 2116 images',
+            'dataset_detailed_name': 'TIScapes driving detection',
+            'dataset_description': 'Example driving scenario object detection dataset with 4 categories and 2116 images',
             'dataset_size': 461038628,
             'dataset_frames': 2116,
         }
