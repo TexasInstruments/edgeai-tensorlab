@@ -58,7 +58,7 @@ then
         -v ${datasets_path}:${datasets_path} \
         --privileged \
         --network host \
-        --shm-size 30G \
+        --shm-size 10gb \
         ${docker_image_name} bash
 elif [ $container_count -eq 1 ]
 then

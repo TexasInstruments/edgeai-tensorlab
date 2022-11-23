@@ -37,9 +37,9 @@ fi
 
 ######################################################################
 # installers for tidl-tools nightly build
-TIDL_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/291-2022-11-16_23-34-31/artifacts/output
 OSRT_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/277-2022-11-07_22-09-02/artifacts/output
-
+TIDL_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/291-2022-11-16_23-34-31/artifacts/output #j721e
+#TIDL_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/297-2022-11-17_03-15-48/artifacts/output #j721s2
 ######################################################################
 function conditional_wget() {
     base_filename=$(basename $1)
@@ -111,12 +111,14 @@ pip3 install --no-input ${TIDL_TOOLS_NAME}/${TFLITE_TAR_NAME}/tflite_runtime-2.8
 ######################################################################
 ARM64_GCC_FILE=gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu
 echo "[gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu] Checking ..."
+cd ${TIDL_TOOLS_NAME}
 if [ ! -d ${TIDL_TOOLS_NAME}/${ARM64_GCC_FILE} ]
 then
-    conditional_wget https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/${ARM64_GCC_FILE}.tar.xz ${TIDL_TOOLS_NAME}
-    mkdir -p ${TIDL_TOOLS_NAME}/${ARM64_GCC_FILE} && tar xf ${TIDL_TOOLS_NAME}/${ARM64_GCC_FILE}.tar.xz -C ${TIDL_TOOLS_NAME}/${ARM64_GCC_FILE} > /dev/null
-    #rm ${TIDL_TOOLS_NAME}/${ARM64_GCC_FILE}.tar.xz
+    conditional_wget https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/${ARM64_GCC_FILE}.tar.xz .
+    tar xf ${ARM64_GCC_FILE}.tar.xz > /dev/null
+    #rm ${ARM64_GCC_FILE}.tar.xz
 fi
+cd ..
 echo "[${ARM64_GCC_FILE}] Done"
 
 ######################################################################
