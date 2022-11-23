@@ -45,7 +45,7 @@ then
         -v ${PARENT_DIR}:/home/edgeai/code \
         --privileged \
         --network host \
-        --shm-size 30G \
+        --shm-size 10gb \
         modelmaker:v1 bash
 # If one container exist, execute that container.
 elif [ $cont_count -eq 1 ]
