@@ -263,9 +263,9 @@ class ModelTraining:
             {'type':'training_loss', 'name':'Loss', 'description':'Training Loss', 'unit':'Loss', 'value':None,
              'regex':[{'op':'search', 'pattern':r'TODO-Loss-TODO'}],
              },
-            {'type':'validation_accuracy', 'name':'Accuracy', 'description':'Validation Accuracy', 'unit':'AP[.5:.95]%', 'value':None,
+            {'type':'validation_accuracy', 'name':'Accuracy', 'description':'Validation Accuracy', 'unit':'AP50%', 'value':None,
              'regex':[{'op':'search', 'pattern':r'\s+[-+e\d+\.\d+]+,\s+[-+e\d+\.\d+]+,\s+[-+e\d+\.\d+]+,\s+[-+e\d+\.\d+]+,'
-                                                r'\s+[-+e\d+\.\d+]+,\s+[-+e\d+\.\d+]+,\s+[-+e\d+\.\d+]+,\s+([-+e\d+\.\d+]+)', 'group':1}],
+                                                r'\s+[-+e\d+\.\d+]+,\s+[-+e\d+\.\d+]+,\s+([-+e\d+\.\d+]+)', 'group':1, 'scale_factor':100}],
              }]
         }
 

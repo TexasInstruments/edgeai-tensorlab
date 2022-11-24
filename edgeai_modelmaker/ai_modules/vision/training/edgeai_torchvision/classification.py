@@ -257,7 +257,7 @@ class ModelTraining:
                  'regex':[{'op':'search', 'pattern':r'Epoch:\s\[\d+\]\sTotal\stime:[\s\S]*?loss\:\s+(?<loss>\d+\.\d+)', 'group':1}],
                  },
                 {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Validation Accuracy', 'unit':'Accuracy Top-1%', 'value':None,
-                 'regex':[{'op':'search', 'pattern':r'Test:\s+\s+Acc@1\s+(?<accuracy>[-+e\d+\.\d+]+)', 'group':1}],
+                 'regex':[{'op':'search', 'pattern':r'Test:\s+\s+Acc@1\s+(?<accuracy>[-+e\d+\.\d+]+)', 'group':1, 'scale_factor':1}],
                  }]
         }
 
