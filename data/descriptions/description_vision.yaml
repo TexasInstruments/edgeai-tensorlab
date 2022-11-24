@@ -1987,7 +1987,10 @@ sample_dataset_descriptions:
         and 118 images
       dataset_detailed_name: Animal classification
       dataset_frames: 118
+      dataset_license: CC0 Universal Public Domain Dedication
       dataset_size: 16137224
+      dataset_source: CC0 Public Domain Images from creativecommons.org, annotations
+        by TI
   animal_detection:
     common:
       task_type: detection
@@ -1999,7 +2002,25 @@ sample_dataset_descriptions:
         and 99 images
       dataset_detailed_name: Animal detection
       dataset_frames: 99
+      dataset_license: CC0 Universal Public Domain Dedication
       dataset_size: 15290214
+      dataset_source: CC0 Public Domain Images from creativecommons.org, annotations
+        by TI
+  person_face_detection:
+    common:
+      task_type: detection
+    dataset:
+      dataset_name: person_face_detection
+      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/person_face_detection.zip
+    info:
+      dataset_description: Example Person & Face Detection dataset with 2 categories
+        and 302 images
+      dataset_detailed_name: Person & Face Detection
+      dataset_frames: 302
+      dataset_license: CC0 Universal Public Domain Dedication
+      dataset_size: 137229038
+      dataset_source: CC0 Public Domain Images from wordpress.org/openverse, annotations
+        by TI
   tiscapes2017_driving:
     common:
       task_type: detection
@@ -2011,7 +2032,24 @@ sample_dataset_descriptions:
         4 categories and 2116 images
       dataset_detailed_name: TIScapes driving detection
       dataset_frames: 2116
+      dataset_license: BSD 3-Clause
       dataset_size: 461038628
+      dataset_source: Images & annotations from TI
+  vehicle_licenseplate_detection:
+    common:
+      task_type: detection
+    dataset:
+      dataset_name: vehicle_licenseplate_detection
+      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/vehicle_licenseplate_detection.zip
+    info:
+      dataset_description: Example Vehicle & License plate Detection dataset with
+        2 categories and 357 images
+      dataset_detailed_name: Vehicle & License plate Detection
+      dataset_frames: 357
+      dataset_license: CC0 Universal Public Domain Dedication
+      dataset_size: 206858169
+      dataset_source: CC0 Public Domain Images from wordpress.org/openverse, annotations
+        by TI
 target_device_descriptions:
   AM62:
     device_details: "\nThe low-cost AM62x Sitara\u2122 MPU family of application processors\
