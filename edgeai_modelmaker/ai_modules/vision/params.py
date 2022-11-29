@@ -37,7 +37,7 @@ def init_params(*args, **kwargs):
     default_params = dict(
         common=dict(
             verbose_mode=True,
-            download_path='./data/download',
+            download_path='./data/downloads',
             projects_path='./data/projects',
             project_path=None,
             project_run_path=None,

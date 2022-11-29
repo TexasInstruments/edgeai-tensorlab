@@ -118,9 +118,9 @@ class DatasetHandling:
             elif self.params.dataset.input_data_path is not None:
                 input_annotation_path = os.path.join(self.params.dataset.dataset_path, self.params.dataset.annotation_dir,
                                                      f'{self.params.dataset.annotation_prefix}.json')
+                download_root = os.path.join(self.params.common.download_path, 'datasets')
                 _, _, input_data_path = utils.download_file(self.params.dataset.input_data_path,
-                    os.path.join(self.params.common.download_path,'dataset'),
-                    self.params.dataset.extract_path)
+                            download_root, self.params.dataset.extract_path)
                 with open(input_annotation_path) as afp:
                     dataset_store = json.load(afp)
                 #

@@ -120,8 +120,8 @@ class ModelRunner():
         # if it is a url and the downloaded copy is present, it will be reused.
         pretrained_path = self.params.training.pretrained_checkpoint_path
         if isinstance(pretrained_path, str) and (pretrained_path.startswith('http://') or pretrained_path.startswith('https://')):
-            download_root = os.path.join(self.params.common.download_path, 'pretrained',
-                os.path.basename(self.params.training.model_name))
+            pretrained_checkpoint_basename = os.path.basename(self.params.training.model_name)
+            download_root = os.path.join(self.params.common.download_path, 'pretrained', pretrained_checkpoint_basename)
             download_success, exception_message, pretrained_path = utils.download_file(
                 pretrained_path, download_root, extract=False)
             if download_success:
