@@ -190,9 +190,9 @@ class ModelCompilation():
         ''''
         The actual compilation function. Move this to a worker process, if this function is called from a GUI.
         '''
-        if self.params.compilation.verbose:
-            print(edgeai_benchmark.utils.log_color('\nINFO', 'detailed compilation logs are being redirected to log file',
-                                                   'please see the compilation log file for the status'))
+        if self.params.compilation.capture_log:
+            print(edgeai_benchmark.utils.log_color('\nINFO', 'compilation in progress',
+                                                   'please see compilation log file for the status.'))
         #
         # run the accuracy pipeline
         edgeai_benchmark.tools.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
@@ -227,7 +227,7 @@ class ModelCompilation():
                         input_optimization=self.params.compilation.input_optimization,
                         tidl_offload=self.params.compilation.tidl_offload,
                         num_output_frames=self.params.compilation.num_output_frames,
-                        verbose=self.params.compilation.verbose
+                        capture_log=self.params.compilation.capture_log
         )
         return settings
 

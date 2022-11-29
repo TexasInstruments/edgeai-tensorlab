@@ -122,7 +122,7 @@ def init_params(*args, **kwargs):
             save_output=True, # save inference outputs
             tidl_offload=True,
             input_optimization=False, # if this si set, the compilation tool will try to fold mean and scale inside the model.
-            verbose=True # more detailed logs - capture logs from the underlying c library
+            capture_log=True # more detailed logs - capture logs from the underlying c library
         ),
     )
     params = utils.ConfigDict(default_params, *args, **kwargs)

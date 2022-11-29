@@ -56,6 +56,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -76,7 +77,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -157,6 +157,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -177,7 +178,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -258,6 +258,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -278,7 +279,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -359,6 +359,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -379,7 +380,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -454,6 +454,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -474,7 +475,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -549,6 +549,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -569,7 +570,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -644,6 +644,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -666,7 +667,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -751,6 +751,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -773,7 +774,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -858,6 +858,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -880,7 +881,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -959,6 +959,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -981,7 +982,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1066,6 +1066,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -1088,7 +1089,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1167,6 +1167,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -1189,7 +1190,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1264,6 +1264,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -1286,7 +1287,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1361,6 +1361,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -1383,7 +1384,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1458,6 +1458,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -1481,7 +1482,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1556,6 +1556,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -1579,7 +1580,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1654,6 +1654,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -1677,7 +1678,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json
@@ -1752,6 +1752,7 @@ model_descriptions:
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
+      capture_log: true
       compilation_path: null
       detection_threshold: 0.6
       detection_top_k: 200
@@ -1775,7 +1776,6 @@ model_descriptions:
       summary_file_path: null
       tensor_bits: 8
       tidl_offload: true
-      verbose: true
     dataset:
       annotation_dir: annotations
       annotation_format: coco_json

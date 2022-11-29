@@ -117,7 +117,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "metric":{
           "label_offset_pred":1
         }
@@ -229,7 +229,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "metric":{
           "label_offset_pred":1
         }
@@ -341,7 +341,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "metric":{
           "label_offset_pred":1
         }
@@ -446,7 +446,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "metric":{
           "label_offset_pred":1
         }
@@ -551,7 +551,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "metric":{
           "label_offset_pred":1
         }
@@ -656,7 +656,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "metric":{
           "label_offset_pred":1
         }
@@ -774,7 +774,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":null
         },
@@ -895,7 +895,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":null
         },
@@ -1016,7 +1016,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":null
         },
@@ -1130,7 +1130,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":null
         },
@@ -1244,7 +1244,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":null
         },
@@ -1352,7 +1352,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179"
         },
@@ -1460,7 +1460,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179"
         },
@@ -1568,7 +1568,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179"
         },
@@ -1676,7 +1676,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
         },
@@ -1784,7 +1784,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"370, 426, 482, 538"
         },
@@ -1892,7 +1892,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"228, 498, 554, 610, 666"
         },
@@ -2000,7 +2000,7 @@
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "verbose":true,
+        "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"288, 626, 682, 738, 794"
         },
