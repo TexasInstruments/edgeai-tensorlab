@@ -70,7 +70,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       save_output: true
       summary_file_path: null
@@ -171,7 +171,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       save_output: true
       summary_file_path: null
@@ -272,7 +272,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       save_output: true
       summary_file_path: null
@@ -373,7 +373,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       save_output: true
       summary_file_path: null
@@ -468,7 +468,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       save_output: true
       summary_file_path: null
@@ -563,7 +563,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       save_output: true
       summary_file_path: null
@@ -658,7 +658,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: null
@@ -765,7 +765,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: null
@@ -872,7 +872,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: null
@@ -973,7 +973,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: null
@@ -1080,7 +1080,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: null
@@ -1181,7 +1181,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 288, 626, 682, 738, 794
@@ -1278,7 +1278,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 228, 498, 554, 610, 666
@@ -1375,7 +1375,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 370, 426, 482, 538
@@ -1472,7 +1472,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
@@ -1570,7 +1570,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
@@ -1668,7 +1668,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
@@ -1766,7 +1766,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
-      num_output_frames: 25
+      num_output_frames: 50
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
