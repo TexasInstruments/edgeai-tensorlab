@@ -275,7 +275,7 @@ class BboxObject6dPoseReformat():
 
 
 class Object6dPoseImageSave:
-    def __init__(self):
+    def __init__(self, num_output_frames=None):
         self.cadmodels = None
         self.camera_matrix = None
         self.class_to_cuboid = None
@@ -283,8 +283,14 @@ class Object6dPoseImageSave:
         self.colors = [(r,g,b) for r in range(0,256,self.color_step) \
                        for g in range(0,256,self.color_step) \
                        for b in range(0,256,self.color_step)]
-
+        self.num_output_frames = num_output_frames
+        self.output_frame_idx = 0
+        
     def __call__(self, result, info_dict):
+        if self.output_frame_idx >= self.num_output_frames:
+            self.output_frame_idx += 1
+            return result, info_dict
+        #
         if self.cadmodels is None:
             data_path = info_dict.get('data_path', './dependencies/datasets/ycbv/')
             dataset_dir = os.path.dirname(os.path.dirname(data_path))
@@ -307,6 +313,7 @@ class Object6dPoseImageSave:
         else:
             assert False, f'PIL image type isnt supported because PIL process dont pad right now' #TODO
         #
+        self.output_frame_idx += 1
         return result, info_dict
 
 

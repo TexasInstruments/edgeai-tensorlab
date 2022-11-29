@@ -983,7 +983,7 @@ class BboxKeypointsConfReformat():
 
 
 class HumanPoseImageSave:
-    def __init__(self):
+    def __init__(self, num_output_frames=None):
         self.pose_nms_thr = 0.9
         self.kpt_score_thr = 0.5
         self.palette = np.array([[255, 128, 0], [255, 153, 51], [255, 178, 102],
@@ -1006,6 +1006,8 @@ class HumanPoseImageSave:
             16, 16, 16, 16, 16, 9, 9, 9, 9, 9, 9, 0, 0, 0, 0, 0, 0
         ]]
         self.show_keypoint_weight = False
+        self.num_output_frames = num_output_frames
+        self.output_frame_idx = 0
 
     def oks_iou(self, g, d, a_g, a_d, sigmas=None, vis_thr=None):
         """Calculate oks ious.
@@ -1168,6 +1170,10 @@ class HumanPoseImageSave:
         return img
 
     def __call__(self, result, info_dict):
+        if self.output_frame_idx >= self.num_output_frames:
+            self.output_frame_idx += 1
+            return result, info_dict
+        #
         data_path = info_dict['data_path']
         img_data = info_dict['data']
         image_name = os.path.split(data_path)[-1]
@@ -1206,5 +1212,6 @@ class HumanPoseImageSave:
         else:
             assert False, f'PIL image type isnt supported because PIL process dont pad right now' #TODO
         #
+        self.output_frame_idx += 1
         return result, info_dict
 

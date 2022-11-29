@@ -44,7 +44,7 @@ class PostProcessTransforms(utils.TransformsCompose):
     def get_transform_classification(self):
         postprocess_classification = [IndexArray(), ArgMax()]
         if self.settings.save_output:
-            postprocess_classification += [ClassificationImageSave()]
+            postprocess_classification += [ClassificationImageSave(self.settings.num_output_frames)]
         #
         transforms = PostProcessTransforms(None, postprocess_classification)
         return transforms
@@ -80,11 +80,11 @@ class PostProcessTransforms(utils.TransformsCompose):
 
         if self.settings.save_output:
             if keypoint:
-                postprocess_detection += [HumanPoseImageSave()]
+                postprocess_detection += [HumanPoseImageSave(self.settings.num_output_frames)]
             elif object6dpose:
-                postprocess_detection += [Object6dPoseImageSave()]
+                postprocess_detection += [Object6dPoseImageSave(self.settings.num_output_frames)]
             else:
-                postprocess_detection += [DetectionImageSave()]
+                postprocess_detection += [DetectionImageSave(self.settings.num_output_frames)]
         #
         transforms = PostProcessTransforms(None, postprocess_detection,
                                            detection_threshold=self.settings.detection_threshold,
@@ -134,7 +134,7 @@ class PostProcessTransforms(utils.TransformsCompose):
                                      SegmentationImageResize(),
                                      SegmentationImagetoBytes()]
         if self.settings.save_output:
-            postprocess_segmentation += [SegmentationImageSave()]
+            postprocess_segmentation += [SegmentationImageSave(self.settings.num_output_frames)]
         #
         transforms = PostProcessTransforms(None, postprocess_segmentation,
                                            data_layout=data_layout,
@@ -158,7 +158,7 @@ class PostProcessTransforms(utils.TransformsCompose):
                                              KeypointsProject2Image(use_udp=with_udp)]
 
         if self.settings.save_output:
-            postprocess_human_pose_estimation += [HumanPoseImageSave()]
+            postprocess_human_pose_estimation += [HumanPoseImageSave(self.settings.num_output_frames)]
         #
         transforms = PostProcessTransforms(None, postprocess_human_pose_estimation,
                                            data_layout=data_layout,
@@ -176,7 +176,7 @@ class PostProcessTransforms(utils.TransformsCompose):
                                         NPTensorToImage(data_layout=data_layout),
                                         DepthImageResize()]
         if self.settings.save_output:
-            postprocess_depth_estimation += [DepthImageSave()]
+            postprocess_depth_estimation += [DepthImageSave(self.settings.num_output_frames)]
         #
         transforms = PostProcessTransforms(None, postprocess_depth_estimation,
                                            data_layout=data_layout,

@@ -179,7 +179,7 @@ class IgnoreIndex():
 
 
 class ClassificationImageSave():
-    def __init__(self):
+    def __init__(self, num_output_frames=None):
         self.color_step = 64 #32
         self.colors = [(r,g,b) for r in range(0,256,self.color_step) \
                        for g in range(0,256,self.color_step) \
@@ -189,8 +189,14 @@ class ClassificationImageSave():
         self.dataset_info = None
         self.dataset_categories_map = None
         self.label_offset_pred = None
+        self.num_output_frames = num_output_frames
+        self.output_frame_idx = 0
 
     def __call__(self, output, info_dict):
+        if self.output_frame_idx >= self.num_output_frames:
+            self.output_frame_idx += 1
+            return output, info_dict
+        #
         data_path = info_dict['data_path']
         img_data = info_dict['data']
         if self.label_offset_pred is None:
@@ -224,6 +230,7 @@ class ClassificationImageSave():
         else:
             img_data.save(save_path)
         #
+        self.output_frame_idx += 1
         return output, info_dict
 
     def put_text(self, img_data, output_txt, label_color):
@@ -262,10 +269,16 @@ class SegmentationImagetoBytes():
 
 
 class SegmentationImageSave():
-    def __init__(self):
+    def __init__(self, num_output_frames=None):
         self.colors = [(r,g,b) for r in range(0,256,32) for g in range(0,256,32) for b in range(0,256,32)]
+        self.num_output_frames = num_output_frames
+        self.output_frame_idx = 0
 
     def __call__(self, tensor, info_dict):
+        if self.output_frame_idx >= self.num_output_frames:
+            self.output_frame_idx += 1
+            return tensor, info_dict
+        #
         data_path = info_dict['data_path']
         # img_data = info_dict['data']
         image_name = os.path.split(data_path)[-1].split('.')[0] + '.png'
@@ -283,6 +296,7 @@ class SegmentationImageSave():
             # add fill code here
             tensor.save(save_path)
         #
+        self.output_frame_idx += 1
         return tensor, info_dict
 
 
@@ -415,7 +429,7 @@ class DetectionBoxSL2BoxLS(DetectionFormatting):
 
 
 class DetectionImageSave():
-    def __init__(self):
+    def __init__(self, num_output_frames=None):
         self.color_step = 64 #32
         self.colors = [(r,g,b) for r in range(0,256,self.color_step) \
                        for g in range(0,256,self.color_step) \
@@ -425,8 +439,14 @@ class DetectionImageSave():
         self.dataset_info = None
         self.dataset_categories_map = None
         self.label_offset_pred = None
+        self.num_output_frames =num_output_frames
+        self.output_frame_idx = 0
 
     def __call__(self, bbox, info_dict):
+        if self.output_frame_idx >= self.num_output_frames:
+            self.output_frame_idx += 1
+            return bbox, info_dict
+        #
         data_path = info_dict['data_path']
         img_data = info_dict['data']
         if self.label_offset_pred is None:
@@ -466,6 +486,7 @@ class DetectionImageSave():
         else:
             img_data.save(save_path)
         #
+        self.output_frame_idx += 1
         return bbox, info_dict
 
     def put_text(self, img_data, pt, output_txt, label_color):
@@ -524,6 +545,10 @@ class DepthImageResize():
         return label, info_dict
 
 class DepthImageSave():
+    def __init__(self, num_output_frames=None):
+        self.num_output_frames = num_output_frames
+        self.output_frame_idx = 0
+
     #Taken from MiDaS (https://github.com/isl-org/MiDaS)
     def write_pfm(path, image, scale=1):
         """Write pfm file.
@@ -564,6 +589,10 @@ class DepthImageSave():
             image.tofile(file)
 
     def _call_(self, result, info_dict):
+        if self.output_frame_idx >= self.num_output_frames:
+            self.output_frame_idx += 1
+            return result, info_dict
+        #
         data_path = info_dict['data_path']
         image_name = os.path.split(data_path)[-1]
         run_dir = info_dict['run_dir']
@@ -580,7 +609,7 @@ class DepthImageSave():
         pred_relative = 65535 * ((pred - d_min) / (d_max - d_min))
 
         cv2.imwrite(save_path, pred_relative.astype("uint16"))
-
+        self.output_frame_idx += 1
         return result, info_dict
 
 class OD3DOutPutPorcess(object):
