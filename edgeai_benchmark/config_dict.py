@@ -150,7 +150,7 @@ class ConfigDict(dict):
         # save detection, segmentation output
         self.save_output = False
         # number of frames for example output
-        self.num_output_frames = 25 #None
+        self.num_output_frames = 50 #None
         # wild card list to match against model_path, model_id or model_type - if null, all models wil be selected
         # examples: ['classification'] ['imagenet1k'] ['torchvision']
         # examples: ['resnet18.onnx', 'resnet50_v1.tflite']
