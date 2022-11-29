@@ -143,7 +143,7 @@ class AccuracyPipeline():
             if self.settings.run_import else False
         if run_import:
             start_time = time.time()
-            self.write_log(utils.log_color('\nINFO', f'import {description}', self.run_dir_base))
+            self.write_log(utils.log_color('\nINFO', f'import {description}', self.run_dir_base + ' - this may take some time...'))
             self._import_model(description)
             elapsed_time = time.time() - start_time
             self.write_log(utils.log_color('\nINFO', f'import completed {description}', f'{self.run_dir_base} - {elapsed_time:.0f} sec'))
@@ -159,7 +159,7 @@ class AccuracyPipeline():
         # inference
         if self.settings.run_inference:
             start_time = time.time()
-            self.write_log(utils.log_color('\nINFO', f'infer {description}', self.run_dir_base))
+            self.write_log(utils.log_color('\nINFO', f'infer {description}', self.run_dir_base + ' - this may take some time...'))
             output_list = self._infer_frames(description)
             elapsed_time = time.time() - start_time
             self.write_log(utils.log_color('\nINFO', f'infer completed {description}', f'{self.run_dir_base} - {elapsed_time:.0f} sec'))
