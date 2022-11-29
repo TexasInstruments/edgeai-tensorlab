@@ -339,7 +339,7 @@ class ModelTraining:
                   disable_git_status=True)
 
         args_yolo_export = {
-            'weights': self.params.training['checkpoint_path'],
+            'weights': self.params.training['model_checkpoint_path'],
             'img': (640, 640),
             'simplify': True,
             'batch_size': 1,
