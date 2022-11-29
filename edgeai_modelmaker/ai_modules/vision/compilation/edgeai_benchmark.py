@@ -222,6 +222,7 @@ class ModelCompilation():
                         save_output=self.params.compilation.save_output,
                         input_optimization=self.params.compilation.input_optimization,
                         tidl_offload=self.params.compilation.tidl_offload,
+                        num_output_frames=self.params.compilation.num_output_frames,
                         verbose=self.params.compilation.verbose
         )
         return settings
