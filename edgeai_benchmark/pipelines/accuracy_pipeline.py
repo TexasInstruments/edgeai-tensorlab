@@ -296,7 +296,7 @@ class AccuracyPipeline():
 
     def _run_with_log(self, func, *args, **kwargs):
         log_fp = self.logger.log_file if self.logger is not None else None
-        logging_mode = 'wurlitzer' if self.settings.verbose else None
+        logging_mode = 'wurlitzer' if self.settings.capture_log else None
         if log_fp is None or logging_mode is None:
             return func(*args, **kwargs)
         elif logging_mode == 'redirect_logger':

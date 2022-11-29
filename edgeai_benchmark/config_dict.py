@@ -184,6 +184,8 @@ class ConfigDict(dict):
         self.enable_logging = True
         # verbose mode - print out more information
         self.verbose = False
+        # capture_log mode - capture and redirect details logs to log file
+        self.capture_log = False
         # enable use of experimental models - the actual model files are not available in modelzoo
         self.experimental_models = False
         # rewrite results with latest params if the result exists
