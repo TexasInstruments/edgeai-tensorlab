@@ -58,6 +58,7 @@ _model_descriptions = {
             input_resize=256,
             input_cropsize=224,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth',
+            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=477, performance_infer_time_ms=1000/477,
                                                      accuracy_factor=72.13, accuracy_unit='Accuracy Top-1%'),
@@ -86,6 +87,7 @@ _model_descriptions = {
             input_resize=256,
             input_cropsize=224,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth',
+            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=267, performance_infer_time_ms=1000/267,
                                                      accuracy_factor=72.12, accuracy_unit='Accuracy Top-1%'),
@@ -114,6 +116,7 @@ _model_descriptions = {
             input_resize=256,
             input_cropsize=224,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth',
+            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=751, performance_infer_time_ms=1000/751,
                                                      accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%'),
@@ -142,6 +145,7 @@ _model_descriptions = {
             input_resize=256,
             input_cropsize=224,
             pretrained_checkpoint_path=f'https://download.pytorch.org/models/regnet_x_400mf-adf1edd5.pth',
+            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=288, performance_infer_time_ms=1000/288,
                                                      accuracy_factor=72.834, accuracy_unit='Accuracy Top-1%')
@@ -168,6 +172,7 @@ _model_descriptions = {
             input_resize=256,
             input_cropsize=224,
             pretrained_checkpoint_path=f'https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth',
+            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=272, performance_infer_time_ms=1000/272,
                                                      accuracy_factor=75.212, accuracy_unit='Accuracy Top-1%')
@@ -194,6 +199,7 @@ _model_descriptions = {
             input_resize=256,
             input_cropsize=224,
             pretrained_checkpoint_path=f'https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth',
+            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION]//2,
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=237, performance_infer_time_ms=1000/237,
                                                      accuracy_factor=77.040, accuracy_unit='Accuracy Top-1%')

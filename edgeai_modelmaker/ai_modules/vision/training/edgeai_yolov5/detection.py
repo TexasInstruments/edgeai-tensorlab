@@ -60,7 +60,7 @@ _model_descriptions = {
             input_resize=640,
             input_cropsize=640,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/checkpoints/detection/coco/edgeai-yolov5/yolov5s6_640_ti_lite/weights/best.pt',
-            training_epochs=100,
+            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=108, performance_infer_time_ms=1000/108,
                                                      accuracy_factor=37.4, accuracy_unit='AP[.5:.95]%')
@@ -90,6 +90,7 @@ _model_descriptions = {
             input_resize=640,
             input_cropsize=640,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/checkpoints/detection/coco/edgeai-yolov5/yolov5m6_640_ti_lite/weights/best.pt',
+            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION]//2,
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=46, performance_infer_time_ms=1000/46,
                                                      accuracy_factor=44.1, accuracy_unit='AP[.5:.95]%')
@@ -119,6 +120,7 @@ _model_descriptions = {
             input_resize=640,
             input_cropsize=640,
             pretrained_checkpoint_path=f'{www_modelzoo_path}/detection/coco/edgeai-yolov5/yolov5l6_640_ti_lite/weights/best.pt',
+            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION]//2,
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=21, performance_infer_time_ms=1000/21,
                                                      accuracy_factor=47.1, accuracy_unit='AP[.5:.95]%')

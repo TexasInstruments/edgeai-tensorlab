@@ -44,7 +44,7 @@ help_descriptions:
 model_descriptions:
   mobilenet_v2_lite_tv:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -70,6 +70,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       save_output: true
       summary_file_path: null
@@ -97,7 +98,7 @@ model_descriptions:
       - train
       - val
     training:
-      batch_size: 8
+      batch_size: 64
       dataset_path: null
       distributed: true
       enable: true
@@ -144,7 +145,7 @@ model_descriptions:
       weight_decay: 0.0001
   mobilenet_v3_large_lite_tv:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -170,6 +171,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       save_output: true
       summary_file_path: null
@@ -197,7 +199,7 @@ model_descriptions:
       - train
       - val
     training:
-      batch_size: 8
+      batch_size: 64
       dataset_path: null
       distributed: true
       enable: true
@@ -244,7 +246,7 @@ model_descriptions:
       weight_decay: 0.0001
   mobilenet_v3_small_lite_tv:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -270,6 +272,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       save_output: true
       summary_file_path: null
@@ -297,7 +300,7 @@ model_descriptions:
       - train
       - val
     training:
-      batch_size: 8
+      batch_size: 64
       dataset_path: null
       distributed: true
       enable: true
@@ -344,7 +347,7 @@ model_descriptions:
       weight_decay: 0.0001
   regnet_x_1_6gf_tv:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -370,6 +373,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       save_output: true
       summary_file_path: null
@@ -397,7 +401,7 @@ model_descriptions:
       - train
       - val
     training:
-      batch_size: 8
+      batch_size: 32
       dataset_path: null
       distributed: true
       enable: true
@@ -438,7 +442,7 @@ model_descriptions:
       weight_decay: 0.0001
   regnet_x_400mf_tv:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -464,6 +468,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       save_output: true
       summary_file_path: null
@@ -491,7 +496,7 @@ model_descriptions:
       - train
       - val
     training:
-      batch_size: 8
+      batch_size: 64
       dataset_path: null
       distributed: true
       enable: true
@@ -532,7 +537,7 @@ model_descriptions:
       weight_decay: 0.0001
   regnet_x_800mf_tv:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -558,6 +563,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       save_output: true
       summary_file_path: null
@@ -585,7 +591,7 @@ model_descriptions:
       - train
       - val
     training:
-      batch_size: 8
+      batch_size: 64
       dataset_path: null
       distributed: true
       enable: true
@@ -626,7 +632,7 @@ model_descriptions:
       weight_decay: 0.0001
   ssd_mobilenetv2_fpn_lite_mmdet:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -652,6 +658,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: null
@@ -732,7 +739,7 @@ model_descriptions:
       weight_decay: 0.0001
   ssd_mobilenetv2_lite_mmdet:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -758,6 +765,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: null
@@ -838,7 +846,7 @@ model_descriptions:
       weight_decay: 0.0001
   ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -864,6 +872,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: null
@@ -893,7 +902,7 @@ model_descriptions:
       - train
       - val
     training:
-      batch_size: 8
+      batch_size: 4
       dataset_path: null
       distributed: true
       enable: true
@@ -938,7 +947,7 @@ model_descriptions:
       weight_decay: 0.0001
   ssd_regnetx_200mf_fpn_bgr_lite_mmdet:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -964,6 +973,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: null
@@ -1044,7 +1054,7 @@ model_descriptions:
       weight_decay: 0.0001
   ssd_regnetx_800mf_fpn_bgr_lite_mmdet:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -1070,6 +1080,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: null
@@ -1144,7 +1155,7 @@ model_descriptions:
       weight_decay: 0.0001
   yolov5l6_640_ti_lite:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -1170,6 +1181,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 288, 626, 682, 738, 794
@@ -1199,7 +1211,7 @@ model_descriptions:
       - train
       - val
     training:
-      batch_size: 8
+      batch_size: 4
       dataset_path: null
       distributed: true
       enable: true
@@ -1240,7 +1252,7 @@ model_descriptions:
       weight_decay: 0.0001
   yolov5m6_640_ti_lite:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -1266,6 +1278,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 228, 498, 554, 610, 666
@@ -1295,7 +1308,7 @@ model_descriptions:
       - train
       - val
     training:
-      batch_size: 8
+      batch_size: 4
       dataset_path: null
       distributed: true
       enable: true
@@ -1336,7 +1349,7 @@ model_descriptions:
       weight_decay: 0.0001
   yolov5s6_640_ti_lite:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -1362,6 +1375,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 370, 426, 482, 538
@@ -1425,14 +1439,14 @@ model_descriptions:
       training_devices:
         cpu: true
         cuda: true
-      training_epochs: 100
+      training_epochs: 15
       training_master_port: 29500
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
   yolox_m_lite_mmdet:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -1458,6 +1472,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
@@ -1488,7 +1503,7 @@ model_descriptions:
       - train
       - val
     training:
-      batch_size: 8
+      batch_size: 4
       dataset_path: null
       distributed: true
       enable: true
@@ -1529,7 +1544,7 @@ model_descriptions:
       weight_decay: 0.0001
   yolox_nano_lite_mmdet:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -1555,6 +1570,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
@@ -1626,7 +1642,7 @@ model_descriptions:
       weight_decay: 0.0001
   yolox_s_lite_mmdet:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -1652,6 +1668,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
@@ -1723,7 +1740,7 @@ model_descriptions:
       weight_decay: 0.0001
   yolox_tiny_lite_mmdet:
     common:
-      download_path: ./data/download
+      download_path: ./data/downloads
       project_path: null
       project_run_path: null
       projects_path: ./data/projects
@@ -1749,6 +1766,7 @@ model_descriptions:
       model_packaged_path: null
       model_visualization_path: null
       num_frames: null
+      num_output_frames: 25
       output_tensors_path: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
@@ -1987,10 +2005,11 @@ sample_dataset_descriptions:
         and 118 images
       dataset_detailed_name: Animal classification
       dataset_frames: 118
-      dataset_license: CC0 Universal Public Domain Dedication
+      dataset_license: CC0 1.0 Universal Public Domain Dedication
       dataset_size: 16137224
       dataset_source: CC0 Public Domain Images from creativecommons.org, annotations
         by TI
+      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip
   animal_detection:
     common:
       task_type: detection
@@ -2002,25 +2021,11 @@ sample_dataset_descriptions:
         and 99 images
       dataset_detailed_name: Animal detection
       dataset_frames: 99
-      dataset_license: CC0 Universal Public Domain Dedication
+      dataset_license: CC0 1.0 Universal Public Domain Dedication
       dataset_size: 15290214
       dataset_source: CC0 Public Domain Images from creativecommons.org, annotations
         by TI
-  person_face_detection:
-    common:
-      task_type: detection
-    dataset:
-      dataset_name: person_face_detection
-      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/person_face_detection.zip
-    info:
-      dataset_description: Example Person & Face Detection dataset with 2 categories
-        and 302 images
-      dataset_detailed_name: Person & Face Detection
-      dataset_frames: 302
-      dataset_license: CC0 Universal Public Domain Dedication
-      dataset_size: 137229038
-      dataset_source: CC0 Public Domain Images from wordpress.org/openverse, annotations
-        by TI
+      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip
   tiscapes2017_driving:
     common:
       task_type: detection
@@ -2035,21 +2040,7 @@ sample_dataset_descriptions:
       dataset_license: BSD 3-Clause
       dataset_size: 461038628
       dataset_source: Images & annotations from TI
-  vehicle_licenseplate_detection:
-    common:
-      task_type: detection
-    dataset:
-      dataset_name: vehicle_licenseplate_detection
-      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/vehicle_licenseplate_detection.zip
-    info:
-      dataset_description: Example Vehicle & License plate Detection dataset with
-        2 categories and 357 images
-      dataset_detailed_name: Vehicle & License plate Detection
-      dataset_frames: 357
-      dataset_license: CC0 Universal Public Domain Dedication
-      dataset_size: 206858169
-      dataset_source: CC0 Public Domain Images from wordpress.org/openverse, annotations
-        by TI
+      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip
 target_device_descriptions:
   AM62:
     device_details: "\nThe low-cost AM62x Sitara\u2122 MPU family of application processors\

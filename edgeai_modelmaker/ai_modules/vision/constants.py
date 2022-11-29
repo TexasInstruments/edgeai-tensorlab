@@ -65,6 +65,11 @@ TRAINING_DEVICES = [
     TRAINING_DEVICE_CUDA
 ]
 
+TRAINING_BATCH_SIZE_DEFAULT = {
+    TASK_TYPE_CLASSIFICATION: 64,
+    TASK_TYPE_DETECTION: 8
+}
+
 TARGET_DEVICE_DETAILS_TDA4VM = '''
 The TDA4VM processor family is based on the evolutionary Jacinto™ 7 architecture, targeted at ADAS, 
 Autonomous Vehicle (AV) and industrial applications applications. 
@@ -238,12 +243,13 @@ SAMPLE_DATASET_DESCRIPTIONS = {
             'input_data_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip',
         },
         'info': {
+            'dataset_url': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip',
             'dataset_detailed_name': 'Animal classification',
             'dataset_description': 'Example cat-dog image classification dataset with 2 categories and 118 images',
             'dataset_size': 16137224,
             'dataset_frames': 118,
             'dataset_source': 'CC0 Public Domain Images from creativecommons.org, annotations by TI',
-            'dataset_license': 'CC0 Universal Public Domain Dedication'
+            'dataset_license': 'CC0 1.0 Universal Public Domain Dedication'
         }
     },
     'animal_detection': {
@@ -255,12 +261,13 @@ SAMPLE_DATASET_DESCRIPTIONS = {
             'input_data_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip',
         },
         'info': {
+            'dataset_url': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip',
             'dataset_detailed_name': 'Animal detection',
             'dataset_description': 'Example cat-dog object detection dataset with 2 categories and 99 images',
             'dataset_size': 15290214,
             'dataset_frames': 99,
             'dataset_source': 'CC0 Public Domain Images from creativecommons.org, annotations by TI',
-            'dataset_license': 'CC0 Universal Public Domain Dedication'
+            'dataset_license': 'CC0 1.0 Universal Public Domain Dedication'
         }
     },
     'tiscapes2017_driving' : {
@@ -272,46 +279,13 @@ SAMPLE_DATASET_DESCRIPTIONS = {
             'input_data_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip',
         },
         'info': {
+            'dataset_url': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip',
             'dataset_detailed_name': 'TIScapes driving detection',
             'dataset_description': 'Example driving scenario object detection dataset with 4 categories and 2116 images',
             'dataset_size': 461038628,
             'dataset_frames': 2116,
             'dataset_source': 'Images & annotations from TI',
             'dataset_license': 'BSD 3-Clause'
-        }
-    },
-    'person_face_detection' : {
-        'common': {
-            'task_type': TASK_TYPE_DETECTION,
-        },
-        'dataset': {
-            'dataset_name': 'person_face_detection',
-            'input_data_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/person_face_detection.zip',
-        },
-        'info': {
-            'dataset_detailed_name': 'Person & Face Detection',
-            'dataset_description': 'Example Person & Face Detection dataset with 2 categories and 302 images',
-            'dataset_size': 137229038,
-            'dataset_frames': 302,
-            'dataset_source': 'CC0 Public Domain Images from wordpress.org/openverse, annotations by TI',
-            'dataset_license': 'CC0 Universal Public Domain Dedication'
-        }
-    },
-    'vehicle_licenseplate_detection' : {
-        'common': {
-            'task_type': TASK_TYPE_DETECTION,
-        },
-        'dataset': {
-            'dataset_name': 'vehicle_licenseplate_detection',
-            'input_data_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/vehicle_licenseplate_detection.zip',
-        },
-        'info': {
-            'dataset_detailed_name': 'Vehicle & License plate Detection',
-            'dataset_description': 'Example Vehicle & License plate Detection dataset with 2 categories and 357 images',
-            'dataset_size': 206858169,
-            'dataset_frames': 357,
-            'dataset_source': 'CC0 Public Domain Images from wordpress.org/openverse, annotations by TI',
-            'dataset_license': 'CC0 Universal Public Domain Dedication'
         }
     },
 }

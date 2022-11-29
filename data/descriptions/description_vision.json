@@ -14,7 +14,7 @@
     "mobilenet_v2_lite_tv":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -80,7 +80,7 @@
         "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
-        "batch_size":8,
+        "batch_size":64,
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
@@ -111,6 +111,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -125,7 +126,7 @@
     "mobilenet_v3_large_lite_tv":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -191,7 +192,7 @@
         "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
-        "batch_size":8,
+        "batch_size":64,
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
@@ -222,6 +223,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -236,7 +238,7 @@
     "mobilenet_v3_small_lite_tv":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -302,7 +304,7 @@
         "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
-        "batch_size":8,
+        "batch_size":64,
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
@@ -333,6 +335,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -347,7 +350,7 @@
     "regnet_x_400mf_tv":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -406,7 +409,7 @@
         "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
-        "batch_size":8,
+        "batch_size":64,
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
@@ -437,6 +440,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -451,7 +455,7 @@
     "regnet_x_800mf_tv":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -510,7 +514,7 @@
         "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
-        "batch_size":8,
+        "batch_size":64,
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
@@ -541,6 +545,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -555,7 +560,7 @@
     "regnet_x_1_6gf_tv":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -614,7 +619,7 @@
         "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
-        "batch_size":8,
+        "batch_size":32,
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
@@ -645,6 +650,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -659,7 +665,7 @@
     "ssd_mobilenetv2_lite_mmdet":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -762,6 +768,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -779,7 +786,7 @@
     "ssd_mobilenetv2_fpn_lite_mmdet":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -882,6 +889,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -899,7 +907,7 @@
     "ssd_regnetx_200mf_fpn_bgr_lite_mmdet":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -1002,6 +1010,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -1019,7 +1028,7 @@
     "ssd_regnetx_800mf_fpn_bgr_lite_mmdet":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -1115,6 +1124,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -1132,7 +1142,7 @@
     "ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -1191,7 +1201,7 @@
         "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
-        "batch_size":8,
+        "batch_size":4,
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
@@ -1228,6 +1238,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -1245,7 +1256,7 @@
     "yolox_nano_lite_mmdet":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -1335,6 +1346,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -1352,7 +1364,7 @@
     "yolox_tiny_lite_mmdet":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -1442,6 +1454,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -1459,7 +1472,7 @@
     "yolox_s_lite_mmdet":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -1549,6 +1562,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -1566,7 +1580,7 @@
     "yolox_m_lite_mmdet":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -1625,7 +1639,7 @@
         "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
-        "batch_size":8,
+        "batch_size":4,
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
@@ -1656,6 +1670,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -1673,7 +1688,7 @@
     "yolov5s6_640_ti_lite":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -1729,7 +1744,7 @@
         "model_export_path":null,
         "model_proto_path":null,
         "model_packaged_path":null,
-        "training_epochs":100,
+        "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
         "batch_size":8,
@@ -1763,6 +1778,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -1780,7 +1796,7 @@
     "yolov5m6_640_ti_lite":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -1839,7 +1855,7 @@
         "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
-        "batch_size":8,
+        "batch_size":4,
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
@@ -1870,6 +1886,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -1887,7 +1904,7 @@
     "yolov5l6_640_ti_lite":{
       "common":{
         "verbose_mode":true,
-        "download_path":"./data/download",
+        "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
@@ -1946,7 +1963,7 @@
         "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
-        "batch_size":8,
+        "batch_size":4,
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
@@ -1977,6 +1994,7 @@
         "calibration_frames":10,
         "calibration_iterations":10,
         "num_frames":null,
+        "num_output_frames":25,
         "detection_threshold":0.6,
         "detection_top_k":200,
         "save_output":true,
@@ -2248,12 +2266,13 @@
         "input_data_path":"http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip"
       },
       "info":{
+        "dataset_url":"http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip",
         "dataset_detailed_name":"Animal classification",
         "dataset_description":"Example cat-dog image classification dataset with 2 categories and 118 images",
         "dataset_size":16137224,
         "dataset_frames":118,
         "dataset_source":"CC0 Public Domain Images from creativecommons.org, annotations by TI",
-        "dataset_license":"CC0 Universal Public Domain Dedication"
+        "dataset_license":"CC0 1.0 Universal Public Domain Dedication"
       }
     },
     "animal_detection":{
@@ -2265,12 +2284,13 @@
         "input_data_path":"http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip"
       },
       "info":{
+        "dataset_url":"http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip",
         "dataset_detailed_name":"Animal detection",
         "dataset_description":"Example cat-dog object detection dataset with 2 categories and 99 images",
         "dataset_size":15290214,
         "dataset_frames":99,
         "dataset_source":"CC0 Public Domain Images from creativecommons.org, annotations by TI",
-        "dataset_license":"CC0 Universal Public Domain Dedication"
+        "dataset_license":"CC0 1.0 Universal Public Domain Dedication"
       }
     },
     "tiscapes2017_driving":{
@@ -2282,46 +2302,13 @@
         "input_data_path":"http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip"
       },
       "info":{
+        "dataset_url":"http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip",
         "dataset_detailed_name":"TIScapes driving detection",
         "dataset_description":"Example driving scenario object detection dataset with 4 categories and 2116 images",
         "dataset_size":461038628,
         "dataset_frames":2116,
         "dataset_source":"Images & annotations from TI",
         "dataset_license":"BSD 3-Clause"
-      }
-    },
-    "person_face_detection":{
-      "common":{
-        "task_type":"detection"
-      },
-      "dataset":{
-        "dataset_name":"person_face_detection",
-        "input_data_path":"http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/person_face_detection.zip"
-      },
-      "info":{
-        "dataset_detailed_name":"Person & Face Detection",
-        "dataset_description":"Example Person & Face Detection dataset with 2 categories and 302 images",
-        "dataset_size":137229038,
-        "dataset_frames":302,
-        "dataset_source":"CC0 Public Domain Images from wordpress.org/openverse, annotations by TI",
-        "dataset_license":"CC0 Universal Public Domain Dedication"
-      }
-    },
-    "vehicle_licenseplate_detection":{
-      "common":{
-        "task_type":"detection"
-      },
-      "dataset":{
-        "dataset_name":"vehicle_licenseplate_detection",
-        "input_data_path":"http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/vehicle_licenseplate_detection.zip"
-      },
-      "info":{
-        "dataset_detailed_name":"Vehicle & License plate Detection",
-        "dataset_description":"Example Vehicle & License plate Detection dataset with 2 categories and 357 images",
-        "dataset_size":206858169,
-        "dataset_frames":357,
-        "dataset_source":"CC0 Public Domain Images from wordpress.org/openverse, annotations by TI",
-        "dataset_license":"CC0 Universal Public Domain Dedication"
       }
     }
   },
