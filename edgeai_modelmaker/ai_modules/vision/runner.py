@@ -33,6 +33,7 @@ import json
 import os
 import datetime
 import tarfile
+import torch
 
 from . import constants
 from ... import utils
@@ -47,6 +48,9 @@ class ModelRunner():
     @classmethod
     def init_params(self, *args, **kwargs):
         params = init_params(*args, **kwargs)
+        # set the checkpoint download folder
+        # (for the models that are downloaded using torch.hub eg. mmdetection uses that)
+        torch.hub.set_dir(os.path.join(params.common.download_path, 'torch', 'hub'))
         return params
 
     def __init__(self, *args, verbose=True, **kwargs):
