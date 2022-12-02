@@ -30,14 +30,20 @@
 
 ######################################################################
 
-UDOCKER_INSTALL_PATH=${1:-~/udocker}
-UDOCKER_DIR=${2:-~/.udocker}
+UDOCKER_INSTALL_PATH=${1:-~/}
+UDOCKER_DIR=${2:-~/"${UDOCKER_INSTALL_PATH}/udocker_home"}
+CUR_DIR=$(pwd)
 
-wget https://github.com/indigo-dc/udocker/releases/download/v1.3.1/udocker-1.3.1.tar.gz
-tar zxvf udocker-1.3.1.tar.gz
+echo "UDOCKER_INSTALL_PATH=" ${UDOCKER_INSTALL_PATH}
+echo "UDOCKER_DIR=" ${UDOCKER_DIR}
+
+cd ${UDOCKER_INSTALL_PATH}
+wget https://github.com/indigo-dc/udocker/releases/download/1.3.5/udocker-1.3.5.tar.gz
+tar zxvf udocker-1.3.5.tar.gz
 export PATH=${UDOCKER_INSTALL_PATH}/udocker:$PATH
 
 curl -L https://github.com/jorge-lip/udocker-builds/raw/master/tarballs/udocker-englib-1.2.8.tar.gz > udocker-englib-1.2.8.tar.gz
 export UDOCKER_TARBALL=udocker-englib-1.2.8.tar.gz
 udocker install
 
+cd ${CUR_DIR}

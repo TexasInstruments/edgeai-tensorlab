@@ -59,7 +59,7 @@ fi
 
 udocker run \
     --volume ${parent_dir}:/home/edgeai/code \
-    --volume ${datasets_path_lsf}:${datasets_path_lsf} \
+    --volume ${datasets_path_pc}:${datasets_path_pc} \
     "${docker_container_name}" \
     /bin/bash
 
