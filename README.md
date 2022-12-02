@@ -60,22 +60,17 @@ conda activate py36
 
 Step 1.1b: Install docker if you don't have it already. The following steps are for installation on Ubuntu 18.04
 ```
-sudo apt update
-sudo apt install docker.io
-sudo usermod -aG docker ${USER}
-sudo systemctl start docker
-sudo systemctl enable docker
-# logout and log back in and docker should be ready to use.
+./docker/docker_setup.sh
 ```
 
 Step 1.2b: Build docker image:
 ```
-./docker_build.sh
+./docker/docker_build.sh
 ```
 
 Step 1.3b: Run docker container to bring up the container terminal on docker:
 ```
-./docker_run.sh
+./docker/docker_run.sh
 ```
 
 Step 1.4b: During docker run, we map the parent directory of this folder to /home/edgeai/code. This is to easily share code and data between the host and the docker container. Inside the docker terminal, change directory to where this folder is mapped to:
