@@ -43,7 +43,8 @@ target_device=${1:-tda4vm}
 parent_dir=$(realpath ..)
 docker_image_name="benchmark:v1"
 docker_container_name="benchmark-${target_device}"
-datasets_path=/data/ssd/datasets
+datasets_path_pc=${2:-/data/ssd/datasets}
+datasets_path_lsf=${2:-/data/adas_vision_data1/datasets/other/benchmark/datasets}
 
 # Number of containers existing with the given name
 container_count=$(docker ps -a | grep ${docker_container_name} | wc -l)
@@ -55,7 +56,7 @@ then
     docker run -it \
         --name "${docker_container_name}" \
         -v ${parent_dir}:/home/edgeai/code \
-        -v ${datasets_path}:${datasets_path} \
+        -v ${datasets_path_pc}:${datasets_path_pc} \
         --privileged \
         --network host \
         --shm-size 10gb \
