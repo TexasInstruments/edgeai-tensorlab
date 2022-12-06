@@ -293,7 +293,7 @@ class Object6dPoseImageSave:
         #
         if self.cadmodels is None:
             data_path = info_dict.get('data_path', './dependencies/datasets/ycbv/')
-            dataset_dir = os.path.dirname(os.path.dirname(data_path))
+            dataset_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(data_path))))
             self.cadmodels = CADModelsYCB(data_dir=dataset_dir)
             self.camera_matrix = self.cadmodels.camera_matrix['camera_uw'].reshape(3,3)
             self.class_to_cuboid = self.cadmodels.models_corners

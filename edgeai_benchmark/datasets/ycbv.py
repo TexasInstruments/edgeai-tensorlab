@@ -140,6 +140,11 @@ class YCBV(DatasetBase):
         for key in ('info', 'categories'):
             if key in self.dataset_store.keys():
                 dataset_store.update({key: self.dataset_store[key]})
+            if key == 'categories':
+                for idx in range(len(dataset_store[key])):
+                    dataset_store[key][idx] = dict(dataset_store[key][idx])
+            elif key == 'info':
+                dataset_store[key] = dict(dataset_store[key])
             #
         #
         return dataset_store
@@ -202,6 +207,7 @@ class YCBV(DatasetBase):
 
             if data_folder_idx==0:
                 coco = dict()
+                coco["info"] = dict([("description", "YCBV dataset in COCO format"), ("url", "https://bop.felk.cvut.cz/media/data/bop_datasets/")])
                 coco["images"] = []
                 coco["type"] = "instance"
                 coco["categories"] = []
