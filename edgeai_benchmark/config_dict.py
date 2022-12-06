@@ -99,9 +99,9 @@ class ConfigDict(dict):
         # number of frames for inference
         self.num_frames = 10000 #50000
         # number of frames to be used for post training quantization / calibration
-        self.calibration_frames = 50 #100
+        self.calibration_frames = 25 #50
         # number of iterations to be used for post training quantization / calibration
-        self.calibration_iterations = 50
+        self.calibration_iterations = 25 #50
         # folder where benchmark configs are defined. this should be python importable
         self.configs_path = './configs'
         # folder where models are available
@@ -151,9 +151,16 @@ class ConfigDict(dict):
         self.save_output = False
         # number of frames for example output
         self.num_output_frames = 50 #None
-        # wild card list to match against model_path, model_id or model_type - if null, all models wil be selected
-        # examples: ['classification'] ['imagenet1k'] ['torchvision']
-        # examples: ['resnet18.onnx', 'resnet50_v1.tflite']
+        # wild card list to match against model_path, model_id or model_type - if null, all models wil be shortlisted
+        # only models matching these criteria will be considered - even for model_selection
+        #   examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
+        #   examples: ['resnet18.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision'] ['coco']
+        #   examples: [cl-0000, od-2020, ss-2580, cl-3090, cl-3520, od-5120, ss-5710, cl-6360, od-8050, od-8220, od-8420, ss-8610, kd-7060, op-7200]
+        # it can also be a number, which indicates a predefined shortlist, and a fraction of the models will be selected
+        # 0 means no models, 1 means 1 model, 15 means roughly 15% of models, 100 means all the models.
+        #   examples: 1
+        #   examples: 15
+        #   examples: 30
         self.model_selection = None
         # exclude the models that matches with this
         self.model_exclusion = None

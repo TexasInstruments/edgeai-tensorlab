@@ -66,7 +66,7 @@ def get_configs(settings, work_dir):
                          "advanced_options:add_data_convert_ops": 0}),
                 model_path=f'../edgeai-yolov5/pretrained_models/models/keypoint/coco/edgeai-yolov5/yolov5s6_pose_640_ti_lite_54p9_82p2.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_pose_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS(), keypoint=True),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':54.9})
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':54.9}, model_shortlist=100)
         ),
         'kd-7050':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
@@ -78,7 +78,7 @@ def get_configs(settings, work_dir):
                          "advanced_options:add_data_convert_ops" : 0}),
                 model_path=f'../edgeai-yolov5/pretrained_models/models/keypoint/coco/edgeai-yolov5/yolov5s6_pose_640_ti_lite_54p9_82p2.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_pose_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS(), keypoint=True),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':54.9})
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':54.9}, model_shortlist=30)
         ),
         # yolox based keypoint/pose estimation - post processing is handled completely by TIDL
         'kd-7060':utils.dict_update(common_cfg,
@@ -91,7 +91,7 @@ def get_configs(settings, work_dir):
                          "advanced_options:add_data_convert_ops": 0}),
                 model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_49p5_78p0.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_pose_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS(), keypoint=True),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':49.5})
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':49.5}, model_shortlist=15)
         ),
 
     }
