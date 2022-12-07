@@ -277,7 +277,7 @@ class YCBV(DatasetBase):
     def evaluate(self, preds, **kwargs):
         data_list = self.convert_to_coco_format(preds)
         eval_results_6dpose = self.evaluate_prediction_6dpose(data_list)
-        accuracy = {'add(s)_0p1': eval_results_6dpose[0]['ADD_0p1_avg']*100.0, 'add(s)_0p2': eval_results_6dpose[0]['ADD_0p2_avg']*100.0}
+        accuracy = {'accuracy_add(s)_p1%': eval_results_6dpose[0]['ADD_0p1_avg']*100.0, 'accuracy_add(s)_p2%': eval_results_6dpose[0]['ADD_0p2_avg']*100.0}
         return accuracy
 
     def convert_to_coco_format(self, preds):
