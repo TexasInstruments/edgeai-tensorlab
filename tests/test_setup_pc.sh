@@ -37,9 +37,10 @@ fi
 
 ######################################################################
 # installers for tidl-tools nightly build
-OSRT_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/277-2022-11-07_22-09-02/artifacts/output
-TIDL_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/291-2022-11-16_23-34-31/artifacts/output #j721e
-#TIDL_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/297-2022-11-17_03-15-48/artifacts/output #j721s2
+OSRT_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/328-2022-12-07_02-19-58/artifacts/output #pip whls
+TIDL_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/327-2022-12-07_01-29-33/artifacts/output #j721e
+#TIDL_TOOLS_BUILD_PATH=http://gtweb.dal.design.ti.com/nightly_builds/tidl-osrt-build/326-2022-12-06_23-27-59/artifacts/output #j721s2
+
 ######################################################################
 function conditional_wget() {
     base_filename=$(basename $1)
