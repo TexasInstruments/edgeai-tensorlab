@@ -88,14 +88,14 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/torchvision/mobilenet_v2_tv_{hr_input_sizes_x[0]}.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=100)
+            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=20)
         ),
         'cl-6092':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=hr_input_sizes[1], crop=hr_input_sizes[1]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/torchvision/mobilenet_v2_tv_{hr_input_sizes_x[1]}.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=100)
+            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=20)
         ),
         # jai-devkit: classification mobilenetv2_1p4_224x224 expected_metric: 75.22% top-1 accuracy, QAT: 75.22%
         'cl-6151':utils.dict_update(common_cfg,
@@ -133,14 +133,14 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/torchvision/resnet50_{hr_input_sizes_x[0]}.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':76.15}, model_shortlist=100)
+            model_info=dict(metric_reference={'accuracy_top1%':76.15}, model_shortlist=20)
         ),
         'cl-6112':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=hr_input_sizes[1], crop=hr_input_sizes[1]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/torchvision/resnet50_{hr_input_sizes_x[1]}.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':76.15}, model_shortlist=100)
+            model_info=dict(metric_reference={'accuracy_top1%':76.15}, model_shortlist=20)
         ),
         # pycls: classification regnetx400mf_224x224 expected_metric: 72.7% top-1 accuracy
         'cl-6121':utils.dict_update(common_cfg,
