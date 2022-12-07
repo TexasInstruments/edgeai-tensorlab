@@ -230,7 +230,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/mobilenet_edgetpu_224_1.0_float.tflite'),
             metric=dict(label_offset_pred=-1),
-            model_info=dict(metric_reference={'accuracy_top1%':75.6}, model_shortlist=20)
+            model_info=dict(metric_reference={'accuracy_top1%':75.6}, model_shortlist=30)
         ),
         # mlperf model: classification resnet50_v1.5 expected_metric: 76.456% top-1 accuracy
         'cl-0160':utils.dict_update(common_cfg,
@@ -239,7 +239,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/resnet50_v1.5.tflite'),
             metric=dict(label_offset_pred=-1),
-            model_info=dict(metric_reference={'accuracy_top1%':76.456}, model_shortlist=20)
+            model_info=dict(metric_reference={'accuracy_top1%':76.456}, model_shortlist=30)
         ),
         #########################tensorflow1.0 models##################################
         # tensorflow/models: classification mobilenetv2_224x224 quant expected_metric: 70.0% top-1 accuracy
