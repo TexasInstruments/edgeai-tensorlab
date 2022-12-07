@@ -316,11 +316,10 @@ class YCBV(DatasetBase):
         data_dict_asym = []
         data_dict_sym = []
         for pred_data in data_dict:
-            if not pred_data['missing_det']:
-                if self.class_to_name[pred_data['category_id']] not in self.symmetric_objects.values():
-                    data_dict_asym.extend([pred_data])
-                else:
-                    data_dict_sym.extend([pred_data])
+            if self.class_to_name[pred_data['category_id']] not in self.symmetric_objects.values():
+                data_dict_asym.extend([pred_data])
+            else:
+                data_dict_sym.extend([pred_data])
         score_dict_asym = self.compute_add_score(data_dict_asym)
         score_dict_sym = self.compute_adds_score(data_dict_sym)
         score_dict = {}
@@ -342,15 +341,19 @@ class YCBV(DatasetBase):
     def compute_add_score(self, data_dict, percentage=0.1):
         distance_category = np.zeros((len(data_dict), 2))
         for index, pred_data in enumerate(data_dict):
-            R_gt, t_gt = np.array(pred_data['rotation_gt']).reshape(3,3), np.array(pred_data['translation_gt'])
-            R_pred, t_pred= pred_data['rotation_pred'].reshape(3,3), pred_data['translation_pred']
-            pts3d = self.class_to_model[pred_data['category_id']]
-            #mean_distances = np.zeros((count,), dtype=np.float32)
-            pts_xformed_gt = np.matmul(R_gt,  pts3d.transpose()) + t_gt[:, None]
-            pts_xformed_pred = np.matmul(R_pred, pts3d.transpose()) + t_pred[:, None]
-            distance = np.linalg.norm(pts_xformed_gt - pts_xformed_pred, axis=0)
-            distance_category[index, 0] = np.mean(distance)
-            distance_category[index, 1] = pred_data['category_id']
+            if not pred_data['missing_det']:
+                R_gt, t_gt = np.array(pred_data['rotation_gt']).reshape(3,3), np.array(pred_data['translation_gt'])
+                R_pred, t_pred= pred_data['rotation_pred'].reshape(3,3), pred_data['translation_pred']
+                pts3d = self.class_to_model[pred_data['category_id']]
+                #mean_distances = np.zeros((count,), dtype=np.float32)
+                pts_xformed_gt = np.matmul(R_gt,  pts3d.transpose()) + t_gt[:, None]
+                pts_xformed_pred = np.matmul(R_pred, pts3d.transpose()) + t_pred[:, None]
+                distance = np.linalg.norm(pts_xformed_gt - pts_xformed_pred, axis=0)
+                distance_category[index, 0] = np.mean(distance)
+                distance_category[index, 1] = pred_data['category_id']
+            else:
+                distance_category[index, 0] = 1e6 #This distance is set to a very high value for a missing detection.
+                distance_category[index, 1] = pred_data['category_id']
 
         threshold = [self.class_to_diameter[category] * percentage for category in self.class_to_diameter.keys()]
         score_dict = {}
@@ -368,15 +371,19 @@ class YCBV(DatasetBase):
     def compute_adds_score(self, data_dict, percentage=0.1):
         distance_category = np.zeros((len(data_dict), 2))
         for index, pred_data in enumerate(data_dict):
-            R_gt, t_gt = np.array(pred_data['rotation_gt']).reshape(3,3), np.array(pred_data['translation_gt'])
-            R_pred, t_pred = pred_data['rotation_pred'].reshape(3,3), pred_data['translation_pred']
-            pts3d = self.class_to_model[pred_data['category_id']]
-            pts_xformed_gt = np.matmul(R_gt, pts3d.transpose()) + t_gt[:, None]
-            pts_xformed_pred = np.matmul(R_pred, pts3d.transpose()) + t_pred[:, None]
-            kdt = KDTree(pts_xformed_gt.transpose(), metric='euclidean')
-            distance, _ = kdt.query(pts_xformed_pred.transpose(), k=1)
-            distance_category[index, 0] = np.mean(distance)
-            distance_category[index, 1] = pred_data['category_id']
+            if not pred_data['missing_det']:
+                R_gt, t_gt = np.array(pred_data['rotation_gt']).reshape(3,3), np.array(pred_data['translation_gt'])
+                R_pred, t_pred = pred_data['rotation_pred'].reshape(3,3), pred_data['translation_pred']
+                pts3d = self.class_to_model[pred_data['category_id']]
+                pts_xformed_gt = np.matmul(R_gt, pts3d.transpose()) + t_gt[:, None]
+                pts_xformed_pred = np.matmul(R_pred, pts3d.transpose()) + t_pred[:, None]
+                kdt = KDTree(pts_xformed_gt.transpose(), metric='euclidean')
+                distance, _ = kdt.query(pts_xformed_pred.transpose(), k=1)
+                distance_category[index, 0] = np.mean(distance)
+                distance_category[index, 1] = pred_data['category_id']
+            else:
+                distance_category[index, 0] = 1e6  #This distance is set to a very high value for a missing detection.
+                distance_category[index, 1] = pred_data['category_id']
 
         threshold = [self.class_to_diameter[category] * percentage for category in self.class_to_diameter.keys()]
         score_dict = {}
