@@ -59,7 +59,10 @@ def get_configs(settings, work_dir):
             preprocess=preproc_transforms.get_transform_onnx((480,640), (480,640), reverse_channels=True, backend='cv2'),
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
-                        {'object_detection:meta_arch_type': 6,
+                        {
+                         'tensor_bits': 16,
+                         'advanced_options:calibration_iterations': 3,
+                         'object_detection:meta_arch_type': 6,
                          'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/object_6d_pose/ycbv/edgeai-yolox/yolox_s_object_pose_ti_lite_metaarch_640x480.prototxt',
                         'advanced_options:output_feature_16bit_names_list': '597, 837, 840, 843, 847, 850, 853, 856, 1098, 1101, 1104, 1108, 1111, 1114, 1117, 1359, 1362, 1365, 1369, 1372, 1375, 1378',
                          "advanced_options:add_data_convert_ops": 0,
