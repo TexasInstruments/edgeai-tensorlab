@@ -151,7 +151,7 @@ def apply_affine_to_object_pose(targets, target_size, M, scale, angle):
     r2 = targets[:, -6:-3, None]
     r3 = np.cross(r1, r2, axis=1)
     rotation_mat = np.concatenate((r1, r2, r3), axis=-1)
-    deltaR = cv2.getRotationMatrix2D(angle=angle, center=(0, 0), scale=scale)
+    deltaR = cv2.getRotationMatrix2D(angle=angle, center=(0, 0), scale=1.0)
     deltaR = np.vstack( (deltaR, np.array([[0, 0, 1.0]])) )
     rotation_mat = deltaR @ rotation_mat
     targets[:, -9:-6] = rotation_mat[:, :, 0]
