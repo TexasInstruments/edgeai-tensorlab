@@ -156,12 +156,14 @@ class ConfigDict(dict):
         #   examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
         #   examples: ['resnet18.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision'] ['coco']
         #   examples: [cl-0000, od-2020, ss-2580, cl-3090, cl-3520, od-5120, ss-5710, cl-6360, od-8050, od-8220, od-8420, ss-8610, kd-7060, op-7200]
-        # it can also be a number, which indicates a predefined shortlist, and a fraction of the models will be selected
+        self.model_selection = None
+        # model_shortlist can be a number, which indicates a predefined shortlist, and a fraction of the models will be selected
+        # model_shortlist and model_selection are complimentary - they can be used together.
         # 0 means no models, 1 means 1 model, 15 means roughly 15% of models, 100 means all the models.
         #   examples: 1
         #   examples: 15
         #   examples: 30
-        self.model_selection = None
+        self.model_shortlist = None
         # exclude the models that matches with this
         self.model_exclusion = None
         # wild card list to match against the tasks. it null, all tasks will be run

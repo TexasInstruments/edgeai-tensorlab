@@ -47,12 +47,15 @@ session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
 #   examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
 #   examples: ['resnet18.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision'] ['coco']
 #   examples: [cl-0000, od-2020, ss-2580, cl-3090, cl-3520, od-5120, ss-5710, cl-6360, od-8050, od-8220, od-8420, ss-8610, kd-7060, op-7200]
-# it can also be a number, which indicates a predefined shortlist, and a fraction of the models will be selected
+model_selection : null
+
+# model_shortlist can be a number, which indicates a predefined shortlist, and a fraction of the models will be selected
+# model_shortlist and model_selection are complimentary - they can be used together.
 # 0 means no models, 1 means 1 model, 15 means roughly 15% of models, 100 means all the models.
 #   examples: 1
-#   examples: 15
+#   examples: 20
 #   examples: 30
-model_selection : null
+model_shortlist: null
 
 # wild card list to match against the tasks. it null, all tasks will be run
 # example: ['classification', 'detection', 'segmentation', 'depth_estimation', 'human_pose_estimation', 'detection_3d']

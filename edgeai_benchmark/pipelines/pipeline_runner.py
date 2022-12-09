@@ -193,9 +193,10 @@ class PipelineRunner():
                 selected_model = False
             #
         #
-        if isinstance(settings.model_selection, (int,float)):
-            selected_model = selected_model and pipeline_config['model_info'].get('model_shortlist', 100) <= settings.model_selection
-        elif settings.model_selection is not None:
+        if isinstance(settings.model_shortlist, (int,float)):
+            selected_model = selected_model and pipeline_config['model_info'].get('model_shortlist', 100) <= settings.model_shortlist
+        #
+        if settings.model_selection is not None:
             model_selection = utils.as_list(settings.model_selection)
             selected_model = selected_model and self._str_match_plus_any(model_selection, (model_path0,model_id,model_type))
         #
