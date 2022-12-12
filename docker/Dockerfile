@@ -42,6 +42,9 @@ RUN groupadd --gid $USER_GID $USER_NAME && \
     echo $USER_NAME ALL=\(root\) NOPASSWD:ALL >> /etc/sudoers.d/$USER_NAME && \
     chmod 400 /etc/sudoers.d/$USER_NAME
 
+# Change working directory permission to non-root user
+RUN chown -R ${USER_ID}:${USER_GID} ${HOME_DIR}
+
 # switch user, workdir, default permissions
 USER $USER_NAME
 WORKDIR ${HOME_DIR}
