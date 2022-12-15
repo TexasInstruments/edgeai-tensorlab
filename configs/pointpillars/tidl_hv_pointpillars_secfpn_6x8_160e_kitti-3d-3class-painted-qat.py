@@ -18,6 +18,7 @@ model = dict(
         in_channels=4,
         feat_channels=[64],
         with_distance=False,
+        point_color_dim=4,
         voxel_size=voxel_size,
         point_cloud_range=[0, -39.68, -3, 69.12, 39.68, 1],
         replace_mat_mul = True,
@@ -39,17 +40,24 @@ class_names = ['Pedestrian', 'Cyclist', 'Car']
 # PointPillars adopted a different sampling strategies among classes
 db_sampler = dict(
     data_root=data_root,
-    info_path=data_root + 'kitti_dbinfos_train.pkl',
+    info_path=data_root + 'kitti_point_painting_dbinfos_train.pkl',
     rate=1.0,
     prepare=dict(
         filter_by_difficulty=[-1],
         filter_by_min_points=dict(Car=5, Pedestrian=5, Cyclist=5)),
     classes=class_names,
-    sample_groups=dict(Car=15, Pedestrian=15, Cyclist=15))
+    sample_groups=dict(Car=15, Pedestrian=15, Cyclist=15),
+    points_loader=dict(type='LoadPointsFromFile',coord_type='LIDAR',
+                     load_dim=8,
+                     use_dim=[0, 1, 2, 3, 4, 5, 6, 7],
+                     color_dim = 4,
+                     use_color=True))
+
+file_client_args = dict(backend='disk')
 
 # PointPillars uses different augmentation hyper parameters
 train_pipeline = [
-    dict(type='LoadPointsFromFile', coord_type='LIDAR', load_dim=4, use_dim=4),
+    dict(type='LoadPointsFromFile', coord_type='LIDAR', load_dim=8, use_dim=8, color_dim=4, use_color=True),
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
     dict(type='ObjectSample', db_sampler=db_sampler, use_ground_plane=True),
     dict(type='RandomFlip3D', flip_ratio_bev_horizontal=0.5),
@@ -63,8 +71,24 @@ train_pipeline = [
     dict(type='DefaultFormatBundle3D', class_names=class_names),
     dict(type='Collect3D', keys=['points', 'gt_bboxes_3d', 'gt_labels_3d'])
 ]
+eval_pipeline = [
+    dict(
+        type='LoadPointsFromFile',
+        coord_type='LIDAR',
+        load_dim=8,
+        use_dim=8,
+        color_dim=4,
+        use_color=True,
+        file_client_args=file_client_args),
+    dict(
+        type='DefaultFormatBundle3D',
+        class_names=class_names,
+        with_label=False),
+    dict(type='Collect3D', keys=['points'])
+]
+
 test_pipeline = [
-    dict(type='LoadPointsFromFile', coord_type='LIDAR', load_dim=4, use_dim=4),
+    dict(type='LoadPointsFromFile', coord_type='LIDAR', load_dim=8, use_dim=8, color_dim=4, use_color=True),
     dict(
         type='MultiScaleFlipAug3D',
         img_scale=(1333, 800),
@@ -88,51 +112,45 @@ test_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=4,
+    samples_per_gpu=6,
     workers_per_gpu=4,
+    train=dict(type='RepeatDataset',times=2,dataset=dict(pipeline=train_pipeline, classes=class_names,pts_prefix='velodyne_painted_reduced')),
+    val=dict(pipeline=test_pipeline, classes=class_names,pts_prefix='velodyne_painted_reduced'),
+    test=dict(pipeline=test_pipeline, classes=class_names,pts_prefix='velodyne_painted_reduced'))
 
-    train=dict(
-        type='RepeatDataset',
-        times=2,
-        dataset=dict(pipeline=train_pipeline, classes=class_names)),
-    val=dict(pipeline=test_pipeline, classes=class_names),
-    test=dict(pipeline=test_pipeline, classes=class_names))
-
-save_onnx_model = False
+save_onnx_model = True           
 quantize = True
 
 if quantize == False:
-    lr = 0.001
-    optimizer = dict(lr=lr)
-    # max_norm=35 is slightly better than 10 for PointPillars in the earlier
-    # development of the codebase thus we keep the setting. But we does not
-    # specifically tune this parameter.
-    optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
-    # PointPillars usually need longer schedule than second, we simply double
-    # the training schedule. Do remind that since we use RepeatDataset and
-    # repeat factor is 2, so we actually train 160 epochs.
-    runner = dict(max_epochs=100)
+    #momentum_config = dict(_delete_=True)
+    lr = 1e-3
 
-    # Use evaluation interval=2 reduce the number of evaluation timese
-    evaluation = dict(interval=2)
+    optimizer = dict(_delete_=True, type='SGD', lr=lr, momentum=0.9, weight_decay=1e-03)
+
+    runner = dict(max_epochs=80)
+
+    evaluation = dict(interval=10,save_best='KITTI/Overall_3D_AP11_moderate',rule='greater')
+    checkpoint_config = dict(interval=10)
+    load_from = './work_dirs/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class/best.pth'
 else:
-    lr = 0.0005
-    optimizer = dict(lr=lr)
+    lr = 4e-4
 
-    # max_norm=35 is slightly better than 10 for PointPillars in the earlier
-    # development of the codebase thus we keep the setting. But we does not
-    # specifically tune this parameter.
-    optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
+    optimizer = dict(_delete_=True, type='SGD', lr=lr, momentum=0.9, weight_decay=1e-3)
+    optimizer_config = dict(_delete_=True,grad_clip=dict(max_norm=35, norm_type=2))
+    warmup_cfg = dict(_delete_=True,warmup='linear', warmup_iters=2000, warmup_ratio=0.001)
+    lr_config = dict(_delete_=True,
+      policy='CosineAnnealing',
+      min_lr_ratio=0.0001,
+      warmup='linear',
+      warmup_iters=2000,
+      warmup_ratio=0.001)
 
-    # PointPillars usually need longer schedule than second, we simply double
-    # the training schedule. Do remind that since we use RepeatDataset and
-    # repeat factor is 2, so we actually train 160 epochs.
-    runner = dict(max_epochs=100)
+    runner = dict(max_epochs=20)
 
-    # Use evaluation interval=2 reduce the number of evaluation timese
-    evaluation = dict(interval=1)
+    evaluation = dict(interval=1,save_best='KITTI/Overall_3D_AP11_moderate',rule='greater')
+    checkpoint_config = dict(interval=1)
 
-    load_from = './work_dirs/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class_nearest/latest.pth'
-    work_dir = './work_dirs/quant_train_dir_nearest/'
+    load_from = './work_dirs/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class-painted/best.pth'
+    work_dir = './work_dirs/3class_painted_quant_train_dir/'
     custom_hooks = dict(type='FreezeRangeHook')
 

@@ -22,6 +22,7 @@ from mmdet3d.utils import collect_env, get_root_logger
 from mmdet.apis import set_random_seed
 from mmseg import __version__ as mmseg_version
 from mmdet3d.utils import runner
+import numpy as np
 
 try:
     # If mmdet version > 2.20.0, setup_multi_processes would be imported and
@@ -229,24 +230,23 @@ def main():
     meta['exp_name'] = osp.basename(args.config)
 
     #seeds are set inside mmdetection. Repeating here to control it properly
-    
+    forced_deterministic = True
     # setting --deterministic flag makes training deterministic, even on multiple GPU, multiple worker etc
     # only upsample layer may create difference in run to run. This should be avoided and TrasCOnv instead should be used
     # TIDL model usages upsample layer hence for TIDL model determinisrtic behaviour is not guranteeed.
     # To avoid forgetting setting the flag --deterministic in training, it is set to deterministic by below setting of seeds.
-    
-    import numpy as np
-    import random
-    np.random.seed(seed)
-    random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    # When running on the CuDNN backend, two further options must be set
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-    # Set a fixed value for the hash seed
-    os.environ["PYTHONHASHSEED"] = str(seed)
+    if forced_deterministic:
+        import random
+        np.random.seed(seed)
+        random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        # When running on the CuDNN backend, two further options must be set
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+        # Set a fixed value for the hash seed
+        os.environ["PYTHONHASHSEED"] = str(seed)
 
     if hasattr(cfg,'save_onnx_model') is False:
         cfg.save_onnx_model = False
@@ -261,9 +261,11 @@ def main():
 
     if cfg.quantize == True:
         from mmdet3d.utils.quantize import XMMDetQuantTrainModule
-
-        raw_voxel_feat = np.fromfile("./data/kitti/training/velodyne/000000.bin")
-        raw_voxel_feat = torch.tensor(raw_voxel_feat.reshape((-1,4)))
+        # sample data file path. 
+        data_dir = os.path.join(cfg.data.train.dataset.data_root, cfg.data.train.dataset.split,cfg.data.train.dataset.pts_prefix)
+        sample_bin_file = os.listdir(data_dir)[0]
+        raw_voxel_feat = np.fromfile(os.path.join(data_dir,sample_bin_file),dtype=np.float32)
+        raw_voxel_feat = torch.tensor(raw_voxel_feat.reshape((-1,cfg.train_pipeline[0]['use_dim'])))
 
         model = XMMDetQuantTrainModule(model, [raw_voxel_feat,raw_voxel_feat])
         model.module.init_weights()
@@ -309,7 +311,33 @@ def main():
 
     if cfg.save_onnx_model == True:
         from test import save_onnx_model
-        save_onnx_model(cfg, model,cfg['work_dir'],quantized_model=cfg['quantize'])
+        from test import load_checkpoint
+
+        time.sleep(600)
+
+        best_model_dir = os.path.join(cfg['work_dir'],'best_KITTI')
+        is_best_modal_there = False
+
+        if os.path.exists(best_model_dir):
+            best_models = os.listdir(best_model_dir)
+            if os.path.exists(os.path.abspath(os.path.join(cfg['work_dir'],"best.pth"))):
+                os.unlink(os.path.abspath(os.path.join(cfg['work_dir'],"best.pth")))
+            os.symlink(os.path.abspath(os.path.join(best_model_dir, best_models[0])), os.path.abspath(os.path.join(cfg['work_dir'],"best.pth")))
+            is_best_modal_there = True
+
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")      
+
+        model.to(device)
+        model = model.module
+        if is_best_modal_there:
+            print("converting the model {} into onnx".format(os.path.join(cfg['work_dir'], 'best.pth')))
+            load_checkpoint(model,os.path.join(cfg['work_dir'], 'best.pth'))
+            save_onnx_model(cfg, model, cfg['work_dir'], quantized_model=cfg['quantize'],tag='best_')
+        else:
+            print("converting the model {} into onnx".format(os.path.join(cfg['work_dir'], 'latest.pth')))
+            load_checkpoint(model,os.path.join(cfg['work_dir'], 'latest.pth'))
+            save_onnx_model(cfg, model, cfg['work_dir'], quantized_model=cfg['quantize'],tag='latest_')
+
 
 if __name__ == '__main__':
     main()

@@ -33,7 +33,7 @@ def kitti_data_prep(root_path,
             Default: False.
     """
     if use_color == True:
-        kitti_data_prep_point_painting(root_path)
+        #kitti_data_prep_point_painting(root_path)
         pts_prefix = "velodyne_painted"
         num_features = 8
         file_tail='.bin'

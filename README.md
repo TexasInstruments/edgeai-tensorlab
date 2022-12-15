@@ -21,7 +21,7 @@ Steps #1 create working conda environment
 conda create python=3.7 -n mmdet3d
 conda activate mmdet3d
 ```
-Steps #2 Install edgeai-torchvision (Can be avoided if QAT is not needed)
+Steps #2 Install edgeai-torchvision
 ```bash
 git clone https://github.com/TexasInstruments/edgeai-torchvision.git
 cd <edgeai-torchvision>
@@ -33,28 +33,19 @@ Steps #3 edgeai-mmdetection3d
 git clone https://github.com/TexasInstruments/edgeai-mmdetection3d.git
 cd <edgeai-mmdetection3d>
 pip3 install openmim
-mim install mmcv-full==1.5.0
+mim install mmcv-full==1.5.2
 mim install mmdet==2.25.0
 mim install mmsegmentation==0.27.0
 pip3 install -e .
 install other additional requirements by typing 
 pip install -r ./requirements.txt
-```
-## Installation Steps for Float Training
-
-Follow the previouly mentioned steps of installation for QAT training, with exception of step #2 (edgeai-torchvision installation). Instead of above step #2 execute below commands to just install torch, onnx, torchinfo instead of complete edgeai-torchvision.
-
-Alternative Steps #2, Install torch-onnx-torchinfo (Needed only when edgeai-torchvision is not installed)
-```bash
-pip3 install --no-input torch==1.10.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html
-pip3 install --no-input onnx==1.8.1
-pip3 install --no-input torchinfo
+pip install setuptools==59.5.0
 ```
 
-Note: It may ask to downgrade protobuf. In that case uninstall exisitng protobuf and downgrade to 3.20.0 using the command 
+Note: It may ask to downgrade protobuf. In that case uninstall exisitng protobuf and downgrade to 3.9.0 using the command 
 ```bash
 pip uninstall protobuf
-pip install protobuf==3.20.0
+pip install protobuf==3.9.0
 ```
 
 ## Dataset Preperation
@@ -62,7 +53,7 @@ Prepare dataset as per original mmdetection3d documentation [dataset preperation
 
 **Note: Currently only KITTI dataset with pointPillars network is supported. For KITTI dataset optional ground plane data can be downloaded from [KITTI Plane data](https://download.openmmlab.com/mmdetection3d/data/train_planes.zip). For preparing the KITTI data with ground plane, please refer the mmdetection3d external link [dataset preperation external Link](https://mmdetection3d.readthedocs.io/en/latest/datasets/kitti_det.html) and use below command from there**
 
-Steps for Kitti Dataset preperation
+### Steps for Kitti Dataset preperation
 ```bash
 # Creating dataset folders
 cd <edgeai-mmdetection3d>
@@ -77,6 +68,30 @@ wget -c  https://raw.githubusercontent.com/traveller59/second.pytorch/master/sec
 # Preparing the dataset
 cd <edgeai-mmdetection3d>
 python tools/create_data.py kitti --root-path ./data/kitti --out-dir ./data/kitti --extra-tag kitti --with-plane
+```
+
+### Steps for Semantic segmented painted Kitti Dataset preperation
+PointPainting : It is simple fusion algorithm for 3d object detection. This repository supports data preperation and training for points painting. Please refer https://arxiv.org/abs/1911.10150 for more details. Data preperation for points painting network is mentioned below
+
+It is expected that previous step of normal KITTI data preperation is already done. Also required to do one small change in mmseg installation package. Please change the function "simple_test" in the file ~/anaconda3/envs/<conda env name>/lib/python3.7/site-packages/mmseg/models/segmentors/encoder_decoder.py as shown below to return the segmentation output just after CNN network and before argmax. Please note that only return tensor is changed.
+```python
+def simple_test(self, img, img_meta, rescale=True):
+    """Simple test with single image."""
+    seg_logit = self.inference(img, img_meta, rescale)
+    seg_pred = seg_logit.argmax(dim=1)
+    if torch.onnx.is_in_onnx_export():
+        # our inference backend only support 4D output
+        seg_pred = seg_pred.unsqueeze(0)
+        return seg_pred
+    seg_pred = seg_pred.cpu().numpy()
+    # unravel batch dim
+    seg_pred = list(seg_pred)
+    return seg_logit # changed from "return seg_pred"
+```
+```bash
+cd <edgeai-mmdetection3d>/tools/data_converter
+
+python kitti_painting.py
 ```
 
 ## Get Started
@@ -144,3 +159,7 @@ This package/toolbox is an extension of mmdetection3d (https://github.com/open-m
 
 ## References
 [1] MMDetection3d: https://github.com/open-mmlab/mmdetection3d
+
+[2] PointPillars: https://arxiv.org/abs/1812.05784
+
+[3] PointPainting: https://arxiv.org/abs/1911.10150

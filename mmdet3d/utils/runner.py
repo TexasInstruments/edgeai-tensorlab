@@ -80,8 +80,15 @@ class XMMDetNoOptimizerHook(OptimizerHook):
 @HOOKS.register_module()
 class FreezeRangeHook(Hook):
     def before_train_epoch(self, runner):
-        freeze_bn_epoch = (runner.max_epochs // 2) - 1
-        freeze_range_epoch = (runner.max_epochs // 2) + 1
+        #offset_epoch = runner.max_epochs // 10
+        
+        #if offset_epoch<= 0:
+        #    offset_epoch = 1
+        
+        offset_epoch = 1
+
+        freeze_bn_epoch = (runner.max_epochs // 2) - offset_epoch
+        freeze_range_epoch = (runner.max_epochs // 2) + offset_epoch
         if runner.epoch >= 1 and runner.epoch >= freeze_bn_epoch:
             xnn.utils.print_once('Freezing BN')
             xnn.utils.freeze_bn(runner.model)

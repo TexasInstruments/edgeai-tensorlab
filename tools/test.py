@@ -313,7 +313,6 @@ def main():
 
     if cfg.save_onnx_model == True:
         save_onnx_model(cfg, model, os.path.dirname(args.checkpoint),cfg.quantize)
-        save_tidl_prototxt(cfg, os.path.dirname(args.checkpoint))
     
     if not distributed:
         model = MMDataParallel(model, device_ids=cfg.gpu_ids)
@@ -379,27 +378,31 @@ def main():
                 eval_kwargs.update(dict(metric=args.eval, **kwargs))
                 print(dataset.evaluate(outputs, **eval_kwargs))
 
-def save_onnx_model(cfg, model,path,quantized_model=True):
+def save_onnx_model(cfg, model,path,quantized_model=True,tag=''):
 
         print('onnx export started, at path {}'.format(path))
-        print('Only one GPU can be used for ONNX export')
 
-        device_ids=[torch.cuda.current_device()]
+        model_cpu = model.to('cpu')
+
+        #device_ids=[torch.cuda.current_device()]
         
-        if len(device_ids) > 1:
-            print('Multiple GPUs visible, Currently only one GPU can be used for onnx export')
+        #if len(device_ids) > 1:
+        #    print('Multiple GPUs visible, Currently only one GPU can be used for onnx export')
             
         from test import CombinedModel
-        model.eval()
+
+        model_cpu.eval()
 
         bev_size_x = (int)((cfg.point_cloud_range[3] - cfg.point_cloud_range[0])/cfg.voxel_size[0])
         bev_size_y = (int)((cfg.point_cloud_range[4] - cfg.point_cloud_range[1])/cfg.voxel_size[1])
 
         # Accessing one layer to find wheather wegihts are on cpu or cuda
-        if quantized_model == True:
-            device = model.module.voxel_encoder.pfn_layers._modules['0'].linear.weight.device
-        else:
-            device = model.voxel_encoder.pfn_layers._modules['0'].linear.weight.device
+        #if quantized_model == True:
+        #    device = model_cpu.module.voxel_encoder.pfn_layers._modules['0'].linear.weight.device
+        #else:
+        #    device = model_cpu.voxel_encoder.pfn_layers._modules['0'].linear.weight.device
+
+        device ='cpu'
 
         raw_voxel_feat = torch.ones([1, cfg.model.voxel_encoder.in_channels+6, 
                                         cfg.model.voxel_layer.max_num_points, 
@@ -411,49 +414,50 @@ def save_onnx_model(cfg, model,path,quantized_model=True):
         coors = coors.long()
 
         if quantized_model == True:
-            combined_model = CombinedModel(model.module.voxel_encoder.pfn_layers._modules['0'],
-                                            model.module.middle_encoder,
-                                            model.module.backbone,
-                                            model.module.neck,
-                                            model.module.bbox_head.conv_cls,
-                                            model.module.bbox_head.conv_dir_cls,
-                                            model.module.bbox_head.conv_reg,
-                                            len(model.CLASSES)
+            combined_model = CombinedModel(model_cpu.module.voxel_encoder.pfn_layers._modules['0'],
+                                            model_cpu.module.middle_encoder,
+                                            model_cpu.module.backbone,
+                                            model_cpu.module.neck,
+                                            model_cpu.module.bbox_head.conv_cls,
+                                            model_cpu.module.bbox_head.conv_dir_cls,
+                                            model_cpu.module.bbox_head.conv_reg,
+                                            len(model_cpu.CLASSES)
                                             )
         else:
-            combined_model = CombinedModel(model.voxel_encoder.pfn_layers._modules['0'],
-                                            model.middle_encoder,
-                                            model.backbone,
-                                            model.neck,
-                                            model.bbox_head.conv_cls,
-                                            model.bbox_head.conv_dir_cls,
-                                            model.bbox_head.conv_reg,
-                                            len(model.CLASSES)
+            combined_model = CombinedModel(model_cpu.voxel_encoder.pfn_layers._modules['0'],
+                                            model_cpu.middle_encoder,
+                                            model_cpu.backbone,
+                                            model_cpu.neck,
+                                            model_cpu.bbox_head.conv_cls,
+                                            model_cpu.bbox_head.conv_dir_cls,
+                                            model_cpu.bbox_head.conv_reg,
+                                            len(model_cpu.CLASSES)
                                             )
 
         torch.onnx.export(combined_model,
                 (raw_voxel_feat,coors,data),
-                os.path.join(path,"combined_model.onnx"),
+                os.path.join(path,tag+"combined_model.onnx"),
                 opset_version=11,
                 verbose=False)
                 
         # change the data type from int64 to int32 for co-ordinates in scatter layer, as TIDL doesnt supprt that
         # it can not be changes in pytorch operator as int32 is not supported there.
         import onnx
-        model = onnx.load(os.path.join(path,"combined_model.onnx"))
-        graph = model.graph
+        onnx_model = onnx.load(os.path.join(path,tag+"combined_model.onnx"))
+        graph = onnx_model.graph
 
         for inp in graph.input:
             if inp.name == 'coors' and inp.type.tensor_type.elem_type == onnx.TensorProto.INT64 :
                 inp.type.tensor_type.elem_type = onnx.TensorProto.INT32
 
-        onnx.save(model, os.path.join(path,"combined_model_int32.onnx"))
+        onnx.save(onnx_model, os.path.join(path,tag+"combined_model_int32.onnx"))
+        save_tidl_prototxt(cfg, path, tag)
 
-def save_tidl_prototxt(cfg, path):
+def save_tidl_prototxt(cfg, path,tag=''):
 
     import onnx
-    prototxt_file = os.path.join(path,"pointPillars.prototxt")
-    model = onnx.load(os.path.join(path,"combined_model_int32.onnx"))
+    prototxt_file = os.path.join(path,tag+"pointPillars.prototxt")
+    model = onnx.load(os.path.join(path,tag+"combined_model_int32.onnx"))
     graph = model.graph
     
     box_input = []

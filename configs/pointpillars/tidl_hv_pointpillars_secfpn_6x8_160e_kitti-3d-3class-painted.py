@@ -7,6 +7,12 @@ _base_ = [
 point_cloud_range = [0, -39.68, -3, 69.12, 39.68, 1]
 voxel_size = [0.16, 0.16, 4]
 model = dict(
+    voxel_layer=dict(
+        max_num_points=32,  # max_points_per_voxel
+        point_cloud_range=point_cloud_range,
+        voxel_size=voxel_size,
+        max_voxels=(16000, 40000, 10000)  # (training, testing, onnx) max count of voxels
+    ),
     voxel_encoder=dict(
         type='PillarFeatureNet',
         in_channels=4,
@@ -25,9 +31,10 @@ model = dict(
         in_channels=[64, 128, 256],
         upsample_strides=[1, 2, 4],
         out_channels=[128, 128, 128],
-        upsample_cfg=dict(type='bilinear', align_corners=False))
+        upsample_cfg=dict(type='nearest'))
         )
 # dataset settings
+dataset_type = 'KittiDataset'
 data_root = 'data/kitti/'
 class_names = ['Pedestrian', 'Cyclist', 'Car']
 # PointPillars adopted a different sampling strategies among classes
@@ -105,24 +112,45 @@ test_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=1,
-    workers_per_gpu=0,
-    train=dict(dataset=dict(pipeline=train_pipeline, classes=class_names,pts_prefix='velodyne_painted_reduced')),
+    samples_per_gpu=6,
+    workers_per_gpu=4,
+    train=dict(type='RepeatDataset',times=2,dataset=dict(pipeline=train_pipeline, classes=class_names,pts_prefix='velodyne_painted_reduced')),
     val=dict(pipeline=test_pipeline, classes=class_names,pts_prefix='velodyne_painted_reduced'),
     test=dict(pipeline=test_pipeline, classes=class_names,pts_prefix='velodyne_painted_reduced'))
 
-# In practice PointPillars also uses a different schedule
-# optimizer
-lr = 0.001
-optimizer = dict(lr=lr)
-# max_norm=35 is slightly better than 10 for PointPillars in the earlier
-# development of the codebase thus we keep the setting. But we does not
-# specifically tune this parameter.
-optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
-# PointPillars usually need longer schedule than second, we simply double
-# the training schedule. Do remind that since we use RepeatDataset and
-# repeat factor is 2, so we actually train 160 epochs.
-runner = dict(max_epochs=80)
+save_onnx_model = True           
+quantize = False
 
-# Use evaluation interval=2 reduce the number of evaluation timese
-evaluation = dict(interval=2)
+if quantize == False:
+    #momentum_config = dict(_delete_=True)
+    lr = 1e-3
+
+    optimizer = dict(_delete_=True, type='SGD', lr=lr, momentum=0.9, weight_decay=1e-03)
+
+    runner = dict(max_epochs=80)
+
+    evaluation = dict(interval=10,save_best='KITTI/Overall_3D_AP11_moderate',rule='greater')
+    checkpoint_config = dict(interval=10)
+    load_from = './work_dirs/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class/best.pth'
+else:
+    lr = 1e-4
+
+    optimizer = dict(_delete_=True, type='SGD', lr=lr, momentum=0.9, weight_decay=1e-3)
+    optimizer_config = dict(_delete_=True,grad_clip=dict(max_norm=35, norm_type=2))
+    warmup_cfg = dict(_delete_=True,warmup='linear', warmup_iters=2000, warmup_ratio=0.001)
+    lr_config = dict(_delete_=True,
+      policy='CosineAnnealing',
+      min_lr_ratio=0.0001,
+      warmup='linear',
+      warmup_iters=2000,
+      warmup_ratio=0.001)
+
+    runner = dict(max_epochs=20)
+
+    evaluation = dict(interval=1,save_best='KITTI/Overall_3D_AP11_moderate',rule='greater')
+    checkpoint_config = dict(interval=1)
+
+    load_from = './work_dirs/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class-painted/best.pth'
+    work_dir = './work_dirs/3class_quant_train_dir_2/'
+    custom_hooks = dict(type='FreezeRangeHook')
+

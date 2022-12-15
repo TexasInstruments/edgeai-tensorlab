@@ -6,7 +6,7 @@ from mmcv.runner import BaseModule, auto_fp16
 from torch import nn as nn
 
 from ..builder import NECKS
-
+from torchvision.edgeailite import xnn
 
 @NECKS.register_module()
 class SECONDFPN(BaseModule):
@@ -48,6 +48,7 @@ class SECONDFPN(BaseModule):
                 
                 if (stride  > 1) and (upsample_cfg['type'] == 'nearest'):
                     kernel_size = stride + 1
+                    
                     dw_conv_layer = build_conv_layer(
                         conv_cfg,
                         in_channels=in_channels[i],
@@ -56,6 +57,10 @@ class SECONDFPN(BaseModule):
                         padding=(int)(kernel_size/2),
                         groups=in_channels[i]
                         )
+
+                    dw_conv_layer = nn.Sequential(dw_conv_layer,
+                                    build_norm_layer(norm_cfg, in_channels[i])[1],
+                                    nn.ReLU(inplace=True))                        
                 else:
                     dw_conv_layer = None
                 
@@ -109,6 +114,7 @@ class SECONDFPN(BaseModule):
                 dict(type='Kaiming', layer='ConvTranspose2d'),
                 dict(type='Constant', layer='NaiveSyncBatchNorm2d', val=1.0)
             ]
+        self.cat = xnn.layers.CatBlock(dim=1)
 
     @auto_fp16()
     def forward(self, x):
@@ -124,7 +130,8 @@ class SECONDFPN(BaseModule):
         ups = [deblock(x[i]) for i, deblock in enumerate(self.deblocks)]
 
         if len(ups) > 1:
-            out = torch.cat(ups, dim=1)
+            #out = torch.cat(ups, dim=1)
+            out = self.cat(ups)
         else:
             out = ups[0]
         return [out]

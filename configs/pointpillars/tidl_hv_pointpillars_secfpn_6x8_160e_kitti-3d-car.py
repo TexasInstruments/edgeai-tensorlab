@@ -29,7 +29,7 @@ model = dict(
         in_channels=[64, 128, 256],
         upsample_strides=[1, 2, 4],
         out_channels=[128, 128, 128],
-        upsample_cfg=dict(type='bilinear', align_corners=False)),
+        upsample_cfg=dict(type='nearest')),
     bbox_head=dict(
         type='Anchor3DHead',
         num_classes=1,
@@ -79,7 +79,7 @@ db_sampler = dict(
 train_pipeline = [
     dict(type='LoadPointsFromFile', coord_type='LIDAR', load_dim=4, use_dim=4),
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
-    dict(type='ObjectSample', db_sampler=db_sampler),
+    dict(type='ObjectSample', db_sampler=db_sampler,use_ground_plane=True),
     dict(
         type='ObjectNoise',
         num_try=100,
@@ -132,33 +132,38 @@ data = dict(
     val=dict(pipeline=test_pipeline, classes=class_names),
     test=dict(pipeline=test_pipeline, classes=class_names))
 
-save_onnx_model = False
-quantize = False 
-# max_norm=35 is slightly better than 10 for PointPillars in the earlier
-# development of the codebase thus we keep the setting. But we does not
-# specifically tune this parameter.
-optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
+save_onnx_model = True
+quantize = False
 
 if quantize == False:
-    lr = 0.001
-    optimizer = dict(lr=lr)
-    # PointPillars usually need longer schedule than second, we simply double
-    # the training schedule. Do remind that since we use RepeatDataset and
-    # repeat factor is 2, so we actually train 160 epochs.
+    #momentum_config = dict(_delete_=True)
+    lr = 6e-3
+
+    optimizer = dict(_delete_=True, type='SGD', lr=lr, momentum=0.9, weight_decay=1e-03)
+
     runner = dict(max_epochs=80)
 
-    # Use evaluation interval=2 reduce the number of evaluation timese
-    evaluation = dict(interval=2)
+    evaluation = dict(interval=10,save_best='KITTI/Car_3D_AP11_moderate_strict',rule='greater')
+    checkpoint_config = dict(interval=10)
+
 else:
-    lr = 0.001
-    optimizer = dict(lr=lr)
-    # PointPillars usually need longer schedule than second, we simply double
-    # the training schedule. Do remind that since we use RepeatDataset and
-    # repeat factor is 2, so we actually train 160 epochs.
-    runner = dict(max_epochs=100)
+    lr = 6e-4
 
-    # Use evaluation interval=2 reduce the number of evaluation timese
-    evaluation = dict(interval=2)
+    optimizer = dict(_delete_=True, type='SGD', lr=lr, momentum=0.9, weight_decay=1e-3)
+    optimizer_config = dict(_delete_=True,grad_clip=dict(max_norm=35, norm_type=2))
+    warmup_cfg = dict(_delete_=True,warmup='linear', warmup_iters=2000, warmup_ratio=0.001)
+    lr_config = dict(_delete_=True,
+      policy='CosineAnnealing',
+      min_lr_ratio=0.0001,
+      warmup='linear',
+      warmup_iters=2000,
+      warmup_ratio=0.001)
 
-    load_from = './work_dirs/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car/latest.pth'
+    runner = dict(max_epochs=20)
+
+    evaluation = dict(interval=1,save_best='KITTI/Car_3D_AP11_moderate_strict',rule='greater')
+    checkpoint_config = dict(interval=1)
+
+    load_from = './work_dirs/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-car/best.pth'
+    work_dir  = './work_dirs/car_cls_quant_train_dir_2/'
     custom_hooks = dict(type='FreezeRangeHook')
