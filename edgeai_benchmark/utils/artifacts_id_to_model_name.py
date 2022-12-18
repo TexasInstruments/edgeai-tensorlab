@@ -228,13 +228,14 @@ model_id_artifacts_pair = {
     'cl-6090_onnxrt': 'ONR-CL-6090-mobileNetV2-tv',
     'cl-6100_onnxrt': 'ONR-CL-6100-resNet18',
     'cl-6110_onnxrt': 'ONR-CL-6110-resNet50',
-    'cl-6120_onnxrt': 'ONR-CL-6120-regNetX-400mf',
-    'cl-6130_onnxrt': 'ONR-CL-6130-regNetX-800mf',
-    'cl-6140_onnxrt': 'ONR-CL-6140-regNetX-1.6gf',
+    'cl-6120_onnxrt': 'ONR-CL-6120-regNetX-400mf-pycls',
+    'cl-6130_onnxrt': 'ONR-CL-6130-regNetX-800mf-pycls',
+    'cl-6140_onnxrt': 'ONR-CL-6140-regNetX-1.6gf-pycls',
     'cl-6158_onnxrt': 'ONR-CL-6158-mobileNetV2-1p4-qat',
-    'cl-6160_onnxrt': 'ONR-CL-6160-regNetX-400mf',
-    'cl-6170_onnxrt': 'ONR-CL-6170-regNetX-800mf',
-    'cl-6180_onnxrt': 'ONR-CL-6180-regNetX-1.6gf',
+    'cl-6150_onnxrt': 'ONR-CL-6158-mobileNetV2-1p4',
+    'cl-6160_onnxrt': 'ONR-CL-6160-regNetX-400mf-tv',
+    'cl-6170_onnxrt': 'ONR-CL-6170-regNetX-800mf-tv',
+    'cl-6180_onnxrt': 'ONR-CL-6180-regNetX-1.6gf-tv',
 
     #512x512
     'cl-6061_onnxrt': 'ONR-CL-6061-mobileNetV1-512x512',
@@ -243,9 +244,9 @@ model_id_artifacts_pair = {
     'cl-6091_onnxrt': 'ONR-CL-6091-mobileNetV2-tv-512x512',
     'cl-6101_onnxrt': 'ONR-CL-6101-resNet18-512x512',
     'cl-6111_onnxrt': 'ONR-CL-6111-resNet50-512x512',
-    'cl-6121_onnxrt': 'ONR-CL-6121-regNetX-400mf-512x512',
-    'cl-6131_onnxrt': 'ONR-CL-6131-regNetX-800mf-512x512',
-    'cl-6141_onnxrt': 'ONR-CL-6141-regNetX-1.6gf-512x512',
+    'cl-6121_onnxrt': 'ONR-CL-6121-regNetX-400mf-pycls-512x512',
+    'cl-6131_onnxrt': 'ONR-CL-6131-regNetX-800mf-pycls-512x512',
+    'cl-6141_onnxrt': 'ONR-CL-6141-regNetX-1.6gf-pycls-512x512',
     'cl-6151_onnxrt': 'ONR-CL-6151-mobileNetV2-1p4-qat-512x512',
 
     #1024x1024
@@ -255,9 +256,9 @@ model_id_artifacts_pair = {
     'cl-6092_onnxrt': 'ONR-CL-6092-mobileNetV2-tv-1024x1024',
     'cl-6102_onnxrt': 'ONR-CL-6102-resNet18-1024x1024',
     'cl-6112_onnxrt': 'ONR-CL-6112-resNet50-1024x1024',
-    'cl-6122_onnxrt': 'ONR-CL-6122-regNetX-400mf-1024x1024',
-    'cl-6132_onnxrt': 'ONR-CL-6132-regNetX-800mf-1024x1024',
-    'cl-6142_onnxrt': 'ONR-CL-6142-regNetX-1.6gf-1024x1024',
+    'cl-6122_onnxrt': 'ONR-CL-6122-regNetX-400mf-pycls-1024x1024',
+    'cl-6132_onnxrt': 'ONR-CL-6132-regNetX-800mf-pycls-1024x1024',
+    'cl-6142_onnxrt': 'ONR-CL-6142-regNetX-1.6gf-pycls-1024x1024',
     'cl-6152_onnxrt': 'ONR-CL-6152-mobileNetV2-1p4-qat-1024x1024',
     ########
 
