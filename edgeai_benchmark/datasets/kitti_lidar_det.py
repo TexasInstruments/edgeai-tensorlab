@@ -250,13 +250,12 @@ import cv2
 
 class KittiLidar3D(DatasetBase):
     def __init__(self, download=False, read_anno=True, dest_dir=None, num_frames=None, name='kitti_lidar_det', **kwargs):
-        super().__init__(num_frames=num_frames, name=name, **kwargs)
+        super().__init__(num_frames=num_frames, name=name, read_anno=read_anno, **kwargs)
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must be provided in kwargs'
         assert 'num_classes' in self.kwargs, f'num_classes must be provided while creating {self.__class__.__name__}'
 
         path = self.kwargs['path']
-
         split_folder = self.kwargs['split']
 
         # download the data if needed
