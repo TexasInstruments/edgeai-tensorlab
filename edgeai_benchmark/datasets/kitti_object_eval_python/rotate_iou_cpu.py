@@ -26,15 +26,15 @@ def area(int_pts, num_of_inter):
 
 def sort_vertex_in_convex_polygon(int_pts, num_of_inter):
     if num_of_inter > 0:
-        center = cuda.local.array((2, ), dtype=numba.float32)
+        center = np.array((2, ), dtype=np.float32)
         center[:] = 0.0
         for i in range(num_of_inter):
             center[0] += int_pts[2 * i]
             center[1] += int_pts[2 * i + 1]
         center[0] /= num_of_inter
         center[1] /= num_of_inter
-        v = cuda.local.array((2, ), dtype=numba.float32)
-        vs = cuda.local.array((16, ), dtype=numba.float32)
+        v = np.array((2, ), dtype=np.float32)
+        vs = np.array((16, ), dtype=np.float32)
         for i in range(num_of_inter):
             v[0] = int_pts[2 * i] - center[0]
             v[1] = int_pts[2 * i + 1] - center[1]
@@ -64,10 +64,10 @@ def sort_vertex_in_convex_polygon(int_pts, num_of_inter):
 
 
 def line_segment_intersection(pts1, pts2, i, j, temp_pts):
-    A = cuda.local.array((2, ), dtype=numba.float32)
-    B = cuda.local.array((2, ), dtype=numba.float32)
-    C = cuda.local.array((2, ), dtype=numba.float32)
-    D = cuda.local.array((2, ), dtype=numba.float32)
+    A = np.array((2, ), dtype=np.float32)
+    B = np.array((2, ), dtype=np.float32)
+    C = np.array((2, ), dtype=np.float32)
+    D = np.array((2, ), dtype=np.float32)
 
     A[0] = pts1[2 * i]
     A[1] = pts1[2 * i + 1]
@@ -106,10 +106,10 @@ def line_segment_intersection(pts1, pts2, i, j, temp_pts):
 
 
 def line_segment_intersection_v1(pts1, pts2, i, j, temp_pts):
-    a = cuda.local.array((2, ), dtype=numba.float32)
-    b = cuda.local.array((2, ), dtype=numba.float32)
-    c = cuda.local.array((2, ), dtype=numba.float32)
-    d = cuda.local.array((2, ), dtype=numba.float32)
+    a = np.array((2, ), dtype=np.float32)
+    b = np.array((2, ), dtype=np.float32)
+    c = np.array((2, ), dtype=np.float32)
+    d = np.array((2, ), dtype=np.float32)
 
     a[0] = pts1[2 * i]
     a[1] = pts1[2 * i + 1]
@@ -172,7 +172,7 @@ def quadrilateral_intersection(pts1, pts2, int_pts):
             int_pts[num_of_inter * 2] = pts2[2 * i]
             int_pts[num_of_inter * 2 + 1] = pts2[2 * i + 1]
             num_of_inter += 1
-    temp_pts = cuda.local.array((2, ), dtype=numba.float32)
+    temp_pts = np.array((2, ), dtype=np.float32)
     for i in range(4):
         for j in range(4):
             has_pts = line_segment_intersection(pts1, pts2, i, j, temp_pts)
@@ -193,8 +193,8 @@ def rbbox_to_corners(corners, rbbox):
     center_y = rbbox[1]
     x_d = rbbox[2]
     y_d = rbbox[3]
-    corners_x = cuda.local.array((4, ), dtype=numba.float32)
-    corners_y = cuda.local.array((4, ), dtype=numba.float32)
+    corners_x = np.array((4, ), dtype=np.float32)
+    corners_y = np.array((4, ), dtype=np.float32)
     corners_x[0] = -x_d / 2
     corners_x[1] = -x_d / 2
     corners_x[2] = x_d / 2
@@ -211,9 +211,9 @@ def rbbox_to_corners(corners, rbbox):
 
 
 def inter(rbbox1, rbbox2):
-    corners1 = cuda.local.array((8, ), dtype=numba.float32)
-    corners2 = cuda.local.array((8, ), dtype=numba.float32)
-    intersection_corners = cuda.local.array((16, ), dtype=numba.float32)
+    corners1 = np.array((8, ), dtype=np.float32)
+    corners2 = np.array((8, ), dtype=np.float32)
+    intersection_corners = np.array((16, ), dtype=np.float32)
 
     rbbox_to_corners(corners1, rbbox1)
     rbbox_to_corners(corners2, rbbox2)

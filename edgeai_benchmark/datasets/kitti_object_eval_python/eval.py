@@ -1,6 +1,6 @@
 import io as sysio
 
-import numba
+#import numba
 import numpy as np
 
 #from .rotate_iou import rotate_iou_gpu_eval
