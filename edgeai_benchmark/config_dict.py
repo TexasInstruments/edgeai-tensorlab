@@ -155,7 +155,7 @@ class ConfigDict(dict):
         # only models matching these criteria will be considered - even for model_selection
         #   examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
         #   examples: ['resnet18.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision'] ['coco']
-        #   examples: [cl-0000, od-2020, ss-2580, cl-3090, cl-3520, od-5120, ss-5710, cl-6360, od-8050, od-8220, od-8420, ss-8610, kd-7060, op-7200]
+        #   examples: [cl-0000, od-2020, ss-2580, cl-3090, cl-3520, od-5120, ss-5710, cl-6360, od-8050, od-8220, od-8420, ss-8610, kd-7060, 6dpose-7200]
         self.model_selection = None
         # model_shortlist can be a number, which indicates a predefined shortlist, and a fraction of the models will be selected
         # model_shortlist and model_selection are complimentary - they can be used together.
