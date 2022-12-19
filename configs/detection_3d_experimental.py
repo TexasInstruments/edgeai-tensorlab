@@ -69,6 +69,19 @@ def get_configs(settings, work_dir):
             postprocess=postproc_transforms.get_transform_lidar_base(),
             metric=dict(label_offset_pred=None),
             model_info=dict(metric_reference={'accuracy_ap_3d_moderate%':76.50}, model_shortlist=20)
+        ),
+        '3dod-7110':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_lidar_base(),
+            session=onnx_session_type(**sessions.get_nomeanscale_session_cfg(settings, work_dir=work_dir),
+                runtime_options=utils.dict_update(runtime_options_3dod_qat,
+                    ext_options={'object_detection:meta_arch_type': 7,
+                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection_3d/kitti/mmdet3d/lidar_point_pillars_10k_496x432_3class.prototxt',
+                     "advanced_options:add_data_convert_ops" : 0,
+                     'advanced_options:output_feature_16bit_names_list': first_last_layer_3dod_7100}),
+                model_path=f'{settings.models_path}/vision/detection_3d/kitti/mmdet3d/lidar_point_pillars_10k_496x432_3class_qat-p2.onnx'),
+            postprocess=postproc_transforms.get_transform_lidar_base(),
+            metric=dict(label_offset_pred=None),
+            model_info=dict(metric_reference={'accuracy_ap_3d_moderate%':76.50}, model_shortlist=20)
         )
     }
 
