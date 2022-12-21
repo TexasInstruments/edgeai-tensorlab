@@ -51,14 +51,15 @@ class QuantTrainModule(QuantBaseModule):
     def __init__(self, module, dummy_input, *args, bitwidth_weights=8, bitwidth_activations=8, per_channel_q=False,
                  histogram_range=True, bias_calibration=False, constrain_weights=None,
                  range_shrink_weights=None, range_shrink_activations=None,
-                 power2_weight_range=None, power2_activation_range=None, constrain_bias=None, **kwargs):
+                 power2_weight_range=None, power2_activation_range=None, constrain_bias=None, 
+                 quantize_in=True, quantize_out=True, **kwargs):
         constrain_weights = (not per_channel_q) if constrain_weights is None else constrain_weights
         super().__init__(module, dummy_input, *args, bitwidth_weights=bitwidth_weights, bitwidth_activations=bitwidth_activations,
                          per_channel_q=per_channel_q, histogram_range=histogram_range, bias_calibration=bias_calibration,
                          constrain_weights=constrain_weights, constrain_bias=constrain_bias,
                          range_shrink_weights=range_shrink_weights, range_shrink_activations=range_shrink_activations,
                          power2_weight_range=power2_weight_range, power2_activation_range=power2_activation_range,
-                         model_surgery_quantize=True, **kwargs)
+                         model_surgery_quantize=True, quantize_in=quantize_in, quantize_out=quantize_out, **kwargs)
 
     def forward(self, inputs, *args, **kwargs):
         # counters such as num_batches_tracked are used. update them.

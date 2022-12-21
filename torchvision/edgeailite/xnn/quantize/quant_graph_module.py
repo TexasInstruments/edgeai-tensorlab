@@ -38,7 +38,7 @@ from ..utils import AttrDict as Dict
 from .hooked_module import *
 
 class QuantGraphModule(HookedModule):
-    def __init__(self, module):
+    def __init__(self, module, quantize_in=True, quantize_out=True):
         super().__init__()
         self.module = module
         self.init_qstate()
@@ -54,10 +54,10 @@ class QuantGraphModule(HookedModule):
         self.ignore_out_blocks = (layers.NoQAct,torch.nn.Dropout2d)
 
         # quantize the input to a block (under  a certain conditions of the input was not already quantized)
-        self.quantize_in = True
+        self.quantize_in = quantize_in
 
         # whether to quantize the output prediction module or not
-        self.quantize_out = True
+        self.quantize_out = quantize_out
 
         # TBD: is this required
         # # if the original module has load_weights, add it to the quant module also

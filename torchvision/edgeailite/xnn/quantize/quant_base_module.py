@@ -56,8 +56,9 @@ class QuantBaseModule(QuantGraphModule):
     def __init__(self, module, dummy_input, *args, bitwidth_weights=8, bitwidth_activations=8, per_channel_q=False,
                  histogram_range=True, bias_calibration=False, constrain_weights=False, constrain_bias=None,
                  range_shrink_weights=None, range_shrink_activations=None,
-                 power2_weight_range=None, power2_activation_range=None, model_surgery_quantize=True, **kwargs):
-        super().__init__(module)
+                 power2_weight_range=None, power2_activation_range=None, model_surgery_quantize=True, 
+                 quantize_in=True, quantize_out=True, **kwargs):
+        super().__init__(module, quantize_in=quantize_in, quantize_out=quantize_out)
         self.bitwidth_weights = bitwidth_weights
         self.bitwidth_activations = bitwidth_activations
         self.per_channel_q = per_channel_q

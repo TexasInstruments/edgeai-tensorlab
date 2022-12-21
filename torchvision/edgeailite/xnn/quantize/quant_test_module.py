@@ -35,13 +35,14 @@ class QuantTestModule(QuantTrainModule):
     def __init__(self, module, dummy_input, *args, bitwidth_weights=8, bitwidth_activations=8, per_channel_q=False,
                  histogram_range=True, bias_calibration=False, constrain_weights=False, model_surgery_quantize=True,
                  range_shrink_weights=None, range_shrink_activations=None,
-                 power2_weight_range=None, power2_activation_range=None, constrain_bias=None, **kwargs):
+                 power2_weight_range=None, power2_activation_range=None, constrain_bias=None, 
+                 quantize_in=True, quantize_out=True, **kwargs):
         super().__init__(module, dummy_input, *args, bitwidth_weights=bitwidth_weights, bitwidth_activations=bitwidth_activations,
                          per_channel_q=per_channel_q, histogram_range=histogram_range, bias_calibration=bias_calibration,
                          constrain_weights=constrain_weights, constrain_bias=constrain_bias,
                          range_shrink_weights=range_shrink_weights, range_shrink_activations=range_shrink_activations,
                          power2_weight_range=power2_weight_range, power2_activation_range=power2_activation_range,
-                         **kwargs)
+                         quantize_in=quantize_in, quantize_out=quantize_out, **kwargs)
         assert model_surgery_quantize == True, f'{self.__class__.__name__} does not support model_surgery_quantize=False. please use a qat or calibrated module.'
         self.eval()
 

@@ -51,7 +51,8 @@ class QuantCalibrateModule(QuantTrainModule):
     def __init__(self, module, dummy_input, *args, bitwidth_weights=8, bitwidth_activations=8, per_channel_q=False,
                  histogram_range=True, bias_calibration=True, constrain_weights=None,
                  range_shrink_weights=None, range_shrink_activations=None,
-                 power2_weight_range=None, power2_activation_range=None, constrain_bias=None, lr_calib=0.05, **kwargs):
+                 power2_weight_range=None, power2_activation_range=None, constrain_bias=None, lr_calib=0.05,
+                 quantize_in=True, quantize_out=True, **kwargs):
         self.weights_calibration = False
         self.lr_calib = lr_calib
         self.calibration_factor = lr_calib
@@ -65,7 +66,7 @@ class QuantCalibrateModule(QuantTrainModule):
                          constrain_weights=constrain_weights, constrain_bias=constrain_bias,
                          range_shrink_weights=range_shrink_weights, range_shrink_activations=range_shrink_activations,
                          power2_weight_range=power2_weight_range, power2_activation_range=power2_activation_range,
-                         **kwargs)
+                         quantize_in=quantize_in, quantize_out=quantize_out, **kwargs)
         self.calib_stats = dict()
 
 
