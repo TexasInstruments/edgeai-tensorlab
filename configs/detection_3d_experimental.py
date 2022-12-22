@@ -47,11 +47,6 @@ def get_configs(settings, work_dir):
 
     # to define the names of first and last layer for 16 bit conversion
     first_last_layer_3dod_7100 = ''
-    runtime_options_3dod_qat = settings.runtime_options_onnx_qat(det_options=True)
-
-    #For point pillars model number of iterations required is double for good accuracy
-    #runtime_options_3dod_qat['advanced_options:calibration_iterations'] = \
-    #    runtime_options_3dod_qat['advanced_options:calibration_iterations']*2
 
     pipeline_configs = {
         #################################################################
@@ -60,7 +55,7 @@ def get_configs(settings, work_dir):
         '3dod-7100':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_lidar_base(),
             session=onnx_session_type(**sessions.get_nomeanscale_session_cfg(settings, work_dir=work_dir),
-                runtime_options=utils.dict_update(runtime_options_3dod_qat,
+                runtime_options=settings.runtime_options_onnx_qat(det_options=True,
                     ext_options={'object_detection:meta_arch_type': 7,
                      'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection_3d/kitti/mmdet3d/lidar_point_pillars_10k_496x432.prototxt',
                      "advanced_options:add_data_convert_ops" : 0,
@@ -73,7 +68,7 @@ def get_configs(settings, work_dir):
         '3dod-7110':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_lidar_base(),
             session=onnx_session_type(**sessions.get_nomeanscale_session_cfg(settings, work_dir=work_dir),
-                runtime_options=utils.dict_update(runtime_options_3dod_qat,
+                runtime_options=settings.runtime_options_onnx_qat(det_options=True,
                     ext_options={'object_detection:meta_arch_type': 7,
                      'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection_3d/kitti/mmdet3d/lidar_point_pillars_10k_496x432_3class.prototxt',
                      "advanced_options:add_data_convert_ops" : 0,

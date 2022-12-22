@@ -235,7 +235,7 @@ class ConfigSettings(config_dict.ConfigDict):
                 })
             #
         elif isinstance(det_options, dict):
-            runtime_options_new.update(det_options)
+            runtime_options.update(det_options)
         #
         return runtime_options
 
