@@ -47,7 +47,7 @@ class AccuracyPipeline():
         self.session = self.pipeline_config['session']
         self.run_dir = self.session.get_param('run_dir')
         self.run_dir_base = os.path.split(self.run_dir)[-1]
-        # these files willbe written after import and inference respectively
+        # these files will be written after import and inference respectively
         self.param_yaml = os.path.join(self.run_dir, 'param.yaml')
         self.result_yaml = os.path.join(self.run_dir, 'result.yaml')
         # pop out dataset info from the pipeline config,
