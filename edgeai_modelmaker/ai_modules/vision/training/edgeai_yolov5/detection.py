@@ -78,6 +78,36 @@ _model_descriptions = {
             metric=dict(label_offset_pred=0)
         )
     ),
+    'yolov5s6_384_ti_lite': dict(
+        common=dict(
+            task_type=constants.TASK_TYPE_DETECTION,
+        ),
+        training=dict(
+            training_backend='edgeai_yolov5',
+            model_name='yolov5s6_384_ti_lite',
+            model_training_id='yolov5s6',
+            model_architecture='yolov5',
+            input_resize=384,
+            input_cropsize=384,
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/checkpoints/detection/coco/edgeai-yolov5/yolov5s6_384_ti_lite/weights/best.pt',
+            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
+            target_devices={  #To Update
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=170, performance_infer_time_ms=1000/170,
+                                                     accuracy_factor=32.8, accuracy_unit='AP[.5:.95]%')
+            },
+            training_devices={
+                constants.TRAINING_DEVICE_CPU: True,
+                constants.TRAINING_DEVICE_CUDA: True,
+            }
+        ),
+        compilation=dict(
+            model_compilation_id='od-8110',
+            runtime_options={
+                'advanced_options:output_feature_16bit_names_list': '370, 426, 482, 538'
+            },
+            metric=dict(label_offset_pred=0)
+        )
+    ),
     'yolov5m6_640_ti_lite': dict(
         common=dict(
             task_type=constants.TASK_TYPE_DETECTION,
@@ -119,7 +149,7 @@ _model_descriptions = {
             model_architecture='yolov5',
             input_resize=640,
             input_cropsize=640,
-            pretrained_checkpoint_path=f'{www_modelzoo_path}/detection/coco/edgeai-yolov5/yolov5l6_640_ti_lite/weights/best.pt',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/checkpoints/detection/coco/edgeai-yolov5/yolov5l6_640_ti_lite/weights/best.pt',
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION]//2,
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=21, performance_infer_time_ms=1000/21,
