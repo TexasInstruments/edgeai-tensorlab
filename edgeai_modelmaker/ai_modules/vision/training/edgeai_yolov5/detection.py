@@ -205,9 +205,12 @@ def json2yolo(src_path, dst_path, split='train'):
             foo.write('./{}/{}'.format('images', img['file_name']) + '\n')
 
     duplicate_ids = []
+    cls_offset = 1
     for gt_annotation in gt_annotations:
         if gt_annotation['id'] in duplicate_ids:
             continue
+        if gt_annotation['category_id'] == 0:
+            cls_offset = 0
         gt_bboxes = [gt_ann['bbox'] for gt_ann in gt_annotations if gt_ann['image_id']==gt_annotation['image_id']]
         gt_bboxes_id = [gt_ann['id'] for gt_ann in gt_annotations if gt_ann['image_id']==gt_annotation['image_id']]
         gt_box = gt_annotation['bbox']
@@ -233,7 +236,7 @@ def json2yolo(src_path, dst_path, split='train'):
         gt_box[[1, 3]] /= height
         
         if gt_box[2] >0  and gt_box[3]>0:
-            cls = gt_annotation['category_id'] - 1
+            cls = gt_annotation['category_id'] - cls_offset
             gt_line = cls, *gt_box
             file_path = os.path.join(dst_path, file_name.replace("jpg", "txt"))
             with open(file_path, 'a') as foo:
@@ -352,7 +355,7 @@ class ModelTraining:
                     'device' : f'{device}',
                     'epochs' : self.params.training.training_epochs,
                     'batch-size' : self.params.training.batch_size,
-                    'img': 640,
+                    'imgsz': self.params.training.input_resize,
                     'hyp': f'{hyp_path}',
                     'project': f'{project_path}',
                     'noautoanchor': False, #Set this to True to disable autoanchor
@@ -365,14 +368,14 @@ class ModelTraining:
         # launch the training
         train.run(cfg=args_yolo['cfg'], weights=args_yolo['weights'], data=args_yolo['data'],
                   device=args_yolo['device'], epochs=args_yolo['epochs'],
-                  batch_size=args_yolo['batch-size'], img=args_yolo['img'],
+                  batch_size=args_yolo['batch-size'], imgsz=args_yolo['imgsz'],
                   hyp=args_yolo['hyp'], project=args_yolo['project'], name='',
                   exist_ok=True, noautoanchor=args_yolo['noautoanchor'],
                   disable_git_status=True)
 
         args_yolo_export = {
             'weights': self.params.training['model_checkpoint_path'],
-            'img': (640, 640),
+            'imgsz': (self.params.training.input_resize, self.params.training.input_resize),
             'simplify': True,
             'batch_size': 1,
             'opset': 11,
@@ -381,7 +384,7 @@ class ModelTraining:
             'simple_search': True
         }
         #launch export
-        export.run(weights=args_yolo_export['weights'], img_size=args_yolo_export['img'], simplify=args_yolo_export['simplify'],
+        export.run(weights=args_yolo_export['weights'], img_size=args_yolo_export['imgsz'], simplify=args_yolo_export['simplify'],
                    batch_size=args_yolo_export['batch_size'], opset=args_yolo_export['opset'], export_nms=args_yolo_export['export-nms'],
                    include=args_yolo_export['include'], simple_search=args_yolo_export['simple_search'])
 
