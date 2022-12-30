@@ -1,138 +1,198 @@
 # YOLO-6D-Pose Multi-Object 6D Pose Estimation Model
-This repository is the official implementation of the paper ["**YOLO-6D-Pose: Enhancing YOLO for Multi Object 6D Pose Estimation**"](https://arxiv.org/abs/2204.06806).This repository contains YOLOX based models for 6D Object pose estimation.
-This repository is based on the YOLOX training and assumes that all dependencies for training YOLOX are already installed. Given below is a sample inference.
+This repository is the official implementation of the paper ["**YOLO-6D-Pose: Enhancing YOLO for Multi Object 6D Pose Estimation**"](https://arxiv.org/abs/2204.06806).It contains YOLOX based models for 6D Object pose estimation.
+This repository is based on the YOLOX training and assumes that all dependencies for training YOLOX are already installed.
+
+Additional requirements can be installed with the command below:
+```
+pip install -r requirements_6d.txt
+```
+Given below is a sample inference with ground-truth pose in green and predicted pose overlayed with class-specific colors.
 <br/> 
 <p float="left">
-<img width="800" src="./utils/figures/AdobeStock.gif">
+<img width="600" src="./assets/demo_6d.png">
 </p>   
 
 ## **Datset Preparation**
-The dataset needs to be prepared in YOLO format so that the dataloader can be enhanced to read the 6D pose along with the bounding box informations.
+The dataset needs to be prepared in YOLO format so that the enhanced dataloader can read the 6D pose along with the bounding box for each object. We currently support YCBV 
+and LINEMOD datset.
+### **YCBV Datset**
+Download the following for ycbv dataset and extract them in **edgeai_yolox/datasets**:
+* [Base archive](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_base.zip)
+* [models](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_models.zip)
+* [train_pbr](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_pbr.zip)
+* [train_real](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_real.zip)
+* [All test images](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_all.zip)
+* [BOP test images](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_bop19.zip)
 
-Expected directoys structure:
-
+In order to convert the dataset for a given split to COCO fromat we need run the command below:
 ```
-edgeai-yolov5
+#Base archive
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_base.zip
+uzip ycbv_base.zip
+cd ycbv_base
+#models
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_models.zip
+uzip ycbv_models.zip
+#train_pbr
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_pbr.zip
+uzip ycbv_train_pbr.zip
+#train_real
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_real.zip
+uzip ycbv_train_real.zip
+#All test images
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_all.zip
+uzip ycbv_test_all.zip
+#BOP test images
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_bop19.zip
+
+#Run the scripts below to convert the annotations in COCO fromat.
+
+python tools/ycb2coco.py --split train 
+                         --split test                   #2949 frames for testing
+                         --split test  --type bop       # 900 frames for testing as in BOP format
+```
+The above script will generate **instances_train.json**, **instances_test.json** and **instances_test_bop.json**.
+* **instances_train.json**: Contains annotations for all **50K** pbr images. From the set of real images, we select every 10th frame, resulting in **11355** real images. 
+    In total, there are **61355** frames in the training set.
+* **instances_test.json** Contains annotations for **2949** default test images.
+* **instances_test_bop.json** Contains annotations for **900** test images used for BOP evaluation.
+
+Expected directory structure:
+```
+edgeai-yolox
 │   README.md
 │   ...   
-│
-coco_kpts
-│   images
-│   annotations
-|   labels
-│   └─────train2017
-│       │       └───
-|       |       └───
-|       |       '
-|       |       .
-│       └─val2017
-|               └───
-|               └───
-|               .
-|               .
-|    train2017.txt
-|    val2017.txt
+|   datasets
+|     ycbv
+│        annotations
+│         └───instances_test.json
+│         └───instances_test_bop.json
+│         └───instances_train.json 
+│        base
+|        models
+|        models_eval
+|        models_fine
+|        test_bop
+|        test_real
+|        train_pbr
+│         └───000000
+│         └───000001
+|         .
+|         .
+│         └───000091
+|        train_real
+│         └───000000
+│         └───000001
+|         .
+|         .
+│         └───000049
+```
+### **LINEMOD Occlusion Dataset**
+SImilar steps as YCBV need to be followed for LINEMOD Occlusion dataset as well. Following files are required to be downloaded and extract in **edgeai_yolox/datasets**:.
+* [Base archive](https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_base.zip)
+* [models](https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_models.zip)
+* [train_pbr](https://bop.felk.cvut.cz/media/data/bop_datasets/lm_train_pbr.zip)
+* train_real #Not applicable for LineMOD dataset as there is no real training data available that contains annotation for all objects present in the image.
+* [All test images](https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_all.zip)
+* [BOP test images](https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_bop19.zip)
 
+In order to convert LINEMOD and LINEMOD-Occlusion datset to COCO format, run the following command:
+```
+# Base archive
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_base.zip
+uzip lmo_base.zip
+cd lmo_base #All other files are extracted inside this
+#models
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_models.zip
+uzip lmo_models.zip
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/lm_train_pbr.zip
+uzip lm_train_pbr.zip
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_all.zip
+uzip lmo_test_all.zip
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_bop19.zip
+uzip lmo_test_bop19.zip
+
+python tools/lm2coco.py --split train                     #LINEMOD
+                        --split test --type bop  
+
+python tools/lmo2coco.py --split train                    #LINEMOD_OCCLUSION
+                         --split test  --type bop
 ```
 ## **YOLO-6D-Pose Models and Ckpts**.
 
-|Dataset | Model Name                                                                                                                                                                                                                                              |Input Size |GMACS  |AP[0.5:0.95]%| AP50%|Notes |
-|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|----------|-------------|------|----- |
-|COCO    | [Yolov5s6_pose_640](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/best_models/yolov5s6_640_60p7_85p3_kpts_head_6x_dwconv_3x3_lr_0p01/weights/last.pt) |640x640    |**10.2**  |   57.5      | 84.3 | [opt.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/best_models/yolov5s6_640_60p7_85p3_kpts_head_6x_dwconv_3x3_lr_0p01/opt.yaml), [hyp.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/best_models/yolov5s6_640_60p7_85p3_kpts_head_6x_dwconv_3x3_lr_0p01/hyp.yaml), [pretrained_weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5s6_960_71p6_93p1/weights/last.pt)|
-|COCO    | [Yolov5s6_pose_960](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/best_models/yolov5s6_960_64p8_87p4_kpts_head_6x_dwconv_3x3_lr_0p01/weights/last.pt) |960x960    |**22.8**  |   63.7      | 87.6 | [opt.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/best_models/yolov5s6_960_64p8_87p4_kpts_head_6x_dwconv_3x3_lr_0p01/opt.yaml), [hyp.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/best_models/yolov5s6_960_64p8_87p4_kpts_head_6x_dwconv_3x3_lr_0p01/hyp.yaml), [pretrained_weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5s6_960_71p6_93p1/weights/last.pt)|
-|COCO    | [Yolov5m6_pose_960](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/best_models/yolov5m6_960_67p8_89p3_kpts_head_6x_dwconv_3x3_lr_0p01/weights/last.pt) |960x960    |**66.3**  |   67.4      | 89.1 | [opt.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/best_models/yolov5m6_960_67p8_89p3_kpts_head_6x_dwconv_3x3_lr_0p01/opt.yaml), [hyp.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/best_models/yolov5m6_960_67p8_89p3_kpts_head_6x_dwconv_3x3_lr_0p01/hyp.yaml), [pretrained_weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5m6_960_74p1_93p6/weights/last.pt)|
-|COCO    | [Yolov5l6_pose_960](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/best_models/yolov5l6_960_69p6_90p1_kpts_head_6x_dwconv_3x3_lr_0p01/weights/last.pt) |960x960    |**145.6** |   69.4      | 90.2 | [opt.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/best_models/yolov5l6_960_69p6_90p1_kpts_head_6x_dwconv_3x3_lr_0p01/opt.yaml), [hyp.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/best_models/yolov5l6_960_69p6_90p1_kpts_head_6x_dwconv_3x3_lr_0p01/hyp.yaml), [pretrained_weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5l6_960_74p7_94p0/weights/last.pt)|
+|Dataset | Model Name              |Input Size |GFLOPS | AR  | AR<sub>VSD</sub>| AR<sub>MSSD</sub> | AR<sub>MSPD</sub> | ADD(s)| Notes |
+|--------|-------------------------|-----------|-------|-----|-----------------|-------------------|-------------------|-------|-------|
+|YCBV    | [YOLOX_s_object_pose]() |640x480    | 31.2  | 67.1|     62.4        |      68.0         |      70.8         | 59.4  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth)|
+|YCBV    | [YOLOX_m_object_pose]() |640x480    | 80.3  | 75.4|     71.0        |      76.7         |      78.4         | 71.1  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m.pth)|
+|YCBV    | [YOLOX_l_object_pose]() |640x480    | 161.2 | 81.1|     76.0        |      83.1         |      84.0         | 81.1  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l.pth)|
 
-## **Pretrained Models and Ckpts** 
-Pretrained models for all the above models are a person detector model with a similar config. Here is a  list of all these models that were used as a pretrained model. 
-Person instances in COCO dataset having keypoint annotation are used for training and evaluation.
-
-|Dataset |Model Name                      |Input Size |GMACS  |AP[0.5:0.95]%| AP50%|Notes |
-|--------|------------------------------- |-----------|----------|-------------|------|----- |
-|COCO    |[Yolov5s6_person_640](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5s6_960_71p6_93p1/weights/last.pt)   |960x960    |**19.2**  |   71.6      | 93.1 |[opt.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5s6_960_71p6_93p1/opt.yaml) , [hyp.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5s6_960_71p6_93p1/hyp.yaml)|
-|COCO    |[Yolov5m6_person_960](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5m6_960_74p1_93p6/weights/last.pt)   |960x960    |**58.5**  |   74.1      | 93.6 |[opt.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5m6_960_74p1_93p6/opt.yaml) , [hyp.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5m6_960_74p1_93p6/hyp.yaml)|
-|COCO    |[Yolov5l6_person_960](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5l6_960_74p7_94p0/weights/last.pt)  |960x960  |**131.8**  |   74.7      | 94.0 |[opt.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5l6_person_74p7_94p0/opt.yaml) , [hyp.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5l6_960_74p7_94p0/hyp.yaml)|
-
-One can alternatively use coco pretrained weights as well. However, the final accuracy may differ.
-
-## **Training: YOLO-Pose**
-Train a suitable model  by running the following command using a suitable pretrained ckpt from the previous section.
+## **Training: YOLO-6D-Pose**
+Train a model  by running the command below. Pretrained ckpt for each model is the corresponding 2D object detection model trained on COCO dataset.
 
 ```
-python train.py --data coco_kpts.yaml --cfg yolov5s6_kpts.yaml --weights 'path to the pre-trained ckpts' --batch-size 64 --img 960 --kpt-label
-                                      --cfg yolov5m6_kpts.yaml 
-                                      --cfg yolov5l6_kpts.yaml 
+python -m  yolox.tools.train -n yolox-s-object-pose --dataset ycbv -c 'path to pretrained ckpt' -d 8 -b 64 --fp16 -o --task object_pose 
+                                yolox-m-object-pose           lmo
+                                yolox-l-object-pose           lm 
 ```
-
-
- TO train a model at different at input resolution of 640, run the command below:
-```
-python train.py --data coco_kpts.yaml --cfg yolov5s6_kpts.yaml --weights 'path to the pre-trained ckpts' --batch-size 64 --img 640 --kpt-label
-```
-
-## **YOLOv5-ti-lite Based Models and Ckpts**
+## **YOLOX-ti-lite 6D Pose Models and Ckpts**
 This is a lite version of the the model as described here. These models will run efficiently on TI processors.
 
-|Dataset |Model Name                      |Input Size |GMACS  |AP[0.5:0.95]%| AP50%|Notes |
-|--------|------------------------------- |-----------|----------|-------------|------|----- |
-|COCO    |[Yolov5s6_pose_640_ti_lite](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/yolov5s6_640_ti_lite_54p9_82p2/weights/last.pt)     |640x640    |**8.6**  |  54.9      | 82.2 |[opt.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/yolov5s6_640_ti_lite_54p9_82p2/opt.yaml), [hyp.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/yolov5s6_640_ti_lite_54p9_82p2/hyp.yaml), [pretrained_weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5s6_ti_lite_person_64p8_90p2/weights/last.pt)|
-|COCO    |[Yolov5s6_pose_960_ti_lite](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/yolov5s6_960_ti_lite_59p7_85p6/weights/last.pt)     |960x960    |**19.3** |  59.7      | 85.6 |[opt.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/yolov5s6_960_ti_lite_59p7_85p6/opt.yaml), [hyp.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/yolov5s6_960_ti_lite_59p7_85p6/hyp.yaml), [pretrained_weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5s6_ti_lite_person_64p8_90p2/weights/last.pt)|
-|COCO    |[Yolov5s6_pose_1280_ti_lite](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/yolov5s6_1280_ti_lite_60p9_85p9/weights/last.pt)   |1280x1280  |**34.4** |  60.9      | 85.9 |[opt.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/yolov5s6_1280_ti_lite_60p9_85p9/opt.yaml), [hyp.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/yolov5s6_1280_ti_lite_60p9_85p9/hyp.yaml), [pretrained_weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5s6_ti_lite_person_64p8_90p2/weights/last.pt)|
-|COCO    |[Yolov5m6_pose_640_ti_lite](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/yolov5m6_640_ti_lite_60p5_86p8/weights/best.pt)     |640x640    |**26.1** |  60.5      | 86.8 |[opt.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/yolov5m6_640_ti_lite_60p5_86p8/opt.yaml), [hyp.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/yolov5m6_640_ti_lite_60p5_86p8/hyp.yaml), [pretrained_weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5m6_ti_lite_person_71p4_93p1/weights/last.pt)|
-|COCO    |[Yolov5m6_pose_960_ti_lite](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/yolov5m6_960_ti_lite_65p9_88p6/weights/last.pt)     |960x960    |**58.7** |  65.9      | 88.6 |[opt.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/yolov5m6_960_ti_lite_65p9_88p6/opt.yaml), [hyp.yaml](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/yolov5m6_960_ti_lite_65p9_88p6/hyp.yaml), [pretrained_weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/checkpoints/keypoint/coco/edgeai-yolov5/other/person_detector/yolov5m6_ti_lite_person_71p4_93p1/weights/last.pt)|
+|Dataset |          Model Name            |Input Size |GFLOPS| AR  | AR<sub>VSD</sub>| AR<sub>MSSD</sub>|AR<sub>MSPD</sub>|ADD(s)| Notes |
+|--------|------------------------------- |-----------|------|-----|-----------------|------------------|-----------------|------|-------|
+|YCBV    |[YOLOX_s_object_pose_ti_lite]() |640x480    | 31.2 |66.0 |      60.8       |      67.3        |     70.0        | 53.8 |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth)|
+|YCBV    |[YOLOX_m_object_pose_ti_lite]() |640x480    | 80.4 |74.4 |      69.2       |      75.7        |     78.3        | 70.9 |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m.pth)|
+|YCBV    |[YOLOX_l_object_pose_ti_lite]() |640x480    | 161.4|     |                 |                  |                 |      |[pretrained_weights]()|
 
-## **Training: YOLO-Pose-ti-lite**
-Train a suitable model  by running the following command:
-
+## **Training: YOLO-6D-Pose-ti-lite**
+Train a suitable model  by running the command below. Pretrained ckpts for these lite models are same as the original models.
 ```
-python train.py --data coco_kpts.yaml --cfg yolov5s6_kpts_ti_lite.yaml --weights 'path to the pre-trained ckpts' --batch-size 64 --img 960 --kpt-label --hyp hyp.scratch_lite.yaml
-                                      --cfg yolov5m6_kpts_ti_lite.yaml 
-                                      --cfg yolov5l6_kpts_ti_lite.yaml 
-```
-TO train a model at different at input resolution of 640, run the command below:
-```
-python train.py --data coco_kpts.yaml --cfg yolov5s6_kpts_ti_lite.yaml --weights 'path to the pre-trained ckpts' --batch-size 64 --img 640 --kpt-label --hyp hyp.scratch_lite.yaml
+python -m yolox.tools.train -n yolox-s-object-pose-ti-lite --dataset ycbv -c 'path to pretrained ckpt' -d 8 -b 64 --fp16 -o --task object_pose
+                            -n yolox-m-object-pose-ti-lite           lmo              
+                            -n yolox-l-object-pose-ti-lite           lm  
 ```
 
- The same pretrained model can be used here as well.
+## **Model Testing** 
+The eval script computes ADD(s) score for a model. Apart from that, it generates a CSV file **'bop_test.csv'**. This file can be used to generate **AR,  AR<sub>VSD</sub>, AR<sub>MSSD</sub>, AR<sub>MSPD</sub>** using [bop_toolkit](https://github.com/thodan/bop_toolkit) repo.
 
-## **Activation Function: SiLU vs ReLU**
-
-We have performed some experiments to evaluate the impact of changing the activation from SiLU to ReLU on accuracy for a given model. Here are some results:
-
-|Dataset |Model Name                      |Input Size |GMACS  |AP[0.5:0.95]%| AP50%|Notes |
-|--------|------------------------------- |-----------|----------|-------------|------|----- |
-|COCO    |Yolov5m6_pose_960_ti_lite       |960x960    |**58.7**  |  65.9      | 88.6 |activation=ReLU|
-|COCO    |Yolov5m6_pose_960_ti_lite       |960x960    |**58.7**  |  67.0      | 89.0 |activation=SiLU|
-
-
-## **Model Testing**
-
-* Run the following command to replicate the accuracy number on the pretrained checkpoints:
-    ```
-    python test.py --data coco_kpts.yaml --img 960 --conf 0.001 --iou 0.65 --weights "path to the pre-trained ckpt" --kpt-label
-    ```
-
-* To test a model at different at input resolution of 640, run the command below:
-
-    ```
-    python test.py --data coco_kpts.yaml --img 960 --conf 0.001 --iou 0.65 --weights "path to the pre-trained ckpt" --kpt-label
-    ```
-
+Run the following command to compute ADD(s) metric on a pretrained checkpoint:
+  ```
+  python -m yolox.tools.eval -n yolox-s-object-pose           --dataset ycbv  -b 64 -d 8 -c "path to ckpt" --task object_pose --fp16 --fuse
+                                yolox-s-object-pose-ti-lite 
+  ```
+Now, use the csv file generated by the above scirpt to get all the BOP metrics. Clone the [bop_toolkit](https://github.com/thodan/bop_toolkit) repo and install the rquired dependencies. Final evaluation command is:
+  ```
+  python eval_bop19_pose.py "path to the csv file"
+  ```
 <br/> 
 
-###  **ONNX Export Including Detection and Pose Estimation:**
-* Run the following command to export the entire models including the detection part, 
+###  **ONNX Export Including Detection and 6D Pose Estimation:** #Working on the export. Export of the camera parameters need to be added.
+* Run the following command to export the entire model including the detection and 6D pose estimation part,
     ``` 
-    python export.py --weights "path to the pre-trained ckpt"  --img 640 --batch 1 --simplify --export-nms # export at 640x640 with batch size 1
+    python tools/export_onnx.py -n yolox-s-object-pose          -c "path to ckpt"  --output-name yolox_s_object_pose.onnx         --export-det --dataset ycbv --task object_pose
+                                   yolox-s-object-pose-ti-lite                                   yolox_s_object_pose_ti_lite.onnx
     ```
-* Apart from exporting the complete ONNX model, above script will generate a prototxt file that contains information of the detection layer. This prototxt file is required to deploy the moodel on TI SoC.
+* Apart from exporting the complete ONNX model, above script will generate a prototxt file that contains information of the detection layer. This prototxt file is required to deploy and acclerate the moodel on TI SoC.
 
-###  **ONNXRT Inference: Human Pose Estimation Inference with an End-to-End ONNX Model:**
-
- * If you haven't exported a model with the above command, download a sample model from this [link](http://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/latest/edgeai-yolov5/pretrained_models/models/keypoint/coco/edgeai-yolov5/yolov5s6_pose_640_ti_lite_54p9_82p2.onnx).
- * Run the script as below to run inference with an ONNX model. The script runs inference and visualize the results. There is no extra post-processing required. The ONNX model is self-sufficient unlike existing bottom-up approaches. The [script](onnx_inference/yolo_pose_onnx_inference.py) is compleletey independent and contains all perprocessing and visualization. 
+###  **ONNXRT Inference: 6D Object Pose Estimation Inference with an End-to-End ONNX Model:**
+ * If you haven't exported a model with the above command, download a sample model from this [link]().
+ * Run the script as below to run inference with an ONNX model. The script runs inference and visualize the results. 
     ``` 
-    cd onnx_inference
-    python yolo_pose_onnx_inference.py --model-path "path_to_onnx_model"  --img-path "sample_ips.txt" --dst-path "sample_ops_onnxrt"  # Run inference on a set of sample images as specified by sample_ips.txt
+    cd demo
+    # Run inference on a set of sample images as specified by sample_ips.txt
+    python onnx_inference_object_pose.py --model-path "path_to_onnx_model"  --img-path "sample_ips.txt" --dst-path "sample_ops_onnxrt"  
+    ```
+ * The ONNX model infers the six dimenaional rerpresentation of the rotation parameter. The rotation matrix is deterministically computed from this 6D representation. This is done outside the model.
+ * The camera parameters for a given dataset are part of the ONNX model. The exact translation parameters are computed from it's 2D proejetcion. This is computed inside the model.
+###  **ONNXRT Inference on TDA4X: 6D Object Pose Estimation Import and Inference with an End-to-End ONNX Model:**
+* Similar to running the model on PC using ONNXRT, it can be deployed in TI SOC in a similar fashion.
+* You can follow the installation instruction from [here]().
+* Here, we need to compile the model first as shown below. This will convert the model to fix-point from floating point. This is done in PC.
+    ``` 
+    # Run compilation on a set of sample images as specified by calib.txt
+    python onnx_inference_object_pose.py ---compile --model-path "path_to_onnx_model" --img-path "sample_ips.txt" --dst-path "sample_ops_onnxrt"  
+    ```
+* After compilation, the model can deployed on TI SOC for inference. For sanity check, one can run inference on PC as well. 
+    ``` 
+    # Run inference on a set of sample images as specified by sample_ips.txt
+    python onnx_inference_object_pose.py ---inference --model-path "path_to_onnx_model" --img-path "sample_ips.txt" --dst-path "sample_ops_onnxrt"  
     ```
