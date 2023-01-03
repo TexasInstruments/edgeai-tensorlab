@@ -28,22 +28,63 @@ These functionalities that are supported are fully integrated and the user can c
 
 This repository can be used from native Ubuntu bash terminal directly or from within a docker environment.
 
-####  Step 1, Option 1: With native Ubuntu environment
-We have tested this tool in Ubuntu 18.04 and with Python 3.6 (Note: Currently edgeai-tidl-tools supports only Python 3.6). We have not tested this on other Linux distributions, but it might work.
+#### Step 1, Option 1: With native Ubuntu environment and pyenv (recommended)
+We have tested this tool in Ubuntu 18.04 and with Python 3.6 (Note: Currently edgeai-tidl-tools supports only Python 3.6). We have not tested this on other Linux distributions.
 
-We recommend the Miniconda Python distribution from: https://docs.conda.io/en/latest/miniconda.html
+In this option, we describe using this repository with the pyenv environment manager. 
 
 Step 1.1a: Make sure that you are using bash shell. If it is not bash shell, change it to bash. Verify it by typing:
 ```
 echo ${SHELL}
 ```
 
-Step 1.2a: Install Miniconda Python distribution:
+Step 1.2a: Install system packages
+```
+sudo apt install libbz2-dev libreadline-dev libsqlite3-dev python3.6-tk
+```
+
+Step 1.3a: Install pyenv using the following command.
+```
+curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+
+echo " " >> ${HOME}/.bashrc
+export PATH=":$PYENV_ROOT/bin:$PATH" >> ${HOME}/.bashrc
+echo "eval $(pyenv init --path)" >> ${HOME}/.bashrc
+echo "eval $(pyenv virtualenv-init -)" >> ${HOME}/.bashrc
+echo " " >> ${HOME}/.bashrc
+
+exec ${SHELL}
+```
+
+Step 1.4a: Install Python 3.6 in pyenv and create an environment
+```
+pyenv install 3.6
+pyenv virtualenv 3.6 py36
+pyenv rehash
+```
+
+Step 1.5a: **Activate the Python environment.** This activation step needs to be done everytime one starts a new terminal or shell. (Alternately, this also can be written to the .bashrc, so that this will be the default penv environment).
+```
+pyenv activate py36
+```
+
+
+####  Step 1, Option 2: With native Ubuntu environment and Miniconda
+We have tested this tool in Ubuntu 18.04 and with Python 3.6 (Note: Currently edgeai-tidl-tools supports only Python 3.6). We have not tested this on other Linux distributions.
+
+We can also use Miniconda Python distribution from: https://docs.conda.io/en/latest/miniconda.html
+
+Step 1.1b: Make sure that you are using bash shell. If it is not bash shell, change it to bash. Verify it by typing:
+```
+echo ${SHELL}
+```
+
+Step 1.2b: Install Miniconda Python distribution:
 ```
 ./conda_install.sh
 ```
 
-Step 1.3a: At this point, conda installation is complete. Close your current terminal and start a new one. This is so that the change that the install script wrote to .bashrc takes effect. Create conda Python 3.6 environment with a suitable name (py36 below - but, it can be anything):
+Step 1.3b: At this point, conda installation is complete. Close your current terminal and start a new one. This is so that the change that the install script wrote to .bashrc takes effect. Create conda Python 3.6 environment with a suitable name (py36 below - but, it can be anything):
 ```
 conda create -y -n py36 python=3.6
 ```
@@ -51,32 +92,34 @@ conda create -y -n py36 python=3.6
 **These conda installation steps above need to be done only once for a user.** 
 
 
-Step 1.4a: **Activate the Python environment.** This activation step needs to be done everytime one starts a new terminal or shell. (Alternately, this also can be written to the .bashrc, so that this will be the default conda environment).
+Step 1.4b: **Activate the Python environment.** This activation step needs to be done everytime one starts a new terminal or shell. (Alternately, this also can be written to the .bashrc, so that this will be the default conda environment).
 ```
 conda activate py36
 ```
 
-#### Step 1, Option 2: With docker environment
+
+#### Step 1, Option 3: With docker environment
 
 Step 1.1b: Install docker if you don't have it already. The following steps are for installation on Ubuntu 18.04
 ```
 ./docker/docker_setup.sh
 ```
 
-Step 1.2b: Build docker image:
+Step 1.2c: Build docker image:
 ```
 ./docker/docker_build.sh
 ```
 
-Step 1.3b: Run docker container to bring up the container terminal on docker:
+Step 1.3c: Run docker container to bring up the container terminal on docker:
 ```
 ./docker/docker_run.sh
 ```
 
-Step 1.4b: During docker run, we map the parent directory of this folder to /home/edgeai/code. This is to easily share code and data between the host and the docker container. Inside the docker terminal, change directory to where this folder is mapped to:
+Step 1.4c: During docker run, we map the parent directory of this folder to /home/edgeai/code. This is to easily share code and data between the host and the docker container. Inside the docker terminal, change directory to where this folder is mapped to:
 ```
 cd /home/edgeai/code/edgeai-modelmaker
 ```
+
 
 ## Step 2: Setup the model training and compilation repositories
 
