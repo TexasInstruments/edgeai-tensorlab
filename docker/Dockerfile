@@ -2,39 +2,42 @@
 ARG REPO_LOCATION=""
 FROM ${REPO_LOCATION}ubuntu:18.04
 
-#user
+# user
 ARG USER_NAME=edgeai
 ARG USER_ID=1000
 ARG USER_GID=$USER_ID
 ENV HOME_DIR=/home/$USER_NAME
-
-# proxy, path
-ARG PROXY_LOCATION=""
 ARG PROJECT_NAME="modelmaker"
-ENV DEBIAN_FRONTEND=noninteractive
-ENV http_proxy=${PROXY_LOCATION}
-ENV https_proxy=${PROXY_LOCATION}
-ENV no_proxy=ti.com
 
 # paths
 ENV APPS_PATH=${HOME_DIR}/apps
 ENV DOWNLOADS_PATH=${HOME_DIR}/downloads
 ENV CODE_PATH=${HOME_DIR}/code
-ENV CONDA_INSTALLER="Miniconda3-latest-Linux-x86_64.sh"
-ENV CONDA_URL=https://repo.anaconda.com/miniconda/${CONDA_INSTALLER}
-ENV CONDA_PATH=${APPS_PATH}/conda
-ENV CONDA_BIN=${CONDA_PATH}/bin
-ENV PATH=:${CONDA_BIN}:${PATH}
+
+# proxy
+ARG PROXY_LOCATION=""
+ENV DEBIAN_FRONTEND=noninteractive
+ENV http_proxy=${PROXY_LOCATION}
+ENV https_proxy=${PROXY_LOCATION}
+ENV no_proxy=ti.com
+RUN if [ ! -z $PROXY_LOCATION ]; then echo "Acquire::http::proxy \"${PROXY_LOCATION}\";" > /etc/apt/apt.conf; fi && \
+    if [ ! -z $PROXY_LOCATION ]; then echo "Acquire::https::proxy \"${PROXY_LOCATION}\";" >> /etc/apt/apt.conf; fi
 
 # baseline
-RUN echo 'apt update...' && \
-    if [ ! -z $PROXY_LOCATION ]; then echo "Acquire::http::proxy \"${PROXY_LOCATION}\";" > /etc/apt/apt.conf; fi && \
-    if [ ! -z $PROXY_LOCATION ]; then echo "Acquire::https::proxy \"${PROXY_LOCATION}\";" >> /etc/apt/apt.conf; fi && \
-    apt update && \
-    apt install -y sudo git iputils-ping wget cmake build-essential libgtk2.0
+RUN apt update && apt install -y sudo git iputils-ping wget cmake build-essential libgtk2.0 apt-utils
+
+# lang
+RUN echo >> /etc/environment
+RUN echo "LC_CTYPE=en_US.UTF-8" >> /etc/environment
+RUN echo "LANG=en_US.UTF-8" >> /etc/environment
+RUN echo "LANGUAGE=en_US.UTF-8" >> /etc/environment
+RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment
+RUN apt update && apt install -y locales locales-all && locale-gen en_US.UTF-8 && dpkg-reconfigure locales
 
 # additional packages
-RUN apt install -y libjpeg-dev zlib1g-dev graphviz graphviz-dev
+RUN apt install -y curl libjpeg-dev zlib1g-dev graphviz graphviz-dev libbz2-dev \
+                   build-essential xz-utils libreadline-dev libncurses5-dev libssl-dev \
+                   libsqlite3-dev liblzma-dev
 
 # add user, inspired by: https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user
 RUN groupadd --gid $USER_GID $USER_NAME && \
@@ -50,13 +53,22 @@ USER $USER_NAME
 WORKDIR ${HOME_DIR}
 RUN echo "umask u=rwx,g=rwx,o=rx" >> ${HOME_DIR}/.bashrc
 
-# conda install
+# pyenv install
+ENV PYENV_ROOT $HOME_DIR/.pyenv
 RUN mkdir ${DOWNLOADS_PATH} && \
-    if [ ! -f ${CONDA_INSTALLER} ]; then wget -q --show-progress --progress=bar:force:noscroll ${CONDA_URL} -O ${DOWNLOADS_PATH}/${CONDA_INSTALLER}; fi && \
-    chmod +x ${DOWNLOADS_PATH}/${CONDA_INSTALLER} && \
-    ${DOWNLOADS_PATH}/${CONDA_INSTALLER} -b -p ${CONDA_PATH} && \
-    echo ". ${CONDA_PATH}/etc/profile.d/conda.sh" >> ${HOME_DIR}/.bashrc
+    curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
 
-# conda python
-RUN conda create -y -n py36 python=3.6 && \
-    echo "conda activate py36" >> ${HOME_DIR}/.bashrc
+ENV PATH :$PYENV_ROOT/bin:$PATH
+RUN eval "$($PYENV_ROOT/bin/pyenv init --path)" && \
+    eval "$($PYENV_ROOT/bin/pyenv virtualenv-init -)" && \
+    $PYENV_ROOT/bin/pyenv install 3.6 && \
+    $PYENV_ROOT/bin/pyenv global 3.6 && \
+    $PYENV_ROOT/bin/pyenv rehash
+
+RUN $PYENV_ROOT/shims/pip install --upgrade pip
+RUN $PYENV_ROOT/shims/pip install --upgrade setuptools
+
+RUN echo "export PATH=:$PYENV_ROOT/bin:$PATH" >> ${HOME_DIR}/.bashrc && \
+    echo "eval $(pyenv init --path)" >> ${HOME_DIR}/.bashrc && \
+    echo "eval $(pyenv virtualenv-init -)" >> ${HOME_DIR}/.bashrc && \
+    echo " " >> ${HOME_DIR}/.bashrc
