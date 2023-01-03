@@ -1,3 +1,4 @@
+-r requirements/basic.txt
 -r requirements/build.txt
 -r requirements/optional.txt
 -r requirements/runtime.txt

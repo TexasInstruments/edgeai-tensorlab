@@ -1,5 +1,5 @@
 #echo "mmdetection is not installing cython properly - it has to be installed from conda if this is conda python"
-conda install -y cython
+#conda install -y cython
 
 echo "Installing pytorch"
 pip3 install --no-input torch==1.10.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html
