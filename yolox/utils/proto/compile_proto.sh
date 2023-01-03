@@ -1,1 +1,1 @@
-protoc mmdet_meta_arch.proto --python_out=./
+protoc tidl_meta_arch_yolox.proto --python_out=./

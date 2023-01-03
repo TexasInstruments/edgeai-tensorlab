@@ -13,7 +13,7 @@ from yolox.exp import get_exp
 from yolox.models.network_blocks import SiLU
 from yolox.utils import replace_module, PostprocessExport
 from yolox.data.data_augment import preproc as preprocess
-from yolox.utils.proto import mmdet_meta_arch_pb2
+from yolox.utils.proto import tidl_meta_arch_yolox_pb2
 from google.protobuf import text_format
 from yolox.utils.proto.pytorch2proto import prepare_model_for_layer_outputs, retrieve_onnx_names
 
@@ -100,23 +100,24 @@ def export_prototxt(model, img, onnx_model_name):
     proto_names = [f'{matched_names[i]}' for i in range(num_heads)]
     yolo_params = []
     for head_id in range(num_heads):
-        yolo_param = mmdet_meta_arch_pb2.TIDLYoloParams(input=proto_names[head_id],
+        yolo_param = tidl_meta_arch_yolox_pb2.TIDLYoloParams(input=proto_names[head_id],
                                                         anchor_width=[anchor_grid[head_id]],
                                                         anchor_height=[anchor_grid[head_id]])
         yolo_params.append(yolo_param)
 
-    nms_param = mmdet_meta_arch_pb2.TIDLNmsParam(nms_threshold=0.65, top_k=500)
-    detection_output_param = mmdet_meta_arch_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
-                                            background_label_id=background_label_id, nms_param=nms_param,
-                                            code_type=mmdet_meta_arch_pb2.CODE_TYPE_YOLO_X, keep_top_k=keep_top_k,
+    nms_param = tidl_meta_arch_yolox_pb2.TIDLNmsParam(nms_threshold=0.65, top_k=500)
+    camera_intrinsic_params = tidl_meta_arch_yolox_pb2.TIDLCameraIntrinsicParams(fx=1066.778, fy=1067.487, px=312.9869, py=241.3109)
+    detection_output_param = tidl_meta_arch_yolox_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
+                                            background_label_id=background_label_id, nms_param=nms_param, camera_intrinsic_params=camera_intrinsic_params,
+                                            code_type=tidl_meta_arch_yolox_pb2.CODE_TYPE_YOLO_X, keep_top_k=keep_top_k,
                                             confidence_threshold=0.01, num_keypoint=num_keypoint, keypoint_confidence=keypoint_confidence)
 
-    yolov3 = mmdet_meta_arch_pb2.TidlYoloOd(name='yolo_v3', output=["detections"],
+    yolov3 = tidl_meta_arch_yolox_pb2.TidlYoloOd(name='yolox_object_pose', output=["detections"],
                                             in_width=img.shape[3], in_height=img.shape[2],
                                             yolo_param=yolo_params,
                                             detection_output_param=detection_output_param,
                                             )
-    arch = mmdet_meta_arch_pb2.TIDLMetaArch(name='yolo_v3', tidl_yolo=[yolov3])
+    arch = tidl_meta_arch_yolox_pb2.TIDLMetaArch(name='yolox_object_pose', tidl_yolo=[yolov3])
 
     with open(prototxt_name, 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)

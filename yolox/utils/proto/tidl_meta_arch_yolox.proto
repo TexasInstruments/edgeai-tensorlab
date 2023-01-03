@@ -46,10 +46,12 @@ message TIDLMetaArch {
 message TIDLNmsParam {
   // Threshold to be used in nms.
   optional float nms_threshold = 1 [default = 0.3];
-  // Maximum number of results to be kept.
+  // Maximum number of results to be kept for each class.
   optional int32 top_k = 2;
+  // Maximum number of results to be kept before NMS across all calsses. Default -1 means it is disabled
+  optional int32 top_k_all_class = 3  [default = -1];
   // Parameter for adaptive nms.
-  optional float eta = 3 [default = 1.0];
+  optional float eta = 4 [default = 1.0];
 }
 
 // Encode/decode type.
@@ -117,17 +119,27 @@ message PriorBoxParameter {
 // Message that store parameters used by PriorBoxLayer
 message PriorBox3DODParameter {
 
-  // box length (in cm). Required!
-  repeated float anchor_length = 1;
-  // box width (in cm). Required!
-  repeated float anchor_width = 2;
-  // box height (in cm). Required!
-  repeated float anchor_height = 3;
+  // box width (in cm) in x direction. Required!
+  repeated float anchor_width = 1;
+  // box height (in cm) in y direction. Required!
+  repeated float anchor_height = 2;
+  // box length (in cm) in z direction. Required!
+  repeated float anchor_length = 3;
 
-  required float anchor_length_offset = 4;
+  // step in cm for each point in final convolution feature.
+  required float step_x = 4;
+  required float step_y = 5;
+  required float step_z = 6;
 
-  repeated float rotation = 5;
-
+  // offset in cm for each point in final convolution feature.
+  required float offset_x = 7;
+  required float offset_y = 8;
+  required float offset_z = 9;
+  required float offset_dir = 10;
+  
+  // rotation in degrees
+  repeated float rotation = 11;
+  
 }
 
 message TIDLOdSaveParams {
@@ -190,6 +202,10 @@ message TIDLOdPostProc {
   optional uint32 num_keypoint = 13 [default = 0];
   // If set to 1, there is a confidence term for each keypoint .
   optional bool keypoint_confidence = 14 [default = false];
+  // code_type to specify supplementary information apart from box and keypoint. E.g. object_pose
+  optional uint32 sub_code_type = 15 [default = 0];
+  // Parameters used for object_pose post-processing.
+  optional TIDLCameraIntrinsicParams camera_intrinsic_params = 16;
 }
 
 // Configuration for one  TIDL SSD HEAD
@@ -310,21 +326,33 @@ message TidlMa3DOD {
   repeated string dir_input = 3; // List of input tensors in the same order as prior_box_param
   repeated string output = 4; // the name of output tensor
   optional string name = 5; // the name of the head
-  required float min_x = 6;
-  required float max_x = 7;
-  required float min_y = 8;
-  required float max_y = 9;
-  required float min_z = 10;
-  required float max_z = 11;
+  required float min_x = 6; // voxel level x range
+  required float max_x = 7; // voxel level x range
+  required float min_y = 8; // voxel level y range
+  required float max_y = 9; // voxel level y range
+  required float min_z = 10;// voxel level z range
+  required float max_z = 11;// voxel level z range 
   required float voxel_size_x = 12;
   required float voxel_size_y = 13;
-  required uint32 max_points_per_voxel = 14;
-  optional TIDLScoreConverter score_converter = 15 [default = SIGMOID];
-  repeated PriorBox3DODParameter prior_box_3dod_param = 16;
-  optional TIDLOdPostProc detection_output_param = 17;
-  optional TIDLAnchorDataLayout data_layout = 18 [default = SEPARATED];
+  required float voxel_size_z = 14;  
+  required uint32 max_points_per_voxel = 15;
+  optional TIDLScoreConverter score_converter = 16 [default = SIGMOID];
+  repeated PriorBox3DODParameter prior_box_3dod_param = 17; // repeat this parameter for all the classes
+  optional TIDLOdPostProc detection_output_param = 18;
+  optional TIDLAnchorDataLayout data_layout = 19 [default = SEPARATED];
 }
 
+//Camera Params required for post-processing object-pose
+message TIDLCameraIntrinsicParams {
+  // Focal length along X.
+  optional float fx = 1 [default = 1.0];
+  // Focal length along Y.
+  optional float fy = 2 [default = 1.0];
+  // Principal point along X.
+  optional float px = 3  [default = 0.0];
+  // Principal point along Y.
+  optional float py = 4 [default = 0.0];
+}
 
 
 
