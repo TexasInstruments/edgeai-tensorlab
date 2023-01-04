@@ -58,21 +58,33 @@ ENV PYENV_ROOT $HOME_DIR/.pyenv
 RUN mkdir ${DOWNLOADS_PATH} && \
     curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
 
-RUN export PATH=":$PYENV_ROOT/bin:$PATH" && \
-    eval "$($PYENV_ROOT/bin/pyenv init --path)" && \
-    eval "$($PYENV_ROOT/bin/pyenv virtualenv-init -)" && \
-    $PYENV_ROOT/bin/pyenv install 3.6 && \
-    $PYENV_ROOT/bin/pyenv virtualenv 3.6 py36 && \
-    $PYENV_ROOT/bin/pyenv rehash && \
-    $PYENV_ROOT/bin/pyenv activate py36
+# set paths and activate env
+# .bashrc is not sourced in non interactive mode - so write it to another file
+RUN echo ' ' >> ${HOME_DIR}/.pyenvrc && \
+    echo '# pyenv settings' >> ${HOME_DIR}/.pyenvrc && \
+    echo "command -v pyenv >/dev/null || export PATH=:$PYENV_ROOT/bin:$PATH" >> ${HOME_DIR}/.pyenvrc && \
+    echo 'eval "$(pyenv init -)"' >> ${HOME_DIR}/.pyenvrc && \
+    echo 'eval "$(pyenv virtualenv-init -)"' >> ${HOME_DIR}/.pyenvrc && \
+    echo ' ' >> ${HOME_DIR}/.pyenvrc
 
-RUN $PYENV_ROOT/shims/pip install --upgrade pip
-RUN $PYENV_ROOT/shims/pip install --upgrade setuptools
+# .profile is needed for non-interactive shell spawns
+RUN echo ' ' >> ${HOME_DIR}/.profile && \
+    echo 'command -v pyenv >/dev/null || . ~/.pyenvrc' >> ${HOME_DIR}/.profile && \
+    echo ' ' >> ${HOME_DIR}/.profile
 
-# set paths and activate env as part of .bashrc
-RUN echo "export PATH=:$PYENV_ROOT/bin:$PATH" >> ${HOME_DIR}/.bashrc && \
-    echo "eval $(pyenv init --path)" >> ${HOME_DIR}/.bashrc && \
-    echo "eval $(pyenv virtualenv-init -)" >> ${HOME_DIR}/.bashrc && \
-    echo " " >> ${HOME_DIR}/.bashrc && \
-    echo "pyenv activate py36" >> ${HOME_DIR}/.bashrc
+# .bashrc is needed for interactive shell spawns
+RUN echo ' ' >> ${HOME_DIR}/.bashrc && \
+    echo 'command -v pyenv >/dev/null || . ~/.pyenvrc' >> ${HOME_DIR}/.bashrc && \
+    echo ' ' >> ${HOME_DIR}/.bashrc
 
+# pyenv works with bash, so change shell to bash
+SHELL ["/bin/bash", "--login", "-c"]
+
+RUN pyenv install 3.6 && \
+    pyenv virtualenv 3.6 py36 && \
+    pyenv rehash && \
+    echo 'pyenv activate py36' >> ${HOME_DIR}/.pyenvrc && \
+    echo ' ' >> ${HOME_DIR}/.pyenvrc
+
+RUN pip install --upgrade pip && \
+    pip install --upgrade setuptools
