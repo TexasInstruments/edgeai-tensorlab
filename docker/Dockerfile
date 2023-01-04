@@ -62,8 +62,9 @@ ENV PATH :$PYENV_ROOT/bin:$PATH
 RUN eval "$($PYENV_ROOT/bin/pyenv init --path)" && \
     eval "$($PYENV_ROOT/bin/pyenv virtualenv-init -)" && \
     $PYENV_ROOT/bin/pyenv install 3.6 && \
-    $PYENV_ROOT/bin/pyenv global 3.6 && \
-    $PYENV_ROOT/bin/pyenv rehash
+    $PYENV_ROOT/bin/pyenv virtualenv 3.6 py36 && \
+    $PYENV_ROOT/bin/pyenv rehash && \
+    $PYENV_ROOT/bin/pyenv activate py36
 
 RUN $PYENV_ROOT/shims/pip install --upgrade pip
 RUN $PYENV_ROOT/shims/pip install --upgrade setuptools
@@ -71,4 +72,8 @@ RUN $PYENV_ROOT/shims/pip install --upgrade setuptools
 RUN echo "export PATH=:$PYENV_ROOT/bin:$PATH" >> ${HOME_DIR}/.bashrc && \
     echo "eval $(pyenv init --path)" >> ${HOME_DIR}/.bashrc && \
     echo "eval $(pyenv virtualenv-init -)" >> ${HOME_DIR}/.bashrc && \
+    echo " " >> ${HOME_DIR}/.bashrc
+
+# activate env as part of .bashrc
+RUN echo "pyenv activate py36" >> ${HOME_DIR}/.bashrc && \
     echo " " >> ${HOME_DIR}/.bashrc
