@@ -83,7 +83,7 @@ def make_parser():
 
     return parser
 
-def export_prototxt(model, img, onnx_model_name):
+def export_prototxt(model, img, onnx_model_name, task=None):
     # Prototxt export for a given ONNX model
 
     anchor_grid = model.head.strides
@@ -104,20 +104,31 @@ def export_prototxt(model, img, onnx_model_name):
                                                         anchor_width=[anchor_grid[head_id]],
                                                         anchor_height=[anchor_grid[head_id]])
         yolo_params.append(yolo_param)
-
     nms_param = tidl_meta_arch_yolox_pb2.TIDLNmsParam(nms_threshold=0.65, top_k=500)
-    camera_intrinsic_params = tidl_meta_arch_yolox_pb2.TIDLCameraIntrinsicParams(fx=1066.778, fy=1067.487, px=312.9869, py=241.3109)
+    #Use camera intrinsic parameters only for object pose models.
+    if task == 'object_pose':
+        if isinstance(model.head.cad_models.camera_matrix, dict):
+            camera_matrix = list(model.head.cad_models.camera_matrix.values())[0]
+        else:
+            camera_matrix = model.head.cad_models.camera_matrix
+        fx, fy = camera_matrix[0], camera_matrix[4]
+        px, py = camera_matrix[2], camera_matrix[5]
+        camera_intrinsic_params = tidl_meta_arch_yolox_pb2.TIDLCameraIntrinsicParams(fx=fx, fy=fy, px=px, py=py)
+        name = 'yolox_object_pose'
+    else:
+        camera_intrinsic_params = None
+        name = 'yolox'
     detection_output_param = tidl_meta_arch_yolox_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
                                             background_label_id=background_label_id, nms_param=nms_param, camera_intrinsic_params=camera_intrinsic_params,
                                             code_type=tidl_meta_arch_yolox_pb2.CODE_TYPE_YOLO_X, keep_top_k=keep_top_k,
                                             confidence_threshold=0.01, num_keypoint=num_keypoint, keypoint_confidence=keypoint_confidence)
 
-    yolov3 = tidl_meta_arch_yolox_pb2.TidlYoloOd(name='yolox_object_pose', output=["detections"],
+    yolov3 = tidl_meta_arch_yolox_pb2.TidlYoloOd(name=name, output=["detections"],
                                             in_width=img.shape[3], in_height=img.shape[2],
                                             yolo_param=yolo_params,
                                             detection_output_param=detection_output_param,
                                             )
-    arch = tidl_meta_arch_yolox_pb2.TIDLMetaArch(name='yolox_object_pose', tidl_yolo=[yolov3])
+    arch = tidl_meta_arch_yolox_pb2.TIDLMetaArch(name=name, tidl_yolo=[yolov3])
 
     with open(prototxt_name, 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)
@@ -244,7 +255,7 @@ def main():
         onnx.save(model_simp, args.output_name)
         logger.info("generated simplified onnx model named {}".format(args.output_name))
 
-    export_prototxt(model, img, args.output_name)
+    export_prototxt(model, img, args.output_name, args.task)
     logger.info("generated prototxt {}".format(args.output_name.replace('onnx', 'prototxt')))
 
 if __name__ == "__main__":
