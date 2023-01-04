@@ -6,7 +6,7 @@ from tqdm import tqdm
 import json
 import argparse
 
-parser = argparse.ArgumentParser("YCB_PBR2COCO_PARSER")
+parser = argparse.ArgumentParser("YCBV_PBR2COCO_PARSER")
 parser.add_argument("--type", default="real", type=str, help="real, pbr or synt or bop")
 parser.add_argument("--keyframes", default="/data/ssd/6d_pose/ycbv/keyframe.txt", type=str, help="path to the keyframes file list")
 parser.add_argument("--split", default='train', type=str, help="Use selected frames")

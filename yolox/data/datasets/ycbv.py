@@ -16,7 +16,7 @@ import json
 from ..dataloading import get_yolox_datadir
 from .datasets_wrapper import Dataset
 
-class CADModelsYCB():
+class CADModelsYCBV():
     def __init__(self, data_dir=None):
         if data_dir is None:
             data_dir = os.path.join(get_yolox_datadir(), "ycbv")
@@ -109,9 +109,9 @@ class CADModelsYCB():
         return class_to_sparse_model
 
 
-class YCBDataset(Dataset):
+class YCBVDataset(Dataset):
     """
-    YCB dataset class.
+    YCBV dataset class.
     """
 
     def __init__(
@@ -126,11 +126,11 @@ class YCBDataset(Dataset):
         symmetric_objects=None
     ):
         """
-        YCB dataset initialization. Annotation data are read into memory by COCO API.
+        YCBV dataset initialization. Annotation data are read into memory by COCO API.
         Args:
             data_dir (str): dataset root directory
-            json_file (str): YCB json file name
-            name (str): YCB data name
+            json_file (str): YCBV json file name
+            name (str): YCBV data name
             img_size (int): target image size after pre-processing
             preproc: data augmentation strategy
         """
@@ -150,7 +150,7 @@ class YCBDataset(Dataset):
         self.imgs_coco = self.coco.imgs
         self.name = name
         self.img_size = img_size
-        self.cad_models = CADModelsYCB()
+        self.cad_models = CADModelsYCBV()
         self.models_corners, self.models_diameter = self.cad_models.models_corners, self.cad_models.models_diameter
         self.class_to_name = self.cad_models.class_to_name
         self.class_to_model = self.cad_models.class_to_model

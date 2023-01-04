@@ -18,7 +18,7 @@ from PIL import Image, ImageDraw, ImageFont
 from .boxes import cxcywh2xyxy, xyxy2cxcywh
 from .visualize_object_pose import project_3d_2d, draw_cuboid_2d, draw_bbox_2d, Colors
 from .object_pose_utils import decode_rotation_translation
-from ..data.datasets.ycb import YCBDataset
+from ..data.datasets.ycbv import YCBVDataset
 
 colors = Colors()  # create instance for 'from utils.plots import colors'
 
@@ -202,7 +202,7 @@ def plot_images(images, targets, paths=None, fname='images.png', names=None, max
         if i == max_subplots:  # if last batch has fewer images than we expect
             break
         if object_pose:
-            if isinstance(dataset, YCBDataset):
+            if isinstance(dataset, YCBVDataset):
                 img_index = list(dataset.imgs_coco)[data_index[i]]
                 image_folder = dataset.imgs_coco[int(img_index)]['image_folder']
                 if int(image_folder)<60:

@@ -83,7 +83,7 @@ class Exp(MyExp):
         ):
             from yolox.data import (
                 LINEMODOcclusionDataset,
-                YCBDataset,
+                YCBVDataset,
                 TrainTransform,
                 YoloBatchSampler,
                 DataLoader,
@@ -114,8 +114,8 @@ class Exp(MyExp):
                             object_pose=self.object_pose,
                             base_dir=base_dir
                         )
-                elif self.data_set == "ycb":
-                    dataset = YCBDataset(
+                elif self.data_set == "ycbv":
+                    dataset = YCBVDataset(
                             data_dir=self.data_dir,
                             json_file=self.train_ann,
                             img_size=self.input_size,

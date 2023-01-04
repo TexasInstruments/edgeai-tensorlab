@@ -21,7 +21,7 @@ from .losses import IOUloss
 from .network_blocks import BaseConv, DWConv
 
 from ..data.datasets.linemod_occlusion import CADModelsLM
-from ..data.datasets.ycb import CADModelsYCB
+from ..data.datasets.ycbv import CADModelsYCBV
 
 class YOLOXObjectPoseHead(nn.Module):
     def __init__(
@@ -62,8 +62,8 @@ class YOLOXObjectPoseHead(nn.Module):
         self.stems = nn.ModuleList()
         if "linemod" in dataset:
             self.cad_models = CADModelsLM()
-        elif "ycb" in dataset:
-            self.cad_models = CADModelsYCB()
+        elif "ycbv" in dataset:
+            self.cad_models = CADModelsYCBV()
         self.adds = adds
         self.shape_loss = shape_loss
         self.adds_z = adds_z

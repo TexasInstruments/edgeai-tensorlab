@@ -14,15 +14,15 @@ import copy
 import numpy as np
 
 from yolox.data.data_augment import ValTransform
-from yolox.data.datasets import COCO_CLASSES, YCB_CLASSES, LINEMOD_CLASSES
-from yolox.data import CADModelsYCB, CADModelsLM
+from yolox.data.datasets import COCO_CLASSES, YCBV_CLASSES, LINEMOD_CLASSES
+from yolox.data import CADModelsYCBV, CADModelsLM
 from yolox.exp import get_exp
 from yolox.utils import fuse_model, get_model_info, postprocess, postprocess_object_pose, vis
 from yolox.utils.object_pose_utils  import decode_rotation_translation
 from yolox.utils.plots import plot_one_box, colors
 
 IMAGE_EXT = [".jpg", ".jpeg", ".webp", ".bmp", ".png"]
-_NUM_CLASSES = {"coco":80, "linemod_occlusion":15, "linemod_occlusion_pbr": 15, "ycb": 21, "coco_kpts":1}
+_NUM_CLASSES = {"coco":80, "linemod_occlusion":15, "linemod_occlusion_pbr": 15, "ycbv": 21, "coco_kpts":1}
 
 
 def make_parser():
@@ -361,8 +361,8 @@ def main(exp, args):
     else:
         trt_file = None
         decoder = None
-    if exp.data_set == "ycb":
-        cls_names = YCB_CLASSES
+    if exp.data_set == "ycbv":
+        cls_names = YCBV_CLASSES
     elif exp.data_set == "linemod_occlusion":
         cls_names = LINEMOD_CLASSES
     else:

@@ -18,27 +18,27 @@ from google.protobuf import text_format
 from yolox.utils.proto.pytorch2proto import prepare_model_for_layer_outputs, retrieve_onnx_names
 
 import cv2
-_SUPPORTED_DATASETS = ["coco", "linemod_occlusion","linemod_occlusion_pbr", "ycb", "coco_kpts"]
-_NUM_CLASSES = {"coco":80, "linemod_occlusion":15, "linemod_occlusion_pbr":15, "ycb": 21, "coco_kpts":1}
+_SUPPORTED_DATASETS = ["coco", "linemod_occlusion","linemod_occlusion_pbr", "ycbv", "coco_kpts"]
+_NUM_CLASSES = {"coco":80, "linemod_occlusion":15, "linemod_occlusion_pbr":15, "ycbv": 21, "coco_kpts":1}
 _VAL_ANN = {
     "coco":"instances_val2017.json", 
     "linemod_occlusion":"instances_test.json",
     "linemod_occlusion_pbr":"instances_test.json",
-    "ycb": "instances_test.json",
+    "ycbv": "instances_test.json",
     "coco_kpts": "person_keypoints_val2017.json",
 }
 _TRAIN_ANN = {
     "coco":"instances_train2017.json",
     "linemod_occlusion":"instances_train.json",
     "linemod_occlusion_pbr":"instances_train.json",
-    "ycb": "instances_train.json",
+    "ycbv": "instances_train.json",
     "coco_kpts": "person_keypoints_train2017.json",
 }
 _SUPPORTED_TASKS = {
     "coco":["2dod"],
     "linemod_occlusion":["2dod", "object_pose"],
     "linemod_occlusion_pbr":["2dod", "object_pose"],
-    "ycb":["2dod", "object_pose"],
+    "ycbv":["2dod", "object_pose"],
     "coco_kpts": ["2dod", "human_pose"],
 }
 
@@ -190,7 +190,7 @@ def main():
         model.head.decode_in_inference = False
     if args.export_det:
         if args.task == "object_pose":
-            if args.dataset == 'ycb':
+            if args.dataset == 'ycbv':
                 camera_matrix = model.head.cad_models.camera_matrix['camera_uw']  #camera_matrix for val split
             elif args.dataset == 'linemod':
                 camera_matrix = model.head.cad_models.camera_matrix
@@ -202,7 +202,7 @@ def main():
         args.output = 'detections'
 
     logger.info("loading checkpoint done.")
-    if args.dataset == 'ycb':
+    if args.dataset == 'ycbv':
         img = cv2.imread("./assets/ti_mustard.png")
     else:
         img = cv2.imread("./assets/dog.jpg")

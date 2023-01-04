@@ -11,7 +11,7 @@ from yolox.utils import adjust_box_anns, adjust_kpts_anns, get_local_rank
 
 from ..data_augment import random_affine
 from .datasets_wrapper import Dataset
-from .ycb import YCBDataset
+from .ycbv import YCBVDataset
 
 
 def get_mosaic_coordinate(mosaic_image, mosaic_index, xc, yc, w, h, input_h, input_w):
@@ -168,7 +168,7 @@ class MosaicDetection(Dataset):
         else:
             self._dataset._input_dim = self.input_dim
             img, label, img_info, img_id = self._dataset.pull_item(idx)
-            if isinstance(self._dataset, YCBDataset):
+            if isinstance(self._dataset, YCBVDataset):
                 img_index = list(self._dataset.imgs_coco)[img_id]
                 image_folder = self._dataset.imgs_coco[int(img_index)]['image_folder']
                 if int(image_folder)<60:

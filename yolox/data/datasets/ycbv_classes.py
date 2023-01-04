@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 # Copyright (c) Megvii, Inc. and its affiliates.
 
-YCB_CLASSES = (
+YCBV_CLASSES = (
      "master_chef_can",
      "cracker_box",
      "sugar_box",
