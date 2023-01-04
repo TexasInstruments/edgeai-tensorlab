@@ -47,8 +47,8 @@ Step 1.3a: Install pyenv using the following command.
 ```
 curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
 
-echo " " >> ${HOME}/.bashrc
-export PATH=":$PYENV_ROOT/bin:$PATH" >> ${HOME}/.bashrc
+echo "# pyenv settings " >> ${HOME}/.bashrc
+export PATH=":${HOME}/.pyenv/bin:$PATH" >> ${HOME}/.bashrc
 echo "eval $(pyenv init --path)" >> ${HOME}/.bashrc
 echo "eval $(pyenv virtualenv-init -)" >> ${HOME}/.bashrc
 echo " " >> ${HOME}/.bashrc
