@@ -715,7 +715,7 @@
             "performance_infer_time_ms":1.529051987767584,
             "accuracy_factor":22.1,
             "accuracy_unit":"AP[.5:.95]%",
-            "model_selection_factor":8
+            "model_selection_factor":9
           }
         },
         "project_path":null,
@@ -836,7 +836,7 @@
             "performance_infer_time_ms":5.58659217877095,
             "accuracy_factor":27.2,
             "accuracy_unit":"AP[.5:.95]%",
-            "model_selection_factor":5
+            "model_selection_factor":6
           }
         },
         "project_path":null,
@@ -1299,7 +1299,7 @@
             "performance_infer_time_ms":3.484320557491289,
             "accuracy_factor":24.8,
             "accuracy_unit":"AP[.5:.95]%",
-            "model_selection_factor":7
+            "model_selection_factor":8
           }
         },
         "project_path":null,
@@ -1407,7 +1407,7 @@
             "performance_infer_time_ms":4.545454545454546,
             "accuracy_factor":30.5,
             "accuracy_unit":"AP[.5:.95]%",
-            "model_selection_factor":6
+            "model_selection_factor":7
           }
         },
         "project_path":null,
@@ -1793,6 +1793,114 @@
         }
       }
     },
+    "yolov5s6_384_ti_lite":{
+      "common":{
+        "verbose_mode":true,
+        "download_path":"./data/downloads",
+        "projects_path":"./data/projects",
+        "project_path":null,
+        "project_run_path":null,
+        "task_type":"detection",
+        "target_machine":"evm",
+        "target_device":null,
+        "run_name":"{date-time}/{model_name}"
+      },
+      "dataset":{
+        "enable":true,
+        "dataset_name":null,
+        "dataset_path":null,
+        "extract_path":null,
+        "split_factor":0.75,
+        "split_names":[
+          "train",
+          "val"
+        ],
+        "max_num_files":null,
+        "input_data_path":null,
+        "input_annotation_path":null,
+        "data_path_splits":null,
+        "data_dir":"images",
+        "annotation_path_splits":null,
+        "annotation_dir":"annotations",
+        "annotation_prefix":"instances",
+        "annotation_format":"coco_json",
+        "dataset_download":true,
+        "dataset_reload":false
+      },
+      "training":{
+        "enable":true,
+        "model_name":"yolov5s6_384_ti_lite",
+        "model_training_id":"yolov5s6",
+        "training_backend":"edgeai_yolov5",
+        "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/latest/edgeai-yolov5/pretrained_models/checkpoints/detection/coco/edgeai-yolov5/yolov5s6_384_ti_lite/weights/best.pt",
+        "target_devices":{
+          "TDA4VM":{
+            "performance_fps":170,
+            "performance_infer_time_ms":5.882352941176471,
+            "accuracy_factor":32.8,
+            "accuracy_unit":"AP[.5:.95]%",
+            "model_selection_factor":5
+          }
+        },
+        "project_path":null,
+        "dataset_path":null,
+        "training_path":null,
+        "log_file_path":null,
+        "log_summary_regex":null,
+        "summary_file_path":null,
+        "model_checkpoint_path":null,
+        "model_export_path":null,
+        "model_proto_path":null,
+        "model_packaged_path":null,
+        "training_epochs":15,
+        "warmup_epochs":1,
+        "num_last_epochs":5,
+        "batch_size":8,
+        "learning_rate":0.002,
+        "num_classes":null,
+        "weight_decay":0.0001,
+        "input_resize":384,
+        "input_cropsize":384,
+        "training_device":null,
+        "num_gpus":0,
+        "distributed":true,
+        "training_master_port":29500,
+        "model_architecture":"yolov5",
+        "training_devices":{
+          "cpu":true,
+          "cuda":true
+        }
+      },
+      "compilation":{
+        "enable":true,
+        "model_compilation_id":"od-8110",
+        "compilation_path":null,
+        "model_compiled_path":null,
+        "log_file_path":null,
+        "log_summary_regex":null,
+        "summary_file_path":null,
+        "output_tensors_path":null,
+        "model_packaged_path":null,
+        "model_visualization_path":null,
+        "tensor_bits":8,
+        "calibration_frames":10,
+        "calibration_iterations":10,
+        "num_frames":null,
+        "num_output_frames":50,
+        "detection_threshold":0.6,
+        "detection_top_k":200,
+        "save_output":true,
+        "tidl_offload":true,
+        "input_optimization":false,
+        "capture_log":true,
+        "runtime_options":{
+          "advanced_options:output_feature_16bit_names_list":"370, 426, 482, 538"
+        },
+        "metric":{
+          "label_offset_pred":0
+        }
+      }
+    },
     "yolov5m6_640_ti_lite":{
       "common":{
         "verbose_mode":true,
@@ -1940,7 +2048,7 @@
         "model_name":"yolov5l6_640_ti_lite",
         "model_training_id":"yolov5l6",
         "training_backend":"edgeai_yolov5",
-        "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/latest/edgeai-yolov5/pretrained_models/detection/coco/edgeai-yolov5/yolov5l6_640_ti_lite/weights/best.pt",
+        "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/latest/edgeai-yolov5/pretrained_models/checkpoints/detection/coco/edgeai-yolov5/yolov5l6_640_ti_lite/weights/best.pt",
         "target_devices":{
           "TDA4VM":{
             "performance_fps":21,
