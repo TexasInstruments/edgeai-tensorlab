@@ -162,7 +162,7 @@ PRESET_DESCRIPTIONS = {
     TARGET_DEVICE_TDA4VM: {
         TASK_TYPE_CLASSIFICATION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
                 compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
@@ -179,7 +179,7 @@ PRESET_DESCRIPTIONS = {
         },
         TASK_TYPE_DETECTION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
                 compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)

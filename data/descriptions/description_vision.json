@@ -2127,7 +2127,7 @@
             "calibration_iterations":25,
             "detection_threshold":null,
             "detection_top_k":null,
-            "tensor_bits":8
+            "tensor_bits":16
           }
         },
         "high_accuracy_preset":{
@@ -2174,7 +2174,7 @@
             "calibration_iterations":25,
             "detection_threshold":0.05,
             "detection_top_k":500,
-            "tensor_bits":8
+            "tensor_bits":16
           }
         },
         "high_accuracy_preset":{

@@ -2025,7 +2025,7 @@ preset_descriptions:
           calibration_iterations: 25
           detection_threshold: null
           detection_top_k: null
-          tensor_bits: 8
+          tensor_bits: 16
       best_speed_preset:
         compilation:
           calibration_frames: 5
@@ -2061,7 +2061,7 @@ preset_descriptions:
           calibration_iterations: 25
           detection_threshold: 0.05
           detection_top_k: 500
-          tensor_bits: 8
+          tensor_bits: 16
       best_speed_preset:
         compilation:
           calibration_frames: 5
