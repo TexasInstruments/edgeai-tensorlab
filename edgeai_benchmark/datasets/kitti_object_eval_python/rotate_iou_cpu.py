@@ -26,15 +26,15 @@ def area(int_pts, num_of_inter):
 
 def sort_vertex_in_convex_polygon(int_pts, num_of_inter):
     if num_of_inter > 0:
-        center = np.array((2, ), dtype=np.float32)
+        center = np.zeros((2, ), dtype=np.float32)
         center[:] = 0.0
         for i in range(num_of_inter):
             center[0] += int_pts[2 * i]
             center[1] += int_pts[2 * i + 1]
         center[0] /= num_of_inter
         center[1] /= num_of_inter
-        v = np.array((2, ), dtype=np.float32)
-        vs = np.array((16, ), dtype=np.float32)
+        v = np.zeros((2, ), dtype=np.float32)
+        vs = np.zeros((16, ), dtype=np.float32)
         for i in range(num_of_inter):
             v[0] = int_pts[2 * i] - center[0]
             v[1] = int_pts[2 * i + 1] - center[1]
@@ -64,10 +64,10 @@ def sort_vertex_in_convex_polygon(int_pts, num_of_inter):
 
 
 def line_segment_intersection(pts1, pts2, i, j, temp_pts):
-    A = np.array((2, ), dtype=np.float32)
-    B = np.array((2, ), dtype=np.float32)
-    C = np.array((2, ), dtype=np.float32)
-    D = np.array((2, ), dtype=np.float32)
+    A = np.zeros((2, ), dtype=np.float32)
+    B = np.zeros((2, ), dtype=np.float32)
+    C = np.zeros((2, ), dtype=np.float32)
+    D = np.zeros((2, ), dtype=np.float32)
 
     A[0] = pts1[2 * i]
     A[1] = pts1[2 * i + 1]
@@ -106,10 +106,10 @@ def line_segment_intersection(pts1, pts2, i, j, temp_pts):
 
 
 def line_segment_intersection_v1(pts1, pts2, i, j, temp_pts):
-    a = np.array((2, ), dtype=np.float32)
-    b = np.array((2, ), dtype=np.float32)
-    c = np.array((2, ), dtype=np.float32)
-    d = np.array((2, ), dtype=np.float32)
+    a = np.zeros((2, ), dtype=np.float32)
+    b = np.zeros((2, ), dtype=np.float32)
+    c = np.zeros((2, ), dtype=np.float32)
+    d = np.zeros((2, ), dtype=np.float32)
 
     a[0] = pts1[2 * i]
     a[1] = pts1[2 * i + 1]
@@ -172,7 +172,7 @@ def quadrilateral_intersection(pts1, pts2, int_pts):
             int_pts[num_of_inter * 2] = pts2[2 * i]
             int_pts[num_of_inter * 2 + 1] = pts2[2 * i + 1]
             num_of_inter += 1
-    temp_pts = np.array((2, ), dtype=np.float32)
+    temp_pts = np.zeros((2, ), dtype=np.float32)
     for i in range(4):
         for j in range(4):
             has_pts = line_segment_intersection(pts1, pts2, i, j, temp_pts)
@@ -193,8 +193,8 @@ def rbbox_to_corners(corners, rbbox):
     center_y = rbbox[1]
     x_d = rbbox[2]
     y_d = rbbox[3]
-    corners_x = np.array((4, ), dtype=np.float32)
-    corners_y = np.array((4, ), dtype=np.float32)
+    corners_x = np.zeros((4, ), dtype=np.float32)
+    corners_y = np.zeros((4, ), dtype=np.float32)
     corners_x[0] = -x_d / 2
     corners_x[1] = -x_d / 2
     corners_x[2] = x_d / 2
@@ -211,9 +211,9 @@ def rbbox_to_corners(corners, rbbox):
 
 
 def inter(rbbox1, rbbox2):
-    corners1 = np.array((8, ), dtype=np.float32)
-    corners2 = np.array((8, ), dtype=np.float32)
-    intersection_corners = np.array((16, ), dtype=np.float32)
+    corners1 = np.zeros((8, ), dtype=np.float32)
+    corners2 = np.zeros((8, ), dtype=np.float32)
+    intersection_corners = np.zeros((16, ), dtype=np.float32)
 
     rbbox_to_corners(corners1, rbbox1)
     rbbox_to_corners(corners2, rbbox2)
@@ -243,7 +243,9 @@ def devRotateIoUEval(rbox1, rbox2, criterion=-1):
 def rotate_iou_cpu_eval(dev_boxes, dev_query_boxes, criterion=-1):
     num_boxes = dev_boxes.shape[0]
     num_qboxes = dev_query_boxes.shape[0]
-    dev_iou = np.zeros(num_boxes, num_qboxes)
+    dev_iou = np.zeros((num_boxes, num_qboxes))
     for box_i in range(num_boxes):
         for qbox_i in range(num_qboxes):
             dev_iou[box_i, qbox_i] = devRotateIoUEval(dev_query_boxes[qbox_i], dev_boxes[box_i], criterion)
+
+    return dev_iou

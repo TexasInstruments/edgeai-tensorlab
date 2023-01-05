@@ -618,7 +618,7 @@ class OD3DOutPutPorcess(object):
 
     def __call__(self, tidl_op, info_dict):
 
-        tidl_op     =  tidl_op[0] #tidl_op[0][0][0]
+        tidl_op     =  tidl_op[0][0][0]
         selected_op =  tidl_op[tidl_op[:,1] > 0.1]
 
         return np.array(selected_op), info_dict
