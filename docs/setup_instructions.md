@@ -1,5 +1,41 @@
 ## Environment
-We have tested this on Ubuntu 18.04 PC with Miniconda from https://docs.conda.io/en/latest/ with Python 3.6. Create a Python 3.6 environment if you don't have it and activate it before following the rest of the instructions.
+We have tested this on Ubuntu 18.04 OS. Here are the setup instructions.
+
+
+#### Option 1: With pyenv Python environment manager (recommended)
+Make sure that you are using bash shell. If it is not bash shell, change it to bash. Verify it by typing:
+```
+echo ${SHELL}
+```
+
+Install system packages
+```
+sudo apt install libbz2-dev libreadline-dev libsqlite3-dev python3.6-tk
+```
+
+Install pyenv using the following command.
+```
+curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+
+echo "# pyenv settings " >> ${HOME}/.bashrc
+export PATH=":${HOME}/.pyenv/bin:$PATH" >> ${HOME}/.bashrc
+echo "eval $(pyenv init --path)" >> ${HOME}/.bashrc
+echo "eval $(pyenv virtualenv-init -)" >> ${HOME}/.bashrc
+echo " " >> ${HOME}/.bashrc
+
+exec ${SHELL}
+```
+
+Create a Python 3.6 environment if you don't have it and activate it before following the rest of the instructions.
+```
+pyenv install 3.6
+pyenv virtualenv 3.6 benchmark
+pyenv activate benchmark
+```
+
+
+#### Option 2: With Miniconda Python distribution
+We have verified this with Miniconda from https://docs.conda.io/en/latest/ with Python 3.6. Create a Python 3.6 environment if you don't have it and activate it before following the rest of the instructions.
 ```
 conda create -n benchmark python=3.6
 conda activate benchmark
