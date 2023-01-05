@@ -114,13 +114,15 @@ def export_prototxt(model, img, onnx_model_name, task=None):
         fx, fy = camera_matrix[0], camera_matrix[4]
         px, py = camera_matrix[2], camera_matrix[5]
         camera_intrinsic_params = tidl_meta_arch_yolox_pb2.TIDLCameraIntrinsicParams(fx=fx, fy=fy, px=px, py=py)
+        sub_code_type = 1
         name = 'yolox_object_pose'
     else:
         camera_intrinsic_params = None
         name = 'yolox'
+        sub_code_type = None
     detection_output_param = tidl_meta_arch_yolox_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
                                             background_label_id=background_label_id, nms_param=nms_param, camera_intrinsic_params=camera_intrinsic_params,
-                                            code_type=tidl_meta_arch_yolox_pb2.CODE_TYPE_YOLO_X, keep_top_k=keep_top_k,
+                                            code_type=tidl_meta_arch_yolox_pb2.CODE_TYPE_YOLO_X, keep_top_k=keep_top_k, sub_code_type=sub_code_type,
                                             confidence_threshold=0.01, num_keypoint=num_keypoint, keypoint_confidence=keypoint_confidence)
 
     yolov3 = tidl_meta_arch_yolox_pb2.TidlYoloOd(name=name, output=["detections"],
