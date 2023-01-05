@@ -5,8 +5,8 @@
 import numpy as np
 import cv2
 
-#camera_matrix for test-split of YCB dataset
-ycb_camera_matrix = np.array([[1066.778, 0, 312.9869],
+#camera_matrix for test-split of ycbv dataset
+ycbv_camera_matrix = np.array([[1066.778, 0, 312.9869],
                               [0.0, 1067.487, 241.3109],
                               [0.0, 0.0, 1.0]], dtype=np.float32)
 
@@ -25,8 +25,8 @@ logitech_camera_matrix_resize = np.array([[1066.778, 0.0, 312.9869],
                                           [0.0, 1066.778, 241.3109],
                                           [0.0, 0.0, 1.0]], dtype=np.float32)
 
-#vertices for YCB21 objects
-ycb_vertices = np.array([
+#vertices for ycbv21 objects
+ycbv_vertices = np.array([
     [51.1445, 51.223, 70.072],
     [35.865, 81.9885, 106.743],
     [24.772, 47.024, 88.0075],
@@ -81,7 +81,7 @@ vertices_order = np.array([
             [1,  1, -1],
             ], dtype=np.float32)
 
-YCB_CLASSES = (
+YCBV_CLASSES = (
      "master_chef_can",
      "cracker_box",
      "sugar_box",
@@ -209,22 +209,22 @@ _COLORS = np.array(
 ).astype(np.float32).reshape(-1, 3)
 
 
-def get_cuboid_corner(dataset="ycb"):
-    if dataset == "ycb":
-        return ycb_vertices[:, None, :] * vertices_order
+def get_cuboid_corner(dataset="ycbv"):
+    if dataset == "ycbv":
+        return ycbv_vertices[:, None, :] * vertices_order
     else:
         return lm_vertices[:, None, :] * vertices_order
 
 
-def get_camera_matrix(dataset="ycb"):
-    if dataset == "ycb":
-        return ycb_camera_matrix
+def get_camera_matrix(dataset="ycbv"):
+    if dataset == "ycbv":
+        return ycbv_camera_matrix
     else:
         return lm_camera_matrix
 
-def get_class_names(dataset="ycb"):
-    if dataset == "ycb":
-        return YCB_CLASSES
+def get_class_names(dataset="ycbv"):
+    if dataset == "ycbv":
+        return YCBV_CLASSES
     else:
         return LINEMOD_CLASSES
 
@@ -249,7 +249,10 @@ def draw_cuboid_2d(img, cuboid_corners, color = (0, 255, 0), thickness = 2):
     return img
 
 
-def draw_bbox_2d(origin_img, dets, class_names, conf_thres=0.9):
+def draw_bbox_2d(origin_img, dets, class_names, conf_thres=0.85):
+    if len(dets.shape) > 2:
+        dets = dets[0][0]
+
     for det in dets:
         box, score, cls = det[:4], det[4], int(det[5])
         if score>conf_thres:
@@ -283,7 +286,10 @@ def project_3d_2d(pts_3d, rotation_mat, translation_vec, camera_matrix):
     return projected_2d
 
 
-def draw_obj_pose(origin_img, dets, class_names, class_to_cuboid, camera_matrix, conf_thres=0.91):
+def draw_obj_pose(origin_img, dets, class_names, class_to_cuboid, camera_matrix, conf_thres=0.85):
+    if len(dets.shape) > 2:
+        dets = dets[0][0]
+
     for det in dets:
         box, score, cls = det[:4], det[4], int(det[5])
         if score>conf_thres:
