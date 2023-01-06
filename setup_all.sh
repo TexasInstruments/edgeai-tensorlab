@@ -86,7 +86,7 @@ cd ../edgeai-modelmaker
 ./setup.sh
 
 # there as issue with installing pillow-simd through requirements - force it here
-pip uninstall pillow
+pip uninstall --yes pillow
 pip install --no-input -U --force-reinstall pillow-simd
 
 ls -d ../edgeai-*
