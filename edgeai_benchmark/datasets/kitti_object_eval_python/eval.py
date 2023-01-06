@@ -4,25 +4,39 @@ import numpy as np
 import os
 
 numba_gpu_acc = False # enable or disable numba gpu acceleration
-try:
-    import numba
-except ImportError as e:
-    os.system('pip install numba')
 
 if numba_gpu_acc:
+    try:
+        import numba
+    except ImportError as e:
+        os.system('pip install numba')
+    #
     from .rotate_iou import rotate_iou_gpu_eval
 else:
     from .rotate_iou_cpu import rotate_iou_cpu_eval
 
-def conditional_numba_decorator(dec, condition):
+
+def conditional_numba_decorator(condition):
     def decorator(func):
         if not condition:
             # Return the function unchanged, not decorated.
             return func
+        dec = numba.jit(nopython=True)
         return dec(func)
     return decorator
 
-@conditional_numba_decorator(numba.jit(nopython=True), numba_gpu_acc)
+
+def conditional_numba_decorator_parallel_false(condition):
+    def decorator(func):
+        if not condition:
+            # Return the function unchanged, not decorated.
+            return func
+        dec = numba.jit(nopython=True, parallel=False)
+        return dec(func)
+    return decorator
+
+
+@conditional_numba_decorator(numba_gpu_acc)
 def get_thresholds(scores: np.ndarray, num_gt, num_sample_pts=41):
     scores.sort()
     scores = scores[::-1]
@@ -99,7 +113,7 @@ def clean_data(gt_anno, dt_anno, current_class, difficulty):
     return num_valid_gt, ignored_gt, ignored_dt, dc_bboxes
 
 
-@conditional_numba_decorator(numba.jit(nopython=True), numba_gpu_acc)
+@conditional_numba_decorator(numba_gpu_acc)
 def image_box_overlap(boxes, query_boxes, criterion=-1):
     N = boxes.shape[0]
     K = query_boxes.shape[0]
@@ -137,7 +151,7 @@ def bev_box_overlap(boxes, qboxes, criterion=-1):
     return riou
 
 
-@conditional_numba_decorator(numba.jit(nopython=True, parallel=False), numba_gpu_acc)
+@conditional_numba_decorator_parallel_false(numba_gpu_acc)
 def d3_box_overlap_kernel(boxes, qboxes, rinc, criterion=-1):
     # ONLY support overlap in CAMERA, not lider.
     N, K = boxes.shape[0], qboxes.shape[0]
@@ -179,7 +193,7 @@ def d3_box_overlap(boxes, qboxes, criterion=-1):
     return rinc
 
 
-@conditional_numba_decorator(numba.jit(nopython=True), numba_gpu_acc)
+@conditional_numba_decorator(numba_gpu_acc)
 def compute_statistics_jit(overlaps,
                            gt_datas,
                            dt_datas,
@@ -312,7 +326,7 @@ def get_split_parts(num, num_part):
         return [same_part] * num_part + [remain_num]
 
 
-@conditional_numba_decorator(numba.jit(nopython=True), numba_gpu_acc)
+@conditional_numba_decorator(numba_gpu_acc)
 def fused_compute_statistics(overlaps,
                              pr,
                              gt_nums,
