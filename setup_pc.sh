@@ -49,7 +49,7 @@ echo 'Installing python packages...'
 pip3 install --no-input -r ./requirements_pc.txt
 
 # there as issue with installing pillow-simd through requirements - force it here
-pip uninstall pillow
+pip uninstall --yes pillow
 pip install --no-input -U --force-reinstall pillow-simd
 
 ######################################################################
