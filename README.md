@@ -38,20 +38,22 @@ Step 1.1a: Make sure that you are using bash shell. If it is not bash shell, cha
 echo ${SHELL}
 ```
 
-Step 1.2a: Install system packages
+Step 1.2a: Install system dependencies
 ```
-sudo apt install libbz2-dev libreadline-dev libsqlite3-dev python3.6-tk
+sudo apt install -y build-essential xz-utils libreadline-dev libncurses5-dev libssl-dev 
+sudo apt install -y libbz2-dev libsqlite3-dev liblzma-dev python3.6-tk
+sudo apt install -y curl libjpeg-dev zlib1g-dev graphviz graphviz-dev 
 ```
 
 Step 1.3a: Install pyenv using the following commands
 ```
 curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
 
-echo "# pyenv settings " >> ${HOME}/.bashrc
-echo "command -v pyenv >/dev/null || export PATH=:${HOME}/.pyenv/bin:$PATH" >> ${HOME}/.bashrc
-echo "eval $(pyenv init -)" >> ${HOME}/.bashrc
-echo "eval $(pyenv virtualenv-init -)" >> ${HOME}/.bashrc
-echo " " >> ${HOME}/.bashrc
+echo '# pyenv settings ' >> ${HOME}/.bashrc
+echo 'command -v pyenv >/dev/null || export PATH=":${HOME}/.pyenv/bin:$PATH"' >> ${HOME}/.bashrc
+echo 'eval "$(pyenv init -)"' >> ${HOME}/.bashrc
+echo 'eval "$(pyenv virtualenv-init -)"' >> ${HOME}/.bashrc
+echo '' >> ${HOME}/.bashrc
 
 exec ${SHELL}
 ```
@@ -64,6 +66,9 @@ Step 1.4a: Install Python 3.6 in pyenv and create an environment
 pyenv install 3.6
 pyenv virtualenv 3.6 py36
 pyenv rehash
+pyenv activate py36
+pip install --upgrade pip
+pip install --upgrade setuptools
 ```
 
 Step 1.5a: **Activate the Python environment.** This activation step needs to be done everytime one starts a new terminal or shell. (Alternately, this also can be written to the .bashrc, so that this will be the default penv environment).
@@ -72,7 +77,7 @@ pyenv activate py36
 ```
 
 
-####  Step 1, Option 2: With native Ubuntu environment and Miniconda
+####  Step 1, Option 2: With native Ubuntu environment and Miniconda (deprecated)
 We have tested this tool in Ubuntu 18.04 and with Python 3.6 (Note: Currently edgeai-tidl-tools supports only Python 3.6). We have not tested this on other Linux distributions.
 
 We can also use Miniconda Python distribution from: https://docs.conda.io/en/latest/miniconda.html
@@ -185,7 +190,7 @@ Image classification example
 #### Step 4.1: Install LabelStudio
 - Label Studio can be installed using the following command:
 ```bash
-pip install -r requirements-labelstudio.txt
+pip install -r requirements/labelstudio.txt
 ```
 
 #### Step 4.2: Run LabelStudio
