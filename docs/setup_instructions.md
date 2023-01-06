@@ -17,11 +17,11 @@ Install pyenv using the following command.
 ```
 curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
 
-echo "# pyenv settings " >> ${HOME}/.bashrc
-export PATH=":${HOME}/.pyenv/bin:$PATH" >> ${HOME}/.bashrc
-echo "eval $(pyenv init --path)" >> ${HOME}/.bashrc
-echo "eval $(pyenv virtualenv-init -)" >> ${HOME}/.bashrc
-echo " " >> ${HOME}/.bashrc
+echo '# pyenv settings ' >> ${HOME}/.bashrc
+echo 'command -v pyenv >/dev/null || export PATH=":${HOME}/.pyenv/bin:$PATH"' >> ${HOME}/.bashrc
+echo 'eval "$(pyenv init -)"' >> ${HOME}/.bashrc
+echo 'eval "$(pyenv virtualenv-init -)"' >> ${HOME}/.bashrc
+echo '' >> ${HOME}/.bashrc
 
 exec ${SHELL}
 ```
@@ -31,8 +31,15 @@ Create a Python 3.6 environment if you don't have it and activate it before foll
 pyenv install 3.6
 pyenv virtualenv 3.6 benchmark
 pyenv activate benchmark
+pyenv activate benchmark
+pip install --upgrade pip
+pip install --upgrade setuptools
 ```
 
+Activation of Python environment - this activation step needs to be done everytime one starts a new terminal or shell. (Alternately, this also can be written to the .bashrc, so that this will be the default penv environment).
+```
+pyenv activate benchmark
+```
 
 #### Option 2: With Miniconda Python distribution
 We have verified this with Miniconda from https://docs.conda.io/en/latest/ with Python 3.6. Create a Python 3.6 environment if you don't have it and activate it before following the rest of the instructions.

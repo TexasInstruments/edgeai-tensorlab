@@ -1,3 +1,4 @@
+-r requirements/basic.txt
 cython
 numpy
 protobuf==3.19

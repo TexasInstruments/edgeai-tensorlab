@@ -45,10 +45,6 @@ echo 'Installing dependencies for TIDL graph visualization'
 sudo apt-get install -y graphviz graphviz-dev
 
 ######################################################################
-echo "Installing Python pre-requisits"
-#conda install -y cython
-pip3 install --no-input -r ./requirements_basic.txt
-
 echo 'Installing python packages...'
 pip3 install --no-input -r ./requirements_pc.txt
 
