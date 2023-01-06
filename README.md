@@ -17,10 +17,38 @@ The scripts in this repository requires torchvision to be installed using this r
 
 <hr>
 
-## Installation Instructions
-These installation instructions were tested using [Miniconda](https://docs.conda.io/en/latest/) Python 3.7 on a Linux Machine with Ubuntu 18.04 OS.
+## Requirements
+These installation instructions were tested using [pyenv](https://github.com/pyenv/pyenv)  Python 3.6 on a Linux Machine with Ubuntu 18.04 OS. See [pyenv-installer](https://github.com/pyenv/pyenv-installer) for detailed pyenv installation instructions.
 
-Make sure that your Python version is indeed 3.7 or higher by typing:<br>
+Here are the steps in brief:
+```
+curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+
+echo '# pyenv settings ' >> ${HOME}/.bashrc
+echo 'command -v pyenv >/dev/null || export PATH=":${HOME}/.pyenv/bin:$PATH"' >> ${HOME}/.bashrc
+echo 'eval "$(pyenv init -)"' >> ${HOME}/.bashrc
+echo 'eval "$(pyenv virtualenv-init -)"' >> ${HOME}/.bashrc
+echo '' >> ${HOME}/.bashrc
+
+exec ${SHELL}
+```
+
+Install Python 3.6 in pyenv and create an environment
+```
+pyenv install 3.6
+pyenv virtualenv 3.6 py36
+pyenv rehash
+pyenv activate py36
+pip install --upgrade pip
+pip install --upgrade setuptools
+```
+
+Activation of Python environment - this activation step needs to be done everytime one starts a new terminal or shell. (Alternately, this also can be written to the .bashrc, so that this will be the default penv environment).
+```
+pyenv activate py36
+```
+
+Make sure that your Python version is indeed 3.6 or higher by typing:<br>
 ```
 python --version
 ```
@@ -30,6 +58,8 @@ Make sure gcc and g++ versions are greater then or equal to 7 - if not install t
 gcc --version
 g++ --version
 ```
+
+## Installation Instructions
 
 Clone this repository into your local folder
 

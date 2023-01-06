@@ -8,7 +8,10 @@ sudo apt-get install -y libjpeg-dev zlib1g-dev
 echo "-----------------------------------------------------------"
 echo "installing requirements"
 pip3 install --no-input -r requirements.txt
-pip3 install --no-input -r references/requirements.txt
+
+# there as issue with installing pillow-simd through requirements - force it here
+pip uninstall pillow
+pip install --no-input -U --force-reinstall pillow-simd
 
 echo "-----------------------------------------------------------"
 echo "building torchvision"
