@@ -43,18 +43,21 @@ Step 1.2a: Install system packages
 sudo apt install libbz2-dev libreadline-dev libsqlite3-dev python3.6-tk
 ```
 
-Step 1.3a: Install pyenv using the following command.
+Step 1.3a: Install pyenv using the following commands
 ```
 curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
 
 echo "# pyenv settings " >> ${HOME}/.bashrc
-export PATH=":${HOME}/.pyenv/bin:$PATH" >> ${HOME}/.bashrc
-echo "eval $(pyenv init --path)" >> ${HOME}/.bashrc
+echo "command -v pyenv >/dev/null || export PATH=:${HOME}/.pyenv/bin:$PATH" >> ${HOME}/.bashrc
+echo "eval $(pyenv init -)" >> ${HOME}/.bashrc
 echo "eval $(pyenv virtualenv-init -)" >> ${HOME}/.bashrc
 echo " " >> ${HOME}/.bashrc
 
 exec ${SHELL}
 ```
+
+Further details on pyenv installation are given here https://github.com/pyenv/pyenv and https://github.com/pyenv/pyenv-installer
+
 
 Step 1.4a: Install Python 3.6 in pyenv and create an environment
 ```
