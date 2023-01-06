@@ -1,4 +1,0 @@
-cython
-numpy
-wheel
-opencv-python==4.2.0.34

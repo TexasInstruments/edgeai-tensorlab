@@ -1,4 +1,0 @@
-cython
-numpy>=1.20
-wheel
-opencv-python-headless<4.3

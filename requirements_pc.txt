@@ -1,10 +1,11 @@
--r requirements/basic.txt
 cython
 numpy
+wheel
+opencv-python==4.2.0.34
 protobuf==3.19
 onnx==1.8.1
 tflite
-pillow
+#pillow
 pillow-simd
 pycocotools
 colorama
