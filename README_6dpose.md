@@ -24,29 +24,12 @@ Download the following for ycbv dataset and extract them in **edgeai_yolox/datas
 * [All test images](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_all.zip)
 * [BOP test images](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_bop19.zip)
 
+Download all required components for YCBV dataset with the script below. This will download all the equired files for YCBV dataset .
+```
+download_ycbv.sh
+```
 In order to convert the dataset for a given split to COCO fromat we need run the command below:
 ```
-#Base archive
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_base.zip
-uzip ycbv_base.zip
-cd ycbv_base
-#models
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_models.zip
-uzip ycbv_models.zip
-#train_pbr
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_pbr.zip
-uzip ycbv_train_pbr.zip
-#train_real
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_real.zip
-uzip ycbv_train_real.zip
-#All test images
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_all.zip
-uzip ycbv_test_all.zip
-#BOP test images
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_bop19.zip
-
-#Run the scripts below to convert the annotations in COCO fromat.
-
 python tools/ycb2coco.py --split train 
                          --split test                   #2949 frames for testing
                          --split test  --type bop       # 900 frames for testing as in BOP format
@@ -96,27 +79,12 @@ SImilar steps as YCBV need to be followed for LINEMOD Occlusion dataset as well.
 * [All test images](https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_all.zip)
 * [BOP test images](https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_bop19.zip)
 
-In order to convert LINEMOD and LINEMOD-Occlusion datset to COCO format, run the following command:
+Download all required components for LMO dataset with the script below. This will download all the required files for LMO dataset 
 ```
-# Base archive
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_base.zip
-uzip lmo_base.zip
-cd lmo_base #All other files are extracted inside this
-#models
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_models.zip
-uzip lmo_models.zip
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/lm_train_pbr.zip
-uzip lm_train_pbr.zip
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_all.zip
-uzip lmo_test_all.zip
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_bop19.zip
-uzip lmo_test_bop19.zip
+download_lmo.sh
+```
+In order to convert LINEMOD and LINEMOD-Occlusion datset to COCO format, run the following command:
 
-python tools/lm2coco.py --split train                     #LINEMOD
-                        --split test --type bop  
-
-python tools/lmo2coco.py --split train                    #LINEMOD_OCCLUSION
-                         --split test  --type bop
 ```
 ## **YOLO-6D-Pose Models and Ckpts**.
 
