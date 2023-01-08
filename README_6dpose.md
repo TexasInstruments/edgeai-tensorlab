@@ -16,7 +16,7 @@ Given below is a sample inference with ground-truth pose in green and predicted 
 The dataset needs to be prepared in YOLO format so that the enhanced dataloader can read the 6D pose along with the bounding box for each object. We currently support YCBV 
 and LINEMOD datset.
 ### **YCBV Datset**
-Download the following for ycbv dataset and extract them in **edgeai_yolox/datasets**:
+THe following components needs to be downloaded and structrured in the required way inside **edgeai_yolox/datasets** for the dataloader to read it correctly :
 * [Base archive](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_base.zip)
 * [models](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_models.zip)
 * [train_pbr](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_pbr.zip)
@@ -24,16 +24,18 @@ Download the following for ycbv dataset and extract them in **edgeai_yolox/datas
 * [All test images](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_all.zip)
 * [BOP test images](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_bop19.zip)
 
-Download all required components for YCBV dataset with the script below. This will download all the equired files for YCBV dataset .
+All required components for YCBV dataset can be downloaded with the script below. This will structure them in the required format as well.
 ```
-download_ycbv.sh
+cd datasets
+../download_ycbv.sh
 ```
-In order to convert the dataset for a given split to COCO fromat we need run the command below:
+Once downloaded, the dataset for a given split has to be converted to COCO fromat with the script below:
 ```
 python tools/ycb2coco.py --split train 
                          --split test                   #2949 frames for testing
                          --split test  --type bop       # 900 frames for testing as in BOP format
 ```
+
 The above script will generate **instances_train.json**, **instances_test.json** and **instances_test_bop.json**.
 * **instances_train.json**: Contains annotations for all **50K** pbr images. From the set of real images, we select every 10th frame, resulting in **11355** real images. 
     In total, there are **61355** frames in the training set.
@@ -79,12 +81,19 @@ SImilar steps as YCBV need to be followed for LINEMOD Occlusion dataset as well.
 * [All test images](https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_all.zip)
 * [BOP test images](https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_bop19.zip)
 
-Download all required components for LMO dataset with the script below. This will download all the required files for LMO dataset 
+Download all required components for LMO dataset with the script below. This will structure the dataset in the required format as well.
 ```
-download_lmo.sh
+cd datasets
+../download_lmo.sh
 ```
-In order to convert LINEMOD and LINEMOD-Occlusion datset to COCO format, run the following command:
+In order to convert LINEMOD-Occlusion datset to COCO format, run the following command:
+```
+#This portion can be part of readme.
+python tools/lm2coco.py --split train                     #LINEMOD
+                        --split test --type bop  
 
+python tools/lmo2coco.py --split train                    #LINEMOD_OCCLUSION
+                         --split test  --type bop
 ```
 ## **YOLO-6D-Pose Models and Ckpts**.
 

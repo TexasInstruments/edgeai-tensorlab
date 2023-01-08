@@ -28,27 +28,32 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#Base archive
+echo "Downloading Base archive"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_base.zip
-uzip ycbv_base.zip
-cd ycbv_base
-#models
+unzip ycbv_base.zip
+cd ycbv # All other files are extracted inside this
+
+echo "Downloading YCBV models (524MB)"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_models.zip
-uzip ycbv_models.zip
-#train_pbr
+echo "Extracting YCBV models"
+unzip ycbv_models.zip
+
+echo "Downloading train_pbr subset of training images (21GB). This will take some time"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_pbr.zip
-uzip ycbv_train_pbr.zip
-#train_real
+echo "Extracting train_pbr subset of training images(21GB). This will take some time"
+unzip ycbv_train_pbr.zip
+
+echo "Downloading train_real split (75.7GB). This will take some time"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_real.zip
-uzip ycbv_train_real.zip
-#All test images
+echo "Extracting train_real split(75.7GB). This will take some time"
+unzip ycbv_train_real.zip
+
+echo "Downloading all test images (15GB)"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_all.zip
-uzip ycbv_test_all.zip
-#BOP test images
+echo "Extracting all test images (15GB)"
+unzip ycbv_test_all.zip && mv test test_all  #rename test to test_all
+
+echo "Downloading BOP subset of test images (660MB)"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_bop19.zip
-
-#Run the scripts below to convert the annotations in COCO fromat.
-
-python tools/ycb2coco.py --split train 
-                         --split test                   #2949 frames for testing
-                         --split test  --type bop       # 900 frames for testing as in BOP format
+echo "Extracting BOP subset of test images (660MB)"
+unzip ycbv_test_bop19.zip && mv test test_bop   #rename test to test_bop
