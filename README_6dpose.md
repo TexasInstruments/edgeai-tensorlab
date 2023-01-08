@@ -31,9 +31,9 @@ cd datasets
 ```
 Once downloaded, the dataset for a given split has to be converted to COCO fromat with the script below:
 ```
-python tools/ycb2coco.py --split train 
-                         --split test                   #2949 frames for testing
-                         --split test  --type bop       # 900 frames for testing as in BOP format
+python tools/ycb2coco.py --basepath './datasets/temp_dataset/ycbv' --split train 
+                                                                   --split test                   #2949 frames for testing
+                                                                   --split test  --type bop       # 900 frames for testing as in BOP format
 ```
 
 The above script will generate **instances_train.json**, **instances_test.json** and **instances_test_bop.json**.

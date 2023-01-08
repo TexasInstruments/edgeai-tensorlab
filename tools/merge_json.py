@@ -1,30 +1,19 @@
 import os
 import mmcv
-import yaml
-import shutil
-from tqdm import tqdm
 import json
-import argparse
 
-parser = argparse.ArgumentParser("LINEMOD_PBR2COCO_PARSER")
-parser.add_argument("--json1", default="/data/ssd/6d_pose/ycb/annotations/real/instances_train.json", type=str, help="First json file to merge")
-parser.add_argument("--json2", default="/data/ssd/6d_pose/ycb/annotations/pbr/instances_train.json", type=str, help="Second json file to merge")
-parser.add_argument("--outfile", default="/data/ssd/6d_pose/ycb/annotations/instances_train.json", type=str, help="Merged file")
-args = parser.parse_args()
+def merge_jsons(json1, json2, outfile):
+    assert os.path.exists(json1), "{} doesn't exist".format(json1)
+    assert os.path.exists(json2), "{} doesn't exist".format(json2)
 
-assert args.json1 != None, "Please provide the first json file"
-assert args.json2 != None, "Please provide the second json file"
-
-def merge_jsons():
-
-    with open(args.json1) as foo:
-        print("loading json1...")
+    with open(json1) as foo:
+        print("loading {}...".format(json1))
         coco_json1 = json.load(foo)
         json1_img_count = coco_json1['images'][-1]['id']
         json1_obj_count = coco_json1['annotations'][-1]['id']
 
-    with open(args.json2) as foo:
-        print("loading json2...")
+    with open(json2) as foo:
+        print("loading {}...".format(json2))
         coco_json2 = json.load(foo)
 
     print("Updating image id")
@@ -38,9 +27,8 @@ def merge_jsons():
 
     coco_json1["annotations"].extend(coco_json2["annotations"])
     coco_json1["images"].extend(coco_json2["images"])
-    mmcv.dump(coco_json1, args.outfile)
+    mmcv.dump(coco_json1, outfile)
 
 
-
-if __name__ == "__main__":
-        merge_jsons()
+# if __name__ == "__main__":
+#         merge_jsons(args.json1 , args.json2, args.outfile)

@@ -28,23 +28,32 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-echo "Downloading Base archive"
+echo "***** Downloading Base archive *****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_base.zip
 unzip lmo_base.zip
 cd lmo #All other files are extracted inside this
 
-echo "Downloading LM models (5.4MB)"
+#CAD Models
+echo "***** Downloading LM models (5.4MB) *****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_models.zip
 unzip lmo_models.zip
 
-echo "Downloading train_pbr subset of training images (720.2MB):This may take some time"
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/lm_train_pbr.zip
-unzip lm_train_pbr.zip
-
-echo "Downloading all test images"
+#Test Images
+echo "***** Downloading all test images (720.2MB) *****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_all.zip
 unzip lmo_test_all.zip && mv test test_all  #rename test to test_all
 
-echo "Downloading BOP subset of test images"
+echo "***** Downloading BOP subset of test images (117.6MB)*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_bop19.zip
 unzip lmo_test_bop19.zip && mv test test_bop  #rename test to test_bop
+
+#Training Images
+echo "***** Downloading train_pbr subset of training images (21.8GB):This may take some time *****"
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/lm_train_pbr.zip
+unzip lm_train_pbr.zip
+
+#Annotations. Placeholder for annotation files in COCO format
+mkdir annotations
+
+#Going back to edgeai-yolox
+cd ../..

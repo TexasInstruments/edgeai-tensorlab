@@ -1,14 +1,13 @@
 import os
 import mmcv
-import yaml
-import shutil
 from tqdm import tqdm
 import json
 import argparse
+from merge_json import merge_jsons
 
-parser = argparse.ArgumentParser("YCBV_PBR2COCO_PARSER")
-parser.add_argument("--type", default="real", type=str, help="real, pbr or synt or bop")
-parser.add_argument("--keyframes", default="/data/ssd/6d_pose/ycbv/keyframe.txt", type=str, help="path to the keyframes file list")
+parser = argparse.ArgumentParser("YCBV2COCO_PARSER")
+parser.add_argument("--basepath", default="./data/ycbv", type=str, help="path to ycbv dataset")
+parser.add_argument("--keyframes", default="./data/ycbv/keyframe.txt", type=str, help="path to the keyframes file list")
 parser.add_argument("--split", default='train', type=str, help="Use selected frames")
 
 args = parser.parse_args()
@@ -21,16 +20,25 @@ class_to_name = {
     20: "061_foam_brick"
 }
 
-def convert_to_coco_json(merge=False):
-    basepath = '/data/ssd/6d_pose/ycbv/{}_{}'.format(args.split, args.type)
+
+def convert_to_coco_json(split='train', type='real', keyframes=None):
+    if split == 'train':
+        basepath = os.path.join(args.basepath, '{}_{}'.format(split, type))
+        outfile = os.path.join(args.basepath, 'annotations', 'instances_{}_{}.json'.format(split, type))
+    else:
+        basepath = os.path.join(args.basepath, '{}_{}'.format(split, keyframes))
+        outfile = os.path.join(args.basepath, 'annotations', 'instances_{}_{}.json'.format(split, keyframes))
+    print(outfile)
     data_folders = sorted(os.listdir(basepath))
 
-    outfile = '/data/ssd/6d_pose/ycbv/annotations/temp/instances_{}_{}.json'.format(args.split, args.type)
-    if args.split == 'test':
-        assert args.keyframes is not None, "keyframe file has to be specified"
-        with open(args.keyframes):
-            keyframes_list = list(open(args.keyframes))
-        keyframes_list = ["00" + keyframe.rstrip()+".png" for keyframe in keyframes_list]
+
+    if split == 'test':
+        if keyframes != 'bop':
+            keyframes = os.path.join(args.basepath, 'keyframe.txt')
+            assert os.path.exists(keyframes), "keyframe file :{} is not present".format(keyframes)
+            with open(keyframes):
+                keyframes_list = list(open(keyframes))
+            keyframes_list = ["00" + keyframe.rstrip()+".png" for keyframe in keyframes_list]
 
     for data_folder_idx, data_folder in enumerate(data_folders):
         data_path = os.path.join(basepath, data_folder)
@@ -42,7 +50,7 @@ def convert_to_coco_json(merge=False):
                 with open(path) as foo:
                     annotations_gt[f.split('.')[0]] = json.load(foo)
 
-        if not merge or data_folder_idx==0:
+        if data_folder_idx==0:
             coco = dict()
             coco["images"] = []
             coco["type"] = "instance"
@@ -62,22 +70,22 @@ def convert_to_coco_json(merge=False):
             img_count = 0
 
         pbar = tqdm(enumerate(zip(list(annotations_gt['scene_gt'].items()), list(annotations_gt['scene_gt_info'].items()))), total=len(annotations_gt['scene_gt_info']))
-        num_images = len(list(annotations_gt['scene_gt'].items()))
         for image_index, objects in pbar:
             objects_gt, objects_gt_info = objects[0], objects[1]
-            if args.type == "real":
-                filename = "{:06}".format(image_index+1) + '.png'
-            elif args.type == "pbr":
+            if type == "real":
+                if keyframes == 'bop':
+                    filename = "{:06}".format(int(objects_gt[0])) + '.png'
+                else:
+                    filename = "{:06}".format(image_index+1) + '.png'
+            elif type == "pbr":
                 filename = "{:06}".format(image_index) + '.jpg'
-            elif args.type == "bop":
-                filename = "{:06}".format(int(objects_gt[0])) + '.png'
 
-            if args.keyframes is not None and args.split != 'train' and args.type != 'bop':
-                print(os.path.join(data_folder, filename))
-                if os.path.join(data_folder, filename) not in keyframes_list :
+            if keyframes !='bop':
+                if split == 'test':
+                    if os.path.join(data_folder, filename) not in keyframes_list :
+                        continue
+                elif image_index%10 != 0:
                     continue
-            elif image_index%10 != 0 and args.type!="pbr" and args.type != 'bop':
-                continue
 
             height, width = mmcv.imread(data_path + '/rgb/' + filename).shape[:2]
             image = dict([
@@ -93,6 +101,8 @@ def convert_to_coco_json(merge=False):
                 image.update({'type': "pbr"})
             elif "bop" in path :
                 image.update({'type': "bop"})
+            elif "all" in path:
+                image.update({'type': "all"})
             else:
                 image.update({'type': "syn"})
 
@@ -113,17 +123,21 @@ def convert_to_coco_json(merge=False):
                     coco["annotations"].append(annotation)
             img_count += 1
         pbar.close()
-
     mmcv.dump(coco, outfile)
-
-def sort_images(src, train_dst, test_dst, test_list):
-    for image_num in range(1214):
-        filename = "{:04}".format(image_num) + '.png'
-        if filename[:-4] in test_list:
-            shutil.copy(os.path.join(src,filename), os.path.join(test_dst, filename))
-        else:
-            shutil.copy(os.path.join(src,filename), os.path.join(train_dst, filename))
-
+    return outfile
 
 if __name__ == "__main__":
-        convert_to_coco_json(merge=True)
+    if args.split == "train":
+        #Generate annotations in COCO format for real training images
+        print("Train: Generating annotation for real images")
+        json_real = convert_to_coco_json(split=args.split, type='real')
+        # Generate annotations in COCO format for PBR training images
+        print("Train: Generating annotation for PBR images")
+        json_pbr = convert_to_coco_json(split=args.split, type='pbr', keyframes='bop')
+        #Merge real and pbr dataset for the training dataset
+        train_annotations = os.path.join(args.basepath, 'annotations', 'instances_{}.json'.format(args.split))
+        merge_jsons(json_real, json_pbr, train_annotations)
+    elif args.split=="test":
+        convert_to_coco_json(split=args.split, type='real', keyframes='bop')
+        # convert_to_coco_json(split=args.split, type='real', keyframes='all')
+
