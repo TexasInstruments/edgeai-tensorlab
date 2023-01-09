@@ -84,7 +84,7 @@ cd ../edgeai-yolov5
 
 echo "installing: https://github.com/TexasInstruments/edgeai-benchmark"
 cd ../edgeai-benchmark
-./setup_pc.sh
+./setup_pc.sh r8.4
 
 echo "installing edgeai-modelmaker"
 cd ../edgeai-modelmaker
