@@ -35,7 +35,7 @@ echo 'python version must be >= 3.6'
 exit 1
 fi
 
-TIDL_TOOLS_VERSION=${1:-latest}
+TIDL_TOOLS_VERSION=${1:-r8.4}
 
 ######################################################################
 # Dependencies for building pillow-simd
