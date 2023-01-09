@@ -59,6 +59,11 @@ if [ ! -d ../edgeai-yolov5 ]; then git clone --branch r8.4 ${SOURCE_LOCATION}edg
 echo "cloning done."
 
 #################################################################################
+# upgrade pip
+pip install --upgrade pip
+pip install --upgrade setuptools
+
+#################################################################################
 echo "preparing environment..."
 # for setup.py develop mode to work inside docker environment, this is required
 git config --global --add safe.directory $(pwd)
