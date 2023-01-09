@@ -44,6 +44,11 @@ sudo apt-get install -y libjpeg-dev zlib1g-dev
 echo 'Installing dependencies for TIDL graph visualization'
 sudo apt-get install -y graphviz graphviz-dev
 
+#################################################################################
+# upgrade pip
+pip install --upgrade pip
+pip install --upgrade setuptools
+
 ######################################################################
 echo 'Installing python packages...'
 pip3 install --no-input -r ./requirements_pc.txt
