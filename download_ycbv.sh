@@ -27,39 +27,44 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+GREEN='\033[0;32m'
+NC='\033[0m'
 
-echo "Downloading Base archive"
+echo -e "${GREEN}Moving to datasets"
+cd datasets
+
+echo -e "${GREEN}Downloading Base archive"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_base.zip
 unzip ycbv_base.zip
 cd ycbv # All other files are extracted inside this
 
 #CAD Models
-echo "***** Downloading YCBV models (524MB) *****"
+echo -e "${GREEN}***** Downloading YCBV models (524MB) ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_models.zip
-echo "Extracting YCBV models"
+echo -e "${GREEN}Extracting YCBV models"
 unzip ycbv_models.zip
 
 #Test Images
-echo "***** Downloading all test images (15GB) *****"
+echo -e "${GREEN}***** Downloading all test images (15GB) ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_all.zip
-echo "Extracting all test images (15GB)"
+echo -e "${GREEN}Extracting all test images (15GB)"
 unzip ycbv_test_all.zip && mv test test_all  #rename test to test_all
 wget https://raw.githubusercontent.com/yuxng/YCB_Video_toolbox/master/keyframe.txt  #seleced frames used for evaluation
 
-echo "***** Downloading BOP subset of test images (660MB) *****"
+echo -e "${GREEN}***** Downloading BOP subset of test images (660MB) ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_bop19.zip
-echo "Extracting BOP subset of test images (660MB)"
+echo -e "${GREEN}Extracting BOP subset of test images (660MB)"
 unzip ycbv_test_bop19.zip && mv test test_bop   #rename test to test_bop
 
 #Training Images
-echo "***** Downloading train_pbr subset of training images (21GB). This will take some time *****"
+echo -e "${GREEN}***** Downloading train_pbr subset of training images (21GB). This will take some time ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_pbr.zip
-echo "Extracting train_pbr subset of training images(21GB). This will take some time"
+echo -e "${GREEN}Extracting train_pbr subset of training images(21GB). This will take some time"
 unzip ycbv_train_pbr.zip
 
-echo "***** Downloading train_real split (75.7GB). This will take some time ***** "
+echo -e "${GREEN}***** Downloading train_real split (75.7GB). This will take some time ${NC}***** "
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_real.zip
-echo "Extracting train_real split(75.7GB). This will take some time"
+echo -e "${GREEN}Extracting train_real split(75.7GB). This will take some time"
 unzip ycbv_train_real.zip
 
 #Annotations. Placeholder for annotation files in COCO format

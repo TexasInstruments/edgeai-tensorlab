@@ -27,28 +27,33 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+GREEN='\033[0;32m'
+NC='\033[0m'
 
-echo "***** Downloading Base archive *****"
+echo  -e "${GREEN}Moving to datasets"
+cd datasets
+
+echo  -e "***** ${GREEN}Downloading Base archive ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_base.zip
 unzip lmo_base.zip
 cd lmo #All other files are extracted inside this
 
 #CAD Models
-echo "***** Downloading LM models (5.4MB) *****"
+echo  -e "${GREEN}***** Downloading LM models (5.4MB) ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_models.zip
 unzip lmo_models.zip
 
 #Test Images
-echo "***** Downloading all test images (720.2MB) *****"
+echo  -e "${GREEN}***** Downloading all test images (720.2MB) ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_all.zip
 unzip lmo_test_all.zip && mv test test_all  #rename test to test_all
 
-echo "***** Downloading BOP subset of test images (117.6MB)*****"
+echo  -e "${GREEN}***** Downloading BOP subset of test images (117.6MB)${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_bop19.zip
 unzip lmo_test_bop19.zip && mv test test_bop  #rename test to test_bop
 
 #Training Images
-echo "***** Downloading train_pbr subset of training images (21.8GB):This may take some time *****"
+echo  -e "${GREEN}***** Downloading train_pbr subset of training images (21.8GB):This may take some time ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lm_train_pbr.zip
 unzip lm_train_pbr.zip
 

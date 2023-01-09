@@ -18,24 +18,21 @@ and LINEMOD datset.
 ### **YCBV Datset**
 THe following components needs to be downloaded and structrured in the required way inside **edgeai_yolox/datasets** for the dataloader to read it correctly :
 * [Base archive](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_base.zip)
-* [models](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_models.zip)
-* [train_pbr](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_pbr.zip)
-* [train_real](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_real.zip)
-* [All test images](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_all.zip)
-* [BOP test images](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_bop19.zip)
+* [models](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_models.zip), 524MB 
+* [train_pbr](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_pbr.zip), 21GB
+* [train_real](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_real.zip), 75.7GB
+* [All test images](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_all.zip), 15GB
+* [BOP test images](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_bop19.zip), 660MB
 
 All required components for YCBV dataset can be downloaded with the script below. This will structure them in the required format as well.
 ```
-cd datasets
-../download_ycbv.sh
+./download_ycbv.sh
 ```
 Once downloaded, the dataset for a given split has to be converted to COCO fromat with the script below:
 ```
-python tools/ycb2coco.py --basepath './datasets/temp_dataset/ycbv' --split train 
-                                                                   --split test                   #2949 frames for testing
-                                                                   --split test  --type bop       # 900 frames for testing as in BOP format
+python tools/ycb2coco.py --datapath './datasets/temp_dataset/ycbv' --split train 
+                                                                   --split test                   # 900 frames for testing as in BOP format                                                                    
 ```
-
 The above script will generate **instances_train.json**, **instances_test.json** and **instances_test_bop.json**.
 * **instances_train.json**: Contains annotations for all **50K** pbr images. From the set of real images, we select every 10th frame, resulting in **11355** real images. 
     In total, there are **61355** frames in the training set.
@@ -75,23 +72,22 @@ edgeai-yolox
 ### **LINEMOD Occlusion Dataset**
 SImilar steps as YCBV need to be followed for LINEMOD Occlusion dataset as well. Following files are required to be downloaded and extract in **edgeai_yolox/datasets**:.
 * [Base archive](https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_base.zip)
-* [models](https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_models.zip)
-* [train_pbr](https://bop.felk.cvut.cz/media/data/bop_datasets/lm_train_pbr.zip)
+* [models](https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_models.zip), 5.4MB
+* [train_pbr](https://bop.felk.cvut.cz/media/data/bop_datasets/lm_train_pbr.zip), 21.8GB
+* [All test images](https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_all.zip), 720.2MB
+* [BOP test images](https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_bop19.zip) 117.6MB
 * train_real #Not applicable for LineMOD dataset as there is no real training data available that contains annotation for all objects present in the image.
-* [All test images](https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_all.zip)
-* [BOP test images](https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_bop19.zip)
 
 Download all required components for LMO dataset with the script below. This will structure the dataset in the required format as well.
 ```
-cd datasets
-../download_lmo.sh
+./download_lmo.sh
 ```
 In order to convert LINEMOD-Occlusion datset to COCO format, run the following command:
 ```
 #This portion can be part of readme.
-python tools/lm2coco.py --split train                     #LINEMOD
+python tools/lm2coco.py --datapath './datasets/temp_dataset/lmo' --split train                     #LINEMOD
                         --split test --type bop  
-
+dat
 python tools/lmo2coco.py --split train                    #LINEMOD_OCCLUSION
                          --split test  --type bop
 ```
