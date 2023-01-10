@@ -613,13 +613,12 @@ class DepthImageSave():
         return result, info_dict
 
 class OD3DOutPutPorcess(object):
-    def __init__(self):
-        pass
+    def __init__(self, detection_threshold):
+        self.detection_threshold = detection_threshold
 
     def __call__(self, tidl_op, info_dict):
 
-        tidl_op     =  tidl_op[0][0][0]
-        selected_op =  tidl_op[tidl_op[:,1] > 0.1]
-
+        selected_op = tidl_op[0][0][0]
+        selected_op = selected_op[selected_op[:,1] > self.detection_threshold]
         return np.array(selected_op), info_dict
 

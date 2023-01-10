@@ -188,7 +188,7 @@ class PostProcessTransforms(utils.TransformsCompose):
 
     def get_transform_lidar_base(self):
         postprocess_lidar = [
-            OD3DOutPutPorcess()
+            OD3DOutPutPorcess(self.settings.detection_threshold)
         ]
         transforms = PostProcessTransforms(None, postprocess_lidar)
         return transforms

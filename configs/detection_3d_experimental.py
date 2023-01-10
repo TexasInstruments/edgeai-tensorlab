@@ -37,11 +37,19 @@ def get_configs(settings, work_dir):
     postproc_transforms = postprocess.PostProcessTransforms(settings)
 
     # configs for each model pipeline
-    common_cfg = {
+    common_cfg_1class = {
         'task_type': 'detection_3d',
-        'dataset_category': datasets.DATASET_CATEGORY_KITTI_LIDAR_DET,
-        'calibration_dataset': settings.dataset_cache['kitti_lidar_det']['calibration_dataset'],
-        'input_dataset': settings.dataset_cache['kitti_lidar_det']['input_dataset'],
+        'dataset_category': datasets.DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS,
+        'calibration_dataset': settings.dataset_cache['kitti_lidar_det_1class']['calibration_dataset'],
+        'input_dataset': settings.dataset_cache['kitti_lidar_det_1class']['input_dataset'],
+        'postprocess': None
+    }
+
+    common_cfg_3class = {
+        'task_type': 'detection_3d',
+        'dataset_category': datasets.DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS,
+        'calibration_dataset': settings.dataset_cache['kitti_lidar_det_3class']['calibration_dataset'],
+        'input_dataset': settings.dataset_cache['kitti_lidar_det_3class']['input_dataset'],
         'postprocess': None
     }
 
@@ -52,7 +60,7 @@ def get_configs(settings, work_dir):
         #################################################################
         #       ONNX MODELS
         ################# onnx models ###############################
-        '3dod-7100':utils.dict_update(common_cfg,
+        '3dod-7100':utils.dict_update(common_cfg_1class,
             preprocess=preproc_transforms.get_transform_lidar_base(),
             session=onnx_session_type(**sessions.get_nomeanscale_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_qat(det_options=True,
@@ -65,7 +73,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=None),
             model_info=dict(metric_reference={'accuracy_ap_3d_moderate%':76.50}, model_shortlist=20)
         ),
-        '3dod-7110':utils.dict_update(common_cfg,
+        '3dod-7110':utils.dict_update(common_cfg_3class,
             preprocess=preproc_transforms.get_transform_lidar_base(),
             session=onnx_session_type(**sessions.get_nomeanscale_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_qat(det_options=True,

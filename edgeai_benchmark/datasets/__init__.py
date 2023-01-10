@@ -64,7 +64,8 @@ DATASET_CATEGORY_COCOKPTS = 'cocokpts'
 DATASET_CATEGORY_NYUDEPTHV2 = 'nyudepthv2'
 DATASET_CATEGORY_CITYSCAPES = 'cityscapes'
 DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD = 'ti-robokit_semseg_zed1hd'
-DATASET_CATEGORY_KITTI_LIDAR_DET = 'kitti_lidar_det'
+DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS = 'kitti_lidar_det_1class'
+DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS = 'kitti_lidar_det_3class'
 DATASET_CATEGORY_YCBV = 'ycbv'
 
 dataset_info_dict = {
@@ -98,8 +99,9 @@ dataset_info_dict_experimental = {
     'cityscapes': {'task_type':'segmentation', 'category':DATASET_CATEGORY_CITYSCAPES, 'type':CityscapesSegmentation, 'size':500, 'split':'val'},
     'ti-robokit_semseg_zed1hd': {'task_type':'segmentation', 'category':DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD, 'type':ImageSegmentation, 'size':49, 'split':'val'},
     #------------------------3D OD datasets--------------------------#
-    'kitti_lidar_det': {'task_type':'3d-detection', 'category':DATASET_CATEGORY_KITTI_LIDAR_DET, 'type':KittiLidar3D, 'size':3769, 'split':'val'},
- }
+    'kitti_lidar_det_1class': {'task_type':'3d-detection', 'category':DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS, 'type':KittiLidar3D, 'size':3769, 'split':'val'},
+    'kitti_lidar_det_3class': {'task_type': '3d-detection', 'category': DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS,'type': KittiLidar3D, 'size': 3769, 'split': 'val'},
+}
 
 
 def get_dataset_info_dict(settings):
@@ -336,7 +338,7 @@ def get_datasets(settings, download=False):
             dataset_cache[DATASET_CATEGORY_CITYSCAPES]['calibration_dataset'] = CityscapesSegmentation(**cityscapes_seg_calib_cfg, download=False)
             dataset_cache[DATASET_CATEGORY_CITYSCAPES]['input_dataset'] = CityscapesSegmentation(**cityscapes_seg_val_cfg, download=False)
         #
-        if check_dataset_load(settings, DATASET_CATEGORY_KITTI_LIDAR_DET):
+        if check_dataset_load(settings, DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS):
             dataset_calib_cfg = dict(
                 path=f'{settings.datasets_path}/kitti_3dod/',
                 split='training',
@@ -344,7 +346,7 @@ def get_datasets(settings, download=False):
                 num_classes=3,
                 shuffle=False,
                 num_frames=min(settings.calibration_frames, 3769),
-                name=DATASET_CATEGORY_KITTI_LIDAR_DET)
+                name=DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS)
 
             # dataset parameters for actual inference
             dataset_val_cfg = dict(
@@ -354,14 +356,41 @@ def get_datasets(settings, download=False):
                 num_classes=3,
                 shuffle=False,
                 num_frames=min(settings.num_frames, 3769),
-                name=DATASET_CATEGORY_KITTI_LIDAR_DET)
+                name=DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS)
             try:
-                dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET]['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False, read_anno=False)
-                dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET]['input_dataset'] = KittiLidar3D(**dataset_val_cfg, download=False, read_anno=True)
+                dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS]['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False, read_anno=False)
+                dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS]['input_dataset'] = KittiLidar3D(**dataset_val_cfg, download=False, read_anno=True)
             except Exception as message:
                 print(f'KittiLidar3D dataset loader could not be created: {message}')
             #
         #
+        if check_dataset_load(settings, DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS):
+            dataset_calib_cfg = dict(
+                path=f'{settings.datasets_path}/kitti_3dod/',
+                split='training',
+                pts_prefix='velodyne_reduced',
+                num_classes=1,
+                shuffle=False,
+                num_frames=min(settings.calibration_frames, 3769),
+                name=DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS)
+
+            # dataset parameters for actual inference
+            dataset_val_cfg = dict(
+                path=f'{settings.datasets_path}/kitti_3dod/',
+                split='training',
+                pts_prefix='velodyne_reduced',
+                num_classes=1,
+                shuffle=False,
+                num_frames=min(settings.num_frames, 3769),
+                name=DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS)
+            try:
+                dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS]['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False, read_anno=False)
+                dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS]['input_dataset'] = KittiLidar3D(**dataset_val_cfg, download=False, read_anno=True)
+            except Exception as message:
+                print(f'KittiLidar3D dataset loader could not be created: {message}')
+            #
+        #
+
         if check_dataset_load(settings, DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD):
             dataset_calib_cfg = dict(
                 path=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd',
