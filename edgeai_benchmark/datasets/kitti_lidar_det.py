@@ -274,13 +274,17 @@ class KittiLidar3D(DatasetBase):
             random.shuffle(self.val_image_ids)
 
         self.num_classes = kwargs['num_classes']
-        self.class_to_name = {
-                                0: 'Car',
-                                1: 'Pedestrian',
-                                2: 'Cyclist',
-                                3: 'Van',
-                                4: 'Person_sitting',
-                        }
+
+        if self.num_classes == 1:
+            self.class_to_name = {
+                                    0: 'Car'
+                            }
+        else:
+            self.class_to_name = {
+                                    0: 'Pedestrian',
+                                    1: 'Cyclist',
+                                    2: 'Car'
+                            }
 
         self.class_names =[self.class_to_name[i] for i in range(self.num_classes)]
 
@@ -319,7 +323,7 @@ class KittiLidar3D(DatasetBase):
     def __call__(self, predictions, **kwargs):
         #predictions = np.load('/user/a0393749/deepak_files/github/mmdetection3d-work/edgeai-mmdetection3d/bin_out.bin.npy',allow_pickle=True)
         dt_annos = self.bbox2result_kitti(predictions,self.class_names)
-        acc = get_official_eval_result(self.gt_annos, dt_annos, 0)
+        acc = get_official_eval_result(self.gt_annos, dt_annos, self.class_names)
         ap_dict = {'KITTI_official_eval_result':acc[0]}
         return ap_dict
 
