@@ -1,7 +1,5 @@
 import os
 import mmcv
-import yaml
-import shutil
 from tqdm import tqdm
 import json
 import argparse
@@ -20,7 +18,8 @@ class_to_name = {0: "ape", 1: "benchvise", 2: "bowl", 3: "can", 4: "cat",
 def convert_lmo2coco(split='train', type='real', keyframes=None, datapath="./datasets/lmo"):
     if split == 'train':
         basepath = os.path.join(datapath, '{}_{}'.format(split, type))
-        outfile = os.path.join(datapath, 'annotations', 'instances_{}_{}.json'.format(split, type))
+        outfile = os.path.join(datapath, 'annotations', 'instances_{}.json'.format(split))
+        # outfile = os.path.join(datapath, 'annotations', 'instances_{}_{}.json'.format(split, type))
     else:
         basepath = os.path.join(datapath, '{}_{}'.format(split, keyframes))
         outfile = os.path.join(datapath, 'annotations', 'instances_{}_{}.json'.format(split, keyframes))
@@ -74,6 +73,16 @@ def convert_lmo2coco(split='train', type='real', keyframes=None, datapath="./dat
                 ("height", height),
                 ("width", width),
             ])
+            if "real" in path:
+                image.update({'type': "real"})
+            elif "pbr" in path:
+                image.update({'type': "pbr"})
+            elif "bop" in path :
+                image.update({'type': "bop"})
+            elif "all" in path:
+                image.update({'type': "all"})
+            else:
+                image.update({'type': "syn"})
 
             coco["images"].append(image)
             for object_gt, object_gt_info  in zip(objects_gt[1], objects_gt_info[1]):
@@ -97,6 +106,11 @@ def convert_lmo2coco(split='train', type='real', keyframes=None, datapath="./dat
 
 
 if __name__ == "__main__":
-    convert_lmo2coco(split='train', type='pbr',keyframes=None, datapath=args.datapath)
-    convert_lmo2coco(split='test', type='real',keyframes='bop', datapath=args.datapath)
+    if args.split=='train':
+        #For LMO, we only use pbr images for training since no real imaeges as part of training have all annotation available.
+        convert_lmo2coco(split='train', type='pbr',keyframes=None, datapath=args.datapath)
+    elif args.split=='test':
+        convert_lmo2coco(split='test', type='real',keyframes='bop', datapath=args.datapath)
+    else:
+        print("Invalid split given, Only vaiid options are \'train\' and \'test\'")
 

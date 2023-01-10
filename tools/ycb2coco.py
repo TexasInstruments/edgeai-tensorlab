@@ -133,10 +133,12 @@ if __name__ == "__main__":
         # Generate annotations in COCO format for PBR training images
         print("Train: Generating annotation for PBR images")
         json_pbr = convert_ycb2coco(split=args.split, type='pbr', keyframes='bop', datapath=args.datapath)
-        #Merge real and pbr dataset for the training dataset
+        #Merge real and pbr annotation for the final training annotation
         train_annotations = os.path.join(args.datapath, 'annotations', 'instances_{}.json'.format(args.split))
         merge_jsons(json_real, json_pbr, train_annotations)
     elif args.split=="test":
         convert_ycb2coco(split=args.split, type='real', keyframes='bop', datapath=args.datapath)
         # convert_to_coco_json(split=args.split, type='real', keyframes='all')
+    else:
+        print("Invalid split given, Only vaiid options are \'train\' and \'test\'")
 

@@ -30,8 +30,8 @@ All required components for YCBV dataset can be downloaded with the script below
 ```
 Once downloaded, the dataset for a given split has to be converted to COCO fromat with the script below:
 ```
-python tools/ycb2coco.py --datapath './datasets/temp_dataset/ycbv' --split train 
-                                                                   --split test                   # 900 frames for testing as in BOP format                                                                    
+python tools/ycb2coco.py --datapath './datasets/ycbv' --split train 
+                                                      --split test                   # 900 frames for testing as in BOP format                                                                    
 ```
 The above script will generate **instances_train.json**, **instances_test.json** and **instances_test_bop.json**.
 * **instances_train.json**: Contains annotations for all **50K** pbr images. From the set of real images, we select every 10th frame, resulting in **11355** real images. 
@@ -85,11 +85,8 @@ Download all required components for LMO dataset with the script below. This wil
 In order to convert LINEMOD-Occlusion datset to COCO format, run the following command:
 ```
 #This portion can be part of readme.
-python tools/lm2coco.py --datapath './datasets/temp_dataset/lmo' --split train                     #LINEMOD
-                        --split test --type bop  
-dat
-python tools/lmo2coco.py --split train                    #LINEMOD_OCCLUSION
-                         --split test  --type bop
+python tools/lm2ococo.py --datapath './datasets/lmo' --split train                     #LINEMOD
+                                                    --split test --type bop  
 ```
 ## **YOLO-6D-Pose Models and Ckpts**.
 
