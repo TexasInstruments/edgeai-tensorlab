@@ -27,44 +27,46 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+RED='\033[0;31m'
 GREEN='\033[0;32m'
+BLUE='\033[0;34m'
 NC='\033[0m'
 
-echo -e "${GREEN}Moving to datasets"
+echo -e "${GREEN}Moving to datasets${NC}"
 cd datasets
 
-echo -e "${GREEN}Downloading Base archive"
+echo -e "${GREEN}Downloading Base archive${NC}"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_base.zip
 unzip ycbv_base.zip
 cd ycbv # All other files are extracted inside this
 
 #CAD Models
-echo -e "${GREEN}***** Downloading YCBV models (524MB) ${NC}*****"
+echo -e "***** ${GREEN}Downloading YCBV models ${BLUE}(524MB) ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_models.zip
-echo -e "${GREEN}Extracting YCBV models"
+echo -e "${GREEN}Extracting YCBV models${NC}"
 unzip ycbv_models.zip
 
 #Test Images
-echo -e "${GREEN}***** Downloading all test images (15GB) ${NC}*****"
+echo -e "***** ${GREEN}Downloading all test images ${BLUE}(15GB).${RED}This will take some time ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_all.zip
-echo -e "${GREEN}Extracting all test images (15GB)"
+echo -e "${GREEN}Extracting all test images ${BLUE}(15GB)${NC}"
 unzip ycbv_test_all.zip && mv test test_all  #rename test to test_all
 wget https://raw.githubusercontent.com/yuxng/YCB_Video_toolbox/master/keyframe.txt  #seleced frames used for evaluation
 
-echo -e "${GREEN}***** Downloading BOP subset of test images (660MB) ${NC}*****"
+echo -e "***** ${GREEN}Downloading BOP subset of test images ${BLUE}(660MB) ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_bop19.zip
-echo -e "${GREEN}Extracting BOP subset of test images (660MB)"
+echo -e "${GREEN}Extracting BOP subset of test images ${BLUE}(660MB)${NC}"
 unzip ycbv_test_bop19.zip && mv test test_bop   #rename test to test_bop
 
 #Training Images
-echo -e "${GREEN}***** Downloading train_pbr subset of training images (21GB). This will take some time ${NC}*****"
+echo -e "***** ${GREEN}Downloading train_pbr subset of training images ${BLUE}(21GB).${RED}This will take some time ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_pbr.zip
-echo -e "${GREEN}Extracting train_pbr subset of training images(21GB). This will take some time"
+echo -e "${GREEN}Extracting train_pbr subset of training images${BLUE}(21GB).${RED}This will take some time${NC}"
 unzip ycbv_train_pbr.zip
 
-echo -e "${GREEN}***** Downloading train_real split (75.7GB). This will take some time ${NC}***** "
+echo -e "***** ${GREEN}Downloading train_real split ${BLUE}(75.7GB).${RED}This will take some time ${NC}***** "
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_real.zip
-echo -e "${GREEN}Extracting train_real split(75.7GB). This will take some time"
+echo -e "${GREEN}Extracting train_real split ${BLUE}(75.7GB).${RED}This will take some time${NC}"
 unzip ycbv_train_real.zip
 
 #Annotations. Placeholder for annotation files in COCO format

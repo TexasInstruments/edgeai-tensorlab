@@ -16,19 +16,19 @@ from yolox.core import launch
 from yolox.exp import get_exp
 from yolox.utils import configure_nccl, fuse_model, get_local_rank, get_model_info, setup_logger
 
-_SUPPORTED_DATASETS = ["coco", "linemod_occlusion","linemod_occlusion_pbr", "ycbv", "coco_kpts"]
-_NUM_CLASSES = {"coco":80, "linemod_occlusion":15, "linemod_occlusion_pbr":15, "ycbv": 21, "coco_kpts":1}
+_SUPPORTED_DATASETS = ["coco", "lm","lmo", "ycbv", "coco_kpts"]
+_NUM_CLASSES = {"coco":80, "lm":15, "lmo":15, "ycbv": 21, "coco_kpts":1}
 _VAL_ANN = {
     "coco":"instances_val2017.json", 
-    "linemod_occlusion":"instances_test.json",
-    "linemod_occlusion_pbr":"instances_test.json",
+    "lm":"instances_test.json",
+    "lmo":"instances_test.json",
     "ycbv": "instances_test_bop.json",
     "coco_kpts": "person_keypoints_val2017.json",
 }
 _SUPPORTED_TASKS = {
     "coco":["2dod"],
-    "linemod_occlusion":["2dod", "object_pose"],
-    "linemod_occlusion_pbr":["2dod", "object_pose"],
+    "lm":["2dod", "object_pose"],
+    "lmo":["2dod", "object_pose"],
     "ycbv":["2dod", "object_pose"],
     "coco_kpts": ["2dod", "human_pose"],
 }
@@ -177,7 +177,7 @@ def main(exp, args, num_gpu):
         assert (
             args.task in _SUPPORTED_TASKS[args.dataset] if args.dataset is not None else args.task == "2dod"
         ), "The specified task cannot be performed with the given dataset!"
-        if args.dataset == "linemod_occlusion":
+        if args.dataset == "ycbv" or args.dataset == "lmo" or args.dataset == "lm":
             if args.task == "object_pose":
                 exp.object_pose = True
         elif args.dataset == "coco_kpts":

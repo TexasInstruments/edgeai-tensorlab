@@ -48,7 +48,7 @@ class Exp(MyExp):
         self.test_size = (480, 640)
         self.test_conf = 0.01
         self.nmsthre = 0.001
-        self.data_set = "linemod_occlusion_pbr" # "linemod_occlusion"
+        self.data_set = "ycbv" # "lmo"
         self.object_pose  = True
         self.visualize = True
         self.od_weights = None
@@ -102,8 +102,8 @@ class Exp(MyExp):
             local_rank = get_local_rank()
 
             with wait_for_the_master(local_rank):
-                if self.data_set == "linemod_occlusion" or self.data_set == "linemod_occlusion_pbr":
-                    base_dir = "LINEMOD_Occlusion_COCO" if self.data_set == "linemod_occlusion" else "LINEMOD_Occlusion_COCO_PBR"
+                if self.data_set == "lm" or self.data_set == "lmo":
+                    base_dir = "lm" if self.data_set == "lm" else "lmo"
                     dataset = LINEMODOcclusionDataset(
                             data_dir=self.data_dir,
                             json_file=self.train_ann,

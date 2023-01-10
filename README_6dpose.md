@@ -31,9 +31,9 @@ All required components for YCBV dataset can be downloaded with the script below
 Once downloaded, the dataset for a given split has to be converted to COCO fromat with the script below:
 ```
 python tools/ycb2coco.py --datapath './datasets/ycbv' --split train 
-                                                      --split test                   # 900 frames for testing as in BOP format                                                                    
+                                                      --split test                   # 900 frames for testing are used by default as in BOP format                                                                    
 ```
-The above script will generate **instances_train.json**, **instances_test.json** and **instances_test_bop.json**.
+The above script will generate **instances_train.json** (), **instances_test.json** () and **instances_test_bop.json** ().
 * **instances_train.json**: Contains annotations for all **50K** pbr images. From the set of real images, we select every 10th frame, resulting in **11355** real images. 
     In total, there are **61355** frames in the training set.
 * **instances_test.json** Contains annotations for **2949** default test images.
@@ -85,9 +85,10 @@ Download all required components for LMO dataset with the script below. This wil
 In order to convert LINEMOD-Occlusion datset to COCO format, run the following command:
 ```
 #This portion can be part of readme.
-python tools/lm2ococo.py --datapath './datasets/lmo' --split train                     #LINEMOD
-                                                    --split test --type bop  
+python tools/lm2ococo.py --datapath './datasets/lmo' --split train                
+                                                     --split test    # 200 frames for testing are used by default as in BOP format   
 ```
+The above script will generate **instances_train.json** (253.9MB) and **instances_test_bop.json** (429.6KB).
 ## **YOLO-6D-Pose Models and Ckpts**.
 
 |Dataset | Model Name              |Input Size |GFLOPS | AR  | AR<sub>VSD</sub>| AR<sub>MSSD</sub> | AR<sub>MSPD</sub> | ADD(s)| Notes |

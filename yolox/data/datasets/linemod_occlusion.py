@@ -18,14 +18,17 @@ from .datasets_wrapper import Dataset
 class CADModelsLM():
     def __init__(self, data_dir=None):
         if data_dir is None:
-            data_dir = os.path.join(get_yolox_datadir(), "LINEMOD_Occlusion_COCO")
+            data_dir = os.path.join(get_yolox_datadir(), "lmo")
         self.data_dir = data_dir
         self.cad_models_path = os.path.join(self.data_dir, "models")
-        self.class_to_name = {0: "ape", 1: "benchvise", 2: "bowl", 3: "cam", 4: "can", 5: "cat", 6: "cup",
-                         7: "driller", 8: "duck", 9: "eggbox", 10: "glue", 11: "holepuncher", 12: "iron", 13: "lamp",
-                         14: "phone"}
-        self.models_dict_path = os.path.join(self.cad_models_path, "models_info.yml")
-        self.models_dict = yaml.safe_load(open(self.models_dict_path, 'r'))
+        self.class_to_name = {
+                             0: "ape",  4: "can", 5: "cat",
+                             7: "driller", 8: "duck", 9: "eggbox",
+                             10: "glue", 11: "holepuncher",
+                             }
+        self.models_dict_path = os.path.join(self.cad_models_path, "models_info.json")
+        with open(self.models_dict_path) as foo:
+            self.models_dict  = json.load(foo)
         self.class_to_model = self.load_cad_models()
         self.class_to_sparse_model = self.create_sparse_models()
         self.models_corners, self.models_diameter = self.get_models_params()
@@ -33,7 +36,7 @@ class CADModelsLM():
         self.camera_matrix =  self.get_camera_params()
 
     def get_camera_params(self):
-        camera_params_path = os.path.join(self.data_dir, "lm", "camera.json")
+        camera_params_path = os.path.join(self.data_dir, "camera.json")
         with open(camera_params_path) as foo:
             camera_params = json.load(foo)
         camera_matrix = np.array([camera_params['fx'], 0, camera_params['cx'], 0.0, camera_params['fy'], camera_params['cy'], 0.0, 0.0, 1.0])
@@ -43,7 +46,7 @@ class CADModelsLM():
         class_to_model = {class_id: None for class_id in self.class_to_name.keys()}
         logger.info("Loading 3D models...")
         for class_id, name in self.class_to_name.items():
-            file = "obj_{:02}.ply".format(class_id + 1)
+            file = "obj_{:06}.ply".format(class_id + 1)
             cad_model_path = os.path.join(self.cad_models_path, file)
 
             if not os.path.isfile(cad_model_path):
@@ -83,8 +86,8 @@ class CADModelsLM():
                 [max_x, max_y, max_z],
                 [max_x, max_y, min_z],
             ])
-            models_corners_3d.update({model_id-1: corners_3d})
-            models_diameter.update({model_id-1: model_param['diameter']})
+            models_corners_3d.update({int(model_id)-1: corners_3d})
+            models_diameter.update({int(model_id)-1: model_param['diameter']})
         return models_corners_3d, models_diameter
 
     def create_sparse_models(self):
@@ -111,7 +114,7 @@ class LINEMODOcclusionDataset(Dataset):
         cache=False,
         object_pose=False,
         symmetric_objects={9: "eggbox", 10: "glue"},
-        base_dir = "LINEMOD_Occlusion_COCO"
+        base_dir = "lmo"
     ):
         """
         LINEMODOcclusion dataset initialization. Annotation data are read into memory by COCO API.

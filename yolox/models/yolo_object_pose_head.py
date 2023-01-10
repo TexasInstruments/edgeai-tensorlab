@@ -32,7 +32,7 @@ class YOLOXObjectPoseHead(nn.Module):
         in_channels=[256, 512, 1024],
         act="silu",
         depthwise=False,
-        dataset = "linemod",
+        dataset = "ycbv",
         adds = True,
         shape_loss = False,
         adds_z = True
@@ -60,7 +60,7 @@ class YOLOXObjectPoseHead(nn.Module):
         self.trn_preds_z = nn.ModuleList()
         self.obj_preds = nn.ModuleList()
         self.stems = nn.ModuleList()
-        if "linemod" in dataset:
+        if "lm" in dataset:
             self.cad_models = CADModelsLM()
         elif "ycbv" in dataset:
             self.cad_models = CADModelsYCBV()
@@ -566,6 +566,7 @@ class YOLOXObjectPoseHead(nn.Module):
         loss_rot = (self.mae_loss(
                 rot_preds.view(-1, 6)[fg_masks], rot_targets)
         ).sum() / num_fg
+        #loss_rot = 4 * (2 - (rot_preds.view(-1, 6)[fg_masks] * rot_targets).sum()/num_fg) #Cosine similarity loss
         loss_trn_xy = (self.kpts_loss(trn_xy_preds.view(-1, 2)[fg_masks], trn_xy_targets, reg_targets)
         ).sum() / num_fg
         if not self.adds_z:

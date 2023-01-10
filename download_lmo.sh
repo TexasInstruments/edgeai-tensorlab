@@ -27,34 +27,41 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
+BLUE='\033[0;34m'
 
-echo  -e "${GREEN}Moving to datasets"
+echo  -e "${GREEN}Moving to datasets${NC}"
 cd datasets
 
 echo  -e "***** ${GREEN}Downloading Base archive ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_base.zip
 unzip lmo_base.zip
+echo  -e "***** ${GREEN}Downloading Base archive ${NC}*****"
 cd lmo #All other files are extracted inside this
 
 #CAD Models
-echo  -e "${GREEN}***** Downloading LM models (5.4MB) ${NC}*****"
+echo  -e "***** ${GREEN}Downloading LM models ${BLUE}(5.4MB) ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_models.zip
+echo -e "${GREEN}Extracting LM models${NC}"
 unzip lmo_models.zip
 
 #Test Images
-echo  -e "${GREEN}***** Downloading all test images (720.2MB) ${NC}*****"
+echo  -e "***** ${GREEN}Downloading all test images ${BLUE}(720.2MB) ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_all.zip
+echo -e "${GREEN}Extracting all test images ${BLUE}(720.2MB)${NC}"
 unzip lmo_test_all.zip && mv test test_all  #rename test to test_all
 
-echo  -e "${GREEN}***** Downloading BOP subset of test images (117.6MB)${NC}*****"
+echo  -e "***** ${GREEN}Downloading BOP subset of test images ${BLUE}(117.6MB)${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_bop19.zip
+echo -e "${GREEN}Extracting BOP subset of test images ${BLUE}(117.6MB)${NC}"
 unzip lmo_test_bop19.zip && mv test test_bop  #rename test to test_bop
 
 #Training Images
-echo  -e "${GREEN}***** Downloading train_pbr subset of training images (21.8GB):This may take some time ${NC}*****"
+echo  -e "***** ${GREEN}Downloading train_pbr subset of training images ${BLUE}(21.8GB).${RED}This will take some time ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lm_train_pbr.zip
+echo -e "${GREEN}Extracting train_pbr subset of training images${BLUE}(21.8GB).${RED}This will take some time${NC}"
 unzip lm_train_pbr.zip
 
 #Annotations. Placeholder for annotation files in COCO format

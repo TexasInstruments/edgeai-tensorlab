@@ -18,26 +18,26 @@ from google.protobuf import text_format
 from yolox.utils.proto.pytorch2proto import prepare_model_for_layer_outputs, retrieve_onnx_names
 
 import cv2
-_SUPPORTED_DATASETS = ["coco", "linemod_occlusion","linemod_occlusion_pbr", "ycbv", "coco_kpts"]
-_NUM_CLASSES = {"coco":80, "linemod_occlusion":15, "linemod_occlusion_pbr":15, "ycbv": 21, "coco_kpts":1}
+_SUPPORTED_DATASETS = ["coco", "lm","lmo", "ycbv", "coco_kpts"]
+_NUM_CLASSES = {"coco":80, "lm":15, "lmo":15, "ycbv": 21, "coco_kpts":1}
 _VAL_ANN = {
     "coco":"instances_val2017.json", 
-    "linemod_occlusion":"instances_test.json",
-    "linemod_occlusion_pbr":"instances_test.json",
+    "lm":"instances_test.json",
+    "lmo":"instances_test.json",
     "ycbv": "instances_test.json",
     "coco_kpts": "person_keypoints_val2017.json",
 }
 _TRAIN_ANN = {
     "coco":"instances_train2017.json",
-    "linemod_occlusion":"instances_train.json",
-    "linemod_occlusion_pbr":"instances_train.json",
+    "lm":"instances_train.json",
+    "lmo":"instances_train.json",
     "ycbv": "instances_train.json",
     "coco_kpts": "person_keypoints_train2017.json",
 }
 _SUPPORTED_TASKS = {
     "coco":["2dod"],
-    "linemod_occlusion":["2dod", "object_pose"],
-    "linemod_occlusion_pbr":["2dod", "object_pose"],
+    "lm":["2dod", "object_pose"],
+    "lmo":["2dod", "object_pose"],
     "ycbv":["2dod", "object_pose"],
     "coco_kpts": ["2dod", "human_pose"],
 }
@@ -156,7 +156,7 @@ def main():
             assert (
                 args.task in _SUPPORTED_TASKS[args.dataset]
             ), "The specified task cannot be performed with the given dataset!"
-            if args.dataset == "linemod":
+            if args.dataset == "lmo" or args.dataset == "lm":
                 if args.task == "object_pose":
                     exp.object_pose = True
     exp.merge(args.opts)
@@ -194,7 +194,7 @@ def main():
         if args.task == "object_pose":
             if args.dataset == 'ycbv':
                 camera_matrix = model.head.cad_models.camera_matrix['camera_uw']  #camera_matrix for val split
-            elif args.dataset == 'linemod':
+            elif args.dataset == 'lmo' or args.dataset == "lm":
                 camera_matrix = model.head.cad_models.camera_matrix
             post_process = PostprocessExport(conf_thre=0.4, nms_thre=0.01, num_classes=exp.num_classes, object_pose=True, camera_matrix=camera_matrix)
         else:

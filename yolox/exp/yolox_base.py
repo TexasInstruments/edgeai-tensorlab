@@ -126,8 +126,8 @@ class Exp(BaseExp):
                         hsv_prob=self.hsv_prob),
                     cache=cache_img,
                 )
-            elif self.data_set == "linemod_occlusion_pbr" or self.data_set == "linemod_occlusion":
-               base_dir = "LINEMOD_Occlusion_COCO" if self.data_set == "linemod_occlusion" else "LINEMOD_Occlusion_COCO_PBR"
+            elif self.data_set == "lmo" or self.data_set == "lm":
+               base_dir = "lm" if self.data_set == "lm" else "lmo"
                dataset = LINEMODOcclusionDataset(
                     data_dir=self.data_dir,
                     json_file=self.train_ann,
@@ -297,8 +297,8 @@ class Exp(BaseExp):
                 img_size=self.test_size,
                 preproc=ValTransform(legacy=legacy),
             )
-        elif self.data_set == "linemod_occlusion" or self.data_set == "linemod_occlusion_pbr":
-            base_dir = "LINEMOD_Occlusion_COCO" if self.data_set == "linemod_occlusion" else "LINEMOD_Occlusion_COCO_PBR"
+        elif self.data_set == "lm" or self.data_set == "lmo":
+            base_dir = "lm" if self.data_set == "lm" else "lmo"
             valdataset = LINEMODOcclusionDataset(
                 data_dir=self.data_dir,
                 json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
