@@ -376,6 +376,7 @@ class QuantTrainPAct2(layers.PAct2):
             width_min, width_max = self.get_widths_act()
             # no need to call super().forward here as clipping with width_min/windth_max-1 after scaling has the same effect.
             yq = layers.quantize_dequantize_g(xq, scale, width_min, width_max-1, self.power2_activation_range, 1, 'round_up')
+            print(f"layer: {self.name} feature_scale = {scale}")
         else:
             yq = super().forward(xq, update_activation_range=False, enable=True)
         #
@@ -462,6 +463,7 @@ class QuantTrainPAct2(layers.PAct2):
                 power2_bias_range = (self.power2_weight_range and self.power2_activation_range)
                 merged_bias = layers.quantize_dequantize_g(merged_bias, bias_scale2, bias_width_min, bias_width_max - 1,
                                                            power2_bias_range, 0, 'round_sym')
+                print(f"layer: {self.name} bias_scale = {bias_scale2}")
             # #
             # quantize the weights
             if (self.quantize_enable and self.quantize_weights):
@@ -502,6 +504,7 @@ class QuantTrainPAct2(layers.PAct2):
                 per_channel_q_axis = 1 if is_deconv else 0
                 merged_weight = layers.quantize_dequantize_g(merged_weight, weight_scale2, width_min, width_max-1,
                                                              self.power2_weight_range, per_channel_q_axis, 'round_sym')
+                print(f"layer: {self.name} weight_scale = {weight_scale2}")
             #
             # invert the bn operation and store weights/bias
             if self.quantize_enable and self.quantize_weights and is_store_weights_iter:
