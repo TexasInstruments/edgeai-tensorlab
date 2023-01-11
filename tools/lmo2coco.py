@@ -11,9 +11,16 @@ parser.add_argument("--split", default='train', type=str, help="split can be wit
 
 args = parser.parse_args()
 
-class_to_name = {0: "ape", 4: "cat", 5: "cup",
-                  7: "duck", 8: "glue", 9: "holepuncher",
-                 10: "iron", 11: "lamp"}
+class_to_name_orig = {0: "ape", 4: "cat", 5: "cup", 7: "duck",
+                      8: "glue", 9: "holepuncher", 10: "iron", 11: "lamp"}
+
+class_to_name = {0: "ape", 1: "cat", 2: "cup", 3: "duck",
+                 4: "glue", 5: "holepuncher", 6: "iron", 7: "lamp"}
+
+class_map = {                            #class map used for training
+             0: 0, 4: 1, 5: 2, 7: 3,
+             8: 4, 9: 5, 10: 6, 11: 7,
+             }
 
 def convert_lmo2coco(split='train', type='real', keyframes=None, datapath="./datasets/lmo"):
     if split == 'train':
@@ -86,7 +93,7 @@ def convert_lmo2coco(split='train', type='real', keyframes=None, datapath="./dat
 
             coco["images"].append(image)
             for object_gt, object_gt_info  in zip(objects_gt[1], objects_gt_info[1]):
-                if object_gt["obj_id"]-1 not in class_to_name.keys() : continue  # Consider classes that are part of lmo
+                if object_gt["obj_id"]-1 not in class_to_name_orig.keys() : continue  # Consider classes that are part of lmo
                 if object_gt_info['visib_fract'] > 0:
                     annotation = dict([
                         ("image_id", img_count),
@@ -94,7 +101,7 @@ def convert_lmo2coco(split='train', type='real', keyframes=None, datapath="./dat
                         ("bbox", object_gt_info["bbox_visib"]),
                         ("area", object_gt_info["bbox_visib"][2] * object_gt_info["bbox_visib"][3]),
                         ("iscrowd", 0),
-                        ("category_id", object_gt["obj_id"]-1),
+                        ("category_id", class_map[object_gt["obj_id"]-1]),
                         ("R", object_gt["cam_R_m2c"]),
                         ("T", object_gt["cam_t_m2c"])
                     ])

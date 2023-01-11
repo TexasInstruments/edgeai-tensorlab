@@ -143,8 +143,7 @@ class LINEMODOcclusionDataset(Dataset):
 
         self.coco = COCO(os.path.join(self.data_dir, "annotations", self.json_file))
         self.ids = self.coco.getImgIds()
-        self.class_ids_orig = sorted(self.coco.getCatIds())
-        self.class_ids = list(range(0, len(self.class_ids_orig )))
+        self.class_ids = sorted(self.coco.getCatIds())
         cats = self.coco.loadCats(self.coco.getCatIds())
         self._classes = tuple([c["name"] for c in cats])
         self.imgs = None
@@ -243,7 +242,7 @@ class LINEMODOcclusionDataset(Dataset):
             res = np.zeros((num_objs, 5))
 
         for ix, obj in enumerate(objs):
-            cls = self.class_ids_orig.index(obj["category_id"])
+            cls = self.class_ids.index(obj["category_id"])
             res[ix, 0:4] = obj["clean_bbox"]
             res[ix, 4] = cls
             if self.object_pose:
