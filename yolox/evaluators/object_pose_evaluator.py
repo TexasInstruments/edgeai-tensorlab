@@ -134,7 +134,10 @@ class ObjectPoseEvaluator:
                     inference_time += infer_end - start
 
                 predicted_pose = postprocess_object_pose(outputs, self.num_classes, self.confthre, self.nmsthre)
-                camera_matrix = self.dataloader.dataset.cad_models.camera_matrix['camera_uw']
+                if isinstance(self.dataloader.dataset.cad_models.camera_matrix, dict):
+                    camera_matrix = self.dataloader.dataset.cad_models.camera_matrix['camera_uw']
+                else:
+                    camera_matrix = self.dataloader.dataset.cad_models.camera_matrix
                 frame_data_list, frame_pred_data_list = self.convert_to_coco_format(predicted_pose, targets, info_imgs, ids, camera_matrix)
                 data_list.extend(frame_data_list)
                 pred_data_list.extend(frame_pred_data_list)

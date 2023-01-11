@@ -21,10 +21,13 @@ class CADModelsLM():
             data_dir = os.path.join(get_yolox_datadir(), "lmo")
         self.data_dir = data_dir
         self.cad_models_path = os.path.join(self.data_dir, "models")
-        self.class_to_name = {
-                             0: "ape",  4: "can", 5: "cat",
-                             7: "driller", 8: "duck", 9: "eggbox",
-                             10: "glue", 11: "holepuncher",
+        self.class_to_name_orig = {
+                              0: "ape",  4: "can", 5: "cat", 7: "driller",
+                              8: "duck", 9: "eggbox", 10: "glue", 11: "holepuncher",
+                             }
+        self.class_to_name = {                               #class map used for training
+                             0: "ape",  1: "can", 2: "cat", 3: "driller",
+                             4: "duck", 5: "eggbox", 6: "glue", 7: "holepuncher",
                              }
         self.class_to_name_map = {                            #class map used for training
                              0: 0, 4: 1, 5: 2,
@@ -50,7 +53,7 @@ class CADModelsLM():
     def load_cad_models(self):
         class_to_model = {class_id: None for class_id in self.class_to_name_map.values()}
         logger.info("Loading 3D models...")
-        for class_id, name in self.class_to_name.items():
+        for class_id, name in self.class_to_name_orig.items():
             file = "obj_{:06}.ply".format(class_id + 1)
             cad_model_path = os.path.join(self.cad_models_path, file)
 
@@ -119,7 +122,7 @@ class LINEMODOcclusionDataset(Dataset):
         preproc=None,
         cache=False,
         object_pose=False,
-        symmetric_objects={9: "eggbox", 10: "glue"},
+        symmetric_objects={5: "eggbox", 6: "glue"},
         base_dir = "lmo"
     ):
         """
@@ -140,7 +143,8 @@ class LINEMODOcclusionDataset(Dataset):
 
         self.coco = COCO(os.path.join(self.data_dir, "annotations", self.json_file))
         self.ids = self.coco.getImgIds()
-        self.class_ids = sorted(self.coco.getCatIds())
+        self.class_ids_orig = sorted(self.coco.getCatIds())
+        self.class_ids = list(range(0, len(self.class_ids_orig )))
         cats = self.coco.loadCats(self.coco.getCatIds())
         self._classes = tuple([c["name"] for c in cats])
         self.imgs = None
@@ -239,7 +243,7 @@ class LINEMODOcclusionDataset(Dataset):
             res = np.zeros((num_objs, 5))
 
         for ix, obj in enumerate(objs):
-            cls = self.class_ids.index(obj["category_id"])
+            cls = self.class_ids_orig.index(obj["category_id"])
             res[ix, 0:4] = obj["clean_bbox"]
             res[ix, 4] = cls
             if self.object_pose:
@@ -287,13 +291,9 @@ class LINEMODOcclusionDataset(Dataset):
     def load_image(self, index):
         file_name = self.annotations[index][3]
         img_index = list(self.imgs_coco)[index]
-        if self.name=='train' and self.imgs_coco[img_index]['type'] == 'pbr':
-            image_folder = self.imgs_coco[int(index)]['image_folder']
-
-            img_file = os.path.join(self.data_dir, self.name+"_pbr", image_folder, 'rgb', file_name)
-        else:
-            img_file = os.path.join(self.data_dir, self.name, file_name)
-
+        image_folder = self.imgs_coco[int(index)]['image_folder']
+        type = self.imgs_coco[img_index]['type']
+        img_file = os.path.join(self.data_dir, self.name + '_' + type, image_folder, 'rgb', file_name)
         img = cv2.imread(img_file)
         assert img is not None
 
@@ -309,7 +309,7 @@ class LINEMODOcclusionDataset(Dataset):
         else:
             img = self.load_resized_img(index)
 
-        return img, res.copy(), img_info, np.array([id_])
+        return img, res.copy(), img_info, index
 
     @Dataset.mosaic_getitem
     def __getitem__(self, index):
