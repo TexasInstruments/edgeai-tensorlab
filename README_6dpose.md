@@ -28,16 +28,17 @@ All required components for YCBV dataset can be downloaded with the script below
 ```
 ./download_ycbv.sh
 ```
-Once downloaded, the dataset for a given split has to be converted to COCO fromat with the script below:
+Once downloaded, the dataset for train and test split has to be converted to COCO format with the script below:
 ```
 python tools/ycb2coco.py --datapath './datasets/ycbv' --split train 
-                                                      --split test                   # 900 frames for testing are used by default as in BOP format                                                                    
+                                                      --split test                   # 900 frames for testing are used by default as in BOP format
 ```
-The above script will generate **instances_train.json** (), **instances_test.json** () and **instances_test_bop.json** ().
+The above script will generate **instances_train.json** (313.9MB), **instances_test_bop.json** (1.6MB) and **instances_test_all.json** (5.5MB).
 * **instances_train.json**: Contains annotations for all **50K** pbr images. From the set of real images, we select every 10th frame, resulting in **11355** real images. 
     In total, there are **61355** frames in the training set.
+* **instances_test_bop.json** Contains annotations for **900** test images used for BOP evaluation. This split is used by default for evaluation.
 * **instances_test.json** Contains annotations for **2949** default test images.
-* **instances_test_bop.json** Contains annotations for **900** test images used for BOP evaluation.
+
 
 Expected directory structure:
 ```
@@ -82,13 +83,13 @@ Download all required components for LMO dataset with the script below. This wil
 ```
 ./download_lmo.sh
 ```
-In order to convert LINEMOD-Occlusion datset to COCO format, run the following command:
+In order to convert LINEMOD-Occlusion datset to COCO format, run the following command for the train and test split:
 ```
 #This portion can be part of readme.
-python tools/lm2ococo.py --datapath './datasets/lmo' --split train                
+python tools/lmo2coco.py --datapath './datasets/lmo' --split train                
                                                      --split test    # 200 frames for testing are used by default as in BOP format   
 ```
-The above script will generate **instances_train.json** (253.9MB) and **instances_test_bop.json** (429.6KB).
+The above script will generate **instances_train.json** (136.6MB) and **instances_test_bop.json** (429.6KB).
 ## **YOLO-6D-Pose Models and Ckpts**.
 
 |Dataset | Model Name              |Input Size |GFLOPS | AR  | AR<sub>VSD</sub>| AR<sub>MSSD</sub> | AR<sub>MSPD</sub> | ADD(s)| Notes |
@@ -103,23 +104,23 @@ Train a model  by running the command below. Pretrained ckpt for each model is t
 ```
 python -m  yolox.tools.train -n yolox-s-object-pose --dataset ycbv -c 'path to pretrained ckpt' -d 8 -b 64 --fp16 -o --task object_pose 
                                 yolox-m-object-pose           lmo
-                                yolox-l-object-pose           lm 
+                                yolox-l-object-pose            
 ```
 ## **YOLOX-ti-lite 6D Pose Models and Ckpts**
-This is a lite version of the the model as described here. These models will run efficiently on TI processors.
+This is a lite version of the the model as described [here](). These models are optimized to run efficiently on TI processors.
 
 |Dataset |          Model Name            |Input Size |GFLOPS| AR  | AR<sub>VSD</sub>| AR<sub>MSSD</sub>|AR<sub>MSPD</sub>|ADD(s)| Notes |
 |--------|------------------------------- |-----------|------|-----|-----------------|------------------|-----------------|------|-------|
 |YCBV    |[YOLOX_s_object_pose_ti_lite]() |640x480    | 31.2 |66.0 |      60.8       |      67.3        |     70.0        | 53.8 |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth)|
 |YCBV    |[YOLOX_m_object_pose_ti_lite]() |640x480    | 80.4 |74.4 |      69.2       |      75.7        |     78.3        | 70.9 |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m.pth)|
-|YCBV    |[YOLOX_l_object_pose_ti_lite]() |640x480    | 161.4|     |                 |                  |                 |      |[pretrained_weights]()|
+|YCBV    |[YOLOX_l_object_pose_ti_lite]() |640x480    | 161.4|78.2 |      72.9       |      80.2        |     81.5        | 77.0|[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l.pth)|
 
 ## **Training: YOLO-6D-Pose-ti-lite**
 Train a suitable model  by running the command below. Pretrained ckpts for these lite models are same as the original models.
 ```
 python -m yolox.tools.train -n yolox-s-object-pose-ti-lite --dataset ycbv -c 'path to pretrained ckpt' -d 8 -b 64 --fp16 -o --task object_pose
                             -n yolox-m-object-pose-ti-lite           lmo              
-                            -n yolox-l-object-pose-ti-lite           lm  
+                            -n yolox-l-object-pose-ti-lite           
 ```
 
 ## **Model Testing** 

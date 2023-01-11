@@ -37,8 +37,9 @@ cd datasets
 
 echo  -e "***** ${GREEN}Downloading Base archive ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_base.zip
+echo  -e "***** ${GREEN}Extracting Base archive ${NC}*****"
 unzip lmo_base.zip
-echo  -e "***** ${GREEN}Downloading Base archive ${NC}*****"
+rm lmo_base.zip
 cd lmo #All other files are extracted inside this
 
 #CAD Models
@@ -46,23 +47,27 @@ echo  -e "***** ${GREEN}Downloading LM models ${BLUE}(5.4MB) ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_models.zip
 echo -e "${GREEN}Extracting LM models${NC}"
 unzip lmo_models.zip
+rm lmo_models.zip
 
 #Test Images
 echo  -e "***** ${GREEN}Downloading all test images ${BLUE}(720.2MB) ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_all.zip
 echo -e "${GREEN}Extracting all test images ${BLUE}(720.2MB)${NC}"
 unzip lmo_test_all.zip && mv test test_all  #rename test to test_all
+rm lmo_test_all.zip
 
 echo  -e "***** ${GREEN}Downloading BOP subset of test images ${BLUE}(117.6MB)${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_bop19.zip
 echo -e "${GREEN}Extracting BOP subset of test images ${BLUE}(117.6MB)${NC}"
 unzip lmo_test_bop19.zip && mv test test_bop  #rename test to test_bop
+rm lmo_test_bop19.zip
 
 #Training Images
 echo  -e "***** ${GREEN}Downloading train_pbr subset of training images ${BLUE}(21.8GB).${RED}This will take some time ${NC}*****"
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/lm_train_pbr.zip
 echo -e "${GREEN}Extracting train_pbr subset of training images${BLUE}(21.8GB).${RED}This will take some time${NC}"
 unzip lm_train_pbr.zip
+rm lm_train_pbr.zip
 
 #Annotations. Placeholder for annotation files in COCO format
 mkdir annotations
