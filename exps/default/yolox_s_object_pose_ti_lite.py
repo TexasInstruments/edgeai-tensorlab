@@ -25,9 +25,6 @@ class Exp(MyExp):
         # set worker to 4 for shorter dataloader init time
         self.data_num_workers = 4
         self.input_size = (480, 640)  # (height, width)
-        self.train_ann = "instances_train.json"
-        self.val_ann = "instances_test.json"
-
         # --------------- transform config ----------------- #
         self.mosaic_prob = 0.0
         self.mixup_prob = 0.0

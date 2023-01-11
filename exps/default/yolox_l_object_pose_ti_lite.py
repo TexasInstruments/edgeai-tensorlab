@@ -23,8 +23,6 @@ class Exp(MyExp):
 
         # ---------------- dataloader config ---------------- #
         self.input_size = (480, 640)  # (height, width)
-        self.train_ann = "instances_train.json"
-        self.val_ann = "instances_test.json"
 
         # --------------- transform config ----------------- #
         self.mosaic_prob = 0.0

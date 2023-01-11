@@ -22,7 +22,7 @@ from yolox.utils.object_pose_utils  import decode_rotation_translation
 from yolox.utils.plots import plot_one_box, colors
 
 IMAGE_EXT = [".jpg", ".jpeg", ".webp", ".bmp", ".png"]
-_NUM_CLASSES = {"coco":80, "lm":15, "lmo": 15, "ycbv": 21, "coco_kpts":1}
+_NUM_CLASSES = {"coco":80, "lm":15, "lmo": 8, "ycbv": 21, "coco_kpts":1}
 
 
 def make_parser():

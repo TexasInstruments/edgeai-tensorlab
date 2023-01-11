@@ -19,12 +19,12 @@ from yolox.utils.proto.pytorch2proto import prepare_model_for_layer_outputs, ret
 
 import cv2
 _SUPPORTED_DATASETS = ["coco", "lm","lmo", "ycbv", "coco_kpts"]
-_NUM_CLASSES = {"coco":80, "lm":15, "lmo":15, "ycbv": 21, "coco_kpts":1}
+_NUM_CLASSES = {"coco":80, "lm":15, "lmo":8, "ycbv": 21, "coco_kpts":1}
 _VAL_ANN = {
     "coco":"instances_val2017.json", 
     "lm":"instances_test.json",
-    "lmo":"instances_test.json",
-    "ycbv": "instances_test.json",
+    "lmo":"instances_test_bop.json",
+    "ycbv": "instances_test_bop.json",
     "coco_kpts": "person_keypoints_val2017.json",
 }
 _TRAIN_ANN = {

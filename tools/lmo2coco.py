@@ -11,9 +11,9 @@ parser.add_argument("--split", default='train', type=str, help="split can be wit
 
 args = parser.parse_args()
 
-class_to_name = {0: "ape", 1: "benchvise", 2: "bowl", 3: "can", 4: "cat",
-                 5: "cup", 6: "driller", 7: "duck", 8: "glue", 9: "holepuncher",
-                 10: "iron", 11: "lamp", 12: "phone", 13: "cam", 14: "eggbox"}
+class_to_name = {0: "ape", 4: "cat", 5: "cup",
+                  7: "duck", 8: "glue", 9: "holepuncher",
+                 10: "iron", 11: "lamp"}
 
 def convert_lmo2coco(split='train', type='real', keyframes=None, datapath="./datasets/lmo"):
     if split == 'train':
@@ -86,6 +86,7 @@ def convert_lmo2coco(split='train', type='real', keyframes=None, datapath="./dat
 
             coco["images"].append(image)
             for object_gt, object_gt_info  in zip(objects_gt[1], objects_gt_info[1]):
+                if object_gt["obj_id"]-1 not in class_to_name.keys() : continue  # Consider classes that are part of lmo
                 if object_gt_info['visib_fract'] > 0:
                     annotation = dict([
                         ("image_id", img_count),

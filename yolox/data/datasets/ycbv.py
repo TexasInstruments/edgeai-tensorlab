@@ -160,6 +160,7 @@ class YCBVDataset(Dataset):
         self.symmetric_objects = self.cad_models.symmetric_objects
         if cache:
             self._cache_images()
+        self.detection = True
 
     def __len__(self):
         return len(self.ids)
@@ -244,8 +245,6 @@ class YCBVDataset(Dataset):
             cls = self.class_ids.index(obj["category_id"])
             res[ix, 0:4] = obj["clean_bbox"]
             res[ix, 4] = cls
-            #Convert the rotation matrix to angle axis format using Rodrigues formula
-            #https://www.ccs.neu.edu/home/rplatt/cs5335_fall2017/slides/euler_quaternions.pdf
             if self.object_pose:
                 image_folder  = int(im_ann['image_folder'])
                 if image_folder < 60:

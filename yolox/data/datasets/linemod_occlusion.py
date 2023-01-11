@@ -26,6 +26,11 @@ class CADModelsLM():
                              7: "driller", 8: "duck", 9: "eggbox",
                              10: "glue", 11: "holepuncher",
                              }
+        self.class_to_name_map = {                            #class map used for training
+                             0: 0, 4: 1, 5: 2,
+                             7: 3, 8: 4, 9: 5,
+                             10: 6, 11: 7,
+                             }
         self.models_dict_path = os.path.join(self.cad_models_path, "models_info.json")
         with open(self.models_dict_path) as foo:
             self.models_dict  = json.load(foo)
@@ -43,7 +48,7 @@ class CADModelsLM():
         return camera_matrix
 
     def load_cad_models(self):
-        class_to_model = {class_id: None for class_id in self.class_to_name.keys()}
+        class_to_model = {class_id: None for class_id in self.class_to_name_map.values()}
         logger.info("Loading 3D models...")
         for class_id, name in self.class_to_name.items():
             file = "obj_{:06}.ply".format(class_id + 1)
@@ -55,7 +60,7 @@ class CADModelsLM():
                 )
                 continue
             logger.info("Loading 3D model {}".format(name))
-            class_to_model[class_id] = self.load_model_point_cloud(cad_model_path)
+            class_to_model[self.class_to_name_map[class_id]] = self.load_model_point_cloud(cad_model_path)
 
         return class_to_model
 
@@ -86,8 +91,9 @@ class CADModelsLM():
                 [max_x, max_y, max_z],
                 [max_x, max_y, min_z],
             ])
-            models_corners_3d.update({int(model_id)-1: corners_3d})
-            models_diameter.update({int(model_id)-1: model_param['diameter']})
+            cls_ind = self.class_to_name_map[int(model_id) - 1]
+            models_corners_3d.update({cls_ind: corners_3d})
+            models_diameter.update({cls_ind: model_param['diameter']})
         return models_corners_3d, models_diameter
 
     def create_sparse_models(self):
@@ -144,6 +150,7 @@ class LINEMODOcclusionDataset(Dataset):
         self.cad_models = CADModelsLM()
         self.models_corners, self.models_diameter = self.cad_models.models_corners, self.cad_models.models_diameter
         self.class_to_name = self.cad_models.class_to_name
+        self.class_to_name_map = self.cad_models.class_to_name_map
         self.class_to_model = self.cad_models.class_to_model
         if preproc is not None:
             self.preproc = preproc
@@ -235,8 +242,6 @@ class LINEMODOcclusionDataset(Dataset):
             cls = self.class_ids.index(obj["category_id"])
             res[ix, 0:4] = obj["clean_bbox"]
             res[ix, 4] = cls
-            #Convert the rotation matrix to angle axis format using Rodrigues formula
-            #https://www.ccs.neu.edu/home/rplatt/cs5335_fall2017/slides/euler_quaternions.pdf
             if self.object_pose:
                 obj_centre_2d = np.matmul(self.cad_models.camera_matrix.reshape(3,3), np.array(obj["T"])/obj["T"][2])[:2]  #rotation vec not required for the center point
                 #res[ix, 11:14] = obj["T"]
@@ -282,7 +287,7 @@ class LINEMODOcclusionDataset(Dataset):
     def load_image(self, index):
         file_name = self.annotations[index][3]
         img_index = list(self.imgs_coco)[index]
-        if self.name=='train' and self.imgs_coco[img_index]['type'] == 'synthetic':
+        if self.name=='train' and self.imgs_coco[img_index]['type'] == 'pbr':
             image_folder = self.imgs_coco[int(index)]['image_folder']
 
             img_file = os.path.join(self.data_dir, self.name+"_pbr", image_folder, 'rgb', file_name)
