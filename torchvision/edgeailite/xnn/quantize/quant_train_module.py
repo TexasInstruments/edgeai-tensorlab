@@ -52,14 +52,14 @@ class QuantTrainModule(QuantBaseModule):
                  histogram_range=True, bias_calibration=False, constrain_weights=None,
                  range_shrink_weights=None, range_shrink_activations=None,
                  power2_weight_range=None, power2_activation_range=None, constrain_bias=None, 
-                 quantize_in=True, quantize_out=True, **kwargs):
+                 quantize_in=True, quantize_out=True, verbose_mode=False, **kwargs):
         constrain_weights = (not per_channel_q) if constrain_weights is None else constrain_weights
         super().__init__(module, dummy_input, *args, bitwidth_weights=bitwidth_weights, bitwidth_activations=bitwidth_activations,
                          per_channel_q=per_channel_q, histogram_range=histogram_range, bias_calibration=bias_calibration,
                          constrain_weights=constrain_weights, constrain_bias=constrain_bias,
                          range_shrink_weights=range_shrink_weights, range_shrink_activations=range_shrink_activations,
                          power2_weight_range=power2_weight_range, power2_activation_range=power2_activation_range,
-                         model_surgery_quantize=True, quantize_in=quantize_in, quantize_out=quantize_out, **kwargs)
+                         model_surgery_quantize=True, quantize_in=quantize_in, quantize_out=quantize_out, verbose_mode=verbose_mode, **kwargs)
 
     def forward(self, inputs, *args, **kwargs):
         # counters such as num_batches_tracked are used. update them.
@@ -320,6 +320,7 @@ class QuantTrainPAct2(layers.PAct2):
         self.constrain_bias_start_iter = 85
         # storing of weights at this iteration
         self.store_weights_iter = 0 #85
+        self.verbose_mode = False
 
     def forward(self, x):
         assert (self.bitwidth_weights is not None) and (self.bitwidth_activations is not None), \
@@ -376,7 +377,9 @@ class QuantTrainPAct2(layers.PAct2):
             width_min, width_max = self.get_widths_act()
             # no need to call super().forward here as clipping with width_min/windth_max-1 after scaling has the same effect.
             yq = layers.quantize_dequantize_g(xq, scale, width_min, width_max-1, self.power2_activation_range, 1, 'round_up')
-            print(f"layer: {self.name} feature_scale = {scale}")
+            if self.verbose_mode:
+                print(f"layer: {self.name} feature_scale = {scale}")
+            #
         else:
             yq = super().forward(xq, update_activation_range=False, enable=True)
         #
@@ -399,7 +402,11 @@ class QuantTrainPAct2(layers.PAct2):
         return utils.constrain_weight(merged_weight)
 
 
-    def reduce_quantize_weight_scale(self):
+    def is_constrain_bias_value(self):
+        return (self.constrain_bias == ConstrainBiasType.CONSTRAIN_BIAS_TYPE_SATURATE)
+
+
+    def is_reduce_quantize_weight_scale(self):
         return (self.constrain_bias == ConstrainBiasType.CONSTRAIN_BIAS_TYPE_REDUCE_WEIGHT_SCALE)
 
 
@@ -411,7 +418,7 @@ class QuantTrainPAct2(layers.PAct2):
         is_store_weights_iter = self.training and (num_batches_tracked == self.store_weights_iter)
         # note we do not modify bias here - but rather the weight scale so that the bias doesn't overflow after scaling.
         # weight scale adjustment according to bias constraint needs to happen for train and val
-        is_constrain_bias_iter = (not self.training) or (num_batches_tracked >= self.constrain_bias_start_iter)
+        is_constrain_bias_iter = True #(not self.training) or (num_batches_tracked >= self.constrain_bias_start_iter)
         # store the constrained bias if needed
         is_store_bias_iter = self.training and (num_batches_tracked == self.constrain_bias_start_iter)
 
@@ -456,15 +463,7 @@ class QuantTrainPAct2(layers.PAct2):
             is_dw = utils.is_dwconv(conv)
             is_deconv = utils.is_deconv(conv)
             use_per_channel_q = (is_dw and self.per_channel_q is True) or (self.per_channel_q == 'all')
-            # quantize the bias
-            if (self.quantize_enable and self.quantize_bias):
-                bias_width_min, bias_width_max = self.get_widths_bias()
-                bias_clip_min, bias_clip_max, bias_scale2, bias_scale_inv2 = self.get_clips_scale_bias(merged_bias)
-                power2_bias_range = (self.power2_weight_range and self.power2_activation_range)
-                merged_bias = layers.quantize_dequantize_g(merged_bias, bias_scale2, bias_width_min, bias_width_max - 1,
-                                                           power2_bias_range, 0, 'round_sym')
-                print(f"layer: {self.name} bias_scale = {bias_scale2}")
-            # #
+
             # quantize the weights
             if (self.quantize_enable and self.quantize_weights):
                 # clip/constrain the weights
@@ -481,7 +480,7 @@ class QuantTrainPAct2(layers.PAct2):
 
                 # in some cases, bias quantization can have additional restrictions if for example,
                 # bias that is being added to accumulator is limited to 16bit.
-                if self.quantize_enable and self.constrain_bias and is_constrain_bias_iter and self.reduce_quantize_weight_scale():
+                if self.quantize_enable and self.constrain_bias and is_constrain_bias_iter and self.is_reduce_quantize_weight_scale():
                     # use the bias to determine the bias scale allowed due to additional joint constrains
                     clips_scale_joint = self.get_clips_scale_joint(merged_bias)
                     # get the input scale if it is available
@@ -504,8 +503,34 @@ class QuantTrainPAct2(layers.PAct2):
                 per_channel_q_axis = 1 if is_deconv else 0
                 merged_weight = layers.quantize_dequantize_g(merged_weight, weight_scale2, width_min, width_max-1,
                                                              self.power2_weight_range, per_channel_q_axis, 'round_sym')
-                print(f"layer: {self.name} weight_scale = {weight_scale2}")
+                if self.verbose_mode:
+                    print(f"layer: {self.name} weight_scale = {weight_scale2}")
+                #
             #
+
+            # quantize the bias
+            if (self.quantize_enable and self.quantize_bias):
+                bias_width_min, bias_width_max = self.get_widths_bias()
+                bias_clip_min, bias_clip_max, bias_scale2, bias_scale_inv2 = self.get_clips_scale_bias(merged_bias)
+                power2_bias_range = (self.power2_weight_range and self.power2_activation_range)
+                merged_bias = layers.quantize_dequantize_g(merged_bias, bias_scale2, bias_width_min, bias_width_max - 1,
+                                                           power2_bias_range, 0, 'round_sym')
+
+                if is_constrain_bias_iter and self.is_constrain_bias_value():
+                    clips_scale_input = self.get_clips_scale_input(qparams)
+                    if clips_scale_input is not None and weight_scale2 is not None:
+                        scale2_input = clips_scale_input[2]
+                        scale2_joint = scale2_input * weight_scale2
+                        width_joint_min, width_joint_max = self.get_widths_joint()
+                        merged_bias = layers.quantize_dequantize_g(merged_bias, scale2_joint, width_joint_min, width_joint_max - 1,
+                                                                   power2_bias_range, 0, round_type=None)
+                    #
+                #
+                if self.verbose_mode:
+                    print(f"layer: {self.name} bias_scale = {bias_scale2}")
+                #
+            # #
+
             # invert the bn operation and store weights/bias
             if self.quantize_enable and self.quantize_weights and is_store_weights_iter:
                 conv.weight.data.copy_(merged_weight.data * merged_scale_inv)

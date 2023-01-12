@@ -57,7 +57,7 @@ class QuantBaseModule(QuantGraphModule):
                  histogram_range=True, bias_calibration=False, constrain_weights=False, constrain_bias=None,
                  range_shrink_weights=None, range_shrink_activations=None,
                  power2_weight_range=None, power2_activation_range=None, model_surgery_quantize=True, 
-                 quantize_in=True, quantize_out=True, **kwargs):
+                 quantize_in=True, quantize_out=True, verbose_mode=False, **kwargs):
         super().__init__(module, quantize_in=quantize_in, quantize_out=quantize_out)
         self.bitwidth_weights = bitwidth_weights
         self.bitwidth_activations = bitwidth_activations
@@ -65,6 +65,7 @@ class QuantBaseModule(QuantGraphModule):
         self.histogram_range = histogram_range
         self.constrain_weights = constrain_weights
         self.bias_calibration = bias_calibration
+        self.verbose_mode = verbose_mode
 
         self.power2_weight_range = power2_weight_range if (power2_weight_range is not None) else \
             QuantDefaults.POWER2_WEIGHT_RANGE_DEFAULT
@@ -119,7 +120,7 @@ class QuantBaseModule(QuantGraphModule):
                             histogram_range=histogram_range, bias_calibration=self.bias_calibration, per_channel_q=self.per_channel_q,
                             range_shrink_weights=self.range_shrink_weights, range_shrink_activations=self.range_shrink_activations,
                             power2_weight_range=self.power2_weight_range, power2_activation_range=self.power2_activation_range,
-                            constrain_weights=self.constrain_weights, constrain_bias=self.constrain_bias)
+                            constrain_weights=self.constrain_weights, constrain_bias=self.constrain_bias, verbose_mode=self.verbose_mode)
 
     def add_activation_hooks(self):
         for m in self.modules():
