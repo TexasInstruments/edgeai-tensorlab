@@ -65,7 +65,8 @@ class PAct2(torch.nn.Module):
         self.eps = np.power(2.0, -16.0)
         self.power2_activation_range = power2_activation_range   # power of 2 ranges
         self.batch_quant = batch_quant
-
+        self.clips_batch = None
+        
         # any validation before at-least one iteration of training wll use default clip values.
         clip_init = max(abs(np.array(clip_range))) if (clip_range is not None) else self.PACT2_RANGE_INIT
         clip_init2 = np.power(2.0, np.ceil(np.log2(clip_init)))
