@@ -1,10 +1,10 @@
 # YOLO-6D-Pose Multi-Object 6D Pose Estimation Model
-This repository is the official implementation of the paper ["**YOLO-6D-Pose: Enhancing YOLO for Multi Object 6D Pose Estimation**"](https://arxiv.org/abs/2204.06806).It contains YOLOX based models for 6D Object pose estimation.
+This repository is the official implementation of the paper ["**YOLO-6D-Pose: Enhancing YOLO for Multi Object 6D Pose Estimation**"]().It contains YOLOX based models for 6D Object pose estimation.
 This repository is based on the YOLOX training and assumes that all dependencies for training YOLOX are already installed.
 
-Additional requirements can be installed with the command below:
+Additional requirements are part of *requirements.txt* and can be installed with the command below:
 ```
-pip install -r requirements_6d.txt
+pip install -r requirements.txt
 ```
 Given below is a sample inference with ground-truth pose in green and predicted pose overlayed with class-specific colors.
 <br/> 
