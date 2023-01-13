@@ -15,13 +15,13 @@ Applications that requires very high accuracy object detection employs 3D Object
 ### PointPillars
 - [Models Link - KITTI 3D OD](./kitti/mmdet3d/)
 - [Additional information](https://arxiv.org/pdf/1812.05784.pdf)
-- [Training Code](https://github.com/nutonomy/second.pytorch)
+- [Training Code](https://github.com/TexasInstruments/edgeai-mmdetection3d)
 - Note: 3D Object Detection using Lidar input.
 
 
 |Dataset      |Model Name                     |Input Size |GigaMACs  |AP 3D Moderate% (Car) |Available|Notes |
 |-------------|------------------------------ |-----------|----------|----------------------|---------|------|
-|PointPillars |Fast Depth                     |496x432    |33.591    |74.99                 |Y        |      | 
+|Kitti        |PointPillars                   |496x432    |33.44     |76.36                 |Y        |      | 
 
 
 ## References

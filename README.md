@@ -33,6 +33,9 @@ If you have not visited the following landing pages, please do so before attempt
 #### 3D object detection
 - [3D Object Detection Models](./models/vision/detection_3d/)
 
+#### 6D Pose Estimation
+- [6D Pose Estimation Models](./models/vision/object_6d_pose/)
+
 #### Public benchmarks
 - [MLPerf Machine Learning Models](./models/docs/mlperf/)
 
@@ -54,6 +57,7 @@ This repository contains .link files which have the URLs of actual DNN models. T
 ## Pre-complied model artifacts 
 See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md) that we provide with this repository.
 
+<hr>
 
 <hr>
 
