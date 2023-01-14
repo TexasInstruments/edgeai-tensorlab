@@ -238,7 +238,8 @@ def json2yolo(src_path, dst_path, split='train'):
         if gt_box[2] >0  and gt_box[3]>0:
             cls = gt_annotation['category_id'] - cls_offset
             gt_line = cls, *gt_box
-            file_path = os.path.join(dst_path, file_name.replace("jpg", "txt"))
+            file_ext = file_name.split('.')[-1]
+            file_path = os.path.join(dst_path, file_name.replace(file_ext, "txt"))
             with open(file_path, 'a') as foo:
                 foo.write(('%g ' * len(gt_line)).rstrip() % gt_line + '\n')
 
