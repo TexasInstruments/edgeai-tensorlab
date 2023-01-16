@@ -52,10 +52,10 @@ please refer to Megvii's [report on Arxiv](https://arxiv.org/abs/2107.08430).
 
 |Model |size |mAP<sup>val<br>0.5:0.95 |mAP<sup>val<br>0.5:0.95 | Params<br>(M) |FLOPs<br>(G)| weights |
 | ------        |:---: | :---:| :---:    | :---:       |:---:     |:---:  | 
-|[YOLOX-s-ti-lite](./exps/default/yolox_s_ti_lite.py) |640|39.1| 57.9      |9.0 | 26.9 |  |
-|[YOLOX-m-ti-lite](./exps/default/yolox_m_ti_lite.py)|640  |45.5 | 64.2    |25.3 |73.8|  |
-|[YOLOX-Nano-ti-lite](./exps/default/nano_ti_lite.py)|416  |25.8 | 41.6| 1.87 |2.06 |  |
-|[YOLOX-Tiny-ti-lite](./exps/default/yolox_tiny_ti_lite.py)|416  |32.0|49.5  | 5.06 |6.48 |  |
+|[YOLOX-s-ti-lite](./exps/default/yolox_s_ti_lite.py) |640|39.1| 57.9      |9.0 | 26.9 | [s_ti_lite](http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-yolox/yolox-s-ti-lite_39p1_57p9_checkpoint.pth)|
+|[YOLOX-m-ti-lite](./exps/default/yolox_m_ti_lite.py)|640  |45.5 | 64.2    |25.3|73.8|  [m_ti_lite](http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-yolox/yolox_m_ti_lite_45p5_64p2_checkpoint.pth)|
+|[YOLOX-Nano-ti-lite](./exps/default/nano_ti_lite.py)|416  |25.8 | 41.6| 1.87 |2.06 | [nano_ti_lite](http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-yolox/yolox_nano_ti_lite_26p1_41p8_checkpoint.pth)|
+|[YOLOX-Tiny-ti-lite](./exps/default/yolox_tiny_ti_lite.py)|416  |32.0|49.5  | 5.06 |6.48 |  [tiny_ti_lite](http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-yolox/yolox_tiny_ti_lite_32p0_49p5_checkpoint.pth)|
 
 
 ## Training and Testing
@@ -142,7 +142,7 @@ Notes:
 
 ### Pretrained Models
 
-Pretrained models will be added under [pretrained_models](./pretrained_models)
+Pretrained models are available here [pretrained_models](./pretrained_models)
 
 
 ## **References**
