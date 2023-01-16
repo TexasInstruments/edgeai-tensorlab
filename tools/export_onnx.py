@@ -141,6 +141,7 @@ def export_prototxt(model, img, onnx_model_name, task=None):
 @logger.catch
 def main():
     args = make_parser().parse_args()
+    args.output_name = os.path.join(os.path.dirname(args.ckpt) , os.path.basename(args.output_name))
     logger.info("args value: {}".format(args))
     exp = get_exp(args.exp_file, args.name)
     if args.dataset is not None:
