@@ -53,7 +53,7 @@ def make_parser():
     parser.add_argument(
         "--input-shape",
         type=str,
-        default="640,640",
+        default="640,480",
         help="Specify an input shape for inference.",
     )
     parser.add_argument(
@@ -80,18 +80,20 @@ if __name__ == '__main__':
     input_shape = tuple(map(int, args.input_shape.split(',')))
     image_file_list = sorted(os.listdir(args.image_folder))
     pbar = tqdm(enumerate(image_file_list), total=len(image_file_list))
+    prototxt = args.model.replace("onnx", "prototxt")
+    assert os.path.exists(prototxt), "Prototxt not available. Please provide a prototxt {}".format(prototxt)
     #session = rt.InferenceSession(args.model)
     so = rt.SessionOptions()
     if args.tidl_delegate:
         compile_options = {
-            "artifacts_folder": "/user/a0132471/Files/bit-bucket/pytorch/edgeai-yolox/YOLOX_outputs/object_pose_ycb/640_480/yolox_s_object_pose_ti_lite_53p84_epoch_300_trial_15p1/models/artifacts",
+            "artifacts_folder": "./artifacts",
             "tensor_bits": 16,
             "accuracy_level": 1,
             # "debug_level": 3,
-            "advanced_options:calibration_frames": 1,
-            "advanced_options:calibration_iterations": 1,
+            "advanced_options:calibration_frames": 25,
+            "advanced_options:calibration_iterations": 2,
             # "advanced_options:output_feature_16bit_names_list" : "370, 680, 990, 1300",
-            'object_detection:meta_layers_names_list': "/user/a0132471/Files/bit-bucket/pytorch/edgeai-yolox/YOLOX_outputs/object_pose_ycb/640_480/yolox_s_object_pose_ti_lite_53p84_epoch_300_trial_15p1/models/best_640x480.prototxt",
+            'object_detection:meta_layers_names_list': prototxt,
             'object_detection:meta_arch_type': 6,
             "ti_internal_nc_flag": 1601,
             # "add_data_convert_ops" : 3,
