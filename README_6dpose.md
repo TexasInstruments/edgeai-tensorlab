@@ -16,7 +16,7 @@ Given below is a sample inference with ground-truth pose in green and predicted 
 The dataset needs to be prepared in YOLO format so that the enhanced dataloader can read the 6D pose along with the bounding box for each object. We currently support YCBV 
 and LINEMOD datset.
 ### **YCBV Datset**
-THe following components needs to be downloaded and structrured in the required way inside **edgeai_yolox/datasets** for the dataloader to read it correctly :
+The following components needs to be downloaded and structrured in the required way inside **edgeai_yolox/datasets** for the dataloader to read it correctly :
 * [Base archive](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_base.zip)
 * [models](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_models.zip), 524MB 
 * [train_pbr](https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_train_pbr.zip), 21GB
@@ -92,11 +92,12 @@ python tools/lmo2coco.py --datapath './datasets/lmo' --split train
 The above script will generate **instances_train.json** (136.6MB) and **instances_test_bop.json** (429.6KB).
 ## **YOLO-6D-Pose Models and Ckpts**.
 
-|Dataset | Model Name              |Input Size |GFLOPS | AR  | AR<sub>VSD</sub>| AR<sub>MSSD</sub> | AR<sub>MSPD</sub> | ADD(s)| Notes |
-|--------|-------------------------|-----------|-------|-----|-----------------|-------------------|-------------------|-------|-------|
-|YCBV    | [YOLOX_s_object_pose]() |640x480    | 31.2  | 67.1|     62.4        |      68.0         |      70.8         | 59.4  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth)|
-|YCBV    | [YOLOX_m_object_pose]() |640x480    | 80.3  | 75.4|     71.0        |      76.7         |      78.4         | 71.1  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m.pth)|
-|YCBV    | [YOLOX_l_object_pose]() |640x480    | 161.2 | 81.1|     76.0        |      83.1         |      84.0         | 81.1  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l.pth)|
+|Dataset | Model Name              |Input Size |GFLOPS |  Params(M)|AR  | AR<sub>VSD</sub>| AR<sub>MSSD</sub> | AR<sub>MSPD</sub> | ADD(s)| Pretrained Weights | weights|
+|--------|-------------------------|-----------|-------|-----------|-----|-----------------|-------------------|-------------------|-------|-------|--|
+|YCBV    | [YOLOX_s_object_pose](./exps/default/yolox_s_object_pose.py) |640x480    | 31.2  | 11.6   | 67.1|     62.4        |      68.0         |      70.8         | 59.4  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth)| [weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/08_05_00_01/models/vision/object_6d_pose/ycbv/edgeai-yolox/checkpoints/yolox_s_object_pose/best_ckpt.pth)|
+|YCBV    | [YOLOX_m_object_pose](./exps/default/yolox_m_object_pose.py) |640x480    | 80.3  | 31.3   |75.4|     71.0        |      76.7         |      78.4         | 71.1  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m.pth)| [weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/08_05_00_01/models/vision/object_6d_pose/ycbv/edgeai-yolox/checkpoints/yolox_m_object_pose/best_ckpt.pth)|
+|YCBV    | [YOLOX_l_object_pose](./exps/default/yolox_l_object_pose.py) |640x480    | 161.2 | 64.8   |81.1|     76.0        |      83.1         |      84.0         | 81.1  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l.pth)| [weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/08_05_00_01/models/vision/object_6d_pose/ycbv/edgeai-yolox/checkpoints/yolox_l_object_pose/best_ckpt.pth)|
+
 
 ## **Training: YOLO-6D-Pose**
 Train a model  by running the command below. Pretrained ckpt for each model is the corresponding 2D object detection model trained on COCO dataset.
@@ -107,13 +108,13 @@ python -m  yolox.tools.train -n yolox-s-object-pose --dataset ycbv -c 'path to p
                                 yolox-l-object-pose            
 ```
 ## **YOLOX-ti-lite 6D Pose Models and Ckpts**
-This is a lite version of the the model as described [here](). These models are optimized to run efficiently on TI processors.
+This is a lite version of the the model as described [here](./README.md). These models are optimized to run efficiently on TI processors.
 
-|Dataset |          Model Name            |Input Size |GFLOPS| AR  | AR<sub>VSD</sub>| AR<sub>MSSD</sub>|AR<sub>MSPD</sub>|ADD(s)| Notes |
-|--------|------------------------------- |-----------|------|-----|-----------------|------------------|-----------------|------|-------|
-|YCBV    |[YOLOX_s_object_pose_ti_lite]() |640x480    | 31.2 |66.0 |      60.8       |      67.3        |     70.0        | 53.8 |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth)|
-|YCBV    |[YOLOX_m_object_pose_ti_lite]() |640x480    | 80.4 |74.4 |      69.2       |      75.7        |     78.3        | 70.9 |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m.pth)|
-|YCBV    |[YOLOX_l_object_pose_ti_lite]() |640x480    | 161.4|78.2 |      72.9       |      80.2        |     81.5        | 77.0|[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l.pth)|
+|Dataset |          Model Name            |Input Size |GFLOPS| Params(M)| AR  | AR<sub>VSD</sub>| AR<sub>MSSD</sub>|AR<sub>MSPD</sub>|ADD(s)| Pretrained Weights | weights|
+|--------|------------------------------- |-----------|------|----------|-----|-----------------|------------------|-----------------|------|-------|--|
+|YCBV    |[YOLOX_s_object_pose_ti_lite](./exps/default/yolox_s_object_pose_ti_lite.py) |640x480    | 31.2 |  11.6  |66.0 |      60.8       |      67.3        |     70.0        | 53.8 |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth)| [weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/08_05_00_01/models/vision/object_6d_pose/ycbv/edgeai-yolox/checkpoints/yolox_s_object_pose_ti_lite/best_ckpt.pth) |
+|YCBV    |[YOLOX_m_object_pose_ti_lite](./exps/default/yolox_m_object_pose_ti_lite.py) |640x480    | 80.4 |  31.3  |74.4 |      69.2       |      75.7        |     78.3        | 70.9 |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m.pth)| [weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/08_05_00_01/models/vision/object_6d_pose/ycbv/edgeai-yolox/checkpoints/yolox_m_object_pose_ti_lite/best_ckpt.pth) |
+|YCBV    |[YOLOX_l_object_pose_ti_lite](./exps/default/yolox_l_object_pose_ti_lite.py) |640x480    | 161.4|  64.8  |78.2 |      72.9       |      80.2        |     81.5        | 77.0|[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l.pth)| [weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/08_05_00_01/models/vision/object_6d_pose/ycbv/edgeai-yolox/checkpoints/yolox_l_object_pose_ti_lite/best_ckpt.pth) |
 
 ## **Training: YOLO-6D-Pose-ti-lite**
 Train a suitable model  by running the command below. Pretrained ckpts for these lite models are same as the original models.
