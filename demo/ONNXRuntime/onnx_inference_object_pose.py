@@ -25,14 +25,14 @@ def make_parser():
     )
     parser.add_argument(
         "-i",
-        "--image_folder",
+        "--image-folder",
         type=str,
         default='./test_image/',
         help="Path to your input image.",
     )
     parser.add_argument(
         "-o",
-        "--output_dir",
+        "--output-dir",
         type=str,
         default='demo_output',
         help="Path to your output directory.",
@@ -45,13 +45,13 @@ def make_parser():
     )
     parser.add_argument(
         "-s",
-        "--score_thr",
+        "--score-thr",
         type=float,
         default=0.3,
         help="Score threshould to filter the result.",
     )
     parser.add_argument(
-        "--input_shape",
+        "--input-shape",
         type=str,
         default="640,640",
         help="Specify an input shape for inference.",
