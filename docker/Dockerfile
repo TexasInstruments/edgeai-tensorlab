@@ -19,7 +19,8 @@ ARG PROXY_LOCATION=""
 ENV DEBIAN_FRONTEND=noninteractive
 ENV http_proxy=${PROXY_LOCATION}
 ENV https_proxy=${PROXY_LOCATION}
-ENV no_proxy=ti.com
+ENV no_proxy=${NO_PROXY_LOCATION}
+
 RUN if [ ! -z $PROXY_LOCATION ]; then echo "Acquire::http::proxy \"${PROXY_LOCATION}\";" > /etc/apt/apt.conf; fi && \
     if [ ! -z $PROXY_LOCATION ]; then echo "Acquire::https::proxy \"${PROXY_LOCATION}\";" >> /etc/apt/apt.conf; fi
 
