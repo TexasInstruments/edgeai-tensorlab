@@ -36,7 +36,7 @@
 import copy
 import torch
 import torch.quantization as quantization
-from ... import xnn
+import modeltoolkit.edgeai_modeltoolkit.pt.v1.tools.xnn as xnn
 from . import _quant_torch_base as quant_torch_base
 
 
