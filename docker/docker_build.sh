@@ -36,21 +36,17 @@
 ping bitbucket.itg.ti.com -c 1 > /dev/null 2>&1
 PING_CHECK="$?"
 
-# internal or external build
+# docker and git repo locations - internal or external build
 if [ ${PING_CHECK} -eq "0" ]; then
-    PROXY_LOCATION=$https_proxy
-    NO_PROXY_LOCATION=ti.com
-    REPO_LOCATION=artifactory.itg.ti.com/docker-public/library/
+    REPO_LOCATION="artifactory.itg.ti.com/docker-public/library/"
 else
-    PROXY_LOCATION=$https_proxy
-    NO_PROXY_LOCATION=""
     REPO_LOCATION=""
 fi
 
-# print
-echo "PROXY_LOCATION="${PROXY_LOCATION}
-echo "NO_PROXY_LOCATION="${NO_PROXY_LOCATION}
-echo "REPO_LOCATION="${REPO_LOCATION}
+# initialize http_proxy and https_proxy if they are not defined
+http_proxy=${http_proxy:-""}
+https_proxy=${https_proxy:-""}
+no_proxy=${no_proxy:-""}
 
 #################################################################################
 # Build docker image
@@ -59,8 +55,9 @@ docker build \
     -f ./docker/Dockerfile \
     -t modelmaker:v1 \
     --build-arg REPO_LOCATION=${REPO_LOCATION} \
-    --build-arg PROXY_LOCATION=${PROXY_LOCATION} \
-    --build-arg NO_PROXY_LOCATION=${NO_PROXY_LOCATION} \
+    --build-arg http_proxy=${http_proxy} \
+    --build-arg https_proxy=${https_proxy} \
+    --build-arg no_proxy=${no_proxy} \
     --build-arg USER_ID=$(id -u) \
     --build-arg USER_GID=$(id -g) \
     --no-cache .
