@@ -28,6 +28,12 @@ help_descriptions:
       name: Tensor Bits
   dataset: {}
   training:
+    batch_size:
+      description: Batch size specifies the number of inputs that are propagated through
+        the neural network in one iteration. Several such iterations make up one Epoch.Higher
+        batch size require higher memory and too low batch size can typically impact
+        the accuracy.
+      name: Batch Size
     learning_rate:
       description: Learning Rate determines the step size used by the optimization
         algorithm at each iteration while moving towards the optimal solution. It
@@ -41,6 +47,12 @@ help_descriptions:
         Eg. A model trained for 30 Epochs may give better accuracy than a model trained
         for 15 Epochs.
       name: Epochs
+    weight_decay:
+      description: Weight decay is a regularization technique that can improve stability
+        and generalization of a machine learning algorithm. It is typically done using
+        L2 regularization that penalizes parameters (weights, biases) according to
+        their L2 norm.
+      name: Weight Decay
 model_descriptions:
   mobilenet_v2_lite_tv:
     common:

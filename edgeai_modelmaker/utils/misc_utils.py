@@ -36,6 +36,8 @@ import json
 import yaml
 import tqdm
 import errno
+import re
+
 
 from . import config_dict
 
@@ -125,6 +127,22 @@ def write_dict(dict_obj, filename, write_json=True, write_yaml=True):
         filename_yaml = os.path.splitext(filename)[0] + '.yaml'
         with open(filename_yaml, 'w') as fp:
             yaml.safe_dump(dict_obj, fp)
+        #
+    #
+
+
+def cleanup_special_chars(file_name):
+    if os.path.exists(file_name):
+        with open(file_name) as rfp:
+            new_lines = []
+            log_lines = rfp.readlines()
+            for log_line in log_lines:
+                log_line = re.sub(r'(\x9B|\x1B[\[\(\=])[0-?]*[ -\/]*([@-~]|$)', '', log_line)
+                new_lines.append(log_line)
+            #
+            with open(file_name, 'w') as wfp:
+                wfp.writelines(new_lines)
+            #
         #
     #
 

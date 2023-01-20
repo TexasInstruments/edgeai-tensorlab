@@ -196,6 +196,8 @@ class ModelCompilation():
         #
         # run the accuracy pipeline
         edgeai_benchmark.tools.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
+        # remove special characters
+        utils.cleanup_special_chars(self.params.compilation.log_file_path)
         # package artifacts
         edgeai_benchmark.tools.package_artifacts(self.settings, self.work_dir, out_dir=self.package_dir, custom_model=True)
         # make a symlink to the packaged artifacts

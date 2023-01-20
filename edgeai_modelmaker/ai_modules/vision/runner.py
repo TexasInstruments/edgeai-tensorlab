@@ -156,6 +156,8 @@ class ModelRunner():
         if self.params.training.enable:
             self.model_training.clear()
             self.model_training.run()
+            # remove special characters
+            utils.cleanup_special_chars(self.params.training.log_file_path)
             # training frameworks don't create a compact package after training. do it here.
             model_training_package_files = [
                 self.params.dataset.annotation_path_splits,

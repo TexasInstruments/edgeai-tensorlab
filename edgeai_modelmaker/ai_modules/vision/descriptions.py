@@ -189,7 +189,21 @@ def get_help_descriptions(params):
                                'at each iteration while moving towards the optimal solution. '
                                'It is a hyper parameter that can be tuned to get best accuracy. '
                                'Eg. A small Learning Rate typically gives good accuracy while fine tuning a model for a different task.'
-            }
+            },
+            'batch_size': {
+                'name': 'Batch Size',
+                'description': 'Batch size specifies the number of inputs that are propagated through the '
+                               'neural network in one iteration. Several such iterations make up one Epoch.'
+                               'Higher batch size require higher memory and too low batch size can '
+                               'typically impact the accuracy.'
+            },
+            'weight_decay': {
+                'name': 'Weight Decay',
+                'description': 'Weight decay is a regularization technique that can improve '
+                               'stability and generalization of a machine learning algorithm. '
+                               'It is typically done using L2 regularization that penalizes parameters '
+                               '(weights, biases) according to their L2 norm.'
+            },
         },
         'compilation': {
             'calibration_frames': {
