@@ -16,15 +16,16 @@ ENV APPS_PATH=${HOME_DIR}/apps
 ENV DOWNLOADS_PATH=${HOME_DIR}/downloads
 ENV CODE_PATH=${HOME_DIR}/code
 
-# proxy for apt - not enabling this in order not to hard code this
-# seems to needed only if apt install is required in docker run
-# we finish all apt install during the docker build
-# docker run can pass http_proxy, https_proxy and no_proxy using the -e option
-# ARG http_proxy=""
-# ARG https_proxy=""
-# ARG no_proxy=""
-# RUN if [ ! -z $http_proxy ]; then echo "Acquire::http::proxy \"${http_proxy}\";" > /etc/apt/apt.conf; fi && \
-#     if [ ! -z $https_proxy ]; then echo "Acquire::https::proxy \"${https_proxy}\";" >> /etc/apt/apt.conf; fi
+# proxy
+ARG http_proxy=""
+ARG https_proxy=""
+ARG no_proxy=""
+
+# proxy for apt
+# /etc/apt/apt.conf will have to be updated if apt install is needed during docker run
+# and if the proxy used is different from the proxy being used here during docker build
+RUN if [ ! -z $http_proxy ]; then echo "Acquire::http::proxy \"${http_proxy}\";" > /etc/apt/apt.conf; fi && \
+    if [ ! -z $https_proxy ]; then echo "Acquire::https::proxy \"${https_proxy}\";" >> /etc/apt/apt.conf; fi
 
 # baseline
 RUN apt update && apt install -y sudo git iputils-ping wget cmake build-essential libgtk2.0 apt-utils
