@@ -37,6 +37,10 @@ PARENT_DIR=$(realpath ..)
 # Number container exist
 cont_count=`docker ps -aq | wc -l`
 
+# initialize http_proxy and https_proxy if they are not defined
+http_proxy=${http_proxy:-""}
+https_proxy=${https_proxy:-""}
+no_proxy=${no_proxy:-""}
 
 #If no container exist, then create the container.
 if [ $cont_count -eq 0 ]
@@ -46,6 +50,9 @@ then
         --privileged \
         --network host \
         --shm-size 10gb \
+        -e http_proxy=${http_proxy} \
+        -e https_proxy=${https_proxy} \
+        -e no_proxy=${no_proxy} \
         modelmaker:v1 bash
 # If one container exist, execute that container.
 elif [ $cont_count -eq 1 ]

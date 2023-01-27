@@ -8,6 +8,8 @@ ARG USER_ID=1000
 ARG USER_GID=$USER_ID
 ENV HOME_DIR=/home/$USER_NAME
 ARG PROJECT_NAME="modelmaker"
+ARG DEBIAN_FRONTEND=noninteractive
+ENV LC_ALL=C.UTF-8
 
 # paths
 ENV APPS_PATH=${HOME_DIR}/apps
@@ -15,24 +17,18 @@ ENV DOWNLOADS_PATH=${HOME_DIR}/downloads
 ENV CODE_PATH=${HOME_DIR}/code
 
 # proxy
-ARG PROXY_LOCATION=""
-ENV DEBIAN_FRONTEND=noninteractive
-ENV http_proxy=${PROXY_LOCATION}
-ENV https_proxy=${PROXY_LOCATION}
-ENV no_proxy=ti.com
-RUN if [ ! -z $PROXY_LOCATION ]; then echo "Acquire::http::proxy \"${PROXY_LOCATION}\";" > /etc/apt/apt.conf; fi && \
-    if [ ! -z $PROXY_LOCATION ]; then echo "Acquire::https::proxy \"${PROXY_LOCATION}\";" >> /etc/apt/apt.conf; fi
+ARG http_proxy=""
+ARG https_proxy=""
+ARG no_proxy=""
+
+# proxy for apt
+# /etc/apt/apt.conf will have to be updated if apt install is needed during docker run
+# and if the proxy used is different from the proxy being used here during docker build
+RUN if [ ! -z $http_proxy ]; then echo "Acquire::http::proxy \"${http_proxy}\";" > /etc/apt/apt.conf; fi && \
+    if [ ! -z $https_proxy ]; then echo "Acquire::https::proxy \"${https_proxy}\";" >> /etc/apt/apt.conf; fi
 
 # baseline
 RUN apt update && apt install -y sudo git iputils-ping wget cmake build-essential libgtk2.0 apt-utils
-
-# lang
-RUN echo >> /etc/environment
-RUN echo "LC_CTYPE=en_US.UTF-8" >> /etc/environment
-RUN echo "LANG=en_US.UTF-8" >> /etc/environment
-RUN echo "LANGUAGE=en_US.UTF-8" >> /etc/environment
-RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment
-RUN apt update && apt install -y locales locales-all && locale-gen en_US.UTF-8 && dpkg-reconfigure locales
 
 # additional packages
 RUN apt install -y curl libjpeg-dev zlib1g-dev graphviz graphviz-dev libbz2-dev \
@@ -86,5 +82,6 @@ RUN pyenv install 3.6 && \
     echo 'pyenv activate py36' >> ${HOME_DIR}/.pyenvrc && \
     echo ' ' >> ${HOME_DIR}/.pyenvrc
 
-RUN pip install --upgrade pip && \
-    pip install --upgrade setuptools
+RUN pip install --no-input --upgrade pip setuptools && \
+    pip install --no-input --upgrade wheel cython numpy
+

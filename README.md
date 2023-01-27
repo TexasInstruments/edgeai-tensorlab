@@ -108,7 +108,7 @@ conda activate py36
 
 #### Step 1, Option 3: With docker environment
 
-Step 1.1b: Install docker if you don't have it already. The following steps are for installation on Ubuntu 18.04
+Step 1.1c: Install docker if you don't have it already. The following steps are for installation on Ubuntu 18.04
 ```
 ./docker/docker_setup.sh
 ```

@@ -31,33 +31,17 @@
 #
 #################################################################################
 
-#################################################################################
-# determine if we are behind ti firewall
-ping bitbucket.itg.ti.com -c 1 > /dev/null 2>&1
-PING_CHECK="$?"
-
-# docker and git repo locations - internal or external build
-if [ ${PING_CHECK} -eq "0" ]; then
-    REPO_LOCATION="artifactory.itg.ti.com/docker-public/library/"
-else
-    REPO_LOCATION=""
-fi
-
 # initialize http_proxy and https_proxy if they are not defined
 http_proxy=${http_proxy:-""}
 https_proxy=${https_proxy:-""}
 no_proxy=${no_proxy:-""}
 
-#################################################################################
-# Build docker image
-echo "building docker image..."
-docker build \
-    -f ./docker/Dockerfile \
-    -t modelmaker:v1 \
-    --build-arg REPO_LOCATION=${REPO_LOCATION} \
-    --build-arg http_proxy=${http_proxy} \
-    --build-arg https_proxy=${https_proxy} \
-    --build-arg no_proxy=${no_proxy} \
-    --build-arg USER_ID=$(id -u) \
-    --build-arg USER_GID=$(id -g) \
-    --no-cache .
+
+# proxy for apt
+if [ ! -z ${http_proxy} ]; then
+  echo "Acquire::http::proxy \"${http_proxy}\";" > /etc/apt/apt.conf;
+fi
+
+if [ ! -z ${https_proxy} ]; then
+  echo "Acquire::https::proxy \"${https_proxy}\";" >> /etc/apt/apt.conf;
+fi

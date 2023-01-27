@@ -60,8 +60,8 @@ echo "cloning done."
 
 #################################################################################
 # upgrade pip
-pip install --upgrade pip
-pip install --upgrade setuptools
+pip install --no-input --upgrade pip setuptools
+pip install --no-input --upgrade wheel cython numpy
 
 #################################################################################
 echo "preparing environment..."
