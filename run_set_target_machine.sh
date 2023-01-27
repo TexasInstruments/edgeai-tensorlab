@@ -66,3 +66,7 @@ do
   done
   cd ${cur_dir}
 done
+
+# TIDL_ARTIFACT_SYMLINKS is used to indicate that the symlinks have been set to evm
+# affects only artifacts created by/for TVM/DLR
+export TIDL_ARTIFACT_SYMLINKS=1

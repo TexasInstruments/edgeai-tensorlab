@@ -45,17 +45,22 @@ if __name__ == '__main__':
     cmds = parser.parse_args()
     settings = config_settings.ConfigSettings(cmds.settings_file)
 
-    if cmds.work_dir is None:
-        work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
-    else:
-        work_dir = cmds.work_dir
-    print(f'work_dir: {work_dir}')
+    if 'TIDL_ARTIFACT_SYMLINKS' in os.environ and os.environ['TIDL_ARTIFACT_SYMLINKS']:
+        if cmds.work_dir is None:
+            work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
+        else:
+            work_dir = cmds.work_dir
+        print(f'work_dir: {work_dir}')
 
-    if cmds.out_dir is None:
-        package_dir = settings.modelartifacts_path + '_package'
-        out_dir = os.path.join(package_dir, f'{settings.tensor_bits}bits')
-    else:
-        out_dir = cmds.out_dir
-    print(f'package_dir: {out_dir}')
+        if cmds.out_dir is None:
+            package_dir = settings.modelartifacts_path + '_package'
+            out_dir = os.path.join(package_dir, f'{settings.tensor_bits}bits')
+        else:
+            out_dir = cmds.out_dir
+        print(f'package_dir: {out_dir}')
 
-    tools.run_package(settings, work_dir, out_dir)
+        tools.run_package(settings, work_dir, out_dir)
+    else:
+        print('TIDL_ARTIFACT_SYMLINKS is not set - run this script using run_package_artifacts_evm.sh')
+    #
+
