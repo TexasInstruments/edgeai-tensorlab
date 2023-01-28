@@ -29,7 +29,7 @@ class CADModelsLM():
                              0: "ape",  1: "can", 2: "cat", 3: "driller",
                              4: "duck", 5: "eggbox", 6: "glue", 7: "holepuncher",
                              }
-        self.class_to_name_map = {                            #class map used for training
+        self.class_map = {                            #class map used for training
                              0: 0, 4: 1, 5: 2,
                              7: 3, 8: 4, 9: 5,
                              10: 6, 11: 7,
@@ -51,7 +51,7 @@ class CADModelsLM():
         return camera_matrix
 
     def load_cad_models(self):
-        class_to_model = {class_id: None for class_id in self.class_to_name_map.values()}
+        class_to_model = {class_id: None for class_id in self.class_map.values()}
         logger.info("Loading 3D models...")
         for class_id, name in self.class_to_name_orig.items():
             file = "obj_{:06}.ply".format(class_id + 1)
@@ -63,7 +63,7 @@ class CADModelsLM():
                 )
                 continue
             logger.info("Loading 3D model {}".format(name))
-            class_to_model[self.class_to_name_map[class_id]] = self.load_model_point_cloud(cad_model_path)
+            class_to_model[self.class_map[class_id]] = self.load_model_point_cloud(cad_model_path)
 
         return class_to_model
 
@@ -94,7 +94,7 @@ class CADModelsLM():
                 [max_x, max_y, max_z],
                 [max_x, max_y, min_z],
             ])
-            cls_ind = self.class_to_name_map[int(model_id) - 1]
+            cls_ind = self.class_map[int(model_id) - 1]
             models_corners_3d.update({cls_ind: corners_3d})
             models_diameter.update({cls_ind: model_param['diameter']})
         return models_corners_3d, models_diameter
@@ -154,7 +154,7 @@ class LINEMODOcclusionDataset(Dataset):
         self.cad_models = CADModelsLM()
         self.models_corners, self.models_diameter = self.cad_models.models_corners, self.cad_models.models_diameter
         self.class_to_name = self.cad_models.class_to_name
-        self.class_to_name_map = self.cad_models.class_to_name_map
+        self.class_map = self.cad_models.class_map
         self.class_to_model = self.cad_models.class_to_model
         if preproc is not None:
             self.preproc = preproc

@@ -14,6 +14,8 @@ from tqdm import tqdm
 import cv2
 from ..utils  import visualize_object_pose
 from ..utils.object_pose_utils  import decode_rotation_translation
+from ..data.datasets.linemod_occlusion import LINEMODOcclusionDataset
+from ..data.datasets.ycbv import YCBVDataset
 import numpy as np
 from sklearn.neighbors import KDTree
 import torch
@@ -57,8 +59,17 @@ class ObjectPoseEvaluator:
         self.testdev = testdev
         self.visualize = visualize
         self.test_bop = test_bop  #dumps the output in BOP format
+        self.dataset = None
         if self.test_bop:
-            self.test_bop_file_name = "magic_ycbv-test.csv"
+            if isinstance(dataloader.dataset, YCBVDataset):
+                self.dataset = 'ycbv'
+                self.class_map = None
+            elif isinstance(dataloader.dataset, LINEMODOcclusionDataset):
+                self.dataset = 'lmo'
+                self.class_map = {v:k for k,v in dataloader.dataset.class_map.items()}
+            else:
+                assert "Provided dataset is not supported for 6d pose evaluation"
+        self.test_bop_file_name = "magic_{}-test.csv".format(self.dataset)
         self.output_dir = output_dir
         self.class_to_model = dataloader.dataset.class_to_model
         self.class_to_cuboid = dataloader.dataset.models_corners
@@ -161,7 +172,10 @@ class ObjectPoseEvaluator:
                                 pose_per_object = pose_per_object.cpu().numpy()
                                 scene_id = int(self.dataloader.dataset.coco.imgs[id]['image_folder'])
                                 image_id = int(self.dataloader.dataset.coco.imgs[id]['file_name'].split('.')[0])
-                                object_id = int(pose_per_object[-1] + 1)
+                                if self.class_map is not None:
+                                    object_id = int(self.class_map[int(pose_per_object[-1])] + 1)
+                                else:
+                                    object_id = int(pose_per_object[-1] + 1)
                                 score = pose_per_object[4]
                                 r11, r21, r31, r12, r22, r32 = pose_per_object[5:11]
                                 r13, r23, r33 = np.cross(pose_per_object[5:8], pose_per_object[8:11])
