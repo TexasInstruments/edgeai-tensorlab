@@ -12,6 +12,7 @@ from yolox.utils import adjust_box_anns, adjust_kpts_anns, get_local_rank
 from ..data_augment import random_affine
 from .datasets_wrapper import Dataset
 from .ycbv import YCBVDataset
+from .linemod_occlusion import LINEMODOcclusionDataset
 
 
 def get_mosaic_coordinate(mosaic_image, mosaic_index, xc, yc, w, h, input_h, input_w):
@@ -175,9 +176,10 @@ class MosaicDetection(Dataset):
                     camera_matrix = self._dataset.cad_models.camera_matrix['camera_uw']
                 else:
                     camera_matrix = self._dataset.cad_models.camera_matrix['camera_cmu']
-            else:
+            elif isinstance(self._dataset, LINEMODOcclusionDataset):
                 camera_matrix = self._dataset.cad_models.camera_matrix
-
+            else:
+                camera_matrix = None
             img, label = random_affine(
                 img,
                 label,

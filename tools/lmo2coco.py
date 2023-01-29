@@ -11,11 +11,11 @@ parser.add_argument("--split", default='train', type=str, help="split can be wit
 
 args = parser.parse_args()
 
-class_to_name_orig = {0: "ape", 4: "cat", 5: "cup", 7: "duck",
-                      8: "glue", 9: "holepuncher", 10: "iron", 11: "lamp"}
+class_to_name_orig = {0: "ape", 4: "can", 5: "cat", 7: "driller",
+                      8: "duck", 9: "eggbox", 10: "glue", 11: "holepuncher"}
 
-class_to_name = {0: "ape", 1: "cat", 2: "cup", 3: "duck",
-                 4: "glue", 5: "holepuncher", 6: "iron", 7: "lamp"}
+class_to_name = { 0: "ape", 1: "can", 2: "cat", 3: "driller",
+                  4: "duck", 5: "eggbox", 6: "glue", 7: "holepuncher"}
 
 class_map = {                            #class map used for training
              0: 0, 4: 1, 5: 2, 7: 3,
