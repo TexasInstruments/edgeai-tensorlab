@@ -60,6 +60,7 @@ echo -e "***** ${GREEN}Downloading BOP subset of test images ${BLUE}(660MB) ${NC
 wget https://bop.felk.cvut.cz/media/data/bop_datasets/ycbv_test_bop19.zip
 echo -e "${GREEN}Extracting BOP subset of test images ${BLUE}(660MB)${NC}"
 unzip ycbv_test_bop19.zip && mv test test_bop   #rename test to test_bop
+ln -s test_bop test  #create a softlink of test_bop to test. This is used by the BOP evaluation script.
 rm ycbv_test_bop19.zip
 
 #Training Images

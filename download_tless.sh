@@ -36,39 +36,45 @@ echo  -e "${GREEN}Moving to datasets${NC}"
 cd datasets
 
 echo  -e "***** ${GREEN}Downloading Base archive ${NC}*****"
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_base.zip
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/tless_base.zip
 echo  -e "***** ${GREEN}Extracting Base archive ${NC}*****"
-unzip lmo_base.zip
-rm lmo_base.zip
-cd lmo #All other files are extracted inside this
+unzip tless_base.zip
+rm tless_base.zip
+cd tless #All other files are extracted inside this
 
 #CAD Models
-echo  -e "***** ${GREEN}Downloading LM models ${BLUE}(5.4MB) ${NC}*****"
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_models.zip
-echo -e "${GREEN}Extracting LM models${NC}"
-unzip lmo_models.zip
-rm lmo_models.zip
+echo  -e "***** ${GREEN}Downloading TLESS models ${BLUE}(33.5MB) ${NC}*****"
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/tless_models.zip
+echo -e "${GREEN}Extracting TLESS models ${ NC}"
+unzip tless_models.zip
+rm tless_models.zip
 
 #Test Images
-echo  -e "***** ${GREEN}Downloading all test images ${BLUE}(720.2MB) ${NC}*****"
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_all.zip
-echo -e "${GREEN}Extracting all test images ${BLUE}(720.2MB)${NC}"
-unzip lmo_test_all.zip && mv test test_all  #rename test to test_all
-rm lmo_test_all.zip
+echo  -e "***** ${GREEN}Downloading all test images ${BLUE}(8.3GB) ${NC}*****"
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/tless_test_primesense_all.zip
+echo -e "${GREEN}Extracting all test images ${BLUE}(8.3GB)${NC}"
+unzip tless_test_primesense_all.zip && mv test_primesense test_all  #rename test to test_all
+rm tless_test_primesense_all.zip
 
-echo  -e "***** ${GREEN}Downloading BOP subset of test images ${BLUE}(117.6MB)${NC}*****"
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/lmo_test_bop19.zip
-echo -e "${GREEN}Extracting BOP subset of test images ${BLUE}(117.6MB)${NC}"
-unzip lmo_test_bop19.zip && mv test test_bop  #rename test to test_bop
+echo  -e "***** ${GREEN}Downloading BOP subset of test images ${BLUE}(825.3MB)${NC}*****"
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/tless_test_primesense_bop19.zip
+echo -e "${GREEN}Extracting BOP subset of test images ${BLUE}(825.3MB)${NC}"
+unzip tless_test_primesense_bop19.zip && mv test_primesense test_bop  #rename test_primesense to test_bop
 ln -s test_bop test  #create a softlink of test_bop to test. This is used by the BOP evaluation script.
-rm lmo_test_bop19.zip
+rm tless_test_primesense_bop19.zip
 
 #Training Images
-echo  -e "***** ${GREEN}Downloading train_pbr subset of training images ${BLUE}(21.8GB).${RED}This will take some time ${NC}*****"
-wget https://bop.felk.cvut.cz/media/data/bop_datasets/lm_train_pbr.zip
-echo -e "${GREEN}Extracting train_pbr subset of training images${BLUE}(21.8GB).${RED}This will take some time${NC}"
-unzip lm_train_pbr.zip
-rm lm_train_pbr.zip
+echo  -e "***** ${GREEN}Downloading train_pbr subset of training images ${BLUE}(23.0GB).${RED}This will take some time ${NC}*****"
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/tless_train_pbr.zip
+echo -e "${GREEN}Extracting train_pbr subset of training images${BLUE}(23.0GB).${RED}This will take some time${NC}"
+unzip tless_train_pbr.zip
+rm tless_train_pbr.zip
+
+echo -e "***** ${GREEN}Downloading train_real split ${BLUE}(2.5GB).${RED}This will take some time ${NC}***** "
+wget https://bop.felk.cvut.cz/media/data/bop_datasets/tless_train_primesense.zip
+echo -e "${GREEN}Extracting train_real split ${BLUE}(2.5GB).${RED}This will take some time${NC}"
+unzip tless_train_primesense.zip && mv train_primesense train_real  #rename train_primesense to train_real
+rm tless_train_primesense.zip
 
 #Annotations. Placeholder for annotation files in COCO format
 mkdir annotations
