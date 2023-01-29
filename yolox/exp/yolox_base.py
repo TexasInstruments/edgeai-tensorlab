@@ -97,7 +97,7 @@ class Exp(BaseExp):
     ):
         from yolox.data import (
             COCODataset,
-            LINEMODOcclusionDataset,
+            LMODataset,
             YCBVDataset,
             COCOKPTSDataset,
             TrainTransform,
@@ -128,7 +128,7 @@ class Exp(BaseExp):
                 )
             elif self.data_set == "lmo" or self.data_set == "lm":
                base_dir = "lm" if self.data_set == "lm" else "lmo"
-               dataset = LINEMODOcclusionDataset(
+               dataset = LMODataset(
                     data_dir=self.data_dir,
                     json_file=self.train_ann,
                     img_size=self.input_size,
@@ -287,7 +287,7 @@ class Exp(BaseExp):
         return scheduler
 
     def get_eval_loader(self, batch_size, is_distributed, testdev=False, legacy=False):
-        from yolox.data import COCODataset, LINEMODOcclusionDataset, YCBVDataset, COCOKPTSDataset, ValTransform
+        from yolox.data import COCODataset, LMODataset, YCBVDataset, COCOKPTSDataset, ValTransform
 
         if self.data_set == "coco":
             valdataset = COCODataset(
@@ -299,7 +299,7 @@ class Exp(BaseExp):
             )
         elif self.data_set == "lm" or self.data_set == "lmo":
             base_dir = "lm" if self.data_set == "lm" else "lmo"
-            valdataset = LINEMODOcclusionDataset(
+            valdataset = LMODataset(
                 data_dir=self.data_dir,
                 json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
                 name="test", #if not testdev else "test2017",

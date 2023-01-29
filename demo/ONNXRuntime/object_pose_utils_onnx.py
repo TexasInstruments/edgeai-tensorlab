@@ -105,7 +105,7 @@ YCBV_CLASSES = (
      "foam_brick"
 )
 
-LINEMOD_CLASSES = (
+LM_CLASSES = (
      "ape",
      "benchvise",
      "bowl",
@@ -226,7 +226,7 @@ def get_class_names(dataset="ycbv"):
     if dataset == "ycbv":
         return YCBV_CLASSES
     else:
-        return LINEMOD_CLASSES
+        return LM_CLASSES
 
 def draw_cuboid_2d(img, cuboid_corners, color = (0, 255, 0), thickness = 2):
     box = np.copy(cuboid_corners).astype(np.int32)

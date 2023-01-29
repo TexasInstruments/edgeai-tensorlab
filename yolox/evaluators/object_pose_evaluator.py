@@ -14,7 +14,7 @@ from tqdm import tqdm
 import cv2
 from ..utils  import visualize_object_pose
 from ..utils.object_pose_utils  import decode_rotation_translation
-from ..data.datasets.linemod_occlusion import LINEMODOcclusionDataset
+from ..data.datasets.lmo import LMODataset
 from ..data.datasets.ycbv import YCBVDataset
 import numpy as np
 from sklearn.neighbors import KDTree
@@ -64,7 +64,7 @@ class ObjectPoseEvaluator:
             if isinstance(dataloader.dataset, YCBVDataset):
                 self.dataset = 'ycbv'
                 self.class_map = None
-            elif isinstance(dataloader.dataset, LINEMODOcclusionDataset):
+            elif isinstance(dataloader.dataset, LMODataset):
                 self.dataset = 'lmo'
                 self.class_map = {v:k for k,v in dataloader.dataset.class_map.items()}
             else:

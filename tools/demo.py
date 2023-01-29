@@ -14,7 +14,7 @@ import copy
 import numpy as np
 
 from yolox.data.data_augment import ValTransform
-from yolox.data.datasets import COCO_CLASSES, YCBV_CLASSES, LINEMOD_CLASSES
+from yolox.data.datasets import COCO_CLASSES, YCBV_CLASSES, LM_CLASSES
 from yolox.data import CADModelsYCBV, CADModelsLM
 from yolox.exp import get_exp
 from yolox.utils import fuse_model, get_model_info, postprocess, postprocess_object_pose, vis
@@ -364,7 +364,7 @@ def main(exp, args):
     if exp.data_set == "ycbv":
         cls_names = YCBV_CLASSES
     elif exp.data_set == "lmo" or exp.data_set== "lm":
-        cls_names = LINEMOD_CLASSES
+        cls_names = LM_CLASSES
     else:
         cls_names = COCO_CLASSES
 

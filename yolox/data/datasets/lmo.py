@@ -108,7 +108,7 @@ class CADModelsLM():
         return class_to_sparse_model
 
 
-class LINEMODOcclusionDataset(Dataset):
+class LMODataset(Dataset):
     """
     LINEMODOcclusion dataset class.
     """

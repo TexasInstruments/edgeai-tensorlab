@@ -81,7 +81,7 @@ class Exp(MyExp):
             self, batch_size, is_distributed, no_aug=True, cache_img=False
         ):
             from yolox.data import (
-                LINEMODOcclusionDataset,
+                LMODataset,
                 YCBVDataset,
                 TrainTransform,
                 YoloBatchSampler,
@@ -100,7 +100,7 @@ class Exp(MyExp):
             with wait_for_the_master(local_rank):
                 if self.data_set == "lm" or self.data_set == "lmo":
                     base_dir = "lm" if self.data_set == "lm" else "lmo"
-                    dataset = LINEMODOcclusionDataset(
+                    dataset = LMODataset(
                             data_dir=self.data_dir,
                             json_file=self.train_ann,
                             img_size=self.input_size,

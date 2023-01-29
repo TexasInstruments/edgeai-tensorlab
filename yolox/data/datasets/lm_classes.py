@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 # Copyright (c) Megvii, Inc. and its affiliates.
 
-LINEMOD_CLASSES = (
+LM_CLASSES = (
      "ape",
      "benchvise",
      "bowl",

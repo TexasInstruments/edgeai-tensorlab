@@ -20,7 +20,7 @@ from yolox.utils import bboxes_iou
 from .losses import IOUloss
 from .network_blocks import BaseConv, DWConv
 
-from ..data.datasets.linemod_occlusion import CADModelsLM
+from ..data.datasets.lmo import CADModelsLM
 from ..data.datasets.ycbv import CADModelsYCBV
 
 class YOLOXObjectPoseHead(nn.Module):
