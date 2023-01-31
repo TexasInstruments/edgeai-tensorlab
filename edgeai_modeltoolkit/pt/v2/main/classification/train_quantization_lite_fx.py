@@ -11,8 +11,9 @@ import utils
 from torch import nn
 from train import train_one_epoch, evaluate, load_data
 
-import edgeai_modeltools.pt.xnn as xnn
-import edgeai_modeltools.pt.xao.quantization.quant_torch_fx as qat_module
+import edgeai_modeltoolkit.pt.v2.tools.xao.quantization.quant_torch_fx as qat_module
+
+import edgeai_modeltoolkit.pt.v1.tools.xnn as xnn
 
 def main(args):
     if args.output_dir:

@@ -55,17 +55,17 @@ if __name__ == '__main__':
         long_description = readme.read()
 
     setup(
-        name='edgeai_modeltools',
+        name='edgeai_modeltoolkit',
         version=get_version(),
         description='Edge AI Model Tools',
         long_description=long_description,
         long_description_content_type='text/markdown',
-        url='https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltools/browse',
+        url='https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse',
         author='EdgeAI, TIDL & Analytics Algo Teams',
         author_email='edgeai-devkit@list.ti.com',
         classifiers=[
             'Development Status :: 4 - Beta'
-            'Programming Language :: Python :: 3.7'
+            'Programming Language :: Python :: 3.6'
         ],
         keywords = 'artifical intelligence, deep learning, image classification, object detection, semantic segmentation, quantization',
         python_requires='>=3.6',
@@ -73,7 +73,7 @@ if __name__ == '__main__':
         include_package_data=True,
         install_requires=[],
         project_urls={
-            'Source': 'https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltools/browse',
+            'Source': 'https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse',
             'Bug Reports': 'https://e2e.ti.com/support/processors/f/791/tags/jacinto_2D00_ai_2D00_devkit',
         },
     )
