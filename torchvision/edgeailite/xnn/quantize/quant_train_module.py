@@ -529,6 +529,9 @@ class QuantTrainPAct2(layers.PAct2):
                         elif bias_split_quant:
                             bias_scale_ratio_factor = torch.div(scale2_joint, bias_scale2, rounding_mode='trunc')
                             input_signed = clips_scale_input[0] < 0
+                            if self.verbose_mode:
+                                print(f'layer: {self.name} input_signed = {input_signed}')
+                            #
                             quant_bias_max = (bias_width_max-1) if input_signed else (2*bias_width_max-1)
                             if bias_scale_ratio_factor > quant_bias_max:
                                 merged_bias_q = torch.clamp(merged_bias*scale2_joint, width_joint_min, width_joint_max - 1)
