@@ -9,6 +9,7 @@ ARG USER_GID=$USER_ID
 ENV HOME_DIR=/home/$USER_NAME
 ARG PROJECT_NAME="modelmaker"
 ARG DEBIAN_FRONTEND=noninteractive
+# avoid warnings/errors while installing pillow-simd
 ENV LC_ALL=C.UTF-8
 
 # paths

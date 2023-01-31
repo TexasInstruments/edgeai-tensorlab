@@ -26,10 +26,11 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# plugin types
+
+# plugins/additional models
+# see the setup_all.sh file to understand how to set this
 PLUGINS_ENABLE_GPL = False
 PLUGINS_ENABLE_EXTRA = False
-
 
 # task_type
 TASK_TYPE_CLASSIFICATION = 'classification'
