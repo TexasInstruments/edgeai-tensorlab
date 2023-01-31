@@ -161,13 +161,13 @@ pip list | grep 'torch\|torchvision'
 </pre>
 
 
-### Disabling optional components
+### Enabling optional components
 
-Optional plugins can be disabled by running:
-```
-./disable_plugins_gpl.sh
-```
-This disables [edgeai-yolov5](https://github.com/TexasInstruments/edgeai-yolov5) and removes support for YOLOv5 ti_lite models.
+In setup_all.sh, there are flags to enable additional models
+
+PLUGINS_ENABLE_GPL: Setting this to 1 during setup adds support for YOLOv5 ti_lite models using the repository [edgeai-yolov5](https://github.com/TexasInstruments/edgeai-yolov5) .
+
+PLUGINS_ENABLE_EXTRA: Setting this to 1 during setup enables additional models. 
 
 
 ## Step 3: Run the ready-made examples
