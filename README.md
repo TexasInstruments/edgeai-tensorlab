@@ -16,6 +16,23 @@ This repository is based on [Megvii/YOLOX](https://github.com/Megvii-BaseDetecti
 
 For more details, please refer to Megvii's [report on Arxiv](https://arxiv.org/abs/2107.08430).
 
+## Installation
+Installation instructions are the same as the official repo and are mentioned here for convenience.
+
+Step1. Install YOLOX.
+```shell
+git clone git@github.com:Megvii-BaseDetection/YOLOX.git
+cd YOLOX
+pip3 install -U pip && pip3 install -r requirements.txt
+pip3 install -v -e .  # or  python3 setup.py develop
+```
+Step2. Install [pycocotools](https://github.com/cocodataset/cocoapi).
+
+```shell
+pip3 install cython; pip3 install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
+```
+
+
 ### Official Models from Megvii.
 
 #### Standard Models.
