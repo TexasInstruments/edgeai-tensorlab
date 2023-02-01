@@ -32,7 +32,7 @@
 import copy
 import torch
 import torch.ao.quantization.quantize_fx as quantize_fx
-import edgeai_modeltoolkit.pt.v1.tools.xnn as xnn
+import edgeai_torchtoolkit.v1.tools.xnn as xnn
 from . import _quant_torch_base as quant_torch_base
 
 __all__ = ['prepare', 'load_weights', 'freeze', 'train', 'eval', 'convert']
