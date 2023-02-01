@@ -35,7 +35,7 @@ import typing
 
 import torch
 import torch.quantization.quantize_fx as quantize_fx
-import edgeai_modeltoolkit.pt.v1.tools.xnn as xnn
+import edgeai_torchtoolkit.v1.tools.xnn as xnn
 from .import qconfig
 
 

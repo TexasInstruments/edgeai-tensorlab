@@ -55,9 +55,9 @@ if __name__ == '__main__':
         long_description = readme.read()
 
     setup(
-        name='edgeai_modeltoolkit',
+        name='edgeai_torchtoolkit',
         version=get_version(),
-        description='Edge AI Model Tools',
+        description='EdgeAI Model ToolKit For Torch',
         long_description=long_description,
         long_description_content_type='text/markdown',
         url='https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse',
@@ -67,7 +67,7 @@ if __name__ == '__main__':
             'Development Status :: 4 - Beta'
             'Programming Language :: Python :: 3.6'
         ],
-        keywords = 'artifical intelligence, deep learning, image classification, object detection, semantic segmentation, quantization',
+        keywords = 'artifical intelligence, deep learning, quantization',
         python_requires='>=3.6',
         packages=find_packages(),
         include_package_data=True,
