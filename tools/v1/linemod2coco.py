@@ -6,7 +6,12 @@ from tqdm import tqdm
 import argparse
 
 
-parser = argparse.ArgumentParser("LINEMOD_PBR2COCO_PARSER")
+parser = argparse.ArgumentParser("LINEMOD2COCO_PARSER")
+parser.add_argument("--basepath", default="./data/lmo", type=str, help="path to ycbv dataset")
+parser.add_argument("--split", default='train', type=str, help="split can be wither train or test")
+
+#parser.add_argument("--keyframes", default="./data/ycbv/keyframe.txt", type=str, help="path to the keyframes file list")
+
 parser.add_argument("--lm", default=False, action="store_true", help="Select only LM classes")
 parser.add_argument("--lmo", default=False, action="store_true", help="Select only LMO classes")
 parser.add_argument("--lmob", default=False, action="store_true", help="Select only LMO classes including benchvise")
@@ -18,16 +23,17 @@ lmoe = [2, 3, 4, 7, 13, 14, 15]  #15-7=8
 lmoeb = [3, 4, 7, 13, 14, 15]  #15-6=9
 
 
-def convert_to_coco_json(merge=False):
-    image_count = 0
-    obj_count = 0
-
-    basepath = '/data/ssd/6d_pose/Linemod_preprocessed/data/'
+def convert_to_coco_json(split='train', type='real'):
+    if split == 'train':
+        basepath = os.path.join(args.basepath, '{}_{}'.format(split, type))
+        outfile = os.path.join(args.basepath, 'annotations', 'instances_{}_{}.json'.format(split, type))
+    else:
+        basepath = os.path.join(args.basepath, '{}_{}'.format(split, keyframes))
+        outfile = os.path.join(args.basepath, 'annotations', 'instances_{}_{}.json'.format(split, keyframes))
     data_folders = sorted(os.listdir(basepath))
 
-    if merge:
-        outfile_train_merged = '/data/ssd/6d_pose/LINEMOD_COCO/instances_train.json'
-        outfile_test_merged = '/data/ssd/6d_pose/LINEMOD_COCO/instances_test.json'
+    image_count = 0
+    obj_count = 0
 
     for data_folder_idx, data_folder in enumerate(data_folders):
         if args.lm:
@@ -42,6 +48,7 @@ def convert_to_coco_json(merge=False):
         with open(data_path + '/gt.yml') as yaml_file:
             gt_dict = yaml.safe_load(yaml_file)
         print("Loading completed {}".format(data_path + '/gt.yml'))
+
         with open(data_path + '/test.txt', 'r') as f:
             test_list = list(f)
             test_list = [idx.rstrip() for idx in test_list]
@@ -109,15 +116,6 @@ def convert_to_coco_json(merge=False):
     if merge:
         mmcv.dump(coco_train, outfile_train_merged)
         mmcv.dump(coco_test, outfile_test_merged)
-
-
-def sort_images(src, train_dst, test_dst, test_list):
-    for image_num in range(1214):
-        filename = "{:04}".format(image_num) + '.png'
-        if filename[:-4] in test_list:
-            shutil.copy(os.path.join(src,filename), os.path.join(test_dst, filename))
-        else:
-            shutil.copy(os.path.join(src,filename), os.path.join(train_dst, filename))
 
 
 if __name__ == "__main__":

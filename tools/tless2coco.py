@@ -5,23 +5,25 @@ import json
 import argparse
 from merge_json import merge_jsons
 
-parser = argparse.ArgumentParser("YCBV2COCO_PARSER")
-parser.add_argument("--datapath", default="./datasets/ycbv", type=str, help="path to ycbv dataset")
+parser = argparse.ArgumentParser("TLESS2COCO_PARSER")
+parser.add_argument("--datapath", default="./datasets/tless", type=str, help="path to ycbv dataset")
 parser.add_argument("--keyframes", default="./data/ycbv/keyframe.txt", type=str, help="path to the keyframes file list")
 parser.add_argument("--split", default='train', type=str, help="aplit can be either train or test")
 
 args = parser.parse_args()
+num_classes = 30
+class_to_name = {}
+#T-Less data has  class doesn't have any name. Hence, providing generic names: class_00, class_01,..., class_29
+for i in range(num_classes):
+    class_to_name [i] =  "class_{:02}".format(i)
 
-class_to_name = {
-    0: "002_master_chef_can" , 1: "003_cracker_box" ,  2: "004_sugar_box" , 3: "005_tomato_soup_can",  4: "006_mustard_bottle",
-    5: "007_tuna_fish_can",  6: "008_pudding_box" , 7: "009_gelatin_box", 8: "010_potted_meat_can",  9: "011_banana",
-    10: "019_pitcher_base", 11: "021_bleach_cleanser",  12: "024_bowl", 13: "025_mug", 14: "035_power_drill",
-    15: "036_wood_block", 16: "037_scissors", 17: "040_large_marker", 18: "051_large_clamp", 19: "052_extra_large_clamp",
-    20: "061_foam_brick"
-}
+def create_camera_json():
+    """
+    Create camera json for diffrent sequences and dump it into as.datapath
+    """
+    return
 
-
-def convert_ycb2coco(split='train', type='real', keyframes=None, datapath="./datasets/ycbv"):
+def convert_tless2coco(split='train', type='real', keyframes=None, datapath="./datasets/tless"):
     if split == 'train':
         basepath = os.path.join(datapath, '{}_{}'.format(split, type))
         outfile = os.path.join(datapath, 'annotations', 'instances_{}_{}.json'.format(split, type))

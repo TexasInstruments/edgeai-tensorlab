@@ -8,7 +8,7 @@ from merge_json import merge_jsons
 parser = argparse.ArgumentParser("YCBV2COCO_PARSER")
 parser.add_argument("--datapath", default="./datasets/ycbv", type=str, help="path to ycbv dataset")
 parser.add_argument("--keyframes", default="./data/ycbv/keyframe.txt", type=str, help="path to the keyframes file list")
-parser.add_argument("--split", default='train', type=str, help="aplit can be either train or test")
+parser.add_argument("--split", default='train', type=str, help="split can be either train or test")
 
 args = parser.parse_args()
 

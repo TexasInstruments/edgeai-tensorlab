@@ -5,7 +5,7 @@ import json
 import argparse
 
 parser = argparse.ArgumentParser("LINEMOD2COCO_PARSER")
-parser.add_argument("--datapath", default="./datasets/lmo", type=str, help="path to ycbv dataset")
+parser.add_argument("--datapath", default="./datasets/lmo", type=str, help="path to lmo dataset")
 parser.add_argument("--split", default='train', type=str, help="split can be wither train or test")
 
 
