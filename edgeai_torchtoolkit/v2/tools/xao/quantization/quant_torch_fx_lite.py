@@ -36,17 +36,9 @@ import torch
 import torch.ao.quantization.quantize_fx as quantize_fx
 import edgeai_torchtoolkit.v1.tools.xnn as xnn
 from .import qconfig
+from . import quant_torch_fx_lite_utils
 
 __all__ = ['prepare', 'load_weights', 'freeze', 'train', 'eval', 'convert']
-
-
-def _set_quant_backend(backend=None):
-    if backend:
-        if backend not in torch.backends.quantized.supported_engines:
-            raise RuntimeError("Quantized backend not supported: " + str(backend))
-        #
-        torch.backends.quantized.engine = backend
-    #
 
 
 def load_weights(model, pretrained=None, change_names_dict=None):
@@ -61,7 +53,7 @@ def load_weights(model, pretrained=None, change_names_dict=None):
     #
 
 
-def prepare(model, qconfig_dict=None, pretrained=None, pretrained_after_prepare=False, backend=None,
+def prepare(model, qconfig_dict=None, example_inputs=(None,), pretrained=None, pretrained_after_prepare=False, backend=None,
             num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
             is_qat=True, **kwargs):
     model = xnn.model_surgery.replace_modules(model, replacements_dict={torch.nn.ReLU6: [torch.nn.ReLU, 'inplace']})
@@ -71,7 +63,7 @@ def prepare(model, qconfig_dict=None, pretrained=None, pretrained_after_prepare=
     # else:
     #     model = quantize_fx.fuse_fx(model)
     # #
-    _set_quant_backend(backend=backend)
+    quant_torch_fx_lite_utils.set_quant_backend(backend=backend)
     if qconfig_dict is None:
         qconfig_dict = {"": qconfig.get_qat_qconfig_for_target_device(backend, target_device=None)}
     #
@@ -100,7 +92,11 @@ def prepare(model, qconfig_dict=None, pretrained=None, pretrained_after_prepare=
         model.forward = types.MethodType(_new_forward, model)
     #
     # prepare for quantization
-    model = quantize_fx.prepare_qat_fx(model, qconfig_dict)
+    if is_qat:
+        model = quantize_fx.prepare_qat_fx(model, qconfig_dict, example_inputs)
+    else:
+        model = quantize_fx.prepare_fx(model, qconfig_dict, example_inputs)
+    #
     if pretrained_after_prepare:
         load_weights(model, pretrained=pretrained)
     #
@@ -109,9 +105,15 @@ def prepare(model, qconfig_dict=None, pretrained=None, pretrained_after_prepare=
     # observes for range estimation
     model.apply(torch.ao.quantization.enable_observer)
     # store additional information
-    model.__quant_info__ = dict(num_batch_norm_update_epochs=num_batch_norm_update_epochs,
-                                 num_observer_update_epochs=num_observer_update_epochs,
-                                 num_epochs_tracked=0)
+    __quant_info_new__ = dict(is_qat=is_qat, num_batch_norm_update_epochs=num_batch_norm_update_epochs,
+                             num_observer_update_epochs=num_observer_update_epochs,
+                             num_epochs_tracked=0)
+    __quant_info_existing__ = quant_torch_fx_lite_utils.get_quant_info(model)
+    if not __quant_info_existing__:
+        model.__quant_info__ = __quant_info_new__
+    else:
+        __quant_info_existing__.update(__quant_info_new__)
+    #
     return model
 
 
@@ -134,20 +136,11 @@ def unfreeze(model, unfreeze_bn=True, unfreeze_observers=True):
     return model
 
 
-def _get_quant_info(model):
-    for m in model.modules():
-        if hasattr(m, '__quant_info__'):
-            return m.__quant_info__
-        #
-    #
-    return None
-
-
 def train(model):
     # put the model in train mode
     model.train()
     # freezing ranges after a few epochs improve accuracy
-    __quant_info__ = _get_quant_info(model)
+    __quant_info__ = quant_torch_fx_lite_utils.get_quant_info(model)
     if __quant_info__ is not None:
         num_batch_norm_update_epochs = __quant_info__['num_batch_norm_update_epochs']
         num_observer_update_epochs = __quant_info__['num_observer_update_epochs']
