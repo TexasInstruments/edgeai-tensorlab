@@ -38,24 +38,13 @@ import edgeai_torchtoolkit.v1.tools.xnn as xnn
 from .import qconfig
 from . import quant_torch_fx_lite_utils
 
-__all__ = ['prepare', 'load_weights', 'freeze', 'train', 'eval', 'convert']
+__all__ = ['prepare', 'freeze', 'train', 'eval', 'convert']
 
 
-def load_weights(model, pretrained=None, change_names_dict=None):
-    # Load weights for accuracy evaluation of a QAT model
-    if pretrained is not None and pretrained is not False:
-        print("=> using pre-trained model from {}".format(pretrained))
-        if hasattr(model, 'load_weights'):
-            model.load_weights(pretrained, download_root='./data/downloads', change_names_dict=change_names_dict)
-        else:
-            xnn.utils.load_weights(model, pretrained, download_root='./data/downloads', change_names_dict=change_names_dict)
-        #
-    #
-
-
-def prepare(model, qconfig_dict=None, example_inputs=(None,), pretrained=None, pretrained_after_prepare=False, backend=None,
+def prepare(model, qconfig_dict=None, example_inputs=(None,), pretrained=None, backend=None, is_qat=True,
+            target_device=None, pretrained_after_prepare=False,
             num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
-            is_qat=True, **kwargs):
+            **kwargs):
     model = xnn.model_surgery.replace_modules(model, replacements_dict={torch.nn.ReLU6: [torch.nn.ReLU, 'inplace']})
     # if qat fx, fusion is needed/supported only for eval
     # if hasattr(model, 'fuse_model'):
@@ -65,11 +54,11 @@ def prepare(model, qconfig_dict=None, example_inputs=(None,), pretrained=None, p
     # #
     quant_torch_fx_lite_utils.set_quant_backend(backend=backend)
     if qconfig_dict is None:
-        qconfig_dict = {"": qconfig.get_qat_qconfig_for_target_device(backend, target_device=None)}
+        qconfig_dict = {"": qconfig.get_qat_qconfig_for_target_device(backend, target_device=target_device)}
     #
     model.train()
     if not pretrained_after_prepare:
-        load_weights(model, pretrained=pretrained)
+        quant_torch_fx_lite_utils.load_weights(model, pretrained=pretrained)
     #
     # insert quant, dequant stubs - if it is not present
     has_quant_stub = [isinstance(m, torch.quantization.QuantStub) for m in model.modules()]
@@ -98,7 +87,7 @@ def prepare(model, qconfig_dict=None, example_inputs=(None,), pretrained=None, p
         model = quantize_fx.prepare_fx(model, qconfig_dict, example_inputs)
     #
     if pretrained_after_prepare:
-        load_weights(model, pretrained=pretrained)
+        quant_torch_fx_lite_utils.load_weights(model, pretrained=pretrained)
     #
     # fake quantization for qat
     model.apply(torch.ao.quantization.enable_fake_quant)
@@ -164,25 +153,26 @@ def eval(model):
     return model
 
 
-def convert(model, inplace=False):
+def convert(model, inplace=False, device='cpu'):
     # make a copy inorder not to alter the original
     model = copy.deepcopy(model)
     # convert requires cpu model
-    model = model.to(torch.device('cpu'))
+    model = model.to(torch.device(device))
     # now do the actual conversion
-    model = quantize_fx.convert_fx(model)
+    model = quantize_fx.convert_fx(model, inplace=inplace)
     return model
 
 
 ##################################################################
 # this is a convenient Module form of the above APIs
 class QuantTorchFxModule(torch.nn.Module):
-    def __int__(self, module, qconfig_dict=None, pretrained=None,
-            pretrained_after_prepare=False, backend=None,
-            num_batch_norm_update_epochs=None, num_observer_update_epochs=None):
+    def __int__(self, module, qconfig_dict=None, example_inputs=(None,),
+                pretrained=None, backend=None, is_qat=True, target_device=None,
+                pretrained_after_prepare=False, num_batch_norm_update_epochs=None, num_observer_update_epochs=None):
         super().__init__()
-        self.module = prepare(module, qconfig_dict=qconfig_dict, pretrained=pretrained,
-            pretrained_after_prepare=pretrained_after_prepare, backend=backend,
+        self.module = prepare(module, qconfig_dict=qconfig_dict, example_inputs=example_inputs,
+            pretrained=pretrained, backend=backend, is_qat=is_qat, target_device=target_device,
+            pretrained_after_prepare=pretrained_after_prepare,
             num_batch_norm_update_epochs=num_batch_norm_update_epochs,
             num_observer_update_epochs=num_observer_update_epochs)
 
@@ -201,5 +191,5 @@ class QuantTorchFxModule(torch.nn.Module):
     def unfreeze(self):
         self.module = unfreeze(self.module)
 
-    def convert(self):
-        return convert(self.module)
+    def convert(self, inplace=False):
+        return convert(self.module, inplace=inplace)

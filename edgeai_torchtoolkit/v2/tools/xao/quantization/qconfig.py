@@ -35,6 +35,10 @@ from . import observer
 from . import qsettings
 
 
+# the default qconfig
+get_default_qat_qconfig = torch.ao.quantization.get_default_qat_qconfig
+
+
 def _get_qat_qconfig(backend=None, weight_observer=None, activation_observer=None,
                      weight_qscheme=None, activation_qscheme=None):
     # we support only symmetric types (per tensor or per channel) for weight
@@ -95,13 +99,16 @@ def get_per_channel_affine_qat_qconfig(backend=None, histogram_observer=qsetting
                             activation_qscheme=torch.per_tensor_affine)
 
 
-# can also use torch.ao.quantization.get_default_qat_qconfig
-
-
-def get_qat_qconfig_for_target_device(backend, target_device=None, histogram_observer=qsettings.USE_HISTOGRAM_OBSERVER_DEFAULT,
+def get_qat_qconfig_for_target_device(backend, target_device=None,
+                                      histogram_observer=qsettings.USE_HISTOGRAM_OBSERVER_DEFAULT,
                                       per_channel_weight_quant=False):
     ''''this is initial implementation. we can implement more target_device specific qconfigs later'''
-    if target_device is None or target_device.lower() in ('tda4vm', 'j7es', 'j721e'):
+    if target_device is None:
+        # if target_device is not provided, we use the pytorch default qconfig
+        # this is not guarenteed to be compatible with the device that you want to use.
+        # ideally, the target_device should be provided
+        return get_default_qat_qconfig(backend)
+    elif target_device.lower() in ('TDA4VM', 'J7ES', 'J721E', 'AM68PA'):
         '''
         This configuration will work on all our devices (but may be slightly lower accuracy compared to other options). 
         We use this if target_device is None or if target_device is explicitly specified as TDA4VM
@@ -109,13 +116,13 @@ def get_qat_qconfig_for_target_device(backend, target_device=None, histogram_obs
         return get_per_tensor_symmetric_power2_qat_qconfig(backend=backend, histogram_observer=histogram_observer)
     elif per_channel_weight_quant:
         '''
-        per_channel_affine is supported in devices that have MMAv2 (TDA4AL/J7AEP, TDA4VH/J7AHP, AM62A)
+        per_channel_affine is supported in devices that have MMAv2 (TDA4AL/TDA4VL/J7AEP/AM68A, TDA4VH/J7AHP/AM69A, AM62A)
         But it comes with some performance cost (lower FPS). So using it only if it is explicitly requested.
         '''
         return get_per_channel_affine_qat_qconfig(backend=backend, histogram_observer=histogram_observer)
     else:
         '''
-        For devices that have MMAv2 (TDA4AL/J7AEP, TDA4VH/J7AHP, AM62A), 
+        For devices that have MMAv2 (TDA4AL/TDA4VL/J7AEP/AM68A, TDA4VH/J7AHP/AM69A, AM62A), 
         it is possible to use per tensor affine quantization without performance cost.
         '''
         return get_per_tensor_affine_qat_qconfig(backend=backend, histogram_observer=histogram_observer)

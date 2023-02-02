@@ -30,6 +30,19 @@
 #################################################################################
 
 import torch
+import edgeai_torchtoolkit.v1.tools.xnn as xnn
+
+
+def load_weights(model, pretrained=None, change_names_dict=None):
+    # Load weights for accuracy evaluation of a QAT model
+    if pretrained is not None and pretrained is not False:
+        print("=> using pre-trained model from {}".format(pretrained))
+        if hasattr(model, 'load_weights'):
+            model.load_weights(pretrained, download_root='./data/downloads', change_names_dict=change_names_dict)
+        else:
+            xnn.utils.load_weights(model, pretrained, download_root='./data/downloads', change_names_dict=change_names_dict)
+        #
+    #
 
 
 def set_quant_backend(backend=None):
