@@ -36,7 +36,7 @@ import torch
 import torch.ao.quantization.quantize_fx as quantize_fx
 import edgeai_torchtoolkit.v1.tools.xnn as xnn
 from .import qconfig
-from . import quant_torch_fx_lite_utils
+from . import quant_fx_lite_utils
 
 __all__ = ['prepare', 'freeze', 'train', 'eval', 'convert']
 
@@ -52,13 +52,13 @@ def prepare(model, qconfig_dict=None, example_inputs=(None,), pretrained=None, b
     # else:
     #     model = quantize_fx.fuse_fx(model)
     # #
-    quant_torch_fx_lite_utils.set_quant_backend(backend=backend)
+    quant_fx_lite_utils.set_quant_backend(backend=backend)
     if qconfig_dict is None:
         qconfig_dict = {"": qconfig.get_qat_qconfig_for_target_device(backend, target_device=target_device)}
     #
     model.train()
     if not pretrained_after_prepare:
-        quant_torch_fx_lite_utils.load_weights(model, pretrained=pretrained)
+        quant_fx_lite_utils.load_weights(model, pretrained=pretrained)
     #
     # insert quant, dequant stubs - if it is not present
     has_quant_stub = [isinstance(m, torch.quantization.QuantStub) for m in model.modules()]
@@ -87,7 +87,7 @@ def prepare(model, qconfig_dict=None, example_inputs=(None,), pretrained=None, b
         model = quantize_fx.prepare_fx(model, qconfig_dict, example_inputs)
     #
     if pretrained_after_prepare:
-        quant_torch_fx_lite_utils.load_weights(model, pretrained=pretrained)
+        quant_fx_lite_utils.load_weights(model, pretrained=pretrained)
     #
     # fake quantization for qat
     model.apply(torch.ao.quantization.enable_fake_quant)
@@ -97,7 +97,7 @@ def prepare(model, qconfig_dict=None, example_inputs=(None,), pretrained=None, b
     __quant_info_new__ = dict(is_qat=is_qat, num_batch_norm_update_epochs=num_batch_norm_update_epochs,
                              num_observer_update_epochs=num_observer_update_epochs,
                              num_epochs_tracked=0)
-    __quant_info_existing__ = quant_torch_fx_lite_utils.get_quant_info(model)
+    __quant_info_existing__ = quant_fx_lite_utils.get_quant_info(model)
     if not __quant_info_existing__:
         model.__quant_info__ = __quant_info_new__
     else:
@@ -125,11 +125,9 @@ def unfreeze(model, unfreeze_bn=True, unfreeze_observers=True):
     return model
 
 
-def train(model):
-    # put the model in train mode
-    model.train()
+def train(model, mode: bool = True):
     # freezing ranges after a few epochs improve accuracy
-    __quant_info__ = quant_torch_fx_lite_utils.get_quant_info(model)
+    __quant_info__ = quant_fx_lite_utils.get_quant_info(model)
     if __quant_info__ is not None:
         num_batch_norm_update_epochs = __quant_info__['num_batch_norm_update_epochs']
         num_observer_update_epochs = __quant_info__['num_observer_update_epochs']
@@ -140,16 +138,24 @@ def train(model):
         num_observer_update_epochs = None
         num_epochs_tracked = 0
     #
+    # set the default epoch at which freeze occurs during training (if missing)
     num_batch_norm_update_epochs = num_batch_norm_update_epochs or 4
     num_observer_update_epochs = num_observer_update_epochs or 6
-    freeze(model, freeze_bn=(num_epochs_tracked>=num_batch_norm_update_epochs),
-           freeze_observers=(num_epochs_tracked>=num_observer_update_epochs))
+    # put the model in expected mode
+    model.train(mode=mode)
+    # also fredze the params if required
+    if mode is True:
+        freeze(model, freeze_bn=(num_epochs_tracked>=num_batch_norm_update_epochs),
+               freeze_observers=(num_epochs_tracked>=num_observer_update_epochs))
+    else:
+        freeze(model)
+    #
     return model
 
 
 def eval(model):
     model.eval()
-    freeze(model, freeze_bn=True, freeze_observers=True)
+    freeze(model)
     return model
 
 
@@ -166,7 +172,7 @@ def convert(model, inplace=False, device='cpu'):
 ##################################################################
 # this is a convenient Module form of the above APIs
 class QuantTorchFxModule(torch.nn.Module):
-    def __int__(self, module, qconfig_dict=None, example_inputs=(None,),
+    def __init__(self, module, qconfig_dict=None, example_inputs=(None,),
                 pretrained=None, backend=None, is_qat=True, target_device=None,
                 pretrained_after_prepare=False, num_batch_norm_update_epochs=None, num_observer_update_epochs=None):
         super().__init__()
@@ -177,10 +183,13 @@ class QuantTorchFxModule(torch.nn.Module):
             num_observer_update_epochs=num_observer_update_epochs)
 
     def load_weights(self, pretrained):
-        load_weights(self.module, pretrained=pretrained)
+        quant_fx_lite_utils.load_weights(self.module, pretrained=pretrained)
 
-    def train(self):
-        self.module = train(self.module)
+    def forward(self, *input, **kwargs):
+        return self.module(*input, **kwargs)
+
+    def train(self, mode: bool = True):
+        self.module = train(self.module, mode=mode)
 
     def eval(self):
         self.module = eval(self.module)

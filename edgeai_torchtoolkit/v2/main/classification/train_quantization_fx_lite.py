@@ -12,7 +12,7 @@ from torch import nn
 from train import train_one_epoch, evaluate, load_data
 
 from edgeai_torchtoolkit.v1.tools import xnn
-from edgeai_torchtoolkit.v2.tools.xao.quantization import quant_torch_fx_lite as quant_module
+from edgeai_torchtoolkit.v2.tools.xao.quantization import quant_fx_lite
 
 
 def main(args):
@@ -56,7 +56,7 @@ def main(args):
     if not (args.test_only or args.post_training_quantize):
         # prepare model for quantization
         # pytorch supports varius quantized backends - eg.  'qnnpack', 'fbgemm' (default is fbgemm)
-        model = quant_module.QuantTorchFxModule(model, backend=args.backend, is_qat=True,
+        model = quant_fx_lite.QuantTorchFxModule(model, backend=args.backend, is_qat=True,
             num_batch_norm_update_epochs=args.num_batch_norm_update_epochs,
             num_observer_update_epochs=args.num_observer_update_epochs)
 
@@ -93,7 +93,7 @@ def main(args):
             ds, batch_size=args.batch_size, shuffle=False, num_workers=args.workers, pin_memory=True
         )
         model.eval()
-        model = quant_module.QuantTorchFxModule(model, is_qat=False, inplace=True)
+        model = quant_fx_lite.QuantTorchFxModule(model, is_qat=False, inplace=True)
         # Calibrate first
         print("Calibrating")
         evaluate(model, criterion, data_loader_calibration, device=device, print_freq=1)

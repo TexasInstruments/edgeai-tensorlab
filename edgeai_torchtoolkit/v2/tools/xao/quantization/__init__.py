@@ -32,5 +32,5 @@
 from . import observer
 from . import qconfig
 
-from . import quant_torch_fx_lite
+from . import quant_fx_lite
 
