@@ -12,7 +12,8 @@ from torch import nn
 from train import train_one_epoch, evaluate, load_data
 
 from edgeai_torchtoolkit.v1.tools import xnn
-from edgeai_torchtoolkit.v2.tools.xao.quantization import quant_torch_fx as qat_module
+from edgeai_torchtoolkit.v2.tools.xao.quantization import quant_torch_fx_lite as quant_module
+
 
 def main(args):
     if args.output_dir:
@@ -55,7 +56,7 @@ def main(args):
     if not (args.test_only or args.post_training_quantize):
         # prepare model for quantization
         # pytorch supports varius quantized backends - eg.  'qnnpack', 'fbgemm' (default is fbgemm)
-        model = qat_module.prepare(model, backend=args.backend,
+        model = quant_module.prepare(model, backend=args.backend,
             num_batch_norm_update_epochs=args.num_batch_norm_update_epochs,
             num_observer_update_epochs=args.num_observer_update_epochs)
 
@@ -84,8 +85,32 @@ def main(args):
         lr_scheduler.load_state_dict(checkpoint["lr_scheduler"])
         args.start_epoch = checkpoint["epoch"] + 1
 
+    if args.post_training_quantize:
+        # TODO: This PTQ part has to be changed to use the same APIs like the QAT part.
+        # perform calibration on a subset of the training dataset
+        # for that, create a subset of the training dataset
+        ds = torch.utils.data.Subset(dataset, indices=list(range(args.batch_size * args.num_calibration_batches)))
+        data_loader_calibration = torch.utils.data.DataLoader(
+            ds, batch_size=args.batch_size, shuffle=False, num_workers=args.workers, pin_memory=True
+        )
+        model.eval()
+        model.fuse_model(is_qat=False)
+        model.qconfig = torch.ao.quantization.get_default_qconfig(args.backend)
+        torch.ao.quantization.prepare(model, inplace=True)
+        # Calibrate first
+        print("Calibrating")
+        evaluate(model, criterion, data_loader_calibration, device=device, print_freq=1)
+        torch.ao.quantization.convert(model, inplace=True)
+        if args.output_dir:
+            print("Saving quantized model")
+            if utils.is_main_process():
+                torch.save(model.state_dict(), os.path.join(args.output_dir, "quantized_post_train_model.pth"))
+        print("Evaluating post-training quantized model")
+        evaluate(model, criterion, data_loader_test, device=device)
+        return
+
     if args.test_only:
-        qat_module.eval(model)
+        quant_module.eval(model)
         evaluate(model, criterion, data_loader_test, device=device)
         return
 
@@ -95,17 +120,17 @@ def main(args):
             train_sampler.set_epoch(epoch)
         print("Starting training for epoch", epoch)
         # put in train() mode and enable observers
-        qat_module.train(model)
+        quant_module.train(model)
         # training epoch
         train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, args)
         lr_scheduler.step()
         with torch.inference_mode():
             print('Evaluate QAT model with Fake Quant Ops')
-            model = qat_module.eval(model)
+            model = quant_module.eval(model)
             evaluate(model, criterion, data_loader_test, device=device, log_suffix="QAT")
 
             print("Converting to Quantized INT8 model")
-            quantized_eval_model = qat_module.convert(model_without_ddp)
+            quantized_eval_model = quant_module.convert(model_without_ddp)
 
         if args.output_dir:
             checkpoint = {
@@ -240,7 +265,7 @@ def get_args_parser(add_help=True):
         "--train-crop-size", default=224, type=int, help="the random crop size used for training (default: 224)"
     )
     parser.add_argument("--clip-grad-norm", default=None, type=float, help="the maximum gradient norm (default None)")
-    parser.add_argument("--weights", default=torchvision.models.ResNet50_Weights.IMAGENET1K_V1, type=str, help="the weights enum name to load")
+    parser.add_argument("--weights", default=torchvision.models.MobileNet_V2_Weights.IMAGENET1K_V1, type=str, help="the weights enum name to load")
     parser.add_argument('--epoch-size', type=float, default=0,
         help='epoch size. options are: 0, fraction or number. '
               '0 will use the full epoch. '
