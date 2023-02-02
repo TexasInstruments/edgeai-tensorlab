@@ -24,3 +24,4 @@ scikit-learn
 PyYAML
 matplotlib
 mmcv==1.6.0
+sklearn
