@@ -101,14 +101,14 @@ def get_per_channel_affine_qat_qconfig(backend=None, histogram_observer=qsetting
 
 def get_qat_qconfig_for_target_device(backend, target_device=None,
                                       histogram_observer=qsettings.USE_HISTOGRAM_OBSERVER_DEFAULT,
-                                      per_channel_weight_quant=False):
+                                      symmetric_power2_quant=None, per_channel_weight_quant=False):
     ''''this is initial implementation. we can implement more target_device specific qconfigs later'''
     if target_device is None:
         # if target_device is not provided, we use the pytorch default qconfig
         # this is not guarenteed to be compatible with the device that you want to use.
         # ideally, the target_device should be provided
         return get_default_qat_qconfig(backend)
-    elif target_device.lower() in ('TDA4VM', 'J7ES', 'J721E', 'AM68PA'):
+    elif symmetric_power2_quant or target_device.lower() in ('TDA4VM', 'J7ES', 'J721E', 'AM68PA'):
         '''
         This configuration will work on all our devices (but may be slightly lower accuracy compared to other options). 
         We use this if target_device is None or if target_device is explicitly specified as TDA4VM
