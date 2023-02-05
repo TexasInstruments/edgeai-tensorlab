@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # YOLOX based Models
 This repository contains the following enhancements of the YOLOX repository:
 * **Ti-lite 2D Detection** 
