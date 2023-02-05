@@ -163,7 +163,7 @@ class ObjectPoseEvaluator:
                             visualize_object_pose.draw_6d_pose(img, frame_data_list, camera_matrix, class_to_model=self.class_to_model,
                                                                     class_to_cuboid=self.class_to_cuboid, gt=False, out_dir=self.output_dir, id=ids[output_idx],
                                                                     img_cuboid=img_cuboid, img_mask=img_mask, img_2dod=img_2dod)
-                    if self.test_bop:
+                    if self.test_bop and None not in predicted_pose:
                         csv_file_path = os.path.join(self.output_dir, self.test_bop_file_name)
                         with open(csv_file_path, 'a') as csv_file:
                             csvwriter = csv.writer(csv_file)

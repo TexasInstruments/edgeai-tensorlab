@@ -21,13 +21,15 @@ _VAL_ANN = {
     "lm":"instances_test.json",
     "lmo":"instances_test_bop.json",
     "ycbv": "instances_test_bop.json",
+    "tless": "instances_test_bop.json",
     "coco_kpts": "person_keypoints_val2017.json",
 }
 _TRAIN_ANN = {
     "coco":"instances_train2017.json", 
     "lm":"instances_train.json",
-    "lmo":"instances_train.json",
+    "lmo":"instances_train_pbr.json",   #This can be the default setting for the LMO datase
     "ycbv": "instances_train.json",
+    "tless": "instances_train.json", #"instances_train.json"
     "coco_kpts": "person_keypoints_train2017.json",
 }
 _SUPPORTED_TASKS = {
@@ -35,6 +37,7 @@ _SUPPORTED_TASKS = {
     "lm":["2dod", "object_pose"],
     "lmo": ["2dod", "object_pose"],
     "ycbv": ["2dod", "object_pose"],
+    "tless": ["2dod", "object_pose"],
     "coco_kpts": ["2dod", "human_pose"]
 }
 

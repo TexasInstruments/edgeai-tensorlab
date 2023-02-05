@@ -1,3 +1,9 @@
+# YOLOX Object Detection and 6D Pose Estimation
+This repo contains code for 
+* Optimized ti-lite 2D detection models based on YOLOX.
+* 6D pose estimation models based on YOLOX. Refer to this [readme](./README_6dpose.md) for further details.
+* Human Pose Estimation models based on YOLOX. 
+
 # YOLOX-ti-lite Object Detection Models
 This repository is based on [Megvii/YOLOX](https://github.com/Megvii-BaseDetection/YOLOX). As per the [Official documentation](./README_megvii.md), YOLOX is an anchor-free version of YOLO, with a simpler design but better performance! It aims to bridge the gap between research and industrial communities. It has the following major differences rom YOLOv3:
 
@@ -21,8 +27,8 @@ Installation instructions are the same as the official repo and are mentioned he
 
 Step1. Install YOLOX.
 ```shell
-git clone git@github.com:Megvii-BaseDetection/YOLOX.git
-cd YOLOX
+git clone https://github.com/TexasInstruments/edgeai-yolox.git
+cd edgeai-yolox
 pip3 install -U pip && pip3 install -r requirements.txt
 pip3 install -v -e .  # or  python3 setup.py develop
 ```
