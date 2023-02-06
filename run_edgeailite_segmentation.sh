@@ -82,10 +82,10 @@ EXTRA_OPTIONS="" #"--enable_fp16 True"
 #--optimizer sgd --scheduler cosine --lr 1e-1 ${EXTRA_OPTIONS}
 
 ### Cityscapes Semantic Segmentation - Training with RegNetX800MF+FPNEdgeAILite
-#python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name fpn_aspp_regnetx800mf_edgeailite \
-#--data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 2 3 \
-#--pretrained https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906036/RegNetX-800MF_dds_8gpu.pyth --batch_size 16 \
-#--optimizer sgd --scheduler cosine --lr 1e-1 ${EXTRA_OPTIONS}
+python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name fpn_aspp_regnetx800mf_edgeailite \
+--data_path /data/ssd/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 2 3 \
+--pretrained https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906036/RegNetX-800MF_dds_8gpu.pyth --batch_size 16 --epochs 80 \
+--optimizer sgd --scheduler cosine --lr 1e-1 ${EXTRA_OPTIONS}
 
 ## Higher Resolution - 1024x512 - regnetx1.6gf
 #python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name fpn_aspp_regnetx1p6gf_edgeailite \
@@ -266,7 +266,7 @@ EXTRA_OPTIONS="" #"--enable_fp16 True"
 ## =====================================================================================
 # compute accuracy at resized resolution - to speedup training
 #python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name coco_seg21 --model_name deeplabv3plus_mobilenetv2_tv_edgeailite \
-#--data_path ./data/datasets/coco --img_resize 512 512 --output_size 1024 1024 --gpus 0 1 2 3 \
+#--data_path ./data/datasets/coco/images --img_resize 512 512 --output_size 1024 1024 --gpus 0 1 2 3 \
 #--pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth \
 #--weight_decay 4e-5 --batch_size 32 --epochs 60 --milestones 30 45 --optimizer sgd --scheduler cosine --lr 5e-2 \
 #--interpolation 1 ${EXTRA_OPTIONS}

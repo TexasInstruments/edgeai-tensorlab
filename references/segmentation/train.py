@@ -16,7 +16,7 @@ from torchvision.edgeailite import xnn
 from coco_utils import get_coco
 import presets
 import utils
-
+import onnx
 
 def get_dataset(dir_path, name, image_set, transform):
     def sbd(*args, **kwargs):
@@ -167,7 +167,7 @@ def train_one_epoch(args, model, criterion, optimizer, data_loader, lr_scheduler
 
         metric_logger.update(loss=loss.item(), lr=optimizer.param_groups[0]["lr"])
 
-        if args.tensorboard and (iteration % visualization_freq) == 0:
+        if args.tensorboard and (iteration % visualization_freq) == 0 and (visualizer is not None):
             target_color = tensor_to_color(target[0], num_classes)
             output_color = tensor_to_color(output['out'][0], num_classes)
             dataformats_color = 'HWC'
@@ -179,7 +179,8 @@ def train_one_epoch(args, model, criterion, optimizer, data_loader, lr_scheduler
             visualization_counter = visualization_counter + 1
         #
     #
-    visualizer.add_scalar(f'train-loss/epoch', metric_logger.meters['loss'].avg, epoch)
+    if visualizer is not None:
+        visualizer.add_scalar(f'train-loss/epoch', metric_logger.meters['loss'].avg, epoch)
 
 
 def export(args, model, model_name=None):
@@ -194,8 +195,8 @@ def export(args, model, model_name=None):
     # shape inference to make it easy for inference
     onnx.shape_inference.infer_shapes_path(output_onnx_file, output_onnx_file)
     # export torchscript model
-    # script_model = torch.jit.trace(model, example_input, strict=False)
-    # torch.jit.save(script_model, os.path.join(args.output_dir, model_name+'_model.pth'))
+    script_model = torch.jit.trace(model, example_input, strict=False)
+    torch.jit.save(script_model, os.path.join(args.output_dir, model_name+'_model.pth'))
 
 
 def complexity(args, model):
@@ -238,6 +239,9 @@ def main(gpu, args):
     print(f'preproc mean : {[round_frac(m) for m in args.image_mean]}')
     print(f'preproc scale: {[round_frac(s) for s in args.image_scale]}')
     print(f'{Fore.RESET}')
+
+    train_visualizer = None
+    val_visualizer = None
 
     if args.tensorboard and utils.is_main_process() and (not args.test_only) and (not args.export_only):
         from torch.utils.tensorboard import SummaryWriter

@@ -7,6 +7,7 @@ import random
 import numpy as np
 import json
 import copy
+import cv2
 
 class CocoDetection(VisionDataset):
     """`MS Coco Detection <https://cocodataset.org/#detection-2016>`_ Dataset.

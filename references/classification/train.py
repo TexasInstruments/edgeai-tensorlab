@@ -182,7 +182,7 @@ def export_model(args, model):
     onnx_file = os.path.join(args.output_dir, 'model.onnx')
     print(f'Exporting ONNX model to: {onnx_file}')
     torch.onnx.export(model, dummy_input, onnx_file)
-    onnx.shape_inference.infer_shapes_path(onnx_file, onnx_file)
+    # onnx.shape_inference.infer_shapes_path(onnx_file, onnx_file)
 
 
 def main(gpu, args):
