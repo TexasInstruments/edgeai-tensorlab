@@ -7,7 +7,7 @@ from merge_json import merge_jsons
 
 parser = argparse.ArgumentParser("TLESS2COCO_PARSER")
 parser.add_argument("--datapath", default="./datasets/tless", type=str, help="path to ycbv dataset")
-parser.add_argument("--keyframes", default="./data/ycbv/keyframe.txt", type=str, help="path to the keyframes file list")
+parser.add_argument("--keyframes", default="./data/tless/keyframe.txt", type=str, help="path to the keyframes file list")
 parser.add_argument("--split", default='train', type=str, help="aplit can be either train or test")
 
 args = parser.parse_args()
@@ -17,10 +17,40 @@ class_to_name = {}
 for i in range(num_classes):
     class_to_name [i] =  "class_{:02}".format(i)
 
-def create_camera_json():
+def create_camera_json(datapath="./datasets/tless"):
     """
-    Create camera json for diffrent sequences and dump it into as.datapath
+    Create camera json for diffrent sequences and dump it into datapath.
+    This ensures all camera parameters are at the same location.
     """
+    #camera_primesense
+    camera_primesense_path = os.path.join(datapath, '/camera_primesense.json')
+    with open(camera_primesense_path) as foo:
+        camear_primesense = json.load(foo)
+
+    #camera_pbr
+    camera_pbr_path = os.path.join(datapath, '/train_pbr/000001/scene_camera.json')
+    camera_pbr_out_path = os.path.join(datapath, 'camera_train_pbr.json')
+    if not os.path.exists(camera_pbr_out_path):
+        with open(camera_pbr_path) as foo:
+            camear_pbr = json.load(foo)
+            mmcv.dump(camear_pbr, camera_pbr_out_path)
+
+    # camera_train_real
+    camera_train_real_path = os.path.join(datapath, '/train_real/000001/scene_camera.json')
+    camera_train_real_out_path = os.path.join(datapath, 'camera_train_real.json')
+    if not os.path.exists(camera_train_real_out_path):
+        with open(camera_train_real_path) as foo:
+            camear_train_real = json.load(foo)
+            mmcv.dump(camear_train_real, camera_train_real_out_path)
+
+    #camera_test_bop
+    camera_test_bop_path = os.path.join(datapath, '/test_bop/000001/scene_camera.json')
+    camera_test_bop_out_path = os.path.join(datapath, 'camera_test_bop.json')
+    if not os.path.exists(camera_test_bop_out_path):
+        with open(camera_test_bop_path) as foo:
+            camera_test_bop = json.load(foo)
+            mmcv.dump(camera_test_bop, camera_test_bop_out_path)
+
     return
 
 def convert_tless2coco(split='train', type='real', keyframes=None, datapath="./datasets/tless"):
@@ -131,15 +161,15 @@ if __name__ == "__main__":
     if args.split == "train":
         #Generate annotations in COCO format for real training images
         print("Train: Generating annotation for real images")
-        json_real = convert_ycb2coco(split=args.split, type='real', datapath=args.datapath)
+        json_real = convert_tless2coco(split=args.split, type='real', datapath=args.datapath)
         # Generate annotations in COCO format for PBR training images
         print("Train: Generating annotation for PBR images")
-        json_pbr = convert_ycb2coco(split=args.split, type='pbr', keyframes='bop', datapath=args.datapath)
+        json_pbr = convert_tless2coco(split=args.split, type='pbr', keyframes='bop', datapath=args.datapath)
         #Merge real and pbr annotation for the final training annotation
         train_annotations = os.path.join(args.datapath, 'annotations', 'instances_{}.json'.format(args.split))
         merge_jsons(json_real, json_pbr, train_annotations)
     elif args.split=="test":
-        convert_ycb2coco(split=args.split, type='real', keyframes='bop', datapath=args.datapath)
+        convert_tless2coco(split=args.split, type='real', keyframes='bop', datapath=args.datapath)
         # convert_to_coco_json(split=args.split, type='real', keyframes='all')
     else:
         print("Invalid split given, Only vaiid options are \'train\' and \'test\'")
