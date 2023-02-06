@@ -421,6 +421,8 @@ class QuantTrainPAct2(layers.PAct2):
         is_constrain_bias_iter = True #(not self.training) or (num_batches_tracked >= self.constrain_bias_start_iter)
         # store the constrained bias if needed
         is_store_bias_iter = self.training and (num_batches_tracked == self.constrain_bias_start_iter)
+        # splitting the quantized bias values if the quantized bias is large
+        bias_split_quant = True
 
         # merge weight and bias (if possible) across layers
         if conv is not None and bn is not None:
@@ -522,8 +524,29 @@ class QuantTrainPAct2(layers.PAct2):
                         scale2_input = clips_scale_input[2]
                         scale2_joint = scale2_input * weight_scale2
                         width_joint_min, width_joint_max = self.get_widths_joint()
-                        merged_bias = layers.quantize_dequantize_g(merged_bias, scale2_joint, width_joint_min, width_joint_max - 1,
-                                                                   power2_bias_range, 0, round_type=None)
+                        if scale2_joint == 0:
+                            merged_bias.fill_(0.0)
+                        elif bias_split_quant:
+                            bias_scale_ratio_factor = torch.div(scale2_joint, bias_scale2, rounding_mode='trunc')
+                            input_signed = clips_scale_input[0] < 0
+                            if self.verbose_mode:
+                                print(f'layer: {self.name} input_signed = {input_signed}')
+                            #
+                            quant_bias_max = (bias_width_max-1) if input_signed else (2*bias_width_max-1)
+                            if bias_scale_ratio_factor > quant_bias_max:
+                                merged_bias_q = torch.clamp(merged_bias*scale2_joint, width_joint_min, width_joint_max - 1)
+                                merged_bias_part_q = torch.div(merged_bias_q, quant_bias_max, rounding_mode='trunc')
+                                merged_bias_part_q = torch.clamp(merged_bias_part_q, bias_width_min, bias_width_max - 1)
+                                merged_bias_q = merged_bias_part_q * quant_bias_max
+                                merged_bias = merged_bias_q / scale2_joint
+                            else:
+                                merged_bias_q = torch.trunc(merged_bias * scale2_joint)
+                                merged_bias = merged_bias_q / scale2_joint
+                            #
+                        else:
+                            merged_bias = layers.quantize_dequantize_g(merged_bias, scale2_joint, width_joint_min, width_joint_max - 1,
+                                                                       power2_bias_range, 0, round_type=None)
+                        #
                     #
                 #
                 if self.verbose_mode:
