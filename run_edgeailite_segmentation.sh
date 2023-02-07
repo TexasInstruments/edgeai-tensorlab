@@ -82,10 +82,10 @@ EXTRA_OPTIONS="" #"--enable_fp16 True"
 #--optimizer sgd --scheduler cosine --lr 1e-1 ${EXTRA_OPTIONS}
 
 ### Cityscapes Semantic Segmentation - Training with RegNetX800MF+FPNEdgeAILite
-python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name fpn_aspp_regnetx800mf_edgeailite \
---data_path /data/ssd/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 2 3 \
---pretrained https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906036/RegNetX-800MF_dds_8gpu.pyth --batch_size 16 --epochs 80 \
---optimizer sgd --scheduler cosine --lr 1e-1 ${EXTRA_OPTIONS}
+#python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name fpn_aspp_regnetx800mf_edgeailite \
+#--data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 2 3 \
+#--pretrained https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906036/RegNetX-800MF_dds_8gpu.pyth --batch_size 16 --epochs 80 \
+#--optimizer sgd --scheduler cosine --lr 1e-1 ${EXTRA_OPTIONS}
 
 ## Higher Resolution - 1024x512 - regnetx1.6gf
 #python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name fpn_aspp_regnetx1p6gf_edgeailite \
@@ -111,7 +111,17 @@ python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_nam
 #--pretrained https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906139/RegNetX-3.2GF_dds_8gpu.pyth --batch_size 16 \
 #--optimizer sgd --scheduler cosine --lr 1e-1 ${EXTRA_OPTIONS}
 
+## =====================================================================================
+## TI Scapes Dataset
+## =====================================================================================
 
+### TIscapes Semantic Segmentation - Training with RegNetX800MF+FPNEdgeAILite
+python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name tiscape_segmentation --model_name fpn_aspp_regnetx800mf_edgeailite \
+--data_path ./data/datasets/tiscapes --img_resize 384 768 --output_size 1920 1080 --gpus 0 1 2 3 \
+--pretrained https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906036/RegNetX-800MF_dds_8gpu.pyth --batch_size 16 --epochs 80 \
+--optimizer sgd --scheduler cosine --lr 1e-1 ${EXTRA_OPTIONS}
+
+## =====================================================================================
 
 #MobileNetV2 based Models
 #------------------------
