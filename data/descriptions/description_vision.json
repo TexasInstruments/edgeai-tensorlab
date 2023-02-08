@@ -54,7 +54,7 @@
             "performance_infer_time_ms":2.0964360587002098,
             "accuracy_factor":72.13,
             "accuracy_unit":"Accuracy Top-1%",
-            "model_selection_factor":3
+            "model_selection_factor":2
           },
           "AM62":{
             "performance_fps":10,
@@ -278,7 +278,7 @@
             "performance_infer_time_ms":1.3315579227696406,
             "accuracy_factor":62.688,
             "accuracy_unit":"Accuracy Top-1%",
-            "model_selection_factor":4
+            "model_selection_factor":3
           },
           "AM62":{
             "performance_fps":34,
@@ -390,7 +390,7 @@
             "performance_infer_time_ms":3.4722222222222223,
             "accuracy_factor":72.834,
             "accuracy_unit":"Accuracy Top-1%",
-            "model_selection_factor":2
+            "model_selection_factor":1
           }
         },
         "project_path":null,
@@ -495,7 +495,7 @@
             "performance_infer_time_ms":3.676470588235294,
             "accuracy_factor":75.212,
             "accuracy_unit":"Accuracy Top-1%",
-            "model_selection_factor":1
+            "model_selection_factor":0
           }
         },
         "project_path":null,
@@ -530,111 +530,6 @@
       "compilation":{
         "enable":true,
         "model_compilation_id":"cl-6170",
-        "compilation_path":null,
-        "model_compiled_path":null,
-        "log_file_path":null,
-        "log_summary_regex":null,
-        "summary_file_path":null,
-        "output_tensors_path":null,
-        "model_packaged_path":null,
-        "model_visualization_path":null,
-        "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
-        "num_frames":null,
-        "num_output_frames":50,
-        "detection_threshold":0.6,
-        "detection_top_k":200,
-        "save_output":true,
-        "tidl_offload":true,
-        "input_optimization":false,
-        "capture_log":true,
-        "metric":{
-          "label_offset_pred":1
-        }
-      }
-    },
-    "regnet_x_1_6gf_tv":{
-      "common":{
-        "verbose_mode":true,
-        "download_path":"./data/downloads",
-        "projects_path":"./data/projects",
-        "project_path":null,
-        "project_run_path":null,
-        "task_type":"classification",
-        "target_machine":"evm",
-        "target_device":null,
-        "run_name":"{date-time}/{model_name}"
-      },
-      "dataset":{
-        "enable":true,
-        "dataset_name":null,
-        "dataset_path":null,
-        "extract_path":null,
-        "split_factor":0.75,
-        "split_names":[
-          "train",
-          "val"
-        ],
-        "max_num_files":null,
-        "input_data_path":null,
-        "input_annotation_path":null,
-        "data_path_splits":null,
-        "data_dir":"images",
-        "annotation_path_splits":null,
-        "annotation_dir":"annotations",
-        "annotation_prefix":"instances",
-        "annotation_format":"coco_json",
-        "dataset_download":true,
-        "dataset_reload":false
-      },
-      "training":{
-        "enable":true,
-        "model_name":"regnet_x_1_6gf_tv",
-        "model_training_id":"regnet_x_1_6gf",
-        "training_backend":"edgeai_torchvision",
-        "pretrained_checkpoint_path":"https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth",
-        "target_devices":{
-          "TDA4VM":{
-            "performance_fps":237,
-            "performance_infer_time_ms":4.219409282700422,
-            "accuracy_factor":77.04,
-            "accuracy_unit":"Accuracy Top-1%",
-            "model_selection_factor":0
-          }
-        },
-        "project_path":null,
-        "dataset_path":null,
-        "training_path":null,
-        "log_file_path":null,
-        "log_summary_regex":null,
-        "summary_file_path":null,
-        "model_checkpoint_path":null,
-        "model_export_path":null,
-        "model_proto_path":null,
-        "model_packaged_path":null,
-        "training_epochs":15,
-        "warmup_epochs":1,
-        "num_last_epochs":5,
-        "batch_size":32,
-        "learning_rate":0.002,
-        "num_classes":null,
-        "weight_decay":0.0001,
-        "input_resize":256,
-        "input_cropsize":224,
-        "training_device":null,
-        "num_gpus":0,
-        "distributed":true,
-        "training_master_port":29500,
-        "model_architecture":"backbone",
-        "training_devices":{
-          "cpu":true,
-          "cuda":true
-        }
-      },
-      "compilation":{
-        "enable":true,
-        "model_compilation_id":"cl-6180",
         "compilation_path":null,
         "model_compiled_path":null,
         "log_file_path":null,

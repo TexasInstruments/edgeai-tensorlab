@@ -142,7 +142,7 @@ model_descriptions:
         TDA4VM:
           accuracy_factor: 72.13
           accuracy_unit: Accuracy Top-1%
-          model_selection_factor: 3
+          model_selection_factor: 2
           performance_fps: 477
           performance_infer_time_ms: 2.0964360587002098
       training_backend: edgeai_torchvision
@@ -344,104 +344,9 @@ model_descriptions:
         TDA4VM:
           accuracy_factor: 62.688
           accuracy_unit: Accuracy Top-1%
-          model_selection_factor: 4
+          model_selection_factor: 3
           performance_fps: 751
           performance_infer_time_ms: 1.3315579227696406
-      training_backend: edgeai_torchvision
-      training_device: null
-      training_devices:
-        cpu: true
-        cuda: true
-      training_epochs: 15
-      training_master_port: 29500
-      training_path: null
-      warmup_epochs: 1
-      weight_decay: 0.0001
-  regnet_x_1_6gf_tv:
-    common:
-      download_path: ./data/downloads
-      project_path: null
-      project_run_path: null
-      projects_path: ./data/projects
-      run_name: '{date-time}/{model_name}'
-      target_device: null
-      target_machine: evm
-      task_type: classification
-      verbose_mode: true
-    compilation:
-      calibration_frames: 10
-      calibration_iterations: 10
-      capture_log: true
-      compilation_path: null
-      detection_threshold: 0.6
-      detection_top_k: 200
-      enable: true
-      input_optimization: false
-      log_file_path: null
-      log_summary_regex: null
-      metric:
-        label_offset_pred: 1
-      model_compilation_id: cl-6180
-      model_compiled_path: null
-      model_packaged_path: null
-      model_visualization_path: null
-      num_frames: null
-      num_output_frames: 50
-      output_tensors_path: null
-      save_output: true
-      summary_file_path: null
-      tensor_bits: 8
-      tidl_offload: true
-    dataset:
-      annotation_dir: annotations
-      annotation_format: coco_json
-      annotation_path_splits: null
-      annotation_prefix: instances
-      data_dir: images
-      data_path_splits: null
-      dataset_download: true
-      dataset_name: null
-      dataset_path: null
-      dataset_reload: false
-      enable: true
-      extract_path: null
-      input_annotation_path: null
-      input_data_path: null
-      max_num_files: null
-      split_factor: 0.75
-      split_names:
-      - train
-      - val
-    training:
-      batch_size: 32
-      dataset_path: null
-      distributed: true
-      enable: true
-      input_cropsize: 224
-      input_resize: 256
-      learning_rate: 0.002
-      log_file_path: null
-      log_summary_regex: null
-      model_architecture: backbone
-      model_checkpoint_path: null
-      model_export_path: null
-      model_name: regnet_x_1_6gf_tv
-      model_packaged_path: null
-      model_proto_path: null
-      model_training_id: regnet_x_1_6gf
-      num_classes: null
-      num_gpus: 0
-      num_last_epochs: 5
-      pretrained_checkpoint_path: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
-      project_path: null
-      summary_file_path: null
-      target_devices:
-        TDA4VM:
-          accuracy_factor: 77.04
-          accuracy_unit: Accuracy Top-1%
-          model_selection_factor: 0
-          performance_fps: 237
-          performance_infer_time_ms: 4.219409282700422
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -534,7 +439,7 @@ model_descriptions:
         TDA4VM:
           accuracy_factor: 72.834
           accuracy_unit: Accuracy Top-1%
-          model_selection_factor: 2
+          model_selection_factor: 1
           performance_fps: 288
           performance_infer_time_ms: 3.4722222222222223
       training_backend: edgeai_torchvision
@@ -629,7 +534,7 @@ model_descriptions:
         TDA4VM:
           accuracy_factor: 75.212
           accuracy_unit: Accuracy Top-1%
-          model_selection_factor: 1
+          model_selection_factor: 0
           performance_fps: 272
           performance_infer_time_ms: 3.676470588235294
       training_backend: edgeai_torchvision
