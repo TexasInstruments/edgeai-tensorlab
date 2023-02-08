@@ -4,11 +4,12 @@ from tqdm import tqdm
 import json
 import argparse
 from merge_json import merge_jsons
+import copy
 
 parser = argparse.ArgumentParser("TLESS2COCO_PARSER")
 parser.add_argument("--datapath", default="./datasets/tless", type=str, help="path to ycbv dataset")
 parser.add_argument("--keyframes", default="./data/tless/keyframe.txt", type=str, help="path to the keyframes file list")
-parser.add_argument("--split", default='train', type=str, help="aplit can be either train or test")
+parser.add_argument("--split", default='train', type=str, help="split can be either train or test")
 
 args = parser.parse_args()
 num_classes = 30
@@ -23,35 +24,52 @@ def create_camera_json(datapath="./datasets/tless"):
     This ensures all camera parameters are at the same location.
     """
     #camera_primesense
-    camera_primesense_path = os.path.join(datapath, '/camera_primesense.json')
+    camera_primesense_path = os.path.join(datapath, 'camera_primesense.json')
     with open(camera_primesense_path) as foo:
         camear_primesense = json.load(foo)
 
     #camera_pbr
-    camera_pbr_path = os.path.join(datapath, '/train_pbr/000001/scene_camera.json')
+    camera_pbr_path = os.path.join(datapath, 'train_pbr/000001/scene_camera.json')
     camera_pbr_out_path = os.path.join(datapath, 'camera_train_pbr.json')
     if not os.path.exists(camera_pbr_out_path):
         with open(camera_pbr_path) as foo:
-            camear_pbr = json.load(foo)
-            mmcv.dump(camear_pbr, camera_pbr_out_path)
+            camear_pbr = json.load(foo)['0']['cam_K']
+            camera_pbr_out = copy.deepcopy(camear_primesense)
+            camera_pbr_out['cx'] = camear_pbr[2]
+            camera_pbr_out['cy'] = camear_pbr[5]
+            camera_pbr_out['width'] = int(2 * camear_pbr[2])
+            camera_pbr_out['height'] = int(2 * camear_pbr[5])
+            print("Generating camera_train_pbr.json")
+            mmcv.dump(camera_pbr_out, camera_pbr_out_path)
 
     # camera_train_real
-    camera_train_real_path = os.path.join(datapath, '/train_real/000001/scene_camera.json')
+    camera_train_real_path = os.path.join(datapath, 'train_real/000001/scene_camera.json')
     camera_train_real_out_path = os.path.join(datapath, 'camera_train_real.json')
     if not os.path.exists(camera_train_real_out_path):
         with open(camera_train_real_path) as foo:
-            camear_train_real = json.load(foo)
-            mmcv.dump(camear_train_real, camera_train_real_out_path)
+            camear_train_real = json.load(foo)['0']['cam_K']
+            camera_train_real_out = copy.deepcopy(camear_primesense)
+            camera_train_real_out['cx'] = camear_train_real[2]
+            camera_train_real_out['cy'] = camear_train_real[5]
+            camera_train_real_out['width'] = 400
+            camera_train_real_out['height'] = 400
+            print("Generating camera_train_real.json")
+            mmcv.dump(camera_train_real_out, camera_train_real_out_path)
 
     #camera_test_bop
-    camera_test_bop_path = os.path.join(datapath, '/test_bop/000001/scene_camera.json')
+    camera_test_bop_path = os.path.join(datapath, 'test_bop/000001/scene_camera.json')
     camera_test_bop_out_path = os.path.join(datapath, 'camera_test_bop.json')
     if not os.path.exists(camera_test_bop_out_path):
         with open(camera_test_bop_path) as foo:
-            camera_test_bop = json.load(foo)
-            mmcv.dump(camera_test_bop, camera_test_bop_out_path)
+            camera_test_bop = json.load(foo)['1']['cam_K']
+            camera_test_bop_out = copy.deepcopy(camear_primesense)
+            camera_test_bop_out['cx'] = camera_test_bop[2]
+            camera_test_bop_out['cy'] = camera_test_bop[5]
+            camera_test_bop_out['width'] = 720
+            camera_test_bop_out['height'] = 540
+            print("Generating camera_test_bop.json")
+            mmcv.dump(camera_test_bop_out, camera_test_bop_out_path)
 
-    return
 
 def convert_tless2coco(split='train', type='real', keyframes=None, datapath="./datasets/tless"):
     if split == 'train':
@@ -107,7 +125,7 @@ def convert_tless2coco(split='train', type='real', keyframes=None, datapath="./d
                 if keyframes == 'bop':
                     filename = "{:06}".format(int(objects_gt[0])) + '.png'
                 else:
-                    filename = "{:06}".format(image_index+1) + '.png'
+                    filename = "{:06}".format(image_index) + '.png'
             elif type == "pbr":
                 filename = "{:06}".format(image_index) + '.jpg'
 
@@ -115,8 +133,6 @@ def convert_tless2coco(split='train', type='real', keyframes=None, datapath="./d
                 if split == 'test':
                     if os.path.join(data_folder, filename) not in keyframes_list :
                         continue
-                elif image_index%10 != 0:
-                    continue
 
             height, width = mmcv.imread(data_path + '/rgb/' + filename).shape[:2]
             image = dict([
@@ -158,6 +174,7 @@ def convert_tless2coco(split='train', type='real', keyframes=None, datapath="./d
     return outfile
 
 if __name__ == "__main__":
+    create_camera_json(args.datapath)
     if args.split == "train":
         #Generate annotations in COCO format for real training images
         print("Train: Generating annotation for real images")
