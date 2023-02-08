@@ -81,38 +81,6 @@ _model_descriptions = {
             metric=dict(label_offset_pred=0)
         )
     ),
-    'ssd_mobilenetv2_fpn_lite_mmdet': dict(
-        common=dict(
-            task_type=constants.TASK_TYPE_DETECTION,
-        ),
-        training=dict(
-            training_backend='edgeai_mmdetection',
-            model_name='ssd_mobilenetv2_fpn_lite_mmdet',
-            model_training_id='ssd_mobilenet_fpn_lite',
-            model_architecture='ssd',
-            input_resize=(512,512),
-            input_cropsize=(512,512),
-            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_checkpoint.pth',
-            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
-            target_devices={
-                constants.TARGET_DEVICE_AM62: dict(performance_fps=0.5, performance_infer_time_ms=1000/0.5,
-                                                   accuracy_factor=27.2, accuracy_unit='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=179, performance_infer_time_ms=1000/179,
-                                                    accuracy_factor=27.2, accuracy_unit='AP[.5:.95]%'),
-            },
-            training_devices={
-                constants.TRAINING_DEVICE_CPU: True,
-                constants.TRAINING_DEVICE_CUDA: True,
-            }
-        ),
-        compilation=dict(
-            model_compilation_id='od-8030',
-            runtime_options={
-                'advanced_options:output_feature_16bit_names_list': None
-            },
-            metric=dict(label_offset_pred=0)
-        )
-    ),
     'ssd_regnetx_200mf_fpn_bgr_lite_mmdet': dict(
         common=dict(
             task_type=constants.TASK_TYPE_DETECTION,
@@ -270,6 +238,38 @@ _model_descriptions = {
 
 if constants.PLUGINS_ENABLE_EXTRA:
     _model_descriptions.update({
+       'ssd_mobilenetv2_fpn_lite_mmdet': dict(
+            common=dict(
+                task_type=constants.TASK_TYPE_DETECTION,
+            ),
+            training=dict(
+                training_backend='edgeai_mmdetection',
+                model_name='ssd_mobilenetv2_fpn_lite_mmdet',
+                model_training_id='ssd_mobilenet_fpn_lite',
+                model_architecture='ssd',
+                input_resize=(512,512),
+                input_cropsize=(512,512),
+                pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_checkpoint.pth',
+                batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
+                target_devices={
+                    constants.TARGET_DEVICE_AM62: dict(performance_fps=0.5, performance_infer_time_ms=1000/0.5,
+                                                       accuracy_factor=27.2, accuracy_unit='AP[.5:.95]%'),
+                    constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=179, performance_infer_time_ms=1000/179,
+                                                        accuracy_factor=27.2, accuracy_unit='AP[.5:.95]%'),
+                },
+                training_devices={
+                    constants.TRAINING_DEVICE_CPU: True,
+                    constants.TRAINING_DEVICE_CUDA: True,
+                }
+            ),
+            compilation=dict(
+                model_compilation_id='od-8030',
+                runtime_options={
+                    'advanced_options:output_feature_16bit_names_list': None
+                },
+                metric=dict(label_offset_pred=0)
+            )
+        ),
         'ssd_regnetx_800mf_fpn_bgr_lite_mmdet': dict(
             common=dict(
                 task_type=constants.TASK_TYPE_DETECTION,
