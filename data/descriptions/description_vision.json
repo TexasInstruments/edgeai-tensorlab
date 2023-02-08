@@ -701,18 +701,18 @@
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_lite_512x512_20201214_checkpoint.pth",
         "target_devices":{
           "AM62":{
-            "performance_fps":1.5,
-            "performance_infer_time_ms":666.6666666666666,
-            "accuracy_factor":22.1,
+            "performance_fps":0.5,
+            "performance_infer_time_ms":2000.0,
+            "accuracy_factor":25.1,
             "accuracy_unit":"AP[.5:.95]%",
             "model_selection_factor":0
           },
           "TDA4VM":{
-            "performance_fps":654,
-            "performance_infer_time_ms":1.529051987767584,
-            "accuracy_factor":22.1,
+            "performance_fps":218,
+            "performance_infer_time_ms":4.587155963302752,
+            "accuracy_factor":25.1,
             "accuracy_unit":"AP[.5:.95]%",
-            "model_selection_factor":4
+            "model_selection_factor":2
           }
         },
         "project_path":null,
@@ -733,12 +733,12 @@
         "num_classes":null,
         "weight_decay":0.0001,
         "input_resize":[
-          320,
-          320
+          512,
+          512
         ],
         "input_cropsize":[
-          320,
-          320
+          512,
+          512
         ],
         "training_device":null,
         "num_gpus":0,
@@ -947,7 +947,7 @@
             "performance_infer_time_ms":3.484320557491289,
             "accuracy_factor":24.8,
             "accuracy_unit":"AP[.5:.95]%",
-            "model_selection_factor":3
+            "model_selection_factor":4
           }
         },
         "project_path":null,
@@ -1055,7 +1055,7 @@
             "performance_infer_time_ms":4.545454545454546,
             "accuracy_factor":30.5,
             "accuracy_unit":"AP[.5:.95]%",
-            "model_selection_factor":2
+            "model_selection_factor":3
           }
         },
         "project_path":null,

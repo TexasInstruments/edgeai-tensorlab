@@ -58,15 +58,15 @@ _model_descriptions = {
             model_name='ssd_mobilenetv2_lite_mmdet',
             model_training_id='ssd_mobilenet_lite_320x320',
             model_architecture='ssd',
-            input_resize=(320,320),
-            input_cropsize=(320,320),
+            input_resize=(512,512),
+            input_cropsize=(512,512),
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_lite_512x512_20201214_checkpoint.pth',
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
             target_devices={
-                constants.TARGET_DEVICE_AM62: dict(performance_fps=0.5*3, performance_infer_time_ms=1000/(0.5*3),
-                                                   accuracy_factor=(25.1-3), accuracy_unit='AP[.5:.95]%'),  # TODO: approx values
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=218*3, performance_infer_time_ms=1000/(218*3),
-                                                    accuracy_factor=(25.1-3), accuracy_unit='AP[.5:.95]%'),  # TODO: approx values
+                constants.TARGET_DEVICE_AM62: dict(performance_fps=0.5, performance_infer_time_ms=1000/(0.5),
+                                                   accuracy_factor=(25.1), accuracy_unit='AP[.5:.95]%'),  # TODO: approx values
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=218, performance_infer_time_ms=1000/(218),
+                                                    accuracy_factor=(25.1), accuracy_unit='AP[.5:.95]%'),  # TODO: approx values
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
