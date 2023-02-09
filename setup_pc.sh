@@ -35,7 +35,7 @@ echo 'python version must be >= 3.6'
 exit 1
 fi
 
-TIDL_TOOLS_VERSION=${1:-latest}
+TIDL_TOOLS_VERSION=${1:-stable}
 
 ######################################################################
 # Dependencies for building pillow-simd
@@ -70,9 +70,20 @@ python3 setup.py develop
 echo 'Cleaning up previous tidl_tools...'
 rm -rf tidl_tools.tar.gz tidl_tools
 
-echo "Installing tidl_tools verion $TIDL_TOOLS_VERSION ..."
+# AM62A, AM68A, AM68PA, AM69A
+TARGET_SOC="AM68PA"
 
-if [[ $TIDL_TOOLS_VERSION == "latest" || $TIDL_TOOLS_VERSION == "r8.5" ]]; then
+echo "Installing tidl_tools Verion: ${TIDL_TOOLS_VERSION}    SOC: ${TARGET_SOC} ..."
+
+if [[ $TIDL_TOOLS_VERSION == "latest" || $TIDL_TOOLS_VERSION == "r8.6" ]]; then
+  # installers for 8.6 release
+  echo 'tidl_tools version 8.6'
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/OSRT_TOOLS/X86_64_LINUX/UBUNTU_18_04/dlr-1.10.0-py3-none-any.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/OSRT_TOOLS/X86_64_LINUX/UBUNTU_18_04/tvm-0.9.dev0-cp36-cp36m-linux_x86_64.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/OSRT_TOOLS/X86_64_LINUX/UBUNTU_18_04/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/X86_64_LINUX/UBUNTU_18_04/tflite_runtime-2.8.2-cp36-cp36m-linux_x86_64.whl
+  wget https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/TIDL_TOOLS/{TARGET_SOC}/tidl_tools.tar.gz
+elif [[ $TIDL_TOOLS_VERSION == "stable" || $TIDL_TOOLS_VERSION == "r8.5" ]]; then
   # installers for 8.5 release
   echo 'tidl_tools version 8.5'
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_05_00_00/ubuntu18_04_x86_64/pywhl/dlr-1.10.0-py3-none-any.whl
