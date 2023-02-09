@@ -81,8 +81,8 @@ if [[ $TIDL_TOOLS_VERSION == "latest" || $TIDL_TOOLS_VERSION == "r8.6" ]]; then
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/OSRT_TOOLS/X86_64_LINUX/UBUNTU_18_04/dlr-1.10.0-py3-none-any.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/OSRT_TOOLS/X86_64_LINUX/UBUNTU_18_04/tvm-0.9.dev0-cp36-cp36m-linux_x86_64.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/OSRT_TOOLS/X86_64_LINUX/UBUNTU_18_04/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
-  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/X86_64_LINUX/UBUNTU_18_04/tflite_runtime-2.8.2-cp36-cp36m-linux_x86_64.whl
-  wget https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/TIDL_TOOLS/{TARGET_SOC}/tidl_tools.tar.gz
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/OSRT_TOOLS/X86_64_LINUX/UBUNTU_18_04/tflite_runtime-2.8.2-cp36-cp36m-linux_x86_64.whl
+  wget https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/TIDL_TOOLS/${TARGET_SOC}/tidl_tools.tar.gz
 elif [[ $TIDL_TOOLS_VERSION == "stable" || $TIDL_TOOLS_VERSION == "r8.5" ]]; then
   # installers for 8.5 release
   echo 'tidl_tools version 8.5'
