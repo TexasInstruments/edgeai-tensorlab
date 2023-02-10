@@ -28,6 +28,8 @@
 
 import os
 import yaml
+import re
+
 from . import utils
 
 
@@ -64,6 +66,8 @@ class ConfigDict(dict):
                 self.__setattr__(key, value)
             #
         #
+        # format keys - replace special {} keywords
+        self.format_keywords()
         # collect basic keys that are added during initialization
         # only these will be copied during call to basic_settings()
         self.basic_keys = list(self.keys())
@@ -90,6 +94,18 @@ class ConfigDict(dict):
     # this seems to be not required by multiprocessing
     def __setstate__(self, state):
         self.__dict__.update(state)
+
+    def format_keywords(self):
+        for key, value in self.items():
+            if isinstance(value, str) and '{' in value:
+                matched_keyword = re.findall(r'\{(.*?)\}', value)[0]
+                replacement = self.__getattr__(matched_keyword)
+                replacement = replacement or ''
+                to_replace = '{' + f'{matched_keyword}' + '}'
+                new_value = value.replace(to_replace, replacement)
+                self[key] = new_value
+            #
+        #
 
     def _initialize(self):
         # include additional files and merge with this dict

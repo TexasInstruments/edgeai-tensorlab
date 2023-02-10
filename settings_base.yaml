@@ -5,7 +5,8 @@ pipeline_type : 'accuracy'
 # see device_types for various devices in constants.TARGET_DEVICES_DICT
 # currently this field is for information only
 # the actual target device depends on the tidl_tools being used.
-target_device : null
+# AM62A, AM68A, AM69A, TDA4VM
+target_device : TDA4VM
 
 # quantization bit precision
 # options are: 8 16 32
@@ -37,7 +38,7 @@ models_path : '../edgeai-modelzoo/models'
 datasets_path : './dependencies/datasets'
 
 # path where precompiled modelartifacts are placed
-modelartifacts_path : './work_dirs/modelartifacts'
+modelartifacts_path : './work_dirs/modelartifacts/{target_device}'
 
 # session types to use for each model type
 session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
