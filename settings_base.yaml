@@ -2,12 +2,11 @@
 pipeline_type : 'accuracy'
 
 # target_device indicates the SoC for which the model compilation will take place
-# see device_types for various devices in constants.TARGET_DEVICES_DICT
-# currently this field is for information only
-# the actual target device depends on the tidl_tools being used.
+# the actual target_device depends on the tidl_tools being used.
+# currently this field is for information only - setting to null is fine
 # until r8.5: TDA4VM
 # from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
-target_device : TDA4VM
+target_device : null
 
 # quantization bit precision
 # options are: 8 16 32

@@ -38,7 +38,7 @@ def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_fun
     # verify that targt device is correct
     if settings.target_device is not None:
         assert settings.target_device in os.environ['TIDL_TOOLS_PATH'], \
-            f'target_device: {settings.target_device } does not seem to match tidl_tools: {os.environ["TIDL_TOOLS_PATH"]}'
+            f'found target_device in settings: {settings.target_device} but it does not seem to match tidl_tools path: {os.environ["TIDL_TOOLS_PATH"]}'
     #
 
     # get the default configs if pipeline_configs is not given from outside
