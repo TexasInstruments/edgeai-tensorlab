@@ -29,27 +29,21 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
+TARGET_MACHINE=${1:-pc}
+TARGET_SOC=${2:-TDA4VM}
 
+echo #############################################################
+echo "target_device/SOC: ${TARGET_SOC}"
+echo #############################################################
 
-# for onnxruntime and tflite_runtime, the artifacts are same for pc and evm devices
-# however for tvmdlr, there are two sets of artifacts - one for pc and one for evm device
-# deploy_lib.so.pc is for pc and deploy_lib.so.evm is for the device
-# a symbolic link called deploy_lib.so needs to be created, depending on where we plan to run the inference.
-# this can be done after the import has been done and artifacts generated.
-# by default it points to deploy_lib.so.pc, so nothing needs to be done for inference on pc
-
-if [[ $# -ne 1 ]]; then
-  echo "please provide exactly one argument - either pc or evm"
-  exit 1
-fi
-
+##################################################################
 # tvmdlr artifacts are different for pc and evm device
 # point to the right artifact before this script executes
-source run_set_target_machine.sh $1
+source run_set_target_machine.sh ${TARGET_MACHINE}
 
 # setup the environment
 # source run_setupenv_pc.sh
-export TIDL_TOOLS_PATH=$(pwd)/tidl_tools
+export TIDL_TOOLS_PATH=$(pwd)/tools/${TARGET_SOC}/tidl_tools
 echo "TIDL_TOOLS_PATH=${TIDL_TOOLS_PATH}"
 
 export LD_LIBRARY_PATH=$TIDL_TOOLS_PATH

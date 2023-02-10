@@ -29,11 +29,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
+# for model compilation: evm
+TARGET_MACHINE=${1:-evm}
 
-
+##################################################################
 # set environment variables
 # also point to the right type of artifacts (pc or evm)
-source run_set_env.sh evm
+source run_set_env.sh ${TARGET_MACHINE}
 
 
 # specify one of the following settings - options can be changed inside the yaml

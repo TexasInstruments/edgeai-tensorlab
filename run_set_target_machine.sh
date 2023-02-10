@@ -29,8 +29,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
+TARGET_MACHINE=${1:-pc}
 
-
+##################################################################
 # for onnxruntime and tflite_runtime, the artifacts are same for pc and evm devices
 # however for tvmdlr, there are two sets of artifacts - one for pc and one for evm device
 # deploy_lib.so.pc is for pc and deploy_lib.so.evm is for evm device
@@ -44,7 +45,7 @@ if [[ $# -ne 1 ]]; then
 fi
 
 # "evm" or "pc"
-target_machine=$1
+target_machine=${TARGET_MACHINE}
 if [ "$artifacts_base" = "" ]; then
   artifacts_base="./work_dirs/modelartifacts/8bits"
 fi

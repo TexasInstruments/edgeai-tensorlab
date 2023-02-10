@@ -1,7 +1,7 @@
 *.pyc
 *.so
 *.o
-.idea/*
+.idea/
 .eggs/*
 *.egg-info/*
 */*.egg-info/*

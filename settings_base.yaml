@@ -5,7 +5,8 @@ pipeline_type : 'accuracy'
 # see device_types for various devices in constants.TARGET_DEVICES_DICT
 # currently this field is for information only
 # the actual target device depends on the tidl_tools being used.
-# AM62A, AM68A, AM69A, TDA4VM
+# until r8.5: TDA4VM
+# from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
 target_device : TDA4VM
 
 # quantization bit precision
