@@ -14,9 +14,8 @@ work_dirs/
 !work_dirs/modelartifacts
 backup/*
 tutorials/.ipynb_checkpoints/
-tidl_tools
-tidl_tools/
-tidl_tools_*/
+tools/
+!tools/readme.txt
 tidl_tools_backup/
 backup/
 temp_files/

@@ -35,7 +35,26 @@ echo 'python version must be >= 3.6'
 exit 1
 fi
 
+######################################################################
+# change default tidl_tools version if needed - examples: latest stable r8.6 r8.5 r8.4
+# default is latest
 TIDL_TOOLS_VERSION=${1:-stable}
+
+# Select one target SOC: TDA4VM, AM62A, AM68A, AM69A
+# default is TDA4VM
+TARGET_SOC=${2:-TDA4VM}
+
+######################################################################
+CURRENT_WORK_DIR=$(pwd)
+TOOLS_BASE_PATH=${CURRENT_WORK_DIR}/tools
+
+# Tools for selected SOC will be here.
+TIDL_TOOLS_PREFIX="${TOOLS_BASE_PATH}/${TARGET_SOC}"
+mkdir -p ${TIDL_TOOLS_PREFIX}
+
+echo "SOC: ${TARGET_SOC}"
+echo "Tools Location: ${TIDL_TOOLS_PREFIX}"
+echo "Installing tidl_tools Verion: ${TIDL_TOOLS_VERSION} ..."
 
 ######################################################################
 # Dependencies for building pillow-simd
@@ -66,15 +85,11 @@ echo 'Installing as a local module using setup.py'
 python3 setup.py develop
 
 ######################################################################
-# Installing dependencies
 echo 'Cleaning up previous tidl_tools...'
-rm -rf tidl_tools.tar.gz tidl_tools
+rm -rf tidl_tools.tar.gz tidl_tools ${TIDL_TOOLS_PREFIX}
 
-# AM62A, AM68A, AM68PA, AM69A
-TARGET_SOC="AM68PA"
-
-echo "Installing tidl_tools Verion: ${TIDL_TOOLS_VERSION}    SOC: ${TARGET_SOC} ..."
-
+######################################################################
+# Installing dependencies
 if [[ $TIDL_TOOLS_VERSION == "latest" || $TIDL_TOOLS_VERSION == "r8.6" ]]; then
   # installers for 8.6 release
   echo 'tidl_tools version 8.6'
@@ -82,7 +97,7 @@ if [[ $TIDL_TOOLS_VERSION == "latest" || $TIDL_TOOLS_VERSION == "r8.6" ]]; then
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/OSRT_TOOLS/X86_64_LINUX/UBUNTU_18_04/tvm-0.9.dev0-cp36-cp36m-linux_x86_64.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/OSRT_TOOLS/X86_64_LINUX/UBUNTU_18_04/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/OSRT_TOOLS/X86_64_LINUX/UBUNTU_18_04/tflite_runtime-2.8.2-cp36-cp36m-linux_x86_64.whl
-  wget https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/TIDL_TOOLS/${TARGET_SOC}/tidl_tools.tar.gz
+  wget -P ${TIDL_TOOLS_PREFIX} https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/TIDL_TOOLS/${TARGET_SOC}/tidl_tools.tar.gz
 elif [[ $TIDL_TOOLS_VERSION == "stable" || $TIDL_TOOLS_VERSION == "r8.5" ]]; then
   # installers for 8.5 release
   echo 'tidl_tools version 8.5'
@@ -127,35 +142,42 @@ else
   echo "tidl_tools version $TIDL_TOOLS_VERSION was not found"
 fi
 
-tar -xzf tidl_tools.tar.gz
+tar -xzf ${TIDL_TOOLS_PREFIX}/tidl_tools.tar.gz -C ${TIDL_TOOLS_PREFIX}
 
 ######################################################################
-export TIDL_TOOLS_PATH=$(pwd)/tidl_tools
-echo "TIDL_TOOLS_PATH=${TIDL_TOOLS_PATH}"
+GCC_ARM_AARCH64_NAME="gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu"
+GCC_ARM_AARCH64_FILE="${GCC_ARM_AARCH64_NAME}.tar.xz"
+GCC_ARM_AARCH64_PATH="https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/${GCC_ARM_AARCH64_FILE}"
 
-
-######################################################################
-cd $TIDL_TOOLS_PATH
-
-echo "[gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu] Checking ..."
-if [ ! -d gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu ]
-then
-    wget https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu.tar.xz --no-check-certificate
-    tar xf gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu.tar.xz > /dev/null
-    rm gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu.tar.xz
+# needed for TVM compilation
+echo "Checking ${GCC_ARM_AARCH64_NAME}"
+if [ ! -d ${TOOLS_BASE_PATH}/${GCC_ARM_AARCH64_NAME} ]; then
+    if [ ! -f ${TOOLS_BASE_PATH}/${GCC_ARM_AARCH64_FILE} ]; then
+        wget -P ${TOOLS_BASE_PATH} ${GCC_ARM_AARCH64_PATH} --no-check-certificate
+    fi
+    tar xf ${TOOLS_BASE_PATH}/${GCC_ARM_AARCH64_FILE} -C ${TOOLS_BASE_PATH} > /dev/null
+    # rm -f ${TOOLS_BASE_PATH}/${GCC_ARM_AARCH64_FILE}
 fi
-cd ..
-echo "[gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu] Done"
+echo "Completed ${GCC_ARM_AARCH64_NAME}"
 
 ######################################################################
-export LD_LIBRARY_PATH=$TIDL_TOOLS_PATH
+# TIDL_TOOLS_PATH
+export TIDL_TOOLS_PATH=${TIDL_TOOLS_PREFIX}/tidl_tools
+echo "TIDL_TOOLS_PATH: ${TIDL_TOOLS_PATH}"
+
+# ARM64_GCC_PATH
+export ARM64_GCC_PATH=$TIDL_TOOLS_PATH/${GCC_ARM_AARCH64_NAME}
+cd ${TIDL_TOOLS_PATH}
+ln -snf ../../${GCC_ARM_AARCH64_NAME}
+cd ${CURRENT_WORK_DIR}
+
+# LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=${TIDL_TOOLS_PATH}
 echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
 
+# PYTHONPATH
 # make sure current directory is visible for python import
 export PYTHONPATH=:${PYTHONPATH}
 echo "PYTHONPATH=${PYTHONPATH}"
-
-# needed for TVM compilation
-export ARM64_GCC_PATH=$TIDL_TOOLS_PATH/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu
 
 echo 'Completed installation.'
