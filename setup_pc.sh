@@ -105,7 +105,7 @@ elif [[ $TIDL_TOOLS_VERSION == "stable" || $TIDL_TOOLS_VERSION == "r8.5" ]]; the
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_05_00_00/ubuntu18_04_x86_64/pywhl/tvm-0.9.dev0-cp36-cp36m-linux_x86_64.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_05_00_00/ubuntu18_04_x86_64/pywhl/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_05_00_00/ubuntu18_04_x86_64/pywhl/tflite_runtime-2.8.2-cp36-cp36m-linux_x86_64.whl
-  wget https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_05_00_00/tidl_tools.tar.gz
+  wget -P ${TIDL_TOOLS_PREFIX} https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_05_00_00/tidl_tools.tar.gz
 elif [[ $TIDL_TOOLS_VERSION == "r8.4" ]]; then
   # installers for 8.4 release
   echo 'tidl_tools version 8.4'
@@ -113,7 +113,7 @@ elif [[ $TIDL_TOOLS_VERSION == "r8.4" ]]; then
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_04_00_00/x86_64/pywhl/tvm-1.11.1.dev335+g13a4007ca-cp36-cp36m-linux_x86_64.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_04_00_00/x86_64/pywhl/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_04_00_00/x86_64/pywhl/tflite_runtime-2.8.2-cp36-cp36m-linux_x86_64.whl
-  wget https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_04_00_00/tidl_tools.tar.gz
+  wget -P ${TIDL_TOOLS_PREFIX} https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_04_00_00/tidl_tools.tar.gz
 elif [[ $TIDL_TOOLS_VERSION == "r8.2" ]]; then
   # installers for 8.2 release
   echo 'tidl_tools version 8.2'
@@ -121,7 +121,7 @@ elif [[ $TIDL_TOOLS_VERSION == "r8.2" ]]; then
   pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08_02_00_05/tvm-0.8.dev0-cp36-cp36m-linux_x86_64.whl
   pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08_02_00_01-rc1/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
   pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tflite_runtime-2.4.0-py3-none-any.whl
-  wget https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08_02_00_01-rc1/tidl_tools.tar.gz
+  wget -P ${TIDL_TOOLS_PREFIX} https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08_02_00_01-rc1/tidl_tools.tar.gz
 elif [[ $TIDL_TOOLS_VERSION == "r8.1" ]]; then
   # installers for 8.1 release
   echo 'tidl_tools version 8.1'
@@ -129,7 +129,7 @@ elif [[ $TIDL_TOOLS_VERSION == "r8.1" ]]; then
   pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tvm-0.8.dev0-cp36-cp36m-linux_x86_64.whl
   pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08_01_00_09-rc1/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
   pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tflite_runtime-2.4.0-py3-none-any.whl
-  wget https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08_01_00_09-rc1/tidl_tools.tar.gz
+  wget -P ${TIDL_TOOLS_PREFIX} https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08_01_00_09-rc1/tidl_tools.tar.gz
 elif [[ $TIDL_TOOLS_VERSION == "r8.0" ]]; then
   # installers for 8.0 release
   echo 'tidl_tools version 8.0'
@@ -137,9 +137,9 @@ elif [[ $TIDL_TOOLS_VERSION == "r8.0" ]]; then
   pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tvm-0.8.dev0-cp36-cp36m-linux_x86_64.whl
   pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
   pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tflite_runtime-2.4.0-py3-none-any.whl
-  wget https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tidl_tools.tar.gz
+  wget -P ${TIDL_TOOLS_PREFIX} https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tidl_tools.tar.gz
 else
-  echo "tidl_tools version $TIDL_TOOLS_VERSION was not found"
+  echo "tidl_tools version ${TIDL_TOOLS_VERSION} was not found"
 fi
 
 tar -xzf ${TIDL_TOOLS_PREFIX}/tidl_tools.tar.gz -C ${TIDL_TOOLS_PREFIX}
