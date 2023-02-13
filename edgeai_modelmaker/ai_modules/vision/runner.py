@@ -76,7 +76,7 @@ class ModelRunner():
         self.params.training.model_packaged_path = os.path.join(self.params.training.training_path,
                                     '_'.join(os.path.split(self.params.common.run_name))+'.tar.gz')
 
-        target_device_compilation_folder = self.params.common.target_device.lower()
+        target_device_compilation_folder = self.params.common.target_device
         self.params.compilation.compilation_path = os.path.join(self.params.common.project_run_path, 'compilation', target_device_compilation_folder)
 
         if self.params.common.target_device in self.params.training.target_devices:

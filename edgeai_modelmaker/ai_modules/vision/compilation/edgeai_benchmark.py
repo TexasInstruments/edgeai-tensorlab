@@ -245,7 +245,7 @@ class ModelCompilation():
     def _get_final_artifact_name(self):
         pipeline_config = list(self.pipeline_configs.values())[0]
         session_name = pipeline_config['session'].get_param('session_name')
-        target_device_suffix = self.params.common.target_device.lower()
+        target_device_suffix = self.params.common.target_device
         run_name_splits = list(os.path.split(self.params.common.run_name))
         final_artifact_name = '_'.join(run_name_splits + [session_name, target_device_suffix])
         return final_artifact_name
