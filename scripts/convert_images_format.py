@@ -37,12 +37,18 @@ import PIL
 import PIL.Image
 
 source_dir = '.'
-png_files = glob.glob(f'{source_dir}/*/*/*/*.png')
+source_formats = ('*.gif', '*.webp')
+output_format = '.png'
 
-for png_file in png_files:
-    jpg_file = f'{os.path.splitext(png_file)[0]}.jpg'
-    print(png_file, jpg_file)
-    png_img = PIL.Image.open(png_file)
-    png_img = png_img.convert("RGB")
-    png_img.save(jpg_file)
+input_files = []
+for src_fmt in source_formats:
+    input_list = glob.glob(f'{source_dir}/{src_fmt}')
+    input_files.extend(input_list)
+
+for input_file in input_files:
+    output_file = f'{os.path.splitext(input_file)[0]}{output_format}'
+    print(input_file, output_file)
+    img = PIL.Image.open(input_file)
+    img = img.convert("RGB")
+    img.save(output_file)
 
