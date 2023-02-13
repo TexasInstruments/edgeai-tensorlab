@@ -34,6 +34,8 @@
 # from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
 TARGET_SOC=${1:-TDA4VM}
 
+echo "TARGET_SOC: ${TARGET_SOC}"
+echo "Pass the appropriate commandline argument to use another one."
 
 export PYTHONPATH=.:$PYTHONPATH
 export TIDL_TOOLS_PATH="../edgeai-benchmark/tools/${TARGET_SOC}/tidl_tools"
