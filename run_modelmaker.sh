@@ -30,12 +30,19 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #################################################################################
+
+if [ $# -le 1 ]; then
+    echo "help:"
+    echo "$0 target_device config_file"
+    echo "target_device can be one of TDA4VM AM62 in the current release"
+    echo "target_device can be one of TDA4VM AM62A AM68A AM69A AM62 in the future release"
+    exit 0
+fi
+
 # until r8.5: TDA4VM
 # from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
 TARGET_SOC=${1:-TDA4VM}
-
-echo "TARGET_SOC: ${TARGET_SOC}"
-echo "Pass the appropriate commandline argument to use another one."
+echo "target_device: ${TARGET_SOC}"
 
 export PYTHONPATH=.:$PYTHONPATH
 export TIDL_TOOLS_PATH="../edgeai-benchmark/tools/${TARGET_SOC}/tidl_tools"
