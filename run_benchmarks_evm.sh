@@ -33,7 +33,7 @@
 # from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
 TARGET_SOC=${1:-TDA4VM}
 
-# for model compilation on evm: evm
+# pc: for model compilation and inference on PC, evm: for model inference on EVM
 TARGET_MACHINE=evm
 
 echo "TARGET_SOC: ${TARGET_SOC}"
