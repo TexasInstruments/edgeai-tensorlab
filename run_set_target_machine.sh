@@ -29,7 +29,12 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
-TARGET_MACHINE=${1:-pc}
+# until r8.5: TDA4VM
+# from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
+TARGET_SOC=${1:-TDA4VM}
+
+# for model compilation on evm: evm
+TARGET_MACHINE=${2:-pc}
 
 ##################################################################
 # for onnxruntime and tflite_runtime, the artifacts are same for pc and evm devices

@@ -29,8 +29,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
-TARGET_MACHINE=${1:-pc}
-TARGET_SOC=${2:-TDA4VM}
+TARGET_SOC=${1:-TDA4VM}
+TARGET_MACHINE=${2:-pc}
+
 
 echo #############################################################
 echo "target_device/SOC: ${TARGET_SOC}"
@@ -39,7 +40,7 @@ echo #############################################################
 ##################################################################
 # tvmdlr artifacts are different for pc and evm device
 # point to the right artifact before this script executes
-source run_set_target_machine.sh ${TARGET_MACHINE}
+source run_set_target_machine.sh ${TARGET_SOC} ${TARGET_MACHINE}
 
 # setup the environment
 # source run_setupenv_pc.sh

@@ -29,17 +29,18 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
-# for model compilation on evm: evm
-TARGET_MACHINE=${1:-evm}
-
 # until r8.5: TDA4VM
 # from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
-TARGET_SOC=${2:-TDA4VM}
+TARGET_SOC=${1:-TDA4VM}
+
+# for model compilation on evm: evm
+TARGET_MACHINE=${2:-evm}
+
 
 ##################################################################
 # set environment variables
 # also point to the right type of artifacts (pc or evm)
-source run_set_env.sh ${TARGET_MACHINE} ${TARGET_SOC}
+source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 
 echo "==================================================================="
 echo "Please install EdgeAI Linux SDK StarterKit for TDA4VM"

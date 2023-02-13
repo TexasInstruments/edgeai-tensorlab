@@ -29,17 +29,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
-# for model compilation: pc
-TARGET_MACHINE=${1:-pc}
-
 # until r8.5: TDA4VM
 # from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
-TARGET_SOC=${2:-TDA4VM}
+TARGET_SOC=${1:-TDA4VM}
+
+# for model compilation on evm: evm
+TARGET_MACHINE=${2:-pc}
 
 ##################################################################
 # set environment variables
 # also point to the right type of artifacts (pc or evm)
-source run_set_env.sh ${TARGET_MACHINE} ${TARGET_SOC}
+source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 
 
 # specify one of the following settings - options can be changed inside the yaml
