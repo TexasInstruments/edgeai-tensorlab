@@ -34,7 +34,10 @@
 TARGET_SOC=${1:-TDA4VM}
 
 # for model compilation on evm: evm
-TARGET_MACHINE=${2:-evm}
+TARGET_MACHINE=evm
+
+echo "TARGET_SOC: ${TARGET_SOC}"
+echo "Pass the appropriate commandline argument to use another one."
 
 ##################################################################
 # set environment variables
