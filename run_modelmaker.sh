@@ -30,9 +30,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #################################################################################
+# until r8.5: TDA4VM
+# from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
+TARGET_SOC=${1:-TDA4VM}
+
 
 export PYTHONPATH=.:$PYTHONPATH
-export TIDL_TOOLS_PATH='../edgeai-benchmark/tidl_tools'
+export TIDL_TOOLS_PATH="../edgeai-benchmark/tools/${TARGET_SOC}/tidl_tools"
 export LD_LIBRARY_PATH=${TIDL_TOOLS_PATH}
 
-python ./scripts/run_modelmaker.py $@
+# argument to this device at index=1 is the target_device - avoid that and send the remaining
+python ./scripts/run_modelmaker.py ${@:2}
