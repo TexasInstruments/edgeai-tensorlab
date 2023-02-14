@@ -60,8 +60,9 @@ pip install --no-input cython numpy wheel
 pip3 install --no-input -r ./requirements_pc.txt
 
 # there as issue with installing pillow-simd through requirements - force it here
+# 7.2.0.post1 is what works in Python3.6 - newer Python versions may be able to use a more recent one
 pip uninstall --yes pillow
-pip install --no-input -U --force-reinstall pillow-simd
+pip install --no-input -U --force-reinstall pillow-simd==7.2.0.post1
 
 ######################################################################
 #NOTE: THIS STEP INSTALLS THE EDITABLE LOCAL MODULE pytidl
