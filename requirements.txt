@@ -5,7 +5,8 @@ opencv-python==4.2.0.34
 scipy
 matplotlib
 #pillow
-pillow-simd
+# 7.2.0.post1 is what works in Python3.6 - newer Python versions may be able to use a more recent one
+pillow-simd==7.2.0.post1
 colorama
 #opencv-python
 pycocotools
