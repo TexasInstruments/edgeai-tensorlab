@@ -96,6 +96,9 @@ RUN source ${HOME_DIR}/.bashrc && \
     pip install --no-input --upgrade pip setuptools && \
     pip install --no-input --upgrade wheel cython numpy
 
-# enable write permissions for all users, if support is needed for users passed via --user argument of docker run
-# this can be reversed later as a last step after all installations are done.
+# Note 1: this can be reversed later as a last step after all installations are done.
+# enabling write permissions for all users, if support is needed for users passed via --user argument of docker run
 RUN chmod -R ugo+rwx ${HOME_DIR}
+
+# Note 2: in the container, .bashrc or .pyenvrc needs to be sourced to activate the Python environment.
+# source /home/edgeai/.bashrc
