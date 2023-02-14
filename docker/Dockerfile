@@ -5,8 +5,8 @@ FROM ${REPO_LOCATION}ubuntu:18.04
 # user
 # ARG USER_ID=1000
 # ARG USER_GID=$USER_ID
-# ARG USER_NAME=edgeai
-ARG HOME_DIR=/home/edgeai
+ARG USER_NAME=edgeai
+ENV HOME_DIR=/home/${USER_NAME}
 
 # build settings
 ARG PROJECT_NAME="modelmaker"
@@ -34,15 +34,15 @@ RUN apt install -y curl libjpeg-dev zlib1g-dev graphviz graphviz-dev libbz2-dev 
                    libsqlite3-dev liblzma-dev
 
 # ##################################################################
-# # Method 1: these lines would have created a user and switched to it
-# # add user, inspired by: https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user
+# Method 1: these lines would have created a user and switched to it
+# add user, inspired by: https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user
 # RUN groupadd --gid $USER_GID $USER_NAME && \
 #     useradd --uid $USER_ID --gid $USER_GID --create-home $USER_NAME && \
 #     chown -R ${USER_ID}:${USER_GID} ${HOME_DIR}
 #
 # # not having this may cause sudo commands in our setup files to issue an error
 # # but any sudo intallation required may be finished above - so it should be okay.
-# # echo $USER_NAME ALL=\(root\) NOPASSWD:ALL >> /etc/sudoers.d/$USER_NAME && chmod 400 /etc/sudoers.d/$USER_NAME
+# RUN echo ${USER_NAME} ALL=\(root\) NOPASSWD:ALL >> /etc/sudoers.d/${USER_NAME} && chmod 400 /etc/sudoers.d/${USER_NAME}
 #
 # # switch user, workdir, default permissions
 # USER $USER_NAME
@@ -60,6 +60,11 @@ WORKDIR ${HOME_DIR}
 # pyenv install
 ENV PYENV_ROOT ${HOME_DIR}/.pyenv
 RUN curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+
+# we define PIP_CACHE_DIR here to point to a writable location
+# to enable container user to be different by using the docker run option --user
+RUN echo ' ' >> ${HOME_DIR}/.pyenvrc && \
+    echo "export PIP_CACHE_DIR=${HOME_DIR}/.cache/pip" >> ${HOME_DIR}/.pyenvrc && mkdir -p ${HOME_DIR}/.cache/pip
 
 # set paths and activate env
 # .bashrc is not sourced in non interactive mode - so write it to another file
@@ -100,5 +105,9 @@ RUN source ${HOME_DIR}/.bashrc && \
 # enabling write permissions for all users, if support is needed for users passed via --user argument of docker run
 RUN chmod -R ugo+rwx ${HOME_DIR}
 
-# Note 2: in the container, .bashrc or .pyenvrc needs to be sourced to activate the Python environment.
+# Note 2: after all installations are done,
+# it is possible to remove the file /etc/sudoers.d/${USER_NAME} (if that was used above)
+
+# Note 3: in the container, .bashrc or .pyenvrc may need to be sourced to activate the Python environment
+# if it is not being activated automatically.
 # source /home/edgeai/.bashrc
