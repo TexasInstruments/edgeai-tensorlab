@@ -107,8 +107,9 @@ cd ../edgeai-modelmaker
 ./setup.sh
 
 # there as issue with installing pillow-simd through requirements - force it here
+# 7.2.0.post1 is what works in Python3.6 - newer Python versions may be able to use a more recent one
 pip uninstall --yes pillow
-pip install --no-input -U --force-reinstall pillow-simd
+pip install --no-input -U --force-reinstall pillow-simd==7.2.0.post1
 
 ls -d ../edgeai-*
 

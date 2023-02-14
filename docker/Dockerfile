@@ -40,8 +40,8 @@ RUN apt install -y curl libjpeg-dev zlib1g-dev graphviz graphviz-dev libbz2-dev 
 #     useradd --uid $USER_ID --gid $USER_GID --create-home $USER_NAME && \
 #     chown -R ${USER_ID}:${USER_GID} ${HOME_DIR}
 #
-# # is this required? - any sudo intsallation required may be finished above.
-# # but not having this may cause sudo commands in our setup files to error out.
+# # not having this may cause sudo commands in our setup files to issue an error
+# # but any sudo intallation required may be finished above - so it should be okay.
 # # echo $USER_NAME ALL=\(root\) NOPASSWD:ALL >> /etc/sudoers.d/$USER_NAME && chmod 400 /etc/sudoers.d/$USER_NAME
 #
 # # switch user, workdir, default permissions
@@ -72,12 +72,12 @@ RUN echo ' ' >> ${HOME_DIR}/.pyenvrc && \
 
 # .profile is needed for non-interactive shell spawns
 RUN echo ' ' >> ${HOME_DIR}/.profile && \
-    echo 'command -v pyenv >/dev/null || . ${HOME_DIR}/.pyenvrc' >> ${HOME_DIR}/.profile && \
+    echo "command -v pyenv >/dev/null || source ${HOME_DIR}/.pyenvrc" >> ${HOME_DIR}/.profile && \
     echo ' ' >> ${HOME_DIR}/.profile
 
 # .bashrc is needed for interactive shell spawns
 RUN echo ' ' >> ${HOME_DIR}/.bashrc && \
-    echo 'command -v pyenv >/dev/null || . ${HOME_DIR}/.pyenvrc' >> ${HOME_DIR}/.bashrc && \
+    echo "command -v pyenv >/dev/null || source ${HOME_DIR}/.pyenvrc" >> ${HOME_DIR}/.bashrc && \
     echo ' ' >> ${HOME_DIR}/.bashrc
 
 # pyenv works with bash, so change shell to bash
