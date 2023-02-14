@@ -3,19 +3,16 @@ ARG REPO_LOCATION=""
 FROM ${REPO_LOCATION}ubuntu:18.04
 
 # user
-ARG USER_NAME=edgeai
 # ARG USER_ID=1000
 # ARG USER_GID=$USER_ID
-ENV HOME_DIR=/home/$USER_NAME
+# ARG USER_NAME=edgeai
+ARG HOME_DIR=/home/edgeai
+
+# build settings
 ARG PROJECT_NAME="modelmaker"
 ARG DEBIAN_FRONTEND=noninteractive
 # avoid warnings/errors while installing pillow-simd
-ENV LC_ALL=C.UTF-8
-
-# paths
-ENV APPS_PATH=${HOME_DIR}/apps
-ENV DOWNLOADS_PATH=${HOME_DIR}/downloads
-ENV CODE_PATH=${HOME_DIR}/code
+ARG LC_ALL=C.UTF-8
 
 # proxy
 ARG http_proxy=""
@@ -36,28 +33,33 @@ RUN apt install -y curl libjpeg-dev zlib1g-dev graphviz graphviz-dev libbz2-dev 
                    build-essential xz-utils libreadline-dev libncurses5-dev libssl-dev \
                    libsqlite3-dev liblzma-dev
 
-###################################################################
+# ##################################################################
+# # Method 1: these lines would have created a user and switched to it
 # # add user, inspired by: https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user
 # RUN groupadd --gid $USER_GID $USER_NAME && \
 #     useradd --uid $USER_ID --gid $USER_GID --create-home $USER_NAME && \
-#     echo $USER_NAME ALL=\(root\) NOPASSWD:ALL >> /etc/sudoers.d/$USER_NAME && \
-#     chmod 400 /etc/sudoers.d/$USER_NAME
+#     chown -R ${USER_ID}:${USER_GID} ${HOME_DIR}
 #
-# # Change working directory permission to non-root user
-# RUN chown -R ${USER_ID}:${USER_GID} ${HOME_DIR}
+# # is this required? - any sudo intsallation required may be finished above.
+# # but not having this may cause sudo commands in our setup files to error out.
+# # echo $USER_NAME ALL=\(root\) NOPASSWD:ALL >> /etc/sudoers.d/$USER_NAME && chmod 400 /etc/sudoers.d/$USER_NAME
 #
 # # switch user, workdir, default permissions
 # USER $USER_NAME
-###################################################################
-RUN mkdir -p ${HOME_DIR} && chmod -R ugo+rwx ${HOME_DIR}
+# RUN echo "umask u=rwx,g=rx,o=rx" >> ${HOME_DIR}/.bashrc
+# ##################################################################
+# Method 2: continue as root. during docker run, --user argument can be used to map to the host user
+# also a chmod -R ugo+rwx ${HOME_DIR} is added at the end of this file to enable such mapped users to have access.
+# that permission can be later restricted to only folders where a write is required.
+RUN mkdir -p ${HOME_DIR}
+# ##################################################################
 
+# change working directory
 WORKDIR ${HOME_DIR}
-RUN echo "umask u=rwx,g=rwx,o=rx" >> ${HOME_DIR}/.bashrc
 
 # pyenv install
-ENV PYENV_ROOT $HOME_DIR/.pyenv
-RUN mkdir ${DOWNLOADS_PATH} && \
-    curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+ENV PYENV_ROOT ${HOME_DIR}/.pyenv
+RUN curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
 
 # set paths and activate env
 # .bashrc is not sourced in non interactive mode - so write it to another file
@@ -94,6 +96,6 @@ RUN source ${HOME_DIR}/.bashrc && \
     pip install --no-input --upgrade pip setuptools && \
     pip install --no-input --upgrade wheel cython numpy
 
-# enable permissions for all users
-# (to enable users passed via --user argument of docker run to access)
+# enable write permissions for all users, if support is needed for users passed via --user argument of docker run
+# this can be reversed later as a last step after all installations are done.
 RUN chmod -R ugo+rwx ${HOME_DIR}
