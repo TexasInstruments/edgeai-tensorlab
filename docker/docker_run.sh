@@ -42,6 +42,8 @@ http_proxy=${http_proxy:-""}
 https_proxy=${https_proxy:-""}
 no_proxy=${no_proxy:-""}
 
+echo "running container as $(id -u):$(id -g)"
+
 #If no container exist, then create the container.
 if [ $cont_count -eq 0 ]
 then
@@ -53,6 +55,7 @@ then
         -e http_proxy=${http_proxy} \
         -e https_proxy=${https_proxy} \
         -e no_proxy=${no_proxy} \
+        --user $(id -u):$(id -g) \
         modelmaker:v1 bash
 # If one container exist, execute that container.
 elif [ $cont_count -eq 1 ]
