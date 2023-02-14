@@ -100,7 +100,7 @@ fi
 
 echo "installing: https://github.com/TexasInstruments/edgeai-benchmark"
 cd ../edgeai-benchmark
-./setup_pc.sh r8.4
+./setup_pc.sh r8.5
 
 echo "installing edgeai-modelmaker"
 cd ../edgeai-modelmaker
