@@ -624,7 +624,7 @@ model_descriptions:
       model_name: ssd_mobilenetv2_lite_mmdet
       model_packaged_path: null
       model_proto_path: null
-      model_training_id: ssd_mobilenet_lite_320x320
+      model_training_id: ssd_mobilenet_lite
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
@@ -633,14 +633,18 @@ model_descriptions:
       summary_file_path: null
       target_devices:
         AM62:
-          accuracy_factor: 25.1
-          accuracy_unit: AP[.5:.95]%
+          accuracy_factor: 43.1
+          accuracy_factor2: 25.1
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 0
           performance_fps: 0.5
           performance_infer_time_ms: 2000.0
         TDA4VM:
-          accuracy_factor: 25.1
-          accuracy_unit: AP[.5:.95]%
+          accuracy_factor: 43.1
+          accuracy_factor2: 25.1
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 2
           performance_fps: 218
           performance_infer_time_ms: 4.587155963302752
@@ -740,14 +744,18 @@ model_descriptions:
       summary_file_path: null
       target_devices:
         AM62:
-          accuracy_factor: 20.7
-          accuracy_unit: AP[.5:.95]%
+          accuracy_factor: 36.7
+          accuracy_factor2: 20.7
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 1
           performance_fps: 2.3
           performance_infer_time_ms: 434.7826086956522
         TDA4VM:
-          accuracy_factor: 20.7
-          accuracy_unit: AP[.5:.95]%
+          accuracy_factor: 36.7
+          accuracy_factor2: 20.7
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
           model_selection_factor: null
           performance_fps: 183
           performance_infer_time_ms: 5.46448087431694
@@ -844,8 +852,10 @@ model_descriptions:
       summary_file_path: null
       target_devices:
         TDA4VM:
-          accuracy_factor: 44.4
-          accuracy_unit: AP[.5:.95]%
+          accuracy_factor: 62.9
+          accuracy_factor2: 44.4
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 0
           performance_fps: 46
           performance_infer_time_ms: 21.73913043478261
@@ -942,8 +952,10 @@ model_descriptions:
       summary_file_path: null
       target_devices:
         TDA4VM:
-          accuracy_factor: 24.8
-          accuracy_unit: AP[.5:.95]%
+          accuracy_factor: 40.1
+          accuracy_factor2: 24.8
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 4
           performance_fps: 287
           performance_infer_time_ms: 3.484320557491289
@@ -1040,8 +1052,10 @@ model_descriptions:
       summary_file_path: null
       target_devices:
         TDA4VM:
-          accuracy_factor: 38.3
-          accuracy_unit: AP[.5:.95]%
+          accuracy_factor: 56.9
+          accuracy_factor2: 38.3
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 1
           performance_fps: 102
           performance_infer_time_ms: 9.803921568627452
@@ -1138,8 +1152,10 @@ model_descriptions:
       summary_file_path: null
       target_devices:
         TDA4VM:
-          accuracy_factor: 30.5
-          accuracy_unit: AP[.5:.95]%
+          accuracy_factor: 47.4
+          accuracy_factor2: 30.5
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 3
           performance_fps: 220
           performance_infer_time_ms: 4.545454545454546

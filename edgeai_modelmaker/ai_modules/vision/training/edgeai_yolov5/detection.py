@@ -63,7 +63,7 @@ _model_descriptions = {
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=108, performance_infer_time_ms=1000/108,
-                                                     accuracy_factor=37.4, accuracy_unit='AP[.5:.95]%')
+                                                     accuracy_factor=56.0, accuracy_unit='AP50%', accuracy_factor2=37.4, accuracy_unit2='AP[.5:.95]%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -93,7 +93,7 @@ _model_descriptions = {
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
             target_devices={  #To Update
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=170, performance_infer_time_ms=1000/170,
-                                                     accuracy_factor=32.8, accuracy_unit='AP[.5:.95]%')
+                                                     accuracy_factor=51.8, accuracy_unit='AP50%', accuracy_factor2=32.8, accuracy_unit2='AP[.5:.95]%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -123,7 +123,7 @@ _model_descriptions = {
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION]//2,
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=46, performance_infer_time_ms=1000/46,
-                                                     accuracy_factor=44.1, accuracy_unit='AP[.5:.95]%')
+                                                     accuracy_factor=62.9, accuracy_unit='AP50%', accuracy_factor2=44.1, accuracy_unit2='AP[.5:.95]%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -153,7 +153,7 @@ _model_descriptions = {
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION]//2,
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=21, performance_infer_time_ms=1000/21,
-                                                     accuracy_factor=47.1, accuracy_unit='AP[.5:.95]%')
+                                                     accuracy_factor=65.6, accuracy_unit='AP50%', accuracy_factor2=47.1, accuracy_unit2='AP[.5:.95]%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
