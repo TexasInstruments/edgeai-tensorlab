@@ -121,7 +121,7 @@ def init_params(*args, **kwargs):
             detection_top_k=200, # num boxes to preserve in nms: 200 for best performance(fps), 500 for best accuracy.
             save_output=True, # save inference outputs
             tidl_offload=True,
-            input_optimization=False, # if this si set, the compilation tool will try to fold mean and scale inside the model.
+            input_optimization=True, # if this is set, the compilation tool will try to fold mean and scale inside the model.
             capture_log=True # more detailed logs - capture logs from the underlying c library
         ),
     )
