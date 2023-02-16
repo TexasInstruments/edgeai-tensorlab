@@ -203,36 +203,6 @@ _model_descriptions = {
             metric=dict(label_offset_pred=0)
         )
     ),
-    'yolox_m_lite_mmdet': dict(
-        common=dict(
-            task_type=constants.TASK_TYPE_DETECTION,
-        ),
-        training=dict(
-            training_backend='edgeai_mmdetection',
-            model_name='yolox_m_lite_640x640_mmdet',
-            model_training_id='yolox_m_lite',
-            model_architecture='yolox',
-            input_resize=640,
-            input_cropsize=640,
-            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth',
-            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION]//2, # this is a large model - reduce default batch size
-            target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=46, performance_infer_time_ms=1000/46,
-                                                     accuracy_factor=62.9, accuracy_unit='AP50%', accuracy_factor2=44.4, accuracy_unit2='AP[.5:.95]%')
-            },
-            training_devices={
-                constants.TRAINING_DEVICE_CPU: True,
-                constants.TRAINING_DEVICE_CUDA: True,
-            },
-        ),
-        compilation=dict(
-            model_compilation_id='od-8230',
-            runtime_options={
-                'advanced_options:output_feature_16bit_names_list': '1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580'
-            },
-            metric=dict(label_offset_pred=0)
-        )
-    ),
 }
 
 
@@ -326,6 +296,36 @@ if constants.PLUGINS_ENABLE_EXTRA:
                 model_compilation_id='od-8060',
                 runtime_options={
                     'advanced_options:output_feature_16bit_names_list': None
+                },
+                metric=dict(label_offset_pred=0)
+            )
+        ),
+        'yolox_m_lite_mmdet': dict(
+            common=dict(
+                task_type=constants.TASK_TYPE_DETECTION,
+            ),
+            training=dict(
+                training_backend='edgeai_mmdetection',
+                model_name='yolox_m_lite_640x640_mmdet',
+                model_training_id='yolox_m_lite',
+                model_architecture='yolox',
+                input_resize=640,
+                input_cropsize=640,
+                pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth',
+                batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION]//2, # this is a large model - reduce default batch size
+                target_devices={
+                    constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=46, performance_infer_time_ms=1000/46,
+                                                         accuracy_factor=62.9, accuracy_unit='AP50%', accuracy_factor2=44.4, accuracy_unit2='AP[.5:.95]%')
+                },
+                training_devices={
+                    constants.TRAINING_DEVICE_CPU: True,
+                    constants.TRAINING_DEVICE_CUDA: True,
+                },
+            ),
+            compilation=dict(
+                model_compilation_id='od-8230',
+                runtime_options={
+                    'advanced_options:output_feature_16bit_names_list': '1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580'
                 },
                 metric=dict(label_offset_pred=0)
             )
