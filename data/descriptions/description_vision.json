@@ -113,7 +113,7 @@
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
-        "input_optimization":false,
+        "input_optimization":true,
         "capture_log":true,
         "metric":{
           "label_offset_pred":1
@@ -225,7 +225,7 @@
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
-        "input_optimization":false,
+        "input_optimization":true,
         "capture_log":true,
         "metric":{
           "label_offset_pred":1
@@ -337,7 +337,7 @@
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
-        "input_optimization":false,
+        "input_optimization":true,
         "capture_log":true,
         "metric":{
           "label_offset_pred":1
@@ -442,7 +442,7 @@
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
-        "input_optimization":false,
+        "input_optimization":true,
         "capture_log":true,
         "metric":{
           "label_offset_pred":1
@@ -547,7 +547,7 @@
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
-        "input_optimization":false,
+        "input_optimization":true,
         "capture_log":true,
         "metric":{
           "label_offset_pred":1
@@ -611,7 +611,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":25.1,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":2
+            "model_selection_factor":1
           }
         },
         "project_path":null,
@@ -669,7 +669,7 @@
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
-        "input_optimization":false,
+        "input_optimization":true,
         "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":null
@@ -794,7 +794,7 @@
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
-        "input_optimization":false,
+        "input_optimization":true,
         "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":null
@@ -852,7 +852,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":24.8,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":4
+            "model_selection_factor":3
           }
         },
         "project_path":null,
@@ -904,7 +904,7 @@
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
-        "input_optimization":false,
+        "input_optimization":true,
         "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179"
@@ -962,7 +962,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":30.5,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":3
+            "model_selection_factor":2
           }
         },
         "project_path":null,
@@ -1014,7 +1014,7 @@
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
-        "input_optimization":false,
+        "input_optimization":true,
         "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179"
@@ -1072,7 +1072,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":38.3,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":1
+            "model_selection_factor":0
           }
         },
         "project_path":null,
@@ -1124,120 +1124,10 @@
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
-        "input_optimization":false,
+        "input_optimization":true,
         "capture_log":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179"
-        },
-        "metric":{
-          "label_offset_pred":0
-        }
-      }
-    },
-    "yolox_m_lite_mmdet":{
-      "common":{
-        "verbose_mode":true,
-        "download_path":"./data/downloads",
-        "projects_path":"./data/projects",
-        "project_path":null,
-        "project_run_path":null,
-        "task_type":"detection",
-        "target_machine":"evm",
-        "target_device":null,
-        "run_name":"{date-time}/{model_name}"
-      },
-      "dataset":{
-        "enable":true,
-        "dataset_name":null,
-        "dataset_path":null,
-        "extract_path":null,
-        "split_factor":0.75,
-        "split_names":[
-          "train",
-          "val"
-        ],
-        "max_num_files":null,
-        "input_data_path":null,
-        "input_annotation_path":null,
-        "data_path_splits":null,
-        "data_dir":"images",
-        "annotation_path_splits":null,
-        "annotation_dir":"annotations",
-        "annotation_prefix":"instances",
-        "annotation_format":"coco_json",
-        "dataset_download":true,
-        "dataset_reload":false
-      },
-      "training":{
-        "enable":true,
-        "model_name":"yolox_m_lite_640x640_mmdet",
-        "model_training_id":"yolox_m_lite",
-        "training_backend":"edgeai_mmdetection",
-        "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth",
-        "target_devices":{
-          "TDA4VM":{
-            "performance_fps":46,
-            "performance_infer_time_ms":21.73913043478261,
-            "accuracy_factor":62.9,
-            "accuracy_unit":"AP50%",
-            "accuracy_factor2":44.4,
-            "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":0
-          }
-        },
-        "project_path":null,
-        "dataset_path":null,
-        "training_path":null,
-        "log_file_path":null,
-        "log_summary_regex":null,
-        "summary_file_path":null,
-        "model_checkpoint_path":null,
-        "model_export_path":null,
-        "model_proto_path":null,
-        "model_packaged_path":null,
-        "training_epochs":15,
-        "warmup_epochs":1,
-        "num_last_epochs":5,
-        "batch_size":4,
-        "learning_rate":0.002,
-        "num_classes":null,
-        "weight_decay":0.0001,
-        "input_resize":640,
-        "input_cropsize":640,
-        "training_device":null,
-        "num_gpus":0,
-        "distributed":true,
-        "training_master_port":29500,
-        "model_architecture":"yolox",
-        "training_devices":{
-          "cpu":true,
-          "cuda":true
-        }
-      },
-      "compilation":{
-        "enable":true,
-        "model_compilation_id":"od-8230",
-        "compilation_path":null,
-        "model_compiled_path":null,
-        "log_file_path":null,
-        "log_summary_regex":null,
-        "summary_file_path":null,
-        "output_tensors_path":null,
-        "model_packaged_path":null,
-        "model_visualization_path":null,
-        "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
-        "num_frames":null,
-        "num_output_frames":50,
-        "detection_threshold":0.6,
-        "detection_top_k":200,
-        "save_output":true,
-        "tidl_offload":true,
-        "input_optimization":false,
-        "capture_log":true,
-        "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":"1546, 1547, 1548, 1562, 1563, 1564, 1578, 1579, 1580"
         },
         "metric":{
           "label_offset_pred":0
