@@ -133,7 +133,7 @@ The above script will generate **instances_train.json** (136.6MB) and **instance
 Train a model  by running the command below. Pretrained ckpt for each model is the corresponding 2D object detection model trained on COCO dataset.
 
 ```
-python -m  yolox.tools.train -n yolox-s-object-pose --dataset ycbv -c 'path to pretrained ckpt' -d 8 -b 64 --fp16 -o --task object_pose 
+python -m  yolox.tools.train -n yolox-s-object-pose --dataset ycbv -c 'path to pretrained ckpt' -d 4 -b 64 --fp16 -o --task object_pose 
                                 yolox-m-object-pose           lmo
                                 yolox-l-object-pose            
 ```
@@ -149,7 +149,7 @@ This is a lite version of the the model as described [here](./README.md). These 
 ## **Training: YOLO-6D-Pose-ti-lite**
 Train a suitable model  by running the command below. Pretrained ckpts for these lite models are same as the deafault models.
 ```
-python -m yolox.tools.train -n yolox-s-object-pose-ti-lite --dataset ycbv -c 'path to pretrained ckpt' -d 8 -b 64 --fp16 -o --task object_pose
+python -m yolox.tools.train -n yolox-s-object-pose-ti-lite --dataset ycbv -c 'path to pretrained ckpt' -d 4 -b 64 --fp16 -o --task object_pose
                             -n yolox-m-object-pose-ti-lite           lmo              
                             -n yolox-l-object-pose-ti-lite           
 ```

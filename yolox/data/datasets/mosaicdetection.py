@@ -180,18 +180,19 @@ class MosaicDetection(Dataset):
                 camera_matrix = self._dataset.cad_models.camera_matrix
             else:
                 camera_matrix = None
-            img, label = random_affine(
-                img,
-                label,
-                target_size=self.input_dim,
-                degrees=self.degrees,
-                translate=self.translate,
-                scales=self.scale,
-                shear=self.shear,
-                human_pose=self.preproc.human_pose,
-                object_pose= self.preproc.object_pose,
-                camera_matrix=camera_matrix
-            )  # border to remove
+            if isinstance(self._dataset, (YCBVDataset, LMODataset)) and self.enable_mosaic:  # no aug training for 6d pose estimation.
+                img, label = random_affine(
+                    img,
+                    label,
+                    target_size=self.input_dim,
+                    degrees=self.degrees,
+                    translate=self.translate,
+                    scales=self.scale,
+                    shear=self.shear,
+                    human_pose=self.preproc.human_pose,
+                    object_pose= self.preproc.object_pose,
+                    camera_matrix=camera_matrix
+                )  # border to remove
             #if self.preproc is not None: #Temporary fix
             #    img, label = self.preproc(img, label, self.input_dim)
             img, label = self.preproc(img, label, self.input_dim)
