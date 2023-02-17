@@ -191,7 +191,7 @@ def export(args, model, model_name=None):
     data_shape = (1,3,*image_size_tuple)
     example_input = torch.rand(*data_shape)
     output_onnx_file = os.path.join(args.output_dir, 'model.onnx')
-    torch.onnx.export(model, example_input, output_onnx_file, opset_version=args.opset_version)
+    onnx.export(model, example_input, output_onnx_file, opset_version=args.opset_version)
     # shape inference to make it easy for inference
     onnx.shape_inference.infer_shapes_path(output_onnx_file, output_onnx_file)
     # export torchscript model

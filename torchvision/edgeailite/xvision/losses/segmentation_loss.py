@@ -110,7 +110,7 @@ class SegmentationMetricsCalc():
     def _fast_hist(label_pred, label_true, n_class):
         mask = (label_true >= 0) & (label_true < n_class)
         if np.bincount(n_class * label_true[mask].astype(int) + label_pred[mask], minlength=n_class ** 2).shape[0] == n_class**2:
-            hist = np.bincount(n_class * label_true[mask].astype(int) + label_pred[mask],minlength=n_class**2).reshape(n_class, n_class)
+            hist = np.bincount(n_class * label_true[mask].astype(int) + label_pred[mask], minlength=n_class**2).reshape(n_class, n_class)
         return hist
 
     def _update(self, label_preds, label_trues):

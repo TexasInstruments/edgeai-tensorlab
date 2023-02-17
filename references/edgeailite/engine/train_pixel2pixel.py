@@ -91,14 +91,18 @@ def get_config():
     args.dataset_name = 'cityscapes_segmentation'       # dataset type
     args.transforms = None                              # the transforms itself can be given from outside
     args.input_channel_reverse = False                  # reverse input channels, for example RGB to BGR
+    args.annotation_prefix = None                       # Annotations prefix name
 
     args.data_path = './data/cityscapes'                # 'path to dataset'
     args.save_path = None                               # checkpoints save path
     args.phase = 'training'                             # training/calibration/validation
     args.date = None                                    # date to add to save path. if this is None, current date will be added.
+    args.output_dir = None
 
     args.logger = None                                  # logger stream to output into
     args.show_gpu_usage = False                         # Shows gpu usage at the begining of each training epoch
+    args.device = None
+    args.distributed = None
 
     args.split_file = None                              # train_val split file
     args.split_files = None                             # split list files. eg: train.txt val.txt
