@@ -123,6 +123,11 @@ Step 1.3c: Run docker container to bring up the container terminal on docker:
 ./docker/docker_run.sh
 ```
 
+Source .bashrc to update the PATH
+```
+source /home/edgeai/.bashrc
+```
+
 Step 1.4c: During docker run, we map the parent directory of this folder to /home/edgeai/code. This is to easily share code and data between the host and the docker container. Inside the docker terminal, change directory to where this folder is mapped to:
 ```
 cd /home/edgeai/code/edgeai-modelmaker
