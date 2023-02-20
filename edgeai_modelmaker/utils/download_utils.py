@@ -36,6 +36,8 @@ import gzip
 import tarfile
 import zipfile
 import requests
+import copy
+import warnings
 
 from . import misc_utils
 
@@ -202,3 +204,68 @@ def download_files(dataset_urls, download_root, extract_root=None, save_filename
         download_paths.append(download_path)
     #
     return download_success, message, download_paths
+
+
+def download_url_entry(download_entry, download_path=None, download_root=None):
+    # fetch the pretrained checkpoint if it is a url.
+    # if it is a url and the downloaded copy is present, it will be reused.
+    if isinstance(download_entry, list) and bool(download_entry):
+        pretrained_path_in = copy.deepcopy(download_entry)
+        download_entry = download_url_entry(pretrained_path_in[0], download_path, download_root)
+        for d_entry in pretrained_path_in[1:]:
+            download_url_entry(d_entry, download_path, download_root)
+        #
+    elif isinstance(download_entry, dict) and bool(download_entry):
+        download_root = download_entry['download_path'] if 'download_path' in download_entry else download_root
+        download_entry = download_url_entry(download_entry['download_url'], download_path, download_root)
+    elif misc_utils.is_url(download_entry):
+        download_root = download_path if download_root is None else download_root
+        # {download_path} is a special keyword that will be replaced with the current download path
+        download_root = download_root.replace('{download_path}', download_path)
+        download_success, exception_message, download_entry = download_file(
+            download_entry, download_root, extract=False)
+        if not download_success:
+            warnings.warn(f'url could not be downloaded: {download_entry}')
+            return None
+        #
+    else:
+        warnings.warn(f'unrecognized download_url: {download_entry}')
+    #
+    return download_entry
+
+
+def _download_entry(download_entry, download_path, download_root=None):
+    if download_entry:
+        download_entry = download_url_entry(download_entry, download_path, download_root)
+    #
+    return download_entry
+
+
+def _download_dataset(input_data_path, download_path):
+    download_root = os.path.join(download_path, 'datasets')
+    return _download_entry(input_data_path, download_path, download_root)
+
+
+def _download_pretrained_checkpoint(pretrained_path, download_path, model_name):
+    download_root = os.path.join(download_path, 'pretrained', model_name)
+    return _download_entry(pretrained_path, download_path, download_root)
+
+
+def download_all(params):
+    # if the model_config has a download section, download it
+    if hasattr(params, 'download'):
+        _download_entry(params.download, params.common.download_path)
+    #
+    # download dataset
+    if hasattr(params, 'dataset'):
+        params.dataset.input_data_path = _download_dataset(
+            params.dataset.input_data_path, params.common.download_path)
+    #
+    # fetch the pretrained checkpoint if it is a url.
+    # if it is a url and the downloaded copy is present, it will be reused.
+    if hasattr(params, 'training'):
+        params.training.pretrained_checkpoint_path = _download_pretrained_checkpoint(
+            params.training.pretrained_checkpoint_path,
+            params.common.download_path, params.training.model_name)
+    #
+

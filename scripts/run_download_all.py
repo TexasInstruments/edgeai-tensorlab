@@ -31,66 +31,32 @@
 import os
 import datetime
 import sys
-import copy
 import argparse
 import yaml
 import json
 
 
-def run(config):
+def main(config):
     import edgeai_modelmaker
+    from scripts import run_generate_description
 
-    # get the ai backend module
-    ai_target_module = edgeai_modelmaker.ai_modules.get_target_module(config['common']['target_module'])
+    description = run_generate_description.run(config)
+    model_descriptions = description['model_descriptions']
+    sample_dataset_descriptions = description['sample_dataset_descriptions']
 
-    # get params for the given config
-    params = ai_target_module.runner.ModelRunner.init_params()
-
-    # get_training_module_descriptions
-    training_module_descriptions = ai_target_module.runner.ModelRunner.get_training_module_descriptions(params)
-
-    # get supported pretrained models for the given params
-    model_descriptions = ai_target_module.runner.ModelRunner.get_model_descriptions(params)
-
-    # update descriptions
-    model_descriptions_desc = dict()
-    for k, v in model_descriptions.items():
-        s = copy.deepcopy(params)
-        s.update(copy.deepcopy(v)).update(config)
-        model_descriptions_desc[k] = s
+    for model_description_key, model_description in model_descriptions.items():
+        model_description = edgeai_modelmaker.utils.ConfigDict(model_description)
+        edgeai_modelmaker.utils.download_all(model_description)
     #
 
-    # get presets
-    preset_descriptions = ai_target_module.runner.ModelRunner.get_preset_descriptions(params)
-
-    # get target device descriptions
-    target_device_descriptions = ai_target_module.runner.ModelRunner.get_target_device_descriptions(params)
-
-    # task descriptions
-    task_descriptions = ai_target_module.runner.ModelRunner.get_task_descriptions(params)
-
-    # sample dataset descriptions
-    sample_dataset_descriptions = ai_target_module.runner.ModelRunner.get_sample_dataset_descriptions(params)
-
-    # help descriptions
-    help_descriptions = ai_target_module.runner.ModelRunner.get_help_descriptions(params)
-
-    description = dict(training_module_descriptions=training_module_descriptions,
-                       model_descriptions=model_descriptions_desc,
-                       preset_descriptions=preset_descriptions,
-                       target_device_descriptions=target_device_descriptions,
-                       task_descriptions=task_descriptions,
-                       sample_dataset_descriptions=sample_dataset_descriptions,
-                       help_descriptions=help_descriptions)
-    return description
-
-
-def main(args):
-    description = run(args)
-    # write description
-    description_file = os.path.join(args.description_path, f'description_{args.target_module}' + '.yaml')
-    edgeai_modelmaker.utils.write_dict(description, description_file)
-    print(f'description is written at: {description_file}')
+    for sample_dataset_description_key, sample_dataset_description in sample_dataset_descriptions.items():
+        sample_dataset_description = edgeai_modelmaker.utils.ConfigDict(sample_dataset_description)
+        # add download_path from commandline
+        sample_dataset_description.update(config)
+        edgeai_modelmaker.utils.download_all(sample_dataset_description)
+    #
+    print('\nSUCCESS: ModelMaker - Download completed.')
+    return True
 
 
 if __name__ == '__main__':
@@ -103,9 +69,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('--target_module', type=str, default='vision')
     parser.add_argument('--download_path', type=str, default='./data/downloads')
-    parser.add_argument('--description_path', type=str, default='./data/descriptions')
     args = parser.parse_args()
 
+    # override with supported commandline args
     kwargs = vars(args)
     config = dict(common=dict(), dataset=dict())
     if 'target_module' in kwargs:

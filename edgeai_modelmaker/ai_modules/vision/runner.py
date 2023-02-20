@@ -34,6 +34,8 @@ import os
 import datetime
 import tarfile
 import torch
+import warnings
+import copy
 
 from . import constants
 from ... import utils
@@ -50,7 +52,7 @@ class ModelRunner():
         params = init_params(*args, **kwargs)
         # set the checkpoint download folder
         # (for the models that are downloaded using torch.hub eg. mmdetection uses that)
-        torch.hub.set_dir(os.path.join(params.common.download_path, 'torch', 'hub'))
+        torch.hub.set_dir(os.path.join(params.common.download_path, 'pretrained', 'torch', 'hub'))
         return params
 
     def __init__(self, *args, verbose=True, **kwargs):
@@ -111,6 +113,10 @@ class ModelRunner():
         os.makedirs(self.params.common.project_run_path, exist_ok=True)
 
         #####################################################################
+        # handle all downloads here
+        utils.download_all(self.params)
+
+        #####################################################################
         # prepare for dataset handling (loading, splitting, limiting files etc).
         self.dataset_handling = datasets.DatasetHandling(self.params)
         self.params.update(self.dataset_handling.get_params())
@@ -119,29 +125,15 @@ class ModelRunner():
             self.dataset_handling.clear()
             self.dataset_handling.run()
         #
-        
-        # fetch the pretrained checkpoint if it is a url.
-        # if it is a url and the downloaded copy is present, it will be reused.
-        pretrained_path = self.params.training.pretrained_checkpoint_path
-        if isinstance(pretrained_path, str) and (pretrained_path.startswith('http://') or pretrained_path.startswith('https://')):
-            pretrained_checkpoint_basename = os.path.basename(self.params.training.model_name)
-            download_root = os.path.join(self.params.common.download_path, 'pretrained', pretrained_checkpoint_basename)
-            download_success, exception_message, pretrained_path = utils.download_file(
-                pretrained_path, download_root, extract=False)
-            if download_success:
-                self.params.training.pretrained_checkpoint_path = pretrained_path
-            else:
-                print('ERROR: Pretrained checkpoint could not be downloaded')
-                return None
-            #
-        #
 
+        #####################################################################
         # prepare model training
         self.training_target_module = training.get_target_module(self.params.training.training_backend,
                                                               self.params.common.task_type)
         self.model_training = self.training_target_module.ModelTraining(self.params)
         self.params.update(self.model_training.get_params())
 
+        #####################################################################
         # prepare for model compilation
         self.model_compilation = compilation.edgeai_benchmark.ModelCompilation(self.params)
         self.params.update(self.model_compilation.get_params())
@@ -152,6 +144,7 @@ class ModelRunner():
         return run_params_file
 
     def run(self):
+        #####################################################################
         # actual model training
         if self.params.training.enable:
             self.model_training.clear()
@@ -170,6 +163,7 @@ class ModelRunner():
             #
         #
 
+        #####################################################################
         # actual model compilation
         if self.params.compilation.enable:
             self.model_compilation.clear()

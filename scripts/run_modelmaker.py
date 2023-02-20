@@ -86,6 +86,7 @@ if __name__ == '__main__':
     parser.add_argument('--run_name', type=str)
     parser.add_argument('--task_type', type=str)
     parser.add_argument('--model_name', type=str)
+    parser.add_argument('--input_data_path', type=str)
     parser.add_argument('--target_device', type=str)
     parser.add_argument('--num_gpus', type=int)
     parser.add_argument('--batch_size', type=int)
@@ -115,6 +116,9 @@ if __name__ == '__main__':
     #
     if 'model_name' in kwargs:
         config['training']['model_name'] = kwargs['model_name']
+    #
+    if 'input_data_path' in kwargs:
+        config['dataset']['input_data_path'] = kwargs['input_data_path']
     #
     if 'num_gpus' in kwargs:
         config['training']['num_gpus'] = kwargs['num_gpus']

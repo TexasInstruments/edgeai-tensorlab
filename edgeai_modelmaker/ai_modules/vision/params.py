@@ -50,6 +50,7 @@ def init_params(*args, **kwargs):
             # {model_name} will be replaced with the name of the model
             run_name='{date-time}/{model_name}',
         ),
+        download=None,
         dataset=dict(
             enable=True,
             dataset_name=None,

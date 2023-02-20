@@ -147,6 +147,11 @@ def cleanup_special_chars(file_name):
     #
 
 
+def is_url(download_entry):
+    return isinstance(download_entry, str) and \
+           (download_entry.startswith('http://') or download_entry.startswith('https://'))
+
+
 class ProgressBar():
     def __init__(self, total_size, unit=None):
         self.total_size = total_size
