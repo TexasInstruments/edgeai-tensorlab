@@ -28,7 +28,7 @@
 
 import argparse
 
-__version__ = '8.5.0.1'
+__version__ = '8.6.0.1'
 
 
 def print_version():
