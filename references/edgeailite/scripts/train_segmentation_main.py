@@ -126,11 +126,14 @@ def main(arguemnts):
     # if the previous phase was training, run a quantization aware training, starting from the trained model
     if 'training' in arguemnts.phase and (not arguemnts.quantize):
         if arguemnts.epochs > 0:
-            save_path = train_pixel2pixel.get_save_path(arguemnts)
+            if arguemnts.save_path is None:
+                save_path = train_pixel2pixel.get_save_path(arguemnts)
+            else:
+                save_path = arguemnts.save_path
             if isinstance(arguemnts.model, str) and arguemnts.model.endswith('.onnx'):
-                arguemnts.model = os.path.join(save_path, 'model_best.onnx')
+                arguemnts.model = os.path.join(save_path, 'model.onnx')
             #
-            arguemnts.pretrained = os.path.join(save_path, 'model_best.pth')
+            arguemnts.pretrained = os.path.join(save_path, 'model.pth')
         #
         arguemnts.phase = 'training_quantize'
         arguemnts.quantize = True
@@ -142,11 +145,14 @@ def main(arguemnts):
     ################################
     # In addition run a separate validation
     if 'training' in arguemnts.phase or 'calibration' in arguemnts.phase:
-        save_path = train_pixel2pixel.get_save_path(arguemnts)
+        if arguemnts.save_path is None:
+            save_path = train_pixel2pixel.get_save_path(arguemnts)
+        else:
+            save_path = arguemnts.save_path
         if isinstance(arguemnts.model, str) and arguemnts.model.endswith('.onnx'):
-            arguemnts.model = os.path.join(save_path, 'model_best.onnx')
+            arguemnts.model = os.path.join(save_path, 'model.onnx')
 
-        arguemnts.pretrained = os.path.join(save_path, 'model_best.pth')
+        arguemnts.pretrained = os.path.join(save_path, 'model.pth')
 
         if 'training' in arguemnts.phase:
             # DataParallel isn't enabled for QuantCalibrateModule and QuantTestModule.

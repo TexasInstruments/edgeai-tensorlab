@@ -1188,12 +1188,12 @@ def compute_task_objectives(args, objective_fns, input_var, task_outputs, task_t
 def save_checkpoint(args, save_path, model, checkpoint_dict, is_best, filename='checkpoint.pth'):
     torch.save(checkpoint_dict, os.path.join(save_path,filename))
     if is_best:
-        shutil.copyfile(os.path.join(save_path,filename), os.path.join(save_path,'model_best.pth'))
+        shutil.copyfile(os.path.join(save_path,filename), os.path.join(save_path,'model.pth'))
     #
     if args.save_onnx:
         write_onnx_model(args, model, save_path, name='checkpoint.onnx')
         if is_best:
-            write_onnx_model(args, model, save_path, name='model_best.onnx')
+            write_onnx_model(args, model, save_path, name='model.onnx')
     #
 
 
