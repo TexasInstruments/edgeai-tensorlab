@@ -60,11 +60,11 @@ model_urls = {
     },
     'regnet_x_400mf_tv': {
         'download_url': f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/regnet_x_400mf-adf1edd5.pth',
-        'download_path': os.path.join('{download_path}', 'pretrained', 'regnet_x_400mf_tv')
+        'download_path': os.path.join('{download_path}', 'pretrained', 'torch', 'hub', 'checkpoints')
     },
     'regnet_x_800mf_tv': {
         'download_url': f'https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth',
-        'download_path': os.path.join('{download_path}', 'pretrained', 'regnet_x_800mf_tv')
+        'download_path': os.path.join('{download_path}', 'pretrained', 'torch', 'hub', 'checkpoints')
     },
 }
 
