@@ -80,61 +80,49 @@ TRAINING_BATCH_SIZE_DEFAULT = {
 }
 
 TARGET_DEVICE_DETAILS_TDA4VM = '''
-Processor Cores:
-* Dual 64-bit Arm® Cortex®-A72 microprocessor subsystem at up to 2.0 GHz
-* Deep-learning matrix multiply accelerator (MMA), up to 8 TOPS (8b) at 1.0 GHz
-* C7x floating point, vector DSP, up to 1.0 GHz, 80 GFLOPS, 256 GOPS
-* Vision Processing Accelerators (VPAC) with Image Signal Processor (ISP) and multiple vision assist accelerators
-* Depth and Motion Processing Accelerators (DMPAC)
-* Six Arm® Cortex®-R5F MCUs at up to 1.0 GHz compute partition
-* Two C66x floating point DSP, up to 1.35 GHz, 40 GFLOPS, 160 GOPS
-* 3D GPU PowerVR® Rogue 8XE GE8430, up to 750 MHz, 96 GFLOPS, 6 Gpix/sec
-* Custom-designed interconnect fabric supporting near max processing entitlement    
+Efficient 8 TOPs AI capabilities at edge
+Specification:
+* 8 TOPS Deep Learning accelerator
+* Dual Arm® Cortex®-A72
+* Integrated ISP
+* More details : https://www.ti.com/product/TDA4VM
+
 Important Links:
-* Product page: https://www.ti.com/product/TDA4VM
-* Starterkit: https://www.ti.com/tool/SK-TDA4VM
-* Software Development Kit (SDK): https://www.ti.com/tool/PROCESSOR-SDK-J721E
-* Edge AI marketing page: https://ti.com/edgeai
+* Development board: https://www.ti.com/tool/SK-TDA4VM
+* Software Development Kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM/
+* Edge AI summary: https://ti.com/edgeai
 * Edge AI tools introduction: https://dev.ti.com/edgeai/
 * Edge AI model development information: https://github.com/TexasInstruments/edgeai
 '''
 
 TARGET_DEVICE_DETAILS_AM62A = '''
-Processor Cores:
-* Dual 64-bit Arm® Cortex®-A72 microprocessor subsystem at up to 2.0 GHz
-* Deep-learning matrix multiply accelerator (MMA), up to 8 TOPS (8b) at 1.0 GHz
-* C7x floating point, vector DSP, up to 1.0 GHz, 80 GFLOPS, 256 GOPS
-* Vision Processing Accelerators (VPAC) with Image Signal Processor (ISP) and multiple vision assist accelerators
-* Depth and Motion Processing Accelerators (DMPAC)
-* Six Arm® Cortex®-R5F MCUs at up to 1.0 GHz compute partition
-* Two C66x floating point DSP, up to 1.35 GHz, 40 GFLOPS, 160 GOPS
-* 3D GPU PowerVR® Rogue 8XE GE8430, up to 750 MHz, 96 GFLOPS, 6 Gpix/sec
-* Custom-designed interconnect fabric supporting near max processing entitlement    
+Efficient 2 TOPs AI capabilities at edge
+Specification:
+* 2 TOPS Deep Learning accelerator
+* Quad Arm® Cortex®-A53
+* Integrated ISP
+* More details : https://www.ti.com/product/AM62A
+
 Important Links:
-* Product page: https://www.ti.com/product/TDA4VM
-* Starterkit: https://www.ti.com/tool/SK-TDA4VM
-* Software Development Kit (SDK): https://www.ti.com/tool/PROCESSOR-SDK-J721E
-* Edge AI marketing page: https://ti.com/edgeai
+* Development board: https://www.ti.com/tool/SK-AM62A
+* Software Development Kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A/
+* Edge AI summary: https://ti.com/edgeai
 * Edge AI tools introduction: https://dev.ti.com/edgeai/
 * Edge AI model development information: https://github.com/TexasInstruments/edgeai
 '''
 
 TARGET_DEVICE_DETAILS_AM68A = '''
-Processor Cores:
-* Dual 64-bit Arm® Cortex®-A72 microprocessor subsystem at up to 2.0 GHz
-* Deep-learning matrix multiply accelerator (MMA), up to 8 TOPS (8b) at 1.0 GHz
-* C7x floating point, vector DSP, up to 1.0 GHz, 80 GFLOPS, 256 GOPS
-* Vision Processing Accelerators (VPAC) with Image Signal Processor (ISP) and multiple vision assist accelerators
-* Depth and Motion Processing Accelerators (DMPAC)
-* Six Arm® Cortex®-R5F MCUs at up to 1.0 GHz compute partition
-* Two C66x floating point DSP, up to 1.35 GHz, 40 GFLOPS, 160 GOPS
-* 3D GPU PowerVR® Rogue 8XE GE8430, up to 750 MHz, 96 GFLOPS, 6 Gpix/sec
-* Custom-designed interconnect fabric supporting near max processing entitlement    
+Efficient 8 TOPs AI capabilities at edge
+Specification:
+* 8 TOPS Deep Learning accelerator
+* Dual Arm® Cortex®-A72
+* Integrated ISP
+* More details : https://www.ti.com/product/AM68A
+
 Important Links:
-* Product page: https://www.ti.com/product/TDA4VM
-* Starterkit: https://www.ti.com/tool/SK-TDA4VM
-* Software Development Kit (SDK): https://www.ti.com/tool/PROCESSOR-SDK-J721E
-* Edge AI marketing page: https://ti.com/edgeai
+* Development board: https://www.ti.com/tool/SK-AM68A
+* Software Development Kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A/
+* Edge AI summary: https://ti.com/edgeai
 * Edge AI tools introduction: https://dev.ti.com/edgeai/
 * Edge AI model development information: https://github.com/TexasInstruments/edgeai
 '''
