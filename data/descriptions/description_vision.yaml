@@ -63,6 +63,7 @@ model_descriptions:
       run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
+      target_module: vision
       task_type: classification
       verbose_mode: true
     compilation:
@@ -109,6 +110,9 @@ model_descriptions:
       split_names:
       - train
       - val
+    download:
+      download_path: '{download_path}/pretrained/mobilenet_v2_lite_tv'
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
     training:
       batch_size: 64
       dataset_path: null
@@ -129,16 +133,24 @@ model_descriptions:
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
+      pretrained_checkpoint_path:
+        download_path: '{download_path}/pretrained/mobilenet_v2_lite_tv'
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
       project_path: null
       summary_file_path: null
       target_devices:
-        AM62:
+        AM62A:
           accuracy_factor: 72.13
           accuracy_unit: Accuracy Top-1%
-          model_selection_factor: 0
-          performance_fps: 10
-          performance_infer_time_ms: 100.0
+          model_selection_factor: 2
+          performance_fps: 477
+          performance_infer_time_ms: 2.0964360587002098
+        AM68A:
+          accuracy_factor: 72.13
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 2
+          performance_fps: 477
+          performance_infer_time_ms: 2.0964360587002098
         TDA4VM:
           accuracy_factor: 72.13
           accuracy_unit: Accuracy Top-1%
@@ -164,6 +176,7 @@ model_descriptions:
       run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
+      target_module: vision
       task_type: classification
       verbose_mode: true
     compilation:
@@ -210,6 +223,9 @@ model_descriptions:
       split_names:
       - train
       - val
+    download:
+      download_path: '{download_path}/pretrained/mobilenet_v3_large_lite_tv'
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth
     training:
       batch_size: 64
       dataset_path: null
@@ -230,16 +246,24 @@ model_descriptions:
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth
+      pretrained_checkpoint_path:
+        download_path: '{download_path}/pretrained/mobilenet_v3_large_lite_tv'
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth
       project_path: null
       summary_file_path: null
       target_devices:
-        AM62:
+        AM62A:
           accuracy_factor: 72.12
           accuracy_unit: Accuracy Top-1%
-          model_selection_factor: 1
-          performance_fps: 14
-          performance_infer_time_ms: 71.42857142857143
+          model_selection_factor: null
+          performance_fps: 267
+          performance_infer_time_ms: 3.745318352059925
+        AM68A:
+          accuracy_factor: 72.12
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: null
+          performance_fps: 267
+          performance_infer_time_ms: 3.745318352059925
         TDA4VM:
           accuracy_factor: 72.12
           accuracy_unit: Accuracy Top-1%
@@ -265,6 +289,7 @@ model_descriptions:
       run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
+      target_module: vision
       task_type: classification
       verbose_mode: true
     compilation:
@@ -311,6 +336,9 @@ model_descriptions:
       split_names:
       - train
       - val
+    download:
+      download_path: '{download_path}/pretrained/mobilenet_v3_small_lite_tv'
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth
     training:
       batch_size: 64
       dataset_path: null
@@ -331,16 +359,24 @@ model_descriptions:
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth
+      pretrained_checkpoint_path:
+        download_path: '{download_path}/pretrained/mobilenet_v3_small_lite_tv'
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth
       project_path: null
       summary_file_path: null
       target_devices:
-        AM62:
+        AM62A:
           accuracy_factor: 62.688
           accuracy_unit: Accuracy Top-1%
-          model_selection_factor: 2
-          performance_fps: 34
-          performance_infer_time_ms: 29.41176470588235
+          model_selection_factor: 3
+          performance_fps: 751
+          performance_infer_time_ms: 1.3315579227696406
+        AM68A:
+          accuracy_factor: 62.688
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 3
+          performance_fps: 751
+          performance_infer_time_ms: 1.3315579227696406
         TDA4VM:
           accuracy_factor: 62.688
           accuracy_unit: Accuracy Top-1%
@@ -366,6 +402,7 @@ model_descriptions:
       run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
+      target_module: vision
       task_type: classification
       verbose_mode: true
     compilation:
@@ -412,6 +449,9 @@ model_descriptions:
       split_names:
       - train
       - val
+    download:
+      download_path: '{download_path}/pretrained/regnet_x_400mf_tv'
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/regnet_x_400mf-adf1edd5.pth
     training:
       batch_size: 64
       dataset_path: null
@@ -432,10 +472,24 @@ model_descriptions:
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint_path: https://download.pytorch.org/models/regnet_x_400mf-adf1edd5.pth
+      pretrained_checkpoint_path:
+        download_path: '{download_path}/pretrained/regnet_x_400mf_tv'
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/regnet_x_400mf-adf1edd5.pth
       project_path: null
       summary_file_path: null
       target_devices:
+        AM62A:
+          accuracy_factor: 72.834
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 1
+          performance_fps: 288
+          performance_infer_time_ms: 3.4722222222222223
+        AM68A:
+          accuracy_factor: 72.834
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 1
+          performance_fps: 288
+          performance_infer_time_ms: 3.4722222222222223
         TDA4VM:
           accuracy_factor: 72.834
           accuracy_unit: Accuracy Top-1%
@@ -461,6 +515,7 @@ model_descriptions:
       run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
+      target_module: vision
       task_type: classification
       verbose_mode: true
     compilation:
@@ -507,6 +562,9 @@ model_descriptions:
       split_names:
       - train
       - val
+    download:
+      download_path: '{download_path}/pretrained/regnet_x_800mf_tv'
+      download_url: https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth
     training:
       batch_size: 64
       dataset_path: null
@@ -527,10 +585,24 @@ model_descriptions:
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint_path: https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth
+      pretrained_checkpoint_path:
+        download_path: '{download_path}/pretrained/regnet_x_800mf_tv'
+        download_url: https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth
       project_path: null
       summary_file_path: null
       target_devices:
+        AM62A:
+          accuracy_factor: 75.212
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 0
+          performance_fps: 272
+          performance_infer_time_ms: 3.676470588235294
+        AM68A:
+          accuracy_factor: 75.212
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 0
+          performance_fps: 272
+          performance_infer_time_ms: 3.676470588235294
         TDA4VM:
           accuracy_factor: 75.212
           accuracy_unit: Accuracy Top-1%
@@ -556,6 +628,7 @@ model_descriptions:
       run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
+      target_module: vision
       task_type: detection
       verbose_mode: true
     compilation:
@@ -604,6 +677,12 @@ model_descriptions:
       split_names:
       - train
       - val
+    download:
+    - download_path: '{download_path}/pretrained/ssd_mobilenetv2_lite_mmdet'
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_lite_512x512_20201214_checkpoint.pth
+    - download_name: torchvision://mobilenet_v2
+      download_path: '{download_path}/pretrained/torch/hub/checkpoints'
+      download_url: https://download.pytorch.org/models/mobilenet_v2-b0353104.pth
     training:
       batch_size: 8
       dataset_path: null
@@ -628,18 +707,28 @@ model_descriptions:
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_lite_512x512_20201214_checkpoint.pth
+      pretrained_checkpoint_path:
+        download_path: '{download_path}/pretrained/ssd_mobilenetv2_lite_mmdet'
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_lite_512x512_20201214_checkpoint.pth
       project_path: null
       summary_file_path: null
       target_devices:
-        AM62:
+        AM62A:
           accuracy_factor: 43.1
           accuracy_factor2: 25.1
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 0
-          performance_fps: 0.5
-          performance_infer_time_ms: 2000.0
+          model_selection_factor: 1
+          performance_fps: 218
+          performance_infer_time_ms: 4.587155963302752
+        AM68A:
+          accuracy_factor: 43.1
+          accuracy_factor2: 25.1
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 1
+          performance_fps: 218
+          performance_infer_time_ms: 4.587155963302752
         TDA4VM:
           accuracy_factor: 43.1
           accuracy_factor2: 25.1
@@ -667,6 +756,7 @@ model_descriptions:
       run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
+      target_module: vision
       task_type: detection
       verbose_mode: true
     compilation:
@@ -715,6 +805,11 @@ model_descriptions:
       split_names:
       - train
       - val
+    download:
+    - download_path: '{download_path}/pretrained/ssd_regnetx_200mf_fpn_bgr_lite_mmdet'
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-200mf_fpn_bgr_lite_320x320_20201010_checkpoint.pth
+    - download_path: '{download_path}/pretrained/torch/hub/checkpoints'
+      download_url: https://dl.fbaipublicfiles.com/pycls/dds_baselines/160905981/RegNetX-200MF_dds_8gpu.pyth
     training:
       batch_size: 8
       dataset_path: null
@@ -739,18 +834,28 @@ model_descriptions:
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-200mf_fpn_bgr_lite_320x320_20201010_checkpoint.pth
+      pretrained_checkpoint_path:
+        download_path: '{download_path}/pretrained/ssd_regnetx_200mf_fpn_bgr_lite_mmdet'
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-200mf_fpn_bgr_lite_320x320_20201010_checkpoint.pth
       project_path: null
       summary_file_path: null
       target_devices:
-        AM62:
+        AM62A:
           accuracy_factor: 36.7
           accuracy_factor2: 20.7
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 1
-          performance_fps: 2.3
-          performance_infer_time_ms: 434.7826086956522
+          model_selection_factor: null
+          performance_fps: 183
+          performance_infer_time_ms: 5.46448087431694
+        AM68A:
+          accuracy_factor: 36.7
+          accuracy_factor2: 20.7
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: null
+          performance_fps: 183
+          performance_infer_time_ms: 5.46448087431694
         TDA4VM:
           accuracy_factor: 36.7
           accuracy_factor2: 20.7
@@ -778,6 +883,7 @@ model_descriptions:
       run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
+      target_module: vision
       task_type: detection
       verbose_mode: true
     compilation:
@@ -827,6 +933,9 @@ model_descriptions:
       split_names:
       - train
       - val
+    download:
+    - download_path: '{download_path}/pretrained/yolox_nano_lite_mmdet'
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
     training:
       batch_size: 8
       dataset_path: null
@@ -847,10 +956,28 @@ model_descriptions:
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
+      pretrained_checkpoint_path:
+        download_path: '{download_path}/pretrained/yolox_nano_lite_mmdet'
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
       project_path: null
       summary_file_path: null
       target_devices:
+        AM62A:
+          accuracy_factor: 40.1
+          accuracy_factor2: 24.8
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 3
+          performance_fps: 287
+          performance_infer_time_ms: 3.484320557491289
+        AM68A:
+          accuracy_factor: 40.1
+          accuracy_factor2: 24.8
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 3
+          performance_fps: 287
+          performance_infer_time_ms: 3.484320557491289
         TDA4VM:
           accuracy_factor: 40.1
           accuracy_factor2: 24.8
@@ -878,6 +1005,7 @@ model_descriptions:
       run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
+      target_module: vision
       task_type: detection
       verbose_mode: true
     compilation:
@@ -927,6 +1055,9 @@ model_descriptions:
       split_names:
       - train
       - val
+    download:
+    - download_path: '{download_path}/pretrained/yolox_s_lite_mmdet'
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
     training:
       batch_size: 8
       dataset_path: null
@@ -947,10 +1078,28 @@ model_descriptions:
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
+      pretrained_checkpoint_path:
+        download_path: '{download_path}/pretrained/yolox_s_lite_mmdet'
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
       project_path: null
       summary_file_path: null
       target_devices:
+        AM62A:
+          accuracy_factor: 56.9
+          accuracy_factor2: 38.3
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 0
+          performance_fps: 102
+          performance_infer_time_ms: 9.803921568627452
+        AM68A:
+          accuracy_factor: 56.9
+          accuracy_factor2: 38.3
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 0
+          performance_fps: 102
+          performance_infer_time_ms: 9.803921568627452
         TDA4VM:
           accuracy_factor: 56.9
           accuracy_factor2: 38.3
@@ -978,6 +1127,7 @@ model_descriptions:
       run_name: '{date-time}/{model_name}'
       target_device: null
       target_machine: evm
+      target_module: vision
       task_type: detection
       verbose_mode: true
     compilation:
@@ -1027,6 +1177,9 @@ model_descriptions:
       split_names:
       - train
       - val
+    download:
+    - download_path: '{download_path}/pretrained/yolox_tiny_lite_mmdet'
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
     training:
       batch_size: 8
       dataset_path: null
@@ -1047,10 +1200,28 @@ model_descriptions:
       num_classes: null
       num_gpus: 0
       num_last_epochs: 5
-      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
+      pretrained_checkpoint_path:
+        download_path: '{download_path}/pretrained/yolox_tiny_lite_mmdet'
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
       project_path: null
       summary_file_path: null
       target_devices:
+        AM62A:
+          accuracy_factor: 47.4
+          accuracy_factor2: 30.5
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 2
+          performance_fps: 220
+          performance_infer_time_ms: 4.545454545454546
+        AM68A:
+          accuracy_factor: 47.4
+          accuracy_factor2: 30.5
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 2
+          performance_fps: 220
+          performance_infer_time_ms: 4.545454545454546
         TDA4VM:
           accuracy_factor: 47.4
           accuracy_factor2: 30.5
@@ -1153,6 +1324,152 @@ preset_descriptions:
           detection_top_k: 200
           tensor_bits: 32
           tidl_offload: false
+  AM62A:
+    classification:
+      best_accuracy_preset:
+        compilation:
+          calibration_frames: 25
+          calibration_iterations: 25
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 16
+      best_speed_preset:
+        compilation:
+          calibration_frames: 5
+          calibration_iterations: 1
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      default_preset:
+        compilation:
+          calibration_frames: 10
+          calibration_iterations: 10
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      high_accuracy_preset:
+        compilation:
+          calibration_frames: 25
+          calibration_iterations: 25
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      high_speed_preset:
+        compilation:
+          calibration_frames: 5
+          calibration_iterations: 5
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+    detection:
+      best_accuracy_preset:
+        compilation:
+          calibration_frames: 25
+          calibration_iterations: 25
+          detection_threshold: 0.05
+          detection_top_k: 500
+          tensor_bits: 16
+      best_speed_preset:
+        compilation:
+          calibration_frames: 5
+          calibration_iterations: 1
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 8
+      default_preset:
+        compilation:
+          calibration_frames: 10
+          calibration_iterations: 10
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 8
+      high_accuracy_preset:
+        compilation:
+          calibration_frames: 25
+          calibration_iterations: 25
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 8
+      high_speed_preset:
+        compilation:
+          calibration_frames: 5
+          calibration_iterations: 5
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 8
+  AM68A:
+    classification:
+      best_accuracy_preset:
+        compilation:
+          calibration_frames: 25
+          calibration_iterations: 25
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 16
+      best_speed_preset:
+        compilation:
+          calibration_frames: 5
+          calibration_iterations: 1
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      default_preset:
+        compilation:
+          calibration_frames: 10
+          calibration_iterations: 10
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      high_accuracy_preset:
+        compilation:
+          calibration_frames: 25
+          calibration_iterations: 25
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      high_speed_preset:
+        compilation:
+          calibration_frames: 5
+          calibration_iterations: 5
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+    detection:
+      best_accuracy_preset:
+        compilation:
+          calibration_frames: 25
+          calibration_iterations: 25
+          detection_threshold: 0.05
+          detection_top_k: 500
+          tensor_bits: 16
+      best_speed_preset:
+        compilation:
+          calibration_frames: 5
+          calibration_iterations: 1
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 8
+      default_preset:
+        compilation:
+          calibration_frames: 10
+          calibration_iterations: 10
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 8
+      high_accuracy_preset:
+        compilation:
+          calibration_frames: 25
+          calibration_iterations: 25
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 8
+      high_speed_preset:
+        compilation:
+          calibration_frames: 5
+          calibration_iterations: 5
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 8
   TDA4VM:
     classification:
       best_accuracy_preset:
@@ -1275,55 +1592,59 @@ sample_dataset_descriptions:
       dataset_source: Images & annotations from TI
       dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip
 target_device_descriptions:
-  AM62:
-    device_details: "\nThe low-cost AM62x Sitara\u2122 MPU family of application processors\
-      \ are built for Linux\xAE application development.\nWith scalable Arm\xAE Cortex\xAE\
-      -A53 performance and embedded features, such as: dual-display support and 3D\n\
-      graphics acceleration, along with an extensive set of peripherals that make\
-      \ the AM62x device well-suited for\na broad range of industrial and automotive\
-      \ applications while offering intelligent features and optimized power architecture\
-      \ as well.\nProcessor Cores:\n* Up to Quad 64-bit Arm\xAE Cortex\xAE-A53 microprocessor\
-      \ subsystem at up to 1.4 GHz\n* Single-core Arm\xAE Cortex\xAE-M4F MCU at up\
-      \ to 400 MHz\n* Dedicated Device and Power Manager\nMultimedia:\n* Display subsystem\n\
-      * 3D Graphics Processing Unit\n* One Camera Serial interface (CSI-Rx) - 4 Lane\n\
-      with DPHY\nFor more information, see the following links:\n- product page: https://www.ti.com/product/AM623\n\
-      - product page: https://www.ti.com/product/AM625\n- starterkit: https://www.ti.com/tool/SK-AM62\n\
-      - top level landing page: https://ti.com/edgeai\n- software development page\
-      \ - introduction: https://dev.ti.com/edgeai/\n- software development page -\
-      \ model development: https://github.com/TexasInstruments/edgeai\n- software\
-      \ development page - sdk: https://www.ti.com/tool/PROCESSOR-SDK-AM62X\n"
-    device_name: AM62
+  AM62A:
+    device_details: "\nProcessor Cores:\n* Dual 64-bit Arm\xAE Cortex\xAE-A72 microprocessor\
+      \ subsystem at up to 2.0 GHz\n* Deep-learning matrix multiply accelerator (MMA),\
+      \ up to 8 TOPS (8b) at 1.0 GHz\n* C7x floating point, vector DSP, up to 1.0\
+      \ GHz, 80 GFLOPS, 256 GOPS\n* Vision Processing Accelerators (VPAC) with Image\
+      \ Signal Processor (ISP) and multiple vision assist accelerators\n* Depth and\
+      \ Motion Processing Accelerators (DMPAC)\n* Six Arm\xAE Cortex\xAE-R5F MCUs\
+      \ at up to 1.0 GHz compute partition\n* Two C66x floating point DSP, up to 1.35\
+      \ GHz, 40 GFLOPS, 160 GOPS\n* 3D GPU PowerVR\xAE Rogue 8XE GE8430, up to 750\
+      \ MHz, 96 GFLOPS, 6 Gpix/sec\n* Custom-designed interconnect fabric supporting\
+      \ near max processing entitlement    \nImportant Links:\n* Product page: https://www.ti.com/product/TDA4VM\n\
+      * Starterkit: https://www.ti.com/tool/SK-TDA4VM\n* Software Development Kit\
+      \ (SDK): https://www.ti.com/tool/PROCESSOR-SDK-J721E\n* Edge AI marketing page:\
+      \ https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
+      * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n"
+    device_name: AM62A
     device_selection_factor: 0
     device_type: MPU
-  TDA4VM:
-    device_details: "\nThe TDA4VM processor family is based on the evolutionary Jacinto\u2122\
-      \ 7 architecture, targeted at ADAS, \nAutonomous Vehicle (AV) and industrial\
-      \ applications applications. \nThe unique combination high-performance compute,\
-      \ deeplearning engine, \ndedicated accelerators for signal and image processing\
-      \ in an functional safety compliant\ntargeted architecture make the TDA4VM devices\
-      \ a great fit for several industrial applications, such as: \nRobotics, Machine\
-      \ Vision, Radar, and so on. \nKey cores include next generation DSP with scalar\
-      \ and vector cores,\ndedicated deep learning and traditional algorithm accelerators,\
-      \ latest Arm and GPU processors for general\ncompute, an integrated next generation\
-      \ imaging subsystem (ISP), video codec, Ethernet hub and isolated MCU\nisland.\
-      \ All protected by automotive grade safety and security hardware accelerators.\n\
-      Processor Cores:\n* C7x floating point, vector DSP, up to 1.0 GHz, 80 GFLOPS,\
-      \ 256 GOPS\n* Deep-learning matrix multiply accelerator (MMA), up to 8 TOPS\
-      \ (8b) at 1.0 GHz\n* Vision Processing Accelerators (VPAC) with Image Signal\
-      \ Processor (ISP) and multiple vision assist accelerators\n* Depth and Motion\
-      \ Processing Accelerators (DMPAC)\n* Dual 64-bit Arm\xAE Cortex\xAE-A72 microprocessor\
-      \ subsystem at up to 2.0 GHz\n* Six Arm\xAE Cortex\xAE-R5F MCUs at up to 1.0\
-      \ GHz compute partition\n* Two C66x floating point DSP, up to 1.35 GHz, 40 GFLOPS,\
-      \ 160 GOPS\n* 3D GPU PowerVR\xAE Rogue 8XE GE8430, up to 750 MHz, 96 GFLOPS,\
-      \ 6 Gpix/sec\n* Custom-designed interconnect fabric supporting near max processing\
-      \ entitlement    \nFor more information, see the following links:\n- product\
-      \ page: https://www.ti.com/product/TDA4VM\n- starterkit: https://www.ti.com/tool/SK-TDA4VM\n\
-      - top level landing page: https://ti.com/edgeai\n- software development page\
-      \ - introduction: https://dev.ti.com/edgeai/\n- software development page -\
-      \ model development: https://github.com/TexasInstruments/edgeai\n- software\
-      \ development page - sdk: https://www.ti.com/tool/PROCESSOR-SDK-J721E\n"
-    device_name: TDA4VM
+  AM68A:
+    device_details: "\nProcessor Cores:\n* Dual 64-bit Arm\xAE Cortex\xAE-A72 microprocessor\
+      \ subsystem at up to 2.0 GHz\n* Deep-learning matrix multiply accelerator (MMA),\
+      \ up to 8 TOPS (8b) at 1.0 GHz\n* C7x floating point, vector DSP, up to 1.0\
+      \ GHz, 80 GFLOPS, 256 GOPS\n* Vision Processing Accelerators (VPAC) with Image\
+      \ Signal Processor (ISP) and multiple vision assist accelerators\n* Depth and\
+      \ Motion Processing Accelerators (DMPAC)\n* Six Arm\xAE Cortex\xAE-R5F MCUs\
+      \ at up to 1.0 GHz compute partition\n* Two C66x floating point DSP, up to 1.35\
+      \ GHz, 40 GFLOPS, 160 GOPS\n* 3D GPU PowerVR\xAE Rogue 8XE GE8430, up to 750\
+      \ MHz, 96 GFLOPS, 6 Gpix/sec\n* Custom-designed interconnect fabric supporting\
+      \ near max processing entitlement    \nImportant Links:\n* Product page: https://www.ti.com/product/TDA4VM\n\
+      * Starterkit: https://www.ti.com/tool/SK-TDA4VM\n* Software Development Kit\
+      \ (SDK): https://www.ti.com/tool/PROCESSOR-SDK-J721E\n* Edge AI marketing page:\
+      \ https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
+      * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n"
+    device_name: AM68A
     device_selection_factor: 1
+    device_type: MPU
+  TDA4VM:
+    device_details: "\nProcessor Cores:\n* Dual 64-bit Arm\xAE Cortex\xAE-A72 microprocessor\
+      \ subsystem at up to 2.0 GHz\n* Deep-learning matrix multiply accelerator (MMA),\
+      \ up to 8 TOPS (8b) at 1.0 GHz\n* C7x floating point, vector DSP, up to 1.0\
+      \ GHz, 80 GFLOPS, 256 GOPS\n* Vision Processing Accelerators (VPAC) with Image\
+      \ Signal Processor (ISP) and multiple vision assist accelerators\n* Depth and\
+      \ Motion Processing Accelerators (DMPAC)\n* Six Arm\xAE Cortex\xAE-R5F MCUs\
+      \ at up to 1.0 GHz compute partition\n* Two C66x floating point DSP, up to 1.35\
+      \ GHz, 40 GFLOPS, 160 GOPS\n* 3D GPU PowerVR\xAE Rogue 8XE GE8430, up to 750\
+      \ MHz, 96 GFLOPS, 6 Gpix/sec\n* Custom-designed interconnect fabric supporting\
+      \ near max processing entitlement    \nImportant Links:\n* Product page: https://www.ti.com/product/TDA4VM\n\
+      * Starterkit: https://www.ti.com/tool/SK-TDA4VM\n* Software Development Kit\
+      \ (SDK): https://www.ti.com/tool/PROCESSOR-SDK-J721E\n* Edge AI marketing page:\
+      \ https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
+      * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n"
+    device_name: TDA4VM
+    device_selection_factor: 2
     device_type: MPU
 task_descriptions:
   classification:
@@ -1331,9 +1652,10 @@ task_descriptions:
     - dataset
     - training
     - compilation
-    target_devices:
+    target_devices: &id001
     - TDA4VM
-    - AM62
+    - AM62A
+    - AM68A
     target_module: vision
     task_name: Image Classification
   detection:
@@ -1341,9 +1663,7 @@ task_descriptions:
     - dataset
     - training
     - compilation
-    target_devices:
-    - TDA4VM
-    - AM62
+    target_devices: *id001
     target_module: vision
     task_name: Object Detection
 training_module_descriptions:
