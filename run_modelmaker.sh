@@ -31,22 +31,44 @@
 #
 #################################################################################
 
+#################################################################################
 if [ $# -le 1 ]; then
     echo "help:"
     echo "$0 target_device config_file"
-    echo "target_device can be one of TDA4VM AM62 in the current release"
-    echo "target_device can be one of TDA4VM AM62A AM68A AM69A AM62 in the future release"
+    echo "target_device can be one of TDA4VM AM62 until SDK/tidl-tools version 8.5 (see edgeai-benchmark's setup_pc.sh)"
+    echo "target_device can be one of TDA4VM AM62A AM68A AM69A AM62 from SDK/tidl-tools version 8.6 onwards"
     exit 0
 fi
 
+#################################################################################
+# optional: check if AVX instructions are available in the machine
+# by default AVX is enabled - setting this TIDL_RT_AVX_REF flag to "0" wil disable AVX
+CPUINFO_NUM_AVX_CORES=$(cat /proc/cpuinfo|grep avx|wc|tail -n 1|awk '{print $1;}')
+if [ ${CPUINFO_NUM_AVX_CORES} -eq 0 ]; then
+  export TIDL_RT_AVX_REF="0"
+else
+  export TIDL_RT_AVX_REF="1"
+fi
+
+#################################################################################
 # until r8.5: TDA4VM
 # from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
 TARGET_SOC=${1:-TDA4VM}
-echo "target_device: ${TARGET_SOC}"
 
+#################################################################################
 export PYTHONPATH=.:$PYTHONPATH
 export TIDL_TOOLS_PATH="../edgeai-benchmark/tools/${TARGET_SOC}/tidl_tools"
 export LD_LIBRARY_PATH=${TIDL_TOOLS_PATH}
 
+#################################################################################
+# print some settings
+echo "Number of AVX cores detected in PC: ${CPUINFO_NUM_AVX_CORES}"
+echo "AVX compilation speedup in PC     : ${TIDL_RT_AVX_REF}"
+echo "Target device                     : ${TARGET_SOC}"
+echo "PYTHONPATH                        : ${PYTHONPATH}"
+echo "TIDL_TOOLS_PATH                   : ${TIDL_TOOLS_PATH}"
+echo "LD_LIBRARY_PATH                   : ${LD_LIBRARY_PATH}"
+
+#################################################################################
 # argument to this device at index=1 is the target_device - avoid that and send the remaining
 python ./scripts/run_modelmaker.py ${@:2}
