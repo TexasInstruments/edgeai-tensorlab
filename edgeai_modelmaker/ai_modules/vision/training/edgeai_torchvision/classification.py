@@ -87,8 +87,12 @@ _model_descriptions = {
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=477, performance_infer_time_ms=1000/477,
                                                      accuracy_factor=72.13, accuracy_unit='Accuracy Top-1%'),
-                constants.TARGET_DEVICE_AM62: dict(performance_fps=10, performance_infer_time_ms=1000/10,
-                                                   accuracy_factor=72.13, accuracy_unit='Accuracy Top-1%')
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=477, performance_infer_time_ms=1000/477,
+                                                     accuracy_factor=72.13, accuracy_unit='Accuracy Top-1%'),
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=477, performance_infer_time_ms=1000/477,
+                                                     accuracy_factor=72.13, accuracy_unit='Accuracy Top-1%'),
+                # constants.TARGET_DEVICE_AM62: dict(performance_fps=10, performance_infer_time_ms=1000/10,
+                #                                    accuracy_factor=72.13, accuracy_unit='Accuracy Top-1%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -117,8 +121,12 @@ _model_descriptions = {
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=267, performance_infer_time_ms=1000/267,
                                                      accuracy_factor=72.12, accuracy_unit='Accuracy Top-1%'),
-                constants.TARGET_DEVICE_AM62: dict(performance_fps=14, performance_infer_time_ms=1000/14,
-                                                   accuracy_factor=72.12, accuracy_unit='Accuracy Top-1%')
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=267, performance_infer_time_ms=1000/267,
+                                                     accuracy_factor=72.12, accuracy_unit='Accuracy Top-1%'),
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=267, performance_infer_time_ms=1000/267,
+                                                     accuracy_factor=72.12, accuracy_unit='Accuracy Top-1%'),
+                # constants.TARGET_DEVICE_AM62: dict(performance_fps=14, performance_infer_time_ms=1000/14,
+                #                                    accuracy_factor=72.12, accuracy_unit='Accuracy Top-1%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -147,8 +155,12 @@ _model_descriptions = {
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=751, performance_infer_time_ms=1000/751,
                                                      accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%'),
-                constants.TARGET_DEVICE_AM62: dict(performance_fps=34, performance_infer_time_ms=1000/34,
-                                                   accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%')
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=751, performance_infer_time_ms=1000/751,
+                                                     accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%'),
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=751, performance_infer_time_ms=1000/751,
+                                                     accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%'),
+                # constants.TARGET_DEVICE_AM62: dict(performance_fps=34, performance_infer_time_ms=1000/34,
+                #                                    accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -176,6 +188,10 @@ _model_descriptions = {
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=288, performance_infer_time_ms=1000/288,
+                                                     accuracy_factor=72.834, accuracy_unit='Accuracy Top-1%'),
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=288, performance_infer_time_ms=1000/288,
+                                                     accuracy_factor=72.834, accuracy_unit='Accuracy Top-1%'),
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=288, performance_infer_time_ms=1000/288,
                                                      accuracy_factor=72.834, accuracy_unit='Accuracy Top-1%')
             },
             training_devices={
@@ -204,7 +220,11 @@ _model_descriptions = {
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=272, performance_infer_time_ms=1000/272,
-                                                     accuracy_factor=75.212, accuracy_unit='Accuracy Top-1%')
+                                                     accuracy_factor=75.212, accuracy_unit='Accuracy Top-1%'),
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=272, performance_infer_time_ms=1000/272,
+                                                     accuracy_factor=75.212, accuracy_unit='Accuracy Top-1%'),
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=272, performance_infer_time_ms=1000/272,
+                                                     accuracy_factor=75.212, accuracy_unit='Accuracy Top-1%'),
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -217,38 +237,6 @@ _model_descriptions = {
         )
     ),
 }
-
-
-if constants.PLUGINS_ENABLE_EXTRA:
-    _model_descriptions.update({
-        'regnet_x_1_6gf_tv': dict(
-            common=dict(
-                task_type=constants.TASK_TYPE_CLASSIFICATION,
-            ),
-            training=dict(
-                training_backend='edgeai_torchvision',
-                model_training_id='regnet_x_1_6gf',
-                model_name='regnet_x_1_6gf_tv',
-                model_architecture='backbone',
-                input_resize=256,
-                input_cropsize=224,
-                pretrained_checkpoint_path=f'https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth',
-                batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION]//2,
-                target_devices={
-                    constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=237, performance_infer_time_ms=1000/237,
-                                                         accuracy_factor=77.040, accuracy_unit='Accuracy Top-1%')
-                },
-                training_devices={
-                    constants.TRAINING_DEVICE_CPU: True,
-                    constants.TRAINING_DEVICE_CUDA: True,
-                }
-            ),
-            compilation=dict(
-                model_compilation_id='cl-6180',
-                metric=dict(label_offset_pred=1)
-            )
-        ),
-    })
 
 
 def get_model_descriptions(task_type=None):
