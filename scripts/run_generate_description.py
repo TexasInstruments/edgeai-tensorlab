@@ -86,7 +86,21 @@ def run(config):
 
 
 def main(args):
-    description = run(args)
+    import edgeai_modelmaker
+
+    # prepare input config
+    kwargs = vars(args)
+    config = dict(common=dict(), dataset=dict())
+    if 'target_module' in kwargs:
+        config['common']['target_module'] = kwargs['target_module']
+    #
+    if 'download_path' in kwargs:
+        config['common']['download_path'] = kwargs['download_path']
+    #
+
+    # get description
+    description = run(config)
+
     # write description
     description_file = os.path.join(args.description_path, f'description_{args.target_module}' + '.yaml')
     edgeai_modelmaker.utils.write_dict(description, description_file)
@@ -106,13 +120,4 @@ if __name__ == '__main__':
     parser.add_argument('--description_path', type=str, default='./data/descriptions')
     args = parser.parse_args()
 
-    kwargs = vars(args)
-    config = dict(common=dict(), dataset=dict())
-    if 'target_module' in kwargs:
-        config['common']['target_module'] = kwargs['target_module']
-    #
-    if 'download_path' in kwargs:
-        config['common']['download_path'] = kwargs['download_path']
-    #
-
-    main(config)
+    main(args)

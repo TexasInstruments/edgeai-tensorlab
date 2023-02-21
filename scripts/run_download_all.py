@@ -36,7 +36,7 @@ import yaml
 import json
 
 
-def main(config):
+def run(config):
     import edgeai_modelmaker
     from scripts import run_generate_description
 
@@ -59,6 +59,20 @@ def main(config):
     return True
 
 
+def main(args):
+    # override with supported commandline args
+    kwargs = vars(args)
+    config = dict(common=dict(), dataset=dict())
+    if 'target_module' in kwargs:
+        config['common']['target_module'] = kwargs['target_module']
+    #
+    if 'download_path' in kwargs:
+        config['common']['download_path'] = kwargs['download_path']
+    #
+
+    run(config)
+
+
 if __name__ == '__main__':
     print(f'argv: {sys.argv}')
     # the cwd must be the root of the repository
@@ -71,14 +85,4 @@ if __name__ == '__main__':
     parser.add_argument('--download_path', type=str, default='./data/downloads')
     args = parser.parse_args()
 
-    # override with supported commandline args
-    kwargs = vars(args)
-    config = dict(common=dict(), dataset=dict())
-    if 'target_module' in kwargs:
-        config['common']['target_module'] = kwargs['target_module']
-    #
-    if 'download_path' in kwargs:
-        config['common']['download_path'] = kwargs['download_path']
-    #
-
-    main(config)
+    main(args)

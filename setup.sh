@@ -32,3 +32,7 @@
 # Installing dependencies
 echo 'Installing python packages...'
 pip3 install --no-input -r ./requirements.txt
+
+######################################################################
+echo 'Installing as a local module using setup.py'
+python3 setup.py develop
