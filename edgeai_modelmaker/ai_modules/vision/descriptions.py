@@ -36,6 +36,7 @@ from . import datasets
 from . import training
 from . import compilation
 from .params import init_params
+from ... import version
 
 
 def _get_paretto_front_best(xy_list, x_index=0, y_index=1, inverse_relaionship=True):
@@ -168,6 +169,15 @@ def get_sample_dataset_descriptions(params):
 
 def get_task_descriptions(params):
     return constants.TASK_DESCRIPTIONS
+
+
+def get_device_agent_descriptions(params):
+    device_agent_description = {
+        'version': version.__version__,
+        'modelmaker_version': version.print_version(),
+        'sdk_version': version.print_version(),
+    }
+    return device_agent_description
 
 
 def get_help_descriptions(params):
