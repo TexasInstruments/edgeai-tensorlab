@@ -1,3 +1,8 @@
+device_agent_descriptions:
+  modelmaker_version: 08_06
+  sdk_version: 08_06
+  tidl_version: 08_06
+  version: '8.6'
 help_descriptions:
   common: {}
   compilation:
@@ -450,7 +455,7 @@ model_descriptions:
       - train
       - val
     download:
-      download_path: '{download_path}/pretrained/regnet_x_400mf_tv'
+      download_path: '{download_path}/pretrained/torch/hub/checkpoints'
       download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/regnet_x_400mf-adf1edd5.pth
     training:
       batch_size: 64
@@ -473,7 +478,7 @@ model_descriptions:
       num_gpus: 0
       num_last_epochs: 5
       pretrained_checkpoint_path:
-        download_path: '{download_path}/pretrained/regnet_x_400mf_tv'
+        download_path: '{download_path}/pretrained/torch/hub/checkpoints'
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/regnet_x_400mf-adf1edd5.pth
       project_path: null
       summary_file_path: null
@@ -563,7 +568,7 @@ model_descriptions:
       - train
       - val
     download:
-      download_path: '{download_path}/pretrained/regnet_x_800mf_tv'
+      download_path: '{download_path}/pretrained/torch/hub/checkpoints'
       download_url: https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth
     training:
       batch_size: 64
@@ -586,7 +591,7 @@ model_descriptions:
       num_gpus: 0
       num_last_epochs: 5
       pretrained_checkpoint_path:
-        download_path: '{download_path}/pretrained/regnet_x_800mf_tv'
+        download_path: '{download_path}/pretrained/torch/hub/checkpoints'
         download_url: https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth
       project_path: null
       summary_file_path: null
@@ -1510,55 +1515,34 @@ sample_dataset_descriptions:
       dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip
 target_device_descriptions:
   AM62A:
-    device_details: "\nProcessor Cores:\n* Dual 64-bit Arm\xAE Cortex\xAE-A72 microprocessor\
-      \ subsystem at up to 2.0 GHz\n* Deep-learning matrix multiply accelerator (MMA),\
-      \ up to 8 TOPS (8b) at 1.0 GHz\n* C7x floating point, vector DSP, up to 1.0\
-      \ GHz, 80 GFLOPS, 256 GOPS\n* Vision Processing Accelerators (VPAC) with Image\
-      \ Signal Processor (ISP) and multiple vision assist accelerators\n* Depth and\
-      \ Motion Processing Accelerators (DMPAC)\n* Six Arm\xAE Cortex\xAE-R5F MCUs\
-      \ at up to 1.0 GHz compute partition\n* Two C66x floating point DSP, up to 1.35\
-      \ GHz, 40 GFLOPS, 160 GOPS\n* 3D GPU PowerVR\xAE Rogue 8XE GE8430, up to 750\
-      \ MHz, 96 GFLOPS, 6 Gpix/sec\n* Custom-designed interconnect fabric supporting\
-      \ near max processing entitlement    \nImportant Links:\n* Product page: https://www.ti.com/product/TDA4VM\n\
-      * Starterkit: https://www.ti.com/tool/SK-TDA4VM\n* Software Development Kit\
-      \ (SDK): https://www.ti.com/tool/PROCESSOR-SDK-J721E\n* Edge AI marketing page:\
-      \ https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
+    device_details: "\nEfficient 2 TOPs AI capabilities at edge\nSpecification:\n\
+      * 2 TOPS Deep Learning accelerator\n* Quad Arm\xAE Cortex\xAE-A53\n* Integrated\
+      \ ISP\n* More details : https://www.ti.com/product/AM62A\n\nImportant Links:\n\
+      * Development board: https://www.ti.com/tool/SK-AM62A\n* Software Development\
+      \ Kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A/\n*\
+      \ Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
       * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n"
     device_name: AM62A
     device_selection_factor: 0
     device_type: MPU
   AM68A:
-    device_details: "\nProcessor Cores:\n* Dual 64-bit Arm\xAE Cortex\xAE-A72 microprocessor\
-      \ subsystem at up to 2.0 GHz\n* Deep-learning matrix multiply accelerator (MMA),\
-      \ up to 8 TOPS (8b) at 1.0 GHz\n* C7x floating point, vector DSP, up to 1.0\
-      \ GHz, 80 GFLOPS, 256 GOPS\n* Vision Processing Accelerators (VPAC) with Image\
-      \ Signal Processor (ISP) and multiple vision assist accelerators\n* Depth and\
-      \ Motion Processing Accelerators (DMPAC)\n* Six Arm\xAE Cortex\xAE-R5F MCUs\
-      \ at up to 1.0 GHz compute partition\n* Two C66x floating point DSP, up to 1.35\
-      \ GHz, 40 GFLOPS, 160 GOPS\n* 3D GPU PowerVR\xAE Rogue 8XE GE8430, up to 750\
-      \ MHz, 96 GFLOPS, 6 Gpix/sec\n* Custom-designed interconnect fabric supporting\
-      \ near max processing entitlement    \nImportant Links:\n* Product page: https://www.ti.com/product/TDA4VM\n\
-      * Starterkit: https://www.ti.com/tool/SK-TDA4VM\n* Software Development Kit\
-      \ (SDK): https://www.ti.com/tool/PROCESSOR-SDK-J721E\n* Edge AI marketing page:\
-      \ https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
+    device_details: "\nEfficient 8 TOPs AI capabilities at edge\nSpecification:\n\
+      * 8 TOPS Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated\
+      \ ISP\n* More details : https://www.ti.com/product/AM68A\n\nImportant Links:\n\
+      * Development board: https://www.ti.com/tool/SK-AM68A\n* Software Development\
+      \ Kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A/\n*\
+      \ Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
       * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n"
     device_name: AM68A
     device_selection_factor: 1
     device_type: MPU
   TDA4VM:
-    device_details: "\nProcessor Cores:\n* Dual 64-bit Arm\xAE Cortex\xAE-A72 microprocessor\
-      \ subsystem at up to 2.0 GHz\n* Deep-learning matrix multiply accelerator (MMA),\
-      \ up to 8 TOPS (8b) at 1.0 GHz\n* C7x floating point, vector DSP, up to 1.0\
-      \ GHz, 80 GFLOPS, 256 GOPS\n* Vision Processing Accelerators (VPAC) with Image\
-      \ Signal Processor (ISP) and multiple vision assist accelerators\n* Depth and\
-      \ Motion Processing Accelerators (DMPAC)\n* Six Arm\xAE Cortex\xAE-R5F MCUs\
-      \ at up to 1.0 GHz compute partition\n* Two C66x floating point DSP, up to 1.35\
-      \ GHz, 40 GFLOPS, 160 GOPS\n* 3D GPU PowerVR\xAE Rogue 8XE GE8430, up to 750\
-      \ MHz, 96 GFLOPS, 6 Gpix/sec\n* Custom-designed interconnect fabric supporting\
-      \ near max processing entitlement    \nImportant Links:\n* Product page: https://www.ti.com/product/TDA4VM\n\
-      * Starterkit: https://www.ti.com/tool/SK-TDA4VM\n* Software Development Kit\
-      \ (SDK): https://www.ti.com/tool/PROCESSOR-SDK-J721E\n* Edge AI marketing page:\
-      \ https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
+    device_details: "\nEfficient 8 TOPs AI capabilities at edge\nSpecification:\n\
+      * 8 TOPS Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated\
+      \ ISP\n* More details : https://www.ti.com/product/TDA4VM\n\nImportant Links:\n\
+      * Development board: https://www.ti.com/tool/SK-TDA4VM\n* Software Development\
+      \ Kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM/\n\
+      * Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
       * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n"
     device_name: TDA4VM
     device_selection_factor: 2

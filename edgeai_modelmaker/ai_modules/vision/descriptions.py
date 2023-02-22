@@ -173,9 +173,10 @@ def get_task_descriptions(params):
 
 def get_device_agent_descriptions(params):
     device_agent_description = {
-        'version': version.__version__,
-        'modelmaker_version': version.print_version(),
-        'sdk_version': version.print_version(),
+        'version': version.get_version(),
+        'modelmaker_version': version.get_version_str(),
+        'tidl_version': version.get_version_str(),
+        'sdk_version': version.get_version_str(),
     }
     return device_agent_description
 
