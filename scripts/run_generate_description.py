@@ -72,7 +72,8 @@ def run(config):
     # sample dataset descriptions
     sample_dataset_descriptions = ai_target_module.runner.ModelRunner.get_sample_dataset_descriptions(params)
 
-    device_agent_descriptions = ai_target_module.runner.ModelRunner.get_device_agent_descriptions(params)
+    # version info
+    version_descriptions = ai_target_module.runner.ModelRunner.get_version_descriptions(params)
 
     # help descriptions
     help_descriptions = ai_target_module.runner.ModelRunner.get_help_descriptions(params)
@@ -83,7 +84,7 @@ def run(config):
                        target_device_descriptions=target_device_descriptions,
                        task_descriptions=task_descriptions,
                        sample_dataset_descriptions=sample_dataset_descriptions,
-                       device_agent_descriptions=device_agent_descriptions,
+                       version_descriptions=version_descriptions,
                        help_descriptions=help_descriptions)
     return description
 

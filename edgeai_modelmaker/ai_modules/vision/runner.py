@@ -226,8 +226,8 @@ class ModelRunner():
         return descriptions.get_sample_dataset_descriptions(*args, **kwargs)
 
     @staticmethod
-    def get_device_agent_descriptions(*args, **kwargs):
-        return descriptions.get_device_agent_descriptions(*args, **kwargs)
+    def get_version_descriptions(*args, **kwargs):
+        return descriptions.get_version_descriptions(*args, **kwargs)
 
     @staticmethod
     def get_help_descriptions(*args, **kwargs):

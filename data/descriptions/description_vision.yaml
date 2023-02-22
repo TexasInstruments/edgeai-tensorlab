@@ -1,8 +1,3 @@
-device_agent_descriptions:
-  modelmaker_version: 08_06
-  sdk_version: 08_06
-  tidl_version: 08_06
-  version: '8.6'
 help_descriptions:
   common: {}
   compilation:
@@ -1572,3 +1567,8 @@ training_module_descriptions:
   - detection
   edgeai_torchvision:
   - classification
+version_descriptions:
+  modelmaker_version: 08_06
+  sdk_version: 08_06
+  tidl_version: 08_06
+  version: '8.6'
