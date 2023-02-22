@@ -1568,7 +1568,6 @@ training_module_descriptions:
   edgeai_torchvision:
   - classification
 version_descriptions:
-  modelmaker_version: 08_06
-  sdk_version: 08_06
-  tidl_version: 08_06
+  sdk_release: 08_06
+  sdk_version: '8.6'
   version: '8.6'

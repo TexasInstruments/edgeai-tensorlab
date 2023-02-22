@@ -174,9 +174,8 @@ def get_task_descriptions(params):
 def get_version_descriptions(params):
     version_descriptions = {
         'version': version.get_version(),
-        'modelmaker_version': version.get_version_str(),
-        'tidl_version': version.get_version_str(),
-        'sdk_version': version.get_version_str(),
+        'sdk_version': version.get_version(),
+        'sdk_release': version.get_version_str(),
     }
     return version_descriptions
 

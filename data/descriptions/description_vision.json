@@ -1753,9 +1753,8 @@
   },
   "version_descriptions":{
     "version":"8.6",
-    "modelmaker_version":"08_06",
-    "tidl_version":"08_06",
-    "sdk_version":"08_06"
+    "sdk_version":"8.6",
+    "sdk_release":"08_06"
   },
   "help_descriptions":{
     "common":{},
