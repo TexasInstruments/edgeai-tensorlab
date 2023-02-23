@@ -5,7 +5,7 @@ pipeline_type : 'accuracy'
 # the actual target_device depends on the tidl_tools being used.
 # currently this field is for information only - setting to null is fine
 # until r8.5: TDA4VM
-# from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
+# from r8.6 onwards use one of: TDA4VM AM62A AM68A AM69A
 target_device : null
 
 # quantization bit precision
@@ -53,7 +53,8 @@ model_selection : null
 # model_shortlist can be a number, which indicates a predefined shortlist, and a fraction of the models will be selected
 # model_shortlist and model_selection are complimentary - they can be used together.
 # 0 means no models, 1 means 1 model, 15 means roughly 15% of models, 100 means all the models.
-#   examples: 1
+#   examples: null
+#   examples: 10
 #   examples: 20
 #   examples: 30
 model_shortlist: null
