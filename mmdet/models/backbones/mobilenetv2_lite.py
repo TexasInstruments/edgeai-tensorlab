@@ -78,7 +78,8 @@ from torchvision.edgeailite import xnn
 ###################################################
 # mmdetection has added MobileNet backbone recently. That is why this is renamed with lite
 
-__all__ = ['MobileNetV2LiteBase', 'MobileNetV2Lite', 'mobilenet_v2_lite']
+__all__ = ['MobileNetV2LiteBase', 'MobileNetV2Lite', 'mobilenet_v2_lite',
+           'MobileNetV2P5Lite', 'mobilenet_v2p5_lite']
 
 
 ###################################################
@@ -115,6 +116,7 @@ def get_config():
 
 model_urls = {
     'mobilenet_v2_lite': 'https://download.pytorch.org/models/mobilenet_v2-b0353104.pth',
+    'mobilenet_v2p5_lite': '/home/a0484689/PycharmProjects/py306_edgeaitv/edgeai-torchvision/data/checkpoints/classification/imagenet/mobilenet_v2_p5_lite/20230220-212034/model_90.pth',
 }
 
 
@@ -262,10 +264,14 @@ class MobileNetV2Lite(MobileNetV2LiteBase):
                 model_config = model_config.merge_from(value)
             elif key in ('out_indices', 'strides', 'extra_channels', 'frozen_stages', 'act_cfg'):
                 setattr(model_config, key, value)
+            elif key == 'width_mult':
+                setattr(model_config, key, value)
+                model_config.shortcut_channels = tuple(
+                    [int(x*model_config.width_mult) for x in model_config.shortcut_channels])
         #
         super().__init__(InvertedResidual, model_config, pretrained=pretrained, init_cfg=init_cfg)
-
-        self.extra = self._make_extra_layers(320, self.model_config.extra_channels) \
+        # self.extra = self._make_extra_layers(320, self.model_config.extra_channels)
+        self.extra = self._make_extra_layers(int(self.model_config.width_mult * 320), self.model_config.extra_channels) \
             if self.model_config.extra_channels else None
 
         # weights init
@@ -335,6 +341,10 @@ class MobileNetV2Lite(MobileNetV2LiteBase):
         #
         return torch.nn.Sequential(*extra_layers)
 
+@BACKBONES.register_module
+class MobileNetV2P5Lite(MobileNetV2Lite):
+    def __init__(self, pretrained=None, init_cfg=None, **kwargs):
+        MobileNetV2Lite.__init__(self,  pretrained=pretrained, init_cfg=init_cfg, width_mult=0.5, **kwargs)
 
 #######################################################################
 def mobilenet_v2_lite(pretrained=False, progress=True, **kwargs):
@@ -349,5 +359,21 @@ def mobilenet_v2_lite(pretrained=False, progress=True, **kwargs):
     model = MobileNetV2Lite(**kwargs)
     if pretrained is True:
         state_dict = xnn.utils.load_state_dict_from_url(model_urls['mobilenet_v2_lite'], progress=progress)
+        model.load_state_dict(state_dict)
+    return model
+
+
+def mobilenet_v2p5_lite(pretrained=False, progress=True, **kwargs):
+    """
+    Constructs a MobileNetV2 architecture from
+    `"MobileNetV2: Inverted Residuals and Linear Bottlenecks" <https://arxiv.org/abs/1801.04381>`_.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    """
+    model = MobileNetV2P5Lite(**kwargs)
+    if pretrained is True:
+        state_dict = xnn.utils.load_state_dict_from_url(model_urls['mobilenet_v2p5_lite'], progress=progress)
         model.load_state_dict(state_dict)
     return model

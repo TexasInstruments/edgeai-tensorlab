@@ -39,8 +39,8 @@ from detection_configs import config
 
 ########################################################################
 # other settings
-distributed = 1
-gpus = 4
+distributed = 0
+gpus = 0
 dataset_style = 'coco' #'voc' #'coco'
 master_port = 29500
 
@@ -58,7 +58,7 @@ if distributed:
     distributed_launch.main()
 else:
     from tools import train as train_mmdet
-    sys.argv = [sys.argv[0], f'--gpus={gpus}', '--no-validate',
+    sys.argv = [sys.argv[0], f'--gpu-id={gpus}', '--no-validate',
                 f'{config}']
 
     args = train_mmdet.parse_args()
