@@ -194,8 +194,10 @@ class PipelineRunner():
             #
         #
         if isinstance(settings.model_shortlist, (int,float)):
-            model_shortlist = pipeline_config['model_info'].get('model_shortlist', None) or 100
-            selected_model = selected_model and model_shortlist <= settings.model_shortlist
+            if settings.model_shortlist is not None:
+                model_shortlist = pipeline_config['model_info'].get('model_shortlist', None)
+                selected_model = selected_model and (model_shortlist is not None and model_shortlist <= settings.model_shortlist)
+            #
         #
         if settings.model_selection is not None:
             model_selection = utils.as_list(settings.model_selection)
