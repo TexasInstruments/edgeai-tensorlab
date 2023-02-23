@@ -52,4 +52,4 @@ config='./configs/edgeailite/yolox/yolox_s_lite.py'
 config='./configs/edgeailite/yolox/yolox_m_lite.py'
 '''
 
-config='./configs/edgeailite/ssd/ssd_regnetx_fpn_bgr_lite.py'
+config='./configs/edgeailite/ssd/ssd_mobilenetp5_lite_320x320.py'
