@@ -44,8 +44,9 @@ TARGET_MACHINE=${2:-pc}
 # this can be done after the import has been done and artifacts generated.
 # by default it points to deploy_lib.so.pc, so nothing needs to be done for inference on pc
 
-if [[ $# -ne 1 ]]; then
-  echo "please provide exactly one argument - either pc or evm"
+if [[ $# -ne 2 ]]; then
+  echo "please provide exactly two arguments - TARGET_SOC and TARGET_MACHINE"
+  echo "TARGET_MACHINE can be either pc or evm"
   exit 1
 fi
 

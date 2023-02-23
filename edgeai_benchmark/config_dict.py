@@ -96,6 +96,9 @@ class ConfigDict(dict):
         self.__dict__.update(state)
 
     def format_keywords(self):
+        # any entry in the value with and item in {} will be replaced by the attribute from this class
+        # for example if value is './work_dirs/modelartifacts/{target_device}'
+        # then {target_device} will be replaced by the actual target_device value
         for key, value in self.items():
             if isinstance(value, str) and '{' in value:
                 matched_keyword = re.findall(r'\{(.*?)\}', value)[0]
@@ -123,7 +126,7 @@ class ConfigDict(dict):
         # folder where models are available
         self.models_path = '../edgeai-modelzoo/models'
         # path where compiled model artifacts are placed
-        self.modelartifacts_path = './work_dirs/modelartifacts'
+        self.modelartifacts_path = './work_dirs/modelartifacts/{target_device}'
         # create your datasets under this folder
         self.datasets_path = f'./dependencies/datasets'
         # target_device indicates the SoC for which the model compilation will take place
