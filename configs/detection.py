@@ -76,7 +76,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_resnet34-ssd1200.onnx'),
             postprocess=postproc_transforms.get_transform_detection_onnx(reshape_list=[(-1,4), (-1,1), (-1,1)], squeeze_axis=None),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=0)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':20.0}, model_shortlist=30)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':20.0}, model_shortlist=None)
         ),
         'od-8020':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
@@ -87,7 +87,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_lite_512x512_20201214_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':25.1}, model_shortlist=5)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':25.1}, model_shortlist=10)
         ),
         'od-8030':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
@@ -98,7 +98,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':27.2}, model_shortlist=40)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':27.2}, model_shortlist=None)
         ),
         'od-8040':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((320,320), (320,320), backend='cv2', reverse_channels=True),
@@ -109,7 +109,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-200mf_fpn_bgr_lite_320x320_20201010_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':20.7}, model_shortlist=30)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':20.7}, model_shortlist=20)
         ),
         'od-8050':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2', reverse_channels=True),
@@ -120,7 +120,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.8}, model_shortlist=5)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.8}, model_shortlist=None)
         ),
         'od-8060':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((768,768), (768,768), backend='cv2'),
@@ -131,7 +131,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_regnetx-1.6gf_fpn_bgr_lite_768x768_20200923_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.0}, model_shortlist=100)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.0}, model_shortlist=None)
         ),
         'od-8070':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((416,416), (416,416), backend='cv2'),
@@ -143,7 +143,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov3_d53_relu_416x416_20210117_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':30.7}, model_shortlist=50)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':30.7}, model_shortlist=None)
         ),
         'od-8080':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
@@ -155,7 +155,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov3_regnetx-1.6gf_bgr_lite_512x512_20210202_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':30.7}, model_shortlist=20)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':30.7}, model_shortlist=None)
         ),
         'od-8090':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
@@ -166,7 +166,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/retinanet_regnetx-800mf_fpn_bgr_lite_512x512_20200908_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':33.0}, model_shortlist=50)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':33.0}, model_shortlist=None)
         ),
         # yolov5 models - IMPORTANT - see licence of the repository edgeai-yolov5 before using this model
         'od-8100':utils.dict_update(common_cfg,
@@ -179,7 +179,7 @@ def get_configs(settings, work_dir):
                 model_path=f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5/yolov5s6_640_ti_lite_37p4_56p0.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.4}, model_shortlist=40)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.4}, model_shortlist=None)
         ),
         'od-8110':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(384, 384,  resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
@@ -191,7 +191,7 @@ def get_configs(settings, work_dir):
                 model_path=f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5/yolov5s6_384_ti_lite_32p8_51p2.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.8}, model_shortlist=30)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.8}, model_shortlist=None)
         ),
         'od-8120':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
@@ -203,7 +203,7 @@ def get_configs(settings, work_dir):
                 model_path=f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5/yolov5m6_640_ti_lite_44p1_62p9.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False,  resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':44.1}, model_shortlist=100)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':44.1}, model_shortlist=None)
         ),
         'od-8130':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
@@ -215,7 +215,7 @@ def get_configs(settings, work_dir):
                 model_path=f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5/yolov5l6_640_ti_lite_47p1_65p6.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False,  resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':47.1}, model_shortlist=100)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':47.1}, model_shortlist=None)
         ),
         # yolox lite versions from edgeai-mmdet
         'od-8200':utils.dict_update(common_cfg,
@@ -228,7 +228,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 24.8}, model_shortlist=5)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 24.8}, model_shortlist=10)
         ),         
         'od-8210':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
@@ -240,7 +240,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=50)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=20)
         ),
         'od-8220':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
@@ -252,7 +252,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 38.3}, model_shortlist=15)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 38.3}, model_shortlist=10)
         ),
         'od-8230':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
@@ -264,7 +264,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 44.4}, model_shortlist=100)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 44.4}, model_shortlist=None)
         ),
         #################################################################
         #       MXNET MODELS
@@ -291,7 +291,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v2_300_float.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':22.0}, model_shortlist=100)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':22.0}, model_shortlist=10)
         ),
         #################################################################
         # tensorflow1.0 models: detection - ssdlite_mobiledet_dsp_320x320_coco_2020_05_19 expected_metric: 28.9% ap[0.5:0.95] accuracy
@@ -302,7 +302,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_20200519.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.9}, model_shortlist=5)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.9}, model_shortlist=None)
         ),
         # tensorflow1.0 models: detection - ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19 expected_metric: 25.9% ap[0.5:0.95] accuracy
         'od-2030':utils.dict_update(common_cfg,
@@ -322,7 +322,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobilenet_v2_coco_20180509.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':22.0}, model_shortlist=100)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':22.0}, model_shortlist=None)
         ),
         'od-2070':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((640,640), (640,640), backend='cv2'),
@@ -331,7 +331,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_mobilenet_v1_fpn_640x640_coco17_tpu-8.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':29.1}, model_shortlist=100)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':29.1}, model_shortlist=None)
         ),
         'od-2080':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((320,320), (320,320), backend='cv2'),
@@ -340,7 +340,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':22.2}, model_shortlist=100)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':22.2}, model_shortlist=30)
         ),
         'od-2090':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((640,640), (640,640), backend='cv2'),
@@ -349,7 +349,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.2}, model_shortlist=100)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.2}, model_shortlist=None)
         ),
         'od-2100':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((640,640), (640,640), backend='cv2'),
@@ -358,7 +358,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':34.3}, model_shortlist=100)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':34.3}, model_shortlist=None)
         ),
         'od-2110':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((512,512), (512,512), backend='cv2'),
@@ -369,7 +369,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/google-automl/efficientdet-lite0_bifpn_maxpool2x2_relu_ti-lite.tflite'),
             postprocess=postproc_detection_efficientdet_ti_lite_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':33.61}, model_shortlist=40)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':33.61}, model_shortlist=None)
         ),
         # note although the name of the model said 320x320, the pipeline.config along with the model had 300x300
         # https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md
@@ -380,7 +380,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/tf2-models/ssd_mobilenet_v2_320x320_coco17_tpu-8.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':20.2}, model_shortlist=100)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':20.2}, model_shortlist=None)
         ),
         'od-2150': utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((384, 384), (384, 384), resize_with_pad=True, backend='cv2', pad_color=[127,127,127]),
@@ -394,7 +394,7 @@ def get_configs(settings, work_dir):
             postprocess=postproc_transforms.get_transform_detection_tflite(normalized_detections=False, ignore_index=0,
                                                             formatter=postprocess.DetectionFormatting(dst_indices=(0,1,2,3,4,5), src_indices=(1,0,3,2,5,4)), resize_with_pad=True,),
             metric=dict( label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 31.79}, model_shortlist=40)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 31.79}, model_shortlist=30)
         ),
         'od-2170': utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((512, 512), (512, 512), resize_with_pad=True, backend='cv2', pad_color=[127,127,127]),
@@ -407,7 +407,7 @@ def get_configs(settings, work_dir):
             postprocess=postproc_transforms.get_transform_detection_tflite( normalized_detections=False, ignore_index=0,
                                                            formatter=postprocess.DetectionFormatting(dst_indices=(0,1,2,3,4,5), src_indices=(1,0,3,2,5,4)), resize_with_pad=True),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 38.33}, model_shortlist=100)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 38.33}, model_shortlist=None)
         ),
         ###################################################################
         # complied for TVM - this model is repeated here and hard-coded to use tvmdlr session to generate an example tvmdlr artifact
@@ -429,7 +429,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_20200519.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.9}, model_shortlist=5)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.9}, model_shortlist=10)
         ),
     }
     return pipeline_configs
