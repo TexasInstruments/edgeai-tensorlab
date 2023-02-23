@@ -45,7 +45,7 @@ TARGET_MACHINE=${2:-pc}
 # by default it points to deploy_lib.so.pc, so nothing needs to be done for inference on pc
 
 if [[ $# -ne 2 ]]; then
-  echo "please provide exactly two arguments - TARGET_SOC and TARGET_MACHINE"
+  echo "Please provide exactly two arguments - TARGET_SOC and TARGET_MACHINE"
   echo "TARGET_MACHINE can be either pc or evm"
   exit 1
 fi
@@ -53,7 +53,7 @@ fi
 # "evm" or "pc"
 target_machine=${TARGET_MACHINE}
 if [ "$artifacts_base" = "" ]; then
-  artifacts_base="./work_dirs/modelartifacts/8bits"
+  artifacts_base="./work_dirs/modelartifacts/${TARGET_SOC}/8bits"
 fi
 artifacts_folders=$(find "${artifacts_base}/" -maxdepth 1 |grep "_tvmdlr_")
 cur_dir=$(pwd)

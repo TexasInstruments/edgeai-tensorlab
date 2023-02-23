@@ -29,33 +29,36 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
-# until r8.5: TDA4VM
-# from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
+# target_device - use one of: TDA4VM AM62A AM68A AM69A
+# (Note: until r8.5 only TDA4VM was supported)
 TARGET_SOC=${1:-TDA4VM}
 
+# leave this as pc - no change needed
 # pc: for model compilation and inference on PC, evm: for model inference on EVM
+# after compilation, run_package_artifacts_evm.sh can be used to format and package the compiled artifacts for evm
 TARGET_MACHINE=pc
 
-echo "TARGET_SOC: ${TARGET_SOC}"
-echo "Pass the appropriate commandline argument to use another one."
+echo #############################################################
+echo "target_device/SOC: ${TARGET_SOC}"
+echo "Pass the appropriate commandline argument to use another target_device"
 
 ##################################################################
 # set environment variables
 # also point to the right type of artifacts (pc or evm)
 source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 
-
+##################################################################
 # specify one of the following settings - options can be changed inside the yaml
 #settings_file=settings_infer_on_evm.yaml
 #settings_file=settings_import_on_pc.yaml
 settings_file=settings_import_on_pc.yaml
 
-echo "==================================================================="
+echo "-------------------------------------------------------------------"
 # run all the shortlisted models with these settings
 python3 ./scripts/benchmark_modelzoo.py ${settings_file} "$@"
 echo "-------------------------------------------------------------------"
 
-#echo "==================================================================="
+#echo "------------------------------------------------------------------"
 ## run few selected models with other runtimes
 #python3 ./scripts/benchmark_modelzoo.py ${settings_file} \
 #        --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
@@ -63,7 +66,7 @@ echo "-------------------------------------------------------------------"
 #        --model_selection onnx
 #echo "-------------------------------------------------------------------"
 
-echo "==================================================================="
+echo "-------------------------------------------------------------------"
 # generate the final report with results for all the artifacts generated
 python3 ./scripts/generate_report.py ${settings_file}
 echo "-------------------------------------------------------------------"

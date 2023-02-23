@@ -32,11 +32,6 @@
 TARGET_SOC=${1:-TDA4VM}
 TARGET_MACHINE=${2:-pc}
 
-
-echo #############################################################
-echo "target_device/SOC: ${TARGET_SOC}"
-echo #############################################################
-
 ##################################################################
 # tvmdlr artifacts are different for pc and evm device
 # point to the right artifact before this script executes

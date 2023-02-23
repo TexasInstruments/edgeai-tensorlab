@@ -29,15 +29,18 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
-# until r8.5: TDA4VM
-# from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
+# target_device - use one of: TDA4VM AM62A AM68A AM69A
+# (Note: until r8.5 only TDA4VM was supported)
 TARGET_SOC=${1:-TDA4VM}
 
+# leave this as pc - no change needed
 # pc: for model compilation and inference on PC, evm: for model inference on EVM
+# after compilation, run_package_artifacts_evm.sh can be used to format and package the compiled artifacts for evm
 TARGET_MACHINE=pc
 
-echo "TARGET_SOC: ${TARGET_SOC}"
-echo "Pass the appropriate commandline argument to use another one."
+echo #############################################################
+echo "target_device/SOC: ${TARGET_SOC}"
+echo "Pass the appropriate commandline argument to use another target_device"
 
 ##################################################################
 # set environment variables
