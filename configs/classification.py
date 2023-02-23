@@ -184,7 +184,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_bgr_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-200mf.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':68.9}, model_shortlist=10)
+            model_info=dict(metric_reference={'accuracy_top1%':68.9}, model_shortlist=1)
         ),
         #################torchvision models#########################
         # torchvision: classification regnetx400mf_224x224 expected_metric: 72.834% top-1 accuracy
