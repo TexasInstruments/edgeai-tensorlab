@@ -151,7 +151,6 @@ parent_directory
     |--edgeai-torchvision
     |--edgeai-mmdetection
     |--edgeai-benchmark
-    |--edgeai-yolov5
     |--edgeai-modelmaker
 </pre>
 
