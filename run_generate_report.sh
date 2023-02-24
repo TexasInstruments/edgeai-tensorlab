@@ -29,6 +29,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
+# target_device - use one of: TDA4VM AM62A AM68A AM69A
+# (Note: until r8.5 only TDA4VM was supported)
+TARGET_SOC=${1:-TDA4VM}
+
 
 # specify one of the following settings - options can be changed inside the yaml
 #settings_file=settings_infer_on_evm.yaml
@@ -37,5 +41,5 @@ settings_file=settings_import_on_pc.yaml
 
 echo "==================================================================="
 # generate the final report with results for all the artifacts generated
-python3 ./scripts/generate_report.py ${settings_file}
+python3 ./scripts/generate_report.py ${settings_file} --target_device ${TARGET_SOC}
 echo "-------------------------------------------------------------------"
