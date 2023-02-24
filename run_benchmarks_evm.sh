@@ -29,8 +29,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
-# until r8.5: TDA4VM
-# from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
+# target_device - use one of: TDA4VM AM62A AM68A AM69A
+# (Note: until r8.5 only TDA4VM was supported)
 TARGET_SOC=${1:-TDA4VM}
 
 # pc: for model compilation and inference on PC, evm: for model inference on EVM
@@ -59,7 +59,7 @@ settings_file=settings_infer_on_evm.yaml
 
 echo "==================================================================="
 # run all the shortlisted models with these settings
-python3 ./scripts/benchmark_modelzoo.py ${settings_file} "$@"
+python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC}
 echo "-------------------------------------------------------------------"
 
 #echo "==================================================================="
