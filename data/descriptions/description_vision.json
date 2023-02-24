@@ -135,260 +135,6 @@
         }
       }
     },
-    "mobilenet_v3_large_lite_tv":{
-      "common":{
-        "verbose_mode":true,
-        "download_path":"./data/downloads",
-        "projects_path":"./data/projects",
-        "project_path":null,
-        "project_run_path":null,
-        "task_type":"classification",
-        "target_machine":"evm",
-        "target_device":null,
-        "run_name":"{date-time}/{model_name}",
-        "target_module":"vision"
-      },
-      "download":{
-        "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth",
-        "download_path":"{download_path}/pretrained/mobilenet_v3_large_lite_tv"
-      },
-      "dataset":{
-        "enable":true,
-        "dataset_name":null,
-        "dataset_path":null,
-        "extract_path":null,
-        "split_factor":0.75,
-        "split_names":[
-          "train",
-          "val"
-        ],
-        "max_num_files":null,
-        "input_data_path":null,
-        "input_annotation_path":null,
-        "data_path_splits":null,
-        "data_dir":"images",
-        "annotation_path_splits":null,
-        "annotation_dir":"annotations",
-        "annotation_prefix":"instances",
-        "annotation_format":"coco_json",
-        "dataset_download":true,
-        "dataset_reload":false
-      },
-      "training":{
-        "enable":true,
-        "model_name":"mobilenet_v3_large_lite_tv",
-        "model_training_id":"mobilenet_v3_large_lite",
-        "training_backend":"edgeai_torchvision",
-        "pretrained_checkpoint_path":{
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/mobilenet_v3_large_lite_tv"
-        },
-        "target_devices":{
-          "TDA4VM":{
-            "performance_fps":267,
-            "performance_infer_time_ms":3.745318352059925,
-            "accuracy_factor":72.12,
-            "accuracy_unit":"Accuracy Top-1%",
-            "model_selection_factor":null
-          },
-          "AM62A":{
-            "performance_fps":267,
-            "performance_infer_time_ms":3.745318352059925,
-            "accuracy_factor":72.12,
-            "accuracy_unit":"Accuracy Top-1%",
-            "model_selection_factor":null
-          },
-          "AM68A":{
-            "performance_fps":267,
-            "performance_infer_time_ms":3.745318352059925,
-            "accuracy_factor":72.12,
-            "accuracy_unit":"Accuracy Top-1%",
-            "model_selection_factor":null
-          }
-        },
-        "project_path":null,
-        "dataset_path":null,
-        "training_path":null,
-        "log_file_path":null,
-        "log_summary_regex":null,
-        "summary_file_path":null,
-        "model_checkpoint_path":null,
-        "model_export_path":null,
-        "model_proto_path":null,
-        "model_packaged_path":null,
-        "training_epochs":15,
-        "warmup_epochs":1,
-        "num_last_epochs":5,
-        "batch_size":64,
-        "learning_rate":0.002,
-        "num_classes":null,
-        "weight_decay":0.0001,
-        "input_resize":256,
-        "input_cropsize":224,
-        "training_device":null,
-        "num_gpus":0,
-        "distributed":true,
-        "training_master_port":29500,
-        "model_architecture":"backbone",
-        "training_devices":{
-          "cpu":true,
-          "cuda":true
-        }
-      },
-      "compilation":{
-        "enable":true,
-        "model_compilation_id":"cl-6490",
-        "compilation_path":null,
-        "model_compiled_path":null,
-        "log_file_path":null,
-        "log_summary_regex":null,
-        "summary_file_path":null,
-        "output_tensors_path":null,
-        "model_packaged_path":null,
-        "model_visualization_path":null,
-        "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
-        "num_frames":null,
-        "num_output_frames":50,
-        "detection_threshold":0.6,
-        "detection_top_k":200,
-        "save_output":true,
-        "tidl_offload":true,
-        "input_optimization":true,
-        "capture_log":true,
-        "metric":{
-          "label_offset_pred":1
-        }
-      }
-    },
-    "mobilenet_v3_small_lite_tv":{
-      "common":{
-        "verbose_mode":true,
-        "download_path":"./data/downloads",
-        "projects_path":"./data/projects",
-        "project_path":null,
-        "project_run_path":null,
-        "task_type":"classification",
-        "target_machine":"evm",
-        "target_device":null,
-        "run_name":"{date-time}/{model_name}",
-        "target_module":"vision"
-      },
-      "download":{
-        "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth",
-        "download_path":"{download_path}/pretrained/mobilenet_v3_small_lite_tv"
-      },
-      "dataset":{
-        "enable":true,
-        "dataset_name":null,
-        "dataset_path":null,
-        "extract_path":null,
-        "split_factor":0.75,
-        "split_names":[
-          "train",
-          "val"
-        ],
-        "max_num_files":null,
-        "input_data_path":null,
-        "input_annotation_path":null,
-        "data_path_splits":null,
-        "data_dir":"images",
-        "annotation_path_splits":null,
-        "annotation_dir":"annotations",
-        "annotation_prefix":"instances",
-        "annotation_format":"coco_json",
-        "dataset_download":true,
-        "dataset_reload":false
-      },
-      "training":{
-        "enable":true,
-        "model_name":"mobilenet_v3_small_lite_tv",
-        "model_training_id":"mobilenet_v3_small_lite",
-        "training_backend":"edgeai_torchvision",
-        "pretrained_checkpoint_path":{
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/mobilenet_v3_small_lite_tv"
-        },
-        "target_devices":{
-          "TDA4VM":{
-            "performance_fps":751,
-            "performance_infer_time_ms":1.3315579227696406,
-            "accuracy_factor":62.688,
-            "accuracy_unit":"Accuracy Top-1%",
-            "model_selection_factor":3
-          },
-          "AM62A":{
-            "performance_fps":751,
-            "performance_infer_time_ms":1.3315579227696406,
-            "accuracy_factor":62.688,
-            "accuracy_unit":"Accuracy Top-1%",
-            "model_selection_factor":3
-          },
-          "AM68A":{
-            "performance_fps":751,
-            "performance_infer_time_ms":1.3315579227696406,
-            "accuracy_factor":62.688,
-            "accuracy_unit":"Accuracy Top-1%",
-            "model_selection_factor":3
-          }
-        },
-        "project_path":null,
-        "dataset_path":null,
-        "training_path":null,
-        "log_file_path":null,
-        "log_summary_regex":null,
-        "summary_file_path":null,
-        "model_checkpoint_path":null,
-        "model_export_path":null,
-        "model_proto_path":null,
-        "model_packaged_path":null,
-        "training_epochs":15,
-        "warmup_epochs":1,
-        "num_last_epochs":5,
-        "batch_size":64,
-        "learning_rate":0.002,
-        "num_classes":null,
-        "weight_decay":0.0001,
-        "input_resize":256,
-        "input_cropsize":224,
-        "training_device":null,
-        "num_gpus":0,
-        "distributed":true,
-        "training_master_port":29500,
-        "model_architecture":"backbone",
-        "training_devices":{
-          "cpu":true,
-          "cuda":true
-        }
-      },
-      "compilation":{
-        "enable":true,
-        "model_compilation_id":"cl-6480",
-        "compilation_path":null,
-        "model_compiled_path":null,
-        "log_file_path":null,
-        "log_summary_regex":null,
-        "summary_file_path":null,
-        "output_tensors_path":null,
-        "model_packaged_path":null,
-        "model_visualization_path":null,
-        "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
-        "num_frames":null,
-        "num_output_frames":50,
-        "detection_threshold":0.6,
-        "detection_top_k":200,
-        "save_output":true,
-        "tidl_offload":true,
-        "input_optimization":true,
-        "capture_log":true,
-        "metric":{
-          "label_offset_pred":1
-        }
-      }
-    },
     "regnet_x_400mf_tv":{
       "common":{
         "verbose_mode":true,
@@ -403,7 +149,7 @@
         "target_module":"vision"
       },
       "download":{
-        "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/regnet_x_400mf-adf1edd5.pth",
+        "download_url":"https://download.pytorch.org/models/regnet_x_400mf-62229a5f.pth",
         "download_path":"{download_path}/pretrained/torch/hub/checkpoints"
       },
       "dataset":{
@@ -434,7 +180,7 @@
         "model_training_id":"regnet_x_400mf",
         "training_backend":"edgeai_torchvision",
         "pretrained_checkpoint_path":{
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/regnet_x_400mf-adf1edd5.pth",
+          "download_url":"https://download.pytorch.org/models/regnet_x_400mf-62229a5f.pth",
           "download_path":"{download_path}/pretrained/torch/hub/checkpoints"
         },
         "target_devices":{
@@ -643,303 +389,6 @@
         }
       }
     },
-    "ssd_mobilenetv2_lite_mmdet":{
-      "common":{
-        "verbose_mode":true,
-        "download_path":"./data/downloads",
-        "projects_path":"./data/projects",
-        "project_path":null,
-        "project_run_path":null,
-        "task_type":"detection",
-        "target_machine":"evm",
-        "target_device":null,
-        "run_name":"{date-time}/{model_name}",
-        "target_module":"vision"
-      },
-      "download":[
-        {
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_lite_512x512_20201214_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/ssd_mobilenetv2_lite_mmdet"
-        },
-        {
-          "download_name":"torchvision://mobilenet_v2",
-          "download_url":"https://download.pytorch.org/models/mobilenet_v2-b0353104.pth",
-          "download_path":"{download_path}/pretrained/torch/hub/checkpoints"
-        }
-      ],
-      "dataset":{
-        "enable":true,
-        "dataset_name":null,
-        "dataset_path":null,
-        "extract_path":null,
-        "split_factor":0.75,
-        "split_names":[
-          "train",
-          "val"
-        ],
-        "max_num_files":null,
-        "input_data_path":null,
-        "input_annotation_path":null,
-        "data_path_splits":null,
-        "data_dir":"images",
-        "annotation_path_splits":null,
-        "annotation_dir":"annotations",
-        "annotation_prefix":"instances",
-        "annotation_format":"coco_json",
-        "dataset_download":true,
-        "dataset_reload":false
-      },
-      "training":{
-        "enable":true,
-        "model_name":"ssd_mobilenetv2_lite_mmdet",
-        "model_training_id":"ssd_mobilenet_lite",
-        "training_backend":"edgeai_mmdetection",
-        "pretrained_checkpoint_path":{
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_lite_512x512_20201214_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/ssd_mobilenetv2_lite_mmdet"
-        },
-        "target_devices":{
-          "TDA4VM":{
-            "performance_fps":218,
-            "performance_infer_time_ms":4.587155963302752,
-            "accuracy_factor":43.1,
-            "accuracy_unit":"AP50%",
-            "accuracy_factor2":25.1,
-            "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":1
-          },
-          "AM62A":{
-            "performance_fps":218,
-            "performance_infer_time_ms":4.587155963302752,
-            "accuracy_factor":43.1,
-            "accuracy_unit":"AP50%",
-            "accuracy_factor2":25.1,
-            "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":1
-          },
-          "AM68A":{
-            "performance_fps":218,
-            "performance_infer_time_ms":4.587155963302752,
-            "accuracy_factor":43.1,
-            "accuracy_unit":"AP50%",
-            "accuracy_factor2":25.1,
-            "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":1
-          }
-        },
-        "project_path":null,
-        "dataset_path":null,
-        "training_path":null,
-        "log_file_path":null,
-        "log_summary_regex":null,
-        "summary_file_path":null,
-        "model_checkpoint_path":null,
-        "model_export_path":null,
-        "model_proto_path":null,
-        "model_packaged_path":null,
-        "training_epochs":15,
-        "warmup_epochs":1,
-        "num_last_epochs":5,
-        "batch_size":8,
-        "learning_rate":0.002,
-        "num_classes":null,
-        "weight_decay":0.0001,
-        "input_resize":[
-          512,
-          512
-        ],
-        "input_cropsize":[
-          512,
-          512
-        ],
-        "training_device":null,
-        "num_gpus":0,
-        "distributed":true,
-        "training_master_port":29500,
-        "model_architecture":"ssd",
-        "training_devices":{
-          "cpu":true,
-          "cuda":true
-        }
-      },
-      "compilation":{
-        "enable":true,
-        "model_compilation_id":"od-8020",
-        "compilation_path":null,
-        "model_compiled_path":null,
-        "log_file_path":null,
-        "log_summary_regex":null,
-        "summary_file_path":null,
-        "output_tensors_path":null,
-        "model_packaged_path":null,
-        "model_visualization_path":null,
-        "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
-        "num_frames":null,
-        "num_output_frames":50,
-        "detection_threshold":0.6,
-        "detection_top_k":200,
-        "save_output":true,
-        "tidl_offload":true,
-        "input_optimization":true,
-        "capture_log":true,
-        "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":null
-        },
-        "metric":{
-          "label_offset_pred":0
-        }
-      }
-    },
-    "ssd_regnetx_200mf_fpn_bgr_lite_mmdet":{
-      "common":{
-        "verbose_mode":true,
-        "download_path":"./data/downloads",
-        "projects_path":"./data/projects",
-        "project_path":null,
-        "project_run_path":null,
-        "task_type":"detection",
-        "target_machine":"evm",
-        "target_device":null,
-        "run_name":"{date-time}/{model_name}",
-        "target_module":"vision"
-      },
-      "download":[
-        {
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-200mf_fpn_bgr_lite_320x320_20201010_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/ssd_regnetx_200mf_fpn_bgr_lite_mmdet"
-        },
-        {
-          "download_url":"https://dl.fbaipublicfiles.com/pycls/dds_baselines/160905981/RegNetX-200MF_dds_8gpu.pyth",
-          "download_path":"{download_path}/pretrained/torch/hub/checkpoints"
-        }
-      ],
-      "dataset":{
-        "enable":true,
-        "dataset_name":null,
-        "dataset_path":null,
-        "extract_path":null,
-        "split_factor":0.75,
-        "split_names":[
-          "train",
-          "val"
-        ],
-        "max_num_files":null,
-        "input_data_path":null,
-        "input_annotation_path":null,
-        "data_path_splits":null,
-        "data_dir":"images",
-        "annotation_path_splits":null,
-        "annotation_dir":"annotations",
-        "annotation_prefix":"instances",
-        "annotation_format":"coco_json",
-        "dataset_download":true,
-        "dataset_reload":false
-      },
-      "training":{
-        "enable":true,
-        "model_name":"ssd_regnetx_200mf_fpn_bgr_lite_mmdet",
-        "model_training_id":"ssd_regnetx_200mf_fpn_bgr_lite",
-        "training_backend":"edgeai_mmdetection",
-        "pretrained_checkpoint_path":{
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-200mf_fpn_bgr_lite_320x320_20201010_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/ssd_regnetx_200mf_fpn_bgr_lite_mmdet"
-        },
-        "target_devices":{
-          "TDA4VM":{
-            "performance_fps":183,
-            "performance_infer_time_ms":5.46448087431694,
-            "accuracy_factor":36.7,
-            "accuracy_unit":"AP50%",
-            "accuracy_factor2":20.7,
-            "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":null
-          },
-          "AM62A":{
-            "performance_fps":183,
-            "performance_infer_time_ms":5.46448087431694,
-            "accuracy_factor":36.7,
-            "accuracy_unit":"AP50%",
-            "accuracy_factor2":20.7,
-            "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":null
-          },
-          "AM68A":{
-            "performance_fps":183,
-            "performance_infer_time_ms":5.46448087431694,
-            "accuracy_factor":36.7,
-            "accuracy_unit":"AP50%",
-            "accuracy_factor2":20.7,
-            "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":null
-          }
-        },
-        "project_path":null,
-        "dataset_path":null,
-        "training_path":null,
-        "log_file_path":null,
-        "log_summary_regex":null,
-        "summary_file_path":null,
-        "model_checkpoint_path":null,
-        "model_export_path":null,
-        "model_proto_path":null,
-        "model_packaged_path":null,
-        "training_epochs":15,
-        "warmup_epochs":1,
-        "num_last_epochs":5,
-        "batch_size":8,
-        "learning_rate":0.002,
-        "num_classes":null,
-        "weight_decay":0.0001,
-        "input_resize":[
-          320,
-          320
-        ],
-        "input_cropsize":[
-          320,
-          320
-        ],
-        "training_device":null,
-        "num_gpus":0,
-        "distributed":true,
-        "training_master_port":29500,
-        "model_architecture":"ssd",
-        "training_devices":{
-          "cpu":true,
-          "cuda":true
-        }
-      },
-      "compilation":{
-        "enable":true,
-        "model_compilation_id":"od-8040",
-        "compilation_path":null,
-        "model_compiled_path":null,
-        "log_file_path":null,
-        "log_summary_regex":null,
-        "summary_file_path":null,
-        "output_tensors_path":null,
-        "model_packaged_path":null,
-        "model_visualization_path":null,
-        "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
-        "num_frames":null,
-        "num_output_frames":50,
-        "detection_threshold":0.6,
-        "detection_top_k":200,
-        "save_output":true,
-        "tidl_offload":true,
-        "input_optimization":true,
-        "capture_log":true,
-        "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":null
-        },
-        "metric":{
-          "label_offset_pred":0
-        }
-      }
-    },
     "yolox_nano_lite_mmdet":{
       "common":{
         "verbose_mode":true,
@@ -998,7 +447,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":24.8,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":3
+            "model_selection_factor":2
           },
           "AM62A":{
             "performance_fps":287,
@@ -1007,7 +456,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":24.8,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":3
+            "model_selection_factor":2
           },
           "AM68A":{
             "performance_fps":287,
@@ -1016,7 +465,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":24.8,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":3
+            "model_selection_factor":2
           }
         },
         "project_path":null,
@@ -1136,7 +585,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":30.5,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":2
+            "model_selection_factor":1
           },
           "AM62A":{
             "performance_fps":220,
@@ -1145,7 +594,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":30.5,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":2
+            "model_selection_factor":1
           },
           "AM68A":{
             "performance_fps":220,
@@ -1154,7 +603,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":30.5,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":2
+            "model_selection_factor":1
           }
         },
         "project_path":null,
