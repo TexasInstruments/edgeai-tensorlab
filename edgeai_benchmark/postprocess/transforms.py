@@ -288,16 +288,79 @@ class SegmentationImageSave():
         save_path = os.path.join(save_dir, image_name)
 
         # TODO: convert label to color here
-        if isinstance(tensor, np.ndarray):
+
+        print('Creating palette')
+        palette = [
+            [255, 0, 0],
+            [182, 89, 6],
+            [204, 153, 255],
+            [100, 89, 60],
+        ]
+
+        for i, p in enumerate(palette):
+            palette[i] = np.array(p, dtype=np.uint8)
+            palette[i] = palette[i][..., ::-1]  # RGB->BGR, since palette is expected to be given in RGB format
+
+        prediction = np.array(tensor,dtype=np.uint8)
+
+        if len(prediction.shape) > 2 and prediction.shape[0] > 1:
+            prediction = np.argmax(prediction, axis=0)
+        #
+        prediction = np.squeeze(prediction)
+        prediction_size = info_dict['data_shape']
+        output_image = np.array(palette)[prediction.ravel()].reshape(prediction_size)
+        input_bgr = cv2.imread(data_path)  # Read the actual RGB image
+        # if args.img_border_crop is not None:
+        #    t, l, h, w = args.img_border_crop
+        #    input_bgr = input_bgr[t:t + h, l:l + w]
+        input_bgr = cv2.resize(input_bgr, dsize=(prediction.shape[1], prediction.shape[0]))
+        output_image = self.chroma_blend(input_bgr, output_image)
+
+        if isinstance(output_image, np.ndarray):
             # convert image to BGR
-            tensor = tensor[:,:,::-1] if tensor.ndim > 2 else tensor
-            cv2.imwrite(save_path, tensor)
+            output_image = output_image[:,:,::-1] if output_image.ndim > 2 else output_image
+            cv2.imwrite(save_path, output_image)
         else:
             # add fill code here
-            tensor.save(save_path)
+            output_image.save(save_path)
         #
         self.output_frame_idx += 1
-        return tensor, info_dict
+        return output_image, info_dict
+
+    def chroma_blend(self, image, color, to_image_size=False):
+        if image is None:
+            return color
+        elif color is None:
+            return image
+        #
+        image_dtype = image.dtype
+        color_dtype = color.dtype
+        if image_dtype in (np.float32, np.float64):
+            image = (image * 255).clip(0, 255).astype(np.uint8)
+        #
+        if color_dtype in (np.float32, np.float64):
+            color = (color * 255).clip(0, 255).astype(np.uint8)
+        #
+        if image.shape != color.shape:
+            if to_image_size:
+                color = cv2.resize(color, dsize=(image.shape[1], image.shape[0]))
+            else:
+                image = cv2.resize(image, dsize=(color.shape[1], color.shape[0]))
+            #
+        #
+        image_yuv = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
+        image_y, image_u, image_v = cv2.split(image_yuv)
+        color_yuv = cv2.cvtColor(color, cv2.COLOR_BGR2YUV)
+        color_y, color_u, color_v = cv2.split(color_yuv)
+        image_y = np.uint8(image_y)
+        color_u = np.uint8(color_u)
+        color_v = np.uint8(color_v)
+        image_yuv = cv2.merge((image_y, color_u, color_v))
+        image = cv2.cvtColor(image_yuv.astype(np.uint8), cv2.COLOR_YUV2BGR)
+        if image_dtype in (np.float32, np.float64):
+            image = image / 255.0
+        #
+        return image
 
 
 ##############################################################################

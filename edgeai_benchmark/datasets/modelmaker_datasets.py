@@ -28,6 +28,7 @@
 
 import os
 import json
+import PIL
 
 from .dataset_base import *
 from . import coco_det
