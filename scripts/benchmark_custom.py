@@ -275,9 +275,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('settings_file', type=str)
     parser.add_argument('--model_selection', type=str, default=None, nargs='*')
+    parser.add_argument('--target_device', type=str)
 
     cmds = parser.parse_args()
-    settings = config_settings.ConfigSettings(cmds.settings_file, model_selection=cmds.model_selection)
+    settings = config_settings.ConfigSettings(cmds.settings_file, model_selection=cmds.model_selection,
+                                              target_device=cmds.target_device)
 
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir = {work_dir}')

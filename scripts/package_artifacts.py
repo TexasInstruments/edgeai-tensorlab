@@ -41,9 +41,12 @@ if __name__ == '__main__':
     parser.add_argument('settings_file', type=str)
     parser.add_argument('--work_dir', type=str)
     parser.add_argument('--out_dir', type=str)
+    parser.add_argument('--target_device', type=str)
 
     cmds = parser.parse_args()
-    settings = config_settings.ConfigSettings(cmds.settings_file)
+    #kwargs = vars(cmds)
+
+    settings = config_settings.ConfigSettings(cmds.settings_file, target_device=cmds.target_device)
 
     if 'TIDL_ARTIFACT_SYMLINKS' in os.environ and os.environ['TIDL_ARTIFACT_SYMLINKS']:
         if cmds.work_dir is None:
