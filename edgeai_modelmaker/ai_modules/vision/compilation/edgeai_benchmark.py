@@ -234,7 +234,7 @@ class ModelCompilation():
         return settings
 
     def _get_compiled_artifact_dir(self):
-        compiled_artifact_dir = os.path.join(self.work_dir, 'modelartifacts')
+        compiled_artifact_dir = os.path.join(self.work_dir, 'ma')
         return compiled_artifact_dir
 
     def _get_packaged_artifact_path(self):
@@ -269,8 +269,8 @@ class ModelCompilation():
         return True
 
     def _get_base_dirs(self):
-        work_dir = os.path.join(self.settings.modelartifacts_path, 'work')
-        package_dir = os.path.join(self.settings.modelartifacts_path, 'pkg')
+        work_dir = os.path.join(self.settings.modelartifacts_path, 'wk')
+        package_dir = os.path.join(self.settings.modelartifacts_path, 'pk')
         return work_dir, package_dir
 
     def get_params(self):

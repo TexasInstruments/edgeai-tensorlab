@@ -35,8 +35,8 @@
 if [ $# -le 1 ]; then
     echo "help:"
     echo "$0 target_device config_file"
-    echo "target_device can be one of TDA4VM AM62 until SDK/tidl-tools version 8.5 (see edgeai-benchmark's setup_pc.sh)"
-    echo "target_device can be one of TDA4VM AM62A AM68A AM69A AM62 from SDK/tidl-tools version 8.6 onwards"
+    echo "target_device can be one of TDA4VM AM62A AM68A AM69A AM62"
+    echo "(Note: until 8.5 version, only TDA4VM was supported)"
     exit 0
 fi
 
