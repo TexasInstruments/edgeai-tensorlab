@@ -533,18 +533,20 @@ removed_models_from_plots = {
 
 recommended_model_list = {
     'cl-0000_tflitert': 'TFL-CL-0000-mobileNetV1-mlperf',
-    'od-2020_tflitert': 'TFL-OD-2020-ssdLite-mobDet-DSP-coco-320x320',
+    'od-2010_tflitert': 'TFL-OD-2010-ssd-mobV2-coco-mlperf-300x300', #'od-2020_tflitert': 'TFL-OD-2020-ssdLite-mobDet-DSP-coco-320x320',
     'ss-2580_tflitert': 'TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512',
     'cl-3090_tvmdlr': 'TVM-CL-3090-mobileNetV2-tv',
-    'cl-3520_tvmdlr': 'TVM-CL-3520-mobileNetV1',
     'od-5120_tvmdlr': 'TVM-OD-5120-ssdLite-mobDet-DSP-coco-320x320',
     'ss-5710_tvmdlr': 'TVM-SS-5710-deeplabv3lite-mobv2-cocoseg21-512x512', # replaced with ss-5720 with ss-5710
     'cl-6360_onnxrt': 'ONR-CL-6360-regNetx-200mf',
-    'od-8050_onnxrt': 'ONR-OD-8050-ssd-lite-regNetX-800mf-fpn-bgr-coco-512x512',
+    'od-8020_onnxrt': 'ONR-OD-8020-ssd-lite-mobv2-mmdet-coco-512x512',
+    'od-8200_onnxrt': 'ONR-OD-8200-yolox-nano-lite-mmdet-coco-416x416',
     'od-8220_onnxrt': 'ONR-OD-8220-yolox-s-lite-mmdet-coco-640x640',
     'od-8420_onnxrt': 'ONR-OD-8420-yolox-s-lite-mmdet-widerface-640x640',
     'ss-8610_onnxrt': 'ONR-SS-8610-deeplabv3lite-mobv2-ade20k32-512x512',
     'kd-7060_onnxrt': 'ONR-KD-7060-human-pose-yolox-s-640x640',
+    #'cl-3520_tvmdlr': 'TVM-CL-3520-mobileNetV1',
+    #'od-8050_onnxrt': 'ONR-OD-8050-ssd-lite-regNetX-800mf-fpn-bgr-coco-512x512',
 }
 
 #sampled on 29th Jul 21
