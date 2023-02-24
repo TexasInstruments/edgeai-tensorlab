@@ -49,27 +49,6 @@ edgeai_mmdetection_tools_path = os.path.join(edgeai_mmdetection_path, 'tools')
 
 
 model_urls = {
-    'ssd_mobilenetv2_lite_mmdet': [
-        {
-            'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_lite_512x512_20201214_checkpoint.pth',
-            'download_path': os.path.join('{download_path}', 'pretrained', 'ssd_mobilenetv2_lite_mmdet')
-        },
-        {
-            'download_name': 'torchvision://mobilenet_v2',
-            'download_url': f'https://download.pytorch.org/models/mobilenet_v2-b0353104.pth',
-            'download_path': os.path.join('{download_path}', 'pretrained', 'torch', 'hub', 'checkpoints')
-        },
-    ],
-    'ssd_regnetx_200mf_fpn_bgr_lite_mmdet': [
-        {
-            'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-200mf_fpn_bgr_lite_320x320_20201010_checkpoint.pth',
-            'download_path': os.path.join('{download_path}', 'pretrained', 'ssd_regnetx_200mf_fpn_bgr_lite_mmdet')
-        },
-        {
-            'download_url': 'https://dl.fbaipublicfiles.com/pycls/dds_baselines/160905981/RegNetX-200MF_dds_8gpu.pyth',
-            'download_path': os.path.join('{download_path}', 'pretrained', 'torch', 'hub', 'checkpoints')
-        },
-    ],
     'yolox_nano_lite_mmdet': [
         {
             'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth',
@@ -92,80 +71,6 @@ model_urls = {
 
 
 _model_descriptions = {
-    'ssd_mobilenetv2_lite_mmdet': dict(
-        common=dict(
-            task_type=constants.TASK_TYPE_DETECTION,
-        ),
-        download=model_urls['ssd_mobilenetv2_lite_mmdet'],
-        training=dict(
-            training_backend='edgeai_mmdetection',
-            model_name='ssd_mobilenetv2_lite_mmdet',
-            model_training_id='ssd_mobilenet_lite',
-            model_architecture='ssd',
-            input_resize=(512,512),
-            input_cropsize=(512,512),
-            pretrained_checkpoint_path=model_urls['ssd_mobilenetv2_lite_mmdet'][0],
-            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
-            target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=218, performance_infer_time_ms=1000/(218),
-                                                   accuracy_factor=(43.1), accuracy_unit='AP50%', accuracy_factor2=(25.1), accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM62A: dict(performance_fps=218, performance_infer_time_ms=1000/(218),
-                                                   accuracy_factor=(43.1), accuracy_unit='AP50%', accuracy_factor2=(25.1), accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM68A: dict(performance_fps=218, performance_infer_time_ms=1000/(218),
-                                                   accuracy_factor=(43.1), accuracy_unit='AP50%', accuracy_factor2=(25.1), accuracy_unit2='AP[.5:.95]%'),
-                # constants.TARGET_DEVICE_AM62: dict(performance_fps=0.5, performance_infer_time_ms=1000/(0.5),
-                #                                    accuracy_factor=(43.1), accuracy_unit='AP50%', accuracy_factor2=(25.1), accuracy_unit2='AP[.5:.95]%'),
-            },
-            training_devices={
-                constants.TRAINING_DEVICE_CPU: True,
-                constants.TRAINING_DEVICE_CUDA: True,
-            }
-        ),
-        compilation=dict(
-            model_compilation_id='od-8020',
-            runtime_options={
-                'advanced_options:output_feature_16bit_names_list': None
-            },
-            metric=dict(label_offset_pred=0)
-        )
-    ),
-    'ssd_regnetx_200mf_fpn_bgr_lite_mmdet': dict(
-        common=dict(
-            task_type=constants.TASK_TYPE_DETECTION,
-        ),
-        download=model_urls['ssd_regnetx_200mf_fpn_bgr_lite_mmdet'],
-        training=dict(
-            training_backend='edgeai_mmdetection',
-            model_name='ssd_regnetx_200mf_fpn_bgr_lite_mmdet',
-            model_training_id='ssd_regnetx_200mf_fpn_bgr_lite',
-            model_architecture='ssd',
-            input_resize=(320,320),
-            input_cropsize=(320,320),
-            pretrained_checkpoint_path=model_urls['ssd_regnetx_200mf_fpn_bgr_lite_mmdet'][0],
-            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
-            target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=183, performance_infer_time_ms=1000/183,
-                                                     accuracy_factor=36.7, accuracy_unit='AP50%', accuracy_factor2=20.7, accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM62A: dict(performance_fps=183, performance_infer_time_ms=1000/183,
-                                                     accuracy_factor=36.7, accuracy_unit='AP50%', accuracy_factor2=20.7, accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM68A: dict(performance_fps=183, performance_infer_time_ms=1000/183,
-                                                     accuracy_factor=36.7, accuracy_unit='AP50%', accuracy_factor2=20.7, accuracy_unit2='AP[.5:.95]%'),
-                # constants.TARGET_DEVICE_AM62: dict(performance_fps=2.3, performance_infer_time_ms=1000/2.3,
-                #                                    accuracy_factor=36.7, accuracy_unit='AP50%', accuracy_factor2=20.7, accuracy_unit2='AP[.5:.95]%'), # TODO: approx values
-            },
-            training_devices={
-                constants.TRAINING_DEVICE_CPU: True,
-                constants.TRAINING_DEVICE_CUDA: True,
-            }
-        ),
-        compilation=dict(
-            model_compilation_id='od-8040',
-            runtime_options={
-                'advanced_options:output_feature_16bit_names_list': None
-            },
-            metric=dict(label_offset_pred=0)
-        )
-    ),
     'yolox_nano_lite_mmdet': dict(
         common=dict(
             task_type=constants.TASK_TYPE_DETECTION,

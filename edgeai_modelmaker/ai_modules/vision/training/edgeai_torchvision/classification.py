@@ -50,14 +50,6 @@ model_urls = {
         'download_url': f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth',
         'download_path': os.path.join('{download_path}', 'pretrained', 'mobilenet_v2_lite_tv')
     },
-    'mobilenet_v3_large_lite_tv': {
-        'download_url': f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth',
-        'download_path': os.path.join('{download_path}', 'pretrained', 'mobilenet_v3_large_lite_tv')
-    },
-    'mobilenet_v3_small_lite_tv': {
-        'download_url': f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth',
-        'download_path': os.path.join('{download_path}', 'pretrained', 'mobilenet_v3_small_lite_tv')
-    },
     'regnet_x_400mf_tv': {
         'download_url': f'https://download.pytorch.org/models/regnet_x_400mf-62229a5f.pth', #'https://download.pytorch.org/models/regnet_x_400mf-adf1edd5.pth',
         'download_path': os.path.join('{download_path}', 'pretrained', 'torch', 'hub', 'checkpoints')
@@ -66,6 +58,10 @@ model_urls = {
         'download_url': f'https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth',
         'download_path': os.path.join('{download_path}', 'pretrained', 'torch', 'hub', 'checkpoints')
     },
+    # 'mobilenet_v3_large_lite_tv': {
+    #     'download_url': f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth',
+    #     'download_path': os.path.join('{download_path}', 'pretrained', 'mobilenet_v3_large_lite_tv')
+    # },
 }
 
 
@@ -101,74 +97,6 @@ _model_descriptions = {
         ),
         compilation=dict(
             model_compilation_id='cl-6070',
-            metric=dict(label_offset_pred=1)
-        )
-    ),
-    'mobilenet_v3_large_lite_tv': dict(
-        common=dict(
-            task_type=constants.TASK_TYPE_CLASSIFICATION,
-        ),
-        download=model_urls['mobilenet_v3_large_lite_tv'],
-        training=dict(
-            training_backend='edgeai_torchvision',
-            model_training_id='mobilenet_v3_large_lite',
-            model_name='mobilenet_v3_large_lite_tv',
-            model_architecture='backbone',
-            input_resize=256,
-            input_cropsize=224,
-            pretrained_checkpoint_path=model_urls['mobilenet_v3_large_lite_tv'],
-            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
-            target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=267, performance_infer_time_ms=1000/267,
-                                                     accuracy_factor=72.12, accuracy_unit='Accuracy Top-1%'),
-                constants.TARGET_DEVICE_AM62A: dict(performance_fps=267, performance_infer_time_ms=1000/267,
-                                                     accuracy_factor=72.12, accuracy_unit='Accuracy Top-1%'),
-                constants.TARGET_DEVICE_AM68A: dict(performance_fps=267, performance_infer_time_ms=1000/267,
-                                                     accuracy_factor=72.12, accuracy_unit='Accuracy Top-1%'),
-                # constants.TARGET_DEVICE_AM62: dict(performance_fps=14, performance_infer_time_ms=1000/14,
-                #                                    accuracy_factor=72.12, accuracy_unit='Accuracy Top-1%')
-            },
-            training_devices={
-                constants.TRAINING_DEVICE_CPU: True,
-                constants.TRAINING_DEVICE_CUDA: True,
-            }
-        ),
-        compilation=dict(
-            model_compilation_id='cl-6490',
-            metric=dict(label_offset_pred=1)
-        )
-    ),
-    'mobilenet_v3_small_lite_tv': dict(
-        common=dict(
-            task_type=constants.TASK_TYPE_CLASSIFICATION,
-        ),
-        download=model_urls['mobilenet_v3_small_lite_tv'],
-        training=dict(
-            training_backend='edgeai_torchvision',
-            model_training_id='mobilenet_v3_small_lite',
-            model_name='mobilenet_v3_small_lite_tv',
-            model_architecture='backbone',
-            input_resize=256,
-            input_cropsize=224,
-            pretrained_checkpoint_path=model_urls['mobilenet_v3_small_lite_tv'],
-            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
-            target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=751, performance_infer_time_ms=1000/751,
-                                                     accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%'),
-                constants.TARGET_DEVICE_AM62A: dict(performance_fps=751, performance_infer_time_ms=1000/751,
-                                                     accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%'),
-                constants.TARGET_DEVICE_AM68A: dict(performance_fps=751, performance_infer_time_ms=1000/751,
-                                                     accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%'),
-                # constants.TARGET_DEVICE_AM62: dict(performance_fps=34, performance_infer_time_ms=1000/34,
-                #                                    accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%')
-            },
-            training_devices={
-                constants.TRAINING_DEVICE_CPU: True,
-                constants.TRAINING_DEVICE_CUDA: True,
-            }
-        ),
-        compilation=dict(
-            model_compilation_id='cl-6480',
             metric=dict(label_offset_pred=1)
         )
     ),
@@ -236,6 +164,40 @@ _model_descriptions = {
             metric=dict(label_offset_pred=1)
         )
     ),
+    # 'mobilenet_v3_small_lite_tv': dict(
+    #     common=dict(
+    #         task_type=constants.TASK_TYPE_CLASSIFICATION,
+    #     ),
+    #     download=model_urls['mobilenet_v3_small_lite_tv'],
+    #     training=dict(
+    #         training_backend='edgeai_torchvision',
+    #         model_training_id='mobilenet_v3_small_lite',
+    #         model_name='mobilenet_v3_small_lite_tv',
+    #         model_architecture='backbone',
+    #         input_resize=256,
+    #         input_cropsize=224,
+    #         pretrained_checkpoint_path=model_urls['mobilenet_v3_small_lite_tv'],
+    #         batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
+    #         target_devices={
+    #             constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=751, performance_infer_time_ms=1000/751,
+    #                                                  accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%'),
+    #             constants.TARGET_DEVICE_AM62A: dict(performance_fps=751, performance_infer_time_ms=1000/751,
+    #                                                  accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%'),
+    #             constants.TARGET_DEVICE_AM68A: dict(performance_fps=751, performance_infer_time_ms=1000/751,
+    #                                                  accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%'),
+    #             # constants.TARGET_DEVICE_AM62: dict(performance_fps=34, performance_infer_time_ms=1000/34,
+    #             #                                    accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%')
+    #         },
+    #         training_devices={
+    #             constants.TRAINING_DEVICE_CPU: True,
+    #             constants.TRAINING_DEVICE_CUDA: True,
+    #         }
+    #     ),
+    #     compilation=dict(
+    #         model_compilation_id='cl-6480',
+    #         metric=dict(label_offset_pred=1)
+    #     )
+    # ),
 }
 
 
