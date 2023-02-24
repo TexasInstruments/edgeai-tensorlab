@@ -89,7 +89,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':62.688}, model_shortlist=20)
+            model_info=dict(metric_reference={'accuracy_top1%':62.688}, model_shortlist=30)
         ),
         # jai-devkit: classification mobilenetv3_small_lite_qat expected_metric: 61.836% top-1 accuracy
         'cl-6488':utils.dict_update(common_cfg,
@@ -105,7 +105,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':72.122}, model_shortlist=20)
+            model_info=dict(metric_reference={'accuracy_top1%':72.122}, model_shortlist=30)
         ),
         #################torchvision models#########################
         # torchvision: classification shufflenetv2_224x224 expected_metric: 69.36% top-1 accuracy
