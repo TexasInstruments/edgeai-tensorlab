@@ -234,7 +234,7 @@ class ModelCompilation():
         return settings
 
     def _get_compiled_artifact_dir(self):
-        compiled_artifact_dir = os.path.join(self.work_dir, 'ma')
+        compiled_artifact_dir = os.path.join(self.work_dir, self.params.compilation.model_compilation_id)
         return compiled_artifact_dir
 
     def _get_packaged_artifact_path(self):
@@ -251,10 +251,9 @@ class ModelCompilation():
         return final_artifact_name
 
     def _replace_artifact_name(self, artifact_name):
-        artifact_basename = os.path.splitext(os.path.basename(artifact_name))[0]
-        artifact_basename = os.path.splitext(artifact_basename)[0]
+        artifact_dirname = os.path.dirname(artifact_name)
         final_artifact_name = self._get_final_artifact_name()
-        artifact_name = artifact_name.replace(artifact_basename, final_artifact_name)
+        artifact_name = os.path.join(artifact_dirname, final_artifact_name)
         return artifact_name
 
     def _has_logs(self):
