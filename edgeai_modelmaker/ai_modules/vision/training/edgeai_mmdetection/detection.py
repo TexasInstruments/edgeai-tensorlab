@@ -49,41 +49,41 @@ edgeai_mmdetection_tools_path = os.path.join(edgeai_mmdetection_path, 'tools')
 
 
 model_urls = {
-    'yolox_nano_lite_mmdet': [
+    'yolox_nano_lite': [
         {
             'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth',
-            'download_path': os.path.join('{download_path}', 'pretrained', 'yolox_nano_lite_mmdet')
+            'download_path': os.path.join('{download_path}', 'pretrained', 'yolox_nano_lite')
         },
     ],
-    'yolox_tiny_lite_mmdet': [
+    'yolox_tiny_lite': [
         {
             'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth',
-            'download_path': os.path.join('{download_path}', 'pretrained', 'yolox_tiny_lite_mmdet')
+            'download_path': os.path.join('{download_path}', 'pretrained', 'yolox_tiny_lite')
         },
     ],
-    'yolox_s_lite_mmdet': [
+    'yolox_s_lite': [
         {
             'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth',
-            'download_path': os.path.join('{download_path}', 'pretrained', 'yolox_s_lite_mmdet')
+            'download_path': os.path.join('{download_path}', 'pretrained', 'yolox_s_lite')
         },
     ]
 }
 
 
 _model_descriptions = {
-    'yolox_nano_lite_mmdet': dict(
+    'yolox_nano_lite': dict(
         common=dict(
             task_type=constants.TASK_TYPE_DETECTION,
         ),
-        download=model_urls['yolox_nano_lite_mmdet'],
+        download=model_urls['yolox_nano_lite'],
         training=dict(
             training_backend='edgeai_mmdetection',
-            model_name='yolox_nano_lite_416x416_mmdet',
+            model_name='yolox_nano_lite',
             model_training_id='yolox_nano_lite',
             model_architecture='yolox',
             input_resize=416,
             input_cropsize=416,
-            pretrained_checkpoint_path=model_urls['yolox_nano_lite_mmdet'][0],
+            pretrained_checkpoint_path=model_urls['yolox_nano_lite'][0],
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=287, performance_infer_time_ms=1000/287,
@@ -106,19 +106,19 @@ _model_descriptions = {
             metric=dict(label_offset_pred=0)
         )
     ),
-    'yolox_tiny_lite_mmdet': dict(
+    'yolox_tiny_lite': dict(
         common=dict(
             task_type=constants.TASK_TYPE_DETECTION,
         ),
-        download=model_urls['yolox_tiny_lite_mmdet'],
+        download=model_urls['yolox_tiny_lite'],
         training=dict(
             training_backend='edgeai_mmdetection',
-            model_name='yolox_tiny_lite_416x416_mmdet',
+            model_name='yolox_tiny_lite',
             model_training_id='yolox_tiny_lite',
             model_architecture='yolox',
             input_resize=416,
             input_cropsize=416,
-            pretrained_checkpoint_path=model_urls['yolox_tiny_lite_mmdet'][0],
+            pretrained_checkpoint_path=model_urls['yolox_tiny_lite'][0],
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=220, performance_infer_time_ms=1000/220,
@@ -141,19 +141,19 @@ _model_descriptions = {
             metric=dict(label_offset_pred=0)
         )
     ),
-    'yolox_s_lite_mmdet': dict(
+    'yolox_s_lite': dict(
         common=dict(
             task_type=constants.TASK_TYPE_DETECTION,
         ),
-        download=model_urls['yolox_s_lite_mmdet'],
+        download=model_urls['yolox_s_lite'],
         training=dict(
             training_backend='edgeai_mmdetection',
-            model_name='yolox_s_lite_640x640_mmdet',
+            model_name='yolox_s_lite',
             model_training_id='yolox_s_lite',
             model_architecture='yolox',
             input_resize=640,
             input_cropsize=640,
-            pretrained_checkpoint_path=model_urls['yolox_s_lite_mmdet'][0],
+            pretrained_checkpoint_path=model_urls['yolox_s_lite'][0],
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=102, performance_infer_time_ms=1000/102,

@@ -46,39 +46,39 @@ www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest'
 
 
 model_urls = {
-    'mobilenet_v2_lite_tv': {
+    'mobilenet_v2_lite': {
         'download_url': f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth',
-        'download_path': os.path.join('{download_path}', 'pretrained', 'mobilenet_v2_lite_tv')
+        'download_path': os.path.join('{download_path}', 'pretrained', 'mobilenet_v2_lite')
     },
-    'regnet_x_400mf_tv': {
+    'regnet_x_400mf': {
         'download_url': f'https://download.pytorch.org/models/regnet_x_400mf-62229a5f.pth', #'https://download.pytorch.org/models/regnet_x_400mf-adf1edd5.pth',
         'download_path': os.path.join('{download_path}', 'pretrained', 'torch', 'hub', 'checkpoints')
     },
-    'regnet_x_800mf_tv': {
+    'regnet_x_800mf': {
         'download_url': f'https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth',
         'download_path': os.path.join('{download_path}', 'pretrained', 'torch', 'hub', 'checkpoints')
     },
-    # 'mobilenet_v3_large_lite_tv': {
+    # 'mobilenet_v3_large_lite': {
     #     'download_url': f'{www_modelzoo_path}/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth',
-    #     'download_path': os.path.join('{download_path}', 'pretrained', 'mobilenet_v3_large_lite_tv')
+    #     'download_path': os.path.join('{download_path}', 'pretrained', 'mobilenet_v3_large_lite')
     # },
 }
 
 
 _model_descriptions = {
-    'mobilenet_v2_lite_tv': dict(
+    'mobilenet_v2_lite': dict(
         common=dict(
             task_type=constants.TASK_TYPE_CLASSIFICATION,
         ),
-        download=model_urls['mobilenet_v2_lite_tv'],
+        download=model_urls['mobilenet_v2_lite'],
         training=dict(
             training_backend='edgeai_torchvision',
             model_training_id='mobilenet_v2_lite',
-            model_name='mobilenet_v2_lite_tv',
+            model_name='mobilenet_v2_lite',
             model_architecture='backbone',
             input_resize=256,
             input_cropsize=224,
-            pretrained_checkpoint_path=model_urls['mobilenet_v2_lite_tv'],
+            pretrained_checkpoint_path=model_urls['mobilenet_v2_lite'],
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=477, performance_infer_time_ms=1000/477,
@@ -100,19 +100,19 @@ _model_descriptions = {
             metric=dict(label_offset_pred=1)
         )
     ),
-    'regnet_x_400mf_tv': dict(
+    'regnet_x_400mf': dict(
         common=dict(
             task_type=constants.TASK_TYPE_CLASSIFICATION,
         ),
-        download=model_urls['regnet_x_400mf_tv'],
+        download=model_urls['regnet_x_400mf'],
         training=dict(
             training_backend='edgeai_torchvision',
             model_training_id='regnet_x_400mf',
-            model_name='regnet_x_400mf_tv',
+            model_name='regnet_x_400mf',
             model_architecture='backbone',
             input_resize=256,
             input_cropsize=224,
-            pretrained_checkpoint_path=model_urls['regnet_x_400mf_tv'],
+            pretrained_checkpoint_path=model_urls['regnet_x_400mf'],
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=288, performance_infer_time_ms=1000/288,
@@ -132,19 +132,19 @@ _model_descriptions = {
             metric=dict(label_offset_pred=1)
         )
     ),
-    'regnet_x_800mf_tv': dict(
+    'regnet_x_800mf': dict(
         common=dict(
             task_type=constants.TASK_TYPE_CLASSIFICATION,
         ),
-        download=model_urls['regnet_x_800mf_tv'],
+        download=model_urls['regnet_x_800mf'],
         training=dict(
             training_backend='edgeai_torchvision',
             model_training_id='regnet_x_800mf',
-            model_name='regnet_x_800mf_tv',
+            model_name='regnet_x_800mf',
             model_architecture='backbone',
             input_resize=256,
             input_cropsize=224,
-            pretrained_checkpoint_path=model_urls['regnet_x_800mf_tv'],
+            pretrained_checkpoint_path=model_urls['regnet_x_800mf'],
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=272, performance_infer_time_ms=1000/272,
@@ -164,19 +164,19 @@ _model_descriptions = {
             metric=dict(label_offset_pred=1)
         )
     ),
-    # 'mobilenet_v3_small_lite_tv': dict(
+    # 'mobilenet_v3_small_lite': dict(
     #     common=dict(
     #         task_type=constants.TASK_TYPE_CLASSIFICATION,
     #     ),
-    #     download=model_urls['mobilenet_v3_small_lite_tv'],
+    #     download=model_urls['mobilenet_v3_small_lite'],
     #     training=dict(
     #         training_backend='edgeai_torchvision',
     #         model_training_id='mobilenet_v3_small_lite',
-    #         model_name='mobilenet_v3_small_lite_tv',
+    #         model_name='mobilenet_v3_small_lite',
     #         model_architecture='backbone',
     #         input_resize=256,
     #         input_cropsize=224,
-    #         pretrained_checkpoint_path=model_urls['mobilenet_v3_small_lite_tv'],
+    #         pretrained_checkpoint_path=model_urls['mobilenet_v3_small_lite'],
     #         batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
     #         target_devices={
     #             constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=751, performance_infer_time_ms=1000/751,

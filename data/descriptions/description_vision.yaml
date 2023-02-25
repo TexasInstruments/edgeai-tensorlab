@@ -54,7 +54,7 @@ help_descriptions:
         their L2 norm.
       name: Weight Decay
 model_descriptions:
-  mobilenet_v2_lite_tv:
+  mobilenet_v2_lite:
     common:
       download_path: ./data/downloads
       project_path: null
@@ -111,7 +111,7 @@ model_descriptions:
       - train
       - val
     download:
-      download_path: '{download_path}/pretrained/mobilenet_v2_lite_tv'
+      download_path: '{download_path}/pretrained/mobilenet_v2_lite'
       download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
     training:
       batch_size: 64
@@ -126,7 +126,7 @@ model_descriptions:
       model_architecture: backbone
       model_checkpoint_path: null
       model_export_path: null
-      model_name: mobilenet_v2_lite_tv
+      model_name: mobilenet_v2_lite
       model_packaged_path: null
       model_proto_path: null
       model_training_id: mobilenet_v2_lite
@@ -134,7 +134,7 @@ model_descriptions:
       num_gpus: 0
       num_last_epochs: 5
       pretrained_checkpoint_path:
-        download_path: '{download_path}/pretrained/mobilenet_v2_lite_tv'
+        download_path: '{download_path}/pretrained/mobilenet_v2_lite'
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
       project_path: null
       summary_file_path: null
@@ -167,7 +167,7 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
-  regnet_x_400mf_tv:
+  regnet_x_400mf:
     common:
       download_path: ./data/downloads
       project_path: null
@@ -239,7 +239,7 @@ model_descriptions:
       model_architecture: backbone
       model_checkpoint_path: null
       model_export_path: null
-      model_name: regnet_x_400mf_tv
+      model_name: regnet_x_400mf
       model_packaged_path: null
       model_proto_path: null
       model_training_id: regnet_x_400mf
@@ -280,7 +280,7 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
-  regnet_x_800mf_tv:
+  regnet_x_800mf:
     common:
       download_path: ./data/downloads
       project_path: null
@@ -352,7 +352,7 @@ model_descriptions:
       model_architecture: backbone
       model_checkpoint_path: null
       model_export_path: null
-      model_name: regnet_x_800mf_tv
+      model_name: regnet_x_800mf
       model_packaged_path: null
       model_proto_path: null
       model_training_id: regnet_x_800mf
@@ -393,7 +393,7 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
-  yolox_nano_lite_mmdet:
+  yolox_nano_lite:
     common:
       download_path: ./data/downloads
       project_path: null
@@ -453,7 +453,7 @@ model_descriptions:
       - train
       - val
     download:
-    - download_path: '{download_path}/pretrained/yolox_nano_lite_mmdet'
+    - download_path: '{download_path}/pretrained/yolox_nano_lite'
       download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
     training:
       batch_size: 8
@@ -468,7 +468,7 @@ model_descriptions:
       model_architecture: yolox
       model_checkpoint_path: null
       model_export_path: null
-      model_name: yolox_nano_lite_416x416_mmdet
+      model_name: yolox_nano_lite
       model_packaged_path: null
       model_proto_path: null
       model_training_id: yolox_nano_lite
@@ -476,7 +476,7 @@ model_descriptions:
       num_gpus: 0
       num_last_epochs: 5
       pretrained_checkpoint_path:
-        download_path: '{download_path}/pretrained/yolox_nano_lite_mmdet'
+        download_path: '{download_path}/pretrained/yolox_nano_lite'
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
       project_path: null
       summary_file_path: null
@@ -515,7 +515,7 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
-  yolox_s_lite_mmdet:
+  yolox_s_lite:
     common:
       download_path: ./data/downloads
       project_path: null
@@ -575,7 +575,7 @@ model_descriptions:
       - train
       - val
     download:
-    - download_path: '{download_path}/pretrained/yolox_s_lite_mmdet'
+    - download_path: '{download_path}/pretrained/yolox_s_lite'
       download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
     training:
       batch_size: 8
@@ -590,7 +590,7 @@ model_descriptions:
       model_architecture: yolox
       model_checkpoint_path: null
       model_export_path: null
-      model_name: yolox_s_lite_640x640_mmdet
+      model_name: yolox_s_lite
       model_packaged_path: null
       model_proto_path: null
       model_training_id: yolox_s_lite
@@ -598,7 +598,7 @@ model_descriptions:
       num_gpus: 0
       num_last_epochs: 5
       pretrained_checkpoint_path:
-        download_path: '{download_path}/pretrained/yolox_s_lite_mmdet'
+        download_path: '{download_path}/pretrained/yolox_s_lite'
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
       project_path: null
       summary_file_path: null
@@ -637,7 +637,7 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
-  yolox_tiny_lite_mmdet:
+  yolox_tiny_lite:
     common:
       download_path: ./data/downloads
       project_path: null
@@ -697,7 +697,7 @@ model_descriptions:
       - train
       - val
     download:
-    - download_path: '{download_path}/pretrained/yolox_tiny_lite_mmdet'
+    - download_path: '{download_path}/pretrained/yolox_tiny_lite'
       download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
     training:
       batch_size: 8
@@ -712,7 +712,7 @@ model_descriptions:
       model_architecture: yolox
       model_checkpoint_path: null
       model_export_path: null
-      model_name: yolox_tiny_lite_416x416_mmdet
+      model_name: yolox_tiny_lite
       model_packaged_path: null
       model_proto_path: null
       model_training_id: yolox_tiny_lite
@@ -720,7 +720,7 @@ model_descriptions:
       num_gpus: 0
       num_last_epochs: 5
       pretrained_checkpoint_path:
-        download_path: '{download_path}/pretrained/yolox_tiny_lite_mmdet'
+        download_path: '{download_path}/pretrained/yolox_tiny_lite'
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
       project_path: null
       summary_file_path: null

@@ -8,7 +8,7 @@
     ]
   },
   "model_descriptions":{
-    "mobilenet_v2_lite_tv":{
+    "mobilenet_v2_lite":{
       "common":{
         "verbose_mode":true,
         "download_path":"./data/downloads",
@@ -23,7 +23,7 @@
       },
       "download":{
         "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth",
-        "download_path":"{download_path}/pretrained/mobilenet_v2_lite_tv"
+        "download_path":"{download_path}/pretrained/mobilenet_v2_lite"
       },
       "dataset":{
         "enable":true,
@@ -49,12 +49,12 @@
       },
       "training":{
         "enable":true,
-        "model_name":"mobilenet_v2_lite_tv",
+        "model_name":"mobilenet_v2_lite",
         "model_training_id":"mobilenet_v2_lite",
         "training_backend":"edgeai_torchvision",
         "pretrained_checkpoint_path":{
           "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/mobilenet_v2_lite_tv"
+          "download_path":"{download_path}/pretrained/mobilenet_v2_lite"
         },
         "target_devices":{
           "TDA4VM":{
@@ -135,7 +135,7 @@
         }
       }
     },
-    "regnet_x_400mf_tv":{
+    "regnet_x_400mf":{
       "common":{
         "verbose_mode":true,
         "download_path":"./data/downloads",
@@ -176,7 +176,7 @@
       },
       "training":{
         "enable":true,
-        "model_name":"regnet_x_400mf_tv",
+        "model_name":"regnet_x_400mf",
         "model_training_id":"regnet_x_400mf",
         "training_backend":"edgeai_torchvision",
         "pretrained_checkpoint_path":{
@@ -262,7 +262,7 @@
         }
       }
     },
-    "regnet_x_800mf_tv":{
+    "regnet_x_800mf":{
       "common":{
         "verbose_mode":true,
         "download_path":"./data/downloads",
@@ -303,7 +303,7 @@
       },
       "training":{
         "enable":true,
-        "model_name":"regnet_x_800mf_tv",
+        "model_name":"regnet_x_800mf",
         "model_training_id":"regnet_x_800mf",
         "training_backend":"edgeai_torchvision",
         "pretrained_checkpoint_path":{
@@ -389,7 +389,7 @@
         }
       }
     },
-    "yolox_nano_lite_mmdet":{
+    "yolox_nano_lite":{
       "common":{
         "verbose_mode":true,
         "download_path":"./data/downloads",
@@ -405,7 +405,7 @@
       "download":[
         {
           "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/yolox_nano_lite_mmdet"
+          "download_path":"{download_path}/pretrained/yolox_nano_lite"
         }
       ],
       "dataset":{
@@ -432,12 +432,12 @@
       },
       "training":{
         "enable":true,
-        "model_name":"yolox_nano_lite_416x416_mmdet",
+        "model_name":"yolox_nano_lite",
         "model_training_id":"yolox_nano_lite",
         "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":{
           "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/yolox_nano_lite_mmdet"
+          "download_path":"{download_path}/pretrained/yolox_nano_lite"
         },
         "target_devices":{
           "TDA4VM":{
@@ -527,7 +527,7 @@
         }
       }
     },
-    "yolox_tiny_lite_mmdet":{
+    "yolox_tiny_lite":{
       "common":{
         "verbose_mode":true,
         "download_path":"./data/downloads",
@@ -543,7 +543,7 @@
       "download":[
         {
           "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/yolox_tiny_lite_mmdet"
+          "download_path":"{download_path}/pretrained/yolox_tiny_lite"
         }
       ],
       "dataset":{
@@ -570,12 +570,12 @@
       },
       "training":{
         "enable":true,
-        "model_name":"yolox_tiny_lite_416x416_mmdet",
+        "model_name":"yolox_tiny_lite",
         "model_training_id":"yolox_tiny_lite",
         "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":{
           "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/yolox_tiny_lite_mmdet"
+          "download_path":"{download_path}/pretrained/yolox_tiny_lite"
         },
         "target_devices":{
           "TDA4VM":{
@@ -665,7 +665,7 @@
         }
       }
     },
-    "yolox_s_lite_mmdet":{
+    "yolox_s_lite":{
       "common":{
         "verbose_mode":true,
         "download_path":"./data/downloads",
@@ -681,7 +681,7 @@
       "download":[
         {
           "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/yolox_s_lite_mmdet"
+          "download_path":"{download_path}/pretrained/yolox_s_lite"
         }
       ],
       "dataset":{
@@ -708,12 +708,12 @@
       },
       "training":{
         "enable":true,
-        "model_name":"yolox_s_lite_640x640_mmdet",
+        "model_name":"yolox_s_lite",
         "model_training_id":"yolox_s_lite",
         "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":{
           "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/yolox_s_lite_mmdet"
+          "download_path":"{download_path}/pretrained/yolox_s_lite"
         },
         "target_devices":{
           "TDA4VM":{

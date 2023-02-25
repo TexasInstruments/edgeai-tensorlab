@@ -31,8 +31,8 @@ training:
     enable: True #False
 
     # Image Classification model chosen can be changed here if needed
-    # #'mobilenet_v2_lite_tv' #'mobilenet_v3_large_lite_tv' #'mobilenet_v3_small_lite_tv' #'regnet_x_400mf_tv' #'regnet_x_800mf_tv' #'regnet_x_1_6gf_tv'
-    model_name: 'regnet_x_800mf_tv'
+    # options are: 'mobilenet_v2_lite', 'regnet_x_400mf', 'regnet_x_800mf'
+    model_name: 'mobilenet_v2_lite'
 
     training_epochs: 15 #30
     batch_size: 64 #8 #32

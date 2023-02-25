@@ -39,10 +39,8 @@ training:
     enable: True #False
 
     # Object Detection model chosen can be changed here if needed
-    # SSD: 'ssd_mobilenetv2_lite_mmdet' 'ssd_mobilenetv2_fpn_lite_mmdet'
-    # SSD: 'ssd_regnetx_200mf_fpn_bgr_lite_mmdet'
-    # YOLOX:'yolox_nano_lite_mmdet', 'yolox_tiny_lite_mmdet', 'yolox_s_lite_mmdet', 'yolox_m_lite_mmdet'
-    model_name: 'yolox_s_lite_mmdet'
+    # options are: 'yolox_nano_lite', 'yolox_tiny_lite', 'yolox_s_lite'
+    model_name: 'yolox_tiny_lite'
 
     training_epochs: 15 #30
     # batch_size: 8 #32
