@@ -176,15 +176,27 @@ PLUGINS_ENABLE_EXTRA: Setting this to 1 during setup enables additional models.
 
 ## Step 3: Run the ready-made examples
 
+```
+./run_modelmaker.sh <target_device> <config_file>
+```
+
+#### Examples: 
+
 Object detection example
 ```
-./run_modelmaker.sh config_detection.yaml
+./run_modelmaker.sh TDA4VM config_detection.yaml
 ```
 
 Image classification example
 ```
-./run_modelmaker.sh config_classification.yaml
+./run_modelmaker.sh TDA4VM config_classification.yaml
 ```
+
+Where TDA4VM above is an example of target_device supported. 
+
+#### Target devices supported
+The list of target devices supported depends on the tidl-tools installed by edgeai-benchmark. Currently **TDA4VM, AM68A, AM62A and AM69A** are supported.
+
 
 ## Step 4: Prepare your own dataset with your own images and object types (Data annotation)
 - This section explains how to create and annotate your own dataset with your own object classes.
@@ -235,7 +247,7 @@ data/datasets/animal_detection
 - In the config file, provide the name of the dataset (animal_detection in this example) in the field dataset_name and provide the path (./data/datasets/animal_detection in this example) in the field input_data_path.
 - This ModelMaker tool can be invoked for model training and compilation by running run_modelmaker.sh with a suitable config file:
 ```bash
-./run_modelmaker.sh config_detection.yaml
+./run_modelmaker.sh TDA4VM config_detection.yaml
 ```
 
 #### Step 5.1b: Image Classification dataset example
@@ -253,7 +265,7 @@ data/datasets/animal_classification
 - In the config file, provide the name of the dataset (animal_classification in this example) in the field dataset_name and provide the path (./data/datasets/animal_classification in this example) in the field input_data_path.
 - This ModelMaker tool can be invoked for model training and compilation by running run_modelmaker.sh with a suitable config file:
 ```bash
-./run_modelmaker.sh config_classification.yaml
+./run_modelmaker.sh TDA4VM config_classification.yaml
 ```
 
 #### Notes
