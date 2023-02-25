@@ -48,7 +48,7 @@ echo "running container as $(id -u):$(id -g)"
 if [ $cont_count -eq 0 ]
 then
     docker run -it \
-        -v ${PARENT_DIR}:/home/edgeai/code \
+        -v ${PARENT_DIR}:/opt/code \
         --privileged \
         --network host \
         --shm-size 10gb \

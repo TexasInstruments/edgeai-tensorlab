@@ -6,7 +6,7 @@ FROM ${REPO_LOCATION}ubuntu:18.04
 # ARG USER_ID=1000
 # ARG USER_GID=$USER_ID
 ARG USER_NAME=edgeai
-ENV HOME_DIR=/home/${USER_NAME}
+ENV HOME_DIR=/opt
 
 # build settings
 ARG PROJECT_NAME="modelmaker"
@@ -110,4 +110,4 @@ RUN chmod -R ugo+rwx ${HOME_DIR}
 
 # Note 3: in the container, .bashrc or .pyenvrc may need to be sourced to activate the Python environment
 # if it is not being activated automatically.
-# source /home/edgeai/.bashrc
+# source /opt/.bashrc
