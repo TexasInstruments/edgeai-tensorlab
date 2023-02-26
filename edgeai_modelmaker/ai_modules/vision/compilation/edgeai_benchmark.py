@@ -49,6 +49,7 @@ class ModelCompilation():
     def __init__(self, *args, quit_event=None, **kwargs):
         self.params = self.init_params(*args, **kwargs)
         self.quit_event = quit_event
+        self.artifact_ext = '.tar.gz'
         # prepare for model compilation
         self._prepare_pipeline_config()
 
@@ -86,7 +87,7 @@ class ModelCompilation():
 
         model_compiled_path = self._get_compiled_artifact_dir()
         packaged_artifact_path = self._get_packaged_artifact_path() # actual, internal, short path
-        model_packaged_path = self._replace_artifact_name(packaged_artifact_path) # a more descriptive symlink
+        model_packaged_path = self._get_final_artifact_path() # a more descriptive symlink
 
         self.params.update(
             compilation=utils.ConfigDict(
@@ -233,28 +234,28 @@ class ModelCompilation():
         )
         return settings
 
+    # compiled_artifact and packaged artifact uses a short name using model_compilation_id
+    # as tidl has limitations in path length
     def _get_compiled_artifact_dir(self):
         compiled_artifact_dir = os.path.join(self.work_dir, self.params.compilation.model_compilation_id)
         return compiled_artifact_dir
 
+    # compiled_artifact and packaged artifact uses a short name using model_compilation_id
+    # as tidl has limitations in path length
     def _get_packaged_artifact_path(self):
-        compiled_artifact_dir = self._get_compiled_artifact_dir()
-        compiled_package_file = compiled_artifact_dir.replace(self.work_dir, self.package_dir) + '.tar.gz'
-        return compiled_package_file
+        packaged_artifact_path = os.path.join(self.package_dir, self.params.compilation.model_compilation_id) + self.artifact_ext
+        return packaged_artifact_path
 
-    def _get_final_artifact_name(self):
+    # final_artifact_name is a more descriptive name with the actual name of the model
+    # this will be used to create a symlink to the packaged_artifact_path
+    def _get_final_artifact_path(self):
         pipeline_config = list(self.pipeline_configs.values())[0]
         session_name = pipeline_config['session'].get_param('session_name')
         target_device_suffix = self.params.common.target_device
         run_name_splits = list(os.path.split(self.params.common.run_name))
         final_artifact_name = '_'.join(run_name_splits + [session_name, target_device_suffix])
-        return final_artifact_name
-
-    def _replace_artifact_name(self, artifact_name):
-        artifact_dirname = os.path.dirname(artifact_name)
-        final_artifact_name = self._get_final_artifact_name()
-        artifact_name = os.path.join(artifact_dirname, final_artifact_name)
-        return artifact_name
+        final_artifact_path = os.path.join(self.package_dir, final_artifact_name) + self.artifact_ext
+        return final_artifact_path
 
     def _has_logs(self):
         log_dir = self._get_compiled_artifact_dir()
