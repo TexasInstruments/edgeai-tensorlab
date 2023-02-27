@@ -13,8 +13,8 @@ import torch.nn as nn
 class Exp(MyExp):
     def __init__(self):
         super(Exp, self).__init__()
-        self.depth = 0.33
-        self.width = 0.50
+        self.depth = 1.0
+        self.width = 1.0
         self.exp_name = os.path.split(os.path.realpath(__file__))[1].split(".")[0]
 
         # ---------------- model config ---------------- #
@@ -22,6 +22,7 @@ class Exp(MyExp):
 
         # ---------------- dataloader config ---------------- #
         self.input_size = (480, 640)  # (height, width)
+
         # --------------- transform config ----------------- #
         self.mosaic_prob = 0.0
         self.mixup_prob = 0.0

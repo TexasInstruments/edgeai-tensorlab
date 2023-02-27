@@ -9,15 +9,108 @@ import cv2
 import numpy as np
 from math import acos, sin, sqrt, copysign
 from pycocotools.coco import COCO
+from plyfile import PlyData
+import yaml, json
 
 from ..dataloading import get_yolox_datadir
 from .datasets_wrapper import Dataset
-from yolox.utils import camera_matrix
+
+class CADModelsLM():
+    def __init__(self, data_dir=None):
+        if data_dir is None:
+            data_dir = os.path.join(get_yolox_datadir(), "lmo")
+        self.data_dir = data_dir
+        self.cad_models_path = os.path.join(self.data_dir, "models")
+        self.class_to_name_orig = {
+                              0: "ape",  4: "can", 5: "cat", 7: "driller",
+                              8: "duck", 9: "eggbox", 10: "glue", 11: "holepuncher",
+                             }
+        self.class_to_name = {                               #class map used for training
+                             0: "ape",  1: "can", 2: "cat", 3: "driller",
+                             4: "duck", 5: "eggbox", 6: "glue", 7: "holepuncher",
+                             }
+        self.class_map = {                            #class map used for training
+                             0: 0, 4: 1, 5: 2,
+                             7: 3, 8: 4, 9: 5,
+                             10: 6, 11: 7,
+                             }
+        self.models_dict_path = os.path.join(self.cad_models_path, "models_info.json")
+        with open(self.models_dict_path) as foo:
+            self.models_dict  = json.load(foo)
+        self.class_to_model = self.load_cad_models()
+        self.class_to_sparse_model = self.create_sparse_models()
+        self.models_corners, self.models_diameter = self.get_models_params()
+        self.symmetric_objects = {9: "eggbox", 10: "glue"}
+        self.camera_matrix =  self.get_camera_params()
+
+    def get_camera_params(self):
+        camera_params_path = os.path.join(self.data_dir, "camera.json")
+        with open(camera_params_path) as foo:
+            camera_params = json.load(foo)
+        camera_matrix = np.array([camera_params['fx'], 0, camera_params['cx'], 0.0, camera_params['fy'], camera_params['cy'], 0.0, 0.0, 1.0])
+        return camera_matrix
+
+    def load_cad_models(self):
+        class_to_model = {class_id: None for class_id in self.class_map.values()}
+        logger.info("Loading 3D models...")
+        for class_id, name in self.class_to_name_orig.items():
+            file = "obj_{:06}.ply".format(class_id + 1)
+            cad_model_path = os.path.join(self.cad_models_path, file)
+
+            if not os.path.isfile(cad_model_path):
+                logger.warning(
+                    "The file {} model for class {} was not found".format(file, name)
+                )
+                continue
+            logger.info("Loading 3D model {}".format(name))
+            class_to_model[self.class_map[class_id]] = self.load_model_point_cloud(cad_model_path)
+
+        return class_to_model
+
+    def load_model_point_cloud(self, datapath):
+        model = PlyData.read(datapath)
+        vertex = model['vertex']
+        points = np.stack([vertex[:]['x'], vertex[:]['y'], vertex[:]['z']], axis=-1).astype(np.float64)
+        return points
+
+    def get_models_params(self):
+        """
+        Convert model corners from LINEMOD Occlusion format (min_x, min_y, min_z, size_x, size_y, size_z) to actual coordinates format of dimension (8,3)
+        Return the corner coordinates and the diameters of each models
+        """
+        models_corners_3d = {}
+        models_diameter = {}
+        for model_id, model_param in self.models_dict.items():
+            min_x, max_x = model_param['min_x'], model_param['min_x'] + model_param['size_x']
+            min_y, max_y = model_param['min_y'], model_param['min_y'] + model_param['size_y']
+            min_z, max_z = model_param['min_z'], model_param['min_z'] + model_param['size_z']
+            corners_3d = np.array([
+                [min_x, min_y, min_z],
+                [min_x, min_y, max_z],
+                [min_x, max_y, max_z],
+                [min_x, max_y, min_z],
+                [max_x, min_y, min_z],
+                [max_x, min_y, max_z],
+                [max_x, max_y, max_z],
+                [max_x, max_y, min_z],
+            ])
+            cls_ind = self.class_map[int(model_id) - 1]
+            models_corners_3d.update({cls_ind: corners_3d})
+            models_diameter.update({cls_ind: model_param['diameter']})
+        return models_corners_3d, models_diameter
+
+    def create_sparse_models(self):
+        class_to_sparse_model = {}
+        for model_id in self.class_to_model.keys():
+            sample_rate =len(self.class_to_model[model_id])//500
+            #sparsely sample the model to have close to 500 points
+            class_to_sparse_model.update({model_id : self.class_to_model[model_id][::sample_rate, :]})
+        return class_to_sparse_model
 
 
-class LINEMODDataset(Dataset):
+class LMODataset(Dataset):
     """
-    LINEMOD dataset class.
+    LINEMODOcclusion dataset class.
     """
 
     def __init__(
@@ -28,10 +121,12 @@ class LINEMODDataset(Dataset):
         img_size=(416, 416),
         preproc=None,
         cache=False,
-        object_pose=False
+        object_pose=False,
+        symmetric_objects={5: "eggbox", 6: "glue"},
+        base_dir = "lmo"
     ):
         """
-        LINEMOD dataset initialization. Annotation data are read into memory by COCO API.
+        LINEMODOcclusion dataset initialization. Annotation data are read into memory by COCO API.
         Args:
             data_dir (str): dataset root directory
             json_file (str): LINEMOD Occlusion json file name
@@ -41,7 +136,7 @@ class LINEMODDataset(Dataset):
         """
         super().__init__(img_size)
         if data_dir is None:
-            data_dir = os.path.join(get_yolox_datadir(), "Occlusion_COCO")
+            data_dir = os.path.join(get_yolox_datadir(), base_dir)
         self.data_dir = data_dir
         self.json_file = json_file
         self.object_pose = object_pose 
@@ -52,11 +147,18 @@ class LINEMODDataset(Dataset):
         cats = self.coco.loadCats(self.coco.getCatIds())
         self._classes = tuple([c["name"] for c in cats])
         self.imgs = None
+        self.imgs_coco = self.coco.imgs
         self.name = name
         self.img_size = img_size
+        self.cad_models = CADModelsLM()
+        self.models_corners, self.models_diameter = self.cad_models.models_corners, self.cad_models.models_diameter
+        self.class_to_name = self.cad_models.class_to_name
+        self.class_map = self.cad_models.class_map
+        self.class_to_model = self.cad_models.class_to_model
         if preproc is not None:
             self.preproc = preproc
         self.annotations = self._load_coco_annotations()
+        self.symmetric_objects = symmetric_objects
         if cache:
             self._cache_images()
 
@@ -128,27 +230,6 @@ class LINEMODDataset(Dataset):
             y1 = np.max((0, obj["bbox"][1]))
             x2 = np.min((width, x1 + np.max((0, obj["bbox"][2]))))
             y2 = np.min((height, y1 + np.max((0, obj["bbox"][3]))))
-            #Convert the rotation matrix to angle axis format using Rodrigues formula
-            #https://www.ccs.neu.edu/home/rplatt/cs5335_fall2017/slides/euler_quaternions.pdf
-            if self.object_pose:    
-                #obj["R_aa"], _ = cv2.Rodrigues(np.array(obj["R"]).reshape(3,3))
-                #obj["R_aa"] = np.squeeze(obj["R_aa"])
-                #Use Gram-Schmidt to make the rotation representation continuous and in 6D
-                #https://towardsdatascience.com/better-rotation-representations-for-accurate-pose-estimation-e890a7e1317f
-                R_gs = np.array(obj["R"]).reshape(3,3)
-                obj["R_gs"] = np.squeeze(R_gs[:, :2].transpose().reshape(6, 1))
-                temp_R, _ = cv2.Rodrigues(np.array(obj["R"]).reshape(3,3))
-                temp_R = np.squeeze(temp_R)
-                obj_centre_2d, _ = cv2.projectPoints(
-                    objectPoints=np.zeros(shape=(1, 3)),
-                    rvec=temp_R,
-                    tvec=np.array(obj["T"]),
-                    cameraMatrix=camera_matrix.reshape(3,3),
-                    distCoeffs=None
-                )
-                obj_centre_2d = np.squeeze(obj_centre_2d)
-            
-
             if obj["area"] > 0 and x2 >= x1 and y2 >= y1:
                 obj["clean_bbox"] = [x1, y1, x2, y2]
                 objs.append(obj)
@@ -165,14 +246,22 @@ class LINEMODDataset(Dataset):
             res[ix, 0:4] = obj["clean_bbox"]
             res[ix, 4] = cls
             if self.object_pose:
-                res[ix, 5:11] = obj["R_gs"]
+                obj_centre_2d = np.matmul(self.cad_models.camera_matrix.reshape(3,3), np.array(obj["T"])/obj["T"][2])[:2]  #rotation vec not required for the center point
                 #res[ix, 11:14] = obj["T"]
-                res[ix, 11:13] = obj_centre_2d
-                res[ix, 13] = obj["T"][2] / 100.0
-
+                obj_centre_2d = np.squeeze(obj_centre_2d)
+                res[ix, -3:-1] = obj_centre_2d
+                res[ix, -1] = obj["T"][2] / 100.0
+                #obj["R_aa"], _ = cv2.Rodrigues(np.array(obj["R"]).reshape(3,3))
+                #obj["R_aa"] = np.squeeze(obj["R_aa"])
+                #Use Gram-Schmidt to make the rotation representation continuous and in 6D
+                #https://towardsdatascience.com/better-rotation-representations-for-accurate-pose-estimation-e890a7e1317f
+                R_gs = np.array(obj["R"]).reshape(3,3)
+                obj["R_gs"] = np.squeeze(R_gs[:, :2].transpose().reshape(6, 1))
+                res[ix, -9:-3] = obj["R_gs"]
+            #print(res[ix, 11:13])
         r = min(self.img_size[0] / height, self.img_size[1] / width)
         res[:, :4] *= r
-        res[:, 11:13] *= r
+        res[:, -3:-1] *= r
 
         img_info = (height, width)
         resized_info = (int(height * r), int(width * r))
@@ -200,9 +289,10 @@ class LINEMODDataset(Dataset):
 
     def load_image(self, index):
         file_name = self.annotations[index][3]
-
-        img_file = os.path.join(self.data_dir, self.name, file_name)
-
+        img_index = list(self.imgs_coco)[index]
+        image_folder = self.imgs_coco[int(index)]['image_folder']
+        type = self.imgs_coco[img_index]['type']
+        img_file = os.path.join(self.data_dir, self.name + '_' + type, image_folder, 'rgb', file_name)
         img = cv2.imread(img_file)
         assert img is not None
 
@@ -218,7 +308,7 @@ class LINEMODDataset(Dataset):
         else:
             img = self.load_resized_img(index)
 
-        return img, res.copy(), img_info, np.array([id_])
+        return img, res.copy(), img_info, index
 
     @Dataset.mosaic_getitem
     def __getitem__(self, index):

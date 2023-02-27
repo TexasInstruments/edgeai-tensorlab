@@ -13,9 +13,10 @@ import torch.nn as nn
 class Exp(MyExp):
     def __init__(self):
         super(Exp, self).__init__()
-        self.depth = 0.33
-        self.width = 0.50
+        self.depth = 0.67
+        self.width = 0.75
         self.exp_name = os.path.split(os.path.realpath(__file__))[1].split(".")[0]
+        self.act = "relu"
 
         # ---------------- model config ---------------- #
         self.num_classes = 15
@@ -58,8 +59,8 @@ class Exp(MyExp):
 
         if getattr(self, "model", None) is None:
             in_channels = [256, 512, 1024]
-            backbone = YOLOPAFPN(self.depth, self.width, in_channels=in_channels)
-            head = YOLOXObjectPoseHead(self.num_classes, self.width, in_channels=in_channels, dataset=self.data_set, shape_loss=self.shape_loss)
+            backbone = YOLOPAFPN(self.depth, self.width, in_channels=in_channels, act=self.act, conv_focus=True, split_max_pool_kernel=True)
+            head = YOLOXObjectPoseHead(self.num_classes, self.width, in_channels=in_channels, dataset=self.data_set, shape_loss=self.shape_loss, act=self.act)
             self.model = YOLOX(backbone, head)
 
         self.model.apply(init_yolo)

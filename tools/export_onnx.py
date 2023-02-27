@@ -13,25 +13,33 @@ from yolox.exp import get_exp
 from yolox.models.network_blocks import SiLU
 from yolox.utils import replace_module, PostprocessExport
 from yolox.data.data_augment import preproc as preprocess
-from yolox.utils.proto import mmdet_meta_arch_pb2
+from yolox.utils.proto import tidl_meta_arch_yolox_pb2
 from google.protobuf import text_format
 from yolox.utils.proto.pytorch2proto import prepare_model_for_layer_outputs, retrieve_onnx_names
 
 import cv2
-
-_SUPPORTED_DATASETS = ["coco", "linemod", "coco_kpts"]
-_NUM_CLASSES = {"coco":80, "linemod":15, "coco_kpts":57}
+_SUPPORTED_DATASETS = ["coco", "lm","lmo", "ycbv", "coco_kpts"]
+_NUM_CLASSES = {"coco":80, "lm":15, "lmo":8, "ycbv": 21, "coco_kpts":1}
 _VAL_ANN = {
     "coco":"instances_val2017.json", 
-    "linemod":"instances_test.json"
+    "lm":"instances_test.json",
+    "lmo":"instances_test_bop.json",
+    "ycbv": "instances_test_bop.json",
+    "coco_kpts": "person_keypoints_val2017.json",
 }
 _TRAIN_ANN = {
-    "coco":"instances_train2017.json", 
-    "linemod":"instances_train.json"
+    "coco":"instances_train2017.json",
+    "lm":"instances_train.json",
+    "lmo":"instances_train.json",
+    "ycbv": "instances_train.json",
+    "coco_kpts": "person_keypoints_train2017.json",
 }
 _SUPPORTED_TASKS = {
     "coco":["2dod"],
-    "linemod":["2dod", "6dpose"]
+    "lm":["2dod", "object_pose"],
+    "lmo":["2dod", "object_pose"],
+    "ycbv":["2dod", "object_pose"],
+    "coco_kpts": ["2dod", "human_pose"],
 }
 
 def make_parser():
@@ -75,7 +83,7 @@ def make_parser():
 
     return parser
 
-def export_prototxt(model, img, onnx_model_name):
+def export_prototxt(model, img, onnx_model_name, task=None):
     # Prototxt export for a given ONNX model
 
     anchor_grid = model.head.strides
@@ -92,23 +100,37 @@ def export_prototxt(model, img, onnx_model_name):
     proto_names = [f'{matched_names[i]}' for i in range(num_heads)]
     yolo_params = []
     for head_id in range(num_heads):
-        yolo_param = mmdet_meta_arch_pb2.TIDLYoloParams(input=proto_names[head_id],
+        yolo_param = tidl_meta_arch_yolox_pb2.TIDLYoloParams(input=proto_names[head_id],
                                                         anchor_width=[anchor_grid[head_id]],
                                                         anchor_height=[anchor_grid[head_id]])
         yolo_params.append(yolo_param)
-
-    nms_param = mmdet_meta_arch_pb2.TIDLNmsParam(nms_threshold=0.65, top_k=500)
-    detection_output_param = mmdet_meta_arch_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
-                                            background_label_id=background_label_id, nms_param=nms_param,
-                                            code_type=mmdet_meta_arch_pb2.CODE_TYPE_YOLO_X, keep_top_k=keep_top_k,
+    nms_param = tidl_meta_arch_yolox_pb2.TIDLNmsParam(nms_threshold=0.65, top_k=500)
+    #Use camera intrinsic parameters only for object pose models.
+    if task == 'object_pose':
+        if isinstance(model.head.cad_models.camera_matrix, dict):
+            camera_matrix = list(model.head.cad_models.camera_matrix.values())[0]
+        else:
+            camera_matrix = model.head.cad_models.camera_matrix
+        fx, fy = camera_matrix[0], camera_matrix[4]
+        px, py = camera_matrix[2], camera_matrix[5]
+        camera_intrinsic_params = tidl_meta_arch_yolox_pb2.TIDLCameraIntrinsicParams(fx=fx, fy=fy, px=px, py=py)
+        sub_code_type = 1
+        name = 'yolox_object_pose'
+    else:
+        camera_intrinsic_params = None
+        name = 'yolox'
+        sub_code_type = None
+    detection_output_param = tidl_meta_arch_yolox_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
+                                            background_label_id=background_label_id, nms_param=nms_param, camera_intrinsic_params=camera_intrinsic_params,
+                                            code_type=tidl_meta_arch_yolox_pb2.CODE_TYPE_YOLO_X, keep_top_k=keep_top_k, sub_code_type=sub_code_type,
                                             confidence_threshold=0.01, num_keypoint=num_keypoint, keypoint_confidence=keypoint_confidence)
 
-    yolov3 = mmdet_meta_arch_pb2.TidlYoloOd(name='yolo_v3', output=["detections"],
+    yolov3 = tidl_meta_arch_yolox_pb2.TidlYoloOd(name=name, output=["detections"],
                                             in_width=img.shape[3], in_height=img.shape[2],
                                             yolo_param=yolo_params,
                                             detection_output_param=detection_output_param,
                                             )
-    arch = mmdet_meta_arch_pb2.TIDLMetaArch(name='yolo_v3', tidl_yolo=[yolov3])
+    arch = tidl_meta_arch_yolox_pb2.TIDLMetaArch(name=name, tidl_yolo=[yolov3])
 
     with open(prototxt_name, 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)
@@ -119,6 +141,7 @@ def export_prototxt(model, img, onnx_model_name):
 @logger.catch
 def main():
     args = make_parser().parse_args()
+    args.output_name = os.path.join(os.path.dirname(args.ckpt) , os.path.basename(args.output_name))
     logger.info("args value: {}".format(args))
     exp = get_exp(args.exp_file, args.name)
     if args.dataset is not None:
@@ -134,8 +157,8 @@ def main():
             assert (
                 args.task in _SUPPORTED_TASKS[args.dataset]
             ), "The specified task cannot be performed with the given dataset!"
-            if args.dataset == "linemod":
-                if args.task == "6dpose":
+            if args.dataset == "lmo" or args.dataset == "lm":
+                if args.task == "object_pose":
                     exp.object_pose = True
     exp.merge(args.opts)
 
@@ -169,13 +192,23 @@ def main():
     if not args.export_det:
         model.head.decode_in_inference = False
     if args.export_det:
-        post_process = PostprocessExport(conf_thre=0.25, nms_thre=0.45, num_classes=80)
+        if args.task == "object_pose":
+            if args.dataset == 'ycbv':
+                camera_matrix = model.head.cad_models.camera_matrix['camera_uw']  #camera_matrix for val split
+            elif args.dataset == 'lmo' or args.dataset == "lm":
+                camera_matrix = model.head.cad_models.camera_matrix
+            post_process = PostprocessExport(conf_thre=0.4, nms_thre=0.01, num_classes=exp.num_classes, object_pose=True, camera_matrix=camera_matrix)
+        else:
+            post_process = PostprocessExport(conf_thre=0.25, nms_thre=0.45, num_classes=exp.num_classes)
         model_det = nn.Sequential(model, post_process)
         model_det.eval()
         args.output = 'detections'
 
     logger.info("loading checkpoint done.")
-    img = cv2.imread("./assets/dog.jpg")
+    if args.dataset == 'ycbv':
+        img = cv2.imread("./assets/ti_mustard.png")
+    else:
+        img = cv2.imread("./assets/dog.jpg")
     img, ratio = preprocess(img, exp.test_size)
     img = img[None, ...]
     img = img.astype('float32')
@@ -225,7 +258,7 @@ def main():
         onnx.save(model_simp, args.output_name)
         logger.info("generated simplified onnx model named {}".format(args.output_name))
 
-    export_prototxt(model, img, args.output_name)
+    export_prototxt(model, img, args.output_name, args.task)
     logger.info("generated prototxt {}".format(args.output_name.replace('onnx', 'prototxt')))
 
 if __name__ == "__main__":

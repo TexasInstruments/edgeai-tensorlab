@@ -15,11 +15,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from yolox.utils import bboxes_iou, calculate_model_rotation, load_models
+from yolox.utils import bboxes_iou
 
 from .losses import IOUloss
 from .network_blocks import BaseConv, DWConv
 
+from ..data.datasets.lmo import CADModelsLM
+from ..data.datasets.ycbv import CADModelsYCBV
 
 class YOLOXObjectPoseHead(nn.Module):
     def __init__(
@@ -30,6 +32,10 @@ class YOLOXObjectPoseHead(nn.Module):
         in_channels=[256, 512, 1024],
         act="silu",
         depthwise=False,
+        dataset = "ycbv",
+        adds = True,
+        shape_loss = False,
+        adds_z = True
     ):
         """
         Args:
@@ -41,6 +47,7 @@ class YOLOXObjectPoseHead(nn.Module):
         self.n_anchors = 1
         self.num_classes = num_classes
         self.decode_in_inference = True  # for deploy, set to False
+        self.export_proto = False  # Set it to True while exporting prototxt
 
         self.cls_convs = nn.ModuleList()
         self.reg_convs = nn.ModuleList()
@@ -53,6 +60,13 @@ class YOLOXObjectPoseHead(nn.Module):
         self.trn_preds_z = nn.ModuleList()
         self.obj_preds = nn.ModuleList()
         self.stems = nn.ModuleList()
+        if "lm" in dataset:
+            self.cad_models = CADModelsLM()
+        elif "ycbv" in dataset:
+            self.cad_models = CADModelsYCBV()
+        self.adds = adds
+        self.shape_loss = shape_loss
+        self.adds_z = adds_z
         Conv = DWConv if depthwise else BaseConv
 
         for i in range(len(in_channels)):
@@ -257,16 +271,19 @@ class YOLOXObjectPoseHead(nn.Module):
 
             rot_feat = rot_conv(rot_x)  #NEW
             rot_preproc = self.rot_preds[k](rot_feat)
-            rot_c1 = F.normalize(rot_preproc[:, :3, :, :], dim=1)
-            rot_c2 = F.normalize(rot_preproc[:, 3:, :, :] - torch.sum(rot_c1 * rot_preproc[:, 3:, :, :], dim=1, keepdim=True) * rot_c1, dim=1)
-            rot_output = torch.cat([rot_c1, rot_c2], dim=1)
+            # rot_c1 = F.normalize(rot_preproc[:, :3, :, :], dim=1)
+            # rot_c2 = F.normalize(rot_preproc[:, 3:, :, :] - torch.sum(rot_c1 * rot_preproc[:, 3:, :, :], dim=1, keepdim=True) * rot_c1, dim=1)
+            # rot_output = torch.cat([rot_c1, rot_c2], dim=1)
             
             trn_feat = trn_conv(trn_x)  #NEW
             trn_xy_output = self.trn_preds_xy[k](trn_feat)
             trn_z_output = self.trn_preds_z[k](trn_feat)
 
             if self.training:
-                output = torch.cat([reg_output, obj_output, rot_output, trn_xy_output, trn_z_output, cls_output], 1)
+                rot_c1 = F.normalize(rot_preproc[:, :3, :, :], dim=1)
+                rot_c2 = F.normalize(rot_preproc[:, 3:, :, :] - torch.sum(rot_c1 * rot_preproc[:, 3:, :, :], dim=1, keepdim=True) * rot_c1, dim=1)
+                rot_output = torch.cat([rot_c1, rot_c2], dim=1)
+                output = torch.cat([reg_output, obj_output, cls_output,  rot_output, trn_xy_output, trn_z_output], 1)
                 output, grid = self.get_output_and_grid(
                     output, k, stride_this_level, xin[0].type()
                 )
@@ -290,8 +307,15 @@ class YOLOXObjectPoseHead(nn.Module):
 
             else:
                 output = torch.cat(
-                    [reg_output, obj_output.sigmoid(), rot_output, trn_xy_output, trn_z_output, cls_output.sigmoid()], 1
+                    [reg_output, obj_output, cls_output,  rot_preproc, trn_xy_output, trn_z_output], 1
                 )
+                output[:, 4:5+self.num_classes, :, :] = torch.sigmoid(output[:, 4:5+self.num_classes, :, :])
+                rot_c1 = (output[:, -9:-6, :, :] / output[:, -9:-6, :, :].norm(p=2, dim=1, keepdim=True))
+                rot_c2 = output[:, -6:-3, :, :] - torch.sum(rot_c1 * output[:, -6:-3, :, :], dim=1, keepdim=True) * rot_c1
+                rot_c2 = rot_c2 / rot_c2.norm(p=2, dim=1, keepdim=True)
+                #rot_c1 = F.normalize(output[:, -9:-6, :, :], dim=1)
+                #rot_c2 = F.normalize(output[:, -6:-3, :, :] - torch.sum(rot_c1 * output[:, -6:-3, :, :], dim=1, keepdim=True) * rot_c1, dim=1)
+                output[:, -9:-3, :, :] = torch.cat([rot_c1, rot_c2], dim=1)
 
             outputs.append(output)
 
@@ -307,6 +331,9 @@ class YOLOXObjectPoseHead(nn.Module):
                 origin_preds,
                 dtype=xin[0].dtype,
             )
+
+        elif self.export_proto:
+            return outputs
         else:
             self.hw = [x.shape[-2:] for x in outputs]
             # [batch, n_anchors_all, 85]
@@ -322,7 +349,7 @@ class YOLOXObjectPoseHead(nn.Module):
         grid = self.grids[k]
 
         batch_size = output.shape[0]
-        n_ch = 14 + self.num_classes #Replace 14 with variable for features
+        n_ch = 14 + self.num_classes  # box_params=4, objectness_score=1, pose_params=9 (rotation=6, translation=3)
         hsize, wsize = output.shape[-2:]
         if grid.shape[2:4] != output.shape[2:4]:
             yv, xv = torch.meshgrid([torch.arange(hsize), torch.arange(wsize)])
@@ -335,6 +362,8 @@ class YOLOXObjectPoseHead(nn.Module):
         )
         grid = grid.view(1, -1, 2)
         output[..., :2] = (output[..., :2] + grid) * stride
+        output[..., -3:-1] = (output[..., -3:-1] + grid) * stride
+        output[..., -1:] = torch.exp(output[..., -1:])
         output[..., 2:4] = torch.exp(output[..., 2:4]) * stride
         return output, grid
 
@@ -352,6 +381,8 @@ class YOLOXObjectPoseHead(nn.Module):
         strides = torch.cat(strides, dim=1).type(dtype)
 
         outputs[..., :2] = (outputs[..., :2] + grids) * strides
+        outputs[..., -3:-1] = (outputs[..., -3:-1] + grids) * strides
+        outputs[..., -1:] = torch.exp(outputs[..., -1:])
         outputs[..., 2:4] = torch.exp(outputs[..., 2:4]) * strides
         return outputs
 
@@ -366,14 +397,12 @@ class YOLOXObjectPoseHead(nn.Module):
         origin_preds,
         dtype,
     ):
-        bbox_preds = outputs[:, :, :4]  # [batch, n_anchors_all, 4]
-        obj_preds = outputs[:, :, 4].unsqueeze(-1)  # [batch, n_anchors_all, 1]
-        rot_preds = outputs[:, :, 5:11] # [batch, n_anchors_all, 6]
-        trn_preds = outputs[:, :, 11:14] # [batch, n_anchors_all, 3]
-        trn_xy_preds = outputs[:, :, 11:13] # [batch, n_anchors_all, 2]
-        trn_z_preds = outputs[:, :, 13] # [batch, n_anchors_all, 1]
-        trn_z_preds = trn_z_preds.unsqueeze(-1)
-        cls_preds = outputs[:, :, 14:]  # [batch, n_anchors_all, n_cls]
+        bbox_preds = outputs[..., :4]  # [batch, n_anchors_all, 4]
+        obj_preds = outputs[..., 4:5]  # [batch, n_anchors_all, 1]
+        rot_preds = outputs[..., -9:-3] # [batch, n_anchors_all, 6]
+        trn_xy_preds = outputs[..., -3:-1] # [batch, n_anchors_all, 2]
+        trn_z_preds = outputs[..., -1:] # [batch, n_anchors_all, 1]
+        cls_preds = outputs[..., 5:5+self.num_classes]  # [batch, n_anchors_all, n_cls]
 
         # calculate targets
         mixup = labels.shape[2] > 14 #change to 14 from 5
@@ -391,6 +420,7 @@ class YOLOXObjectPoseHead(nn.Module):
             origin_preds = torch.cat(origin_preds, 1)
 
         cls_targets = []
+        cls_targets_raw = []
         reg_targets = []
         l1_targets = []
         obj_targets = []
@@ -408,17 +438,19 @@ class YOLOXObjectPoseHead(nn.Module):
             num_gts += num_gt
             if num_gt == 0:
                 cls_target = outputs.new_zeros((0, self.num_classes))
+                cls_target_raw = outputs.new_zeros((0,))
                 reg_target = outputs.new_zeros((0, 4))
                 rot_target = outputs.new_zeros((0, 6))
-                trn_target = outputs.new_zeros((0, 3))
+                trn_xy_target = outputs.new_zeros((0, 2))
+                trn_z_target = outputs.new_zeros((0))
                 l1_target = outputs.new_zeros((0, 4))
                 obj_target = outputs.new_zeros((total_num_anchors, 1))
                 fg_mask = outputs.new_zeros(total_num_anchors).bool()
             else:
                 gt_bboxes_per_image = labels[batch_idx, :num_gt, 1:5]
-                gt_rots_per_image = labels[batch_idx, :num_gt, 5:11]
-                gt_trns_xy_per_image = labels[batch_idx, :num_gt, 11:13]
-                gt_trns_z_per_image = labels[batch_idx, :num_gt, 13]
+                gt_rots_per_image = labels[batch_idx, :num_gt, -9:-3]
+                gt_trns_xy_per_image = labels[batch_idx, :num_gt, -3:-1]
+                gt_trns_z_per_image = labels[batch_idx, :num_gt, -1:]
                 gt_classes = labels[batch_idx, :num_gt, 0]
                 bboxes_preds_per_image = bbox_preds[batch_idx]
 
@@ -482,6 +514,7 @@ class YOLOXObjectPoseHead(nn.Module):
                 cls_target = F.one_hot(
                     gt_matched_classes.to(torch.int64), self.num_classes
                 ) * pred_ious_this_matching.unsqueeze(-1)
+                cls_target_raw = gt_matched_classes  #Preserving the raw classes for fetching class_related parameters
                 obj_target = fg_mask.unsqueeze(-1)
                 reg_target = gt_bboxes_per_image[matched_gt_inds]
                 rot_target = gt_rots_per_image[matched_gt_inds]
@@ -497,6 +530,7 @@ class YOLOXObjectPoseHead(nn.Module):
                     )
 
             cls_targets.append(cls_target)
+            cls_targets_raw.append(cls_target_raw)
             reg_targets.append(reg_target)
             rot_targets.append(rot_target)
             trn_xy_targets.append(trn_xy_target)
@@ -507,11 +541,12 @@ class YOLOXObjectPoseHead(nn.Module):
                 l1_targets.append(l1_target)
 
         cls_targets = torch.cat(cls_targets, 0)
+        cls_targets_raw = torch.cat(cls_targets_raw, 0)
         reg_targets = torch.cat(reg_targets, 0)
         rot_targets = torch.cat(rot_targets, 0)
         trn_xy_targets = torch.cat(trn_xy_targets, 0)
         trn_z_targets = torch.cat(trn_z_targets, 0)
-        trn_z_targets = trn_z_targets.unsqueeze(-1)
+        #trn_z_targets = trn_z_targets.unsqueeze(-1)
         obj_targets = torch.cat(obj_targets, 0)
         fg_masks = torch.cat(fg_masks, 0)
         if self.use_l1:
@@ -526,24 +561,31 @@ class YOLOXObjectPoseHead(nn.Module):
         ).sum() / num_fg
         loss_cls = (
             self.bcewithlog_loss(
-                cls_preds.view(-1, self.num_classes)[fg_masks], cls_targets
-            )
+                cls_preds.view(-1, self.num_classes)[fg_masks], cls_targets)
         ).sum() / num_fg
-        loss_rot = (
-            self.mae_loss(
-                rot_preds.view(-1, 6)[fg_masks], rot_targets
-            )
+        loss_rot = (self.mae_loss(
+                rot_preds.view(-1, 6)[fg_masks], rot_targets)
         ).sum() / num_fg
-        loss_trn_xy = (
-            self.mae_loss(
-                trn_xy_preds.view(-1, 2)[fg_masks], trn_xy_targets
-            )
+        #loss_rot = 4 * (2 - (rot_preds.view(-1, 6)[fg_masks] * rot_targets).sum()/num_fg) #Cosine similarity loss
+        loss_trn_xy = (self.kpts_loss(trn_xy_preds.view(-1, 2)[fg_masks], trn_xy_targets, reg_targets)
         ).sum() / num_fg
-        loss_trn_z = (
-            self.mae_loss(
-                trn_z_preds.view(-1, 1)[fg_masks], trn_z_targets
-            )
-        ).sum() / num_fg 
+        if not self.adds_z:
+            loss_trn_z = (self.mae_loss(trn_z_preds.view(-1, 1)[fg_masks], trn_z_targets)
+                          ).sum() / num_fg
+        else:
+            loss_trn_z = self.adds_loss_z(trn_z_preds.view(-1, 1)[fg_masks], trn_z_targets, cls_targets_raw)
+        if self.adds:
+            pose_targets = torch.cat([trn_xy_targets, trn_z_targets, rot_targets], 1)
+            pose_preds = torch.cat([trn_xy_preds.view(-1, 2)[fg_masks], trn_z_preds.view(-1, 1)[fg_masks], rot_preds.view(-1, 6)[fg_masks]], 1)
+            if not self.shape_loss:
+                pose_targets = self.xy2XY(pose_targets)
+                pose_preds = self.xy2XY(pose_preds)
+            loss_adds = self.adds_loss(
+                pose_preds, pose_targets,
+                cls_targets_raw,
+                shape_loss = self.shape_loss)
+        else:
+            loss_adds = 0
         if self.use_l1:
             loss_l1 = (
                 self.l1_loss(origin_preds.view(-1, 4)[fg_masks], l1_targets)
@@ -552,7 +594,7 @@ class YOLOXObjectPoseHead(nn.Module):
             loss_l1 = 0.0
 
         reg_weight = 5.0
-        loss = reg_weight * loss_iou + loss_obj + loss_cls + loss_rot + loss_trn_xy + loss_trn_z + loss_l1
+        loss = reg_weight * loss_iou + loss_obj + loss_cls + loss_rot + reg_weight * loss_trn_xy + loss_trn_z + loss_l1 + loss_adds
 
         return (
             loss,
@@ -563,6 +605,7 @@ class YOLOXObjectPoseHead(nn.Module):
             loss_trn_xy,
             loss_trn_z,
             loss_l1,
+            loss_adds,
             num_fg / max(num_gts, 1),
         )
 
@@ -790,3 +833,105 @@ class YOLOXObjectPoseHead(nn.Module):
             fg_mask_inboxes
         ]
         return num_fg, gt_matched_classes, pred_ious_this_matching, matched_gt_inds
+
+
+    def kpts_loss(self, kpts_preds, kpts_targets, bbox_targets):
+        sigmas = torch.tensor([.26], device=kpts_preds.device) / 10.0
+        kpts_preds_x, kpts_targets_x = kpts_preds[:, 0:1], kpts_targets[:, 0:1]
+        kpts_preds_y, kpts_targets_y = kpts_preds[:, 1:2], kpts_targets[:, 1:2]
+        # OKS based loss
+        d = (kpts_preds_x - kpts_targets_x) ** 2 + (kpts_preds_y - kpts_targets_y) ** 2
+        bbox_scale = torch.prod(bbox_targets[:, -2:], dim=1, keepdim=True)  #scale derived from bbox gt
+        oks = torch.exp(-d / (bbox_scale * (4 * sigmas**2) + 1e-9))
+        lkpt = (1 - oks).mean(axis=1)
+        return lkpt
+
+
+    def adds_loss_z(self, preds, targets, cls_targets):
+        """
+        Normalize the depth error with diameter of that object.
+        """
+        models_diameter = torch.tensor(list(self.cad_models.models_diameter.values()), device=targets.device)
+        cls_targets = cls_targets.to(torch.int64)
+        models_diameter = models_diameter[cls_targets]
+        loss_trn_z = (self.mae_loss(preds, targets)*100 / models_diameter[:, None]).sum()/len(preds)
+        return loss_trn_z
+
+
+    def adds_loss(self, pose_preds, pose_gt, cls_targets, shape_loss=False):
+        """
+        Find out the actual ADD(S) score that can be used as a loss
+        shape_loss: if set to True, don't use the translation component of the loss. This is called shape loss.
+        """
+        pose_preds[:, 2] *= 100.0
+        pose_gt[:, 2] *= 100.0
+        R_pred = torch.cat([pose_preds[:, 3:6, None], pose_preds[:, 6:9, None],
+                            torch.cross(pose_preds[:, 3:6, None], pose_preds[:, 6:9, None], dim=1)], dim=-1)
+        R_gt = torch.cat([pose_gt[:, 3:6, None], pose_gt[:, 6:9, None],
+                          torch.cross(pose_gt[:, 3:6, None], pose_gt[:, 6:9, None], dim=1)], dim=-1)
+        loss_adds = None
+        for model_idx, sparse_model in self.cad_models.class_to_sparse_model.items():
+            cls_idx = cls_targets==model_idx
+            sparse_model = torch.tensor(sparse_model, device=cls_targets.device, dtype=cls_targets.dtype)
+            if not shape_loss:
+                pred_transformed_model = torch.matmul(R_pred[cls_idx], sparse_model.T) + pose_preds[cls_idx][:, :3, None]
+                gt_transformed_model = torch.matmul(R_gt[cls_idx], sparse_model.T) + pose_gt[cls_idx][:, :3, None]
+            else:
+                pred_transformed_model = torch.matmul(R_pred[cls_idx], sparse_model.T)
+                gt_transformed_model = torch.matmul(R_gt[cls_idx], sparse_model.T)
+
+            #if torch.sum(cls_idx) != 0:
+            if model_idx not in self.cad_models.symmetric_objects.keys():
+                mse = ((pred_transformed_model - gt_transformed_model) ** 2).mean(axis=-1).sum(axis=-1)
+            else:
+                mse = torch.min(((pred_transformed_model[:, :, None, :] - gt_transformed_model[:, :, :, None]) ** 2).sum(axis=1), dim=1)[0]
+                mse = mse.mean(axis=-1)
+            adds_0p1 = torch.sqrt(mse) / (self.cad_models.models_diameter[model_idx])  #adds_0.1
+            if loss_adds is None:
+                loss_adds = adds_0p1
+            else:
+                loss_adds = torch.hstack((loss_adds, adds_0p1))
+        loss_adds = loss_adds.mean()
+        return loss_adds
+
+
+    def xy2XY(self, pose):
+        if isinstance(self.cad_models.camera_matrix, dict):  #has to be taken care of properly
+            camera_matrix = self.cad_models.camera_matrix['camera_uw']
+        else:
+            camera_matrix = self.cad_models.camera_matrix
+        fx, fy, px, py = camera_matrix[0], camera_matrix[4], camera_matrix[2], camera_matrix[5]
+        pose[:, 0:1] = (pose[:, 0:1] - px) * ((100.0 * pose[:, 2:3])/fx)
+        pose[:, 1:2] = (pose[:, 1:2] - py) * ((100.0 * pose[:, 2:3])/fy)
+        return pose
+
+    def kpts_loss_3d(self, preds_Z, targets_Z, preds_xy, targets_xy,  cls_targets):
+        """Implement a generalized version of oks loss for 3d keypoints
+            Not used curently.
+        """
+        sigmas = torch.tensor([.26], device=preds_Z.device) / 1.0
+        preds_x, targets_x = preds_xy[:, 0:1], targets_xy[:, 0:1]
+        preds_y, targets_y = preds_xy[:, 1:2], targets_xy[:, 1:2]
+        preds_Z = 100.0 * preds_Z
+        targets_Z = 100.0 * targets_Z
+        # transform to 3D space
+        camera_matrix = self.cad_models.camera_matrix
+        fx, fy, px, py =  camera_matrix[0], camera_matrix[4], camera_matrix[2], camera_matrix[5]
+        preds_X = (preds_x - px) * (preds_Z /fx)
+        preds_Y = (preds_y - py) * (preds_Z /fy)
+        targets_X = (targets_x - px) * (targets_Z / fx)
+        targets_Y = (targets_y - py) * (targets_Z / fy)
+        # OKS based loss calculation
+        #d = ((preds_X - targets_X) ** 2 + (preds_Y - targets_Y) ** 2 + (preds_Z - targets_Z) ** 2)/10000
+        d = (torch.abs(preds_X - targets_X) +torch.abs(preds_Y - targets_Y)+ torch.abs(preds_Z - targets_Z)) /100.0
+        #cuboid_scale = torch.tensor([cuboid_volume**(2.0/3) for cuboid_volume in class_to_cuboid_volume], device=preds_Z.device)
+        #class_id = torch.argmax(cls_targets, axis=1)
+        #scale = cuboid_scale[class_id][:,None]
+        #oks = torch.exp(-d / (10000  + 1e-9))
+        #lkpt = (1-oks).mean(axis=1)
+        return d
+
+
+    def iou_loss_3d(self, kpts_preds, kpts_targets, bbox_targets, cuboid_targets):
+        "Implemet a generalized version of iou loss based on top view, front view and side view of a box"
+        pass

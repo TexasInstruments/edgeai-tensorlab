@@ -22,7 +22,7 @@ class DataPrefetcher:
 
     def preload(self):
         try:
-            self.next_input, self.next_target, _, _ = next(self.loader)
+            self.next_input, self.next_target, _, self.data_index = next(self.loader)
         except StopIteration:
             self.next_input = None
             self.next_target = None
@@ -36,12 +36,13 @@ class DataPrefetcher:
         torch.cuda.current_stream().wait_stream(self.stream)
         input = self.next_input
         target = self.next_target
+        data_index = self.data_index
         if input is not None:
             self.record_stream(input)
         if target is not None:
             target.record_stream(torch.cuda.current_stream())
         self.preload()
-        return input, target
+        return input, target, data_index
 
     def _input_cuda_for_image(self):
         self.next_input = self.next_input.cuda(non_blocking=True)

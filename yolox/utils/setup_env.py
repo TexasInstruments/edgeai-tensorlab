@@ -15,6 +15,9 @@ __all__ = ["configure_nccl", "configure_module", "configure_omp"]
 
 def configure_nccl():
     """Configure multi-machine environment variables of NCCL."""
+    os.environ["NCCL_SOCKET_IFNAME"] = "lo"
+    os.environ["GLOO_SOCKET_IFNAME"] = "lo"
+    os.environ["NCCL_IB_DISABLE"] = "1"
     os.environ["NCCL_LAUNCH_MODE"] = "PARALLEL"
     os.environ["NCCL_IB_HCA"] = subprocess.getoutput(
         "pushd /sys/class/infiniband/ > /dev/null; for i in mlx5_*; "

@@ -14,21 +14,30 @@ from yolox.core import Trainer, launch
 from yolox.exp import get_exp
 from yolox.utils import configure_nccl, configure_omp, get_num_devices
 
-_SUPPORTED_DATASETS = ["coco", "linemod", "coco_kpts"]
-_NUM_CLASSES = {"coco":80, "linemod":15, "coco_kpts":1}
+_SUPPORTED_DATASETS = ["coco", "lm", "lmo", "ycbv", "tless", "coco_kpts"]
+_NUM_CLASSES = {"coco":80, "lm":15, "lmo": 8, "ycbv": 21, "tless": 30, "coco_kpts":1}
 _VAL_ANN = {
     "coco":"instances_val2017.json", 
-    "linemod":"instances_test.json",
+    "lm":"instances_test.json",
+    "lmo":"instances_test_bop.json",
+    "ycbv": "instances_test_bop.json",
+    "tless": "instances_test_bop.json",
     "coco_kpts": "person_keypoints_val2017.json",
 }
 _TRAIN_ANN = {
     "coco":"instances_train2017.json", 
-    "linemod":"instances_train.json",
+    "lm":"instances_train.json",
+    "lmo":"instances_train_pbr.json",   #This can be the default setting for the LMO datase
+    "ycbv": "instances_train.json",
+    "tless": "instances_train.json", #"instances_train.json"
     "coco_kpts": "person_keypoints_train2017.json",
 }
 _SUPPORTED_TASKS = {
     "coco":["2dod"],
-    "linemod":["2dod", "6dpose"],
+    "lm":["2dod", "object_pose"],
+    "lmo": ["2dod", "object_pose"],
+    "ycbv": ["2dod", "object_pose"],
+    "tless": ["2dod", "object_pose"],
     "coco_kpts": ["2dod", "human_pose"]
 }
 
@@ -65,7 +74,7 @@ def make_parser():
         "--resume", default=False, action="store_true", help="resume training"
     )
     parser.add_argument("--dataset", default=None, type=str, help="dataset for training")
-    parser.add_argument("--task", default=None, type=str, help="type of task for model eval")
+    parser.add_argument("--task", default="2dod", type=str, help="type of task for model eval")
     parser.add_argument("-c", "--ckpt", default=None, type=str, help="checkpoint file")
     parser.add_argument(
         "-odw", 
@@ -155,9 +164,9 @@ def main(exp, args):
             assert (
                 args.task in _SUPPORTED_TASKS[args.dataset]
             ), "The specified task cannot be performed with the given dataset!"
-            if args.dataset == "linemod":
-                #exp.pose = True if args.task == "6dpose" else exp.pose = False
-                if args.task == "6dpose":
+            if args.dataset == "ycbv" or args.dataset == "lmo" or args.dataset == "lm":
+                #exp.pose = True if args.task == "object_pose" else exp.pose = False
+                if args.task == "object_pose":
                     exp.object_pose = True
             elif args.dataset=="coco_kpts":
                 if args.task == "human_pose":

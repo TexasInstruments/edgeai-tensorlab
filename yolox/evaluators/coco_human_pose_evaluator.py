@@ -13,7 +13,8 @@ from tqdm import tqdm
 import cv2
 import os
 
-from ..utils.visualize_human_pose import vis_human_pose
+#from ..utils.visualize_human_pose import vis_human_pose  #Not working. Need to debug
+from ..utils.visualize_human_pose import *
 
 import torch
 
