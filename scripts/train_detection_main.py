@@ -39,8 +39,8 @@ from detection_configs import config
 
 ########################################################################
 # other settings
-distributed = 0
-gpus = 0
+distributed = 1
+gpus = 5
 dataset_style = 'coco' #'voc' #'coco'
 master_port = 29500
 
