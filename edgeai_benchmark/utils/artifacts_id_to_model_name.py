@@ -473,7 +473,7 @@ removed_model_list = {
     'cl-0060_tflitert' : 'TFL-CL-0060-resNet50V2', #float accuracy is around 5% lower than ref, SDK8.2
     'ss-2600_tflitert' : 'TFL-SS-2600-deeplabv3_mobv2-pascal-trainaug-512x512', #still bad in SDK8.2
     'cl-0218_tflitert' : 'TFL-CL-0218-mobileNetV1-qat', #acruacy 1.6% below float
-    'cl-0010_tflitert' : 'TFL-CL-0010-mobileNetV2', #sdk8.2, accuracy around 3% down compared to float
+    #'cl-0010_tflitert' : 'TFL-CL-0010-mobileNetV2', #sdk8.2, accuracy around 3% down compared to float
     #'cl-6080_onnxrt' : 'ONR-CL-6080-shuffleNetV2',, 50k val as well as EVM give good accuracy so not removing now
     'cl-0200_tflitert' : 'TFL-CL-0200-mobileNetV2-1p4', #sdk8.2, accuracy around 3% down compared to float
 
