@@ -3,10 +3,10 @@
 ### Notice
 If you have not visited the following landing pages, please do so before attempting to use this repository.
 - https://www.ti.com/edgeai 
+- https://dev.ti.com/edgeai/
 - https://github.com/TexasInstruments/edgeai
 
 <hr>
-
 
 This repository provides a collection of scripts for various image recognition tasks such as classification, segmentation, detection and keypoint detection. 
 - These scripts can be used for Model Compilation, Inference, Accuracy & Performance benchmarking of Deep Neural Networks (DNN). 
@@ -15,6 +15,7 @@ This repository provides a collection of scripts for various image recognition t
 
 Getting the correct functionality and accuracy with DNN Models is not easy. Several aspects such as dataset loading, pre-processing and post-processing operations have to be matched to that of the original training framework to get meaningful functionality and accuracy. There is much difference in these operations across various popular models and much effort has gone into matching that functionality.
 
+<hr>
 
 ## Important features:
 - Runs on both PC Simulation (model compilation and inference) and on EVM (model inference only).
@@ -22,6 +23,12 @@ Getting the correct functionality and accuracy with DNN Models is not easy. Seve
 - Most of the models in TI ModelZoo [edgeai-modelzoo](https://github.com/TexasInstruments/edgeai-modelzoo) is supported off-the-shelf in this package. Custom model benchmark can also be easily done (please refer to the documentation and example).
 - Uses [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) for model compilation and inference
 
+<hr>
+
+## Supported SOCs
+At the moment, this repository supports compilation and inference for the following SoCs: **TDA4VM**, **AM68A**, **AM62A**, **AM69A**
+
+A reference to <SOC> in this repository as commandline argument to the scripts refer to one of these SoCs.
 
 <hr>
 
