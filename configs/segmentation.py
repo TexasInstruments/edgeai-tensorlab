@@ -67,6 +67,13 @@ def get_configs(settings, work_dir):
         'input_dataset': settings.dataset_cache['cocoseg21']['input_dataset'],
     }
 
+    robokitseg_cfg = {
+        'task_type': 'segmentation',
+        'dataset_category': datasets.DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD,
+        'calibration_dataset': settings.dataset_cache['ti-robokit_semseg_zed1hd']['calibration_dataset'],
+        'input_dataset': settings.dataset_cache['ti-robokit_semseg_zed1hd']['input_dataset'],
+    }
+
     postproc_segmentation_onnx = postproc_transforms.get_transform_segmentation_onnx()
     postproc_segmenation_tflite = postproc_transforms.get_transform_segmentation_tflite(with_argmax=False)
 
@@ -158,6 +165,15 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/lraspp_mobilenet_v3_large_lite_512x512_20210527.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':59.80}, model_shortlist=None)
+        ),
+        ###############robokit segmentation model######################
+        'ss-5818': utils.dict_update(robokitseg_cfg,
+            preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
+            session=sessions.TVMDLRSession(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_qat(),
+                model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mnetv2_edgeailite_robokit_768x432_qat-p2.onnx'),
+            postprocess=postproc_transforms.get_transform_segmentation_onnx(),
+            model_info=dict(metric_reference={'accuracy_mean_iou%':54.1}, model_shortlist=10)
         ),
         #################################################################
         #       MXNET MODELS

@@ -75,13 +75,6 @@ def get_configs(settings, work_dir):
         'input_dataset': settings.dataset_cache['cocoseg21']['input_dataset'],
     }
 
-    robokitseg_cfg = {
-        'task_type': 'segmentation',
-        'dataset_category': datasets.DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD,
-        'calibration_dataset': settings.dataset_cache['ti-robokit_semseg_zed1hd']['calibration_dataset'],
-        'input_dataset': settings.dataset_cache['ti-robokit_semseg_zed1hd']['input_dataset'],
-    }
-
     postproc_segmentation_onnx = postproc_transforms.get_transform_segmentation_onnx()
     postproc_segmenation_tflite = postproc_transforms.get_transform_segmentation_tflite(with_argmax=False)
 
@@ -94,26 +87,18 @@ def get_configs(settings, work_dir):
         #     preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_np2(),
-        #         model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432.onnx'),
+        #         model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mnetv2_edgeailite_robokit_768x432.onnx'),
         #     postprocess=postproc_transforms.get_transform_segmentation_onnx(),
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':54.1})
         # ),
-        'ss-8818': utils.dict_update(robokitseg_cfg,
-            preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
-            session=onnx_session_type(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_qat(),
-                model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432_qat-p2.onnx'),
-            postprocess=postproc_transforms.get_transform_segmentation_onnx(),
-            model_info=dict(metric_reference={'accuracy_mean_iou%':54.1}, model_shortlist=10)
-        ),
-        'ss-5818': utils.dict_update(robokitseg_cfg,
-            preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
-            session=sessions.TVMDLRSession(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_qat(),
-                model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mobilenetv2_tv_edgeailite_robokit-zed1hd_768x432_qat-p2.onnx'),
-            postprocess=postproc_transforms.get_transform_segmentation_onnx(),
-            model_info=dict(metric_reference={'accuracy_mean_iou%':54.1}, model_shortlist=10)
-        ),
+        # 'ss-8818': utils.dict_update(robokitseg_cfg,
+        #     preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
+        #     session=onnx_session_type(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
+        #         runtime_options=settings.runtime_options_onnx_qat(),
+        #         model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mnetv2_edgeailite_robokit_768x432_qat-p2.onnx'),
+        #     postprocess=postproc_transforms.get_transform_segmentation_onnx(),
+        #     model_info=dict(metric_reference={'accuracy_mean_iou%':54.1}, model_shortlist=10)
+        # ),
         #------------------------cityscapes models-----------------------
         # # edgeai: segmentation - deeplabv3lite_mobilenetv2_768x384_20190626-085932 expected_metric: 69.13% mean-iou
         # 'ss-8500':utils.dict_update(cityscapes_cfg,

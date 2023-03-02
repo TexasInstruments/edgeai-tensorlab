@@ -46,6 +46,8 @@ from .modelmaker_datasets import *
 from .coco_kpts import *
 from .widerface_det import *
 
+from .robokit_seg import *
+
 try:
     from .kitti_lidar_det import KittiLidar3D
 except ImportError as e:
@@ -85,6 +87,7 @@ dataset_info_dict = {
     'ade20k': {'task_type':'segmentation', 'category':DATASET_CATEGORY_ADE20K, 'type':ADE20KSegmentation, 'size':2000, 'split':'validation'},
     'voc2012': {'task_type':'segmentation', 'category':DATASET_CATEGORY_VOC2012, 'type':VOC2012Segmentation, 'size':1449, 'split':'val'},
     'cocoseg21': {'task_type':'segmentation', 'category':DATASET_CATEGORY_COCOSEG21, 'type':COCOSegmentation, 'size':5000, 'split':'val2017'},
+    'ti-robokit_semseg_zed1hd': {'task_type':'segmentation', 'category':DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD, 'type':RobokitSegmentation, 'size':49, 'split':'val'},
     #------------------------human pose estimation datasets--------------------------#
     'cocokpts': {'task_type':'keypoint_detection', 'category':DATASET_CATEGORY_COCOKPTS, 'type':COCOKeypoints, 'size':5000, 'split':'val2017'},
     #------------------------depth estimation datasets--------------------------#
@@ -97,7 +100,6 @@ dataset_info_dict = {
 dataset_info_dict_experimental = {
     #------------------------semantic segmentation datasets--------------------------#
     'cityscapes': {'task_type':'segmentation', 'category':DATASET_CATEGORY_CITYSCAPES, 'type':CityscapesSegmentation, 'size':500, 'split':'val'},
-    'ti-robokit_semseg_zed1hd': {'task_type':'segmentation', 'category':DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD, 'type':ImageSegmentation, 'size':49, 'split':'val'},
     #------------------------3D OD datasets--------------------------#
     'kitti_lidar_det_1class': {'task_type':'3d-detection', 'category':DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS, 'type':KittiLidar3D, 'size':3769, 'split':'val'},
     'kitti_lidar_det_3class': {'task_type': '3d-detection', 'category': DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS,'type': KittiLidar3D, 'size': 3769, 'split': 'val'},
@@ -411,8 +413,8 @@ def get_datasets(settings, download=False):
                 name=DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD
             )
 
-            dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['calibration_dataset'] = ImageSegmentation(**dataset_calib_cfg, download=False)
-            dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['input_dataset'] = ImageSegmentation(**dataset_val_cfg, download=False)
+            dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['calibration_dataset'] = ImageSegmentation(**dataset_calib_cfg, download=True)
+            dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['input_dataset'] = ImageSegmentation(**dataset_val_cfg, download=True)
         #
     #
     return dataset_cache
