@@ -226,8 +226,8 @@ def run(arg):
     arguments.batch_size = 12  # 12 #16 #32 #64
     arguments.weight_decay = 1e-4  # 1e-4  #4e-5 #1e-5
 
-    arguments.img_resize = (384, 768)  # (384, 768) (512, 1024) #(1024, 2048)
-    arguments.output_size = (1024, 2048)  # target output size for evaluation
+    arguments.img_resize = (512,512)  # (384, 768) (512, 1024) #(1024, 2048)
+    arguments.output_size = (512,512)  # target output size for evaluation
 
     arguments.transform_rotation = 5  # rotation degrees
 
