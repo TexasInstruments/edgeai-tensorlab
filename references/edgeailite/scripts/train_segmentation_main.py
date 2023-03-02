@@ -138,7 +138,7 @@ def main(arguemnts):
         arguemnts.phase = 'training_quantize'
         arguemnts.quantize = True
         arguemnts.lr = 1e-5
-        arguemnts.epochs = 1
+        arguemnts.epochs = 10
         train_pixel2pixel.main(arguemnts)
     #
 
