@@ -133,7 +133,7 @@ class COCOSegmentation(DatasetBase):
             self.download(path, split)
         #
         self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
-        self.name = "cocoseg21"
+        self.name = name
         self.tempfiles = []
 
         self.num_classes = 80 if num_classes is None else num_classes
@@ -157,7 +157,12 @@ class COCOSegmentation(DatasetBase):
         image_split_dirs = os.listdir(image_base_dir)
         self.image_dir = os.path.join(image_base_dir, split)
 
-        self.annotation_file = os.path.join(annotations_dir, f'instances_{split}.json')
+        if self.name == "tiscapes":
+            annotations_prefix = 'stuff'
+        else:
+            annotations_prefix = 'instances'
+
+        self.annotation_file = os.path.join(annotations_dir, f'{annotations_prefix}_{split}.json')
         self.coco_dataset = COCO(self.annotation_file)
 
         self.cat_ids = self.coco_dataset.getCatIds()

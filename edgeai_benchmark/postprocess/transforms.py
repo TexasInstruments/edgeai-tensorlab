@@ -292,20 +292,20 @@ class SegmentationImageSave():
         print('Creating palette')
         palette = [
             [255, 0, 0],
-            [182, 89, 6],
-            [204, 153, 255],
-            [100, 89, 60],
+            [255, 255, 0],
+            [0, 255, 0],
+            [0, 0, 255],
         ]
 
         for i, p in enumerate(palette):
             palette[i] = np.array(p, dtype=np.uint8)
             palette[i] = palette[i][..., ::-1]  # RGB->BGR, since palette is expected to be given in RGB format
 
-        prediction = np.array(tensor,dtype=np.uint8)
+        prediction = np.array(tensor, dtype=np.uint8)
 
         if len(prediction.shape) > 2 and prediction.shape[0] > 1:
             prediction = np.argmax(prediction, axis=0)
-        #
+
         prediction = np.squeeze(prediction)
         prediction_size = info_dict['data_shape']
         output_image = np.array(palette)[prediction.ravel()].reshape(prediction_size)
@@ -315,7 +315,7 @@ class SegmentationImageSave():
         #    input_bgr = input_bgr[t:t + h, l:l + w]
         input_bgr = cv2.resize(input_bgr, dsize=(prediction.shape[1], prediction.shape[0]))
         output_image = self.chroma_blend(input_bgr, output_image)
-
+        cv2.imwrite(save_path, output_image)
         if isinstance(output_image, np.ndarray):
             # convert image to BGR
             output_image = output_image[:,:,::-1] if output_image.ndim > 2 else output_image
@@ -325,7 +325,7 @@ class SegmentationImageSave():
             output_image.save(save_path)
         #
         self.output_frame_idx += 1
-        return output_image, info_dict
+        return tensor, info_dict
 
     def chroma_blend(self, image, color, to_image_size=False):
         if image is None:

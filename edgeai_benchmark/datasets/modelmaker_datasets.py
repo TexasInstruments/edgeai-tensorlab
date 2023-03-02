@@ -29,9 +29,12 @@
 import os
 import json
 import PIL
+import numpy as np
+import cv2
 
 from .dataset_base import *
 from . import coco_det
+from . import coco_seg
 
 
 class ModelMakerDetectionDataset(coco_det.COCODetection):
@@ -157,104 +160,33 @@ class ModelMakerClassificationDataset(DatasetBase):
         return annotations_info_list
 
 
-class ModelMakerSegmentationDataset(DatasetBase):
-    def __init__(self, num_classes=None, download=False, num_frames=None, name='modelmaker',
-                 annotation_prefix='instances', **kwargs):
+class ModelMakerSegmentationDataset(coco_seg.COCOSegmentation):
+    def __init__(self, num_classes=None, download=False, num_frames=None, name='modelmaker', annotation_prefix='instances', **kwargs):
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
         path = kwargs['path']
         split = kwargs['split']
-        self.image_dir = os.path.join(path, split)
-        self.annotation_file = os.path.join(path, 'annotations', f'{annotation_prefix}_{split}.json')
-        with open(self.annotation_file) as afp:
+        dataset_folders = os.listdir(path)
+        image_base_dir = 'images' if ('images' in dataset_folders) else ''
+        image_dir = os.path.join(path, image_base_dir)
+        annotation_file = os.path.join(path, 'annotations', f'{annotation_prefix}_{split}.json')
+
+        with open(annotation_file) as afp:
             self.dataset_store = json.load(afp)
+
+        self.categories = self.dataset_store['categories']
+        self.class_names = None
         #
-        self.images_info = self.dataset_store['images']
-        self.annotations_info = self.dataset_store['annotations']
-        if num_classes is None:
-            classes = self.dataset_store['categories']
+        if num_classes == None:
+            classes = self.categories
             class_ids = [class_info['id'] for class_info in classes]
             class_ids_min = min(class_ids)
             num_classes = max(class_ids) - class_ids_min + 1
-        #
+            #
         self.num_classes = num_classes
-        self.annotations_info = self._find_annotations_info()
-        max_frames = len(self.images_info)
-        self.num_frames = min(num_frames, max_frames) if num_frames is not None else max_frames
-        super().__init__(num_classes=num_classes, image_dir=self.image_dir, annotation_file=self.annotation_file,
-                         download=False, num_frames=num_frames, name=name, **kwargs)
+        #
+        super().__init__(num_classes=self.num_classes, download=False, num_frames=num_frames, name="tiscapes", **kwargs)
+        #
+        self.categories = self.dataset_store['categories']
+        self.image_dir = image_dir
         self.kwargs['dataset_info'] = self.get_dataset_info()
-
-    def download(self, path, split):
-        return
-
-    def get_dataset_info(self):
-        # return only info and categories for now as the whole thing could be quite large.
-        dataset_store = dict()
-        for key in ('info', 'categories'):
-            if key in self.dataset_store.keys():
-                dataset_store.update({key: self.dataset_store[key]})
-            #
         #
-        return dataset_store
-
-    def __getitem__(self, idx, with_label=False, **kwargs):
-        image_info = self.images_info[idx]
-        filename = os.path.join(self.image_dir, image_info['file_name'])
-        label = self.annotations_info[idx][0]['category_id']
-        if with_label:
-            return filename, label
-        else:
-            return filename
-
-    def __len__(self):
-        return min(self.num_frames, len(self.images_info)) if self.num_frames else len(self.images_info)
-
-    def __call__(self, predictions, **kwargs):
-        return self.evaluate(predictions, **kwargs)
-
-    def evaluate(self, predictions, **kwargs):
-        cmatrix = None
-        num_frames = min(self.num_frames, len(predictions))
-        for n in range(num_frames):
-            image_file, label_file = self.__getitem__(n, with_label=True)
-            # image = PIL.Image.open(image_file)
-            label_img = PIL.Image.open(label_file)
-            label_img = self.encode_segmap(label_img)
-
-            output = predictions[n]
-            output = output.astype(np.uint8)
-            output = output[0] if (output.ndim > 2 and output.shape[0] == 1) else output
-            output = output[:2] if (output.ndim > 2 and output.shape[2] == 1) else output
-
-            cmatrix = utils.confusion_matrix(cmatrix, output, label_img, self.num_classes)
-        #
-        accuracy = utils.segmentation_accuracy(cmatrix)
-        return accuracy
-
-    def encode_segmap(self, label_img):
-        if not isinstance(label_img, np.ndarray):
-            # assumes it is PIL.Image
-            label_img = label_img.convert('L')
-            label_img = np.array(label_img)
-        #
-        label_img = self.label_lut[label_img]
-        return label_img
-
-    def _find_annotations_info(self):
-        image_id_to_file_id_dict = dict()
-        file_id_to_image_id_dict = dict()
-        annotations_info_list = []
-        for file_id, image_info in enumerate(self.dataset_store['images']):
-            image_id = image_info['id']
-            image_id_to_file_id_dict[image_id] = file_id
-            file_id_to_image_id_dict[file_id] = image_id
-            annotations_info_list.append([])
-        #
-        for annotation_info in self.dataset_store['annotations']:
-            if annotation_info:
-                image_id = annotation_info['image_id']
-                file_id = image_id_to_file_id_dict[image_id]
-                annotations_info_list[file_id].append(annotation_info)
-            #
-        #
-        return annotations_info_list
