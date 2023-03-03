@@ -321,6 +321,31 @@ def get_datasets(settings, download=False):
         dataset_cache[DATASET_CATEGORY_NYUDEPTHV2]['calibration_dataset'] = NYUDepthV2(**nyudepthv2_calib_cfg, download=download)
         dataset_cache[DATASET_CATEGORY_NYUDEPTHV2]['input_dataset'] = NYUDepthV2(**nyudepthv2_val_cfg, download=False)
     #
+
+    if check_dataset_load(settings, DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD):
+        dataset_calib_cfg = dict(
+            path=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd',
+            split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/train_img_gt_pair.txt',
+            num_classes=19,
+            shuffle=True,
+            num_frames=min(settings.calibration_frames,150),
+            name=DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD
+        )
+
+        # dataset parameters for actual inference
+        dataset_val_cfg = dict(
+            path=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd',
+            split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/val_img_gt_pair.txt',
+            num_classes=19,
+            shuffle=True,
+            num_frames=min(settings.num_frames,49),
+            name=DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD
+        )
+
+        dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['calibration_dataset'] = RobokitSegmentation(**dataset_calib_cfg, download=True)
+        dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['input_dataset'] = RobokitSegmentation(**dataset_val_cfg, download=True)
+    #
+
     # the following are datasets cannot be downloaded automatically
     # put it under the condition of experimental_models
     if settings.experimental_models:
@@ -391,30 +416,6 @@ def get_datasets(settings, download=False):
             except Exception as message:
                 print(f'KittiLidar3D dataset loader could not be created: {message}')
             #
-        #
-
-        if check_dataset_load(settings, DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD):
-            dataset_calib_cfg = dict(
-                path=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd',
-                split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/train_img_gt_pair.txt',
-                num_classes=19,
-                shuffle=True,
-                num_frames=min(settings.calibration_frames,150),
-                name=DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD
-            )
-
-            # dataset parameters for actual inference
-            dataset_val_cfg = dict(
-                path=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd',
-                split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/val_img_gt_pair.txt',
-                num_classes=19,
-                shuffle=True,
-                num_frames=min(settings.num_frames,49),
-                name=DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD
-            )
-
-            dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['calibration_dataset'] = ImageSegmentation(**dataset_calib_cfg, download=True)
-            dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['input_dataset'] = ImageSegmentation(**dataset_val_cfg, download=True)
         #
     #
     return dataset_cache
