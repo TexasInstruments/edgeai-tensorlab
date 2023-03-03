@@ -51,7 +51,7 @@ import os
 # ONR	   Classification	        6000
 # ONR	   human pose estimation	7000
 # ONR	   3D OD	                7100
-# ONR	   object pose estimation	7200
+# ONR	   6dobject pose estimation	7200
 # ONR	   depth estimation	        7300
 # ONR	   OD                       8000
 # ONR	   Semantic Segmentation	8500
@@ -383,6 +383,9 @@ model_id_artifacts_pair = {
     # additional models compiled for TVM
     'od-5100_tvmdlr': 'TVM-OD-5100-ssd-mobV1-coco-mlperf-300x300',
     'od-5120_tvmdlr': 'TVM-OD-5120-ssdLite-mobDet-DSP-coco-320x320',
+
+    # 6dpose
+    '6dpose-7200_onnxrt': 'ONR-6DP-7200-yolox-s-6d-object_pose-640x480',
 }
 
 removed_model_list = {

@@ -91,9 +91,12 @@ def get_configs(settings, work_dir):
         #     postprocess=postproc_transforms.get_transform_segmentation_onnx(),
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':54.1})
         # ),
-        # 'ss-8818': utils.dict_update(robokitseg_cfg,
+        #------------------------------------------------------------------
+        # #the onnxrt compiled model config that was here was moved to segmentation.py
+        #------------------------------------------------------------------
+        # 'ss-5818': utils.dict_update(robokitseg_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
-        #     session=onnx_session_type(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
+        #     session=sessions.TVMDLRSession(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_qat(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mnetv2_edgeailite_robokit_768x432_qat-p2.onnx'),
         #     postprocess=postproc_transforms.get_transform_segmentation_onnx(),

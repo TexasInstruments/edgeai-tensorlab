@@ -167,9 +167,9 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_mean_iou%':59.80}, model_shortlist=None)
         ),
         ###############robokit segmentation model######################
-        'ss-5818': utils.dict_update(robokitseg_cfg,
+        'ss-8818': utils.dict_update(robokitseg_cfg,
             preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
-            session=sessions.TVMDLRSession(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
+            session=onnx_session_type(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_qat(),
                 model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mnetv2_edgeailite_robokit_768x432_qat-p2.onnx'),
             postprocess=postproc_transforms.get_transform_segmentation_onnx(),
