@@ -228,6 +228,8 @@ def download_url_entry(download_entry, download_path=None, download_root=None):
             warnings.warn(f'url could not be downloaded: {download_entry}')
             return None
         #
+    elif isinstance(download_entry, str):
+        print(f'assuming the given download_url is a valid path: {download_entry}')
     else:
         warnings.warn(f'unrecognized download_url: {download_entry}')
     #
