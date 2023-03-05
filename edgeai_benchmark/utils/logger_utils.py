@@ -51,12 +51,14 @@ def log_color(tag, title, message):
 
 
 class TeeLogger:
-    def __init__(self, log_file, replace_stdout=False, append=False):
+    def __init__(self, log_file, replace_stdout=False, append=False, buffering=None):
         super().__init__()
         self.replace_stdout = replace_stdout
         if isinstance(log_file, str):
             mode = 'a' if append else 'w'
-            self.log_file = open(log_file, mode)
+            # buffering=1 implies line buffering - i.e. file will be written to after each line
+            # this may be slower than the default value, but will ensure more frequent file updates.
+            self.log_file = open(log_file, mode, buffering=buffering)
         else:
             self.log_file = log_file
         #

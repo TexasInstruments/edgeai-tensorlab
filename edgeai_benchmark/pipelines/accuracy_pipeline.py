@@ -104,7 +104,8 @@ class AccuracyPipeline():
 
         # start logger - run_dir has been created in start() above
         log_filename = os.path.join(self.run_dir, 'run.log') if self.settings.enable_logging else None
-        self.logger = utils.TeeLogger(log_filename, append=True)
+        logger_buffering = (1 if self.settings.capture_log else None)
+        self.logger = utils.TeeLogger(log_filename, append=True, buffering=logger_buffering)
 
         # log some info
         self.write_log(utils.log_color('\nINFO', 'running', os.path.basename(self.run_dir)))
