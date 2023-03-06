@@ -51,7 +51,7 @@ def log_color(tag, title, message):
 
 
 class TeeLogger:
-    def __init__(self, log_file, replace_stdout=False, append=False, buffering=None):
+    def __init__(self, log_file, replace_stdout=False, append=False, buffering=-1):
         super().__init__()
         self.replace_stdout = replace_stdout
         if isinstance(log_file, str):
