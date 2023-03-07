@@ -58,7 +58,7 @@ def init_params(*args, **kwargs):
             extract_path=None,
             split_factor=0.75,
             split_names=('train', 'val'),
-            max_num_files=None,
+            max_num_files=10000,
             input_data_path=None, # input images
             input_annotation_path=None, # annotation file
             data_path_splits=None,

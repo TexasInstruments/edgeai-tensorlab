@@ -29,6 +29,7 @@
 import json
 import os
 import sys
+import warnings
 import datetime
 import random
 import itertools
@@ -84,10 +85,8 @@ class DatasetHandling:
         pass
 
     def run(self):
-        max_num_files = self.params.dataset.max_num_files \
-            if isinstance(self.params.dataset.max_num_files, (list,tuple)) \
-            else [self.params.dataset.max_num_files for _ in self.params.dataset.split_names]
-
+        max_num_files = self.get_max_num_fies()
+        # dataset reading/splitting
         if isinstance(self.params.dataset.input_data_path, (list,tuple)) and \
             isinstance(self.params.dataset.input_annotation_path, (list,tuple)):
             # dataset splits are directly given
@@ -162,6 +161,32 @@ class DatasetHandling:
                     self.params.dataset.annotation_path_splits[split_idx])
             #
         #
+        if self.params.dataset.max_num_files is not None:
+            print(f'max_num_files is set to: {self.params.dataset.max_num_files}')
+            print(f'dataset split sizes are limited to:', \
+              {split_name:len(dataset_split['images']) for split_name, dataset_split in dataset_splits.items()})
+        #
+
+    def get_max_num_fies(self):
+        if isinstance(self.params.dataset.max_num_files, (list,tuple)):
+            max_num_files = self.params.dataset.max_num_files
+        elif isinstance(self.params.dataset.max_num_files, int):
+            assert (0.0 < self.params.dataset.split_factor < 1.0), 'split_factor must be between 0 and 1.0'
+            assert len(self.params.dataset.split_names) > 1, 'split_names must have at least two entries'
+            max_num_files = [None]*len(self.params.dataset.split_names)
+            for split_id, split_name in enumerate(self.params.dataset.split_names):
+                if split_id == 0:
+                    max_num_files[split_id] = int(self.params.dataset.max_num_files * self.params.dataset.split_factor)
+                else:
+                    max_num_files[split_id] = int(self.params.dataset.max_num_files * (1.0 - self.params.dataset.split_factor))
+                #
+            #
+        else:
+            warnings.warn('unrecognized value for max_num_files - must be int, list or tuple')
+            assert len(self.params.dataset.split_names) > 1, 'split_names must have at least two entries'
+            max_num_files = [None]*len(self.params.dataset.split_names)
+        #
+        return max_num_files
 
     def get_params(self):
         return self.params
