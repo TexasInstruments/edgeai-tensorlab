@@ -1,5 +1,5 @@
 cython
-numpy>=1.20
+numpy==1.23.1
 wheel
 opencv-python-headless<4.3
 onnx
