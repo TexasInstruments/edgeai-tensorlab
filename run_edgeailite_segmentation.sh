@@ -124,7 +124,7 @@ EXTRA_OPTIONS="" #"--enable_fp16 True"
 python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name tiscape_segmentation --model_name fpn_aspp_regnetx800mf_edgeailite \
 --data_path ./data/datasets/tiscapes --img_resize 512 512 --output_size 768 768 --gpus '0 1 2 3' \
 --pretrained http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/segmentation/cocoseg21/edgeai-tv/fpn_aspp_regnetx800mf_edgeailite_512x512_20210405_checkpoint.pth \
---batch_size 32 --epochs 100 \
+--batch_size 32 --epochs 30 \
 --optimizer sgd --scheduler cosine --lr 5e-2 --weight_decay 4e-5 ${EXTRA_OPTIONS}
 
 ## =====================================================================================

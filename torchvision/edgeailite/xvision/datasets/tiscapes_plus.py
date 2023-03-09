@@ -16,7 +16,7 @@ class TIScapeSegmentation():
     def __init__(self, root, split, shuffle=False, num_imgs=None, num_classes=None):
         from pycocotools.coco import COCO
         num_classes = 4 if num_classes is None else num_classes
-        self.categories = range(num_classes)
+        self.categories = range(1, num_classes+1)
         self.class_names = None
 
         dataset_folders = os.listdir(root)
@@ -145,9 +145,9 @@ class TIScapeSegmentationPlus(TIScapeSegmentation):
         super().__init__(*args, num_classes=(num_classes if num_classes == 4 else self.NUM_CLASSES), **kwargs)
         self.num_classes_ = num_classes
         self.void_classes = []
-        self.valid_classes = range(self.num_classes_)
+        self.valid_classes = range(1, self.num_classes_+1)
         self.ignore_index = 255
-        self.class_map = dict(zip(self.valid_classes, range(self.num_classes_)))
+        self.class_map = dict(zip(self.valid_classes, range(1, self.num_classes_+1)))
         self.colors = xnn.utils.get_color_palette(num_classes)
         self.colors = (self.colors * self.num_classes_)[:self.num_classes_]
         self.label_colours = dict(zip(range(self.num_classes_), self.colors))

@@ -91,6 +91,7 @@ def dataset_split(dataset, split_factor, split_names=('train', 'val'), random_se
             dataset = json.load(fp)
         #
     #
+
     dataset_train = dict(info=dataset['info'],
                          categories=dataset['categories'],
                          images=[], annotations=[])

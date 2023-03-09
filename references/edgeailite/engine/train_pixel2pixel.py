@@ -190,7 +190,7 @@ def get_config():
     args.print_model = False                            # print the model to text
     args.run_soon = True                                # To start training after generating configs/models
 
-    args.quantize = False                               # apply quantized inference or not
+    args.quantize = False                              # apply quantized inference or not
     #args.model_surgery = None                           # replace activations with PAct2 activation module. Helpful in quantized training.
     args.bitwidth_weights = 8                           # bitwidth for weights
     args.bitwidth_activations = 8                       # bitwidth for activations

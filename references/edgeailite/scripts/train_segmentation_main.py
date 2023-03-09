@@ -124,7 +124,7 @@ def main(arguemnts):
 
     ################################
     # if the previous phase was training, run a quantization aware training, starting from the trained model
-    if 'training' in arguemnts.phase and (not arguemnts.quantize):
+    if 'training' in arguemnts.phase and (arguemnts.quantize): # Removed not in arguemnts.quantize
         if arguemnts.epochs > 0:
             if arguemnts.save_path is None:
                 save_path = train_pixel2pixel.get_save_path(arguemnts)
@@ -136,7 +136,7 @@ def main(arguemnts):
             arguemnts.pretrained = os.path.join(save_path, 'model.pth')
         #
         arguemnts.phase = 'training_quantize'
-        arguemnts.quantize = True
+        arguemnts.quantize = False
         arguemnts.lr = 1e-5
         arguemnts.epochs = 10
         train_pixel2pixel.main(arguemnts)
@@ -161,7 +161,7 @@ def main(arguemnts):
             arguemnts.batch_size = max(arguemnts.batch_size // num_gpus, 1) if (num_gpus is not None) else arguemnts.batch_size
 
         arguemnts.phase = 'validation'
-        arguemnts.quantize = True
+        arguemnts.quantize = False
         train_pixel2pixel.main(arguemnts)
 
 
