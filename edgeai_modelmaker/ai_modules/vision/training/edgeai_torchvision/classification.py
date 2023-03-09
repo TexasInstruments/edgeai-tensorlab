@@ -96,7 +96,7 @@ _model_descriptions = {
             }
         ),
         compilation=dict(
-            model_compilation_id='cl-6070',
+            model_compilation_id='cl-6090',
             metric=dict(label_offset_pred=1)
         )
     ),
