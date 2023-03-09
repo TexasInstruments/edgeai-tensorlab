@@ -144,7 +144,7 @@ class ONNXRTSession(BaseRTSession):
             "version": constants.TIDL_VERSION_STR,
             "tidl_tools_path": self.kwargs["tidl_tools_path"],
             "artifacts_folder": self.kwargs["artifacts_folder"],
-            "tensor_bits": self.kwargs.get("tensor_bits", 8),
+            "tensor_bits": self.kwargs.get("tensor_bits", 32),
             "import": self.kwargs.get("import", 'no'),
             # note: to add advanced options here, start it with 'advanced_options:'
             # example 'advanced_options:pre_batchnorm_fold':1

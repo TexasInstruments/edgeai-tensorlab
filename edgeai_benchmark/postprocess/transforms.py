@@ -288,13 +288,13 @@ class SegmentationImageSave():
         save_path = os.path.join(save_dir, image_name)
 
         # TODO: convert label to color here
-
-        print('Creating palette')
         palette = [
             [255, 0, 0],
             [255, 255, 0],
             [0, 255, 0],
             [0, 0, 255],
+            [0, 255, 255],
+            [255, 0, 255]
         ]
 
         for i, p in enumerate(palette):
