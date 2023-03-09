@@ -157,12 +157,7 @@ class COCOSegmentation(DatasetBase):
         image_split_dirs = os.listdir(image_base_dir)
         self.image_dir = os.path.join(image_base_dir, split)
 
-        if self.name == "tiscapes":
-            annotations_prefix = 'stuff'
-        else:
-            annotations_prefix = 'instances'
-
-        self.annotation_file = os.path.join(annotations_dir, f'{annotations_prefix}_{split}.json')
+        self.annotation_file = os.path.join(annotations_dir, f'instances_{split}.json')
         self.coco_dataset = COCO(self.annotation_file)
 
         self.cat_ids = self.coco_dataset.getCatIds()
