@@ -35,7 +35,7 @@
           "train",
           "val"
         ],
-        "max_num_files":null,
+        "max_num_files":10000,
         "input_data_path":null,
         "input_annotation_path":null,
         "data_path_splits":null,
@@ -110,7 +110,7 @@
       },
       "compilation":{
         "enable":true,
-        "model_compilation_id":"cl-6070",
+        "model_compilation_id":"cl-6090",
         "compilation_path":null,
         "model_compiled_path":null,
         "log_file_path":null,
@@ -162,7 +162,7 @@
           "train",
           "val"
         ],
-        "max_num_files":null,
+        "max_num_files":10000,
         "input_data_path":null,
         "input_annotation_path":null,
         "data_path_splits":null,
@@ -289,7 +289,7 @@
           "train",
           "val"
         ],
-        "max_num_files":null,
+        "max_num_files":10000,
         "input_data_path":null,
         "input_annotation_path":null,
         "data_path_splits":null,
@@ -418,7 +418,7 @@
           "train",
           "val"
         ],
-        "max_num_files":null,
+        "max_num_files":10000,
         "input_data_path":null,
         "input_annotation_path":null,
         "data_path_splits":null,
@@ -556,7 +556,7 @@
           "train",
           "val"
         ],
-        "max_num_files":null,
+        "max_num_files":10000,
         "input_data_path":null,
         "input_annotation_path":null,
         "data_path_splits":null,
@@ -694,7 +694,7 @@
           "train",
           "val"
         ],
-        "max_num_files":null,
+        "max_num_files":10000,
         "input_data_path":null,
         "input_annotation_path":null,
         "data_path_splits":null,
@@ -1099,19 +1099,37 @@
       "device_name":"TDA4VM",
       "device_type":"MPU",
       "device_selection_factor":2,
-      "device_details":"\nEfficient 8 TOPs AI capabilities at edge\nSpecification:\n* 8 TOPS Deep Learning accelerator\n* Dual Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/TDA4VM\n\nImportant Links:\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n* Software Development Kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM/\n* Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n"
+      "device_details":"\nEfficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS Deep Learning accelerator\n* Dual Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/TDA4VM\n\nImportant Links:\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n* Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n",
+      "sdk_version":"8.6",
+      "sdk_release":"08_06_00",
+      "setup_instructions":{
+        "name":"TDA4VM",
+        "description":"\nProduct information: https://www.ti.com/product/TDA4VM\nDevelopment board: https://www.ti.com/tool/SK-TDA4VM\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-sk-tda4vm/08_06_00/exports/docs/getting_started.html\nSDK release: 08_06_00\n"
+      }
     },
     "AM62A":{
       "device_name":"AM62A",
       "device_type":"MPU",
       "device_selection_factor":0,
-      "device_details":"\nEfficient 2 TOPs AI capabilities at edge\nSpecification:\n* 2 TOPS Deep Learning accelerator\n* Quad Arm\u00ae Cortex\u00ae-A53\n* Integrated ISP\n* More details : https://www.ti.com/product/AM62A\n\nImportant Links:\n* Development board: https://www.ti.com/tool/SK-AM62A\n* Software Development Kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A/\n* Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n"
+      "device_details":"\nEfficient 2 TOPS AI capability at edge\nSpecification:\n* 2 TOPS Deep Learning accelerator\n* Quad Arm\u00ae Cortex\u00ae-A53\n* Integrated ISP\n* More details : https://www.ti.com/product/AM62A\n\nImportant Links:\n* Development board: https://www.ti.com/tool/SK-AM62A\n* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n",
+      "sdk_version":"8.6",
+      "sdk_release":"08_06_00",
+      "setup_instructions":{
+        "name":"AM62A",
+        "description":"\nProduct information: https://www.ti.com/product/AM62A\nDevelopment board: https://www.ti.com/tool/SK-AM62A\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-AM62A\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html\nSDK release: 08_06_00\n"
+      }
     },
     "AM68A":{
       "device_name":"AM68A",
       "device_type":"MPU",
       "device_selection_factor":1,
-      "device_details":"\nEfficient 8 TOPs AI capabilities at edge\nSpecification:\n* 8 TOPS Deep Learning accelerator\n* Dual Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/AM68A\n\nImportant Links:\n* Development board: https://www.ti.com/tool/SK-AM68A\n* Software Development Kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A/\n* Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n"
+      "device_details":"\nEfficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS Deep Learning accelerator\n* Dual Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/AM68A\n\nImportant Links:\n* Development board: https://www.ti.com/tool/SK-AM68A\n* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n* Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n",
+      "sdk_version":"8.6",
+      "sdk_release":"08_06_00",
+      "setup_instructions":{
+        "name":"AM68A",
+        "description":"\nProduct information: https://www.ti.com/product/AM68A\nDevelopment board: https://www.ti.com/tool/SK-AM68A\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-AM68A\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html\nSDK release: 08_06_00\n"
+      }
     }
   },
   "task_descriptions":{
@@ -1203,9 +1221,27 @@
   "version_descriptions":{
     "version":"8.6",
     "sdk_version":"8.6",
-    "sdk_release":"08_06"
+    "sdk_release":"08_06_00"
   },
   "help_descriptions":{
+    "target_device_setup_instructions":{
+      "setup_overview":{
+        "name":"Target device setup overview",
+        "description":"\nTo establish a connection with a physical development board over ethernet, please follow blow steps. Also use the supported SDK version for that device - given in the details below.\nStep 1: 'Make sure that you have physical development board of specific device with you procured, refer below to find how to procure for each specific device.\nStep 2: 'Download the image to be flashed in SD card (refer steps 3)\nStep 3: 'Make sure that the development board is setup and also put in the same local area network as the computer where you are using this service\nStep 4: 'Get the IP address of the development board using serial port connection\nStep 5: 'Connect to the development board using ssh and run device agent service as mentioned below. \nssh root@<ip_address_of_dev_board> \ncd /opt/edgeai-studio-agent/src \npython3 ./device_agent.py\nStep 6: Now you can connect to development board from model composer by providing the IP address of development board.\n"
+      },
+      "TDA4VM":{
+        "name":"TDA4VM",
+        "description":"\nProduct information: https://www.ti.com/product/TDA4VM\nDevelopment board: https://www.ti.com/tool/SK-TDA4VM\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-sk-tda4vm/08_06_00/exports/docs/getting_started.html\nSDK release: 08_06_00\n"
+      },
+      "AM62A":{
+        "name":"AM62A",
+        "description":"\nProduct information: https://www.ti.com/product/AM62A\nDevelopment board: https://www.ti.com/tool/SK-AM62A\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-AM62A\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html\nSDK release: 08_06_00\n"
+      },
+      "AM68A":{
+        "name":"AM68A",
+        "description":"\nProduct information: https://www.ti.com/product/AM68A\nDevelopment board: https://www.ti.com/tool/SK-AM68A\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-AM68A\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html\nSDK release: 08_06_00\n"
+      }
+    },
     "common":{},
     "dataset":{},
     "training":{
@@ -1214,37 +1250,37 @@
         "description":"Epoch is a term that is used to indicate a pass over the entire training dataset. It is a hyper parameter that can be tuned to get best accuracy. Eg. A model trained for 30 Epochs may give better accuracy than a model trained for 15 Epochs."
       },
       "learning_rate":{
-        "name":"Learning Rate",
+        "name":"Learning rate",
         "description":"Learning Rate determines the step size used by the optimization algorithm at each iteration while moving towards the optimal solution. It is a hyper parameter that can be tuned to get best accuracy. Eg. A small Learning Rate typically gives good accuracy while fine tuning a model for a different task."
       },
       "batch_size":{
-        "name":"Batch Size",
+        "name":"Batch size",
         "description":"Batch size specifies the number of inputs that are propagated through the neural network in one iteration. Several such iterations make up one Epoch.Higher batch size require higher memory and too low batch size can typically impact the accuracy."
       },
       "weight_decay":{
-        "name":"Weight Decay",
+        "name":"Weight decay",
         "description":"Weight decay is a regularization technique that can improve stability and generalization of a machine learning algorithm. It is typically done using L2 regularization that penalizes parameters (weights, biases) according to their L2 norm."
       }
     },
     "compilation":{
       "calibration_frames":{
-        "name":"Calibration Frames",
+        "name":"Calibration frames",
         "description":"Calibration is a process of improving the accuracy during fixed point quantization. Typically, higher number of Calibration Frames give higher accuracy, but it can also be time consuming."
       },
       "calibration_iterations":{
-        "name":"Calibration Iterations",
+        "name":"Calibration iterations",
         "description":"Calibration is a process of improving the accuracy during fixed point quantization. Calibration happens in iterations. Typically, higher number of Calibration Iterations give higher accuracy, but it can also be time consuming."
       },
       "tensor_bits":{
-        "name":"Tensor Bits",
+        "name":"Tensor bits",
         "description":"Bitdepth used to quantize the weights and activations in the neural network. The neural network inference happens at this bit precision. "
       },
       "detection_threshold":{
-        "name":"Detection Threshold",
+        "name":"Detection threshold",
         "description":"Also called Confidence Threshold. A threshold used to select good detection boxes. This is typically applied before a before the Non Max Suppression. Higher Detection Threshold means less false detections (False Positives), but may also result in misses (False Negatives). "
       },
       "detection_top_k":{
-        "name":"Detection TopK",
+        "name":"Detection topK",
         "description":"Number of detection boxes to be selected during the initial shortlisting before the Non Max Suppression.A higher number is typically used while measuring accuracy, but may impact the performance. "
       }
     }

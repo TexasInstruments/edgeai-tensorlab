@@ -174,14 +174,34 @@ def get_task_descriptions(params):
 def get_version_descriptions(params):
     version_descriptions = {
         'version': version.get_version(),
-        'sdk_version': version.get_version(),
-        'sdk_release': version.get_version_str(),
+        'sdk_version': constants.TARGET_SDK_VERSION,
+        'sdk_release': constants.TARGET_SDK_RELEASE,
     }
     return version_descriptions
 
 
+TARGET_DEVICE_SETUP_OVERVIEW = {
+    'name': 'Target device setup overview',
+    'description': '''
+To establish a connection with a physical development board over ethernet, please follow blow steps. Also use the supported SDK version for that device - given in the details below.
+Step 1: 'Make sure that you have physical development board of specific device with you procured, refer below to find how to procure for each specific device.
+Step 2: 'Download the image to be flashed in SD card (refer steps 3)
+Step 3: 'Make sure that the development board is setup and also put in the same local area network as the computer where you are using this service
+Step 4: 'Get the IP address of the development board using serial port connection
+Step 5: 'Connect to the development board using ssh and run device agent service as mentioned below. \nssh root@<ip_address_of_dev_board> \ncd /opt/edgeai-studio-agent/src \npython3 ./device_agent.py
+Step 6: Now you can connect to development board from model composer by providing the IP address of development board.
+'''
+}
+
+
 def get_help_descriptions(params):
     return {
+        'target_device_setup_instructions': {
+            'setup_overview': TARGET_DEVICE_SETUP_OVERVIEW,
+            constants.TARGET_DEVICE_TDA4VM: constants.TARGET_DEVICE_DESCRIPTIONS[constants.TARGET_DEVICE_TDA4VM]['setup_instructions'],
+            constants.TARGET_DEVICE_AM62A: constants.TARGET_DEVICE_DESCRIPTIONS[constants.TARGET_DEVICE_AM62A]['setup_instructions'],
+            constants.TARGET_DEVICE_AM68A: constants.TARGET_DEVICE_DESCRIPTIONS[constants.TARGET_DEVICE_AM68A]['setup_instructions'],
+        },
         'common': {
         },
         'dataset': {
@@ -194,21 +214,21 @@ def get_help_descriptions(params):
                            'Eg. A model trained for 30 Epochs may give better accuracy than a model trained for 15 Epochs.'
             },
             'learning_rate': {
-                'name': 'Learning Rate',
+                'name': 'Learning rate',
                 'description': 'Learning Rate determines the step size used by the optimization algorithm '
                                'at each iteration while moving towards the optimal solution. '
                                'It is a hyper parameter that can be tuned to get best accuracy. '
                                'Eg. A small Learning Rate typically gives good accuracy while fine tuning a model for a different task.'
             },
             'batch_size': {
-                'name': 'Batch Size',
+                'name': 'Batch size',
                 'description': 'Batch size specifies the number of inputs that are propagated through the '
                                'neural network in one iteration. Several such iterations make up one Epoch.'
                                'Higher batch size require higher memory and too low batch size can '
                                'typically impact the accuracy.'
             },
             'weight_decay': {
-                'name': 'Weight Decay',
+                'name': 'Weight decay',
                 'description': 'Weight decay is a regularization technique that can improve '
                                'stability and generalization of a machine learning algorithm. '
                                'It is typically done using L2 regularization that penalizes parameters '
@@ -217,29 +237,29 @@ def get_help_descriptions(params):
         },
         'compilation': {
             'calibration_frames': {
-                'name': 'Calibration Frames',
+                'name': 'Calibration frames',
                 'description': 'Calibration is a process of improving the accuracy during fixed point quantization. '
                                'Typically, higher number of Calibration Frames give higher accuracy, but it can also be time consuming.'
             },
             'calibration_iterations': {
-                'name': 'Calibration Iterations',
+                'name': 'Calibration iterations',
                 'description': 'Calibration is a process of improving the accuracy during fixed point quantization. Calibration happens in iterations. '
                                'Typically, higher number of Calibration Iterations give higher accuracy, but it can also be time consuming.'
             },
             'tensor_bits': {
-                'name': 'Tensor Bits',
+                'name': 'Tensor bits',
                 'description': 'Bitdepth used to quantize the weights and activations in the neural network. '
                                'The neural network inference happens at this bit precision. '
             },
             'detection_threshold': {
-                'name': 'Detection Threshold',
+                'name': 'Detection threshold',
                 'description': 'Also called Confidence Threshold. A threshold used to select good detection boxes. '
                                'This is typically applied before a before the Non Max Suppression. '
                                'Higher Detection Threshold means less false detections (False Positives), '
                                'but may also result in misses (False Negatives). '
             },
             'detection_top_k': {
-                'name': 'Detection TopK',
+                'name': 'Detection topK',
                 'description': 'Number of detection boxes to be selected during the initial shortlisting before the Non Max Suppression.'
                                'A higher number is typically used while measuring accuracy, but may impact the performance. '
             }
