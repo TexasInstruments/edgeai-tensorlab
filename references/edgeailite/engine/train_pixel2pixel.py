@@ -321,7 +321,7 @@ def main(args):
 
     print("=> fetching images in '{}'".format(args.data_path))
     split_arg = args.split_file if args.split_file else (args.split_files if args.split_files else args.split_value)
-    train_dataset, val_dataset = xvision.datasets.__dict__[args.dataset_name](args.dataset_config, args.data_path, split=split_arg, transforms=transforms)
+    train_dataset, val_dataset = xvision.datasets.__dict__[args.dataset_name](args.dataset_config, args.data_path, split=split_arg, transforms=transforms, annotation_prefix=args.annotation_prefix)
 
     #################################################
     print('=> {} samples found, {} train samples and {} test samples '.format(len(train_dataset)+len(val_dataset),

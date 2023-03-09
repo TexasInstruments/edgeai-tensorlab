@@ -13,11 +13,12 @@ __all__ = ['tiscape_segmentation']
 
 
 class TIScapeSegmentation():
-    def __init__(self, root, split, shuffle=False, num_imgs=None, num_classes=None):
+    def __init__(self, root, split, shuffle=False, num_imgs=None, num_classes=None, **kwargs):
         from pycocotools.coco import COCO
         num_classes = 4 if num_classes is None else num_classes
         self.categories = range(1, num_classes+1)
         self.class_names = None
+        self.annotation_prefix = kwargs['annotation_prefix']
 
         dataset_folders = os.listdir(root)
         assert 'annotations' in dataset_folders, 'Invalid path to TI scape dataset annotations'
@@ -27,7 +28,7 @@ class TIScapeSegmentation():
         image_base_dir = os.path.join(root, image_base_dir)
         image_dir = os.path.join(image_base_dir, '')
 
-        self.tiscape_dataset = COCO(os.path.join(annotations_dir, f'instances_{split}.json'))
+        self.tiscape_dataset = COCO(os.path.join(annotations_dir, f'{self.annotation_prefix}_{split}.json'))
 
         self.cat_ids = self.tiscape_dataset.getCatIds()
         img_ids = self.tiscape_dataset.getImgIds()
@@ -96,7 +97,7 @@ class TIScapeSegmentation():
         #
         anno = copy.deepcopy(anno)
         for obj in anno:
-            obj["category_id"] = self.categories.index(obj["category_id"])
+            obj["category_id"] = self.categories.index(obj["category_id"]) + 1
         #
         return image, anno
 
@@ -112,7 +113,7 @@ class TIScapeSegmentation():
             # with its corresponding categories
             target = (masks * cats).max(axis=0)
             # discard overlapping instances
-            target[masks.sum(0) > 1] = 255
+            # target[masks.sum(0) > 1] = 255
         else:
             target = np.zeros((h, w), dtype=np.uint8)
         #
@@ -148,19 +149,21 @@ class TIScapeSegmentationPlus(TIScapeSegmentation):
         self.valid_classes = range(1, self.num_classes_+1)
         self.ignore_index = 255
         self.class_map = dict(zip(self.valid_classes, range(1, self.num_classes_+1)))
-        self.colors = xnn.utils.get_color_palette(num_classes)
-        self.colors = (self.colors * self.num_classes_)[:self.num_classes_]
+        self.colors = xnn.utils.get_color_palette(num_classes+1)
+        self.colors = (self.colors * self.num_classes_)[1:self.num_classes_+1]
         self.label_colours = dict(zip(range(self.num_classes_), self.colors))
         self.transforms = transforms
 
     def __getitem__(self, item):
         image, target = super().__getitem__(item)
-        target = np.remainder(target, self.num_classes_)
+        #target = np.remainder(target, self.num_classes_)
         image = [image]
         target = [target]
         if self.transforms is not None:
             image, target = self.transforms(image, target)
         #
+        target[0][target == 0] = 255
+        target[0][target != 255] -= 1
         return image, target
 
     def num_classes(self):
@@ -208,21 +211,21 @@ def write_to_jsonfile(path, filename, data):
             json.dump(data, fp)
 
 
-def tiscape_segmentation(dataset_config, root, split=None, transforms=None, *args, **kwargs):
+def tiscape_segmentation(dataset_config, root, split=None, transforms=None, annotation_prefix="stuff", *args, **kwargs):
     dataset_config = get_config().merge_from(dataset_config)
     train_split = val_split = None
-    instances = dataset_split(os.path.join(root, 'annotations', 'stuff.json'), 0.2)
+    instances = dataset_split(os.path.join(root, 'annotations', f'{annotation_prefix}_sorted.json'), 0.2)
 
     split = ['train', 'val']
     for split_name in split:
         if split_name.startswith('train'):
-            write_to_jsonfile(os.path.join(root, 'annotations'), f"instances_{split_name}", instances[split_name])
+            write_to_jsonfile(os.path.join(root, 'annotations'), f"{annotation_prefix}_{split_name}", instances[split_name])
             train_split = TIScapeSegmentationPlus(root, split_name, num_classes=dataset_config.num_classes,
-                                                  transforms=transforms[0], *args, **kwargs)
+                                                  transforms=transforms[0], annotation_prefix=annotation_prefix, *args, **kwargs)
         elif split_name.startswith('val'):
-            write_to_jsonfile(os.path.join(root, 'annotations'), f"instances_{split_name}", instances[split_name])
+            write_to_jsonfile(os.path.join(root, 'annotations'), f"{annotation_prefix}_{split_name}", instances[split_name])
             val_split = TIScapeSegmentationPlus(root, split_name, num_classes=dataset_config.num_classes,
-                                                transforms=transforms[1], *args, **kwargs)
+                                                transforms=transforms[1], annotation_prefix=annotation_prefix, *args, **kwargs)
         else:
             assert False, 'unknown split'
         #
