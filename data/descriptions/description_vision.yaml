@@ -1,4 +1,16 @@
 help_descriptions:
+  additional_information:
+    edgeai_introduction:
+      description: '
+
+        * Edge AI introduction: https://ti.com/edgeai
+
+        * Edge AI tools introduction: https://dev.ti.com/edgeai/
+
+        * Edge AI model development information: https://github.com/TexasInstruments/edgeai
+
+        '
+      name: Edge AI introduction
   common: {}
   compilation:
     calibration_frames:
@@ -1096,9 +1108,10 @@ target_device_descriptions:
       \nProduct information: https://www.ti.com/product/AM62A7\nDevelopment board:\
       \ https://www.ti.com/tool/SK-AM62A-LP\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n\
       Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html\n\
-      SDK release: 08_06_00\n\n\nAdditional information:\n\n* Edge AI summary: https://ti.com/edgeai\n\
-      * Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development\
-      \ information: https://github.com/TexasInstruments/edgeai\n\n"
+      SDK release: 08_06_00\n\n\nAdditional information:\n\n* Edge AI introduction:\
+      \ https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
+      * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
+      \n"
     device_name: AM62A
     device_selection_factor: 0
     device_type: MPU
@@ -1111,9 +1124,10 @@ target_device_descriptions:
       \nProduct information: https://www.ti.com/product/AM68A\nDevelopment board:\
       \ https://www.ti.com/tool/SK-AM68\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n\
       Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html\n\
-      SDK release: 08_06_00\n\n\nAdditional information:\n\n* Edge AI summary: https://ti.com/edgeai\n\
-      * Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development\
-      \ information: https://github.com/TexasInstruments/edgeai\n\n"
+      SDK release: 08_06_00\n\n\nAdditional information:\n\n* Edge AI introduction:\
+      \ https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
+      * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
+      \n"
     device_name: AM68A
     device_selection_factor: 2
     device_type: MPU
@@ -1126,9 +1140,10 @@ target_device_descriptions:
       \n* Product information: https://www.ti.com/product/TDA4VM\n* Development board:\
       \ https://www.ti.com/tool/SK-TDA4VM\n* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n\
       * Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-sk-tda4vm/08_06_00/exports/docs/getting_started.html\n\
-      * SDK release: 08_06_00\n\n\nAdditional information:\n\n* Edge AI summary: https://ti.com/edgeai\n\
-      * Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development\
-      \ information: https://github.com/TexasInstruments/edgeai\n\n"
+      * SDK release: 08_06_00\n\n\nAdditional information:\n\n* Edge AI introduction:\
+      \ https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
+      * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
+      \n"
     device_name: TDA4VM
     device_selection_factor: 1
     device_type: MPU

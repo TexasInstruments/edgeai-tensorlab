@@ -85,7 +85,7 @@ TARGET_SDK_RELEASE = '08_06_00'
 
 
 EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION = f'''
-* Edge AI summary: https://ti.com/edgeai
+* Edge AI introduction: https://ti.com/edgeai
 * Edge AI tools introduction: https://dev.ti.com/edgeai/
 * Edge AI model development information: https://github.com/TexasInstruments/edgeai
 '''

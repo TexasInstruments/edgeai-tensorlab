@@ -199,6 +199,9 @@ def get_help_descriptions(params):
             constants.TARGET_DEVICE_AM62A: {'name':constants.TARGET_DEVICE_AM62A, 'description':constants.TARGET_DEVICE_SETUP_INSTRUCTIONS_AM62A},
             constants.TARGET_DEVICE_AM68A: {'name':constants.TARGET_DEVICE_AM68A, 'description':constants.TARGET_DEVICE_SETUP_INSTRUCTIONS_AM68A}
         },
+        'additional_information': {
+            'edgeai_introduction': {'name':'Edge AI introduction', 'description':constants.EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}
+        },
         'common': {
         },
         'dataset': {
