@@ -43,7 +43,7 @@ this_dir_path = os.path.dirname(os.path.abspath(__file__))
 repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../../'))
 
 edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
-www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest'
+www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01'
 edgeai_mmdetection_path = os.path.join(repo_parent_path, 'edgeai-mmdetection')
 edgeai_mmdetection_tools_path = os.path.join(edgeai_mmdetection_path, 'tools')
 
@@ -86,11 +86,11 @@ _model_descriptions = {
             pretrained_checkpoint_path=model_urls['yolox_nano_lite'][0],
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=287, performance_infer_time_ms=1000/287,
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=3.82,
                                                      accuracy_factor=40.1, accuracy_unit='AP50%', accuracy_factor2=24.8, accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM62A: dict(performance_fps=287, performance_infer_time_ms=1000/287,
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=None, performance_infer_time_ms=8.88,
                                                      accuracy_factor=40.1, accuracy_unit='AP50%', accuracy_factor2=24.8, accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM68A: dict(performance_fps=287, performance_infer_time_ms=1000/287,
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=3.73,
                                                      accuracy_factor=40.1, accuracy_unit='AP50%', accuracy_factor2=24.8, accuracy_unit2='AP[.5:.95]%'),
             },
             training_devices={
@@ -121,12 +121,12 @@ _model_descriptions = {
             pretrained_checkpoint_path=model_urls['yolox_tiny_lite'][0],
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=220, performance_infer_time_ms=1000/220,
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=4.92,
                                                      accuracy_factor=47.4, accuracy_unit='AP50%', accuracy_factor2=30.5, accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM62A: dict(performance_fps=220, performance_infer_time_ms=1000/220,
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=None, performance_infer_time_ms=15.32,
                                                      accuracy_factor=47.4, accuracy_unit='AP50%', accuracy_factor2=30.5, accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM68A: dict(performance_fps=220, performance_infer_time_ms=1000/220,
-                                                     accuracy_factor=47.4, accuracy_unit='AP50%', accuracy_factor2=30.5, accuracy_unit2='AP[.5:.95]%')
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=4.92,
+                                                     accuracy_factor=47.4, accuracy_unit='AP50%', accuracy_factor2=30.5, accuracy_unit2='AP[.5:.95]%') #TODO: this has to be corrected
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -156,12 +156,12 @@ _model_descriptions = {
             pretrained_checkpoint_path=model_urls['yolox_s_lite'][0],
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=102, performance_infer_time_ms=1000/102,
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=10.19,
                                                      accuracy_factor=56.9, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM62A: dict(performance_fps=102, performance_infer_time_ms=1000/102,
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=None, performance_infer_time_ms=43.85,
                                                      accuracy_factor=56.9, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM68A: dict(performance_fps=102, performance_infer_time_ms=1000/102,
-                                                     accuracy_factor=56.9, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=10.19,
+                                                     accuracy_factor=56.9, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'), #TODO: this has to be corrected
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,

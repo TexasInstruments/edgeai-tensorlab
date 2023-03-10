@@ -5,42 +5,103 @@ help_descriptions:
       description: Calibration is a process of improving the accuracy during fixed
         point quantization. Typically, higher number of Calibration Frames give higher
         accuracy, but it can also be time consuming.
-      name: Calibration Frames
+      name: Calibration frames
     calibration_iterations:
       description: Calibration is a process of improving the accuracy during fixed
         point quantization. Calibration happens in iterations. Typically, higher number
         of Calibration Iterations give higher accuracy, but it can also be time consuming.
-      name: Calibration Iterations
+      name: Calibration iterations
     detection_threshold:
       description: 'Also called Confidence Threshold. A threshold used to select good
         detection boxes. This is typically applied before a before the Non Max Suppression.
         Higher Detection Threshold means less false detections (False Positives),
         but may also result in misses (False Negatives). '
-      name: Detection Threshold
+      name: Detection threshold
     detection_top_k:
       description: 'Number of detection boxes to be selected during the initial shortlisting
         before the Non Max Suppression.A higher number is typically used while measuring
         accuracy, but may impact the performance. '
-      name: Detection TopK
+      name: Detection topK
     tensor_bits:
       description: 'Bitdepth used to quantize the weights and activations in the neural
         network. The neural network inference happens at this bit precision. '
-      name: Tensor Bits
+      name: Tensor bits
   dataset: {}
+  target_device_setup_instructions:
+    AM62A:
+      description: '
+
+        Product information: https://www.ti.com/product/AM62A7
+
+        Development board: https://www.ti.com/tool/SK-AM62A-LP
+
+        Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A
+
+        Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html
+
+        SDK release: 08_06_00
+
+        '
+      name: AM62A
+    AM68A:
+      description: '
+
+        Product information: https://www.ti.com/product/AM68A
+
+        Development board: https://www.ti.com/tool/SK-AM68
+
+        Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A
+
+        Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html
+
+        SDK release: 08_06_00
+
+        '
+      name: AM68A
+    TDA4VM:
+      description: '
+
+        * Product information: https://www.ti.com/product/TDA4VM
+
+        * Development board: https://www.ti.com/tool/SK-TDA4VM
+
+        * Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM
+
+        * Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-sk-tda4vm/08_06_00/exports/docs/getting_started.html
+
+        * SDK release: 08_06_00
+
+        '
+      name: TDA4VM
+    setup_overview:
+      description: "\nTo establish a connection with a physical development board\
+        \ over ethernet, please follow blow steps. Also use the supported SDK version\
+        \ for that device - given in the details below.\nStep 1: 'Make sure that you\
+        \ have physical development board of specific device with you procured, refer\
+        \ below to find how to procure for each specific device.\nStep 2: 'Download\
+        \ the image to be flashed in SD card (refer steps 3)\nStep 3: 'Make sure that\
+        \ the development board is setup and also put in the same local area network\
+        \ as the computer where you are using this service\nStep 4: 'Get the IP address\
+        \ of the development board using serial port connection\nStep 5: 'Connect\
+        \ to the development board using ssh and run device agent service as mentioned\
+        \ below. \nssh root@<ip_address_of_dev_board> \ncd /opt/edgeai-studio-agent/src\
+        \ \npython3 ./device_agent.py\nStep 6: Now you can connect to development\
+        \ board from model composer by providing the IP address of development board.\n"
+      name: Target device setup overview
   training:
     batch_size:
       description: Batch size specifies the number of inputs that are propagated through
         the neural network in one iteration. Several such iterations make up one Epoch.Higher
         batch size require higher memory and too low batch size can typically impact
         the accuracy.
-      name: Batch Size
+      name: Batch size
     learning_rate:
       description: Learning Rate determines the step size used by the optimization
         algorithm at each iteration while moving towards the optimal solution. It
         is a hyper parameter that can be tuned to get best accuracy. Eg. A small Learning
         Rate typically gives good accuracy while fine tuning a model for a different
         task.
-      name: Learning Rate
+      name: Learning rate
     training_epochs:
       description: Epoch is a term that is used to indicate a pass over the entire
         training dataset. It is a hyper parameter that can be tuned to get best accuracy.
@@ -52,7 +113,7 @@ help_descriptions:
         and generalization of a machine learning algorithm. It is typically done using
         L2 regularization that penalizes parameters (weights, biases) according to
         their L2 norm.
-      name: Weight Decay
+      name: Weight decay
 model_descriptions:
   mobilenet_v2_lite:
     common:
@@ -79,7 +140,7 @@ model_descriptions:
       log_summary_regex: null
       metric:
         label_offset_pred: 1
-      model_compilation_id: cl-6070
+      model_compilation_id: cl-6090
       model_compiled_path: null
       model_packaged_path: null
       model_visualization_path: null
@@ -105,14 +166,14 @@ model_descriptions:
       extract_path: null
       input_annotation_path: null
       input_data_path: null
-      max_num_files: null
+      max_num_files: 10000
       split_factor: 0.75
       split_names:
       - train
       - val
     download:
       download_path: '{download_path}/pretrained/mobilenet_v2_lite'
-      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
     training:
       batch_size: 64
       dataset_path: null
@@ -135,7 +196,7 @@ model_descriptions:
       num_last_epochs: 5
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/mobilenet_v2_lite'
-        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
       project_path: null
       summary_file_path: null
       target_devices:
@@ -143,20 +204,20 @@ model_descriptions:
           accuracy_factor: 72.13
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 2
-          performance_fps: 477
-          performance_infer_time_ms: 2.0964360587002098
+          performance_fps: null
+          performance_infer_time_ms: 4.09
         AM68A:
           accuracy_factor: 72.13
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 2
-          performance_fps: 477
-          performance_infer_time_ms: 2.0964360587002098
+          performance_fps: null
+          performance_infer_time_ms: 2.19
         TDA4VM:
           accuracy_factor: 72.13
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 2
-          performance_fps: 477
-          performance_infer_time_ms: 2.0964360587002098
+          performance_fps: null
+          performance_infer_time_ms: 2.45
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -218,7 +279,7 @@ model_descriptions:
       extract_path: null
       input_annotation_path: null
       input_data_path: null
-      max_num_files: null
+      max_num_files: 10000
       split_factor: 0.75
       split_names:
       - train
@@ -256,20 +317,20 @@ model_descriptions:
           accuracy_factor: 72.834
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 1
-          performance_fps: 288
-          performance_infer_time_ms: 3.4722222222222223
+          performance_fps: null
+          performance_infer_time_ms: 5.31
         AM68A:
           accuracy_factor: 72.834
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 1
-          performance_fps: 288
-          performance_infer_time_ms: 3.4722222222222223
+          performance_fps: null
+          performance_infer_time_ms: 2.76
         TDA4VM:
           accuracy_factor: 72.834
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 1
-          performance_fps: 288
-          performance_infer_time_ms: 3.4722222222222223
+          performance_fps: null
+          performance_infer_time_ms: 2.66
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -331,7 +392,7 @@ model_descriptions:
       extract_path: null
       input_annotation_path: null
       input_data_path: null
-      max_num_files: null
+      max_num_files: 10000
       split_factor: 0.75
       split_names:
       - train
@@ -369,20 +430,20 @@ model_descriptions:
           accuracy_factor: 75.212
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 0
-          performance_fps: 272
-          performance_infer_time_ms: 3.676470588235294
+          performance_fps: null
+          performance_infer_time_ms: 5.99
         AM68A:
           accuracy_factor: 75.212
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 0
-          performance_fps: 272
-          performance_infer_time_ms: 3.676470588235294
+          performance_fps: null
+          performance_infer_time_ms: 2.95
         TDA4VM:
           accuracy_factor: 75.212
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 0
-          performance_fps: 272
-          performance_infer_time_ms: 3.676470588235294
+          performance_fps: null
+          performance_infer_time_ms: 2.98
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -447,14 +508,14 @@ model_descriptions:
       extract_path: null
       input_annotation_path: null
       input_data_path: null
-      max_num_files: null
+      max_num_files: 10000
       split_factor: 0.75
       split_names:
       - train
       - val
     download:
     - download_path: '{download_path}/pretrained/yolox_nano_lite'
-      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
     training:
       batch_size: 8
       dataset_path: null
@@ -477,7 +538,7 @@ model_descriptions:
       num_last_epochs: 5
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/yolox_nano_lite'
-        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
       project_path: null
       summary_file_path: null
       target_devices:
@@ -487,24 +548,24 @@ model_descriptions:
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 2
-          performance_fps: 287
-          performance_infer_time_ms: 3.484320557491289
+          performance_fps: null
+          performance_infer_time_ms: 8.88
         AM68A:
           accuracy_factor: 40.1
           accuracy_factor2: 24.8
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 2
-          performance_fps: 287
-          performance_infer_time_ms: 3.484320557491289
+          performance_fps: null
+          performance_infer_time_ms: 3.73
         TDA4VM:
           accuracy_factor: 40.1
           accuracy_factor2: 24.8
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 2
-          performance_fps: 287
-          performance_infer_time_ms: 3.484320557491289
+          performance_fps: null
+          performance_infer_time_ms: 3.82
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -569,14 +630,14 @@ model_descriptions:
       extract_path: null
       input_annotation_path: null
       input_data_path: null
-      max_num_files: null
+      max_num_files: 10000
       split_factor: 0.75
       split_names:
       - train
       - val
     download:
     - download_path: '{download_path}/pretrained/yolox_s_lite'
-      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
     training:
       batch_size: 8
       dataset_path: null
@@ -599,7 +660,7 @@ model_descriptions:
       num_last_epochs: 5
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/yolox_s_lite'
-        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
       project_path: null
       summary_file_path: null
       target_devices:
@@ -609,24 +670,24 @@ model_descriptions:
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 0
-          performance_fps: 102
-          performance_infer_time_ms: 9.803921568627452
+          performance_fps: null
+          performance_infer_time_ms: 43.85
         AM68A:
           accuracy_factor: 56.9
           accuracy_factor2: 38.3
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 0
-          performance_fps: 102
-          performance_infer_time_ms: 9.803921568627452
+          performance_fps: null
+          performance_infer_time_ms: 10.19
         TDA4VM:
           accuracy_factor: 56.9
           accuracy_factor2: 38.3
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 0
-          performance_fps: 102
-          performance_infer_time_ms: 9.803921568627452
+          performance_fps: null
+          performance_infer_time_ms: 10.19
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -691,14 +752,14 @@ model_descriptions:
       extract_path: null
       input_annotation_path: null
       input_data_path: null
-      max_num_files: null
+      max_num_files: 10000
       split_factor: 0.75
       split_names:
       - train
       - val
     download:
     - download_path: '{download_path}/pretrained/yolox_tiny_lite'
-      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
     training:
       batch_size: 8
       dataset_path: null
@@ -721,7 +782,7 @@ model_descriptions:
       num_last_epochs: 5
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/yolox_tiny_lite'
-        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
       project_path: null
       summary_file_path: null
       target_devices:
@@ -731,24 +792,24 @@ model_descriptions:
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 1
-          performance_fps: 220
-          performance_infer_time_ms: 4.545454545454546
+          performance_fps: null
+          performance_infer_time_ms: 15.32
         AM68A:
           accuracy_factor: 47.4
           accuracy_factor2: 30.5
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 1
-          performance_fps: 220
-          performance_infer_time_ms: 4.545454545454546
+          performance_fps: null
+          performance_infer_time_ms: 4.92
         TDA4VM:
           accuracy_factor: 47.4
           accuracy_factor2: 30.5
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 1
-          performance_fps: 220
-          performance_infer_time_ms: 4.545454545454546
+          performance_fps: null
+          performance_infer_time_ms: 4.92
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -985,7 +1046,7 @@ sample_dataset_descriptions:
       task_type: classification
     dataset:
       dataset_name: animal_classification
-      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip
+      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip
     info:
       dataset_description: Example cat-dog image classification dataset with 2 categories
         and 118 images
@@ -995,13 +1056,13 @@ sample_dataset_descriptions:
       dataset_size: 16137224
       dataset_source: CC0 Public Domain Images from creativecommons.org, annotations
         by TI
-      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip
+      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip
   animal_detection:
     common:
       task_type: detection
     dataset:
       dataset_name: animal_detection
-      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip
+      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip
     info:
       dataset_description: Example cat-dog object detection dataset with 2 categories
         and 99 images
@@ -1011,13 +1072,13 @@ sample_dataset_descriptions:
       dataset_size: 15290214
       dataset_source: CC0 Public Domain Images from creativecommons.org, annotations
         by TI
-      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip
+      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip
   tiscapes2017_driving:
     common:
       task_type: detection
     dataset:
       dataset_name: tiscapes2017_driving
-      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip
+      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip
     info:
       dataset_description: Example driving scenario object detection dataset with
         4 categories and 2116 images
@@ -1026,41 +1087,53 @@ sample_dataset_descriptions:
       dataset_license: BSD 3-Clause
       dataset_size: 461038628
       dataset_source: Images & annotations from TI
-      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip
+      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip
 target_device_descriptions:
   AM62A:
-    device_details: "\nEfficient 2 TOPs AI capabilities at edge\nSpecification:\n\
-      * 2 TOPS Deep Learning accelerator\n* Quad Arm\xAE Cortex\xAE-A53\n* Integrated\
-      \ ISP\n* More details : https://www.ti.com/product/AM62A\n\nImportant Links:\n\
-      * Development board: https://www.ti.com/tool/SK-AM62A\n* Software Development\
-      \ Kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A/\n*\
-      \ Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
-      * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n"
+    device_details: "\nEfficient 2 TOPS AI capability at edge\nSpecification:\n* 2\
+      \ TOPS Deep Learning accelerator\n* Quad Arm\xAE Cortex\xAE-A53\n* Integrated\
+      \ ISP\n* More details : https://www.ti.com/product/AM62A7\n\nImportant Links:\n\
+      \nProduct information: https://www.ti.com/product/AM62A7\nDevelopment board:\
+      \ https://www.ti.com/tool/SK-AM62A-LP\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n\
+      Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html\n\
+      SDK release: 08_06_00\n\n\nAdditional information:\n\n* Edge AI summary: https://ti.com/edgeai\n\
+      * Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development\
+      \ information: https://github.com/TexasInstruments/edgeai\n\n"
     device_name: AM62A
     device_selection_factor: 0
     device_type: MPU
+    sdk_release: 08_06_00
+    sdk_version: '8.6'
   AM68A:
-    device_details: "\nEfficient 8 TOPs AI capabilities at edge\nSpecification:\n\
-      * 8 TOPS Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated\
+    device_details: "\nEfficient 8 TOPS AI capability at edge\nSpecification:\n* 8\
+      \ TOPS Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated\
       \ ISP\n* More details : https://www.ti.com/product/AM68A\n\nImportant Links:\n\
-      * Development board: https://www.ti.com/tool/SK-AM68A\n* Software Development\
-      \ Kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A/\n*\
-      \ Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
-      * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n"
+      \nProduct information: https://www.ti.com/product/AM68A\nDevelopment board:\
+      \ https://www.ti.com/tool/SK-AM68\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n\
+      Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html\n\
+      SDK release: 08_06_00\n\n\nAdditional information:\n\n* Edge AI summary: https://ti.com/edgeai\n\
+      * Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development\
+      \ information: https://github.com/TexasInstruments/edgeai\n\n"
     device_name: AM68A
-    device_selection_factor: 1
-    device_type: MPU
-  TDA4VM:
-    device_details: "\nEfficient 8 TOPs AI capabilities at edge\nSpecification:\n\
-      * 8 TOPS Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated\
-      \ ISP\n* More details : https://www.ti.com/product/TDA4VM\n\nImportant Links:\n\
-      * Development board: https://www.ti.com/tool/SK-TDA4VM\n* Software Development\
-      \ Kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM/\n\
-      * Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
-      * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n"
-    device_name: TDA4VM
     device_selection_factor: 2
     device_type: MPU
+    sdk_release: 08_06_00
+    sdk_version: '8.6'
+  TDA4VM:
+    device_details: "\nEfficient 8 TOPS AI capability at edge\nSpecification:\n* 8\
+      \ TOPS Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated\
+      \ ISP\n* More details : https://www.ti.com/product/TDA4VM\n\nImportant Links:\n\
+      \n* Product information: https://www.ti.com/product/TDA4VM\n* Development board:\
+      \ https://www.ti.com/tool/SK-TDA4VM\n* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n\
+      * Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-sk-tda4vm/08_06_00/exports/docs/getting_started.html\n\
+      * SDK release: 08_06_00\n\n\nAdditional information:\n\n* Edge AI summary: https://ti.com/edgeai\n\
+      * Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development\
+      \ information: https://github.com/TexasInstruments/edgeai\n\n"
+    device_name: TDA4VM
+    device_selection_factor: 1
+    device_type: MPU
+    sdk_release: 08_06_00
+    sdk_version: '8.6'
 task_descriptions:
   classification:
     stages:
@@ -1087,6 +1160,6 @@ training_module_descriptions:
   edgeai_torchvision:
   - classification
 version_descriptions:
-  sdk_release: 08_06
+  sdk_release: 08_06_00
   sdk_version: '8.6'
   version: '8.6'
