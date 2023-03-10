@@ -180,9 +180,7 @@ def get_version_descriptions(params):
     return version_descriptions
 
 
-TARGET_DEVICE_SETUP_OVERVIEW = {
-    'name': 'Target device setup overview',
-    'description': '''
+TARGET_DEVICE_SETUP_OVERVIEW = f'''
 To establish a connection with a physical development board over ethernet, please follow blow steps. Also use the supported SDK version for that device - given in the details below.
 Step 1: 'Make sure that you have physical development board of specific device with you procured, refer below to find how to procure for each specific device.
 Step 2: 'Download the image to be flashed in SD card (refer steps 3)
@@ -191,16 +189,15 @@ Step 4: 'Get the IP address of the development board using serial port connectio
 Step 5: 'Connect to the development board using ssh and run device agent service as mentioned below. \nssh root@<ip_address_of_dev_board> \ncd /opt/edgeai-studio-agent/src \npython3 ./device_agent.py
 Step 6: Now you can connect to development board from model composer by providing the IP address of development board.
 '''
-}
 
 
 def get_help_descriptions(params):
     return {
         'target_device_setup_instructions': {
-            'setup_overview': TARGET_DEVICE_SETUP_OVERVIEW,
-            constants.TARGET_DEVICE_TDA4VM: constants.TARGET_DEVICE_DESCRIPTIONS[constants.TARGET_DEVICE_TDA4VM]['setup_instructions'],
-            constants.TARGET_DEVICE_AM62A: constants.TARGET_DEVICE_DESCRIPTIONS[constants.TARGET_DEVICE_AM62A]['setup_instructions'],
-            constants.TARGET_DEVICE_AM68A: constants.TARGET_DEVICE_DESCRIPTIONS[constants.TARGET_DEVICE_AM68A]['setup_instructions'],
+            'setup_overview': {'name':'Target device setup overview', 'description':TARGET_DEVICE_SETUP_OVERVIEW},
+            constants.TARGET_DEVICE_TDA4VM: {'name':constants.TARGET_DEVICE_TDA4VM, 'description':constants.TARGET_DEVICE_SETUP_INSTRUCTIONS_TDA4VM},
+            constants.TARGET_DEVICE_AM62A: {'name':constants.TARGET_DEVICE_AM62A, 'description':constants.TARGET_DEVICE_SETUP_INSTRUCTIONS_AM62A},
+            constants.TARGET_DEVICE_AM68A: {'name':constants.TARGET_DEVICE_AM68A, 'description':constants.TARGET_DEVICE_SETUP_INSTRUCTIONS_AM68A}
         },
         'common': {
         },

@@ -58,22 +58,22 @@
         },
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":477,
-            "performance_infer_time_ms":2.0964360587002098,
+            "performance_fps":null,
+            "performance_infer_time_ms":2.45,
             "accuracy_factor":72.13,
             "accuracy_unit":"Accuracy Top-1%",
             "model_selection_factor":2
           },
           "AM62A":{
-            "performance_fps":477,
-            "performance_infer_time_ms":2.0964360587002098,
+            "performance_fps":null,
+            "performance_infer_time_ms":4.09,
             "accuracy_factor":72.13,
             "accuracy_unit":"Accuracy Top-1%",
             "model_selection_factor":2
           },
           "AM68A":{
-            "performance_fps":477,
-            "performance_infer_time_ms":2.0964360587002098,
+            "performance_fps":null,
+            "performance_infer_time_ms":2.19,
             "accuracy_factor":72.13,
             "accuracy_unit":"Accuracy Top-1%",
             "model_selection_factor":2
@@ -185,22 +185,22 @@
         },
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":288,
-            "performance_infer_time_ms":3.4722222222222223,
+            "performance_fps":null,
+            "performance_infer_time_ms":2.66,
             "accuracy_factor":72.834,
             "accuracy_unit":"Accuracy Top-1%",
             "model_selection_factor":1
           },
           "AM62A":{
-            "performance_fps":288,
-            "performance_infer_time_ms":3.4722222222222223,
+            "performance_fps":null,
+            "performance_infer_time_ms":5.31,
             "accuracy_factor":72.834,
             "accuracy_unit":"Accuracy Top-1%",
             "model_selection_factor":1
           },
           "AM68A":{
-            "performance_fps":288,
-            "performance_infer_time_ms":3.4722222222222223,
+            "performance_fps":null,
+            "performance_infer_time_ms":2.76,
             "accuracy_factor":72.834,
             "accuracy_unit":"Accuracy Top-1%",
             "model_selection_factor":1
@@ -312,22 +312,22 @@
         },
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":272,
-            "performance_infer_time_ms":3.676470588235294,
+            "performance_fps":null,
+            "performance_infer_time_ms":2.98,
             "accuracy_factor":75.212,
             "accuracy_unit":"Accuracy Top-1%",
             "model_selection_factor":0
           },
           "AM62A":{
-            "performance_fps":272,
-            "performance_infer_time_ms":3.676470588235294,
+            "performance_fps":null,
+            "performance_infer_time_ms":5.99,
             "accuracy_factor":75.212,
             "accuracy_unit":"Accuracy Top-1%",
             "model_selection_factor":0
           },
           "AM68A":{
-            "performance_fps":272,
-            "performance_infer_time_ms":3.676470588235294,
+            "performance_fps":null,
+            "performance_infer_time_ms":2.95,
             "accuracy_factor":75.212,
             "accuracy_unit":"Accuracy Top-1%",
             "model_selection_factor":0
@@ -441,8 +441,8 @@
         },
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":287,
-            "performance_infer_time_ms":3.484320557491289,
+            "performance_fps":null,
+            "performance_infer_time_ms":3.82,
             "accuracy_factor":40.1,
             "accuracy_unit":"AP50%",
             "accuracy_factor2":24.8,
@@ -450,8 +450,8 @@
             "model_selection_factor":2
           },
           "AM62A":{
-            "performance_fps":287,
-            "performance_infer_time_ms":3.484320557491289,
+            "performance_fps":null,
+            "performance_infer_time_ms":8.88,
             "accuracy_factor":40.1,
             "accuracy_unit":"AP50%",
             "accuracy_factor2":24.8,
@@ -459,8 +459,8 @@
             "model_selection_factor":2
           },
           "AM68A":{
-            "performance_fps":287,
-            "performance_infer_time_ms":3.484320557491289,
+            "performance_fps":null,
+            "performance_infer_time_ms":3.73,
             "accuracy_factor":40.1,
             "accuracy_unit":"AP50%",
             "accuracy_factor2":24.8,
@@ -579,8 +579,8 @@
         },
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":220,
-            "performance_infer_time_ms":4.545454545454546,
+            "performance_fps":null,
+            "performance_infer_time_ms":4.92,
             "accuracy_factor":47.4,
             "accuracy_unit":"AP50%",
             "accuracy_factor2":30.5,
@@ -588,8 +588,8 @@
             "model_selection_factor":1
           },
           "AM62A":{
-            "performance_fps":220,
-            "performance_infer_time_ms":4.545454545454546,
+            "performance_fps":null,
+            "performance_infer_time_ms":15.32,
             "accuracy_factor":47.4,
             "accuracy_unit":"AP50%",
             "accuracy_factor2":30.5,
@@ -597,8 +597,8 @@
             "model_selection_factor":1
           },
           "AM68A":{
-            "performance_fps":220,
-            "performance_infer_time_ms":4.545454545454546,
+            "performance_fps":null,
+            "performance_infer_time_ms":4.92,
             "accuracy_factor":47.4,
             "accuracy_unit":"AP50%",
             "accuracy_factor2":30.5,
@@ -717,8 +717,8 @@
         },
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":102,
-            "performance_infer_time_ms":9.803921568627452,
+            "performance_fps":null,
+            "performance_infer_time_ms":10.19,
             "accuracy_factor":56.9,
             "accuracy_unit":"AP50%",
             "accuracy_factor2":38.3,
@@ -726,8 +726,8 @@
             "model_selection_factor":0
           },
           "AM62A":{
-            "performance_fps":102,
-            "performance_infer_time_ms":9.803921568627452,
+            "performance_fps":null,
+            "performance_infer_time_ms":43.85,
             "accuracy_factor":56.9,
             "accuracy_unit":"AP50%",
             "accuracy_factor2":38.3,
@@ -735,8 +735,8 @@
             "model_selection_factor":0
           },
           "AM68A":{
-            "performance_fps":102,
-            "performance_infer_time_ms":9.803921568627452,
+            "performance_fps":null,
+            "performance_infer_time_ms":10.19,
             "accuracy_factor":56.9,
             "accuracy_unit":"AP50%",
             "accuracy_factor2":38.3,
@@ -1099,37 +1099,25 @@
       "device_name":"TDA4VM",
       "device_type":"MPU",
       "device_selection_factor":1,
-      "device_details":"\nEfficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS Deep Learning accelerator\n* Dual Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/TDA4VM\n\nImportant Links:\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n* Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n",
+      "device_details":"\nEfficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS Deep Learning accelerator\n* Dual Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/TDA4VM\n\nImportant Links:\n\n* Product information: https://www.ti.com/product/TDA4VM\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n* Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-sk-tda4vm/08_06_00/exports/docs/getting_started.html\n* SDK release: 08_06_00\n\n\nAdditional information:\n\n* Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\n",
       "sdk_version":"8.6",
-      "sdk_release":"08_06_00",
-      "setup_instructions":{
-        "name":"TDA4VM",
-        "description":"\nProduct information: https://www.ti.com/product/TDA4VM\nDevelopment board: https://www.ti.com/tool/SK-TDA4VM\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-sk-tda4vm/08_06_00/exports/docs/getting_started.html\nSDK release: 08_06_00\n"
-      }
+      "sdk_release":"08_06_00"
     },
     "AM62A":{
       "device_name":"AM62A",
       "device_type":"MPU",
       "device_selection_factor":0,
-      "device_details":"\nEfficient 2 TOPS AI capability at edge\nSpecification:\n* 2 TOPS Deep Learning accelerator\n* Quad Arm\u00ae Cortex\u00ae-A53\n* Integrated ISP\n* More details : https://www.ti.com/product/AM62A7\n\nImportant Links:\n* Development board: https://www.ti.com/tool/SK-AM62A\n* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n",
+      "device_details":"\nEfficient 2 TOPS AI capability at edge\nSpecification:\n* 2 TOPS Deep Learning accelerator\n* Quad Arm\u00ae Cortex\u00ae-A53\n* Integrated ISP\n* More details : https://www.ti.com/product/AM62A7\n\nImportant Links:\n\nProduct information: https://www.ti.com/product/AM62A7\nDevelopment board: https://www.ti.com/tool/SK-AM62A-LP\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html\nSDK release: 08_06_00\n\n\nAdditional information:\n\n* Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\n",
       "sdk_version":"8.6",
-      "sdk_release":"08_06_00",
-      "setup_instructions":{
-        "name":"AM62A",
-        "description":"\nProduct information: https://www.ti.com/product/AM62A7\nDevelopment board: https://www.ti.com/tool/SK-AM62A-LP\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html\nSDK release: 08_06_00\n"
-      }
+      "sdk_release":"08_06_00"
     },
     "AM68A":{
       "device_name":"AM68A",
       "device_type":"MPU",
       "device_selection_factor":2,
-      "device_details":"\nEfficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS Deep Learning accelerator\n* Dual Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/AM68A\n\nImportant Links:\n* Development board: https://www.ti.com/tool/SK-AM68A\n* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n* Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n",
+      "device_details":"\nEfficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS Deep Learning accelerator\n* Dual Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/AM68A\n\nImportant Links:\n\nProduct information: https://www.ti.com/product/AM68A\nDevelopment board: https://www.ti.com/tool/SK-AM68\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html\nSDK release: 08_06_00\n\n\nAdditional information:\n\n* Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\n",
       "sdk_version":"8.6",
-      "sdk_release":"08_06_00",
-      "setup_instructions":{
-        "name":"AM68A",
-        "description":"\nProduct information: https://www.ti.com/product/AM68A\nDevelopment board: https://www.ti.com/tool/SK-AM68\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html\nSDK release: 08_06_00\n"
-      }
+      "sdk_release":"08_06_00"
     }
   },
   "task_descriptions":{
@@ -1231,7 +1219,7 @@
       },
       "TDA4VM":{
         "name":"TDA4VM",
-        "description":"\nProduct information: https://www.ti.com/product/TDA4VM\nDevelopment board: https://www.ti.com/tool/SK-TDA4VM\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-sk-tda4vm/08_06_00/exports/docs/getting_started.html\nSDK release: 08_06_00\n"
+        "description":"\n* Product information: https://www.ti.com/product/TDA4VM\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n* Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-sk-tda4vm/08_06_00/exports/docs/getting_started.html\n* SDK release: 08_06_00\n"
       },
       "AM62A":{
         "name":"AM62A",
