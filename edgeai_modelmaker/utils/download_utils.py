@@ -162,7 +162,7 @@ def download_file(dataset_url, download_root, extract_root=None, save_filename=N
                     if os.path.islink(extract_root):
                         os.unlink(extract_root)
                     #
-                    os.symlink(dataset_url, extract_root)
+                    misc_utils.make_symlink(dataset_url, extract_root)
                 #
                 dataset_url = extract_root
             #

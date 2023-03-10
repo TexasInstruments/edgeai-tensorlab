@@ -67,6 +67,10 @@ def remove_if_exists(path):
 
 
 def make_symlink(source, dest):
+    if source is None or (not os.path.exists(source)):
+        print(f'make_symlink failed - source: {source} is invalid')
+        return
+    #
     remove_if_exists(dest)
     if os.path.dirname(source) == os.path.dirname(dest):
         base_dir = os.path.dirname(source)

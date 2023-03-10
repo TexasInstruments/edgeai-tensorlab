@@ -48,6 +48,7 @@ except ImportError:
 from typing import Any, Callable, Dict, Optional, Tuple, List
 
 from .. import constants
+from .. import utils
 
 
 def parse_voc_xml_file(annotation_file_name: str) -> Dict[str, Any]:
@@ -364,22 +365,7 @@ def dataset_split_write(input_data_path, dataset_dict, input_data_path_split,
 
 
 def dataset_split_link(input_data_path, dataset_dict, input_data_path_split, annotation_path_split):
-    if input_data_path is not None:
-        if not os.path.exists(input_data_path_split):
-            cwd_path = os.getcwd()
-            os.chdir(os.path.dirname(input_data_path_split))
-            input_data_path_split_base = os.path.basename(input_data_path_split)
-            if os.path.islink(input_data_path_split_base):
-                os.unlink(input_data_path_split_base)
-            #
-            if os.path.exists(input_data_path_split_base):
-                print(f'{input_data_path_split}: exists')
-            else:
-                os.symlink(input_data_path, input_data_path_split_base)
-                os.chdir(cwd_path)
-            #
-        #
-    #
+    utils.make_symlink(input_data_path, input_data_path_split)
     return
 
 
