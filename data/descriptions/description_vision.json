@@ -22,7 +22,7 @@
         "target_module":"vision"
       },
       "download":{
-        "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth",
+        "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth",
         "download_path":"{download_path}/pretrained/mobilenet_v2_lite"
       },
       "dataset":{
@@ -53,7 +53,7 @@
         "model_training_id":"mobilenet_v2_lite",
         "training_backend":"edgeai_torchvision",
         "pretrained_checkpoint_path":{
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth",
           "download_path":"{download_path}/pretrained/mobilenet_v2_lite"
         },
         "target_devices":{
@@ -404,7 +404,7 @@
       },
       "download":[
         {
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_nano_lite"
         }
       ],
@@ -436,7 +436,7 @@
         "model_training_id":"yolox_nano_lite",
         "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":{
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_nano_lite"
         },
         "target_devices":{
@@ -542,7 +542,7 @@
       },
       "download":[
         {
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_tiny_lite"
         }
       ],
@@ -574,7 +574,7 @@
         "model_training_id":"yolox_tiny_lite",
         "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":{
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_tiny_lite"
         },
         "target_devices":{
@@ -680,7 +680,7 @@
       },
       "download":[
         {
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_s_lite"
         }
       ],
@@ -712,7 +712,7 @@
         "model_training_id":"yolox_s_lite",
         "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":{
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_s_lite"
         },
         "target_devices":{
@@ -1098,7 +1098,7 @@
     "TDA4VM":{
       "device_name":"TDA4VM",
       "device_type":"MPU",
-      "device_selection_factor":2,
+      "device_selection_factor":1,
       "device_details":"\nEfficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS Deep Learning accelerator\n* Dual Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/TDA4VM\n\nImportant Links:\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n* Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n",
       "sdk_version":"8.6",
       "sdk_release":"08_06_00",
@@ -1111,24 +1111,24 @@
       "device_name":"AM62A",
       "device_type":"MPU",
       "device_selection_factor":0,
-      "device_details":"\nEfficient 2 TOPS AI capability at edge\nSpecification:\n* 2 TOPS Deep Learning accelerator\n* Quad Arm\u00ae Cortex\u00ae-A53\n* Integrated ISP\n* More details : https://www.ti.com/product/AM62A\n\nImportant Links:\n* Development board: https://www.ti.com/tool/SK-AM62A\n* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n",
+      "device_details":"\nEfficient 2 TOPS AI capability at edge\nSpecification:\n* 2 TOPS Deep Learning accelerator\n* Quad Arm\u00ae Cortex\u00ae-A53\n* Integrated ISP\n* More details : https://www.ti.com/product/AM62A7\n\nImportant Links:\n* Development board: https://www.ti.com/tool/SK-AM62A\n* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n",
       "sdk_version":"8.6",
       "sdk_release":"08_06_00",
       "setup_instructions":{
         "name":"AM62A",
-        "description":"\nProduct information: https://www.ti.com/product/AM62A\nDevelopment board: https://www.ti.com/tool/SK-AM62A\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-AM62A\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html\nSDK release: 08_06_00\n"
+        "description":"\nProduct information: https://www.ti.com/product/AM62A7\nDevelopment board: https://www.ti.com/tool/SK-AM62A-LP\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html\nSDK release: 08_06_00\n"
       }
     },
     "AM68A":{
       "device_name":"AM68A",
       "device_type":"MPU",
-      "device_selection_factor":1,
+      "device_selection_factor":2,
       "device_details":"\nEfficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS Deep Learning accelerator\n* Dual Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/AM68A\n\nImportant Links:\n* Development board: https://www.ti.com/tool/SK-AM68A\n* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n* Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n",
       "sdk_version":"8.6",
       "sdk_release":"08_06_00",
       "setup_instructions":{
         "name":"AM68A",
-        "description":"\nProduct information: https://www.ti.com/product/AM68A\nDevelopment board: https://www.ti.com/tool/SK-AM68A\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-AM68A\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html\nSDK release: 08_06_00\n"
+        "description":"\nProduct information: https://www.ti.com/product/AM68A\nDevelopment board: https://www.ti.com/tool/SK-AM68\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html\nSDK release: 08_06_00\n"
       }
     }
   },
@@ -1169,10 +1169,10 @@
       },
       "dataset":{
         "dataset_name":"animal_classification",
-        "input_data_path":"http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip"
+        "input_data_path":"http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip"
       },
       "info":{
-        "dataset_url":"http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip",
+        "dataset_url":"http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip",
         "dataset_detailed_name":"Animal classification",
         "dataset_description":"Example cat-dog image classification dataset with 2 categories and 118 images",
         "dataset_size":16137224,
@@ -1187,10 +1187,10 @@
       },
       "dataset":{
         "dataset_name":"animal_detection",
-        "input_data_path":"http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip"
+        "input_data_path":"http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip"
       },
       "info":{
-        "dataset_url":"http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip",
+        "dataset_url":"http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip",
         "dataset_detailed_name":"Animal detection",
         "dataset_description":"Example cat-dog object detection dataset with 2 categories and 99 images",
         "dataset_size":15290214,
@@ -1205,10 +1205,10 @@
       },
       "dataset":{
         "dataset_name":"tiscapes2017_driving",
-        "input_data_path":"http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip"
+        "input_data_path":"http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip"
       },
       "info":{
-        "dataset_url":"http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip",
+        "dataset_url":"http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip",
         "dataset_detailed_name":"TIScapes driving detection",
         "dataset_description":"Example driving scenario object detection dataset with 4 categories and 2116 images",
         "dataset_size":461038628,
@@ -1235,11 +1235,11 @@
       },
       "AM62A":{
         "name":"AM62A",
-        "description":"\nProduct information: https://www.ti.com/product/AM62A\nDevelopment board: https://www.ti.com/tool/SK-AM62A\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-AM62A\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html\nSDK release: 08_06_00\n"
+        "description":"\nProduct information: https://www.ti.com/product/AM62A7\nDevelopment board: https://www.ti.com/tool/SK-AM62A-LP\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html\nSDK release: 08_06_00\n"
       },
       "AM68A":{
         "name":"AM68A",
-        "description":"\nProduct information: https://www.ti.com/product/AM68A\nDevelopment board: https://www.ti.com/tool/SK-AM68A\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-AM68A\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html\nSDK release: 08_06_00\n"
+        "description":"\nProduct information: https://www.ti.com/product/AM68A\nDevelopment board: https://www.ti.com/tool/SK-AM68\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\nSteps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html\nSDK release: 08_06_00\n"
       }
     },
     "common":{},

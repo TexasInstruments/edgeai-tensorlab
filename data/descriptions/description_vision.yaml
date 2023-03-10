@@ -31,11 +31,11 @@ help_descriptions:
     AM62A:
       description: '
 
-        Product information: https://www.ti.com/product/AM62A
+        Product information: https://www.ti.com/product/AM62A7
 
-        Development board: https://www.ti.com/tool/SK-AM62A
+        Development board: https://www.ti.com/tool/SK-AM62A-LP
 
-        Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-AM62A
+        Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A
 
         Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html
 
@@ -48,9 +48,9 @@ help_descriptions:
 
         Product information: https://www.ti.com/product/AM68A
 
-        Development board: https://www.ti.com/tool/SK-AM68A
+        Development board: https://www.ti.com/tool/SK-AM68
 
-        Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-AM68A
+        Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A
 
         Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html
 
@@ -173,7 +173,7 @@ model_descriptions:
       - val
     download:
       download_path: '{download_path}/pretrained/mobilenet_v2_lite'
-      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
     training:
       batch_size: 64
       dataset_path: null
@@ -196,7 +196,7 @@ model_descriptions:
       num_last_epochs: 5
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/mobilenet_v2_lite'
-        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
       project_path: null
       summary_file_path: null
       target_devices:
@@ -515,7 +515,7 @@ model_descriptions:
       - val
     download:
     - download_path: '{download_path}/pretrained/yolox_nano_lite'
-      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
     training:
       batch_size: 8
       dataset_path: null
@@ -538,7 +538,7 @@ model_descriptions:
       num_last_epochs: 5
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/yolox_nano_lite'
-        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
       project_path: null
       summary_file_path: null
       target_devices:
@@ -637,7 +637,7 @@ model_descriptions:
       - val
     download:
     - download_path: '{download_path}/pretrained/yolox_s_lite'
-      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
     training:
       batch_size: 8
       dataset_path: null
@@ -660,7 +660,7 @@ model_descriptions:
       num_last_epochs: 5
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/yolox_s_lite'
-        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
       project_path: null
       summary_file_path: null
       target_devices:
@@ -759,7 +759,7 @@ model_descriptions:
       - val
     download:
     - download_path: '{download_path}/pretrained/yolox_tiny_lite'
-      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
     training:
       batch_size: 8
       dataset_path: null
@@ -782,7 +782,7 @@ model_descriptions:
       num_last_epochs: 5
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/yolox_tiny_lite'
-        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
       project_path: null
       summary_file_path: null
       target_devices:
@@ -1046,7 +1046,7 @@ sample_dataset_descriptions:
       task_type: classification
     dataset:
       dataset_name: animal_classification
-      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip
+      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip
     info:
       dataset_description: Example cat-dog image classification dataset with 2 categories
         and 118 images
@@ -1056,13 +1056,13 @@ sample_dataset_descriptions:
       dataset_size: 16137224
       dataset_source: CC0 Public Domain Images from creativecommons.org, annotations
         by TI
-      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip
+      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip
   animal_detection:
     common:
       task_type: detection
     dataset:
       dataset_name: animal_detection
-      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip
+      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip
     info:
       dataset_description: Example cat-dog object detection dataset with 2 categories
         and 99 images
@@ -1072,13 +1072,13 @@ sample_dataset_descriptions:
       dataset_size: 15290214
       dataset_source: CC0 Public Domain Images from creativecommons.org, annotations
         by TI
-      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip
+      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip
   tiscapes2017_driving:
     common:
       task_type: detection
     dataset:
       dataset_name: tiscapes2017_driving
-      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip
+      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip
     info:
       dataset_description: Example driving scenario object detection dataset with
         4 categories and 2116 images
@@ -1087,12 +1087,12 @@ sample_dataset_descriptions:
       dataset_license: BSD 3-Clause
       dataset_size: 461038628
       dataset_source: Images & annotations from TI
-      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip
+      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip
 target_device_descriptions:
   AM62A:
     device_details: "\nEfficient 2 TOPS AI capability at edge\nSpecification:\n* 2\
       \ TOPS Deep Learning accelerator\n* Quad Arm\xAE Cortex\xAE-A53\n* Integrated\
-      \ ISP\n* More details : https://www.ti.com/product/AM62A\n\nImportant Links:\n\
+      \ ISP\n* More details : https://www.ti.com/product/AM62A7\n\nImportant Links:\n\
       * Development board: https://www.ti.com/tool/SK-AM62A\n* Software development\
       \ kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* Edge\
       \ AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
@@ -1105,11 +1105,11 @@ target_device_descriptions:
     setup_instructions:
       description: '
 
-        Product information: https://www.ti.com/product/AM62A
+        Product information: https://www.ti.com/product/AM62A7
 
-        Development board: https://www.ti.com/tool/SK-AM62A
+        Development board: https://www.ti.com/tool/SK-AM62A-LP
 
-        Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-AM62A
+        Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A
 
         Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html
 
@@ -1126,7 +1126,7 @@ target_device_descriptions:
       \ AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
       * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n"
     device_name: AM68A
-    device_selection_factor: 1
+    device_selection_factor: 2
     device_type: MPU
     sdk_release: 08_06_00
     sdk_version: '8.6'
@@ -1135,9 +1135,9 @@ target_device_descriptions:
 
         Product information: https://www.ti.com/product/AM68A
 
-        Development board: https://www.ti.com/tool/SK-AM68A
+        Development board: https://www.ti.com/tool/SK-AM68
 
-        Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-AM68A
+        Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A
 
         Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html
 
@@ -1154,7 +1154,7 @@ target_device_descriptions:
       * Edge AI summary: https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
       * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n"
     device_name: TDA4VM
-    device_selection_factor: 2
+    device_selection_factor: 1
     device_type: MPU
     sdk_release: 08_06_00
     sdk_version: '8.6'
