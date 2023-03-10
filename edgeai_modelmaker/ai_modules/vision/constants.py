@@ -101,7 +101,7 @@ Specification:
 * 2 TOPS Deep Learning accelerator
 * Quad Arm® Cortex®-A53
 * Integrated ISP
-* More details : https://www.ti.com/product/AM62A
+* More details : https://www.ti.com/product/AM62A7
 
 Important Links:
 * Development board: https://www.ti.com/tool/SK-AM62A
@@ -146,9 +146,9 @@ SDK release: {TARGET_SDK_RELEASE}
 TARGET_DEVICE_SETUP_INSTRUCTIONS_AM62A = {
     'name': TARGET_DEVICE_AM62A,
     'description': f'''
-Product information: https://www.ti.com/product/AM62A
-Development board: https://www.ti.com/tool/SK-AM62A
-Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-AM62A
+Product information: https://www.ti.com/product/AM62A7
+Development board: https://www.ti.com/tool/SK-AM62A-LP
+Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A
 Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/{TARGET_SDK_RELEASE}/exports/docs/devices/AM62AX/linux/getting_started.html
 SDK release: {TARGET_SDK_RELEASE}
 '''
@@ -159,8 +159,8 @@ TARGET_DEVICE_SETUP_INSTRUCTIONS_AM68A = {
     'name': TARGET_DEVICE_AM68A,
     'description': f'''
 Product information: https://www.ti.com/product/AM68A
-Development board: https://www.ti.com/tool/SK-AM68A
-Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-AM68A
+Development board: https://www.ti.com/tool/SK-AM68
+Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A
 Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/{TARGET_SDK_RELEASE}/exports/docs/devices/AM68A/linux/getting_started.html
 SDK release: {TARGET_SDK_RELEASE}
 '''
@@ -172,7 +172,7 @@ TARGET_DEVICE_DESCRIPTIONS = {
     TARGET_DEVICE_TDA4VM: {
         'device_name': TARGET_DEVICE_TDA4VM,
         'device_type': TARGET_DEVICE_TYPE_MPU,
-        'device_selection_factor': 2,
+        'device_selection_factor': 1,
         'device_details': TARGET_DEVICE_DETAILS_TDA4VM,
         'sdk_version': TARGET_SDK_VERSION,
         'sdk_release': TARGET_SDK_RELEASE,
@@ -190,7 +190,7 @@ TARGET_DEVICE_DESCRIPTIONS = {
     TARGET_DEVICE_AM68A: {
         'device_name': TARGET_DEVICE_AM68A,
         'device_type': TARGET_DEVICE_TYPE_MPU,
-        'device_selection_factor': 1,
+        'device_selection_factor': 2,
         'device_details': TARGET_DEVICE_DETAILS_AM68A,
         'sdk_version': TARGET_SDK_VERSION,
         'sdk_release': TARGET_SDK_RELEASE,
