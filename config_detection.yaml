@@ -40,7 +40,7 @@ training:
 
     # Object Detection model chosen can be changed here if needed
     # options are: 'yolox_nano_lite', 'yolox_tiny_lite', 'yolox_s_lite'
-    model_name: 'yolox_tiny_lite'
+    model_name: 'yolox_nano_lite'
 
     training_epochs: 15 #30
     # batch_size: 8 #32
