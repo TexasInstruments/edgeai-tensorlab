@@ -179,7 +179,7 @@ model_descriptions:
       input_annotation_path: null
       input_data_path: null
       max_num_files: 10000
-      split_factor: 0.75
+      split_factor: 0.8
       split_names:
       - train
       - val
@@ -292,7 +292,7 @@ model_descriptions:
       input_annotation_path: null
       input_data_path: null
       max_num_files: 10000
-      split_factor: 0.75
+      split_factor: 0.8
       split_names:
       - train
       - val
@@ -405,7 +405,7 @@ model_descriptions:
       input_annotation_path: null
       input_data_path: null
       max_num_files: 10000
-      split_factor: 0.75
+      split_factor: 0.8
       split_names:
       - train
       - val
@@ -521,7 +521,7 @@ model_descriptions:
       input_annotation_path: null
       input_data_path: null
       max_num_files: 10000
-      split_factor: 0.75
+      split_factor: 0.8
       split_names:
       - train
       - val
@@ -643,7 +643,7 @@ model_descriptions:
       input_annotation_path: null
       input_data_path: null
       max_num_files: 10000
-      split_factor: 0.75
+      split_factor: 0.8
       split_names:
       - train
       - val
@@ -765,7 +765,7 @@ model_descriptions:
       input_annotation_path: null
       input_data_path: null
       max_num_files: 10000
-      split_factor: 0.75
+      split_factor: 0.8
       split_names:
       - train
       - val
