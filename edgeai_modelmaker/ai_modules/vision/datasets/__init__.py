@@ -136,7 +136,8 @@ class DatasetHandling:
                 else:
                     dataset_download_paths = dataset_backend.dataset_paths(self.params, self.params.common.project_path)
                 #
-                self.params.dataset.input_data_path,self.params.dataset.input_annotation_path = dataset_download_paths
+                input_images_path,self.params.dataset.input_annotation_path = dataset_download_paths
+                self.params.dataset.input_data_path = input_images_path.replace(self.params.dataset.data_dir, '')
                 with open(self.params.dataset.input_annotation_path) as afp:
                     dataset_store = json.load(afp)
                 #
@@ -176,9 +177,9 @@ class DatasetHandling:
             max_num_files = [None]*len(self.params.dataset.split_names)
             for split_id, split_name in enumerate(self.params.dataset.split_names):
                 if split_id == 0:
-                    max_num_files[split_id] = int(self.params.dataset.max_num_files * self.params.dataset.split_factor)
+                    max_num_files[split_id] = round(self.params.dataset.max_num_files * self.params.dataset.split_factor)
                 else:
-                    max_num_files[split_id] = int(self.params.dataset.max_num_files * (1.0 - self.params.dataset.split_factor))
+                    max_num_files[split_id] = self.params.dataset.max_num_files - max_num_files[0]
                 #
             #
         else:

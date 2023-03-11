@@ -82,11 +82,11 @@ class ModelRunner():
         self.params.compilation.compilation_path = os.path.join(self.params.common.project_run_path, 'compilation', target_device_compilation_folder)
 
         if self.params.common.target_device in self.params.training.target_devices:
-            performance_fps_list = {k:v['performance_fps'] for k,v in self.params.training.target_devices.items()}
+            performance_infer_time_ms_list = {k:v['performance_infer_time_ms'] for k,v in self.params.training.target_devices.items()}
             print('---------------------------------------------------------------------')
             print(f'Run Name: {self.params.common.run_name}')
             print(f'- Model: {self.params.training.model_name}')
-            print(f'- TargetDevice(s) & FPS Estimate(s): {performance_fps_list}')
+            print(f'- TargetDevices & Estimated Inference Times (ms): {performance_infer_time_ms_list}')
             print(f'- This model can be compiled for the above device(s).')
             print('---------------------------------------------------------------------')
         #
