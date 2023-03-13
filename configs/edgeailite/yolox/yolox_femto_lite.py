@@ -1,9 +1,10 @@
 
 # modified from: https://github.com/open-mmlab/mmdetection/tree/master/configs/yolox
 
+# img_scale = (416, 416)
 img_scale = (320, 320)
 input_size = img_scale
-samples_per_gpu = 16
+samples_per_gpu = 8
 
 # dataset settings
 dataset_type = 'CocoDataset'
@@ -35,9 +36,9 @@ if quantize:
     resume_from = None
 else:
     load_from = None #'https://download.openmmlab.com/mmdetection/v2.0/yolox/yolox_s_8x8_300e_coco/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth'
-    max_epochs = 300
+    max_epochs = 150
     initial_learning_rate = 0.01
-    num_last_epochs = 15
+    num_last_epochs = 10
     interval = 10
     resume_from = None
 #
@@ -48,15 +49,15 @@ model = dict(
     input_size=img_scale,
     random_size_range=(10, 20),
     random_size_interval=10,
-    backbone=dict(type='CSPDarknet', deepen_factor=0.33, widen_factor=0.125, use_depthwise=False),
+    backbone=dict(type='CSPDarknet', deepen_factor=0.33, widen_factor=0.125, use_depthwise=True),
     neck=dict(
         type='YOLOXPAFPN',
         in_channels=[32,64,128],
         out_channels=32,
         num_csp_blocks=1,
-        use_depthwise=False),
+        use_depthwise=True),
     bbox_head=dict(
-        type='YOLOXHead', num_classes=num_classes, in_channels=32, feat_channels=32, use_depthwise=False),
+        type='YOLOXHead', num_classes=num_classes, in_channels=32, feat_channels=32, use_depthwise=True),
     train_cfg=dict(assigner=dict(type='SimOTAAssigner', center_radius=2.5)),
     # In order to align the source code, the threshold of the val phase is
     # 0.01, and the threshold of the test phase is 0.001.

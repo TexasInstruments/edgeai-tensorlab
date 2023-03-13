@@ -35,7 +35,10 @@ def parse_args():
     parser.add_argument('config', help='train config file path')
     parser.add_argument('--work-dir', help='the dir to save logs and models')
     parser.add_argument(
-        '--resume-from', help='the checkpoint file to resume from')
+        '--resume-from', help='the checkpoint file to resume from',)
+        # default='/home/a0484689/PycharmProjects/py306_edgeai/edgeai-mmdetection/work_dirs/yolox_femto_lite/epoch_300.pth')
+        # default='/data/tensorlabdata1/data/users/adithya/yolox_pico_lite_dw_320.pth')
+        # default='/home/a0484689/PycharmProjects/py306_edgeai/edgeai-mmdetection/work_dirs/yolox_femto_lite/epoch_300.pth')
     parser.add_argument(
         '--auto-resume',
         action='store_true',
@@ -235,6 +238,7 @@ def main(args=None):
             CLASSES=datasets[0].CLASSES)
     # add an attribute for visualization convenience
     model.CLASSES = datasets[0].CLASSES
+
     train_detector(
         model,
         datasets,
@@ -246,11 +250,12 @@ def main(args=None):
 
     # export the model after training
     rank, world_size = get_dist_info()
-    if rank == 0 and hasattr(cfg, 'export_model') and cfg.export_model:
+    if rank == 0 :#and hasattr(cfg, 'export_model') and cfg.export_model:
         model_cpu = copy.deepcopy(model).cpu()
         pytorch2onnx_file = 'tools.deployment.pytorch2onnx'
         pytorch2onnx_module = importlib.import_module(pytorch2onnx_file, __name__)
         input_img = osp.join(osp.dirname(__file__), '../demo/demo.jpg')
+        # input_img = "/home/a0484689/PycharmProjects/py306_am62/edgeai-tidl-tools/000000000785.png"
         input_size = (1, 3) + tuple(cfg.input_size) if len(cfg.input_size) == 2 else cfg.input_size
         normalize_cfg = pytorch2onnx_module.parse_normalize_cfg(cfg.test_pipeline)
         pytorch2onnx_module.pytorch2onnx(dict(), cfg,

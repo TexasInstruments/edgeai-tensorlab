@@ -28,6 +28,7 @@
 
 ######################################################
 input_size = (320,320)                          #(512,512) #(768,768) #(1024,1024)
+# input_size = (416, 416)
 dataset_type = 'CocoDataset'
 num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8, 'WIDERFaceDataset':1}
 num_classes = num_classes_dict[dataset_type]
@@ -56,7 +57,8 @@ else:
 
 ######################################################
 backbone_type = 'MobileNetV2P5Lite' #'MobileNetV2Lite' #'MobileNetV1Lite'
-mobilenetv2_pretrained = '/home/a0484689/PycharmProjects/py306_edgeaitv/edgeai-torchvision/data/checkpoints/classification/imagenet/mobilenet_v2_p5_lite/20230220-212034/model_90.pth'
+# mobilenetv2_pretrained = '/home/a0484689/PycharmProjects/py306_edgeaitv/edgeai-torchvision/data/checkpoints/classification/imagenet/mobilenet_v2_p5_lite/20230220-212034/model_90.pth'
+mobilenetv2_pretrained = '/data/tensorlabdata1/data/users/adithya/model_90.pth'
 # Model: /home/a0484689/PycharmProjects/py306_edgeaitv/edgeai-torchvision/data/checkpoints/classification/imagenet/mobilenet_v2_p5_lite/20230220-212034/model.onnx
 # mobilenetv2_pretrained='torchvision://mobilenet_v2'
 mobilenetv1_pretrained='https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v1_20190906_checkpoint.pth'
