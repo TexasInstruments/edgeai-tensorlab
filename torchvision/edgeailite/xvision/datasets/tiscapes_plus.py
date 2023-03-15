@@ -15,7 +15,7 @@ __all__ = ['tiscape_segmentation']
 class TIScapeSegmentation():
     def __init__(self, root, split, shuffle=False, num_imgs=None, num_classes=None, **kwargs):
         from pycocotools.coco import COCO
-        num_classes = 4 if num_classes is None else num_classes
+        num_classes = 5 if num_classes is None else num_classes
         self.categories = range(1, num_classes+1)
         self.class_names = None
         self.annotation_prefix = kwargs['annotation_prefix']
@@ -123,7 +123,9 @@ class TIScapeSegmentation():
         from pycocotools import mask as coco_mask
         masks = []
         for polygons in segmentations:
-            rles = coco_mask.frPyObjects([polygons], height, width)
+            if len(polygons) != 1:
+                polygons = [polygons]
+            rles = coco_mask.frPyObjects(polygons, height, width)
             mask = coco_mask.decode(rles)
             if len(mask.shape) < 3:
                 mask = mask[..., None]
@@ -138,12 +140,11 @@ class TIScapeSegmentation():
 
 
 class TIScapeSegmentationPlus(TIScapeSegmentation):
-    NUM_CLASSES = 4
 
-    def __init__(self, *args, num_classes=NUM_CLASSES, transforms=None, **kwargs):
+    def __init__(self, *args, num_classes=5, transforms=None, **kwargs):
         # 21 class is a special case, otherwise use all the classes
         # in get_item a modulo is done to map the target to the required num_classes
-        super().__init__(*args, num_classes=(num_classes if num_classes == 4 else self.NUM_CLASSES), **kwargs)
+        super().__init__(*args, num_classes=num_classes, **kwargs)
         self.num_classes_ = num_classes
         self.void_classes = []
         self.valid_classes = range(1, self.num_classes_+1)
@@ -156,6 +157,7 @@ class TIScapeSegmentationPlus(TIScapeSegmentation):
 
     def __getitem__(self, item):
         image, target = super().__getitem__(item)
+        target[target==0] = self.num_classes_
         #target = np.remainder(target, self.num_classes_)
         image = [image]
         target = [target]
@@ -196,9 +198,11 @@ class TIScapeSegmentationPlus(TIScapeSegmentation):
 
 ###########################################
 # config settings
-def get_config():
+def get_config(file_name):
     dataset_config = xnn.utils.ConfigNode()
-    dataset_config.num_classes = 4
+    with open(file_name) as afp:
+        datastore = json.load(afp)
+    dataset_config.num_classes = len(datastore["categories"]) + 1  # Read from the json file
     return dataset_config
 
 
@@ -212,9 +216,10 @@ def write_to_jsonfile(path, filename, data):
 
 
 def tiscape_segmentation(dataset_config, root, split=None, transforms=None, annotation_prefix="stuff", *args, **kwargs):
-    dataset_config = get_config().merge_from(dataset_config)
     train_split = val_split = None
-    instances = dataset_split(os.path.join(root, 'annotations', f'{annotation_prefix}_sorted.json'), 0.2)
+    annotation_file = os.path.join(root, 'annotations', f'{annotation_prefix}_sorted.json')
+    instances = dataset_split(annotation_file, 0.2)
+    dataset_config = get_config(annotation_file).merge_from(dataset_config)
 
     split = ['train', 'val']
     for split_name in split:
