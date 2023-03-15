@@ -166,7 +166,7 @@ class ModelMakerClassificationDataset(DatasetBase):
 
 
 class ModelMakerSegmentationDataset(DatasetBase):
-    def __init__(self, num_classes=4, download=False, num_frames=None, name="tiscapes", **kwargs):
+    def __init__(self, num_classes=None, download=False, num_frames=None, name="tiscapes", **kwargs):
         super().__init__(num_classes=num_classes, num_frames=num_frames, name=name, **kwargs)
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'kwargs must have path and split'
@@ -180,11 +180,6 @@ class ModelMakerSegmentationDataset(DatasetBase):
         self.name = name
         self.tempfiles = []
 
-        self.num_classes = 4 if num_classes is None else num_classes
-
-        # self.categories = range(1, num_classes + 1)
-        # self.class_names = None
-
         dataset_folders = os.listdir(root)
         assert 'annotations' in dataset_folders, 'invalid path to coco dataset annotations'
         annotations_dir = os.path.join(root, 'annotations')
@@ -195,6 +190,13 @@ class ModelMakerSegmentationDataset(DatasetBase):
         self.image_dir = image_base_dir
 
         self.annotation_file = os.path.join(annotations_dir, f'{self.kwargs["annotation_prefix"]}_{split}.json')
+
+        with open(self.annotation_file) as afp:
+            json_data = json.load(afp)
+
+        self.num_classes = len(json_data["categories"]) + 1 if num_classes is None else num_classes
+        num_classes = self.num_classes
+
         self.coco_dataset = COCO(self.annotation_file)
 
         self.cat_ids = self.coco_dataset.getCatIds()
@@ -245,18 +247,12 @@ class ModelMakerSegmentationDataset(DatasetBase):
         #
         print(utils.log_color('\nINFO', 'downloading and preparing dataset', path + ' This may take some time.'))
         print(f'{Fore.YELLOW}'
-              f'\nCOCO Dataset:'
-              f'\n    Microsoft COCO: Common Objects in Context, '
-              f'\n        Tsung-Yi Lin, et.al. https://arxiv.org/abs/1405.0312\n'
-              f'\n    Visit the following url to know more about the COCO dataset. '
-              f'\n        https://cocodataset.org/ '
+              f'\nTIScape Dataset:'
               f'{Fore.RESET}\n')
 
-        dataset_url = 'http://images.cocodataset.org/zips/val2017.zip'
-        extra_url = 'http://images.cocodataset.org/annotations/annotations_trainval2017.zip'
+        dataset_url = 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip'
         download_root = os.path.join(root, 'download')
         dataset_path = utils.download_file(dataset_url, root=download_root, extract_root=root)
-        extra_path = utils.download_file(extra_url, root=download_root, extract_root=root)
         print(utils.log_color('\nINFO', 'dataset ready', path))
         return
 
@@ -276,8 +272,8 @@ class ModelMakerSegmentationDataset(DatasetBase):
             image = PIL.Image.open(image_path)
             image, anno = self._filter_and_remap_categories(image, anno)
             image, target = self._convert_polys_to_mask(image, anno)
-            target[target == 0] = 255
-            target[target != 255] -= 1
+            target[target == 0] = self.num_classes
+            target[target != 0] -= 1
             # write the label file to a temorary dir so that it can be used by evaluate()
             image_basename = os.path.basename(image_path)
             label_path = os.path.join(self.label_dir, image_basename)
@@ -383,7 +379,9 @@ class ModelMakerSegmentationDataset(DatasetBase):
     def _convert_poly_to_mask(self, segmentations, height, width):
         masks = []
         for polygons in segmentations:
-            rles = coco_mask.frPyObjects([polygons], height, width)
+            if len(polygons) != 1:
+                polygons = [polygons]
+            rles = coco_mask.frPyObjects(polygons, height, width)
             mask = coco_mask.decode(rles)
             if len(mask.shape) < 3:
                 mask = mask[..., None]
