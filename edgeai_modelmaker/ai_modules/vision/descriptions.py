@@ -180,28 +180,51 @@ def get_version_descriptions(params):
     return version_descriptions
 
 
-TARGET_DEVICE_SETUP_OVERVIEW = f'''
-To establish a connection with a physical development board over ethernet, please follow blow steps. Also use the supported SDK version for that device - given in the details below.
-Step 1: 'Make sure that you have physical development board of specific device with you procured, refer below to find how to procure for each specific device.
-Step 2: 'Download the image to be flashed in SD card (refer steps 3)
-Step 3: 'Make sure that the development board is setup and also put in the same local area network as the computer where you are using this service
-Step 4: 'Get the IP address of the development board using serial port connection
-Step 5: 'Connect to the development board using ssh and run device agent service as mentioned below. \nssh root@<ip_address_of_dev_board> \ncd /opt/edgeai-studio-agent/src \npython3 ./device_agent.py
-Step 6: Now you can connect to development board from model composer by providing the IP address of development board.
+def get_help_descriptions(params):
+    return f'''
+## Overview
+This is a tool for collecting data, training and compiling AI models for use in TI embedded processors. The compiled models can be deployed on a local development board. A live preview/demo is also provided to inspect the quality of the developed model while it runs on the development board.
+
+## Development flow
+Bring your own data (BYOD): Retrain TI models from TI Model Zoo to fine-tune performance for your unique application requirements.
+
+## Tasks supported
+* {constants.TASK_DESCRIPTIONS[constants.TASK_TYPE_CLASSIFICATION]['task_name']}
+* {constants.TASK_DESCRIPTIONS[constants.TASK_TYPE_DETECTION]['task_name']}
+
+## Target device setup overview
+Data capture from a development board is supported over ethernet connection. The live stream appears in the browser window and user can capture frames as needed. Similarly live preview/inference/demo can also be streamed into the browser window. To establish a connection with a physical development board over ethernet, please follow the steps below. Also use the supported SDK version for that device - given in the details below.
+* Step 1: 'Make sure that you have physical development board of specific device with you procured, refer below to find how to procure for each specific device.
+* Step 2: 'Download the image to be flashed in SD card (refer steps 3)
+* Step 3: 'Make sure that the development board is setup and also put in the same local area network as the computer where you are using this service. Also connect a USB camera to the dvelopment board.
+* Step 4: 'Get the IP address of the development board using serial port connection
+* Step 5: 'Connect to the development board using ssh and run device agent service as mentioned below. 
+```
+ssh root@<ip_address_of_dev_board> 
+cd /opt/edgeai-studio-agent/src 
+python3 ./device_agent.py
+```
+* Step 6: Now you can connect to development board from model composer by providing the IP address of development board.
+
+## Supported target devices
+These are the devices that are supported currently. As additional devices are supported, this section will be updated.
+
+#### {constants.TARGET_DEVICE_TDA4VM}
+{constants.TARGET_DEVICE_SETUP_INSTRUCTIONS_TDA4VM}
+
+#### {constants.TARGET_DEVICE_AM62A}
+{constants.TARGET_DEVICE_SETUP_INSTRUCTIONS_AM62A}
+
+#### {constants.TARGET_DEVICE_AM68A}
+{constants.TARGET_DEVICE_SETUP_INSTRUCTIONS_AM68A}
+
+## Additional information
+{constants.EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}
 '''
 
 
-def get_help_descriptions(params):
+def get_tooltip_descriptions(params):
     return {
-        'target_device_setup_instructions': {
-            'setup_overview': {'name':'Target device setup overview', 'description':TARGET_DEVICE_SETUP_OVERVIEW},
-            constants.TARGET_DEVICE_TDA4VM: {'name':constants.TARGET_DEVICE_TDA4VM, 'description':constants.TARGET_DEVICE_SETUP_INSTRUCTIONS_TDA4VM},
-            constants.TARGET_DEVICE_AM62A: {'name':constants.TARGET_DEVICE_AM62A, 'description':constants.TARGET_DEVICE_SETUP_INSTRUCTIONS_AM62A},
-            constants.TARGET_DEVICE_AM68A: {'name':constants.TARGET_DEVICE_AM68A, 'description':constants.TARGET_DEVICE_SETUP_INSTRUCTIONS_AM68A}
-        },
-        'additional_information': {
-            'edgeai_introduction': {'name':'Edge AI introduction', 'description':constants.EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}
-        },
         'common': {
         },
         'dataset': {

@@ -230,5 +230,9 @@ class ModelRunner():
         return descriptions.get_version_descriptions(*args, **kwargs)
 
     @staticmethod
+    def get_tooltip_descriptions(*args, **kwargs):
+        return descriptions.get_tooltip_descriptions(*args, **kwargs)
+
+    @staticmethod
     def get_help_descriptions(*args, **kwargs):
         return descriptions.get_help_descriptions(*args, **kwargs)

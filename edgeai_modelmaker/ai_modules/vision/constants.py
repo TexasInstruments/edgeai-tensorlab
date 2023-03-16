@@ -84,22 +84,22 @@ TARGET_SDK_VERSION = '8.6'
 TARGET_SDK_RELEASE = '08_06_00'
 
 
-EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION = f'''
-* Edge AI introduction: https://ti.com/edgeai
+EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION = \
+f'''* Edge AI introduction: https://ti.com/edgeai
 * Edge AI tools introduction: https://dev.ti.com/edgeai/
-* Edge AI model development information: https://github.com/TexasInstruments/edgeai
-'''
+* Edge AI model development information: https://github.com/TexasInstruments/edgeai'''
 
-TARGET_DEVICE_SETUP_INSTRUCTIONS_TDA4VM = f'''
-* Product information: https://www.ti.com/product/TDA4VM
+
+TARGET_DEVICE_SETUP_INSTRUCTIONS_TDA4VM = \
+f'''* Product information: https://www.ti.com/product/TDA4VM
 * Development board: https://www.ti.com/tool/SK-TDA4VM
 * Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM
 * Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-sk-tda4vm/{TARGET_SDK_RELEASE}/exports/docs/getting_started.html
-* SDK release: {TARGET_SDK_RELEASE}
-'''
+* SDK release: {TARGET_SDK_RELEASE}'''
 
-TARGET_DEVICE_DETAILS_TDA4VM = f'''
-Efficient 8 TOPS AI capability at edge
+
+TARGET_DEVICE_DETAILS_TDA4VM = \
+f'''Efficient 8 TOPS AI capability at edge
 Specification:
 * 8 TOPS Deep Learning accelerator
 * Dual Arm® Cortex®-A72
@@ -110,20 +110,19 @@ Important Links:
 {TARGET_DEVICE_SETUP_INSTRUCTIONS_TDA4VM}
 
 Additional information:
-{EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}
-'''
+{EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}'''
 
 
-TARGET_DEVICE_SETUP_INSTRUCTIONS_AM62A = f'''
-Product information: https://www.ti.com/product/AM62A7
-Development board: https://www.ti.com/tool/SK-AM62A-LP
-Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A
-Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/{TARGET_SDK_RELEASE}/exports/docs/devices/AM62AX/linux/getting_started.html
-SDK release: {TARGET_SDK_RELEASE}
-'''
+TARGET_DEVICE_SETUP_INSTRUCTIONS_AM62A = \
+f'''* Product information: https://www.ti.com/product/AM62A7
+* Development board: https://www.ti.com/tool/SK-AM62A-LP
+* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A
+* Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/{TARGET_SDK_RELEASE}/exports/docs/devices/AM62AX/linux/getting_started.html
+* SDK release: {TARGET_SDK_RELEASE}'''
 
-TARGET_DEVICE_DETAILS_AM62A = f'''
-Efficient 2 TOPS AI capability at edge
+
+TARGET_DEVICE_DETAILS_AM62A = \
+f'''Efficient 2 TOPS AI capability at edge
 Specification:
 * 2 TOPS Deep Learning accelerator
 * Quad Arm® Cortex®-A53
@@ -134,19 +133,19 @@ Important Links:
 {TARGET_DEVICE_SETUP_INSTRUCTIONS_AM62A}
 
 Additional information:
-{EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}
-'''
+{EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}'''
 
-TARGET_DEVICE_SETUP_INSTRUCTIONS_AM68A = f'''
-Product information: https://www.ti.com/product/AM68A
-Development board: https://www.ti.com/tool/SK-AM68
-Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A
-Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/{TARGET_SDK_RELEASE}/exports/docs/devices/AM68A/linux/getting_started.html
-SDK release: {TARGET_SDK_RELEASE}
-'''
 
-TARGET_DEVICE_DETAILS_AM68A = f'''
-Efficient 8 TOPS AI capability at edge
+TARGET_DEVICE_SETUP_INSTRUCTIONS_AM68A = \
+f'''* Product information: https://www.ti.com/product/AM68A
+* Development board: https://www.ti.com/tool/SK-AM68
+* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A
+* Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/{TARGET_SDK_RELEASE}/exports/docs/devices/AM68A/linux/getting_started.html
+* SDK release: {TARGET_SDK_RELEASE}'''
+
+
+TARGET_DEVICE_DETAILS_AM68A = \
+f'''Efficient 8 TOPS AI capability at edge
 Specification:
 * 8 TOPS Deep Learning accelerator
 * Dual Arm® Cortex®-A72
@@ -157,8 +156,7 @@ Important Links:
 {TARGET_DEVICE_SETUP_INSTRUCTIONS_AM68A}
 
 Additional information:
-{EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}
-'''
+{EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}'''
 
 
 # higher device_selection_factor indicates higher performance device.

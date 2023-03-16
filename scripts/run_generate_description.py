@@ -75,7 +75,10 @@ def run(config):
     # version info
     version_descriptions = ai_target_module.runner.ModelRunner.get_version_descriptions(params)
 
-    # help descriptions
+    # tooltip descriptions
+    tooltip_descriptions = ai_target_module.runner.ModelRunner.get_tooltip_descriptions(params)
+
+    # help descriptions - to be written to markdown (.md) file
     help_descriptions = ai_target_module.runner.ModelRunner.get_help_descriptions(params)
 
     description = dict(training_module_descriptions=training_module_descriptions,
@@ -85,8 +88,8 @@ def run(config):
                        task_descriptions=task_descriptions,
                        sample_dataset_descriptions=sample_dataset_descriptions,
                        version_descriptions=version_descriptions,
-                       help_descriptions=help_descriptions)
-    return description
+                       tooltip_descriptions=tooltip_descriptions)
+    return description, help_descriptions
 
 
 def main(args):
@@ -103,11 +106,15 @@ def main(args):
     #
 
     # get description
-    description = run(config)
+    description, help_description = run(config)
 
     # write description
     description_file = os.path.join(args.description_path, f'description_{args.target_module}' + '.yaml')
+    help_file = os.path.join(args.description_path, f'help_{args.target_module}' + '.md')
     edgeai_modelmaker.utils.write_dict(description, description_file)
+    with open(help_file, 'w') as hp:
+        hp.write(help_description)
+    #
     print(f'description is written at: {description_file}')
 
 

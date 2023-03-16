@@ -1,131 +1,3 @@
-help_descriptions:
-  additional_information:
-    edgeai_introduction:
-      description: '
-
-        * Edge AI introduction: https://ti.com/edgeai
-
-        * Edge AI tools introduction: https://dev.ti.com/edgeai/
-
-        * Edge AI model development information: https://github.com/TexasInstruments/edgeai
-
-        '
-      name: Edge AI introduction
-  common: {}
-  compilation:
-    calibration_frames:
-      description: Calibration is a process of improving the accuracy during fixed
-        point quantization. Typically, higher number of Calibration Frames give higher
-        accuracy, but it can also be time consuming.
-      name: Calibration frames
-    calibration_iterations:
-      description: Calibration is a process of improving the accuracy during fixed
-        point quantization. Calibration happens in iterations. Typically, higher number
-        of Calibration Iterations give higher accuracy, but it can also be time consuming.
-      name: Calibration iterations
-    detection_threshold:
-      description: 'Also called Confidence Threshold. A threshold used to select good
-        detection boxes. This is typically applied before a before the Non Max Suppression.
-        Higher Detection Threshold means less false detections (False Positives),
-        but may also result in misses (False Negatives). '
-      name: Detection threshold
-    detection_top_k:
-      description: 'Number of detection boxes to be selected during the initial shortlisting
-        before the Non Max Suppression.A higher number is typically used while measuring
-        accuracy, but may impact the performance. '
-      name: Detection topK
-    tensor_bits:
-      description: 'Bitdepth used to quantize the weights and activations in the neural
-        network. The neural network inference happens at this bit precision. '
-      name: Tensor bits
-  dataset: {}
-  target_device_setup_instructions:
-    AM62A:
-      description: '
-
-        Product information: https://www.ti.com/product/AM62A7
-
-        Development board: https://www.ti.com/tool/SK-AM62A-LP
-
-        Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A
-
-        Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html
-
-        SDK release: 08_06_00
-
-        '
-      name: AM62A
-    AM68A:
-      description: '
-
-        Product information: https://www.ti.com/product/AM68A
-
-        Development board: https://www.ti.com/tool/SK-AM68
-
-        Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A
-
-        Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html
-
-        SDK release: 08_06_00
-
-        '
-      name: AM68A
-    TDA4VM:
-      description: '
-
-        * Product information: https://www.ti.com/product/TDA4VM
-
-        * Development board: https://www.ti.com/tool/SK-TDA4VM
-
-        * Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM
-
-        * Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-sk-tda4vm/08_06_00/exports/docs/getting_started.html
-
-        * SDK release: 08_06_00
-
-        '
-      name: TDA4VM
-    setup_overview:
-      description: "\nTo establish a connection with a physical development board\
-        \ over ethernet, please follow blow steps. Also use the supported SDK version\
-        \ for that device - given in the details below.\nStep 1: 'Make sure that you\
-        \ have physical development board of specific device with you procured, refer\
-        \ below to find how to procure for each specific device.\nStep 2: 'Download\
-        \ the image to be flashed in SD card (refer steps 3)\nStep 3: 'Make sure that\
-        \ the development board is setup and also put in the same local area network\
-        \ as the computer where you are using this service\nStep 4: 'Get the IP address\
-        \ of the development board using serial port connection\nStep 5: 'Connect\
-        \ to the development board using ssh and run device agent service as mentioned\
-        \ below. \nssh root@<ip_address_of_dev_board> \ncd /opt/edgeai-studio-agent/src\
-        \ \npython3 ./device_agent.py\nStep 6: Now you can connect to development\
-        \ board from model composer by providing the IP address of development board.\n"
-      name: Target device setup overview
-  training:
-    batch_size:
-      description: Batch size specifies the number of inputs that are propagated through
-        the neural network in one iteration. Several such iterations make up one Epoch.Higher
-        batch size require higher memory and too low batch size can typically impact
-        the accuracy.
-      name: Batch size
-    learning_rate:
-      description: Learning Rate determines the step size used by the optimization
-        algorithm at each iteration while moving towards the optimal solution. It
-        is a hyper parameter that can be tuned to get best accuracy. Eg. A small Learning
-        Rate typically gives good accuracy while fine tuning a model for a different
-        task.
-      name: Learning rate
-    training_epochs:
-      description: Epoch is a term that is used to indicate a pass over the entire
-        training dataset. It is a hyper parameter that can be tuned to get best accuracy.
-        Eg. A model trained for 30 Epochs may give better accuracy than a model trained
-        for 15 Epochs.
-      name: Epochs
-    weight_decay:
-      description: Weight decay is a regularization technique that can improve stability
-        and generalization of a machine learning algorithm. It is typically done using
-        L2 regularization that penalizes parameters (weights, biases) according to
-        their L2 norm.
-      name: Weight decay
 model_descriptions:
   mobilenet_v2_lite:
     common:
@@ -1102,48 +974,45 @@ sample_dataset_descriptions:
       dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip
 target_device_descriptions:
   AM62A:
-    device_details: "\nEfficient 2 TOPS AI capability at edge\nSpecification:\n* 2\
-      \ TOPS Deep Learning accelerator\n* Quad Arm\xAE Cortex\xAE-A53\n* Integrated\
-      \ ISP\n* More details : https://www.ti.com/product/AM62A7\n\nImportant Links:\n\
-      \nProduct information: https://www.ti.com/product/AM62A7\nDevelopment board:\
-      \ https://www.ti.com/tool/SK-AM62A-LP\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n\
-      Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html\n\
-      SDK release: 08_06_00\n\n\nAdditional information:\n\n* Edge AI introduction:\
+    device_details: "Efficient 2 TOPS AI capability at edge\nSpecification:\n* 2 TOPS\
+      \ Deep Learning accelerator\n* Quad Arm\xAE Cortex\xAE-A53\n* Integrated ISP\n\
+      * More details : https://www.ti.com/product/AM62A7\n\nImportant Links:\n* Product\
+      \ information: https://www.ti.com/product/AM62A7\n* Development board: https://www.ti.com/tool/SK-AM62A-LP\n\
+      * Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n\
+      * Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html\n\
+      * SDK release: 08_06_00\n\nAdditional information:\n* Edge AI introduction:\
       \ https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
-      * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
-      \n"
+      * Edge AI model development information: https://github.com/TexasInstruments/edgeai"
     device_name: AM62A
     device_selection_factor: 0
     device_type: MPU
     sdk_release: 08_06_00
     sdk_version: '8.6'
   AM68A:
-    device_details: "\nEfficient 8 TOPS AI capability at edge\nSpecification:\n* 8\
-      \ TOPS Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated\
-      \ ISP\n* More details : https://www.ti.com/product/AM68A\n\nImportant Links:\n\
-      \nProduct information: https://www.ti.com/product/AM68A\nDevelopment board:\
-      \ https://www.ti.com/tool/SK-AM68\nSoftware development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n\
-      Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html\n\
-      SDK release: 08_06_00\n\n\nAdditional information:\n\n* Edge AI introduction:\
+    device_details: "Efficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS\
+      \ Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated ISP\n\
+      * More details : https://www.ti.com/product/AM68A\n\nImportant Links:\n* Product\
+      \ information: https://www.ti.com/product/AM68A\n* Development board: https://www.ti.com/tool/SK-AM68\n\
+      * Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n\
+      * Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html\n\
+      * SDK release: 08_06_00\n\nAdditional information:\n* Edge AI introduction:\
       \ https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
-      * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
-      \n"
+      * Edge AI model development information: https://github.com/TexasInstruments/edgeai"
     device_name: AM68A
     device_selection_factor: 2
     device_type: MPU
     sdk_release: 08_06_00
     sdk_version: '8.6'
   TDA4VM:
-    device_details: "\nEfficient 8 TOPS AI capability at edge\nSpecification:\n* 8\
-      \ TOPS Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated\
-      \ ISP\n* More details : https://www.ti.com/product/TDA4VM\n\nImportant Links:\n\
-      \n* Product information: https://www.ti.com/product/TDA4VM\n* Development board:\
-      \ https://www.ti.com/tool/SK-TDA4VM\n* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n\
+    device_details: "Efficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS\
+      \ Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated ISP\n\
+      * More details : https://www.ti.com/product/TDA4VM\n\nImportant Links:\n* Product\
+      \ information: https://www.ti.com/product/TDA4VM\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n\
+      * Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n\
       * Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-sk-tda4vm/08_06_00/exports/docs/getting_started.html\n\
-      * SDK release: 08_06_00\n\n\nAdditional information:\n\n* Edge AI introduction:\
+      * SDK release: 08_06_00\n\nAdditional information:\n* Edge AI introduction:\
       \ https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
-      * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
-      \n"
+      * Edge AI model development information: https://github.com/TexasInstruments/edgeai"
     device_name: TDA4VM
     device_selection_factor: 1
     device_type: MPU
@@ -1169,6 +1038,61 @@ task_descriptions:
     target_devices: *id001
     target_module: vision
     task_name: Object Detection
+tooltip_descriptions:
+  common: {}
+  compilation:
+    calibration_frames:
+      description: Calibration is a process of improving the accuracy during fixed
+        point quantization. Typically, higher number of Calibration Frames give higher
+        accuracy, but it can also be time consuming.
+      name: Calibration frames
+    calibration_iterations:
+      description: Calibration is a process of improving the accuracy during fixed
+        point quantization. Calibration happens in iterations. Typically, higher number
+        of Calibration Iterations give higher accuracy, but it can also be time consuming.
+      name: Calibration iterations
+    detection_threshold:
+      description: 'Also called Confidence Threshold. A threshold used to select good
+        detection boxes. This is typically applied before a before the Non Max Suppression.
+        Higher Detection Threshold means less false detections (False Positives),
+        but may also result in misses (False Negatives). '
+      name: Detection threshold
+    detection_top_k:
+      description: 'Number of detection boxes to be selected during the initial shortlisting
+        before the Non Max Suppression.A higher number is typically used while measuring
+        accuracy, but may impact the performance. '
+      name: Detection topK
+    tensor_bits:
+      description: 'Bitdepth used to quantize the weights and activations in the neural
+        network. The neural network inference happens at this bit precision. '
+      name: Tensor bits
+  dataset: {}
+  training:
+    batch_size:
+      description: Batch size specifies the number of inputs that are propagated through
+        the neural network in one iteration. Several such iterations make up one Epoch.Higher
+        batch size require higher memory and too low batch size can typically impact
+        the accuracy.
+      name: Batch size
+    learning_rate:
+      description: Learning Rate determines the step size used by the optimization
+        algorithm at each iteration while moving towards the optimal solution. It
+        is a hyper parameter that can be tuned to get best accuracy. Eg. A small Learning
+        Rate typically gives good accuracy while fine tuning a model for a different
+        task.
+      name: Learning rate
+    training_epochs:
+      description: Epoch is a term that is used to indicate a pass over the entire
+        training dataset. It is a hyper parameter that can be tuned to get best accuracy.
+        Eg. A model trained for 30 Epochs may give better accuracy than a model trained
+        for 15 Epochs.
+      name: Epochs
+    weight_decay:
+      description: Weight decay is a regularization technique that can improve stability
+        and generalization of a machine learning algorithm. It is typically done using
+        L2 regularization that penalizes parameters (weights, biases) according to
+        their L2 norm.
+      name: Weight decay
 training_module_descriptions:
   edgeai_mmdetection:
   - detection
