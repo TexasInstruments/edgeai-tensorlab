@@ -273,12 +273,14 @@ Bring your own data (BYOD): Retrain TI models from TI Model Zoo to fine-tune per
 * {constants.TASK_DESCRIPTIONS[constants.TASK_TYPE_DETECTION]['task_name']}
 
 ## Target device setup overview
-Data capture from a development board is supported over ethernet connection. The live stream appears in the browser window and user can capture frames as needed. Similarly live preview/inference/demo can also be streamed into the browser window. To establish a connection with a physical development board over ethernet, please follow the steps below. Also use the supported SDK version for that device - given in the details below.
-* Step 1: 'Make sure that you have physical development board of specific device with you procured, refer below to find how to procure for each specific device.
-* Step 2: 'Download the image to be flashed in SD card (refer steps 3)
-* Step 3: 'Make sure that the development board is setup and also put in the same local area network as the computer where you are using this service. Also connect a USB camera to the dvelopment board.
-* Step 4: 'Get the IP address of the development board using serial port connection
-* Step 5: 'Connect to the development board using ssh and run device agent service as mentioned below. 
+Data capture from a development board is supported over ethernet connection. The live stream appears in the browser window and user can capture frames as needed. Similarly live preview/inference/demo can also be streamed into the browser window. 
+
+To establish a connection with a physical development board over ethernet, please follow the steps below. Also use the supported SDK version for that device - given in the details below.
+* Step 1: Make sure that you have physical development board of specific device with you procured, refer below to find how to procure for each specific device.
+* Step 2: Download the image to be flashed in SD card (refer steps 3)
+* Step 3: Make sure that the development board is setup and also put in the same local area network as the computer where you are using this service. Also connect a USB camera to the development board.
+* Step 4: Get the IP address of the development board using serial port connection
+* Step 5: Connect to the development board using ssh and run device agent service as mentioned below. 
 ```
 ssh root@<ip_address_of_dev_board> 
 cd /opt/edgeai-studio-agent/src 
