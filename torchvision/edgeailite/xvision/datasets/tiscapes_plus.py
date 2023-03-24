@@ -217,7 +217,7 @@ def write_to_jsonfile(path, filename, data):
 
 def tiscape_segmentation(dataset_config, root, split=None, transforms=None, annotation_prefix="stuff", *args, **kwargs):
     train_split = val_split = None
-    annotation_file = os.path.join(root, 'annotations', f'{annotation_prefix}_sorted.json')
+    annotation_file = os.path.join(root, 'annotations', f'{annotation_prefix}.json')
     instances = dataset_split(annotation_file, 0.2)
     dataset_config = get_config(annotation_file).merge_from(dataset_config)
 
