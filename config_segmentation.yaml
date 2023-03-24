@@ -14,7 +14,7 @@ dataset:
     enable: True #False
     # max_num_files: [750, 250] #None
     # specify annotation prefix (of th annotation file) if neded - default is 'instances'.
-    annotation_prefix: 'stuff'
+    #annotation_prefix: 'stuff'
     
     # Semantic Segmentation Dataset Examples:
     # -------------------------------------
@@ -34,10 +34,9 @@ dataset:
     # input_annotation_path: ["./data/projects/coco_detection/dataset/annotations/instances_train2017.json",
     #                        "./data/projects/coco_detection/dataset/annotations/instances_val2017.json"]
     # -------------------------------------
-    dataset_name: tiscape_QAT_segmentation
+    dataset_name: tiscapes2017_driving
     input_data_path: "./data/downloads/datasets/tiscapes2017_driving"
 
-#Need to remove and add available models for segmentation
 training:
     # enable/disable training
     enable: True #False
