@@ -38,11 +38,16 @@ _training_module_descriptions = {}
 
 # edgeai-torchvision
 from . import edgeai_torchvision
+
+## classification
 _model_descriptions.update(edgeai_torchvision.classification.get_model_descriptions())
 # the detection models in edgeai-mmdetection are superior to edgeai-torchvision, so commenting out these for now.
 #_model_descriptions.update(edgeai_torchvision.detection.get_model_descriptions())
 _training_module_descriptions.update({'edgeai_torchvision':[constants.TASK_TYPE_CLASSIFICATION]})
 
+## segmentation
+_model_descriptions.update(edgeai_torchvision.segmentation.get_model_descriptions())
+_training_module_descriptions.update({'edgeai_torchvision':[constants.TASK_TYPE_SEGMENTATION]})
 
 # edgeai-mmdetection
 from . import edgeai_mmdetection

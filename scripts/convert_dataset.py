@@ -37,6 +37,10 @@ import PIL
 import PIL.Image
 import math
 import argparse
+import shutil
+from pathlib import Path
+
+from edgeai_modelmaker import utils
 
 
 def convert_cityscapes(args):
@@ -380,6 +384,10 @@ def main(args):
         convert_image_folders(args)
     elif args.source_format == 'image_splits':
         convert_image_folders(args, is_dataset_split=True)
+    elif args.source_format == 'modelmaker_format':
+        utils.reformat_to_modelmaker(args.input_dataset_path)
+    elif args.source_format == 'sort_annotations':
+        utils.sort_annotations(args.annotation_file_path, args.preference_order, Path(args.annotation_file_path).stem)
     else:
         assert False, 'unrecognized source format'
 
@@ -398,6 +406,9 @@ if __name__ == '__main__':
     parser.add_argument('--dest_anno', type=str, default=None)
     parser.add_argument('--remove_background', type=bool, default=True)
     parser.add_argument('--background_class', type=str, default='background')
+    parser.add_argument('--annotation_file_path', type=str, default=None)
+    parser.add_argument('--preference_order', type=str, default=None)
+    parser.add_argument('--input_dataset_path', type=str, default=None)
     args = parser.parse_args()
 
     main(args)

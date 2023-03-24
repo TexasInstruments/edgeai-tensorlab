@@ -89,6 +89,21 @@ class ModelCompilation():
                      },
                 ]
             }
+        elif self.params.common.task_type == constants.TASK_TYPE_SEGMENTATION:
+		    # TODO: this needs to be corrected
+            log_summary_regex = {
+                'js': [
+                    {'type':'Progress', 'name':'Progress', 'description':'Progress of Compilation', 'unit':'Frame', 'value':None,
+                     'regex':[{'op':'search', 'pattern':r'infer\s+\:\s+.*?\s+(?<infer>\d+)', 'group':1}],
+                     },
+                    {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Accuracy of Compilation', 'unit':'AP50%', 'value':None,
+                     'regex':[{'op':'search', 'pattern':r'benchmark results.*?accuracy_ap50\%.*?\:\s+(?<accuracy>\d+\.\d+)', 'group':1, 'dtype':'float', 'case_sensitive':False, 'scale_factor':1}],
+                     },
+                    {'type':'Completed', 'name':'Completed', 'description':'Completion of Compilation', 'unit':None, 'value':None,
+                     'regex':[{'op':'search', 'pattern':r'success\:.*compilation\s+completed', 'group':1, 'dtype':'str', 'case_sensitive':False}],
+                     },
+                ]
+            }
         else:
             log_summary_regex = None
         #
@@ -121,6 +136,8 @@ class ModelCompilation():
             dataset_loader = edgeai_benchmark.datasets.ModelMakerDetectionDataset
         elif self.params.common.task_type == 'classification':
             dataset_loader = edgeai_benchmark.datasets.ModelMakerClassificationDataset
+        elif self.params.common.task_type == 'segmentation':
+            dataset_loader = edgeai_benchmark.datasets.ModelMakerSegmentationDataset
         else:
             dataset_loader = None
         #

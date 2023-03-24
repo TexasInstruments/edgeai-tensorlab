@@ -37,7 +37,7 @@ import yaml
 import tqdm
 import errno
 import re
-
+import shutil
 
 from . import config_dict
 
@@ -149,6 +149,125 @@ def cleanup_special_chars(file_name):
             #
         #
     #
+
+
+def sort_annotations(json_file_path, preference_order=None, annotation_prefix="result"):
+    """
+        Sorting the segmentation annotations to create correct mask.
+    """
+    if preference_order is None or json_file_path is None:
+        sys.exit(
+            "Please provide the preference order(increasing order of importance) / Annotation file path for this functionality")
+
+    if preference_order == "" or json_file_path == "":
+        sys.exit("Preference order / Annotation file path can't be an empty string")
+
+    preference_order = preference_order.split(",")
+
+    # Loading the json file data if it exists
+    if os.path.exists(json_file_path):
+        with open(json_file_path) as afp:
+            dataset_store = json.load(afp)
+        #
+    #
+
+    # Checking for the min index
+    minval = 1e18
+    for i in range(len(dataset_store['categories'])):
+        minval = min(minval, dataset_store['categories'][i]['id'])
+    #
+
+    # Modify the ID values to 1-indexing if it is zero indexing
+    if minval == 0:
+        cat_starting_id = 1
+        for i in range(len(dataset_store['categories'])):
+            dataset_store['categories'][i]['id'] += cat_starting_id
+        #
+
+        for i in range(len(dataset_store['annotations'])):
+            dataset_store['annotations'][i]['category_id'] += cat_starting_id
+        #
+    #
+
+    # re-assigning the JSON categories id values based on preference order
+    cat_id_mappings = []
+    for i in range(len(dataset_store['categories'])):
+        old_id = dataset_store['categories'][i]['id']
+        new_id = preference_order.index(dataset_store['categories'][i]['name']) + 1
+        cat_id_mappings.insert(old_id - 1, new_id)
+        dataset_store['categories'][i]['id'] = new_id
+    #
+
+    # sorting in descending order of JSON categories based on new ids
+    # dataset_store['categories'].sort(key=lambda x: x['id'], reverse=True)
+
+    # re-assigning JSON annotations category_id values based on preference order
+    for i in range(len(dataset_store['annotations'])):
+        old_id = dataset_store['annotations'][i]['category_id']
+        new_id = cat_id_mappings[old_id - 1]
+        dataset_store['annotations'][i]['category_id'] = new_id
+    #
+
+    # sorting in descending order of JSON annotations based on new category_ids
+    # dataset_store['annotations'].sort(key=lambda x: x['category_id'], reverse=True)
+
+    # updating the annotations JSON file
+    with open(json_file_path, "w") as afp:
+        json.dump(dataset_store, afp)
+    #
+
+
+def reformat_to_modelmaker(input_dataset_path=None):
+    """
+        Reformatting the folders and files structure similar to modelmaker format
+        which is obtained from Label Studio
+    """
+    if input_dataset_path is None or input_dataset_path == "":
+        sys.exit("Please provide the dataset path for reformatting the folder structure")
+
+    # Fetching the destination paths
+    destination_folder = os.path.join(input_dataset_path, "annotations")
+    destination_path = os.path.join(destination_folder, 'instances.json')
+
+    # Making destination folder if it doesn't exits
+    if not os.path.exists(destination_folder):
+        # Creating the annotations directory
+        os.makedirs(destination_folder)
+
+        # Copying the label studio annotation file to destination place and deleting the older file
+        input_annotation_path = os.path.join(input_dataset_path, 'result.json')
+        shutil.copyfile(input_annotation_path, destination_path)
+        os.remove(input_annotation_path)
+
+    # Checking the existence of the annotation file
+    if os.path.exists(destination_path):
+        with open(destination_path) as afp:
+            dataset_store = json.load(afp)
+        #
+    #
+
+    # Verifying the indexing whether it is 0 or not
+    minval = 1e18
+    for i in range(len(dataset_store['categories'])):
+        minval = min(minval, dataset_store['categories'][i]['id'])
+    #
+
+    if minval == 0:
+        # Making the 0-indexing to 1-indexing for category ids in categories
+        category_start_id = 1
+        for i in range(len(dataset_store['categories'])):
+            dataset_store['categories'][i]['id'] += category_start_id
+        #
+
+        # Making the 0-indexing to 1-indexing for category ids in annotations
+        for i in range(len(dataset_store['annotations'])):
+            dataset_store['annotations'][i]['category_id'] += category_start_id
+        #
+
+        # updating the annotations JSON file
+        with open(destination_path, "w") as afp:
+            json.dump(dataset_store, afp)
+        #
 
 
 def is_url(download_entry):

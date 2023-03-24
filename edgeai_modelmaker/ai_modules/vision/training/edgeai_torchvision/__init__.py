@@ -29,5 +29,5 @@
 #
 #################################################################################
 
-from . import classification
+from . import classification, segmentation
 
