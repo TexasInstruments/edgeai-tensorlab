@@ -36,6 +36,7 @@ import tarfile
 import torch
 import warnings
 import copy
+import yaml
 
 from . import constants
 from ... import utils
@@ -78,6 +79,7 @@ class ModelRunner():
         self.params.training.model_packaged_path = os.path.join(self.params.training.training_path,
                                     '_'.join(os.path.split(self.params.common.run_name))+'.tar.gz')
 
+        assert self.params.common.target_device in constants.TARGET_DEVICES, f'common.target_device must be set to one of: {constants.TARGET_DEVICES}'
         target_device_compilation_folder = self.params.common.target_device
         self.params.compilation.compilation_path = os.path.join(self.params.common.project_run_path, 'compilation', target_device_compilation_folder)
 
@@ -139,8 +141,7 @@ class ModelRunner():
         self.params.update(self.model_compilation.get_params())
 
         # write out the description of the current run
-        run_params_file = os.path.join(self.params.common.project_run_path, 'run.yaml')
-        utils.write_dict(self.params, run_params_file)
+        run_params_file = self.write_status_file()
         return run_params_file
 
     def run(self):
@@ -176,6 +177,26 @@ class ModelRunner():
 
     def get_params(self):
         return self.params
+
+    def write_status_file(self):
+        run_params_file = os.path.join(self.params.common.project_run_path, 'run.yaml')
+        utils.write_dict(self.params, run_params_file)
+        # create or update the status file
+        status_params_file = os.path.join(self.params.common.project_run_path, 'status.yaml')
+        status_params = dict()
+        if os.path.exists(status_params_file):
+            with open(status_params_file) as fp:
+                status_params = yaml.safe_load(fp)
+            #
+        #
+        status_params = utils.ConfigDict(status_params)
+        # format the run_params to create status_params
+        run_params_formatted = copy.deepcopy(self.params)
+        run_params_formatted.compilation = {self.params.common.target_device:run_params_formatted.compilation}
+        run_params_formatted = utils.ConfigDict(run_params_formatted)
+        status_params.update(run_params_formatted)
+        utils.write_dict(status_params, status_params_file)
+        return run_params_file
 
     def package_trained_model(self, input_files, tarfile_name):
         tfp = tarfile.open(tarfile_name, 'w:gz', dereference=True)
