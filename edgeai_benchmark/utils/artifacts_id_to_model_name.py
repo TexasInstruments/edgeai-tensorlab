@@ -388,151 +388,50 @@ model_id_artifacts_pair = {
     '6dpose-7200_onnxrt': 'ONR-6DP-7200-yolox-s-6d-object_pose-640x480',
 }
 
-removed_model_list = {
-    'cl-3020_tvmdlr' : 'TVM-CL-3020-xceptionNet-mxnet', # This is replaced with tflite model now (that was also eventually removed)
-    'cl-0230_tflitert': 'TFL-CL-0230-mobileNetV2-qat',  # QAT model is not giving good accuracy so keep only float
-    'od-5000_tvmdlr': 'TVM-OD-5000-ssd1200-resNet34-mlperf-coco-1200x1200', # Using ONNX RT for this.
-    'cl-0210_tflitert': 'TFL-CL-0210-mobileNetV1', #duplicate same as cl-0000 mlperf model.
-    ################ CS models
-    # cityscapes model not part of Model Zoo
-    'ss-5500_tvmdlr': 'TVM-SS-5500-deeplabv3lite-mobv2-cs-768x384',
-    'ss-5510_tvmdlr': 'TVM-SS-5510-deeplabv3lite-mobv2-cs-qat-768x384',
-    'ss-5520_tvmdlr': 'TVM-SS-5520-fpnlite-aspp-mobv2-cs-768x384',
-    'ss-5528_tvmdlr': 'TVM-SS-5528-fpnlite-aspp-mobv2-cs-qat-768x384',
-    'ss-5540_tvmdlr': 'TVM-SS-5540-unetlite-aspp-mobv2-tv-cs-768x384',
-    'ss-5548_tvmdlr': 'TVM-SS-5548-unetlite-aspp-mobv2-tv-cs-qat-768x384',
-    'ss-5560_tvmdlr': 'TVM-SS-5560-fpnlite-aspp-regNetx800mf-cs-768x384',
-    'ss-5570_tvmdlr': 'TVM-SS-5570-fpnlite-aspp-regNetx1.6gf-cs-1024x512',
-    'ss-5580_tvmdlr': 'TVM-SS-5580-fpnlite-aspp-regNetx3.2gf-cs-1536x768',
-    'ss-5590_tvmdlr': 'TVM-SS-5590-deeplabv3-res50-cs-1040x520',
-    'ss-5600_tvmdlr': 'TVM-SS-5600-fcn-res50-cs-1040x520',
-    # cityscapes model not part of Model Zoo
-    'ss-8500_onnxrt': 'ONR-SS-8500-deeplabv3lite-mobv2-cs-768x384',
-    'ss-8508_onnxrt': 'ONR-SS-8508-deeplabv3lite-mobv2-cs-qat-768x384',
-    'ss-8520_onnxrt': 'ONR-SS-8520-fpnlite-aspp-mobv2-cs-768x384',
-    'ss-8528_onnxrt': 'ONR-SS-8528-fpnlite-aspp-mobv2-cs-qat-768x384',
-    'ss-8540_onnxrt': 'ONR-SS-8540-unetlite-aspp-mobv2-tv-cs-768x384',
-    'ss-8548_onnxrt': 'ONR-SS-8548-unetlite-aspp-mobv2-tv-cs-qat-768x384',
-    'ss-8560_onnxrt': 'ONR-SS-8560-fpnlite-aspp-regNetx800mf-cs-768x384',
-    'ss-8570_onnxrt': 'ONR-SS-8570-fpnlite-aspp-regNetx1.6gf-cs-1024x512',
-    'ss-8580_onnxrt': 'ONR-SS-8580-fpnlite-aspp-regNetx3.2gf-cs-1536x768',
-    'ss-8590_onnxrt': 'ONR-SS-8590-deeplabv3-res50-cs-1040x520',
-    'ss-8600_onnxrt': 'ONR-SS-8600-fcn-res50-cs-1040x520',
-    ################
-    'cl-0240_tflitert': 'TFL-CL-0240-nasNet-mobile-tflite', # Kumar removed model (Multiple sub-graphs) (Accuracy issue)
-    'cl-0180_tflitert': 'TFL-CL-0180-efficientNet-lite2', # Kumar removed model  (Accuracy issue)
-    #'od-2010_tflitert': 'TFL-OD-2010-ssd-mobV2-coco-300x300-mlperf',  # Kumar removed model (Duplocate). It is not duplicate. 2010 and 2060 are different models.
-    'ss-2550_tflitert': 'TFL-SS-2550-deeplabv3-mobv2-cs-2048x1024',  # Kumar removed model, (not in plan)
 
-    'cl-3370_tvmdlr': 'TVM-CL-3370-vgg16', # Kumar removed model
-    'cl-3000_tvmdlr': 'TVM-CL-3000-resNet18V2', # Kumar removed model
-    'ss-5590_tvmdlr': 'TVM-SS-5590-deeplabv3-res50-1040x520', # Kumar removed model, nc does not have info for this
-    'ss-5600_tvmdlr': 'TVM-SS-5600-fcn-res50-1040x520', # Kumar removed model
-
-    'cl-6370_onnxrt': 'ONR-CL-6370-vgg16', # Kumar removed model for TVM
-    'cl-6000_onnxrt': 'ONR-CL-6000-resNet18V2', # Kumar removed model  for TVM
-    'ss-8590_onnxrt': 'ONR-SS-8590-deeplabv3-res50-1040x520', # Kumar removed model, nc does not have info for this  for TVM
-    'ss-8600_onnxrt': 'ONR-SS-8600-fcn-res50-1040x520', # Kumar removed model  for TVM
-
-    #########################
-    'ss-2500_tflitert': 'TFL-SS-2500-deeplab-mobV2-ade20k-512x512', # Manu said incorrect model ID removed. ss-17-010 is replaced with ss-18-010
-    'cl-0250_tflitert': 'TFL-CL-0250-xceptionNet-tflite', # mxnet model replaced with with tflite model now. Eventually removed as size is quite big.
-    'od-2040_tflitert': 'TFL-OD-2040-ssd-mobV1-FPN-coco-640x640', # does not run, import crashes. Manu
-    'od-2050_tflitert': 'TFL-OD-2050-ssd-mobV2-mnas-fpn-coco-320x320', # does not run, import crashes. Manu
-
-    'cl-3040_tvmdlr': 'TVM-CL-3040-nasNet-mobile-tflite', # not part of benchmarking script yet. tflite model with TVM.
-    'od-5010_tvmdlr': 'TVM-OD-5010-yolov3-coco-416x416', # not supported yet
-
-    'cl-6040_onnxrt': 'ONR-CL-6040-nasNet-mobile-tflite', # not part of benchmarking script yet. tflite model with TVM.
-    'od-8010_onnxrt': 'ONR-OD-8010-yolov3-coco-416x416', # not supported yet
-
-    #removed from ONNX-RT
-    'cl-6410_onnxrt': 'ONR-CL-6410-gluoncv-mxnet-mobv2',
-    'cl-6420_onnxrt': 'ONR-CL-6420-gluoncv-mxnet-resNet50-v1',
-    'cl-6430_onnxrt': 'ONR-CL-6430-gluoncv-mxnet-xception',
-
-    #ADE20k32 models
-    'ss-5618_tvmdlr': 'TVM-SS-5618-deeplabv3lite-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
-    'ss-5638_tvmdlr': 'TVM-SS-5638-unetlite-aspp-mobv2-tv-ade20k32-qat-512x512', # import fails
-    'ss-5658_tvmdlr': 'TVM-SS-5658-fpnlite-aspp-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
-    'ss-5678_tvmdlr': 'TVM-SS-5678-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
-
-    'ss-8618_onnxrt': 'ONR-SS-8618-deeplabv3lite-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
-    'ss-8638_onnxrt': 'ONR-SS-8638-unetlite-aspp-mobv2-tv-ade20k32-qat-512x512', # import fails
-    'ss-8658_onnxrt': 'ONR-SS-8658-fpnlite-aspp-mobv2-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
-    'ss-8678_onnxrt': 'ONR-SS-8678-fpnlite-aspp-mobv2-1p4-ade20k32-qat-512x512', # PTQ itself is good,  QAT not needed
-
-    # ONNX-SS-CocoSeg21 Models  are now in after SDK8.0
-    #'vseg-8710_onnxrt' : 'ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512',
-    #'vseg-8720_onnxrt' : 'ONR-SS-8720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
-
-    # TVM-SS-CocoSeg21 Models are now in after SDK8.0
-    #'vseg-5710_tvmdlr' : 'TVM-SS-5710-deeplabv3lite-mobv2-cocoseg21-512x512',
-    #'vseg-5720_tvmdlr' : 'TVM-SS-5720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
-
-    # During SDK7.3 removed low accuracy models where drop is more wrt reference accuracy. This will be corrected in the future.
-    'ss-2540_tflitert' : 'TFL-SS-2540-deeplabv3-mobv2-ade20k-512x512', #still bad in SDK8.2
-    'ss-2590_tflitert' : 'TFL-SS-2590-deeplabv3_mobv2-dm05-pascal-trainaug-512x512', #still bad in SDK8.2
-    'cl-0060_tflitert' : 'TFL-CL-0060-resNet50V2', #float accuracy is around 5% lower than ref, SDK8.2
-    'ss-2600_tflitert' : 'TFL-SS-2600-deeplabv3_mobv2-pascal-trainaug-512x512', #still bad in SDK8.2
-    'cl-0218_tflitert' : 'TFL-CL-0218-mobileNetV1-qat', #acruacy 1.6% below float
-    #'cl-0010_tflitert' : 'TFL-CL-0010-mobileNetV2', #sdk8.2, accuracy around 3% down compared to float
-    #'cl-6080_onnxrt' : 'ONR-CL-6080-shuffleNetV2',, 50k val as well as EVM give good accuracy so not removing now
-    'cl-0200_tflitert' : 'TFL-CL-0200-mobileNetV2-1p4', #sdk8.2, accuracy around 3% down compared to float
-
-    # During SDK8.0 removed low accuracy models where drop is more wrt reference accuracy.
-    'od-2100_tflitert':'TFL-OD-2100-ssd-res50V1-fpn-coco-tpu-8-640x640', #7 % drop wrt accuracy
-    'od-5030_tvmdlr': 'TVM-OD-5030-ssd-res50v1-gluon-mxnet-coco-512x512',
-    'cl-0270_tflitert': 'TFL-CL-0270-mobv3-small-minimalistic', #huge drop (>30%) in 8 bit accuracy wrt float
-    'od-5040_tvmdlr': 'TVM-OD-5040-ssd-mobv1-coco-gluon-mxnet-512x512', #accuracy looks ok now, but EVM run fails, SDK8.2
-
-    #'od-8070_onnxrt': 'ONR-OD-8070-yolov3-d53-relu-coco-416x416',   #large model - issue in evm, #fixed in SDK8.2
-    #'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640', #large model - issue in evm, #fixed in SDK8.2
-
-    # models for which artifacts are not getting generated during SDK8.0
-    'cl-3510_tvmdlr' :  'TVM-CL-3510-hrnet-w30-c-gluon-mxnet',
-    'cl-6508_onnxrt' :  'ONR-CL-6508-mobv3-ti-lite-large-qat',
-    'cl-3498_tvmdlr' :  'TVM-CL-3498-mobv3-ti-lite-large-qat',
-    'cl-6510_onnxrt' :  'ONR-CL-6510-mobv3-ti-lite-large-x2r',
-    'cl-3500_tvmdlr' :  'TVM-CL-3500-mobv3-ti-lite-large-x2r',
-    'od-2120_tflitert': 'TFL-OD-2120-ssd-res50V1-fpn-coco-tpu-8-1024x1024',
-    'od-5050_tvmdlr' :  'TVM-OD-5050-yolo3_darknet53-coco-gluon-mxnet-512x512',
-    'od-5060_tvmdlr' :  'TVM-OD-5060-centernet-r18-v1b-coco-gluon-mxnet-512x512',
-    'ss-5810_tvmdlr' :  'TVM-SS-5810-fcn-resNet101-cocoseg21-gluon-mxnet-480x480',
-    'ss-5820_tvmdlr' :  'TVM-SS-5820-deeplab-resNet101-cocoseg21-gluon-mxnet-480x480',
-    'ss-5830_tvmdlr' : 'TVM-SS-5830-fcn-resNet50-ade20k-gluon-mxnet-480x480',
-
-    # During SDK8.1, these models were marked as removed - not running on device (may be due to large memory requirement)
-    #'cl-6450_onnxrt': 'ONR-CL-6450-harDNet85', #working in SDK8.2 onwards
-    #'od-8060_onnxrt': 'ONR-OD-8060-ssd-lite-regNetX-1.6gf-fpn-bgr-coco-768x768', #working in SDK8.2 onwards
-    #'od-8120_onnxrt': 'ONR-OD-8120-yolov5-m6-ti-lite-coco-640x640', #working in SDK8.2 onwards
-    #'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640', #working in SDK8.2 onwards
-
-    'od-2150_tflitert':'TFL-OD-2150-efficientdet-lite1-relu-coco-384x384',
-    'od-2170_tflitert':'TFL-OD-2170-efficientdet-lite3-relu-coco-512x512',
-
-    # High resolution models
-    'cl-6151_onnxrt': 'ONR-CL-6151-mobileNetV2-1p4-qat-512x512',
-    'cl-6152_onnxrt': 'ONR-CL-6152-mobileNetV2-1p4-qat-1024x1024',
-
-    'od-8160_onnxrt': 'ONR-OD-8160-ssdlite-mobv2-fpn-lite-coco-512x512', #Manu removed it in SDK8.2
-    'od-8170_onnxrt': 'ONR-OD-8170-ssdlite-regNetX-800mf-fpn-lite-coco-512x512', #Manu removed it in SDK8.2
-
-    'cl-0038_tflitert': 'TFL-CL-0038-InceptionNetV1', #Kumar reported issue with SDK8.2
-    'cl-0150_tflitert': 'TFL-CL-0150-denseNet', #Kumar reported issue with SDK8.2
-    'ss-8670_onnxrt': 'ONR-SS-8670-fpnlite-aspp-mobv2-1p4-ade20k32-512x512', #Paula reported issue with SDK8.2 TIDL-1589
-
-    'de-7300_onnxrt': 'ONR-DE-7300-depth-est-fast-depth-224x224', #artifacts get generated. Inference did not run on PC ref, SDK8.2
-    'ss-5670_tvmdlr': 'TVM-SS-5670-fpnlite-aspp-mobv2-1p4-ade20k32-512x512', #looks like removed from the run. Artifacts were not there.SDK8.2
-
-    'cl-3430_tvmdlr': 'TVM-CL-3430-gluoncv-mxnet-xception', #removed in SDK8.2 size 299 is not supported in SDK/gstreamer
-    'cl-0040_tflitert': 'TFL-CL-0040-InceptionNetV3', #removed in SDK8.2 size 299 is not supported in SDK/gstreamer
+shortlisted_model_list = {
+    # ONNX - LIDAR - 3DOD
+    '3dod-7100_onnxrt' : 'ONR-3DOD-7100-pointPillars-lidar-10000-496x432',
+    # 6dpose
+    '6dpose-7200_onnxrt': 'ONR-6DP-7200-yolox-s-6d-object_pose-640x480',
+    # classification
+    'cl-0000_tflitert': 'TFL-CL-0000-mobileNetV1-mlperf',
+    'cl-0010_tflitert': 'TFL-CL-0010-mobileNetV2',
+    'cl-0130_tflitert': 'TFL-CL-0130-efficientNet-lite0',
+    'cl-0160_tflitert': 'TFL-CL-0160-resNet50V1p5-mlperf',
+    'cl-3090_tvmdlr': 'TVM-CL-3090-mobileNetV2-tv',
+    'cl-6090_onnxrt': 'ONR-CL-6090-mobileNetV2-tv',
+    'cl-6091_onnxrt': 'ONR-CL-6091-mobileNetV2-tv-512x512',
+    'cl-6092_onnxrt': 'ONR-CL-6092-mobileNetV2-tv-1024x1024',
+    'cl-6100_onnxrt': 'ONR-CL-6100-resNet18',
+    'cl-6101_onnxrt': 'ONR-CL-6101-resNet18-512x512',
+    'cl-6102_onnxrt': 'ONR-CL-6102-resNet18-1024x1024',
+    'cl-6110_onnxrt': 'ONR-CL-6110-resNet50',
+    'cl-6160_onnxrt': 'ONR-CL-6160-regNetX-400mf-tv',
+    'cl-6170_onnxrt': 'ONR-CL-6170-regNetX-800mf-tv',
+    'cl-6360_onnxrt': 'ONR-CL-6360-regNetx-200mf',
+    'cl-6480_onnxrt': 'ONR-CL-6480-mobv3-lite-small',
+    'cl-6490_onnxrt': 'ONR-CL-6490-mobv3-lite-large',
+    'kd-7060_onnxrt': 'ONR-KD-7060-human-pose-yolox-s-640x640',
+    'od-2000_tflitert': 'TFL-OD-2000-ssd-mobV1-coco-mlperf-300x300',
+    'od-2010_tflitert': 'TFL-OD-2010-ssd-mobV2-coco-mlperf-300x300',
+    'od-2080_tflitert':'TFL-OD-2080-ssd-mobV2-fpnlite-coco-tpu-8-320x320',
+    'od-5120_tvmdlr': 'TVM-OD-5120-ssdLite-mobDet-DSP-coco-320x320',
+    'od-8020_onnxrt': 'ONR-OD-8020-ssd-lite-mobv2-mmdet-coco-512x512',
+    'od-8040_onnxrt': 'ONR-OD-8040-ssd-lite-regNetX-200mf-fpn-bgr-mmdet-coco-320x320',
+    'od-8200_onnxrt': 'ONR-OD-8200-yolox-nano-lite-mmdet-coco-416x416',
+    'od-8210_onnxrt': 'ONR-OD-8210-yolox-tiny-lite-mmdet-coco-416x416',
+    'od-8220_onnxrt': 'ONR-OD-8220-yolox-s-lite-mmdet-coco-640x640',
+    'od-8420_onnxrt': 'ONR-OD-8420-yolox-s-lite-mmdet-widerface-640x640',
+    'ss-2580_tflitert': 'TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512',
+    'ss-5710_tvmdlr': 'TVM-SS-5710-deeplabv3lite-mobv2-cocoseg21-512x512', # replaced with ss-5720 with ss-5710
+    'ss-8610_onnxrt': 'ONR-SS-8610-deeplabv3lite-mobv2-ade20k32-512x512',
+    'ss-8630_onnxrt': 'ONR-SS-8630-unetlite-aspp-mobv2-tv-ade20k32-512x512',
+    'ss-8710_onnxrt': 'ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512',
+    'ss-8720_onnxrt': 'ONR-SS-8720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
+    'ss-8818_onnxrt': 'ONR-SS-8818-deeplabv3lite-mobv2-qat-robokit-768x432',
 }
 
-removed_models_from_plots = {
-    'ss-2590_tflitert': 'TFL-SS-2590-deeplabv3_mobv2-dm05-pascal-trainaug-512x512', # SS on pascal has only 2 models. So removed from plots.
-    'ss-2600_tflitert': 'TFL-SS-2600-deeplabv3_mobv2-pascal-trainaug-512x512', # # SS on pascal has only 2 models.  So removed from plots.
-}
 
 recommended_model_list = {
     'cl-0000_tflitert': 'TFL-CL-0000-mobileNetV1-mlperf',
@@ -552,109 +451,9 @@ recommended_model_list = {
     #'od-8050_onnxrt': 'ONR-OD-8050-ssd-lite-regNetX-800mf-fpn-bgr-coco-512x512',
 }
 
-#sampled on 29th Jul 21
-super_set = [
-'cl-10-010-0_tflitert',
-'cl-10-011-0_tflitert',
-'cl-10-012-0_tflitert',
-'cl-10-030-0_onnxrt',
-'cl-10-031-0_onnxrt',
-'cl-10-031-1_onnxrt',
-'cl-10-031-2_onnxrt',
-'cl-10-032-0_onnxrt',
-'cl-10-032-1_onnxrt',
-'cl-10-032-2_onnxrt',
-'cl-10-033-0_onnxrt',
-'cl-10-033-1_onnxrt',
-'cl-10-033-2_onnxrt',
-'cl-10-060-0_tvmdlr',
-'cl-10-061-0_tvmdlr',
-'cl-10-062-0_tvmdlr',
-'cl-10-063-0_tvmdlr',
-'cl-10-100-0_onnxrt',
-'cl-10-100-1_onnxrt',
-'cl-10-100-2_onnxrt',
-'cl-10-101-0_onnxrt',
-'cl-10-101-1_onnxrt',
-'cl-10-101-2_onnxrt',
-'cl-10-101-8_onnxrt',
-'cl-10-102-1_onnxrt',
-'cl-10-102-2_onnxrt',
-'cl-10-102-8_onnxrt',
-'cl-10-105-0_onnxrt',
-'cl-10-105-8_onnxrt',
-'cl-10-106-0_onnxrt',
-'cl-10-301-0_onnxrt',
-'cl-10-302-0_onnxrt',
-'cl-10-302-8_onnxrt',
-'cl-10-304-0_onnxrt',
-'cl-10-304-1_onnxrt',
-'cl-10-304-2_onnxrt',
-'cl-10-305-0_onnxrt',
-'cl-10-305-1_onnxrt',
-'cl-10-305-2_onnxrt',
-'cl-10-330-0_onnxrt',
-'cl-10-331-0_onnxrt',
-'cl-10-332-0_onnxrt',
-'cl-10-333-0_onnxrt',
-'cl-10-400-0_tflitert',
-'cl-10-400-8_tflitert',
-'cl-10-401-0_tflitert',
-'cl-10-402-0_tflitert',
-'cl-10-403-0_tflitert',
-'cl-10-404-0_tflitert',
-'cl-10-405-8_tflitert',
-'cl-10-406-0_tflitert',
-'cl-10-407-0_tflitert',
-'cl-10-409-0_tflitert',
-'cl-10-410-0_tflitert',
-'cl-10-411-0_tflitert',
-'cl-10-412-0_tflitert',
-'cl-10-430-0_tflitert',
-'cl-10-431-0_tflitert',
-'cl-10-434-0_tflitert',
-'cl-10-440-0_tflitert',
-'cl-10-441-0_tflitert',
-'cl-10-442-0_tflitert',
-'od-12-010-0_tflitert',
-'od-12-011-0_tflitert',
-'od-12-012-0_onnxrt',
-'od-12-061-0_tvmdlr',
-'od-12-062-0_tvmdlr',
-'od-12-100-0_onnxrt',
-'od-12-101-0_onnxrt',
-'od-12-102-0_onnxrt',
-'od-12-103-0_onnxrt',
-'od-12-104-0_onnxrt',
-'od-12-105-0_onnxrt',
-'od-12-106-0_onnxrt',
-'od-12-107-0_onnxrt',
-'od-12-400-0_tflitert',
-'od-12-401-0_tflitert',
-'od-12-402-0_tflitert',
-'od-12-410-0_tflitert',
-'od-12-412-0_tflitert',
-'od-12-413-0_tflitert',
-'od-12-414-0_tflitert',
-'od-12-420-0_tflitert',
-'kd-25-101-0_onnxrt',
-'kd-25-102-0_onnxrt',
-'kd-25-103-0_onnxrt',
-'kd-25-104-0_onnxrt',
-'ss-17-400-0_tflitert',
-'ss-18-010-0_tflitert',
-'ss-18-100-0_onnxrt',
-'ss-18-101-0_onnxrt',
-'ss-18-102-0_onnxrt',
-'ss-18-103-0_onnxrt',
-'ss-18-110-0_onnxrt',
-'ss-18-111-0_onnxrt',
-'ss-19-400-0_tflitert',
-'ss-19-401-0_tflitert',
-'ss-21-100-0_onnxrt',
-'ss-21-106-0_onnxrt',
-'ss-21-110-0_onnxrt',
-]
+
+super_set = list(model_id_artifacts_pair.keys())
+
 
 def find_compiled_artifact_in_removed_list():
     import yaml
@@ -663,7 +462,7 @@ def find_compiled_artifact_in_removed_list():
         compiled_artifacts = yaml.full_load(file)
     
         for key, value in compiled_artifacts.items():
-            if key in removed_model_list:
+            if key not in shortlisted_model_list:
                 print("{} for which artifacts are available but model part of removed model list".format(key))
 
 
@@ -720,7 +519,7 @@ def get_missing_models(report_file=None, selected_models_list=None):
     return
 
 def get_selected_models(selected_task=None):
-    selected_models_list = [key for key in model_id_artifacts_pair if not key in removed_model_list]
+    selected_models_list = [key for key in model_id_artifacts_pair if key in shortlisted_model_list]
     selected_models_for_a_task = [model for model in selected_models_list if model.split('-')[0] == selected_task]
     return selected_models_for_a_task
 
@@ -753,14 +552,13 @@ def get_artifact_name(model_id_or_artifact_id, session_name=None, guess_names=Fa
 
 
 def get_name_key_pair_list(model_ids, session_name, remove_models=True):
-    global removed_model_list
-    removed_model_entries = removed_model_list.keys()
+    shortlisted_model_list_entries = shortlisted_model_list.keys()
     name_key_pair_list = []
     for model_id in model_ids:
         artifact_id = f'{model_id}_{session_name}'
         artifact_name =  model_id_artifacts_pair[artifact_id] if artifact_id in model_id_artifacts_pair else None
         if artifact_name is not None and \
-                (not remove_models or artifact_id not in removed_model_entries):
+                (not remove_models or artifact_id in shortlisted_model_list_entries):
             name_key_pair_list.append((artifact_name, model_id))
         #
     #
@@ -768,9 +566,8 @@ def get_name_key_pair_list(model_ids, session_name, remove_models=True):
 
 
 def is_shortlisted_model(artifact_id):
-    removed_model_entries = removed_model_list.keys()
-    is_removed = (artifact_id in removed_model_entries)
-    is_shortlisted = (not is_removed)
+    shortlisted_model_list_entries = shortlisted_model_list.keys()
+    is_shortlisted = (artifact_id in shortlisted_model_list_entries)
     return is_shortlisted
 
 
@@ -787,10 +584,10 @@ if __name__ == '__main__':
     test_against_super_set()
 
     print("Total models : ", len(model_id_artifacts_pair))
-    print("removed models : ", len(removed_model_list))
+    print("shortlisted models : ", len(shortlisted_model_list))
     print_selected_models = True
 
-    selected_models_list = [key for key in model_id_artifacts_pair if not key in removed_model_list]
+    selected_models_list = [key for key in model_id_artifacts_pair if not key not in shortlisted_model_list]
 
     print("with runtime prefix")
     print("="*64)
