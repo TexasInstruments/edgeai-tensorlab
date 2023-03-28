@@ -97,7 +97,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_qat(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_qat-p2_20210429.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':61.836}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_top1%':61.836}, model_shortlist=40)
         ),
         # jai-devkit: classification mobilenetv3_large_lite expected_metric: 72.122% top-1 accuracy
         'cl-6490':utils.dict_update(common_cfg,
@@ -130,7 +130,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_qat(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_qat-p2.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':71.31}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_top1%':71.31}, model_shortlist=40)
         ),
         # torchvision: classification resnet18_224x224 expected_metric: 69.76% top-1 accuracy
         'cl-6100':utils.dict_update(common_cfg,
@@ -209,7 +209,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/regnet_x_1_6gf_tv.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':77.040}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_top1%':77.040}, model_shortlist=40)
         ),
         #################################################################
         #       TFLITE MODELS
@@ -230,7 +230,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/mobilenet_edgetpu_224_1.0_float.tflite'),
             metric=dict(label_offset_pred=-1),
-            model_info=dict(metric_reference={'accuracy_top1%':75.6}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_top1%':75.6}, model_shortlist=40)
         ),
         # mlperf model: classification resnet50_v1.5 expected_metric: 76.456% top-1 accuracy
         'cl-0160':utils.dict_update(common_cfg,
@@ -364,7 +364,7 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite4-fp32.tflite'),
-            model_info=dict(metric_reference={'accuracy_top1%':81.5}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_top1%':81.5}, model_shortlist=40)
         ),
         # tensorflow/tpu: classification efficientnet-edgetpu-S expected_metric: 77.23% top-1 accuracy
         'cl-0090':utils.dict_update(common_cfg,
@@ -373,7 +373,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-edgetpu-S_float.tflite'),
             metric=dict(label_offset_pred=-1),
-            model_info=dict(metric_reference={'accuracy_top1%':77.23}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_top1%':77.23}, model_shortlist=40)
         ),
         # tensorflow/tpu: classification efficientnet-edgetpu-M expected_metric: 78.69% top-1 accuracy
         'cl-0100':utils.dict_update(common_cfg,

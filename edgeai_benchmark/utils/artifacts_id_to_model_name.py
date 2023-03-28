@@ -429,13 +429,24 @@ shortlisted_model_list = {
     'ss-8630_onnxrt': 'ONR-SS-8630-unetlite-aspp-mobv2-tv-ade20k32-512x512',
     'ss-8710_onnxrt': 'ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512',
     'ss-8720_onnxrt': 'ONR-SS-8720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
+    # additional models added
+    'cl-6180_onnxrt': 'ONR-CL-6180-regNetX-1.6gf-tv',
+    'cl-0080_tflitert': 'TFL-CL-0080-mobileNet-edgeTPU-mlperf',
+    'cl-0140_tflitert': 'TFL-CL-0140-efficientNet-lite4',
+    'cl-0090_tflitert': 'TFL-CL-0090-efficientNet-edgeTPU-s',
+    'cl-6098_onnxrt': 'ONR-CL-6098-mobileNetV2-tv-qat',
+    'cl-6488_onnxrt': 'ONR-CL-6488-mobv3-lite-small-qat',
+    'od-8230_onnxrt': 'ONR-OD-8230-yolox-m-lite-mmdet-coco-640x640',
+    'od-2020_tflitert': 'TFL-OD-2020-ssdLite-mobDet-DSP-coco-320x320',
+    'od-2030_tflitert': 'TFL-OD-2030-ssdLite-mobDet-EdgeTPU-coco-320x320',
+    'ss-8740_onnxrt': 'ONR-SS-8740-lraspp-mobV3-ti-lite-large-cocoseg21-512x512',
     #'ss-8818_onnxrt': 'ONR-SS-8818-deeplabv3lite-mobv2-qat-robokit-768x432',
 }
 
 
 recommended_model_list = {
     'cl-0000_tflitert': 'TFL-CL-0000-mobileNetV1-mlperf',
-    'od-2010_tflitert': 'TFL-OD-2010-ssd-mobV2-coco-mlperf-300x300', #'od-2020_tflitert': 'TFL-OD-2020-ssdLite-mobDet-DSP-coco-320x320',
+    'od-2010_tflitert': 'TFL-OD-2010-ssd-mobV2-coco-mlperf-300x300',
     'ss-2580_tflitert': 'TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512',
     'cl-3090_tvmdlr': 'TVM-CL-3090-mobileNetV2-tv',
     'od-5120_tvmdlr': 'TVM-OD-5120-ssdLite-mobDet-DSP-coco-320x320',

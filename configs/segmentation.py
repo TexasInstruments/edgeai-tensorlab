@@ -164,7 +164,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/lraspp_mobilenet_v3_large_lite_512x512_20210527.onnx'),
             postprocess=postproc_segmentation_onnx,
-            model_info=dict(metric_reference={'accuracy_mean_iou%':59.80}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_mean_iou%':59.80}, model_shortlist=40)
         ),
         ###############robokit segmentation model######################
         'ss-8818': utils.dict_update(robokitseg_cfg,

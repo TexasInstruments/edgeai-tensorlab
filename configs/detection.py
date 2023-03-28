@@ -264,7 +264,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 44.4}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 44.4}, model_shortlist=40)
         ),
         #################################################################
         #       MXNET MODELS
@@ -302,7 +302,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_20200519.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.9}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.9}, model_shortlist=40)
         ),
         # tensorflow1.0 models: detection - ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19 expected_metric: 25.9% ap[0.5:0.95] accuracy
         'od-2030':utils.dict_update(common_cfg,
@@ -312,7 +312,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_edgetpu_320x320_coco_20200519.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':25.9})
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':25.9}, model_shortlist=40)
         ),
         # tensorflow1.0 models: detection - ssdlite_mobilenet_v2_coco_2018_05_09 expected_metric: 22.0% ap[0.5:0.95] accuracy
         'od-2060':utils.dict_update(common_cfg,
