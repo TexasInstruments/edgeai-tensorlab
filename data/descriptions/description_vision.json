@@ -809,8 +809,8 @@
       "classification":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":10,
+            "calibration_iterations":10,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":16
@@ -845,8 +845,8 @@
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":1,
+            "calibration_frames":3,
+            "calibration_iterations":3,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -856,8 +856,8 @@
       "detection":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":10,
+            "calibration_iterations":10,
             "detection_threshold":0.05,
             "detection_top_k":500,
             "tensor_bits":16
@@ -892,8 +892,8 @@
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":1,
+            "calibration_frames":3,
+            "calibration_iterations":3,
             "detection_threshold":0.6,
             "detection_top_k":200,
             "tensor_bits":8
@@ -905,8 +905,8 @@
       "classification":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":10,
+            "calibration_iterations":10,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":16
@@ -941,8 +941,8 @@
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":1,
+            "calibration_frames":3,
+            "calibration_iterations":3,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -952,8 +952,8 @@
       "detection":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":10,
+            "calibration_iterations":10,
             "detection_threshold":0.05,
             "detection_top_k":500,
             "tensor_bits":16
@@ -988,8 +988,8 @@
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":1,
+            "calibration_frames":3,
+            "calibration_iterations":3,
             "detection_threshold":0.6,
             "detection_top_k":200,
             "tensor_bits":8
@@ -1001,8 +1001,8 @@
       "classification":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":10,
+            "calibration_iterations":10,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":16
@@ -1037,8 +1037,8 @@
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":1,
+            "calibration_frames":3,
+            "calibration_iterations":3,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1048,8 +1048,8 @@
       "detection":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":10,
+            "calibration_iterations":10,
             "detection_threshold":0.05,
             "detection_top_k":500,
             "tensor_bits":16
@@ -1084,8 +1084,8 @@
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":1,
+            "calibration_frames":3,
+            "calibration_iterations":3,
             "detection_threshold":0.6,
             "detection_top_k":200,
             "tensor_bits":8
