@@ -104,19 +104,21 @@ The above script will generate **instances_train.json** (136.6MB) and **instance
 ## **YOLOX-6D-Pose Models and Ckpts**.
 
 ### **Models Trained on YCB-V**.
-|Dataset | Model Name              |Input Size |GFLOPS | AR  | AR<sub>VSD</sub>| AR<sub>MSSD</sub> | AR<sub>MSPD</sub> | ADD(s)| Pretrained Weights | weights|
-|--------|-------------------------|-----------|-------|-----|-----------------|-------------------|-------------------|-------|-------|-------|
-|PBR+Real   | [YOLOX_s_object_pose](./exps/default/yolox_s_object_pose.py) |640x480    | 31.2  | 67.1|     62.4        |      68.0         |      70.8         | 59.4  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth)| [weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/08_05_00_01/models/vision/object_6d_pose/ycbv/edgeai-yolox/checkpoints/yolox_s_object_pose/best_ckpt.pth) |
-|PBR+Real   | [YOLOX_m_object_pose](./exps/default/yolox_m_object_pose.py) |640x480    | 80.3  | 75.4|     71.0        |      76.7         |      78.4         | 71.1  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m.pth)| [weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/08_05_00_01/models/vision/object_6d_pose/ycbv/edgeai-yolox/checkpoints/yolox_m_object_pose/best_ckpt.pth) |
-|PBR+Real   | [YOLOX_l_object_pose](./exps/default/yolox_l_object_pose.py) |640x480    | 161.2 | 81.1|     76.0        |      83.1         |      84.0         | 81.1  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l.pth)| [weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/08_05_00_01/models/vision/object_6d_pose/ycbv/edgeai-yolox/checkpoints/yolox_l_object_pose/best_ckpt.pth) |
+|Dataset | Model Name              |Input Size |GFLOPS |  Params(M) |AR  | AR<sub>VSD</sub>| AR<sub>MSSD</sub> | AR<sub>MSPD</sub> | ADD(s)| Pretrained Weights | weights|
+|--------|-------------------------|-----------|-------|-----------|-----|-----------------|-------------------|-------------------|-------|-------|-------|
+|PBR+Real   | [YOLOX_s_object_pose](./exps/default/yolox_s_object_pose.py) |640x480    | 31.2  | 11.6 | 70.77|  65.86  | 72.29   |   74.17  | 66.99  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth)| [weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/08_05_00_01/models/vision/object_6d_pose/ycbv/edgeai-yolox/checkpoints/yolox_s_object_pose/best_ckpt.pth) |
+|PBR+Real   | [YOLOX_m_object_pose](./exps/default/yolox_m_object_pose.py) |640x480    | 80.3  |31.3   | 76.30|  71.13  |  77.04 |   80.75 | 73.17  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m.pth)| [weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/08_05_00_01/models/vision/object_6d_pose/ycbv/edgeai-yolox/checkpoints/yolox_m_object_pose/best_ckpt.pth) |
+|PBR+Real   | [YOLOX_l_object_pose](./exps/default/yolox_l_object_pose.py) |640x480    | 161.2 | 64.8   |81.31|  76.74 |  83.62  |  83.56   | 83.16  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l.pth)| [weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/08_05_00_01/models/vision/object_6d_pose/ycbv/edgeai-yolox/checkpoints/yolox_l_object_pose/best_ckpt.pth) |
+|PBR+Real   | [YOLOX_x_object_pose](./exps/default/yolox_x_object_pose.py) |640x480    | 281.0 | 115.6  |83.49|  79.25  | 85.87  |  85.37 | 88.09  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l.pth)| [weights](http://software-dl.ti.com/jacinto7/esd/modelzoo/08_05_00_01/models/vision/object_6d_pose/ycbv/edgeai-yolox/checkpoints/yolox_l_object_pose/best_ckpt.pth) |
+
 
 ### **Models Trained on LM-O**.
 |Dataset | Model Name              |Input Size |GFLOPS |  Params(M)|AR  | AR<sub>VSD</sub>| AR<sub>MSSD</sub> | AR<sub>MSPD</sub> | ADD(s)| Pretrained Weights | weights|
 |--------|-------------------------|-----------|-------|-----------|----|-----------------|-------------------|-------------------|-------|--------------------|--------|
-| PBR  | [YOLOX_s_object_pose](./exps/default/yolox_s_object_pose.py) |640x480    | 31.2  | 11.6   | 61.6 |   46.8       |  59.3  |   78.8      |  23.0 |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth)| [weights]()|
-| PBR  | [YOLOX_m_object_pose](./exps/default/yolox_m_object_pose.py) |640x480    | 80.3  | 31.3   | 59.4 |   44.4       |  56.2  |   77.8      |  27.7 |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m.pth)| [weights]()|
-| PBR  | [YOLOX_l_object_pose](./exps/default/yolox_l_object_pose.py) |640x480    | 161.2 | 64.8   | 58.0 |   42.0       |  53.7  |   78.3      |  36.8 |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l.pth)| [weights]()|
-| PBR  | [YOLOX_X_object_pose](./exps/default/yolox_x_object_pose.py) |640x480    | 281.0 | 115.6  | 52.6 |   36.5       |  46.0  |   75.3      |  40.7 |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l.pth)| [weights]()|
+| PBR  | [YOLOX_s_object_pose](./exps/default/yolox_s_object_pose.py) |640x480    | 31.2  | 11.6   | 56.13 |  40.21  |  51.18  |  77.00   | 27.23  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth)| [weights]()|
+| PBR  | [YOLOX_m_object_pose](./exps/default/yolox_m_object_pose.py) |640x480    | 80.3  | 31.3   | 59.43 |  44.13  |  56.24  |  77.93   | 36.36  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m.pth)| [weights]()|
+| PBR  | [YOLOX_l_object_pose](./exps/default/yolox_l_object_pose.py) |640x480    | 161.2 | 64.8   | 61.51 |  46.29  |  58.52  |  79.71   | 39.39  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l.pth)| [weights]()|
+| PBR  | [YOLOX_X_object_pose](./exps/default/yolox_x_object_pose.py) |640x480    | 281.0 | 115.6  | 62.90 |  48.25  |  61.09  |  79.37   | 44.47  |[pretrained_weights](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l.pth)| [weights]()|
 
 ## **Training: YOLOX-6D-Pose**
 Train a model  by running the command below. Pretrained ckpt for each model is the corresponding 2D object detection model trained on COCO dataset.
@@ -124,7 +126,8 @@ Train a model  by running the command below. Pretrained ckpt for each model is t
 ```
 python -m  yolox.tools.train -n yolox-s-object-pose --dataset ycbv -c 'path to pretrained ckpt' -d 4 -b 64 --fp16 -o --task object_pose 
                                 yolox-m-object-pose           lmo
-                                yolox-l-object-pose            
+                                yolox-l-object-pose
+                                yolox-x-object-pose
 ```
 ## **YOLOX-6D-Pose-ti-lite Models and Ckpts**
 These are lite version of the the model as described [here](./README_2d_od.md). These models are optimized to run efficiently on TI processors.
