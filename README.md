@@ -195,7 +195,7 @@ Image classification example
 Where TDA4VM above is an example of target_device supported. 
 
 #### Target devices supported
-The list of target devices supported depends on the tidl-tools installed by edgeai-benchmark. Currently **TDA4VM, AM68A, AM62A and AM69A** are supported.
+The list of target devices supported depends on the tidl-tools installed by [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark). Currently **TDA4VM, AM68A, AM62A and AM69A** are supported.
 
 
 ## Step 4: Prepare your own dataset with your own images and object types (Data annotation)
@@ -228,45 +228,53 @@ pip install -r requirements/labelstudio.txt
 - However, the JSON-MIN format has to be converted to the COCO-JSON format by using an example given in [run_convert_dataset.sh](./run_convert_dataset.sh). For Image Classification task, use source_format as labelstudio_classification. Label Studio can also export into JSON-MIN for Object detection. In case you did that, use source_format as labelstudio_detection for the converter script.
 
 
-## Step 5: Using your dataset to do Model Training and Compilation
-- Copy the annotated json file and images to a suitable folder with the dataset name. Under the folder with dataset name the following folders must exist: (1) there must be an "images" folder containing the images (2) there must be an annotations folder containing the annotation json file with the name given below.
-- This step has to be done manually.
+## Step 5: Dataset format
+- The dataset format is similar to that of the [COCO](https://cocodataset.org/) dataset, but there are some changes as explained below.
+- The annotated json file and images must be under a suitable folder with the dataset name. 
+- Under the folder with dataset name, the following folders must exist: 
+- (1) there must be an "images" folder containing the images
+- (2) there must be an annotations folder containing the annotation json file with the name given below.
 
-#### Step 5.1a: Object Detection dataset example
-- An object detection dataset should look like this. (Use a suitable dataset name instead of animal_detection). The default annotation file name for object detection is instances.json
+#### Object Detection dataset format
+An object detection dataset should have the following structure. 
+
 <pre>
-data/datasets/animal_detection
+data/datasets/dataset_name
                              |
                              |--images
-                             |     |--copy the image files here
+                             |     |-- the image files should be here
                              |
                              |--annotations
                                    |--instances.json
 </pre>
 
-- In the config file, provide the name of the dataset (animal_detection in this example) in the field dataset_name and provide the path (./data/datasets/animal_detection in this example) in the field input_data_path.
-- This ModelMaker tool can be invoked for model training and compilation by running run_modelmaker.sh with a suitable config file:
-```bash
-./run_modelmaker.sh TDA4VM config_detection.yaml
-```
+- Use a suitable dataset name instead of dataset_name
+- The default annotation file name for object detection is instances.json
+- The format of the annotation file is similar to that of the [COCO dataset 2017 Train/Val annotations](https://cocodataset.org/#download) - a json file containing 'info', 'images', 'categories' and 'annotations'.
+- Look at the example dataset [animal_classification](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip) to understand further.
+- In the config file, provide the name of the dataset (dataset_name in this example) in the field dataset_name and provide the path or URL in the field input_data_path.
+- Then the ModelMaker tool can be invoked with the config file.
 
-#### Step 5.1b: Image Classification dataset example
-- An image classification dataset should look like this. (Use a suitable dataset name instead of animal_classification). The default annotation file name for image classification is instances.json
+#### Image Classification dataset format
+An image classification dataset should have the following structure. (Use a suitable dataset name instead of dataset_name).
+
 <pre>
-data/datasets/animal_classification
+data/datasets/dataset_name
                              |
                              |--images
-                             |     |--copy the image files here
+                             |     |-- the image files should be here
                              |
                              |--annotations
                                    |--instances.json
 </pre>
 
-- In the config file, provide the name of the dataset (animal_classification in this example) in the field dataset_name and provide the path (./data/datasets/animal_classification in this example) in the field input_data_path.
-- This ModelMaker tool can be invoked for model training and compilation by running run_modelmaker.sh with a suitable config file:
-```bash
-./run_modelmaker.sh TDA4VM config_classification.yaml
-```
+- Use a suitable dataset name instead of dataset_name
+- The default annotation file name for image classification is instances.json
+- The format of the annotation file is similar to that of the COCO dataset - a json file containing 'info', 'images', 'categories' and 'annotations'. However, one difference is that the bounding box information is not used for classification task and need not be present. The category information in each annotation (called the 'id' field) is needed.
+- Look at the example dataset [animal_detection](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip) to understand further.
+- In the config file, provide the name of the dataset (dataset_name in this example) in the field dataset_name and provide the path or URL in the field input_data_path.
+- Then the ModelMaker tool can be invoked with the config file.
+
 
 #### Notes
 If the dataset has already been split into train and validation set already, it is possible to provide those paths separately as a tuple in input_data_path.

@@ -303,6 +303,49 @@ These are the devices that are supported currently. As additional devices are su
 ## Additional information
 {constants.EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}
 
+## Dataset format
+- The dataset format is similar to that of the [COCO](https://cocodataset.org/) dataset, but there are some changes as explained below.
+- The annotated json file and images must be under a suitable folder with the dataset name. 
+- Under the folder with dataset name, the following folders must exist: 
+- (1) there must be an "images" folder containing the images
+- (2) there must be an annotations folder containing the annotation json file with the name given below.
+
+#### Object Detection dataset format
+An object detection dataset should have the following structure. 
+
+<pre>
+data/datasets/dataset_name
+                             |
+                             |--images
+                             |     |-- the image files should be here
+                             |
+                             |--annotations
+                                   |--instances.json
+</pre>
+
+- Use a suitable dataset name instead of dataset_name
+- The default annotation file name for object detection is instances.json
+- The format of the annotation file is similar to that of the [COCO dataset 2017 Train/Val annotations](https://cocodataset.org/#download) - a json file containing 'info', 'images', 'categories' and 'annotations'.
+- Look at the example dataset [animal_classification](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip) to understand further.
+
+#### Image Classification dataset format
+An image classification dataset should have the following structure. (Use a suitable dataset name instead of dataset_name).
+
+<pre>
+data/datasets/dataset_name
+                             |
+                             |--images
+                             |     |-- the image files should be here
+                             |
+                             |--annotations
+                                   |--instances.json
+</pre>
+
+- Use a suitable dataset name instead of dataset_name
+- The default annotation file name for image classification is instances.json
+- The format of the annotation file is similar to that of the COCO dataset - a json file containing 'info', 'images', 'categories' and 'annotations'. However, one difference is that the bounding box information is not used for classification task and need not be present. The category information in each annotation (called the 'id' field) is needed.
+- Look at the example dataset [animal_detection](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip) to understand further.
+
 ## Glossary of terms
 {tooltip_string}
 '''

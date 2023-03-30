@@ -90,7 +90,7 @@ def run(config):
                        version_descriptions=version_descriptions,
                        tooltip_descriptions=tooltip_descriptions,
                        help_descriptions=help_descriptions)
-    return description
+    return description, help_descriptions
 
 
 def main(args):
@@ -107,12 +107,18 @@ def main(args):
     #
 
     # get description
-    description = run(config)
+    description, help = run(config)
 
     # write description
     description_file = os.path.join(args.description_path, f'description_{args.target_module}' + '.yaml')
     edgeai_modelmaker.utils.write_dict(description, description_file)
-    print(f'description is written at: {description_file}')
+
+    help_file = os.path.join(args.description_path, f'help_{args.target_module}' + '.md')
+    with open(help_file, 'w') as fp:
+        fp.write(help)
+    #
+
+    print(f'description is written at: {description_file} and {help_file}')
 
 
 if __name__ == '__main__':
