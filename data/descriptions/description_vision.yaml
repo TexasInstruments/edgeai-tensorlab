@@ -66,35 +66,40 @@ help_descriptions: "\n## Overview\nThis is a tool for collecting data, training 
   \ information is not used for classification task and need not be present. The category\
   \ information in each annotation (called the 'id' field) is needed.\n- Look at the\
   \ example dataset [animal_detection](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip)\
-  \ to understand further.\n\n## Glossary of terms\n\n### TRAINING\n#### Epochs\n\
-  Epoch is a term that is used to indicate a pass over the entire training dataset.\
-  \ It is a hyper parameter that can be tuned to get best accuracy. Eg. A model trained\
-  \ for 30 Epochs may give better accuracy than a model trained for 15 Epochs.\n####\
-  \ Learning rate\nLearning Rate determines the step size used by the optimization\
-  \ algorithm at each iteration while moving towards the optimal solution. It is a\
-  \ hyper parameter that can be tuned to get best accuracy. Eg. A small Learning Rate\
-  \ typically gives good accuracy while fine tuning a model for a different task.\n\
-  #### Batch size\nBatch size specifies the number of inputs that are propagated through\
-  \ the neural network in one iteration. Several such iterations make up one Epoch.Higher\
-  \ batch size require higher memory and too low batch size can typically impact the\
-  \ accuracy.\n#### Weight decay\nWeight decay is a regularization technique that\
-  \ can improve stability and generalization of a machine learning algorithm. It is\
-  \ typically done using L2 regularization that penalizes parameters (weights, biases)\
-  \ according to their L2 norm.\n### COMPILATION\n#### Calibration frames\nCalibration\
-  \ is a process of improving the accuracy during fixed point quantization. Typically,\
-  \ higher number of Calibration Frames give higher accuracy, but it can also be time\
-  \ consuming.\n#### Calibration iterations\nCalibration is a process of improving\
-  \ the accuracy during fixed point quantization. Calibration happens in iterations.\
-  \ Typically, higher number of Calibration Iterations give higher accuracy, but it\
-  \ can also be time consuming.\n#### Tensor bits\nBitdepth used to quantize the weights\
-  \ and activations in the neural network. The neural network inference happens at\
-  \ this bit precision. \n#### Detection threshold\nAlso called Confidence Threshold.\
-  \ A threshold used to select good detection boxes. This is typically applied before\
-  \ a before the Non Max Suppression. Higher Detection Threshold means less false\
-  \ detections (False Positives), but may also result in misses (False Negatives).\
-  \ \n#### Detection topK\nNumber of detection boxes to be selected during the initial\
-  \ shortlisting before the Non Max Suppression.A higher number is typically used\
-  \ while measuring accuracy, but may impact the performance. \n"
+  \ to understand further.\n\n## Model deployment\n- The deploy page provides a button\
+  \ to download the compiled model artifacts to the target device / EVM. \n- The downloaded\
+  \ model artifacts are located in a folder inside /opt/projects.\n- These model artifacts\
+  \ can be used with edgeai-gst-apps included in the SDK to run inference. \n- Please\
+  \ see the section \"Edge AI sample apps\" in the SDK documentation for more information.\n\
+  \n## Glossary of terms\n\n### TRAINING\n#### Epochs\nEpoch is a term that is used\
+  \ to indicate a pass over the entire training dataset. It is a hyper parameter that\
+  \ can be tuned to get best accuracy. Eg. A model trained for 30 Epochs may give\
+  \ better accuracy than a model trained for 15 Epochs.\n#### Learning rate\nLearning\
+  \ Rate determines the step size used by the optimization algorithm at each iteration\
+  \ while moving towards the optimal solution. It is a hyper parameter that can be\
+  \ tuned to get best accuracy. Eg. A small Learning Rate typically gives good accuracy\
+  \ while fine tuning a model for a different task.\n#### Batch size\nBatch size specifies\
+  \ the number of inputs that are propagated through the neural network in one iteration.\
+  \ Several such iterations make up one Epoch.Higher batch size require higher memory\
+  \ and too low batch size can typically impact the accuracy.\n#### Weight decay\n\
+  Weight decay is a regularization technique that can improve stability and generalization\
+  \ of a machine learning algorithm. It is typically done using L2 regularization\
+  \ that penalizes parameters (weights, biases) according to their L2 norm.\n### COMPILATION\n\
+  #### Calibration frames\nCalibration is a process of improving the accuracy during\
+  \ fixed point quantization. Typically, higher number of Calibration Frames give\
+  \ higher accuracy, but it can also be time consuming.\n#### Calibration iterations\n\
+  Calibration is a process of improving the accuracy during fixed point quantization.\
+  \ Calibration happens in iterations. Typically, higher number of Calibration Iterations\
+  \ give higher accuracy, but it can also be time consuming.\n#### Tensor bits\nBitdepth\
+  \ used to quantize the weights and activations in the neural network. The neural\
+  \ network inference happens at this bit precision. \n#### Detection threshold\n\
+  Also called Confidence Threshold. A threshold used to select good detection boxes.\
+  \ This is typically applied before a before the Non Max Suppression. Higher Detection\
+  \ Threshold means less false detections (False Positives), but may also result in\
+  \ misses (False Negatives). \n#### Detection topK\nNumber of detection boxes to\
+  \ be selected during the initial shortlisting before the Non Max Suppression.A higher\
+  \ number is typically used while measuring accuracy, but may impact the performance.\
+  \ \n"
 model_descriptions:
   mobilenet_v2_lite:
     common:

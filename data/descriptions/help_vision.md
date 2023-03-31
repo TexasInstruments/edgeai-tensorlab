@@ -97,6 +97,12 @@ data/datasets/dataset_name
 - The format of the annotation file is similar to that of the COCO dataset - a json file containing 'info', 'images', 'categories' and 'annotations'. However, one difference is that the bounding box information is not used for classification task and need not be present. The category information in each annotation (called the 'id' field) is needed.
 - Look at the example dataset [animal_detection](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip) to understand further.
 
+## Model deployment
+- The deploy page provides a button to download the compiled model artifacts to the target device / EVM. 
+- The downloaded model artifacts are located in a folder inside /opt/projects.
+- These model artifacts can be used with edgeai-gst-apps included in the SDK to run inference. 
+- Please see the section "Edge AI sample apps" in the SDK documentation for more information.
+
 ## Glossary of terms
 
 ### TRAINING
