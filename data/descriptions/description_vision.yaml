@@ -99,7 +99,11 @@ help_descriptions: "\n## Overview\nThis is a tool for collecting data, training 
   \ misses (False Negatives). \n#### Detection topK\nNumber of detection boxes to\
   \ be selected during the initial shortlisting before the Non Max Suppression.A higher\
   \ number is typically used while measuring accuracy, but may impact the performance.\
-  \ \n"
+  \ \n### DEPLOY\n#### Download trained model\nTrained model can be downloaded to\
+  \ the PC for inspection.\n#### Download compiled model artifacts to PC\nCompiled\
+  \ model can be downloaded to the PC for inspection.\n#### Download compiled model\
+  \ artifacts to EVM\nCompiled model can be downloaded into the EVM for running model\
+  \ inference in SDK. Instructions are given in the help section.\n"
 model_descriptions:
   mobilenet_v2_lite:
     common:
@@ -1169,6 +1173,17 @@ tooltip_descriptions:
         network. The neural network inference happens at this bit precision. '
       name: Tensor bits
   dataset: {}
+  deploy:
+    download_compiled_model_to_evm:
+      description: Compiled model can be downloaded into the EVM for running model
+        inference in SDK. Instructions are given in the help section.
+      name: Download compiled model artifacts to EVM
+    download_compiled_model_to_pc:
+      description: Compiled model can be downloaded to the PC for inspection.
+      name: Download compiled model artifacts to PC
+    download_trained_model_to_pc:
+      description: Trained model can be downloaded to the PC for inspection.
+      name: Download trained model
   training:
     batch_size:
       description: Batch size specifies the number of inputs that are propagated through

@@ -125,3 +125,10 @@ Bitdepth used to quantize the weights and activations in the neural network. The
 Also called Confidence Threshold. A threshold used to select good detection boxes. This is typically applied before a before the Non Max Suppression. Higher Detection Threshold means less false detections (False Positives), but may also result in misses (False Negatives). 
 #### Detection topK
 Number of detection boxes to be selected during the initial shortlisting before the Non Max Suppression.A higher number is typically used while measuring accuracy, but may impact the performance. 
+### DEPLOY
+#### Download trained model
+Trained model can be downloaded to the PC for inspection.
+#### Download compiled model artifacts to PC
+Compiled model can be downloaded to the PC for inspection.
+#### Download compiled model artifacts to EVM
+Compiled model can be downloaded into the EVM for running model inference in SDK. Instructions are given in the help section.

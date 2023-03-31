@@ -243,6 +243,20 @@ def get_tooltip_descriptions(params):
                 'description': 'Number of detection boxes to be selected during the initial shortlisting before the Non Max Suppression.'
                                'A higher number is typically used while measuring accuracy, but may impact the performance. '
             }
+        },
+        'deploy': {
+            'download_trained_model_to_pc': {
+                'name': 'Download trained model',
+                'description': 'Trained model can be downloaded to the PC for inspection.'
+            },
+            'download_compiled_model_to_pc': {
+                'name': 'Download compiled model artifacts to PC',
+                'description': 'Compiled model can be downloaded to the PC for inspection.'
+            },
+            'download_compiled_model_to_evm': {
+                'name': 'Download compiled model artifacts to EVM',
+                'description': 'Compiled model can be downloaded into the EVM for running model inference in SDK. Instructions are given in the help section.'
+            }
         }
     }
 
