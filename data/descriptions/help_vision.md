@@ -1,29 +1,21 @@
 
 ## Overview
-This is a tool for collecting data, training and compiling AI models for use in TI embedded processors. The compiled models can be deployed on a local development board. A live preview/demo is also provided to inspect the quality of the developed model while it runs on the development board.
+This is a tool for collecting data, training and compiling AI models for use on TI's embedded processors. The compiled models can be deployed on a local development board. A live preview/demo is also provided to inspect the quality of the developed model while it runs on the development board.
 
 ## Development flow
-Bring your own data (BYOD): Retrain TI models from TI Model Zoo to fine-tune performance for your unique application requirements.
+Bring your own data (BYOD): Retrain models from TI Model Zoo to fine-tune with your own data.
 
 ## Tasks supported
 * Image Classification
 * Object Detection
 
 ## Target device setup overview
-Data capture from a development board is supported over ethernet connection. The live stream appears in the browser window and user can capture frames as needed. Similarly live preview/inference/demo can also be streamed into the browser window. 
-
-To establish a connection with a physical development board over ethernet, please follow the steps below. Also use the supported SDK version for that device - given in the details below.
-* Step 1: Make sure that you have physical development board of specific device with you procured, refer below to find how to procure for each specific device.
-* Step 2: Download the image to be flashed in SD card (refer steps 3)
+In order to perform Data capture from device, live preview and model deployment, a connection to development board is required over ethernet. To do this, please follow the steps below:
+* Step 1: Make sure that you have physical development board of a specific device with you. Refer below to understand how to procure it.
+* Step 2: Download the SDK binary to be flashed in the SD card.
 * Step 3: Make sure that the development board is setup and also put in the same local area network as the computer where you are using this service. Also connect a USB camera to the development board.
-* Step 4: Get the IP address of the development board using serial port connection
-* Step 5: Connect to the development board using ssh and run device agent service as mentioned below. 
-```
-ssh root@<ip_address_of_dev_board> 
-cd /opt/edgeai-studio-agent/src 
-python3 ./device_agent.py
-```
-* Step 6: Now you can connect to development board from model composer by providing the IP address of development board.
+* Step 4: Click on Help | Options | Serial port settings and follow the instructions to do TI Cloud Agent setup.
+* Step 5: On the "Connect Device Camera" pop-up, click on teh search icon to detect the IP address of the development board and connect to it.
 
 ## Supported target devices
 These are the devices that are supported currently. As additional devices are supported, this section will be updated.
@@ -59,7 +51,7 @@ These are the devices that are supported currently. As additional devices are su
 - The annotated json file and images must be under a suitable folder with the dataset name. 
 - Under the folder with dataset name, the following folders must exist: 
 - (1) there must be an "images" folder containing the images
-- (2) there must be an annotations folder containing the annotation json file with the name given below.
+- (2) there must be an "annotations" folder containing the annotation json file with the name given below.
 
 #### Object Detection dataset format
 An object detection dataset should have the following structure. 
@@ -77,7 +69,7 @@ data/datasets/dataset_name
 - Use a suitable dataset name instead of dataset_name
 - The default annotation file name for object detection is instances.json
 - The format of the annotation file is similar to that of the [COCO dataset 2017 Train/Val annotations](https://cocodataset.org/#download) - a json file containing 'info', 'images', 'categories' and 'annotations'.
-- Look at the example dataset [animal_classification](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip) to understand further.
+- Look at the example dataset [animal_classification](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip) to understand more.
 
 #### Image Classification dataset format
 An image classification dataset should have the following structure. (Use a suitable dataset name instead of dataset_name).
@@ -95,12 +87,11 @@ data/datasets/dataset_name
 - Use a suitable dataset name instead of dataset_name
 - The default annotation file name for image classification is instances.json
 - The format of the annotation file is similar to that of the COCO dataset - a json file containing 'info', 'images', 'categories' and 'annotations'. However, one difference is that the bounding box information is not used for classification task and need not be present. The category information in each annotation (called the 'id' field) is needed.
-- Look at the example dataset [animal_detection](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip) to understand further.
+- Look at the example dataset [animal_detection](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip) to understand more.
 
 ## Model deployment
-- The deploy page provides a button to download the compiled model artifacts to the target device / EVM. 
-- The downloaded model artifacts are located in a folder inside /opt/projects.
-- These model artifacts can be used with edgeai-gst-apps included in the SDK to run inference. 
+- The deploy page provides a button to download the compiled model artifacts to the development board. 
+- The downloaded model artifacts are located in a folder inside /opt/projects. It can be used with edgeai-gst-apps included in the SDK to run inference. 
 - Please see the section "Edge AI sample apps" in the SDK documentation for more information.
 
 ## Glossary of terms
