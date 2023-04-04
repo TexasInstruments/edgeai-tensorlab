@@ -37,7 +37,7 @@ from .kitti_depth import *
 from .mpisintel import *
 from .segmentation import *
 from .cityscapes_plus import *
-from .tiscapes_plus import *
+from .common_seg import *
 from .a2d2 import *
 from .coco_plus import *
 from .ade20k import *

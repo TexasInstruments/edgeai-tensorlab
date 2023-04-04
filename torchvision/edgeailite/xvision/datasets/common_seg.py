@@ -9,10 +9,10 @@ from PIL import Image
 from torchvision.edgeailite import xnn
 from torchvision.edgeailite.xvision.datasets.dataset_utils import dataset_split
 
-__all__ = ['tiscape_segmentation']
+__all__ = ['common_segmentation']
 
 
-class TIScapeSegmentation():
+class CommonSegmentation():
     def __init__(self, root, split, shuffle=False, num_imgs=None, num_classes=None, **kwargs):
         from pycocotools.coco import COCO
         num_classes = 5 if num_classes is None else num_classes
@@ -139,7 +139,7 @@ class TIScapeSegmentation():
         return masks
 
 
-class TIScapeSegmentationPlus(TIScapeSegmentation):
+class CommonSegmentationPlus(CommonSegmentation):
 
     def __init__(self, *args, num_classes=5, transforms=None, **kwargs):
         # 21 class is a special case, otherwise use all the classes
@@ -215,7 +215,7 @@ def write_to_jsonfile(path, filename, data):
             json.dump(data, fp)
 
 
-def tiscape_segmentation(dataset_config, root, split=None, transforms=None, annotation_prefix="stuff", *args, **kwargs):
+def common_segmentation(dataset_config, root, split=None, transforms=None, annotation_prefix="stuff", *args, **kwargs):
     train_split = val_split = None
     annotation_file = os.path.join(root, 'annotations', f'{annotation_prefix}.json')
     instances = dataset_split(annotation_file, 0.2)
@@ -225,11 +225,11 @@ def tiscape_segmentation(dataset_config, root, split=None, transforms=None, anno
     for split_name in split:
         if split_name.startswith('train'):
             write_to_jsonfile(os.path.join(root, 'annotations'), f"{annotation_prefix}_{split_name}", instances[split_name])
-            train_split = TIScapeSegmentationPlus(root, split_name, num_classes=dataset_config.num_classes,
+            train_split = CommonSegmentationPlus(root, split_name, num_classes=dataset_config.num_classes,
                                                   transforms=transforms[0], annotation_prefix=annotation_prefix, *args, **kwargs)
         elif split_name.startswith('val'):
             write_to_jsonfile(os.path.join(root, 'annotations'), f"{annotation_prefix}_{split_name}", instances[split_name])
-            val_split = TIScapeSegmentationPlus(root, split_name, num_classes=dataset_config.num_classes,
+            val_split = CommonSegmentationPlus(root, split_name, num_classes=dataset_config.num_classes,
                                                 transforms=transforms[1], annotation_prefix=annotation_prefix, *args, **kwargs)
         else:
             assert False, 'unknown split'

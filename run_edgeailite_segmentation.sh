@@ -116,12 +116,12 @@ EXTRA_OPTIONS="" #"--enable_fp16 True"
 ## =====================================================================================
 
 ### TIscapes Semantic Segmentation - Training with RegNetX800MF+FPNEdgeAILite
-#python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name tiscape_segmentation --model_name fpn_aspp_regnetx800mf_edgeailite \
+#python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name common_segmentation --model_name fpn_aspp_regnetx800mf_edgeailite \
 #--data_path ./data/datasets/tiscapes --img_resize 384 768 --output_size 1920 1080 --gpus 0 1 2 3 \
 #--pretrained https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906036/RegNetX-800MF_dds_8gpu.pyth --batch_size 16 --epochs 80 \
 #--optimizer sgd --scheduler cosine --lr 1e-1 ${EXTRA_OPTIONS}
 
-python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name tiscape_segmentation --model_name fpn_aspp_regnetx800mf_edgeailite \
+python3 ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name common_segmentation --model_name fpn_aspp_regnetx800mf_edgeailite \
 --data_path ./data/datasets/tiscapes --img_resize 512 512 --output_size 768 768 --gpus '0 1 2 3' \
 --pretrained http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/segmentation/cocoseg21/edgeai-tv/fpn_aspp_regnetx800mf_edgeailite_512x512_20210405_checkpoint.pth \
 --batch_size 32 --epochs 30 \
