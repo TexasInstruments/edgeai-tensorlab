@@ -166,7 +166,7 @@ class ModelMakerClassificationDataset(DatasetBase):
 
 
 class ModelMakerSegmentationDataset(DatasetBase):
-    def __init__(self, num_classes=None, download=False, num_frames=None, name="tiscapes", **kwargs):
+    def __init__(self, num_classes=None, download=False, num_frames=None, name="modelmaker_seg", **kwargs):
         super().__init__(num_classes=num_classes, num_frames=num_frames, name=name, **kwargs)
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'kwargs must have path and split'
@@ -237,23 +237,6 @@ class ModelMakerSegmentationDataset(DatasetBase):
         self.kwargs['dataset_info'] = self.get_dataset_info()
 
     def download(self, path, split):
-        root = path
-        images_folder = os.path.join(path, split)
-        annotations_folder = os.path.join(path, 'annotations')
-        if (not self.force_download) and os.path.exists(path) and \
-                os.path.exists(images_folder) and os.path.exists(annotations_folder):
-            print(utils.log_color('\nINFO', 'dataset exists - will reuse', path))
-            return
-        #
-        print(utils.log_color('\nINFO', 'downloading and preparing dataset', path + ' This may take some time.'))
-        print(f'{Fore.YELLOW}'
-              f'\nTIScape Dataset:'
-              f'{Fore.RESET}\n')
-
-        dataset_url = 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip'
-        download_root = os.path.join(root, 'download')
-        dataset_path = utils.download_file(dataset_url, root=download_root, extract_root=root)
-        print(utils.log_color('\nINFO', 'dataset ready', path))
         return
 
     def _get_root(self, path):
