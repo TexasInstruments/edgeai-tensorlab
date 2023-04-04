@@ -48,15 +48,15 @@ model = dict(
     input_size=img_scale,
     random_size_range=(10, 20),
     random_size_interval=10,
-    backbone=dict(type='CSPDarknet', deepen_factor=0.33, widen_factor=0.1875, use_depthwise=True),
+    backbone=dict(type='CSPDarknet', deepen_factor=0.33, widen_factor=0.1875, use_depthwise=False),
     neck=dict(
         type='YOLOXPAFPN',
         in_channels=[48,96,192],
         out_channels=48,
         num_csp_blocks=1,
-        use_depthwise=True),
+        use_depthwise=False),
     bbox_head=dict(
-        type='YOLOXHead', num_classes=num_classes, in_channels=48, feat_channels=48, use_depthwise=True),
+        type='YOLOXHead', num_classes=num_classes, in_channels=48, feat_channels=48, use_depthwise=False),
     train_cfg=dict(assigner=dict(type='SimOTAAssigner', center_radius=2.5)),
     # In order to align the source code, the threshold of the val phase is
     # 0.01, and the threshold of the test phase is 0.001.
