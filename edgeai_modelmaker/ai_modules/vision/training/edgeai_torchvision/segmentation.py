@@ -215,7 +215,7 @@ class ModelTraining:
         # training params
         argv = ['--model_name', f'{self.params.training.model_training_id}',
                 '--pretrained', f'{self.params.training.pretrained_checkpoint_path}',
-                '--dataset', 'tiscape_segmentation',
+                '--dataset', 'common_segmentation',
                 '--data_path', f'{self.params.dataset.dataset_path}',
                 '--annotation_prefix', f'{self.params.dataset.annotation_prefix}',
                 # '--num_classes', f'{self.params.training.num_classes}',

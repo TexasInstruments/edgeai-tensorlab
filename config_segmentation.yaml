@@ -14,7 +14,7 @@ dataset:
     enable: True #False
     # max_num_files: [750, 250] #None
     # specify annotation prefix (of th annotation file) if neded - default is 'instances'.
-    #annotation_prefix: 'stuff'
+    annotation_prefix: 'stuff'
     
     # Semantic Segmentation Dataset Examples:
     # -------------------------------------
