@@ -52,7 +52,13 @@ export PYTHONPATH=.:$PYTHONPATH
 #-------- Sorting the annotation file based on the preference order--------------
 #python ./scripts/convert_dataset.py \
 #--source_format=sort_annotations \
-#--annotation_file_path="/home/a0504871/Downloads/tiscapes2017_driving/annotations/stuff.json" \
+#--annotation_file_path="./data/downloads/tiscapes2017_driving/annotations/stuff.json" \
 #--preference_order="road,vehicle,trafficsign,human"
 #---------------------------------------------------------------------------------
+
+#-------- Sorting the annotation file based on the preference order--------------
+#python ./scripts/convert_dataset.py \
+#--source_format=sort_annotations \
+#--annotation_file_path="./data/downloads/tiscapes2017_driving/annotations/instances.json" \
+#--preference_order="vehicle,trafficsign,human"
 #---------------------------------------------------------------------------------
