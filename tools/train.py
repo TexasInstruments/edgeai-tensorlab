@@ -35,7 +35,7 @@ def parse_args():
     parser.add_argument('config', help='train config file path')
     parser.add_argument('--work-dir', help='the dir to save logs and models')
     parser.add_argument(
-        '--resume-from', help='the checkpoint file to resume from',)
+        '--resume-from', help='the checkpoint file to resume from')
     parser.add_argument(
         '--load-from', help='the checkpoint file to resume from',)
     parser.add_argument(
@@ -237,7 +237,6 @@ def main(args=None):
             CLASSES=datasets[0].CLASSES)
     # add an attribute for visualization convenience
     model.CLASSES = datasets[0].CLASSES
-
     train_detector(
         model,
         datasets,
@@ -249,7 +248,7 @@ def main(args=None):
 
     # export the model after training
     rank, world_size = get_dist_info()
-    if rank == 0 :#and hasattr(cfg, 'export_model') and cfg.export_model:
+    if rank == 0 and hasattr(cfg, 'export_model') and cfg.export_model:
         model_cpu = copy.deepcopy(model).cpu()
         pytorch2onnx_file = 'tools.deployment.pytorch2onnx'
         pytorch2onnx_module = importlib.import_module(pytorch2onnx_file, __name__)

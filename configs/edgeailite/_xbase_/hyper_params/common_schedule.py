@@ -17,7 +17,7 @@ warmup_cfg = dict(warmup='linear', warmup_by_epoch=True, warmup_iters=1, warmup_
 lr_config = dict(policy='CosineAnnealing', min_lr_ratio=1e-4, **warmup_cfg)
 
 # runtime settings
-total_epochs = 300 #120 #60
+total_epochs = 240 #120 #60
 
 # enable fp16 - optional
 #fp16 = dict(loss_scale=512.0)

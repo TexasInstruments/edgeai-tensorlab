@@ -270,7 +270,6 @@ class MobileNetV2Lite(MobileNetV2LiteBase):
                     [int(x*model_config.width_mult) for x in model_config.shortcut_channels])
         #
         super().__init__(InvertedResidual, model_config, pretrained=pretrained, init_cfg=init_cfg)
-        # self.extra = self._make_extra_layers(320, self.model_config.extra_channels)
         self.extra = self._make_extra_layers(int(self.model_config.width_mult * 320), self.model_config.extra_channels) \
             if self.model_config.extra_channels else None
 
