@@ -133,7 +133,7 @@ class COCOSegmentation(DatasetBase):
             self.download(path, split)
         #
         self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
-        self.name = "cocoseg21"
+        self.name = name
         self.tempfiles = []
 
         self.num_classes = 80 if num_classes is None else num_classes

@@ -28,9 +28,18 @@
 
 import os
 import json
+import PIL
+import numpy as np
+import cv2
+import random
+import tempfile
+import copy
+from pycocotools.coco import COCO
+from pycocotools import mask as coco_mask
 
 from .dataset_base import *
 from . import coco_det
+from . import coco_seg
 
 
 class ModelMakerDetectionDataset(coco_det.COCODetection):
@@ -126,7 +135,7 @@ class ModelMakerClassificationDataset(DatasetBase):
             accuracy = self.classification_accuracy(predictions[n], gt_label, **kwargs)
             metric_tracker.update(accuracy)
         #
-        return {metric_tracker.name:metric_tracker.avg}
+        return {metric_tracker.name: metric_tracker.avg}
 
     def classification_accuracy(self, prediction, target, label_offset_pred=0, label_offset_gt=0,
                                 multiplier=100.0, **kwargs):
@@ -154,3 +163,216 @@ class ModelMakerClassificationDataset(DatasetBase):
             #
         #
         return annotations_info_list
+
+
+class ModelMakerSegmentationDataset(DatasetBase):
+    def __init__(self, num_classes=None, download=False, num_frames=None, name="modelmaker_seg", **kwargs):
+        super().__init__(num_classes=num_classes, num_frames=num_frames, name=name, **kwargs)
+        self.force_download = True if download == 'always' else False
+        assert 'path' in self.kwargs and 'split' in self.kwargs, 'kwargs must have path and split'
+        path = self.kwargs['path']
+        split = self.kwargs['split']
+        root = path
+        if download:
+            self.download(path, split)
+        #
+        self.kwargs['num_frames'] = self.kwargs.get('num_frames', None)
+        self.name = name
+        self.tempfiles = []
+
+        dataset_folders = os.listdir(root)
+        assert 'annotations' in dataset_folders, 'invalid path to coco dataset annotations'
+        annotations_dir = os.path.join(root, 'annotations')
+
+        shuffle = self.kwargs.get('shuffle', False)
+        image_base_dir = 'images' if ('images' in dataset_folders) else ''
+        image_base_dir = os.path.join(root, image_base_dir)
+        self.image_dir = image_base_dir
+
+        self.annotation_file = os.path.join(annotations_dir, f'{self.kwargs["annotation_prefix"]}_{split}.json')
+
+        with open(self.annotation_file) as afp:
+            json_data = json.load(afp)
+
+        self.num_classes = len(json_data["categories"]) + 1 if num_classes is None else num_classes
+        num_classes = self.num_classes
+
+        self.coco_dataset = COCO(self.annotation_file)
+
+        self.cat_ids = self.coco_dataset.getCatIds()
+        img_ids = self.coco_dataset.getImgIds()
+
+        self.categories = range(1, num_classes+1)
+        self.img_ids = self._remove_images_without_annotations(img_ids)
+
+        max_frames = len(self.coco_dataset.imgs)
+        num_frames = self.kwargs.get('num_frames', None)
+        num_frames = min(num_frames, max_frames) if num_frames is not None else max_frames
+
+        imgs_list = list(self.coco_dataset.imgs.items())
+        if shuffle:
+            random.seed(int(shuffle))
+            random.shuffle(imgs_list)
+        #
+        self.coco_dataset.imgs = {k: v for k, v in imgs_list[:num_frames]}
+
+        max_frames = len(self.coco_dataset.imgs)
+        num_frames = self.kwargs.get('num_frames', None)
+        num_frames = min(num_frames, max_frames) if num_frames is not None else max_frames
+
+        self.cat_ids = self.coco_dataset.getCatIds()
+        self.img_ids = self.coco_dataset.getImgIds()
+        self.num_frames = self.kwargs['num_frames'] = num_frames
+
+        run_dir = self.kwargs.get('run_dir', None)
+        if run_dir is None:
+            temp_dir = tempfile.TemporaryDirectory()
+            run_dir = temp_dir.name
+            self.tempfiles.append(temp_dir)
+        #
+        self.label_dir = os.path.join(run_dir, 'labels')
+        with open(self.annotation_file) as afp:
+            self.dataset_store = json.load(afp)
+        #
+        self.kwargs['dataset_info'] = self.get_dataset_info()
+
+    def download(self, path, split):
+        return
+
+    def _get_root(self, path):
+        path = path.rstrip('/')
+        root = os.sep.join(os.path.split(path)[:-1])
+        return root
+
+    def __getitem__(self, idx, with_label=False):
+        img_id = self.img_ids[idx]
+        img = self.coco_dataset.loadImgs([img_id])[0]
+        image_path = os.path.join(self.image_dir, img['file_name'])
+        if with_label:
+            os.makedirs(self.label_dir, exist_ok=True)
+            ann_ids = self.coco_dataset.getAnnIds(imgIds=img_id, iscrowd=None)
+            anno = self.coco_dataset.loadAnns(ann_ids)
+            image = PIL.Image.open(image_path)
+            image, anno = self._filter_and_remap_categories(image, anno)
+            image, target = self._convert_polys_to_mask(image, anno)
+            target[target == 0] = self.num_classes
+            target[target != 0] -= 1
+            # write the label file to a temorary dir so that it can be used by evaluate()
+            image_basename = os.path.basename(image_path)
+            label_path = os.path.join(self.label_dir, image_basename)
+            label_path = os.path.splitext(label_path)[0] + '.png'
+            cv2.imwrite(label_path, target)
+            return image_path, label_path
+        else:
+            return image_path
+        #
+
+    def __len__(self):
+        return self.num_frames
+
+    def __del__(self):
+        for t in self.tempfiles:
+            t.cleanup()
+        #
+
+    def encode_segmap(self, label_img):
+        # label has already been encoded
+        return label_img
+
+    def __call__(self, predictions, **kwargs):
+        return self.evaluate(predictions, **kwargs)
+
+    def evaluate(self, predictions, **kwargs):
+        cmatrix = None
+        num_frames = min(self.num_frames, len(predictions))
+        for n in range(num_frames):
+            image_file, label_file = self.__getitem__(n, with_label=True)
+            label_img = PIL.Image.open(label_file)
+            label_img = self.encode_segmap(label_img)
+            # reshape prediction is needed
+            output = predictions[n]
+            output = output.astype(np.uint8)
+            output = output[0] if (output.ndim > 2 and output.shape[0] == 1) else output
+            output = output[:2] if (output.ndim > 2 and output.shape[2] == 1) else output
+            # compute metric
+            cmatrix = utils.confusion_matrix(cmatrix, output, label_img, self.num_classes)
+        #
+        accuracy = utils.segmentation_accuracy(cmatrix)
+        return accuracy
+
+    def get_dataset_info(self):
+        # return only info and categories for now as the whole thing could be quite large.
+        dataset_store = dict()
+        for key in ('info', 'categories'):
+            if key in self.dataset_store.keys():
+                dataset_store.update({key: self.dataset_store[key]})
+            #
+        #
+        return dataset_store
+
+    def _remove_images_without_annotations(self, img_ids):
+        ids = []
+        for ds_idx, img_id in enumerate(img_ids):
+            ann_ids = self.coco_dataset.getAnnIds(imgIds=img_id, iscrowd=None)
+            anno = self.coco_dataset.loadAnns(ann_ids)
+            if self.categories:
+                anno = [obj for obj in anno if obj["category_id"] in self.categories]
+            if self._has_valid_annotation(anno):
+                ids.append(img_id)
+            #
+        #
+        return ids
+
+    def _has_valid_annotation(self, anno):
+        # if it's empty, there is no annotation
+        if len(anno) == 0:
+            return False
+        # if more than 1k pixels occupied in the image
+        return sum(obj["area"] for obj in anno) > 1000
+
+    def _filter_and_remap_categories(self, image, anno, remap=True):
+        anno = [obj for obj in anno if obj["category_id"] in self.categories]
+        if not remap:
+            return image, anno
+        #
+        anno = copy.deepcopy(anno)
+        for obj in anno:
+            obj["category_id"] = self.categories.index(obj["category_id"]) + 1
+        #
+        return image, anno
+
+    def _convert_polys_to_mask(self, image, anno):
+        w, h = image.size
+        segmentations = [obj["segmentation"] for obj in anno]
+        cats = [obj["category_id"] for obj in anno]
+        if segmentations:
+            masks = self._convert_poly_to_mask(segmentations, h, w)
+            cats = np.array(cats, dtype=masks.dtype)
+            cats = cats.reshape(-1, 1, 1)
+            # merge all instance masks into a single segmentation map
+            # with its corresponding categories
+            target = (masks * cats).max(axis=0)
+            # discard overlapping instances
+            # target[masks.sum(0) > 1] = 255
+        else:
+            target = np.zeros((h, w), dtype=np.uint8)
+        #
+        return image, target
+
+    def _convert_poly_to_mask(self, segmentations, height, width):
+        masks = []
+        for polygons in segmentations:
+            if len(polygons) != 1:
+                polygons = [polygons]
+            rles = coco_mask.frPyObjects(polygons, height, width)
+            mask = coco_mask.decode(rles)
+            if len(mask.shape) < 3:
+                mask = mask[..., None]
+            mask = mask.any(axis=2)
+            mask = mask.astype(np.uint8)
+            masks.append(mask)
+        if masks:
+            masks = np.stack(masks, axis=0)
+        else:
+            masks = np.zeros((0, height, width), dtype=np.uint8)
+        return masks
