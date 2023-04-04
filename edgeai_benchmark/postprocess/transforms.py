@@ -287,16 +287,8 @@ class SegmentationImageSave():
         os.makedirs(save_dir, exist_ok=True)
         save_path = os.path.join(save_dir, image_name)
 
-        # TODO: convert label to color here
-        palette = [
-            [255, 0, 0],
-            [255, 255, 0],
-            [0, 255, 0],
-            [0, 0, 255],
-            [0, 255, 255],
-            [255, 0, 255]
-        ]
-
+        # convert label to color here
+        palette = self.colors
         for i, p in enumerate(palette):
             palette[i] = np.array(p, dtype=np.uint8)
             palette[i] = palette[i][..., ::-1]  # RGB->BGR, since palette is expected to be given in RGB format
