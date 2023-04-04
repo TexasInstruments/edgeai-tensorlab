@@ -287,12 +287,14 @@ Bring your own data (BYOD): Retrain models from TI Model Zoo to fine-tune with y
 * {constants.TASK_DESCRIPTIONS[constants.TASK_TYPE_DETECTION]['task_name']}
 
 ## Target device setup overview
-In order to perform Data capture from device, live preview and model deployment, a connection to development board is required over ethernet. To do this, please follow the steps below:
-* Step 1: Make sure that you have physical development board of a specific device with you. Refer below to understand how to procure it.
-* Step 2: Download the SDK binary to be flashed in the SD card.
-* Step 3: Make sure that the development board is setup and also put in the same local area network as the computer where you are using this service. Also connect a USB camera to the development board.
-* Step 4: Click on Help | Options | Serial port settings and follow the instructions to do TI Cloud Agent setup.
-* Step 5: On the "Connect Device Camera" pop-up, click on teh search icon to detect the IP address of the development board and connect to it.
+In order to perform data capture from device, live preview or model deployment, a local area network connection (LAN) to the development board is required. To do this, please follow the steps below:
+* Step 1: Make sure that you have a physical development board (of the specific device) with you. Refer the details below to understand how to procure it.
+* Step 2: Download the SDK binary and flash an SD card as explained in the SDK.
+* Step 3: Make sure that the development board is put in the same local area network (via ethernet or WiFI) as the computer where you are running the browser to use this service. Also connect the development board to the computer via USB serial connection - this is required to detect the IP address of the development board.
+* Step 4: Connect a USB camera to the development board.
+* Step 5: Power ON the development board.
+* Step 6: On the GUI of this service, click on Help | Options | Serial port settings and follow the instructions to do TI Cloud Agent setup.
+* Step 7: On the "Connect Device Camera" pop-up, click on the search icon to detect the IP address of the development board and connect to it.
 
 ## Supported target devices
 These are the devices that are supported currently. As additional devices are supported, this section will be updated.
