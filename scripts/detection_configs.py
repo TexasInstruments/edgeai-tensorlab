@@ -50,11 +50,11 @@ config='./configs/edgeailite/yolox/yolox_nano_lite.py'
 config='./configs/edgeailite/yolox/yolox_tiny_lite.py'
 config='./configs/edgeailite/yolox/yolox_s_lite.py'
 config='./configs/edgeailite/yolox/yolox_m_lite.py'
+
+# tiny models
+config='./configs/edgeailite/ssd/ssd_mobilenetp5_lite_320x320.py'
+config='./configs/edgeailite/yolox/yolox_pico_lite.py'
+config='./configs/edgeailite/yolox/yolox_femto_lite.py'
 '''
-# config='./configs/edgeailite/ssd/ssd_mobilenet_lite.py'
-# config='./configs/edgeailite/ssd/ssd_mobilenetp5_lite_320x320.py'
-# config='./configs/edgeailite/yolox/yolox_pico_lite.py'
-# config='./configs/edgeailite/yolox/yolox_femto_lite.py'
-# config='./configs/edgeailite/yolox/yolox_pico_lite.py'
-# config='./configs/edgeailite/yolox/yolox_femto_lite.py'
+
 config='./configs/edgeailite/yolox/yolox_nano_lite.py'
