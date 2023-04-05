@@ -41,5 +41,5 @@ settings_file=settings_import_on_pc.yaml
 
 echo "==================================================================="
 # generate the final report with results for all the artifacts generated
-python3 ./scripts/generate_report.py ${settings_file} --target_device ${TARGET_SOC}
+python3 ./scripts/generate_report.py ${settings_file}
 echo "-------------------------------------------------------------------"

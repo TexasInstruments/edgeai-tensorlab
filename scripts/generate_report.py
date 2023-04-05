@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('settings_file', type=str)
-    parser.add_argument('--target_device', type=str)
+    parser.add_argument('--target_device', type=str, default=None)
     parser.add_argument('--modelartifacts_path', type=str)
     parser.add_argument('--report_perfsim', type=edgeai_benchmark.utils.str_to_bool)
     cmds = parser.parse_args()

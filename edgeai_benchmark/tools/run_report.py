@@ -60,16 +60,29 @@ def run_rewrite_results(work_dir, results_yaml):
 
 
 def run_report(settings, rewrite_results=True):
-    benchmark_dir = settings.modelartifacts_path
     report_perfsim = settings.report_perfsim
 
-    work_dirs = glob.glob(f'{benchmark_dir}/*')
+    if settings.target_device is None:
+        benchmark_dir = settings.modelartifacts_path
+        target_device_dirs = os.listdir(benchmark_dir)
+    else:
+        benchmark_dir = os.path.dirname(settings.modelartifacts_path)
+        target_device_dirs = [settings.target_device]
+    #
+
+    work_dirs = []
+    for target_device in target_device_dirs:
+        target_device_dir = os.path.join(benchmark_dir, target_device)
+        target_work_dirs = glob.glob(f'{target_device_dir}/*')
+        work_dirs += target_work_dirs
+    #
+
     work_dirs = [f for f in work_dirs if os.path.isdir(f)]
     work_dirs = [d for d in work_dirs if 'bits' in os.path.basename(d)]
     work_dirs = sorted(work_dirs, reverse=True)
-    work_dirs = [w for w in work_dirs if '32bits' not in w] + [w for w in work_dirs if '32bits' in w]
+    work_dirs = [w for w in work_dirs if '32bits' in w] + [w for w in work_dirs if '32bits' not in w]
 
-    settings_names = []
+    work_dir_keys = []
     results_max_len = 0
     results_max_id = 0
     results_max_name = None
@@ -80,17 +93,18 @@ def run_report(settings, rewrite_results=True):
         if rewrite_results:
             run_rewrite_results(work_dir, results_yaml)
         #
-        settings_name = os.path.split(work_dir)[-1]
+        work_dir_splits = os.path.normpath(work_dir).split(os.sep)
+        work_dir_key = '_'.join(work_dir_splits[-2:])
         with open(results_yaml) as rfp:
             results = yaml.safe_load(rfp)
-            results_collection[settings_name] = results
+            results_collection[work_dir_key] = results
             if len(results) > results_max_len:
                 results_max_len = len(results)
                 results_max_id = work_id
-                results_max_name = settings_name
+                results_max_name = work_dir_key
             #
         #
-        settings_names.append(settings_name)
+        work_dir_keys.append(work_dir_key)
     #
     if len(results_collection) == 0 or results_max_name is None:
         print('no results found - no report to generate.')
@@ -139,7 +153,7 @@ def run_report(settings, rewrite_results=True):
         results_line_dict['metric_name'] = metric_name
 
         # now populate results for each setting/work_id
-        for work_id, (settings_name, param_results) in enumerate(results_collection.items()):
+        for work_id, (work_dir_key, param_results) in enumerate(results_collection.items()):
             param_result = param_results[artifact_id] if artifact_id in param_results else None
             _, metric_value, _ = get_metric(param_result, metric_keys)
             results_line_dict[metric_title[work_id]] = metric_value
