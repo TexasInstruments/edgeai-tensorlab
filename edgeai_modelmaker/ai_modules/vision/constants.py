@@ -106,7 +106,7 @@ Specification:
 * Integrated ISP
 * More details : https://www.ti.com/product/TDA4VM
 
-Important Links:
+Important links:
 {TARGET_DEVICE_SETUP_INSTRUCTIONS_TDA4VM}
 
 Additional information:
@@ -129,7 +129,7 @@ Specification:
 * Integrated ISP
 * More details : https://www.ti.com/product/AM62A7
 
-Important Links:
+Important links:
 {TARGET_DEVICE_SETUP_INSTRUCTIONS_AM62A}
 
 Additional information:
@@ -152,7 +152,7 @@ Specification:
 * Integrated ISP
 * More details : https://www.ti.com/product/AM68A
 
-Important Links:
+Important links:
 {TARGET_DEVICE_SETUP_INSTRUCTIONS_AM68A}
 
 Additional information:

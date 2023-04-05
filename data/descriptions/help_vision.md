@@ -16,7 +16,7 @@ In order to perform data capture from device, live preview or model deployment, 
 * Step 3: Make sure that the development board is put in the same local area network (via ethernet or WiFI) as the computer where you are running the browser to use this service. Also connect the development board to the computer via USB serial connection - this is required to detect the IP address of the development board.
 * Step 4: Connect a USB camera to the development board.
 * Step 5: Power ON the development board.
-* Step 6: On the GUI of this service, click on Help | Options | Serial port settings and follow the instructions to do TI Cloud Agent setup.
+* Step 6: On the top bar of the GUI of this service, click on Options | Serial port settings and follow the instructions to do TI Cloud Agent setup.
 * Step 7: On the "Connect Device Camera" pop-up, click on the search icon to detect the IP address of the development board and connect to it.
 
 ## Supported target devices
