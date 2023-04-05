@@ -35,7 +35,7 @@ dataset:
     #                        "./data/projects/coco_detection/dataset/annotations/instances_val2017.json"]
     # -------------------------------------
     dataset_name: tiscape_QAT_segmentation
-    input_data_path: "/home/a0504871/Downloads/tiscapes2017_driving"
+    input_data_path: "./data/downloads/datasets/tiscapes2017_driving"
 
 #Need to remove and add available models for segmentation
 training:
