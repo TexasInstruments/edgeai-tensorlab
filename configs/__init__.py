@@ -40,7 +40,7 @@ from . import human_pose_estimation
 from . import object_6d_pose_estimation
 from . import depth_estimation
 from . import high_resolution
-
+ 
 
 def get_configs(settings, work_dir):
     # load the datasets - it is done only once and re-used for all configs
@@ -58,18 +58,21 @@ def get_configs(settings, work_dir):
     pipeline_configs.update(object_6d_pose_estimation.get_configs(settings, work_dir))
     pipeline_configs.update(depth_estimation.get_configs(settings,work_dir))
     pipeline_configs.update(high_resolution.get_configs(settings,work_dir))
+
     if settings.experimental_models:
         from . import classification_experimental
         from . import detection_experimental
         from . import segmentation_experimental
         from . import human_pose_estimation_experimental
         from . import detection_3d_experimental
+        from . import stereo_disparity_experimental
         # now get the experimental configs
         pipeline_configs.update(classification_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(detection_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(segmentation_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(human_pose_estimation_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(detection_3d_experimental.get_configs(settings, work_dir))
+        pipeline_configs.update(stereo_disparity_experimental.get_configs(settings, work_dir))
     #
     return pipeline_configs
 

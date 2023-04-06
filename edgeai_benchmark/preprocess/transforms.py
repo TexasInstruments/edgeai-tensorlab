@@ -111,6 +111,27 @@ class ImageRead(object):
             info_dict['data_shape'] = img_data.shape
             info_dict['data'] = img_data
             info_dict['data_path'] = './'
+        elif isinstance(path, tuple):
+            img_data = []
+            for i in range(len(path)):
+                if self.backend == 'pil':
+                    img_data.append(PIL.Image.open(path[i]))
+                    img_data[i] = img_data[i].convert('RGB')
+                    info_dict['data_shape'] = img_data.size[1], img_data.size[0], len(img_data.getbands())
+                elif self.backend == 'cv2':
+                    img_data.append(cv2.imread(path[i]))
+                    if img_data[i].shape[-1] == 1:
+                        img_data[i] = cv2.cvtColor(img_data[i], cv2.COLOR_GRAY2BGR)
+                    elif img_data[i].shape[-1] == 4:
+                        img_data[i] = cv2.cvtColor(img_data[i], cv2.COLOR_BGRA2BGR)
+                    #
+                    # always return in RGB format
+                    img_data[i] = img_data[i][:,:,::-1]
+
+            if self.backend == 'pil':
+                info_dict['data_shape'] = img_data[0].size[1], img_data[0].size[0], len(img_data[0].getbands())
+            else:
+                info_dict['data_shape'] = img_data[0].shape            
         else:
             assert False, 'invalid input'
         #
@@ -235,13 +256,26 @@ class ImageResize():
         Returns:
             PIL Image or Tensor: Rescaled image.
         """
-        img, border = F.resize(img, self.size, *self.args, **self.kwargs)
-        if isinstance(img, np.ndarray):
-            info_dict['resize_shape'] = img.shape
-        else:
-            info_dict['resize_shape'] = img.size[1], img.size[0], len(img.getbands())
-        #
-        info_dict['resize_border'] = border
+        if isinstance(img, list):
+            for i in range(len(img)):
+                img[i], border = F.resize(img[i], self.size, *self.args, **self.kwargs)
+            
+            if isinstance(img[0], np.ndarray):
+                info_dict['resize_shape'] = img[0].shape
+            else:
+                info_dict['resize_shape'] = img[0].size[1],  img[0].size[0], len(img[0].getbands())
+            #
+            info_dict['resize_border'] = border
+
+        else:        
+            img, border = F.resize(img, self.size, *self.args, **self.kwargs)
+            if isinstance(img, np.ndarray):
+                info_dict['resize_shape'] = img.shape
+            else:
+                info_dict['resize_shape'] = img.size[1], img.size[0], len(img.getbands())
+            #
+            info_dict['resize_border'] = border
+
         return img, info_dict
 
     def set_size(self, size):
@@ -292,7 +326,15 @@ class ImageCenterCrop():
         Returns:
             PIL Image or Tensor: Cropped image.
         """
-        return F.center_crop(img, self.size) if self.size is not None else img, info_dict
+        if self.size is not None:
+            if isinstance(img, list):
+                for i in range(len(img)):
+                    img[i] = F.center_crop(img[i], self.size)          
+            else:        
+                img = F.center_crop(img, self.size)            
+
+        return img, info_dict
+        #return F.center_crop(img, self.size) if self.size is not None else img, info_dict
 
     def set_size(self, size):
         if isinstance(size, numbers.Number):
@@ -356,7 +398,14 @@ class ImageToNPTensor4D(object):
         Returns:
             Tensor: Converted image.
         """
-        return F.to_numpy_tensor_4d(pic, self.data_layout, self.reverse_channels), info_dict
+        if isinstance(pic, list):
+            for i in range(len(pic)):
+                pic[i] = F.to_numpy_tensor_4d(pic[i], self.data_layout, self.reverse_channels)                
+        else:        
+            pic = F.to_numpy_tensor_4d(pic, self.data_layout, self.reverse_channels)        
+
+        return pic, info_dict
+        #return F.to_numpy_tensor_4d(pic, self.data_layout, self.reverse_channels), info_dict
 
     def __repr__(self):
         return self.__class__.__name__ + f'({self.data_layout}, {self.reverse_channels})'
