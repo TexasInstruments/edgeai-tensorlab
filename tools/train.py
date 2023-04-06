@@ -37,6 +37,8 @@ def parse_args():
     parser.add_argument(
         '--resume-from', help='the checkpoint file to resume from')
     parser.add_argument(
+        '--load-from', help='the checkpoint file to resume from',)
+    parser.add_argument(
         '--auto-resume',
         action='store_true',
         help='resume from the latest checkpoint automatically')

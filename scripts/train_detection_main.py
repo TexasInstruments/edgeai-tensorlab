@@ -58,7 +58,7 @@ if distributed:
     distributed_launch.main()
 else:
     from tools import train as train_mmdet
-    sys.argv = [sys.argv[0], f'--gpus={gpus}', '--no-validate',
+    sys.argv = [sys.argv[0], f'--gpu-id={gpus}', '--no-validate',
                 f'{config}']
 
     args = train_mmdet.parse_args()

@@ -137,9 +137,9 @@ def pytorch2onnx(args,
     onnx_model = onnx.helper.make_model(onnx_model.graph, opset_imports=[opset])
     # check model and save
     onnx.checker.check_model(onnx_model)
-    onnx.save(onnx_model, output_file)
     # shape inference to make it easy for inference
-    onnx.shape_inference.infer_shapes_path(output_file, output_file)
+    onnx_model = onnx.shape_inference.infer_shapes(onnx_model)
+    onnx.save(onnx_model, output_file)
     # write prototxt
     save_model_proto(cfg, model, img_list, output_file, feature_names=feature_names, output_names=output_names)
     model.with_intermediate_outputs = False
