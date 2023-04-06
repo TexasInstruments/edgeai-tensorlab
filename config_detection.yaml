@@ -51,3 +51,4 @@ compilation:
     # enable/disable compilation
     enable: True #False
     tensor_bits: 8 #16 #32
+    tidl_offload: False
