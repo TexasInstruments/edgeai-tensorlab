@@ -91,7 +91,7 @@ def get_config():
     args.dataset_name = 'cityscapes_segmentation'       # dataset type
     args.transforms = None                              # the transforms itself can be given from outside
     args.input_channel_reverse = False                  # reverse input channels, for example RGB to BGR
-    args.annotation_prefix = None                       # Annotations prefix name
+    args.annotation_prefix = "stuff"                       # Annotations prefix name
 
     args.data_path = './data/cityscapes'                # 'path to dataset'
     args.save_path = None                               # checkpoints save path

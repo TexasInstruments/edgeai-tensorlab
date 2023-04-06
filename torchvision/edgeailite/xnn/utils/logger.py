@@ -98,6 +98,9 @@ class TeeLogger:
             source_stream = getattr(self, source_name)
             source_stream.flush()
         #
+        if self.file is None:
+            return
+        #
         self.file.flush()
 
     def fileno(self):

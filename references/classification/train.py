@@ -180,9 +180,9 @@ def export_model(args, model):
     device = next(model.parameters())
     dummy_input = torch.rand((1,3,224,224)).to(device)
     onnx_file = os.path.join(args.output_dir, 'model.onnx')
-    print(f'Exporting ONNX model to: {onnx_file}')
+    print(f'Exporting ONNX model from: {onnx_file}')
     torch.onnx.export(model, dummy_input, onnx_file)
-    # onnx.shape_inference.infer_shapes_path(onnx_file, onnx_file)
+    onnx.shape_inference.infer_shapes_path(onnx_file, onnx_file)
 
 
 def main(gpu, args):
@@ -240,8 +240,9 @@ def main(gpu, args):
     model = torchvision.models.__dict__[args.model](pretrained=args.pretrained, num_classes=num_classes)
 
     if args.export_only:
-        export_model(args, model)
-        return
+        if args.distributed is False or (args.distributed is True and int(os.environ['LOCAL_RANK']) == 0):
+            export_model(args, model)
+            return
 
     model.to(device)
 
@@ -347,7 +348,8 @@ def main(gpu, args):
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Exporting model after training.')
-    export_model(args, model)
+    if args.distributed is False or (args.distributed is True and int(os.environ['LOCAL_RANK']) == 0):
+        export_model(args, model)
 
     logger.close()
     print('Training time {}'.format(total_time_str))
