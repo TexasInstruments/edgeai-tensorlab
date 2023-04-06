@@ -43,9 +43,9 @@ run_benchmarks_evm.sh <SOC>
 * While running this script, compilation of models in the model zoo will be performed as the first step before the inference. But if the pre-compiled model artifacts are present, model compilation will be skipped. param.yaml file present in each model artifacts folder indicates that the model compilation is complete.
 * result.yaml file, if present in each model artifacts folder indicates that the model inference is complete. If result.yaml is present, inference is also skipped. Manually delete result.yaml if it is present (i.e. if you have done it once already) to do the inference - otherwise, the script will merely print the result information from result.yaml.
 * The imported artifacts can be used to run inference on the target device (eg. EVM)
-* If you have compiled models yourself and would like to run those model artifacts in the target device, run the script [run_package_artifacts_evm.sh](../run_package_artifacts_evm.sh) to package the artifacts for use in the target device.
+* If you have compiled models yourself and would like to run those model artifacts in the target device, run the script [run_package_artifacts_for_evm.sh](../run_package_artifacts_for_evm.sh) to package the artifacts for use in the target device.
 ```
-run_package_artifacts_evm.sh <SOC>
+run_package_artifacts_for_evm.sh <SOC>
 ```
 * These packaged artifacts can be copied to the device to run inference there.
 

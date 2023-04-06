@@ -11,9 +11,9 @@ The following script can be modified to run custom model compilation from comman
 run_custom_pc.sh <SOC>
 ```
 
-Runt the script [run_package_artifacts_evm.sh](../run_package_artifacts_evm.sh) to package the artifacts for use in the target device.
+Runt the script [run_package_artifacts_for_evm.sh](../run_package_artifacts_for_evm.sh) to package the artifacts for use in the target device.
 ```
-run_package_artifacts_evm.sh <SOC>
+run_package_artifacts_for_evm.sh <SOC>
 ```
 
 In this repository, we have created a symbolic link [modelartifacts](../work_dirs/modelartifacts) to the actual modelartifacts folder in edgeai-modelzoo. You may want to rename that symbolic link to something else before attempting to compile custom models - in order to avoid confusion with existing pre-compiled artifacts.
