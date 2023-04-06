@@ -191,7 +191,7 @@ def export(args, model, model_name=None):
     data_shape = (1,3,*image_size_tuple)
     example_input = torch.rand(*data_shape)
     output_onnx_file = os.path.join(args.output_dir, 'model.onnx')
-    onnx.export(model, example_input, output_onnx_file, opset_version=args.opset_version)
+    torch.onnx.export(model, example_input, output_onnx_file, opset_version=args.opset_version)
     # shape inference to make it easy for inference
     onnx.shape_inference.infer_shapes_path(output_onnx_file, output_onnx_file)
     # export torchscript model
@@ -280,8 +280,9 @@ def main(gpu, args):
                                                                  pretrained_backbone=args.pretrained_backbone)
 
     if args.export_only:
-        export(args, model, args.model)
-        return
+        if args.distributed is False or (args.distributed is True and int(os.environ['LOCAL_RANK']) == 0):
+            export(args, model, args.model)
+            return
 
     if args.complexity:
         complexity(args, model)

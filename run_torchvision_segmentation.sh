@@ -11,4 +11,4 @@ model=deeplabv3plus_mobilenet_v3_large_lite
 #model=lraspp_mobilenet_v3_large_lite
 
 
-torchrun --nproc_per_node 4 ./references/segmentation/train.py --data-path ./data/datasets/coco/images  --model ${model} --epochs=90 -b=4 --gpus=4 --export
+torchrun --nproc_per_node 4 ./references/segmentation/train.py --data-path ./data/datasets/coco/images  --model ${model} --epochs=90 -b=4 --gpus=4
