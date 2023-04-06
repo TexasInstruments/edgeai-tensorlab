@@ -324,7 +324,9 @@ class KittiLidar3D(DatasetBase):
         #predictions = np.load('/user/a0393749/deepak_files/github/mmdetection3d-work/edgeai-mmdetection3d/bin_out.bin.npy',allow_pickle=True)
         dt_annos = self.bbox2result_kitti(predictions,self.class_names)
         acc = get_official_eval_result(self.gt_annos, dt_annos, self.class_names)
-        ap_dict = {'KITTI_official_eval_result':acc[0]}
+        # TODO: find this result from the complete result
+        accuracy_ap_3d_moderate = float(acc[0].split('\n')[3].split(' ')[4].split(',')[0])
+        ap_dict = {'accuracy_ap_3d_moderate%': accuracy_ap_3d_moderate, 'KITTI_official_eval_result':acc[0]}
         return ap_dict
 
     # https://github.com/open-mmlab/mmdetection3d/
