@@ -57,13 +57,10 @@ else:
 
 ######################################################
 backbone_type = 'MobileNetV2P5Lite' #'MobileNetV2Lite' #'MobileNetV1Lite'
-# mobilenetv2_pretrained = '/home/a0484689/PycharmProjects/py306_edgeaitv/edgeai-torchvision/data/checkpoints/classification/imagenet/mobilenet_v2_p5_lite/20230220-212034/model_90.pth'
-mobilenetv2_pretrained = '/data/tensorlabdata1/data/users/adithya/model_90.pth'
-# Model: /home/a0484689/PycharmProjects/py306_edgeaitv/edgeai-torchvision/data/checkpoints/classification/imagenet/mobilenet_v2_p5_lite/20230220-212034/model.onnx
-# mobilenetv2_pretrained='torchvision://mobilenet_v2'
+mobilenetv2_pretrained = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2p5_20230201_checkpoint.pth'
 mobilenetv1_pretrained='https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v1_20190906_checkpoint.pth'
 pretrained=(mobilenetv2_pretrained if backbone_type == 'MobileNetV2P5Lite' else mobilenetv1_pretrained)
-# backbone_out_channels=(96, 320, 512, 256, 256, 256) if backbone_type == 'MobileNetV2Lite' else (512, 1024, 512, 256, 256, 256)
+
 backbone_out_channels=(48, 160, 256, 128, 128, 128) if backbone_type == 'MobileNetV2P5Lite' else (512, 1024, 512, 256, 256, 256)
 backbone_out_indices = (1, 2, 3, 4)
 basesize_ratio_range = (0.1, 0.9)

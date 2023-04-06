@@ -116,7 +116,7 @@ def get_config():
 
 model_urls = {
     'mobilenet_v2_lite': 'https://download.pytorch.org/models/mobilenet_v2-b0353104.pth',
-    'mobilenet_v2p5_lite': '/home/a0484689/PycharmProjects/py306_edgeaitv/edgeai-torchvision/data/checkpoints/classification/imagenet/mobilenet_v2_p5_lite/20230220-212034/model_90.pth',
+    'mobilenet_v2p5_lite': 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2p5_20230201_checkpoint.pth',
 }
 
 
