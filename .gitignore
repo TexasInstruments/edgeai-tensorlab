@@ -11,7 +11,7 @@ datasets/*
 dependencies/*
 !dependencies/examples
 work_dirs/
-!work_dirs/modelartifacts
+!work_dirs/modelartifacts/readme.txt
 backup/*
 tutorials/.ipynb_checkpoints/
 tools/
