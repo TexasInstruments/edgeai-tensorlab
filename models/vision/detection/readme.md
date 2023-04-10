@@ -53,32 +53,35 @@ YOLOX is another excellent set of models with low complexity and high accuracy. 
 
 This is our fork of the popular mmdetection training framework for object detection. We provide several optimized, embedded friendly configurations that provide high throughput on our SoCs. One can train and export models to onnx format, and can then be used in our fork of onnxruntime. Most of the models listed here have been trained using configs in [edgeai-mmdetection/configs/edgeailite](https://github.com/TexasInstruments/edgeai-mmdetection/tree/master/configs/edgeailite). Please visit the link above for more information.
 
-|Dataset |Model Name                       |Input Size |GigaMACS  |AP[0.5:0.95]%, AP50%|Available|Notes |
-|--------|---------------------------------|-----------|----------|--------------------|---------|----- |
-|        |**SSD models**               
-|COCO    |MobileNetV2+SSDLite              |512x512    |**1.67**  |**25.1**, 43.1      |Y        |      |
-|COCO    |MobileNetV2+FPN+SSDLite          |512x512    |**2.29**  |**27.2**, 45.7      |Y        |      |
-|COCO    |MobileNetV2+FPN+SSDLite          |768x768    |**5.83**  |**29.0**, 47.8      |         |      |
+|Dataset | Model Name                        | Input Size | GigaMACS  | AP[0.5:0.95]%, AP50% |Available|Notes |
+|--------|-----------------------------------|------------|-----------|----------------------|---------|----- |
+|        | **SSD models**
+|COCO    | MobileNetV2+FPN+SSDLite           | 768x768    | **5.83**  | **29.0**, 47.8       |         |      |
+|COCO    | MobileNetV2+FPN+SSDLite           | 512x512    | **2.29**  | **27.2**, 45.7       |Y        |      |
+|COCO    | MobileNetV2+SSDLite               | 512x512    | **1.67**  | **25.1**, 43.1       |Y        |      |
+|COCO    | MobileNetV2-0.5+SSDLite           | 320x320    | **0.197** | **11.8**, 23.1       |Y        |      |
 |-
-|COCO    |RegNetX200MF+SSDLite             |320x320    |**0.61**  |**20.7**, 36.7      |Y        |      |
-|COCO    |RegNetX400MF+SSDLite             |320x320    |**1.12**  |**24.1**, 41.0      |         |      |
-|COCO    |RegNetX800MF+FPN+SSDLite         |512x512    |**6.03**  |**32.8**, 52.8      |Y        |      |
-|COCO    |RegNetX1.6GF+FPN+SSDLite         |768x768    |**24.19** |**37.0**, 57.3      |Y        |      |
-|COCO    |RegNetX1.6GF+BiFPN168x4+SSDLite  |768x768    |**25.37** |**39.8**, 58.4      |         |      |
-|        |**YOLOV3 models**
-|COCO    |YOLOv3(LeakyReLU)                |416x416    |**33.0**  |**31.0**, 52.1      |         |Fine tuned to use fixed size |
-|COCO    |YOLOv3(ReLU)                     |416x416    |**33.0**  |**30.7**, 51.2      |Y        |Fine tuned to use fixed size and ReLU |
-|COCO    |RegNetX800MF+YOLOV3Lite          |416x416    |**3.6**   |**26.9**, 46.9      |         |      |
-|COCO    |RegNetX1.6GF+YOLOV3Lite          |512x512    |**10.48** |**30.8**, 51.9      |Y        |      |
+|COCO    | RegNetX200MF+SSDLite              | 320x320    | **0.61**  | **20.7**, 36.7       |Y        |      |
+|COCO    | RegNetX400MF+SSDLite              | 320x320    | **1.12**  | **24.1**, 41.0       |         |      |
+|COCO    | RegNetX800MF+FPN+SSDLite          | 512x512    | **6.03**  | **32.8**, 52.8       |Y        |      |
+|COCO    | RegNetX1.6GF+FPN+SSDLite          | 768x768    | **24.19** | **37.0**, 57.3       |Y        |      |
+|COCO    | RegNetX1.6GF+BiFPN168x4+SSDLite   | 768x768    | **25.37** | **39.8**, 58.4       |         |      |
+|        | **YOLOV3 models**                 
+|COCO    | YOLOv3(LeakyReLU)                 | 416x416    | **33.0**  | **31.0**, 52.1       |         |Fine tuned to use fixed size |
+|COCO    | YOLOv3(ReLU)                      | 416x416    | **33.0**  | **30.7**, 51.2       |Y        |Fine tuned to use fixed size and ReLU |
+|COCO    | RegNetX800MF+YOLOV3Lite           | 416x416    | **3.6**   | **26.9**, 46.9       |         |      |
+|COCO    | RegNetX1.6GF+YOLOV3Lite           | 512x512    | **10.48** | **30.8**, 51.9       |Y        |      |
 |-
-|COCO    |ResNet50+FPN+SSD                 |512x512    |**30.77** |**31.2**, 52.2      |Y        |      |
-|        |**RetinaNet models**
-|COCO    |RegNetX800MF+FPN+RetinaNetLite   |512x512    |**11.08** |**33.0**, 50.8      |Y        |      |
-|-
-|COCO    |YOLOX-m-Lite                     |640x640    |**36.9**  |**44.4**, 62.9      |Y        |      |
-|COCO    |YOLOX-s-Lite                     |640x640    |**13.43** |**38.3**, 56.9      |Y        |      |
-|COCO    |YOLOX-tiny-Lite                  |416x416    |**3.240** |**30.5**, 47.4      |Y        |      |
-|COCO    |YOLOX-nano-Lite                  |416x416    |**0.552** |**24.8**, 40.1      |Y        |      |
+|COCO    | ResNet50+FPN+SSD                  | 512x512    | **30.77** | **31.2**, 52.2       |Y        |      |
+|        | **RetinaNet models**              
+|COCO    | RegNetX800MF+FPN+RetinaNetLite    | 512x512    | **11.08** | **33.0**, 50.8       |Y        |      |
+|-       | **YOLOX models**                  
+|COCO    | YOLOX-m-Lite                      | 640x640    | **36.9**  | **44.4**, 62.9       |Y        |      |
+|COCO    | YOLOX-s-Lite                      | 640x640    | **13.43** | **38.3**, 56.9       |Y        |      |
+|COCO    | YOLOX-tiny-Lite                   | 416x416    | **3.240** | **30.5**, 47.4       |Y        |      |
+|COCO    | YOLOX-nano-Lite (depthwise=False) | 416x416    | **1.476** | **24.8**, 40.1       |Y        |      |
+|COCO    | YOLOX-pico-Lite (depthwise=False) | 320x320    | **0.503** | **17.9**, 29.4       |Y        |      |
+|COCO    | YOLOX-femto-Lite (depthwise=False)| 320x320    | **0.238** | **12.7**, 21.9       |Y        |      |
 
 
 ### Open-MMLab/MMDetection
