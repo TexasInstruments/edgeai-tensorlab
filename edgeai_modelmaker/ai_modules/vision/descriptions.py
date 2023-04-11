@@ -32,6 +32,7 @@
 import numbers
 from . import constants
 from ... import utils
+from .. import vision
 from . import datasets
 from . import training
 from . import compilation
