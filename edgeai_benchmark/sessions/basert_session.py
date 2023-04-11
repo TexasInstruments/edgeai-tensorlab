@@ -78,8 +78,8 @@ class BaseRTSession(utils.ParamsBase):
         model_path = [os.path.abspath(m) for m in model_path] if isinstance(model_path, (list,tuple)) else model_path
         self.kwargs['model_path'] = os.path.abspath(model_path) if isinstance(model_path, str) else model_path
         self.kwargs['model_type'] = self.kwargs.get('model_type',None)
-        self.kwargs['input_shape'] = self.kwargs.get('input_shape', None)
-        self.kwargs['output_shape'] = self.kwargs.get('output_shape', None)
+        self.kwargs['input_details'] = self.kwargs.get('input_details', None)
+        self.kwargs['output_details'] = self.kwargs.get('output_details', None)
         self.kwargs['num_inputs'] = self.kwargs.get('num_inputs', 1)
         self.kwargs['extra_inputs'] = self.kwargs.get('extra_inputs', None)
         # parameters for input optimization
