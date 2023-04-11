@@ -134,9 +134,7 @@ class AccuracyPipeline():
             print(message)
 
     def _run(self, description=''):
-        # collect the input params
-        param_dict = utils.pretty_object(self.pipeline_config)
-        param_result = param_dict
+        param_result = {}
 
         ##################################################################
         # import.
@@ -148,6 +146,9 @@ class AccuracyPipeline():
             self._import_model(description)
             elapsed_time = time.time() - start_time
             self.write_log(utils.log_color('\nINFO', f'import completed {description}', f'{self.run_dir_base} - {elapsed_time:.0f} sec'))
+            # collect the input params
+            param_dict = utils.pretty_object(self.pipeline_config)
+            param_result = param_dict
             # dump the params
             if self.settings.enable_logging:
                 with open(self.param_yaml, 'w') as fp:

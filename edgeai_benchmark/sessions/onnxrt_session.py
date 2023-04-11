@@ -51,26 +51,21 @@ class ONNXRTSession(BaseRTSession):
 
         # create the underlying interpreter
         self.interpreter = self._create_interpreter(is_import=True)
-        # check if the shape of data being provided matches with what the model expects
-        if self.kwargs['input_details'] is None:
-            self.kwargs['input_details'] = self._get_input_details_onnxrt()
-        #
-        if self.kwargs['output_details'] is None:
-            self.kwargs['output_details'] = self._get_output_details_onnxrt()
-        #
+
+        self._get_input_output_details_onnx(self.interpreter)
+
         # provide the calibration data and run the import
         for in_data in calib_data:
-            input_details = self.kwargs['input_details']
             in_data = utils.as_tuple(in_data)
             if self.input_normalizer is not None:
                 in_data, _ = self.input_normalizer(in_data, {})
             #
-            calib_dict = {d_info['name']:d for d_info, d in zip(input_details,in_data)}
+            calib_dict = {getattr(d_info, 'name'):d for d_info, d in zip(self.interpreter.get_inputs(),in_data)}
             # model may need additional inputs given in extra_inputs
             if self.kwargs['extra_inputs'] is not None:
                 calib_dict.update(self.kwargs['extra_inputs'])
             #
-            output_keys = [d['name'] for d in self.kwargs['output_details']] \
+            output_keys = [getattr(d_info, 'name') for d_info in self.interpreter.get_outputs()] \
                 if self.kwargs['output_details'] is not None else None
             # run the actual import step
             outputs = self.interpreter.run(output_keys, calib_dict)
@@ -82,29 +77,24 @@ class ONNXRTSession(BaseRTSession):
         # create the underlying interpreter
         self.interpreter = self._create_interpreter(is_import=False)
         # input_details is needed during inference - get it if it is not given
-        if self.kwargs['input_details'] is None:
-            self.kwargs['input_details'] = self._get_input_details_onnxrt()
-        #
-        if self.kwargs['output_details'] is None:
-            self.kwargs['output_details'] = self._get_output_details_onnxrt()
-        #
+        self._get_input_output_details_onnx(self.interpreter)
         os.chdir(self.cwd)
         return True
 
     def infer_frame(self, input, info_dict=None):
         super().infer_frame(input, info_dict)
-        input_details = self.kwargs['input_details']
+
         in_data = utils.as_tuple(input)
         if self.input_normalizer is not None:
             in_data, _ = self.input_normalizer(in_data, {})
         #
-        input_dict = {d_info['name']:d for d_info, d in zip(input_details,in_data)}
+        input_dict = {getattr(d_info, 'name'):d for d_info, d in zip(self.interpreter.get_inputs(),in_data)}
         # model needs additional inputs given in extra_inputs
         if self.kwargs['extra_inputs'] is not None:
             input_dict.update(self.kwargs['extra_inputs'])
         #
         # output_details is not mandatory, output_keys can be None
-        output_keys = [d['name'] for d in self.kwargs['output_details']] \
+        output_keys = [getattr(d_info, 'name') for d_info in self.interpreter.get_outputs()] \
             if self.kwargs['output_details'] is not None else None
         # run the actual inference
         start_time = time.time()
@@ -157,23 +147,3 @@ class ONNXRTSession(BaseRTSession):
         }
         default_options.update(runtime_options)
         self.kwargs["runtime_options"] = default_options
-
-    def _get_input_details_onnxrt(self):
-        input_details = self.interpreter.get_inputs()
-        properties = ['name', 'shape', 'type']
-        input_details_formatted = []
-        for inp_d in input_details:
-            inp_dict = {p:getattr(inp_d, p) for p in properties}
-            input_details_formatted.append(inp_dict)
-        #
-        return input_details_formatted
-
-    def _get_output_details_onnxrt(self):
-        output_details = self.interpreter.get_outputs()
-        properties = ['name', 'shape', 'type']
-        output_details_formatted = []
-        for inp_d in output_details:
-            inp_dict = {p:getattr(inp_d, p) for p in properties}
-            output_details_formatted.append(inp_dict)
-        #
-        return output_details_formatted
