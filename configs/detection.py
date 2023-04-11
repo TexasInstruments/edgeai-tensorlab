@@ -224,7 +224,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_np2(
                    det_options=True, ext_options={'object_detection:meta_arch_type': 6,
                     'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_model.prototxt',
-                    'advanced_options:output_feature_16bit_names_list': '1033, 711, 712, 713, 727, 728, 728, 743, 744, 745'}),
+                    'advanced_options:output_feature_16bit_names_list': '1033, 711, 712, 713, 727, 728, 729, 743, 744, 745'}),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
@@ -265,6 +265,30 @@ def get_configs(settings, work_dir):
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 44.4}, model_shortlist=40)
+        ),
+        'od-8260':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(320, 320, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_np2(
+                   det_options=True, ext_options={'object_detection:meta_arch_type': 6,
+                    'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_femto_lite_320x320_20230407_model.prototxt',
+                    'advanced_options:output_feature_16bit_names_list': '1033, 711, 712, 713, 727, 728, 729, 743, 744, 745'}),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_femto_lite_320x320_20230407_model.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 12.7}, model_shortlist=None)
+        ),
+        'od-8270':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(320, 320, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_np2(
+                   det_options=True, ext_options={'object_detection:meta_arch_type': 6,
+                    'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_model.prototxt',
+                    'advanced_options:output_feature_16bit_names_list': '1033, 711, 712, 713, 727, 728, 729, 743, 744, 745'}),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_model.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 17.9}, model_shortlist=None)
         ),
         #################################################################
         #       MXNET MODELS
