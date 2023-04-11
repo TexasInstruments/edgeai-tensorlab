@@ -51,13 +51,17 @@ TARGET_DEVICE_AM69A = 'AM69A'
 # not used right now - for example, AM62 is not in the list of TARGET_DEVICES
 # TARGET_DEVICE_AM62 = 'AM62'
 
-
-# additional devices such as TARGET_DEVICE_AM62 can be added as well
 TARGET_DEVICES = [
     TARGET_DEVICE_TDA4VM,
     TARGET_DEVICE_AM62A,
     TARGET_DEVICE_AM68A,
     TARGET_DEVICE_AM69A
+]
+
+# these contains additional devices that are not currently supported in release.
+# additional devices such as TARGET_DEVICE_AM62 can be added as well
+TARGET_DEVICES_ALL = TARGET_DEVICES + [
+    TARGET_DEVICE_AM62
 ]
 
 TARGET_DEVICE_TYPE_MPU = 'MPU'

@@ -109,7 +109,7 @@ _model_descriptions = {
         compilation=dict(
             model_compilation_id='od-8260',
             runtime_options={
-                'advanced_options:output_feature_16bit_names_list': ''
+                'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
             },
             metric=dict(label_offset_pred=0)
         )
@@ -140,7 +140,7 @@ _model_descriptions = {
         compilation=dict(
             model_compilation_id='od-8270',
             runtime_options={
-                'advanced_options:output_feature_16bit_names_list': ''
+                'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
             },
             metric=dict(label_offset_pred=0)
         )

@@ -79,7 +79,7 @@ class ModelRunner():
         self.params.training.model_packaged_path = os.path.join(self.params.training.training_path,
                                     '_'.join(os.path.split(self.params.common.run_name))+'.tar.gz')
 
-        assert self.params.common.target_device in constants.TARGET_DEVICES, f'common.target_device must be set to one of: {constants.TARGET_DEVICES}'
+        assert self.params.common.target_device in constants.TARGET_DEVICES_ALL, f'common.target_device must be set to one of: {constants.TARGET_DEVICES_ALL}'
         target_device_compilation_folder = self.params.common.target_device
         self.params.compilation.compilation_path = os.path.join(self.params.common.project_run_path, 'compilation', target_device_compilation_folder)
 

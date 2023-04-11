@@ -70,5 +70,4 @@ echo "TIDL_TOOLS_PATH                   : ${TIDL_TOOLS_PATH}"
 echo "LD_LIBRARY_PATH                   : ${LD_LIBRARY_PATH}"
 
 #################################################################################
-# argument to this device at index=1 is the target_device - avoid that and send the remaining
-python ./scripts/run_modelmaker.py ${@:2}
+python ./scripts/run_modelmaker.py $2 --target_device $1
