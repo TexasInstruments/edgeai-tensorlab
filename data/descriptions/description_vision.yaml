@@ -22,16 +22,14 @@ help_descriptions: "\n## Overview\nThis is a tool for collecting data, training 
   \n## Supported target devices\nThese are the devices that are supported currently.\
   \ As additional devices are supported, this section will be updated.\n\n### TDA4VM\n\
   * Product information: https://www.ti.com/product/TDA4VM\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n\
-  * Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n\
-  * Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-sk-tda4vm/08_06_00/exports/docs/getting_started.html\n\
+  * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n\
+  * SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/TDA4VM/08_06_00/exports/docs/common/sdk_overview.html\n\
   * SDK release: 08_06_00\n\n### AM62A\n* Product information: https://www.ti.com/product/AM62A7\n\
-  * Development board: https://www.ti.com/tool/SK-AM62A-LP\n* Software development\
-  \ kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* Steps\
-  \ to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html\n\
+  * Development board: https://www.ti.com/tool/SK-AM62A-LP\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n\
+  * SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/common/sdk_overview.html\n\
   * SDK release: 08_06_00\n\n### AM68A\n* Product information: https://www.ti.com/product/AM68A\n\
-  * Development board: https://www.ti.com/tool/SK-AM68\n* Software development kit\
-  \ (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n* Steps to\
-  \ setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html\n\
+  * Development board: https://www.ti.com/tool/SK-AM68\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n\
+  * SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/common/sdk_overview.html\n\
   * SDK release: 08_06_00\n\n## Additional information\n* Edge AI introduction: https://ti.com/edgeai\n\
   * Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development\
   \ information: https://github.com/TexasInstruments/edgeai\n\n## Dataset format\n\
@@ -1082,8 +1080,8 @@ target_device_descriptions:
       \ Deep Learning accelerator\n* Quad Arm\xAE Cortex\xAE-A53\n* Integrated ISP\n\
       * More details : https://www.ti.com/product/AM62A7\n\nImportant links:\n* Product\
       \ information: https://www.ti.com/product/AM62A7\n* Development board: https://www.ti.com/tool/SK-AM62A-LP\n\
-      * Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n\
-      * Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html\n\
+      * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n\
+      * SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/common/sdk_overview.html\n\
       * SDK release: 08_06_00\n\nAdditional information:\n* Edge AI introduction:\
       \ https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
       * Edge AI model development information: https://github.com/TexasInstruments/edgeai"
@@ -1097,8 +1095,8 @@ target_device_descriptions:
       \ Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated ISP\n\
       * More details : https://www.ti.com/product/AM68A\n\nImportant links:\n* Product\
       \ information: https://www.ti.com/product/AM68A\n* Development board: https://www.ti.com/tool/SK-AM68\n\
-      * Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n\
-      * Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html\n\
+      * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n\
+      * SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/common/sdk_overview.html\n\
       * SDK release: 08_06_00\n\nAdditional information:\n* Edge AI introduction:\
       \ https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
       * Edge AI model development information: https://github.com/TexasInstruments/edgeai"
@@ -1112,8 +1110,8 @@ target_device_descriptions:
       \ Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated ISP\n\
       * More details : https://www.ti.com/product/TDA4VM\n\nImportant links:\n* Product\
       \ information: https://www.ti.com/product/TDA4VM\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n\
-      * Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n\
-      * Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-sk-tda4vm/08_06_00/exports/docs/getting_started.html\n\
+      * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n\
+      * SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/TDA4VM/08_06_00/exports/docs/common/sdk_overview.html\n\
       * SDK release: 08_06_00\n\nAdditional information:\n* Edge AI introduction:\
       \ https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
       * Edge AI model development information: https://github.com/TexasInstruments/edgeai"

@@ -25,22 +25,22 @@ These are the devices that are supported currently. As additional devices are su
 ### TDA4VM
 * Product information: https://www.ti.com/product/TDA4VM
 * Development board: https://www.ti.com/tool/SK-TDA4VM
-* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM
-* Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-sk-tda4vm/08_06_00/exports/docs/getting_started.html
+* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM
+* SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/TDA4VM/08_06_00/exports/docs/common/sdk_overview.html
 * SDK release: 08_06_00
 
 ### AM62A
 * Product information: https://www.ti.com/product/AM62A7
 * Development board: https://www.ti.com/tool/SK-AM62A-LP
-* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A
-* Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/devices/AM62AX/linux/getting_started.html
+* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A
+* SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/08_06_00/exports/docs/common/sdk_overview.html
 * SDK release: 08_06_00
 
 ### AM68A
 * Product information: https://www.ti.com/product/AM68A
 * Development board: https://www.ti.com/tool/SK-AM68
-* Software development kit (SDK): https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A
-* Steps to setup board: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/devices/AM68A/linux/getting_started.html
+* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A
+* SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/common/sdk_overview.html
 * SDK release: 08_06_00
 
 ## Additional information
