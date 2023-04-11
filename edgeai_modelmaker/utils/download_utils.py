@@ -43,7 +43,7 @@ from . import misc_utils
 
 
 def copy_file(file_path, file_path_local):
-    if file_path != file_path_local:
+    if os.path.realpath(file_path) != os.path.realpath(file_path_local):
         os.makedirs(os.path.dirname(file_path_local), exist_ok=True)
         shutil.copy2(file_path, file_path_local)
     #
