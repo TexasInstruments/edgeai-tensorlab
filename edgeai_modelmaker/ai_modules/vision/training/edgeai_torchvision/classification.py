@@ -89,8 +89,8 @@ _model_descriptions = {
                                                      accuracy_factor=72.13, accuracy_unit='Accuracy Top-1%'),
                 constants.TARGET_DEVICE_AM69A: dict(performance_fps=None, performance_infer_time_ms='2.02 (with 1/4th device capability)',
                                                      accuracy_factor=72.13, accuracy_unit='Accuracy Top-1%'),
-                # constants.TARGET_DEVICE_AM62: dict(performance_fps=None, performance_infer_time_ms=1000/10,
-                #                                    accuracy_factor=72.13, accuracy_unit='Accuracy Top-1%')
+                constants.TARGET_DEVICE_AM62: dict(performance_fps=None, performance_infer_time_ms=172.92,
+                                                   accuracy_factor=72.13, accuracy_unit='Accuracy Top-1%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -124,6 +124,8 @@ _model_descriptions = {
                 constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=2.74,
                                                      accuracy_factor=72.834, accuracy_unit='Accuracy Top-1%'),
                 constants.TARGET_DEVICE_AM69A: dict(performance_fps=None, performance_infer_time_ms='2.64 (with 1/4th device capability)',
+                                                     accuracy_factor=72.834, accuracy_unit='Accuracy Top-1%'),
+                constants.TARGET_DEVICE_AM62: dict(performance_fps=None, performance_infer_time_ms=120.0,
                                                      accuracy_factor=72.834, accuracy_unit='Accuracy Top-1%')
             },
             training_devices={
@@ -193,8 +195,8 @@ _model_descriptions = {
     #                                                  accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%'),
     #             constants.TARGET_DEVICE_AM69A: dict(performance_fps=None, performance_infer_time_ms='1.26 (with 1/4th device capability)',
     #                                                  accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%'),
-    #             # constants.TARGET_DEVICE_AM62: dict(performance_fps=None, performance_infer_time_ms=1000/34,
-    #             #                                    accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%')
+    #             constants.TARGET_DEVICE_AM62: dict(performance_fps=None, performance_infer_time_ms=57.88,
+    #                                                  accuracy_factor=62.688, accuracy_unit='Accuracy Top-1%')
     #         },
     #         training_devices={
     #             constants.TRAINING_DEVICE_CPU: True,
