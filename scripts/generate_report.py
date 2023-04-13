@@ -46,6 +46,7 @@ if __name__ == '__main__':
     parser.add_argument('--target_device', type=str, default=None)
     parser.add_argument('--modelartifacts_path', type=str)
     parser.add_argument('--report_perfsim', type=edgeai_benchmark.utils.str_to_bool)
+    parser.add_argument('--skip_pattern', type=str, default='_package')
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)
@@ -53,5 +54,5 @@ if __name__ == '__main__':
     print(f'settings: {settings}')
     sys.stdout.flush()
 
-    tools.run_report(settings)
+    tools.run_report(settings, skip_pattern=cmds.skip_pattern)
     print("Report generated at {}".format(settings.modelartifacts_path))

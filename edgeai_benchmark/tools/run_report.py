@@ -59,7 +59,7 @@ def run_rewrite_results(work_dir, results_yaml):
     return results
 
 
-def run_report(settings, rewrite_results=True):
+def run_report(settings, rewrite_results=True, skip_pattern=None):
     report_perfsim = settings.report_perfsim
 
     if settings.target_device is None:
@@ -95,16 +95,18 @@ def run_report(settings, rewrite_results=True):
         #
         work_dir_splits = os.path.normpath(work_dir).split(os.sep)
         work_dir_key = '_'.join(work_dir_splits[-2:])
-        with open(results_yaml) as rfp:
-            results = yaml.safe_load(rfp)
-            results_collection[work_dir_key] = results
-            if len(results) > results_max_len:
-                results_max_len = len(results)
-                results_max_id = work_id
-                results_max_name = work_dir_key
+        if skip_pattern is None or skip_pattern not in work_dir_key:
+            with open(results_yaml) as rfp:
+                results = yaml.safe_load(rfp)
+                results_collection[work_dir_key] = results
+                if len(results) > results_max_len:
+                    results_max_len = len(results)
+                    results_max_id = work_id
+                    results_max_name = work_dir_key
+                #
             #
+            work_dir_keys.append(work_dir_key)
         #
-        work_dir_keys.append(work_dir_key)
     #
     if len(results_collection) == 0 or results_max_name is None:
         print('no results found - no report to generate.')
@@ -126,12 +128,12 @@ def run_report(settings, rewrite_results=True):
         performance_keys += ['perfsim_time_ms', 'perfsim_ddr_transfer_mb', 'perfsim_gmacs']
     #
 
-    results_table = list()
-    metric_title = ['metric_'+m for m in results_collection.keys()] + ['metric_reference']
+    results_table = dict()
+    metric_title = [m+'_metric' for m in results_collection.keys()]
+    performance_title = [m+'_'+p for m in results_collection.keys() for p in performance_keys]
     title_line = ['serial_num', 'model_id', 'runtime_name', 'task_type', 'input_resolution', 'model_path', 'metric_name'] + \
-        metric_title + performance_keys + ['run_dir', 'artifact_name']
+        metric_title + performance_title + ['metric_reference'] + ['run_dir', 'artifact_name']
 
-    results_table.append(title_line)
     for serial_num, (artifact_id, pipeline_params_anchor) in enumerate(results_anchor.items()):
         model_id = pipeline_params_anchor['session']['model_id']
         results_line_dict = {title_key:None for title_key in title_line}
@@ -151,17 +153,19 @@ def run_report(settings, rewrite_results=True):
         #
         metric_name, _, metric_reference = get_metric(pipeline_params_anchor, metric_keys)
         results_line_dict['metric_name'] = metric_name
+        results_line_dict['metric_reference'] = metric_reference
 
         # now populate results for each setting/work_id
         for work_id, (work_dir_key, param_results) in enumerate(results_collection.items()):
             param_result = param_results[artifact_id] if artifact_id in param_results else None
             _, metric_value, _ = get_metric(param_result, metric_keys)
             results_line_dict[metric_title[work_id]] = metric_value
+            performance_line_dict = get_performance(param_result, performance_keys)
+            if performance_line_dict is not None:
+                performance_line_dict = {work_dir_key+'_'+k:v for k, v in performance_line_dict.items()}
+                results_line_dict.update(performance_line_dict)
+            #
         #
-        results_line_dict['metric_reference'] = metric_reference
-
-        performance_line_dict = get_performance(pipeline_params_anchor, performance_keys)
-        results_line_dict.update(performance_line_dict)
 
         run_dir = pipeline_params_anchor['session']['run_dir'] if pipeline_params_anchor is not None else None
         run_dir_basename = os.path.basename(run_dir)
@@ -172,14 +176,19 @@ def run_report(settings, rewrite_results=True):
         artifact_name = '_'.join(run_dir_basename.split('_')[1:]) if artifact_name is None else artifact_name
         results_line_dict['artifact_name'] = artifact_name
 
-        results_table.append(list(results_line_dict.values()))
+        results_table[artifact_id] = results_line_dict
     #
 
     date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     report_csv = os.path.join(benchmark_dir, f'report_{date}.csv')
     with open(report_csv, 'w') as wfp:
-        for results_line in results_table:
-            results_line = [str(r) for r in results_line]
+        title_str = ','.join(title_line)
+        wfp.write(f'{title_str}\n')
+        for results_key, results_line in results_table.items():
+            results_keys = list(results_line.keys())
+            # make sure reslut keys are same as title_line
+            assert set(title_line) == set(results_keys), f'result keys do not match the title - expected: {title_line} obtained: {results_keys}'
+            results_line = [str(r) for r in results_line.values()]
             results_str = ','.join(results_line)
             wfp.write(f'{results_str}\n')
         #
