@@ -37,9 +37,10 @@ import re
 from edgeai_benchmark import utils
 
 
-def run_package(settings, work_dir, out_dir, include_results=False, custom_model=False):
+def run_package(settings, work_dir, out_dir, include_results=False, custom_model=False, param_template=None):
     # now write out the package
-    package_artifacts(settings, work_dir, out_dir, include_results=include_results, custom_model=custom_model)
+    package_artifacts(settings, work_dir, out_dir, include_results=include_results, custom_model=custom_model,
+                      param_template=param_template)
 
 
 def match_string(patterns, filename):
@@ -48,7 +49,8 @@ def match_string(patterns, filename):
     return got_match
 
 
-def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, make_package_dir=False, include_results=False):
+def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, make_package_dir=False,
+                     include_results=False, param_template=None):
     input_files = []
     packaged_files = []
 
@@ -96,6 +98,8 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
     # create the param file in source folder with relative paths
     param_file = os.path.join(run_dir, 'param.yaml')
     pipeline_param = copy.deepcopy(pipeline_param)
+    pipeline_param = utils.cleanup_dict(pipeline_param, param_template)
+
     pipeline_param = utils.pretty_object(pipeline_param)
     pipeline_param['session']['run_dir'] = os.path.basename(run_dir)
     pipeline_param['session']['model_folder'] = relative_model_dir
@@ -198,7 +202,7 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
     return package_run_dir, tarfile_size
 
 
-def package_artifacts(settings, work_dir, out_dir, include_results=False, custom_model=False):
+def package_artifacts(settings, work_dir, out_dir, include_results=False, custom_model=False, param_template=None):
     print(f'packaging artifacts to {out_dir} please wait...')
     run_dirs = glob.glob(f'{work_dir}/*')
     run_dirs = sorted(run_dirs)
@@ -215,7 +219,8 @@ def package_artifacts(settings, work_dir, out_dir, include_results=False, custom
             with open(read_yaml) as fp:
                 pipeline_param = yaml.safe_load(fp)
             #
-            package_run_dir, tarfile_size = package_artifact(pipeline_param, work_dir, out_dir, include_results=include_results)
+            package_run_dir, tarfile_size = package_artifact(pipeline_param, work_dir, out_dir,
+                                include_results=include_results, param_template=param_template)
             if package_run_dir is not None:
                 task_type = pipeline_param['task_type']
                 package_run_dir = os.path.basename(package_run_dir)

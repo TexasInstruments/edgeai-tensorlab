@@ -28,6 +28,8 @@
 
 import os
 import time
+import copy
+import onnx
 
 from .. import constants
 from ..import utils
@@ -51,36 +53,29 @@ class TVMDLRSession(BaseRTSession):
         # prepare for actual model import
         super().import_model(calib_data, info_dict)
 
+        self._get_input_output_details()
+
         model_file = self.kwargs['model_file']
         model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
         model_type = self.kwargs['model_type'] or os.path.splitext(model_file0)[1][1:]
-        if model_type == 'mxnet':
-            model_json, arg_params, aux_params = self._load_mxnet_model(model_file)
-            assert self.kwargs['input_shape'] is not None, 'input_shape must be given'
-            input_shape = self.kwargs['input_shape']
-            input_keys = list(input_shape.keys())
-            tvm_model, params = relay.frontend.from_mxnet(model_json, input_shape, arg_params=arg_params, aux_params=aux_params)
-        elif model_type == 'onnx':
-            import onnx
-            onnx_model = onnx.load(model_file)
-            if self.kwargs['input_shape'] is None:
-                self.kwargs['input_shape'] = self._get_input_shape_onnx(onnx_model)
-            #
-            input_shape = self.kwargs['input_shape']
-            input_keys = list(input_shape.keys())
+
+        input_details = self.kwargs['input_details']
+        input_shape = {inp_d['name']:inp_d['shape'] for inp_d in input_details}
+        input_keys = list(input_shape.keys())
+
+        if model_type == 'onnx':
+            onnx_model = onnx.load_model(model_file0)
             tvm_model, params = relay.frontend.from_onnx(onnx_model, shape=input_shape)
         elif model_type == 'tflite':
             import tflite
-            if self.kwargs['input_shape'] is None:
-                self.kwargs['input_shape'] = self._get_input_shape_tflite()
-            #
-            input_shape = self.kwargs['input_shape']
-            input_keys = list(input_shape.keys())
-            with open(model_file, 'rb') as fp:
+            with open(model_file0, 'rb') as fp:
                 tflite_model = tflite.Model.GetRootAsModel(fp.read(), 0)
             #
             tvm_model, params = relay.frontend.from_tflite(tflite_model, shape_dict=input_shape,
                                                    dtype_dict={k:'float32' for k in input_shape})
+        elif model_type == 'mxnet':
+            model_json, arg_params, aux_params = self._load_mxnet_model(model_file0)
+            tvm_model, params = relay.frontend.from_mxnet(model_json, input_shape, arg_params=arg_params, aux_params=aux_params)
         else:
             assert False, f'unrecognized model type {model_type}'
         #
@@ -155,20 +150,17 @@ class TVMDLRSession(BaseRTSession):
         super().start_infer()
         # create inference model
         self.interpreter = self._create_interpreter()
-        if self.kwargs['input_shape'] is None:
-            # get the input names from DLR model
-            # don't know how to get the input shape from dlr model, but that's not requried.
-            input_names = self.interpreter.get_input_names()
-            input_names = utils.as_list_or_tuple(input_names)
-            self.kwargs['input_shape'] = {n:None for n in input_names}
-        #
+        self._get_input_output_details()
         os.chdir(self.cwd)
         return True
 
     def infer_frame(self, input, info_dict=None):
         super().infer_frame(input, info_dict)
-        input_shape = self.kwargs['input_shape']
+
+        input_details = self.kwargs['input_details']
+        input_shape = {inp_d['name']:inp_d['shape'] for inp_d in input_details}
         input_keys = list(input_shape.keys())
+
         in_data = utils.as_tuple(input)
         if self.input_normalizer is not None:
             in_data, _ = self.input_normalizer(in_data, {})
@@ -231,29 +223,35 @@ class TVMDLRSession(BaseRTSession):
         default_options.update(dict(advanced_options=advanced_options))
         self.kwargs["runtime_options"] = default_options
 
-    def _get_input_shape_onnx(self, onnx_model):
-        input_shape = {}
-        num_inputs = self.kwargs['num_inputs']
-        for input_idx in range(num_inputs):
-            input_i = onnx_model.graph.input[input_idx]
-            name = input_i.name
-            shape = [dim.dim_value for dim in input_i.type.tensor_type.shape.dim]
-            input_shape.update({name:shape})
-        #
-        return input_shape
-
-    def _get_input_shape_tflite(self):
-        import tflite_runtime.interpreter as tflitert_interpreter
-        interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_path'])
-        input_shape = {}
-        model_input_details = interpreter.get_input_details()
-        for model_input in model_input_details:
-            name = model_input['name']
-            shape = list(model_input['shape'])
-            input_shape.update({name:shape})
-        #
-        del interpreter
-        return input_shape
+    def _get_input_output_details(self):
+        model_file = self.kwargs['model_file']
+        model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
+        model_type = self.kwargs['model_type'] or os.path.splitext(model_file0)[1][1:]
+        if model_type == 'onnx':
+            import onnxruntime
+            sess_options = onnxruntime.SessionOptions()
+            ep_list = ['CPUExecutionProvider']
+            interpreter = onnxruntime.InferenceSession(model_file0, providers=ep_list,
+                            provider_options=[{}], sess_options=sess_options)
+            self._get_input_output_details_onnx(interpreter)
+            del interpreter
+        elif model_type == 'tflite':
+            import tflite_runtime.interpreter as tflitert_interpreter
+            runtime_options_temp = copy.deepcopy(self.kwargs["runtime_options"])
+            runtime_options_temp['artifacts_folder'] = os.path.join(runtime_options_temp['artifacts_folder'], '_temp_details')
+            self.kwargs["runtime_options"]["import"] = "yes"
+            os.makedirs(runtime_options_temp['artifacts_folder'], exist_ok=True)
+            self._clear_folder(runtime_options_temp['artifacts_folder'])
+            tidl_delegate = [tflitert_interpreter.load_delegate('tidl_model_import_tflite.so', runtime_options_temp)]
+            interpreter = tflitert_interpreter.Interpreter(model_file0, experimental_delegates=tidl_delegate)
+            self._get_input_output_details_tflite(interpreter)
+            self._clear_folder(runtime_options_temp['artifacts_folder'], remove_base_folder=True)
+            del interpreter
+            del tidl_delegate
+            del runtime_options_temp
+        else:
+            assert self.kwargs['input_details'] and self.kwargs['output_details'], \
+                f'input_details and output_details must be provided for mxnet models'
 
     def _load_mxnet_model(self, model_path):
         import mxnet

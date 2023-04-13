@@ -51,24 +51,22 @@ class ONNXRTSession(BaseRTSession):
 
         # create the underlying interpreter
         self.interpreter = self._create_interpreter(is_import=True)
-        # check if the shape of data being provided matches with what the model expects
-        if self.kwargs['input_shape'] is None:
-            self.kwargs['input_shape'] = self._get_input_shape_onnxrt()
-        #
+
+        self._get_input_output_details_onnx(self.interpreter)
+
         # provide the calibration data and run the import
         for in_data in calib_data:
-            input_keys = list(self.kwargs['input_shape'].keys())
             in_data = utils.as_tuple(in_data)
             if self.input_normalizer is not None:
                 in_data, _ = self.input_normalizer(in_data, {})
             #
-            calib_dict = {d_name:d for d_name, d in zip(input_keys,in_data)}
+            calib_dict = {getattr(d_info, 'name'):d for d_info, d in zip(self.interpreter.get_inputs(),in_data)}
             # model may need additional inputs given in extra_inputs
             if self.kwargs['extra_inputs'] is not None:
                 calib_dict.update(self.kwargs['extra_inputs'])
             #
-            output_keys = list(self.kwargs['output_shape'].keys()) \
-                if self.kwargs['output_shape'] is not None else None
+            output_keys = [getattr(d_info, 'name') for d_info in self.interpreter.get_outputs()] \
+                if self.kwargs['output_details'] is not None else None
             # run the actual import step
             outputs = self.interpreter.run(output_keys, calib_dict)
         #
@@ -78,28 +76,26 @@ class ONNXRTSession(BaseRTSession):
         super().start_infer()
         # create the underlying interpreter
         self.interpreter = self._create_interpreter(is_import=False)
-        # input_shape is needed during inference - get it if it is not given
-        if self.kwargs['input_shape'] is None:
-            self.kwargs['input_shape'] = self._get_input_shape_onnxrt()
-        #
+        # input_details is needed during inference - get it if it is not given
+        self._get_input_output_details_onnx(self.interpreter)
         os.chdir(self.cwd)
         return True
 
     def infer_frame(self, input, info_dict=None):
         super().infer_frame(input, info_dict)
-        input_keys = list(self.kwargs['input_shape'].keys())
+
         in_data = utils.as_tuple(input)
         if self.input_normalizer is not None:
             in_data, _ = self.input_normalizer(in_data, {})
         #
-        input_dict = {d_name:d for d_name, d in zip(input_keys,in_data)}
+        input_dict = {getattr(d_info, 'name'):d for d_info, d in zip(self.interpreter.get_inputs(),in_data)}
         # model needs additional inputs given in extra_inputs
         if self.kwargs['extra_inputs'] is not None:
             input_dict.update(self.kwargs['extra_inputs'])
         #
-        # output_shape is not mandatory, output_keys can be None
-        output_keys = list(self.kwargs['output_shape'].keys()) \
-            if self.kwargs['output_shape'] is not None else None
+        # output_details is not mandatory, output_keys can be None
+        output_keys = [getattr(d_info, 'name') for d_info in self.interpreter.get_outputs()] \
+            if self.kwargs['output_details'] is not None else None
         # run the actual inference
         start_time = time.time()
         outputs = self.interpreter.run(output_keys, input_dict)
@@ -151,19 +147,3 @@ class ONNXRTSession(BaseRTSession):
         }
         default_options.update(runtime_options)
         self.kwargs["runtime_options"] = default_options
-
-    def _get_input_shape_onnxrt(self):
-        input_details = self.interpreter.get_inputs()
-        input_shape = {}
-        for inp in input_details:
-            input_shape.update({inp.name:inp.shape})
-        #
-        return input_shape
-
-    def _get_output_shape_onnxrt(self):
-        output_details = self.interpreter.get_outputs()
-        output_shape = {}
-        for oup in output_details:
-            output_shape.update({oup.name:oup.shape})
-        #
-        return output_shape

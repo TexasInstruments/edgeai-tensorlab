@@ -182,3 +182,19 @@ def str_to_bool(v):
         #
     #
     return bool(v)
+
+
+def cleanup_dict(inp_dict, template_dict):
+    if template_dict is None:
+        return inp_dict
+    #
+    oup_dict = {}
+    for k, v in inp_dict.items():
+        if k in template_dict:
+            if isinstance(v, dict) and isinstance(template_dict[k], dict):
+                v = cleanup_dict(v, template_dict[k])
+            #
+            oup_dict[k] = v
+        #
+    #
+    return oup_dict

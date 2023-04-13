@@ -28,6 +28,8 @@
 
 import os
 import argparse
+import yaml
+
 from edgeai_benchmark import *
 
 
@@ -42,11 +44,19 @@ if __name__ == '__main__':
     parser.add_argument('--work_dir', type=str)
     parser.add_argument('--out_dir', type=str)
     parser.add_argument('--target_device', type=str)
+    parser.add_argument('--param_template_file', type=str, default='./examples/configs/yaml/param_template.yaml')
 
     cmds = parser.parse_args()
     #kwargs = vars(cmds)
 
     settings = config_settings.ConfigSettings(cmds.settings_file, target_device=cmds.target_device)
+
+    param_template = None
+    if cmds.param_template_file is not None:
+        with open(cmds.param_template_file) as fp:
+            param_template = yaml.safe_load(fp)
+        #
+    #
 
     if 'TIDL_ARTIFACT_SYMLINKS' in os.environ and os.environ['TIDL_ARTIFACT_SYMLINKS']:
         if cmds.work_dir is None:
@@ -62,7 +72,7 @@ if __name__ == '__main__':
             out_dir = cmds.out_dir
         print(f'package_dir: {out_dir}')
 
-        tools.run_package(settings, work_dir, out_dir)
+        tools.run_package(settings, work_dir, out_dir, param_template=param_template)
     else:
         print('TIDL_ARTIFACT_SYMLINKS is not set - run this script using run_package_artifacts_evm.sh')
     #

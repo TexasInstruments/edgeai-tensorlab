@@ -50,18 +50,18 @@ class TFLiteRTSession(BaseRTSession):
         # create the underlying interpreter
         self.interpreter = self._create_interpreter(is_import=True)
 
-        input_details = self.interpreter.get_input_details()
-        output_details = self.interpreter.get_output_details()
+        self._get_input_output_details_tflite(self.interpreter)
+
         for in_data in calib_data:
             in_data = utils.as_tuple(in_data)
             if self.input_normalizer is not None:
                 in_data, _ = self.input_normalizer(in_data, {})
             #
-            for c_data_entry_idx, c_data_entry in enumerate(in_data):
-                self._set_tensor(input_details[c_data_entry_idx], c_data_entry)
+            for (input_detail, c_data_entry) in zip(self.interpreter.get_input_details(), in_data):
+                self._set_tensor(input_detail, c_data_entry)
             #
             self.interpreter.invoke()
-            outputs = [self._get_tensor(output_detail) for output_detail in output_details]
+            outputs = [self._get_tensor(output_detail) for output_detail in self.interpreter.get_output_details()]
         #
         return info_dict
 
@@ -69,26 +69,27 @@ class TFLiteRTSession(BaseRTSession):
         super().start_infer()
         # now create the interpreter for inference
         self.interpreter = self._create_interpreter(is_import=False)
+        # input_details is needed during inference - get it if it is not given
+        self._get_input_output_details_tflite(self.interpreter)
         os.chdir(self.cwd)
         return True
 
     def infer_frame(self, input, info_dict=None):
         super().infer_frame(input, info_dict)
-        input_details = self.interpreter.get_input_details()
-        output_details = self.interpreter.get_output_details()
+
         in_data = utils.as_tuple(input)
         if self.input_normalizer is not None:
             in_data, _ = self.input_normalizer(in_data, {})
         #
-        for c_data_entry_idx, c_data_entry in enumerate(in_data):
-            self._set_tensor(input_details[c_data_entry_idx], c_data_entry)
+        for (input_detail, c_data_entry) in zip(self.interpreter.get_input_details(), in_data):
+            self._set_tensor(input_detail, c_data_entry)
         #
         # measure the time across only interpreter.run
         # time for setting the tensor and other overheads would be optimized out in c-api
         start_time = time.time()
         self.interpreter.invoke()
         info_dict['session_invoke_time'] = (time.time() - start_time)
-        outputs = [self._get_tensor(output_detail) for output_detail in output_details]
+        outputs = [self._get_tensor(output_detail) for output_detail in self.interpreter.get_output_details()]
         return outputs, info_dict
 
     def set_runtime_option(self, option, value):
@@ -130,16 +131,6 @@ class TFLiteRTSession(BaseRTSession):
         }
         default_options.update(runtime_options)
         self.kwargs["runtime_options"] = default_options
-
-    def _get_input_shape_tflite(self):
-        input_shape = {}
-        model_input_details = self.interpreter.get_input_details()
-        for model_input in model_input_details:
-            name = model_input['name']
-            shape = model_input['shape']
-            input_shape.update({name:shape})
-        #
-        return input_shape
 
     def _set_tensor(self, model_input, tensor):
         if model_input['dtype'] == np.int8:
