@@ -106,8 +106,8 @@ session:
   artifacts_folder: artifacts
   input_data_layout: NCHW
   input_mean: null
-  input_optimization: true
   input_scale: null
+  input_optimization: true
   input_details:
   - name: input.1Net_IN
     shape:
@@ -123,8 +123,8 @@ session:
     - 1000
     type: tensor(float)
   model_path: model/mobilenet_v2_tv.onnx
-  num_inputs: 1
-  output_shape: null
   session_name: onnxrt
   target_device: AM68A
 task_type: classification
+metric:
+  label_offset_pred: null

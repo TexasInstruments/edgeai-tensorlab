@@ -74,6 +74,6 @@ if __name__ == '__main__':
 
         tools.run_package(settings, work_dir, out_dir, param_template=param_template)
     else:
-        print('TIDL_ARTIFACT_SYMLINKS is not set - run this script using run_package_artifacts_evm.sh')
+        print('TIDL_ARTIFACT_SYMLINKS is not set - run this script using run_package_artifacts_for_evm.sh')
     #
 
