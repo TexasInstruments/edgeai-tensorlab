@@ -51,11 +51,11 @@ help_descriptions: "\n## Overview\nThis is a tool for collecting data, training 
   \ 'images', 'categories' and 'annotations'.\n- Look at the example dataset [animal_classification](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip)\
   \ to understand more.\n\n#### Image Classification dataset format\nAn image classification\
   \ dataset should have the following structure. (Use a suitable dataset name instead\
-  \ of dataset_name).\n\n<pre>\ndata/datasets/dataset_name\n                     \
-  \        |\n                             |--images\n                           \
-  \  |     |-- the image files should be here\n                             |\n  \
-  \                           |--annotations\n                                   |--instances.json\n\
-  </pre>\n\n- Use a suitable dataset name instead of dataset_name\n- The default annotation\
+  \ of dataset_name).\n\n  data/datasets/dataset_name\n                          \
+  \   |\n                             |--images\n                             |  \
+  \   |-- the image files should be here\n                             |\n       \
+  \                      |--annotations\n                                   |--instances.json\n\
+  \n- Use a suitable dataset name instead of dataset_name\n- The default annotation\
   \ file name for image classification is instances.json\n- The format of the annotation\
   \ file is similar to that of the COCO dataset - a json file containing 'info', 'images',\
   \ 'categories' and 'annotations'. However, one difference is that the bounding box\
