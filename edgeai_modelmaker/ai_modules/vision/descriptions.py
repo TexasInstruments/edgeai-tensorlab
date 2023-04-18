@@ -339,15 +339,13 @@ data/datasets/dataset_name
 #### Image Classification dataset format
 An image classification dataset should have the following structure. (Use a suitable dataset name instead of dataset_name).
 
-<pre>
-data/datasets/dataset_name
+  data/datasets/dataset_name
                              |
                              |--images
                              |     |-- the image files should be here
                              |
                              |--annotations
                                    |--instances.json
-</pre>
 
 - Use a suitable dataset name instead of dataset_name
 - The default annotation file name for image classification is instances.json
