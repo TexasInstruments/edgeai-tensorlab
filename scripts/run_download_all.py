@@ -40,7 +40,7 @@ def run(config):
     import edgeai_modelmaker
     from scripts import run_generate_description
 
-    description = run_generate_description.run(config)
+    description, help_descriptions = run_generate_description.run(config)
     model_descriptions = description['model_descriptions']
     sample_dataset_descriptions = description['sample_dataset_descriptions']
 
