@@ -438,7 +438,7 @@ def get_configs(settings, work_dir):
         # mlperf edge: detection - ssd_mobilenet_v1_coco_2018_01_28 expected_metric: 23.0% ap[0.5:0.95] accuracy
         'od-5100':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((300,300), (300,300), backend='cv2'),
-            session=sessions.TVMDLRSession(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
+            session=sessions.TVMDLRSession(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_tflite_np2(det_options=True),
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_20180128.tflite'),
             postprocess=postproc_detection_tflite,
@@ -448,7 +448,7 @@ def get_configs(settings, work_dir):
         # tensorflow1.0 models: detection - ssdlite_mobiledet_dsp_320x320_coco_2020_05_19 expected_metric: 28.9% ap[0.5:0.95] accuracy
         'od-5120':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((320,320), (320,320), backend='cv2'),
-            session=sessions.TVMDLRSession(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
+            session=sessions.TVMDLRSession(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_tflite_np2(det_options=True),
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_20200519.tflite'),
             postprocess=postproc_detection_tflite,
