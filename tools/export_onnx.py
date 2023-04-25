@@ -207,6 +207,8 @@ def main():
     logger.info("loading checkpoint done.")
     if args.dataset == 'ycbv':
         img = cv2.imread("./assets/ti_mustard.png")
+    elif args.dataset == 'lmo':
+        img = cv2.imread("./assets/sample_lmo_pbr.jpg")
     else:
         img = cv2.imread("./assets/dog.jpg")
     img, ratio = preprocess(img, exp.test_size)

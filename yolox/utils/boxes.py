@@ -184,11 +184,11 @@ def postprocess_export_object_pose(prediction, num_classes, conf_thre=0.7, nms_t
 
 
     # Transform the translation vector in expected format
-    tx, ty, tz = prediction[..., 32], prediction[..., 33], prediction[..., 34]
+    tx, ty, tz = prediction[..., -3], prediction[..., -2], prediction[..., -1]
     tz *= 100
     tx = (tx - camera_matrix[2]) * tz / camera_matrix[0]
     ty = (ty - camera_matrix[5]) * tz / camera_matrix[4]
-    prediction[..., 32], prediction[..., 33], prediction[..., 34] = tx, ty, tz
+    prediction[..., -3], prediction[..., -2], prediction[..., -1] = tx, ty, tz
 
     output = [None for _ in range(len(prediction))]
     for i, image_pred in enumerate(prediction):
