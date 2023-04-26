@@ -40,11 +40,11 @@ help_descriptions: "\n## Overview\nThis is a tool for collecting data, training 
   \ must be an \"images\" folder containing the images\n- (2) there must be an \"\
   annotations\" folder containing the annotation json file with the name given below.\n\
   \n#### Object Detection dataset format\nAn object detection dataset should have\
-  \ the following structure. \n\n<pre>\ndata/datasets/dataset_name\n             \
-  \                |\n                             |--images\n                   \
-  \          |     |-- the image files should be here\n                          \
-  \   |\n                             |--annotations\n                           \
-  \        |--instances.json\n</pre>\n\n- Use a suitable dataset name instead of dataset_name\n\
+  \ the following structure. \n\n  data/datasets/dataset_name\n                  \
+  \           |\n                             |--images\n                        \
+  \     |     |-- the image files should be here\n                             |\n\
+  \                             |--annotations\n                                 \
+  \  |--instances.json\n\n- Use a suitable dataset name instead of dataset_name\n\
   - The default annotation file name for object detection is instances.json\n- The\
   \ format of the annotation file is similar to that of the [COCO dataset 2017 Train/Val\
   \ annotations](https://cocodataset.org/#download) - a json file containing 'info',\

@@ -53,12 +53,22 @@ class ModelCompilation():
         # prepare for model compilation
         self._prepare_pipeline_config()
 
+        if self.params.compilation.tidl_offload:
+            progress_regex = \
+                {'type':'Progress', 'name':'Progress', 'description':'Progress of Compilation', 'unit':'Iteration', 'value':None,
+                  'regex':[{'op':'search', 'pattern':r'Calibration iteration number\s+(\d+)\s+completed', 'group':1}],
+                }
+        else:
+            progress_regex = \
+                {'type':'Progress', 'name':'Progress', 'description':'Progress of Compilation', 'unit':'Frame', 'value':None,
+                 'regex':[{'op':'search', 'pattern':r'infer\s+\:\s+.*?\s+(?<infer>\d+)', 'group':1}],
+                 }
+        #
+
         if self.params.common.task_type == constants.TASK_TYPE_CLASSIFICATION:
             log_summary_regex = {
                 'js': [
-                    {'type':'Progress', 'name':'Progress', 'description':'Progress of Compilation', 'unit':'Frame', 'value':None,
-                     'regex':[{'op':'search', 'pattern':r'infer\s+\:\s+.*?\s+(?<infer>\d+)', 'group':1}],
-                    },
+                    progress_regex,
                     {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Accuracy of Compilation', 'unit':'Accuracy Top-1%', 'value':None,
                      'regex':[{'op':'search', 'pattern':r'benchmark results.*?accuracy_top1.*?\:\s+(?<accuracy>\d+\.\d+)', 'group':1, 'dtype':'float', 'scale_factor':1}],
                      },
@@ -70,9 +80,7 @@ class ModelCompilation():
         elif self.params.common.task_type == constants.TASK_TYPE_DETECTION:
             log_summary_regex = {
                 'js': [
-                    {'type':'Progress', 'name':'Progress', 'description':'Progress of Compilation', 'unit':'Frame', 'value':None,
-                     'regex':[{'op':'search', 'pattern':r'infer\s+\:\s+.*?\s+(?<infer>\d+)', 'group':1}],
-                     },
+                    progress_regex,
                     {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Accuracy of Compilation', 'unit':'AP50%', 'value':None,
                      'regex':[{'op':'search', 'pattern':r'benchmark results.*?accuracy_ap50\%.*?\:\s+(?<accuracy>\d+\.\d+)', 'group':1, 'dtype':'float', 'case_sensitive':False, 'scale_factor':1}],
                      },

@@ -321,15 +321,13 @@ These are the devices that are supported currently. As additional devices are su
 #### Object Detection dataset format
 An object detection dataset should have the following structure. 
 
-<pre>
-data/datasets/dataset_name
+  data/datasets/dataset_name
                              |
                              |--images
                              |     |-- the image files should be here
                              |
                              |--annotations
                                    |--instances.json
-</pre>
 
 - Use a suitable dataset name instead of dataset_name
 - The default annotation file name for object detection is instances.json
