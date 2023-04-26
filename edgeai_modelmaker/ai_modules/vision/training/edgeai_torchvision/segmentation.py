@@ -61,7 +61,13 @@ _model_descriptions = {
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_SEGMENTATION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=272, performance_infer_time_ms=1000/272,
-                                                     accuracy_factor=75.212, accuracy_unit='MeanIou')
+                                                     accuracy_factor=75.212, accuracy_unit='MeanIoU%'),
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=272, performance_infer_time_ms=3*1000/272,
+                                                     accuracy_factor=75.212, accuracy_unit='MeanIoU%'),
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=272, performance_infer_time_ms=1000/272,
+                                                     accuracy_factor=75.212, accuracy_unit='MeanIoU%'),
+                constants.TARGET_DEVICE_AM62: dict(performance_fps=272, performance_infer_time_ms=100*1000/272,
+                                                     accuracy_factor=75.212, accuracy_unit='MeanIoU%'),
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -89,7 +95,13 @@ _model_descriptions = {
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_SEGMENTATION]//2,
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=237, performance_infer_time_ms=1000/237,
-                                                     accuracy_factor=77.040, accuracy_unit='MeanIoU')
+                                                     accuracy_factor=77.040, accuracy_unit='MeanIoU%'),
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=237, performance_infer_time_ms=3*1000/237,
+                                                     accuracy_factor=77.040, accuracy_unit='MeanIoU%'),
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=237, performance_infer_time_ms=1000/237,
+                                                     accuracy_factor=77.040, accuracy_unit='MeanIoU%'),
+                constants.TARGET_DEVICE_AM62: dict(performance_fps=237, performance_infer_time_ms=100*1000/237,
+                                                     accuracy_factor=77.040, accuracy_unit='MeanIoU%'),
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -117,7 +129,13 @@ _model_descriptions = {
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_SEGMENTATION]//2,
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=237, performance_infer_time_ms=1000/237,
-                                                     accuracy_factor=77.040, accuracy_unit='MeanIoU')
+                                                     accuracy_factor=77.040, accuracy_unit='MeanIoU%'),
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=237, performance_infer_time_ms=3*1000/237,
+                                                     accuracy_factor=77.040, accuracy_unit='MeanIoU%'),
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=237, performance_infer_time_ms=1000/237,
+                                                     accuracy_factor=77.040, accuracy_unit='MeanIoU%'),
+                constants.TARGET_DEVICE_AM62: dict(performance_fps=237, performance_infer_time_ms=100*1000/237,
+                                                     accuracy_factor=77.040, accuracy_unit='MeanIoU%'),
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
