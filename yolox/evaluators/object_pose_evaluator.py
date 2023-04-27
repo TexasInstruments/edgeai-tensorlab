@@ -69,7 +69,7 @@ class ObjectPoseEvaluator:
                 self.class_map = {v:k for k,v in dataloader.dataset.class_map.items()}
             else:
                 assert "Provided dataset is not supported for 6d pose evaluation"
-        self.test_bop_file_name = "magic_{}-test.csv".format(self.dataset)
+        self.test_bop_file_name = "bop_{}-test.csv".format(self.dataset)
         self.output_dir = output_dir
         self.class_to_model = dataloader.dataset.class_to_model
         self.class_to_cuboid = dataloader.dataset.models_corners
