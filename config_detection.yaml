@@ -53,4 +53,3 @@ compilation:
     tensor_bits: 8 #16 #32
     # to prevent tidl offload and run purely in ARM
     # tidl_offload: False
-    tidl_offload: False
