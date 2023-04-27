@@ -32,7 +32,8 @@ dataset:
     #                        "./data/projects/coco_detection/dataset/annotations/instances_val2017.json"]
     # -------------------------------------
     dataset_name: tiscapes2017_driving_det
-    input_data_path: '/home/a0504871/Downloads/tiscapes2017_driving'
+#    input_data_path: 'http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip'
+    input_data_path: '/home/a0504871/work/ti/edgeai-algo/edgeai-modelmaker/data/projects/tiscapes2017_driving_det/dataset/'
 
 training:
     # enable/disable training

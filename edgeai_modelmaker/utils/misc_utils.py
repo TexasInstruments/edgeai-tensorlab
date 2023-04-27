@@ -190,26 +190,26 @@ def sort_annotations(json_file_path, preference_order=None, annotation_prefix="r
     #
 
     # re-assigning the JSON categories id values based on preference order
-    cat_id_mappings = []
+    cat_id_mappings = dict()
     for i in range(len(dataset_store['categories'])):
         old_id = dataset_store['categories'][i]['id']
         new_id = preference_order.index(dataset_store['categories'][i]['name']) + 1
-        cat_id_mappings.insert(old_id - 1, new_id)
+        cat_id_mappings[old_id] = new_id
         dataset_store['categories'][i]['id'] = new_id
     #
 
     # sorting in descending order of JSON categories based on new ids
-    # dataset_store['categories'].sort(key=lambda x: x['id'], reverse=True)
+    dataset_store['categories'].sort(key=lambda x: x['id'])
 
     # re-assigning JSON annotations category_id values based on preference order
     for i in range(len(dataset_store['annotations'])):
         old_id = dataset_store['annotations'][i]['category_id']
-        new_id = cat_id_mappings[old_id - 1]
+        new_id = cat_id_mappings[old_id]
         dataset_store['annotations'][i]['category_id'] = new_id
     #
 
     # sorting in descending order of JSON annotations based on new category_ids
-    # dataset_store['annotations'].sort(key=lambda x: x['category_id'], reverse=True)
+    dataset_store['annotations'].sort(key=lambda x: x['category_id'])
 
     # updating the annotations JSON file
     with open(json_file_path, "w") as afp:
@@ -272,7 +272,7 @@ def reformat_to_modelmaker(input_dataset_path=None):
 
 def is_url(download_entry):
     return isinstance(download_entry, str) and \
-           (download_entry.startswith('http://') or download_entry.startswith('https://'))
+            (download_entry.startswith('http://') or download_entry.startswith('https://'))
 
 
 class ProgressBar():
