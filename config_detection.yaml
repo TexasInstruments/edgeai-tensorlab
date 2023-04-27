@@ -31,9 +31,8 @@ dataset:
     # input_annotation_path: ["./data/projects/coco_detection/dataset/annotations/instances_train2017.json",
     #                        "./data/projects/coco_detection/dataset/annotations/instances_val2017.json"]
     # -------------------------------------
-    dataset_name: tiscapes2017_driving_det
-#    input_data_path: 'http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip'
-    input_data_path: '/home/a0504871/work/ti/edgeai-algo/edgeai-modelmaker/data/projects/tiscapes2017_driving_det/dataset/'
+    dataset_name: tiscapes2017_driving
+    input_data_path: 'http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip'
 
 training:
     # enable/disable training
@@ -44,12 +43,14 @@ training:
     model_name: 'yolox_nano_lite'
 
     training_epochs: 15 #30
-    batch_size: 8 #32
+    # batch_size: 8 #32
     # learning_rate: 0.005
-    num_gpus: 4 #0 #1 #4
+    num_gpus: 0 #0 #1 #4
 
 compilation:
     # enable/disable compilation
     enable: True #False
     tensor_bits: 8 #16 #32
+    # to prevent tidl offload and run purely in ARM
+    # tidl_offload: False
     tidl_offload: False
