@@ -195,8 +195,8 @@ def export(args, model, model_name=None):
     # shape inference to make it easy for inference
     onnx.shape_inference.infer_shapes_path(output_onnx_file, output_onnx_file)
     # export torchscript model
-    script_model = torch.jit.trace(model, example_input, strict=False)
-    torch.jit.save(script_model, os.path.join(args.output_dir, model_name+'_model.pth'))
+    # script_model = torch.jit.trace(model, example_input, strict=False)
+    # torch.jit.save(script_model, os.path.join(args.output_dir, model_name+'_model.pth'))
 
 
 def complexity(args, model):

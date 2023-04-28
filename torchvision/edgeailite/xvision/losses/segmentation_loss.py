@@ -109,6 +109,7 @@ class SegmentationMetricsCalc():
     @staticmethod
     def _fast_hist(label_pred, label_true, n_class):
         mask = (label_true >= 0) & (label_true < n_class)
+        # avoid nan values by limiting the predictions within n_class
         hist = np.zeros((n_class, n_class))
         label_pred[label_pred >= n_class] = n_class-1
         label_pred[label_pred < 0] = 0
