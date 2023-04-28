@@ -59,6 +59,6 @@ export PYTHONPATH=.:$PYTHONPATH
 #-------- Sorting the annotation file based on the preference order--------------
 #python ./scripts/convert_dataset.py \
 #--source_format=sort_annotations \
-#--annotation_file_path="/home/a0504871/work/ti/edgeai-algo/edgeai-modelmaker/data/projects/tiscapes2017_driving_det/dataset/annotations/stuff.json" \
-#--preference_order="road,vehicle,trafficsign,human"
+#--annotation_file_path="/home/a0504871/Downloads/dataset/annotations/instances.json" \
+#--preference_order="vehicle,trafficsign,human"
 #---------------------------------------------------------------------------------
