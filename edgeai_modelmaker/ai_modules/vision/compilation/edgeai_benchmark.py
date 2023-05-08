@@ -56,7 +56,7 @@ class ModelCompilation():
         if self.params.compilation.tidl_offload:
             progress_regex = \
                 {'type':'Progress', 'name':'Progress', 'description':'Progress of Compilation', 'unit':'Iteration', 'value':None,
-                  'regex':[{'op':'search', 'pattern':r'Calibration iteration number\s+(\d+)\s+completed', 'group':1}],
+                  'regex':[{'op':'search', 'pattern':r'Calibration iteration number\s+(?<Progress>\d+)\s+completed', 'group':1}],
                 }
         else:
             progress_regex = \
