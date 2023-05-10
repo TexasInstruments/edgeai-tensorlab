@@ -88,7 +88,7 @@ We have three categories of models and scripts in this repository:
 
 torchvision originally had only classification models and also did not have an implementation of Quantization Aware Training (QAT). So we went ahead added embedded friendly models and training scripts for tasks such as Semantic Segmentation, Depth Estimation, Multi-Task Estimation etc and also QAT. 
 
-Tools and scripts for **Quantization Aware Training (QAT)** that is best suited for our devices are provided.
+**[Tools and scripts for Quantization Aware Training (QAT)]((https://github.com/TexasInstruments/edgeai-torchvision/blob/master/docs/pixel2pixel/Quantization.md))** that is best suited for our devices are provided.
 
 Scripts are provided for training low complexity DNN models for a variety of tasks:
 
@@ -128,3 +128,10 @@ The shell scripts run_torchvision_....sh can be used to train, evaluate or expor
 While some models in this category work on our platform, several of them have unsupported layers and will either not work or will be slow. We recommend to use models from one of the above two categories for inference on our embedded SoC platforms.
 
 <hr>
+
+## Guidelines for Model training & quantization
+Quantization (especially 8-bit Quantization) is important to get best throughput for inference. Quantization can be done using either **Post Training Quantization (PTQ)** or **Quantization Aware Training (QAT)**. Guidelines for Model training and tools for QAT are given the **[documentation on Quantization](./docs/pixel2pixel/Quantization.md)**.
+
+- Post Training Quantization (PTQ): TIDL natively supports PTQ - it can take floating point models and can quantize them using advanced calibration methods. In the above link, we have provided guidelines on how to choose models and how to train them for best accuracy with quantization - these guidelines are important to reduce accuracy drop during quantization with **PTQ**. 
+
+- Quantization Aware Training (QAT): In spite of following these guidelines, if there are models that have significant accuracy drop with PTQ, it is possible to improve the accuracy using **QAT**. See the above link for more details.
