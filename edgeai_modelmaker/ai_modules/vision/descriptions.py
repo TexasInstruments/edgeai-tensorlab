@@ -29,7 +29,7 @@
 #
 #################################################################################
 
-
+import numbers
 from . import constants
 from ... import utils
 from . import datasets
@@ -102,14 +102,16 @@ def set_model_selection_factor(model_descriptions):
         for task_type in task_types:
             model_desc_list = [m for m in model_descriptions.values() if m.common.task_type == task_type]
             model_desc_list = [m for m in model_desc_list if target_device in list(m.training.target_devices.keys())]
-            model_desc_list = [m for m in model_desc_list \
-                                   if m.training.target_devices[target_device].performance_infer_time_ms is not None and
-                                      m.training.target_devices[target_device].accuracy_factor is not None]
             performance_infer_time_ms = [m.training.target_devices[target_device].performance_infer_time_ms for m in model_desc_list]
             accuracy_factor = [m.training.target_devices[target_device].accuracy_factor for m in model_desc_list]
             xy_list = [(performance_infer_time_ms[i], accuracy_factor[i], i) for i in range(len(performance_infer_time_ms))]
-            xy_list = get_paretto_front_combined(xy_list)
-            for paretto_id, xy in enumerate(xy_list):
+            xy_list_shortlisted = [(xy[0], xy[1], xy[2]) for xy in xy_list if isinstance(xy[0], numbers.Real) and isinstance(xy[1], numbers.Real)]
+            # if no models have performance data for this device, then use some dummy data
+            if not xy_list_shortlisted:
+                xy_list_shortlisted = [(1, 1, xy[2]) for xy in xy_list]
+            #
+            xy_list_shortlisted = get_paretto_front_combined(xy_list_shortlisted)
+            for paretto_id, xy in enumerate(xy_list_shortlisted):
                 xy_id = xy[2]
                 m = model_desc_list[xy_id]
                 m.training.target_devices[target_device].model_selection_factor = paretto_id

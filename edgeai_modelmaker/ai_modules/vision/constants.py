@@ -45,6 +45,7 @@ TASK_TYPES = [
 TARGET_DEVICE_TDA4VM = 'TDA4VM'
 TARGET_DEVICE_AM62A = 'AM62A'
 TARGET_DEVICE_AM68A = 'AM68A'
+TARGET_DEVICE_AM69A = 'AM69A'
 # not used right now - for example, AM62 is not in the list of TARGET_DEVICES
 # TARGET_DEVICE_AM62 = 'AM62'
 
@@ -54,6 +55,7 @@ TARGET_DEVICES = [
     TARGET_DEVICE_TDA4VM,
     TARGET_DEVICE_AM62A,
     TARGET_DEVICE_AM68A,
+    TARGET_DEVICE_AM69A
 ]
 
 TARGET_DEVICE_TYPE_MPU = 'MPU'
@@ -159,6 +161,29 @@ Additional information:
 {EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}'''
 
 
+TARGET_DEVICE_SETUP_INSTRUCTIONS_AM69A = \
+f'''* Product information: https://www.ti.com/product/AM69A
+* Development board: https://www.ti.com/tool/SK-AM69
+* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A
+* SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM69A/{TARGET_SDK_RELEASE}/exports/docs/common/sdk_overview.html
+* SDK release: {TARGET_SDK_RELEASE}'''
+
+
+TARGET_DEVICE_DETAILS_AM69A = \
+f'''Efficient 32 TOPS AI capability at edge
+Specification:
+* 32 TOPS Deep Learning accelerator
+* 8 Arm® Cortex®-A72
+* Integrated ISP
+* More details : https://www.ti.com/product/AM69A
+
+Important links:
+{TARGET_DEVICE_SETUP_INSTRUCTIONS_AM69A}
+
+Additional information:
+{EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}'''
+
+
 # higher device_selection_factor indicates higher performance device.
 TARGET_DEVICE_DESCRIPTIONS = {
     TARGET_DEVICE_TDA4VM: {
@@ -182,6 +207,14 @@ TARGET_DEVICE_DESCRIPTIONS = {
         'device_type': TARGET_DEVICE_TYPE_MPU,
         'device_selection_factor': 2,
         'device_details': TARGET_DEVICE_DETAILS_AM68A,
+        'sdk_version': TARGET_SDK_VERSION,
+        'sdk_release': TARGET_SDK_RELEASE,
+    },
+    TARGET_DEVICE_AM69A: {
+        'device_name': TARGET_DEVICE_AM69A,
+        'device_type': TARGET_DEVICE_TYPE_MPU,
+        'device_selection_factor': 3,
+        'device_details': TARGET_DEVICE_DETAILS_AM69A,
         'sdk_version': TARGET_SDK_VERSION,
         'sdk_release': TARGET_SDK_RELEASE,
     },
@@ -280,6 +313,42 @@ PRESET_DESCRIPTIONS = {
         },
     },
     TARGET_DEVICE_AM68A: {
+        TASK_TYPE_CLASSIFICATION: {
+            'best_accuracy_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=16)
+            ),
+            'high_accuracy_preset': dict(
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+            ),
+            'default_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+            ),
+            'high_speed_preset': dict(
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+            ),
+            'best_speed_preset': dict(
+                compilation=dict(calibration_frames=3, calibration_iterations=3, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+            ),
+        },
+        TASK_TYPE_DETECTION: {
+            'best_accuracy_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
+            ),
+            'high_accuracy_preset': dict(
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
+            ),
+            'default_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
+            ),
+            'high_speed_preset': dict(
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
+            ),
+            'best_speed_preset': dict(
+                compilation=dict(calibration_frames=3, calibration_iterations=3, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
+            ),
+        },
+    },
+    TARGET_DEVICE_AM69A: {
         TASK_TYPE_CLASSIFICATION: {
             'best_accuracy_preset': dict(
                 compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=16)
