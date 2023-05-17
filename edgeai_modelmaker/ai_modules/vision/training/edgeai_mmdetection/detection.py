@@ -49,12 +49,12 @@ edgeai_mmdetection_tools_path = os.path.join(edgeai_mmdetection_path, 'tools')
 
 
 model_urls = {
-    'yolox_femto_lite': [
-        {
-            'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_femto_lite_320x320_20230407_checkpoint.pth',
-            'download_path': os.path.join('{download_path}', 'pretrained', 'yolox_femto_lite')
-        },
-    ],
+    # 'yolox_femto_lite': [
+    #     {
+    #         'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_femto_lite_320x320_20230407_checkpoint.pth',
+    #         'download_path': os.path.join('{download_path}', 'pretrained', 'yolox_femto_lite')
+    #     },
+    # ],
     'yolox_pico_lite': [
         {
             'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_checkpoint.pth',
@@ -83,37 +83,37 @@ model_urls = {
 
 
 _model_descriptions = {
-    'yolox_femto_lite': dict(
-        common=dict(
-            task_type=constants.TASK_TYPE_DETECTION,
-        ),
-        download=model_urls['yolox_femto_lite'],
-        training=dict(
-            training_backend='edgeai_mmdetection',
-            model_name='yolox_femto_lite',
-            model_training_id='yolox_femto_lite',
-            model_architecture='yolox',
-            input_resize=320,
-            input_cropsize=320,
-            pretrained_checkpoint_path=model_urls['yolox_femto_lite'][0],
-            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
-            target_devices={
-                constants.TARGET_DEVICE_AM62: dict(performance_fps=None, performance_infer_time_ms=95.4,
-                                                accuracy_factor=21.9, accuracy_unit='AP50%', accuracy_factor2=12.7, accuracy_unit2='AP[.5:.95]%'),
-            },
-            training_devices={
-                constants.TRAINING_DEVICE_CPU: True,
-                constants.TRAINING_DEVICE_CUDA: True,
-            }
-        ),
-        compilation=dict(
-            model_compilation_id='od-8260',
-            runtime_options={
-                'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
-            },
-            metric=dict(label_offset_pred=0)
-        )
-    ),
+    # 'yolox_femto_lite': dict(
+    #     common=dict(
+    #         task_type=constants.TASK_TYPE_DETECTION,
+    #     ),
+    #     download=model_urls['yolox_femto_lite'],
+    #     training=dict(
+    #         training_backend='edgeai_mmdetection',
+    #         model_name='yolox_femto_lite',
+    #         model_training_id='yolox_femto_lite',
+    #         model_architecture='yolox',
+    #         input_resize=320,
+    #         input_cropsize=320,
+    #         pretrained_checkpoint_path=model_urls['yolox_femto_lite'][0],
+    #         batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
+    #         target_devices={
+    #             constants.TARGET_DEVICE_AM62: dict(performance_fps=None, performance_infer_time_ms=87.13,
+    #                                             accuracy_factor=21.9, accuracy_unit='AP50%', accuracy_factor2=12.7, accuracy_unit2='AP[.5:.95]%'),
+    #         },
+    #         training_devices={
+    #             constants.TRAINING_DEVICE_CPU: True,
+    #             constants.TRAINING_DEVICE_CUDA: True,
+    #         }
+    #     ),
+    #     compilation=dict(
+    #         model_compilation_id='od-8260',
+    #         runtime_options={
+    #             'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
+    #         },
+    #         metric=dict(label_offset_pred=0)
+    #     )
+    # ),
     'yolox_pico_lite': dict(
         common=dict(
             task_type=constants.TASK_TYPE_DETECTION,
@@ -168,7 +168,7 @@ _model_descriptions = {
                                                      accuracy_factor=40.1, accuracy_unit='AP50%', accuracy_factor2=24.8, accuracy_unit2='AP[.5:.95]%'),
                 constants.TARGET_DEVICE_AM69A: dict(performance_fps=None, performance_infer_time_ms='3.64 (with 1/4th device capability)',
                                                      accuracy_factor=40.1, accuracy_unit='AP50%', accuracy_factor2=24.8, accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM62: dict(performance_fps=None, performance_infer_time_ms=381.17,
+                constants.TARGET_DEVICE_AM62: dict(performance_fps=None, performance_infer_time_ms=516.15,
                                                      accuracy_factor=40.1, accuracy_unit='AP50%', accuracy_factor2=24.8, accuracy_unit2='AP[.5:.95]%'),
             },
             training_devices={
@@ -206,6 +206,8 @@ _model_descriptions = {
                 constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=4.82,
                                                      accuracy_factor=47.4, accuracy_unit='AP50%', accuracy_factor2=30.5, accuracy_unit2='AP[.5:.95]%'), #TODO: this has to be corrected
                 constants.TARGET_DEVICE_AM69A: dict(performance_fps=None, performance_infer_time_ms='4.73 (with 1/4th device capability)',
+                                                     accuracy_factor=47.4, accuracy_unit='AP50%', accuracy_factor2=30.5, accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM62: dict(performance_fps=None, performance_infer_time_ms=1130.6,
                                                      accuracy_factor=47.4, accuracy_unit='AP50%', accuracy_factor2=30.5, accuracy_unit2='AP[.5:.95]%')
             },
             training_devices={

@@ -78,12 +78,12 @@
             "accuracy_unit":"Accuracy Top-1%",
             "model_selection_factor":2
           },
-          "AM69A": {
-            "performance_fps": null,
-            "performance_infer_time_ms": "2.02 (with 1/4th device capability)",
-            "accuracy_factor": 72.13,
-            "accuracy_unit": "Accuracy Top-1%",
-            "model_selection_factor": 0
+          "AM69A":{
+            "performance_fps":null,
+            "performance_infer_time_ms":"2.02 (with 1/4th device capability)",
+            "accuracy_factor":72.13,
+            "accuracy_unit":"Accuracy Top-1%",
+            "model_selection_factor":0
           },
           "AM62":{
             "performance_fps":null,
@@ -474,19 +474,19 @@
             "accuracy_unit":"MeanIoU%",
             "model_selection_factor":2
           },
-          "AM62A":{
-            "performance_fps":272,
-            "performance_infer_time_ms":11.029411764705882,
-            "accuracy_factor":75.212,
-            "accuracy_unit":"MeanIoU%",
-            "model_selection_factor":2
-          },
           "AM68A":{
             "performance_fps":272,
             "performance_infer_time_ms":3.676470588235294,
             "accuracy_factor":75.212,
             "accuracy_unit":"MeanIoU%",
             "model_selection_factor":2
+          },
+          "AM69A":{
+            "performance_fps":272,
+            "performance_infer_time_ms":"3.68 (with 1/4th device capability)",
+            "accuracy_factor":75.212,
+            "accuracy_unit":"MeanIoU%",
+            "model_selection_factor":0
           },
           "AM62":{
             "performance_fps":272,
@@ -509,7 +509,7 @@
         "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
-        "batch_size":32,
+        "batch_size":16,
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
@@ -611,19 +611,19 @@
             "accuracy_unit":"MeanIoU%",
             "model_selection_factor":0
           },
-          "AM62A":{
-            "performance_fps":237,
-            "performance_infer_time_ms":12.658227848101266,
-            "accuracy_factor":77.04,
-            "accuracy_unit":"MeanIoU%",
-            "model_selection_factor":0
-          },
           "AM68A":{
             "performance_fps":237,
             "performance_infer_time_ms":4.219409282700422,
             "accuracy_factor":77.04,
             "accuracy_unit":"MeanIoU%",
             "model_selection_factor":0
+          },
+          "AM69A":{
+            "performance_fps":237,
+            "performance_infer_time_ms":"4.22 (with 1/4th device capability)",
+            "accuracy_factor":77.04,
+            "accuracy_unit":"MeanIoU%",
+            "model_selection_factor":1
           },
           "AM62":{
             "performance_fps":237,
@@ -646,7 +646,7 @@
         "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
-        "batch_size":16,
+        "batch_size":8,
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
@@ -753,7 +753,7 @@
             "performance_infer_time_ms":12.658227848101266,
             "accuracy_factor":77.04,
             "accuracy_unit":"MeanIoU%",
-            "model_selection_factor":1
+            "model_selection_factor":0
           },
           "AM68A":{
             "performance_fps":237,
@@ -761,6 +761,13 @@
             "accuracy_factor":77.04,
             "accuracy_unit":"MeanIoU%",
             "model_selection_factor":1
+          },
+          "AM69A":{
+            "performance_fps":237,
+            "performance_infer_time_ms":"4.22 (with 1/4th device capability)",
+            "accuracy_factor":77.04,
+            "accuracy_unit":"MeanIoU%",
+            "model_selection_factor":2
           },
           "AM62":{
             "performance_fps":237,
@@ -783,7 +790,7 @@
         "training_epochs":15,
         "warmup_epochs":1,
         "num_last_epochs":5,
-        "batch_size":16,
+        "batch_size":8,
         "learning_rate":0.002,
         "num_classes":null,
         "weight_decay":0.0001,
@@ -832,126 +839,6 @@
         },
         "runtime_options":{
           "tensor_bits":8
-        }
-      }
-    },
-    "yolox_femto_lite":{
-      "common":{
-        "verbose_mode":true,
-        "download_path":"./data/downloads",
-        "projects_path":"./data/projects",
-        "project_path":null,
-        "project_run_path":null,
-        "task_type":"detection",
-        "target_machine":"evm",
-        "target_device":null,
-        "run_name":"{date-time}/{model_name}",
-        "target_module":"vision"
-      },
-      "download":[
-        {
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_femto_lite_320x320_20230407_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/yolox_femto_lite"
-        }
-      ],
-      "dataset":{
-        "enable":true,
-        "dataset_name":null,
-        "dataset_path":null,
-        "extract_path":null,
-        "split_factor":0.8,
-        "split_names":[
-          "train",
-          "val"
-        ],
-        "max_num_files":10000,
-        "input_data_path":null,
-        "input_annotation_path":null,
-        "data_path_splits":null,
-        "data_dir":"images",
-        "annotation_path_splits":null,
-        "annotation_dir":"annotations",
-        "annotation_prefix":"instances",
-        "annotation_format":"coco_json",
-        "dataset_download":true,
-        "dataset_reload":false
-      },
-      "training":{
-        "enable":true,
-        "model_name":"yolox_femto_lite",
-        "model_training_id":"yolox_femto_lite",
-        "training_backend":"edgeai_mmdetection",
-        "pretrained_checkpoint_path":{
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_femto_lite_320x320_20230407_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/yolox_femto_lite"
-        },
-        "target_devices":{
-          "AM62":{
-            "performance_fps":null,
-            "performance_infer_time_ms":95.4,
-            "accuracy_factor":21.9,
-            "accuracy_unit":"AP50%",
-            "accuracy_factor2":12.7,
-            "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":2
-          }
-        },
-        "project_path":null,
-        "dataset_path":null,
-        "training_path":null,
-        "log_file_path":null,
-        "log_summary_regex":null,
-        "summary_file_path":null,
-        "model_checkpoint_path":null,
-        "model_export_path":null,
-        "model_proto_path":null,
-        "model_packaged_path":null,
-        "training_epochs":15,
-        "warmup_epochs":1,
-        "num_last_epochs":5,
-        "batch_size":8,
-        "learning_rate":0.002,
-        "num_classes":null,
-        "weight_decay":0.0001,
-        "input_resize":320,
-        "input_cropsize":320,
-        "training_device":null,
-        "num_gpus":0,
-        "distributed":true,
-        "training_master_port":29500,
-        "model_architecture":"yolox",
-        "training_devices":{
-          "cpu":true,
-          "cuda":true
-        }
-      },
-      "compilation":{
-        "enable":true,
-        "model_compilation_id":"od-8260",
-        "compilation_path":null,
-        "model_compiled_path":null,
-        "log_file_path":null,
-        "log_summary_regex":null,
-        "summary_file_path":null,
-        "output_tensors_path":null,
-        "model_packaged_path":null,
-        "model_visualization_path":null,
-        "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
-        "num_frames":null,
-        "num_output_frames":50,
-        "detection_threshold":0.6,
-        "detection_top_k":200,
-        "save_output":true,
-        "tidl_offload":true,
-        "input_optimization":true,
-        "capture_log":true,
-        "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":"1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179"
-        },
-        "metric":{
-          "label_offset_pred":0
         }
       }
     },
@@ -1013,7 +900,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":17.9,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":1
+            "model_selection_factor":2
           }
         },
         "project_path":null,
@@ -1164,12 +1051,12 @@
           },
           "AM62":{
             "performance_fps":null,
-            "performance_infer_time_ms":381.17,
+            "performance_infer_time_ms":516.15,
             "accuracy_factor":40.1,
             "accuracy_unit":"AP50%",
             "accuracy_factor2":24.8,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":0
+            "model_selection_factor":1
           }
         },
         "project_path":null,
@@ -1317,6 +1204,15 @@
             "accuracy_factor2":30.5,
             "accuracy_unit2":"AP[.5:.95]%",
             "model_selection_factor":1
+          },
+          "AM62":{
+            "performance_fps":null,
+            "performance_infer_time_ms":1130.6,
+            "accuracy_factor":47.4,
+            "accuracy_unit":"AP50%",
+            "accuracy_factor2":30.5,
+            "accuracy_unit2":"AP[.5:.95]%",
+            "model_selection_factor":0
           }
         },
         "project_path":null,
@@ -1907,6 +1803,102 @@
             "tensor_bits":8
           }
         }
+      }
+    },
+    "AM69A":{
+      "classification":{
+        "best_accuracy_preset":{
+          "compilation":{
+            "calibration_frames":10,
+            "calibration_iterations":10,
+            "detection_threshold":null,
+            "detection_top_k":null,
+            "tensor_bits":16
+          }
+        },
+        "high_accuracy_preset":{
+          "compilation":{
+            "calibration_frames":25,
+            "calibration_iterations":25,
+            "detection_threshold":null,
+            "detection_top_k":null,
+            "tensor_bits":8
+          }
+        },
+        "default_preset":{
+          "compilation":{
+            "calibration_frames":10,
+            "calibration_iterations":10,
+            "detection_threshold":null,
+            "detection_top_k":null,
+            "tensor_bits":8
+          }
+        },
+        "high_speed_preset":{
+          "compilation":{
+            "calibration_frames":5,
+            "calibration_iterations":5,
+            "detection_threshold":null,
+            "detection_top_k":null,
+            "tensor_bits":8
+          }
+        },
+        "best_speed_preset":{
+          "compilation":{
+            "calibration_frames":3,
+            "calibration_iterations":3,
+            "detection_threshold":null,
+            "detection_top_k":null,
+            "tensor_bits":8
+          }
+        }
+      },
+      "detection":{
+        "best_accuracy_preset":{
+          "compilation":{
+            "calibration_frames":10,
+            "calibration_iterations":10,
+            "detection_threshold":0.05,
+            "detection_top_k":500,
+            "tensor_bits":16
+          }
+        },
+        "high_accuracy_preset":{
+          "compilation":{
+            "calibration_frames":25,
+            "calibration_iterations":25,
+            "detection_threshold":0.6,
+            "detection_top_k":200,
+            "tensor_bits":8
+          }
+        },
+        "default_preset":{
+          "compilation":{
+            "calibration_frames":10,
+            "calibration_iterations":10,
+            "detection_threshold":0.6,
+            "detection_top_k":200,
+            "tensor_bits":8
+          }
+        },
+        "high_speed_preset":{
+          "compilation":{
+            "calibration_frames":5,
+            "calibration_iterations":5,
+            "detection_threshold":0.6,
+            "detection_top_k":200,
+            "tensor_bits":8
+          }
+        },
+        "best_speed_preset":{
+          "compilation":{
+            "calibration_frames":3,
+            "calibration_iterations":3,
+            "detection_threshold":0.6,
+            "detection_top_k":200,
+            "tensor_bits":8
+          }
+        }
       },
       "segmentation":{
         "best_accuracy_preset":{
@@ -2110,102 +2102,6 @@
             "detection_top_k":null,
             "tensor_bits":32,
             "tidl_offload":false
-          }
-        }
-      }
-    },
-    "AM69A":{
-      "classification":{
-        "best_accuracy_preset":{
-          "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
-            "detection_threshold":null,
-            "detection_top_k":null,
-            "tensor_bits":16
-          }
-        },
-        "high_accuracy_preset":{
-          "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
-            "detection_threshold":null,
-            "detection_top_k":null,
-            "tensor_bits":8
-          }
-        },
-        "default_preset":{
-          "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
-            "detection_threshold":null,
-            "detection_top_k":null,
-            "tensor_bits":8
-          }
-        },
-        "high_speed_preset":{
-          "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
-            "detection_threshold":null,
-            "detection_top_k":null,
-            "tensor_bits":8
-          }
-        },
-        "best_speed_preset":{
-          "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
-            "detection_threshold":null,
-            "detection_top_k":null,
-            "tensor_bits":8
-          }
-        }
-      },
-      "detection":{
-        "best_accuracy_preset":{
-          "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
-            "detection_threshold":0.05,
-            "detection_top_k":500,
-            "tensor_bits":16
-          }
-        },
-        "high_accuracy_preset":{
-          "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
-            "detection_threshold":0.6,
-            "detection_top_k":200,
-            "tensor_bits":8
-          }
-        },
-        "default_preset":{
-          "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
-            "detection_threshold":0.6,
-            "detection_top_k":200,
-            "tensor_bits":8
-          }
-        },
-        "high_speed_preset":{
-          "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
-            "detection_threshold":0.6,
-            "detection_top_k":200,
-            "tensor_bits":8
-          }
-        },
-        "best_speed_preset":{
-          "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
-            "detection_threshold":0.6,
-            "detection_top_k":200,
-            "tensor_bits":8
           }
         }
       }

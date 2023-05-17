@@ -49,18 +49,21 @@ TARGET_DEVICE_AM62A = 'AM62A'
 TARGET_DEVICE_AM68A = 'AM68A'
 TARGET_DEVICE_AM69A = 'AM69A'
 # not used right now - for example, AM62 is not in the list of TARGET_DEVICES
-# TARGET_DEVICE_AM62 = 'AM62'
+TARGET_DEVICE_AM62 = 'AM62'
 
 TARGET_DEVICES = [
     TARGET_DEVICE_TDA4VM,
     TARGET_DEVICE_AM62A,
     TARGET_DEVICE_AM68A,
-    TARGET_DEVICE_AM69A
+    TARGET_DEVICE_AM69A,
+    # TODO: enable this and also add TARGET_DEVICE_DETAILS_AM62
+    # TARGET_DEVICE_AM62
 ]
 
 # these contains additional devices that are not currently supported in release.
 # additional devices such as TARGET_DEVICE_AM62 can be added as well
 TARGET_DEVICES_ALL = TARGET_DEVICES + [
+    # TODO: remove from here ad add to TARGET_DEVICES
     TARGET_DEVICE_AM62
 ]
 
@@ -85,7 +88,7 @@ TRAINING_DEVICES = [
 TRAINING_BATCH_SIZE_DEFAULT = {
     TASK_TYPE_CLASSIFICATION: 64,
     TASK_TYPE_DETECTION: 8,
-    TASK_TYPE_SEGMENTATION: 32
+    TASK_TYPE_SEGMENTATION: 16
 }
 
 

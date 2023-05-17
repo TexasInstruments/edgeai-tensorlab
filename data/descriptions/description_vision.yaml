@@ -165,7 +165,7 @@ model_descriptions:
       - val
     download: null
     training:
-      batch_size: 16
+      batch_size: 8
       dataset_path: null
       distributed: true
       enable: true
@@ -201,7 +201,7 @@ model_descriptions:
         AM62A:
           accuracy_factor: 77.04
           accuracy_unit: MeanIoU%
-          model_selection_factor: 1
+          model_selection_factor: 0
           performance_fps: 237
           performance_infer_time_ms: 12.658227848101266
         AM68A:
@@ -210,6 +210,12 @@ model_descriptions:
           model_selection_factor: 1
           performance_fps: 237
           performance_infer_time_ms: 4.219409282700422
+        AM69A:
+          accuracy_factor: 77.04
+          accuracy_unit: MeanIoU%
+          model_selection_factor: 2
+          performance_fps: 237
+          performance_infer_time_ms: 4.22 (with 1/4th device capability)
         TDA4VM:
           accuracy_factor: 77.04
           accuracy_unit: MeanIoU%
@@ -286,7 +292,7 @@ model_descriptions:
       - val
     download: null
     training:
-      batch_size: 32
+      batch_size: 16
       dataset_path: null
       distributed: true
       enable: true
@@ -319,18 +325,18 @@ model_descriptions:
           model_selection_factor: 2
           performance_fps: 272
           performance_infer_time_ms: 367.6470588235294
-        AM62A:
-          accuracy_factor: 75.212
-          accuracy_unit: MeanIoU%
-          model_selection_factor: 2
-          performance_fps: 272
-          performance_infer_time_ms: 11.029411764705882
         AM68A:
           accuracy_factor: 75.212
           accuracy_unit: MeanIoU%
           model_selection_factor: 2
           performance_fps: 272
           performance_infer_time_ms: 3.676470588235294
+        AM69A:
+          accuracy_factor: 75.212
+          accuracy_unit: MeanIoU%
+          model_selection_factor: 0
+          performance_fps: 272
+          performance_infer_time_ms: 3.68 (with 1/4th device capability)
         TDA4VM:
           accuracy_factor: 75.212
           accuracy_unit: MeanIoU%
@@ -687,19 +693,25 @@ model_descriptions:
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 0
           performance_fps: null
-          performance_infer_time_ms: 5.99
+          performance_infer_time_ms: 5.95
         AM68A:
           accuracy_factor: 75.212
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 0
           performance_fps: null
-          performance_infer_time_ms: 2.95
+          performance_infer_time_ms: 2.92
+        AM69A:
+          accuracy_factor: 75.212
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 2
+          performance_fps: null
+          performance_infer_time_ms: 2.85 (with 1/4th device capability)
         TDA4VM:
           accuracy_factor: 75.212
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 0
           performance_fps: null
-          performance_infer_time_ms: 2.98
+          performance_infer_time_ms: 2.95
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -770,7 +782,7 @@ model_descriptions:
       - val
     download: null
     training:
-      batch_size: 16
+      batch_size: 8
       dataset_path: null
       distributed: true
       enable: true
@@ -803,18 +815,18 @@ model_descriptions:
           model_selection_factor: 0
           performance_fps: 237
           performance_infer_time_ms: 421.9409282700422
-        AM62A:
-          accuracy_factor: 77.04
-          accuracy_unit: MeanIoU%
-          model_selection_factor: 0
-          performance_fps: 237
-          performance_infer_time_ms: 12.658227848101266
         AM68A:
           accuracy_factor: 77.04
           accuracy_unit: MeanIoU%
           model_selection_factor: 0
           performance_fps: 237
           performance_infer_time_ms: 4.219409282700422
+        AM69A:
+          accuracy_factor: 77.04
+          accuracy_unit: MeanIoU%
+          model_selection_factor: 1
+          performance_fps: 237
+          performance_infer_time_ms: 4.22 (with 1/4th device capability)
         TDA4VM:
           accuracy_factor: 77.04
           accuracy_unit: MeanIoU%
@@ -822,112 +834,6 @@ model_descriptions:
           performance_fps: 237
           performance_infer_time_ms: 4.219409282700422
       training_backend: edgeai_torchvision
-      training_device: null
-      training_devices:
-        cpu: true
-        cuda: true
-      training_epochs: 15
-      training_master_port: 29500
-      training_path: null
-      warmup_epochs: 1
-      weight_decay: 0.0001
-  yolox_femto_lite:
-    common:
-      download_path: ./data/downloads
-      project_path: null
-      project_run_path: null
-      projects_path: ./data/projects
-      run_name: '{date-time}/{model_name}'
-      target_device: null
-      target_machine: evm
-      target_module: vision
-      task_type: detection
-      verbose_mode: true
-    compilation:
-      calibration_frames: 10
-      calibration_iterations: 10
-      capture_log: true
-      compilation_path: null
-      detection_threshold: 0.6
-      detection_top_k: 200
-      enable: true
-      input_optimization: true
-      log_file_path: null
-      log_summary_regex: null
-      metric:
-        label_offset_pred: 0
-      model_compilation_id: od-8260
-      model_compiled_path: null
-      model_packaged_path: null
-      model_visualization_path: null
-      num_frames: null
-      num_output_frames: 50
-      output_tensors_path: null
-      runtime_options:
-        advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
-          1196, 1195, 1181, 1180, 1179
-      save_output: true
-      summary_file_path: null
-      tensor_bits: 8
-      tidl_offload: true
-    dataset:
-      annotation_dir: annotations
-      annotation_format: coco_json
-      annotation_path_splits: null
-      annotation_prefix: instances
-      data_dir: images
-      data_path_splits: null
-      dataset_download: true
-      dataset_name: null
-      dataset_path: null
-      dataset_reload: false
-      enable: true
-      extract_path: null
-      input_annotation_path: null
-      input_data_path: null
-      max_num_files: 10000
-      split_factor: 0.8
-      split_names:
-      - train
-      - val
-    download:
-    - download_path: '{download_path}/pretrained/yolox_femto_lite'
-      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_femto_lite_320x320_20230407_checkpoint.pth
-    training:
-      batch_size: 8
-      dataset_path: null
-      distributed: true
-      enable: true
-      input_cropsize: 320
-      input_resize: 320
-      learning_rate: 0.002
-      log_file_path: null
-      log_summary_regex: null
-      model_architecture: yolox
-      model_checkpoint_path: null
-      model_export_path: null
-      model_name: yolox_femto_lite
-      model_packaged_path: null
-      model_proto_path: null
-      model_training_id: yolox_femto_lite
-      num_classes: null
-      num_gpus: 0
-      num_last_epochs: 5
-      pretrained_checkpoint_path:
-        download_path: '{download_path}/pretrained/yolox_femto_lite'
-        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_femto_lite_320x320_20230407_checkpoint.pth
-      project_path: null
-      summary_file_path: null
-      target_devices:
-        AM62:
-          accuracy_factor: 21.9
-          accuracy_factor2: 12.7
-          accuracy_unit: AP50%
-          accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 2
-          performance_fps: null
-          performance_infer_time_ms: 95.4
-      training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
         cpu: true
@@ -1030,9 +936,9 @@ model_descriptions:
           accuracy_factor2: 24.8
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 0
+          model_selection_factor: 1
           performance_fps: null
-          performance_infer_time_ms: 5.95
+          performance_infer_time_ms: 516.15
         AM62A:
           accuracy_factor: 40.1
           accuracy_factor2: 24.8
@@ -1040,7 +946,7 @@ model_descriptions:
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 2
           performance_fps: null
-          performance_infer_time_ms: 8.88
+          performance_infer_time_ms: 8.87
         AM68A:
           accuracy_factor: 40.1
           accuracy_factor2: 24.8
@@ -1048,13 +954,15 @@ model_descriptions:
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 2
           performance_fps: null
-          performance_infer_time_ms: 2.92
+          performance_infer_time_ms: 3.73
         AM69A:
-          accuracy_factor: 75.212
-          accuracy_unit: Accuracy Top-1%
-          model_selection_factor: 2
+          accuracy_factor: 40.1
+          accuracy_factor2: 24.8
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 0
           performance_fps: null
-          performance_infer_time_ms: 2.85 (with 1/4th device capability)
+          performance_infer_time_ms: 3.64 (with 1/4th device capability)
         TDA4VM:
           accuracy_factor: 40.1
           accuracy_factor2: 24.8
@@ -1062,7 +970,7 @@ model_descriptions:
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 2
           performance_fps: null
-          performance_infer_time_ms: 2.95
+          performance_infer_time_ms: 3.74
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -1161,39 +1069,12 @@ model_descriptions:
       project_path: null
       summary_file_path: null
       target_devices:
-        AM62A:
-          accuracy_factor: 40.1
-          accuracy_factor2: 24.8
-          accuracy_unit: AP50%
-          accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 2
-          performance_fps: null
-          performance_infer_time_ms: 8.87
-        AM68A:
-          accuracy_factor: 40.1
-          accuracy_factor2: 24.8
-          accuracy_unit: AP50%
-          accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 2
-          performance_fps: null
-          performance_infer_time_ms: 3.73
-        AM69A:
-          accuracy_factor: 40.1
-          accuracy_factor2: 24.8
-          accuracy_unit: AP50%
-          accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 0
-          performance_fps: null
-          performance_infer_time_ms: 3.64 (with 1/4th device capability)
-        TDA4VM:
-          accuracy_factor: 40.1
-          accuracy_factor2: 24.8
         AM62:
           accuracy_factor: 29.4
           accuracy_factor2: 17.9
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 1
+          model_selection_factor: 2
           performance_fps: null
           performance_infer_time_ms: 154.89
       training_backend: edgeai_mmdetection
@@ -1424,6 +1305,14 @@ model_descriptions:
       project_path: null
       summary_file_path: null
       target_devices:
+        AM62:
+          accuracy_factor: 47.4
+          accuracy_factor2: 30.5
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 0
+          performance_fps: null
+          performance_infer_time_ms: 1130.6
         AM62A:
           accuracy_factor: 47.4
           accuracy_factor2: 30.5
@@ -1779,11 +1668,6 @@ preset_descriptions:
         compilation:
           calibration_frames: 10
           calibration_iterations: 10
-    segmentation:
-      best_accuracy_preset:
-        compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 16
@@ -1850,6 +1734,42 @@ preset_descriptions:
           calibration_iterations: 5
           detection_threshold: 0.6
           detection_top_k: 200
+          tensor_bits: 8
+    segmentation:
+      best_accuracy_preset:
+        compilation:
+          calibration_frames: 25
+          calibration_iterations: 25
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 16
+      best_speed_preset:
+        compilation:
+          calibration_frames: 5
+          calibration_iterations: 1
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      default_preset:
+        compilation:
+          calibration_frames: 10
+          calibration_iterations: 10
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      high_accuracy_preset:
+        compilation:
+          calibration_frames: 25
+          calibration_iterations: 25
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      high_speed_preset:
+        compilation:
+          calibration_frames: 5
+          calibration_iterations: 5
+          detection_threshold: null
+          detection_top_k: null
           tensor_bits: 8
   TDA4VM:
     classification:
