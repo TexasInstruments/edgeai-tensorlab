@@ -310,6 +310,9 @@ These are the devices that are supported currently. As additional devices are su
 ### {constants.TARGET_DEVICE_AM68A}
 {constants.TARGET_DEVICE_SETUP_INSTRUCTIONS_AM68A}
 
+### {constants.TARGET_DEVICE_AM69A}
+{constants.TARGET_DEVICE_SETUP_INSTRUCTIONS_AM69A}
+
 ## Additional information
 {constants.EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}
 

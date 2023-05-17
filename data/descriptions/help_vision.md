@@ -43,6 +43,13 @@ These are the devices that are supported currently. As additional devices are su
 * SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/common/sdk_overview.html
 * SDK release: 08_06_00
 
+### AM69A
+* Product information: https://www.ti.com/product/AM69A
+* Development board: https://www.ti.com/tool/SK-AM69
+* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A
+* SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM69A/08_06_00/exports/docs/common/sdk_overview.html
+* SDK release: 08_06_00
+
 ## Additional information
 * Edge AI introduction: https://ti.com/edgeai
 * Edge AI tools introduction: https://dev.ti.com/edgeai/

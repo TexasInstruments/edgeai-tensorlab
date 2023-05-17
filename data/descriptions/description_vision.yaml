@@ -30,6 +30,9 @@ help_descriptions: "\n## Overview\nThis is a tool for collecting data, training 
   * SDK release: 08_06_00\n\n### AM68A\n* Product information: https://www.ti.com/product/AM68A\n\
   * Development board: https://www.ti.com/tool/SK-AM68\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n\
   * SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/08_06_00/exports/docs/common/sdk_overview.html\n\
+  * SDK release: 08_06_00\n\n### AM69A\n* Product information: https://www.ti.com/product/AM69A\n\
+  * Development board: https://www.ti.com/tool/SK-AM69\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n\
+  * SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM69A/08_06_00/exports/docs/common/sdk_overview.html\n\
   * SDK release: 08_06_00\n\n## Additional information\n* Edge AI introduction: https://ti.com/edgeai\n\
   * Edge AI tools introduction: https://dev.ti.com/edgeai/\n* Edge AI model development\
   \ information: https://github.com/TexasInstruments/edgeai\n\n## Dataset format\n\
@@ -191,19 +194,25 @@ model_descriptions:
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 2
           performance_fps: null
-          performance_infer_time_ms: 4.09
+          performance_infer_time_ms: 4.03
         AM68A:
           accuracy_factor: 72.13
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 2
           performance_fps: null
-          performance_infer_time_ms: 2.19
+          performance_infer_time_ms: 2.16
+        AM69A:
+          accuracy_factor: 72.13
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 0
+          performance_fps: null
+          performance_infer_time_ms: 2.02 (with 1/4th device capability)
         TDA4VM:
           accuracy_factor: 72.13
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 2
           performance_fps: null
-          performance_infer_time_ms: 2.45
+          performance_infer_time_ms: 2.27
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -304,19 +313,25 @@ model_descriptions:
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 1
           performance_fps: null
-          performance_infer_time_ms: 5.31
+          performance_infer_time_ms: 5.25
         AM68A:
           accuracy_factor: 72.834
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 1
           performance_fps: null
-          performance_infer_time_ms: 2.76
+          performance_infer_time_ms: 2.74
+        AM69A:
+          accuracy_factor: 72.834
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 1
+          performance_fps: null
+          performance_infer_time_ms: 2.64 (with 1/4th device capability)
         TDA4VM:
           accuracy_factor: 72.834
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 1
           performance_fps: null
-          performance_infer_time_ms: 2.66
+          performance_infer_time_ms: 2.61
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -417,19 +432,25 @@ model_descriptions:
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 0
           performance_fps: null
-          performance_infer_time_ms: 5.99
+          performance_infer_time_ms: 5.95
         AM68A:
           accuracy_factor: 75.212
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 0
           performance_fps: null
-          performance_infer_time_ms: 2.95
+          performance_infer_time_ms: 2.92
+        AM69A:
+          accuracy_factor: 75.212
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 2
+          performance_fps: null
+          performance_infer_time_ms: 2.85 (with 1/4th device capability)
         TDA4VM:
           accuracy_factor: 75.212
           accuracy_unit: Accuracy Top-1%
           model_selection_factor: 0
           performance_fps: null
-          performance_infer_time_ms: 2.98
+          performance_infer_time_ms: 2.95
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -535,7 +556,7 @@ model_descriptions:
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 2
           performance_fps: null
-          performance_infer_time_ms: 8.88
+          performance_infer_time_ms: 8.87
         AM68A:
           accuracy_factor: 40.1
           accuracy_factor2: 24.8
@@ -544,6 +565,14 @@ model_descriptions:
           model_selection_factor: 2
           performance_fps: null
           performance_infer_time_ms: 3.73
+        AM69A:
+          accuracy_factor: 40.1
+          accuracy_factor2: 24.8
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 0
+          performance_fps: null
+          performance_infer_time_ms: 3.64 (with 1/4th device capability)
         TDA4VM:
           accuracy_factor: 40.1
           accuracy_factor2: 24.8
@@ -551,7 +580,7 @@ model_descriptions:
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 2
           performance_fps: null
-          performance_infer_time_ms: 3.82
+          performance_infer_time_ms: 3.74
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -657,7 +686,7 @@ model_descriptions:
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 0
           performance_fps: null
-          performance_infer_time_ms: 43.85
+          performance_infer_time_ms: 43.94
         AM68A:
           accuracy_factor: 56.9
           accuracy_factor2: 38.3
@@ -665,7 +694,15 @@ model_descriptions:
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 0
           performance_fps: null
-          performance_infer_time_ms: 10.19
+          performance_infer_time_ms: 10.22
+        AM69A:
+          accuracy_factor: 56.9
+          accuracy_factor2: 38.3
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 2
+          performance_fps: null
+          performance_infer_time_ms: 9.82 (with 1/4th device capability)
         TDA4VM:
           accuracy_factor: 56.9
           accuracy_factor2: 38.3
@@ -673,7 +710,7 @@ model_descriptions:
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 0
           performance_fps: null
-          performance_infer_time_ms: 10.19
+          performance_infer_time_ms: 10.14
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -779,7 +816,7 @@ model_descriptions:
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 1
           performance_fps: null
-          performance_infer_time_ms: 15.32
+          performance_infer_time_ms: 15.35
         AM68A:
           accuracy_factor: 47.4
           accuracy_factor2: 30.5
@@ -787,7 +824,15 @@ model_descriptions:
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 1
           performance_fps: null
-          performance_infer_time_ms: 4.92
+          performance_infer_time_ms: 4.82
+        AM69A:
+          accuracy_factor: 47.4
+          accuracy_factor2: 30.5
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 1
+          performance_fps: null
+          performance_infer_time_ms: 4.73 (with 1/4th device capability)
         TDA4VM:
           accuracy_factor: 47.4
           accuracy_factor2: 30.5
@@ -795,7 +840,7 @@ model_descriptions:
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 1
           performance_fps: null
-          performance_infer_time_ms: 4.92
+          performance_infer_time_ms: 4.84
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -881,6 +926,79 @@ preset_descriptions:
           detection_top_k: 200
           tensor_bits: 8
   AM68A:
+    classification:
+      best_accuracy_preset:
+        compilation:
+          calibration_frames: 10
+          calibration_iterations: 10
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 16
+      best_speed_preset:
+        compilation:
+          calibration_frames: 3
+          calibration_iterations: 3
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      default_preset:
+        compilation:
+          calibration_frames: 10
+          calibration_iterations: 10
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      high_accuracy_preset:
+        compilation:
+          calibration_frames: 25
+          calibration_iterations: 25
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      high_speed_preset:
+        compilation:
+          calibration_frames: 5
+          calibration_iterations: 5
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+    detection:
+      best_accuracy_preset:
+        compilation:
+          calibration_frames: 10
+          calibration_iterations: 10
+          detection_threshold: 0.05
+          detection_top_k: 500
+          tensor_bits: 16
+      best_speed_preset:
+        compilation:
+          calibration_frames: 3
+          calibration_iterations: 3
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 8
+      default_preset:
+        compilation:
+          calibration_frames: 10
+          calibration_iterations: 10
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 8
+      high_accuracy_preset:
+        compilation:
+          calibration_frames: 25
+          calibration_iterations: 25
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 8
+      high_speed_preset:
+        compilation:
+          calibration_frames: 5
+          calibration_iterations: 5
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 8
+  AM69A:
     classification:
       best_accuracy_preset:
         compilation:
@@ -1105,6 +1223,21 @@ target_device_descriptions:
     device_type: MPU
     sdk_release: 08_06_00
     sdk_version: '8.6'
+  AM69A:
+    device_details: "Efficient 32 TOPS AI capability at edge\nSpecification:\n* 32\
+      \ TOPS Deep Learning accelerator\n* 8 Arm\xAE Cortex\xAE-A72\n* Integrated ISP\n\
+      * More details : https://www.ti.com/product/AM69A\n\nImportant links:\n* Product\
+      \ information: https://www.ti.com/product/AM69A\n* Development board: https://www.ti.com/tool/SK-AM69\n\
+      * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n\
+      * SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM69A/08_06_00/exports/docs/common/sdk_overview.html\n\
+      * SDK release: 08_06_00\n\nAdditional information:\n* Edge AI introduction:\
+      \ https://ti.com/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\
+      * Edge AI model development information: https://github.com/TexasInstruments/edgeai"
+    device_name: AM69A
+    device_selection_factor: 3
+    device_type: MPU
+    sdk_release: 08_06_00
+    sdk_version: '8.6'
   TDA4VM:
     device_details: "Efficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS\
       \ Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated ISP\n\
@@ -1130,6 +1263,7 @@ task_descriptions:
     - TDA4VM
     - AM62A
     - AM68A
+    - AM69A
     target_module: vision
     task_name: Image Classification
   detection:
