@@ -14,7 +14,7 @@ from mmdet.core.export import build_model_from_cfg, preprocess_example_input
 from mmdet.core.export.model_wrappers import ONNXRuntimeDetector
 
 from mmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint, is_mmdet_quant_module
-from mmdet.utils import save_model_proto
+from mmdet.utils import save_model_proto, patch_onnx_file
 
 from torchvision.edgeailite import xnn
 
@@ -110,6 +110,10 @@ def pytorch2onnx(args,
         opset_version=opset_version,
         dynamic_axes=dynamic_axes,
     )
+
+    # Apply path to Reduce OP to make it run in onnxruntime
+    patch_onnx_file(output_file, output_file)
+
     onnx_model = onnx.load(output_file)
     feature_names = [node.name for node in onnx_model.graph.output[2:]]
     for opt in onnx_model.graph.output[2:]:

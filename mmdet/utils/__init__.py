@@ -12,6 +12,7 @@ from .save_model import save_model_proto
 from .quantize import XMMDetQuantTrainModule, XMMDetQuantCalibrateModule, XMMDetQuantTestModule, is_mmdet_quant_module
 from .model_surgery import convert_to_lite_model
 from .util_misc import remove_if_exists, make_symlink
+from .onnx_utils import patch_onnx_file
 
 
 __all__ = [
