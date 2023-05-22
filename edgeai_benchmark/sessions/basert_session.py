@@ -462,7 +462,7 @@ class BaseRTSession(utils.ParamsBase):
 
         # download the file if it is an http or https link
         model_path = self.kwargs['model_path']
-        # make a local copy
+        # get the path of the local copy that will be made
         model_file = utils.get_local_path(model_path, model_folder)
         # self.kwargs['model_file'] is what is used in the session
         # we could have just used self.kwargs['model_path'], but do this for legacy reasons
@@ -474,6 +474,10 @@ class BaseRTSession(utils.ParamsBase):
         model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
         model_file_exists = utils.file_exists(model_file0)
         if not model_file_exists:
+            # download to modelzoo if the the given path is a url or a link file
+            model_folder_download = model_folder if utils.is_url(model_path) else os.path.dirname(model_path)
+            model_path = utils.download_files(model_path, root=model_folder_download)
+            # make a local copy to the run_dir/model folder
             model_path = utils.download_files(model_path, root=model_folder)
         #
 
@@ -503,9 +507,13 @@ class BaseRTSession(utils.ParamsBase):
         # meta_file
         meta_path = self.kwargs['runtime_options'].get(meta_file_key, None)
         if meta_path is not None:
-            # make a local copy
+            # get the path of the local copy that will be made
             meta_file = utils.get_local_path(meta_path, model_folder)
             if not utils.file_exists(meta_file):
+                # download to modelzoo if the the given path is a url or a link file
+                meta_folder_download = model_folder if utils.is_url(meta_path) else os.path.dirname(meta_path)
+                meta_path = utils.download_file(meta_path, meta_folder_download)
+                # make a local copy to the run_dir/model folder
                 meta_path = utils.download_file(meta_path, root=model_folder)
             #
             # write the local path

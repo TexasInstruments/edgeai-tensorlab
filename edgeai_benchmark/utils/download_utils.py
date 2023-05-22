@@ -97,6 +97,10 @@ def copy_files(file_path, file_path_local):
     return output_files
 
 
+def is_url(path):
+    return path.startswith('http://') or path.startswith('https://')
+
+
 def download_file(url, root=None, extract_root=None, filename=None, md5=None, mode=None, force_download=False, force_linkfile=True):
     if not isinstance(url, str):
         print(f"invalid file or url: {url}")
@@ -105,8 +109,8 @@ def download_file(url, root=None, extract_root=None, filename=None, md5=None, mo
     root = os.path.abspath('./') if root is None else root
 
     is_linkfile = url.endswith('.link')
-    is_url = url.startswith('http://') or url.startswith('https://')
-    if (not is_url):
+    path_is_url = is_url(url)
+    if (not path_is_url):
         if os.path.exists(url):
             filename = filename or os.path.basename(url)
             local_file = os.path.join(root, filename)
