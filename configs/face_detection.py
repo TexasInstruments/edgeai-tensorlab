@@ -68,8 +68,10 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_tiny_lite_416x416_20220318_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.widerfacedet_det_label_offset_1to1(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 23.5}, model_shortlist=None, model_name='OD-8410-yolox-tiny-lite-mmdet-widerface-416x416')
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 23.5, 'accuracy_ap50%': 47.4}, model_shortlist=10, model_name='OD-8410-yolox-tiny-lite-mmdet-widerface-416x416')
         ),
+        # for some reason, the model export has an issue in only 640x640 resolution - the exported model doesn't have NMS OP
+        # this causes issue in SoCs that do not use tidl_offload
         'od-8420':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
@@ -80,7 +82,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_s_lite_640x640_20220307_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.widerfacedet_det_label_offset_1to1(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 31.62}, model_shortlist=10, model_name='OD-8420-yolox-s-lite-mmdet-widerface-640x640')
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 31.62, 'accuracy_ap50%': 64.4}, model_shortlist=20, model_name='OD-8420-yolox-s-lite-mmdet-widerface-640x640')
         ),
         'od-8421':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(1024, 1024, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
@@ -92,21 +94,22 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_s_lite_1024x1024_20220317_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.widerfacedet_det_label_offset_1to1(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None}, model_shortlist=None, model_name='OD-8421-yolox-s-lite-mmdet-widerface-1024x1024')
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None, 'accuracy_ap50%': 72.3}, model_shortlist=50, model_name='OD-8421-yolox-s-lite-mmdet-widerface-1024x1024')
         ),
-        'od-8430':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
-            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(
-                    det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                    'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_m_lite_640x640_20220318_model.prototxt',
-                    #'advanced_options:output_feature_16bit_names_list': '996, 711, 712, 713, 727, 728, 728, 743, 744, 745'
-                    }),
-                model_path=f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_m_lite_640x640_20220318_model.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
-            metric=dict(label_offset_pred=datasets.widerfacedet_det_label_offset_1to1(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 33.6}, model_shortlist=None, model_name='OD-8430-yolox-m-lite-mmdet-widerface-640x640')
-        ),
+        # more than model complexity, it seems input size helps in face detection - hence the above yolox_s 1024x1024 model is better than this
+        # 'od-8430':utils.dict_update(common_cfg,
+        #     preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+        #     session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
+        #         runtime_options=settings.runtime_options_onnx_np2(
+        #             det_options=True, ext_options={'object_detection:meta_arch_type': 6,
+        #             'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_m_lite_640x640_20220318_model.prototxt',
+        #             #'advanced_options:output_feature_16bit_names_list': '996, 711, 712, 713, 727, 728, 728, 743, 744, 745'
+        #             }),
+        #         model_path=f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_m_lite_640x640_20220318_model.onnx'),
+        #     postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
+        #     metric=dict(label_offset_pred=datasets.widerfacedet_det_label_offset_1to1(label_offset=1)),
+        #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 33.6, 'accuracy_ap50%': 67.5}, model_shortlist=None, model_name='OD-8430-yolox-m-lite-mmdet-widerface-640x640')
+        # ),
         'od-8450':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),

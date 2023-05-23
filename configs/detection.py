@@ -242,6 +242,8 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=20)
         ),
+        # for some reason, the model export has an issue in only 640x640 resolution - the exported model doesn't have NMS OP
+        # this causes issue in SoCs that do not use tidl_offload
         'od-8220':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
@@ -288,7 +290,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 17.9}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 17.9}, model_shortlist=20)
         ),
         #################################################################
         #       MXNET MODELS
