@@ -337,7 +337,7 @@ An object detection dataset should have the following structure.
 - Use a suitable dataset name instead of dataset_name
 - The default annotation file name for object detection is instances.json
 - The format of the annotation file is similar to that of the [COCO dataset 2017 Train/Val annotations](https://cocodataset.org/#download) - a json file containing 'info', 'images', 'categories' and 'annotations'.
-- Look at the example dataset [animal_classification](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip) to understand more.
+- Look at the example dataset [animal_classification](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip) to understand more.
 
 #### Image Classification dataset format
 An image classification dataset should have the following structure. (Use a suitable dataset name instead of dataset_name).
@@ -353,7 +353,7 @@ An image classification dataset should have the following structure. (Use a suit
 - Use a suitable dataset name instead of dataset_name
 - The default annotation file name for image classification is instances.json
 - The format of the annotation file is similar to that of the COCO dataset - a json file containing 'info', 'images', 'categories' and 'annotations'. However, one difference is that the bounding box information is not used for classification task and need not be present. The category information in each annotation (called the 'id' field) is needed.
-- Look at the example dataset [animal_detection](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip) to understand more.
+- Look at the example dataset [animal_detection](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip) to understand more.
 
 ## Model deployment
 - The deploy page provides a button to download the compiled model artifacts to the development board. 
