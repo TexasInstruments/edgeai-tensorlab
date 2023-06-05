@@ -207,6 +207,10 @@ class ConfigSettings(config_dict.ConfigDict):
             'advanced_options:params_16bit_names_list':'',
             # optimize data conversion options by moving them from arm to c7x
             'advanced_options:add_data_convert_ops': 3,
+            ##################################
+            # additional options (internal / performance estimation)
+            #################################
+            "ti_internal_nc_flag" : 83886080
         }
         # if detection options are needed, set them.
         if det_options is True:
