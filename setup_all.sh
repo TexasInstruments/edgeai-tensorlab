@@ -57,8 +57,8 @@ echo "SOURCE_LOCATION="${SOURCE_LOCATION}
 echo "cloning git repositories. this may take some time..."
 
 if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch r8.6 ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
-if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r8.4 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
-if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r8.4 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
+if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r8.6 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
+if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r8.6 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
 if [[ ! -d ../edgeai-modelzoo ]]; then git clone ${FAST_CLONE_MODELZOO} --branch r8.6 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; fi
 
 if [[ ${PLUGINS_ENABLE_GPL} -ne 0 ]]; then
