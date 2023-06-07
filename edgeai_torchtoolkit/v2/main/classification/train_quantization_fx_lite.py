@@ -11,8 +11,8 @@ import utils
 from torch import nn
 from train import train_one_epoch, evaluate, load_data
 
-from edgeai_torchtoolkit.v1.tools import xnn
-from edgeai_torchtoolkit.v2.tools.xao.quantization import quant_fx_lite
+from edgeai_torchtoolkit.v1.toolkit import xnn
+from edgeai_torchtoolkit.v2.toolkit.xao.quantization import quant_fx_lite
 
 
 def main(args):

@@ -30,7 +30,7 @@
 #################################################################################
 
 import torch
-import edgeai_torchtoolkit.v1.tools.xnn as xnn
+import edgeai_torchtoolkit.v1.toolkit.xnn as xnn
 
 
 def load_weights(model, pretrained=None, change_names_dict=None):

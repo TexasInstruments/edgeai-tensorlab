@@ -1,9 +1,7 @@
 .idea/
 *.pyc
 *.egg-info/
-data/datasets
+data/
 !data/datasets/readme.txt
-data/checkpoints
 !data/checkpoints/readme.txt
-data/downloads
 !data/downloads/readme.txt

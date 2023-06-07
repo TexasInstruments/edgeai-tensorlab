@@ -11,7 +11,7 @@ import utils
 from torch import nn
 from train import train_one_epoch, evaluate, load_data
 
-from edgeai_torchtoolkit.v1.tools import xnn
+from edgeai_torchtoolkit.v1.toolkit import xnn
 
 
 def main(args):

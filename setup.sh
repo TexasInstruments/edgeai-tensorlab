@@ -30,8 +30,9 @@
 
 ######################################################################
 # Installing dependencies
-echo 'Installing python packages...'
-pip install --no-input cython numpy wheel
+#echo 'installing pytorch...'
+#pip3 install --no-input torch torchvision torchaudio
+echo 'installing requirements...'
 pip3 install --no-input -r ./edgeai_torchtoolkit/requirements.txt
-# Installing the toolkit
+echo 'installing the toolkit...'
 python3 ./edgeai_torchtoolkit/setup.py develop
