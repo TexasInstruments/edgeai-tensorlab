@@ -42,3 +42,8 @@ xcuserdata/
 # direnv
 .direnv
 .envrc
+
+data/
+!data/datasets/readme.txt
+!data/checkpoints/readme.txt
+!data/downloads/readme.txt
