@@ -1,2 +1,3 @@
-from . import replacer, custom_module
+from . import custom_module
+from . import replacer
 
