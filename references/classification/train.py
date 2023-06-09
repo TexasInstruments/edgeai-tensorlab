@@ -14,6 +14,8 @@ from torch import nn
 from torch.utils.data.dataloader import default_collate
 from torchvision.transforms.functional import InterpolationMode
 
+from edgeai_torchtoolkit.v2.toolkit import xao
+
 
 def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, args, model_ema=None, scaler=None):
     model.train()
@@ -235,6 +237,10 @@ def main(args):
 
     print("Creating model")
     model = torchvision.models.get_model(args.model, weights=args.weights, num_classes=num_classes)
+
+    script_model = torch.fx.symbolic_trace(model)
+    xao.surgery.graphPatternReplacer(script_model, )
+
     model.to(device)
 
     if args.distributed and args.sync_bn:
