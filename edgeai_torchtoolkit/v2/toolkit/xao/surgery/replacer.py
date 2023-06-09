@@ -3,10 +3,13 @@ from torch import nn,fx,Tensor
 from torch.fx import symbolic_trace,GraphModule, Node
 from typing import Dict, Any, Union
 import operator
-
+from copy import deepcopy
 
 # moduleReplacementdict=Dict[]()
 # functionReplacementDict=Dict[]()
+def _get_parent_name(target:str):
+    *parent, name = target.rsplit('.', 1)
+    return ( parent[0] if parent else ''), name
 
 def replaceModuleNode(node:Node,modulesDict:Dict[str,Any],replaceModel:Union[GraphModule,nn.Module]):
     if node.op != 'call_module':
@@ -15,8 +18,7 @@ def replaceModuleNode(node:Node,modulesDict:Dict[str,Any],replaceModel:Union[Gra
         So, No changes will be made.
         ''')
         return 
-    *parent, name = node.target.rsplit('.', 1)
-    parent_name, name =( parent[0] if parent else ''), name
+    parent_name, name = _get_parent_name(node.target)
     modulesDict.update(node.target,replaceModel)
     setattr(modulesDict[parent_name], name, replaceModel)
 
@@ -110,18 +112,78 @@ def _straightChainSearcher(mainModule:GraphModule,patternModule:GraphModule):
                 secondStartIndex=-1
     return matched
 
-def _replacePattern(mainModule:GraphModule,start:Node,end:Node,replaceModule:GraphModule):
-    mainModule.add_module('replaced'+str(replaceModule.__class__.__name__),replaceModule)
+def _replacePattern(mainModule:GraphModule,start:Node,end:Node,replaceModule:GraphModule,no_of_module_replaced:int=0):
+    new_node_name='replaced_'+str(replaceModule.__class__.__name__)+'_'+str(no_of_module_replaced)
+    mainModules=dict(mainModule.named_modules())
+    mainModule.add_module(new_node_name,replaceModule)
+    replaceModule=deepcopy(replaceModule)
     with mainModule.graph.inserting_before(start):
-        newNode = mainModule.graph.call_module('replaced'+str(replaceModule.__class__.__name__),start.args,start.kwargs)
+        newNode = mainModule.graph.call_module(new_node_name,start.args,start.kwargs)
         ptr=start
         while ptr!=end:
+            if (ptr.op=='call_module'):
+                parent_name,name= _get_parent_name(ptr.target)
+                mainModules[parent_name].__delattr__(name)
             ptr.replace_all_uses_with(newNode)
             temp=ptr.next
             mainModule.graph.erase_node(ptr)
             ptr=temp
+        if (ptr.op=='call_module'):
+            parent_name,name= _get_parent_name(end.target)
+            mainModules[parent_name].__delattr__(name)
         end.replace_all_uses_with(newNode)
     mainModule.graph.erase_node(end)
+    # print(mainModules)
+    mainModules.update({new_node_name:replaceModule})
+    # print(mainModules)
+    no_of_module_replaced+=1
+    pass
+def _replacePattern1(mainModule:GraphModule,start:Node,end:Node,replaceModule:GraphModule,no_of_module_replaced:int=0):
+    replaceModule= deepcopy(replaceModule)
+    mainModules=dict(mainModule.named_modules())
+    if (start.op=='call_module'):
+        parent_name,name =_get_parent_name(start.target)
+        parent_module=mainModules[parent_name]
+        parent_module.__setattr__(name,replaceModule)
+        mainModules[start.target]=replaceModule
+        newNode=start
+        ptr=start.next
+        if start!=end:
+            while ptr!=end:
+                if (ptr.op=='call_module'):
+                    parent_name,name= _get_parent_name(ptr.target)
+                    parent_module.__delattr__(name)
+                ptr.replace_all_uses_with(newNode)
+                temp=ptr.next
+                mainModule.graph.erase_node(ptr)
+                ptr=temp
+            if (ptr.op=='call_module'):
+                parent_name,name= _get_parent_name(end.target)
+                parent_module.__delattr__(name)
+        # print(parent_module.graph.print_tabular())
+    else:
+        new_node_name='replaced_'+str(replaceModule.__class__.__name__)+'_'+str(no_of_module_replaced)
+        mainModule.add_module(new_node_name,replaceModule)
+        with mainModule.graph.inserting_before(start):
+            newNode = mainModule.graph.call_module(new_node_name,start.args,start.kwargs)
+            ptr=start
+            while ptr!=end:
+                if (ptr.op=='call_module'):
+                    parent_name,name= _get_parent_name(ptr.target)
+                    mainModules[parent_name].__delattr__(name)
+                ptr.replace_all_uses_with(newNode)
+                temp=ptr.next
+                mainModule.graph.erase_node(ptr)
+                ptr=temp
+            if (ptr.op=='call_module'):
+                parent_name,name= _get_parent_name(end.target)
+                mainModules[parent_name].__delattr__(name)
+            end.replace_all_uses_with(newNode)
+        mainModule.graph.erase_node(end)
+        mainModules.update({new_node_name:replaceModule})
+    # print(mainModules)
+    # print(mainModules)
+    mainModule.recompile()
     pass
 
 def graphPatternReplacer(mainModule:GraphModule,patternModule:Union[GraphModule,nn.Module,callable],replaceModule:Union[GraphModule,nn.Module,callable]):
@@ -129,7 +191,8 @@ def graphPatternReplacer(mainModule:GraphModule,patternModule:Union[GraphModule,
         patternModule=symbolic_trace(patternModule)
     if type(replaceModule)!=GraphModule:
         replaceModule=symbolic_trace(replaceModule)
-
+    global no_of_module_replaced
+    no_of_module_replaced=0
     # print(patternModule)
     # print(replaceModule)
     patternNodes=[]
@@ -174,10 +237,12 @@ def graphPatternReplacer(mainModule:GraphModule,patternModule:Union[GraphModule,
     if numberOfInput ==1 and numberOfOutput==1:
         matches = _straightChainSearcher(mainModule,patternModule)
         for (start,end) in matches:
-            _replacePattern(mainModule,start,end,replaceModule)
+            _replacePattern1(mainModule,start,end,replaceModule,no_of_module_replaced)
+            no_of_module_replaced+=1
     # delete_unused_nodes(mainModule)
     mainModule.graph.lint()
-    mainModule.recompile()
+    print(no_of_module_replaced)
+
     return mainModule
 
 
@@ -195,8 +260,9 @@ def delete_unused_nodes(graph_module:GraphModule):
         if len(temp.users.keys())==0:
             graph_module.graph.erase_node(temp)
 
-from utils import exportAndSimplifyOnnx
 from copy import deepcopy
+
+
 def replaceAndExpot(mainModule:nn.Module,dummyinput:Tensor,patternModule:Union[GraphModule,nn.Module,callable],replaceModule:Union[GraphModule,nn.Module,callable]):
     mainModule =deepcopy(mainModule)
     mainModule=symbolic_trace(mainModule)
