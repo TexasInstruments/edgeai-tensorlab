@@ -1,4 +1,5 @@
 import torch
+from inspect import getmodule
 from torch import nn,fx,Tensor
 from torch.fx import symbolic_trace,GraphModule, Node
 from typing import Dict, Any, Union
@@ -110,33 +111,8 @@ def _straight_chain_searcher(main_module:GraphModule,pattern_module:GraphModule)
                 second_start_index=-1
     return matched
 
-def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:GraphModule,no_of_module_replaced:int=0):
-    new_node_name='replaced_'+str(replace_module.__class__.__name__)+'_'+str(no_of_module_replaced)
-    main_modules=dict(main_module.named_modules())
-    main_module.add_module(new_node_name,replace_module)
-    replace_module=deepcopy(replace_module)
-    with main_module.graph.inserting_before(start):
-        newNode = main_module.graph.call_module(new_node_name,start.args,start.kwargs)
-        ptr=start
-        while ptr!=end:
-            if (ptr.op=='call_module'):
-                parent_name,name= _get_parent_name(ptr.target)
-                main_modules[parent_name].__delattr__(name)
-            ptr.replace_all_uses_with(newNode)
-            temp=ptr.next
-            main_module.graph.erase_node(ptr)
-            ptr=temp
-        if (ptr.op=='call_module'):
-            parent_name,name= _get_parent_name(end.target)
-            main_modules[parent_name].__delattr__(name)
-        end.replace_all_uses_with(newNode)
-    main_module.graph.erase_node(end)
-    # print(main_modules)
-    main_modules.update({new_node_name:replace_module})
-    # print(main_modules)
-    no_of_module_replaced+=1
-    pass
-def _replace_pattern_1(main_module:GraphModule,start:Node,end:Node,replace_module:GraphModule,no_of_module_replaced:int=0):
+
+def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:nn.Module,no_of_module_replaced:int=0):
     replace_module= deepcopy(replace_module)
     main_modules=dict(main_module.named_modules())
     if (start.op=='call_module'):
@@ -152,12 +128,13 @@ def _replace_pattern_1(main_module:GraphModule,start:Node,end:Node,replace_modul
                     parent_name,name= _get_parent_name(ptr.target)
                     parent_module.__delattr__(name)
                 ptr.replace_all_uses_with(newNode)
-                temp=ptr.next
+                temp=ptr.next  
                 main_module.graph.erase_node(ptr)
                 ptr=temp
-            if (ptr.op=='call_module'):
+            if (end.op=='call_module'):
                 parent_name,name= _get_parent_name(end.target)
                 parent_module.__delattr__(name)
+            main_module.graph.erase_node(end)
         # print(parent_module.graph.print_tabular())
     else:
         new_node_name='replaced_'+str(replace_module.__class__.__name__)+'_'+str(no_of_module_replaced)
@@ -189,8 +166,8 @@ def graphPatternReplacer(main_module:Union[GraphModule,nn.Module,callable],patte
         main_module=symbolic_trace(main_module)
     if type(pattern_module)!=GraphModule:
         pattern_module=symbolic_trace(pattern_module)
-    if type(replace_module)!=GraphModule:
-        replace_module=symbolic_trace(replace_module)
+    # if type(replace_module)!=GraphModule:
+    #     replace_module=symbolic_trace(replace_module)
     global no_of_module_replaced
     no_of_module_replaced=0
     # print(pattern_module)
@@ -237,7 +214,7 @@ def graphPatternReplacer(main_module:Union[GraphModule,nn.Module,callable],patte
     if number_of_input ==1 and number_of_output==1:
         matches = _straight_chain_searcher(main_module,pattern_module)
         for (start,end) in matches:
-            _replace_pattern_1(main_module,start,end,replace_module,no_of_module_replaced)
+            _replace_pattern(main_module,start,end,replace_module,no_of_module_replaced)
             no_of_module_replaced+=1
     # delete_unused_nodes(main_module)
     main_module.graph.lint()
@@ -245,13 +222,12 @@ def graphPatternReplacer(main_module:Union[GraphModule,nn.Module,callable],patte
 
     return main_module
 
-unsupported_primary_module_dict={
-    nn.Hardswish():nn.ReLU(),
+#put composite modules first, then primary module
+unsupported_module_dict={
+    SEModule() : nn.Identity(),
     nn.ReLU(inplace=True):nn.ReLU(),
+    nn.Hardswish():nn.ReLU(),
     nn.Dropout(inplace=True):nn.Dropout()
-}
-unsupported_composite_module_dict={
-    SEModule() : nn.Identity()
 }
 
 def _is_replacable(pattern:Union[GraphModule,nn.Module,callable]):
@@ -260,12 +236,14 @@ def _is_replacable(pattern:Union[GraphModule,nn.Module,callable]):
     #TODO
     return True
 
-def replace_all_unsuppoted_layers(model:nn.Module):
+def replace_all_unsuppoted_layers(model:nn.Module,replacement_dict:dict[nn.Module,nn.Module]=unsupported_module_dict):
     model=deepcopy(model)
-    for pattern, replacement in unsupported_composite_module_dict.items:
+    # for pattern, replacement in unsupported_composite_module_dict.items():
+    #     model=graphPatternReplacer(model,pattern,replacement)
+    for pattern, replacement in replacement_dict.items():
+        if pattern.__class__.__name__ in dir(nn):
+            pattern= InstaModule(pattern)
         model=graphPatternReplacer(model,pattern,replacement)
-    for pattern, replacement in unsupported_composite_module_dict.items:
-        model=graphPatternReplacer(model,InstaModule(pattern),replacement)
     return model
 
 
