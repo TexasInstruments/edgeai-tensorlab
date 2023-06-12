@@ -195,6 +195,9 @@ def main(args):
     if args.output_dir:
         utils.mkdir(args.output_dir)
 
+    # create logger that tee writes to file
+    xao.utils.TeeLogger(os.path.join(args.output_dir, 'run.log'))
+
     utils.init_distributed_mode(args)
     print(args)
 
