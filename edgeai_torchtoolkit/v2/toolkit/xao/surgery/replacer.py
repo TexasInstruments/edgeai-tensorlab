@@ -65,7 +65,7 @@ def _are_both_node_equal(first_node:Node,second_node:Node,first_graoh_module:Uni
     return False
 
 
-def _straight_chain_searcher(main_module:GraphModule,pattern_module:GraphModule):
+def straight_chain_searcher(main_module:GraphModule,pattern_module:GraphModule):
     main_module_nodes:list[fx.Node] =list(main_module.graph.nodes)
     pattern_module_nodes:list[fx.Node] =list(pattern_module.graph.nodes)
     count={'placeholder':0,'output':0}
@@ -212,7 +212,7 @@ def graphPatternReplacer(main_module:Union[GraphModule,nn.Module,callable],patte
     #         #one input one output
     # el
     if number_of_input ==1 and number_of_output==1:
-        matches = _straight_chain_searcher(main_module,pattern_module)
+        matches = straight_chain_searcher(main_module,pattern_module)
         for (start,end) in matches:
             _replace_pattern(main_module,start,end,replace_module,no_of_module_replaced)
             no_of_module_replaced+=1
@@ -227,7 +227,7 @@ unsupported_module_dict={
     SEModule() : nn.Identity(),
     nn.ReLU(inplace=True):nn.ReLU(),
     nn.Hardswish():nn.ReLU(),
-    nn.Dropout(inplace=True):nn.Dropout()
+    nn.Dropout(inplace=True):nn.Dropout(),
 }
 
 def _is_replacable(pattern:Union[GraphModule,nn.Module,callable]):
@@ -246,4 +246,7 @@ def replace_all_unsuppoted_layers(model:nn.Module,replacement_dict:dict[nn.Modul
         model=graphPatternReplacer(model,pattern,replacement)
     return model
 
+
+def get_replacement_dict_default():
+    return unsupported_module_dict
 
