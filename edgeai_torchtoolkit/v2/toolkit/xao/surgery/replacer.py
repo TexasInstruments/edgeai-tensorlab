@@ -134,6 +134,7 @@ def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:
             if (end.op=='call_module'):
                 parent_name,name= _get_parent_name(end.target)
                 parent_module.__delattr__(name)
+            end.replace_all_uses_with(newNode)
             main_module.graph.erase_node(end)
         # print(parent_module.graph.print_tabular())
     else:
@@ -154,7 +155,7 @@ def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:
                 parent_name,name= _get_parent_name(end.target)
                 main_modules[parent_name].__delattr__(name)
             end.replace_all_uses_with(newNode)
-        main_module.graph.erase_node(end)
+            main_module.graph.erase_node(end)
         main_modules.update({new_node_name:replace_module})
     # print(main_modules)
     # print(main_modules)
@@ -236,7 +237,7 @@ def _is_replacable(pattern:Union[GraphModule,nn.Module,callable]):
     #TODO
     return True
 
-def replace_all_unsuppoted_layers(model:nn.Module,replacement_dict:Union[dict[nn.Module,nn.Module],dict[str,callable]]=_unsupported_module_dict):
+def replace_all_unsuppoted_layers(model:nn.Module,replacement_dict:Union[Dict[nn.Module,nn.Module],Dict[str,callable]]=_unsupported_module_dict):
     model=deepcopy(model)
     # for pattern, replacement in unsupported_composite_module_dict.items():
     #     model=graphPatternReplacer(model,pattern,replacement)
