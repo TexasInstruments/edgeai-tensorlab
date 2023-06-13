@@ -223,7 +223,7 @@ def graphPatternReplacer(main_module:Union[GraphModule,nn.Module,callable],patte
     return main_module
 
 #put composite modules first, then primary module
-unsupported_module_dict={
+_unsupported_module_dict={
     SEModule() : nn.Identity(),
     nn.ReLU(inplace=True):nn.ReLU(),
     nn.Hardswish():nn.ReLU(),
@@ -236,17 +236,20 @@ def _is_replacable(pattern:Union[GraphModule,nn.Module,callable]):
     #TODO
     return True
 
-def replace_all_unsuppoted_layers(model:nn.Module,replacement_dict:dict[nn.Module,nn.Module]=unsupported_module_dict):
+def replace_all_unsuppoted_layers(model:nn.Module,replacement_dict:Union[dict[nn.Module,nn.Module],dict[str,callable]]=_unsupported_module_dict):
     model=deepcopy(model)
     # for pattern, replacement in unsupported_composite_module_dict.items():
     #     model=graphPatternReplacer(model,pattern,replacement)
     for pattern, replacement in replacement_dict.items():
-        if pattern.__class__.__name__ in dir(nn):
-            pattern= InstaModule(pattern)
-        model=graphPatternReplacer(model,pattern,replacement)
+        if type(pattern)==str:
+            model=replacement(model)
+        else:
+            if pattern.__class__.__name__ in dir(nn):
+                pattern= InstaModule(pattern)
+            model=graphPatternReplacer(model,pattern,replacement)
     return model
 
 
 def get_replacement_dict_default():
-    return unsupported_module_dict
+    return _unsupported_module_dict
 
