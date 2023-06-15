@@ -1,8 +1,8 @@
 import torch
-from inspect import getmodule
+from inspect import getmodule, isfunction
 from torch import nn,fx,Tensor
 from torch.fx import symbolic_trace,GraphModule, Node
-from typing import Dict, Any, Union
+from typing import Dict, Any, Union, List
 import operator
 from copy import deepcopy
 from .custom_module import *
@@ -37,20 +37,28 @@ def replace_function_node(node:Node,traced_model:GraphModule,replace_function):
     # Remove the old node from the graph
     traced_model.graph.erase_node(node)
 
+#checks whether two nodes are  equal or not
 def _are_both_node_equal(first_node:Node,second_node:Node,first_graoh_module:Union[GraphModule,None]=None,second_graph_module:Union[GraphModule,None]=None):
+    # till now for two node to be same they must have same operation
+    #for operator and torch function counter-parts
     operationDict={torch.add:operator.add,torch.sub:operator.sub,torch.mul:operator.mul,operator.add:torch.add,operator.sub:torch.sub,operator.mul:torch.mul}
     if first_node.op==second_node.op:
         if first_node.op == 'placeholder':
+            # for placeholder both should have same number of users
             return len(first_node.users)==len(second_node.users)
         if first_node.op=='output':
+            # for output both should have same number of argument i.e. number of outputs are same 
             return (len(first_node.args)+len(first_node.kwargs))==(len(second_node.args)+len(second_node.kwargs))
         if first_node.op =='call_function':
             if first_node.target==second_node.target:
+                #if both refer to same function
                 return True
             elif first_node.target in operationDict.keys():  
+                #if it is one  of add, sub, mul from either of operator module or torch module it should be the counter part
                 return second_node.target == operationDict[first_node.target]
             else: return False
         if first_node.op =='call_method':
+            #both should refer to same method
             return first_node.target==second_node.target
         if (first_graoh_module==None) or (second_graph_module==None):
             print("\nGraphModules are required for both nodes\nas at least one of them is 'call_module' node.")
@@ -60,25 +68,27 @@ def _are_both_node_equal(first_node:Node,second_node:Node,first_graoh_module:Uni
         module_1=modules_in_1st_graph[first_node.target]
         module_2=modules_in_2nd_graph[second_node.target]
         #TODO change equality module fpr hyperparameters
+        #both should be objects of same class
         return str(type(module_1))== str(type(module_2))
     
     return False
 
-
+#searches pattern with on single input and one output other wise a single node with out checking kwargs
 def straight_chain_searcher(main_module:GraphModule,pattern_module:GraphModule):
     main_module_nodes:list[fx.Node] =list(main_module.graph.nodes)
-    pattern_module_nodes:list[fx.Node] =list(pattern_module.graph.nodes)
-    count={'placeholder':0,'output':0}
-    for pattern_node in pattern_module_nodes:
-        if (pattern_node.op in ['placeholder','output']):
-            pattern_module_nodes.remove(pattern_node)
-            if pattern_node.op=='placeholder':
-                count[pattern_node.op] +=1
-            elif pattern_node.op=='output':
-                count[pattern_node.op] = len(pattern_node.args)
-    assert count['output']==1 and count['placeholder']==1, 'This function is not for multi-input or multi-output'
+    pattern_module_nodes=[]
+    number_of_input=0
+    number_of_output=0
+    for node in pattern_module.graph.nodes:
+        if node.op=='placeholder':
+            number_of_input+=1
+        elif node.op =='output':
+            number_of_output=len(node.args)
+        else:
+            pattern_module_nodes.append(node)
     main_module_node_num=len(main_module_nodes)
     pattern_module_node_num=len(pattern_module_nodes)
+    assert (number_of_input==1 and number_of_output==1) or pattern_module_node_num==1, 'This function is not for multi-input or multi-output'
 
     main_index=0
     patt_index=0
@@ -111,10 +121,33 @@ def straight_chain_searcher(main_module:GraphModule,pattern_module:GraphModule):
                 second_start_index=-1
     return matched
 
-
+#replaces a pattern fom start to end in graph module to a call_module node
 def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:nn.Module,no_of_module_replaced:int=0):
-    replace_module= deepcopy(replace_module)
     main_modules=dict(main_module.named_modules())
+    if start == end:
+            if start in ['call_function','call_method']:
+                traced_replacement=symbolic_trace(replace_module)
+                replcament_nodes=[]
+                for node in traced_replacement.graph.nodes:
+                    if node.op not in ['placeholder','output']:
+                        replcament_nodes.append(node)
+                if len(replcament_nodes) == 1:
+                    if  replcament_nodes[0].op == 'call_function':
+                        with main_module.graph.inserting_after(start):
+                            new_node= main_module.graph.call_function(replcament_nodes[0].target,start.args,start.kwargs)
+                            start.replace_all_uses_with(new_node)
+                        print(start)
+                        main_module.graph.erase_node(start)
+                        main_module.recompile()
+                        return
+                    elif replcament_nodes[0].op == 'call_method':
+                        with main_module.graph.inserting_after(start):
+                            new_node= main_module.graph.call_method(replcament_nodes[0].target,start.args,start.kwargs)
+                            start.replace_all_uses_with(new_node)
+                        main_module.graph.erase_node(start)
+                        main_module.recompile()
+                        return
+                        
     if (start.op=='call_module'):
         parent_name,name =_get_parent_name(start.target)
         parent_module=main_modules[parent_name]
@@ -159,9 +192,18 @@ def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:
         main_modules.update({new_node_name:replace_module})
     # print(main_modules)
     # print(main_modules)
+    main_module.graph.lint()
     main_module.recompile()
-    pass
 
+#replaces all matches with call_module node
+def _replace_all_matches(main_module:GraphModule,matches,replace_module:nn.Module):
+    no_of_module_replaced=0
+    for (start,end) in matches:
+        replace_module_copy =deepcopy(replace_module)
+        _replace_pattern(main_module,start,end,replace_module_copy,no_of_module_replaced)
+        no_of_module_replaced+=1
+
+#replace nodes if they don't need any change with their keyword arguments and arguements
 def graphPatternReplacer(main_module:Union[GraphModule,nn.Module,callable],pattern_module:Union[GraphModule,nn.Module,callable],replace_module:Union[GraphModule,nn.Module,callable]):
     if type(main_module)!=GraphModule:
         main_module=symbolic_trace(main_module)
@@ -169,8 +211,6 @@ def graphPatternReplacer(main_module:Union[GraphModule,nn.Module,callable],patte
         pattern_module=symbolic_trace(pattern_module)
     # if type(replace_module)!=GraphModule:
     #     replace_module=symbolic_trace(replace_module)
-    global no_of_module_replaced
-    no_of_module_replaced=0
     # print(pattern_module)
     # print(replace_module)
     pattern_nodes=[]
@@ -183,49 +223,16 @@ def graphPatternReplacer(main_module:Union[GraphModule,nn.Module,callable],patte
             number_of_output=len(node.args)
         else:
             pattern_nodes.append(node)
-    #singleNode
-    # if (len(pattern_nodes)==1):
-    #     # (pattern_nodes[0].op)
-    #     if pattern_nodes[0].op=='call_module':
-    #         for node in main_module.graph.nodes:
-    #             if _are_both_node_equal(node,pattern_nodes[0],main_module,pattern_module):
-    #                _replace_pattern(main_module,node,node,replace_module)
-    #     elif pattern_nodes[0].op=='call_function':
-    #         for node in main_module.graph.nodes:
-    #             cond=_are_both_node_equal(node,pattern_nodes[0],main_module,pattern_module)
-    #             if cond:
-    #                 main_module.add_module('replaced'+str(replace_module.__class__.__name__),replace_module)
-    #                 with main_module .graph.inserting_before(node):
-    #                     new_node = main_module.graph.call_module(replace_module, node.args, node.kwargs)
-    #                     node.replace_all_uses_with(new_node)
-    #                 main_module.graph.erase_node(node)
-    #                 # Remove the old node from the graph
-    #                 # TODO may delete node later on
-    #                 # main_module.graph.erase_node(node)
-    #     elif pattern_nodes[0].op=='call_method':
-    #         for node in main_module.graph.nodes:
-    #             if _are_both_node_equal(node,pattern_nodes[0],main_module,pattern_module):
-    #                 main_module.add_module('replaced'+str(replace_module.__class__.__name__),replace_module)
-    #                 with main_module .graph.inserting_before(node):
-    #                     new_node = main_module.graph.call_module(replace_module, node.args, node.kwargs)
-    #                     node.replace_all_uses_with(new_node)
-    #                 # TODO may delete node later on
-    #         #one input one output
-    # el
-    if number_of_input ==1 and number_of_output==1:
+    # singleNode
+    if (number_of_input ==1 and number_of_output==1) or  (len(pattern_nodes)==1):
         matches = straight_chain_searcher(main_module,pattern_module)
-        for (start,end) in matches:
-            _replace_pattern(main_module,start,end,replace_module,no_of_module_replaced)
-            no_of_module_replaced+=1
-    # delete_unused_nodes(main_module)
-    main_module.graph.lint()
-    # print(no_of_module_replaced)
-
+        _replace_all_matches(main_module,matches,replace_module)
     return main_module
 
 #put composite modules first, then primary module
 _unsupported_module_dict={
     SEModule() : nn.Identity(),
+    SEModule1() : nn.Identity(),
     nn.ReLU(inplace=True):nn.ReLU(),
     nn.Dropout(inplace=True):nn.Dropout(),
     nn.Hardswish():nn.ReLU(),
@@ -240,10 +247,8 @@ def _is_replacable(pattern:Union[GraphModule,nn.Module,callable]):
 
 def replace_all_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn.Module,callable]]=_unsupported_module_dict):
     model=deepcopy(model)
-    # for pattern, replacement in unsupported_composite_module_dict.items():
-    #     model=graphPatternReplacer(model,pattern,replacement)
     for pattern, replacement in replacement_dict.items():
-        if type(replacement)==callable:
+        if isfunction(replacement):
             model=replacement(model)
         else:
             if pattern.__class__.__name__ in dir(nn):
