@@ -236,7 +236,15 @@ _unsupported_module_dict={
     nn.ReLU(inplace=True):nn.ReLU(),
     nn.Dropout(inplace=True):nn.Dropout(),
     nn.Hardswish():nn.ReLU(),
-    nn.Upsample():replace_resize_with_scale_factor
+    nn.ReLU6():nn.ReLU(),
+    nn.GELU():nn.ReLU(),
+    nn.SiLU():nn.ReLU(),
+    nn.LeakyReLU():nn.ReLU(),
+    nn.Hardsigmoid():nn.ReLU(),
+    Focus():ConvBNRModule(3,12,(5,5),(2,2),2),
+    nn.Upsample():replace_resize_with_scale_factor,
+    nn.MaxPool2d(3):replace_maxpool2d_k_gt5,
+    nn.AvgPool2d(3):replace_avgpool2d_k_gt5,
 }
 
 def _is_replacable(pattern:Union[GraphModule,nn.Module,callable]):
