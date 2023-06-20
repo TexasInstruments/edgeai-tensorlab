@@ -7,6 +7,10 @@ import operator
 from copy import deepcopy
 from .custom_module import *
 
+
+__all__ = ['replace_unsuppoted_layers', 'get_replacement_dict_default']
+
+
 # moduleReplacementdict=Dict[]()
 # functionReplacementDict=Dict[]()
 def _get_parent_name(target:str):
@@ -254,7 +258,8 @@ def _is_replacable(pattern:Union[GraphModule,nn.Module,callable]):
     #TODO
     return True
 
-def replace_all_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn.Module,callable]]=_unsupported_module_dict):
+def replace_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn.Module,callable]]=None):
+    replacement_dict = replacement_dict or _unsupported_module_dict
     model=deepcopy(model)
     for pattern, replacement in replacement_dict.items():
         if isfunction(replacement):
