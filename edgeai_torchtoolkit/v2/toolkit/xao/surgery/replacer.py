@@ -243,8 +243,9 @@ _unsupported_module_dict={
     nn.Hardsigmoid():nn.ReLU(),
     Focus():ConvBNRModule(3,12,(5,5),(2,2),2),
     nn.Upsample():replace_resize_with_scale_factor,
-    nn.MaxPool2d(3):replace_maxpool2d_k_gt5,
-    nn.AvgPool2d(3):replace_avgpool2d_k_gt5,
+    'maxpool_gt_5':replace_maxpool2d_k_gt5,
+    'avgpool_gt_5':replace_avgpool2d_k_gt5,
+    'conv_gt_5':replace_conv2d_k_gt5
 }
 
 def _is_replacable(pattern:Union[GraphModule,nn.Module,callable]):

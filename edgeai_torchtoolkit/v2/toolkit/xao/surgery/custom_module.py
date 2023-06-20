@@ -124,7 +124,7 @@ def replace_maxpool2d_k_gt5(model:nn.Module):
 def replace_avgpool2d_k_gt5(model:nn.Module):
     traced_model=symbolic_trace(model)
     modules=dict(traced_model.named_modules())
-    no_of_max_pool=0
+    no_of_avg_pool=0
     for node in traced_model.graph.nodes:
         if node.op == 'call_module':
             module=modules[node.target]
@@ -137,8 +137,8 @@ def replace_avgpool2d_k_gt5(model:nn.Module):
                         replacement.append(nn.AvgPool2d(kernel_size=3,stride=1,padding=1))
                         k_size-=2
                     replacement.append(nn.AvgPool2d(kernel_size=k_size,stride=stride,padding=1))
-                    replacer._replace_pattern(traced_model,node,node,replacement,no_of_max_pool)
-                    no_of_max_pool+=1
+                    replacer._replace_pattern(traced_model,node,node,replacement,no_of_avg_pool)
+                    no_of_avg_pool+=1
         
         if node.target == nn.functional.avg_pool2d:
             k_size=node.args[1]
@@ -149,10 +149,10 @@ def replace_avgpool2d_k_gt5(model:nn.Module):
                 replacement.append(nn.AvgPool2d(kernel_size=3,stride=1,padding=1))
                 k_size-=2
             replacement.append(nn.AvgPool2d(kernel_size=k_size,stride=stride,padding=1))
-            traced_model.add_submodule(f'replaced_maxpool_{no_of_max_pool}',replacement)
+            traced_model.add_submodule(f'replaced_maxpool_{no_of_avg_pool}',replacement)
             args=(node.args[0],)
             with traced_model.graph.inserting_before(node):
-                new_node=traced_model.graph.call_module(f'replaced_maxpool_{no_of_max_pool}',args,{})
+                new_node=traced_model.graph.call_module(f'replaced_maxpool_{no_of_avg_pool}',args,{})
                 node.replace_all_uses_with(new_node)
             traced_model.graph.erase_node(node)
         
@@ -160,39 +160,53 @@ def replace_avgpool2d_k_gt5(model:nn.Module):
         traced_model.recompile()
     return traced_model
 
-#TODO set the all channels so no usable till now 
 def replace_conv2d_k_gt5(model:nn.Module):
     traced_model=symbolic_trace(model)
     modules=dict(traced_model.named_modules())
-    no_of_max_pool=0
+    no_of_conv=0
+    import math, random
     for node in traced_model.graph.nodes:
         if node.op == 'call_module':
-            module=modules[node.target]
-            if isinstance(module,nn.conv2d):
+            if isinstance(module,nn.Conv2d):
+                module=modules[node.target]
                 if module.kernel_size >3:
-                    k_size=module.kernel_size 
-                    stride=module.stride
+                    in_channels=module.in_channels
+                    out_channels=module.out_channels
+                    k_size=module.kernel_size[0]
+                    stride=module.stride[0]
                     replacement= nn.Sequential()
                     while k_size > 3:
-                        replacement.append(nn.Conv2d(kernel_size=3,stride=1,padding=1))
+                        temp_out_channels= 2**(round(math.log2(in_channels))+random.choice([-1,0,1]))
+                        replacement.append(ConvBNRModule(in_channels,temp_out_channels, kernel_size=3,stride=1,padding=1))
+                        in_channels=temp_out_channels
                         k_size-=2
-                    replacement.append(nn.Conv2d(kernel_size=k_size,stride=stride,padding=1))
-                    replacer._replace_pattern(traced_model,node,node,replacement,no_of_max_pool)
-                    no_of_max_pool+=1
+                    replacement.append(nn.Conv2d(in_channels, out_channels, kernel_size=k_size,stride=stride,padding=1))
+                    replacer._replace_pattern(traced_model,node,node,replacement,no_of_conv)
+                    no_of_conv+=1
         
         if node.target == nn.functional.conv2d:
-            k_size=node.args[1]
-            stride=node.kwargs['stride']
+            args=node.args
+            weight_node=args[1]
+            parent_name,name=replacer._get_parent_name(weight_node.target)
+            parent_module=modules[parent_name]
+            weight=parent_module.__getattr__(name)
+            weight_shape=weight.shape
+            stride=args[3][0]
+            in_channels=weight_shape[1]
+            out_channels=weight_shape[0]
+            k_size=weight_shape[2]
             replacement= nn.Sequential()
             padding=1 
             while k_size > 3:
-                replacement.append(nn.conv2d(kernel_size=3,stride=1,padding=1))
+                temp_out_channels= 2**(round(math.log2(in_channels))+random.choice([-1,0,1]))
+                replacement.append(ConvBNRModule(in_channels,temp_out_channels, kernel_size=3,stride=1,padding=1))
+                in_channels=temp_out_channels
                 k_size-=2
-            replacement.append(nn.conv2d(kernel_size=k_size,stride=stride,padding=1))
-            traced_model.add_submodule(f'replaced_maxpool_{no_of_max_pool}',replacement)
+            replacement.append(nn.Conv2d(in_channels, out_channels, kernel_size=k_size,stride=stride,padding=1))
+            traced_model.add_submodule(f'replaced_maxpool_{no_of_conv}',replacement)
             args=(node.args[0],)
             with traced_model.graph.inserting_before(node):
-                new_node=traced_model.graph.call_module(f'replaced_maxpool_{no_of_max_pool}',args,{})
+                new_node=traced_model.graph.call_module(f'replaced_maxpool_{no_of_conv}',args,{})
                 node.replace_all_uses_with(new_node)
             traced_model.graph.erase_node(node)
         
