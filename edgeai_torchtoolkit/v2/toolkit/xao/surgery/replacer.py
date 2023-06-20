@@ -204,7 +204,7 @@ def _replace_all_matches(main_module:GraphModule,matches,replace_module:nn.Modul
         no_of_module_replaced+=1
 
 #replace nodes if they don't need any change with their keyword arguments and arguements
-def graphPatternReplacer(main_module:Union[GraphModule,nn.Module,callable],pattern_module:Union[GraphModule,nn.Module,callable],replace_module:Union[GraphModule,nn.Module,callable]):
+def graph_pattern_replacer(main_module:Union[GraphModule,nn.Module,callable],pattern_module:Union[GraphModule,nn.Module,callable],replace_module:Union[GraphModule,nn.Module,callable]):
     if type(main_module)!=GraphModule:
         main_module=symbolic_trace(main_module)
     if type(pattern_module)!=GraphModule:
@@ -262,7 +262,7 @@ def replace_all_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Unio
         else:
             if pattern.__class__.__name__ in dir(nn):
                 pattern= InstaModule(pattern)
-            model=graphPatternReplacer(model,pattern,replacement)
+            model=graph_pattern_replacer(model,pattern,replacement)
     return model
 
 

@@ -70,7 +70,6 @@ from edgeai_torchtoolkit.v1.toolkit.xnn. layers.resize_blocks import resize_with
 def replace_resize_with_scale_factor(model):
     traced_m =  symbolic_trace(model)
     pattern_m= nn.Upsample()
-
     traced_pattern= symbolic_trace(pattern_m)
     matches= replacer.straight_chain_searcher(traced_m,traced_pattern)
     for start,end in matches:
@@ -80,6 +79,7 @@ def replace_resize_with_scale_factor(model):
             new_node= traced_m.graph.call_function(resize_with_scale_factor,start.args,kwargs)
             start.replace_all_uses_with(new_node)
         traced_m.graph.erase_node(start)
+        num_node+=1
     traced_m.recompile()
     return traced_m
 
@@ -117,7 +117,6 @@ def replace_maxpool2d_k_gt5(model:nn.Module):
                 new_node=traced_model.graph.call_module(f'replaced_maxpool_{no_of_max_pool}',args,{})
                 node.replace_all_uses_with(new_node)
             traced_model.graph.erase_node(node)
-        
         traced_model.graph.lint()
         traced_model.recompile()
     return traced_model
@@ -167,15 +166,15 @@ def replace_conv2d_k_gt5(model:nn.Module):
     import math, random
     for node in traced_model.graph.nodes:
         if node.op == 'call_module':
+            module=modules[node.target]
             if isinstance(module,nn.Conv2d):
-                module=modules[node.target]
-                if module.kernel_size >3:
+                if module.kernel_size[0] >5:
                     in_channels=module.in_channels
                     out_channels=module.out_channels
                     k_size=module.kernel_size[0]
                     stride=module.stride[0]
                     replacement= nn.Sequential()
-                    while k_size > 3:
+                    while k_size > 5:
                         temp_out_channels= 2**(round(math.log2(in_channels))+random.choice([-1,0,1]))
                         replacement.append(ConvBNRModule(in_channels,temp_out_channels, kernel_size=3,stride=1,padding=1))
                         in_channels=temp_out_channels
@@ -197,7 +196,7 @@ def replace_conv2d_k_gt5(model:nn.Module):
             k_size=weight_shape[2]
             replacement= nn.Sequential()
             padding=1 
-            while k_size > 3:
+            while k_size > 5:
                 temp_out_channels= 2**(round(math.log2(in_channels))+random.choice([-1,0,1]))
                 replacement.append(ConvBNRModule(in_channels,temp_out_channels, kernel_size=3,stride=1,padding=1))
                 in_channels=temp_out_channels
