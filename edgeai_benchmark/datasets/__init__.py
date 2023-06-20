@@ -47,6 +47,7 @@ from .coco_kpts import *
 from .widerface_det import *
 
 from .robokit_seg import *
+from .kitti_2015 import *
 
 try:
     from .kitti_lidar_det import KittiLidar3D
@@ -68,6 +69,7 @@ DATASET_CATEGORY_CITYSCAPES = 'cityscapes'
 DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD = 'ti-robokit_semseg_zed1hd'
 DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS = 'kitti_lidar_det_1class'
 DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS = 'kitti_lidar_det_3class'
+DATASET_CATEGORY_KITTI_2015 = 'kitti_2015'
 DATASET_CATEGORY_YCBV = 'ycbv'
 
 dataset_info_dict = {
@@ -103,6 +105,8 @@ dataset_info_dict_experimental = {
     #------------------------3D OD datasets--------------------------#
     'kitti_lidar_det_1class': {'task_type':'3d-detection', 'category':DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS, 'type':KittiLidar3D, 'size':3769, 'split':'val'},
     'kitti_lidar_det_3class': {'task_type': '3d-detection', 'category': DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS,'type': KittiLidar3D, 'size': 3769, 'split': 'val'},
+    #----------------------- Stereo disparity datasets--------------------------#
+    'kitti_2015': {'task_type':'stereo-disparity', 'category':DATASET_CATEGORY_KITTI_2015, 'type':Kitti2015, 'size':159, 'split':'training'},
 }
 
 
@@ -416,6 +420,29 @@ def get_datasets(settings, download=False):
             except Exception as message:
                 print(f'KittiLidar3D dataset loader could not be created: {message}')
             #
+        #
+
+        if check_dataset_load(settings, DATASET_CATEGORY_KITTI_2015):
+            dataset_calib_cfg = dict(
+                path=f'{settings.datasets_path}/kitti_2015/',
+                split='training',                
+                shuffle=False,
+                max_disp=192,
+                num_frames=min(settings.calibration_frames, 50))
+
+            # dataset parameters for actual inference
+            dataset_val_cfg = dict(
+                path=f'{settings.datasets_path}/kitti_2015/',
+                split='training',                
+                shuffle=False,
+                max_disp=192,
+                num_frames=min(settings.num_frames, 50))
+            try:
+                dataset_cache['kitti_2015']['calibration_dataset'] = Kitti2015(**dataset_calib_cfg, download=False)
+                dataset_cache['kitti_2015']['input_dataset'] = Kitti2015(**dataset_val_cfg, download=False)
+            except Exception as message:
+                print(f'Kitti 2015 dataset loader could not be created: {message}')
+            #         
         #
     #
     return dataset_cache

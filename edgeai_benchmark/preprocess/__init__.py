@@ -51,12 +51,20 @@ class PreProcessTransforms(utils.TransformsCompose):
     def get_transform_base(self, resize, crop, data_layout, reverse_channels,
                          backend, interpolation, resize_with_pad,
                          add_flip_image=False, pad_color=0):
-        transforms_list = [
-            ImageRead(backend=backend),
-            ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
-            ImageCenterCrop(crop),
-            ImageToNPTensor4D(data_layout=data_layout)
-        ]
+        if resize is None:
+            transforms_list = [
+                ImageRead(backend=backend),                
+                ImageCenterCrop(crop),
+                ImageToNPTensor4D(data_layout=data_layout)
+            ]
+        else:
+            transforms_list = [
+                ImageRead(backend=backend),
+                ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
+                ImageCenterCrop(crop),
+                ImageToNPTensor4D(data_layout=data_layout)
+            ]
+
         if reverse_channels:
             transforms_list = transforms_list + [NPTensor4DChanReverse(data_layout=data_layout)]
         if add_flip_image:

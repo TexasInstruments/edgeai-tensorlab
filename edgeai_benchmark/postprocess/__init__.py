@@ -192,3 +192,23 @@ class PostProcessTransforms(utils.TransformsCompose):
         ]
         transforms = PostProcessTransforms(None, postprocess_lidar)
         return transforms
+
+    ###############################################################
+    # post process transforms for disparity estimation
+    ###############################################################
+    def get_transform_disparity_estimation_base(self, data_layout):
+        postprocess_disparity_estimation = [IndexArray(),
+                                            NPTensorToImage(data_layout=data_layout)]
+        
+        # To REVISIT!
+        #if self.settings.save_output:
+        #    postprocess_disparity_estimation += [DepthImageSave(self.settings.num_output_frames)]
+        #
+        transforms = PostProcessTransforms(None, postprocess_disparity_estimation,
+                                           data_layout=data_layout,
+                                           save_output=self.settings.save_output)
+        return transforms
+
+    def get_transform_disparity_estimation_onnx(self, data_layout=constants.NCHW):
+        return self.get_transform_disparity_estimation_base(data_layout=data_layout)
+

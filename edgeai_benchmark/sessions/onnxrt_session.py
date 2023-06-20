@@ -56,7 +56,10 @@ class ONNXRTSession(BaseRTSession):
 
         # provide the calibration data and run the import
         for in_data in calib_data:
-            in_data = utils.as_tuple(in_data)
+            input_keys = list(self.kwargs['input_shape'].keys())
+            if not isinstance(in_data, list):
+                in_data = utils.as_tuple(in_data)
+
             if self.input_normalizer is not None:
                 in_data, _ = self.input_normalizer(in_data, {})
             #
@@ -70,6 +73,8 @@ class ONNXRTSession(BaseRTSession):
             # run the actual import step
             outputs = self.interpreter.run(output_keys, calib_dict)
         #
+
+        print("================================ import model =============")
         return info_dict
 
     def start_infer(self):
@@ -84,7 +89,10 @@ class ONNXRTSession(BaseRTSession):
     def infer_frame(self, input, info_dict=None):
         super().infer_frame(input, info_dict)
 
-        in_data = utils.as_tuple(input)
+        input_keys = list(self.kwargs['input_shape'].keys())
+        if not isinstance(input, list):
+            in_data = utils.as_tuple(input)        
+
         if self.input_normalizer is not None:
             in_data, _ = self.input_normalizer(in_data, {})
         #
