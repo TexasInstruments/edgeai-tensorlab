@@ -44,8 +44,8 @@ repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../.
 
 edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
 www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01'
-edgeai_mmpose_path = os.path.join(repo_parent_path, 'edgeai-mmpose')
-edgeai_mmpose_tools_path = os.path.join(edgeai_mmpose_path, 'tools')
+edgeai_yolox_path = os.path.join(repo_parent_path, 'edgeai-mmpose', 'projects', 'yolox-pose')
+edgeai_yoloxpose_tools_path = os.path.join(edgeai_yolox_path, 'tools')
 
 # TODO: Need to change model urls with yolox_pose models
 model_urls = {
@@ -57,7 +57,7 @@ model_urls = {
     ],
     'yolox-pose_s_8xb32-300e_coco_lite': [
         {
-            'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmpose/yolox_pose_s_lite_640x640_20220221_checkpoint.pth',
+            'download_url': f'/home/a0504871/work/ti/mmpose/projects/yolox-pose/work_dirs/yolox-pose_s_8xb32-300e_coco_lite/best_coco_AP_epoch_397.pth',
             'download_path': os.path.join('{download_path}', 'pretrained', 'yolox-pose_s_8xb32-300e_coco_lite')
         },
     ]
@@ -213,27 +213,69 @@ class ModelTraining:
         dataset_style = 'coco' #'voc' #'coco'
         input_size = self.params.training.input_cropsize if isinstance(self.params.training.input_cropsize, (list,tuple)) else \
             (self.params.training.input_cropsize,self.params.training.input_cropsize)
-        base_config_path = os.path.join(edgeai_mmpose_path, 'configs', 'edgeailite', self.params.training.model_architecture, self.params.training.model_training_id)
+        base_config_path = os.path.join(edgeai_yolox_path, 'configs', 'edgeailite', self.params.training.model_training_id)
 
         config_file = os.path.join(self.params.training.training_path, f'{self.params.training.model_name}.py')
         config_strs = []
+        base_meta_file = 'configs/_base_/datasets/coco.py'
+        max_epochs = self.params.training.training_epochs
+        intermediate_epoch = 2
+        num_last_epochs = 2
+
+
         config_strs += [f'_base_   = ['
                         f'"{base_config_path}.py"]\n']
-        config_strs += [f'work_dir   = "{self.params.training.training_path}"']
-        config_strs += [f'chk_pt   = "{self.params.training.pretrained_checkpoint_path}"']
-        config_strs += [f'num_kpts   = "{self.params.training.num_keypoints}"']
-        config_strs += [f'base_metafile   = "coco"']
-        config_strs += [f'img_scale   = "{input_size}"']
-        config_strs += [f'dataset_type   = "ModelMakerDataset"']
-        config_strs += [f'data_root   = "{self.params.dataset.dataset_path}"']
-        config_strs += [f'train_ann_file   = "{self.params.dataset.annotation_path_splits[0]}"']
-        config_strs += [f'val_ann_file   = "{self.params.dataset.annotation_path_splits[1]}"']
-        config_strs += [f'split_names   = "{self.params.dataset.split_names}"']
-        config_strs += [f'base_lr   = {self.params.training.learning_rate}']
-        config_strs += [f'max_epochs   = {self.params.training.training_epochs}']
-        config_strs += [f'num_last_epochs   = {self.params.training.num_last_epochs}']
-        config_strs += [f'intermediate_epoch   = 5']
-        # config_strs += [f'export_model   = True']
+        config_strs += [f'model=dict(\n'
+                        f'  init_cfg=dict(checkpoint="{self.params.training.pretrained_checkpoint_path}"),\n'
+                        f'  bbox_head=dict(\n'
+                        f'    head_module=dict(num_keypoints={self.params.training.num_keypoints}),\n'
+                        f'    loss_pose=dict(metainfo="{base_meta_file}")\n'
+                        f'  ), \n'  
+                        f'  train_cfg=dict(assigner=dict(oks_calculator=dict(metainfo="{base_meta_file}"))),\n'
+                        f') \n']
+        config_strs += [f'train_dataloader=dict(\n'
+                        f'  dataset=dict(\n'
+                        f'      data_root="{self.params.dataset.dataset_path}",\n'
+                        f'      ann_file="{self.params.dataset.annotation_path_splits[0]}",\n'
+                        f'      data_prefix=dict(img="{self.params.dataset.split_names[0]}")\n'
+                        f'  )\n'
+                        f') \n']
+        config_strs += [f'val_dataloader=dict(\n'
+                        f'  dataset=dict(\n'
+                        f'      data_root="{self.params.dataset.dataset_path}",\n'
+                        f'      ann_file="{self.params.dataset.annotation_path_splits[1]}",\n'
+                        f'      data_prefix=dict(img="{self.params.dataset.split_names[1]}")\n'
+                        f'  )\n'
+                        f') \n']
+        config_strs += [f'val_evaluator=dict(ann_file="{self.params.dataset.annotation_path_splits[1]}")\n']
+        config_strs += [f'optim_wrapper=dict(optimizer=dict(lr={self.params.training.learning_rate}))\n']
+        config_strs += [f'param_scheduler=[\n'
+                        f'dict(\n'
+                        f'  type="mmdet.QuadraticWarmupLR",\n'
+                        f'  by_epoch=True,\n'
+                        f'  begin=0,\n'
+                        f'  end={intermediate_epoch},\n'
+                        f'  convert_to_iter_based=True),\n'
+                        f'dict(\n'
+                        f'  type="CosineAnnealingLR",\n'
+                        f'  eta_min={self.params.training.learning_rate * 0.05},\n'
+                        f'  begin={intermediate_epoch},\n'
+                        f'  T_max={max_epochs - num_last_epochs},\n'
+                        f'  end={max_epochs - num_last_epochs},\n'
+                        f'  by_epoch=True,\n'
+                        f'  convert_to_iter_based=True),\n'
+                        f'dict(\n'
+                        f'  type="ConstantLR",\n'
+                        f'  by_epoch=True,\n'
+                        f'  factor=1,\n'
+                        f'  begin={max_epochs - num_last_epochs},\n'
+                        f'  end={max_epochs},)\n'
+                        f']\n']
+        config_strs += [f'train_cfg=dict(\n'
+                        f'  max_epochs={max_epochs},\n'
+                        f'  val_interval=10,\n'
+                        f'  dynamic_intervals=[({max_epochs - num_last_epochs}, 1)]\n'
+                        f')\n']
 
         # write the config file
         with open(config_file, 'w') as config_fp:
@@ -242,7 +284,7 @@ class ModelTraining:
 
         # invoke the distributed training
         if self.params.training.distributed and self.params.training.num_gpus > 0:
-            train_module_path = f'{edgeai_mmpose_path}/tools/train.py'
+            train_module_path = f'{edgeai_yolox_path}/tools/train.py'
             sys.argv = [sys.argv[0],
                         f'--nproc_per_node={self.params.training.num_gpus}',
                         f'--nnodes=1',
@@ -251,6 +293,8 @@ class ModelTraining:
                         f'--launcher=pytorch',
                         config_file
                         ]
+
+            sys.path.insert(0, edgeai_yolox_path)
             # launch the training
             distributed_launch.main()
         else:
@@ -258,11 +302,11 @@ class ModelTraining:
             os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
             # sys.argv = [sys.argv[0], f'--gpus={self.params.training.num_gpus}', '--no-validate', f'{config_file}']
             sys.argv = [sys.argv[0], f'{config_file}']
+            sys.path.insert(0, edgeai_yolox_path)
             # import dynamically - force_import every time to avoid clashes with scripts in other repositories
-            train_module = utils.import_file_or_folder(os.path.join(edgeai_mmpose_tools_path,'train'),
+            train_module = utils.import_file_or_folder(os.path.join(edgeai_yoloxpose_tools_path,'train'),
                 __name__, force_import=True)
-            args = train_module.parse_args()
-            train_module.main(args)
+            train_module.main()
         #
         return self.params
 
