@@ -160,17 +160,21 @@ def _initializeDataLoader(dataDir:str,batchSize:int=256):
 
 
 def exportAndSimplifyOnnx(model:nn.Module,dummyInput:torch.Tensor,onnxFileName:str):
+    if isinstance(model,nn.DataParallel):
+        model=model.module
     fileDescr= onnxFileName.rsplit('.',1)
     onnxFileName=fileDescr[0]
     intrmdtfileName1=str(onnxFileName)+'.onnx'
-    torch.onnx.export(model,dummyInput,intrmdtfileName1)
+    torch.save(model.state_dict(),str(onnxFileName)+'   .ckpt')
+    torch.onnx.export(model,dummyInput,intrmdtfileName1)#, training=torch.onnx.TrainingMode.TRAINING)
     loadedModel = onnx.load(intrmdtfileName1)
     simplifiedModel,check= onnxsim.simplify(loadedModel)
     assert check,'Simpplification Failed'
     onnx.save(simplifiedModel,str(onnxFileName)+'_simplified.onnx')
-    return onnx.load(str(onnxFileName)+'_simplified.onnx')
+    # torch.save(simplifiedModel.mo,str(onnxFileName)+'_simplified.ckpt')
+    return simplifiedModel
 
-def trainModel(model:nn.Module,dataDir:str,projectName:str=None,epochs=100,lr=0.001,
+def trainModel(model:nn.Module,dataDir:str,projectName:str='',epochs=100,lr=0.001,
                criterion=None,optimizer=None,scheduler=None):
     model.train()
     device=_initializeDevice()
@@ -178,20 +182,23 @@ def trainModel(model:nn.Module,dataDir:str,projectName:str=None,epochs=100,lr=0.
     model=nn.DataParallel(model,device_ids=[0,1,2,3])
     if criterion==None:
         criterion=nn.CrossEntropyLoss().to(device)
-    # if optimizer==None:
+    # if optimizer==None:s
     optimizer=torch.optim.SGD(model.parameters(),lr=lr,momentum=0.9)
     # if scheduler==None:
     scheduler=torch.optim.lr_scheduler.StepLR(optimizer,step_size=30,gamma=0.1)
     trainLoader,valLoader= _initializeDataLoader(dataDir)
-    if projectName ==None:
-        '''
+    if projectName == '':
+        print(  '''
         Project Name is none.
         So, This run will be for checking whether model is running  or not.
-        '''
+        ''')
         pass
     else:
         _initializeWandb(projectName,lr,type(model).__name__,dataDir,epochs)
+        print('wandb started')
+    best_acc1=0
     for epoch in range(epochs):
+        model.train()
 
         # train for one epoch
         batch_time = AverageMeter('Time', ':6.3f')
@@ -205,7 +212,6 @@ def trainModel(model:nn.Module,dataDir:str,projectName:str=None,epochs=100,lr=0.
             prefix="Epoch: [{}]".format(epoch))
         
         # switch to train mode
-        model.train()
         end = time.time()
         for i, (images, target) in enumerate(trainLoader):
             # measure data loading time
@@ -236,8 +242,8 @@ def trainModel(model:nn.Module,dataDir:str,projectName:str=None,epochs=100,lr=0.
 
             if i % 100 == 0:
                 progress.display(i + 1)
-            if projectName!=None:
-                wandb.log({"top_acc1": top1.avg, "top_acc5": top5.avg,"batch_time":batch_time.avg ,"data_time":data_time.avg ,"loss": losses.avg})
+        if projectName!='':
+            wandb.log({"top_acc1": top1.avg, "top_acc5": top5.avg,"batch_time":batch_time.avg ,"data_time":data_time.avg ,"loss": losses.avg})
 
         # evaluate on validation set
         acc1 = validate(valLoader, model, criterion,device)
@@ -248,9 +254,9 @@ def trainModel(model:nn.Module,dataDir:str,projectName:str=None,epochs=100,lr=0.
         is_best = acc1 > best_acc1
         best_acc1 = max(acc1, best_acc1)
 
-    if projectName!=None:
+    if projectName!='':
         wandb.finish()
-    torch.save(model.state_dict(), projectName+'.ckpt')
+    # torch.save(model.state_dict(), projectName+'.ckpt')
     
     
 def validate(val_loader, model, criterion,device):

@@ -96,7 +96,7 @@ class ResizeWith(torch.nn.Module):
         self.align_corners = align_corners
 
     def forward(self, x):
-        y = resize_with(x, self.size, self.scale_factor, self.mode, self.align_corners)
+        y = resize_with(x, size=self.size, scale_factor=self.scale_factor, mode=self.mode, align_corners= self.align_corners)
         return y
 
 
