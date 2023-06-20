@@ -1,4 +1,4 @@
 from . import surgery
-from . import sparsity
+from . import pruning
 from . import quantization
 from . import utils

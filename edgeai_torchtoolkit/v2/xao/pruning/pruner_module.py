@@ -5,6 +5,8 @@ import torch.nn.utils.parametrize as parametrize
 from torch.ao.quantization import quantize_fx
 import copy
 import math
+import enum
+
 
 class PruningParametrization(nn.Module):
     def __init__(self, module1, module2=None, channel_pruning=False, pruning_ratio=0.2, **kwargs):
@@ -125,9 +127,19 @@ class PDPPruningParametrization(nn.Module):
 
     def right_inverse(self, A):
         return A
-  
+
+
+class PruningType(enum.Enum):
+    NO_PRUNING = 0
+    UNSTRUCTURED = 1
+    N2M_PRUNING = 2
+    CHANNEL_PRUNING = 3
+
+
+
 class PrunerModule(torch.nn.Module):
-    def __init__(self, module, pruning_ratio=0.8, total_epochs=10, pruning_class=PruningParametrization, channel_pruning=False, copy_args=[], 
+    def __init__(self, module, pruning_ratio=0.5, total_epochs=10, pruning_class=PruningParametrization,
+                 pruning_type:PruningType=PruningType.UNSTRUCTURED, channel_pruning=False, copy_args=[],
                  train_epoch_per_iter=5, epsilon=0.015, global_pruning=False, n2m_pruning=False, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.module = module
@@ -342,7 +354,7 @@ class PrunerModule(torch.nn.Module):
         self.sparsity = num_zeros / num_elements
         return self
 
-class QuantModule(torch.nn.Module):
+class _QuantExptModule(torch.nn.Module):
     def __init__(self, module, total_epochs=10, quant_backend='qnnpack', copy_args=[], *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         
