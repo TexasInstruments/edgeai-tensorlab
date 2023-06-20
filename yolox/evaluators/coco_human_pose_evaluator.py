@@ -13,9 +13,6 @@ from tqdm import tqdm
 import cv2
 import os
 
-#from ..utils.visualize_human_pose import vis_human_pose  #Not working. Need to debug
-from ..utils.visualize_human_pose import *
-
 import torch
 
 from yolox.utils import (
@@ -125,6 +122,9 @@ class COCOHumanPoseEvaluator:
                     outputs, self.num_classes, self.confthre, self.nmsthre, human_pose=self.human_pose,
                 )
                 if self.visualize:
+                    #from ..utils.visualize_human_pose import vis_human_pose
+                    from yolox.utils import vis_human_pose
+
                     output_imgs = vis_human_pose(imgs, outputs)
                     for output_idx in range(len(output_imgs)):
                         os.makedirs(os.path.join(self.output_dir, "vis"), exist_ok=True)

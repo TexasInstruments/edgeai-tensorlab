@@ -172,7 +172,8 @@ def output_to_target(output):
 def plot_images(images, targets, paths=None, fname='images.png', names=None, max_size=640, max_subplots=16, human_pose=False, object_pose=False,
                 steps=2, orig_shape=None, dataset=None, data_index=None):
     # Plot image grid with labels
-    cad_models = dataset.cad_models
+    if hasattr(dataset, 'cad_models'):
+        cad_models = dataset.cad_models
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()  #create a copy
     if isinstance(targets, torch.Tensor):

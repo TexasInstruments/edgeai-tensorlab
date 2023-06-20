@@ -8,6 +8,7 @@ from loguru import logger
 
 import torch
 from torch import nn
+import onnx
 
 from yolox.exp import get_exp
 from yolox.models.network_blocks import SiLU
@@ -15,7 +16,7 @@ from yolox.utils import replace_module, PostprocessExport
 from yolox.data.data_augment import preproc as preprocess
 from yolox.utils.proto import tidl_meta_arch_yolox_pb2
 from google.protobuf import text_format
-from yolox.utils.proto.pytorch2proto import prepare_model_for_layer_outputs, retrieve_onnx_names
+
 
 import cv2
 _SUPPORTED_DATASETS = ["coco", "lm","lmo", "ycbv", "coco_kpts"]
@@ -83,15 +84,36 @@ def make_parser():
 
     return parser
 
+
+def prepare_layer_output_names(onnx_model, export_layer_types=None, match_layer=None, return_layer=None):
+    layer_output_names = []
+    for i in range(len(onnx_model.graph.node)):
+        node_inputs = onnx_model.graph.node[i].input
+        if (onnx_model.graph.node[i].op_type in export_layer_types) and (len(node_inputs) == 4):
+            for j in range(len(onnx_model.graph.node)):
+                if node_inputs[0] in onnx_model.graph.node[j].output:
+                    if onnx_model.graph.node[j].op_type == match_layer:
+                        if return_layer not in export_layer_types:
+                            if onnx_model.graph.node[i].output[0] not in layer_output_names:
+                                layer_output_names.append(onnx_model.graph.node[j].output[0])
+                        else:
+                            if onnx_model.graph.node[j].output[0] not in layer_output_names:
+                                layer_output_names.append(onnx_model.graph.node[i].output[0])
+
+    return layer_output_names
+
+
 def export_prototxt(model, img, onnx_model_name, task=None):
     # Prototxt export for a given ONNX model
-
+    onnx_model = onnx.load(onnx_model_name)
     anchor_grid = model.head.strides
     num_heads = len(model.head.strides)
     num_keypoint = model.head.num_kpts if hasattr(model.head, "num_kpts") else None
     keypoint_confidence = True if (num_keypoint is not None and num_keypoint>0) else None
     keep_top_k = 20 if (num_keypoint is not None and num_keypoint>0) else 200
-    matched_names = retrieve_onnx_names(img, model, onnx_model_name)
+    names = prepare_layer_output_names(onnx_model, export_layer_types='Concat', match_layer='Conv', return_layer='Concat')
+    # matched_names = retrieve_onnx_names(img, model, onnx_model_name)
+    matched_names = names
     prototxt_name = onnx_model_name.replace('onnx', 'prototxt')
 
     background_label_id = -1
@@ -166,8 +188,7 @@ def main():
         args.experiment_name = exp.exp_name
 
     model = exp.get_model()
-    
-    
+
     if args.ckpt is None:
         file_name = os.path.join(exp.output_dir, args.experiment_name)
         ckpt_file = os.path.join(file_name, "best_ckpt.pth")
@@ -262,6 +283,103 @@ def main():
 
     export_prototxt(model, img, args.output_name, args.task)
     logger.info("generated prototxt {}".format(args.output_name.replace('onnx', 'prototxt')))
+
+
+def run_export(**kwargs):
+    if kwargs['ckpt'] is not None:
+        kwargs['output_name'] = os.path.join(os.path.dirname(kwargs['ckpt']), os.path.basename(kwargs['output_name']))
+    # logger.info("args value: {}".format(args))
+    exp = get_exp(None, kwargs['name'])
+    exp.max_epochs = kwargs['max_epochs']
+    exp.output_dir = kwargs['output_dir']
+
+    model = exp.get_model()
+
+    if kwargs['ckpt'] is None:
+        ckpt_file = os.path.join(exp.output_dir, "best_ckpt.pth")
+    else:
+        ckpt_file = kwargs['ckpt']
+
+    ckpt = torch.load(ckpt_file, map_location="cpu")
+
+    model.eval()
+
+    if ckpt is not None:
+        if "model" in ckpt:
+            ckpt = ckpt["model"]
+        #
+        model.load_state_dict(ckpt)
+    #
+    model = replace_module(model, nn.SiLU, SiLU)
+    if not kwargs['export_det']:
+        model.head.decode_in_inference = False
+    #
+    if kwargs['export_det']:
+        post_process = PostprocessExport(conf_thre=0.25, nms_thre=0.45, num_classes=exp.num_classes)
+        model_det = nn.Sequential(model, post_process)
+        model_det.eval()
+        kwargs['output'] = 'detections'
+    #
+    logger.info("loading checkpoint done.")
+
+    if kwargs['dataset'] == 'ycbv':
+        img = cv2.imread("../assets/ti_mustard.png")
+    elif kwargs['dataset'] == 'lmo':
+        img = cv2.imread("../assets/sample_lmo_pbr.jpg")
+    else:
+        img = cv2.imread("../edgeai-yolox/assets/dog.jpg")
+    img, ratio = preprocess(img, exp.test_size)
+    img = img[None, ...]
+    img = img.astype('float32')
+    img = torch.from_numpy(img)
+    dummy_input = torch.randn(kwargs['batch_size'], 3, exp.test_size[0], exp.test_size[1])
+    if kwargs['export_det']:
+        output = model_det(img)
+
+    if kwargs['export_det']:
+        torch.onnx._export(
+            model_det,
+            img,
+            kwargs['output_name'],
+            input_names=[kwargs['input']],
+            output_names=[kwargs['output']],
+            dynamic_axes={kwargs['input']: {0: 'batch'},
+                          kwargs['output']: {0: 'batch'}} if kwargs['dynamic'] else None,
+            opset_version=kwargs['opset'],
+        )
+        logger.info("generated onnx model named {}".format(kwargs['output_name']))
+    else:
+        torch.onnx._export(
+            model,
+            img,
+            kwargs['output_name'],
+            input_names=[kwargs['input']],
+            output_names=[kwargs['output']],
+            dynamic_axes={kwargs['input']: {0: 'batch'},
+                          kwargs['output']: {0: 'batch'}} if kwargs['dynamic'] else None,
+            opset_version=kwargs['opset'],
+        )
+        logger.info("generated onnx model named {}".format(kwargs['output_name']))
+
+    if not kwargs['no_onnxsim']:
+        import onnx
+
+        from onnxsim import simplify
+
+        input_shapes = {kwargs['input']: list(dummy_input.shape)} if kwargs['dynamic'] else None
+
+        # use onnxsimplify to reduce reduent model.
+        onnx_model = onnx.load(kwargs['output_name'])
+        model_simp, check = simplify(onnx_model,
+                                     dynamic_input_shape=kwargs['dynamic'],
+                                     input_shapes=input_shapes)
+        assert check, "Simplified ONNX model could not be validated"
+        onnx.save(model_simp, kwargs['output_name'])
+        logger.info("generated simplified onnx model named {}".format(kwargs['output_name']))
+
+    export_prototxt(model, img, kwargs['output_name'], 'human_pose')
+    logger.info("generated prototxt {}".format(kwargs['output_name'].replace('onnx', 'prototxt')))
+
 
 if __name__ == "__main__":
     main()
