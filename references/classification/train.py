@@ -14,7 +14,7 @@ from torch import nn
 from torch.utils.data.dataloader import default_collate
 from torchvision.transforms.functional import InterpolationMode
 
-from edgeai_torchtoolkit.v2.toolkit import xao
+from edgeai_torchtoolkit.v2 import xao
 
 
 def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, args, model_ema=None, scaler=None):
@@ -241,8 +241,15 @@ def main(args):
     print("Creating model")
     model = torchvision.models.get_model(args.model, weights=args.weights, num_classes=num_classes)
 
-    script_model = torch.fx.symbolic_trace(model)
-    xao.surgery.graphPatternReplacer(script_model, )
+    if args.lite:
+        model = xao.pruning.replace_unsuppoted_layers(model)
+
+    if args.quantization and args.pruning:
+        model = xao.pruning.PrunerQuantModule(model)
+    elif args.pruning:
+        model = xao.pruning.PrunerModule(model)
+    elif args.quantization:
+        model = xao.quantization.QATFxModule(model)
 
     model.to(device)
 
@@ -516,6 +523,16 @@ def get_args_parser(add_help=True):
         "--ra-reps", default=3, type=int, help="number of repetitions for Repeated Augmentation (default: 3)"
     )
     parser.add_argument("--weights", default=None, type=str, help="the weights enum name to load")
+
+    # options to create faster models
+    parser.add_argument("--lite", "--surgery", default=0, help="model surgery to create lite models")
+
+    parser.add_argument("--quantization", default=0, help="Quaantization Aware Training (QAT)")
+    parser.add_argument("--quantization-bitwidth", default=8, help="Quaantization Bitdepth - applies only if quantization is enabled")
+
+    parser.add_argument("--pruning", default=0, help="Pruning/Sparsity")
+    parser.add_argument("--pruning-ratio", default=0.5, help="Pruning/Sparsity Factor - applies only of pruning is enabled")
+    parser.add_argument("--pruning-type", default=1, help="Pruning/Sparsity Type - applies only of pruning is enabled")
     return parser
 
 
