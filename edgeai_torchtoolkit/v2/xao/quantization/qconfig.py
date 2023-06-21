@@ -28,101 +28,71 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #################################################################################
-
+import enum
+import warnings
 import torch
-import torch.ao.quantization as quantization
-from . import observer
-from . import qsettings
+from torch.ao.quantization import default_fused_per_channel_wt_fake_quant, default_embedding_fake_quant_4bit
+from torch.ao.quantization import QConfig, QConfigMapping, get_default_qat_qconfig_mapping
 
+try:
+    # this is not part of torch 2.0.1 release
+    from torch.ao.quantization.qconfig_mapping import _get_default_qconfig_mapping_with_default_qconfig
+    warnings.warn("could not find _get_default_qconfig_mapping_with_default_qconfig in torch.ao.quantization.qconfig_mapping")
+except:
+    def _get_default_qconfig_mapping_with_default_qconfig(
+        is_qat: bool,
+        backend: str,
+        default_qconfig: QConfig,
+    ) -> QConfigMapping:
+        """
+        Return a QConfigMapping that uses the provided qconfig as the default QConfig.
+        """
+        if is_qat:
+            qconfig_mapping = get_default_qat_qconfig_mapping(backend)
+        else:
+            qconfig_mapping = get_default_qconfig_mapping(backend)
+        qconfig_mapping.set_global(default_qconfig)
+        for pattern in qconfig_mapping.object_type_qconfigs.keys():
+            if pattern not in _FIXED_QPARAMS_OP_TO_OBSERVER:
+                qconfig_mapping.set_object_type(pattern, default_qconfig)
+        return qconfig_mapping
+
+
+class QConfigType(enum.Enum):
+    QCONFIG_TYPE_DEFAULT = 0
+    QCONFIG_TYPE_PER_CHANNEL_WEIGHTS = 1
+    QCONFIG_TYPE_SYMMETRIC_POWER2 = 2
+    QCONFIG_TYPE_4BIT = 4
 
 # the default qconfig
-get_default_qat_qconfig = torch.ao.quantization.get_default_qat_qconfig
-
-
-def _get_qat_qconfig(backend=None, weight_observer=None, activation_observer=None,
-                     weight_qscheme=None, activation_qscheme=None):
-    # we support only symmetric types (per tensor or per channel) for weight
-    assert weight_qscheme in (torch.per_tensor_symmetric, torch.per_channel_symmetric), 'weight_qscheme must be one of the symmetric types'
-    weight_dtype = torch.qint8
-    weight_quant_min = qsettings.INT8_DTYPE_MIN_VALUE
-    weight_quant_max = qsettings.INT8_DTYPE_MAX_VALUE
-
-    if (activation_qscheme == torch.per_tensor_symmetric or activation_qscheme == torch.per_channel_symmetric) and \
-        qsettings.USE_INT8_DTYPE_FOR_SYMMETRIC:
-        activation_dtype = torch.qint8
-        activation_quant_min = qsettings.INT8_DTYPE_MIN_VALUE
-        activation_quant_max = qsettings.INT8_DTYPE_MAX_VALUE
+def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
+    # it is possible to use a non qat qconfig such as torch.ao.quantization.get_default_qconfig_mapping(backend)
+    # however qat qconfig which does fake quantization may be better even for PTQ cases.
+    # torch.ao.quantization.get_default_qat_qconfig_mapping(backend)
+    if qconfig_type in (None, qconfig_type == QConfigType.QCONFIG_TYPE_DEFAULT):
+        qconfig_map = get_default_qat_qconfig_mapping(backend)
+    elif qconfig_type == QConfigType.QCONFIG_TYPE_PER_CHANNEL_WEIGHTS:
+        qconfig = QConfig(activation=FusedMovingAvgObsFakeQuantize.with_args(observer=MovingAverageMinMaxObserver,
+                                                                             quant_min=0,
+                                                                             quant_max=255,
+                                                                             reduce_range=False),
+                          weight=default_fused_per_channel_wt_fake_quant)
+        qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
+    elif qconfig_type == QConfigType.QCONFIG_TYPE_4BIT:
+        activation_fake_quant = \
+            FusedMovingAvgObsFakeQuantize.with_args(observer=MovingAverageMinMaxObserver,
+                                                     quant_min=0,
+                                                     quant_max=15,
+                                                     reduce_range=False)
+        per_channel_weight_fake_quant_4bit = \
+            FusedMovingAvgObsFakeQuantize.with_args(observer=MovingAveragePerChannelMinMaxObserver,
+                                                      quant_min=-16,
+                                                      quant_max=15,
+                                                      dtype=torch.qint8,
+                                                      qscheme=torch.per_channel_symmetric)
+        qconfig = QConfig(activation=activation_fake_quant,
+                          weight=per_channel_weight_fake_quant_4bit)
+        qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
     else:
-        activation_dtype = torch.quint8
-        activation_quant_min = qsettings.UINT8_DTYPE_MIN_VALUE
-        activation_quant_max = qsettings.UINT8_DTYPE_MAX_VALUE
-    #
-
-    weight_fake_quant = quantization.FakeQuantize.with_args(
-                                    observer=weight_observer,
-                                    quant_min=weight_quant_min, quant_max=weight_quant_max,
-                                    dtype=weight_dtype, qscheme=weight_qscheme, reduce_range=False)
-
-    activation_fake_quant = quantization.FakeQuantize.with_args(
-                                    observer=activation_observer,
-                                    quant_min=activation_quant_min, quant_max=activation_quant_max,
-                                    dtype=activation_dtype, qscheme=activation_qscheme, reduce_range=False)
-
-    qconfig = quantization.QConfig(activation=activation_fake_quant, weight=weight_fake_quant)
-    return qconfig
-
-
-def get_per_tensor_symmetric_power2_qat_qconfig(backend=None, histogram_observer=qsettings.USE_HISTOGRAM_OBSERVER_DEFAULT):
-    return _get_qat_qconfig(backend=backend,
-                            weight_observer=(observer.HistogramObserverPower2 if histogram_observer else observer.MovingAverageMinMaxObserverPower2),
-                            activation_observer=(observer.HistogramObserverPower2 if histogram_observer else observer.MovingAverageMinMaxObserverPower2),
-                            weight_qscheme=torch.per_tensor_symmetric,
-                            activation_qscheme=torch.per_tensor_symmetric)
-
-
-get_basic_qat_qconfig = get_per_tensor_symmetric_power2_qat_qconfig
-
-
-def get_per_tensor_affine_qat_qconfig(backend=None, histogram_observer=qsettings.USE_HISTOGRAM_OBSERVER_DEFAULT):
-    return _get_qat_qconfig(backend=backend,
-                            weight_observer=(quantization.HistogramObserver if histogram_observer else quantization.MovingAverageMinMaxObserver),
-                            activation_observer=(quantization.HistogramObserver if histogram_observer else quantization.MovingAverageMinMaxObserver),
-                            weight_qscheme=torch.per_tensor_symmetric,
-                            activation_qscheme=torch.per_tensor_affine)
-
-
-def get_per_channel_affine_qat_qconfig(backend=None, histogram_observer=qsettings.USE_HISTOGRAM_OBSERVER_DEFAULT):
-    return _get_qat_qconfig(backend=backend,
-                            weight_observer=quantization.MovingAveragePerChannelMinMaxObserver,
-                            activation_observer=(quantization.HistogramObserver if histogram_observer else quantization.MovingAverageMinMaxObserver),
-                            weight_qscheme=torch.per_channel_symmetric,
-                            activation_qscheme=torch.per_tensor_affine)
-
-
-def get_qat_qconfig_for_target_device(backend, target_device=None,
-                                      histogram_observer=qsettings.USE_HISTOGRAM_OBSERVER_DEFAULT,
-                                      symmetric_power2_quant=None, per_channel_weight_quant=False):
-    ''''this is initial implementation. we can implement more target_device specific qconfigs later'''
-    if target_device is None:
-        # if target_device is not provided, we use the pytorch default qconfig
-        # this is not guarenteed to be compatible with the device that you want to use.
-        # ideally, the target_device should be provided
-        return get_default_qat_qconfig(backend)
-    elif symmetric_power2_quant or target_device.lower() in ('TDA4VM', 'J7ES', 'J721E', 'AM68PA'):
-        '''
-        This configuration will work on all our devices (but may be slightly lower accuracy compared to other options). 
-        We use this if target_device is None or if target_device is explicitly specified as TDA4VM
-        '''
-        return get_per_tensor_symmetric_power2_qat_qconfig(backend=backend, histogram_observer=histogram_observer)
-    elif per_channel_weight_quant:
-        '''
-        per_channel_affine is supported in devices that have MMAv2 (TDA4AL/TDA4VL/J7AEP/AM68A, TDA4VH/J7AHP/AM69A, AM62A)
-        But it comes with some performance cost (lower FPS). So using it only if it is explicitly requested.
-        '''
-        return get_per_channel_affine_qat_qconfig(backend=backend, histogram_observer=histogram_observer)
-    else:
-        '''
-        For devices that have MMAv2 (TDA4AL/TDA4VL/J7AEP/AM68A, TDA4VH/J7AHP/AM69A, AM62A), 
-        it is possible to use per tensor affine quantization without performance cost.
-        '''
-        return get_per_tensor_affine_qat_qconfig(backend=backend, histogram_observer=histogram_observer)
+        RuntimeError("Unknown qconfig_type: " + str(qconfig_type))
+    return qconfig_map

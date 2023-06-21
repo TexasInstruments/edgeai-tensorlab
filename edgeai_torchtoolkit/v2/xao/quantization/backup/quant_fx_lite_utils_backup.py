@@ -55,9 +55,15 @@ def set_quant_backend(backend=None):
 
 
 def get_quant_info(model):
+    __quant_info__ = None
     for m in model.modules():
         if hasattr(m, '__quant_info__'):
-            return m.__quant_info__
+            __quant_info__ = m.__quant_info__
         #
     #
-    return None
+    return __quant_info__
+
+
+def set_quant_info(model, default):
+    model.__quant_info__ = default
+

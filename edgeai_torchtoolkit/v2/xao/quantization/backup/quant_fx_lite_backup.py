@@ -33,7 +33,7 @@ import copy
 import types
 import typing
 import torch
-import torch.ao.quantization.quantize_fx as quantize_fx
+from torch.ao.quantization import quantize_fx
 
 from ....v1 import xnn
 from .import qconfig
@@ -46,13 +46,6 @@ def prepare(model, qconfig_dict=None, example_inputs=(None,), pretrained=None, b
             target_device=None, pretrained_after_prepare=False,
             num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
             **kwargs):
-    model = xnn.model_surgery.replace_modules(model, replacements_dict={torch.nn.ReLU6: [torch.nn.ReLU, 'inplace']})
-    # if qat fx, fusion is needed/supported only for eval
-    # if hasattr(model, 'fuse_model'):
-    #     model.fuse_model(is_qat=is_qat)
-    # else:
-    #     model = quantize_fx.fuse_fx(model)
-    # #
     quant_fx_lite_utils.set_quant_backend(backend=backend)
     if qconfig_dict is None:
         qconfig_dict = {"": qconfig.get_qat_qconfig_for_target_device(backend, target_device=target_device)}
@@ -62,24 +55,14 @@ def prepare(model, qconfig_dict=None, example_inputs=(None,), pretrained=None, b
         quant_fx_lite_utils.load_weights(model, pretrained=pretrained)
     #
     # insert quant, dequant stubs - if it is not present
-    has_quant_stub = [isinstance(m, torch.quantization.QuantStub) for m in model.modules()]
-    has_dequant_stub = [isinstance(m, torch.quantization.DeQuantStub) for m in model.modules()]
-    has_quant_stub = any(has_quant_stub)
-    has_dequant_stub = any(has_dequant_stub)
+    has_quant_stub = any([isinstance(m, torch.quantization.QuantStub) for m in model.modules()])
+    has_dequant_stub = any([isinstance(m, torch.quantization.DeQuantStub) for m in model.modules()])
     if (not has_quant_stub) or (not has_dequant_stub):
-        if not has_quant_stub:
-            model.quant = torch.ao.quantization.QuantStub()
-        #
-        if not has_dequant_stub:
-            model.dequant = torch.ao.quantization.DeQuantStub() #QuantStub()
-        #
-        def _new_forward(model, *input: typing.Any):
-            x = model.quant(*input) if not has_quant_stub else input
-            x = model.forward(x)
-            x = model.dequant(x) if not has_dequant_stub else x
-            return x
-        #
-        model.forward = types.MethodType(_new_forward, model)
+        model = torch.nn.Sequential(
+            torch.ao.quantization.QuantStub(),
+            model,
+            torch.ao.quantization.DeQuantStub()
+        )
     #
     # prepare for quantization
     if is_qat:
@@ -95,11 +78,12 @@ def prepare(model, qconfig_dict=None, example_inputs=(None,), pretrained=None, b
     # observes for range estimation
     model.apply(torch.ao.quantization.enable_observer)
     # store additional information
-    __quant_info_new__ = dict(is_qat=is_qat, num_batch_norm_update_epochs=num_batch_norm_update_epochs,
-                             num_observer_update_epochs=num_observer_update_epochs,
-                             num_epochs_tracked=0)
-    __quant_info_existing__ = quant_fx_lite_utils.get_quant_info(model)
-    if not __quant_info_existing__:
+    __quant_info_new__ = dict(is_qat=is_qat,
+                              num_batch_norm_update_epochs=num_batch_norm_update_epochs,
+                              num_observer_update_epochs=num_observer_update_epochs,
+                              num_epochs_tracked=0)
+    __quant_info__ = quant_fx_lite_utils.get_quant_info(model)
+    if not __quant_info__:
         model.__quant_info__ = __quant_info_new__
     else:
         __quant_info_existing__.update(__quant_info_new__)
