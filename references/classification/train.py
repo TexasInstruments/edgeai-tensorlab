@@ -2,6 +2,7 @@ import datetime
 import os
 import time
 import warnings
+import copy
 
 import presets
 import torch
@@ -191,6 +192,18 @@ def load_data(traindir, valdir, args):
     return dataset, dataset_test, train_sampler, test_sampler
 
 
+def export_model(args, model, epoch, save_best):
+    export_device="cpu"
+    model_device = next(model.parameters()).device
+    model_converted = copy.deepcopy(model).convert() if args.quantization else copy.deepcopy(model)
+    model_converted = model_converted.to(export_device)
+    example_input = torch.rand((1,3,args.val_crop_size,args.val_crop_size), device=export_device)
+    if epoch == 0 or epoch >= (args.epochs-5):
+        utils.export_on_master(model_converted, example_input, os.path.join(args.output_dir, f"model_{epoch}.onnx"), opset_version=args.opset_version)
+    if save_best:
+        utils.export_on_master(model_converted, example_input, os.path.join(args.output_dir, "model.onnx"), opset_version=args.opset_version)
+
+
 def main(args):
     if args.output_dir:
         utils.mkdir(args.output_dir)
@@ -249,7 +262,7 @@ def main(args):
     elif args.pruning:
         model = xao.pruning.PrunerModule(model)
     elif args.quantization:
-        model = xao.quantization.QATFxModule(model)
+        model = xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
 
     model.to(device)
 
@@ -363,18 +376,20 @@ def main(args):
             evaluate(model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
         else:
             evaluate(model, criterion, data_loader_test, device=device)
+        export_model(args, model, 0, True)
         return
 
     print("Start training")
     start_time = time.time()
+    best_acc = 0
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
         train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, args, model_ema, scaler)
         lr_scheduler.step()
-        evaluate(model, criterion, data_loader_test, device=device)
+        epoch_acc = evaluate(model, criterion, data_loader_test, device=device)
         if model_ema:
-            evaluate(model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
+            epoch_acc = evaluate(model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
         if args.output_dir:
             checkpoint = {
                 "model": model_without_ddp.state_dict(),
@@ -387,8 +402,11 @@ def main(args):
                 checkpoint["model_ema"] = model_ema.state_dict()
             if scaler:
                 checkpoint["scaler"] = scaler.state_dict()
-            utils.save_on_master(checkpoint, os.path.join(args.output_dir, f"model_{epoch}.pth"))
+            if epoch >= (args.epochs-10):
+                utils.save_on_master(checkpoint, os.path.join(args.output_dir, f"model_{epoch}.pth"))
             utils.save_on_master(checkpoint, os.path.join(args.output_dir, "checkpoint.pth"))
+            # export onnx model
+            export_model(args, model_without_ddp, epoch, epoch_acc >= best_acc)
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
@@ -454,7 +472,7 @@ def get_args_parser(add_help=True):
     parser.add_argument("--lr-step-size", default=30, type=int, help="decrease lr every step-size epochs")
     parser.add_argument("--lr-gamma", default=0.1, type=float, help="decrease lr by a factor of lr-gamma")
     parser.add_argument("--lr-min", default=0.0, type=float, help="minimum lr of lr schedule (default: 0.0)")
-    parser.add_argument("--print-freq", default=10, type=int, help="print frequency")
+    parser.add_argument("--print-freq", default=100, type=int, help="print frequency")
     parser.add_argument("--output-dir", default=".", type=str, help="path to save outputs")
     parser.add_argument("--resume", default="", type=str, help="path of checkpoint")
     parser.add_argument("--start-epoch", default=0, type=int, metavar="N", help="start epoch")
@@ -528,11 +546,13 @@ def get_args_parser(add_help=True):
     parser.add_argument("--lite", "--surgery", default=0, help="model surgery to create lite models")
 
     parser.add_argument("--quantization", default=0, help="Quaantization Aware Training (QAT)")
-    parser.add_argument("--quantization-bitwidth", default=8, help="Quaantization Bitdepth - applies only if quantization is enabled")
+    parser.add_argument("--quantization-type", default=0, type=int, help="Quaantization Bitdepth - applies only if quantization is enabled")
 
     parser.add_argument("--pruning", default=0, help="Pruning/Sparsity")
     parser.add_argument("--pruning-ratio", default=0.5, help="Pruning/Sparsity Factor - applies only of pruning is enabled")
     parser.add_argument("--pruning-type", default=1, help="Pruning/Sparsity Type - applies only of pruning is enabled")
+
+    parser.add_argument("--opset-version", default=None, help="ONNX Opset version")
     return parser
 
 
