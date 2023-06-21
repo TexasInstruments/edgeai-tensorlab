@@ -1,71 +1,10 @@
-import torch, copy
-from torch import nn 
-from . import replacer
+from torch import nn
 from torch.fx import symbolic_trace
-class SEModule(nn.Module):
-    def __init__(self) -> None:
-        super().__init__()
-        self.sequence=nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3),
-            nn.ReLU(),
-            nn.Conv2d(in_channels= 32, out_channels= 16,kernel_size=3,),
-            nn.Hardsigmoid()
-        )
+from . import replacer
+from . import custom_modules
     
-    def forward(self,x):
-        return torch.mul(self.sequence(x),x)
+from edgeai_torchtoolkit.v1.xnn.layers import resize_with_scale_factor
 
-class SEModule1(nn.Module):
-    def __init__(self) -> None:
-        super().__init__()
-        self.sequence=nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3),
-            nn.SiLU(),
-            nn.Conv2d(in_channels= 32, out_channels= 16,kernel_size=3,),
-            nn.Sigmoid()
-        )
-    
-    def forward(self,x):
-        return torch.mul(self.sequence(x),x)
-
-class InstaModule(nn.Module):
-    def __init__(self,preDefinedLayer:nn.Module) -> None:
-        super().__init__()
-        self.model=preDefinedLayer
-    def forward(self,x):
-        return self.model(x)
-    
-class Focus(nn.Module):
-    def forward(self,x):
-        patch_top_left = x[..., ::2, ::2]
-        patch_top_right = x[..., ::2, 1::2]
-        patch_bot_left = x[..., 1::2, ::2]
-        patch_bot_right = x[..., 1::2, 1::2]
-        x = torch.cat(
-            (
-                patch_top_left,
-                patch_bot_left,
-                patch_top_right,
-                patch_bot_right,
-            ),
-            dim=1,
-        )
-        return x
-
-class ConvBNRModule(nn.Module):
-    def __init__(self,in_channels,out_channels,kernel_size,stride,padding) -> None:
-        super().__init__()
-        self.conv=nn.Conv2d(in_channels,out_channels,kernel_size,stride,padding)
-        self.bn=nn.BatchNorm2d(out_channels)
-        self.act=nn.ReLU()
-    
-    def forward(self,x,*args):
-        return self.act(self.bn(self.conv(x)))
-
-    
-from edgeai_torchtoolkit.v1.toolkit.xnn. layers.resize_blocks import resize_with_scale_factor
 
 def replace_resize_with_scale_factor(model):
     traced_m =  symbolic_trace(model)
@@ -83,7 +22,7 @@ def replace_resize_with_scale_factor(model):
     traced_m.recompile()
     return traced_m
 
-def replace_maxpool2d_k_gt5(model:nn.Module):
+def replace_maxpool2d_kernel_size_ge_5(model:nn.Module):
     traced_model=symbolic_trace(model)
     modules=dict(traced_model.named_modules())
     no_of_max_pool=0
@@ -120,7 +59,9 @@ def replace_maxpool2d_k_gt5(model:nn.Module):
         traced_model.graph.lint()
         traced_model.recompile()
     return traced_model
-def replace_avgpool2d_k_gt5(model:nn.Module):
+
+
+def replace_avgpool2d_kernel_size_ge_5(model:nn.Module):
     traced_model=symbolic_trace(model)
     modules=dict(traced_model.named_modules())
     no_of_avg_pool=0
@@ -148,10 +89,10 @@ def replace_avgpool2d_k_gt5(model:nn.Module):
                 replacement.append(nn.AvgPool2d(kernel_size=3,stride=1,padding=1))
                 k_size-=2
             replacement.append(nn.AvgPool2d(kernel_size=k_size,stride=stride,padding=1))
-            traced_model.add_submodule(f'replaced_maxpool_{no_of_avg_pool}',replacement)
+            traced_model.add_submodule(f'replaced_avgpool_{no_of_avg_pool}',replacement)
             args=(node.args[0],)
             with traced_model.graph.inserting_before(node):
-                new_node=traced_model.graph.call_module(f'replaced_maxpool_{no_of_avg_pool}',args,{})
+                new_node=traced_model.graph.call_module(f'replaced_avgpool_{no_of_avg_pool}',args,{})
                 node.replace_all_uses_with(new_node)
             traced_model.graph.erase_node(node)
         
@@ -159,7 +100,8 @@ def replace_avgpool2d_k_gt5(model:nn.Module):
         traced_model.recompile()
     return traced_model
 
-def replace_conv2d_k_gt5(model:nn.Module):
+
+def replace_conv2d_kernel_size_ge_7(model:nn.Module):
     traced_model=symbolic_trace(model)
     modules=dict(traced_model.named_modules())
     no_of_conv=0
@@ -176,7 +118,7 @@ def replace_conv2d_k_gt5(model:nn.Module):
                     replacement= nn.Sequential()
                     while k_size > 5:
                         temp_out_channels= 2**(round(math.log2(in_channels))+random.choice([-1,0,1]))
-                        replacement.append(ConvBNRModule(in_channels,temp_out_channels, kernel_size=3,stride=1,padding=1))
+                        replacement.append(custom_modules.cusConvBNRModule(in_channels,temp_out_channels, kernel_size=3,stride=1,padding=1))
                         in_channels=temp_out_channels
                         k_size-=2
                     replacement.append(nn.Conv2d(in_channels, out_channels, kernel_size=k_size,stride=stride,padding=1))
@@ -198,14 +140,14 @@ def replace_conv2d_k_gt5(model:nn.Module):
             padding=1 
             while k_size > 5:
                 temp_out_channels= 2**(round(math.log2(in_channels))+random.choice([-1,0,1]))
-                replacement.append(ConvBNRModule(in_channels,temp_out_channels, kernel_size=3,stride=1,padding=1))
+                replacement.append(custom_modules.ConvBNRModule(in_channels,temp_out_channels, kernel_size=3,stride=1,padding=1))
                 in_channels=temp_out_channels
                 k_size-=2
             replacement.append(nn.Conv2d(in_channels, out_channels, kernel_size=k_size,stride=stride,padding=1))
-            traced_model.add_submodule(f'replaced_maxpool_{no_of_conv}',replacement)
+            traced_model.add_submodule(f'replaced_conv_{no_of_conv}',replacement)
             args=(node.args[0],)
             with traced_model.graph.inserting_before(node):
-                new_node=traced_model.graph.call_module(f'replaced_maxpool_{no_of_conv}',args,{})
+                new_node=traced_model.graph.call_module(f'replaced_conv_{no_of_conv}',args,{})
                 node.replace_all_uses_with(new_node)
             traced_model.graph.erase_node(node)
         

@@ -1,3 +1,2 @@
-from . import custom_module
-from .replacer import replace_unsuppoted_layers, get_replacement_dict_default
-from .surgery_module import SurgeryModule
+from . import custom_modules, custom_surgery_functions,surgery
+from .surgery import SurgeryModule, replace_unsuppoted_layers, get_replacement_dict_default

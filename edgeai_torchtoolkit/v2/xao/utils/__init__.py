@@ -29,4 +29,4 @@
 #
 #################################################################################
 
-from .....v1.toolkit.xnn.utils.logger import *
+from ....v1.xnn.utils.logger import *

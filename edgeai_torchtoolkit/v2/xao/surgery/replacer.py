@@ -5,17 +5,16 @@ from torch.fx import symbolic_trace,GraphModule, Node
 from typing import Dict, Any, Union, List
 import operator
 from copy import deepcopy
-from .custom_module import *
+
 
 
 __all__ = ['replace_unsuppoted_layers', 'get_replacement_dict_default']
 
 
-# moduleReplacementdict=Dict[]()
-# functionReplacementDict=Dict[]()
 def _get_parent_name(target:str):
     *parent, name = target.rsplit('.', 1)
     return ( parent[0] if parent else ''), name
+
 
 def replace_module_node(node:Node,modules_dict:Dict[str,Any],replace_model:Union[GraphModule,nn.Module]):
     if node.op != 'call_module':
@@ -27,6 +26,7 @@ def replace_module_node(node:Node,modules_dict:Dict[str,Any],replace_model:Union
     parent_name, name = _get_parent_name(node.target)
     modules_dict.update(node.target,replace_model)
     setattr(modules_dict[parent_name], name, replace_model)
+
 
 def replace_function_node(node:Node,traced_model:GraphModule,replace_function):
     if node.op !='call_function':
@@ -40,6 +40,7 @@ def replace_function_node(node:Node,traced_model:GraphModule,replace_function):
         node.replace_all_uses_with(new_node)
     # Remove the old node from the graph
     traced_model.graph.erase_node(node)
+
 
 #checks whether two nodes are  equal or not
 def _are_both_node_equal(first_node:Node,second_node:Node,first_graoh_module:Union[GraphModule,None]=None,second_graph_module:Union[GraphModule,None]=None):
@@ -76,6 +77,7 @@ def _are_both_node_equal(first_node:Node,second_node:Node,first_graoh_module:Uni
         return str(type(module_1))== str(type(module_2))
     
     return False
+
 
 #searches pattern with on single input and one output other wise a single node with out checking kwargs
 def straight_chain_searcher(main_module:GraphModule,pattern_module:GraphModule):
@@ -124,6 +126,7 @@ def straight_chain_searcher(main_module:GraphModule,pattern_module:GraphModule):
                 main_index=second_start_index
                 second_start_index=-1
     return matched
+
 
 #replaces a pattern fom start to end in graph module to a call_module node
 def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:nn.Module,no_of_module_replaced:int=0):
@@ -199,6 +202,7 @@ def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:
     main_module.graph.lint()
     main_module.recompile()
 
+
 #replaces all matches with call_module node
 def _replace_all_matches(main_module:GraphModule,matches,replace_module:nn.Module):
     no_of_module_replaced=0
@@ -206,6 +210,7 @@ def _replace_all_matches(main_module:GraphModule,matches,replace_module:nn.Modul
         replace_module_copy =deepcopy(replace_module)
         _replace_pattern(main_module,start,end,replace_module_copy,no_of_module_replaced)
         no_of_module_replaced+=1
+
 
 #replace nodes if they don't need any change with their keyword arguments and arguements
 def graph_pattern_replacer(main_module:Union[GraphModule,nn.Module,callable],pattern_module:Union[GraphModule,nn.Module,callable],replace_module:Union[GraphModule,nn.Module,callable]):
@@ -233,44 +238,6 @@ def graph_pattern_replacer(main_module:Union[GraphModule,nn.Module,callable],pat
         _replace_all_matches(main_module,matches,replace_module)
     return main_module
 
+
 #put composite modules first, then primary module
-_unsupported_module_dict={
-    SEModule() : nn.Identity(),
-    SEModule1() : nn.Identity(),
-    nn.ReLU(inplace=True):nn.ReLU(),
-    nn.Dropout(inplace=True):nn.Dropout(),
-    nn.Hardswish():nn.ReLU(),
-    nn.ReLU6():nn.ReLU(),
-    nn.GELU():nn.ReLU(),
-    nn.SiLU():nn.ReLU(),
-    nn.LeakyReLU():nn.ReLU(),
-    nn.Hardsigmoid():nn.ReLU(),
-    Focus():ConvBNRModule(3,12,(5,5),(2,2),2),
-    nn.Upsample():replace_resize_with_scale_factor,
-    'maxpool_gt_5':replace_maxpool2d_k_gt5,
-    'avgpool_gt_5':replace_avgpool2d_k_gt5,
-    'conv_gt_5':replace_conv2d_k_gt5
-}
-
-def _is_replacable(pattern:Union[GraphModule,nn.Module,callable]):
-    if not isinstance(pattern,GraphModule):
-        pattern=symbolic_trace(pattern)
-    #TODO
-    return True
-
-def replace_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn.Module,callable]]=None):
-    replacement_dict = replacement_dict or _unsupported_module_dict
-    model=deepcopy(model)
-    for pattern, replacement in replacement_dict.items():
-        if isfunction(replacement):
-            model=replacement(model)
-        else:
-            if pattern.__class__.__name__ in dir(nn):
-                pattern= InstaModule(pattern)
-            model=graph_pattern_replacer(model,pattern,replacement)
-    return model
-
-
-def get_replacement_dict_default():
-    return _unsupported_module_dict
 
