@@ -178,7 +178,14 @@ def accuracy(output, target, topk=(1,)):
         if target.ndim == 2:
             target = target.max(dim=1)[1]
 
-        _, pred = output.topk(maxk, 1, True, True)
+        try:
+            # this can crash if num classes is less than maxk.
+            # so put in try except
+            _, pred = output.topk(maxk, 1, True, True)
+        except:
+            maxk = output.size()[-1]
+            _, pred = output.topk(maxk, 1, True, True)
+
         pred = pred.t()
         correct = pred.eq(target[None])
 
@@ -240,6 +247,11 @@ def is_main_process():
 def save_on_master(*args, **kwargs):
     if is_main_process():
         torch.save(*args, **kwargs)
+
+
+def export_on_master(*args, **kwargs):
+    if is_main_process():
+        torch.onnx.export(*args, **kwargs)
 
 
 def init_distributed_mode(args):

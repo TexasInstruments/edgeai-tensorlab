@@ -2,6 +2,7 @@ import datetime
 import os
 import time
 import warnings
+import copy
 
 import presets
 import torch
@@ -15,7 +16,9 @@ from torch.utils.data.dataloader import default_collate
 from torchvision.transforms.functional import InterpolationMode
 from transforms import get_mixup_cutmix
 
-from edgeai_torchtoolkit.v2.toolkit import xao
+import dataset_utils
+import model_utils
+import edgeai_torchmodelopt
 
 
 def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, args, model_ema=None, scaler=None):
@@ -23,6 +26,7 @@ def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, arg
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter("lr", utils.SmoothedValue(window_size=1, fmt="{value}"))
     metric_logger.add_meter("img/s", utils.SmoothedValue(window_size=10, fmt="{value}"))
+    dataset_len = len(data_loader)
 
     header = f"Epoch: [{epoch}]"
     for i, (image, target) in enumerate(metric_logger.log_every(data_loader, args.print_freq, header)):
@@ -59,16 +63,19 @@ def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, arg
         metric_logger.meters["acc1"].update(acc1.item(), n=batch_size)
         metric_logger.meters["acc5"].update(acc5.item(), n=batch_size)
         metric_logger.meters["img/s"].update(batch_size / (time.time() - start_time))
+        if args.train_epoch_size_factor and i >= round(args.train_epoch_size_factor * dataset_len):
+            break
 
 
-def evaluate(model, criterion, data_loader, device, print_freq=100, log_suffix=""):
+def evaluate(args, model, criterion, data_loader, device, print_freq=100, log_suffix=""):
     model.eval()
     metric_logger = utils.MetricLogger(delimiter="  ")
     header = f"Test: {log_suffix}"
+    dataset_len = len(data_loader)
 
     num_processed_samples = 0
     with torch.inference_mode():
-        for image, target in metric_logger.log_every(data_loader, print_freq, header):
+        for i, (image, target) in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
             image = image.to(device, non_blocking=True)
             target = target.to(device, non_blocking=True)
             output = model(image)
@@ -82,13 +89,15 @@ def evaluate(model, criterion, data_loader, device, print_freq=100, log_suffix="
             metric_logger.meters["acc1"].update(acc1.item(), n=batch_size)
             metric_logger.meters["acc5"].update(acc5.item(), n=batch_size)
             num_processed_samples += batch_size
+            if args.val_epoch_size_factor and i >= round(args.val_epoch_size_factor * dataset_len):
+                break
     # gather the stats from all processes
 
     num_processed_samples = utils.reduce_across_processes(num_processed_samples)
     if (
         hasattr(data_loader.dataset, "__len__")
         and len(data_loader.dataset) != num_processed_samples
-        and torch.distributed.get_rank() == 0
+        and (not args.distributed or torch.distributed.get_rank() == 0)
     ):
         # See FIXME above
         warnings.warn(
@@ -138,19 +147,35 @@ def load_data(traindir, valdir, args):
         random_erase_prob = getattr(args, "random_erase", 0.0)
         ra_magnitude = getattr(args, "ra_magnitude", None)
         augmix_severity = getattr(args, "augmix_severity", None)
-        dataset = torchvision.datasets.ImageFolder(
-            traindir,
-            presets.ClassificationPresetTrain(
-                crop_size=train_crop_size,
-                interpolation=interpolation,
-                auto_augment_policy=auto_augment_policy,
-                random_erase_prob=random_erase_prob,
-                ra_magnitude=ra_magnitude,
-                augmix_severity=augmix_severity,
-                backend=args.backend,
-                use_v2=args.use_v2,
-            ),
-        )
+        if args.dataset == 'modelmaker':
+            train_folders = os.path.normpath(traindir).split(os.sep)
+            train_anno = os.path.join(os.sep.join(train_folders[:-1]), 'annotations', f'{args.annotation_prefix}_train.json')
+            dataset = dataset_utils.CocoClassification(
+                traindir, train_anno,
+                presets.ClassificationPresetTrain(
+                    crop_size=train_crop_size,
+                    interpolation=interpolation,
+                    auto_augment_policy=auto_augment_policy,
+                    random_erase_prob=random_erase_prob,
+                    ra_magnitude=ra_magnitude,
+                    augmix_severity=augmix_severity,
+                    backend=args.backend,
+                    use_v2=args.use_v2,
+                ))    
+        else:
+            dataset = torchvision.datasets.ImageFolder(
+                traindir,
+                presets.ClassificationPresetTrain(
+                    crop_size=train_crop_size,
+                    interpolation=interpolation,
+                    auto_augment_policy=auto_augment_policy,
+                    random_erase_prob=random_erase_prob,
+                    ra_magnitude=ra_magnitude,
+                    augmix_severity=augmix_severity,
+                    backend=args.backend,
+                    use_v2=args.use_v2,
+                ),
+            )
         if args.cache_dataset:
             print(f"Saving dataset_train to {cache_path}")
             utils.mkdir(os.path.dirname(cache_path))
@@ -165,12 +190,11 @@ def load_data(traindir, valdir, args):
         # TODO: this could probably be weights_only=True
         dataset_test, _ = torch.load(cache_path, weights_only=False)
     else:
-        if args.weights and args.test_only:
-            weights = torchvision.models.get_weight(args.weights)
+        if args.weights_enum and args.test_only:
+            weights = torchvision.models.get_weight(args.weights_enum)
             preprocessing = weights.transforms(antialias=True)
             if args.backend == "tensor":
                 preprocessing = torchvision.transforms.Compose([torchvision.transforms.PILToTensor(), preprocessing])
-
         else:
             preprocessing = presets.ClassificationPresetEval(
                 crop_size=val_crop_size,
@@ -180,10 +204,16 @@ def load_data(traindir, valdir, args):
                 use_v2=args.use_v2,
             )
 
-        dataset_test = torchvision.datasets.ImageFolder(
-            valdir,
-            preprocessing,
-        )
+        if args.dataset == 'modelmaker':
+            val_folders = os.path.normpath(valdir).split(os.sep)
+            val_anno = os.path.join(os.sep.join(val_folders[:-1]), 'annotations', f'{args.annotation_prefix}_val.json')
+            dataset_test = dataset_utils.CocoClassification(valdir, val_anno, preprocessing)
+        else:
+            dataset_test = torchvision.datasets.ImageFolder(
+                valdir,
+                preprocessing,
+            )
+        #
         if args.cache_dataset:
             print(f"Saving dataset_test to {cache_path}")
             utils.mkdir(os.path.dirname(cache_path))
@@ -203,15 +233,51 @@ def load_data(traindir, valdir, args):
     return dataset, dataset_test, train_sampler, test_sampler
 
 
+def export_model(args, model, epoch, model_name):
+    if args.quantization:
+        if hasattr(model, "convert"):
+            model = model.convert()
+        else:
+            model = torch.ao.quantization.quantize_fx.convert_fx(model)
+        #
+        export_device = 'cpu'
+    else:
+        export_device = next(model.parameters()).device
+    #
+    example_input = torch.rand((1,3,args.val_crop_size,args.val_crop_size), device=export_device)
+    utils.export_on_master(model, example_input, os.path.join(args.output_dir, model_name), opset_version=args.opset_version)
+
+
+def split_weights(weights_name):
+    weights_list = weights_name.split(',')
+    weights_urls = []
+    weights_enums = []
+    for w in weights_list:
+        w = w.lstrip()
+        if edgeai_torchmodelopt.xnn.utils.is_url_or_file(w):
+            weights_urls.append(w)
+        else:
+            weights_enums.append(w)
+        #
+    #
+    return ((weights_urls[0] if len(weights_urls)>0 else None), (weights_enums[0] if len(weights_enums)>0 else None))
+
+
 def main(args):
     if args.output_dir:
         utils.mkdir(args.output_dir)
 
     # create logger that tee writes to file
-    xao.utils.TeeLogger(os.path.join(args.output_dir, 'run.log'))
+    logger = edgeai_torchmodelopt.xnn.utils.TeeLogger(os.path.join(args.output_dir, 'run.log'))
 
+    # weights can be an external url or a pretrained enum in torhvision
+    (args.weights_url, args.weights_enum) = split_weights(args.weights)
+    
     utils.init_distributed_mode(args)
     print(args)
+
+    if args.distributed and args.parallel:
+        raise RuntimeError("both DistributedDataParallel and DataParallel cannot be used simultaneously")
 
     device = torch.device(args.device)
 
@@ -250,15 +316,42 @@ def main(args):
     )
 
     print("Creating model")
-    model = torchvision.models.get_model(args.model, weights=args.weights, num_classes=num_classes)
+    model, surgery_kwargs = model_utils.get_model(args.model, weights=args.weights_enum, num_classes=num_classes, model_surgery=args.model_surgery)
 
-    script_model = torch.fx.symbolic_trace(model)
-    xao.surgery.graphPatternReplacer(script_model, )
+    if args.model_surgery == edgeai_torchmodelopt.xmodelopt.surgery.SyrgeryVersion.SURGERY_LEGACY:
+        model = edgeai_torchmodelopt.xmodelopt.surgery.v1.convert_to_lite_model(model, **surgery_kwargs)
+    elif args.model_surgery == edgeai_torchmodelopt.xmodelopt.surgery.SyrgeryVersion.SURGERY_FX:
+        print("Performing Surgery on the Model")
+        model = edgeai_torchmodelopt.xmodelopt.surgery.v2.convert_to_lite_fx(model)
+
+    if args.weights_url and (not args.test_only):
+        print(f"loading pretrained checkpoint for training: {args.weights_url}")
+        edgeai_torchmodelopt.xnn.utils.load_weights(model, args.weights_url, state_dict_name=args.weights_state_dict_name)
+
+    if args.pruning == edgeai_torchmodelopt.xmodelopt.pruning.PruningVersion.PRUNING_LEGACY:
+        assert False, "Pruning is currently not supported in the legacy modules based method"
+    elif args.pruning == edgeai_torchmodelopt.xmodelopt.pruning.PruningVersion.PRUNING_FX: #2
+        model = edgeai_torchmodelopt.xmodelopt.pruning.PrunerModule(model, pruning_ratio=args.pruning_ratio, total_epochs=args.epochs, pruning_init_train_ep=args.pruning_init_train_ep,
+                                            pruning_class=args.pruning_class, pruning_type=args.pruning_type, pruning_global=args.pruning_global, pruning_m=args.pruning_m)
+    
+    if args.quantization == edgeai_torchmodelopt.xmodelopt.quantization.QuantizationVersion.QUANTIZATION_LEGACY:
+        dummy_input = torch.rand(1,3,args.val_crop_size,args.val_crop_size)
+        model = edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTrainModule(model, dummy_input=dummy_input, total_epochs=args.epochs)
+    elif args.quantization == edgeai_torchmodelopt.xmodelopt.quantization.QuantizationVersion.QUANTIZATION_FX:
+        model = edgeai_torchmodelopt.xmodelopt.quantization.v2.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
+
+    if args.weights_url and args.test_only:
+        print(f"loading pretrained checkpoint for test: {args.weights_url}")
+        edgeai_torchmodelopt.xnn.utils.load_weights(model, args.weights_url, state_dict_name=args.weights_state_dict_name)
 
     model.to(device)
 
     if args.distributed and args.sync_bn:
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
+
+    if args.compile_model:
+        print("Compiling the model using PyTorch2.0 functionality")
+        model = torch.compile(model)
 
     criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
 
@@ -277,7 +370,9 @@ def main(args):
 
     opt_name = args.opt.lower()
     if opt_name.startswith("sgd"):
-        optimizer = torch.optim.SGD(
+        # in general use torch.optim.SGD
+        # AdaptiveSGD is required only if you want to freeze certain parameters by setting requires_update = False. 
+        optimizer = edgeai_torchmodelopt.xnn.optim.AdaptiveSGD(
             parameters,
             lr=args.lr,
             momentum=args.momentum,
@@ -331,7 +426,10 @@ def main(args):
 
     model_without_ddp = model
     if args.distributed:
-        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
+        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu], find_unused_parameters=True)
+        model_without_ddp = model.module
+    elif args.parallel:
+        model = torch.nn.parallel.DataParallel(model)
         model_without_ddp = model.module
 
     model_ema = None
@@ -363,22 +461,25 @@ def main(args):
         # We disable the cudnn benchmarking because it can noticeably affect the accuracy
         torch.backends.cudnn.benchmark = False
         torch.backends.cudnn.deterministic = True
+        print("Start Testing")
         if model_ema:
-            evaluate(model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
+            acc = evaluate(args, model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
         else:
-            evaluate(model, criterion, data_loader_test, device=device)
-        return
+            acc = evaluate(args, model, criterion, data_loader_test, device=device)
+        export_model(args, model_without_ddp, 0, "model_test.onnx")
+        return acc
 
     print("Start training")
     start_time = time.time()
+    best_acc = 0
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
         train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, args, model_ema, scaler)
         lr_scheduler.step()
-        evaluate(model, criterion, data_loader_test, device=device)
+        epoch_acc = evaluate(args, model, criterion, data_loader_test, device=device)
         if model_ema:
-            evaluate(model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
+            epoch_acc = evaluate(args, model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
         if args.output_dir:
             checkpoint = {
                 "model": model_without_ddp.state_dict(),
@@ -391,9 +492,15 @@ def main(args):
                 checkpoint["model_ema"] = model_ema.state_dict()
             if scaler:
                 checkpoint["scaler"] = scaler.state_dict()
-            utils.save_on_master(checkpoint, os.path.join(args.output_dir, f"model_{epoch}.pth"))
-            utils.save_on_master(checkpoint, os.path.join(args.output_dir, "checkpoint.pth"))
+            if epoch == 0 or epoch >= (args.epochs-10):
+                utils.save_on_master(checkpoint, os.path.join(args.output_dir, f"checkpoint_{epoch}.pth"))
+                export_model(args, model_without_ddp, epoch, f"model_{epoch}.onnx")
+            if epoch_acc >= best_acc:
+                utils.save_on_master(checkpoint, os.path.join(args.output_dir, "checkpoint.pth"))
+                export_model(args, model_without_ddp, epoch, f"model.onnx")
+                best_acc = epoch_acc
 
+    logger.close()
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print(f"Training time {total_time_str}")
@@ -405,8 +512,11 @@ def get_args_parser(add_help=True):
     parser = argparse.ArgumentParser(description="PyTorch Classification Training", add_help=add_help)
 
     parser.add_argument("--data-path", default="/datasets01/imagenet_full_size/061417/", type=str, help="dataset path")
+    parser.add_argument('--dataset', default='folder', help='dataset')
+    parser.add_argument('--annotation-prefix', default='instances', help='annotation-prefix')
     parser.add_argument("--model", default="resnet18", type=str, help="model name")
     parser.add_argument("--device", default="cuda", type=str, help="device (Use cuda or cpu Default: cuda)")
+    parser.add_argument('--gpus', default=1, type=int, help='number of gpus')
     parser.add_argument(
         "-b", "--batch-size", default=32, type=int, help="images per gpu, the total batch size is $NGPU x batch_size"
     )
@@ -458,7 +568,7 @@ def get_args_parser(add_help=True):
     parser.add_argument("--lr-step-size", default=30, type=int, help="decrease lr every step-size epochs")
     parser.add_argument("--lr-gamma", default=0.1, type=float, help="decrease lr by a factor of lr-gamma")
     parser.add_argument("--lr-min", default=0.0, type=float, help="minimum lr of lr schedule (default: 0.0)")
-    parser.add_argument("--print-freq", default=10, type=int, help="print frequency")
+    parser.add_argument("--print-freq", default=100, type=int, help="print frequency")
     parser.add_argument("--output-dir", default=".", type=str, help="path to save outputs")
     parser.add_argument("--resume", default="", type=str, help="path of checkpoint")
     parser.add_argument("--start-epoch", default=0, type=int, metavar="N", help="start epoch")
@@ -491,6 +601,10 @@ def get_args_parser(add_help=True):
     # distributed training parameters
     parser.add_argument("--world-size", default=1, type=int, help="number of distributed processes")
     parser.add_argument("--dist-url", default="env://", type=str, help="url used to set up distributed training")
+    parser.add_argument("--distributed", default=0, type=int,
+                        help="use dstributed training even if this script is not launched using torch.disctibuted.launch or run")
+    parser.add_argument("--parallel", default=0, type=int, help="can use data parallel mode with distributed is not used")
+
     parser.add_argument(
         "--model-ema", action="store_true", help="enable tracking Exponential Moving Average of model parameters"
     )
@@ -529,6 +643,28 @@ def get_args_parser(add_help=True):
     parser.add_argument("--weights", default=None, type=str, help="the weights enum name to load")
     parser.add_argument("--backend", default="PIL", type=str.lower, help="PIL or tensor - case insensitive")
     parser.add_argument("--use-v2", action="store_true", help="Use V2 transforms")
+    parser.add_argument("--weights-state-dict-name", default="model", type=str, help="the weights member name to load from the checkpoint")
+
+    # options to create faster models
+    parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_torchmodelopt.xmodelopt.surgery.SyrgeryVersion.get_choices(), help="model surgery to create lite models")
+
+    parser.add_argument("--quantization", "--quantize", dest="quantization", default=0, type=int, choices=edgeai_torchmodelopt.xmodelopt.quantization.QuantizationVersion.get_choices(), help="Quaantization Aware Training (QAT)")
+    parser.add_argument("--quantization-type", default=None, help="Actual Quaantization Flavour - applies only if quantization is enabled")
+
+    parser.add_argument("--pruning", default=0, type=int, help="Pruning/Sparsity")
+    parser.add_argument("--pruning-ratio", default=0.640625, type=float, help="Pruning/Sparsity Factor - applies only if pruning is enabled")
+    parser.add_argument("--pruning-type", default='channel', type=str, help="Pruning/Sparsity Type - applies only of pruning is enabled, (options: channel(default), n2m, prunechannelunstructured)")
+    parser.add_argument("--pruning-class", default='blend', type=str, help="pruning parametrization class to be used. (options: blend(default), sigmoid, incremental)")
+    parser.add_argument("--pruning-global", default=0, type=int, help="Whether to do global pruning (Only supported by unstructured and channel pruning)")
+    parser.add_argument("--pruning-init-train-ep", default=5, type=int, help="epochs to train for before starting the pruning")
+    parser.add_argument("--pruning-m", type=int, help="The value of m in n:m pruning. Used only in case of n:m pruning")
+    
+    parser.add_argument("--compile-model", default=0, type=int, help="Compile the model using PyTorch2.0 functionality")
+    parser.add_argument("--opset-version", default=18, type=int, help="ONNX Opset version")
+    parser.add_argument("--train-epoch-size-factor", default=0.0, type=float,
+                        help="Training validation breaks after one iteration - for quick experimentation")
+    parser.add_argument("--val-epoch-size-factor", default=0.0, type=float,
+                        help="Training validation breaks after one iteration - for quick experimentation")
     return parser
 
 
