@@ -1,6 +1,8 @@
 import torch
 from torch import nn 
 
+
+#Squeeze and excitation module with relu and hardsigmoid as activation function 
 class SEModule(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -16,6 +18,7 @@ class SEModule(nn.Module):
         return torch.mul(self.sequence(x),x)
 
 
+#Squeeze and excitation module with silu and sigmoid as activation function 
 class SEModule1(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -31,6 +34,7 @@ class SEModule1(nn.Module):
         return torch.mul(self.sequence(x),x)
 
 
+#Wrapper module for modules in nn package 
 class InstaModule(nn.Module):
     def __init__(self,preDefinedLayer:nn.Module) -> None:
         super().__init__()
@@ -40,6 +44,7 @@ class InstaModule(nn.Module):
         return self.model(x)
 
 
+#focus module for segmentation models
 class Focus(nn.Module):
     def forward(self,x):
         patch_top_left = x[..., ::2, ::2]
@@ -57,7 +62,7 @@ class Focus(nn.Module):
         )
         return x
 
-
+#a typical convulation module to be used as replacement
 class ConvBNRModule(nn.Module):
     def __init__(self,in_channels,out_channels,kernel_size,stride,padding) -> None:
         super().__init__()
