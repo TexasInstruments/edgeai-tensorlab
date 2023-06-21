@@ -34,7 +34,8 @@ from typing import Any, List, Tuple, Optional, Dict
 import torch
 import torch.ao.quantization as quantization
 from torch.ao.quantization.utils import check_min_max_valid
-import edgeai_torchtoolkit.v1.toolkit.xnn as xnn
+
+from ....v1 import xnn
 from . import qsettings
 
 
