@@ -4,6 +4,7 @@ import torch
 from torch.ao.quantization import quantize_fx
 from torch.ao.quantization import QConfigMapping
 from . import qconfig
+from . import observer
 
 
 class QuantFxBaseModule(torch.nn.Module):
@@ -55,6 +56,12 @@ class QuantFxBaseModule(torch.nn.Module):
                         freeze_observers=(self.num_epochs_tracked>=num_observer_update_epochs))
         else:
             self.freeze()
+        #
+        for n, m in self.named_modules():
+            if isinstance(m, observer.aggressive_range_observers_types):
+                num_aggressive_range_start_epoch = (self.total_epochs//4) if self.total_epochs >= 4 else 0
+                m.set_aggressive_range(self.num_epochs_tracked>=num_aggressive_range_start_epoch)
+            #
         #
         self.num_epochs_tracked += 1
         return self
