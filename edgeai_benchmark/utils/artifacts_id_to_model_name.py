@@ -302,6 +302,7 @@ model_id_artifacts_pair = {
     'od-8210_onnxrt': 'ONR-OD-8210-yolox-tiny-lite-mmdet-coco-416x416',
     'od-8220_onnxrt': 'ONR-OD-8220-yolox-s-lite-mmdet-coco-640x640',
     'od-8230_onnxrt': 'ONR-OD-8230-yolox-m-lite-mmdet-coco-640x640',
+    'od-8270_onnxrt': 'ONR-OD-8270-yolox-pico-lite-mmdet-coco-320x320',
     # face detection
     'od-8410_onnxrt': 'ONR-OD-8410-yolox-tiny-lite-mmdet-widerface-416x416',
     'od-8420_onnxrt': 'ONR-OD-8420-yolox-s-lite-mmdet-widerface-640x640',
@@ -422,11 +423,13 @@ shortlisted_model_list = {
     'od-8200_onnxrt': 'ONR-OD-8200-yolox-nano-lite-mmdet-coco-416x416',
     'od-8210_onnxrt': 'ONR-OD-8210-yolox-tiny-lite-mmdet-coco-416x416',
     'od-8220_onnxrt': 'ONR-OD-8220-yolox-s-lite-mmdet-coco-640x640',
+    'od-8270_onnxrt': 'ONR-OD-8270-yolox-pico-lite-mmdet-coco-320x320',
+    'od-8410_onnxrt': 'ONR-OD-8410-yolox-tiny-lite-mmdet-widerface-416x416',
     'od-8420_onnxrt': 'ONR-OD-8420-yolox-s-lite-mmdet-widerface-640x640',
     'ss-2580_tflitert': 'TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512',
     'ss-5710_tvmdlr': 'TVM-SS-5710-deeplabv3lite-mobv2-cocoseg21-512x512', # replaced with ss-5720 with ss-5710
     #'ss-8610_onnxrt': 'ONR-SS-8610-deeplabv3lite-mobv2-ade20k32-512x512', #removed ade20k model
-    #'ss-8630_onnxrt': 'ONR-SS-8630-unetlite-aspp-mobv2-tv-ade20k32-512x512', #removed ade20k model
+    'ss-8630_onnxrt': 'ONR-SS-8630-unetlite-aspp-mobv2-tv-ade20k32-512x512',
     'ss-8710_onnxrt': 'ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512',
     'ss-8720_onnxrt': 'ONR-SS-8720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
     # additional models added
@@ -455,8 +458,11 @@ recommended_model_list = {
     'od-8020_onnxrt': 'ONR-OD-8020-ssd-lite-mobv2-mmdet-coco-512x512',
     'od-8200_onnxrt': 'ONR-OD-8200-yolox-nano-lite-mmdet-coco-416x416',
     'od-8220_onnxrt': 'ONR-OD-8220-yolox-s-lite-mmdet-coco-640x640',
+    'od-8270_onnxrt': 'ONR-OD-8270-yolox-pico-lite-mmdet-coco-320x320',
+    'od-8410_onnxrt': 'ONR-OD-8410-yolox-tiny-lite-mmdet-widerface-416x416',
     'od-8420_onnxrt': 'ONR-OD-8420-yolox-s-lite-mmdet-widerface-640x640',
-    'ss-8710_onnxrt': 'ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512', #replacing 'ss-8610_onnxrt': 'ONR-SS-8610-deeplabv3lite-mobv2-ade20k32-512x512',
+    'ss-8630_onnxrt': 'ONR-SS-8630-unetlite-aspp-mobv2-tv-ade20k32-512x512',
+    'ss-8710_onnxrt': 'ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512',
     'kd-7060_onnxrt': 'ONR-KD-7060-human-pose-yolox-s-640x640',
     #'cl-3520_tvmdlr': 'TVM-CL-3520-mobileNetV1',
     #'od-8050_onnxrt': 'ONR-OD-8050-ssd-lite-regNetX-800mf-fpn-bgr-coco-512x512',
