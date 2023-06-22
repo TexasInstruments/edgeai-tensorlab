@@ -376,7 +376,7 @@ def main(args):
             evaluate(model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
         else:
             evaluate(model, criterion, data_loader_test, device=device)
-        export_model(args, model, 0, True)
+        export_model(args, model_without_ddp, 0, True)
         return
 
     print("Start training")

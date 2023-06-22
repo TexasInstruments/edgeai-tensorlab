@@ -3,10 +3,10 @@
 
 current_time=$(date '+%Y%d%m_%H%M%S')
 model=resnet50
-quantization=0 #1
-lr=0.1 #0.0001
-epochs=90 #1
-
+quantization=0
+lr=0.1
+epochs=90
+quantization_type=4
 
 torchrun --nproc_per_node 4 ./references/classification/train.py --data-path ./data/datasets/imagenet \
          --lr=${lr} --epochs ${epochs} --quantization=${quantization} \
