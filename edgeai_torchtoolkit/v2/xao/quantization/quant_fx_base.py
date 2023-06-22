@@ -10,6 +10,7 @@ class QuantFxBaseModule(torch.nn.Module):
     def __init__(self, model, qconfig_mapping=None, example_inputs=None, is_qat=True, backend=None, qconfig_type=None,
                  total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None):
         super().__init__()
+        qconfig_type = qconfig.QConfigType(qconfig_type)
         qconfig_mapping = qconfig_mapping or qconfig.get_default_qconfig_mapping(is_qat, backend, qconfig_type)
         if is_qat:
             model = quantize_fx.prepare_qat_fx(model, qconfig_mapping, example_inputs)

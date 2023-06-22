@@ -33,12 +33,15 @@ import warnings
 import torch
 from torch.ao.quantization import default_fused_per_channel_wt_fake_quant, default_embedding_fake_quant_4bit
 from torch.ao.quantization import QConfig, QConfigMapping, get_default_qat_qconfig_mapping
+from torch.ao.quantization import MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver, FusedMovingAvgObsFakeQuantize
+
 
 try:
-    # this is not part of torch 2.0.1 release
+    # this is not part of torch 2.0.1 release - so provide an alternate implementation for now
     from torch.ao.quantization.qconfig_mapping import _get_default_qconfig_mapping_with_default_qconfig
     warnings.warn("could not find _get_default_qconfig_mapping_with_default_qconfig in torch.ao.quantization.qconfig_mapping")
 except:
+    from torch.ao.quantization.qconfig_mapping import _FIXED_QPARAMS_OP_TO_OBSERVER
     def _get_default_qconfig_mapping_with_default_qconfig(
         is_qat: bool,
         backend: str,
@@ -72,10 +75,12 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
     if qconfig_type in (None, qconfig_type == QConfigType.QCONFIG_TYPE_DEFAULT):
         qconfig_map = get_default_qat_qconfig_mapping(backend)
     elif qconfig_type == QConfigType.QCONFIG_TYPE_PER_CHANNEL_WEIGHTS:
-        qconfig = QConfig(activation=FusedMovingAvgObsFakeQuantize.with_args(observer=MovingAverageMinMaxObserver,
-                                                                             quant_min=0,
-                                                                             quant_max=255,
-                                                                             reduce_range=False),
+        fused_moving_average_observer = \
+            FusedMovingAvgObsFakeQuantize.with_args(observer=MovingAverageMinMaxObserver,
+                                                    quant_min=0,
+                                                    quant_max=255,
+                                                    reduce_range=False)
+        qconfig = QConfig(activation=fused_moving_average_observer,
                           weight=default_fused_per_channel_wt_fake_quant)
         qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
     elif qconfig_type == QConfigType.QCONFIG_TYPE_4BIT:
@@ -94,5 +99,5 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
                           weight=per_channel_weight_fake_quant_4bit)
         qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
     else:
-        RuntimeError("Unknown qconfig_type: " + str(qconfig_type))
+        raise RuntimeError("Unknown qconfig_type: " + str(qconfig_type))
     return qconfig_map
