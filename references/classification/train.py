@@ -23,6 +23,7 @@ def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, arg
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter("lr", utils.SmoothedValue(window_size=1, fmt="{value}"))
     metric_logger.add_meter("img/s", utils.SmoothedValue(window_size=10, fmt="{value}"))
+    dataset_len = len(data_loader)
 
     header = f"Epoch: [{epoch}]"
     for i, (image, target) in enumerate(metric_logger.log_every(data_loader, args.print_freq, header)):
@@ -59,16 +60,19 @@ def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, arg
         metric_logger.meters["acc1"].update(acc1.item(), n=batch_size)
         metric_logger.meters["acc5"].update(acc5.item(), n=batch_size)
         metric_logger.meters["img/s"].update(batch_size / (time.time() - start_time))
+        if args.epoch_size_factor and i >= round(args.epoch_size_factor * dataset_len):
+            break
 
 
-def evaluate(model, criterion, data_loader, device, print_freq=100, log_suffix=""):
+def evaluate(args, model, criterion, data_loader, device, print_freq=100, log_suffix=""):
     model.eval()
     metric_logger = utils.MetricLogger(delimiter="  ")
     header = f"Test: {log_suffix}"
+    dataset_len = len(data_loader)
 
     num_processed_samples = 0
     with torch.inference_mode():
-        for image, target in metric_logger.log_every(data_loader, print_freq, header):
+        for i, (image, target) in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
             image = image.to(device, non_blocking=True)
             target = target.to(device, non_blocking=True)
             output = model(image)
@@ -82,13 +86,15 @@ def evaluate(model, criterion, data_loader, device, print_freq=100, log_suffix="
             metric_logger.meters["acc1"].update(acc1.item(), n=batch_size)
             metric_logger.meters["acc5"].update(acc5.item(), n=batch_size)
             num_processed_samples += batch_size
+            if args.epoch_size_factor and i >= round(args.epoch_size_factor * dataset_len):
+                break
     # gather the stats from all processes
 
     num_processed_samples = utils.reduce_across_processes(num_processed_samples)
     if (
         hasattr(data_loader.dataset, "__len__")
         and len(data_loader.dataset) != num_processed_samples
-        and torch.distributed.get_rank() == 0
+        and (not args.distributed or torch.distributed.get_rank() == 0)
     ):
         # See FIXME above
         warnings.warn(
@@ -254,14 +260,18 @@ def main(args):
     print("Creating model")
     model = torchvision.models.get_model(args.model, weights=args.weights, num_classes=num_classes)
 
-    if args.lite:
+    if args.lite_model:
         model = xao.pruning.replace_unsuppoted_layers(model)
 
-    if args.quantization and args.pruning:
+    quantization = args.quantization in ("QAT", )
+    if (not quantization) and args.quantization_type:
+        raise RuntimeError("if quantization is None, then quantization_type should be None")
+    #
+    if quantization and args.pruning:
         model = xao.pruning.PrunerQuantModule(model)
     elif args.pruning:
         model = xao.pruning.PrunerModule(model)
-    elif args.quantization:
+    elif quantization:
         model = xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
 
     model.to(device)
@@ -373,9 +383,9 @@ def main(args):
         torch.backends.cudnn.benchmark = False
         torch.backends.cudnn.deterministic = True
         if model_ema:
-            evaluate(model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
+            evaluate(args, model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
         else:
-            evaluate(model, criterion, data_loader_test, device=device)
+            evaluate(args, model, criterion, data_loader_test, device=device)
         export_model(args, model_without_ddp, 0, True)
         return
 
@@ -387,9 +397,9 @@ def main(args):
             train_sampler.set_epoch(epoch)
         train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, args, model_ema, scaler)
         lr_scheduler.step()
-        epoch_acc = evaluate(model, criterion, data_loader_test, device=device)
+        epoch_acc = evaluate(args, model, criterion, data_loader_test, device=device)
         if model_ema:
-            epoch_acc = evaluate(model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
+            epoch_acc = evaluate(args, model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
         if args.output_dir:
             checkpoint = {
                 "model": model_without_ddp.state_dict(),
@@ -543,16 +553,19 @@ def get_args_parser(add_help=True):
     parser.add_argument("--weights", default=None, type=str, help="the weights enum name to load")
 
     # options to create faster models
-    parser.add_argument("--lite", "--surgery", default=0, help="model surgery to create lite models")
+    parser.add_argument("--lite-model", "--model-surgery", default=0, help="model surgery to create lite models")
 
-    parser.add_argument("--quantization", default=0, help="Quaantization Aware Training (QAT)")
-    parser.add_argument("--quantization-type", default=0, type=int, help="Quaantization Bitdepth - applies only if quantization is enabled")
+    parser.add_argument("--quantization", default=None, choices=[None, "QAT"], help="Quaantization Aware Training (QAT)")
+    parser.add_argument("--quantization-type", default=None, choices=xao.quantization.QConfigType.choices(), \
+                        help="Quaantization Bitdepth - applies only if quantization is enabled")
 
     parser.add_argument("--pruning", default=0, help="Pruning/Sparsity")
     parser.add_argument("--pruning-ratio", default=0.5, help="Pruning/Sparsity Factor - applies only of pruning is enabled")
     parser.add_argument("--pruning-type", default=1, help="Pruning/Sparsity Type - applies only of pruning is enabled")
 
     parser.add_argument("--opset-version", default=None, help="ONNX Opset version")
+    parser.add_argument("--epoch-size-factor", default=0.0, type=float,
+                        help="Training validation breaks after one iteration - for quick experimentation")
     return parser
 
 
