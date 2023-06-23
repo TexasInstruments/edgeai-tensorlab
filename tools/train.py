@@ -186,8 +186,9 @@ def run(**kwargs):
         setattr(args, k, v)
     exp = get_exp(args.exp_file, args.name)
     # exp.merge(args.opts)
-    exp.max_epochs = args.max_epochs
+    exp.max_epoch = args.max_epochs
     exp.output_dir = args.output_dir
+    exp.visualize = args.visualize
 
     if not args.experiment_name:
         args.experiment_name = ''

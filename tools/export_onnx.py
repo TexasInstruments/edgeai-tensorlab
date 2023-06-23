@@ -163,6 +163,10 @@ def export_prototxt(model, img, onnx_model_name, task=None):
 @logger.catch
 def main():
     args = make_parser().parse_args()
+    args.name = 'yolox-s-human-pose-ti-lite'
+    args.ckpt = '/home/a0504871/work/ti/edgeai-algo/edgeai-modelmaker/data/projects/edgeai_yolox_coco_keypoint_detection/run/20230621-160204/yolox-s-human-pose-ti-lite/training/best_ckpt.pth'
+    args.no_onnxsim = False
+    args.export_det = True
     args.output_name = os.path.join(os.path.dirname(args.ckpt) , os.path.basename(args.output_name))
     logger.info("args value: {}".format(args))
     exp = get_exp(args.exp_file, args.name)
@@ -229,11 +233,11 @@ def main():
 
     logger.info("loading checkpoint done.")
     if args.dataset == 'ycbv':
-        img = cv2.imread("./assets/ti_mustard.png")
+        img = cv2.imread("../assets/ti_mustard.png")
     elif args.dataset == 'lmo':
-        img = cv2.imread("./assets/sample_lmo_pbr.jpg")
+        img = cv2.imread("../assets/sample_lmo_pbr.jpg")
     else:
-        img = cv2.imread("./assets/dog.jpg")
+        img = cv2.imread("../assets/dog.jpg")
     img, ratio = preprocess(img, exp.test_size)
     img = img[None, ...]
     img = img.astype('float32')
@@ -290,7 +294,7 @@ def main():
 def run_export(**kwargs):
     if kwargs['ckpt'] is not None:
         kwargs['output_name'] = os.path.join(os.path.dirname(kwargs['ckpt']), os.path.basename(kwargs['output_name']))
-    # logger.info("args value: {}".format(args))
+    logger.info("kwargs value: {}".format(kwargs))
     exp = get_exp(None, kwargs['name'])
     exp.max_epochs = kwargs['max_epochs']
     exp.output_dir = kwargs['output_dir']
@@ -364,8 +368,6 @@ def run_export(**kwargs):
         logger.info("generated onnx model named {}".format(kwargs['output_name']))
 
     if not kwargs['no_onnxsim']:
-        import onnx
-
         from onnxsim import simplify
 
         input_shapes = {kwargs['input']: list(dummy_input.shape)} if kwargs['dynamic'] else None
@@ -378,6 +380,8 @@ def run_export(**kwargs):
         assert check, "Simplified ONNX model could not be validated"
         onnx.save(model_simp, kwargs['output_name'])
         logger.info("generated simplified onnx model named {}".format(kwargs['output_name']))
+    else:
+        onnx.shape_inference.infer_shapes_path(kwargs['output_name'], kwargs['output_name'])
 
     export_prototxt(model, img, kwargs['output_name'], 'human_pose')
     logger.info("generated prototxt {}".format(kwargs['output_name'].replace('onnx', 'prototxt')))
