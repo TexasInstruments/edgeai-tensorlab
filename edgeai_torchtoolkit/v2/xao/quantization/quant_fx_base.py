@@ -8,10 +8,16 @@ from . import observer
 
 
 class QuantFxBaseModule(torch.nn.Module):
-    def __init__(self, model, qconfig_mapping=None, example_inputs=None, is_qat=True, backend=None, qconfig_type=None,
-                 total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
+    def __init__(self, model, qconfig_mapping=None, example_inputs=None, is_qat=True, backend="qnnpack",
+                 qconfig_type=None, total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
                  gradual_quantization=True):
         super().__init__()
+        if not total_epochs:
+            raise RuntimeError("total_epochs must be provided")
+        #
+        if qconfig_mapping and qconfig_type:
+            raise RuntimeError("only one of qconfig_mapping or qconfig_type should be provided")
+        #
         qconfig_type = qconfig.QConfigType(qconfig_type)
         qconfig_mapping = qconfig_mapping or qconfig.get_default_qconfig_mapping(is_qat, backend, qconfig_type)
         if is_qat:
@@ -56,9 +62,7 @@ class QuantFxBaseModule(torch.nn.Module):
         if mode is True:
             self.freeze(freeze_bn=(self.num_epochs_tracked>=num_batch_norm_update_epochs),
                         freeze_observers=(self.num_epochs_tracked>=num_observer_update_epochs))
-            if self.gradual_quantization and self.qconfig_type in \
-                    (qconfig.QConfigType.QCONFIG_TYPE_4BIT_PER_CHANNEL_WEIGHT,
-                     qconfig.QConfigType.QCONFIG_TYPE_4BIT_PER_TENSOR_WEIGHT):
+            if self.gradual_quantization:
                 self.gradual_quant_adjustment()
             #
             self.num_epochs_tracked += 1
@@ -71,11 +75,17 @@ class QuantFxBaseModule(torch.nn.Module):
         '''
         gradual range and bitwidth adjustment
         '''
+        has_range_adjust_observer = any([isinstance(m, observer.RANGE_ADJUST_OBSERVER_TYPES)
+                                         for n, m in self.named_modules()])
+        if not has_range_adjust_observer:
+            return
+        #
         range_adjust_epochs_factor = 0.334
-        range_adjust_factor_min = 0.5
-        bitwidth_adjust_factor_max = 16
         num_adjust_warmup_epochs = max(self.total_epochs*range_adjust_epochs_factor, 1)
-        # range, bitwidth adjust
+        # start from 1.0 and gradually reduce to this value
+        range_adjust_factor_min = 0.75
+        # start from this value and gradually reduce to 1
+        bitwidth_adjust_factor_max = 16
         if self.total_epochs <= 1:
             range_adjust_factor = 1.0
             bitwidth_adjust_factor = 1.0
@@ -88,14 +98,14 @@ class QuantFxBaseModule(torch.nn.Module):
             bitwidth_adjust_factor = (1.0 - self.num_epochs_tracked/num_adjust_warmup_epochs)*bitwidth_adjust_factor_max
             bitwidth_adjust_factor = min(max(bitwidth_adjust_factor, 1.0), bitwidth_adjust_factor_max)
         #
-        print(f"INFO - quantization range_adjust_factor: {range_adjust_factor}")
-        print(f"INFO - quantization bitwidth_adjust_factor: {bitwidth_adjust_factor}")
         for n, m in self.named_modules():
-            if isinstance(m, observer.aggressive_range_observers_types):
+            if isinstance(m, observer.RANGE_ADJUST_OBSERVER_TYPES):
                 m.set_range_adjust_factor(range_adjust_factor)
                 m.set_bitwidth_adjust_factor(bitwidth_adjust_factor)
             #
         #
+        print(f"INFO - quantization range_adjust_factor: {range_adjust_factor}")
+        print(f"INFO - quantization bitwidth_adjust_factor: {bitwidth_adjust_factor}")
 
     def freeze(self, freeze_bn=True, freeze_observers=True):
         if freeze_observers is True:
