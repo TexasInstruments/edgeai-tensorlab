@@ -64,18 +64,25 @@ except:
 
 
 class QConfigType(enum.Enum):
-    QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT = 0  # default
-    QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT_SYMM_P2 = 1
-    QCONFIG_TYPE_8BIT_PER_CHANNEL_WEIGHT = 8
-    QCONFIG_TYPE_4BIT_PER_CHANNEL_WEIGHT = 4
-    QCONFIG_TYPE_4BIT_PER_TENSOR_WEIGHT = 5
+    # default is same as QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT
+    QCONFIG_TYPE_DEFAULT = "DEFAULT"
+    QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT = "8BIT_PERT"
+    QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT_SYMM_P2 = "8BIT_PERT_SYM_P2"
+    QCONFIG_TYPE_8BIT_PER_CHANNEL_WEIGHT = "8BIT_PERCH"
+    QCONFIG_TYPE_4BIT_PER_CHANNEL_WEIGHT = "4BIT_PERCH"
+    QCONFIG_TYPE_4BIT_PER_TENSOR_WEIGHT = "4BIT_PERT"
+
+    @classmethod
+    def choices(cls):
+        return [e.value for e in cls]
 
 
 def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
     # it is possible to use a non qat qconfig such as torch.ao.quantization.get_default_qconfig_mapping(backend)
     # however qat qconfig which does fake quantization may be better even for PTQ cases.
     # torch.ao.quantization.get_default_qat_qconfig_mapping(backend)
-    if qconfig_type in (QConfigType.QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT, None):
+    if qconfig_type in (QConfigType.QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT,
+                        QConfigType.QCONFIG_TYPE_DEFAULT):
         qconfig_map = get_default_qat_qconfig_mapping(backend)
     elif qconfig_type in (QConfigType.QCONFIG_TYPE_8BIT_PER_CHANNEL_WEIGHT,):
         fused_moving_average_observer = \
@@ -92,7 +99,7 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
         # it directly calls torch.fused_moving_avg_obs_fake_quant() which implements everything inside it
         # so use FakeQuantize here as we need to override calculate_qparams()
         activation_fake_quant_4bit = \
-            FakeQuantize.with_args(observer=observer.AggressiveRangeHistogramObserver,
+            FakeQuantize.with_args(observer=observer.AggressiveRangeMovingAverageMinMaxObserver,
                                    quant_min=0,
                                    quant_max=15,
                                    reduce_range=False)
@@ -105,7 +112,7 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
                                        qscheme=torch.per_channel_symmetric)
         else:
             weight_fake_quant_4bit = \
-                FakeQuantize.with_args(observer=observer.AggressiveRangeHistogramObserver,
+                FakeQuantize.with_args(observer=observer.AggressiveRangeMovingAverageMinMaxObserver,
                                        quant_min=-7,
                                        quant_max=8,
                                        dtype=torch.qint8,
