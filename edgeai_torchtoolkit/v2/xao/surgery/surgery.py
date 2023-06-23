@@ -1,11 +1,13 @@
 import torch
 from torch import nn
+from torchvision import ops
 from . import custom_modules, custom_surgery_functions
 from typing import Union, Dict, Any
 from copy import deepcopy
 from torch.fx import GraphModule, symbolic_trace
 from inspect import isfunction
-from .replacer import graph_pattern_replacer
+from .replacer import graph_pattern_replacer,_get_parent_name as get_parent_name
+from timm.models._efficientnet_blocks import SqueezeExcite
 
 
 __all__ = ['replace_unsuppoted_layers', 'get_replacement_dict_default','SurgeryModule']
@@ -15,6 +17,9 @@ __all__ = ['replace_unsuppoted_layers', 'get_replacement_dict_default','SurgeryM
 _unsupported_module_dict={
     custom_modules.SEModule() : nn.Identity(),
     custom_modules.SEModule1() : nn.Identity(),
+    SqueezeExcite(32) : nn.Identity(),
+    SqueezeExcite(32,gate_layer=nn.Hardsigmoid) : nn.Identity(),
+    'layerNorm':custom_surgery_functions.replace_layer_norm_and_permute, #based on convnext structure | not effective till date
     nn.ReLU(inplace=True):nn.ReLU(),
     nn.Dropout(inplace=True):nn.Dropout(),
     nn.Hardswish():nn.ReLU(),
@@ -60,7 +65,19 @@ def replace_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn
             # for self-made surgery function 
             model=replacement(model)
         
-        else:
+        elif isinstance(model,nn.Module):
+            #class of MOdule of 
+            if isinstance(pattern,type):
+                modules= dict(model.named_modules)
+                for key_name, module in modules.items():
+                    if isinstance(module,pattern):
+                        parent_name, name= get_parent_name(key_name)
+                        if isinstance(replacement, type):
+                            replacement = replacement()
+                        else:
+                            replacement = deepcopy(replacement) 
+                        modules[key_name] = replacement
+                        modules[parent_name].__setattr__(name, modules[key_name])
             #for nn.Module 
             if pattern.__class__.__name__ in dir(nn):
                 # if the pattern is present in nn directory,

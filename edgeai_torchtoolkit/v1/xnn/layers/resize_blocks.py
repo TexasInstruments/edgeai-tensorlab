@@ -45,7 +45,9 @@ def resize_with(x, size=None, scale_factor=None, mode='nearest', align_corners=N
                 recompute_scale_factor=False):
     assert size is None or scale_factor is None, 'both size and scale_factor must not be specified'
     assert size is not None or scale_factor is not None, 'at least one of size or scale factor must be specified'
-    assert isinstance(x, torch.Tensor), 'must provide a single tensor as input'
+    # print(type(x))
+    if not isinstance(x, (torch.Tensor,torch.fx.Proxy)):
+        raise RuntimeError('must provide a single tensor as input')
 
     # check if interpolate has been monkey-patched
     if hasattr(torch.nn.functional, '_interpolate_orig'):

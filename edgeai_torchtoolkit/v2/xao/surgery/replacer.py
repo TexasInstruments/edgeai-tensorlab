@@ -29,7 +29,7 @@ def replace_module_node(node:Node,modules_dict:Dict[str,Any],replace_model:Union
         ''')
         return 
     parent_name, name = _get_parent_name(node.target)
-    modules_dict.update(node.target,replace_model)
+    modules_dict.update({node.target:replace_model})
     setattr(modules_dict[parent_name], name, replace_model)
 
 
@@ -81,6 +81,8 @@ def _are_both_node_equal(first_node:Node,second_node:Node,first_graoh_module:Uni
         if first_node.op =='call_method':
             #both should refer to same method
             return first_node.target==second_node.target
+        if first_node.op == 'get_attr':
+            return True
         
         if (first_graoh_module==None) or (second_graph_module==None):
             print("\nGraphModules are required for both nodes\nas at least one of them is 'call_module' node.")
@@ -208,6 +210,7 @@ def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:
                         return
                         
     #for call module start node, even pattern and replacement have a single operational node each
+
     if (start.op=='call_module'):
         parent_name,name =_get_parent_name(start.target)
         parent_module=main_modules[parent_name]
@@ -221,18 +224,18 @@ def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:
             while ptr!=end:
                 if (ptr.op=='call_module'):
                     parent_name,name= _get_parent_name(ptr.target)
-                    parent_module.__delattr__(name)
+                    main_modules[parent_name].__delattr__(name)
 
                 ptr.replace_all_uses_with(newNode)
                 temp=ptr.next  
                 main_module.graph.erase_node(ptr)
                 ptr=temp
 
-            if (end.op=='call_module'):
+            if (ptr.op=='call_module'):
                 parent_name,name= _get_parent_name(end.target)
-                parent_module.__delattr__(name)
+                main_modules[parent_name].__delattr__(name)
 
-            end.replace_all_uses_with(newNode)
+            ptr.replace_all_uses_with(newNode)
             main_module.graph.erase_node(end)
     
     # if start of the pattern is call function or call method node,
@@ -245,7 +248,11 @@ def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:
 
         # creates new node for replacement and deletes all nodes from start to end 
         with main_module.graph.inserting_before(start):
-            newNode = main_module.graph.call_module(new_node_name,start.args,start.kwargs)
+            args=[]
+            for arg in start.args:
+                if type(arg) == Node:
+                    args.append(arg)
+            newNode = main_module.graph.call_module(new_node_name,tuple(args),{})
             ptr=start
             while ptr!=end:
                 if (ptr.op=='call_module'):
@@ -261,7 +268,7 @@ def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:
                 parent_name,name= _get_parent_name(end.target)
                 main_modules[parent_name].__delattr__(name)
 
-            end.replace_all_uses_with(newNode)
+            ptr.replace_all_uses_with(newNode)
             main_module.graph.erase_node(end)
         main_modules.update({new_node_name:replace_module})
 
@@ -307,6 +314,7 @@ def graph_pattern_replacer(main_module:Union[GraphModule,nn.Module,callable],pat
     # pattern should have a single node or (single input and single output)
     if (number_of_input ==1 and number_of_output==1) or  (len(pattern_nodes)==1):
         matches = straight_chain_searcher(main_module,pattern_module)
+        print(type(pattern_module).__name__, len(matches))
         _replace_all_matches(main_module,matches,replace_module)
     else:
         print(''' unable to change model as pattern does n't satisfy for the criteria of pattern searcher''')
