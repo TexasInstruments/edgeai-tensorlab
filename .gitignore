@@ -6,4 +6,5 @@ data/projects/
 data/downloads
 !data/downloads/readme.txt
 *.pyc
+*.egg-info/
 

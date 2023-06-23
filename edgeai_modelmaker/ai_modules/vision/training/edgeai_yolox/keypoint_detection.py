@@ -59,7 +59,7 @@ _model_descriptions = {
             model_architecture='yolox',
             input_resize=640,
             input_cropsize=640,
-            # pretrained_checkpoint_path=f'{www_modelzoo_path}/checkpoints/detection/coco/edgeai-yolov5/yolov5s6_640_ti_lite/weights/best.pt',
+            pretrained_checkpoint_path='/home/a0504871/Desktop/best_ckpt.pth',
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_KEYPOINT_DETECTION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=108, performance_infer_time_ms=1000/108,
@@ -72,6 +72,7 @@ _model_descriptions = {
         ),
         compilation=dict(
             model_compilation_id='kd-7060',
+            input_optimization=False,
             runtime_options={
                 'advanced_options:output_feature_16bit_names_list': '370, 426, 482, 538'
             },
@@ -251,7 +252,11 @@ class ModelTraining:
                      'ckpt': f'{self.params.training.pretrained_checkpoint_path}',
                      'max_epochs': self.params.training.training_epochs,
                      'visualize': False,
-                     'output_dir': self.params.training.training_path
+                     'output_dir': self.params.training.training_path,
+                     'data_dir': f'{self.params.dataset.dataset_path}',
+                     'train_ann': self.train_ann_file,
+                     'val_ann': self.val_ann_file,
+                     'img_folder_names': self.params.dataset.split_names
                      }
 
         # import dynamically - force_import every time to avoid clashes with scripts in other repositories
@@ -268,22 +273,29 @@ class ModelTraining:
                   task=args_yolo['task'],
                   max_epochs=args_yolo['max_epochs'],
                   visualize=args_yolo['visualize'],
-                  output_dir=args_yolo['output_dir']
+                  output_dir=args_yolo['output_dir'],
+                  data_dir=args_yolo['data_dir'],
+                  train_ann=args_yolo['train_ann'],
+                  val_ann=args_yolo['val_ann'],
+                  img_folder_names=args_yolo['img_folder_names']
         )
 
         args_yolo_export = {'output_name': f'{self.params.training.model_export_path}',
-                            'ckpt': self.params.training.pretrained_checkpoint_path,
+                            'ckpt': None,
                             'name': f'{self.params.training.model_training_id}',
                             'export_det': True,
                             'output': 'yolox_out',
                             'input': 'yolox_in',
                             'batch_size': self.params.training.batch_size,
                             'dataset': 'coco_kpts',
-                            'dynamic': True,
+                            'dynamic': False, #True,
                             'opset': 11,
-                            'no_onnxsim': True,
+                            'no_onnxsim': False,
                             'max_epochs': self.params.training.training_epochs,
-                            'output_dir': self.params.training.training_path
+                            'output_dir': self.params.training.training_path,
+                            'task': 'human_pose',
+                            'train_ann': self.train_ann_file,
+                            'val_ann': self.val_ann_file
                             }
 
         # #launch export
@@ -299,8 +311,11 @@ class ModelTraining:
             dynamic=args_yolo_export['dynamic'],
             opset=args_yolo_export['opset'],
             no_onnxsim=args_yolo_export['no_onnxsim'],
-            max_epochs=args_yolo['max_epochs'],
-            output_dir=args_yolo['output_dir']
+            max_epochs=args_yolo_export['max_epochs'],
+            output_dir=args_yolo_export['output_dir'],
+            task=args_yolo_export['task'],
+            train_ann=args_yolo_export['train_ann'],
+            val_ann=args_yolo_export['val_ann']
         )
 
         return self.params

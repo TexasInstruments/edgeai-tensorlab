@@ -12,8 +12,8 @@ common:
 dataset:
     # enable/disable dataset loading
     enable: True #False
-    annotation_prefix: person_keypoints
-    split_names: ["train2017", "val2017"]
+    annotation_prefix: instances
+#    split_names: ['train2017', 'val2017']
     # max_num_files: [750, 250] #None
     # specify annotation prefix (of th annotation file) if neded - default is 'instances'.
 
@@ -35,10 +35,10 @@ dataset:
     # input_annotation_path: ["./data/projects/coco_detection/dataset/annotations/instances_train2017.json",
     #                        "./data/projects/coco_detection/dataset/annotations/instances_val2017.json"]
     # -------------------------------------
-    dataset_name: coco_keypoint_detection
-    input_data_path: "/home/a0504871/work/ti/datasets/COCO/"
-    input_annotation_path: ["/home/a0504871/work/ti/datasets/COCO/annotations/person_keypoints_train2017.json",
-                            "/home/a0504871/work/ti/datasets/COCO/annotations/person_keypoints_val2017.json"]
+    dataset_name: custom_keypoint_detection
+    input_data_path: "/home/a0504871/work/ti/datasets/labelstudio-16-faces-keypoints/"
+#    input_annotation_path: ["/home/a0504871/work/ti/datasets/COCO/annotations/person_keypoints_train2017.json",
+#                            "/home/a0504871/work/ti/datasets/COCO/annotations/person_keypoints_val2017.json"]
 
 #Need to remove and add available models for keypoint_detection
 training:
@@ -50,14 +50,16 @@ training:
     # UNET-MOBILENET: unet_aspp_mobilenetv2_tv_edgeailite
     # DEEPLABV3plus-MOBILENET: deeplabv3plus_mobilenetv2_tv_edgeailite
 
-    model_name: 'yolox-pose_tiny_4xb64-300e_coco'
+    model_name: 'yolox-s-human-pose-ti-lite'
 
-    training_epochs: 30
-    batch_size: 8 #16
+    training_epochs: 15
+    batch_size: 16 #16
     learning_rate: 0.001
-    num_gpus: 0
+    num_gpus: 1
 
 compilation:
     # enable/disable compilation
-    enable: False #False
+    enable: True #False
     tensor_bits: 8 #16 #32
+    calibration_frames: 1
+    calibration_iterations: 1

@@ -35,6 +35,12 @@
 # internal or external repositories
 USE_INTERNAL_REPO=1
 
+# set to 1 to enable additional GPLv3 licensed models
+PLUGINS_ENABLE_GPL=0
+
+# set to 1 to enable other extra models
+PLUGINS_ENABLE_EXTRA=0
+
 #################################################################################
 if [[ ${USE_INTERNAL_REPO} -eq 0 ]]; then
     SOURCE_LOCATION="https://github.com/TexasInstruments/"
@@ -52,11 +58,23 @@ echo "cloning git repositories. this may take some time..."
 
 if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch 2023/keypoint-detection ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
 if [[ ! -d ../edgeai-modelzoo ]]; then git clone ${FAST_CLONE_MODELZOO} --branch r8.6 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; fi
+if [[ ! -d ../edgeai-modeltoolkit ]]; then git clone --branch debu_model_surgery ${SOURCE_LOCATION}edgeai-modeltoolkit.git ../edgeai-modeltoolkit; fi
+
+if [[ ${PLUGINS_ENABLE_GPL} -ne 0 ]]; then
+  if [[ ! -d ../edgeai-yolov5 ]]; then git clone --branch r8.4 ${SOURCE_LOCATION}edgeai-yolov5.git ../edgeai-yolov5; fi
+  sed -i s/'PLUGINS_ENABLE_GPL = False'/'PLUGINS_ENABLE_GPL = True'/g ./edgeai_modelmaker/ai_modules/vision/constants.py
+fi
+
+if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
+  sed -i s/'PLUGINS_ENABLE_EXTRA = False'/'PLUGINS_ENABLE_EXTRA = True'/g ./edgeai_modelmaker/ai_modules/vision/constants.py
+fi
+
+echo "cloning done."
 
 #################################################################################
 # upgrade pip
-pip install --no-input --upgrade pip setuptools
-pip install --no-input --upgrade wheel cython numpy
+pip install --no-input --upgrade pip setuptools --no-cache-dir
+pip install --no-input --upgrade wheel cython numpy --no-cache-dir
 
 #################################################################################
 echo "preparing environment..."
@@ -65,13 +83,26 @@ git config --global --add safe.directory $(pwd)
 
 echo "installing repositories..."
 
-echo "installing: ${SOURCE_LOCATION}/edgeai-benchmark"
-cd ../edgeai-benchmark
-./setup_pc.sh r8.6
+# 1. torchvision
+# 2. mmdetection
+# 3. mmyolo
+# 4. modeltoolkit
+# 5. mmpose
+# 6. benchmark
+# 7. modelmaker
 
-echo "installing edgeai-mmpose"
-cd ../edgeai-mmpose
+echo "installing: ${SOURCE_LOCATION}edgeai-modeltoolkit"
+cd ../edgeai-modeltoolkit
 ./setup.sh
+
+echo "installing: ${SOURCE_LOCATION}edgeai-mmpose"
+cd ../edgeai-mmpose
+pip install --no-input -r requirements.txt --no-cache-dir
+python setup.py develop
+
+echo "installing: ${SOURCE_LOCATION}edgeai-benchmark"
+cd ../edgeai-benchmark
+./setup_pc_upgraded.sh r8.6
 
 echo "installing edgeai-modelmaker"
 cd ../edgeai-modelmaker
@@ -80,7 +111,7 @@ cd ../edgeai-modelmaker
 # there as issue with installing pillow-simd through requirements - force it here
 # 7.2.0.post1 is what works in Python3.6 - newer Python versions may be able to use a more recent one
 pip uninstall --yes pillow
-pip install --no-input -U --force-reinstall pillow-simd==7.2.0.post1
+pip install --no-input -U --force-reinstall pillow-simd==9.0.0.post1
 
 ls -d ../edgeai-*
 
