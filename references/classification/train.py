@@ -60,7 +60,7 @@ def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, arg
         metric_logger.meters["acc1"].update(acc1.item(), n=batch_size)
         metric_logger.meters["acc5"].update(acc5.item(), n=batch_size)
         metric_logger.meters["img/s"].update(batch_size / (time.time() - start_time))
-        if args.epoch_size_factor and i >= round(args.epoch_size_factor * dataset_len):
+        if args.train_epoch_size_factor and i >= round(args.train_epoch_size_factor * dataset_len):
             break
 
 
@@ -86,7 +86,7 @@ def evaluate(args, model, criterion, data_loader, device, print_freq=100, log_su
             metric_logger.meters["acc1"].update(acc1.item(), n=batch_size)
             metric_logger.meters["acc5"].update(acc5.item(), n=batch_size)
             num_processed_samples += batch_size
-            if args.epoch_size_factor and i >= round(args.epoch_size_factor * dataset_len):
+            if args.val_epoch_size_factor and i >= round(args.val_epoch_size_factor * dataset_len):
                 break
     # gather the stats from all processes
 
@@ -278,6 +278,10 @@ def main(args):
 
     if args.distributed and args.sync_bn:
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
+
+    if args.compile_model:
+        print("Compiling the model using PyTorch2.0 functionality")
+        model = torch.compile(model)
 
     criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
 
@@ -563,8 +567,11 @@ def get_args_parser(add_help=True):
     parser.add_argument("--pruning-ratio", default=0.5, help="Pruning/Sparsity Factor - applies only of pruning is enabled")
     parser.add_argument("--pruning-type", default=1, help="Pruning/Sparsity Type - applies only of pruning is enabled")
 
+    parser.add_argument("--compile-model", default=0, type=int, help="Compile the model using PyTorch2.0 functionality")
     parser.add_argument("--opset-version", default=None, help="ONNX Opset version")
-    parser.add_argument("--epoch-size-factor", default=0.0, type=float,
+    parser.add_argument("--train-epoch-size-factor", default=0.0, type=float,
+                        help="Training validation breaks after one iteration - for quick experimentation")
+    parser.add_argument("--val-epoch-size-factor", default=0.0, type=float,
                         help="Training validation breaks after one iteration - for quick experimentation")
     return parser
 

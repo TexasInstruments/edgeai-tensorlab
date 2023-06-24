@@ -3,15 +3,20 @@
 
 current_time=$(date '+%Y%d%m_%H%M%S')
 model=mobilenet_v2 #resnet50
-lr=0.001 #0.1
+weights=MobileNet_V2_Weights.IMAGENET1K_V1 #ResNet50_Weights.IMAGENET1K_V1
+epochs=50 #16 #150 #90
+batch_size=128 #64 #32
+lr=0.0001 #0.001
+lr_scheduler=cosineannealinglr
+lr_warmup_epochs=0
 wd=0.00004 #0.0001
-epochs=16 #90
-weights="MobileNet_V2_Weights.IMAGENET1K_V1" #"ResNet50_Weights.IMAGENET1K_V1"
 quantization=QAT
-quantization_type=8BIT_PERCH #8BIT_PERT #8BIT_PERT #8BIT_PERCH #8BIT_PERT_SYM_P2
+quantization_type=W8T_A8T_SYM_P2 #Options: DEFAULT W8T_A8T W8C_A8T W8T_A8T_SYM_P2 W8C_A8T_SYM_P2 W4C_A4T W4C_A8T
 
 
 torchrun --nproc_per_node 4 ./references/classification/train.py --data-path ./data/datasets/imagenet \
-         --batch-size 128 --lr=${lr} --wd=${wd} --epochs ${epochs} --weights=${weights} \
+         --epochs ${epochs} --batch-size ${batch_size} --wd=${wd} --weights=${weights} \
+         --lr=${lr} --lr-scheduler ${lr_scheduler} --lr-warmup-epochs ${lr_warmup_epochs} \
          --model ${model} --output-dir ./data/checkpoints/${current_time}_imagenet_classification_${model} \
-         --quantization=${quantization} --quantization-type=${quantization_type}
+         --quantization=${quantization} --quantization-type=${quantization_type} \
+         --train-epoch-size-factor 0.1
