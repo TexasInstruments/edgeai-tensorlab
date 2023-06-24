@@ -70,6 +70,7 @@ class QConfigType(enum.Enum):
     QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT = "8BIT_PERT"
     QCONFIG_TYPE_8BIT_PER_CHAN_WEIGHT = "8BIT_PERCH"
     QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT_SYMM_P2 = "8BIT_PERT_SYM_P2"
+    QCONFIG_TYPE_8BIT_PER_CHAN_WEIGHT_SYMM_P2 = "8BIT_PERCH_SYM_P2"
     QCONFIG_TYPE_4BIT_PER_CHAN_WEIGHT = "4BIT_PERCH"
     QCONFIG_TYPE_4W_8A_PER_CHAN_WEIGHT = "4BITW_8BITA_PERCH"
 
@@ -107,12 +108,12 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
         # it directly calls torch.fused_moving_avg_obs_fake_quant() which implements everything inside it
         # so use FakeQuantize here as we need to override calculate_qparams()
         activation_fake_quant = \
-            fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver,
+            fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveLowBITActivationObserver,
                                                                    quant_min=0,
                                                                    quant_max=15,
                                                                    reduce_range=False)
         weight_fake_quant = \
-            fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelWeightObserver,
+            fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveLowBITWeightObserver,
                                                                quant_min=-8,
                                                                quant_max=7,
                                                                dtype=torch.qint8,
@@ -130,7 +131,7 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
                                                                    quant_max=255,
                                                                    reduce_range=False)
         weight_fake_quant = \
-            fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelWeightObserver,
+            fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveLowBITWeightObserver,
                                                                quant_min=-8,
                                                                quant_max=7,
                                                                dtype=torch.qint8,
@@ -155,6 +156,26 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
                                                                quant_max=127,
                                                                dtype=torch.qint8,
                                                                qscheme=torch.per_tensor_symmetric)
+        qconfig = QConfig(activation=activation_fake_quant,
+                          weight=weight_fake_quant)
+        qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
+    elif qconfig_type in (QConfigType.QCONFIG_TYPE_8BIT_PER_CHAN_WEIGHT_SYMM_P2,):
+        # FusedMovingAvgObsFakeQuantize will not use calculate_qparams() during forward (only during convert)
+        # it directly calls torch.fused_moving_avg_obs_fake_quant() which implements everything inside it
+        # so use FakeQuantize here as we need to override calculate_qparams()
+        activation_fake_quant = \
+            fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptivePower2ActivationObserver,
+                                                                   quant_min=0,
+                                                                   quant_max=255,
+                                                                   dtype=torch.quint8,
+                                                                   qscheme=torch.per_tensor_symmetric,
+                                                                   reduce_range=False)
+        weight_fake_quant = \
+            fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePower2PerChannelWeightObserver,
+                                                               quant_min=-128,
+                                                               quant_max=127,
+                                                               dtype=torch.qint8,
+                                                               qscheme=torch.per_channel_symmetric)
         qconfig = QConfig(activation=activation_fake_quant,
                           weight=weight_fake_quant)
         qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)

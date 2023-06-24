@@ -12,7 +12,7 @@ from . import qconfig
 class QuantFxBaseModule(torch.nn.Module):
     def __init__(self, model, qconfig_mapping=None, example_inputs=None, is_qat=True, backend="qnnpack",
                  qconfig_type=None, total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
-                 adaptive_quantization=True):
+                 adaptive_quantization=False):
         super().__init__()
         if not total_epochs:
             raise RuntimeError("total_epochs must be provided")
