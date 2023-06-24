@@ -3,14 +3,16 @@ import copy
 import torch
 from torch.ao.quantization import quantize_fx
 from torch.ao.quantization import QConfigMapping
-from . import qconfig
+
 from . import observer
+from . import fake_quanitze
+from . import qconfig
 
 
 class QuantFxBaseModule(torch.nn.Module):
     def __init__(self, model, qconfig_mapping=None, example_inputs=None, is_qat=True, backend="qnnpack",
                  qconfig_type=None, total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
-                 gradual_quantization=True):
+                 adaptive_quantization=True):
         super().__init__()
         if not total_epochs:
             raise RuntimeError("total_epochs must be provided")
@@ -34,7 +36,7 @@ class QuantFxBaseModule(torch.nn.Module):
         self.num_observer_update_epochs = num_observer_update_epochs
         self.num_epochs_tracked = 0
         self.total_epochs = total_epochs
-        self.gradual_quantization = gradual_quantization
+        self.adaptive_quantization = adaptive_quantization
         self.set_quant_backend(backend)
 
     def set_quant_backend(self, backend=None):
@@ -62,8 +64,10 @@ class QuantFxBaseModule(torch.nn.Module):
         if mode is True:
             self.freeze(freeze_bn=(self.num_epochs_tracked>=num_batch_norm_update_epochs),
                         freeze_observers=(self.num_epochs_tracked>=num_observer_update_epochs))
-            if self.gradual_quantization:
-                self.gradual_quant_adjustment()
+            if self.adaptive_quantization and self.qconfig_type in \
+                    (qconfig.QConfigType.QCONFIG_TYPE_4BIT_PER_CHAN_WEIGHT,
+                     qconfig.QConfigType.QCONFIG_TYPE_4W_8A_PER_CHAN_WEIGHT):
+                self.adaptive_quant_adjustment()
             #
             self.num_epochs_tracked += 1
         else:
@@ -71,41 +75,43 @@ class QuantFxBaseModule(torch.nn.Module):
         #
         return self
 
-    def gradual_quant_adjustment(self):
+    def adaptive_quant_adjustment(self):
         '''
-        gradual range and bitwidth adjustment
+        disable quantization of activations (only) for a few epochs
         '''
-        has_range_adjust_observer = any([isinstance(m, observer.RANGE_ADJUST_OBSERVER_TYPES)
+        has_adaptive_types = any([isinstance(m, fake_quanitze.ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES)
                                          for n, m in self.named_modules()])
-        if not has_range_adjust_observer:
+        if not has_adaptive_types:
             return
         #
-        range_adjust_epochs_factor = 0.334
-        num_adjust_warmup_epochs = max(self.total_epochs*range_adjust_epochs_factor, 1)
-        # start from 1.0 and gradually reduce to this value
-        range_adjust_factor_min = 0.75
-        # start from this value and gradually reduce to 1
-        bitwidth_adjust_factor_max = 16
-        if self.total_epochs <= 1:
-            range_adjust_factor = 1.0
-            bitwidth_adjust_factor = 1.0
-        elif self.num_epochs_tracked == 0:
-            range_adjust_factor = 1.0
-            bitwidth_adjust_factor = bitwidth_adjust_factor_max
-        else:
-            range_adjust_factor = 1.0 - (1.0-range_adjust_factor_min)*self.num_epochs_tracked/num_adjust_warmup_epochs
-            range_adjust_factor = min(max(range_adjust_factor, range_adjust_factor_min), 1.0)
-            bitwidth_adjust_factor = (1.0 - self.num_epochs_tracked/num_adjust_warmup_epochs)*bitwidth_adjust_factor_max
-            bitwidth_adjust_factor = min(max(int(round(bitwidth_adjust_factor)), 1.0), bitwidth_adjust_factor_max)
-        #
+        fake_quant_warmup_epochs_factor = 0.25
+        activation_fake_quant = "DEFAULT"
+        activation_observer = "DEFAULT"
+        num_activation_warmup_epochs = int(self.total_epochs*fake_quant_warmup_epochs_factor)
         for n, m in self.named_modules():
-            if isinstance(m, observer.RANGE_ADJUST_OBSERVER_TYPES):
-                m.set_range_adjust_factor(range_adjust_factor)
-                m.set_bitwidth_adjust_factor(bitwidth_adjust_factor)
+            if isinstance(m, fake_quanitze.ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES):
+                if self.num_epochs_tracked < num_activation_warmup_epochs:
+                    if hasattr(m, 'disable_fake_quant'):
+                        m.disable_fake_quant()
+                        activation_fake_quant = False
+                    # if hasattr(m, 'disable_observer'):
+                    #     m.disable_observer()
+                    #     activation_observer = False
+                elif self.num_epochs_tracked >= num_activation_warmup_epochs:
+                    if hasattr(m, 'enable_fake_quant'):
+                        m.enable_fake_quant()
+                        activation_fake_quant = True
+                    # if hasattr(m, 'enable_observer'):
+                    #     m.enable_observer()
+                    #     activation_observer = True
+                #
             #
         #
-        print(f"INFO - quantization range_adjust_factor: {range_adjust_factor}")
-        print(f"INFO - quantization bitwidth_adjust_factor: {bitwidth_adjust_factor}")
+        print(f"INFO - quantization: activation_fake_quant:{activation_fake_quant}, "
+              f"activation_observer:{activation_observer}")
+
+        # TODO: Can also adjust the range or bitwdith adaptively using the ones in
+        # observer.ADAPTIVE_WEIGHT_OBSERVER_TYPES and observer.ADAPTIVE_ACTIVATION_OBSERVER_TYPES
 
     def freeze(self, freeze_bn=True, freeze_observers=True):
         if freeze_observers is True:
