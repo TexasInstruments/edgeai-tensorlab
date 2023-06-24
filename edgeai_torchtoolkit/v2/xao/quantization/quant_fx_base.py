@@ -54,8 +54,8 @@ class QuantFxBaseModule(torch.nn.Module):
 
     def train(self, mode: bool = True):
         # set the default epoch at which freeze occurs during training (if missing)
-        num_batch_norm_update_epochs = self.num_batch_norm_update_epochs or max((self.total_epochs//2)-1, 4)
-        num_observer_update_epochs = self.num_observer_update_epochs or max((self.total_epochs//2)+1, 6)
+        num_batch_norm_update_epochs = self.num_batch_norm_update_epochs or ((self.total_epochs//2)-1)
+        num_observer_update_epochs = self.num_observer_update_epochs or ((self.total_epochs//2)+1)
         # put the model in expected mode
         super().train(mode=mode)
         # also freeze the params if required
@@ -96,7 +96,7 @@ class QuantFxBaseModule(torch.nn.Module):
             range_adjust_factor = 1.0 - (1.0-range_adjust_factor_min)*self.num_epochs_tracked/num_adjust_warmup_epochs
             range_adjust_factor = min(max(range_adjust_factor, range_adjust_factor_min), 1.0)
             bitwidth_adjust_factor = (1.0 - self.num_epochs_tracked/num_adjust_warmup_epochs)*bitwidth_adjust_factor_max
-            bitwidth_adjust_factor = min(max(bitwidth_adjust_factor, 1.0), bitwidth_adjust_factor_max)
+            bitwidth_adjust_factor = min(max(int(round(bitwidth_adjust_factor)), 1.0), bitwidth_adjust_factor_max)
         #
         for n, m in self.named_modules():
             if isinstance(m, observer.RANGE_ADJUST_OBSERVER_TYPES):
