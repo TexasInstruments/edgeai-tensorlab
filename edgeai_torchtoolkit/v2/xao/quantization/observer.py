@@ -1,13 +1,18 @@
 
 import functools
 import math
+import random
 import torch
 from torch.ao.quantization import MinMaxObserver, PerChannelMinMaxObserver, HistogramObserver, \
     MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver
 from ....v1 import xnn
 
 
-class FastHistogramObserver(MinMaxObserver):
+RANGE_SHRINK_PERCENTILE_DEFAULT = 0.01
+RANGE_SHRINK_PERCENTILE_LOWBIT = 0.1
+
+
+class MovingAverageFastHistogramObserver(MinMaxObserver):
     # histogram observer may improve accuracy.
     # default histogram observer in torch.ao.quantization is too slow - so using a custom one
     def __init__(
@@ -18,12 +23,12 @@ class FastHistogramObserver(MinMaxObserver):
         reduce_range=False,
         quant_min=None,
         quant_max=None,
-        range_shrink_percentile=0.01,
+        range_shrink_percentile=RANGE_SHRINK_PERCENTILE_DEFAULT,
         moving_average=True,
         **kwargs
     ) -> None:
         self.averaging_constant = averaging_constant
-        super(FastHistogramObserver, self).__init__(
+        super(MovingAverageFastHistogramObserver, self).__init__(
             dtype=dtype,
             qscheme=qscheme,
             reduce_range=reduce_range,
@@ -55,12 +60,17 @@ class FastHistogramObserver(MinMaxObserver):
         return xnn.utils.extrema_fast(x_orig, range_shrink_percentile=self.range_shrink_percentile)
 
 
+class FastHistogramObserver(MovingAverageFastHistogramObserver):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, moving_average=False, **kwargs)
+
+
 ####################################################################
-class AdaptiveWeightObserver(MinMaxObserver):
+class AdaptiveWeightObserver(FastHistogramObserver):
     pass
 
 
-class AdaptiveActivationObserver(FastHistogramObserver):
+class AdaptiveActivationObserver(MovingAverageFastHistogramObserver):
     pass
 
 
@@ -70,99 +80,17 @@ class AdaptivePerChannelWeightObserver(PerChannelMinMaxObserver):
 
 
 ####################################################################
-class AdaptiveLowBITWeightObserver(PerChannelMinMaxObserver):
+class AdaptiveLowBITPerChannelWeightObserver(PerChannelMinMaxObserver):
     pass
 
 
-class AdaptiveLowBITActivationObserver(FastHistogramObserver):
+class AdaptiveLowBITActivationObserver(MovingAverageFastHistogramObserver):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, range_shrink_percentile=1.0, **kwargs)
+        super().__init__(*args, range_shrink_percentile=RANGE_SHRINK_PERCENTILE_LOWBIT, **kwargs)
 
 
 ####################################################################
-class AdaptivePower2WeightObserver(MinMaxObserver):
-    '''
-    Create a subclass, just to distinguish between the ones used for activation and weight
-    '''
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.quant_min_orig = self.quant_min
-        self.quant_max_orig = self.quant_max
-
-    @torch.jit.export
-    def _calculate_qparams(self, min_val, max_val):
-        r"""Calculates the quantization parameters."""
-        self.quant_min = self.ceil2_num(self.quant_min_orig)
-        self.quant_max = self.ceil2_num(self.quant_max_orig)
-        qparams = super()._calculate_qparams(self.ceil2_tensor(min_val),
-                                             self.ceil2_tensor(max_val))
-        self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
-        return qparams
-
-    @torch.jit.export
-    def ceil2_tensor(self, x):
-        with torch.no_grad():
-            if x.data.abs().sum() != 0:
-                x2 = xnn.layers.functional.ceil2_func(torch.abs(x))
-                y = torch.sign(x) * x2
-            else:
-                y = x
-            #
-        #
-        return y
-
-    def ceil2_num(self, x):
-        if x != 0:
-            sign = (x>=0)*2 - 1
-            x2 = math.pow(2,math.ceil(math.log2(abs(x))))
-            y = sign * x2
-            return y
-        else:
-            return x
-
-
-class AdaptivePower2PerChannelWeightObserver(PerChannelMinMaxObserver):
-    '''
-    Create a subclass, just to distinguish between the ones used for activation and weight
-    '''
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.quant_min_orig = self.quant_min
-        self.quant_max_orig = self.quant_max
-
-    @torch.jit.export
-    def _calculate_qparams(self, min_val, max_val):
-        r"""Calculates the quantization parameters."""
-        self.quant_min = self.ceil2_num(self.quant_min_orig)
-        self.quant_max = self.ceil2_num(self.quant_max_orig)
-        qparams = super()._calculate_qparams(self.ceil2_tensor(min_val),
-                                             self.ceil2_tensor(max_val))
-        self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
-        return qparams
-
-    @torch.jit.export
-    def ceil2_tensor(self, x):
-        with torch.no_grad():
-            if x.data.abs().sum() != 0:
-                x2 = xnn.layers.functional.ceil2_func(torch.abs(x))
-                y = torch.sign(x) * x2
-            else:
-                y = x
-            #
-        #
-        return y
-
-    def ceil2_num(self, x):
-        if x != 0:
-            sign = (x>=0)*2 - 1
-            x2 = math.pow(2,math.ceil(math.log2(abs(x))))
-            y = sign * x2
-            return y
-        else:
-            return x
-
-
-class AdaptivePower2ActivationObserver(FastHistogramObserver):
+class AdaptivePower2WeightObserver(FastHistogramObserver):
     '''
     Create a subclass, just to distinguish between the ones used for activation and weight
     '''
@@ -202,13 +130,95 @@ class AdaptivePower2ActivationObserver(FastHistogramObserver):
             return x
 
 
+class AdaptivePower2PerChannelWeightObserver(PerChannelMinMaxObserver):
+    '''
+    Create a subclass, just to distinguish between the ones used for activation and weight
+    '''
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.quant_min_orig = self.quant_min
+        self.quant_max_orig = self.quant_max
+
+    @torch.jit.export
+    def _calculate_qparams(self, min_val, max_val):
+        r"""Calculates the quantization parameters."""
+        self.quant_min = self.ceil2_num(self.quant_min_orig)
+        self.quant_max = self.ceil2_num(self.quant_max_orig)
+        qparams = super()._calculate_qparams(self.ceil2_tensor(min_val), self.ceil2_tensor(max_val))
+        self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
+        return qparams
+
+    @torch.jit.export
+    def ceil2_tensor(self, x):
+        with torch.no_grad():
+            if x.data.abs().sum() != 0:
+                x2 = xnn.layers.functional.ceil2_func(torch.abs(x))
+                y = torch.sign(x) * x2
+            else:
+                y = x
+            #
+        #
+        return y
+
+    def ceil2_num(self, x):
+        if x != 0:
+            sign = (x>=0)*2 - 1
+            x2 = math.pow(2,math.ceil(math.log2(abs(x))))
+            y = sign * x2
+            return y
+        else:
+            return x
+
+
+class AdaptivePower2ActivationObserver(MovingAverageFastHistogramObserver):
+    '''
+    Create a subclass, just to distinguish between the ones used for activation and weight
+    '''
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, range_shrink_percentile=RANGE_SHRINK_PERCENTILE_DEFAULT, **kwargs)
+        self.quant_min_orig = self.quant_min
+        self.quant_max_orig = self.quant_max
+
+    @torch.jit.export
+    def _calculate_qparams(self, min_val, max_val):
+        r"""Calculates the quantization parameters."""
+        self.quant_min = self.ceil2_num(self.quant_min_orig)
+        self.quant_max = self.ceil2_num(self.quant_max_orig)
+        qparams = super()._calculate_qparams(self.ceil2_tensor(min_val), self.ceil2_tensor(max_val))
+        self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
+        return qparams
+
+    @torch.jit.export
+    def ceil2_tensor(self, x):
+        with torch.no_grad():
+            if x.data.abs().sum() != 0:
+                x2 = xnn.layers.functional.ceil2_func(torch.abs(x))
+                y = torch.sign(x) * x2
+            else:
+                y = x
+            #
+        #
+        return y
+
+    def ceil2_num(self, x):
+        if x != 0:
+            sign = (x>=0)*2 - 1
+            x2 = math.pow(2,math.ceil(math.log2(abs(x))))
+            y = sign * x2
+            return y
+        else:
+            return x
+
+
 ####################################################################
 ADAPTIVE_WEIGHT_OBSERVER_TYPES = (AdaptiveWeightObserver,
                                   AdaptivePerChannelWeightObserver,
                                   AdaptivePower2WeightObserver,
                                   AdaptivePower2PerChannelWeightObserver,
-                                  AdaptiveLowBITWeightObserver,)
+                                  AdaptiveLowBITPerChannelWeightObserver)
 
 ADAPTIVE_ACTIVATION_OBSERVER_TYPES = (AdaptiveActivationObserver,
                                       AdaptivePower2ActivationObserver,
                                       AdaptiveLowBITActivationObserver)
+
+ADAPTIVE_OBSERVER_TYPES = tuple(list(ADAPTIVE_WEIGHT_OBSERVER_TYPES) + list(ADAPTIVE_ACTIVATION_OBSERVER_TYPES))

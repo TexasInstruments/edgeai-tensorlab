@@ -67,12 +67,12 @@ except:
 class QConfigType(enum.Enum):
     # default is same as QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT
     QCONFIG_TYPE_DEFAULT = "DEFAULT"
-    QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT = "8BIT_PERT"
-    QCONFIG_TYPE_8BIT_PER_CHAN_WEIGHT = "8BIT_PERCH"
-    QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT_SYMM_P2 = "8BIT_PERT_SYM_P2"
-    QCONFIG_TYPE_8BIT_PER_CHAN_WEIGHT_SYMM_P2 = "8BIT_PERCH_SYM_P2"
-    QCONFIG_TYPE_4BIT_PER_CHAN_WEIGHT = "4BIT_PERCH"
-    QCONFIG_TYPE_4W_8A_PER_CHAN_WEIGHT = "4BITW_8BITA_PERCH"
+    QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT = "8WT8AT"
+    QCONFIG_TYPE_8BIT_PER_CHAN_WEIGHT = "8WC8AT"
+    QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT_SYMM_P2 = "8WT8AT_SYM_P2"
+    QCONFIG_TYPE_8BIT_PER_CHAN_WEIGHT_SYMM_P2 = "8WC8AT_SYM_P2"
+    QCONFIG_TYPE_4BIT_PER_CHAN_WEIGHT = "4WC4AT"
+    QCONFIG_TYPE_4W_8A_PER_CHAN_WEIGHT = "4WC8AT"
 
     @classmethod
     def choices(cls):
@@ -113,7 +113,7 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
                                                                    quant_max=15,
                                                                    reduce_range=False)
         weight_fake_quant = \
-            fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveLowBITWeightObserver,
+            fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveLowBITPerChannelWeightObserver,
                                                                quant_min=-8,
                                                                quant_max=7,
                                                                dtype=torch.qint8,
@@ -131,7 +131,7 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
                                                                    quant_max=255,
                                                                    reduce_range=False)
         weight_fake_quant = \
-            fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveLowBITWeightObserver,
+            fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveLowBITPerChannelWeightObserver,
                                                                quant_min=-8,
                                                                quant_max=7,
                                                                dtype=torch.qint8,
