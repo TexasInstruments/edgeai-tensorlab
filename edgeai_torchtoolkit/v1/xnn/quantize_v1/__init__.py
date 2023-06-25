@@ -29,11 +29,15 @@
 #
 #################################################################################
 
-from . import layers
-from . import optim
-from . import utils
-from . import onnx
-from . import model_surgery
+import warnings
 
-# this is deprecated - not importing it
-# from . import quantize_v1
+warnings.warn("WARNING - xnn.quantize or xnn.quantize_v1 is a deprecated module. please use xao.quantization instead")
+
+from .quant_train_module import *
+from .quant_calib_module import *
+from .quant_test_module import *
+
+
+def is_quant_module(model):
+    return isinstance(model, (QuantCalibrateModule, QuantTrainModule, QuantTestModule))
+
