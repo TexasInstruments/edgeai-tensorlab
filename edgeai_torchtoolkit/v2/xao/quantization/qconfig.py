@@ -65,14 +65,14 @@ except:
 
 
 class QConfigType(enum.Enum):
-    # default is same as QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT
+    # default is same as QCONFIG_TYPE_W8T_A8T
     QCONFIG_TYPE_DEFAULT = "DEFAULT"
-    QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT = "8WT8AT"
-    QCONFIG_TYPE_8BIT_PER_CHAN_WEIGHT = "8WC8AT"
-    QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT_SYMM_P2 = "8WT8AT_SYM_P2"
-    QCONFIG_TYPE_8BIT_PER_CHAN_WEIGHT_SYMM_P2 = "8WC8AT_SYM_P2"
-    QCONFIG_TYPE_4BIT_PER_CHAN_WEIGHT = "4WC4AT"
-    QCONFIG_TYPE_4W_8A_PER_CHAN_WEIGHT = "4WC8AT"
+    QCONFIG_TYPE_W8T_A8T = "W8T_A8T"
+    QCONFIG_TYPE_W8C_A8T = "W8C_A8T"
+    QCONFIG_TYPE_W8T_A8T_SYM_P2 = "W8T_A8T_SYM_P2"
+    QCONFIG_TYPE_W8C_A8T_SYM_P2 = "W8C_A8T_SYM_P2"
+    QCONFIG_TYPE_W4C_A4T = "W4C_A4T"
+    QCONFIG_TYPE_W4C_A8T = "W4C_A8T"
 
     @classmethod
     def choices(cls):
@@ -83,9 +83,9 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
     # it is possible to use a non qat qconfig such as torch.ao.quantization.get_default_qconfig_mapping(backend)
     # however qat qconfig which does fake quantization may be better even for PTQ cases.
     # torch.ao.quantization.get_default_qat_qconfig_mapping(backend)
-    if qconfig_type in (QConfigType.QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT, QConfigType.QCONFIG_TYPE_DEFAULT):
+    if qconfig_type in (QConfigType.QCONFIG_TYPE_W8T_A8T, QConfigType.QCONFIG_TYPE_DEFAULT):
         qconfig_map = get_default_qat_qconfig_mapping(backend)
-    elif qconfig_type in (QConfigType.QCONFIG_TYPE_8BIT_PER_CHAN_WEIGHT,):
+    elif qconfig_type in (QConfigType.QCONFIG_TYPE_W8C_A8T,):
         # FusedMovingAvgObsFakeQuantize will not use calculate_qparams() during forward (only during convert)
         # it directly calls torch.fused_moving_avg_obs_fake_quant() which implements everything inside it
         # so use FakeQuantize here as we need to override calculate_qparams()
@@ -103,7 +103,7 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
         qconfig = QConfig(activation=activation_fake_quant,
                           weight=weight_fake_quant)
         qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
-    elif qconfig_type in (QConfigType.QCONFIG_TYPE_4BIT_PER_CHAN_WEIGHT,):
+    elif qconfig_type in (QConfigType.QCONFIG_TYPE_W4C_A4T,):
         # FusedMovingAvgObsFakeQuantize will not use calculate_qparams() during forward (only during convert)
         # it directly calls torch.fused_moving_avg_obs_fake_quant() which implements everything inside it
         # so use FakeQuantize here as we need to override calculate_qparams()
@@ -121,7 +121,7 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
         qconfig = QConfig(activation=activation_fake_quant,
                           weight=weight_fake_quant)
         qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
-    elif qconfig_type in (QConfigType.QCONFIG_TYPE_4W_8A_PER_CHAN_WEIGHT,):
+    elif qconfig_type in (QConfigType.QCONFIG_TYPE_W4C_A8T,):
         # FusedMovingAvgObsFakeQuantize will not use calculate_qparams() during forward (only during convert)
         # it directly calls torch.fused_moving_avg_obs_fake_quant() which implements everything inside it
         # so use FakeQuantize here as we need to override calculate_qparams()
@@ -139,7 +139,7 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
         qconfig = QConfig(activation=activation_fake_quant,
                           weight=weight_fake_quant)
         qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
-    elif qconfig_type in (QConfigType.QCONFIG_TYPE_8BIT_PER_TENSOR_WEIGHT_SYMM_P2,):
+    elif qconfig_type in (QConfigType.QCONFIG_TYPE_W8T_A8T_SYM_P2,):
         # FusedMovingAvgObsFakeQuantize will not use calculate_qparams() during forward (only during convert)
         # it directly calls torch.fused_moving_avg_obs_fake_quant() which implements everything inside it
         # so use FakeQuantize here as we need to override calculate_qparams()
@@ -159,7 +159,7 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
         qconfig = QConfig(activation=activation_fake_quant,
                           weight=weight_fake_quant)
         qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
-    elif qconfig_type in (QConfigType.QCONFIG_TYPE_8BIT_PER_CHAN_WEIGHT_SYMM_P2,):
+    elif qconfig_type in (QConfigType.QCONFIG_TYPE_W8C_A8T_SYM_P2,):
         # FusedMovingAvgObsFakeQuantize will not use calculate_qparams() during forward (only during convert)
         # it directly calls torch.fused_moving_avg_obs_fake_quant() which implements everything inside it
         # so use FakeQuantize here as we need to override calculate_qparams()

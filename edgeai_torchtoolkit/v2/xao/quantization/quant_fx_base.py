@@ -13,7 +13,7 @@ from . import qconfig
 class QuantFxBaseModule(torch.nn.Module):
     def __init__(self, model, qconfig_mapping=None, example_inputs=None, is_qat=True, backend="qnnpack",
                  qconfig_type=None, total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
-                 adaptive_quantization=False):
+                 adaptive_quantization=True):
         super().__init__()
         if not total_epochs:
             raise RuntimeError("total_epochs must be provided")
@@ -38,8 +38,6 @@ class QuantFxBaseModule(torch.nn.Module):
         self.num_epochs_tracked = 0
         self.total_epochs = total_epochs
         self.adaptive_quantization = adaptive_quantization
-        self.weight_quant_flag = False
-        self.activation_quant_flag = False
         # set the quantization backend - qnnpack, fbgemm, x86, onednn etc.
         self.set_quant_backend(backend)
 
@@ -68,9 +66,7 @@ class QuantFxBaseModule(torch.nn.Module):
         if mode is True:
             self.freeze(freeze_bn=(self.num_epochs_tracked>=num_batch_norm_update_epochs),
                         freeze_observers=(self.num_epochs_tracked>=num_observer_update_epochs))
-            if self.adaptive_quantization:
-                self.adaptive_quant_adjustment()
-            #
+            self.adaptive_quant_adjustment()
             self.num_epochs_tracked += 1
         else:
             self.freeze()
@@ -81,31 +77,30 @@ class QuantFxBaseModule(torch.nn.Module):
         '''
         disable quantization of activations (only) for a few epochs
         '''
-        has_adaptive_types = any([isinstance(m, fake_quanitze.ADAPTIVE_FAKE_QUANT_TYPES)
-                                         for n, m in self.named_modules()])
-        if not has_adaptive_types:
+        if (not self.adaptive_quantization) or (self.qconfig_type not in
+            (qconfig.QConfigType.QCONFIG_TYPE_W4C_A4T, qconfig.QConfigType.QCONFIG_TYPE_W4C_A8T)):
             return
         #
-        weight_quant_start_factor = 0.0
-        activation_quant_start_factor = 0.20
-        num_weight_warmup_epochs = int(self.total_epochs*weight_quant_start_factor)
-        self.weight_quant_flag = (self.num_epochs_tracked >= num_weight_warmup_epochs)
-        num_activation_warmup_epochs = int(self.total_epochs*activation_quant_start_factor)
-        self.activation_quant_flag = (self.num_epochs_tracked >= num_activation_warmup_epochs)
-        print(f"quantization - weight_quant_flag:{self.weight_quant_flag}, "
-              f"activation_quant_flag:{self.activation_quant_flag}")
+        quant_warmup_flag = False
+        quant_warmup_flag_start_factor = 0.20
+        num_quant_warmup_epochs = int(self.total_epochs*quant_warmup_flag_start_factor)
         for n, m in self.named_modules():
-            if isinstance(m, fake_quanitze.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES):
-                self.reset_fake_quant_flag(m, self.weight_quant_flag)
-                self.reset_observer_flag(m, self.weight_quant_flag)
-            #
-            if isinstance(m, fake_quanitze.ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES):
-                self.reset_fake_quant_flag(m, self.activation_quant_flag)
-                self.reset_observer_flag(m, self.activation_quant_flag)
+            # if isinstance(m, fake_quanitze.ADAPTIVE_FAKE_QUANT_TYPES):
+            #     self.set_fake_quant_flag(m, not self.quant_warmup_flag)
+            #     self.set_observer_flag(m, not self.quant_warmup_flag)
+            # #
+            if isinstance(m, observer.ADAPTIVE_OBSERVER_TYPES):
+                quant_warmup_flag = (self.num_epochs_tracked < num_quant_warmup_epochs)
+                self.set_quant_warmup_flag(m, quant_warmup_flag)
             #
         #
+        print(f"quantization - quant_warmup_flag:{quant_warmup_flag}")
 
-    def reset_fake_quant_flag(self, m, value):
+    def set_quant_warmup_flag(self, m, value):
+        if hasattr(m, 'set_warmup_flag'):
+            m.set_warmup_flag(value)
+
+    def set_fake_quant_flag(self, m, value):
         if isinstance(m, FakeQuantize):
             if value:
                 if hasattr(m, 'enable_fake_quant'):
@@ -114,7 +109,7 @@ class QuantFxBaseModule(torch.nn.Module):
                 if hasattr(m, 'disable_fake_quant'):
                     m.disable_fake_quant()
 
-    def reset_observer_flag(self, m, value):
+    def set_observer_flag(self, m, value):
         if isinstance(m, FakeQuantize):
             if value:
                 if hasattr(m, 'enable_observer'):
@@ -144,14 +139,10 @@ class QuantFxBaseModule(torch.nn.Module):
         return self.module(*input, **kwargs)
 
     def convert(self, inplace=False, device='cpu'):
-        if self.weight_quant_flag  and self.activation_quant_flag:
-            # make a copy inorder not to alter the original
-            model = self.module if inplace else copy.deepcopy(self.module)
-            # convert requires cpu model
-            model = model.to(torch.device(device))
-            # now do the actual conversion
-            model = quantize_fx.convert_fx(model)
-        else:
-            model = self.module
-        #
+        # make a copy inorder not to alter the original
+        model = self.module if inplace else copy.deepcopy(self.module)
+        # convert requires cpu model
+        model = model.to(torch.device(device))
+        # now do the actual conversion
+        model = quantize_fx.convert_fx(model)
         return model

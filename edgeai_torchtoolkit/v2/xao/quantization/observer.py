@@ -8,8 +8,41 @@ from torch.ao.quantization import MinMaxObserver, PerChannelMinMaxObserver, Hist
 from ....v1 import xnn
 
 
+####################################################################
+def ceil2_tensor(x):
+    with torch.no_grad():
+        if x.data.abs().sum() != 0:
+            x2 = xnn.layers.functional.ceil2_func(torch.abs(x))
+            y = torch.sign(x) * x2
+        else:
+            y = x
+        #
+    #
+    return y
+
+
+def ceil2_num(x):
+    if x != 0:
+        sign = (x>=0)*2 - 1
+        x2 = math.pow(2,math.ceil(math.log2(abs(x))))
+        y = sign * x2
+        return y
+    else:
+        return x
+
+
+####################################################################
+# histogram observer from torch.ao.quantization
+# not as good as our version down below
+class FastMSEHistogramObserver(HistogramObserver):
+    def __init__(self, *args, range_shrink_percentile=None, **kwargs):
+        super().__init__(*args, bins=256, upsample_rate=16, **kwargs)
+
+
+####################################################################
 RANGE_SHRINK_PERCENTILE_DEFAULT = 0.01
-RANGE_SHRINK_PERCENTILE_LOWBIT = 0.1
+RANGE_SHRINK_PERCENTILE_LOWBIT = 0.01 #0.1
+QUANT_WARMUP_QRANGE_SCALING = 16.0
 
 
 class MovingAverageFastHistogramObserver(MinMaxObserver):
@@ -81,12 +114,51 @@ class AdaptivePerChannelWeightObserver(PerChannelMinMaxObserver):
 
 ####################################################################
 class AdaptiveLowBITPerChannelWeightObserver(PerChannelMinMaxObserver):
-    pass
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.quant_min_orig = self.quant_min
+        self.quant_max_orig = self.quant_max
+        self.warmup_flag = False
+
+    def set_warmup_flag(self, value):
+        self.warmup_flag = value
+
+    @torch.jit.export
+    def _calculate_qparams(self, min_val, max_val):
+        r"""Calculates the quantization parameters."""
+        if self.warmup_flag:
+            warmup_qrange_scaling = QUANT_WARMUP_QRANGE_SCALING if self.warmup_flag else 1.0
+            self.quant_min = int(round((self.quant_min_orig*warmup_qrange_scaling)))
+            self.quant_max = int(round((self.quant_max_orig*warmup_qrange_scaling)))
+        else:
+            self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
+        #
+        qparams = super()._calculate_qparams(min_val, max_val)
+        return qparams
 
 
 class AdaptiveLowBITActivationObserver(MovingAverageFastHistogramObserver):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, range_shrink_percentile=RANGE_SHRINK_PERCENTILE_LOWBIT, **kwargs)
+        self.quant_min_orig = self.quant_min
+        self.quant_max_orig = self.quant_max
+        self.warmup_flag = False
+
+    def set_warmup_flag(self, value):
+        self.warmup_flag = value
+
+    @torch.jit.export
+    def _calculate_qparams(self, min_val, max_val):
+        r"""Calculates the quantization parameters."""
+        if self.warmup_flag:
+            warmup_qrange_scaling = QUANT_WARMUP_QRANGE_SCALING if self.warmup_flag else 1.0
+            self.quant_min = int(round((self.quant_min_orig*warmup_qrange_scaling)))
+            self.quant_max = int(round((self.quant_max_orig*warmup_qrange_scaling)))
+        else:
+            self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
+        #
+        qparams = super()._calculate_qparams(min_val, max_val)
+        return qparams
 
 
 ####################################################################
@@ -104,30 +176,9 @@ class AdaptivePower2WeightObserver(FastHistogramObserver):
         r"""Calculates the quantization parameters."""
         self.quant_min = self.ceil2_num(self.quant_min_orig)
         self.quant_max = self.ceil2_num(self.quant_max_orig)
-        qparams = super()._calculate_qparams(self.ceil2_tensor(min_val), self.ceil2_tensor(max_val))
+        qparams = super()._calculate_qparams(ceil2_tensor(min_val), ceil2_tensor(max_val))
         self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
         return qparams
-
-    @torch.jit.export
-    def ceil2_tensor(self, x):
-        with torch.no_grad():
-            if x.data.abs().sum() != 0:
-                x2 = xnn.layers.functional.ceil2_func(torch.abs(x))
-                y = torch.sign(x) * x2
-            else:
-                y = x
-            #
-        #
-        return y
-
-    def ceil2_num(self, x):
-        if x != 0:
-            sign = (x>=0)*2 - 1
-            x2 = math.pow(2,math.ceil(math.log2(abs(x))))
-            y = sign * x2
-            return y
-        else:
-            return x
 
 
 class AdaptivePower2PerChannelWeightObserver(PerChannelMinMaxObserver):
@@ -144,30 +195,9 @@ class AdaptivePower2PerChannelWeightObserver(PerChannelMinMaxObserver):
         r"""Calculates the quantization parameters."""
         self.quant_min = self.ceil2_num(self.quant_min_orig)
         self.quant_max = self.ceil2_num(self.quant_max_orig)
-        qparams = super()._calculate_qparams(self.ceil2_tensor(min_val), self.ceil2_tensor(max_val))
+        qparams = super()._calculate_qparams(ceil2_tensor(min_val), ceil2_tensor(max_val))
         self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
         return qparams
-
-    @torch.jit.export
-    def ceil2_tensor(self, x):
-        with torch.no_grad():
-            if x.data.abs().sum() != 0:
-                x2 = xnn.layers.functional.ceil2_func(torch.abs(x))
-                y = torch.sign(x) * x2
-            else:
-                y = x
-            #
-        #
-        return y
-
-    def ceil2_num(self, x):
-        if x != 0:
-            sign = (x>=0)*2 - 1
-            x2 = math.pow(2,math.ceil(math.log2(abs(x))))
-            y = sign * x2
-            return y
-        else:
-            return x
 
 
 class AdaptivePower2ActivationObserver(MovingAverageFastHistogramObserver):
@@ -184,30 +214,9 @@ class AdaptivePower2ActivationObserver(MovingAverageFastHistogramObserver):
         r"""Calculates the quantization parameters."""
         self.quant_min = self.ceil2_num(self.quant_min_orig)
         self.quant_max = self.ceil2_num(self.quant_max_orig)
-        qparams = super()._calculate_qparams(self.ceil2_tensor(min_val), self.ceil2_tensor(max_val))
+        qparams = super()._calculate_qparams(ceil2_tensor(min_val), ceil2_tensor(max_val))
         self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
         return qparams
-
-    @torch.jit.export
-    def ceil2_tensor(self, x):
-        with torch.no_grad():
-            if x.data.abs().sum() != 0:
-                x2 = xnn.layers.functional.ceil2_func(torch.abs(x))
-                y = torch.sign(x) * x2
-            else:
-                y = x
-            #
-        #
-        return y
-
-    def ceil2_num(self, x):
-        if x != 0:
-            sign = (x>=0)*2 - 1
-            x2 = math.pow(2,math.ceil(math.log2(abs(x))))
-            y = sign * x2
-            return y
-        else:
-            return x
 
 
 ####################################################################
