@@ -11,18 +11,15 @@ from . import qconfig
 
 
 class QuantFxBaseModule(torch.nn.Module):
-    def __init__(self, model, qconfig_mapping=None, example_inputs=None, is_qat=True, backend="qnnpack",
-                 qconfig_type=None, total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
+    def __init__(self, model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qnnpack",
+                 total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
                  adaptive_quantization=True):
         super().__init__()
         if not total_epochs:
             raise RuntimeError("total_epochs must be provided")
         #
-        if qconfig_mapping and qconfig_type:
-            raise RuntimeError("only one of qconfig_mapping or qconfig_type should be provided")
-        #
-        qconfig_type = qconfig.QConfigType(qconfig_type)
-        qconfig_mapping = qconfig_mapping or qconfig.get_default_qconfig_mapping(is_qat, backend, qconfig_type)
+        qconfig_type = [qconfig.QConfigType(qtype) for qtype in qconfig_type.split(",")]
+        qconfig_mapping = qconfig.get_qconfig_mapping(is_qat, backend, qconfig_type[0])
         if is_qat:
             model = quantize_fx.prepare_qat_fx(model, qconfig_mapping, example_inputs)
         else:
@@ -38,6 +35,7 @@ class QuantFxBaseModule(torch.nn.Module):
         self.num_epochs_tracked = 0
         self.total_epochs = total_epochs
         self.adaptive_quantization = adaptive_quantization
+        self.adaptive_quant_segment = 0
         # set the quantization backend - qnnpack, fbgemm, x86, onednn etc.
         self.set_quant_backend(backend)
 
@@ -75,51 +73,30 @@ class QuantFxBaseModule(torch.nn.Module):
 
     def adaptive_quant_adjustment(self):
         '''
-        disable quantization of activations (only) for a few epochs
+        adjust quantization parameters on a per segment (group of epochs) basis
         '''
-        if (not self.adaptive_quantization) or (self.qconfig_type not in
-            (qconfig.QConfigType.QCONFIG_TYPE_W4C_A4T, qconfig.QConfigType.QCONFIG_TYPE_W4C_A8T)):
+        num_segments = len(self.qconfig_type)
+        if (not self.adaptive_quantization) or (num_segments <= 1):
             return
         #
-        quant_warmup_flag = False
-        quant_warmup_flag_start_factor = 0.20
-        num_quant_warmup_epochs = int(self.total_epochs*quant_warmup_flag_start_factor)
-        for n, m in self.named_modules():
-            # if isinstance(m, fake_quanitze.ADAPTIVE_FAKE_QUANT_TYPES):
-            #     quant_warmup_flag = (self.num_epochs_tracked < num_quant_warmup_epochs)
-            #     self.set_fake_quant_flag(m, not self.quant_warmup_flag)
-            #     self.set_observer_flag(m, not self.quant_warmup_flag)
-            # #
-            if isinstance(m, fake_quanitze.ADAPTIVE_FAKE_QUANT_TYPES):
-                quant_warmup_flag = (self.num_epochs_tracked < num_quant_warmup_epochs)
-                self.set_quant_warmup_flag(m, quant_warmup_flag)
-            #
+        quant_segment = int(self.num_epochs_tracked * num_segments / self.total_epochs)
+        print(f"adaptive_quantization is ON. current quant_segment:{quant_segment}, qconfig_type:{self.qconfig_type[quant_segment]}")
+        if quant_segment == 0:
+            return
         #
-        if quant_warmup_flag:
-            print(f"WARNING - quant_warmup_flag is turned ON - quantization is disabled for this epoch.")
-        #
-
-    def set_quant_warmup_flag(self, m, value):
-        if hasattr(m, 'set_warmup_flag'):
-            m.set_warmup_flag(value)
-
-    def set_fake_quant_flag(self, m, value):
-        if isinstance(m, FakeQuantize):
-            if value:
-                if hasattr(m, 'enable_fake_quant'):
-                    m.enable_fake_quant()
-            else:
-                if hasattr(m, 'disable_fake_quant'):
-                    m.disable_fake_quant()
-
-    def set_observer_flag(self, m, value):
-        if isinstance(m, FakeQuantize):
-            if value:
-                if hasattr(m, 'enable_observer'):
-                    m.enable_observer()
-            else:
-                if hasattr(m, 'disable_observer'):
-                    m.disable_observer()
+        self.adaptive_quant_segment = quant_segment
+        qconfig_new = qconfig.get_qconfig(self.is_qat, self.backend, self.qconfig_type[self.adaptive_quant_segment])
+        current_device = next(self.parameters()).device
+        for np, mp in self.named_modules():
+            for nc, mc in mp.named_children():
+                if isinstance(mc, fake_quanitze.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES):
+                    weight_fake_quant = qconfig_new.weight().to(current_device)
+                    setattr(mp, nc, weight_fake_quant)
+                #
+                if isinstance(mc, fake_quanitze.ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES):
+                    activation_fake_quant = qconfig_new.activation().to(current_device)
+                    setattr(mp, nc, activation_fake_quant)
+                #
 
     def freeze(self, freeze_bn=True, freeze_observers=True):
         if freeze_observers is True:

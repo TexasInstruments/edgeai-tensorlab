@@ -32,7 +32,7 @@ import enum
 import warnings
 import torch
 from torch.ao.quantization import default_fused_per_channel_wt_fake_quant, default_fused_act_fake_quant
-from torch.ao.quantization import QConfig, QConfigMapping, get_default_qat_qconfig_mapping
+from torch.ao.quantization import QConfig, QConfigMapping, get_default_qat_qconfig
 from torch.ao.quantization import MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver, \
     FakeQuantize, FusedMovingAvgObsFakeQuantize
 
@@ -41,7 +41,8 @@ from . import fake_quanitze
 
 try:
     # this is not part of torch 2.0.1 release - so provide an alternate implementation for now
-    from torch.ao.quantization.qconfig_mapping import _get_default_qconfig_mapping_with_default_qconfig
+    from torch.ao.quantization.qconfig_mapping import \
+        get_default_qat_qconfig_mapping, _get_default_qconfig_mapping_with_default_qconfig
     warnings.warn("could not find _get_default_qconfig_mapping_with_default_qconfig in torch.ao.quantization.qconfig_mapping")
 except:
     from torch.ao.quantization.qconfig_mapping import _FIXED_QPARAMS_OP_TO_OBSERVER
@@ -79,12 +80,12 @@ class QConfigType(enum.Enum):
         return [e.value for e in cls]
 
 
-def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
+def get_qconfig(is_qat, backend, qconfig_type=None):
     # it is possible to use a non qat qconfig such as torch.ao.quantization.get_default_qconfig_mapping(backend)
     # however qat qconfig which does fake quantization may be better even for PTQ cases.
     # torch.ao.quantization.get_default_qat_qconfig_mapping(backend)
     if qconfig_type in (QConfigType.QCONFIG_TYPE_W8T_A8T, QConfigType.QCONFIG_TYPE_DEFAULT):
-        qconfig_map = get_default_qat_qconfig_mapping(backend)
+        qconfig = get_default_qat_qconfig(backend)
     elif qconfig_type in (QConfigType.QCONFIG_TYPE_W8C_A8T,):
         # FusedMovingAvgObsFakeQuantize will not use calculate_qparams() during forward (only during convert)
         # it directly calls torch.fused_moving_avg_obs_fake_quant() which implements everything inside it
@@ -102,7 +103,6 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
                                                                qscheme=torch.per_channel_symmetric)
         qconfig = QConfig(activation=activation_fake_quant,
                           weight=weight_fake_quant)
-        qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
     elif qconfig_type in (QConfigType.QCONFIG_TYPE_W4C_A4T,):
         # FusedMovingAvgObsFakeQuantize will not use calculate_qparams() during forward (only during convert)
         # it directly calls torch.fused_moving_avg_obs_fake_quant() which implements everything inside it
@@ -120,7 +120,6 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
                                                                qscheme=torch.per_channel_symmetric)
         qconfig = QConfig(activation=activation_fake_quant,
                           weight=weight_fake_quant)
-        qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
     elif qconfig_type in (QConfigType.QCONFIG_TYPE_W4C_A8T,):
         # FusedMovingAvgObsFakeQuantize will not use calculate_qparams() during forward (only during convert)
         # it directly calls torch.fused_moving_avg_obs_fake_quant() which implements everything inside it
@@ -138,7 +137,6 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
                                                                qscheme=torch.per_channel_symmetric)
         qconfig = QConfig(activation=activation_fake_quant,
                           weight=weight_fake_quant)
-        qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
     elif qconfig_type in (QConfigType.QCONFIG_TYPE_W8T_A8T_SYM_P2,):
         # FusedMovingAvgObsFakeQuantize will not use calculate_qparams() during forward (only during convert)
         # it directly calls torch.fused_moving_avg_obs_fake_quant() which implements everything inside it
@@ -158,7 +156,6 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
                                                                qscheme=torch.per_tensor_symmetric)
         qconfig = QConfig(activation=activation_fake_quant,
                           weight=weight_fake_quant)
-        qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
     elif qconfig_type in (QConfigType.QCONFIG_TYPE_W8C_A8T_SYM_P2,):
         # FusedMovingAvgObsFakeQuantize will not use calculate_qparams() during forward (only during convert)
         # it directly calls torch.fused_moving_avg_obs_fake_quant() which implements everything inside it
@@ -178,7 +175,12 @@ def get_default_qconfig_mapping(is_qat, backend, qconfig_type=None):
                                                                qscheme=torch.per_channel_symmetric)
         qconfig = QConfig(activation=activation_fake_quant,
                           weight=weight_fake_quant)
-        qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
     else:
         raise RuntimeError("Unknown qconfig_type: " + str(qconfig_type))
+    return qconfig
+
+
+def get_qconfig_mapping(is_qat, backend, qconfig_type=None):
+    qconfig = get_qconfig(is_qat, backend, qconfig_type)
+    qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
     return qconfig_map
