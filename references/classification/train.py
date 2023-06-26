@@ -560,7 +560,7 @@ def get_args_parser(add_help=True):
     parser.add_argument("--lite-model", "--model-surgery", default=0, help="model surgery to create lite models")
 
     parser.add_argument("--quantization", default=None, choices=[None, "QAT"], help="Quaantization Aware Training (QAT)")
-    parser.add_argument("--quantization-type", default=None, choices=xao.quantization.QConfigType.choices(), \
+    parser.add_argument("--quantization-type", default=None, \
                         help="Quaantization Bitdepth - applies only if quantization is enabled")
 
     parser.add_argument("--pruning", default=0, help="Pruning/Sparsity")
