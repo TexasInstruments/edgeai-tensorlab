@@ -41,10 +41,10 @@ class FastMSEHistogramObserver(HistogramObserver):
 
 ####################################################################
 RANGE_SHRINK_PERCENTILE_DEFAULT = 0.01
-RANGE_SHRINK_PERCENTILE_LOWBIT = 0.01 #0.1
-QUANT_WARMUP_QRANGE_SCALING = 16.0
+RANGE_SHRINK_PERCENTILE_LOWBIT = 1.0 #0.1
 
 
+####################################################################
 class MovingAverageFastHistogramObserver(MinMaxObserver):
     # histogram observer may improve accuracy.
     # default histogram observer in torch.ao.quantization is too slow - so using a custom one
@@ -103,62 +103,21 @@ class AdaptiveWeightObserver(FastHistogramObserver):
     pass
 
 
+class AdaptivePerChannelWeightObserver(PerChannelMinMaxObserver):
+    pass
+
+
 class AdaptiveActivationObserver(MovingAverageFastHistogramObserver):
     pass
 
 
 ####################################################################
-class AdaptivePerChannelWeightObserver(PerChannelMinMaxObserver):
+class AdaptiveLowBITPerChannelWeightObserver(PerChannelMinMaxObserver):
     pass
 
 
-####################################################################
-class AdaptiveLowBITPerChannelWeightObserver(PerChannelMinMaxObserver):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.quant_min_orig = self.quant_min
-        self.quant_max_orig = self.quant_max
-        self.warmup_flag = False
-
-    def set_warmup_flag(self, value):
-        self.warmup_flag = value
-
-    @torch.jit.export
-    def _calculate_qparams(self, min_val, max_val):
-        r"""Calculates the quantization parameters."""
-        if self.warmup_flag:
-            warmup_qrange_scaling = QUANT_WARMUP_QRANGE_SCALING if self.warmup_flag else 1.0
-            self.quant_min = int(round((self.quant_min_orig*warmup_qrange_scaling)))
-            self.quant_max = int(round((self.quant_max_orig*warmup_qrange_scaling)))
-        else:
-            self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
-        #
-        qparams = super()._calculate_qparams(min_val, max_val)
-        return qparams
-
-
 class AdaptiveLowBITActivationObserver(MovingAverageFastHistogramObserver):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, range_shrink_percentile=RANGE_SHRINK_PERCENTILE_LOWBIT, **kwargs)
-        self.quant_min_orig = self.quant_min
-        self.quant_max_orig = self.quant_max
-        self.warmup_flag = False
-
-    def set_warmup_flag(self, value):
-        self.warmup_flag = value
-
-    @torch.jit.export
-    def _calculate_qparams(self, min_val, max_val):
-        r"""Calculates the quantization parameters."""
-        if self.warmup_flag:
-            warmup_qrange_scaling = QUANT_WARMUP_QRANGE_SCALING if self.warmup_flag else 1.0
-            self.quant_min = int(round((self.quant_min_orig*warmup_qrange_scaling)))
-            self.quant_max = int(round((self.quant_max_orig*warmup_qrange_scaling)))
-        else:
-            self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
-        #
-        qparams = super()._calculate_qparams(min_val, max_val)
-        return qparams
+    pass
 
 
 ####################################################################

@@ -86,15 +86,18 @@ class QuantFxBaseModule(torch.nn.Module):
         num_quant_warmup_epochs = int(self.total_epochs*quant_warmup_flag_start_factor)
         for n, m in self.named_modules():
             # if isinstance(m, fake_quanitze.ADAPTIVE_FAKE_QUANT_TYPES):
+            #     quant_warmup_flag = (self.num_epochs_tracked < num_quant_warmup_epochs)
             #     self.set_fake_quant_flag(m, not self.quant_warmup_flag)
             #     self.set_observer_flag(m, not self.quant_warmup_flag)
             # #
-            if isinstance(m, observer.ADAPTIVE_OBSERVER_TYPES):
+            if isinstance(m, fake_quanitze.ADAPTIVE_FAKE_QUANT_TYPES):
                 quant_warmup_flag = (self.num_epochs_tracked < num_quant_warmup_epochs)
                 self.set_quant_warmup_flag(m, quant_warmup_flag)
             #
         #
-        print(f"quantization - quant_warmup_flag:{quant_warmup_flag}")
+        if quant_warmup_flag:
+            print(f"WARNING - quant_warmup_flag is turned ON - quantization is disabled for this epoch.")
+        #
 
     def set_quant_warmup_flag(self, m, value):
         if hasattr(m, 'set_warmup_flag'):
