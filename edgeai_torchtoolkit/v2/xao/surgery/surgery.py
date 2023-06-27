@@ -7,7 +7,7 @@ from copy import deepcopy
 from torch.fx import GraphModule, symbolic_trace
 from inspect import isfunction
 from .replacer import graph_pattern_replacer,_get_parent_name as get_parent_name
-from timm.models._efficientnet_blocks import SqueezeExcite
+#from timm.models._efficientnet_blocks import SqueezeExcite
 
 
 __all__ = ['replace_unsuppoted_layers', 'get_replacement_dict_default','SurgeryModule']
@@ -17,8 +17,8 @@ __all__ = ['replace_unsuppoted_layers', 'get_replacement_dict_default','SurgeryM
 _unsupported_module_dict={
     custom_modules.SEModule() : nn.Identity(),
     custom_modules.SEModule1() : nn.Identity(),
-    SqueezeExcite(32) : nn.Identity(),
-    SqueezeExcite(32,gate_layer=nn.Hardsigmoid) : nn.Identity(),
+    #SqueezeExcite(32) : nn.Identity(),
+    #SqueezeExcite(32,gate_layer=nn.Hardsigmoid) : nn.Identity(),
     'SELzyer':custom_surgery_functions.replace_se_layer,
     'layerNorm':custom_surgery_functions.replace_layer_norm, #based on convnext structure | not effective till date
     nn.ReLU(inplace=True):nn.ReLU(),
@@ -70,26 +70,27 @@ def replace_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn
         elif isinstance(model,nn.Module):
             #class of MOdule of 
             if isinstance(pattern,type):
-                modules= dict(model.named_modules)
+                modules = dict(model.named_modules())
                 for key_name, module in modules.items():
                     if isinstance(module,pattern):
                         parent_name, name= get_parent_name(key_name)
                         if isinstance(replacement, type):
-                            replacement = replacement()
+                            replace_obj = replacement()
                         else:
-                            replacement = deepcopy(replacement) 
-                        modules[key_name] = replacement
+                            replace_obj = deepcopy(replacement)
+                        modules[key_name] = replace_obj
                         modules[parent_name].__setattr__(name, modules[key_name])
             #for nn.Module 
-            if pattern.__class__.__name__ in dir(nn):
-                # if the pattern is present in nn directory,
-                # a wrapper module is required, for successful 
-                # surgery on that module
-                pattern= custom_modules.InstaModule(pattern)
-            
-            #calls the main surgery function
-            model=graph_pattern_replacer(model,pattern,replacement)
-    model=custom_surgery_functions.remove_identiy()
+            else:
+                if pattern.__class__.__name__ in dir(nn):
+                    # if the pattern is present in nn directory,
+                    # a wrapper module is required, for successful 
+                    # surgery on that module
+                    pattern= custom_modules.InstaModule(pattern)
+                
+                #calls the main surgery function
+                model=graph_pattern_replacer(model,pattern,replacement)
+    model=custom_surgery_functions.remove_identiy(model)
     return symbolic_trace(model)
 
 # returns default dictionary for replacement
