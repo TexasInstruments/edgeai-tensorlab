@@ -261,7 +261,7 @@ def main(args):
     model = torchvision.models.get_model(args.model, weights=args.weights, num_classes=num_classes)
 
     if args.lite_model:
-        model = xao.pruning.replace_unsuppoted_layers(model)
+        model = xao.surgery.replace_unsuppoted_layers(model)
 
     quantization = args.quantization in ("QAT", )
     if (not quantization) and args.quantization_type:
@@ -272,8 +272,12 @@ def main(args):
     elif args.pruning:
         model = xao.pruning.PrunerModule(model)
     elif quantization:
+        # replace ReLU6() by ReLU() as torch.ao.quantization currently does not handle ReLU6() correctly
+        replacement_dict = {torch.nn.ReLU6(): torch.nn.ReLU()}
+        model = xao.surgery.replace_unsuppoted_layers(model, replacement_dict=replacement_dict)
         model = xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
-
+    #
+    
     model.to(device)
 
     if args.distributed and args.sync_bn:
