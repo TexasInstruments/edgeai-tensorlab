@@ -314,7 +314,7 @@ def graph_pattern_replacer(main_module:Union[GraphModule,nn.Module,callable],pat
     # pattern should have a single node or (single input and single output)
     if (number_of_input ==1 and number_of_output==1) or  (len(pattern_nodes)==1):
         matches = straight_chain_searcher(main_module,pattern_module)
-        print(type(pattern_module).__name__, len(matches))
+        # print(type(pattern_module).__name__, len(matches))
         _replace_all_matches(main_module,matches,replace_module)
     else:
         print(''' unable to change model as pattern does n't satisfy for the criteria of pattern searcher''')

@@ -1,5 +1,5 @@
 import torch
-from torch import nn 
+from torch import nn , Tensor   
 
 
 #Squeeze and excitation module with relu and hardsigmoid as activation function 
@@ -73,3 +73,11 @@ class ConvBNRModule(nn.Module):
     def forward(self,x,*args):
         return self.act(self.bn(self.conv(x)))
 
+class ReplaceBatchNorm(nn.Module):
+        def __init__(self, num_features) -> None:
+            super().__init__()
+            self.bn=nn.BatchNorm2d(num_features=num_features)
+        def forward(self,x:Tensor):
+            out= x.permute(0,3,1,2)
+            out= self.bn(out)
+            return out.permute(0,2,3,1)

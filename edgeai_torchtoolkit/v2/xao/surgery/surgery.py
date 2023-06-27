@@ -19,7 +19,8 @@ _unsupported_module_dict={
     custom_modules.SEModule1() : nn.Identity(),
     SqueezeExcite(32) : nn.Identity(),
     SqueezeExcite(32,gate_layer=nn.Hardsigmoid) : nn.Identity(),
-    'layerNorm':custom_surgery_functions.replace_layer_norm_and_permute, #based on convnext structure | not effective till date
+    'SELzyer':custom_surgery_functions.replace_se_layer,
+    'layerNorm':custom_surgery_functions.replace_layer_norm, #based on convnext structure | not effective till date
     nn.ReLU(inplace=True):nn.ReLU(),
     nn.Dropout(inplace=True):nn.Dropout(),
     nn.Hardswish():nn.ReLU(),
@@ -59,8 +60,9 @@ def replace_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn
     
     replacement_dict = replacement_dict or _unsupported_module_dict
     model=deepcopy(model)
-    
+
     for pattern, replacement in replacement_dict.items():
+        model=custom_surgery_functions.remove_identiy(model)
         if isfunction(replacement):
             # for self-made surgery function 
             model=replacement(model)
@@ -87,7 +89,8 @@ def replace_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn
             
             #calls the main surgery function
             model=graph_pattern_replacer(model,pattern,replacement)
-    return model
+    model=custom_surgery_functions.remove_identiy()
+    return symbolic_trace(model)
 
 # returns default dictionary for replacement
 def get_replacement_dict_default():
