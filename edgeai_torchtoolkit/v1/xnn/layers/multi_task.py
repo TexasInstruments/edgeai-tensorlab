@@ -80,7 +80,7 @@ class MultiTask(torch.nn.Module):
                 self.loss_scales[task_idx] = (-0.5)*torch.log(self.uncertainty_factors[task_idx]*self.sigma_factor[task_idx])
 
         if self.multi_task_type in ["grad_norm", "uncertainty"]:
-            if self.multi_task_type is 'grad_norm':
+            if self.multi_task_type == 'grad_norm':
                 param_groups = [{'params':self.loss_scales}]
             elif self.multi_task_type == 'uncertainty':
                 param_groups = [{'params': self.uncertainty_factors}]
@@ -130,7 +130,7 @@ class MultiTask(torch.nn.Module):
         dy_norms_smooth_mean = self.dy_norms_smooth.mean()
         inverse_training_rate = self.losses_short / (self.losses_long + self.eps)
 
-        if self.multi_task_type is "grad_norm" :#2nd order update rakes load of time to update
+        if self.multi_task_type == "grad_norm" :#2nd order update rakes load of time to update
             rel_inverse_training_rate = inverse_training_rate/ inverse_training_rate.mean()
             target_dy_norm = dy_norms_mean * rel_inverse_training_rate**self.alpha
             self.optimizer.zero_grad()
@@ -147,13 +147,13 @@ class MultiTask(torch.nn.Module):
             torch.cuda.empty_cache()
             return self.loss_scales
 
-        elif self.multi_task_type is "naive_grad_norm": # special case of pseudo_grad_norm with aplha=1.0
+        elif self.multi_task_type == "naive_grad_norm": # special case of pseudo_grad_norm with aplha=1.0
             update_factor =  ((dy_norms_smooth_mean / (self.dy_norms_smooth + self.eps)) * (self.losses_short / (self.losses_long+self.eps)))
             self.loss_scales = self.loss_scales + self.lr*(self.loss_scales* (update_factor-1))
             self.loss_scales = 3.0*self.loss_scales/self.loss_scales.sum()
             del update_factor
 
-        elif self.multi_task_type is "pseudo_grad_norm": #works reasonably well
+        elif self.multi_task_type == "pseudo_grad_norm": #works reasonably well
             rel_inverse_training_rate = inverse_training_rate/ inverse_training_rate.sum()
             target_dy_norm = dy_norms_smooth_mean * rel_inverse_training_rate**self.alpha
             update_factor = (target_dy_norm/(self.dy_norms_smooth + self.eps))
@@ -161,10 +161,10 @@ class MultiTask(torch.nn.Module):
             self.loss_scales = 3.0*self.loss_scales/self.loss_scales.sum()
             del inverse_training_rate, rel_inverse_training_rate, target_dy_norm, update_factor
 
-        elif self.multi_task_type is "dwa": #update using dynamic weight averaging, doesn't work well because of the drastic updates of weights
+        elif self.multi_task_type == "dwa": #update using dynamic weight averaging, doesn't work well because of the drastic updates of weights
             self.loss_scales = 3.0 * F.softmax(inverse_training_rate/self.temperature, dim=0)
 
-        elif self.multi_task_type is "dwa_gradnorm": #update using dynamic weight averaging along with gradient information, have the best results until now
+        elif self.multi_task_type == "dwa_gradnorm": #update using dynamic weight averaging along with gradient information, have the best results until now
             inverse_training_rate = F.softmax(inverse_training_rate/self.temperature, dim=0)
             target_dy_norm = dy_norms_smooth_mean * inverse_training_rate**self.alpha         #Try to tune the smoothness parameter of the gradient
             update_factor = (target_dy_norm/(self.dy_norms_smooth + self.eps))
