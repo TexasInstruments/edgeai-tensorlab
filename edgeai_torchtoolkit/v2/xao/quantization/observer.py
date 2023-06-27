@@ -41,7 +41,8 @@ class FastMSEHistogramObserver(HistogramObserver):
 
 ####################################################################
 RANGE_SHRINK_PERCENTILE_DEFAULT = 0.01
-RANGE_SHRINK_PERCENTILE_LOWBIT = 1.0 #0.1
+RANGE_SHRINK_PERCENTILE_LOWBIT = 0.01 #0.1
+RANGE_FIXED_VALUE = 2.0
 
 
 ####################################################################
@@ -120,6 +121,36 @@ class AdaptiveLowBITActivationObserver(MovingAverageFastHistogramObserver):
     pass
 
 
+class AdaptiveFixedRangePerChannelWeightObserver(PerChannelMinMaxObserver):
+    def __init__(self, *args, range_val=RANGE_FIXED_VALUE, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.range_val = range_val
+
+    def forward(self, x_orig):
+        x_orig = super().forward(x_orig)
+        signed_range = torch.min(self.min_val.detach()).item() < 0.0
+        min_val = (-self.range_val) if signed_range else 0.0
+        max_val = (+self.range_val) if signed_range else (+self.range_val*2)
+        self.min_val.fill_(min_val)
+        self.max_val.fill_(max_val)
+        return x_orig
+
+
+class AdaptiveFixedRangeActivationObserver(MovingAverageFastHistogramObserver):
+    def __init__(self, *args, range_val=RANGE_FIXED_VALUE, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.range_val = range_val
+
+    def forward(self, x_orig):
+        x_orig = super().forward(x_orig)
+        signed_range = torch.min(self.min_val.detach()).item() < 0.0
+        min_val = (-self.range_val) if signed_range else 0.0
+        max_val = (+self.range_val) if signed_range else (+self.range_val*2)
+        self.min_val.fill_(min_val)
+        self.max_val.fill_(max_val)
+        return x_orig
+
+
 ####################################################################
 class AdaptivePower2WeightObserver(FastHistogramObserver):
     '''
@@ -183,10 +214,12 @@ ADAPTIVE_WEIGHT_OBSERVER_TYPES = (AdaptiveWeightObserver,
                                   AdaptivePerChannelWeightObserver,
                                   AdaptivePower2WeightObserver,
                                   AdaptivePower2PerChannelWeightObserver,
-                                  AdaptiveLowBITPerChannelWeightObserver)
+                                  AdaptiveLowBITPerChannelWeightObserver,
+                                  AdaptiveFixedRangePerChannelWeightObserver)
 
 ADAPTIVE_ACTIVATION_OBSERVER_TYPES = (AdaptiveActivationObserver,
                                       AdaptivePower2ActivationObserver,
-                                      AdaptiveLowBITActivationObserver)
+                                      AdaptiveLowBITActivationObserver,
+                                      AdaptiveFixedRangeActivationObserver)
 
 ADAPTIVE_OBSERVER_TYPES = tuple(list(ADAPTIVE_WEIGHT_OBSERVER_TYPES) + list(ADAPTIVE_ACTIVATION_OBSERVER_TYPES))
