@@ -11,8 +11,10 @@ lr_scheduler=cosineannealinglr
 lr_warmup_epochs=0
 wd=0.00004 #0.0001
 quantization=QAT
-#Options: DEFAULT W8T_A8T W8C_A8T W8T_A8T_SYM_P2 W8C_A8T_SYM_P2 W4C_A4T W4C_A8T
-quantization_type="W8C_A8T,W4C_A8T,W4C_A4T,W4C_A4T"
+#Options: DEFAULT W8T_A8T W8C_A8T W8T_A8T_SYMP2 W8C_A8T_SYMP2
+#         W4C_A8T W4C_A8T_SYMP2
+#         W4C_A4T W4C_A4T_SYMP2 W4C_A4T_SYMP2_RR4 W4C_A4T_SYMP2_RR4NOQ
+quantization_type=DEFAULT
 
 
 torchrun --nproc_per_node 4 ./references/classification/train.py --data-path ./data/datasets/imagenet \
