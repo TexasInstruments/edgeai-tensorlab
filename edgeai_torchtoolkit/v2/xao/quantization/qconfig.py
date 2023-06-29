@@ -66,16 +66,20 @@ except:
 
 
 class QConfigType(enum.Enum):
-    # default is same as QCONFIG_TYPE_W8T_A8T
-    QCONFIG_TYPE_DEFAULT = "DEFAULT"
-    QCONFIG_TYPE_W8T_A8T = "W8T_A8T"
-    QCONFIG_TYPE_W8C_A8T = "W8C_A8T"
-    QCONFIG_TYPE_W8T_A8T_SYM_P2 = "W8T_A8T_SYM_P2"
-    QCONFIG_TYPE_W8C_A8T_SYM_P2 = "W8C_A8T_SYM_P2"
-    QCONFIG_TYPE_W4C_A8T = "W4C_A8T"
-    QCONFIG_TYPE_W4C_A4T = "W4C_A4T"
-    QCONFIG_TYPE_W4C_A4T_FR = "W4C_A4T_FR"
-    QCONFIG_TYPE_W4C_A4T_FR_NOQ = "W4C_A4T_FR_NOQ"
+    DEFAULT = "DEFAULT"
+
+    W8T_A8T = "W8T_A8T"
+    W8C_A8T = "W8C_A8T"
+    W8T_A8T_SYMP2 = "W8T_A8T_SYMP2"
+    W8C_A8T_SYMP2 = "W8C_A8T_SYMP2"
+
+    W4C_A8T = "W4C_A8T"
+    W4C_A8T_SYMP2 = "W4C_A8T_SYMP2"
+
+    W4C_A4T = "W4C_A4T"
+    W4C_A4T_SYMP2 = "W4C_A4T_SYMP2"
+    W4C_A4T_SYMP2_RR4 = "W4C_A4T_SYMP2_RR4"
+    W4C_A4T_SYMP2_RR4NOQ = "W4C_A4T_SYMP2_RR4NOQ"
 
     @classmethod
     def choices(cls):
@@ -85,39 +89,50 @@ class QConfigType(enum.Enum):
 ####################################################################
 _QCONFIG_TYPE_TO_DICT = dict()
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.QCONFIG_TYPE_W8T_A8T] = QConfig(
+_QCONFIG_TYPE_TO_DICT[QConfigType.W8T_A8T] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.QCONFIG_TYPE_W8C_A8T] = QConfig(
+_QCONFIG_TYPE_TO_DICT[QConfigType.W8C_A8T] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.QCONFIG_TYPE_W8T_A8T_SYM_P2] = QConfig(
+_QCONFIG_TYPE_TO_DICT[QConfigType.W8T_A8T_SYMP2] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePower2WeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptivePower2ActivationObserver))
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.QCONFIG_TYPE_W8C_A8T_SYM_P2] = QConfig(
+_QCONFIG_TYPE_TO_DICT[QConfigType.W8C_A8T_SYMP2] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePower2PerChannelWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptivePower2ActivationObserver))
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.QCONFIG_TYPE_W4C_A8T] = QConfig(
-    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelWeightObserver),
+###########
+_QCONFIG_TYPE_TO_DICT[QConfigType.W4C_A8T] = QConfig(
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveLowBITPerChannelWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.QCONFIG_TYPE_W4C_A4T] = QConfig(
-    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelWeightObserver),
+_QCONFIG_TYPE_TO_DICT[QConfigType.W4C_A4T] = QConfig(
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveLowBITPerChannelWeightObserver),
+    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveLowBITActivationObserver))
+
+_QCONFIG_TYPE_TO_DICT[QConfigType.W4C_A8T_SYMP2] = QConfig(
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveLowBITPower2PerChannelWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.QCONFIG_TYPE_W4C_A4T_FR] = QConfig(
-    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveFixedRangeLowBITPerChannelWeightObserver),
-    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveFixedRangeLowBITActivationObserver))
+_QCONFIG_TYPE_TO_DICT[QConfigType.W4C_A4T_SYMP2] = QConfig(
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveLowBITPower2PerChannelWeightObserver),
+    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveLowBITPower2ActivationObserver))
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.QCONFIG_TYPE_W4C_A4T_FR_NOQ] = QConfig(
-    weight=fake_quanitze.AdaptiveWeightNoQuantize.with_args(observer=observer.AdaptiveFixedRangeLowBITPerChannelWeightObserver),
-    activation=fake_quanitze.AdaptiveWeightNoQuantize.with_args(observer=observer.AdaptiveFixedRangeLowBITActivationObserver))
+###########
+_QCONFIG_TYPE_TO_DICT[QConfigType.W4C_A4T_SYMP2_RR4] = QConfig(
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveRangeRestricted4LowBITPerChannelWeightObserver),
+    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveRangeRestricted4LowBITActivationObserver))
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.QCONFIG_TYPE_DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.QCONFIG_TYPE_W8T_A8T_SYM_P2]
+_QCONFIG_TYPE_TO_DICT[QConfigType.W4C_A4T_SYMP2_RR4NOQ] = QConfig(
+    weight=fake_quanitze.AdaptiveWeightNoQuantize.with_args(observer=observer.AdaptiveRangeRestricted4LowBITPerChannelWeightObserver),
+    activation=fake_quanitze.AdaptiveWeightNoQuantize.with_args(observer=observer.AdaptiveRangeRestricted4LowBITActivationObserver))
+
+###########
+_QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.W8C_A8T]
 ####################################################################
 
 

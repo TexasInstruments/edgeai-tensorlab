@@ -9,16 +9,18 @@ from ....v1 import xnn
 
 
 ####################################################################
-def ceil2_tensor(x):
-    with torch.no_grad():
-        if x.data.abs().sum() != 0:
-            x2 = xnn.layers.functional.ceil2_func(torch.abs(x))
-            y = torch.sign(x) * x2
-        else:
-            y = x
-        #
+def _ceil2_tensor(x):
+    if x.data.abs().sum() != 0:
+        x2 = xnn.layers.functional.ceil2_func(torch.abs(x))
+        y = torch.sign(x) * x2
+    else:
+        y = x
     #
     return y
+
+
+def ceil2_tensor(x):
+    return xnn.layers.functional.propagate_quant_ste(x, _ceil2_tensor(x))
 
 
 def ceil2_num(x):
