@@ -5,7 +5,7 @@ from torch.fx import symbolic_trace,GraphModule, Node
 from typing import Dict, Any, Union, List
 import operator
 from copy import deepcopy
-
+from . import custom_modules
 
 '''
 this module's function are implemented to changes nodes only.
@@ -19,34 +19,59 @@ def _get_parent_name(target:str):
     *parent, name = target.rsplit('.', 1)
     return ( parent[0] if parent else ''), name
 
-
-def replace_module_node(node:Node,modules_dict:Dict[str,Any],replace_model:Union[GraphModule,nn.Module]):
+def replace_module_nodes(model,pattern,replacement):
     '''replaces a call module node's module to replacement module '''
-    if node.op != 'call_module':
-        print('''
-        Not a module Node!
-        So, No changes will be made.
-        ''')
-        return 
-    parent_name, name = _get_parent_name(node.target)
-    modules_dict.update({node.target:replace_model})
-    setattr(modules_dict[parent_name], name, replace_model)
+    modules = dict(model.named_modules())
+    if type(replacement)==type:
+        replace_obj=replacement()
+    else: replace_obj=replacement
+    if type(pattern)!=type:
+        pattern_type=type(pattern)
+    else: pattern_type=pattern
+    n=0
+    for key_name, module in modules.items():
+        if isinstance(module,pattern_type):
+            n+=1
+            parent_name, name= _get_parent_name(key_name)
+            replace_obj = deepcopy(replace_obj)
+            modules[key_name] = replace_obj
+            modules[parent_name].__setattr__(name, modules[key_name])
+    print(pattern_type.__name__,n)
 
 
-def replace_function_node(node:Node,traced_model:GraphModule,replace_function):
+def replace_function_nodes(model,pattern_function,replacement,kwargs=None):
     '''replaces a call function node to node with replacement function '''
-    if node.op !='call_function':
-        print('''
-        Not a function Node!
-        So, No changes will be made.
-        ''')
-        return     
-    with traced_model .graph.inserting_after(node):
-        new_node = traced_model.graph.call_function(replace_function, node.args, node.kwargs)
-        node.replace_all_uses_with(new_node)
-    # Remove the old node from the graph
-    traced_model.graph.erase_node(node)
-
+    traced_model= symbolic_trace(deepcopy(model))
+    no_of_module=0
+    n=0
+    for node in traced_model.graph.nodes:
+        if node.target==pattern_function:
+            kwargs=kwargs or node.kwargs
+            with traced_model .graph.inserting_before(node):
+                if isfunction(replacement):
+                    new_node = traced_model.graph.call_function(replacement, node.args, kwargs)
+                else:
+                    if type(replacement)==type:
+                        replace_obj=replacement()
+                    else: replace_obj=replacement
+                    if type(replace_obj) != nn.Module:
+                        return traced_model
+                    new_node_name=type(replace_obj).__name__+str(no_of_module)
+                    n+=1
+                    no_of_module+=1
+                    traced_model.add_submodule(new_node_name,replace_obj)
+                    args=[]
+                    for arg in node.args:
+                        if type(arg) == Node:
+                            args.append(arg)
+                    new_node=traced_model.graph.call_module(new_node_name,args,{})
+                node.replace_all_uses_with(new_node)
+            # Remove the old node from the graph
+            traced_model.graph.erase_node(node)
+    traced_model.graph.lint()
+    traced_model.recompile()    
+    print(pattern_function,str(n+no_of_module))
+    return traced_model
 
 #checks whether two nodes are  equal or not
 def _are_both_node_equal(first_node:Node,second_node:Node,first_graoh_module:Union[GraphModule,None]=None,second_graph_module:Union[GraphModule,None]=None):
@@ -314,8 +339,8 @@ def graph_pattern_replacer(main_module:Union[GraphModule,nn.Module,callable],pat
     # pattern should have a single node or (single input and single output)
     if (number_of_input ==1 and number_of_output==1) or  (len(pattern_nodes)==1):
         matches = straight_chain_searcher(main_module,pattern_module)
-        # print(type(pattern_module).__name__, len(matches))
         _replace_all_matches(main_module,matches,replace_module)
+        print(type(pattern_module).__name__, len(matches))
     else:
         print(''' unable to change model as pattern does n't satisfy for the criteria of pattern searcher''')
     

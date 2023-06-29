@@ -81,3 +81,17 @@ class ReplaceBatchNorm(nn.Module):
             out= x.permute(0,3,1,2)
             out= self.bn(out)
             return out.permute(0,2,3,1)
+
+class ReplacementCNBlock(nn.Module):
+    def __init__(self, dim) -> None:
+        super().__init__()
+        self.block= nn.Sequential(
+            ConvBNRModule(dim,dim,kernel_size=3,stride=1,padding=1),
+            ConvBNRModule(dim,dim,kernel_size=5,stride=1,padding=2),
+            ConvBNRModule(dim,4*dim,kernel_size=1,stride=1,padding=0),
+            nn.Conv2d(4*dim,dim,kernel_size=1,stride=1,padding=0),
+            nn.BatchNorm2d(dim),            
+        )
+    
+    def forward(self,x):
+        return self.block(x)
