@@ -21,90 +21,110 @@ MovingAverageFastHistogramObserver = observer_utils.MovingAverageRangeShrinkHist
 
 ####################################################################
 class AdaptiveWeightObserver(FastHistogramObserver):
-    pass
+    def __init__(self, *args, quant_min=None, quant_max=None, dtype=None, qscheme=None, **kwargs):
+        quant_min = quant_min or -128
+        quant_max = quant_max or +127
+        dtype = dtype or torch.qint8
+        qscheme = qscheme or torch.per_tensor_symmetric
+        super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
 
 
 class AdaptivePerChannelWeightObserver(PerChannelMinMaxObserver):
-    pass
+    def __init__(self, *args, quant_min=None, quant_max=None, dtype=None, qscheme=None, **kwargs):
+        quant_min = quant_min or -128
+        quant_max = quant_max or +127
+        dtype = dtype or torch.qint8
+        qscheme = qscheme or torch.per_channel_symmetric
+        super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
 
 
 class AdaptiveActivationObserver(MovingAverageFastHistogramObserver):
-    pass
+    def __init__(self, *args, quant_min=None, quant_max=None, dtype=None, qscheme=None, **kwargs):
+        quant_min = quant_min or 0
+        quant_max = quant_max or 255
+        dtype = dtype or torch.quint8
+        qscheme = qscheme or torch.per_tensor_affine
+        super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
 
 
 ####################################################################
-class AdaptiveLowBITPerChannelWeightObserver(PerChannelMinMaxObserver):
-    pass
+class AdaptivePower2WeightObserver(AdaptiveWeightObserver):
+    '''
+    Create a subclass, just to distinguish between the ones used for activation and weight
+    '''
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.quant_min_orig = self.quant_min
+        self.quant_max_orig = self.quant_max
+
+    @torch.jit.export
+    def _calculate_qparams(self, min_val, max_val):
+        r"""Calculates the quantization parameters."""
+        self.quant_min = observer_utils.ceil2_num(self.quant_min_orig)
+        self.quant_max = observer_utils.ceil2_num(self.quant_max_orig)
+        qparams = super()._calculate_qparams(observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val))
+        self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
+        return qparams
 
 
-class AdaptiveLowBITActivationObserver(MovingAverageFastHistogramObserver):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, **kwargs)
+class AdaptivePower2PerChannelWeightObserver(AdaptivePerChannelWeightObserver):
+    '''
+    Create a subclass, just to distinguish between the ones used for activation and weight
+    '''
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.quant_min_orig = self.quant_min
+        self.quant_max_orig = self.quant_max
+
+    @torch.jit.export
+    def _calculate_qparams(self, min_val, max_val):
+        r"""Calculates the quantization parameters."""
+        self.quant_min = observer_utils.ceil2_num(self.quant_min_orig)
+        self.quant_max = observer_utils.ceil2_num(self.quant_max_orig)
+        qparams = super()._calculate_qparams(observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val))
+        self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
+        return qparams
+
+
+class AdaptivePower2ActivationObserver(AdaptiveActivationObserver):
+    '''
+    Create a subclass, just to distinguish between the ones used for activation and weight
+    '''
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.quant_min_orig = self.quant_min
+        self.quant_max_orig = self.quant_max
+
+    @torch.jit.export
+    def _calculate_qparams(self, min_val, max_val):
+        r"""Calculates the quantization parameters."""
+        self.quant_min = observer_utils.ceil2_num(self.quant_min_orig)
+        self.quant_max = observer_utils.ceil2_num(self.quant_max_orig)
+        qparams = super()._calculate_qparams(observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val))
+        self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
+        return qparams
 
 
 ####################################################################
-class AdaptivePower2WeightObserver(FastHistogramObserver):
-    '''
-    Create a subclass, just to distinguish between the ones used for activation and weight
-    '''
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.quant_min_orig = self.quant_min
-        self.quant_max_orig = self.quant_max
-
-    @torch.jit.export
-    def _calculate_qparams(self, min_val, max_val):
-        r"""Calculates the quantization parameters."""
-        self.quant_min = observer_utils.ceil2_num(self.quant_min_orig)
-        self.quant_max = observer_utils.ceil2_num(self.quant_max_orig)
-        qparams = super()._calculate_qparams(observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val))
-        self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
-        return qparams
+class AdaptiveLowBITPerChannelWeightObserver(AdaptivePerChannelWeightObserver):
+    def __init__(self, *args, quant_min=None, quant_max=None, **kwargs):
+        quant_min = quant_min or -7
+        quant_max = quant_max or +8
+        super().__init__(*args, quant_min=quant_min, quant_max=quant_max, **kwargs)
 
 
-class AdaptivePower2PerChannelWeightObserver(PerChannelMinMaxObserver):
-    '''
-    Create a subclass, just to distinguish between the ones used for activation and weight
-    '''
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.quant_min_orig = self.quant_min
-        self.quant_max_orig = self.quant_max
-
-    @torch.jit.export
-    def _calculate_qparams(self, min_val, max_val):
-        r"""Calculates the quantization parameters."""
-        self.quant_min = observer_utils.ceil2_num(self.quant_min_orig)
-        self.quant_max = observer_utils.ceil2_num(self.quant_max_orig)
-        qparams = super()._calculate_qparams(observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val))
-        self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
-        return qparams
-
-
-class AdaptivePower2ActivationObserver(MovingAverageFastHistogramObserver):
-    '''
-    Create a subclass, just to distinguish between the ones used for activation and weight
-    '''
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.quant_min_orig = self.quant_min
-        self.quant_max_orig = self.quant_max
-
-    @torch.jit.export
-    def _calculate_qparams(self, min_val, max_val):
-        r"""Calculates the quantization parameters."""
-        self.quant_min = observer_utils.ceil2_num(self.quant_min_orig)
-        self.quant_max = observer_utils.ceil2_num(self.quant_max_orig)
-        qparams = super()._calculate_qparams(observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val))
-        self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
-        return qparams
+class AdaptiveLowBITActivationObserver(AdaptiveActivationObserver):
+    def __init__(self, *args, quant_min=None, quant_max=None, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, **kwargs):
+        quant_min = quant_min or 0
+        quant_max = quant_max or 15
+        super().__init__(*args, quant_min=quant_min, quant_max=quant_max, range_shrink_percentile=range_shrink_percentile, **kwargs)
 
 
 ####################################################################
 RANGE_FIXED_VALUE = 2.0
 
 
-class AdaptiveFixedRangePerChannelWeightObserver(AdaptivePower2PerChannelWeightObserver):
+class AdaptiveFixedRangeLowBITPerChannelWeightObserver(AdaptiveLowBITPerChannelWeightObserver):
     def __init__(self, *args, range_val=RANGE_FIXED_VALUE, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.range_val = range_val
@@ -119,7 +139,7 @@ class AdaptiveFixedRangePerChannelWeightObserver(AdaptivePower2PerChannelWeightO
         return x_orig
 
 
-class AdaptiveFixedRangeActivationObserver(AdaptivePower2ActivationObserver):
+class AdaptiveFixedRangeLowBITActivationObserver(AdaptiveLowBITActivationObserver):
     def __init__(self, *args, range_val=RANGE_FIXED_VALUE, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.range_val = range_val
@@ -140,11 +160,11 @@ ADAPTIVE_WEIGHT_OBSERVER_TYPES = (AdaptiveWeightObserver,
                                   AdaptivePower2WeightObserver,
                                   AdaptivePower2PerChannelWeightObserver,
                                   AdaptiveLowBITPerChannelWeightObserver,
-                                  AdaptiveFixedRangePerChannelWeightObserver)
+                                  AdaptiveFixedRangeLowBITPerChannelWeightObserver)
 
 ADAPTIVE_ACTIVATION_OBSERVER_TYPES = (AdaptiveActivationObserver,
                                       AdaptivePower2ActivationObserver,
                                       AdaptiveLowBITActivationObserver,
-                                      AdaptiveFixedRangeActivationObserver)
+                                      AdaptiveFixedRangeLowBITActivationObserver)
 
 ADAPTIVE_OBSERVER_TYPES = tuple(list(ADAPTIVE_WEIGHT_OBSERVER_TYPES) + list(ADAPTIVE_ACTIVATION_OBSERVER_TYPES))

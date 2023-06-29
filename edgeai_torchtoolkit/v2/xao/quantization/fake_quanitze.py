@@ -4,6 +4,10 @@ from torch.ao.quantization import MovingAverageMinMaxObserver, MovingAveragePerC
 from ....v1 import xnn
 
 
+# FusedMovingAvgObsFakeQuantize will not use calculate_qparams() only during convert
+# it directly calls torch.fused_moving_avg_obs_fake_quant() which implements everything inside it
+# so use FakeQuantize here as we need to override calculate_qparams()
+
 ####################################################################
 class AdaptiveWeightFakeQuantize(FakeQuantize):
     '''
