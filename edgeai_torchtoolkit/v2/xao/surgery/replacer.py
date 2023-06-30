@@ -64,7 +64,7 @@ def replace_function_nodes(model,pattern_function,replacement,kwargs=None):
                     for arg in node.args:
                         if type(arg) == Node:
                             args.append(arg)
-                    new_node=traced_model.graph.call_module(new_node_name,args,{})
+                    new_node=traced_model.graph.call_module(new_node_name,tuple(args),{})
                 node.replace_all_uses_with(new_node)
             # Remove the old node from the graph
             traced_model.graph.erase_node(node)
