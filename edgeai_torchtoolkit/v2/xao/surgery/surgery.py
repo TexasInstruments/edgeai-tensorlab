@@ -22,7 +22,7 @@ _unsupported_module_dict={
     # SEModule(32) : nn.Identity(),                             # timm specific
     # SEModule(32,gate_layer=nn.Hardsigmoid) : nn.Identity(),   # timm specific
     # SEModule(32,act_layer=nn.SiLU) : nn.Identity(),           # timm specific
-    'CNBlock':custom_surgery_functions.replace_cnblock,         # for convnext of ttorch vision
+    'CNBlock':custom_surgery_functions.replace_cnblock,         # for convnext of torch vision
     # 'SELzyer':custom_surgery_functions.replace_se_layer,
     nn.ReLU(inplace=True):nn.ReLU(),
     nn.Hardswish():nn.ReLU(),
@@ -95,8 +95,7 @@ def replace_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn
                     # surgery on that module
                     model=graph_pattern_replacer(model,pattern,replacement)
                     pattern= custom_modules.InstaModule(pattern)
-                # model=custom_surgery_functions.remove_identiy(model)
-                # pattern=custom_surgery_functions.remove_identiy(pattern)
+
                 #calls the main surgery function
                 model=graph_pattern_replacer(model,pattern,replacement)
     model=custom_surgery_functions.remove_identiy(model)
@@ -118,7 +117,8 @@ class SurgeryModule(torch.nn.Module):
     def __init__(self, model, replacement_dict=None) -> None:
         '''perform surgery on the model and creates a new model'''
         super().__init__()
-        self.module = replace_unsuppoted_layers(model, replacement_dict)
+        self.replacemen_dict=replacement_dict
+        self.module = replace_unsuppoted_layers(model, self.replacement_dict)
 
     def forward(self,x,*args,**kwargs):
         '''
@@ -129,5 +129,5 @@ class SurgeryModule(torch.nn.Module):
 
     def get_replacement_dict_default(self):
         '''returns the default replacement dictionary that can be updated further'''
-        return get_replacement_dict_default()
+        return self.replacemen_dict or get_replacement_dict_default()
 
