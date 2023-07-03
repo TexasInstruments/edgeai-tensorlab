@@ -20,7 +20,7 @@ class Exp(MyExp):
 
         # -----------------  testing config ------------------ #
         self.human_pose = True
-        self.visualize = True
+        self.visualize = False #True
 
     def get_model(self):
         from yolox.models import YOLOX, YOLOPAFPN, YOLOXHeadKPTS
