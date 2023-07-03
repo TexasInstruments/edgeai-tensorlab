@@ -219,6 +219,8 @@ def main():
             elif args.dataset == 'lmo' or args.dataset == "lm":
                 camera_matrix = model.head.cad_models.camera_matrix
             post_process = PostprocessExport(conf_thre=0.4, nms_thre=0.01, num_classes=exp.num_classes, object_pose=True, camera_matrix=camera_matrix)
+        elif args.task == "human_pose":
+            post_process = PostprocessExport(conf_thre=0.05, nms_thre=0.45, num_classes=exp.num_classes, task=args.task)
         else:
             post_process = PostprocessExport(conf_thre=0.25, nms_thre=0.45, num_classes=exp.num_classes)
         model_det = nn.Sequential(model, post_process)

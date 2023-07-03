@@ -131,7 +131,7 @@ def postprocess_object_pose(prediction, num_classes, conf_thre=0.7, nms_thre=0.4
     return output
 
 
-def postprocess_export(prediction, num_classes, conf_thre=0.7, nms_thre=0.45):
+def postprocess_export(prediction, num_classes, conf_thre=0.7, nms_thre=0.45, task=None):
     """
     This function is called while exporting an OD model or human-pose estimation model. Output of the ONNX model is ensured to match the TIDL output in float mode.
     """
@@ -150,7 +150,10 @@ def postprocess_export(prediction, num_classes, conf_thre=0.7, nms_thre=0.45):
         conf =  image_pred[:, 4:5] * class_conf
         conf_mask = (conf.squeeze() >= conf_thre).squeeze()
         # Detections ordered as (x1, y1, x2, y2, obj_conf, class_conf, class_pred)
-        detections = torch.cat((image_pred[:, :4], conf, class_pred.float()), 1)
+        tensor_cat_inp = [image_pred[:, :4], conf, class_pred.float()]
+        if task == "human_pose":
+            tensor_cat_inp.extend([image_pred[:,6:]])
+        detections = torch.cat(tensor_cat_inp, 1)
 
         detections = detections[conf_mask]
         if not detections.size(0):
@@ -310,17 +313,18 @@ def cxcywh2xyxy_export(cx,cy,w,h):
 
 
 class PostprocessExport(nn.Module):
-    def __init__(self, conf_thre=0.7, nms_thre=0.45, num_classes=80, object_pose=False, camera_matrix=None):
+    def __init__(self, conf_thre=0.7, nms_thre=0.45, num_classes=80, object_pose=False, camera_matrix=None, task=None):
         super(PostprocessExport, self).__init__()
         self.conf_thre = conf_thre
         self.nms_thre = nms_thre
         self.num_classes = num_classes
         self.object_pose = object_pose
         self.camera_matrix = camera_matrix
+        self.task = task
 
     def forward(self, prediction):
         if not self.object_pose:
-            return postprocess_export(prediction, self.num_classes, conf_thre=self.conf_thre, nms_thre=self.nms_thre)
+            return postprocess_export(prediction, self.num_classes, conf_thre=self.conf_thre, nms_thre=self.nms_thre, task=self.task)
         else:
             return postprocess_export_object_pose(prediction, self.num_classes, conf_thre=self.conf_thre, nms_thre=self.nms_thre, camera_matrix=self.camera_matrix)
 
