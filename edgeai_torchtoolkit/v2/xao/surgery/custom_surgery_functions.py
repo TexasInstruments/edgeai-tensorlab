@@ -234,7 +234,7 @@ def replace_layer_norm(model:nn.Module):
                 if type(arg1) == Node:
                     args.append(arg1)
             while len(arg.users)==1 or len(args) == 1 :
-                if arg.op == 'placeholder': break
+                if arg.op in ['get_attr','placeholder']: break
                 arg = arg.args[0]
                 if (arg.op == 'call_method' and arg.target=='mean') or (arg.target==nn.functional.adaptive_avg_pool2d) or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
                     break
@@ -276,7 +276,7 @@ def replace_layer_norm(model:nn.Module):
                     if type(arg1) == Node:
                         args.append(arg1)
                 while len(arg.users)==1 or len(args) == 1 :
-                    if arg.op == 'placeholder': break
+                    if arg.op in ['get_attr','placeholder']: break
                     arg = arg.args[0]
                     if (arg.op == 'call_method' and arg.target=='mean') or (arg.target==nn.functional.adaptive_avg_pool2d) or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
                         break

@@ -106,8 +106,10 @@ def _are_both_node_equal(first_node:Node,second_node:Node,first_graoh_module:Uni
         if first_node.op =='call_method':
             #both should refer to same method
             return first_node.target==second_node.target
-        if first_node.op == 'get_attr':
-            return True
+        if first_node.op == 'get_attr':          
+            _,target1=_get_parent_name(first_node.target)  
+            _,target2=_get_parent_name(second_node.target)  
+            return target1 == target2
         
         if (first_graoh_module==None) or (second_graph_module==None):
             print("\nGraphModules are required for both nodes\nas at least one of them is 'call_module' node.")
@@ -205,7 +207,7 @@ def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:
     #if pattern has a single operational node only 
     if start == end:
             #if start is a call function or call method node
-            if start in ['call_function','call_method']:
+            if start.op in ['call_function','call_method']:
                 traced_replacement=symbolic_trace(replace_module)
                 replcament_nodes=[]
 
