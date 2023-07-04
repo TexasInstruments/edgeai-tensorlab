@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 
-current_time=$(date '+%Y%d%m_%H%M%S')
+current_time=$(date '+%Y%m%d_%H%M%S')
 model=mobilenet_v2 #resnet50
 epochs=150
 batch_size=128

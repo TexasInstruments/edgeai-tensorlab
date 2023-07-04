@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
 
 
-current_time=$(date '+%Y%d%m_%H%M%S')
+current_time=$(date '+%Y%m%d_%H%M%S')
 model=mobilenet_v2 #resnet50
 weights=MobileNet_V2_Weights.IMAGENET1K_V1 #ResNet50_Weights.IMAGENET1K_V1
-epochs=50 #16 #150 #90
+epochs=60 #16 #150 #90
 batch_size=128 #64 #32
 lr=0.001 #0.0001 #0.001
 lr_scheduler=cosineannealinglr
 lr_warmup_epochs=0
 wd=0.00004 #0.0001
 quantization=QAT
-#Options: DEFAULT W8T_A8T W8C_A8T W8T_A8T_SYMP2 W8C_A8T_SYMP2
-#         W4C_A8T W4C_A8T_SYMP2
-#         W4C_A4T W4C_A4T_SYMP2 W4C_A4T_SYMP2_RR4 W4C_A4T_SYMP2_RR4NOQ
-quantization_type=DEFAULT
+#Options: DEFAULT W8T_A8T W8C_A8T W8T_A8T_P2 W8C_A8T_P2
+#         W4C_A8T
+#         W4C_A4T W4C_A4T_RR4
+# Can also add _ADAPTIVE at the end of any of these
+quantization_type="W4C_A4T"
 
 
 torchrun --nproc_per_node 4 ./references/classification/train.py --data-path ./data/datasets/imagenet \
