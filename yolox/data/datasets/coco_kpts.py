@@ -122,6 +122,7 @@ class COCOKPTSDataset(Dataset):
         anno_ids = self.coco.getAnnIds(imgIds=[int(id_)], iscrowd=False)
         annotations = self.coco.loadAnns(anno_ids)
         objs = []
+        num_kpts = 17
         for obj in annotations:
             x1 = np.max((0, obj["bbox"][0]))
             y1 = np.max((0, obj["bbox"][1]))
@@ -133,13 +134,14 @@ class COCOKPTSDataset(Dataset):
                 # assert np.all(np.array(obj['keypoints'][0::3]) <= width)
                 # assert np.all(0 <= np.array(obj['keypoints'][1::3]))
                 # assert np.all(np.array(obj['keypoints'][1::3]) <= height)
+                num_kpts = obj['num_keypoints']
                 obj["clean_kpts"] =  obj['keypoints']
                 objs.append(obj)
         num_objs = len(objs)
         if num_objs==0:
             return
         if self.human_pose:
-            res = np.zeros((num_objs, 5+2*17))
+            res = np.zeros((num_objs, 5+2*num_kpts))
         else:
             res = np.zeros((num_objs, 5))
 

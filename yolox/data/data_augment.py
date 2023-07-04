@@ -223,17 +223,18 @@ def preproc(img, input_size, swap=(2, 0, 1)):
 
 
 class TrainTransform:
-    def __init__(self, max_labels=50, flip_prob=0.5, hsv_prob=1.0, object_pose = False, human_pose=False, flip_index=None):
+    def __init__(self, max_labels=50, flip_prob=0.5, hsv_prob=1.0, object_pose = False, human_pose=False, flip_index=None, num_kpts=17):
         self.max_labels = max_labels
         self.flip_prob = flip_prob
         self.hsv_prob = hsv_prob
         self.object_pose = object_pose
         self.human_pose = human_pose
         self.flip_index = flip_index
+        self.num_kpts = num_kpts
         if self.object_pose:
             self.target_size = 14  #5 + 9
         elif self.human_pose:
-            self.target_size = 39  # 5+ 2*17
+            self.target_size = (5+2*self.num_kpts)  # 5+ 2*17
         else:
             self.target_size = 5
 

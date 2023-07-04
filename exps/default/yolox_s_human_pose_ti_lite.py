@@ -16,6 +16,7 @@ class Exp(MyExp):
         self.width = 0.50
         self.exp_name = os.path.split(os.path.realpath(__file__))[1].split(".")[0]
         self.num_classes = 1
+        self.num_kpts = 17
         self.act = "relu"
 
         # -----------------  testing config ------------------ #
@@ -34,7 +35,7 @@ class Exp(MyExp):
         if getattr(self, "model", None) is None:
             in_channels = [256, 512, 1024]
             backbone = YOLOPAFPN(self.depth, self.width, in_channels=in_channels, act=self.act, conv_focus=True, split_max_pool_kernel=True)
-            head = YOLOXHeadKPTS(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            head = YOLOXHeadKPTS(self.num_classes, self.width, in_channels=in_channels, act=self.act, num_kpts=self.num_kpts)
             self.model = YOLOX(backbone, head)
 
         self.model.apply(init_yolo)
@@ -65,11 +66,13 @@ class Exp(MyExp):
                 dataset = COCOKPTSDataset(
                     data_dir=self.data_dir,
                     json_file=self.train_ann,
+                    name=self.name[0],
                     img_size=self.input_size,
                     preproc=TrainTransform(
                         max_labels=50,
                         flip_prob=self.flip_prob,
-                        hsv_prob=self.hsv_prob),
+                        hsv_prob=self.hsv_prob,
+                        num_kpts=self.num_kpts),
                     cache=cache_img,
                 )
 
@@ -84,7 +87,8 @@ class Exp(MyExp):
                 hsv_prob=self.hsv_prob,
                 object_pose=self.object_pose,
                 human_pose=self.human_pose,
-                flip_index=dataset.flip_index,
+                num_kpts=self.num_kpts,
+                # flip_index=dataset.flip_index,
             ),
             degrees=self.degrees,
             translate=self.translate,
@@ -128,7 +132,7 @@ class Exp(MyExp):
             valdataset = COCOKPTSDataset(
                 data_dir=self.data_dir,
                 json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
-                name="val2017" if not testdev else "test2017",
+                name=self.name[1] if not testdev else "test2017",
                 img_size=self.test_size,
                 preproc=ValTransform(legacy=legacy),
                 human_pose = self.human_pose

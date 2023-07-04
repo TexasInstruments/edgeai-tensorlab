@@ -7,6 +7,7 @@ import os
 import random
 import warnings
 from loguru import logger
+import json
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -158,8 +159,8 @@ def main(exp, args):
         ), "The given dataset is not supported for training!"
         exp.data_set = args.dataset
         exp.num_classes = _NUM_CLASSES[args.dataset]
-        exp.val_ann = _VAL_ANN[args.dataset]
-        exp.train_ann = _TRAIN_ANN[args.dataset]
+        # exp.val_ann = _VAL_ANN[args.dataset]
+        # exp.train_ann = _TRAIN_ANN[args.dataset]
 
         if args.task is not None:
             assert (
@@ -189,6 +190,15 @@ def run(**kwargs):
     exp.max_epoch = args.max_epochs
     exp.output_dir = args.output_dir
     exp.visualize = args.visualize
+    exp.data_dir = args.data_dir
+    exp.train_ann = args.train_ann
+    exp.val_ann = args.val_ann
+    exp.name = args.img_folder_names
+
+    with open(args.train_ann) as train_ann_fp:
+            train_anno = json.load(train_ann_fp)
+            categories = train_anno['categories']
+            exp.num_kpts = len(categories[0]['keypoints'])
 
     if not args.experiment_name:
         args.experiment_name = ''
