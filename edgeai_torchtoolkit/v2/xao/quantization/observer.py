@@ -181,12 +181,12 @@ class AdaptiveLowBITPower2ActivationObserver(AdaptivePower2ActivationObserver):
 
 
 ####################################################################
-class AdaptiveRangeRestricted4LowBITPerChannelWeightObserver(AdaptiveLowBITPower2PerChannelWeightObserver):
+class AdaptiveRangeRestricted4LowBITPerChannelWeightObserver(AdaptiveLowBITPerChannelWeightObserver):
     def __init__(self, *args, range_val=4.0, **kwargs) -> None:
         super().__init__(*args, range_val=range_val, **kwargs)
 
 
-class AdaptiveRangeRestricted4LowBITActivationObserver(AdaptiveLowBITPower2ActivationObserver):
+class AdaptiveRangeRestricted4LowBITActivationObserver(AdaptiveLowBITActivationObserver):
     def __init__(self, *args, range_val=4.0, **kwargs) -> None:
         super().__init__(*args, range_val=range_val, **kwargs)
 

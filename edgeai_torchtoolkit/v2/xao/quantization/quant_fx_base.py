@@ -12,14 +12,14 @@ from . import qconfig
 
 class QuantFxBaseModule(torch.nn.Module):
     def __init__(self, model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qnnpack",
-                 total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
-                 adaptive_quantization=True):
+                 total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None):
         super().__init__()
         if not total_epochs:
             raise RuntimeError("total_epochs must be provided")
         #
-        qconfig_type = [qconfig.QConfigType(qtype) for qtype in qconfig_type.split(",")]
-        qconfig_mapping = qconfig.get_qconfig_mapping(is_qat, backend, qconfig_type[0])
+        adaptive_quantization = "_ADAPTIVE" in qconfig_type
+        qconfig_type = qconfig_type.replace("_ADAPTIVE", "")
+        qconfig_mapping = qconfig.get_qconfig_mapping(is_qat, backend, qconfig_type)
         if is_qat:
             model = quantize_fx.prepare_qat_fx(model, qconfig_mapping, example_inputs)
         else:
@@ -75,28 +75,16 @@ class QuantFxBaseModule(torch.nn.Module):
         '''
         adjust quantization parameters on a per segment (group of epochs) basis
         '''
-        num_segments = len(self.qconfig_type)
-        if (not self.adaptive_quantization) or (num_segments <= 1):
+        if not self.adaptive_quantization:
             return
         #
-        quant_segment = int(self.num_epochs_tracked * num_segments / self.total_epochs)
-        print(f"adaptive_quantization is ON. current quant_segment:{quant_segment}, qconfig_type:{self.qconfig_type[quant_segment]}")
-        if quant_segment == 0:
-            return
-        #
-        self.adaptive_quant_segment = quant_segment
-        qconfig_new = qconfig.get_qconfig(self.is_qat, self.backend, self.qconfig_type[self.adaptive_quant_segment])
-        current_device = next(self.parameters()).device
-        for np, mp in self.named_modules():
-            for nc, mc in mp.named_children():
-                if isinstance(mc, fake_quanitze.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES):
-                    weight_fake_quant = qconfig_new.weight().to(current_device)
-                    setattr(mp, nc, weight_fake_quant)
-                #
-                if isinstance(mc, fake_quanitze.ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES):
-                    activation_fake_quant = qconfig_new.activation().to(current_device)
-                    setattr(mp, nc, activation_fake_quant)
-                #
+        total_epochs_knee = max((self.total_epochs//2)-3, 1)
+        alpha = min(self.num_epochs_tracked/total_epochs_knee, 1.0)
+        adaptive_factor = (1 - alpha)
+        print(f"adaptive_quantization is ON, qconfig_type:{self.qconfig_type}, adaptive_factor:{adaptive_factor}")
+        for n, m in self.named_modules():
+            if isinstance(m, fake_quanitze.ADAPTIVE_FAKE_QUANT_TYPES):
+                m.set_adaptive_factor(adaptive_factor)
 
     def freeze(self, freeze_bn=True, freeze_observers=True):
         if freeze_observers is True:
