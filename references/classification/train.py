@@ -263,19 +263,16 @@ def main(args):
     if args.lite_model:
         model = xao.surgery.replace_unsuppoted_layers(model)
 
-    quantization = args.quantization in ("QAT", )
-    if (not quantization) and args.quantization_type:
-        raise RuntimeError("if quantization is None, then quantization_type should be None")
-    #
-    if quantization and args.pruning:
+    if args.quantization and args.pruning:
         model = xao.pruning.PrunerQuantModule(model)
     elif args.pruning:
         model = xao.pruning.PrunerModule(model)
-    elif quantization:
+    elif args.quantization:
         # replace ReLU6() by ReLU() as torch.ao.quantization currently does not handle ReLU6() correctly
         replacement_dict = {torch.nn.ReLU6(): torch.nn.ReLU()}
         model = xao.surgery.replace_unsuppoted_layers(model, replacement_dict=replacement_dict)
-        model = xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
+        model = xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type,
+                                             qconfig_mode=args.quantization_mode)
     #
     
     model.to(device)
@@ -563,9 +560,9 @@ def get_args_parser(add_help=True):
     # options to create faster models
     parser.add_argument("--lite-model", "--model-surgery", default=0, help="model surgery to create lite models")
 
-    parser.add_argument("--quantization", default=None, choices=[None, "QAT"], help="Quaantization Aware Training (QAT)")
-    parser.add_argument("--quantization-type", default=None, \
-                        help="Quaantization Bitdepth - applies only if quantization is enabled")
+    parser.add_argument("--quantization", default=0, type=int, choices=xao.quantization.QConfigMethod.choices(), help="Quaantization Aware Training (QAT)")
+    parser.add_argument("--quantization-type", default=None, help="Quaantization Bitdepth - applies only if quantization is enabled")
+    parser.add_argument("--quantization-mode", default=0, type=int, choices=xao.quantization.QConfigMode.choices(), help="Quaantization Mode - default:0, adaptive:1")
 
     parser.add_argument("--pruning", default=0, help="Pruning/Sparsity")
     parser.add_argument("--pruning-ratio", default=0.5, help="Pruning/Sparsity Factor - applies only of pruning is enabled")
