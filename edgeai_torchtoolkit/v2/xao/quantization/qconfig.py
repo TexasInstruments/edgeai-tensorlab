@@ -65,7 +65,17 @@ except:
         return qconfig_mapping
 
 
+class QConfigMethod(enum.Enum):
+    DISABLED = 0
+    QAT = 1
+
+    @classmethod
+    def choices(cls):
+        return [e.value for e in cls]
+
+
 class QConfigType(enum.Enum):
+    DISABLED = 0
     DEFAULT = "DEFAULT"
 
     W8T_A8T = "W8T_A8T"
@@ -80,6 +90,16 @@ class QConfigType(enum.Enum):
     @classmethod
     def choices(cls):
         return [e.value for e in cls]
+
+
+class QConfigMode(enum.Enum):
+    DEFAULT = 0
+    ADAPTIVE = 1
+
+    @classmethod
+    def choices(cls):
+        return [e.value for e in cls]
+
 
 
 ####################################################################
@@ -130,6 +150,16 @@ def get_qconfig(is_qat, backend, qconfig_type=None):
 
 
 def get_qconfig_mapping(is_qat, backend, qconfig_type=None):
-    qconfig = get_qconfig(is_qat, backend, qconfig_type)
+    qconfig_type_base = qconfig_type[0] if isinstance(qconfig_type, (list,tuple)) else qconfig_type
+    qconfig = get_qconfig(is_qat, backend, qconfig_type_base)
     qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
+
+    qconfig_type_aux = qconfig_type[-1] if isinstance(qconfig_type, (list,tuple)) else None
+    if qconfig_type_aux is not None:
+        warnings.warn("TODO: torch.nn.Linear is being set to second qconfig - remove this hardcoding")
+        qconfig_aux = get_qconfig(is_qat, backend, qconfig_type_aux)
+        qconfig_map.set_object_type(torch.nn.Linear, qconfig_aux)
+        qconfig_reuse = torch.ao.quantization.default_reuse_input_qconfig
+        qconfig_map.set_object_type(torch.nn.Dropout, qconfig_reuse)
+    #
     return qconfig_map

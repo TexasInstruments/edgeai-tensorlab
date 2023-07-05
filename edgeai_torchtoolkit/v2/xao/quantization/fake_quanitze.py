@@ -37,7 +37,6 @@ class AdaptiveFakeQuantize(FakeQuantize):
                 #
             #
             x_noq = torch.clamp(X, min_val.clone(), max_val.clone())
-            x_q = super().forward(X)
             x_q = x_noq * self.adaptive_factor + x_q * (1.0-self.adaptive_factor)
         #
         return x_q

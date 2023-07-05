@@ -12,13 +12,18 @@ from . import qconfig
 
 class QuantFxBaseModule(torch.nn.Module):
     def __init__(self, model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qnnpack",
-                 total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None):
+                 total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
+                 qconfig_mode=qconfig.QConfigMode.DEFAULT):
         super().__init__()
         if not total_epochs:
             raise RuntimeError("total_epochs must be provided")
         #
-        adaptive_quantization = "_ADAPTIVE" in qconfig_type
-        qconfig_type = qconfig_type.replace("_ADAPTIVE", "")
+        qconfig_type = qconfig_type.split(",")
+        if len(qconfig_type) > 2:
+            raise RuntimeError(f"maximum of 2 entries are supported in qconfig_type:{qconfig_type}")
+        #
+        qconfig_type = [qconfig.QConfigType(qconf) for qconf in qconfig_type]
+        qconfig_mode = qconfig.QConfigMode(qconfig_mode)
         qconfig_mapping = qconfig.get_qconfig_mapping(is_qat, backend, qconfig_type)
         if is_qat:
             model = quantize_fx.prepare_qat_fx(model, qconfig_mapping, example_inputs)
@@ -30,11 +35,11 @@ class QuantFxBaseModule(torch.nn.Module):
         self.is_qat = is_qat
         self.backend = backend
         self.qconfig_type = qconfig_type
+        self.qconfig_mode = qconfig_mode
         self.num_batch_norm_update_epochs = num_batch_norm_update_epochs
         self.num_observer_update_epochs = num_observer_update_epochs
         self.num_epochs_tracked = 0
         self.total_epochs = total_epochs
-        self.adaptive_quantization = adaptive_quantization
         self.adaptive_quant_segment = 0
         # set the quantization backend - qnnpack, fbgemm, x86, onednn etc.
         self.set_quant_backend(backend)
@@ -75,13 +80,13 @@ class QuantFxBaseModule(torch.nn.Module):
         '''
         adjust quantization parameters on a per segment (group of epochs) basis
         '''
-        if not self.adaptive_quantization:
+        if self.qconfig_mode == qconfig.QConfigMode.DEFAULT:
             return
         #
         total_epochs_knee = max((self.total_epochs//2)-3, 1)
         alpha = min(self.num_epochs_tracked/total_epochs_knee, 1.0)
         adaptive_factor = (1 - alpha)
-        print(f"adaptive_quantization is ON, qconfig_type:{self.qconfig_type}, adaptive_factor:{adaptive_factor}")
+        print(f"adaptive_quantization is ON, qconfig_type:{self.qconfig_type}, qconfig_mode:{self.qconfig_mode}, adaptive_factor:{adaptive_factor}")
         for n, m in self.named_modules():
             if isinstance(m, fake_quanitze.ADAPTIVE_FAKE_QUANT_TYPES):
                 m.set_adaptive_factor(adaptive_factor)
