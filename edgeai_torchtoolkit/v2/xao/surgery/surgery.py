@@ -69,7 +69,7 @@ def replace_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn
     model=deepcopy(model)
 
     for pattern, replacement in replacement_dict.items():
-        if isfunction(pattern):
+        if isfunction(pattern) or type(pattern).__name__ in ('builtin_function_or_method','function'):
                 #replacement must be partially defined function or work with same args and kwargs
                 if type(replacement) == list:
                     kwarg=replacement[1]

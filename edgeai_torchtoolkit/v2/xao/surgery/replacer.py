@@ -44,17 +44,23 @@ def replace_function_nodes(model,pattern_function,replacement,kwargs=None):
     traced_model= symbolic_trace(deepcopy(model))
     no_of_module=0
     n=0
-    for node in traced_model.graph.nodes:
-        if node.target==pattern_function:
-            kwargs=kwargs or node.kwargs
-            with traced_model .graph.inserting_before(node):
-                if isfunction(replacement):
+    if isfunction(replacement) or type(replacement).__name__ in ('builtin_function_or_method','function'):
+        for node in traced_model.graph.nodes:
+            if node.target==pattern_function:
+                kwargs=kwargs or node.kwargs
+                with traced_model .graph.inserting_before(node):
                     new_node = traced_model.graph.call_function(replacement, node.args, kwargs)
-                else:
+                    node.replace_all_uses_with(new_node)
+                    traced_model.graph.erase_node(node)
+    else:
+        for node in traced_model.graph.nodes:
+            if node.target==pattern_function:
+                kwargs=kwargs or node.kwargs
+                with traced_model .graph.inserting_before(node):
                     if type(replacement)==type:
                         replace_obj=replacement()
                     else: replace_obj=replacement
-                    if type(replace_obj) != nn.Module:
+                    if not isinstance(replace_obj,nn.Module):
                         return traced_model
                     new_node_name=type(replace_obj).__name__+str(no_of_module)
                     n+=1
@@ -65,9 +71,9 @@ def replace_function_nodes(model,pattern_function,replacement,kwargs=None):
                         if type(arg) == Node:
                             args.append(arg)
                     new_node=traced_model.graph.call_module(new_node_name,tuple(args),{})
-                node.replace_all_uses_with(new_node)
+                    node.replace_all_uses_with(new_node)
             # Remove the old node from the graph
-            traced_model.graph.erase_node(node)
+                    traced_model.graph.erase_node(node)
     traced_model.graph.lint()
     traced_model.recompile()    
     print(pattern_function,str(n+no_of_module))

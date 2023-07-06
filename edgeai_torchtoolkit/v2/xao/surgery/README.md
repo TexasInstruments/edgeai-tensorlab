@@ -3,7 +3,7 @@
 This repository is a model surgery API that will make the models TIDL friendly by changing inner structure module of using [torch.fx](https://pytorch.org/docs/stable/fx.html) package.
  
 <center>
-<br><img src="Images/Intro_diagram.png"  width = "75%" alt="" /><br>
+<br><img src="Images/Intro_diagram.png"  width = "60%" alt="" /><br>
 </center>
 
 ---
@@ -15,6 +15,12 @@ This repository is a model surgery API that will make the models TIDL friendly b
   - [get\_replacement\_dict\_default](#get_replacement_dict_default)
   - [replace\_unsupported\_layers function](#replace_unsupported_layers-function)
   - [SurgeryModule Class](#surgerymodule-class)
+  - [Example](#example)
+    - [Example Model](#example-model)
+    - [Onnx Export before any change](#onnx-export-before-any-change)
+    - [Example of Replacement Dictionary:](#example-of-replacement-dictionary)
+    - [function to change according to replacement dict](#function-to-change-according-to-replacement-dict)
+    - [Onnx Export before any change](#onnx-export-before-any-change-1)
 - [Basics](#basics)
   - [Symbolic Trace](#symbolic-trace)
   - [Intermediate Representation (Graph)](#intermediate-representation-graph)
@@ -100,6 +106,65 @@ changed_model=surgery.SurgeryModule(model, replacement_dict=default_dict) # a nn
 ```python
 replacement_dict=changed_model.get_replacement_dict() # a dict
 ```
+
+### Example
+#### Example Model
+```py
+class ExampleModule(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.left=nn.Sequential(
+             surgery.custom_modules.Focus(),
+             surgery.custom_modules.ConvBNRModule(12,16,7,stride=1,padding=3),
+             surgery.custom_modules.SEModule(),
+             nn.Conv2d(16,32,3,padding=1),
+             nn.BatchNorm2d(32),
+             nn.SiLU(),
+             nn.ReLU6(),
+             )
+        self.right = nn.Sequential(
+             surgery.custom_modules.ConvBNRModule(3,16,3,stride=1,padding=1),
+             surgery.custom_modules.SEModule1(),
+             surgery.custom_modules.ConvBNRModule(16,32,3,stride=2,padding=1),
+        ) 
+    def forward(self,x):
+        return torch.nn.functional.gelu(torch.add(self.left(x),self.right(x)))
+
+model= ExampleModule()
+```
+#### Onnx Export before any change
+<center>
+<img src='Images/onnx_exampleModule_before.png' width ="60%">
+</center>
+
+#### Example of Replacement Dictionary:
+```py
+replacement_dict={
+    #Type refers to class 
+     surgery.custom_modules.SEModule1:nn.Identity(),# Type to Module (composite)
+    #Module refers to Module Object
+     surgery.custom_modules.Focus():surgery.custom_modules.ConvBNRModule(3,12,5,stride=2,padding=2),# Type to Module
+     surgery.custom_modules.SEModule():nn.Identity(),# Module to Module 
+     nn.SiLU:nn.ReLU, # Type to Type (singular)
+     nn.ReLU6(): nn.ReLU(),# Module to Module
+     torch.nn.functional.gelu:nn.ReLU(), # function to Type/Module
+     torch.add:torch.sub, #function to function
+     'conv kernel 7':surgery.custom_surgery_functions.replace_conv2d_kernel_size_ge_7 # custom surgery function
+
+}
+```
+
+#### function to change according to replacement dict
+
+```py
+from edgeai_torchtoolkit.v2.xao.surgery import surgery
+changed_model=surgery.replace_unsupported_layers(model,replacement_dict=replacement_dict)
+```
+#### Onnx Export before any change
+<center>
+<img src='Images/onnx_exampleModule_after.png' width ="30%">
+</center>
+
 ---
 
 ## Basics 
@@ -196,7 +261,7 @@ output         output   output                   (act,)            {}
 ```
 
 <center>
-<br><img src="Images/basic_model_graph.png"  width = "75%" alt="" /><br>
+<br><img src="Images/basic_model_graph.png"   width="40%" alt="" /><br>
 </center>
 
 Graph records the operation in 6 categories:
@@ -220,7 +285,7 @@ Graph records the operation in 6 categories:
 Graph has the following attributes: 
 - **nodes:** of node_list type which has all the nodes in a topological order
 <center>
-<br><img src="Images/topological_example.png"  width = "75%" alt="" /><br>
+<br><img src="Images/topological_example.png"  width="60%"  alt="" /><br>
 </center>
 For example, in the above graph the node_list will be:
 <br><b><center>[x,y,add,sub,mul]</center></b>
@@ -250,7 +315,7 @@ Node generally contains the following attributes:
 - **Args**: argument passed to it. It also contains the node address it takes input from
 - **Kwargs**: kwyword argument passed to it. It also contains the node address it takes input from
 <center>
-<br><img src="Images/node_table.png"  width = "75%" alt="" /><br>
+<br><img src="Images/node_table.png"    width="60%" alt="" /><br>
 </center>
 ### Code Generation
 After changing the nodes in the graph, we can generate a code for the graph that will be the forward function for the module. After that, the module structure, graph and the forward code for the model in wrapper object of class [torch.fx.GraphModule](https://pytorch.org/docs/stable/fx.html#torch.fx.GraphModule). So,
@@ -309,13 +374,16 @@ If target node is **call_module** node we can directly replace the module from t
 
 Parent Module can be reached from the dictionary returned by **name_modules()** of the Graph Module and target of the node.
 
-<center>
-<br><img src="Images/gelu2relu.png"  width = "75%" alt="" /><br>
-<br>
-<b>GeLU to ReLU</b>
-<br><img src="Images/onnx_gelu2relu.png"  width = "75%" alt="" /><br>
-<b>Change in ONNX export of the model</b>
-</center>
+<center><table>
+<tr>
+<th><img src="Images/gelu2relu.png"   alt="" />  </th>
+<th><img src="Images/onnx_gelu2relu.png"   alt="" /></th>
+</tr>
+<tr>
+<th><b>GeLU to ReLU</b></th>
+<th><b>Change in ONNX export of the model</b></th>
+</tr>
+</table></center>
 
 Here, we are changing GeLU with ReLU which can be done with pair pattern(GeLU) present in the model and any of call_fucntion or call_module of ReLU
 
@@ -354,7 +422,7 @@ def replace_unsupported_layer(model:nn.Module,replacement_dict=None):
   
 This function iterates through the replacement_dict and performs surgery according to the pair of pattern(keys) and replacement(values). 
 <center>
-<br><img src="Images/main_api_l1.png"  width = "75%" alt="" /><br>
+<br><img src="Images/main_api_l1.png"   alt="" /><br>
 </center>
 
 ### About SurgeryModule Class
@@ -412,7 +480,7 @@ For this we use node_lists of both main model’s graph and pattern’s graph.
 - After that this will be a simple linear pattern search in a linear list after discarding input nodes and output node.
 - For comparing nodes in both graph, we first match their operation (op) and then follow according to the following table:
 <center>
-<br><img src ="Images/node_match.png">
+<br><img src ="Images/node_match.png"  width="60%"> 
 </center>
 Note: Till Date, Pattern with either single node or single input and single output is supported for replacement	
 
@@ -427,6 +495,7 @@ When we find the start and end of the matches of pattern in main model’s graph
     - module will be added to the module structure and a new call_module node will be created for it for replacement in the graph.
 
 Possible candidate for change:<br>
+
 |Pattern|Replacement|
 |------|------|
 |SqueezeAndExcite 	| nn.Identity()|
@@ -439,29 +508,42 @@ All this functionalities are availabe in [replacer.py](https://bitbucket.itg.ti.
 
 For patterns and Replacements which are composite models, some of them are defiend in [custom_modules.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse/edgeai_torchtoolkit/v2/xao/surgery/custom_.py) file.
 
-<center>
-<br><img src="Images/SE2I.png"  width = "75%" alt="" /><br>
-<br>
-<b>Squeeze And Excite to Identity</b>
-<br><img src="Images/onnx_SE2I.png"  width = "75%" alt="" /><br>
-<b>Change in ONNX export of the model</b>
-<br><img src="Images/gelu2relu.png"  width = "75%" alt="" /><br>
-<br>
-<b>GeLU to ReLU</b>
-<br><img src="Images/onnx_gelu2relu.png"  width = "75%" alt="" /><br>
-<b>Change in ONNX export of the model</b>
-</center>
+<center><table>
+<tr>
+<th><img src="Images/SE2I.png"   alt="" />  </th>
+<th><img src="Images/onnx_SE2I.png"   alt="" /></th>
+</tr>
+<tr>
+<th><b>Squeeze And Excite to Identity </b></th>
+<th><b>Change in ONNX export of the model</b></th>
+</tr>
+<tr>
+<th><img src="Images/gelu2relu.png"   alt="" />  </th>
+<th><img src="Images/onnx_gelu2relu.png"   alt="" /></th>
+</tr>
+<tr>
+<th><b>GeLU to ReLU</b></th>
+<th><b>Change in ONNX export of the model</b></th>
+</tr>
+</table></center>
+
 
 ### Replacement Type 2 (Function to Function change)
 This will call replace_function_node function that will create new node with replacement function as target with same args and kwargs.
 Then it shifts the incoming and outgoing edges from the pattern to the new node.
-<center>
-<br><img src="Images/relu62relu.png"  width = "75%" alt="" /><br>
-<br>
-<b>ReLU6 to ReLU</b>
-<br><img src="Images/onnx_relu62relu.png"  width = "75%" alt="" /><br>
-<b>Change in ONNX export of the model</b>
-</center>
+
+
+<center><table>
+<tr>
+<th><img src="Images/relu62relu.png"   alt="" />  </th>
+<th><img src="Images/onnx_relu62relu.png"   alt="" /></th>
+</tr>
+<tr>
+<th><b>ReLU6 to ReLU </b></th>
+<th><b>Change in ONNX export of the model</b></th>
+</tr>
+</table></center>
+
 
 ### Replacement Type 3 (Function to Type/Module change)
 This will call replace_function_node function that will create new node with replacement module after adding it to module structure as target with same args.
@@ -469,13 +551,16 @@ This will call replace_function_node function that will create new node with rep
   
 Then it shifts the incoming and outgoing edges from the pattern to the new node
 
-<center>
-<br><img src="Images/silu2relu.png"  width = "75%" alt="" /><br>
-<br>
-<b>SiLU to ReLU</b>
-<br><img src="Images/onnx_silu2relu.png"  width = "75%" alt="" /><br>
-<b>Change in ONNX export of the model</b>
-</center>
+<center><table>
+<tr>
+<th><img src="Images/silu2relu.png"   alt="" />  </th>
+<th><img src="Images/onnx_silu2relu.png"  /></th>
+</tr>
+<tr>
+<th><b>SiLU to ReLU </b></th>
+<th><b>Change in ONNX export of the model</b></th>
+</tr>
+</table></center>
 
 ### Replacement Type 4 (Type to Type/Module change)
 This replacement calls a function called replace_module_nodes which uses traditional approach of changing module from attribute of their parents
@@ -485,35 +570,41 @@ This replacement calls a function called replace_module_nodes which uses traditi
 It is better to be used before any symbolic trace is done on the model as after that all user defined models will lose their forward function and become instance Module class.
 - but the (most of) module in torch.nn directory will retain their forward function even after symbolic trace until they are inside a wrapper module
 
-<center>
-<br><img src="Images/SE2I.png"  width = "75%" alt="" /><br>
-<br>
-<b>Squeeze and Excite to Identity</b>
-<br><img src="Images/onnx_SE2I1.png"  width = "75%" alt="" /><br>
-<b>Change in ONNX export of the model</b>
-</center>
+<center><table>
+<tr>
+<th><img src="Images/SE2I.png"   alt="" />  </th>
+<th><img src="Images/onnx_SE2I.png"   alt="" /></th>
+</tr>
+<tr>
+<th><b>Squeeze And Excite to Identity </b></th>
+<th><b>Change in ONNX export of the model</b></th>
+</tr></table></center>
 
 ### Replacement Type 5 (Custom Surgery Function)
 Users also can add their own surgery functions that will return the changed model paired their callable with any value other than callable.
 - These function must be made where we have change parameters (args and kwargs)
 - These must return the changed graph module after surgery.
     - e.g.:	
-        1. LayerNorm2D (accepting input dimension of 4) to 1BatchNorm2D,
-        <center>
-        <br><img src="Images/layernorm2batchnorm2d.png"  width = "75%" alt="" /><br>
-        <br>
-        <b>LayerNorm to BatchNorm2D</b>
-        <br><img src="Images/onnx_layernorm2batchnorm2d.png"  width = "75%" alt="" /><br>
-        <b>Change in ONNX export of the model</b>
-        </center>
+        1. LayerNorm to BatchNorm
+        <center><table>
+        <tr>
+        <th><img src="Images/layernorm2batchnorm2d.png"   alt="" />  </th>
+        <th><img src="Images/onnx_layernorm2batchnorm2d.png"   alt="" /></th>
+        </tr>
+        <tr>
+        <th><b>LayerNorm to BatchNorm2d </b></th>
+        <th><b>Change in ONNX export of the model</b></th>
+        </tr></table></center>
 		2. Conv. with kernel size greater than five : Equivalent series of Conv. of kernel 	  size 3 and a Conv. of kernel 5, etc
-        <center>
-        <br><img src="Images/conv_replacement.png"  width = "75%" alt="" /><br>
-        <br>
-        <b>Conv2D with kernel_size = 7  to equivalent series of Conv2D with kernel_size = 3 and a Conv2D with kernel_size = 5  </b>
-        <br><img src="Images/onnx_conv_replacement.png"  width = "75%" alt="" /><br>
-        <b>Change in ONNX export of the model</b>
-        </center>
+        <center><table>
+        <tr>
+        <th><img src="Images/conv_replacement.png"   alt="" />  </th>
+        <th><img src="Images/onnx_conv_replacement.png"   alt="" /></th>
+        </tr>
+        <tr>
+        <th><b>Conv2D with kernel_size = 7  to equivalent series of Conv2D with kernel_size = 3 and a Conv2D with kernel_size = 5 </b></th>
+        <th><b>Change in ONNX export of the model</b></th>
+        </tr></table></center>
 Example for these custom functions are available in [custom_surgery_functions.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse/edgeai_torchtoolkit/v2/xao/surgery/custom_surgery_functions.py)
 
 ---
@@ -561,7 +652,7 @@ def _are_both_node_equal(first_node:Node,second_node:Node,first_graoh_module:Uni
 - till now for two node to be same they must have same operation
 
 <center>
-<br><img src ="Images/node_match.png">
+<br><img src ="Images/node_match.png" width="60%">
 </center>
 
 #### **straight_chain_searcher**
