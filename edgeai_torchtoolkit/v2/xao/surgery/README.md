@@ -700,7 +700,7 @@ For **swin transformer model**, We encountered an issue associated with LayerNor
 
 ### **mmYolo Models:**
 
-For [mmYolo](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-mmyolo) Repository, surgery is given as a option to select whether to do or not for the user with default replacement dictionry in [export.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-mmyolo/browse/dir)
+For [mmYolo](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-mmyolo) Repository, surgery is given as a option to select whether to do or not for the user with default replacement dictionry in [export.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-mmyolo/browse/projects/easydeploy/tools/export.py)
 
 
 |Model|Rules|
