@@ -32,11 +32,11 @@ def replace_resize_with_scale_factor(model):
     print('resize',len(matches))
     return traced_m
 
-
-def replace_maxpool2d_kernel_size_ge_5(model:nn.Module):
+ 
+def replace_pool_size_ge_5(model:nn.Module, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d):
     '''
-    replaces all maxpool2d module or function having kernel size greater than or equal to 5
-    with a stack of maxpool2d modules having kernel size 3
+    replaces all pool 2d module or function having kernel size greater than or equal to 5
+    with a stack of pool2d modules having kernel size 3
     
     to have same output pixels original stride is added to last maxpool module
     '''
@@ -44,92 +44,54 @@ def replace_maxpool2d_kernel_size_ge_5(model:nn.Module):
     traced_model=symbolic_trace(model)
     modules=dict(traced_model.named_modules())
     
-    no_of_max_pool=0
+    no_of_pool=0
     for node in traced_model.graph.nodes:
         if node.op == 'call_module':
-            #for call module maxpool
+            #for call module pool
             module=modules[node.target]
-            if isinstance(module,nn.MaxPool2d):
+            if isinstance(module,pool_class):
                 if module.kernel_size >3:
                     k_size=module.kernel_size 
                     stride=module.stride
+                    padding=module.padding
                     replacement= nn.Sequential()
                     while k_size > 3:
-                        replacement.append(nn.MaxPool2d(kernel_size=3,stride=1,padding=1))
+                        if k_size % 2 ==0: replacement.append(pool_class(kernel_size=2,stride=1,padding=(0,0,1,1)))    
+                        else: replacement.append(pool_class(kernel_size=3,stride=1,padding=1))
                         k_size-=2
-                    replacement.append(nn.MaxPool2d(kernel_size=k_size,stride=stride,padding=1))
-                    replacer._replace_pattern(traced_model,node,node,replacement,no_of_max_pool)
-                    no_of_max_pool+=1
+                    replacement.append(pool_class(kernel_size=k_size,stride=stride,padding=1 if padding %2 !=0 else (0,0,1,1)))
+                    replacer._replace_pattern(traced_model,node,node,replacement,no_of_pool)
+                    no_of_pool+=1
         
-        if node.target == nn.functional.max_pool2d:
-            #for functional maxpool
+        if node.target == pool_function:
+            #for functional pool
             k_size=node.args[1]
             stride=node.kwargs['stride']
+            padding=node.kwargs['padding']
             replacement= nn.Sequential()
             while k_size > 3:
-                replacement.append(nn.MaxPool2d(kernel_size=3,stride=1,padding=1))
+                if k_size % 2 ==0: replacement.append(pool_class(kernel_size=2,stride=1,padding=(0,0,1,1)))    
+                else: replacement.append(pool_class(kernel_size=3,stride=1,padding=1))
                 k_size-=2
-            replacement.append(nn.MaxPool2d(kernel_size=k_size,stride=stride,padding=1))
-            traced_model.add_submodule(f'replaced_maxpool_{no_of_max_pool}',replacement)
+            replacement.append(pool_class(kernel_size=k_size,stride=stride,padding=1 if padding %2 !=0 else (0,0,1,1)))
+            traced_model.add_submodule(f'replaced_maxpool_{no_of_pool}',replacement)
             args=(node.args[0],)
             with traced_model.graph.inserting_before(node):
-                new_node=traced_model.graph.call_module(f'replaced_maxpool_{no_of_max_pool}',args,{})
+                new_node=traced_model.graph.call_module(f'replaced_{pool_class.__name__.lower()}_{no_of_pool}',args,{})
                 node.replace_all_uses_with(new_node)
             traced_model.graph.erase_node(node)
-        
+         
     traced_model.graph.lint()
     traced_model.recompile()
-    print('max pool',no_of_max_pool)
+    print(f'{pool_class.__name__.lower()}',no_of_pool)
     return traced_model
 
 
-def replace_avgpool2d_kernel_size_ge_5(model:nn.Module):
-    '''
-    replaces all avgpool2d module or function having kernel size greater than or equal to 5
-    with a stack of avgpool2d modules having kernel size 3
+def replace_maxpool2d_kernel_size_ge_5(model:nn.Module):
+    return replace_pool_size_ge_5(model, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d)
     
-    to have same output pixels original stride is added to last avgpool module
-    '''
-
-    traced_model=symbolic_trace(model)
-    modules=dict(traced_model.named_modules())
-    no_of_avg_pool=0
-    for node in traced_model.graph.nodes:
-        if node.op == 'call_module':
-            #for call module avgpool
-            module=modules[node.target]
-            if isinstance(module,nn.AvgPool2d):
-                if module.kernel_size >3:
-                    k_size=module.kernel_size 
-                    stride=module.stride
-                    replacement= nn.Sequential()
-                    while k_size > 3:
-                        replacement.append(nn.AvgPool2d(kernel_size=3,stride=1,padding=1))
-                        k_size-=2
-                    replacement.append(nn.AvgPool2d(kernel_size=k_size,stride=stride,padding=1))
-                    replacer._replace_pattern(traced_model,node,node,replacement,no_of_avg_pool)
-                    no_of_avg_pool+=1
-        
-        if node.target == nn.functional.avg_pool2d:
-            #for functional avgpool
-            k_size=node.args[1]
-            stride=node.kwargs['stride']
-            replacement= nn.Sequential()
-            while k_size > 3:
-                replacement.append(nn.AvgPool2d(kernel_size=3,stride=1,padding=1))
-                k_size-=2
-            replacement.append(nn.AvgPool2d(kernel_size=k_size,stride=stride,padding=1))
-            traced_model.add_submodule(f'replaced_avgpool_{no_of_avg_pool}',replacement)
-            args=(node.args[0],)
-            with traced_model.graph.inserting_before(node):
-                new_node=traced_model.graph.call_module(f'replaced_avgpool_{no_of_avg_pool}',args,{})
-                node.replace_all_uses_with(new_node)
-            traced_model.graph.erase_node(node)
-        
-    traced_model.graph.lint()
-    traced_model.recompile()
-    print('avg pool',no_of_avg_pool)
-    return traced_model
+def replace_avgpool2d_kernel_size_ge_5(model:nn.Module):
+    return replace_pool_size_ge_5(model,pool_class=nn.AvgPool2d,pool_function=nn.functional.avg_pool2d)
 
 
 def replace_conv2d_kernel_size_ge_7(model:nn.Module):

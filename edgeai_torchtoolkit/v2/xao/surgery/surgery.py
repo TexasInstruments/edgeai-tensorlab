@@ -34,10 +34,10 @@ _unsupported_module_dict={
     nn.Dropout(inplace=True):nn.Dropout(),
     custom_modules.Focus():custom_modules.ConvBNRModule(3,12,(5,5),(2,2),2), # will only effective if focus appears jus after the input
     'layerNorm':custom_surgery_functions.replace_layer_norm, # not effective if len(input.shape) != 4 till date
-    'upsample':custom_surgery_functions.replace_resize_with_scale_factor,
-    'maxpool_ge_5':custom_surgery_functions.replace_maxpool2d_kernel_size_ge_5,
+    'upsample':custom_surgery_functions.replace_resize_with_scale_factor, # for segmentation model -> deeplabv3
+    'maxpool_ge_5':custom_surgery_functions.replace_maxpool2d_kernel_size_ge_5, # for segmentation model -> deeplabv3
     'avgpool_ge_5':custom_surgery_functions.replace_avgpool2d_kernel_size_ge_5,
-    'conv_ge_7':custom_surgery_functions.replace_conv2d_kernel_size_ge_7,
+    'conv_ge_7':custom_surgery_functions.replace_conv2d_kernel_size_ge_7,       # used with convnext
 }
 
 
@@ -117,7 +117,7 @@ class SurgeryModule(torch.nn.Module):
     def __init__(self, model, replacement_dict=None) -> None:
         '''perform surgery on the model and creates a new model'''
         super().__init__()
-        self.replacemen_dict=replacement_dict
+        self.replacement_dict=replacement_dict or get_replacement_dict_default()
         self.module = replace_unsuppoted_layers(model, self.replacement_dict)
 
     def forward(self,x,*args,**kwargs):
@@ -127,7 +127,7 @@ class SurgeryModule(torch.nn.Module):
         '''
         return self.module(x,*args,**kwargs)
 
-    def get_replacement_dict_default(self):
+    def get_replacement_dict(self):
         '''returns the default replacement dictionary that can be updated further'''
-        return self.replacemen_dict or get_replacement_dict_default()
+        return self.replacement_dict
 
