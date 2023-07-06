@@ -73,7 +73,7 @@ class ConvBNRModule(nn.Module):
     def forward(self,x,*args):
         return self.act(self.bn(self.conv(x)))
 
-class ReplaceBatchNorm(nn.Module):
+class ReplaceBatchNorm2d(nn.Module):
         def __init__(self, num_features) -> None:
             super().__init__()
             self.bn=nn.BatchNorm2d(num_features=num_features)

@@ -33,7 +33,7 @@ def replace_resize_with_scale_factor(model):
     return traced_m
 
  
-def replace_pool_size_ge_5(model:nn.Module, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d):
+def _replace_pool_size_ge_5(model:nn.Module, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d):
     '''
     replaces all pool 2d module or function having kernel size greater than or equal to 5
     with a stack of pool2d modules having kernel size 3
@@ -50,12 +50,12 @@ def replace_pool_size_ge_5(model:nn.Module, pool_class=nn.MaxPool2d,pool_functio
             #for call module pool
             module=modules[node.target]
             if isinstance(module,pool_class):
-                if module.kernel_size >3:
+                if module.kernel_size >4:
                     k_size=module.kernel_size 
                     stride=module.stride
                     padding=module.padding
                     replacement= nn.Sequential()
-                    while k_size > 3:
+                    while k_size > 4:
                         if k_size % 2 ==0: replacement.append(pool_class(kernel_size=2,stride=1,padding=(0,0,1,1)))    
                         else: replacement.append(pool_class(kernel_size=3,stride=1,padding=1))
                         k_size-=2
@@ -69,17 +69,19 @@ def replace_pool_size_ge_5(model:nn.Module, pool_class=nn.MaxPool2d,pool_functio
             stride=node.kwargs['stride']
             padding=node.kwargs['padding']
             replacement= nn.Sequential()
-            while k_size > 3:
-                if k_size % 2 ==0: replacement.append(pool_class(kernel_size=2,stride=1,padding=(0,0,1,1)))    
-                else: replacement.append(pool_class(kernel_size=3,stride=1,padding=1))
-                k_size-=2
-            replacement.append(pool_class(kernel_size=k_size,stride=stride,padding=1 if padding %2 !=0 else (0,0,1,1)))
-            traced_model.add_submodule(f'replaced_maxpool_{no_of_pool}',replacement)
-            args=(node.args[0],)
-            with traced_model.graph.inserting_before(node):
-                new_node=traced_model.graph.call_module(f'replaced_{pool_class.__name__.lower()}_{no_of_pool}',args,{})
-                node.replace_all_uses_with(new_node)
-            traced_model.graph.erase_node(node)
+            if k_size>4:
+                while k_size > 4:
+                    if k_size % 2 ==0: replacement.append(pool_class(kernel_size=2,stride=1,padding=(0,0,1,1)))    
+                    else: replacement.append(pool_class(kernel_size=3,stride=1,padding=1))
+                    k_size-=2
+                replacement.append(pool_class(kernel_size=k_size,stride=stride,padding=1 if padding %2 !=0 else (0,0,1,1)))
+                new_node_name=f'replaced_{pool_class.__name__.lower()}_{no_of_pool}'
+                traced_model.add_submodule(new_node_name,replacement)
+                args=(node.args[0],)
+                with traced_model.graph.inserting_before(node):
+                    new_node=traced_model.graph.call_module(new_node_name,args,{})
+                    node.replace_all_uses_with(new_node)
+                traced_model.graph.erase_node(node)
          
     traced_model.graph.lint()
     traced_model.recompile()
@@ -88,10 +90,10 @@ def replace_pool_size_ge_5(model:nn.Module, pool_class=nn.MaxPool2d,pool_functio
 
 
 def replace_maxpool2d_kernel_size_ge_5(model:nn.Module):
-    return replace_pool_size_ge_5(model, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d)
+    return _replace_pool_size_ge_5(model, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d)
     
 def replace_avgpool2d_kernel_size_ge_5(model:nn.Module):
-    return replace_pool_size_ge_5(model,pool_class=nn.AvgPool2d,pool_function=nn.functional.avg_pool2d)
+    return _replace_pool_size_ge_5(model,pool_class=nn.AvgPool2d,pool_function=nn.functional.avg_pool2d)
 
 
 def replace_conv2d_kernel_size_ge_7(model:nn.Module):
@@ -210,7 +212,7 @@ def replace_layer_norm(model:nn.Module):
                 replacement = nn.Identity()
             else:
                 num_features=node.args[1][0]
-                replacement=custom_modules.ReplaceBatchNorm(num_features)
+                replacement=custom_modules.ReplaceBatchNorm2d(num_features)
             args=(node.args[0],)
             arg=args[0]
             args_arg=arg.args[0]
@@ -252,7 +254,7 @@ def replace_layer_norm(model:nn.Module):
                     replacement = nn.Identity()
                 else:
                     num_features=module.normalized_shape[0]
-                    replacement= custom_modules.ReplaceBatchNorm(num_features)
+                    replacement= custom_modules.ReplaceBatchNorm2d(num_features)
                 parent_name,name=replacer._get_parent_name(node.target)
                 replacement=deepcopy(replacement)
                 t_modules[node.target]=replacement

@@ -33,7 +33,36 @@ This repository is a model surgery API that will make the models TIDL friendly b
   - [Replacement Type 4 (Type to Type/Module change)](#replacement-type-4-type-to-typemodule-change)
   - [Replacement Type 5 (Custom Surgery Function)](#replacement-type-5-custom-surgery-function)
 - [Other Module Components](#other-module-components)
+  - [replacer.py](#replacerpy)
+    - [**get\_parent\_name**](#get_parent_name)
+    - [**replace\_module\_node**](#replace_module_node)
+    - [**replace\_function\_nodes**](#replace_function_nodes)
+    - [**\_are\_both\_node\_equal**](#_are_both_node_equal)
+    - [**straight\_chain\_searcher**](#straight_chain_searcher)
+    - [**\_replace\_pattern**](#_replace_pattern)
+    - [**\_replace\_all\_matches**](#_replace_all_matches)
+    - [**graph\_pattern\_replacer**](#graph_pattern_replacer)
+  - [custom\_surgery\_functions.py](#custom_surgery_functionspy)
+    - [**replace\_resize\_with\_scale\_factor**](#replace_resize_with_scale_factor)
+    - [**\_replace\_pool\_size\_ge\_5**](#_replace_pool_size_ge_5)
+    - [**replace\_maxpool2d\_kernel\_size\_ge\_5**](#replace_maxpool2d_kernel_size_ge_5)
+    - [**replace\_avgpool2d\_kernel\_size\_ge\_5**](#replace_avgpool2d_kernel_size_ge_5)
+    - [**replace\_conv2d\_kernel\_size\_ge\_7**](#replace_conv2d_kernel_size_ge_7)
+    - [**replace\_cnblock**](#replace_cnblock)
+    - [**replace\_layer\_norm**](#replace_layer_norm)
+    - [**remove\_identiy**](#remove_identiy)
+  - [custom\_modules.py](#custom_modulespy)
+    - [**SEModule**](#semodule)
+    - [**SEModule1**](#semodule1)
+    - [**InstaModule**](#instamodule)
+    - [**Focus**](#focus)
+    - [**ConvBNRModule**](#convbnrmodule)
+    - [**ReplaceBatchNorm2D**](#replacebatchnorm2d)
+    - [**ReplacementCNBlock**](#replacementcnblock)
 - [Module Tested on till Date](#module-tested-on-till-date)
+  - [**TorchVision Models:**](#torchvision-models)
+  - [**TIMM Models:**](#timm-models)
+  - [**mmYolo Models:**](#mmyolo-models)
 - [Results](#results)
 ---
 
@@ -492,6 +521,154 @@ Example for these custom functions are available in [custom_surgery_functions.py
 [<p align = 'right'>Go To Top</p>](#table-of-content)
 
 ---
+This repository contains 3 functionality files except main API file:
+
+1. [replacer.py](#replacerpy)
+2. [custom_modules.py](#custom_modulespy)
+3. [custom_surgery_function.py](#custom_surgery_functionspy)
+
+### [replacer.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse/edgeai_torchtoolkit/v2/xao/surgery/replacer.py)
+
+This file contains all the functions used generic surgery method [replacement type 1 Module to Module Change](#replacement-type-1-module-to-module-change) which are listed below:
+
+#### **get_parent_name**
+Definition:
+```py
+def _get_parent_name(target:str):
+```
+- returns the name of the parent module and attribute name of the module from the target of the module
+  
+#### **replace_module_node**
+Definition:
+```py
+def replace_module_nodes(model,pattern,replacement):
+```
+- replaces a  modules of pattern type to replacement module in the module structure
+
+#### **replace_function_nodes**
+Definition:
+```py
+def replace_function_nodes(model,pattern_function,replacement,kwargs=None):
+```
+- replaces a call function node to node with replacement function
+  
+#### **_are_both_node_equal**
+Definition:
+```py
+def _are_both_node_equal(first_node:Node,second_node:Node,first_graoh_module:Union[GraphModule,None]=None,second_graph_module:Union[GraphModule,None]=None):
+```
+- checks whether two nodes are equal or not.
+- till now for two node to be same they must have same operation
+
+<center>
+<br><img src ="Images/node_match.png">
+</center>
+
+#### **straight_chain_searcher**
+Definition:
+```py
+def straight_chain_searcher(main_module:GraphModule,pattern_module:GraphModule):
+```
+- searches for straight pattern matches in node list of the graph 
+    
+- it only allows:
+  1.  if pattern has one input and one output
+  2. if pattern has only one node other than placeholders or output
+- it uses previous function for comparing nodes 
+
+#### **_replace_pattern**
+Definition:
+```py
+def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:nn.Module,no_of_module_replaced:int=0):
+```
+- replaces nodes from start node to end node with the replacement module, 
+  1. if pattern has only a single operational node start and end wull be same then, it will check for replacement if it also has a single node.
+  2. if it has only a single operational node, it will check if it is call function or call method node.
+  3. if it is so, it will add respective node not a call module node
+  4. else simple replacement for nodes from start to end
+
+#### **_replace_all_matches**
+Definition:
+```py
+def _replace_all_matches(main_module:GraphModule,matches,replace_module:nn.Module):
+```
+- replace all pattern from matches with a copy of replacement module
+- it uses the previous function for each match.
+
+#### **graph_pattern_replacer**
+Definition:
+```py
+def graph_pattern_replacer(main_module:Union[GraphModule,nn.Module,callable],pattern_module:Union[GraphModule,nn.Module,callable],replace_module:Union[GraphModule,nn.Module,callable]):
+```
+- searches for all matches in the graph and replaces all of them with replacement module
+- it uses [straight_chain_searcher](#straight_chain_searcher) to search all occurence of pattern and than replaces them using [replace_all_matches](#_replace_all_matches). 
+  
+>- [replace_module_node](#replace_module_node) used in [replacement type 4 type to type/module change](#replacement-type-4-type-to-typemodule-change).<br>
+>- [replace_function_nodes](#replace_function_nodes) is used in [replacement type 2 function to function change](#replacement-type-2-function-to-function-change)
+and [replacement type 3 function to type/module change](#replacement-type-3-function-to-typemodule-change).<br>
+>- [Replacement type 1 module to module change](#replacement-type-1-module-to-module-change) uses [graph_pattern_replacer](#graph_pattern_replacer) function to call rest of the functions for its replacement.
+>- For understanding those function utilities user can refer to the corresponding [type of replacement rules](#different-types-of-possible-replacement-rules). 
+
+### [custom_surgery_functions.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse/edgeai_torchtoolkit/v2/xao/surgery/custom_surgery_functions.py)
+
+This modules contain all custom made surgery function which can't be done in generic process with current development of the project.All of these function can be used in [replacement type 5 custom surgery function](#replacement-type-5-custom-surgery-function) so user can refer for their utilities and examples.
+
+They all follow same syntax:
+```py
+def __function_name__(model:nn.Module): -> torch.fx.GraphModule
+```
+
+The functions are listed below: 
+#### **replace_resize_with_scale_factor**
+- replaces resize function either operating on size or scale factor to resize with scale factor only
+- they can be visible DeepLabV3 models at the end.
+#### **_replace_pool_size_ge_5**
+- replaces any pool layer with kernel greater than equal to 5 to its equivalent series of pool of kernel size 2 or 3, given to it as a parameter along with the model.
+- this is an exception for the previous section it is not used outside of this file.
+- it takes model, class of the pool module and function of the pool that it has to match
+- by default it takes max pool
+#### **replace_maxpool2d_kernel_size_ge_5**
+- uses [_replace_pool_size_ge_5](#_replace_pool_size_ge_5) to replace max pool layer with kernel greater than equal to 5 to its equivalent series of pool of kernel size 2 or 3,
+#### **replace_avgpool2d_kernel_size_ge_5**
+- uses [_replace_pool_size_ge_5](#_replace_pool_size_ge_5) to replace avg pool layer with kernel greater than equal to 5 to its equivalent series of pool of kernel size 2 or 3,
+#### **replace_conv2d_kernel_size_ge_7**
+- replaces conv layer with kernel greater than equal to 7 to its equivalent series of [ConvBNRModule](#convbnrmodule) of kernel size 3 and one Conv2d of kernel size 5,
+- effective if kernel size is odd
+
+#### **replace_cnblock**
+- this is specifically made for ConvNext of torchvision, might work with other models
+- This replaces CNBlock of Convnext which contains a Conv2d with kernel size 7, LayerNorm, GeLU and some linear and permute layer.
+- This will replace CNBlock with [ReplacementCNBlock](#replacementcnblock)
+#### **replace_layer_norm**
+- Replaces Layer Norm with [ReplaceBatchNorm2D](#replacebatchnorm2d) or identity if it is after a Global Avg. Pool or Mean Layer
+- after replacement all identities will be removed by [remove_identiy](#remove_identiy) 
+- at the end consequetive permute nodes will be merged to reduce calculation, if possible, to identity also and after that new Identities will be removed.
+#### **remove_identiy**
+- removes nn.Identity() nodes.
+
+### [custom_modules.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse/edgeai_torchtoolkit/v2/xao/surgery/custom_modules.py)
+
+This file serves as a pool of custom made modules for all other files which can be used as pattern or replacement models. The models are listed below:
+
+#### **SEModule**
+- used as pattern for several model 
+- can be replaced with identity
+#### **SEModule1**
+- used as pattern for several model 
+- can be replaced with identity
+#### **InstaModule**
+- used as wrapper modulefor patterns which are present in torch.nn directory, as it is observed that, without this it will create a call_function node not a call_module node which is generally needed.
+- automatically called in main API
+#### **Focus**
+- used as replacement for different models
+- can be replaced with an equivalent Conv2d
+#### **ConvBNRModule**
+- used as or in replacement for different patterns
+- as it represents a typicall sequence of Conv2d, BatchNorm2d and ReLU. 
+#### **ReplaceBatchNorm2D**
+- used as replacement for LayerNorm, only handling inputs of  dimension of 4, in different models
+#### **ReplacementCNBlock**
+- used for replacement for pattern like CNBlock in ConvNeXt form TorchVision
 
 ---
 ## Module Tested on till Date
@@ -500,7 +677,7 @@ Example for these custom functions are available in [custom_surgery_functions.py
 ---
 The following models have been modified using the API and default replacement dictionary and also tested for whether an expected can forward pass through them or not.
 
-**TorchVision Models:**
+### **TorchVision Models:**
 |Model|Rules|
 |-----|-----|
 |MobileNet V2|ReLU6 -> ReLU|
@@ -509,7 +686,7 @@ The following models have been modified using the API and default replacement di
 |EfficientNet|SiLU -> ReLU<br>SE -> Identity<br>|
 |DeepLab V3|resize with size -> resize with scale factor<br>(any other depending on the version)|
 
-**TIMM Models:**
+### **TIMM Models:**
 |Model|Rules|
 |-----|-----|
 |MobileNet V3|SE -> identity<br>Hardswish -> ReLU|
@@ -521,7 +698,7 @@ The following models have been modified using the API and default replacement di
 For **swin transformer model**, We encountered an issue associated with LayerNorms while replacing them with BatchNorm2d as it contains LayerNorm handling input of dimension 3 which can't be handled by BatchNorm2d.
 
 
-**mmYolo Models:**
+### **mmYolo Models:**
 
 For [mmYolo](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-mmyolo) Repository, surgery is given as a option to select whether to do or not for the user with default replacement dictionry in [export.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-mmyolo/browse/dir)
 |Model|Rules|

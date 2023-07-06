@@ -20,7 +20,7 @@ def _get_parent_name(target:str):
     return ( parent[0] if parent else ''), name
 
 def replace_module_nodes(model,pattern,replacement):
-    '''replaces a call module node's module to replacement module '''
+    '''replaces a  modules of pattern type to replacement module in the module structure'''
     modules = dict(model.named_modules())
     if type(replacement)==type:
         replace_obj=replacement()
