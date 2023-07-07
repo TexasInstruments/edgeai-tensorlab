@@ -8,7 +8,7 @@ from edgeai_torchtoolkit.v1.xnn.layers import resize_with_scale_factor
 from copy import deepcopy
 
 
-def replace_resize_with_scale_factor(model):
+def replace_resize_with_scale_factor(model, verbose_mode=False):
     '''
     replaces all resize wih 'resize with scale factor only'
     self-made function is required as we have to modify keyword arguments
@@ -29,11 +29,12 @@ def replace_resize_with_scale_factor(model):
     
     traced_m.graph.lint()
     traced_m.recompile()
-    print('resize',len(matches))
+    if verbose_mode:
+        print('resize',len(matches))
     return traced_m
 
  
-def _replace_pool_size_ge_5(model:nn.Module, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d):
+def _replace_pool_size_ge_5(model:nn.Module, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d, verbose_mode=False):
     '''
     replaces all pool 2d module or function having kernel size greater than or equal to 5
     with a stack of pool2d modules having kernel size 3
@@ -85,18 +86,19 @@ def _replace_pool_size_ge_5(model:nn.Module, pool_class=nn.MaxPool2d,pool_functi
          
     traced_model.graph.lint()
     traced_model.recompile()
-    print(f'{pool_class.__name__.lower()}',no_of_pool)
+    if verbose_mode:
+        print(f'{pool_class.__name__.lower()}',no_of_pool)
     return traced_model
 
 
-def replace_maxpool2d_kernel_size_ge_5(model:nn.Module):
-    return _replace_pool_size_ge_5(model, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d)
+def replace_maxpool2d_kernel_size_ge_5(model:nn.Module, verbose_mode=False):
+    return _replace_pool_size_ge_5(model, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d, verbose_mode=verbose_mode)
     
-def replace_avgpool2d_kernel_size_ge_5(model:nn.Module):
-    return _replace_pool_size_ge_5(model,pool_class=nn.AvgPool2d,pool_function=nn.functional.avg_pool2d)
+def replace_avgpool2d_kernel_size_ge_5(model:nn.Module, verbose_mode=False):
+    return _replace_pool_size_ge_5(model,pool_class=nn.AvgPool2d,pool_function=nn.functional.avg_pool2d, verbose_mode=verbose_mode)
 
 
-def replace_conv2d_kernel_size_ge_7(model:nn.Module):
+def replace_conv2d_kernel_size_ge_7(model:nn.Module, verbose_mode=False):
     '''
     replaces all conv2d module or function having kernel size greater than or equal to 7
     with a stack of conv2d modules having kernel size 3
@@ -161,11 +163,12 @@ def replace_conv2d_kernel_size_ge_7(model:nn.Module):
         
     traced_model.graph.lint()
     traced_model.recompile()
-    print('conv changed', no_of_conv)
+    if verbose_mode:
+        print('conv changed', no_of_conv)
     return traced_model
 
 
-def replace_cnblock(model:nn.Module):
+def replace_cnblock(model:nn.Module, verbose_mode=False):
     traced_model=symbolic_trace(model)
     t_modules= dict(traced_model.named_modules())
     from torchvision.models.convnext import CNBlock
@@ -179,11 +182,12 @@ def replace_cnblock(model:nn.Module):
         else: break
         replacement= custom_modules.ReplacementCNBlock(dim)
         replacer._replace_pattern(traced_model,start,end,replacement)
-    print('cnblock',len(matched))
+    if verbose_mode:
+        print('cnblock',len(matched))
     return traced_model
 
 
-def replace_layer_norm(model:nn.Module):
+def replace_layer_norm(model:nn.Module, verbose_mode=False):
     traced_model=remove_identiy(model)
     no_of_layer_norm=0
     t_modules= dict(traced_model.named_modules())
@@ -262,7 +266,8 @@ def replace_layer_norm(model:nn.Module):
                 no_of_layer_norm+=1
     traced_model.graph.lint()
     traced_model.recompile()
-    print('layernorm',no_of_layer_norm)
+    if verbose_mode:
+        print('layernorm',no_of_layer_norm)
     permute_nodes=[]
     traced_model=remove_identiy(traced_model)
     for node in traced_model.graph.nodes:
@@ -317,7 +322,7 @@ def replace_layer_norm(model:nn.Module):
 
 
 #not effective so not implemented
-def replace_se_layer(model:nn.Module):
+def replace_se_layer(model:nn.Module, verbose_mode=False):
     traced_model=remove_identiy(model)
     modules=dict(traced_model.named_modules())
      
@@ -364,11 +369,12 @@ def replace_se_layer(model:nn.Module):
         else: i+=1
      
     replacer._replace_all_matches(traced_model,matched,nn.Identity())
-    print('se',len(matched))
+    if verbose_mode:
+        print('se',len(matched))
     return traced_model
 
 
-def remove_identiy(model:nn.Module):
+def remove_identiy(model:nn.Module, verbose_mode=False):
     model=deepcopy(model)
     traced_model=symbolic_trace(model)
     modules= dict(traced_model.named_modules())
@@ -391,9 +397,11 @@ def remove_identiy(model:nn.Module):
                 modules.pop(node.target)
             traced_model.graph.erase_node(node)
             n+=1
-        except Exception as e: 
-            print(n,e)
+        except Exception as e:
+            if verbose_mode:
+                print(n,e)
     traced_model.graph.lint()
     traced_model.recompile()
-    print('Identity removed',n)
+    if verbose_mode:
+        print('Identity removed',n)
     return traced_model

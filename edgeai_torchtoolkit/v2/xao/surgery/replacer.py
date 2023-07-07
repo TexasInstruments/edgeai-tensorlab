@@ -1,3 +1,4 @@
+import warnings
 import torch
 from inspect import getmodule, isfunction
 from torch import nn,fx,Tensor
@@ -19,7 +20,8 @@ def _get_parent_name(target:str):
     *parent, name = target.rsplit('.', 1)
     return ( parent[0] if parent else ''), name
 
-def replace_module_nodes(model,pattern,replacement):
+
+def replace_module_nodes(model,pattern,replacement, verbose_mode:bool=False):
     '''replaces a  modules of pattern type to replacement module in the module structure'''
     modules = dict(model.named_modules())
     if type(replacement)==type:
@@ -36,19 +38,20 @@ def replace_module_nodes(model,pattern,replacement):
             replace_obj = deepcopy(replace_obj)
             modules[key_name] = replace_obj
             modules[parent_name].__setattr__(name, modules[key_name])
-    print(pattern_type.__name__,n)
+    if verbose_mode:
+        print(pattern_type.__name__,n)
 
 
-def replace_function_nodes(model,pattern_function,replacement,kwargs=None):
+def replace_function_nodes(model, pattern_function, replacement, verbose_mode=False, **kwargs):
     '''replaces a call function node to node with replacement function '''
-    traced_model= symbolic_trace(deepcopy(model))
-    no_of_module=0
-    n=0
+    traced_model = symbolic_trace(deepcopy(model))
+    no_of_module = 0
+    n = 0
     if isfunction(replacement) or type(replacement).__name__ in ('builtin_function_or_method','function'):
         for node in traced_model.graph.nodes:
-            if node.target==pattern_function:
-                kwargs=kwargs or node.kwargs
-                with traced_model .graph.inserting_before(node):
+            if node.target == pattern_function:
+                kwargs = kwargs or node.kwargs
+                with traced_model.graph.inserting_before(node):
                     new_node = traced_model.graph.call_function(replacement, node.args, kwargs)
                     node.replace_all_uses_with(new_node)
                     traced_model.graph.erase_node(node)
@@ -75,8 +78,9 @@ def replace_function_nodes(model,pattern_function,replacement,kwargs=None):
             # Remove the old node from the graph
                     traced_model.graph.erase_node(node)
     traced_model.graph.lint()
-    traced_model.recompile()    
-    print(pattern_function,str(n+no_of_module))
+    traced_model.recompile()
+    if verbose_mode:
+        print(pattern_function,str(n+no_of_module))
     return traced_model
 
 #checks whether two nodes are  equal or not
@@ -118,8 +122,8 @@ def _are_both_node_equal(first_node:Node,second_node:Node,first_graoh_module:Uni
             return target1 == target2
         
         if (first_graoh_module==None) or (second_graph_module==None):
-            print("\nGraphModules are required for both nodes\nas at least one of them is 'call_module' node.")
-            return None
+                raise RuntimeError("GraphModules are required for both nodes\nas at least one of them is 'call_module' node.")
+
         #for call_module node
         modules_in_1st_graph = dict(first_graoh_module.named_modules())
         modules_in_2nd_graph = dict(second_graph_module.named_modules())
@@ -323,7 +327,7 @@ def _replace_all_matches(main_module:GraphModule,matches,replace_module:nn.Modul
 
 
 #replace nodes if they don't need any change with their keyword arguments and arguements
-def graph_pattern_replacer(main_module:Union[GraphModule,nn.Module,callable],pattern_module:Union[GraphModule,nn.Module,callable],replace_module:Union[GraphModule,nn.Module,callable]):
+def graph_pattern_replacer(main_module:Union[GraphModule,nn.Module,callable],pattern_module:Union[GraphModule,nn.Module,callable],replace_module:Union[GraphModule,nn.Module,callable], verbose_mode=False):
     '''
     searches for all matches in the graph and replaces all of them with replacement module  
     '''
@@ -348,9 +352,10 @@ def graph_pattern_replacer(main_module:Union[GraphModule,nn.Module,callable],pat
     if (number_of_input ==1 and number_of_output==1) or  (len(pattern_nodes)==1):
         matches = straight_chain_searcher(main_module,pattern_module)
         _replace_all_matches(main_module,matches,replace_module)
-        print(type(pattern_module).__name__, len(matches))
+        if verbose_mode:
+            print(type(pattern_module).__name__, len(matches))
     else:
-        print(''' unable to change model as pattern does n't satisfy for the criteria of pattern searcher''')
+        warnings.warn(''' unable to change model as pattern does n't satisfy for the criteria of pattern searcher''')
     
     return main_module
 
