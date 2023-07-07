@@ -49,7 +49,7 @@ class YOLOXHeadKPTS(nn.Module):
         self.obj_preds = nn.ModuleList()
         self.kpts_preds = nn.ModuleList()
         self.stems = nn.ModuleList()
-        self.sigmas = torch.tensor([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.07, 1.07, .87, .87, .89, .89]) / 10.0
+        self.sigmas = torch.tensor([.89, ]*self.num_kpts) / 10.0
         Conv = DWConv if depthwise else BaseConv
 
         for i in range(len(in_channels)):

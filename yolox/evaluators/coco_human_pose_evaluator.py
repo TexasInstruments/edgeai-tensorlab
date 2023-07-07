@@ -12,6 +12,7 @@ from loguru import logger
 from tqdm import tqdm
 import cv2
 import os
+import numpy as np
 
 import torch
 
@@ -32,7 +33,7 @@ class COCOHumanPoseEvaluator:
     """
 
     def __init__(
-        self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False, human_pose=True, visualize=False, output_dir=None
+        self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False, human_pose=True, visualize=False, output_dir=None, num_kpts=17
     ):
         """
         Args:
@@ -52,6 +53,7 @@ class COCOHumanPoseEvaluator:
         self.human_pose = human_pose
         self.visualize = visualize
         self.output_dir = output_dir
+        self.num_kpts = num_kpts
 
     def evaluate(
         self,
@@ -166,7 +168,7 @@ class COCOHumanPoseEvaluator:
             bboxes = xyxy2xywh(bboxes)
 
             keypoints = output[:, 7:]
-            num_kpts = len(keypoints)//3
+            num_kpts = keypoints.shape[1]//3
             for kpt_index in range(num_kpts):
                 keypoints[3*kpt_index: 3*kpt_index+2] /= scale
 
@@ -231,6 +233,7 @@ class COCOHumanPoseEvaluator:
                 logger.warning("Use standard COCOeval.")
 
             cocoEval = COCOeval(cocoGt, cocoDt, annType[2])
+            cocoEval.params.kpt_oks_sigmas = np.array([0.89]*self.num_kpts)/10.0
             cocoEval.evaluate()
             cocoEval.accumulate()
             redirect_string = io.StringIO()

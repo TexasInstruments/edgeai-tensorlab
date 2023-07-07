@@ -194,6 +194,7 @@ def run(**kwargs):
     exp.train_ann = args.train_ann
     exp.val_ann = args.val_ann
     exp.name = args.img_folder_names
+    exp.flip_prob = 0
 
     with open(args.train_ann) as train_ann_fp:
             train_anno = json.load(train_ann_fp)

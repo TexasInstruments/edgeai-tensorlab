@@ -21,7 +21,6 @@ class COCOeval_opt(COCOeval):
     This is a slightly modified version of the original COCO API, where the functions evaluateImg()
     and accumulate() are implemented in C++ to speedup evaluation
     """
-
     def evaluate(self):
         """
         Run per image evaluation on given images and store results in self.evalImgs_cpp, a

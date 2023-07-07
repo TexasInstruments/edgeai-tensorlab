@@ -117,22 +117,22 @@ def apply_affine_to_bboxes(targets, target_size, M, scale):
 
     return targets
 
-def apply_affine_to_kpts(targets, target_size, M, scale):
+def apply_affine_to_kpts(targets, target_size, M, scale, num_kpts=17):
     num_gts = len(targets)
     # warp corner points
     twidth, theight = target_size
-    xy_kpts = np.ones((num_gts * 17, 3))
-    xy_kpts[:, :2] = targets[:, 5:].reshape(num_gts * 17, 2)  # num_kpt is hardcoded to 17
+    xy_kpts = np.ones((num_gts * num_kpts, 3))
+    xy_kpts[:, :2] = targets[:, 5:].reshape(num_gts * num_kpts, 2)  # num_kpt is hardcoded to 17
     xy_kpts = xy_kpts @ M.T  # transform
-    xy_kpts = xy_kpts[:, :2].reshape(num_gts, 34)  # perspective rescale or affine
+    xy_kpts = xy_kpts[:, :2].reshape(num_gts, num_kpts*2)  # perspective rescale or affine
     xy_kpts[targets[:, 5:] == 0] = 0
-    x_kpts = xy_kpts[:, list(range(0, 34, 2))]
-    y_kpts = xy_kpts[:, list(range(1, 34, 2))]
+    x_kpts = xy_kpts[:, list(range(0, num_kpts*2, 2))]
+    y_kpts = xy_kpts[:, list(range(1, num_kpts*2, 2))]
 
     x_kpts[np.logical_or.reduce((x_kpts < 0, x_kpts > twidth, y_kpts < 0, y_kpts > theight))] = 0
     y_kpts[np.logical_or.reduce((x_kpts < 0, x_kpts > twidth, y_kpts < 0, y_kpts > theight))] = 0
-    xy_kpts[:, list(range(0, 34, 2))] = x_kpts
-    xy_kpts[:, list(range(1, 34, 2))] = y_kpts
+    xy_kpts[:, list(range(0, num_kpts*2, 2))] = x_kpts
+    xy_kpts[:, list(range(1, num_kpts*2, 2))] = y_kpts
 
     targets[:, 5:] = xy_kpts
 
@@ -172,7 +172,8 @@ def random_affine(
     shear=10,
     human_pose=False,
     object_pose=False,
-    camera_matrix=None
+    camera_matrix=None,
+    num_kpts=17
 ):
     M, scale, angle = get_affine_matrix((target_size[1],target_size[0]), degrees, translate, scales, shear, object_pose, camera_matrix)
 
@@ -182,7 +183,7 @@ def random_affine(
     if len(targets) > 0:
         targets = apply_affine_to_bboxes(targets, (target_size[1],target_size[0]), M, scale)
         if human_pose:
-            targets = apply_affine_to_kpts(targets, target_size, M, scale)
+            targets = apply_affine_to_kpts(targets, target_size, M, scale, num_kpts=num_kpts)
         elif object_pose:
             targets = apply_affine_to_object_pose(targets, (target_size[1],target_size[0]), M, scale, angle)
 

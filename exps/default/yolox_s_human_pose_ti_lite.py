@@ -66,6 +66,7 @@ class Exp(MyExp):
                 dataset = COCOKPTSDataset(
                     data_dir=self.data_dir,
                     json_file=self.train_ann,
+                    num_kpts=self.num_kpts,
                     name=self.name[0],
                     img_size=self.input_size,
                     preproc=TrainTransform(
@@ -90,6 +91,7 @@ class Exp(MyExp):
                 num_kpts=self.num_kpts,
                 # flip_index=dataset.flip_index,
             ),
+            num_kpts=self.num_kpts,
             degrees=self.degrees,
             translate=self.translate,
             mosaic_scale=self.mosaic_scale,
@@ -132,6 +134,7 @@ class Exp(MyExp):
             valdataset = COCOKPTSDataset(
                 data_dir=self.data_dir,
                 json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
+                num_kpts=self.num_kpts,
                 name=self.name[1] if not testdev else "test2017",
                 img_size=self.test_size,
                 preproc=ValTransform(legacy=legacy),
@@ -171,6 +174,7 @@ class Exp(MyExp):
                 testdev=testdev,
                 human_pose=self.human_pose,
                 visualize=self.visualize,
-                output_dir=output_dir
+                output_dir=output_dir,
+                num_kpts=self.num_kpts
             )
         return evaluator

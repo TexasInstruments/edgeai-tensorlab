@@ -26,7 +26,8 @@ class COCOKPTSDataset(Dataset):
         img_size=(416, 416),
         preproc=None,
         cache=False,
-        human_pose=True
+        human_pose=True,
+        num_kpts=17
     ):
         """
         COCO dataset initialization. Annotation data are read into memory by COCO API.
@@ -42,6 +43,7 @@ class COCOKPTSDataset(Dataset):
             data_dir = os.path.join(get_yolox_datadir(), "COCO")
         self.data_dir = data_dir
         self.json_file = json_file
+        self.num_kpts = num_kpts
 
         self.coco = COCO(os.path.join(self.data_dir, "annotations", self.json_file))
         self.ids = self.coco.getImgIds()
@@ -55,6 +57,7 @@ class COCOKPTSDataset(Dataset):
         self.human_pose = human_pose
         self.annotations, self.ids = self._load_coco_annotations()
         self.flip_index = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
+        # self.flip_index = [0, 1, 2, 7]
         if cache:
             self._cache_images()
 
@@ -122,7 +125,6 @@ class COCOKPTSDataset(Dataset):
         anno_ids = self.coco.getAnnIds(imgIds=[int(id_)], iscrowd=False)
         annotations = self.coco.loadAnns(anno_ids)
         objs = []
-        num_kpts = 17
         for obj in annotations:
             x1 = np.max((0, obj["bbox"][0]))
             y1 = np.max((0, obj["bbox"][1]))
@@ -134,14 +136,13 @@ class COCOKPTSDataset(Dataset):
                 # assert np.all(np.array(obj['keypoints'][0::3]) <= width)
                 # assert np.all(0 <= np.array(obj['keypoints'][1::3]))
                 # assert np.all(np.array(obj['keypoints'][1::3]) <= height)
-                num_kpts = obj['num_keypoints']
                 obj["clean_kpts"] =  obj['keypoints']
                 objs.append(obj)
         num_objs = len(objs)
         if num_objs==0:
             return
         if self.human_pose:
-            res = np.zeros((num_objs, 5+2*num_kpts))
+            res = np.zeros((num_objs, 5+2*self.num_kpts))
         else:
             res = np.zeros((num_objs, 5))
 
