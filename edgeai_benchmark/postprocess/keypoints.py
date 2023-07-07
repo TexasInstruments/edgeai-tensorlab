@@ -971,6 +971,7 @@ class BboxKeypointsConfReformat():
         result['bbox'] = []
         result['area'] = []
         result['scores'] = []
+        result['category_id'] = []
         result['image_paths'] = [info_dict['data_path']]
         result['output_heatmap'] = None
         preds = preds[:20, :]  # 20 detections are considered for accuracy computation
@@ -978,6 +979,7 @@ class BboxKeypointsConfReformat():
             result['preds'].append(pred[6:].reshape(-1, 3))
             result['bbox'].append(pred[:4])
             result['area'].append(np.abs((pred[3]-pred[1])*(pred[2]-pred[0])))
+            result['category_id'].append(pred[4])
             result['scores'].append(pred[5])
         return result, info_dict
 

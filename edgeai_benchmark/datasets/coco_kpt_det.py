@@ -138,9 +138,9 @@ class COCOKeypointDetection(DatasetBase):
 
             image_base_dir = 'images' if ('images' in dataset_folders) else ''
             image_base_dir = os.path.join(self.kwargs['path'], image_base_dir)
-            image_split_dirs = os.listdir(image_base_dir)
+            image_split_dirs = os.listdir(self.kwargs['path'])
             assert self.kwargs['split'] in image_split_dirs, f'invalid path to coco keypoint dataset images/split {kwargs["split"]}'
-            self.image_dir = os.path.join(image_base_dir, self.kwargs['split'])
+            self.image_dir = os.path.join(kwargs['path'], self.kwargs['split'])
             self.annotation_file = os.path.join(annotations_dir, f'{annotation_prefix}_{self.kwargs["split"]}.json')
         else:
             self.image_dir = image_dir
@@ -254,12 +254,12 @@ class COCOKeypointDetection(DatasetBase):
         # os.makedirs(run_dir, exist_ok=True)
         detections_formatted_list = []
         for frame_idx, det_frame in enumerate(predictions):
-            for det_id, det in enumerate(det_frame):
-                det = self._format_detections(det, frame_idx, label_offset=label_offset)
-                category_id = det['category_id'] if isinstance(det, dict) else det[5]
-                if category_id >= 1: # final coco categories start from 1
-                    detections_formatted_list.append(det)
-                #
+            det = np.concatenate([det_frame['bbox'][0], det_frame['scores'], det_frame['category_id'], det_frame['preds'][0].reshape(-1)])
+            # for det_id, det in enumerate(det_frame):
+            det = self._format_detections(det, frame_idx, label_offset=label_offset)
+            category_id = det['category_id'] if isinstance(det, dict) else det[5]
+            if category_id >= 1: # final coco categories start from 1
+                detections_formatted_list.append(det)
             #
         #
         coco_ap = 0.0
@@ -270,7 +270,7 @@ class COCOKeypointDetection(DatasetBase):
                 json.dump(detections_formatted_list, det_fp)
             #
             cocoKptDet = self.coco_dataset.loadRes(detection_file)
-            cocoEval = COCOeval(self.coco_dataset, cocoKptDet, iouType='bbox', use_area=False)
+            cocoEval = COCOeval(self.coco_dataset, cocoKptDet, iouType='keypoints', sigmas=(np.array([.89, ]*self.num_keypoints))/10.0, use_area=False)
             cocoEval.evaluate()
             cocoEval.accumulate()
             cocoEval.summarize()

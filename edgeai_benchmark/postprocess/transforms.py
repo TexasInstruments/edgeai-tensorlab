@@ -59,13 +59,14 @@ def get_font_pil():
 def apply_label_offset(label, label_offset):
     if label_offset is None:
         return label
-    elif isinstance(label_offset, (list,tuple)):
+    elif isinstance(label_offset, (list, tuple)):
         label = int(label)
-        assert label<len(label_offset), 'label_offset is a list/tuple, but its size is smaller than the detected label'
+        assert label < len(
+            label_offset), 'label_offset is a list/tuple, but its size is smaller than the detected label'
         label = label_offset[label]
     elif isinstance(label_offset, dict):
         if np.isnan(label) or int(label) not in label_offset.keys():
-            #print(utils.log_color('\nWARNING', 'detection incorrect', f'detected label: {label}'
+            # print(utils.log_color('\nWARNING', 'detection incorrect', f'detected label: {label}'
             #                                                          f' is not in label_offset dict'))
             label = 0
         else:
@@ -75,7 +76,7 @@ def apply_label_offset(label, label_offset):
         label = int(label + label_offset)
     else:
         label = int(label)
-        assert label<len(self.cat_ids), \
+        assert label < len(self.cat_ids), \
             'the detected label could not be mapped to the 90 COCO categories using the default COCO.getCatIds()'
         label = self.cat_ids[label]
     #
@@ -115,14 +116,14 @@ class Concat():
         self.end_index = end_index
 
     def __call__(self, tensor_list, info_dict):
-        if isinstance(tensor_list, (list,tuple)):
+        if isinstance(tensor_list, (list, tuple)):
             max_dim = 0
             for t_idx, t in enumerate(tensor_list):
                 max_dim = max(max_dim, t.ndim)
             #
             for t_idx, t in enumerate(tensor_list):
                 if t.ndim < max_dim:
-                    tensor_list[t_idx] = t[...,np.newaxis]
+                    tensor_list[t_idx] = t[..., np.newaxis]
                 #
             #
             tensor = np.concatenate(tensor_list[self.start_index:self.end_index], axis=self.axis)
@@ -170,7 +171,7 @@ class IgnoreIndex():
 
     def __call__(self, tensor, info_dict):
         if self.indice is not None:
-            tensor_out = np.concatenate((tensor[...,:self.indice], tensor[...,self.indice+1:]) ,-1)
+            tensor_out = np.concatenate((tensor[..., :self.indice], tensor[..., self.indice + 1:]), -1)
         #
         else:
             tensor_out = tensor
@@ -180,10 +181,10 @@ class IgnoreIndex():
 
 class ClassificationImageSave():
     def __init__(self, num_output_frames=None):
-        self.color_step = 64 #32
-        self.colors = [(r,g,b) for r in range(0,256,self.color_step) \
-                       for g in range(0,256,self.color_step) \
-                       for b in range(0,256,self.color_step)]
+        self.color_step = 64  # 32
+        self.colors = [(r, g, b) for r in range(0, 256, self.color_step) \
+                       for g in range(0, 256, self.color_step) \
+                       for b in range(0, 256, self.color_step)]
         self.thickness = 2
         self.thickness_txt = 1
         self.dataset_info = None
@@ -218,15 +219,15 @@ class ClassificationImageSave():
         save_path = os.path.join(save_dir, image_name)
         img_data = copy.deepcopy(img_data)
 
-        output_id = output[0] if isinstance(output, (list,tuple,np.ndarray)) else output
-        output_id = output_id[0] if isinstance(output_id, (list,tuple,np.ndarray)) else output_id
+        output_id = output[0] if isinstance(output, (list, tuple, np.ndarray)) else output
+        output_id = output_id[0] if isinstance(output_id, (list, tuple, np.ndarray)) else output_id
         output_id = apply_label_offset(output_id, self.label_offset_pred)
         output_name = self.dataset_categories_map[output_id] if output_id in self.dataset_categories_map else output_id
         output_txt = f'category: {output_name}'
         label_color = self.colors[output_id % len(self.colors)]
         img_data = self.put_text(img_data, output_txt, label_color)
         if isinstance(img_data, np.ndarray):
-            cv2.imwrite(save_path, img_data[:,:,::-1])
+            cv2.imwrite(save_path, img_data[:, :, ::-1])
         else:
             img_data.save(save_path)
         #
@@ -236,14 +237,16 @@ class ClassificationImageSave():
     def put_text(self, img_data, output_txt, label_color):
         is_ndarray = isinstance(img_data, np.ndarray)
         img_data = np.array(img_data) if not is_ndarray else img_data
-        pt = (20,20)
+        pt = (20, 20)
         font_cv2 = get_font_cv2()
         font_scale = 0.5
         # fill background
         text_size = cv2.getTextSize(output_txt, font_cv2, fontScale=font_scale, thickness=self.thickness_txt)[0]
-        cv2.rectangle(img_data, (pt[0], pt[1]-text_size[1]), (pt[0]+text_size[0], pt[1]+text_size[1]//2), (255,255,255), -1)
+        cv2.rectangle(img_data, (pt[0], pt[1] - text_size[1]), (pt[0] + text_size[0], pt[1] + text_size[1] // 2),
+                      (255, 255, 255), -1)
         # now write the actual text
-        cv2.putText(img_data, output_txt, pt, font_cv2, fontScale=font_scale, color=label_color, thickness=self.thickness_txt)
+        cv2.putText(img_data, output_txt, pt, font_cv2, fontScale=font_scale, color=label_color,
+                    thickness=self.thickness_txt)
         img_data = PIL.Image.fromarray(img_data) if not is_ndarray else img_data
         return img_data
 
@@ -255,7 +258,7 @@ class SegmentationImageResize():
         if label.dtype in (np.int32, np.int64):
             label = label.astype(np.float32)
         #
-        label = cv2.resize(label, dsize=(image_shape[1],image_shape[0]), interpolation=cv2.INTER_NEAREST)
+        label = cv2.resize(label, dsize=(image_shape[1], image_shape[0]), interpolation=cv2.INTER_NEAREST)
         return label, info_dict
 
 
@@ -263,6 +266,7 @@ class SegmentationImagetoBytes():
     '''
     Convert Segmentation image to bytes (uint8) to save space
     '''
+
     def __call__(self, label, info_dict):
         label = label.astype(np.uint8)
         return label, info_dict
@@ -270,7 +274,15 @@ class SegmentationImagetoBytes():
 
 class SegmentationImageSave():
     def __init__(self, num_output_frames=None):
-        self.colors = [(r,g,b) for r in range(0,256,32) for g in range(0,256,32) for b in range(0,256,32)]
+        # self.colors = [(r, g, b) for r in range(0, 256, 32) for g in range(0, 256, 32) for b in range(0, 256, 32)]
+        self.colors = [
+            (255,0,0),
+            (0,255,0),
+            (0,0,255),
+            (255,255,0),
+            (0,255,255),
+            (255,0,255)
+        ]
         self.num_output_frames = num_output_frames
         self.output_frame_idx = 0
 
@@ -310,7 +322,7 @@ class SegmentationImageSave():
         cv2.imwrite(save_path, output_image)
         if isinstance(output_image, np.ndarray):
             # convert image to BGR
-            output_image = output_image[:,:,::-1] if output_image.ndim > 2 else output_image
+            output_image = output_image[:, :, ::-1] if output_image.ndim > 2 else output_image
             cv2.imwrite(save_path, output_image)
         else:
             # add fill code here
@@ -365,10 +377,10 @@ class DetectionResizeOnlyNormalized():
         # avoid accidental overflow
         bbox = bbox.clip(-1e6, 1e6)
         # scale the detections from normalized shape (0-1) to data shape
-        bbox[...,0] = (bbox[...,0]*data_width).clip(0, data_width)
-        bbox[...,1] = (bbox[...,1]*data_height).clip(0, data_height)
-        bbox[...,2] = (bbox[...,2]*data_width).clip(0, data_width)
-        bbox[...,3] = (bbox[...,3]*data_height).clip(0, data_height)
+        bbox[..., 0] = (bbox[..., 0] * data_width).clip(0, data_width)
+        bbox[..., 1] = (bbox[..., 1] * data_height).clip(0, data_height)
+        bbox[..., 2] = (bbox[..., 2] * data_width).clip(0, data_width)
+        bbox[..., 3] = (bbox[..., 3] * data_height).clip(0, data_height)
         return bbox, info_dict
 
 
@@ -393,10 +405,10 @@ class DetectionResizePad():
             # account for padding
             border = info_dict['resize_border']
             left, top, right, bottom = border
-            bbox[...,0] -= left
-            bbox[...,1] -= top
-            bbox[...,2] -= left
-            bbox[...,3] -= top
+            bbox[..., 0] -= left
+            bbox[..., 1] -= top
+            bbox[..., 2] -= left
+            bbox[..., 3] -= top
             resize_height, resize_width = (resize_height - top - bottom), (resize_width - left - right)
             if self.keypoint:
                 bbox[..., 6::3] -= left
@@ -405,10 +417,10 @@ class DetectionResizePad():
         # scale the detections from the input shape to data shape
         sh = data_height / (1.0 if self.normalized_detections else resize_height)
         sw = data_width / (1.0 if self.normalized_detections else resize_width)
-        bbox[...,0] = (bbox[...,0] * sw).clip(0, data_width)
-        bbox[...,1] = (bbox[...,1] * sh).clip(0, data_height)
-        bbox[...,2] = (bbox[...,2] * sw).clip(0, data_width)
-        bbox[...,3] = (bbox[...,3] * sh).clip(0, data_height)
+        bbox[..., 0] = (bbox[..., 0] * sw).clip(0, data_width)
+        bbox[..., 1] = (bbox[..., 1] * sh).clip(0, data_height)
+        bbox[..., 2] = (bbox[..., 2] * sw).clip(0, data_width)
+        bbox[..., 3] = (bbox[..., 3] * sh).clip(0, data_height)
         if self.keypoint:
             bbox[..., 6::3] = (bbox[..., 6::3] * sw).clip(0, data_width)
             bbox[..., 7::3] = (bbox[..., 7::3] * sh).clip(0, data_height)
@@ -422,14 +434,14 @@ class DetectionFilter():
 
     def __call__(self, bbox, info_dict):
         if self.detection_threshold is not None:
-            bbox_score = bbox[:,5]
+            bbox_score = bbox[:, 5]
             bbox_selected = (bbox_score >= self.detection_threshold)
-            bbox = bbox[bbox_selected,...]
+            bbox = bbox[bbox_selected, ...]
         #
         if self.detection_keep_top_k is not None and bbox.shape[0] > self.detection_keep_top_k:
-            bbox = sorted(bbox, key=lambda b:b[5])
+            bbox = sorted(bbox, key=lambda b: b[5])
             bbox = np.stack(bbox, axis=0)
-            bbox = bbox[range(self.detection_keep_top_k),...]
+            bbox = bbox[range(self.detection_keep_top_k), ...]
         #
         return bbox, info_dict
 
@@ -441,60 +453,60 @@ class DetectionFormatting():
 
     def __call__(self, bbox, info_dict):
         bbox_copy = copy.deepcopy(bbox)
-        bbox_copy[...,self.dst_indices] = bbox[...,self.src_indices]
+        bbox_copy[..., self.dst_indices] = bbox[..., self.src_indices]
         return bbox_copy, info_dict
 
 
 class DetectionXYXY2YXYX(DetectionFormatting):
-    def __init__(self, dst_indices=(0,1,2,3), src_indices=(1,0,3,2)):
+    def __init__(self, dst_indices=(0, 1, 2, 3), src_indices=(1, 0, 3, 2)):
         super().__init__(dst_indices, src_indices)
 
 
 class DetectionYXYX2XYXY(DetectionFormatting):
-    def __init__(self, dst_indices=(0,1,2,3), src_indices=(1,0,3,2)):
+    def __init__(self, dst_indices=(0, 1, 2, 3), src_indices=(1, 0, 3, 2)):
         super().__init__(dst_indices, src_indices)
 
 
 class DetectionYXHW2XYWH(DetectionFormatting):
-    def __init__(self, dst_indices=(0,1,2,3), src_indices=(1,0,3,2)):
+    def __init__(self, dst_indices=(0, 1, 2, 3), src_indices=(1, 0, 3, 2)):
         super().__init__(dst_indices, src_indices)
 
 
 class DetectionXYXY2XYWH():
     def __call__(self, bbox, info_dict):
-        w = bbox[...,2] - bbox[...,0]
-        h = bbox[...,3] - bbox[...,1]
-        bbox[...,2] = w
-        bbox[...,3] = h
+        w = bbox[..., 2] - bbox[..., 0]
+        h = bbox[..., 3] - bbox[..., 1]
+        bbox[..., 2] = w
+        bbox[..., 3] = h
         return bbox, info_dict
 
 
 class DetectionXYWH2XYXY():
     def __call__(self, bbox, info_dict):
-        x2 = bbox[...,0] + bbox[...,2]
-        y2 = bbox[...,1] + bbox[...,3]
-        bbox[...,2] = x2
-        bbox[...,3] = y2
+        x2 = bbox[..., 0] + bbox[..., 2]
+        y2 = bbox[..., 1] + bbox[..., 3]
+        bbox[..., 2] = x2
+        bbox[..., 3] = y2
         return bbox, info_dict
 
 
 class DetectionBoxSL2BoxLS(DetectionFormatting):
-    def __init__(self, dst_indices=(4,5), src_indices=(5,4)):
+    def __init__(self, dst_indices=(4, 5), src_indices=(5, 4)):
         super().__init__(dst_indices, src_indices)
 
 
 class DetectionImageSave():
     def __init__(self, num_output_frames=None):
-        self.color_step = 64 #32
-        self.colors = [(r,g,b) for r in range(0,256,self.color_step) \
-                       for g in range(0,256,self.color_step) \
-                       for b in range(0,256,self.color_step)]
+        self.color_step = 64  # 32
+        self.colors = [(r, g, b) for r in range(0, 256, self.color_step) \
+                       for g in range(0, 256, self.color_step) \
+                       for b in range(0, 256, self.color_step)]
         self.thickness = 2
         self.thickness_txt = 1
         self.dataset_info = None
         self.dataset_categories_map = None
         self.label_offset_pred = None
-        self.num_output_frames =num_output_frames
+        self.num_output_frames = num_output_frames
         self.output_frame_idx = 0
 
     def __call__(self, bbox, info_dict):
@@ -527,17 +539,17 @@ class DetectionImageSave():
         for bbox_one in bbox:
             label = int(bbox_one[4])
             label_color = self.colors[label % len(self.colors)]
-            pt1 = (int(bbox_one[0]),int(bbox_one[1]))
-            pt2 = (int(bbox_one[2]),int(bbox_one[3]))
+            pt1 = (int(bbox_one[0]), int(bbox_one[1]))
+            pt2 = (int(bbox_one[2]), int(bbox_one[3]))
             label = apply_label_offset(label, self.label_offset_pred)
             output_name = self.dataset_categories_map[label] if label in self.dataset_categories_map else label
             output_txt = output_name
-            img_data = self.put_text(img_data, (pt1[0],pt1[1]-5), output_txt, label_color)
+            img_data = self.put_text(img_data, (pt1[0], pt1[1] - 5), output_txt, label_color)
             img_data = self.put_rectangle(img_data, pt1, pt2, label_color)
         #
         img_data = PIL.Image.fromarray(img_data) if not is_ndarray else img_data
         if isinstance(img_data, np.ndarray):
-            cv2.imwrite(save_path, img_data[:,:,::-1])
+            cv2.imwrite(save_path, img_data[:, :, ::-1])
         else:
             img_data.save(save_path)
         #
@@ -551,9 +563,11 @@ class DetectionImageSave():
         font_scale = 0.5
         # fill background
         text_size = cv2.getTextSize(output_txt, font_cv2, fontScale=font_scale, thickness=self.thickness_txt)[0]
-        cv2.rectangle(img_data, (pt[0], pt[1]-text_size[1]), (pt[0]+text_size[0], pt[1]+text_size[1]//2), (255,255,255), -1)
+        cv2.rectangle(img_data, (pt[0], pt[1] - text_size[1]), (pt[0] + text_size[0], pt[1] + text_size[1] // 2),
+                      (255, 255, 255), -1)
         # now write the actual text
-        cv2.putText(img_data, output_txt, pt, font_cv2, fontScale=font_scale, color=label_color, thickness=self.thickness_txt)
+        cv2.putText(img_data, output_txt, pt, font_cv2, fontScale=font_scale, color=label_color,
+                    thickness=self.thickness_txt)
         img_data = PIL.Image.fromarray(img_data) if not is_ndarray else img_data
         return img_data
 
@@ -565,6 +579,7 @@ class DetectionImageSave():
         img_data = PIL.Image.fromarray(img_data) if not is_ndarray else img_data
         return img_data
 
+
 ##############################################################################
 class NPTensorToImage(object):
     def __init__(self, data_layout='NCHW'):
@@ -575,14 +590,14 @@ class NPTensorToImage(object):
         if tensor.ndim >= 3 and tensor.shape[0] == 1:
             tensor = tensor[0]
         #
-        if tensor.ndim==2:
-            if self.data_layout=='NHWC':
+        if tensor.ndim == 2:
+            if self.data_layout == 'NHWC':
                 tensor = tensor[..., np.newaxis]
             else:
                 tensor = tensor[np.newaxis, ...]
         assert tensor.ndim == 3, 'could not convert to image'
-        tensor = np.transpose(tensor, (1,2,0)) if self.data_layout == 'NCHW' else tensor
-        assert tensor.shape[2] in (1,3), 'invalid number of channels'
+        tensor = np.transpose(tensor, (1, 2, 0)) if self.data_layout == 'NCHW' else tensor
+        assert tensor.shape[2] in (1, 3), 'invalid number of channels'
         return tensor, info_dict
 
     def __repr__(self):
@@ -596,15 +611,16 @@ class DepthImageResize():
         # if label.dtype in (np.int32, np.int64):
         #     label = label.astype(np.float32)
         # #
-        label = cv2.resize(label, dsize=(image_shape[1],image_shape[0]), interpolation=cv2.INTER_NEAREST)
+        label = cv2.resize(label, dsize=(image_shape[1], image_shape[0]), interpolation=cv2.INTER_NEAREST)
         return label, info_dict
+
 
 class DepthImageSave():
     def __init__(self, num_output_frames=None):
         self.num_output_frames = num_output_frames
         self.output_frame_idx = 0
 
-    #Taken from MiDaS (https://github.com/isl-org/MiDaS)
+    # Taken from MiDaS (https://github.com/isl-org/MiDaS)
     def write_pfm(path, image, scale=1):
         """Write pfm file.
 
@@ -625,7 +641,7 @@ class DepthImageSave():
             if len(image.shape) == 3 and image.shape[2] == 3:  # color image
                 color = True
             elif (
-                len(image.shape) == 2 or len(image.shape) == 3 and image.shape[2] == 1
+                    len(image.shape) == 2 or len(image.shape) == 3 and image.shape[2] == 1
             ):  # greyscale
                 color = False
             else:
@@ -658,7 +674,7 @@ class DepthImageSave():
         pred = result['preds'].astype(np.float32)
         self.write_pfm(pred)
 
-        #Write a relative 16 bit depth map
+        # Write a relative 16 bit depth map
         d_min = np.min(pred)
         d_max = np.max(pred)
         pred_relative = 65535 * ((pred - d_min) / (d_max - d_min))
@@ -667,13 +683,12 @@ class DepthImageSave():
         self.output_frame_idx += 1
         return result, info_dict
 
+
 class OD3DOutPutPorcess(object):
     def __init__(self, detection_threshold):
         self.detection_threshold = detection_threshold
 
     def __call__(self, tidl_op, info_dict):
-
         selected_op = tidl_op[0][0][0]
-        selected_op = selected_op[selected_op[:,1] > self.detection_threshold]
+        selected_op = selected_op[selected_op[:, 1] > self.detection_threshold]
         return np.array(selected_op), info_dict
-

@@ -92,7 +92,7 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['tensor_bits'] = self.kwargs.get('tensor_bits', 8)
 
         # check the target_machine
-        self.kwargs['supported_machines'] = self.kwargs.get('supported_machines', None) #TODO: change to => ('evm', 'pc')
+        self.kwargs['supported_machines'] = self.kwargs.get('supported_machines', None) #- TODO: change to => ('evm', 'pc')
         if self.kwargs['supported_machines'] is not None:
             assert isinstance(self.kwargs['supported_machines'], (list,tuple)), \
                 f'supported_machines must be a list or tuple'
