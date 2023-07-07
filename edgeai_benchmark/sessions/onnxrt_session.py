@@ -56,7 +56,6 @@ class ONNXRTSession(BaseRTSession):
 
         # provide the calibration data and run the import
         for in_data in calib_data:
-            input_keys = list(self.kwargs['input_shape'].keys())
             if not isinstance(in_data, list):
                 in_data = utils.as_tuple(in_data)
 
@@ -89,7 +88,6 @@ class ONNXRTSession(BaseRTSession):
     def infer_frame(self, input, info_dict=None):
         super().infer_frame(input, info_dict)
 
-        input_keys = list(self.kwargs['input_shape'].keys())
         if not isinstance(input, list):
             in_data = utils.as_tuple(input)        
 

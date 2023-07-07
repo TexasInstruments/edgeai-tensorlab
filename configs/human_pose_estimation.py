@@ -86,12 +86,12 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_p2(
                         det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                         'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_metaarch.prototxt',
+                         'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_640_20220301_model.prototxt',
                         'advanced_options:output_feature_16bit_names_list': '513, 758, 883, 1008, 756, 753, 878, 881, 1003, 1006',
                          "advanced_options:add_data_convert_ops": 0}),
-                model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_49p5_78p0.onnx'),
+                model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_640_20220301_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_pose_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS(), keypoint=True),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':49.5}, model_shortlist=10)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':47.9}, model_shortlist=10)
         ),
 
     }
