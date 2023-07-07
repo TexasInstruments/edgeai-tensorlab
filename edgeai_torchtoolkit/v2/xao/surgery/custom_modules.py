@@ -8,9 +8,9 @@ class SEModule(nn.Module):
         super().__init__()
         self.sequence=nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3),
+            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=1),
             nn.ReLU(),
-            nn.Conv2d(in_channels= 32, out_channels= 16,kernel_size=3,),
+            nn.Conv2d(in_channels= 32, out_channels= 16,kernel_size=1,),
             nn.Hardsigmoid()
         )
     
@@ -24,9 +24,9 @@ class SEModule1(nn.Module):
         super().__init__()
         self.sequence=nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3),
+            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=1),
             nn.SiLU(),
-            nn.Conv2d(in_channels= 32, out_channels= 16,kernel_size=3,),
+            nn.Conv2d(in_channels= 32, out_channels= 16,kernel_size=1,),
             nn.Sigmoid()
         )
     
@@ -73,7 +73,7 @@ class ConvBNRModule(nn.Module):
     def forward(self,x,*args):
         return self.act(self.bn(self.conv(x)))
 
-class ReplaceBatchNorm(nn.Module):
+class ReplaceBatchNorm2d(nn.Module):
         def __init__(self, num_features) -> None:
             super().__init__()
             self.bn=nn.BatchNorm2d(num_features=num_features)
@@ -81,3 +81,17 @@ class ReplaceBatchNorm(nn.Module):
             out= x.permute(0,3,1,2)
             out= self.bn(out)
             return out.permute(0,2,3,1)
+
+class ReplacementCNBlock(nn.Module):
+    def __init__(self, dim) -> None:
+        super().__init__()
+        self.block= nn.Sequential(
+            ConvBNRModule(dim,dim,kernel_size=3,stride=1,padding=1),
+            ConvBNRModule(dim,dim,kernel_size=5,stride=1,padding=2),
+            ConvBNRModule(dim,4*dim,kernel_size=1,stride=1,padding=0),
+            nn.Conv2d(4*dim,dim,kernel_size=1,stride=1,padding=0),
+            nn.BatchNorm2d(dim),            
+        )
+    
+    def forward(self,x):
+        return self.block(x)

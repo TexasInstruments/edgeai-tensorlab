@@ -7,6 +7,7 @@ import inspect,torch, operator,torchvision
 from edgeai_torchtoolkit.v1.xnn.layers import resize_with_scale_factor
 from copy import deepcopy
 
+
 def replace_resize_with_scale_factor(model):
     '''
     replaces all resize wih 'resize with scale factor only'
@@ -28,12 +29,14 @@ def replace_resize_with_scale_factor(model):
     
     traced_m.graph.lint()
     traced_m.recompile()
+    print('resize',len(matches))
     return traced_m
 
-def replace_maxpool2d_kernel_size_ge_5(model:nn.Module):
+ 
+def _replace_pool_size_ge_5(model:nn.Module, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d):
     '''
-    replaces all maxpool2d module or function having kernel size greater than or equal to 5
-    with a stack of maxpool2d modules having kernel size 3
+    replaces all pool 2d module or function having kernel size greater than or equal to 5
+    with a stack of pool2d modules having kernel size 3
     
     to have same output pixels original stride is added to last maxpool module
     '''
@@ -41,90 +44,56 @@ def replace_maxpool2d_kernel_size_ge_5(model:nn.Module):
     traced_model=symbolic_trace(model)
     modules=dict(traced_model.named_modules())
     
-    no_of_max_pool=0
+    no_of_pool=0
     for node in traced_model.graph.nodes:
         if node.op == 'call_module':
-            #for call module maxpool
+            #for call module pool
             module=modules[node.target]
-            if isinstance(module,nn.MaxPool2d):
-                if module.kernel_size >3:
+            if isinstance(module,pool_class):
+                if module.kernel_size >4:
                     k_size=module.kernel_size 
                     stride=module.stride
+                    padding=module.padding
                     replacement= nn.Sequential()
-                    while k_size > 3:
-                        replacement.append(nn.MaxPool2d(kernel_size=3,stride=1,padding=1))
+                    while k_size > 4:
+                        if k_size % 2 ==0: replacement.append(pool_class(kernel_size=2,stride=1,padding=(0,0,1,1)))    
+                        else: replacement.append(pool_class(kernel_size=3,stride=1,padding=1))
                         k_size-=2
-                    replacement.append(nn.MaxPool2d(kernel_size=k_size,stride=stride,padding=1))
-                    replacer._replace_pattern(traced_model,node,node,replacement,no_of_max_pool)
-                    no_of_max_pool+=1
+                    replacement.append(pool_class(kernel_size=k_size,stride=stride,padding=1 if padding %2 !=0 else (0,0,1,1)))
+                    replacer._replace_pattern(traced_model,node,node,replacement,no_of_pool)
+                    no_of_pool+=1
         
-        if node.target == nn.functional.max_pool2d:
-            #for functional maxpool
+        if node.target == pool_function:
+            #for functional pool
             k_size=node.args[1]
             stride=node.kwargs['stride']
+            padding=node.kwargs['padding']
             replacement= nn.Sequential()
-            while k_size > 3:
-                replacement.append(nn.MaxPool2d(kernel_size=3,stride=1,padding=1))
-                k_size-=2
-            replacement.append(nn.MaxPool2d(kernel_size=k_size,stride=stride,padding=1))
-            traced_model.add_submodule(f'replaced_maxpool_{no_of_max_pool}',replacement)
-            args=(node.args[0],)
-            with traced_model.graph.inserting_before(node):
-                new_node=traced_model.graph.call_module(f'replaced_maxpool_{no_of_max_pool}',args,{})
-                node.replace_all_uses_with(new_node)
-            traced_model.graph.erase_node(node)
-        
+            if k_size>4:
+                while k_size > 4:
+                    if k_size % 2 ==0: replacement.append(pool_class(kernel_size=2,stride=1,padding=(0,0,1,1)))    
+                    else: replacement.append(pool_class(kernel_size=3,stride=1,padding=1))
+                    k_size-=2
+                replacement.append(pool_class(kernel_size=k_size,stride=stride,padding=1 if padding %2 !=0 else (0,0,1,1)))
+                new_node_name=f'replaced_{pool_class.__name__.lower()}_{no_of_pool}'
+                traced_model.add_submodule(new_node_name,replacement)
+                args=(node.args[0],)
+                with traced_model.graph.inserting_before(node):
+                    new_node=traced_model.graph.call_module(new_node_name,args,{})
+                    node.replace_all_uses_with(new_node)
+                traced_model.graph.erase_node(node)
+         
     traced_model.graph.lint()
     traced_model.recompile()
+    print(f'{pool_class.__name__.lower()}',no_of_pool)
     return traced_model
 
 
-def replace_avgpool2d_kernel_size_ge_5(model:nn.Module):
-    '''
-    replaces all avgpool2d module or function having kernel size greater than or equal to 5
-    with a stack of avgpool2d modules having kernel size 3
+def replace_maxpool2d_kernel_size_ge_5(model:nn.Module):
+    return _replace_pool_size_ge_5(model, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d)
     
-    to have same output pixels original stride is added to last avgpool module
-    '''
-
-    traced_model=symbolic_trace(model)
-    modules=dict(traced_model.named_modules())
-    no_of_avg_pool=0
-    for node in traced_model.graph.nodes:
-        if node.op == 'call_module':
-            #for call module avgpool
-            module=modules[node.target]
-            if isinstance(module,nn.AvgPool2d):
-                if module.kernel_size >3:
-                    k_size=module.kernel_size 
-                    stride=module.stride
-                    replacement= nn.Sequential()
-                    while k_size > 3:
-                        replacement.append(nn.AvgPool2d(kernel_size=3,stride=1,padding=1))
-                        k_size-=2
-                    replacement.append(nn.AvgPool2d(kernel_size=k_size,stride=stride,padding=1))
-                    replacer._replace_pattern(traced_model,node,node,replacement,no_of_avg_pool)
-                    no_of_avg_pool+=1
-        
-        if node.target == nn.functional.avg_pool2d:
-            #for functional avgpool
-            k_size=node.args[1]
-            stride=node.kwargs['stride']
-            replacement= nn.Sequential()
-            while k_size > 3:
-                replacement.append(nn.AvgPool2d(kernel_size=3,stride=1,padding=1))
-                k_size-=2
-            replacement.append(nn.AvgPool2d(kernel_size=k_size,stride=stride,padding=1))
-            traced_model.add_submodule(f'replaced_avgpool_{no_of_avg_pool}',replacement)
-            args=(node.args[0],)
-            with traced_model.graph.inserting_before(node):
-                new_node=traced_model.graph.call_module(f'replaced_avgpool_{no_of_avg_pool}',args,{})
-                node.replace_all_uses_with(new_node)
-            traced_model.graph.erase_node(node)
-        
-    traced_model.graph.lint()
-    traced_model.recompile()
-    return traced_model
+def replace_avgpool2d_kernel_size_ge_5(model:nn.Module):
+    return _replace_pool_size_ge_5(model,pool_class=nn.AvgPool2d,pool_function=nn.functional.avg_pool2d)
 
 
 def replace_conv2d_kernel_size_ge_7(model:nn.Module):
@@ -192,25 +161,62 @@ def replace_conv2d_kernel_size_ge_7(model:nn.Module):
         
     traced_model.graph.lint()
     traced_model.recompile()
+    print('conv changed', no_of_conv)
+    return traced_model
+
+
+def replace_cnblock(model:nn.Module):
+    traced_model=symbolic_trace(model)
+    t_modules= dict(traced_model.named_modules())
+    from torchvision.models.convnext import CNBlock
+    pattern = symbolic_trace(CNBlock(34,0.125,0.000001).block)
+    matched=replacer.straight_chain_searcher(traced_model,pattern)
+    for start,end in matched:
+        start_conv=t_modules[start.target]
+        dim=0
+        if type(start_conv) == nn.Conv2d:
+            dim=start_conv.in_channels
+        else: break
+        replacement= custom_modules.ReplacementCNBlock(dim)
+        replacer._replace_pattern(traced_model,start,end,replacement)
+    print('cnblock',len(matched))
     return traced_model
 
 
 def replace_layer_norm(model:nn.Module):
-    traced_model=symbolic_trace(model)
+    traced_model=remove_identiy(model)
     no_of_layer_norm=0
     t_modules= dict(traced_model.named_modules())
 
     for node in traced_model.graph.nodes:
         module=None
         replacement=None
-        prev=node.prev
-        if (prev.op == 'call_method' and prev.target=='mean') or (prev.target==nn.functional.adaptive_avg_pool2d) or (prev.op == 'call_module' and type(t_modules[prev.target]) == nn.AdaptiveAvgPool2d):
-            replacement = nn.Identity()
         if node.target== nn.functional.layer_norm:
-            args=node.args
-            num_features=args[1][0]
-            args=(args[0],)
-            replacement=replacement or custom_modules.ReplaceBatchNorm(num_features)
+            arg= node.args[0]
+            args=[]
+            for arg1 in arg.args:
+                if type(arg1) == Node:
+                    args.append(arg1)
+            while len(arg.users)==1 or len(args) == 1 :
+                if arg.op in ['get_attr','placeholder']: break
+                arg = arg.args[0]
+                if (arg.op == 'call_method' and arg.target=='mean') or (arg.target==nn.functional.adaptive_avg_pool2d) or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
+                    break
+                args=[]
+                for arg1 in arg.args:
+                    if type(arg1) == Node:
+                        args.append(arg1)
+            replacement=None
+            prev=arg
+            if (prev.op == 'call_method' and prev.target=='mean') or (prev.target==nn.functional.adaptive_avg_pool2d) or (prev.op == 'call_module' and type(t_modules[prev.target]) == nn.AdaptiveAvgPool2d):
+                replacement = nn.Identity()
+            else:
+                num_features=node.args[1][0]
+                replacement=custom_modules.ReplaceBatchNorm2d(num_features)
+            args=(node.args[0],)
+            arg=args[0]
+            args_arg=arg.args[0]
+            replacement=deepcopy(replacement)
             new_node_name= type(replacement).__name__+str(no_of_layer_norm)
             traced_model.add_submodule(new_node_name,replacement)
             t_modules.update({new_node_name:replacement})
@@ -219,35 +225,57 @@ def replace_layer_norm(model:nn.Module):
                 new_node= traced_model.graph.call_module(new_node_name,args,{})
                 node.replace_all_uses_with(new_node)
             traced_model.graph.erase_node(node)
+            no_of_layer_norm +=1
             while ptr.op == 'get_attr':
                 temp = ptr
                 ptr=ptr.prev
                 traced_model.graph.erase_node(temp)
-            no_of_layer_norm +=1
 
-        if node.op == 'call_module':
+        elif node.op == 'call_module':
             module=t_modules[node.target]
             if type(module) == nn.LayerNorm:
-                num_features=module.normalized_shape[0]
-                replacement=replacement or custom_modules.ReplaceBatchNorm(num_features)
-                new_node_name= type(replacement).__name__+str(no_of_layer_norm)
+                arg= node.args[0]
+                args=[]
+                for arg1 in arg.args:
+                    if type(arg1) == Node:
+                        args.append(arg1)
+                while len(arg.users)==1 or len(args) == 1 :
+                    if arg.op in ['get_attr','placeholder']: break
+                    arg = arg.args[0]
+                    if (arg.op == 'call_method' and arg.target=='mean') or (arg.target==nn.functional.adaptive_avg_pool2d) or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
+                        break
+                    args=[]
+                    for arg1 in arg.args:
+                        if type(arg1) == Node and node.op != 'gett_attr':
+                            args.append(arg1)
+                replacement=None
+                prev=arg
+                if (prev.op == 'call_method' and prev.target=='mean') or (prev.target==nn.functional.adaptive_avg_pool2d) or (prev.op == 'call_module' and type(t_modules[prev.target]) == nn.AdaptiveAvgPool2d):
+                    replacement = nn.Identity()
+                else:
+                    num_features=module.normalized_shape[0]
+                    replacement= custom_modules.ReplaceBatchNorm2d(num_features)
                 parent_name,name=replacer._get_parent_name(node.target)
+                replacement=deepcopy(replacement)
                 t_modules[node.target]=replacement
                 t_modules[parent_name].__setattr__(name,replacement)
                 no_of_layer_norm+=1
-
-
     traced_model.graph.lint()
     traced_model.recompile()
+    print('layernorm',no_of_layer_norm)
     permute_nodes=[]
-    traced_model=symbolic_trace(traced_model)
+    traced_model=remove_identiy(traced_model)
     for node in traced_model.graph.nodes:
         if (node.op == 'call_method' and node.target == 'permute') or (node.target == torch.permute):
-            permute_nodes.append(node)
+            if len(node.users) ==1:
+                permute_nodes.append(node)
     i= len(permute_nodes)-1
     while i>=0:
         node=permute_nodes[i]
         arg=node.args[0]
+        if len(arg.users) >1:
+            i-=1
+            continue
         changes_in_dim=[]
         if type(node.args[1]) == int:
             changes_in_dim=[node.args[1:]]
@@ -286,14 +314,17 @@ def replace_layer_norm(model:nn.Module):
             traced_model.recompile()
         i-=1
     return traced_model
-        
+
+
+#not effective so not implemented
 def replace_se_layer(model:nn.Module):
-    traced_model=symbolic_trace(model)
+    traced_model=remove_identiy(model)
+    modules=dict(traced_model.named_modules())
+     
     matched=[]
     nodes=[]
     for node in traced_model.graph.nodes:
         nodes.append(node)
-    modules=dict(traced_model.named_modules())
     i=0
     activation_func=(nn.functional.relu,
                     nn.functional.relu6,
@@ -333,21 +364,36 @@ def replace_se_layer(model:nn.Module):
         else: i+=1
      
     replacer._replace_all_matches(traced_model,matched,nn.Identity())
+    print('se',len(matched))
     return traced_model
-    # print(matched)
 
 
 def remove_identiy(model:nn.Module):
     model=deepcopy(model)
     traced_model=symbolic_trace(model)
     modules= dict(traced_model.named_modules())
+    n=0
+    nodes=[]
     for node in traced_model.graph.nodes:
         if (node.op == 'call_module'):
             if type(modules[node.target]) == nn.Identity:
-                node.replace_all_uses_with(node.prev)
-                parent_name,name=replacer._get_parent_name(node.target)
+                nodes.append(node)
+    for node in nodes:
+        try:
+            node.replace_all_uses_with(node.args[0])
+            copy_found=False
+            for node_1 in nodes:
+                if node!=node_1 and node.target==node_1.target:
+                   copy_found=True
+            if not copy_found:
+                parent_name,name=replacer._get_parent_name(node.target)           
                 modules[parent_name].__delattr__(name)
-                traced_model.graph.erase_node(node)
+                modules.pop(node.target)
+            traced_model.graph.erase_node(node)
+            n+=1
+        except Exception as e: 
+            print(n,e)
     traced_model.graph.lint()
     traced_model.recompile()
+    print('Identity removed',n)
     return traced_model

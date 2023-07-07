@@ -6,8 +6,9 @@ from typing import Union, Dict, Any
 from copy import deepcopy
 from torch.fx import GraphModule, symbolic_trace
 from inspect import isfunction
-from .replacer import graph_pattern_replacer,_get_parent_name as get_parent_name
-#from timm.models._efficientnet_blocks import SqueezeExcite
+from .replacer import graph_pattern_replacer,replace_module_nodes,replace_function_nodes
+from timm.layers.squeeze_excite import SEModule
+
 
 
 __all__ = ['replace_unsuppoted_layers', 'get_replacement_dict_default','SurgeryModule']
@@ -15,25 +16,28 @@ __all__ = ['replace_unsuppoted_layers', 'get_replacement_dict_default','SurgeryM
 
 #put composite modules first, then primary module
 _unsupported_module_dict={
+    SEModule:nn.Identity,                                       # timm specific
     custom_modules.SEModule() : nn.Identity(),
     custom_modules.SEModule1() : nn.Identity(),
-    #SqueezeExcite(32) : nn.Identity(),
-    #SqueezeExcite(32,gate_layer=nn.Hardsigmoid) : nn.Identity(),
-    'SELzyer':custom_surgery_functions.replace_se_layer,
-    'layerNorm':custom_surgery_functions.replace_layer_norm, #based on convnext structure | not effective till date
+    # SEModule(32) : nn.Identity(),                             # timm specific
+    # SEModule(32,gate_layer=nn.Hardsigmoid) : nn.Identity(),   # timm specific
+    # SEModule(32,act_layer=nn.SiLU) : nn.Identity(),           # timm specific
+    'CNBlock':custom_surgery_functions.replace_cnblock,         # for convnext of torch vision
+    # 'SELzyer':custom_surgery_functions.replace_se_layer,
     nn.ReLU(inplace=True):nn.ReLU(),
-    nn.Dropout(inplace=True):nn.Dropout(),
     nn.Hardswish():nn.ReLU(),
     nn.ReLU6():nn.ReLU(),
     nn.GELU():nn.ReLU(),
     nn.SiLU():nn.ReLU(),
-    nn.LeakyReLU():nn.ReLU(),
     nn.Hardsigmoid():nn.ReLU(),
-    custom_modules.Focus():custom_modules.ConvBNRModule(3,12,(5,5),(2,2),2),
-    'upsample':custom_surgery_functions.replace_resize_with_scale_factor,
-    'maxpool_ge_5':custom_surgery_functions.replace_maxpool2d_kernel_size_ge_5,
+    # nn.LeakyReLU():nn.ReLU(),
+    nn.Dropout(inplace=True):nn.Dropout(),
+    custom_modules.Focus():custom_modules.ConvBNRModule(3,12,(5,5),(2,2),2), # will only effective if focus appears jus after the input
+    'layerNorm':custom_surgery_functions.replace_layer_norm, # not effective if len(input.shape) != 4 till date
+    'upsample':custom_surgery_functions.replace_resize_with_scale_factor, # for segmentation model -> deeplabv3
+    'maxpool_ge_5':custom_surgery_functions.replace_maxpool2d_kernel_size_ge_5, # for segmentation model -> deeplabv3
     'avgpool_ge_5':custom_surgery_functions.replace_avgpool2d_kernel_size_ge_5,
-    'conv_ge_7':custom_surgery_functions.replace_conv2d_kernel_size_ge_7,
+    'conv_ge_7':custom_surgery_functions.replace_conv2d_kernel_size_ge_7,       # used with convnext
 }
 
 
@@ -53,46 +57,50 @@ def replace_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn
 
     it does default surgery if no replacement dictionry is given
     replacement dictionry may contain
-    keys            value
-    Any             ->  Callabe     : any self-made surgery function 
-    nn.Module       nn.Module       : any nn.Module pattern to replace with another nn.Module
+    keys                value
+    callable        ->  callable            : any call function to call_function if they take same argument partial agument may -                                         be used 
+    callable        ->  nn.Module           : any call function to call_function if they take same argument partial agument may -                                         be used 
+    Any             ->  Callable            : any self-made surgery function 
+    nn.Module       ->  nn.Module           : any nn.Module pattern to replace with another nn.Module
+    type            ->  type/nn.Module      : replaces sub-module of same type as patttern using traditional python approach 
     '''
     
     replacement_dict = replacement_dict or _unsupported_module_dict
     model=deepcopy(model)
 
     for pattern, replacement in replacement_dict.items():
-        model=custom_surgery_functions.remove_identiy(model)
-        if isfunction(replacement):
+        if isfunction(pattern) or type(pattern).__name__ in ('builtin_function_or_method','function'):
+                #replacement must be partially defined function or work with same args and kwargs
+                if type(replacement) == list:
+                    kwarg=replacement[1]
+                    replacement=replacement[0]
+                else: kwarg=None
+                model=replace_function_nodes(model,pattern,replacement,kwarg)
+        elif isfunction(replacement):
             # for self-made surgery function 
             model=replacement(model)
         
-        elif isinstance(model,nn.Module):
+        else:
             #class of MOdule of 
             if isinstance(pattern,type):
-                modules = dict(model.named_modules())
-                for key_name, module in modules.items():
-                    if isinstance(module,pattern):
-                        parent_name, name= get_parent_name(key_name)
-                        if isinstance(replacement, type):
-                            replace_obj = replacement()
-                        else:
-                            replace_obj = deepcopy(replacement)
-                        modules[key_name] = replace_obj
-                        modules[parent_name].__setattr__(name, modules[key_name])
+                replace_module_nodes(model,pattern,replacement)
+                       
             #for nn.Module 
             else:
+                if type(replacement) == type:
+                    replacement=replacement()
                 if pattern.__class__.__name__ in dir(nn):
                     # if the pattern is present in nn directory,
                     # a wrapper module is required, for successful 
                     # surgery on that module
+                    model=graph_pattern_replacer(model,pattern,replacement)
                     pattern= custom_modules.InstaModule(pattern)
-                
+
                 #calls the main surgery function
                 model=graph_pattern_replacer(model,pattern,replacement)
     model=custom_surgery_functions.remove_identiy(model)
-    return symbolic_trace(model)
-
+    return model
+ 
 # returns default dictionary for replacement
 def get_replacement_dict_default():
     return _unsupported_module_dict
@@ -109,7 +117,8 @@ class SurgeryModule(torch.nn.Module):
     def __init__(self, model, replacement_dict=None) -> None:
         '''perform surgery on the model and creates a new model'''
         super().__init__()
-        self.module = replace_unsuppoted_layers(model, replacement_dict)
+        self.replacement_dict=replacement_dict or get_replacement_dict_default()
+        self.module = replace_unsuppoted_layers(model, self.replacement_dict)
 
     def forward(self,x,*args,**kwargs):
         '''
@@ -118,7 +127,7 @@ class SurgeryModule(torch.nn.Module):
         '''
         return self.module(x,*args,**kwargs)
 
-    def get_replacement_dict_default(self):
+    def get_replacement_dict(self):
         '''returns the default replacement dictionary that can be updated further'''
-        return get_replacement_dict_default()
+        return self.replacement_dict
 
