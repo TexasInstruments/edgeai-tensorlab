@@ -172,16 +172,23 @@ def replace_cnblock(model:nn.Module, verbose_mode=False):
     traced_model=symbolic_trace(model)
     t_modules= dict(traced_model.named_modules())
     from torchvision.models.convnext import CNBlock
-    pattern = symbolic_trace(CNBlock(34,0.125,0.000001).block)
+    pattern = symbolic_trace(CNBlock(34,0.125,0.000001))
     matched=replacer.straight_chain_searcher(traced_model,pattern)
     for start,end in matched:
-        start_conv=t_modules[start.target]
-        dim=0
+        ptr = start
+        # get the first call_module pattern
+        attribute_list = []
+        while ptr != end and ptr.op == "get_attr":
+            attribute_list.append(ptr)
+            ptr = ptr.next
+        start_conv = t_modules[ptr.target]
         if type(start_conv) == nn.Conv2d:
             dim=start_conv.in_channels
         else: break
-        replacement= custom_modules.ReplacementCNBlock(dim)
-        replacer._replace_pattern(traced_model,start,end,replacement)
+        replacement = custom_modules.ReplacementCNBlock(dim)
+        replacer._replace_pattern(traced_model, ptr, end, replacement)
+        for node in attribute_list:
+            traced_model.graph.erase_node(node)
     if verbose_mode:
         print('cnblock',len(matched))
     return traced_model

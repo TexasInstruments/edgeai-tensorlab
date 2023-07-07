@@ -44,13 +44,12 @@ _unsupported_module_dict={
 }
 
 
-def _is_replacable(pattern:Union[GraphModule,nn.Module,callable]):
+def _is_replacable(pattern:Union[GraphModule, nn.Module, callable]):
     try:
         if not isinstance(pattern,GraphModule):
-            pattern=symbolic_trace(pattern)
+            pattern = symbolic_trace(pattern)
     except:
         return False
-        #TODO
     return True
 
 
@@ -69,7 +68,7 @@ def replace_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn
     '''
     
     replacement_dict = replacement_dict or _unsupported_module_dict
-    model=deepcopy(model)
+    model = deepcopy(model)
 
     for pattern, replacement in replacement_dict.items():
         if pattern is None:
@@ -78,36 +77,33 @@ def replace_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn
         if isfunction(pattern) or type(pattern).__name__ in ('builtin_function_or_method','function'):
             # replacement must be partially defined function or work with same args and kwargs
             if isinstance(replacement, (list, tuple)):
-                kwargs = replacement[1] if len(replacement) > 1 else dict()
-                replacement=replacement[0]
+                kwargs = replacement[1] if len(replacement) > 1 else None
+                replacement = replacement[0]
             else:
                 kwargs = dict()
             model = replace_function_nodes(model, pattern, replacement, verbose_mode=verbose_mode, **kwargs)
         elif isfunction(replacement):
             # for self-made surgery function 
             model = replacement(model, verbose_mode=verbose_mode)
-        
         else:
-            #class of MOdule of 
-            if isinstance(pattern,type):
+            # class of MOdule of
+            if isinstance(pattern, type):
                 replace_module_nodes(model, pattern, replacement, verbose_mode=verbose_mode)
-                       
-            #for nn.Module 
             else:
-                if type(replacement) == type:
-                    replacement=replacement()
-                if pattern.__class__.__name__ in dir(nn):
+                # for nn.Module
+                if pattern.__class__.__name__ in dir(torch.nn):
                     # if the pattern is present in nn directory,
                     # a wrapper module is required, for successful 
                     # surgery on that module
                     model = graph_pattern_replacer(model, pattern, replacement, verbose_mode=verbose_mode)
                     pattern = custom_modules.InstaModule(pattern)
 
-                #calls the main surgery function
+                # calls the main surgery function
                 model = graph_pattern_replacer(model, pattern, replacement, verbose_mode=verbose_mode)
     model = custom_surgery_functions.remove_identiy(model)
     return model
- 
+
+
 # returns default dictionary for replacement
 def get_replacement_dict_default():
     return _unsupported_module_dict

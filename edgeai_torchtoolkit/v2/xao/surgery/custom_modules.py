@@ -2,7 +2,7 @@ import torch
 from torch import nn , Tensor   
 
 
-#Squeeze and excitation module with relu and hardsigmoid as activation function 
+# Squeeze and excitation module with relu and hardsigmoid as activation function
 class SEModule(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -18,7 +18,7 @@ class SEModule(nn.Module):
         return torch.mul(self.sequence(x),x)
 
 
-#Squeeze and excitation module with silu and sigmoid as activation function 
+# Squeeze and excitation module with silu and sigmoid as activation function
 class SEModule1(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -34,7 +34,7 @@ class SEModule1(nn.Module):
         return torch.mul(self.sequence(x),x)
 
 
-#Wrapper module for modules in nn package 
+# Wrapper module for modules in nn package
 class InstaModule(nn.Module):
     def __init__(self,preDefinedLayer:nn.Module) -> None:
         super().__init__()
@@ -44,7 +44,7 @@ class InstaModule(nn.Module):
         return self.model(x)
 
 
-#focus module for segmentation models
+# focus module for segmentation models
 class Focus(nn.Module):
     def forward(self,x):
         patch_top_left = x[..., ::2, ::2]
@@ -62,7 +62,8 @@ class Focus(nn.Module):
         )
         return x
 
-#a typical convulation module to be used as replacement
+
+# a typical convulation module to be used as replacement
 class ConvBNRModule(nn.Module):
     def __init__(self,in_channels,out_channels,kernel_size,stride,padding) -> None:
         super().__init__()
@@ -73,6 +74,7 @@ class ConvBNRModule(nn.Module):
     def forward(self,x,*args):
         return self.act(self.bn(self.conv(x)))
 
+
 class ReplaceBatchNorm2d(nn.Module):
         def __init__(self, num_features) -> None:
             super().__init__()
@@ -82,16 +84,19 @@ class ReplaceBatchNorm2d(nn.Module):
             out= self.bn(out)
             return out.permute(0,2,3,1)
 
+
 class ReplacementCNBlock(nn.Module):
     def __init__(self, dim) -> None:
         super().__init__()
-        self.block= nn.Sequential(
+        self.block = nn.Sequential(
             ConvBNRModule(dim,dim,kernel_size=3,stride=1,padding=1),
             ConvBNRModule(dim,dim,kernel_size=5,stride=1,padding=2),
             ConvBNRModule(dim,4*dim,kernel_size=1,stride=1,padding=0),
             nn.Conv2d(4*dim,dim,kernel_size=1,stride=1,padding=0),
-            nn.BatchNorm2d(dim),            
+            nn.BatchNorm2d(dim)
         )
     
     def forward(self,x):
-        return self.block(x)
+        result = self.block(x)
+        result += x
+        return result
