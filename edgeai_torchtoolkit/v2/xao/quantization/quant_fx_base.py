@@ -5,6 +5,8 @@ from torch.ao.quantization import quantize_fx
 from torch.ao.quantization import QConfigMapping
 from torch.ao.quantization import FakeQuantize
 
+from .. import surgery
+
 from . import observer
 from . import fake_quanitze
 from . import qconfig
@@ -18,6 +20,11 @@ class QuantFxBaseModule(torch.nn.Module):
         if not total_epochs:
             raise RuntimeError("total_epochs must be provided")
         #
+
+        # replace ReLU6() by ReLU() as torch.ao.quantization currently does not handle ReLU6() correctly
+        replacement_dict = {torch.nn.ReLU6(): torch.nn.ReLU()}
+        model = surgery.replace_unsuppoted_layers(model, replacement_dict=replacement_dict)
+
         qconfig_type = qconfig_type.split(",")
         if len(qconfig_type) > 2:
             raise RuntimeError(f"maximum of 2 entries are supported in qconfig_type:{qconfig_type}")
@@ -30,6 +37,8 @@ class QuantFxBaseModule(torch.nn.Module):
         else:
             model = quantize_fx.prepare_fx(model, qconfig_mapping, example_inputs)
         #
+        model = qconfig.adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type)
+
         self.module = model
         # other parameters
         self.is_qat = is_qat
@@ -40,7 +49,6 @@ class QuantFxBaseModule(torch.nn.Module):
         self.num_observer_update_epochs = num_observer_update_epochs
         self.num_epochs_tracked = 0
         self.total_epochs = total_epochs
-        self.adaptive_quant_segment = 0
         # set the quantization backend - qnnpack, fbgemm, x86, onednn etc.
         self.set_quant_backend(backend)
 
@@ -69,27 +77,25 @@ class QuantFxBaseModule(torch.nn.Module):
         if mode is True:
             self.freeze(freeze_bn=(self.num_epochs_tracked>=num_batch_norm_update_epochs),
                         freeze_observers=(self.num_epochs_tracked>=num_observer_update_epochs))
-            self.adaptive_quant_adjustment()
+            self.adjust_gradual_quantization()
             self.num_epochs_tracked += 1
         else:
             self.freeze()
         #
         return self
 
-    def adaptive_quant_adjustment(self):
+    def adjust_gradual_quantization(self):
         '''
-        adjust quantization parameters on a per segment (group of epochs) basis
+        adjust quantization parameters on epoch basis
         '''
-        if self.qconfig_mode == qconfig.QConfigMode.DEFAULT:
-            return
-        #
-        total_epochs_knee = max((self.total_epochs//2)-3, 1)
-        alpha = min(self.num_epochs_tracked/total_epochs_knee, 1.0)
-        adaptive_factor = (1 - alpha)
-        print(f"adaptive_quantization is ON, qconfig_type:{self.qconfig_type}, qconfig_mode:{self.qconfig_mode}, adaptive_factor:{adaptive_factor}")
-        for n, m in self.named_modules():
-            if isinstance(m, fake_quanitze.ADAPTIVE_FAKE_QUANT_TYPES):
-                m.set_adaptive_factor(adaptive_factor)
+        if self.qconfig_mode == qconfig.QConfigMode.GRADUAL_QUANTIZATION:
+            total_epochs_knee = max((self.total_epochs//2)-3, 1)
+            alpha = min(self.num_epochs_tracked/total_epochs_knee, 1.0)
+            adaptive_factor = (1 - alpha)
+            print(f"qconfig_mode:{self.qconfig_mode}, qconfig_type:{self.qconfig_type}, adaptive_factor:{adaptive_factor}")
+            for n, m in self.named_modules():
+                if isinstance(m, fake_quanitze.ADAPTIVE_FAKE_QUANT_TYPES):
+                    m.set_adaptive_factor(adaptive_factor)
 
     def freeze(self, freeze_bn=True, freeze_observers=True):
         if freeze_observers is True:

@@ -94,7 +94,7 @@ class QConfigType(enum.Enum):
 
 class QConfigMode(enum.Enum):
     DEFAULT = 0
-    ADAPTIVE = 1
+    GRADUAL_QUANTIZATION = 1
 
     @classmethod
     def choices(cls):
@@ -153,13 +153,52 @@ def get_qconfig_mapping(is_qat, backend, qconfig_type=None):
     qconfig_type_base = qconfig_type[0] if isinstance(qconfig_type, (list,tuple)) else qconfig_type
     qconfig = get_qconfig(is_qat, backend, qconfig_type_base)
     qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig)
-
-    qconfig_type_aux = qconfig_type[-1] if isinstance(qconfig_type, (list,tuple)) else None
-    if qconfig_type_aux is not None:
-        warnings.warn("TODO: torch.nn.Linear is being set to second qconfig - remove this hardcoding")
-        qconfig_aux = get_qconfig(is_qat, backend, qconfig_type_aux)
-        qconfig_map.set_object_type(torch.nn.Linear, qconfig_aux)
-        qconfig_reuse = torch.ao.quantization.default_reuse_input_qconfig
-        qconfig_map.set_object_type(torch.nn.Dropout, qconfig_reuse)
-    #
+    # apply specific qconfigs to specific types if needed
+    qconfig_reuse = torch.ao.quantization.default_reuse_input_qconfig
+    qconfig_map.set_object_type(torch.nn.Dropout, qconfig_reuse)
     return qconfig_map
+
+
+def _apply_qconfig(pmodule, cmodule, cname, qconfig_aux):
+    if isinstance(cmodule, fake_quanitze.AdaptiveWeightFakeQuantize):
+        setattr(pmodule, cname, qconfig_aux.weight())
+    #
+    elif isinstance(cmodule, fake_quanitze.AdaptiveActivationFakeQuantize):
+        setattr(pmodule, cname, qconfig_aux.activation())
+    #
+
+
+def adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type):
+    qconfig_type_aux = qconfig_type[-1] if isinstance(qconfig_type, (list,tuple)) and len(qconfig_type) > 1 else None
+    if qconfig_type_aux is None:
+        return
+    #
+
+    qconfig_aux = get_qconfig(is_qat, backend, qconfig_type_aux)
+
+    input_fake_quant_module = None
+    input_conv_module = None
+    output_linear_module = None
+    for pname, pmodule in list(model.named_modules()):
+        if not input_fake_quant_module and isinstance(pmodule, fake_quanitze.AdaptiveActivationFakeQuantize):
+            # input activation_module
+            input_fake_quant_module = pmodule
+        if not input_conv_module and isinstance(pmodule, torch.nn.Conv2d) and pmodule.in_channels < 9:
+            # first conv module
+            input_conv_module = pmodule
+        if isinstance(pmodule, torch.nn.Linear):
+            # last linear module
+            output_linear_module = pmodule
+        #
+    #
+    for pname, pmodule in list(model.named_modules()):
+        for cname, cmodule in list(pmodule.named_children()):
+            if pmodule is input_conv_module or pmodule is output_linear_module:
+                _apply_qconfig(pmodule, cmodule, cname, qconfig_aux)
+            elif cmodule is input_fake_quant_module:
+                _apply_qconfig(pmodule, cmodule, cname, qconfig_aux)
+            #
+        #
+    #
+    return model
+
