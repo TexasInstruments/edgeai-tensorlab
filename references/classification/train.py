@@ -268,9 +268,6 @@ def main(args):
     elif args.pruning:
         model = xao.pruning.PrunerModule(model)
     elif args.quantization:
-        # replace ReLU6() by ReLU() as torch.ao.quantization currently does not handle ReLU6() correctly
-        replacement_dict = {torch.nn.ReLU6(): torch.nn.ReLU()}
-        model = xao.surgery.replace_unsuppoted_layers(model, replacement_dict=replacement_dict)
         model = xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type,
                                              qconfig_mode=args.quantization_mode)
     #

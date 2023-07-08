@@ -16,7 +16,7 @@ quantization=1
 #         W4C_A4T W4C_A4T_RR4
 # Can also add _ADAPTIVE at the end of any of these
 quantization_type="W4C_A4T,W8C_A8T"
-quantization_mode=1
+quantization_mode=0
 
 torchrun --nproc_per_node 4 ./references/classification/train.py --data-path ./data/datasets/imagenet \
          --epochs ${epochs} --batch-size ${batch_size} --wd=${wd} --weights=${weights} \
