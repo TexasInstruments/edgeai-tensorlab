@@ -186,7 +186,6 @@ def run(**kwargs):
     for k, v in kwargs.items():
         setattr(args, k, v)
     exp = get_exp(args.exp_file, args.name)
-    # exp.merge(args.opts)
     exp.max_epoch = args.max_epochs
     exp.output_dir = args.output_dir
     exp.visualize = args.visualize
@@ -204,11 +203,11 @@ def run(**kwargs):
     if not args.experiment_name:
         args.experiment_name = ''
 
-    num_gpu = get_num_devices() if args.devices is None else args.devices
-    assert num_gpu <= get_num_devices()
-
     if args.workers is not None:
         exp.data_num_workers = args.workers
+
+    num_gpu = get_num_devices() if args.devices is None else args.devices
+    assert num_gpu <= get_num_devices()
 
     dist_url = "auto" if args.dist_url is None else args.dist_url
 
