@@ -268,8 +268,7 @@ def main(args):
     elif args.pruning:
         model = xao.pruning.PrunerModule(model)
     elif args.quantization:
-        model = xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type,
-                                             qconfig_mode=args.quantization_mode)
+        model = xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
     #
     
     model.to(device)
@@ -559,7 +558,6 @@ def get_args_parser(add_help=True):
 
     parser.add_argument("--quantization", default=0, type=int, choices=xao.quantization.QConfigMethod.choices(), help="Quaantization Aware Training (QAT)")
     parser.add_argument("--quantization-type", default=None, help="Quaantization Bitdepth - applies only if quantization is enabled")
-    parser.add_argument("--quantization-mode", default=0, type=int, choices=xao.quantization.QConfigMode.choices(), help="Quaantization Mode - default:0, adaptive:1")
 
     parser.add_argument("--pruning", default=0, help="Pruning/Sparsity")
     parser.add_argument("--pruning-ratio", default=0.5, help="Pruning/Sparsity Factor - applies only of pruning is enabled")
