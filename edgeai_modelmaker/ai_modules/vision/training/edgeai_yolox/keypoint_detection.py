@@ -30,11 +30,8 @@
 #################################################################################
 
 import os
-import sys
 import shutil
 import json
-import numpy as np
-import yaml
 
 from ... import constants
 from ..... import utils
@@ -96,81 +93,6 @@ def get_model_description(model_name):
     return model_descriptions[model_name] if model_name in model_descriptions else None
 
 
-def json2yolo(src_path, dst_path, split='train'):
-    """
-    Convert the json file to txt file per image as expected by YOLOv5 training framework
-    """
-    os.makedirs(dst_path, exist_ok=True)
-    dst_txt_path = os.path.join(dst_path, '..', split + ".txt")
-    if os.path.exists(dst_txt_path):
-        os.remove(dst_txt_path)
-    with open(src_path) as foo:
-        gt = json.load(foo)
-
-    gt_annotations = gt['annotations']
-    gt_imgs = {}
-    for img in gt["images"]:
-        gt_imgs[img['id']] = img
-        # Add the image to rain or val list
-        with open(dst_txt_path, 'a') as foo:
-            foo.write('./{}/{}'.format('images', img['file_name']) + '\n')
-
-    duplicate_ids = []
-    cls_offset = 1
-    for gt_annotation in gt_annotations:
-        if gt_annotation['id'] in duplicate_ids:
-            continue
-        if gt_annotation['category_id'] == 0:
-            cls_offset = 0
-        gt_bboxes = [gt_ann['bbox'] for gt_ann in gt_annotations if gt_ann['image_id']==gt_annotation['image_id']]
-        gt_bboxes_id = [gt_ann['id'] for gt_ann in gt_annotations if gt_ann['image_id']==gt_annotation['image_id']]
-        gt_box = gt_annotation['bbox']
-        for box, box_id in zip(gt_bboxes, gt_bboxes_id):
-            if box_id in duplicate_ids:
-                continue
-            if box == gt_box and box_id != gt_annotation['id']:
-                duplicate_ids.append(box_id)
-
-    for gt_annotation in gt_annotations:
-        if gt_annotation['iscrowd']:
-            continue
-        if gt_annotation['id'] in duplicate_ids:
-            continue
-        img = gt_imgs[gt_annotation['image_id']]
-        height =img['height']
-        width = img['width']
-        file_name = img['file_name']
-        gt_box = np.array(gt_annotation['bbox'], dtype=np.float64)
-
-        gt_box[:2] += gt_box[2:]/2
-        gt_box[[0, 2]] /= width
-        gt_box[[1, 3]] /= height
-
-        if gt_box[2] >0  and gt_box[3]>0:
-            cls = gt_annotation['category_id'] - cls_offset
-            gt_line = cls, *gt_box
-            file_ext = file_name.split('.')[-1]
-            file_path = os.path.join(dst_path, file_name.replace(file_ext, "txt"))
-            with open(file_path, 'a') as foo:
-                foo.write(('%g ' * len(gt_line)).rstrip() % gt_line + '\n')
-
-
-def create_data_dict(dataset, categories):
-    data_dict = {
-    'path' : dataset.dataset_path,
-    'train' : 'train.txt' ,
-    'val' : 'val.txt' ,
-    'test' : 'test.txt' ,
-    'nc': len(categories) ,
-    'names': [category['name'] for category in categories]  #Need to check whether the classes need to be inside quote
-    }
-    filename_yaml = os.path.join(edgeai_yolox_path, 'data', dataset.dataset_name+'.yaml')
-    if os.path.exists(filename_yaml):
-        os.remove(filename_yaml)
-    with open(filename_yaml, 'w') as foo:
-        yaml.safe_dump(data_dict, foo,default_flow_style=None)
-
-
 class ModelTraining:
     @classmethod
     def init_params(self, *args, **kwargs):
@@ -185,24 +107,19 @@ class ModelTraining:
         self.params = self.init_params(*args, **kwargs)
         self.quit_event = quit_event
 
-        # num classes
+        # train & val annotations file path
         self.train_ann_file = f'{self.params.dataset.dataset_path}/annotations/{self.params.dataset.annotation_prefix}_{self.params.dataset.split_names[0]}.json'
         self.val_ann_file = f'{self.params.dataset.dataset_path}/annotations/{self.params.dataset.annotation_prefix}_{self.params.dataset.split_names[1]}.json'
-        # self.train_ann_file_yolo = os.path.dirname(self.train_ann_file).replace("annotations", "labels")
-        # self.val_ann_file_yolo = os.path.dirname(self.val_ann_file).replace("annotations", "labels")
-        # if not os.path.exists(self.train_ann_file_yolo):
-        #     json2yolo(self.train_ann_file, self.train_ann_file_yolo, split='train')
-        #     json2yolo(self.val_ann_file, self.val_ann_file_yolo, split='val')
-        #create_data_dict()
-        #create txt file for annotation
+
+        # num_keypoints & num_classes collection
         with open(self.train_ann_file) as train_ann_fp:
             train_anno = json.load(train_ann_fp)
             categories = train_anno['categories']
             self.num_keypoints = len(categories[0]['keypoints'])
             self.object_categories = [cat['name'] for cat in categories]
         #
-        # create_data_dict(self.params.dataset, categories)
 
+        # regex expressions for logging usage
         log_summary_regex = {
             'js' : [
             {'type':'epoch', 'name':'Epoch', 'description':'Epochs', 'unit':'Epoch', 'value':None,
@@ -240,8 +157,8 @@ class ModelTraining:
         The actual training function. Move this to a worker process, if this function is called from a GUI.
         '''
         os.makedirs(self.params.training.training_path, exist_ok=True)
-        distributed = self.params.training.num_gpus > 1
 
+        # parameters required for the training part
         args_yolo = {'name': f'{self.params.training.model_training_id}',
                      'dataset': 'coco_kpts',
                      'devices': self.params.training.num_gpus,
@@ -280,6 +197,7 @@ class ModelTraining:
                   img_folder_names=args_yolo['img_folder_names']
         )
 
+        # parameters required for the compilation part
         args_yolo_export = {'output_name': f'{self.params.training.model_export_path}',
                             'ckpt': None,
                             'name': f'{self.params.training.model_training_id}',
@@ -298,7 +216,7 @@ class ModelTraining:
                             'val_ann': self.val_ann_file
                             }
 
-        # #launch export
+        # launch export
         export.run_export(
             output_name=args_yolo_export['output_name'],
             ckpt=args_yolo_export['ckpt'],
