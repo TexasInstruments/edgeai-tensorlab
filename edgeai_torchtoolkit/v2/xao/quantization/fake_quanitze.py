@@ -11,14 +11,15 @@ from ....v1 import xnn
 class AdaptiveFakeQuantize(FakeQuantize):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.adaptive_factor = 0.0
+        self.adaptive_quant_bypass = 0.0
 
-    def set_adaptive_factor(self, adaptive_factor):
-        self.adaptive_factor = adaptive_factor
+    def set_adaptive_params(self, adaptive_quant_bypass=None):
+        if adaptive_quant_bypass is not None:
+            self.adaptive_quant_bypass = adaptive_quant_bypass
 
     def forward(self, X):
         x_q = super().forward(X)
-        if self.adaptive_factor != 0.0:
+        if self.adaptive_quant_bypass:
             min_val, max_val = self.activation_post_process.min_val, self.activation_post_process.max_val
             if min_val.ndim > 0:
                 if X.ndim == 2:
@@ -33,7 +34,7 @@ class AdaptiveFakeQuantize(FakeQuantize):
                 #
             #
             x_noq = torch.clamp(X, min_val.clone(), max_val.clone())
-            x_q = x_noq * self.adaptive_factor + x_q * (1.0-self.adaptive_factor)
+            x_q = x_noq * self.adaptive_quant_bypass + x_q * (1.0-self.adaptive_quant_bypass)
         #
         return x_q
 

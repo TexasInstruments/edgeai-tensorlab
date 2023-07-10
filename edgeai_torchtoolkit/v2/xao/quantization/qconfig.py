@@ -159,21 +159,21 @@ def get_qconfig_mapping(is_qat, backend, qconfig_type=None):
     return qconfig_map
 
 
-def _apply_qconfig(pmodule, cmodule, cname, qconfig_aux):
-    if isinstance(cmodule, fake_quanitze.AdaptiveWeightFakeQuantize):
-        setattr(pmodule, cname, qconfig_aux.weight())
+def _apply_qconfig(pmodule, cmodule, cname, qconfig_aux, current_device):
+    if isinstance(cmodule, fake_quanitze.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES):
+        setattr(pmodule, cname, qconfig_aux.weight().to(current_device))
     #
-    elif isinstance(cmodule, fake_quanitze.AdaptiveActivationFakeQuantize):
-        setattr(pmodule, cname, qconfig_aux.activation())
+    elif isinstance(cmodule, fake_quanitze.ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES):
+        setattr(pmodule, cname, qconfig_aux.activation().to(current_device))
     #
 
 
 def adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type):
-    qconfig_type_aux = qconfig_type[-1] if isinstance(qconfig_type, (list,tuple)) and len(qconfig_type) > 1 else None
-    if qconfig_type_aux is None:
-        return
-    #
+    if not isinstance(qconfig_type, (list,tuple)) or len(qconfig_type) == 1:
+        return model
 
+    current_device = next(model.parameters()).device
+    qconfig_type_aux = qconfig_type[-1]
     qconfig_aux = get_qconfig(is_qat, backend, qconfig_type_aux)
 
     input_fake_quant_module = None
@@ -194,9 +194,9 @@ def adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type):
     for pname, pmodule in list(model.named_modules()):
         for cname, cmodule in list(pmodule.named_children()):
             if pmodule is input_conv_module or pmodule is output_linear_module:
-                _apply_qconfig(pmodule, cmodule, cname, qconfig_aux)
+                _apply_qconfig(pmodule, cmodule, cname, qconfig_aux, current_device)
             elif cmodule is input_fake_quant_module:
-                _apply_qconfig(pmodule, cmodule, cname, qconfig_aux)
+                _apply_qconfig(pmodule, cmodule, cname, qconfig_aux, current_device)
             #
         #
     #

@@ -25,32 +25,35 @@ class QuantFxBaseModule(torch.nn.Module):
         replacement_dict = {torch.nn.ReLU6(): torch.nn.ReLU()}
         model = surgery.replace_unsuppoted_layers(model, replacement_dict=replacement_dict)
 
-        qconfig_type = qconfig_type.split(",")
-        if len(qconfig_type) > 2:
+        # split if qconfig is a comma separated list of segments
+        # (qconfig will change after some epochs if this has comma separated values)
+        qconfig_type = tuple(qconfig_type.split(","))
+        # further split based on + for mixed precision
+        qconfig_type = [qconf.split("+") for qconf in qconfig_type]
+        if any([len(qconf) > 2 for qconf in qconfig_type]):
             raise RuntimeError(f"maximum of 2 entries are supported in qconfig_type:{qconfig_type}")
         #
-        qconfig_type = [qconfig.QConfigType(qconf) for qconf in qconfig_type]
-        qconfig_mode = qconfig.QConfigMode(qconfig_mode)
-        qconfig_mapping = qconfig.get_qconfig_mapping(is_qat, backend, qconfig_type)
+        qconfig_mapping = qconfig.get_qconfig_mapping(is_qat, backend, qconfig_type[0])
         if is_qat:
             model = quantize_fx.prepare_qat_fx(model, qconfig_mapping, example_inputs)
         else:
             model = quantize_fx.prepare_fx(model, qconfig_mapping, example_inputs)
         #
-        model = qconfig.adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type)
-
+        model = qconfig.adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type[0])
         self.module = model
+
         # other parameters
         self.is_qat = is_qat
         self.backend = backend
         self.qconfig_type = qconfig_type
-        self.qconfig_mode = qconfig_mode
+        self.qconfig_mode = qconfig.QConfigMode(qconfig_mode)
         self.num_batch_norm_update_epochs = num_batch_norm_update_epochs
         self.num_observer_update_epochs = num_observer_update_epochs
         self.num_epochs_tracked = 0
         self.total_epochs = total_epochs
         # set the quantization backend - qnnpack, fbgemm, x86, onednn etc.
         self.set_quant_backend(backend)
+        self.quant_segment_index = 0
 
     def set_quant_backend(self, backend=None):
         if backend not in torch.backends.quantized.supported_engines:
@@ -88,14 +91,44 @@ class QuantFxBaseModule(torch.nn.Module):
         '''
         adjust quantization parameters on epoch basis
         '''
+        if len(self.qconfig_type) > 1:
+            quant_segment_index = self.num_epochs_tracked//(self.total_epochs//len(self.qconfig_type))
+            qconfig_type = self.qconfig_type[quant_segment_index]
+            if quant_segment_index != self.quant_segment_index:
+                print(f"updating qconfig - quant_segment_index:{quant_segment_index}, qconfig_type:{qconfig_type}")
+                # change the qconfig if it is a comma separated list and this is a new segment
+                current_device = next(self.parameters()).device
+                qconfig_dict = qconfig.get_qconfig(self.is_qat, self.backend, qconfig_type[0])
+                for np, mp in list(self.named_modules()):
+                    for nc, mc in list(mp.named_children()):
+                        if isinstance(mc, fake_quanitze.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES):
+                            setattr(mp, nc, qconfig_dict.weight().to(current_device))
+                        #
+                        if isinstance(mc, fake_quanitze.ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES):
+                            setattr(mp, nc, qconfig_dict.activation().to(current_device))
+                        #
+                    #
+                #
+                self.module = qconfig.adjust_mixed_precision_qconfig(
+                    self.module, self.is_qat, self.backend, qconfig_type)
+                self.quant_segment_index = quant_segment_index
+            #
+        #
         if self.qconfig_mode == qconfig.QConfigMode.GRADUAL_QUANTIZATION:
             total_epochs_knee = max((self.total_epochs//2)-3, 1)
             alpha = min(self.num_epochs_tracked/total_epochs_knee, 1.0)
-            adaptive_factor = (1 - alpha)
-            print(f"qconfig_mode:{self.qconfig_mode}, qconfig_type:{self.qconfig_type}, adaptive_factor:{adaptive_factor}")
-            for n, m in self.named_modules():
-                if isinstance(m, fake_quanitze.ADAPTIVE_FAKE_QUANT_TYPES):
-                    m.set_adaptive_factor(adaptive_factor)
+            adaptive_quant_bypass = (1 - alpha)
+            print(f"updating qconfig adaptive_quant_bypass - qconfig_mode:{self.qconfig_mode}, adaptive_quant_bypass:{adaptive_quant_bypass}")
+            for n, m in list(self.named_modules()):
+                # low-bit weight quantization is usually okay - so not using gradual mode for weights
+                # if isinstance(m, fake_quanitze.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES):
+                #     m.set_adaptive_params(adaptive_quant_bypass=adaptive_quant_bypass)
+                # #
+                if isinstance(m, fake_quanitze.ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES):
+                    m.set_adaptive_params(adaptive_quant_bypass=adaptive_quant_bypass)
+                #
+            #
+        #
 
     def freeze(self, freeze_bn=True, freeze_observers=True):
         if freeze_observers is True:
