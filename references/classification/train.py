@@ -198,16 +198,13 @@ def load_data(traindir, valdir, args):
     return dataset, dataset_test, train_sampler, test_sampler
 
 
-def export_model(args, model, epoch, save_best):
+def export_model(args, model, epoch, model_name):
     export_device="cpu"
     model_device = next(model.parameters()).device
     model_converted = copy.deepcopy(model).convert() if args.quantization else copy.deepcopy(model)
     model_converted = model_converted.to(export_device)
     example_input = torch.rand((1,3,args.val_crop_size,args.val_crop_size), device=export_device)
-    if epoch == 0 or epoch >= (args.epochs-5):
-        utils.export_on_master(model_converted, example_input, os.path.join(args.output_dir, f"model_{epoch}.onnx"), opset_version=args.opset_version)
-    if save_best:
-        utils.export_on_master(model_converted, example_input, os.path.join(args.output_dir, "model.onnx"), opset_version=args.opset_version)
+    utils.export_on_master(model_converted, example_input, os.path.join(args.output_dir, model_name), opset_version=args.opset_version)
 
 
 def main(args):
@@ -387,7 +384,7 @@ def main(args):
             evaluate(args, model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
         else:
             evaluate(args, model, criterion, data_loader_test, device=device)
-        export_model(args, model_without_ddp, 0, True)
+        # export_model(args, model_without_ddp, 0, "model_test.onnx")
         return
 
     print("Start training")
@@ -413,11 +410,13 @@ def main(args):
                 checkpoint["model_ema"] = model_ema.state_dict()
             if scaler:
                 checkpoint["scaler"] = scaler.state_dict()
-            if epoch >= (args.epochs-10):
-                utils.save_on_master(checkpoint, os.path.join(args.output_dir, f"model_{epoch}.pth"))
-            utils.save_on_master(checkpoint, os.path.join(args.output_dir, "checkpoint.pth"))
-            # export onnx model
-            export_model(args, model_without_ddp, epoch, epoch_acc >= best_acc)
+            if epoch == 0 or epoch >= (args.epochs-10):
+                utils.save_on_master(checkpoint, os.path.join(args.output_dir, f"checkpoint_{epoch}.pth"))
+                export_model(args, model_without_ddp, epoch, f"model_{epoch}.onnx")
+            if epoch_acc >= best_acc:
+                utils.save_on_master(checkpoint, os.path.join(args.output_dir, "checkpoint.pth"))
+                export_model(args, model_without_ddp, epoch, f"model.onnx")
+                best_acc = epoch_acc
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
