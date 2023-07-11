@@ -1,7 +1,7 @@
 cython
-numpy==1.23.1
+#numpy==1.23.0
 wheel
-opencv-python-headless<4.3
+#opencv-python-headless<4.3
 onnx
 protobuf
 #protobuf==3.19

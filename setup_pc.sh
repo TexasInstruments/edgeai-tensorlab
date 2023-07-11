@@ -36,9 +36,8 @@ exit 1
 fi
 
 ######################################################################
-# change default tidl_tools version if needed - examples: latest stable r8.6 r8.5 r8.4
-# default is currently r8.5
-TIDL_TOOLS_RELEASE_NAME=${1:-r8.6}
+# change default tidl_tools version if needed - examples: latest stable r9.0 r8.6 r8.5 r8.4
+TIDL_TOOLS_RELEASE_NAME=${1:-r9.0}
 
 #######################################################################
 echo 'Installing system dependencies'
@@ -51,18 +50,11 @@ sudo apt-get install -y graphviz graphviz-dev
 
 #################################################################################
 # upgrade pip
-pip install --upgrade pip
-pip install --upgrade setuptools
+pip install --upgrade pip setuptools
 
 ######################################################################
 echo 'Installing python packages...'
-pip install --no-input cython numpy wheel
 pip3 install --no-input -r ./requirements_pc.txt
-
-# there as issue with installing pillow-simd through requirements - force it here
-# 7.2.0.post1 is what works in Python3.6 - newer Python versions may be able to use a more recent one
-pip uninstall --yes pillow
-pip install --no-input -U --force-reinstall pillow-simd==7.2.0.post1
 
 ######################################################################
 #NOTE: THIS STEP INSTALLS THE EDITABLE LOCAL MODULE pytidl
@@ -98,7 +90,23 @@ echo "Installing tidl_tools verion: ${TIDL_TOOLS_RELEASE_NAME} ..."
 # an array to keep download links
 declare -a TIDL_TOOLS_DOWNLOAD_LINKS
 
-if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r8.6" ]]; then
+if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r9.0" ]]; then
+  # installers for 9.0 release
+  echo 'tidl_tools version 9.0'
+  TARGET_SOCS=(AM62A AM68A AM69A TDA4VM)
+  TIDL_TOOLS_DOWNLOAD_NAMES=(am62a j721s2 j784s4 j721e)
+  TIDL_TOOLS_RELEASE_ID=09_00_00_00
+  TIDL_TOOLS_VERSION_NAME=9.0
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/dlr-1.13.0-py3-none-any.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tvm-0.12.0-cp310-cp310-linux_x86_64.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/onnxruntime_tidl-1.7.0-cp310-cp310-linux_x86_64.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tflite_runtime-2.8.2-cp310-cp310-linux_x86_64.whl
+  for (( soc_idx=0; soc_idx<"${#TARGET_SOCS[@]}"; soc_idx++ )); do
+    TARGET_SOC=${TARGET_SOCS[$soc_idx]}
+    TIDL_TOOLS_DOWNLOAD_NAME=${TIDL_TOOLS_DOWNLOAD_NAMES[$soc_idx]}
+    TIDL_TOOLS_DOWNLOAD_LINKS[$soc_idx]="http://edgeaisrv2.dhcp.ti.com/publish/modelzoo/REL.TIDL.J7.09.00.00.00/${TIDL_TOOLS_DOWNLOAD_NAME}/tidl_tools.tar.gz"
+  done
+elif [[ $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r8.6" ]]; then
   # installers for 8.6 release
   echo 'tidl_tools version 8.6'
   TARGET_SOCS=(AM62A AM68A AM69A TDA4VM)
@@ -112,7 +120,7 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r8.6"
     TARGET_SOC=${TARGET_SOCS[$soc_idx]}
     TIDL_TOOLS_DOWNLOAD_LINKS[$soc_idx]="https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/TIDL_TOOLS_RC5/${TARGET_SOC}/tidl_tools.tar.gz"
   done
-elif [[ $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r8.5" ]]; then
+elif [[ $TIDL_TOOLS_RELEASE_NAME == "r8.5" ]]; then
   # installers for 8.5 release
   echo 'tidl_tools version 8.5'
   TARGET_SOCS=(TDA4VM)
