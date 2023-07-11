@@ -20,21 +20,21 @@ class AdaptiveFakeQuantize(FakeQuantize):
     def forward(self, X):
         x_q = super().forward(X)
         if self.adaptive_quant_bypass:
-            min_val, max_val = self.activation_post_process.min_val, self.activation_post_process.max_val
-            if min_val.ndim > 0:
-                if X.ndim == 2:
-                    min_val = min_val.unsqueeze(-1)
-                    max_val = max_val.unsqueeze(-1)
-                elif X.ndim == 3:
-                    min_val = min_val.unsqueeze(-1).unsqueeze(-1)
-                    max_val = max_val.unsqueeze(-1).unsqueeze(-1)
-                elif X.ndim == 4:
-                    min_val = min_val.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
-                    max_val = max_val.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
-                #
-            #
-            x_noq = torch.clamp(X, min_val.clone(), max_val.clone())
-            x_q = x_noq * self.adaptive_quant_bypass + x_q * (1.0-self.adaptive_quant_bypass)
+            # min_val, max_val = self.activation_post_process.min_val, self.activation_post_process.max_val
+            # if min_val.ndim > 0:
+            #     if X.ndim == 2:
+            #         min_val = min_val.unsqueeze(-1)
+            #         max_val = max_val.unsqueeze(-1)
+            #     elif X.ndim == 3:
+            #         min_val = min_val.unsqueeze(-1).unsqueeze(-1)
+            #         max_val = max_val.unsqueeze(-1).unsqueeze(-1)
+            #     elif X.ndim == 4:
+            #         min_val = min_val.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
+            #         max_val = max_val.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
+            #     #
+            # #
+            # x_noq = torch.clamp(X, min_val.clone(), max_val.clone())
+            x_q = X * self.adaptive_quant_bypass + x_q * (1.0-self.adaptive_quant_bypass)
         #
         return x_q
 
