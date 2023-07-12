@@ -1,12 +1,11 @@
 cython
 numpy==1.23.0
 wheel
-opencv-python
-protobuf==3.19
-onnx==1.8.1
+opencv-python-headless
+protobuf==3.19.4
+onnx==1.9.0
 tflite
 #pillow
-# 7.2.0.post1 is what works in Python3.6 - newer Python versions may be able to use a more recent one
 pillow-simd
 pycocotools
 colorama

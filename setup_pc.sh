@@ -41,12 +41,14 @@ TIDL_TOOLS_RELEASE_NAME=${1:-r9.0}
 
 #######################################################################
 echo 'Installing system dependencies'
+
+sudo apt-get install -y libffi-dev
+
 # Dependencies for building pillow-simd
-#echo 'Installing dependencies to build pillow-simd. If you dont have sudo access, comment the below line and replace pillow-simd with pillow in the requirements file'
 sudo apt-get install -y libjpeg-dev zlib1g-dev
 
-# Dependencies for TIDL graph visualization
-sudo apt-get install -y graphviz graphviz-dev
+# Dependencies for TIDL & onnx
+sudo apt-get install -y graphviz graphviz-dev protobuf-compiler
 
 #################################################################################
 # upgrade pip

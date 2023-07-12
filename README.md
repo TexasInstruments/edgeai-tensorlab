@@ -2,9 +2,11 @@
 
 ### Notice
 If you have not visited the following landing pages, please do so before attempting to use this repository.
-- https://www.ti.com/edgeai 
-- https://dev.ti.com/edgeai/
+- https://www.ti.com/edgeai
 - https://github.com/TexasInstruments/edgeai
+- https://dev.ti.com/edgeai/
+
+The Python version requirement has changed to 3.10 for SDK/TIDL 9.0 onwards. Please see [setup instructions](./docs/setup_instructions.md) for more information.
 
 <hr>
 

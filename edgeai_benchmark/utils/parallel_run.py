@@ -37,35 +37,17 @@ from .progress_step import *
 from .logger_utils import *
 
 
-# 'spawn' may be more stable than the default 'fork'
-# but when using utils.RedirectLogger to log, 'spawn' is seen to mixup logs
-_multiprocessing_default_context_type = 'spawn' #'fork'
-
-
-# daemon processes are not allowed to have children
-# a hack to create non-daemon process in multiprocessing.Pool
-class NoDaemonProcess(multiprocessing.Process):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def _get_daemon(self):
-        return False
-
-    def _set_daemon(self, value):
-        pass
-
-    daemon = property(_get_daemon, _set_daemon)
-
-
 class NoDaeomonPool(pool.Pool):
-    Process = NoDaemonProcess
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    # create process pool and queue the tasks
-    def get_context(self, method=None):
-        return super().get_context(_multiprocessing_default_context_type)
+    # daemon processes are not allowed to have children
+    # a hack to create non-daemon process in multiprocessing.Pool
+    def Process(self, ctx, *args, **kwargs):
+        class NoDaemonProcess(ctx.Process):
+            def _get_daemon(self):
+                return False
+            def _set_daemon(self, value):
+                pass
+            daemon = property(_get_daemon, _set_daemon)
+        return NoDaemonProcess(*args, **kwargs)
 
 
 class ParallelRun:

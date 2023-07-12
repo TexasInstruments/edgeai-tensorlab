@@ -2,10 +2,8 @@ cython
 #numpy==1.23.0
 wheel
 #opencv-python-headless<4.3
-onnx
-protobuf
-#protobuf==3.19
-#onnx==1.8.1
+#protobuf==3.19.4
+#onnx==1.9.0
 #tflite
 pillow
 pycocotools
@@ -16,7 +14,6 @@ pyyaml
 pytest
 json_tricks
 munkres
-#git+https://github.com/yogin16/prototxt_parser.git
 h5py
 scipy
 pillow

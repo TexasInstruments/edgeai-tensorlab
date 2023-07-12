@@ -37,6 +37,21 @@ import copy
 from colorama import Fore
 import numpy as np
 import tarfile
+
+# patch/hack starts here #######################################
+# TODO: revisit this patch/hack
+# onnx package supports Python 3.10 only from version 1.12.0
+# there is an issuze in onnxopt.tidlOnnxModelOptimize() with onnx 1.9.0
+# this is a hack for now
+from packaging import version
+import onnx
+onnx_version = version.parse(onnx.__version__)
+py310_compatible_version = version.parse("1.12.0")
+if onnx_version < py310_compatible_version:
+    import collections
+    collections.Iterable = collections.abc.Iterable
+# patch/hack ends here #######################################
+
 from .. import utils
 from .. import constants
 from ..preprocess.transforms import ImageNormMeanScale

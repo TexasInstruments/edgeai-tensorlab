@@ -1,6 +1,6 @@
 # base image
 ARG REPO_LOCATION=""
-FROM ${REPO_LOCATION}ubuntu:18.04
+FROM ${REPO_LOCATION}ubuntu:22.04
 
 # user
 ARG USER_NAME=edgeai
@@ -24,20 +24,11 @@ RUN if [ ! -z $PROXY_LOCATION ]; then echo "Acquire::http::proxy \"${PROXY_LOCAT
     if [ ! -z $PROXY_LOCATION ]; then echo "Acquire::https::proxy \"${PROXY_LOCATION}\";" >> /etc/apt/apt.conf; fi
 
 # baseline
-RUN apt update && apt install -y sudo git iputils-ping wget cmake build-essential libgtk2.0 apt-utils
-
-# lang
-RUN echo >> /etc/environment
-RUN echo "LC_CTYPE=en_US.UTF-8" >> /etc/environment
-RUN echo "LANG=en_US.UTF-8" >> /etc/environment
-RUN echo "LANGUAGE=en_US.UTF-8" >> /etc/environment
-RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment
-RUN apt update && apt install -y locales locales-all && locale-gen en_US.UTF-8 && dpkg-reconfigure locales
+RUN apt update && apt install -y sudo git curl iputils-ping wget cmake build-essential libgtk-3-0 apt-utils \
+    libbz2-dev xz-utils libreadline-dev libncurses5-dev libssl-dev libsqlite3-dev liblzma-dev
 
 # additional packages
-RUN apt install -y curl libjpeg-dev zlib1g-dev graphviz graphviz-dev libbz2-dev \
-                   build-essential xz-utils libreadline-dev libncurses5-dev libssl-dev \
-                   libsqlite3-dev liblzma-dev
+RUN apt install -y libffi-dev libjpeg-dev zlib1g-dev graphviz graphviz-dev protobuf-compiler
 
 # add user, inspired by: https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user
 RUN groupadd --gid $USER_GID $USER_NAME && \
@@ -80,10 +71,10 @@ RUN echo ' ' >> ${HOME_DIR}/.bashrc && \
 # pyenv works with bash, so change shell to bash
 SHELL ["/bin/bash", "--login", "-c"]
 
-RUN pyenv install 3.6 && \
-    pyenv virtualenv 3.6 py36 && \
+RUN pyenv install 3.10 && \
+    pyenv virtualenv 3.10 py310 && \
     pyenv rehash && \
-    echo 'pyenv activate py36' >> ${HOME_DIR}/.pyenvrc && \
+    echo 'pyenv activate py310' >> ${HOME_DIR}/.pyenvrc && \
     echo ' ' >> ${HOME_DIR}/.pyenvrc
 
 RUN pip install --upgrade pip && \
