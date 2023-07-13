@@ -59,3 +59,25 @@ def onnx_update_model_dims(model, input_dims, output_dims):
     import onnx
     onnx.checker.check_model(model)
     return model
+
+
+def apply_onnx_patch():
+    # this patch is not needed if this onnx fork is used:
+    # https://github.com/TexasInstruments/onnx/archive/tidl-j7.zip
+    # # patch/hack starts here #######################################
+    # # TODO: revisit this patch/hack
+    # # onnx package supports Python 3.10 only from version 1.12.0
+    # # there is an issuze in onnxopt.tidlOnnxModelOptimize() with onnx 1.9.0
+    # # this is a hack for now
+    # import platform
+    # from packaging import version
+    # import onnx
+    # this_python_version = version.parse(platform.python_version())
+    # py10_verion = version.parse("3.10.0")
+    # onnx_version = version.parse(onnx.__version__)
+    # py310_compatible_onnx_version = version.parse("1.12.0")
+    # if this_python_version >= py10_verion and onnx_version < py310_compatible_onnx_version:
+    #     import collections
+    #     collections.Iterable = collections.abc.Iterable
+    # # patch/hack ends here #######################################
+    pass

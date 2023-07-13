@@ -3,7 +3,9 @@ cython
 wheel
 #opencv-python-headless<4.3
 #protobuf==3.19.4
-#onnx==1.9.0
+#pybind11[global]         # for building the below onnx custom fork
+#onnx==1.9.0              # onnx==1.9.0 doesn't work with python 3.10 - using the custom fork below
+#https://github.com/TexasInstruments/onnx/archive/tidl-j7.zip
 #tflite
 pillow
 pycocotools
