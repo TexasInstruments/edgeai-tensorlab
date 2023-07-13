@@ -22,6 +22,7 @@ class Exp(MyExp):
         # -----------------  testing config ------------------ #
         self.human_pose = True
         self.visualize = False #True
+        self.od_weights = None
 
     def get_model(self):
         from yolox.models import YOLOX, YOLOPAFPN, YOLOXHeadKPTS
@@ -40,6 +41,9 @@ class Exp(MyExp):
 
         self.model.apply(init_yolo)
         self.model.head.initialize_biases(1e-2)
+
+
+
         return self.model
 
     def get_data_loader(
@@ -88,8 +92,8 @@ class Exp(MyExp):
                 hsv_prob=self.hsv_prob,
                 object_pose=self.object_pose,
                 human_pose=self.human_pose,
+                flip_index=dataset.flip_index,
                 num_kpts=self.num_kpts,
-                # flip_index=dataset.flip_index,
             ),
             num_kpts=self.num_kpts,
             degrees=self.degrees,

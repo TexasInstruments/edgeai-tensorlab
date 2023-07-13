@@ -195,6 +195,9 @@ def run(**kwargs):
     exp.name = args.img_folder_names
     exp.flip_prob = 0
 
+    if args.ckpt is not None:
+        exp.od_weights = args.ckpt
+
     with open(args.train_ann) as train_ann_fp:
             train_anno = json.load(train_ann_fp)
             categories = train_anno['categories']
