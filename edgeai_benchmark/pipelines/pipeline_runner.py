@@ -34,6 +34,7 @@ import copy
 import traceback
 
 from .. import utils
+from .. import datasets
 from .model_transformation import *
 from .accuracy_pipeline import *
 from edgeai_benchmark import preprocess
@@ -74,6 +75,26 @@ class PipelineRunner():
             pipelines_selected = model_transformation(settings, pipelines_selected)
         #
         self.pipeline_configs = pipelines_selected
+
+        # check the datasets and download if they are missing
+        pipeline_config_dataset_list = []
+        for pipeline_key, pipeline_config in self.pipeline_configs.items():
+            pipeline_config_dataset_list.append(pipeline_config['calibration_dataset'])
+            pipeline_config_dataset_list.append(pipeline_config['input_dataset'])
+        #
+        # sending dataset_list to download_datasets will cause only those to be downloaded
+        download_ok = datasets.download_datasets(settings, dataset_list=pipeline_config_dataset_list)
+        # populate the dataset objects into the pipeline_configs
+        for pipeline_key, pipeline_config in self.pipeline_configs.items():
+            if isinstance(pipeline_config['calibration_dataset'], str):
+                dataset_category_name = pipeline_config['calibration_dataset']
+                pipeline_config['calibration_dataset'] = copy.deepcopy(settings.dataset_cache[dataset_category_name]['calibration_dataset'])
+            #
+            if isinstance(pipeline_config['input_dataset'], str):
+                dataset_category_name = pipeline_config['input_dataset']
+                pipeline_config['input_dataset'] = copy.deepcopy(settings.dataset_cache[dataset_category_name]['input_dataset'])
+            #
+        #
 
     def run(self):
         if (isinstance(self.settings.parallel_devices, (list,tuple)) and len(self.settings.parallel_devices) > 0) or \
@@ -138,12 +159,10 @@ class PipelineRunner():
         return result
 
     @classmethod
-    def _run_pipeline(cls, settings_in, pipeline_config_in, description=''):
-        # create a copy to avoid issues due to running multiple models
-        pipeline_config = copy.deepcopy(pipeline_config_in)
+    def _run_pipeline(cls, settings, pipeline_config, description=''):
         # note that this basic_settings() copies only the basic settings.
         # sometimes, there is no need to copy the entire settings which includes the dataset_cache
-        settings = settings_in.basic_settings()
+        basic_settings = settings.basic_settings()
 
         # capture cwd - to set it later
         cwd = os.getcwd()
@@ -151,7 +170,7 @@ class PipelineRunner():
         try:
             run_dir = pipeline_config['session'].get_param('run_dir')
             print(utils.log_color('\nINFO', 'starting', os.path.basename(run_dir)))
-            result = cls._run_pipeline_impl(settings, pipeline_config, description)
+            result = cls._run_pipeline_impl(basic_settings, pipeline_config, description)
         except Exception as e:
             traceback.print_exc()
             print(str(e))

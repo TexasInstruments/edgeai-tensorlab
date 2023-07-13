@@ -42,9 +42,8 @@ def run_model(settings, run_dir, pipeline_configs=None):
     if pipeline_configs is None:
         # import the configs module
         configs_module = utils.import_folder(settings.configs_path)
-        # check the datasets and download if they are missing
-        download_ok = datasets.download_datasets(settings)
-        print(f'download_ok: {download_ok}')
+        # initialize datasets
+        initialize_ok = datasets.initialize_datasets(settings)
         # get the configs for supported models as a dictionary
         pipeline_configs = configs_module.get_configs(settings, work_dir)
     #
