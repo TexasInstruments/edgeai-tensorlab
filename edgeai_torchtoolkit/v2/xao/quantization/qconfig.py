@@ -179,6 +179,7 @@ def adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type):
     input_fake_quant_module = None
     input_conv_module = None
     output_linear_module = None
+    depthwise_conv_module = None
     for pname, pmodule in list(model.named_modules()):
         if not input_fake_quant_module and isinstance(pmodule, fake_quanitze.AdaptiveActivationFakeQuantize):
             # input activation_module
@@ -189,11 +190,14 @@ def adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type):
         if isinstance(pmodule, torch.nn.Linear):
             # last linear module
             output_linear_module = pmodule
+        if isinstance(pmodule, torch.nn.Conv2d) and pmodule.groups == pmodule.in_channels:
+            depthwise_conv_module = pmodule
         #
     #
     for pname, pmodule in list(model.named_modules()):
         for cname, cmodule in list(pmodule.named_children()):
-            if pmodule is input_conv_module or pmodule is output_linear_module:
+            if (pmodule is input_conv_module) or (pmodule is depthwise_conv_module) or \
+                    (pmodule is output_linear_module):
                 _apply_qconfig(pmodule, cmodule, cname, qconfig_aux, current_device)
             elif cmodule is input_fake_quant_module:
                 _apply_qconfig(pmodule, cmodule, cname, qconfig_aux, current_device)
@@ -201,4 +205,3 @@ def adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type):
         #
     #
     return model
-
