@@ -74,23 +74,47 @@ TARGET_DEVICE_AM68A = 'AM68A'
 TARGET_DEVICE_AM69A = 'AM69A'
 TARGET_DEVICE_AM62 = 'AM62'
 
+
+# runtime_options can be a list to be used for no QAT and QAT scenarios based on is_qat flag
 TARGET_DEVICE_SETTINGS_PRESETS = {
     TARGET_DEVICE_TDA4VM : {
+        'runtime_options': [
+            {
+            },
+            {
+                'advanced_options:quantization_scale_type': 2 # is_qat = True
+            }
+        ]
     },
     TARGET_DEVICE_AM62A : {
-        'runtime_options': {
-            'advanced_options:quantization_scale_type': 4
-        }
+        'runtime_options': [
+            {
+                'advanced_options:quantization_scale_type': 4 # is_qat = False
+            },
+            {
+                'advanced_options:quantization_scale_type': 2 # is_qat = True
+            }
+        ]
     },
     TARGET_DEVICE_AM68A : {
-        'runtime_options': {
-            'advanced_options:quantization_scale_type': 4
-        }
+        'runtime_options': [
+            {
+                'advanced_options:quantization_scale_type': 4 # is_qat = False
+            },
+            {
+                'advanced_options:quantization_scale_type': 2 # is_qat = True
+            }
+        ]
     },
     TARGET_DEVICE_AM69A : {
-        'runtime_options': {
-            'advanced_options:quantization_scale_type': 4
-        }
+        'runtime_options': [
+            {
+                'advanced_options:quantization_scale_type': 4 # is_qat = False
+            },
+            {
+                'advanced_options:quantization_scale_type': 2 # is_qat = True
+            }
+        ]
     },
     TARGET_DEVICE_AM62 : {
         'tidl_offload': False,

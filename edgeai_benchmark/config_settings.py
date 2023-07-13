@@ -94,9 +94,13 @@ class ConfigSettings(config_dict.ConfigDict):
         runtime_options_new.update(kwargs)
         # this takes care of overrides in the settings yaml file
         if self.runtime_options is not None:
-            assert isinstance(self.runtime_options, dict), \
-                f'runtime_options provided via kwargs must be dict, got {type(self.runtime_options)}'
-            runtime_options_new.update(self.runtime_options)
+            assert isinstance(self.runtime_options, (dict, list)), \
+                f'runtime_options must be dict or list of dicts, got {type(self.runtime_options)}'
+            if isinstance(self.runtime_options, list):
+                runtime_options_new.update(self.runtime_options[is_qat])
+            else:
+                runtime_options_new.update(self.runtime_options)
+            #
         #
         return runtime_options_new
 
