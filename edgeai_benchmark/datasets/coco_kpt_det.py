@@ -254,12 +254,13 @@ class COCOKeypointDetection(DatasetBase):
         # os.makedirs(run_dir, exist_ok=True)
         detections_formatted_list = []
         for frame_idx, det_frame in enumerate(predictions):
-            det = np.concatenate([det_frame['bbox'][0], det_frame['scores'], det_frame['category_id'], det_frame['preds'][0].reshape(-1)])
-            # for det_id, det in enumerate(det_frame):
-            det = self._format_detections(det, frame_idx, label_offset=label_offset)
-            category_id = det['category_id'] if isinstance(det, dict) else det[5]
-            if category_id >= 1: # final coco categories start from 1
-                detections_formatted_list.append(det)
+            for i in range(len(det_frame['bbox'])):
+                det = np.concatenate([det_frame['bbox'][i], np.array(det_frame['scores'][i]).reshape(1,), np.array(det_frame['category_id'][i]).reshape(1,), det_frame['preds'][i].reshape(-1)])
+                # for det_id, det in enumerate(det_frame):
+                det = self._format_detections(det, frame_idx, label_offset=label_offset)
+                category_id = det['category_id'] if isinstance(det, dict) else det[5]
+                if category_id >= 1: # final coco categories start from 1
+                    detections_formatted_list.append(det)
             #
         #
         coco_ap = 0.0

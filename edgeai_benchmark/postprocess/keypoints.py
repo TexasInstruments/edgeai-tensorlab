@@ -998,15 +998,6 @@ class HumanPoseImageSave:
         self.radius = 5
         self.thickness = 2
         self.font_scale = 0.5
-        self.skeleton = [[16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12],
-                [7, 13], [6, 7], [6, 8], [7, 9], [8, 10], [9, 11], [2, 3],
-                [1, 2], [1, 3], [2, 4], [3, 5], [4, 6], [5, 7]]
-        self.pose_limb_color = self.palette[[
-            0, 0, 0, 0, 7, 7, 7, 9, 9, 9, 9, 9, 16, 16, 16, 16, 16, 16, 16
-        ]]
-        self.pose_kpt_color = self.palette[[
-            16, 16, 16, 16, 16, 9, 9, 9, 9, 9, 9, 0, 0, 0, 0, 0, 0
-        ]]
         self.show_keypoint_weight = False
         self.num_output_frames = num_output_frames
         self.output_frame_idx = 0
@@ -1172,6 +1163,10 @@ class HumanPoseImageSave:
         return img
 
     def __call__(self, result, info_dict):
+        num_kpts = len(info_dict['dataset_info']['categories'][0]['keypoints'])
+        self.skeleton = info_dict['dataset_info']['categories'][0]['skeleton']
+        self.pose_limb_color = self.palette[[16]*len(self.skeleton)]
+        self.pose_kpt_color = self.palette[[16]*num_kpts]
         if self.output_frame_idx >= self.num_output_frames:
             self.output_frame_idx += 1
             return result, info_dict
@@ -1194,8 +1189,9 @@ class HumanPoseImageSave:
                     'score': result['scores'][idx],
                     'area': area,
                 })
+            sigmas = np.array([0.87]*num_kpts)/10.0
 
-            keep = self.oks_nms(pose_results, self.pose_nms_thr, sigmas=None)
+            keep = self.oks_nms(pose_results, self.pose_nms_thr, sigmas=sigmas)
             pose_results = [pose_results[_keep] for _keep in keep]
         else:
             for idx, pred in enumerate(result['preds']):
