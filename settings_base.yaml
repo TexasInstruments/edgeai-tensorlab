@@ -107,5 +107,8 @@ with_udp : True
 # it will add horizontally flipped images in info_dict and run inference over the flipped image also
 flip_test : False
 
+# wehther to apply predifened presets based on target_device
+target_device_preset : True
+
 # enable use of experimental models - these model files may not be available in modelzoo in some cases
 experimental_models : False

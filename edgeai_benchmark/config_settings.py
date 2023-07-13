@@ -40,6 +40,16 @@ class ConfigSettings(config_dict.ConfigDict):
         # variable to pre-load datasets - so that it is not
         # separately created for each config
         self.dataset_cache = None
+        # target device presets
+        preset_dict = None
+        if isinstance(self.target_device_preset, dict):
+            preset_dict = self.target_device_preset
+        elif self.target_device_preset:
+            preset_dict = constants.TARGET_DEVICE_SETTINGS_PRESETS[self.target_device]
+        #
+        if preset_dict:
+            self.update(preset_dict)
+        #
 
     def get_session_name(self, model_type_or_session_name):
         assert model_type_or_session_name in constants.MODEL_TYPES + constants.SESSION_NAMES, \
@@ -200,7 +210,9 @@ class ConfigSettings(config_dict.ConfigDict):
             # this should only affect the mode where the bias is clipped to 16bits (default in TDA4VM).
             #'advanced_options:bias_clipping': 1,
             'advanced_options:bias_calibration': 1,
-            'advanced_options:channel_wise_quantization': 0,
+            # when quantization_scale_type is 4, what is set here is IGNORED and per channel quantization is ALWAYS used
+            # for other values of quantization_scale_type, we can set this to elable per channel quantization
+            #'advanced_options:channel_wise_quantization': 0,
             # mixed precision options - this is just a placeholder
             # output/params names need to be specified according to a particular model
             'advanced_options:output_feature_16bit_names_list':'',

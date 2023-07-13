@@ -32,14 +32,8 @@ TIDL_PLATFORM = "J7"
 
 # TIDL version that is supported by default - however this is not the only version that is supported.
 # This version actually depends on tidl_tools that is being used - so what is populated here is just for guidance.
-TIDL_VERSION = (8,2)
-TIDL_VERSION_STR = '8.2'
-
-# target devices/socs supported. these are marketting names
-TARGET_DEVICE_TDA4VM = 'TDA4VM'
-
-# target device/soc types supported. thee are actual hardware names
-TARGET_DEVICE_TYPE_J721E = 'j721e'
+TIDL_VERSION = (9,0)
+TIDL_VERSION_STR = '9.0'
 
 # data layout constants
 NCHW = 'NCHW'
@@ -73,5 +67,32 @@ SESSION_NAME_ONNXRT = 'onnxrt'
 SESSION_NAMES = [SESSION_NAME_TVMDLR, SESSION_NAME_TFLITERT, SESSION_NAME_ONNXRT]
 SESSION_NAMES_DICT = {SESSION_NAME_TVMDLR:'TVM', SESSION_NAME_TFLITERT:'TFL', SESSION_NAME_ONNXRT:'ONR'}
 
-TARGET_DEVICES_DICT = {TARGET_DEVICE_TDA4VM.lower():{'device_type':'j721e'},
-                       TARGET_DEVICE_TYPE_J721E.lower():{'device_type':'j721e'}}
+# target devices/socs supported.
+TARGET_DEVICE_TDA4VM = 'TDA4VM'
+TARGET_DEVICE_AM62A = 'AM62A'
+TARGET_DEVICE_AM68A = 'AM68A'
+TARGET_DEVICE_AM69A = 'AM69A'
+TARGET_DEVICE_AM62 = 'AM62'
+
+TARGET_DEVICE_SETTINGS_PRESETS = {
+    TARGET_DEVICE_TDA4VM : {
+    },
+    TARGET_DEVICE_AM62A : {
+        'runtime_options': {
+            'advanced_options:quantization_scale_type': 4
+        }
+    },
+    TARGET_DEVICE_AM68A : {
+        'runtime_options': {
+            'advanced_options:quantization_scale_type': 4
+        }
+    },
+    TARGET_DEVICE_AM69A : {
+        'runtime_options': {
+            'advanced_options:quantization_scale_type': 4
+        }
+    },
+    TARGET_DEVICE_AM62 : {
+        'tidl_offload': False,
+    },
+}
