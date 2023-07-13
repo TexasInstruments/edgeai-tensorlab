@@ -182,6 +182,7 @@ class ModelTraining:
 
         # launch the training
         train.run(name=args_yolo['name'],
+                  ckpt=args_yolo['ckpt'],
                   dataset=args_yolo['dataset'],
                   devices=args_yolo['devices'],
                   batch_size=args_yolo['batch-size'],
