@@ -40,6 +40,7 @@ from pycocotools import mask as coco_mask
 from .dataset_base import *
 from . import coco_det
 from . import coco_seg
+from . import coco_kpt_det
 
 
 class ModelMakerDetectionDataset(coco_det.COCODetection):
@@ -376,3 +377,15 @@ class ModelMakerSegmentationDataset(DatasetBase):
         else:
             masks = np.zeros((0, height, width), dtype=np.uint8)
         return masks
+
+
+class ModelMakerKeypointDetectionDataset(coco_kpt_det.COCOKeypointDetection):
+    def __init__(self, num_classes=1, download=False, num_frames=None, name='modelmaker_kpt_det', num_keypoints=None,
+                 annotation_prefix=None, **kwargs):
+        assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
+        path = kwargs['path']
+        split = kwargs['split']
+        annotation_file = os.path.join(path, 'annotations', f'{annotation_prefix}_{split}.json')
+        super().__init__(num_classes=num_classes, image_dir=None, annotation_file=annotation_file,
+                         download=download, num_frames=num_frames, name=name, num_keypoints=num_keypoints, annotation_prefix=annotation_prefix, **kwargs)
+        num_keypoints = self.num_keypoints
