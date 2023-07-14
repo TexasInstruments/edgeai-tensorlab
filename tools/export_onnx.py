@@ -82,7 +82,17 @@ def make_parser():
         default=None,
         nargs=argparse.REMAINDER,
     )
-
+    parser.add_argument(
+        "--train_ann",
+        help="train annotation file name",
+        default=None,
+    )
+    parser.add_argument(
+        "--val_ann",
+        help="val annotation file name",
+        default=None,
+        nargs=argparse.REMAINDER,
+    )
     return parser
 
 
@@ -175,8 +185,8 @@ def main(kwargs=None, exp=None):
         ), "The given dataset is not supported for training!"
         exp.data_set = args.dataset
         exp.num_classes = _NUM_CLASSES[args.dataset]
-        exp.val_ann = args.val_ann
-        exp.train_ann = args.train_ann
+        exp.val_ann = args.val_ann or _VAL_ANN[args.dataset]
+        exp.train_ann = args.train_ann or _TRAIN_ANN[args.dataset]
 
         if args.task is not None:
             assert (

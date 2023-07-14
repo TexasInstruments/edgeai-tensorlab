@@ -18,6 +18,7 @@ class Exp(MyExp):
         self.num_classes = 1
         self.num_kpts = 17
         self.act = "relu"
+        self.default_sigmas = True
 
         # -----------------  testing config ------------------ #
         self.human_pose = True
@@ -36,7 +37,7 @@ class Exp(MyExp):
         if getattr(self, "model", None) is None:
             in_channels = [256, 512, 1024]
             backbone = YOLOPAFPN(self.depth, self.width, in_channels=in_channels, act=self.act, conv_focus=True, split_max_pool_kernel=True)
-            head = YOLOXHeadKPTS(self.num_classes, self.width, in_channels=in_channels, act=self.act, num_kpts=self.num_kpts)
+            head = YOLOXHeadKPTS(self.num_classes, self.width, in_channels=in_channels, act=self.act, num_kpts=self.num_kpts, default_sigmas=self.default_sigmas)
             self.model = YOLOX(backbone, head)
 
         self.model.apply(init_yolo)
@@ -71,7 +72,7 @@ class Exp(MyExp):
                     data_dir=self.data_dir,
                     json_file=self.train_ann,
                     num_kpts=self.num_kpts,
-                    name=self.name[0],
+                    name=(self.img_folder_names[0] if self.img_folder_names else "train2017"),
                     img_size=self.input_size,
                     preproc=TrainTransform(
                         max_labels=50,
@@ -134,12 +135,13 @@ class Exp(MyExp):
     def get_eval_loader(self, batch_size, is_distributed, testdev=False, legacy=False):
         from yolox.data import COCODataset, COCOKPTSDataset, ValTransform
 
+        img_folder_name = self.img_folder_names[1] if self.img_folder_names else ("val2017" if not testdev else "test2017")
         if self.data_set == "coco_kpts":
             valdataset = COCOKPTSDataset(
                 data_dir=self.data_dir,
                 json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
                 num_kpts=self.num_kpts,
-                name=self.name[1] if not testdev else "test2017",
+                name=img_folder_name,
                 img_size=self.test_size,
                 preproc=ValTransform(legacy=legacy),
                 human_pose = self.human_pose
@@ -179,6 +181,7 @@ class Exp(MyExp):
                 human_pose=self.human_pose,
                 visualize=self.visualize,
                 output_dir=output_dir,
-                num_kpts=self.num_kpts
+                num_kpts=self.num_kpts,
+                default_sigmas=self.default_sigmas
             )
         return evaluator

@@ -25,6 +25,7 @@ class YOLOXHeadKPTS(nn.Module):
         act="silu",
         depthwise=False,
         num_kpts = 17,
+        default_sigmas=None
     ):
         """
         Args:
@@ -49,7 +50,10 @@ class YOLOXHeadKPTS(nn.Module):
         self.obj_preds = nn.ModuleList()
         self.kpts_preds = nn.ModuleList()
         self.stems = nn.ModuleList()
-        self.sigmas = torch.tensor([.89, ]*self.num_kpts) / 10.0
+        if default_sigmas is None:
+            raise RuntimeError("default_sigmas must not be None")
+        self.sigmas = torch.tensor([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.07, 1.07, .87, .87, .89, .89]) / 10.0 \
+            if default_sigmas else torch.tensor([.89, ]*self.num_kpts) / 10.0
         Conv = DWConv if depthwise else BaseConv
 
         for i in range(len(in_channels)):
@@ -755,7 +759,7 @@ class YOLOXHeadKPTS(nn.Module):
 
 
     def kpts_loss(self, kpts_preds, kpts_targets, bbox_targets):
-        sigmas = torch.tensor([.89]*self.num_kpts, device=kpts_preds.device) / 10.0
+        sigmas = self.sigmas
         kpts_preds_x, kpts_targets_x = kpts_preds[:, 0::3], kpts_targets[:, 0::2]
         kpts_preds_y, kpts_targets_y = kpts_preds[:, 1::3], kpts_targets[:, 1::2]
         kpts_preds_score = kpts_preds[:, 2::3]

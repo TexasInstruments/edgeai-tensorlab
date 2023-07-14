@@ -33,7 +33,8 @@ class COCOHumanPoseEvaluator:
     """
 
     def __init__(
-        self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False, human_pose=True, visualize=False, output_dir=None, num_kpts=17
+        self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False, human_pose=True, visualize=False, output_dir=None, num_kpts=17,
+            default_sigmas=None
     ):
         """
         Args:
@@ -54,6 +55,10 @@ class COCOHumanPoseEvaluator:
         self.visualize = visualize
         self.output_dir = output_dir
         self.num_kpts = num_kpts
+        self.default_sigmas = default_sigmas
+        if default_sigmas is None:
+            raise RuntimeError("default_sigmas must not be None")
+
 
     def evaluate(
         self,
@@ -233,7 +238,8 @@ class COCOHumanPoseEvaluator:
                 logger.warning("Use standard COCOeval.")
 
             cocoEval = COCOeval(cocoGt, cocoDt, annType[2])
-            cocoEval.params.kpt_oks_sigmas = np.array([0.89]*self.num_kpts)/10.0
+            if self.default_sigmas is False:
+                cocoEval.params.kpt_oks_sigmas = np.array([0.89]*self.num_kpts)/10.0
             cocoEval.evaluate()
             cocoEval.accumulate()
             redirect_string = io.StringIO()

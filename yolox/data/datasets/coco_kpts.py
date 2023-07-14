@@ -27,7 +27,8 @@ class COCOKPTSDataset(Dataset):
         preproc=None,
         cache=False,
         human_pose=True,
-        num_kpts=17
+        num_kpts=17,
+        default_flip_index=True
     ):
         """
         COCO dataset initialization. Annotation data are read into memory by COCO API.
@@ -56,7 +57,7 @@ class COCOKPTSDataset(Dataset):
         self.preproc = preproc
         self.human_pose = human_pose
         self.annotations, self.ids = self._load_coco_annotations()
-        self.flip_index = [i for i in range(num_kpts)]
+        self.flip_index = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15] if default_flip_index else [i for i in range(num_kpts)]
         if cache:
             self._cache_images()
 

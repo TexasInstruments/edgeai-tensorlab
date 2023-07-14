@@ -133,6 +133,17 @@ def make_parser():
         default=None,
         nargs=argparse.REMAINDER,
     )
+    parser.add_argument(
+        "--train_ann",
+        help="train annotation file name",
+        default=None,
+    )
+    parser.add_argument(
+        "--val_ann",
+        help="val annotation file name",
+        default=None,
+        nargs=argparse.REMAINDER,
+    )
     return parser
 
 
@@ -159,8 +170,8 @@ def main(exp, args):
         ), "The given dataset is not supported for training!"
         exp.data_set = args.dataset
         exp.num_classes = _NUM_CLASSES[args.dataset]
-        # exp.val_ann = _VAL_ANN[args.dataset]
-        # exp.train_ann = _TRAIN_ANN[args.dataset]
+        exp.val_ann = args.val_ann or _VAL_ANN[args.dataset]
+        exp.train_ann = args.train_ann or _TRAIN_ANN[args.dataset]
 
         if args.task is not None:
             assert (
@@ -182,6 +193,10 @@ def main(exp, args):
 
 
 def run(**kwargs):
+    '''
+    This run function is not called from inside this repository
+    This is for use from external programs such as the edgeai-modemaker
+    '''
     args = make_parser().parse_args()
     for k, v in kwargs.items():
         setattr(args, k, v)
@@ -192,8 +207,9 @@ def run(**kwargs):
     exp.data_dir = args.data_dir
     exp.train_ann = args.train_ann
     exp.val_ann = args.val_ann
-    exp.name = args.img_folder_names
+    exp.img_folder_names = args.img_folder_names
     exp.flip_prob = 0
+    exp.default_sigmas = False
 
     if args.ckpt is not None:
         exp.od_weights = args.ckpt
