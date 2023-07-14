@@ -45,7 +45,7 @@ class ConfigSettings(config_dict.ConfigDict):
         preset_dict = None
         if isinstance(self.target_device_preset, dict):
             preset_dict = self.target_device_preset
-        elif self.target_device_preset:
+        elif self.target_device_preset and self.target_device:
             preset_dict = constants.TARGET_DEVICE_SETTINGS_PRESETS[self.target_device]
         #
         if preset_dict:
