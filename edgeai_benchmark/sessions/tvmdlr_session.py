@@ -91,7 +91,7 @@ class TVMDLRSession(BaseRTSession):
         #
 
         # Create the TIDL compiler with appropriate parameters
-        compiler = tidl.TIDLCompiler(**self.kwargs['runtime_options'])
+        compiler = tidl.TIDLCompiler(c7x_codegen=0, **self.kwargs['runtime_options'])
 
         artifacts_folder = self.kwargs['artifacts_folder']
         os.makedirs(artifacts_folder, exist_ok=True)
