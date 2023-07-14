@@ -104,7 +104,6 @@ class ONNXRTSession(BaseRTSession):
             if self.kwargs['output_details'] is not None else None
         # run the actual inference
         start_time = time.time()
-        output_keys = ['detections']
         outputs = self.interpreter.run(output_keys, input_dict)
         info_dict['session_invoke_time'] = (time.time() - start_time)
         return outputs, info_dict

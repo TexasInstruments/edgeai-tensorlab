@@ -154,9 +154,9 @@ class ReshapeList():
         self.reshape_list = reshape_list
 
     def __call__(self, tensor_list, info_dict):
-        num_kpts = len(info_dict['dataset_info']['categories'][0]['keypoints'])
-        reshape_list = [(-1, 6+num_kpts*3)]
-        if reshape_list != self.reshape_list:
+        if 'keypoints' in info_dict['dataset_info']['categories'][0]:
+            num_kpts = len(info_dict['dataset_info']['categories'][0]['keypoints'])
+            reshape_list = [(-1, 6+num_kpts*3)]
             self.reshape_list = reshape_list
         if self.reshape_list is not None:
             tensor_list_out = []
