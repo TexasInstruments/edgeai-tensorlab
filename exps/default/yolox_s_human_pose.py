@@ -20,6 +20,7 @@ class Exp(MyExp):
         # -----------------  testing config ------------------ #
         self.human_pose = True
         self.visualize = False #True
+        self.default_sigmas = True
 
     def get_model(self):
         from yolox.models import YOLOX, YOLOPAFPN, YOLOXHeadKPTS
@@ -33,7 +34,7 @@ class Exp(MyExp):
         if getattr(self, "model", None) is None:
             in_channels = [256, 512, 1024]
             backbone = YOLOPAFPN(self.depth, self.width, in_channels=in_channels)
-            head = YOLOXHeadKPTS(self.num_classes, self.width, in_channels=in_channels)
+            head = YOLOXHeadKPTS(self.num_classes, self.width, in_channels=in_channels, default_sigmas=self.default_sigmas)
             self.model = YOLOX(backbone, head)
 
         self.model.apply(init_yolo)

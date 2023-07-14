@@ -16,11 +16,14 @@ class Exp(MyExp):
         self.width = 0.50
         self.exp_name = os.path.split(os.path.realpath(__file__))[1].split(".")[0]
         self.num_classes = 1
+        self.num_kpts = 17
         self.act = "relu"
+        self.default_sigmas = True
 
         # -----------------  testing config ------------------ #
         self.human_pose = True
         self.visualize = False #True
+        self.od_weights = None
 
     def get_model(self):
         from yolox.models import YOLOX, YOLOPAFPN, YOLOXHeadKPTS
@@ -34,11 +37,14 @@ class Exp(MyExp):
         if getattr(self, "model", None) is None:
             in_channels = [256, 512, 1024]
             backbone = YOLOPAFPN(self.depth, self.width, in_channels=in_channels, act=self.act, conv_focus=True, split_max_pool_kernel=True)
-            head = YOLOXHeadKPTS(self.num_classes, self.width, in_channels=in_channels, act=self.act)
+            head = YOLOXHeadKPTS(self.num_classes, self.width, in_channels=in_channels, act=self.act, num_kpts=self.num_kpts, default_sigmas=self.default_sigmas)
             self.model = YOLOX(backbone, head)
 
         self.model.apply(init_yolo)
         self.model.head.initialize_biases(1e-2)
+
+
+
         return self.model
 
     def get_data_loader(
@@ -65,11 +71,14 @@ class Exp(MyExp):
                 dataset = COCOKPTSDataset(
                     data_dir=self.data_dir,
                     json_file=self.train_ann,
+                    num_kpts=self.num_kpts,
+                    name=(self.img_folder_names[0] if self.img_folder_names else "train2017"),
                     img_size=self.input_size,
                     preproc=TrainTransform(
                         max_labels=50,
                         flip_prob=self.flip_prob,
-                        hsv_prob=self.hsv_prob),
+                        hsv_prob=self.hsv_prob,
+                        num_kpts=self.num_kpts),
                     cache=cache_img,
                 )
 
@@ -85,7 +94,9 @@ class Exp(MyExp):
                 object_pose=self.object_pose,
                 human_pose=self.human_pose,
                 flip_index=dataset.flip_index,
+                num_kpts=self.num_kpts,
             ),
+            num_kpts=self.num_kpts,
             degrees=self.degrees,
             translate=self.translate,
             mosaic_scale=self.mosaic_scale,
@@ -124,11 +135,13 @@ class Exp(MyExp):
     def get_eval_loader(self, batch_size, is_distributed, testdev=False, legacy=False):
         from yolox.data import COCODataset, COCOKPTSDataset, ValTransform
 
+        img_folder_name = self.img_folder_names[1] if self.img_folder_names else ("val2017" if not testdev else "test2017")
         if self.data_set == "coco_kpts":
             valdataset = COCOKPTSDataset(
                 data_dir=self.data_dir,
                 json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
-                name="val2017" if not testdev else "test2017",
+                num_kpts=self.num_kpts,
+                name=img_folder_name,
                 img_size=self.test_size,
                 preproc=ValTransform(legacy=legacy),
                 human_pose = self.human_pose
@@ -167,6 +180,8 @@ class Exp(MyExp):
                 testdev=testdev,
                 human_pose=self.human_pose,
                 visualize=self.visualize,
-                output_dir=output_dir
+                output_dir=output_dir,
+                num_kpts=self.num_kpts,
+                default_sigmas=self.default_sigmas
             )
         return evaluator

@@ -26,7 +26,9 @@ class COCOKPTSDataset(Dataset):
         img_size=(416, 416),
         preproc=None,
         cache=False,
-        human_pose=True
+        human_pose=True,
+        num_kpts=17,
+        default_flip_index=True
     ):
         """
         COCO dataset initialization. Annotation data are read into memory by COCO API.
@@ -42,6 +44,7 @@ class COCOKPTSDataset(Dataset):
             data_dir = os.path.join(get_yolox_datadir(), "COCO")
         self.data_dir = data_dir
         self.json_file = json_file
+        self.num_kpts = num_kpts
 
         self.coco = COCO(os.path.join(self.data_dir, "annotations", self.json_file))
         self.ids = self.coco.getImgIds()
@@ -54,7 +57,7 @@ class COCOKPTSDataset(Dataset):
         self.preproc = preproc
         self.human_pose = human_pose
         self.annotations, self.ids = self._load_coco_annotations()
-        self.flip_index = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
+        self.flip_index = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15] if default_flip_index else [i for i in range(num_kpts)]
         if cache:
             self._cache_images()
 
@@ -139,7 +142,7 @@ class COCOKPTSDataset(Dataset):
         if num_objs==0:
             return
         if self.human_pose:
-            res = np.zeros((num_objs, 5+2*17))
+            res = np.zeros((num_objs, 5+2*self.num_kpts))
         else:
             res = np.zeros((num_objs, 5))
 

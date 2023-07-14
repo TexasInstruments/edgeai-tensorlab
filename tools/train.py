@@ -7,6 +7,7 @@ import os
 import random
 import warnings
 from loguru import logger
+import json
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -132,6 +133,17 @@ def make_parser():
         default=None,
         nargs=argparse.REMAINDER,
     )
+    parser.add_argument(
+        "--train_ann",
+        help="train annotation file name",
+        default=None,
+    )
+    parser.add_argument(
+        "--val_ann",
+        help="val annotation file name",
+        default=None,
+        nargs=argparse.REMAINDER,
+    )
     return parser
 
 
@@ -158,8 +170,8 @@ def main(exp, args):
         ), "The given dataset is not supported for training!"
         exp.data_set = args.dataset
         exp.num_classes = _NUM_CLASSES[args.dataset]
-        exp.val_ann = _VAL_ANN[args.dataset]
-        exp.train_ann = _TRAIN_ANN[args.dataset]
+        exp.val_ann = args.val_ann or _VAL_ANN[args.dataset]
+        exp.train_ann = args.train_ann or _TRAIN_ANN[args.dataset]
 
         if args.task is not None:
             assert (
@@ -181,22 +193,40 @@ def main(exp, args):
 
 
 def run(**kwargs):
+    '''
+    This run function is not called from inside this repository
+    This is for use from external programs such as the edgeai-modemaker
+    '''
     args = make_parser().parse_args()
     for k, v in kwargs.items():
         setattr(args, k, v)
     exp = get_exp(args.exp_file, args.name)
-    # exp.merge(args.opts)
-    exp.max_epochs = args.max_epochs
+    exp.max_epoch = args.max_epochs
     exp.output_dir = args.output_dir
+    exp.visualize = args.visualize
+    exp.data_dir = args.data_dir
+    exp.train_ann = args.train_ann
+    exp.val_ann = args.val_ann
+    exp.img_folder_names = args.img_folder_names
+    exp.flip_prob = 0
+    exp.default_sigmas = False
+
+    if args.ckpt is not None:
+        exp.od_weights = args.ckpt
+
+    with open(args.train_ann) as train_ann_fp:
+            train_anno = json.load(train_ann_fp)
+            categories = train_anno['categories']
+            exp.num_kpts = len(categories[0]['keypoints'])
 
     if not args.experiment_name:
         args.experiment_name = ''
 
-    num_gpu = get_num_devices() if args.devices is None else args.devices
-    assert num_gpu <= get_num_devices()
-
     if args.workers is not None:
         exp.data_num_workers = args.workers
+
+    num_gpu = get_num_devices() if args.devices is None else args.devices
+    assert num_gpu <= get_num_devices()
 
     dist_url = "auto" if args.dist_url is None else args.dist_url
 

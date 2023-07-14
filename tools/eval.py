@@ -139,6 +139,12 @@ def make_parser():
         action="store_true",
         help="Draw bounding box/humanpose/6d_pose_cuboids to visualize pose"
     )
+    parser.add_argument(
+        "--val_ann",
+        help="val annotation file name",
+        default=None,
+        nargs=argparse.REMAINDER,
+    )
     return parser
 
 
@@ -174,7 +180,7 @@ def main(exp, args, num_gpu):
         ), "The given dataset is not supported for evaluation!"
         exp.data_set = args.dataset
         exp.num_classes = _NUM_CLASSES[args.dataset]
-        exp.val_ann = _VAL_ANN[args.dataset]
+        exp.val_ann = args.val_ann or _VAL_ANN[args.dataset]
     if args.task is not None:
         assert (
             args.task in _SUPPORTED_TASKS[args.dataset] if args.dataset is not None else args.task == "2dod"
