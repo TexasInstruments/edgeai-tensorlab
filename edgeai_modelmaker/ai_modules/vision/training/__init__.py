@@ -63,9 +63,11 @@ if constants.PLUGINS_ENABLE_GPL:
 #
 
 # edgeai-mmpose
-# from . import edgeai_mmpose
-# _model_descriptions.update(edgeai_mmpose.keypoint_detection.get_model_descriptions())
-# _training_module_descriptions.update({'edgeai_mmpose':[constants.TASK_TYPE_KEYPOINT_DETECTION]})
+# if constants.PLUGINS_ENABLE_GPL:
+    # from . import edgeai_mmpose
+    # _model_descriptions.update(edgeai_mmpose.keypoint_detection.get_model_descriptions())
+    # _training_module_descriptions.update({'edgeai_mmpose':[constants.TASK_TYPE_KEYPOINT_DETECTION]})
+#
 
 # edgeai-yolox
 from . import edgeai_yolox

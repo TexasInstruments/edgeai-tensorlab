@@ -48,8 +48,8 @@ training:
     enable: True #False
     # Keypoint Detection model chosen can be changed here if needed
     # Available models:
-    # 1. yolox-s-human-pose-ti-lite
-    model_name: 'yolox-s-human-pose-ti-lite'
+    # 1. yolox_s_keypoint
+    model_name: 'yolox_s_keypoint'
     training_epochs: 15
     batch_size: 16 #16
     learning_rate: 0.001
@@ -59,5 +59,3 @@ compilation:
     # enable/disable compilation
     enable: True #False
     tensor_bits: 8 #16 #32
-    calibration_frames: 1
-    calibration_iterations: 1

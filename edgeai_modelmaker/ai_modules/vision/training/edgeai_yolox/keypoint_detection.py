@@ -45,13 +45,13 @@ www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_0
 
 
 _model_descriptions = {
-    'yolox-s-human-pose-ti-lite': dict(
+    'yolox_s_keypoint': dict(
         common=dict(
             task_type=constants.TASK_TYPE_KEYPOINT_DETECTION,
         ),
         training=dict(
             training_backend='edgeai_yolox',
-            model_name='yolox-s-human-pose-ti-lite',
+            model_name='yolox_s_keypoint',
             model_training_id='yolox-s-human-pose-ti-lite',
             model_architecture='yolox',
             input_resize=640,
