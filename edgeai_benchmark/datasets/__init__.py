@@ -156,7 +156,7 @@ def get_datasets(settings, download=False, dataset_list=None):
     if check_dataset_load(settings, DATASET_CATEGORY_IMAGENET) and (DATASET_CATEGORY_IMAGENET in dataset_list):
         dataset_variant = settings.dataset_type_dict[DATASET_CATEGORY_IMAGENET] if \
             settings.dataset_type_dict is not None else DATASET_CATEGORY_IMAGENET
-        print(f"lodaing dataset category:{DATASET_CATEGORY_IMAGENET} variant:{dataset_variant}")
+        print(utils.log_color("\nINFO", f"lodaing dataset", f"category:{DATASET_CATEGORY_IMAGENET} variant:{dataset_variant}"))
         # dataset settings
         imagenet_dataset_dict = dset_info_dict[dataset_variant]
         ImageNetDataSetType = imagenet_dataset_dict['type']
@@ -182,7 +182,7 @@ def get_datasets(settings, download=False, dataset_list=None):
         dataset_cache[DATASET_CATEGORY_IMAGENET]['input_dataset'] = ImageNetDataSetType(**imagenet_cls_val_cfg, download=False)
     #
     if check_dataset_load(settings, DATASET_CATEGORY_COCOKPTS) and (DATASET_CATEGORY_COCOKPTS in dataset_list):
-        print(f"lodaing dataset category:{DATASET_CATEGORY_COCOKPTS} variant:{DATASET_CATEGORY_COCOKPTS}")
+        print(utils.log_color("\nINFO", f"lodaing dataset", f"category:{DATASET_CATEGORY_COCOKPTS} variant:{DATASET_CATEGORY_COCOKPTS}"))
         filter_imgs = True
         coco_kpts_calib_cfg = dict(
             path=f'{settings.datasets_path}/coco',
@@ -203,7 +203,7 @@ def get_datasets(settings, download=False, dataset_list=None):
         dataset_cache[DATASET_CATEGORY_COCOKPTS]['input_dataset'] = COCOKeypoints(**coco_kpts_val_cfg, download=False)
     #
     if check_dataset_load(settings, DATASET_CATEGORY_YCBV) and (DATASET_CATEGORY_YCBV in dataset_list):
-        print(f"lodaing dataset category:{DATASET_CATEGORY_YCBV} variant:{DATASET_CATEGORY_YCBV}")
+        print(utils.log_color("\nINFO", f"lodaing dataset", f"category:{DATASET_CATEGORY_YCBV} variant:{DATASET_CATEGORY_YCBV}"))
         filter_imgs = True
         ycbv_calib_cfg = dict(
             path=f'{settings.datasets_path}/ycbv',
@@ -224,7 +224,7 @@ def get_datasets(settings, download=False, dataset_list=None):
         dataset_cache[DATASET_CATEGORY_YCBV]['input_dataset'] = YCBV(**ycbv_val_cfg, download=False)
     #
     if check_dataset_load(settings, DATASET_CATEGORY_COCO) and (DATASET_CATEGORY_COCO in dataset_list):
-        print(f"lodaing dataset category:{DATASET_CATEGORY_COCO} variant:{DATASET_CATEGORY_COCO}")
+        print(utils.log_color("\nINFO", f"lodaing dataset", f"category:{DATASET_CATEGORY_COCO} variant:{DATASET_CATEGORY_COCO}"))
         coco_det_calib_cfg = dict(
             path=f'{settings.datasets_path}/coco',
             split='val2017',
@@ -241,7 +241,7 @@ def get_datasets(settings, download=False, dataset_list=None):
         dataset_cache[DATASET_CATEGORY_COCO]['input_dataset'] = COCODetection(**coco_det_val_cfg, download=False)
     #
     if check_dataset_load(settings, DATASET_CATEGORY_WIDERFACE) and (DATASET_CATEGORY_WIDERFACE in dataset_list):
-        print(f"lodaing dataset category:{DATASET_CATEGORY_WIDERFACE} variant:{DATASET_CATEGORY_WIDERFACE}")
+        print(utils.log_color("\nINFO", f"lodaing dataset", f"category:{DATASET_CATEGORY_WIDERFACE} variant:{DATASET_CATEGORY_WIDERFACE}"))
         widerface_det_calib_cfg = dict(
             path=f'{settings.datasets_path}/widerface',
             split='val',
@@ -258,7 +258,7 @@ def get_datasets(settings, download=False, dataset_list=None):
         dataset_cache[DATASET_CATEGORY_WIDERFACE]['input_dataset'] = WiderFaceDetection(**widerface_det_val_cfg, download=False)
     #
     if check_dataset_load(settings, DATASET_CATEGORY_COCOSEG21) and (DATASET_CATEGORY_COCOSEG21 in dataset_list):
-        print(f"lodaing dataset category:{DATASET_CATEGORY_COCOSEG21} variant:{DATASET_CATEGORY_COCOSEG21}")
+        print(utils.log_color("\nINFO", f"lodaing dataset", f"category:{DATASET_CATEGORY_COCOSEG21} variant:{DATASET_CATEGORY_COCOSEG21}"))
         cocoseg21_calib_cfg = dict(
             path=f'{settings.datasets_path}/coco',
             split='val2017',
@@ -275,7 +275,7 @@ def get_datasets(settings, download=False, dataset_list=None):
         dataset_cache[DATASET_CATEGORY_COCOSEG21]['input_dataset'] = COCOSegmentation(**cocoseg21_val_cfg, download=False)
     #
     if check_dataset_load(settings, DATASET_CATEGORY_ADE20K) and (DATASET_CATEGORY_ADE20K in dataset_list):
-        print(f"lodaing dataset category:{DATASET_CATEGORY_ADE20K} variant:{DATASET_CATEGORY_ADE20K}")
+        print(utils.log_color("\nINFO", f"lodaing dataset", f"category:{DATASET_CATEGORY_ADE20K} variant:{DATASET_CATEGORY_ADE20K}"))
         ade20k_seg_calib_cfg = dict(
             path=f'{settings.datasets_path}/ADEChallengeData2016',
             split='validation',
@@ -292,7 +292,7 @@ def get_datasets(settings, download=False, dataset_list=None):
         dataset_cache[DATASET_CATEGORY_ADE20K]['input_dataset'] = ADE20KSegmentation(**ade20k_seg_val_cfg, download=False)
     #
     if check_dataset_load(settings, DATASET_CATEGORY_ADE20K32) and (DATASET_CATEGORY_ADE20K32 in dataset_list):
-        print(f"lodaing dataset category:{DATASET_CATEGORY_ADE20K32} variant:{DATASET_CATEGORY_ADE20K32}")
+        print(utils.log_color("\nINFO", f"lodaing dataset", f"category:{DATASET_CATEGORY_ADE20K32} variant:{DATASET_CATEGORY_ADE20K32}"))
         ade20k_seg_calib_cfg = dict(
             path=f'{settings.datasets_path}/ADEChallengeData2016',
             split='validation',
@@ -309,7 +309,7 @@ def get_datasets(settings, download=False, dataset_list=None):
         dataset_cache[DATASET_CATEGORY_ADE20K32]['input_dataset'] = ADE20KSegmentation(**ade20k_seg_val_cfg, num_classes=32, download=False)
     #
     if check_dataset_load(settings, DATASET_CATEGORY_VOC2012) and (DATASET_CATEGORY_VOC2012 in dataset_list):
-        print(f"lodaing dataset category:{DATASET_CATEGORY_VOC2012} variant:{DATASET_CATEGORY_VOC2012}")
+        print(utils.log_color("\nINFO", f"lodaing dataset", f"category:{DATASET_CATEGORY_VOC2012} variant:{DATASET_CATEGORY_VOC2012}"))
         voc_seg_calib_cfg = dict(
             path=f'{settings.datasets_path}/VOCdevkit/VOC2012',
             split='val',
@@ -326,7 +326,7 @@ def get_datasets(settings, download=False, dataset_list=None):
         dataset_cache[DATASET_CATEGORY_VOC2012]['input_dataset'] = VOC2012Segmentation(**voc_seg_val_cfg, download=False)
     #
     if check_dataset_load(settings, DATASET_CATEGORY_NYUDEPTHV2) and (DATASET_CATEGORY_NYUDEPTHV2 in dataset_list):
-        print(f"lodaing dataset category:{DATASET_CATEGORY_NYUDEPTHV2} variant:{DATASET_CATEGORY_NYUDEPTHV2}")
+        print(utils.log_color("\nINFO", f"lodaing dataset", f"category:{DATASET_CATEGORY_NYUDEPTHV2} variant:{DATASET_CATEGORY_NYUDEPTHV2}"))
         filter_imgs = False
         nyudepthv2_calib_cfg = dict(
             path=f'{settings.datasets_path}/nyudepthv2',
@@ -346,7 +346,7 @@ def get_datasets(settings, download=False, dataset_list=None):
     #
 
     if check_dataset_load(settings, DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD) and (DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD in dataset_list):
-        print(f"lodaing dataset category:{DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD} variant:{DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD}")
+        print(utils.log_color("\nINFO", f"lodaing dataset", f"category:{DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD} variant:{DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD}"))
         dataset_calib_cfg = dict(
             path=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd',
             split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/train_img_gt_pair.txt',
@@ -374,7 +374,7 @@ def get_datasets(settings, download=False, dataset_list=None):
     # put it under the condition of experimental_models
     if settings.experimental_models:
         if check_dataset_load(settings, DATASET_CATEGORY_CITYSCAPES) and (DATASET_CATEGORY_CITYSCAPES in dataset_list):
-            print(f"lodaing dataset category:{DATASET_CATEGORY_CITYSCAPES} variant:{DATASET_CATEGORY_CITYSCAPES}")
+            print(utils.log_color("\nINFO", f"lodaing dataset", f"category:{DATASET_CATEGORY_CITYSCAPES} variant:{DATASET_CATEGORY_CITYSCAPES}"))
             cityscapes_seg_calib_cfg = dict(
                 path=f'{settings.datasets_path}/cityscapes',
                 split='val',
@@ -391,7 +391,7 @@ def get_datasets(settings, download=False, dataset_list=None):
             dataset_cache[DATASET_CATEGORY_CITYSCAPES]['input_dataset'] = CityscapesSegmentation(**cityscapes_seg_val_cfg, download=False)
         #
         if check_dataset_load(settings, DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS) and (DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS in dataset_list):
-            print(f"lodaing dataset category:{DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS} variant:{DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS}")
+            print(utils.log_color("\nINFO", f"lodaing dataset", f"category:{DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS} variant:{DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS}"))
             dataset_calib_cfg = dict(
                 path=f'{settings.datasets_path}/kitti_3dod/',
                 split='training',
@@ -418,7 +418,7 @@ def get_datasets(settings, download=False, dataset_list=None):
             #
         #
         if check_dataset_load(settings, DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS) and (DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS in dataset_list):
-            print(f"lodaing dataset category:{DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS} variant:{DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS}")
+            print(utils.log_color("\nINFO", f"lodaing dataset", f"category:{DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS} variant:{DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS}"))
             dataset_calib_cfg = dict(
                 path=f'{settings.datasets_path}/kitti_3dod/',
                 split='training',
@@ -446,7 +446,7 @@ def get_datasets(settings, download=False, dataset_list=None):
         #
 
         if check_dataset_load(settings, DATASET_CATEGORY_KITTI_2015) and (DATASET_CATEGORY_KITTI_2015 in dataset_list):
-            print(f"lodaing dataset category:{DATASET_CATEGORY_KITTI_2015} variant:{DATASET_CATEGORY_KITTI_2015}")
+            print(utils.log_color("\nINFO", f"lodaing dataset", f"category:{DATASET_CATEGORY_KITTI_2015} variant:{DATASET_CATEGORY_KITTI_2015}"))
             dataset_calib_cfg = dict(
                 path=f'{settings.datasets_path}/kitti_2015/',
                 split='training',                
