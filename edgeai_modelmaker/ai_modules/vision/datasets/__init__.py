@@ -78,7 +78,7 @@ class DatasetHandling:
         for split_idx, split_name in enumerate(self.params.dataset.split_names):
             self.params.dataset.data_path_splits.append(os.path.join(self.params.dataset.dataset_path, split_name))
             self.params.dataset.annotation_path_splits.append(os.path.join(self.params.dataset.dataset_path, self.params.dataset.annotation_dir,
-                f'{self.params.dataset.annotation_prefix}_{split_name}.json'))
+                             f'{self.params.dataset.annotation_prefix}_{split_name}.json'))
         #
 
     def clear(self):
@@ -87,8 +87,8 @@ class DatasetHandling:
     def run(self):
         max_num_files = self.get_max_num_fies()
         # dataset reading/splitting
-        if isinstance(self.params.dataset.input_data_path, (list,tuple)) and \
-            isinstance(self.params.dataset.input_annotation_path, (list,tuple)):
+        if isinstance(self.params.dataset.input_data_path, (list, tuple)) and \
+                isinstance(self.params.dataset.input_annotation_path, (list, tuple)):
             # dataset splits are directly given
             dataset_splits = dict()
             for split_idx, split_name in enumerate(self.params.dataset.split_names):
@@ -96,7 +96,7 @@ class DatasetHandling:
                     self.params.dataset.input_data_path[split_idx], self.params.dataset.input_annotation_path[split_idx],
                     annotation_format=self.params.dataset.annotation_format)
                 dataset_splits[split_name] = dataset_utils.dataset_split_limit(dataset_splits[split_name],
-                    max_num_files[split_idx])
+                                                                               max_num_files[split_idx])
                 dataset_utils.dataset_split_write(
                     self.params.dataset.input_data_path[split_idx], dataset_splits[split_name],
                     self.params.dataset.data_path_splits[split_idx],
@@ -105,6 +105,18 @@ class DatasetHandling:
                     self.params.dataset.input_data_path[split_idx], dataset_splits[split_name],
                     self.params.dataset.data_path_splits[split_idx], self.params.dataset.annotation_path_splits[split_idx])
             #
+        elif self.params.dataset.input_data_path is not None and isinstance(self.params.dataset.input_annotation_path, (list, tuple)):
+            dataset_splits = dict()
+            # Make the locally available dataset symlinks
+            download_root = os.path.join(self.params.common.download_path, 'datasets')
+            _, _, input_data_path = utils.download_file(self.params.dataset.input_data_path, download_root, self.params.dataset.extract_path)
+            self.params.dataset.input_data_path = input_data_path
+            # Loading datasets splits
+            for split_idx, split_name in enumerate(self.params.dataset.split_names):
+                dataset_splits[split_name] = dataset_utils.dataset_load(self.params.common.task_type,
+                                                                        self.params.dataset.input_data_path[split_idx],
+                                                                        self.params.dataset.input_annotation_path[split_idx],
+                                                                        annotation_format=self.params.dataset.annotation_format)
         else:
             if self.params.dataset.input_data_path is not None and self.params.dataset.input_annotation_path is not None:
                 # data (images) folder and annotation folder are given
@@ -113,19 +125,19 @@ class DatasetHandling:
                     annotation_format=self.params.dataset.annotation_format)
                 # split the dataset into train/val
                 dataset_splits = dataset_utils.dataset_split(dataset_store,
-                    self.params.dataset.split_factor, self.params.dataset.split_names)
+                                                             self.params.dataset.split_factor, self.params.dataset.split_names)
             elif self.params.dataset.input_data_path is not None:
                 input_annotation_path = os.path.join(self.params.dataset.dataset_path, self.params.dataset.annotation_dir,
                                                      f'{self.params.dataset.annotation_prefix}.json')
                 download_root = os.path.join(self.params.common.download_path, 'datasets')
                 _, _, input_data_path = utils.download_file(self.params.dataset.input_data_path,
-                            download_root, self.params.dataset.extract_path)
+                                                            download_root, self.params.dataset.extract_path)
                 with open(input_annotation_path) as afp:
                     dataset_store = json.load(afp)
                 #
                 # split the dataset into train/val
                 dataset_splits = dataset_utils.dataset_split(dataset_store, self.params.dataset.split_factor,
-                    self.params.dataset.split_names)
+                                                             self.params.dataset.split_names)
                 self.params.dataset.input_data_path, self.params.dataset.input_annotation_path = input_data_path, input_annotation_path
             elif self.params.dataset.dataset_name in get_datasets_list(self.params.common.task_type):
                 dataset_backend = get_target_module(self.params.dataset.dataset_name)
@@ -136,14 +148,14 @@ class DatasetHandling:
                 else:
                     dataset_download_paths = dataset_backend.dataset_paths(self.params, self.params.common.project_path)
                 #
-                input_images_path,self.params.dataset.input_annotation_path = dataset_download_paths
+                input_images_path, self.params.dataset.input_annotation_path = dataset_download_paths
                 self.params.dataset.input_data_path = input_images_path.replace(self.params.dataset.data_dir, '')
                 with open(self.params.dataset.input_annotation_path) as afp:
                     dataset_store = json.load(afp)
                 #
                 # split the dataset into train/val
                 dataset_splits = dataset_utils.dataset_split(dataset_store,
-                    self.params.dataset.split_factor, self.params.dataset.split_names)
+                                                             self.params.dataset.split_factor, self.params.dataset.split_names)
             else:
                 assert False, 'invalid dataset details'
             #
@@ -151,7 +163,7 @@ class DatasetHandling:
             for split_idx, split_name in enumerate(dataset_splits):
                 input_images_path = os.path.join(self.params.dataset.input_data_path, self.params.dataset.data_dir)
                 dataset_splits[split_name] = dataset_utils.dataset_split_limit(dataset_splits[split_name],
-                    max_num_files[split_idx])
+                                                                               max_num_files[split_idx])
                 dataset_utils.dataset_split_write(
                     input_images_path, dataset_splits[split_name],
                     self.params.dataset.data_path_splits[split_idx],
@@ -165,16 +177,16 @@ class DatasetHandling:
         if self.params.dataset.max_num_files is not None:
             print(f'max_num_files is set to: {self.params.dataset.max_num_files}')
             print(f'dataset split sizes are limited to:', \
-              {split_name:len(dataset_split['images']) for split_name, dataset_split in dataset_splits.items()})
+                  {split_name: len(dataset_split['images']) for split_name, dataset_split in dataset_splits.items()})
         #
 
     def get_max_num_fies(self):
-        if isinstance(self.params.dataset.max_num_files, (list,tuple)):
+        if isinstance(self.params.dataset.max_num_files, (list, tuple)):
             max_num_files = self.params.dataset.max_num_files
         elif isinstance(self.params.dataset.max_num_files, int):
             assert (0.0 < self.params.dataset.split_factor < 1.0), 'split_factor must be between 0 and 1.0'
             assert len(self.params.dataset.split_names) > 1, 'split_names must have at least two entries'
-            max_num_files = [None]*len(self.params.dataset.split_names)
+            max_num_files = [None] * len(self.params.dataset.split_names)
             for split_id, split_name in enumerate(self.params.dataset.split_names):
                 if split_id == 0:
                     max_num_files[split_id] = round(self.params.dataset.max_num_files * self.params.dataset.split_factor)
@@ -185,7 +197,7 @@ class DatasetHandling:
         else:
             warnings.warn('unrecognized value for max_num_files - must be int, list or tuple')
             assert len(self.params.dataset.split_names) > 1, 'split_names must have at least two entries'
-            max_num_files = [None]*len(self.params.dataset.split_names)
+            max_num_files = [None] * len(self.params.dataset.split_names)
         #
         return max_num_files
 

@@ -59,6 +59,7 @@ TARGET_SOC=${1:-TDA4VM}
 export PYTHONPATH=.:$PYTHONPATH
 export TIDL_TOOLS_PATH="../edgeai-benchmark/tools/${TARGET_SOC}/tidl_tools"
 export LD_LIBRARY_PATH=${TIDL_TOOLS_PATH}
+#export PYTHONPATH=../edgeai-mmpose/projects/yolox-pose:$PYTHONPATH
 
 #################################################################################
 # print some settings

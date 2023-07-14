@@ -37,7 +37,6 @@ from . import datasets
 from . import training
 from . import compilation
 from .params import init_params
-from ... import version
 
 
 def _get_paretto_front_best(xy_list, x_index=0, y_index=1, inverse_relaionship=False):

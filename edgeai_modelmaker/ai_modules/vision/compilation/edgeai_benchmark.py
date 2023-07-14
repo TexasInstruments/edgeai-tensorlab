@@ -90,11 +90,29 @@ class ModelCompilation():
                 ]
             }
         elif self.params.common.task_type == constants.TASK_TYPE_SEGMENTATION:
+            # TODO: this needs to be corrected for segmentation
             log_summary_regex = {
                 'js': [
-                    progress_regex,
-                    {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Accuracy of Compilation', 'unit':'MeanIoU%', 'value':None,
-                     'regex':[{'op':'search', 'pattern':r'benchmark results.*?accuracy_mean_iou\%.*?\:\s+(?<accuracy>\d+\.\d+)', 'group':1, 'dtype':'float', 'case_sensitive':False, 'scale_factor':1}],
+                    {'type':'Progress', 'name':'Progress', 'description':'Progress of Compilation', 'unit':'Frame', 'value':None,
+                     'regex':[{'op':'search', 'pattern':r'infer\s+\:\s+.*?\s+(?<infer>\d+)', 'group':1}],
+                     },
+                    {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Accuracy of Compilation', 'unit':'AP50%', 'value':None,
+                     'regex':[{'op':'search', 'pattern':r'benchmark results.*?accuracy_ap50\%.*?\:\s+(?<accuracy>\d+\.\d+)', 'group':1, 'dtype':'float', 'case_sensitive':False, 'scale_factor':1}],
+                     },
+                    {'type':'Completed', 'name':'Completed', 'description':'Completion of Compilation', 'unit':None, 'value':None,
+                     'regex':[{'op':'search', 'pattern':r'success\:.*compilation\s+completed', 'group':1, 'dtype':'str', 'case_sensitive':False}],
+                     },
+                ]
+            }
+        elif self.params.common.task_type == constants.TASK_TYPE_KEYPOINT_DETECTION:
+            # TODO: this needs to be corrected for keypoint detection
+            log_summary_regex = {
+                'js': [
+                    {'type':'Progress', 'name':'Progress', 'description':'Progress of Compilation', 'unit':'Frame', 'value':None,
+                     'regex':[{'op':'search', 'pattern':r'infer\s+\:\s+.*?\s+(?<infer>\d+)', 'group':1}],
+                     },
+                    {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Accuracy of Compilation', 'unit':'AP50%', 'value':None,
+                     'regex':[{'op':'search', 'pattern':r'benchmark results.*?accuracy_ap50\%.*?\:\s+(?<accuracy>\d+\.\d+)', 'group':1, 'dtype':'float', 'case_sensitive':False, 'scale_factor':1}],
                      },
                     {'type':'Completed', 'name':'Completed', 'description':'Completion of Compilation', 'unit':None, 'value':None,
                      'regex':[{'op':'search', 'pattern':r'success\:.*compilation\s+completed', 'group':1, 'dtype':'str', 'case_sensitive':False}],
@@ -135,6 +153,8 @@ class ModelCompilation():
             dataset_loader = edgeai_benchmark.datasets.ModelMakerClassificationDataset
         elif self.params.common.task_type == 'segmentation':
             dataset_loader = edgeai_benchmark.datasets.ModelMakerSegmentationDataset
+        elif self.params.common.task_type == 'keypoint_detection':
+            dataset_loader = edgeai_benchmark.datasets.ModelMakerKeypointDetectionDataset
         else:
             dataset_loader = None
         #
@@ -142,14 +162,14 @@ class ModelCompilation():
         # can use any suitable data loader provided in datasets folder of edgeai-benchmark or write another
         calib_dataset = dataset_loader(
             path=self.params.dataset.dataset_path,
-            split='train',
+            split=self.params.dataset.split_names[0],
             shuffle=True,
             num_frames=self.params.compilation.calibration_frames, # num_frames is not critical here,
             annotation_prefix=self.params.dataset.annotation_prefix
         )
         val_dataset = dataset_loader(
             path=self.params.dataset.dataset_path,
-            split='val',
+            split=self.params.dataset.split_names[1],
             shuffle=False, # can be set to True as well, if needed
             num_frames=self.params.compilation.num_frames, # this num_frames is important for accuracy calculation
             annotation_prefix=self.params.dataset.annotation_prefix
@@ -160,6 +180,7 @@ class ModelCompilation():
         self.work_dir, self.package_dir = self._get_base_dirs()
 
         # it may be easier to get the existing config and modify the aspects that need to be changed
+        self.settings['num_kpts'] = calib_dataset.num_keypoints
         pipeline_configs = edgeai_benchmark.tools.select_configs(self.settings, self.work_dir)
         num_pipeline_configs = len(pipeline_configs)
         assert num_pipeline_configs == 1, f'specify a unique model name in edgeai-benchmark. found {num_pipeline_configs} configs'

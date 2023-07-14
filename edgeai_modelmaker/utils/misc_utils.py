@@ -209,7 +209,7 @@ def sort_annotations(json_file_path, preference_order=None, annotation_prefix="r
     #
 
     # sorting in descending order of JSON annotations based on new category_ids
-    # dataset_store['annotations'].sort(key=lambda x: x['category_id'])
+    dataset_store['annotations'].sort(key=lambda x: x['category_id'])
 
     # updating the annotations JSON file
     with open(json_file_path, "w") as afp:
