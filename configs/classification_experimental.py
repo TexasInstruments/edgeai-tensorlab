@@ -89,7 +89,7 @@ def get_configs(settings, work_dir):
         # 'cl-6508':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(),
         #     session=onnx_session_type(**sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir),
-        #         runtime_options=settings.runtime_options_onnx_qat(),
+        #         runtime_options=settings.runtime_options_onnx_p2_qat(),
         #         model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_qat-p2_20210507.onnx'),
         #     model_info=dict(metric_reference={'accuracy_top1%':71.614})
         # ),

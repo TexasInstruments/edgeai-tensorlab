@@ -28,6 +28,8 @@
 
 # TIDL platform to be used for compilation
 # This also depends on the tidl_tools that is installed.
+import enum
+
 TIDL_PLATFORM = "J7"
 
 # TIDL version that is supported by default - however this is not the only version that is supported.
@@ -74,47 +76,33 @@ TARGET_DEVICE_AM68A = 'AM68A'
 TARGET_DEVICE_AM69A = 'AM69A'
 TARGET_DEVICE_AM62 = 'AM62'
 
+class QUANTScaleType(enum.Enum):
+    QUANT_SCALE_TYPE_NP2 = 0
+    QUANT_SCALE_TYPE_P2 = 1
+    QUANT_SCALE_TYPE_P2_QAT = 1
+    QUANT_SCALE_TYPE_UNUSED = 2
+    # these are not supported in TDA4VM, but for other SoCs, these are the recommended modes
+    QUANT_SCALE_TYPE_NP2_PERCHAN_QAT = 3
+    QUANT_SCALE_TYPE_NP2_PERCHAN = 4
 
-# runtime_options can be a list to be used for no QAT and QAT scenarios based on is_qat flag
+# runtime_options preferred - may not blindly apply for qat models
 TARGET_DEVICE_SETTINGS_PRESETS = {
     TARGET_DEVICE_TDA4VM : {
-        'runtime_options': [
-            {
-            },
-            {
-                'advanced_options:quantization_scale_type': 2 # is_qat = True
-            }
-        ]
     },
     TARGET_DEVICE_AM62A : {
-        'runtime_options': [
-            {
-                'advanced_options:quantization_scale_type': 4 # is_qat = False
-            },
-            {
-                'advanced_options:quantization_scale_type': 2 # is_qat = True
-            }
-        ]
+        'runtime_options': {
+            'advanced_options:quantization_scale_type': 4
+        }
     },
     TARGET_DEVICE_AM68A : {
-        'runtime_options': [
-            {
-                'advanced_options:quantization_scale_type': 4 # is_qat = False
-            },
-            {
-                'advanced_options:quantization_scale_type': 2 # is_qat = True
-            }
-        ]
+        'runtime_options': {
+            'advanced_options:quantization_scale_type': 4
+        }
     },
     TARGET_DEVICE_AM69A : {
-        'runtime_options': [
-            {
-                'advanced_options:quantization_scale_type': 4 # is_qat = False
-            },
-            {
-                'advanced_options:quantization_scale_type': 2 # is_qat = True
-            }
-        ]
+        'runtime_options': {
+            'advanced_options:quantization_scale_type': 4
+        }
     },
     TARGET_DEVICE_AM62 : {
         'tidl_offload': False,

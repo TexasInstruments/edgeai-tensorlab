@@ -60,7 +60,7 @@ echo "-------------------------------------------------------------------"
 
 #echo "------------------------------------------------------------------"
 ## run few selected models with other runtimes
-#python3 ./scripts/benchmark_modelzoo.py ${settings_file} \
+#python3 ./scripts/benchmark_modelzoo.py ${settings_file}  --target_device ${TARGET_SOC} \
 #        --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
 #        --task_selection classification segmentation \
 #        --model_selection onnx
@@ -68,5 +68,5 @@ echo "-------------------------------------------------------------------"
 
 echo "-------------------------------------------------------------------"
 # generate the final report with results for all the artifacts generated
-python3 ./scripts/generate_report.py ${settings_file}
+python3 ./scripts/generate_report.py ${settings_file} --target_device ${TARGET_SOC}
 echo "-------------------------------------------------------------------"
