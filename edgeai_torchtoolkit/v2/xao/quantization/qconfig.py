@@ -196,9 +196,10 @@ def adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type):
     #
     for pname, pmodule in list(model.named_modules()):
         for cname, cmodule in list(pmodule.named_children()):
-            if (pmodule is input_conv_module) or (pmodule is depthwise_conv_module) or \
-                    (pmodule is output_linear_module):
+            if (pmodule is input_conv_module) or (pmodule is output_linear_module):
                 _apply_qconfig(pmodule, cmodule, cname, qconfig_aux, current_device)
+            # elif pmodule is depthwise_conv_module:
+            #     _apply_qconfig(pmodule, cmodule, cname, qconfig_aux, current_device)
             elif cmodule is input_fake_quant_module:
                 _apply_qconfig(pmodule, cmodule, cname, qconfig_aux, current_device)
             #
