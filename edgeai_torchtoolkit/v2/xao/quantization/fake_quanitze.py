@@ -11,30 +11,49 @@ from ....v1 import xnn
 class AdaptiveFakeQuantize(FakeQuantize):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.adaptive_quant_bypass = 0.0
+        self.detect_change = False
+        self.smooth_change = True
+        self.delta_change = 0.0
+        self.delta_binned_history = torch.zeros((1,))
+        self.history_available = False
+        self.momentum = 0.9
+        self.compact_mode = False
+        self.compact_bins = 32
 
-    def set_adaptive_params(self, adaptive_quant_bypass=None):
-        if adaptive_quant_bypass is not None:
-            self.adaptive_quant_bypass = adaptive_quant_bypass
+    def set_adaptive_params(self, detect_change=None, compact_mode=None, smooth_change=None):
+        if detect_change is not None:
+            self.detect_change = detect_change
+        #
+        if compact_mode is not None:
+            self.compact_mode = compact_mode
+        #
+        if smooth_change is not None:
+            self.smooth_change = smooth_change
+        #
 
     def forward(self, X):
         x_q = super().forward(X)
-        if self.adaptive_quant_bypass:
-            # min_val, max_val = self.activation_post_process.min_val, self.activation_post_process.max_val
-            # if min_val.ndim > 0:
-            #     if X.ndim == 2:
-            #         min_val = min_val.unsqueeze(-1)
-            #         max_val = max_val.unsqueeze(-1)
-            #     elif X.ndim == 3:
-            #         min_val = min_val.unsqueeze(-1).unsqueeze(-1)
-            #         max_val = max_val.unsqueeze(-1).unsqueeze(-1)
-            #     elif X.ndim == 4:
-            #         min_val = min_val.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
-            #         max_val = max_val.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
-            #     #
-            # #
-            # x_noq = torch.clamp(X, min_val.clone(), max_val.clone())
-            x_q = X * self.adaptive_quant_bypass + x_q * (1.0-self.adaptive_quant_bypass)
+        if self.training and self.detect_change:
+            delta = (x_q - X).detach()
+            if self.compact_mode:
+                delta_binned = torch.histc(delta, bins=self.compact_bins) / delta.numel()
+                if self.history_available:
+                    delta_change = torch.sum(torch.abs(delta_binned - self.delta_binned_history).float()).item() / 2.0
+                #
+            else:
+                delta_binned = torch.sign(delta)
+                if self.history_available:
+                    delta_change = torch.mean((delta_binned != self.delta_binned_history).float()).item()
+                #
+            #
+            if self.history_available:
+                if self.smooth_change:
+                    delta_change = delta_change * (1-self.momentum) + self.delta_change * self.momentum
+                #
+                self.delta_change = delta_change
+            #
+            self.delta_binned_history = delta_binned
+            self.history_available = True
         #
         return x_q
 
