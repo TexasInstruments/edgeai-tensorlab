@@ -56,6 +56,9 @@ pip install --upgrade pip setuptools
 
 ######################################################################
 echo 'Installing python packages...'
+# needed for building onnx package.
+# for some reason, this has to be installed before the requirements file is used.
+pip3 install --no-input pybind11[global]
 pip3 install --no-input -r ./requirements_pc.txt
 
 ######################################################################
