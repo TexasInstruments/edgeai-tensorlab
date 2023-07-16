@@ -63,7 +63,13 @@ class AdaptiveWeightFakeQuantize(AdaptiveFakeQuantize):
     '''
     Create a subclass, just to distinguish between the ones used for activation and weight
     '''
-    pass
+    def forward(self, X):
+        # to preserve sparsity in the weights
+        sparsity_mask = (X != 0).detach()
+        X = X * sparsity_mask
+        # this is the actual fake_quntize
+        x_q = super().forward(X)
+        return x_q
 
 
 class AdaptiveActivationFakeQuantize(AdaptiveFakeQuantize):
