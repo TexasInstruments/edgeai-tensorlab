@@ -31,7 +31,6 @@
 import enum
 import warnings
 import torch
-from torch.ao.quantization import default_fused_per_channel_wt_fake_quant, default_fused_act_fake_quant
 from torch.ao.quantization import QConfig, QConfigMapping, get_default_qat_qconfig
 from torch.ao.quantization import MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver, \
     FakeQuantize, FusedMovingAvgObsFakeQuantize
@@ -78,14 +77,16 @@ class QConfigType(enum.Enum):
     DISABLED = 0
     DEFAULT = "DEFAULT"
 
-    W8T_A8T = "W8T_A8T"
-    W8C_A8T = "W8C_A8T"
-    W8T_A8T_P2 = "W8T_A8T_P2"
-    W8C_A8T_P2 = "W8C_A8T_P2"
+    WT8_AT8 = "WT8_AT8"
+    WC8_AT8 = "WC8_AT8"
+    WT8P2_AT8P2 = "WT8P2_AT8P2"
+    WC8P2_AT8P2 = "WC8P2_AT8P2"
 
-    W4C_A8T = "W4C_A8T"
-    W4C_A4T = "W4C_A4T"
-    W4C_A4T_RR4 = "W4C_A4T_RR4"
+    WC4_AT8 = "WC4_AT8"
+    WC4R4_AT8 = "WC4R4_AT8"
+
+    WC4_AT4 = "WC4_AT4"
+    WC4R4_AT4R4 = "WC4R4_AT4R4"
 
     @classmethod
     def choices(cls):
@@ -105,38 +106,43 @@ class QConfigMode(enum.Enum):
 ####################################################################
 _QCONFIG_TYPE_TO_DICT = dict()
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.W8T_A8T] = QConfig(
+_QCONFIG_TYPE_TO_DICT[QConfigType.WT8_AT8] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.W8C_A8T] = QConfig(
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.W8T_A8T_P2] = QConfig(
+_QCONFIG_TYPE_TO_DICT[QConfigType.WT8P2_AT8P2] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePower2WeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptivePower2ActivationObserver))
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.W8C_A8T_P2] = QConfig(
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC8P2_AT8P2] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePower2PerChannelWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptivePower2ActivationObserver))
 
 ###########
-_QCONFIG_TYPE_TO_DICT[QConfigType.W4C_A8T] = QConfig(
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC4_AT8] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveLowBITPerChannelWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.W4C_A4T] = QConfig(
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC4R4_AT8] = QConfig(
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveRangeRestricted4LowBITPerChannelWeightObserver),
+    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
+
+###########
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC4_AT4] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveLowBITPerChannelWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveLowBITActivationObserver))
 
-###########
-_QCONFIG_TYPE_TO_DICT[QConfigType.W4C_A4T_RR4] = QConfig(
+
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC4R4_AT4R4] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveRangeRestricted4LowBITPerChannelWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveRangeRestricted4LowBITActivationObserver))
 
 ###########
-_QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.W8C_A8T]
+_QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = get_default_qat_qconfig()
 ####################################################################
 
 
