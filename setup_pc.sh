@@ -110,7 +110,7 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r9.0"
   for (( soc_idx=0; soc_idx<"${#TARGET_SOCS[@]}"; soc_idx++ )); do
     TARGET_SOC=${TARGET_SOCS[$soc_idx]}
     TIDL_TOOLS_DOWNLOAD_NAME=${TIDL_TOOLS_DOWNLOAD_NAMES[$soc_idx]}
-    TIDL_TOOLS_DOWNLOAD_LINKS[$soc_idx]="http://edgeaisrv2.dhcp.ti.com/publish/modelzoo/REL.TIDL.J7.09.00.00.00/${TIDL_TOOLS_DOWNLOAD_NAME}/tidl_tools.tar.gz"
+    TIDL_TOOLS_DOWNLOAD_LINKS[$soc_idx]="http://edgeaisrv2.dhcp.ti.com/publish/modelzoo/REL.TIDL.J7.09.00.00.01/${TIDL_TOOLS_DOWNLOAD_NAME}/tidl_tools.tar.gz"
   done
 elif [[ $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r8.6" ]]; then
   # installers for 8.6 release
