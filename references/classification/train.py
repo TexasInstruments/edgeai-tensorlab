@@ -217,6 +217,9 @@ def main(args):
     utils.init_distributed_mode(args)
     print(args)
 
+    if args.distributed and args.parallel:
+        raise RuntimeError("both DistributedDataParallel and DataParallel cannot be used simultaneously")
+
     device = torch.device(args.device)
 
     if args.use_deterministic_algorithms:
@@ -349,6 +352,9 @@ def main(args):
     model_without_ddp = model
     if args.distributed:
         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
+        model_without_ddp = model.module
+    elif args.parallel:
+        model = torch.nn.parallel.DataParallel(model)
         model_without_ddp = model.module
 
     model_ema = None
@@ -515,6 +521,8 @@ def get_args_parser(add_help=True):
     # distributed training parameters
     parser.add_argument("--world-size", default=1, type=int, help="number of distributed processes")
     parser.add_argument("--dist-url", default="env://", type=str, help="url used to set up distributed training")
+    parser.add_argument("--parallel", default=0, type=str, help="can use data parallel mode with distributed is not used")
+
     parser.add_argument(
         "--model-ema", action="store_true", help="enable tracking Exponential Moving Average of model parameters"
     )
