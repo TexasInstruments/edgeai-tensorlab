@@ -106,7 +106,8 @@ https://arxiv.org/abs/1405.0312, https://cocodataset.org/
 import numbers
 import os
 import random
-import json_tricks as json
+import json
+import json_tricks
 import shutil
 import tempfile
 import numpy as np
@@ -165,7 +166,8 @@ class COCOKeypoints(DatasetBase):
         assert self.kwargs['split'] in image_split_dirs, f'invalid path to coco dataset images/split {kwargs["split"]}'
         self.image_dir = os.path.join(image_base_dir, self.kwargs['split'])
 
-        self.coco_dataset = COCO(os.path.join(annotations_dir, f'person_keypoints_{self.kwargs["split"]}.json'))
+        self.annotation_file = os.path.join(annotations_dir, f'person_keypoints_{self.kwargs["split"]}.json')
+        self.coco_dataset = COCO(self.annotation_file)
 
         filter_imgs = self.kwargs['filter_imgs'] if 'filter_imgs' in self.kwargs else None
         if isinstance(filter_imgs, str):
@@ -241,7 +243,11 @@ class COCOKeypoints(DatasetBase):
                 ]) / 10.0
 
         self.id2name, self.name2id = _get_mapping_id_name(self.coco_dataset.imgs)
-        
+        # store dataset info
+        with open(self.annotation_file) as afp:
+            self.dataset_store = json.load(afp)
+        #
+        self.kwargs['dataset_info'] = self.get_dataset_info()
 
     def download(self, path, split):
         root = path
@@ -340,7 +346,7 @@ class COCOKeypoints(DatasetBase):
         
         res_file = os.path.join(kwargs['run_dir'], 'keypoint_results.json')
         with open(res_file, 'w') as f:
-            json.dump(cat_results, f, sort_keys=True, indent=4)
+            json_tricks.dump(cat_results, f, sort_keys=True, indent=4)
 
         coco_det = self.coco_dataset.loadRes(res_file)
         coco_eval = COCOeval(self.coco_dataset, coco_det, 'keypoints')
@@ -392,6 +398,17 @@ class COCOKeypoints(DatasetBase):
             valid_kpts.append(img_kpts)
 
         return valid_kpts
+
+    def get_dataset_info(self):
+        # return only info and categories for now as the whole thing could be quite large.
+        dataset_store = dict()
+        for key in ('info', 'categories'):
+            if key in self.dataset_store.keys():
+                dataset_store.update({key: self.dataset_store[key]})
+            #
+        #
+        return dataset_store
+
 
 ################################################################################################
 if __name__ == '__main__':
