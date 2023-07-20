@@ -317,7 +317,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v2_300_float.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':22.0}, model_shortlist=10)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':22.0}, model_shortlist=20)
         ),
         #################################################################
         # tensorflow1.0 models: detection - ssdlite_mobiledet_dsp_320x320_coco_2020_05_19 expected_metric: 28.9% ap[0.5:0.95] accuracy
@@ -328,7 +328,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_20200519.tflite'),
             postprocess=postproc_detection_tflite,
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.9}, model_shortlist=40)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.9}, model_shortlist=10)
         ),
         # tensorflow1.0 models: detection - ssdlite_mobiledet_edgetpu_320x320_coco_2020_05_19 expected_metric: 25.9% ap[0.5:0.95] accuracy
         'od-2030':utils.dict_update(common_cfg,

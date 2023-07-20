@@ -100,7 +100,7 @@ def get_configs(settings, work_dir):
         #         runtime_options=settings.runtime_options_onnx_p2_qat(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mnetv2_edgeailite_robokit_768x432_qat-p2.onnx'),
         #     postprocess=postproc_transforms.get_transform_segmentation_onnx(),
-        #     model_info=dict(metric_reference={'accuracy_mean_iou%':54.1}, model_shortlist=10)
+        #     model_info=dict(metric_reference={'accuracy_mean_iou%':54.1}, model_shortlist=20)
         # ),
         #------------------------cityscapes models-----------------------
         # # edgeai: segmentation - deeplabv3lite_mobilenetv2_768x384_20190626-085932 expected_metric: 69.13% mean-iou
