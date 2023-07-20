@@ -57,7 +57,6 @@ class QuantFxBaseModule(torch.nn.Module):
         # related to adaptive quantization
         self.quant_segment_index = 0
         self.qconfig_mode = qconfig.QConfigMode(qconfig_mode)
-        self.quant_hooks = []
 
     def set_quant_backend(self, backend=None):
         if backend not in torch.backends.quantized.supported_engines:
@@ -119,12 +118,6 @@ class QuantFxBaseModule(torch.nn.Module):
             #
         #
         if self.qconfig_mode == qconfig.QConfigMode.GRADUAL_QUANTIZATION and self.total_epochs >= 10:
-            # clear existing hooks
-            for hook in self.quant_hooks:
-                hook.remove()
-            #
-            self.quant_hooks = []
-
             forzen_layer_names_list = []
             forzen_layer_names_list_, num_total_layers = self.adaptive_freeze_layers(fake_quanitze.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES)
             forzen_layer_names_list += forzen_layer_names_list_
@@ -151,7 +144,7 @@ class QuantFxBaseModule(torch.nn.Module):
         #
 
         epoch_gradual_quant_start = max(self.total_epochs//4, 1)
-        epoch_gradual_quant_end = max(self.total_epochs*3//4, 1)
+        epoch_gradual_quant_end = max(self.total_epochs//2, 1)
         if self.num_epochs_tracked >= epoch_gradual_quant_start:
             delta_change_list = []
             for pname, pmodule in list(self.named_modules()):
@@ -172,8 +165,6 @@ class QuantFxBaseModule(torch.nn.Module):
             delta_change_knee = sorted(delta_change_list)[topk_index]
             delta_change_threshold = max(max(delta_change_knee, delta_change_mean), delta_change_min)
 
-            grad_zero_hook_func = lambda grad: torch.zeros_like(grad)
-
             # freeze layers with high sign change
             forzen_layer_names_list = []
             num_total_layers = 0
@@ -181,18 +172,17 @@ class QuantFxBaseModule(torch.nn.Module):
                 max_delta_change = 0.0
                 for cname, cmodule in list(pmodule.named_children()):
                     if self.is_fake_quant_with_param(pmodule, cmodule, fake_quant_types):
-                        max_delta_change = max(max_delta_change, cmodule.delta_change)
+                        if cmodule.delta_change >= delta_change_threshold:
+                            pmodule.apply(torch.ao.quantization.disable_observer)
+                            pmodule.apply(torch.nn.intrinsic.qat.freeze_bn_stats)
+                            for param in pmodule.parameters(recurse=False):
+                                param.requires_grad_(False)
+                                param.grad = None
+                            #
+                            forzen_layer_names_list.append(pname)
+                        #
                         num_total_layers += 1
                     #
-                #
-                if max_delta_change > delta_change_threshold:
-                    pmodule.apply(torch.ao.quantization.disable_observer)
-                    pmodule.apply(torch.nn.intrinsic.qat.freeze_bn_stats)
-                    for p in pmodule.parameters(recurse=False):
-                        param_hook = p.register_hook(grad_zero_hook_func)
-                        self.quant_hooks.append(param_hook)
-                    #
-                    forzen_layer_names_list.append(pname)
                 #
             #
         #

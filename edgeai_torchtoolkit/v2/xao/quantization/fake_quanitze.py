@@ -33,27 +33,29 @@ class AdaptiveFakeQuantize(FakeQuantize):
 
     def forward(self, X):
         x_q = super().forward(X)
-        if self.training and self.detect_change:
-            delta = (x_q - X).detach()
-            if self.compact_mode:
-                delta_binned = torch.histc(delta, bins=self.compact_bins) / delta.numel()
+        with torch.no_grad():
+            if self.training and self.detect_change:
+                delta = (x_q - X)
+                if self.compact_mode:
+                    delta_binned = torch.histc(delta, bins=self.compact_bins) / delta.numel()
+                    if self.history_available:
+                        delta_change = torch.sum(torch.abs(delta_binned - self.delta_binned_history).float()).item() / 2.0
+                    #
+                else:
+                    delta_binned = torch.sign(delta)
+                    if self.history_available:
+                        delta_change = torch.mean((delta_binned != self.delta_binned_history).float()).item()
+                    #
+                #
                 if self.history_available:
-                    delta_change = torch.sum(torch.abs(delta_binned - self.delta_binned_history).float()).item() / 2.0
+                    if self.smooth_change:
+                        delta_change = delta_change * (1-self.momentum) + self.delta_change * self.momentum
+                    #
+                    self.delta_change = delta_change
                 #
-            else:
-                delta_binned = torch.sign(delta)
-                if self.history_available:
-                    delta_change = torch.mean((delta_binned != self.delta_binned_history).float()).item()
-                #
+                self.delta_binned_history = delta_binned
+                self.history_available = True
             #
-            if self.history_available:
-                if self.smooth_change:
-                    delta_change = delta_change * (1-self.momentum) + self.delta_change * self.momentum
-                #
-                self.delta_change = delta_change
-            #
-            self.delta_binned_history = delta_binned
-            self.history_available = True
         #
         return x_q
 
