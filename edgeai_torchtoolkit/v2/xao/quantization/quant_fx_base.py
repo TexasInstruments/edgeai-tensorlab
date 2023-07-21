@@ -118,6 +118,7 @@ class QuantFxBaseModule(torch.nn.Module):
             #
         #
         if self.qconfig_mode == qconfig.QConfigMode.GRADUAL_QUANTIZATION and self.total_epochs >= 10:
+            # find unstable layers and freeze them
             forzen_layer_names_list = []
             forzen_layer_names_list_, num_total_layers = self.adaptive_freeze_layers(fake_quanitze.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES)
             forzen_layer_names_list += forzen_layer_names_list_
@@ -176,8 +177,7 @@ class QuantFxBaseModule(torch.nn.Module):
                             pmodule.apply(torch.ao.quantization.disable_observer)
                             pmodule.apply(torch.nn.intrinsic.qat.freeze_bn_stats)
                             for param in pmodule.parameters(recurse=False):
-                                param.requires_grad_(False)
-                                param.grad = None
+                                param.requires_update = False
                             #
                             forzen_layer_names_list.append(pname)
                         #
