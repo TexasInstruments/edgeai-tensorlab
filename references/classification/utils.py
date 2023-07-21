@@ -466,6 +466,5 @@ def set_weight_decay(
     param_groups = []
     for key in params:
         if len(params[key]) > 0:
-            # the filter is important if we want to change the requires_grad of parameters in the middle of training
-            param_groups.append({"params": filter(lambda param: param.requires_grad, params[key]), "weight_decay": params_weight_decay[key]})
+            param_groups.append({"params": params[key], "weight_decay": params_weight_decay[key]})
     return param_groups

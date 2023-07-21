@@ -297,7 +297,7 @@ def main(args):
 
     opt_name = args.opt.lower()
     if opt_name.startswith("sgd"):
-        optimizer = torch.optim.SGD(
+        optimizer = xao.utils.optim.AdaptiveSGD(
             parameters,
             lr=args.lr,
             momentum=args.momentum,
