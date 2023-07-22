@@ -95,7 +95,8 @@ class QConfigType(enum.Enum):
 
 class QConfigMode(enum.Enum):
     DEFAULT = 0
-    FREEZE_UNSTABLE_LAYERS = 1
+    FREEZE_DEPTHWISE_LAYERS = 1
+    FREEZE_UNSTABLE_LAYERS = 2
 
     @classmethod
     def choices(cls):
@@ -190,7 +191,7 @@ def adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type):
         if not input_fake_quant_module and isinstance(pmodule, fake_quanitze.AdaptiveActivationFakeQuantize):
             # input activation_module
             input_fake_quant_module = pmodule
-        if not input_conv_module and isinstance(pmodule, torch.nn.Conv2d) and pmodule.in_channels < 9:
+        if not input_conv_module and isinstance(pmodule, torch.nn.Conv2d) and pmodule.in_channels < 8:
             # first conv module
             input_conv_module = pmodule
         if isinstance(pmodule, torch.nn.Linear):

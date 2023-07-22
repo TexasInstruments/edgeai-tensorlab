@@ -51,7 +51,8 @@ class AdaptiveFakeQuantize(FakeQuantize):
                     else:
                         delta_change1 = torch.sign(dequant_data - self.history_tensor)
                         delta_change2 = torch.sign(self.history_tensor - self.history_tensor2)
-                        delta_diff = (delta_change1 != delta_change2)
+                        delta_diff = torch.logical_and(torch.logical_and(delta_change1 != delta_change2,
+                                                       delta_change1 != 0), delta_change2 != 0)
                         delta_change = torch.mean(delta_diff.float()).item()
                     #
                     if self.smooth_change:
