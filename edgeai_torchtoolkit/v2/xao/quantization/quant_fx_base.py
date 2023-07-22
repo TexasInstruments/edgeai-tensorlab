@@ -57,6 +57,7 @@ class QuantFxBaseModule(torch.nn.Module):
         # related to adaptive quantization
         self.quant_segment_index = 0
         self.qconfig_mode = qconfig.QConfigMode(qconfig_mode)
+        self.forzen_layer_names_list = []
 
     def set_quant_backend(self, backend=None):
         if backend not in torch.backends.quantized.supported_engines:
@@ -117,18 +118,14 @@ class QuantFxBaseModule(torch.nn.Module):
                 self.quant_segment_index = quant_segment_index
             #
         #
-        if self.qconfig_mode == qconfig.QConfigMode.GRADUAL_QUANTIZATION and self.total_epochs >= 10:
+        if self.qconfig_mode == qconfig.QConfigMode.FREEZE_UNSTABLE_LAYERS and self.total_epochs >= 10:
             # find unstable layers and freeze them
-            forzen_layer_names_list = []
-            forzen_layer_names_list_, num_total_layers, delta_change_list = self.adaptive_freeze_layers(fake_quanitze.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES)
-            forzen_layer_names_list += forzen_layer_names_list_
-            # this will not work becuase the activation fake_quant is not added as submodules with the Convolutions
-            # but rather is added to the main module. So thre is no way of associating the parameters and the activation fake_quants
-            # forzen_layer_names_list_, num_total_layers, delta_change_list = self.adaptive_freeze_layers(fake_quanitze.ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES, compact_mode=True)
-            # forzen_layer_names_list += forzen_layer_names_list_
+            forzen_layer_names_list, num_total_layers, delta_change_list = \
+                self.adaptive_freeze_layers(fake_quanitze.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES)
             print(f"using adaptive quantization - qconfig_mode:{self.qconfig_mode} "
                   f"mean_delta_change:{statistics.mean(delta_change_list):.4f} max_delta_change:{max(delta_change_list):.4f} "
-                  f"frozen_layers: {len(forzen_layer_names_list)}/{num_total_layers} ")
+                  f"num_frozen_layers:{len(forzen_layer_names_list)}/{num_total_layers} "
+                  f"frozen_layers:{forzen_layer_names_list} ")
 
     def is_fake_quant_with_param(self, pmodule, cmodule, fake_quant_types):
         num_params = len(list(pmodule.parameters(recurse=False)))
@@ -147,41 +144,44 @@ class QuantFxBaseModule(torch.nn.Module):
             #
         #
 
-        epoch_gradual_quant_start = max(self.total_epochs//4, 1)
-        epoch_gradual_quant_end = max(self.total_epochs//2, 1)
+        epoch_gradual_quant_start = max(self.total_epochs//2, 1)
         if self.num_epochs_tracked >= epoch_gradual_quant_start:
+            is_freezing_start_epoch = (self.num_epochs_tracked == epoch_gradual_quant_start)
             # find sign_change_threshold
-            # freeze_fraction increases gradually
-            freeze_fraction = 0.20*(self.num_epochs_tracked-epoch_gradual_quant_start)/(epoch_gradual_quant_end-epoch_gradual_quant_start)
-            freeze_fraction = min(max(freeze_fraction, 0.0), 0.20)
-            # print(f"freeze_fraction={freeze_fraction}")
+            freeze_fraction = 0.15
             delta_change_min = 0.05
-            delta_change_mean = statistics.mean(delta_change_list)
             topk_index = int((len(delta_change_list)-1) * (1-freeze_fraction))
             delta_change_knee = sorted(delta_change_list)[topk_index]
-            delta_change_threshold = max(max(delta_change_knee, delta_change_mean), delta_change_min)
+            delta_change_threshold = max(delta_change_knee, delta_change_min)
 
             # freeze layers with high sign change
-            forzen_layer_names_list = []
             num_total_layers = 0
             for pname, pmodule in list(self.named_modules()):
                 max_delta_change = 0.0
                 for cname, cmodule in list(pmodule.named_children()):
                     if self.is_fake_quant_with_param(pmodule, cmodule, fake_quant_types):
-                        if cmodule.delta_change >= delta_change_threshold:
+                        # once frozen, always frozen
+                        is_frozen_layer = (pname in self.forzen_layer_names_list)
+                        is_high_change = is_freezing_start_epoch and (cmodule.delta_change >= delta_change_threshold)
+                        if is_frozen_layer or is_high_change:
+                            # stop updating delta_change
+                            cmodule.set_adaptive_params(detect_change=False, **kwargs)
+                            # stop updating quantization ranges and stats
                             pmodule.apply(torch.ao.quantization.disable_observer)
                             pmodule.apply(torch.nn.intrinsic.qat.freeze_bn_stats)
+                            # stop updating parmeters
                             for param in pmodule.parameters(recurse=False):
                                 param.requires_update = False
                             #
-                            forzen_layer_names_list.append(pname)
+                            self.forzen_layer_names_list.append(pname)
                         #
                         num_total_layers += 1
                     #
                 #
             #
         #
-        return forzen_layer_names_list, num_total_layers, delta_change_list
+        self.forzen_layer_names_list = list(set(self.forzen_layer_names_list))
+        return self.forzen_layer_names_list, num_total_layers, delta_change_list
 
     def freeze(self, freeze_bn=True, freeze_observers=True):
         if freeze_observers is True:

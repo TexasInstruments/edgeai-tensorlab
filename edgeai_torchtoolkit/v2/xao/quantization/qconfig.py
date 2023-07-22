@@ -95,7 +95,7 @@ class QConfigType(enum.Enum):
 
 class QConfigMode(enum.Enum):
     DEFAULT = 0
-    GRADUAL_QUANTIZATION = 1
+    FREEZE_UNSTABLE_LAYERS = 1
 
     @classmethod
     def choices(cls):
