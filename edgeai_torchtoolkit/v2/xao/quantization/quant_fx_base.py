@@ -120,13 +120,14 @@ class QuantFxBaseModule(torch.nn.Module):
         if self.qconfig_mode == qconfig.QConfigMode.GRADUAL_QUANTIZATION and self.total_epochs >= 10:
             # find unstable layers and freeze them
             forzen_layer_names_list = []
-            forzen_layer_names_list_, num_total_layers = self.adaptive_freeze_layers(fake_quanitze.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES)
+            forzen_layer_names_list_, num_total_layers, delta_change_list = self.adaptive_freeze_layers(fake_quanitze.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES)
             forzen_layer_names_list += forzen_layer_names_list_
             # this will not work becuase the activation fake_quant is not added as submodules with the Convolutions
             # but rather is added to the main module. So thre is no way of associating the parameters and the activation fake_quants
-            # forzen_layer_names_list_, num_total_layers = self.adaptive_freeze_layers(fake_quanitze.ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES, compact_mode=True)
+            # forzen_layer_names_list_, num_total_layers, delta_change_list = self.adaptive_freeze_layers(fake_quanitze.ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES, compact_mode=True)
             # forzen_layer_names_list += forzen_layer_names_list_
             print(f"using adaptive quantization - qconfig_mode:{self.qconfig_mode} "
+                  f"mean_delta_change:{statistics.mean(delta_change_list):.4f} max_delta_change:{max(delta_change_list):.4f} "
                   f"frozen_layers: {len(forzen_layer_names_list)}/{num_total_layers} ")
 
     def is_fake_quant_with_param(self, pmodule, cmodule, fake_quant_types):
@@ -136,10 +137,12 @@ class QuantFxBaseModule(torch.nn.Module):
     def adaptive_freeze_layers(self, fake_quant_types, **kwargs):
         forzen_layer_names_list = []
         num_total_layers = 0
+        delta_change_list = []
         for pname, pmodule in list(self.named_modules()):
             for cname, cmodule in list(pmodule.named_children()):
                 if self.is_fake_quant_with_param(pmodule, cmodule, fake_quant_types):
                     cmodule.set_adaptive_params(detect_change=True, **kwargs)
+                    delta_change_list.append(cmodule.delta_change)
                 #
             #
         #
@@ -147,14 +150,6 @@ class QuantFxBaseModule(torch.nn.Module):
         epoch_gradual_quant_start = max(self.total_epochs//4, 1)
         epoch_gradual_quant_end = max(self.total_epochs//2, 1)
         if self.num_epochs_tracked >= epoch_gradual_quant_start:
-            delta_change_list = []
-            for pname, pmodule in list(self.named_modules()):
-                for cname, cmodule in list(pmodule.named_children()):
-                    if self.is_fake_quant_with_param(pmodule, cmodule, fake_quant_types):
-                        delta_change_list.append(cmodule.delta_change)
-                    #
-                #
-            #
             # find sign_change_threshold
             # freeze_fraction increases gradually
             freeze_fraction = 0.20*(self.num_epochs_tracked-epoch_gradual_quant_start)/(epoch_gradual_quant_end-epoch_gradual_quant_start)
@@ -186,7 +181,7 @@ class QuantFxBaseModule(torch.nn.Module):
                 #
             #
         #
-        return forzen_layer_names_list, num_total_layers
+        return forzen_layer_names_list, num_total_layers, delta_change_list
 
     def freeze(self, freeze_bn=True, freeze_observers=True):
         if freeze_observers is True:
