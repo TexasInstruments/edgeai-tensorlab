@@ -175,7 +175,7 @@ class QuantFxBaseModule(torch.nn.Module):
                 is_freezing_start_epoch = (self.num_epochs_tracked == epoch_gradual_quant_start)
                 # find sign_change_threshold
                 freeze_fraction = 0.15
-                delta_change_min = 0.01
+                delta_change_min = 0.04
                 topk_index = int((len(delta_change_list)-1) * (1-freeze_fraction))
                 delta_change_knee = sorted(delta_change_list)[topk_index]
                 delta_change_threshold = max(delta_change_knee, delta_change_min)
