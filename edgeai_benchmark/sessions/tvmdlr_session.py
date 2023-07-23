@@ -29,7 +29,9 @@
 import os
 import time
 import copy
-import onnx
+import platform
+if platform.machine() != 'aarch64':
+    import onnx
 
 from .. import constants
 from ..import utils
