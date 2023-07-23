@@ -15,9 +15,6 @@ class AdaptiveFakeQuantize(FakeQuantize):
         self.smooth_change = True
         self.delta_change = 0.0
         self.history_tensor = torch.zeros((1,))
-        self.history_tensor2 = torch.zeros((1,))
-        self.history_available = False
-        self.history_available2 = False
         self.momentum = 0.9
         self.histogram_mode = False
         self.histogram_bins = 256
@@ -38,30 +35,34 @@ class AdaptiveFakeQuantize(FakeQuantize):
         x_q = super().forward(X)
         with torch.no_grad():
             if self.training and self.detect_change:
-                dequant_data = x_q
-                if self.num_batches_tracked > 1:
-                    if self.histogram_mode:
-                        diff1 = dequant_data - self.history_tensor
-                        diff2 = self.history_tensor - self.history_tensor2
+                if self.histogram_mode:
+                    diff1 = (x_q - X)
+                    if self.num_batches_tracked > 0:
+                        diff2 = self.history_tensor
                         min_val = torch.minimum(diff1.min(), diff2.min())
                         max_val = torch.maximum(diff1.max(), diff2.max())
                         delta_change1 = self.compute_histogram_delta(diff1, min_val=min_val, max_val=max_val)
                         delta_change2 = self.compute_histogram_delta(diff2, min_val=min_val, max_val=max_val)
                         delta_change = torch.abs(delta_change1 - delta_change2).sum().item() #/ 2.0
-                    else:
-                        delta_change1 = torch.sign(dequant_data - self.history_tensor)
-                        delta_change2 = torch.sign(self.history_tensor - self.history_tensor2)
-                        delta_diff = torch.logical_and(torch.logical_and(delta_change1 != delta_change2,
-                                                       delta_change1 != 0), delta_change2 != 0)
+                        if self.smooth_change:
+                            delta_change = delta_change * (1-self.momentum) + self.delta_change * self.momentum
+                        #
+                        self.delta_change = delta_change
+                    #
+                    self.history_tensor = diff1
+                else:
+                    delta_change1 = torch.sign(x_q - X)
+                    if self.num_batches_tracked > 0:
+                        delta_change2 = self.history_tensor
+                        delta_diff = (delta_change1 != delta_change2)
                         delta_change = torch.mean(delta_diff.float()).item()
+                        if self.smooth_change:
+                            delta_change = delta_change * (1-self.momentum) + self.delta_change * self.momentum
+                        #
+                        self.delta_change = delta_change
                     #
-                    if self.smooth_change:
-                        delta_change = delta_change * (1-self.momentum) + self.delta_change * self.momentum
-                    #
-                    self.delta_change = delta_change
+                    self.history_tensor = delta_change1
                 #
-                self.history_tensor2 = self.history_tensor.data
-                self.history_tensor = dequant_data.data
                 self.num_batches_tracked += 1
             #
         #
