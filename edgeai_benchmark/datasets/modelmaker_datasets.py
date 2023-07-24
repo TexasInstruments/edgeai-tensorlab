@@ -34,13 +34,13 @@ import cv2
 import random
 import tempfile
 import copy
+import platform
 from pycocotools.coco import COCO
 from pycocotools import mask as coco_mask
 
 from .dataset_base import *
 from . import coco_det
 from . import coco_seg
-from . import coco_kpt_det
 
 
 class ModelMakerDetectionDataset(coco_det.COCODetection):
@@ -379,6 +379,7 @@ class ModelMakerSegmentationDataset(DatasetBase):
         return masks
 
 
+from . import coco_kpt_det
 class ModelMakerKeypointDetectionDataset(coco_kpt_det.COCOKeypointDetection):
     def __init__(self, num_classes=1, download=False, num_frames=None, name='modelmaker_kpt_det', num_keypoints=None,
                  annotation_prefix=None, **kwargs):

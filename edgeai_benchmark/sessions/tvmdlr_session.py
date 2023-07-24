@@ -29,7 +29,6 @@
 import os
 import time
 import copy
-import onnx
 
 from .. import constants
 from ..import utils
@@ -64,6 +63,7 @@ class TVMDLRSession(BaseRTSession):
         input_keys = list(input_shape.keys())
 
         if model_type == 'onnx':
+            import onnx
             onnx_model = onnx.load_model(model_file0)
             tvm_model, params = relay.frontend.from_onnx(onnx_model, shape=input_shape)
         elif model_type == 'tflite':
@@ -242,8 +242,7 @@ class TVMDLRSession(BaseRTSession):
             self.kwargs["runtime_options"]["import"] = "yes"
             os.makedirs(runtime_options_temp['artifacts_folder'], exist_ok=True)
             self._clear_folder(runtime_options_temp['artifacts_folder'])
-            tidl_delegate = [tflitert_interpreter.load_delegate('tidl_model_import_tflite.so', runtime_options_temp)]
-            interpreter = tflitert_interpreter.Interpreter(model_file0, experimental_delegates=tidl_delegate)
+            interpreter = tflitert_interpreter.Interpreter(model_file0)
             self._get_input_output_details_tflite(interpreter)
             self._clear_folder(runtime_options_temp['artifacts_folder'], remove_base_folder=True)
             del interpreter
