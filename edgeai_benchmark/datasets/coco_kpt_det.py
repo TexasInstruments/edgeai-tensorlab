@@ -111,8 +111,8 @@ import shutil
 import tempfile
 import numpy as np
 from colorama import Fore
-from xtcocotools.coco import COCO
-from xtcocotools.cocoeval import COCOeval
+from pycocotools.coco import COCO
+from pycocotools.cocoeval import COCOeval
 
 from .. import utils
 from .dataset_base import *

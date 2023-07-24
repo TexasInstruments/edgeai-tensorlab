@@ -9,7 +9,6 @@ wheel
 #tflite
 pillow
 pycocotools
-xtcocotools
 colorama
 tqdm
 pyyaml
