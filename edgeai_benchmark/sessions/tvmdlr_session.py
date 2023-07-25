@@ -246,7 +246,6 @@ class TVMDLRSession(BaseRTSession):
             self._get_input_output_details_tflite(interpreter)
             self._clear_folder(runtime_options_temp['artifacts_folder'], remove_base_folder=True)
             del interpreter
-            del tidl_delegate
             del runtime_options_temp
         else:
             assert self.kwargs['input_details'] and self.kwargs['output_details'], \
