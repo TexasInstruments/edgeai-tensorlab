@@ -31,6 +31,7 @@ from .misc_utils import *
 from .download_utils import *
 from .file_utils import *
 from .logger_utils import *
+from .parallel_pool import *
 from .parallel_run import *
 from .environ_utils import *
 from .timer_utils import *
