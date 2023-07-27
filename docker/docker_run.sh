@@ -43,8 +43,7 @@ target_device=${1:-tda4vm}
 parent_dir=$(realpath ..)
 docker_image_name="benchmark:v1"
 docker_container_name="benchmark-${target_device}"
-datasets_path_pc=${2:-/data/ssd/datasets}
-datasets_path_lsf=${2:-/data/adas_vision_data1/datasets/other/benchmark/datasets}
+datasets_path_pc=${2:-/data/hdd/datasets/benchmark/datasets} #${2:-/data/ssd/datasets}
 
 # Number of containers existing with the given name
 container_count=$(docker ps -a | grep ${docker_container_name} | wc -l)
