@@ -109,8 +109,8 @@ class ParallelRun:
                     (result, exception_e) = r_queue.get_nowait()
                 except queue.Empty:
                     if not process_dict[r_key].is_alive():
-                        process_dict.pop(p_key)
-                        result_queues_dict.pop(p_key)
+                        process_dict.pop(r_key)
+                        result_queues_dict.pop(r_key)
                         result_list.append({})
                         proc.terminate()
                         proc.join()
