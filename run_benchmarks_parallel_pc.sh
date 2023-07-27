@@ -74,7 +74,7 @@ for model_id in $(cat ${models_list_file}); do
   parallel_device=$((parallel_device+1))
   parallel_device=$((parallel_device%num_parallel_devices))
   echo "running model_id:$model_id on parallel_device:$parallel_device"
-  python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC} --model_selection $model_id --parallel_devices $parallel_device &
+  CUDA_VISIBLE_DEVICES="$parallel_device" python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC} --model_selection $model_id &
 done
 echo "-------------------------------------------------------------------"
 

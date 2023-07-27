@@ -48,8 +48,6 @@ class ParallelRun:
         self.queued_tasks = collections.deque()
         self.maxinterval = maxinterval
         self.blocking = blocking
-        assert self.parallel_devices is None or len(self.parallel_devices) == num_processes, \
-            f'length of parallel_devices {self.parallel_devices} must match num_processes {num_processes}'
 
     def enqueue(self, task):
         self.queued_tasks.append(task)
@@ -75,6 +73,7 @@ class ParallelRun:
                 result_list1 = self._run_parallel_loop(pbar_tasks)
             except Exception as exception_e:
                 print(f"Exception occurred in parllel loop: {exception_e} \nRestarting the parallel loop - remaining tasks: {len(self.queued_tasks)}")
+                traceback.print_exc()
             else:
                 result_list.append(result_list1)
             #
@@ -118,10 +117,10 @@ class ParallelRun:
                     continue
                 else:
                     if isinstance(exception_e, Exception):
-                        print(f"Exception occurred in child process: {exception_e}")
+                        #print(f"Exception occurred in child process: {exception_e}")
+                        pass
                     #
                     result_list.append(result)
-                    r_queue.join()
                     result_queues_dict.pop(r_key)
                     proc = process_dict.pop(r_key)
                     pbar_tasks.update(1)
@@ -137,12 +136,14 @@ class ParallelRun:
         exception_e = None
         try:
             if self.parallel_devices is not None:
-                parallel_device = self.parallel_devices[task_index%self.num_processes]
+                num_devices = len(self.parallel_devices)
+                parallel_device = self.parallel_devices[task_index%num_devices]
                 os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
                 print(log_color('\nINFO', 'starting process on parallel_device', parallel_device))
             #
             result = task()
         except Exception as e:
+            print(f"Exception occurred in worker process: {e}")
             traceback.print_exc()
             exception_e = e
         #
