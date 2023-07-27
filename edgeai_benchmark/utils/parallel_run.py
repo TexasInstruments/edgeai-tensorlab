@@ -33,25 +33,15 @@ from multiprocessing import pool
 import collections
 import time
 import traceback
+import queue
+import copy
+
 from .progress_step import *
 from .logger_utils import *
 
 
-class NoDaeomonPool(pool.Pool):
-    # daemon processes are not allowed to have children
-    # a hack to create non-daemon process in multiprocessing.Pool
-    def Process(self, ctx, *args, **kwargs):
-        class NoDaemonProcess(ctx.Process):
-            def _get_daemon(self):
-                return False
-            def _set_daemon(self, value):
-                pass
-            daemon = property(_get_daemon, _set_daemon)
-        return NoDaemonProcess(*args, **kwargs)
-
-
 class ParallelRun:
-    def __init__(self, num_processes, parallel_devices=None, desc='tasks', blocking=True, maxinterval=10.0):
+    def __init__(self, num_processes, parallel_devices=None, desc='tasks', blocking=True, maxinterval=0.1):
         self.desc = desc
         self.num_processes = num_processes
         self.parallel_devices = parallel_devices
@@ -77,55 +67,85 @@ class ParallelRun:
         return result_list
 
     def _run_parallel(self):
-        with NoDaeomonPool(self.num_processes) as process_pool:
-            results_iterator = process_pool.imap_unordered(self._worker, self.queued_tasks)
-            result_list = []
-            num_completed = num_completed_prev = 0
-            num_tasks = len(self.queued_tasks)
-            pbar_tasks = progress_step(iterable=range(num_tasks), desc=self.desc, position=1)
-            while num_completed < num_tasks:
-                # check if a result is available
+        result_list = []
+        num_total_tasks = len(self.queued_tasks)
+        pbar_tasks = progress_step(iterable=range(num_total_tasks), desc=self.desc, position=1)
+        while len(self.queued_tasks) > 0:
+            try:
+                result_list1 = self._run_parallel_loop(pbar_tasks)
+            except Exception as exception_e:
+                print(f"Exception occurred in parllel loop: {exception_e} \nRestarting the parallel loop - remaining tasks: {len(self.queued_tasks)}")
+            else:
+                result_list.append(result_list1)
+            #
+        #
+        pbar_tasks.close()
+        print('\n')
+        return result_list
+
+    def _run_parallel_loop(self, pbar_tasks):
+        result_list = []
+        num_queued_tasks = len(self.queued_tasks)
+        num_started_tasks = 0
+
+        result_queues_dict = dict()
+        process_dict = dict()
+        mp_context = multiprocessing.get_context(method="spawn") #fork, forkserver, spawn
+        while len(result_list) < num_queued_tasks:
+            if len(process_dict) < self.num_processes and len(self.queued_tasks) > 0:
+                task = self.queued_tasks.pop()
+                result_queue = mp_context.Queue()
+                proc = mp_context.Process(target=self._worker, args=(task,num_started_tasks,result_queue))
+                proc.start()
+                result_queues_dict[num_started_tasks] = result_queue
+                process_dict[num_started_tasks] = proc
+                num_started_tasks += 1
+            #
+
+            result_queues_dict_shallow_copy = copy.copy(result_queues_dict)
+            for r_key, r_queue in result_queues_dict_shallow_copy.items():
+                result = {}
                 try:
-                    result = results_iterator.__next__(timeout=self.maxinterval)
+                    (result, exception_e) = r_queue.get_nowait()
+                except queue.Empty:
+                    if not process_dict[r_key].is_alive():
+                        process_dict.pop(p_key)
+                        result_queues_dict.pop(p_key)
+                        result_list.append({})
+                        proc.terminate()
+                        proc.join()
+                    #
+                    continue
+                else:
+                    if isinstance(exception_e, Exception):
+                        print(f"Exception occurred in child process: {exception_e}")
+                    #
                     result_list.append(result)
-                except multiprocessing.TimeoutError as e:
-                    pass
-                #
-                num_completed = len(result_list)
-                if num_completed > num_completed_prev:
-                    pbar_tasks.update(num_completed-num_completed_prev)
-                    num_completed_prev = num_completed
+                    r_queue.join()
+                    result_queues_dict.pop(r_key)
+                    proc = process_dict.pop(r_key)
+                    pbar_tasks.update(1)
+                    proc.join()
                 #
             #
-            pbar_tasks.close()
-            print('\n')
-            return result_list
-
-    def _worker(self, task):
-        if self.parallel_devices is not None:
-            current_process = multiprocessing.current_process()
-            process_index = current_process._identity[0] - 1
-            # if a task crashes, the process will be re-created and will have a new id assigned
-            # hence, the process_index can be higher than num_processes
-            parallel_device = self.parallel_devices[process_index%self.num_processes]
-            os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
-            print(log_color('\nINFO', 'starting process on parallel_device', parallel_device))
+            time.sleep(self.maxinterval)
         #
-        return task()
+        return result_list
+
+    def _worker(self, task, task_index, result_queue):
+        result = {}
+        exception_e = None
+        try:
+            if self.parallel_devices is not None:
+                parallel_device = self.parallel_devices[task_index%self.num_processes]
+                os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
+                print(log_color('\nINFO', 'starting process on parallel_device', parallel_device))
+            #
+            result = task()
+        except Exception as e:
+            traceback.print_exc()
+            exception_e = e
+        #
+        result_queue.put((result,exception_e))
 
 
-class MultiProcessingTaskMaker:
-    def __init__(self, func, *args, **kwargs):
-        self.func = func
-        self.args_init = args
-        self.kwargs_init = kwargs
-
-    def __call__(self, *args, **kwargs):
-        return self.func(*self.args_init, **self.kwargs_init)
-
-
-def process_run(func, *args, **kwargs):
-    with NoDaeomonPool(1) as process_pool:
-        task = MultiProcessingTaskMaker(func, *args, **kwargs)
-        results = process_pool.map(task, [0])
-        return results[0]
