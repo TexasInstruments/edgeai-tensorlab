@@ -41,7 +41,7 @@ from .logger_utils import *
 
 
 class ParallelRun:
-    def __init__(self, parallel_processes, parallel_devices=None, desc='tasks', blocking=True, verbose=True, maxinterval=10):
+    def __init__(self, parallel_processes, parallel_devices=None, desc='tasks', blocking=True, verbose=True, maxinterval=60):
         self.desc = desc
         self.parallel_processes = parallel_processes
         self.parallel_devices = parallel_devices
