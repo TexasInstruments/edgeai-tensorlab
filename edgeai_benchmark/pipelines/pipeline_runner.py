@@ -97,7 +97,7 @@ class PipelineRunner():
         #
 
     def run(self):
-        if self.settings.parallel_process in (None, 0):
+        if self.settings.parallel_processes in (None, 0):
             return self._run_pipelines_sequential()
         else:
             return self._run_pipelines_parallel()
@@ -125,7 +125,7 @@ class PipelineRunner():
         #
         cwd = os.getcwd()
         description = 'TASKS'
-        parallel_exec = utils.ParallelRun(num_processes=self.settings.parallel_process, parallel_devices=parallel_devices,
+        parallel_exec = utils.ParallelRun(parallel_processes=self.settings.parallel_processes, parallel_devices=parallel_devices,
                                           desc=description)
         for pipeline_index, pipeline_config in enumerate(self.pipeline_configs.values()):
             os.chdir(cwd)

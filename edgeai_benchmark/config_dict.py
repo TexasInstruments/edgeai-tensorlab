@@ -150,7 +150,7 @@ class ConfigDict(dict):
         # for example 8 will mean 8 models will run in parallel
         # for example 1 will mean one model will run (but in a separae processs from that of the main process)
         # null will mean one process will run, in the same process as the main
-        self.parallel_process = 1 #None
+        self.parallel_processes = 1 #None
         # quantization bit precision
         self.tensor_bits = 8 #8 #16 #32
         # runtime_options can be specified as a dict. eg {'accuracy_level': 0}

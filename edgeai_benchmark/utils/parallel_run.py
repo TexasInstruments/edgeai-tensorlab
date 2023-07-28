@@ -41,13 +41,23 @@ from .logger_utils import *
 
 
 class ParallelRun:
-    def __init__(self, num_processes, parallel_devices=None, desc='tasks', blocking=True, maxinterval=0.1):
+    def __init__(self, parallel_processes, parallel_devices=None, desc='tasks', blocking=True, verbose=True, maxinterval=10):
         self.desc = desc
-        self.num_processes = num_processes
+        self.parallel_processes = parallel_processes
         self.parallel_devices = parallel_devices
         self.queued_tasks = collections.deque()
         self.maxinterval = maxinterval
         self.blocking = blocking
+        self.verbose = verbose
+        self.num_total_tasks = 0
+        self.num_started_tasks = 0
+        self.result_queues_dict = dict()
+        self.process_dict = dict()
+        self.result_list = []
+        if self.verbose:
+            print(log_color('\nINFO', "parallel_run", f"parallel_processes:{self.parallel_processes} parallel_devices={self.parallel_devices}"))
+            sys.stdout.flush()
+        #
 
     def enqueue(self, task):
         self.queued_tasks.append(task)
@@ -57,79 +67,84 @@ class ParallelRun:
         return self._run_parallel()
 
     def _run_sequential(self):
-        result_list = []
+        self.result_list = []
         for task_id, task in progress_step(self.queued_tasks, desc='tasks'):
             result = task()
-            result_list.append(result)
+            self.result_list.append(result)
         #
-        return result_list
+        return self.result_list
 
     def _run_parallel(self):
-        result_list = []
-        num_total_tasks = len(self.queued_tasks)
-        pbar_tasks = progress_step(iterable=range(num_total_tasks), desc=self.desc, position=1)
-        while len(self.queued_tasks) > 0:
+        self.result_list = []
+        self.num_total_tasks = len(self.queued_tasks)
+        self.num_started_tasks = 0
+        self.result_queues_dict = dict()
+        self.process_dict = dict()
+        pbar_tasks = progress_step(iterable=range(self.num_total_tasks), desc=self.desc, position=1)
+        while len(self.result_list) < self.num_total_tasks:
             try:
-                result_list1 = self._run_parallel_loop(pbar_tasks)
+                self._run_parallel_loop(pbar_tasks)
             except Exception as exception_e:
-                print(f"Exception occurred in parllel loop: {exception_e} \nRestarting the parallel loop - remaining tasks: {len(self.queued_tasks)}")
+                print(f"Exception occurred in parallel loop: {exception_e} \nRestarting the parallel loop - remaining tasks: {len(self.queued_tasks)}")
                 traceback.print_exc()
-            else:
-                result_list.append(result_list1)
+                # add a dummy result because a process/task has exited unexpectedly
+                self.result_list.append({})
+                pbar_tasks.update(1)
             #
         #
         pbar_tasks.close()
         print('\n')
-        return result_list
+        return self.result_list
 
     def _run_parallel_loop(self, pbar_tasks):
-        result_list = []
-        num_queued_tasks = len(self.queued_tasks)
-        num_started_tasks = 0
+        mp_context = multiprocessing.get_context(method="fork") #fork, forkserver, spawn
+        last_time = time.time()
 
-        result_queues_dict = dict()
-        process_dict = dict()
-        mp_context = multiprocessing.get_context(method="spawn") #fork, forkserver, spawn
-        while len(result_list) < num_queued_tasks:
-            if len(process_dict) < self.num_processes and len(self.queued_tasks) > 0:
-                task = self.queued_tasks.pop()
-                result_queue = mp_context.Queue()
-                proc = mp_context.Process(target=self._worker, args=(task,num_started_tasks,result_queue))
-                proc.start()
-                result_queues_dict[num_started_tasks] = result_queue
-                process_dict[num_started_tasks] = proc
-                num_started_tasks += 1
+        while len(self.result_list) < self.num_total_tasks:
+            cur_time = time.time()
+            if self.verbose and (cur_time - last_time) >= self.maxinterval:
+                print(log_color('\nINFO', "parallel_run", f"num_total_tasks:{self.num_total_tasks} "
+                      f"len(queued_tasks):{len(self.queued_tasks)} len(process_dict):{len(self.process_dict)} "
+                      f"len(result_list):{len(self.result_list)}"))
+                last_time = cur_time
             #
 
-            result_queues_dict_shallow_copy = copy.copy(result_queues_dict)
+            # start the processes
+            if len(self.process_dict) < self.parallel_processes and len(self.queued_tasks) > 0:
+                task = self.queued_tasks.pop()
+                result_queue = mp_context.SimpleQueue()
+                proc = mp_context.Process(target=self._worker, args=(task,self.num_started_tasks,result_queue))
+                proc.start()
+                self.result_queues_dict[self.num_started_tasks] = result_queue
+                self.process_dict[self.num_started_tasks] = proc
+                self.num_started_tasks += 1
+            #
+
+            # collect the available the results
+            result_queues_dict_shallow_copy = copy.copy(self.result_queues_dict)
             for r_key, r_queue in result_queues_dict_shallow_copy.items():
                 result = {}
-                try:
-                    (result, exception_e) = r_queue.get_nowait()
-                except queue.Empty:
-                    if not process_dict[r_key].is_alive():
-                        process_dict.pop(r_key)
-                        result_queues_dict.pop(r_key)
-                        result_list.append({})
-                        proc.terminate()
-                        proc.join()
-                    #
-                    continue
-                else:
-                    if isinstance(exception_e, Exception):
-                        #print(f"Exception occurred in child process: {exception_e}")
-                        pass
-                    #
-                    result_list.append(result)
-                    result_queues_dict.pop(r_key)
-                    proc = process_dict.pop(r_key)
-                    pbar_tasks.update(1)
+                exception_e = None
+                if not r_queue.empty():
+                    (result, exception_e) = r_queue.get()
+                    self.result_list.append(result)
+                    self.result_queues_dict.pop(r_key)
+                    proc = self.process_dict.pop(r_key)
                     proc.join()
+                    pbar_tasks.update(1)
+                elif not self.process_dict[r_key].is_alive():
+                    self.result_list.append(result)
+                    self.result_queues_dict.pop(r_key)
+                    proc = self.process_dict.pop(r_key)
+                    proc.terminate() # something has happened with the process, terminate it.
+                    proc.join()
+                    pbar_tasks.update(1)
                 #
             #
-            time.sleep(self.maxinterval)
+
+            time.sleep(0.1)
         #
-        return result_list
+        return self.result_list
 
     def _worker(self, task, task_index, result_queue):
         result = {}
