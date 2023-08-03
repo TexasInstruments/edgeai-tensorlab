@@ -1,8 +1,6 @@
 ## Environment
-We have tested this on Ubuntu 18.04 OS. Here are the setup instructions.
+We have tested this on Ubuntu 22.04 OS and pyenv Python environment manager. Here are the setup instructions.
 
-
-#### Option 1: With pyenv Python environment manager (recommended)
 Make sure that you are using bash shell. If it is not bash shell, change it to bash. Verify it by typing:
 ```
 echo ${SHELL}
@@ -10,7 +8,8 @@ echo ${SHELL}
 
 Install system packages
 ```
-sudo apt install libbz2-dev libreadline-dev libsqlite3-dev python3.6-tk
+sudo apt update
+sudo apt install build-essential curl libbz2-dev libffi-dev liblzma-dev libncursesw5-dev libreadline-dev libsqlite3-dev libssl-dev libxml2-dev libxmlsec1-dev llvm make tk-dev wget xz-utils zlib1g-dev
 ```
 
 Install pyenv using the following command.
@@ -34,18 +33,12 @@ pyenv activate benchmark
 pip install --upgrade pip
 pip install --upgrade setuptools
 ```
+
 Note: Prior to SDK/TIDL version 9.0, the Python version required was 3.6
 
 Activation of Python environment - this activation step needs to be done everytime one starts a new terminal or shell. (Alternately, this also can be written to the .bashrc, so that this will be the default penv environment).
 ```
 pyenv activate benchmark
-```
-
-#### Option 2: With Miniconda Python distribution
-We have verified this with Miniconda from https://docs.conda.io/en/latest/ with Python 3.6. Create a Python 3.6 environment if you don't have it and activate it before following the rest of the instructions.
-```
-conda create -n benchmark python=3.6
-conda activate benchmark
 ```
 
 

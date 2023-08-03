@@ -34,21 +34,25 @@ A reference to <SOC> in this repository as commandline argument to the scripts r
 
 <hr>
 
-## Setup
+## Setup on PC
 See the [setup instructions](./docs/setup_instructions.md)
 
 
-## Usage
+## Usage on PC
 See the [usage instructions](./docs/usage.md)
 
 <hr>
 
-## Compiling Custom Models
+## Compiling Custom Models on PC
 See the **[instructions to compile custom models](./docs/custom_models.md)**
 
 
 ## Pre-Complied Model Artifacts 
 See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md)
+
+
+## Setup and Usage on development board/EVM
+The compiled models can be used for inference on development board/EVM. See **[setup and usage instruction for EVM](./docs/usage_evm.md)**
 
 <hr>
 

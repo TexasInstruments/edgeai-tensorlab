@@ -26,13 +26,6 @@ We have a symbolic link in this repository that points to the corresponding fold
 If this is present, compilation will be skipped, those model artifacts will be downloaded automatically and inference/benchmark will be performed.
 
 
-## Running inference / benchmark on *SOC/device* using pre-compiled model artifacts
-[run_benchmarks_evm.sh](../run_benchmarks_evm.sh) can be used to run these model artifacts on device. 
-```
-run_benchmarks_evm.sh <SOC>
-```
-
-
 ## Compile models in the model zoo
 
 [run_benchmarks_pc.sh](../run_benchmarks_pc.sh) is the main script in this repository that does compilation of models and benchmark. However, there are a few things to note:
