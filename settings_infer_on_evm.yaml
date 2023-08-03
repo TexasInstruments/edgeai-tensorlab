@@ -14,5 +14,8 @@ run_import : False
 # run inference - for inference in evm, it is assumed that the artifacts folders are already available
 run_inference : True
 
-# parallel execution on pc only - not supported on evm device
+# parallel execution is for pc only - not supported on evm device
 parallel_devices : null
+
+# parallel execution is for pc only - not supported on evm device
+parallel_processes : null
