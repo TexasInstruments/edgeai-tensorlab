@@ -36,41 +36,36 @@ TARGET_SOC=${1:-TDA4VM}
 # pc: for model compilation and inference on PC, evm: for model inference on EVM
 TARGET_MACHINE=evm
 
-echo "TARGET_SOC: ${TARGET_SOC}"
-echo "Pass the appropriate commandline argument to use another one."
+
+echo #############################################################
+echo "target_device/SOC: ${TARGET_SOC}"
+echo "Pass the appropriate commandline argument to use another target_device"
 
 ##################################################################
 # set environment variables
 # also point to the right type of artifacts (pc or evm)
 source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 
-echo "==================================================================="
-echo "Please install EdgeAI Linux SDK StarterKit for TDA4VM"
-echo "from: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM"
-echo "All the required dependencies are available in the SDK"
-echo "For more information, please visit: https://www.ti.com/tool/SK-TDA4VM"
-echo "-------------------------------------------------------------------"
-
-
+##################################################################
 # specify one of the following settings - options can be changed inside the yaml
 #settings_file=settings_infer_on_evm.yaml
 #settings_file=settings_import_on_pc.yaml
 settings_file=settings_infer_on_evm.yaml
 
-echo "==================================================================="
+
+echo "-------------------------------------------------------------------"
 # run all the shortlisted models with these settings
-python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC}
+models_list_file="./work_dirs/modelartifacts/benchmarks_models_list.txt"
+python3 ./scripts/generate_models_list.py ${settings_file} --target_device ${TARGET_SOC} --models_list_file $models_list_file --dataset_loading False
+num_lines=$(wc -l < ${models_list_file})
+echo $num_lines
+
+for model_id in $(cat ${models_list_file}); do
+  echo "running model_id:$model_id"
+  python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC} --model_selection $model_id
+done
 echo "-------------------------------------------------------------------"
 
-#echo "==================================================================="
-### run few selected models with these settings
-#python3 ./scripts/benchmark_modelzoo.py ${settings_file} \
-#        --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
-#        --task_selection classification segmentation \
-#        --model_selection onnx
-#echo "-------------------------------------------------------------------"
-
-echo "==================================================================="
 # generate the final report with results for all the artifacts generated
 python3 ./scripts/generate_report.py ${settings_file}
 echo "-------------------------------------------------------------------"
