@@ -70,6 +70,7 @@ parallel_device=0
 for model_id in $(cat ${models_list_file}); do
   while [ $(jobs -r | wc -l) -ge $num_parallel_models ]; do
       timestamp=$(date +'%Y%m%d-%H%M%S')
+      num_running_jobs=$(jobs -r | wc -l)
       echo -ne "timestamp:$timestamp num_running_jobs:$num_running_jobs"
       sleep 1
   done
