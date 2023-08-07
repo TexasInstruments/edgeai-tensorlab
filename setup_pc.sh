@@ -35,13 +35,11 @@ echo "tidl_tools version ${TIDL_TOOLS_RELEASE_NAME}"
 #######################################################################
 echo 'Installing system dependencies'
 
-sudo apt-get install -y libffi-dev
-
-# Dependencies for building pillow-simd
-sudo apt-get install -y libjpeg-dev zlib1g-dev
-
-# Dependencies for TIDL & onnx
-sudo apt-get install -y graphviz graphviz-dev protobuf-compiler
+# Dependencies for cmake, onnx, pillow-simd, tidl-graph-visualization
+sudo apt-get install -y cmake \
+                        libffi-dev \
+                        libjpeg-dev zlib1g-dev \
+                        graphviz graphviz-dev protobuf-compiler
 
 #################################################################################
 # upgrade pip
