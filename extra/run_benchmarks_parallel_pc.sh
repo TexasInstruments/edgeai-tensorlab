@@ -68,15 +68,26 @@ echo $num_lines
 
 parallel_device=0
 for model_id in $(cat ${models_list_file}); do
-  while [ $(jobs -r |wc -l) -ge $num_parallel_models ]; do
+  while [ $(jobs -r | wc -l) -ge $num_parallel_models ]; do
+      timestamp=$(date +'%Y%m%d-%H%M%S')
+      echo -ne "timestamp:$timestamp num_running_jobs:$num_running_jobs"
       sleep 1
   done
+  timestamp=$(date +'%Y%m%d-%H%M%S')
+  num_running_jobs=$(jobs -r | wc -l)
   parallel_device=$((parallel_device+1))
   parallel_device=$((parallel_device%num_parallel_devices))
-  echo "running model_id:$model_id on parallel_device:$parallel_device"
+  echo "timestamp:$timestamp running model_id:$model_id on parallel_device:$parallel_device num_running_jobs:$num_running_jobs"
   CUDA_VISIBLE_DEVICES="$parallel_device" python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC} --model_selection $model_id &
 done
+
 echo "-------------------------------------------------------------------"
+while [ $(jobs -r | wc -l) -ge 1 ]; do
+    timestamp=$(date +'%Y%m%d-%H%M%S')
+    num_running_jobs=$(jobs -r | wc -l)
+    echo -ne "timestamp:$timestamp num_running_jobs:$num_running_jobs"
+    sleep 1
+done
 
 echo "-------------------------------------------------------------------"
 # generate the final report with results for all the artifacts generated
