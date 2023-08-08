@@ -98,7 +98,7 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r9.0"
   # installers for 9.0 release
   echo 'tidl_tools version 9.0'
   TARGET_SOCS=(AM62A AM68A AM69A TDA4VM)
-  TIDL_TOOLS_RELEASE_ID=09_00_00_00
+  TIDL_TOOLS_RELEASE_ID=09_00_00_01
   TIDL_TOOLS_VERSION_NAME=9.0
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/dlr-1.13.0-py3-none-any.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tvm-0.12.0-cp310-cp310-linux_x86_64.whl
