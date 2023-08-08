@@ -77,11 +77,12 @@ function f_num_running_jobs() {
 }
 
 function f_list_running_jobs() {
-  pid_jobs=$(pgrep -P $$ | tr "\n" " ")
-  echo $pid_jobs
+  proc_id_jobs=$(pgrep -P $$ -d " ")
+  echo $proc_id_jobs
 }
 
 echo "-------------------------------------------------------------------"
+proc_id=$$
 # run all the shortlisted models with these settings
 models_list_file="./work_dirs/modelartifacts/benchmarks_models_list.txt"
 python3 ./scripts/generate_models_list.py ${settings_file} --target_device ${TARGET_SOC} --models_list_file $models_list_file --dataset_loading False
@@ -91,30 +92,30 @@ echo $num_lines
 parallel_device=0
 for model_id in $(cat ${models_list_file}); do
   while [ $(f_num_running_jobs) -ge $NUM_PARALLEL_PROCESSES ]; do
-      pid_list=$(f_list_running_jobs)
       timestamp=$(date +'%Y%m%d-%H%M%S')
       num_running_jobs=$(jobs -r | wc -l)
-      echo -ne "timestamp:$timestamp num_running_jobs:$num_running_jobs pid_list:$pid_list"
+      echo -ne "\r\e[0K proc_id:$proc_id timestamp:$timestamp num_running_jobs:$num_running_jobs"
       sleep 10
   done
-  pid_list=$(f_list_running_jobs)
   timestamp=$(date +'%Y%m%d-%H%M%S')
   num_running_jobs=$(jobs -r | wc -l)
   parallel_device=$((parallel_device+1))
   parallel_device=$((parallel_device%NUM_PARALLEL_DEVICES))
-  echo "timestamp:$timestamp running model_id:$model_id on parallel_device:$parallel_device num_running_jobs:$num_running_jobs pid_list:$pid_list"
+  echo " "
+  echo " ==============================================================="
+  echo " proc_id:$proc_id timestamp:$timestamp num_running_jobs:$num_running_jobs running model_id:$model_id on parallel_device:$parallel_device"
   # --parallel_processes 0 is used becuase we don't want to create another process inside.
   # --parallel_devices null is used becuase CUDA_VISIBLE_DEVICES is set here itself - no need to be set inside again
   CUDA_VISIBLE_DEVICES="$parallel_device" python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC} --model_selection $model_id --parallel_processes 0 --parallel_devices null &
+  sleep 1
+  echo " ==============================================================="
 done
 
 echo "-------------------------------------------------------------------"
 while [ f_num_running_jobs -ge 1 ]; do
-    pid_list=$(f_list_running_jobs)
     timestamp=$(date +'%Y%m%d-%H%M%S')
     num_running_jobs=$(jobs -r | wc -l)
-    echo -ne "timestamp:$timestamp num_running_jobs:$num_running_jobs pid_list:$pid_list"
-    python3 ./scripts/generate_report.py ${settings_file}
+    echo -ne "\r\e[0K proc_id:$proc_id timestamp:$timestamp num_running_jobs:$num_running_jobs"
     sleep 10
 done
 

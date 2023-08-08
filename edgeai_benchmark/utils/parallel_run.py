@@ -150,7 +150,7 @@ class ParallelRun:
         result = {}
         exception_e = None
         try:
-            if self.parallel_devices not in (None, 0):
+            if self.parallel_devices is not None:
                 num_devices = len(self.parallel_devices)
                 parallel_device = self.parallel_devices[task_index%num_devices]
                 os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
