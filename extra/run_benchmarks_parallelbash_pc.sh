@@ -104,7 +104,8 @@ for model_id in $(cat ${models_list_file}); do
   parallel_device=$((parallel_device%NUM_PARALLEL_DEVICES))
   echo "timestamp:$timestamp running model_id:$model_id on parallel_device:$parallel_device num_running_jobs:$num_running_jobs pid_list:$pid_list"
   # --parallel_processes 0 is used becuase we don't want to create another process inside.
-  CUDA_VISIBLE_DEVICES="$parallel_device" python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC} --model_selection $model_id --parallel_processes 0 &
+  # --parallel_devices null is used becuase CUDA_VISIBLE_DEVICES is set here itself - no need to be set inside again
+  CUDA_VISIBLE_DEVICES="$parallel_device" python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC} --model_selection $model_id --parallel_processes 0 --parallel_devices null &
 done
 
 echo "-------------------------------------------------------------------"

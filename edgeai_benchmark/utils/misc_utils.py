@@ -175,13 +175,28 @@ def str_to_bool(v):
     if v is None:
         return False
     elif isinstance(v, str):
-        if v.lower() in ('', 'none', 'false', 'no', '0'):
+        if v.lower() in ('', 'none', 'null', 'false', 'no', '0'):
             return False
         elif v.lower() in ('true', 'yes', '1'):
             return True
         #
     #
     return bool(v)
+
+
+def int_or_none(v):
+    if v is None:
+        return None
+    elif isinstance(v, str):
+        if v.lower() in ('', 'none', 'null', 'false', 'no'):
+            return None
+        elif v.lower() in ('0',):
+            return 0
+        elif v.lower() in ('true', 'yes', '1'):
+            return 1
+        #
+    #
+    return int(v)
 
 
 def cleanup_dict(inp_dict, template_dict):
