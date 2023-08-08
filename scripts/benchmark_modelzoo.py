@@ -54,10 +54,10 @@ if __name__ == '__main__':
     parser.add_argument('--calibration_iterations', type=int)
     parser.add_argument('--run_import', type=utils.str_to_bool)
     parser.add_argument('--run_inference', type=utils.str_to_bool)
-    parser.add_argument('--parallel_devices', type=int, nargs='*')
-    parser.add_argument('--parallel_processes', type=int)
     parser.add_argument('--modelartifacts_path', type=str)
     parser.add_argument('--dataset_loading', type=str, nargs='*')
+    parser.add_argument('--parallel_devices', type=int)
+    parser.add_argument('--parallel_processes', type=int)
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)

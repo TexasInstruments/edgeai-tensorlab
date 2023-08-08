@@ -31,6 +31,7 @@
 ##################################################################
 # to run background jobs
 set -m
+
 ##################################################################
 # target_device - use one of: TDA4VM AM62A AM68A AM69A
 # (Note: until r8.5 only TDA4VM was supported)
@@ -56,8 +57,29 @@ source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 #settings_file=settings_import_on_pc.yaml
 settings_file=settings_import_on_pc.yaml
 
-num_parallel_models=8
-num_parallel_devices=4
+# for parallel execution on pc only (cpu or gpu).
+# number fo parallel processes to run.
+# for example 8 will mean 8 models will run in parallel
+# for example 1 will mean one model will run (but in a separae processs from that of the main process)
+# null will mean one process will run, in the same process as the main
+NUM_PARALLEL_PROCESSES=8
+
+# for parallel execution on CUDA/gpu. if you don't have CUDA/gpu, these don't matter
+# if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. specify 4 will use the gpus: 0,1,2,3
+# it can also be specified as a list with actual GPU ids, instead of an integer: [0,1,2,3]
+# important note: to use CUDA/gpu, CUDA compiled TIDL (tidl_tools) is required.
+NUM_PARALLEL_DEVICES=4
+
+echo "-------------------------------------------------------------------"
+function f_num_running_jobs() {
+  n_jobs=$(jobs -r | wc -l)
+  echo $n_jobs
+}
+
+function f_list_running_jobs() {
+  pid_jobs=$(pgrep -P $$ | tr "\n" " ")
+  echo $pid_jobs
+}
 
 echo "-------------------------------------------------------------------"
 # run all the shortlisted models with these settings
@@ -68,26 +90,31 @@ echo $num_lines
 
 parallel_device=0
 for model_id in $(cat ${models_list_file}); do
-  while [ $(jobs -r | wc -l) -ge $num_parallel_models ]; do
+  while [ $(f_num_running_jobs) -ge $NUM_PARALLEL_PROCESSES ]; do
+      pid_list=$(f_list_running_jobs)
       timestamp=$(date +'%Y%m%d-%H%M%S')
       num_running_jobs=$(jobs -r | wc -l)
-      echo -ne "timestamp:$timestamp num_running_jobs:$num_running_jobs"
-      sleep 1
+      echo -ne "timestamp:$timestamp num_running_jobs:$num_running_jobs pid_list:$pid_list"
+      sleep 10
   done
+  pid_list=$(f_list_running_jobs)
   timestamp=$(date +'%Y%m%d-%H%M%S')
   num_running_jobs=$(jobs -r | wc -l)
   parallel_device=$((parallel_device+1))
-  parallel_device=$((parallel_device%num_parallel_devices))
-  echo "timestamp:$timestamp running model_id:$model_id on parallel_device:$parallel_device num_running_jobs:$num_running_jobs"
-  CUDA_VISIBLE_DEVICES="$parallel_device" python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC} --model_selection $model_id &
+  parallel_device=$((parallel_device%NUM_PARALLEL_DEVICES))
+  echo "timestamp:$timestamp running model_id:$model_id on parallel_device:$parallel_device num_running_jobs:$num_running_jobs pid_list:$pid_list"
+  # --parallel_processes 0 is used becuase we don't want to create another process inside.
+  CUDA_VISIBLE_DEVICES="$parallel_device" python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC} --model_selection $model_id --parallel_processes 0 &
 done
 
 echo "-------------------------------------------------------------------"
-while [ $(jobs -r | wc -l) -ge 1 ]; do
+while [ f_num_running_jobs -ge 1 ]; do
+    pid_list=$(f_list_running_jobs)
     timestamp=$(date +'%Y%m%d-%H%M%S')
     num_running_jobs=$(jobs -r | wc -l)
-    echo -ne "timestamp:$timestamp num_running_jobs:$num_running_jobs"
-    sleep 1
+    echo -ne "timestamp:$timestamp num_running_jobs:$num_running_jobs pid_list:$pid_list"
+    python3 ./scripts/generate_report.py ${settings_file}
+    sleep 10
 done
 
 echo "-------------------------------------------------------------------"

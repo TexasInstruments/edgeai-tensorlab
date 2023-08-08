@@ -35,6 +35,7 @@ echo "tidl_tools version ${TIDL_TOOLS_RELEASE_NAME}"
 #######################################################################
 echo 'Installing system dependencies'
 
+
 # Dependencies for cmake, onnx, pillow-simd, tidl-graph-visualization
 sudo apt-get install -y cmake \
                         libffi-dev \
