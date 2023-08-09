@@ -55,15 +55,8 @@ _model_descriptions.update(edgeai_mmdetection.detection.get_model_descriptions()
 _training_module_descriptions.update({'edgeai_mmdetection':[constants.TASK_TYPE_DETECTION]})
 
 
-# edgeai-yolov5
-if constants.PLUGINS_ENABLE_GPL:
-    from . import edgeai_yolov5
-    _model_descriptions.update(edgeai_yolov5.detection.get_model_descriptions())
-    _training_module_descriptions.update({'edgeai_yolov5':[constants.TASK_TYPE_DETECTION]})
-#
-
 # edgeai-mmpose
-# if constants.PLUGINS_ENABLE_GPL:
+# if constants.PLUGINS_ENABLE_EXTRA:
     # from . import edgeai_mmpose
     # _model_descriptions.update(edgeai_mmpose.keypoint_detection.get_model_descriptions())
     # _training_module_descriptions.update({'edgeai_mmpose':[constants.TASK_TYPE_KEYPOINT_DETECTION]})

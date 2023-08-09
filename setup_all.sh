@@ -35,9 +35,6 @@
 # internal or external repositories
 USE_INTERNAL_REPO=0
 
-# set to 1 to enable additional GPLv3 licensed models
-PLUGINS_ENABLE_GPL=0
-
 # set to 1 to enable other extra models
 PLUGINS_ENABLE_EXTRA=0
 
@@ -60,11 +57,6 @@ if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch r8.6 ${SOURCE_LOCATIO
 if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r8.6 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
 if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r8.6 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
 if [[ ! -d ../edgeai-modelzoo ]]; then git clone ${FAST_CLONE_MODELZOO} --branch r8.6 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; fi
-
-if [[ ${PLUGINS_ENABLE_GPL} -ne 0 ]]; then
-  if [[ ! -d ../edgeai-yolov5 ]]; then git clone --branch r8.4 ${SOURCE_LOCATION}edgeai-yolov5.git ../edgeai-yolov5; fi
-  sed -i s/'PLUGINS_ENABLE_GPL = False'/'PLUGINS_ENABLE_GPL = True'/g ./edgeai_modelmaker/ai_modules/vision/constants.py
-fi
 
 if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
   sed -i s/'PLUGINS_ENABLE_EXTRA = False'/'PLUGINS_ENABLE_EXTRA = True'/g ./edgeai_modelmaker/ai_modules/vision/constants.py
@@ -91,12 +83,6 @@ cd ../edgeai-torchvision
 echo "installing: https://github.com/TexasInstruments/edgeai-mmdetection"
 cd ../edgeai-mmdetection
 ./setup.sh
-
-if [[ ${PLUGINS_ENABLE_GPL} -ne 0 ]]; then
-  echo "installing: https://github.com/TexasInstruments/edgeai-yolov5 (GPLv3 Licensed)"
-  cd ../edgeai-yolov5
-  ./setup_for_modelmaker.sh
-fi
 
 echo "installing: https://github.com/TexasInstruments/edgeai-benchmark"
 cd ../edgeai-benchmark
