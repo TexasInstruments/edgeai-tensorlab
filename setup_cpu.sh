@@ -2,12 +2,12 @@
 #conda install -y cython
 
 echo "Installing pytorch"
-pip3 install --no-input torch==2.0.1+cu118 -f https://download.pytorch.org/whl/torch_stable.html
+pip3 install --no-input torch==2.0.1 torchvision==0.15.2 --index-url https://download.pytorch.org/whl/cpu
 
 pip3 install --no-input cython
 
 echo "Installing mmcv"
-pip3 install --no-input mmcv-full==2.0.1 -f https://download.openmmlab.com/mmcv/dist/cu113/torch1.10.0/index.html
+pip3 install --no-input mmcv-lite==2.0.1
 
 # onnx
 pip3 install --no-input protobuf==3.19.4
