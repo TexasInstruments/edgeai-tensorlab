@@ -88,11 +88,13 @@ class QUANTScaleType(enum.Enum):
 # runtime_options preferred - may not blindly apply for qat models
 TARGET_DEVICE_SETTINGS_PRESETS = {
     TARGET_DEVICE_TDA4VM : {
+        # TDA4VM does not support the per-channel asymmetric quantization
     },
     TARGET_DEVICE_AM62A : {
-        'runtime_options': {
-            'advanced_options:quantization_scale_type': 4
-        }
+        # disabling per-channel asymmetric quantization for AM62A for now, due to an issue in EVM 
+        # 'runtime_options': {
+        #     'advanced_options:quantization_scale_type': 4
+        # }
     },
     TARGET_DEVICE_AM68A : {
         'runtime_options': {
