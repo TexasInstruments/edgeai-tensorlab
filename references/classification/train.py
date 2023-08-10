@@ -15,6 +15,9 @@ from torch import nn
 from torch.utils.data.dataloader import default_collate
 from torchvision.transforms.functional import InterpolationMode
 
+import dataset_utils
+import model_utils
+from edgeai_torchtoolkit.v1 import xnn
 from edgeai_torchtoolkit.v2 import xao
 
 
@@ -143,17 +146,24 @@ def load_data(traindir, valdir, args):
         random_erase_prob = getattr(args, "random_erase", 0.0)
         ra_magnitude = getattr(args, "ra_magnitude", None)
         augmix_severity = getattr(args, "augmix_severity", None)
-        dataset = torchvision.datasets.ImageFolder(
-            traindir,
-            presets.ClassificationPresetTrain(
-                crop_size=train_crop_size,
-                interpolation=interpolation,
-                auto_augment_policy=auto_augment_policy,
-                random_erase_prob=random_erase_prob,
-                ra_magnitude=ra_magnitude,
-                augmix_severity=augmix_severity,
-            ),
-        )
+        train_transform = presets.ClassificationPresetTrain(
+	                crop_size=train_crop_size,
+	                interpolation=interpolation,
+	                auto_augment_policy=auto_augment_policy,
+	                random_erase_prob=random_erase_prob,
+	                ra_magnitude=ra_magnitude,
+	                augmix_severity=augmix_severity,
+	    )
+        if args.dataset == 'modelmaker':
+            train_folders = os.path.normpath(traindir).split(os.sep)
+            train_anno = os.path.join(os.sep.join(train_folders[:-1]), 'annotations', f'{args.annotation_prefix}_train.json')
+            dataset = dataset_utils.CocoClassification(traindir, train_anno, train_transform)
+        else:
+            dataset = torchvision.datasets.ImageFolder(
+	            traindir,
+	            train_transform,
+            )
+		#
         if args.cache_dataset:
             print(f"Saving dataset_train to {cache_path}")
             utils.mkdir(os.path.dirname(cache_path))
@@ -175,10 +185,16 @@ def load_data(traindir, valdir, args):
                 crop_size=val_crop_size, resize_size=val_resize_size, interpolation=interpolation
             )
 
-        dataset_test = torchvision.datasets.ImageFolder(
-            valdir,
-            preprocessing,
-        )
+        if args.dataset == 'modelmaker':
+            val_folders = os.path.normpath(valdir).split(os.sep)
+            val_anno = os.path.join(os.sep.join(val_folders[:-1]), 'annotations', f'{args.annotation_prefix}_val.json')
+            dataset_test = dataset_utils.CocoClassification(valdir, val_anno, preprocessing)
+        else:
+            dataset_test = torchvision.datasets.ImageFolder(
+                valdir,
+                preprocessing,
+            )
+        #
         if args.cache_dataset:
             print(f"Saving dataset_test to {cache_path}")
             utils.mkdir(os.path.dirname(cache_path))
@@ -258,18 +274,22 @@ def main(args):
     )
 
     print("Creating model")
-    model = torchvision.models.get_model(args.model, weights=args.weights, num_classes=num_classes)
+    model = model_utils.get_model(args.model, weights=args.weights, num_classes=num_classes, model_surgery=args.model_surgery)
 
-    if args.lite_model:
+    if args.model_surgery == xao.surgery.ModelSyrgeryType.MODEL_SURGERY_LEGACY:
+        model = xnn.model_surgery.convert_to_lite_model(model)
+    elif args.model_surgery == xao.surgery.ModelSyrgeryType.MODEL_SURGERY_FX:
         model = xao.surgery.replace_unsuppoted_layers(model)
+    
+    if args.pretrained:
+        print(f"loading pretrained checkpoint from: {args.pretrained}")
+        xnn.utils.load_weights(model, args.pretrained)
 
-    if args.quantization and args.pruning:
-        model = xao.pruning.PrunerQuantModule(model)
-    elif args.pruning:
+    if args.pruning:
         model = xao.pruning.PrunerModule(model)
-    elif args.quantization:
+    
+    if args.quantization:
         model = xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
-    #
     
     model.to(device)
 
@@ -435,8 +455,11 @@ def get_args_parser(add_help=True):
     parser = argparse.ArgumentParser(description="PyTorch Classification Training", add_help=add_help)
 
     parser.add_argument("--data-path", default="/datasets01/imagenet_full_size/061417/", type=str, help="dataset path")
+    parser.add_argument('--dataset', default='folder', help='dataset')
+    parser.add_argument('--annotation-prefix', default='instances', help='annotation-prefix')
     parser.add_argument("--model", default="resnet18", type=str, help="model name")
     parser.add_argument("--device", default="cuda", type=str, help="device (Use cuda or cpu Default: cuda)")
+    parser.add_argument('--gpus', default=1, type=int, help='number of gpus')
     parser.add_argument(
         "-b", "--batch-size", default=32, type=int, help="images per gpu, the total batch size is $NGPU x batch_size"
     )
@@ -510,6 +533,13 @@ def get_args_parser(add_help=True):
         help="Only test the model",
         action="store_true",
     )
+    parser.add_argument(
+        "--pretrained",
+        dest="pretrained",
+        help="Use pre-trained models from the modelzoo",
+        default=None,
+        type=xnn.utils.str_or_bool,
+    )
     parser.add_argument("--auto-augment", default=None, type=str, help="auto augment policy (default: None)")
     parser.add_argument("--ra-magnitude", default=9, type=int, help="magnitude of auto augment policy")
     parser.add_argument("--augmix-severity", default=3, type=int, help="severity of augmix policy")
@@ -521,7 +551,9 @@ def get_args_parser(add_help=True):
     # distributed training parameters
     parser.add_argument("--world-size", default=1, type=int, help="number of distributed processes")
     parser.add_argument("--dist-url", default="env://", type=str, help="url used to set up distributed training")
-    parser.add_argument("--parallel", default=0, type=str, help="can use data parallel mode with distributed is not used")
+    parser.add_argument("--distributed", default=None, type=xnn.utils.str2bool_or_none,
+                        help="use dstributed training even if this script is not launched using torch.disctibuted.launch or run")
+    parser.add_argument("--parallel", default=xnn.utils.str2bool_or_none, type=str, help="can use data parallel mode with distributed is not used")
 
     parser.add_argument(
         "--model-ema", action="store_true", help="enable tracking Exponential Moving Average of model parameters"
@@ -561,7 +593,9 @@ def get_args_parser(add_help=True):
     parser.add_argument("--weights", default=None, type=str, help="the weights enum name to load")
 
     # options to create faster models
-    parser.add_argument("--lite-model", "--model-surgery", default=0, help="model surgery to create lite models")
+    parser.add_argument("--model-surgery", "--lite-model", default=xao.surgery.ModelSyrgeryType.NO_SURGERY, type=int, 
+                        choices=xao.surgery.ModelSyrgeryType.get_dict(),
+                        help="model surgery to create lite models")
 
     parser.add_argument("--quantization", default=0, type=int, choices=xao.quantization.QConfigMethod.choices(), help="Quaantization Aware Training (QAT)")
     parser.add_argument("--quantization-type", default=None, help="Quaantization Bitdepth - applies only if quantization is enabled")
