@@ -138,8 +138,9 @@ REPLACEMENTS_DICT_LITE_DEPTHWISE = {
 
 
 def get_replacements_dict():
-    # shouldn't this be changed to REPLACEMENTS_DICT_LITE?
-    return REPLACEMENTS_DICT_LITE_DEPTHWISE
+    # this default was REPLACEMENTS_DICT_LITE_DEPTHWISE
+    # now changed to REPLACEMENTS_DICT_LITE
+    return REPLACEMENTS_DICT_LITE
 
 
 # this function can be used after creating the model to transform it into a lite model.
