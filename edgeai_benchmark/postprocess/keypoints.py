@@ -1163,10 +1163,10 @@ class HumanPoseImageSave:
         return img
 
     def __call__(self, result, info_dict):
-        num_kpts = len(info_dict['dataset_info']['categories'][0]['keypoints'])
+        num_keypoints = len(info_dict['dataset_info']['categories'][0]['keypoints'])
         self.skeleton = info_dict['dataset_info']['categories'][0]['skeleton']
         self.pose_limb_color = self.palette[[16]*len(self.skeleton)]
-        self.pose_kpt_color = self.palette[[16]*num_kpts]
+        self.pose_kpt_color = self.palette[[16]*num_keypoints]
         if self.output_frame_idx >= self.num_output_frames:
             self.output_frame_idx += 1
             return result, info_dict
@@ -1189,7 +1189,7 @@ class HumanPoseImageSave:
                     'score': result['scores'][idx],
                     'area': area,
                 })
-            sigmas = np.array([0.87]*num_kpts)/10.0
+            sigmas = np.array([0.87]*num_keypoints)/10.0
 
             keep = self.oks_nms(pose_results, self.pose_nms_thr, sigmas=sigmas)
             pose_results = [pose_results[_keep] for _keep in keep]
