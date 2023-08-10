@@ -28,11 +28,13 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# target_device - use one of: TDA4VM AM62A AM68A AM69A
+TARGET_SOC=${1:-TDA4VM}
 
-directory_prefix=./modelartifacts/8bits
+directory_prefix=modelartifacts/${TARGET_SOC}/8bits
 
-for artifact in $(ls -1 ./modelartifacts/8bits/*.tar.gz.link)
+for artifact in $(ls -1 ${directory_prefix}/*.tar.gz.link)
 do
 artifact=$(cat $artifact)
-wget ${artifact} --directory-prefix=$directory_prefix
+wget ${artifact} --directory-prefix=./${directory_prefix}
 done

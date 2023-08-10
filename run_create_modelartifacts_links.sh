@@ -28,13 +28,21 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+##################################################################
+# target_device - use one of: TDA4VM AM62A AM68A AM69A
+# (Note: until r8.5 only TDA4VM was supported)
+TARGET_SOC=${1:-TDA4VM}
+
+##################################################################
 version=$(python3 version.py --delimiter=_)
 
-url=http://software-dl.ti.com/jacinto7/esd/modelzoo/$version/modelartifacts/8bits
+directory_prefix=modelartifacts/${TARGET_SOC}/8bits
 
-for artifact in $(ls -1 ./modelartifacts/8bits/*.tar.gz)
+url=http://software-dl.ti.com/jacinto7/esd/modelzoo/${version}/${directory_prefix}
+
+for artifact in $(ls -1 ./${directory_prefix}/*.tar.gz)
 do
 artifact_basename=$(basename ${artifact})
 echo ${artifact_basename}
-echo ${url}/${artifact_basename} > ./modelartifacts/8bits/${artifact_basename}.link
+echo ${url}/${artifact_basename} > ./${directory_prefix}/${artifact_basename}.link
 done
