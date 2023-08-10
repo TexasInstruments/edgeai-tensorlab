@@ -288,6 +288,7 @@ class ModelTraining:
         device = 'cuda' if self.params.training.num_gpus > 0 else 'cpu'
         # training params
         argv = ['--model', f'{self.params.training.model_training_id}',
+                '--model-surgery', '1',
                 '--pretrained', f'{self.params.training.pretrained_checkpoint_path}',
                 '--dataset', 'modelmaker',
                 '--data-path', f'{self.params.dataset.dataset_path}',
@@ -314,7 +315,7 @@ class ModelTraining:
         args = train.get_args_parser().parse_args(argv)
         args.quit_event = self.quit_event
         # launch the training
-        train.run(args)
+        train.main(args)
 
         return self.params
 

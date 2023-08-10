@@ -180,7 +180,9 @@ class ModelCompilation():
         self.work_dir, self.package_dir = self._get_base_dirs()
 
         # it may be easier to get the existing config and modify the aspects that need to be changed
-        self.settings['num_kpts'] = calib_dataset.num_keypoints
+        if hasattr(calib_dataset, "num_keypoints"):
+            self.settings['num_kpts'] = calib_dataset.num_keypoints
+        #
         pipeline_configs = edgeai_benchmark.tools.select_configs(self.settings, self.work_dir)
         num_pipeline_configs = len(pipeline_configs)
         assert num_pipeline_configs == 1, f'specify a unique model name in edgeai-benchmark. found {num_pipeline_configs} configs'
