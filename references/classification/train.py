@@ -177,8 +177,8 @@ def load_data(traindir, valdir, args):
         print(f"Loading dataset_test from {cache_path}")
         dataset_test, _ = torch.load(cache_path)
     else:
-        if args.weights and args.test_only:
-            weights = torchvision.models.get_weight(args.weights)
+        if args.weights_enum and args.test_only:
+            weights = torchvision.models.get_weight(args.weights_enum)
             preprocessing = weights.transforms()
         else:
             preprocessing = presets.ClassificationPresetEval(
@@ -230,6 +230,9 @@ def main(args):
     # create logger that tee writes to file
     xao.utils.TeeLogger(os.path.join(args.output_dir, 'run.log'))
 
+    # weights can be an external url or a pretrained enum in torhvision
+    (args.weights_url, args.weights_enum) = (args.weights, None) if xnn.utils.is_url_or_file(args.weights) else (None, args.weights)
+    
     utils.init_distributed_mode(args)
     print(args)
 
@@ -274,16 +277,16 @@ def main(args):
     )
 
     print("Creating model")
-    model = model_utils.get_model(args.model, weights=args.weights, num_classes=num_classes, model_surgery=args.model_surgery)
+    model = model_utils.get_model(args.model, weights=args.weights_enum, num_classes=num_classes, model_surgery=args.model_surgery)
 
     if args.model_surgery == xao.surgery.ModelSyrgeryType.MODEL_SURGERY_LEGACY:
         model = xnn.model_surgery.convert_to_lite_model(model)
     elif args.model_surgery == xao.surgery.ModelSyrgeryType.MODEL_SURGERY_FX:
         model = xao.surgery.replace_unsuppoted_layers(model)
     
-    if args.pretrained:
-        print(f"loading pretrained checkpoint from: {args.pretrained}")
-        xnn.utils.load_weights(model, args.pretrained)
+    if args.weights_url:
+        print(f"loading pretrained checkpoint from: {args.weights_url}")
+        xnn.utils.load_weights(model, args.weights_url)
 
     if args.pruning:
         model = xao.pruning.PrunerModule(model)
@@ -532,13 +535,6 @@ def get_args_parser(add_help=True):
         dest="test_only",
         help="Only test the model",
         action="store_true",
-    )
-    parser.add_argument(
-        "--pretrained",
-        dest="pretrained",
-        help="Use pre-trained models from the modelzoo",
-        default=None,
-        type=xnn.utils.str_or_bool,
     )
     parser.add_argument("--auto-augment", default=None, type=str, help="auto augment policy (default: None)")
     parser.add_argument("--ra-magnitude", default=9, type=int, help="magnitude of auto augment policy")
