@@ -289,7 +289,7 @@ class ModelTraining:
         # training params
         argv = ['--model', f'{self.params.training.model_training_id}',
                 '--model-surgery', '1',
-                '--pretrained', f'{self.params.training.pretrained_checkpoint_path}',
+                '--weights', f'{self.params.training.pretrained_checkpoint_path}',
                 '--dataset', 'modelmaker',
                 '--data-path', f'{self.params.dataset.dataset_path}',
                 '--annotation-prefix', f'{self.params.dataset.annotation_prefix}',
