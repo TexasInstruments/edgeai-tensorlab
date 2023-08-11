@@ -47,15 +47,14 @@ training:
     # enable/disable training
     enable: True #False
     # Keypoint Detection model chosen can be changed here if needed
-    # Available models:
-    # 1. yolox_s_keypoint
+    # Available models: yolox_s_keypoint
     model_name: 'yolox_s_keypoint'
-    training_epochs: 15
-    batch_size: 16 #16
-    learning_rate: 0.001
-    num_gpus: 1
+    # training_epochs: 15
+    # batch_size: 16 #16
+    # learning_rate: 0.001
+    # num_gpus: 1
 
 compilation:
     # enable/disable compilation
     enable: True #False
-    tensor_bits: 8 #16 #32
+    # tensor_bits: 8 #16 #32
