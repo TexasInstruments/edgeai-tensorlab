@@ -88,10 +88,9 @@ def _replace_conv2d(current_m=None, groups_dw=None, group_size_dw=1,
     Note: it is also possible to do checks inside this function and if we dont want to replace, return the original module
     '''
     assert current_m is not None, 'for replacing Conv2d the current module must be provided'
-    if isinstance(current_m, torch.nn.Conv2d):
+    if isinstance(current_m, torch.nn.Conv2d) and (groups_dw is not None or group_size_dw is not None):
         kernel_size = current_m.kernel_size if isinstance(current_m.kernel_size, (list,tuple)) else (current_m.kernel_size,current_m.kernel_size)
-        if (current_m.groups == 1 and current_m.in_channels >= 16 and kernel_size[0] > 1 and kernel_size[1] > 1) and \
-            (groups_dw is not None or group_size_dw is not None):
+        if (current_m.groups == 1 and current_m.in_channels >= 16 and kernel_size[0] > 1 and kernel_size[1] > 1):
             with_bias = current_m.bias is not None
             normalization = (current_m.with_normalization[0],current_m.with_normalization[1]) if hasattr(current_m, "with_normalization") else \
                 (with_normalization[0],with_normalization[1])
@@ -106,41 +105,26 @@ def _replace_conv2d(current_m=None, groups_dw=None, group_size_dw=1,
     return current_m
 
 
-'''
-A dictionary with the fllowing structure.
-key: a torch.nn.Module that has to be replaced OR a callable which takes a module as input and returns boolean
-value: a list. the fist entry is a constructor or a callable that creates the replacement module
-               the remaining entries are properties that have to be copied from old module to newly created module.
-'''
-REPLACEMENTS_DICT_LITE = {
-    torch.nn.ReLU6: [torch.nn.ReLU, 'inplace'],
-    torch.nn.Hardswish: [torch.nn.ReLU, 'inplace'],
-    torch.nn.SiLU: [torch.nn.ReLU, 'inplace'],
-    SqueezeExcitation: [torch.nn.Identity],
-    # just a dummy entry to show that the key and value can be a functions
-    # the key should return a boolean and the first entry of value(list) should return an instance of torch.nn.Module
-    _check_dummy: [_replace_dummy]
-}
-
-
-REPLACEMENTS_DICT_LITE_DEPTHWISE = {
-    torch.nn.ReLU6: [torch.nn.ReLU, 'inplace'],
-    torch.nn.Hardswish: [torch.nn.ReLU, 'inplace'],
-    torch.nn.SiLU: [torch.nn.ReLU, 'inplace'],
-    SqueezeExcitation: [torch.nn.Identity],
-    # with_normalization: whether to insert BN after replacing 3x3/5x5 conv etc. with dw-seperable conv
-    # with_activation: whether to insert ReLU after replacing conv with dw-seperable conv
-    torch.nn.Conv2d: [_replace_conv2d, dict(groups_dw=None, group_size_dw=1, with_normalization=(True,False), with_activation=(True,False))],
-    # just a dummy entry to show that the key and value can be a functions
-    # the key should return a boolean and the first entry of value(list) should return an instance of torch.nn.Module
-    _check_dummy: [_replace_dummy]
-}
-
-
-def get_replacements_dict():
-    # this default was REPLACEMENTS_DICT_LITE_DEPTHWISE
-    # now changed to REPLACEMENTS_DICT_LITE
-    return REPLACEMENTS_DICT_LITE
+def get_replacements_dict(groups_dw=None, group_size_dw=None):
+    '''
+    A dictionary with the fllowing structure.
+    key: a torch.nn.Module that has to be replaced OR a callable which takes a module as input and returns boolean
+    value: a list. the fist entry is a constructor or a callable that creates the replacement module
+                the remaining entries are properties that have to be copied from old module to newly created module.
+    '''
+    replacements_dict_lite = {
+        torch.nn.ReLU6: [torch.nn.ReLU, 'inplace'],
+        torch.nn.Hardswish: [torch.nn.ReLU, 'inplace'],
+        torch.nn.SiLU: [torch.nn.ReLU, 'inplace'],
+        SqueezeExcitation: [torch.nn.Identity],
+        # with_normalization: whether to insert BN after replacing 3x3/5x5 conv etc. with dw-seperable conv
+        # with_activation: whether to insert ReLU after replacing conv with dw-seperable conv
+        torch.nn.Conv2d: [_replace_conv2d, dict(groups_dw=groups_dw, group_size_dw=group_size_dw, with_normalization=(True,False), with_activation=(True,False))],
+        # just a dummy entry to show that the key and value can be a functions
+        # the key should return a boolean and the first entry of value(list) should return an instance of torch.nn.Module
+        _check_dummy: [_replace_dummy]
+    }
+    return replacements_dict_lite
 
 
 # this function can be used after creating the model to transform it into a lite model.
@@ -175,7 +159,7 @@ def _create_lite_model_impl(model_function, pretrained_backbone_names=None, repl
 
 
 def convert_to_lite_model(model, inplace=True, replacements_dict=None, **kwargs):
-    replacements_dict = replacements_dict or get_replacements_dict()
-    model = replace_modules_func(model, inplace=inplace, replacements_dict=replacements_dict, **kwargs)
+    replacements_dict = replacements_dict or get_replacements_dict(**kwargs)
+    model = replace_modules_func(model, inplace=inplace, replacements_dict=replacements_dict)
     return model
 

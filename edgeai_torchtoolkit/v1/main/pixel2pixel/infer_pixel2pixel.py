@@ -314,7 +314,7 @@ def main(args):
         is_cuda = next(model.parameters()).is_cuda
         dummy_input = create_rand_inputs(args, is_cuda=is_cuda)
         # Note: bias_calibration is not enabled in test
-        model = xnn.quantize.QuantTestModule(model, per_channel_q=args.per_channel_q,
+        model = xnn.quantization.QuantTestModule(model, per_channel_q=args.per_channel_q,
                         bitwidth_weights=args.bitwidth_weights, bitwidth_activations=args.bitwidth_activations,
                         histogram_range=args.histogram_range, dummy_input=dummy_input,
                         model_surgery_quantize=model_surgery_quantize)
@@ -546,7 +546,7 @@ def get_save_path(args, phase=None):
 def get_model_orig(model):
     is_parallel_model = isinstance(model, (torch.nn.DataParallel, torch.nn.parallel.DistributedDataParallel))
     model_orig = (model.module if is_parallel_model else model)
-    model_orig = (model_orig.module if isinstance(model_orig, (xnn.quantize.QuantBaseModule)) else model_orig)
+    model_orig = (model_orig.module if isinstance(model_orig, (xnn.quantization.QuantBaseModule)) else model_orig)
     return model_orig
 
 

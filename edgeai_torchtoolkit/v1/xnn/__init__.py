@@ -33,7 +33,5 @@ from . import layers
 from . import optim
 from . import utils
 from . import onnx
-from . import model_surgery
-
-# this is deprecated - not importing it
-# from . import quantize_v1
+from . import surgery
+from . import quantization

@@ -247,7 +247,7 @@ def main_worker(gpu, ngpus_per_node, args):
     model, change_names_dict = model if isinstance(model, (list,tuple)) else (model, None)
 
     if args.quantize:
-        model = xnn.quantize.QuantTrainModule(model, dummy_input=dummy_input)
+        model = xnn.quantization.QuantTrainModule(model, dummy_input=dummy_input)
     #
 
     if args.pretrained is not None:

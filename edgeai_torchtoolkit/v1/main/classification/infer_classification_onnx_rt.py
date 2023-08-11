@@ -252,7 +252,7 @@ def get_save_path(args, phase=None):
 def get_model_orig(model):
     is_parallel_model = isinstance(model, (torch.nn.DataParallel, torch.nn.parallel.DistributedDataParallel))
     model_orig = (model.module if is_parallel_model else model)
-    model_orig = (model_orig.module if isinstance(model_orig, (xnn.quantize.QuantBaseModule)) else model_orig)
+    model_orig = (model_orig.module if isinstance(model_orig, (xnn.quantization.QuantBaseModule)) else model_orig)
     return model_orig
 
 

@@ -31,13 +31,12 @@
 
 import warnings
 
-warnings.warn("WARNING - xnn.quantize or xnn.quantize_v1 is a deprecated module. please use xao.quantization instead")
+warnings.warn("WARNING - xnn.quantization is based on the modules. For superior functionality, please use the torch.fx based xao.quantization instead")
 
 from .quant_train_module import *
 from .quant_calib_module import *
 from .quant_test_module import *
 
-
 def is_quant_module(model):
     return isinstance(model, (QuantCalibrateModule, QuantTrainModule, QuantTestModule))
-
+ 
