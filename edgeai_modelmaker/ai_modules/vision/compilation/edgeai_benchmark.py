@@ -269,7 +269,8 @@ class ModelCompilation():
                         runtime_options=None,
                         detection_threshold=self.params.compilation.detection_threshold,
                         detection_top_k=self.params.compilation.detection_top_k,
-                        parallel_devices=None,
+                        parallel_devices=None,   # not assuming availability cuda/gpu compatible tidl_tools for compilation
+                        parallel_processes=None, # no need start a new processes
                         dataset_loading=False,
                         save_output=self.params.compilation.save_output,
                         input_optimization=self.params.compilation.input_optimization,
