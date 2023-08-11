@@ -16,7 +16,7 @@ from mmdet.core.export.model_wrappers import ONNXRuntimeDetector
 from mmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint, is_mmdet_quant_module
 from mmdet.utils import save_model_proto, patch_onnx_file
 
-from torchvision.edgeailite import xnn
+from edgeai_torchtoolkit.v1 import xnn
 
 
 def pytorch2onnx(args,

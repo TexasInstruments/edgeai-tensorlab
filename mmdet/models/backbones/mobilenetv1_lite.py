@@ -73,7 +73,7 @@ from mmcv.runner import BaseModule
 
 from mmdet.utils import get_root_logger
 from mmdet.models.builder import BACKBONES
-from torchvision.edgeailite import xnn
+from edgeai_torchtoolkit.v1 import xnn
 
 ###################################################
 __all__ = ['MobileNetV1LiteBase', 'MobileNetV1Lite', 'mobilenet_v1_lite']

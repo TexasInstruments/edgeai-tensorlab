@@ -26,9 +26,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from torchvision.edgeailite import xnn
+from edgeai_torchtoolkit.v1 import xnn
 
-class XMMDetQuantCalibrateModule(xnn.quantize.QuantCalibrateModule):
+class XMMDetQuantCalibrateModule(xnn.quantization.QuantCalibrateModule):
     def __init__(self, model,  dummy_input, *args, forward_analyze_method='forward_dummy', **kwargs):
         super().__init__(model, dummy_input, *args, forward_analyze_method=forward_analyze_method, **kwargs)
 
@@ -42,7 +42,7 @@ class XMMDetQuantCalibrateModule(xnn.quantize.QuantCalibrateModule):
         return self.module.val_step(*args, **kwargs)
 
 
-class XMMDetQuantTrainModule(xnn.quantize.QuantTrainModule):
+class XMMDetQuantTrainModule(xnn.quantization.QuantTrainModule):
     def __init__(self, model,  dummy_input, *args, forward_analyze_method='forward_dummy', **kwargs):
         super().__init__(model, dummy_input, *args, forward_analyze_method=forward_analyze_method, **kwargs)
 
@@ -56,7 +56,7 @@ class XMMDetQuantTrainModule(xnn.quantize.QuantTrainModule):
         return self.module.val_step(*args, **kwargs)
 
 
-class XMMDetQuantTestModule(xnn.quantize.QuantTestModule):
+class XMMDetQuantTestModule(xnn.quantization.QuantTestModule):
     def __init__(self, model,  dummy_input, *args, forward_analyze_method='forward_dummy', **kwargs):
         super().__init__(model, dummy_input, *args, forward_analyze_method=forward_analyze_method, **kwargs)
 

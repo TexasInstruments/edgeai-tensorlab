@@ -27,7 +27,7 @@ from mmdet.utils import remove_if_exists, make_symlink
 from contextlib import redirect_stdout
 import importlib
 
-from torchvision.edgeailite import xnn
+from edgeai_torchtoolkit.v1 import xnn
 
 
 def parse_args():

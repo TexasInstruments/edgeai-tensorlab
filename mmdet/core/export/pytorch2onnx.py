@@ -9,7 +9,7 @@ from mmcv.runner import load_checkpoint
 from mmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint
 from mmdet.utils import convert_to_lite_model
 
-from torchvision.edgeailite import xnn
+from edgeai_torchtoolkit.v1 import xnn
 
 
 def generate_inputs_and_wrap_model(config_path,
@@ -147,6 +147,7 @@ def preprocess_example_input(input_config):
         'scale_factor': 1.0,
         'flip': False}
     """
+    with_numpy_entries = False # avoid onnx export error with pytorch 2.0.1
     input_path = input_config['input_path']
     input_shape = input_config['input_shape']
     one_img = mmcv.imread(input_path)
@@ -167,9 +168,9 @@ def preprocess_example_input(input_config):
         'ori_shape': (H, W, C),
         'pad_shape': (H, W, C),
         'filename': '<demo>.png',
-        'scale_factor': np.ones(4, dtype=np.float32),
+        'scale_factor': np.ones(4, dtype=np.float32) if with_numpy_entries else [1.0,1.0,1.0,1.0], 
         'flip': False,
-        'show_img': show_img,
+        'show_img': show_img if with_numpy_entries else None,
         'flip_direction': None
     }
 

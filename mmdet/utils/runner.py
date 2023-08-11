@@ -31,7 +31,8 @@ import mmcv
 from mmcv.runner.builder import RUNNERS
 from mmcv.runner import EpochBasedRunner
 from mmcv.runner import OptimizerHook, HOOKS, Hook
-from torchvision.edgeailite import xnn
+
+from edgeai_torchtoolkit.v1 import xnn
 from .quantize import is_mmdet_quant_module
 
 

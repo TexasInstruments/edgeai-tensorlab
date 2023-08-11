@@ -2,17 +2,19 @@
 #conda install -y cython
 
 echo "Installing pytorch"
-pip3 install --no-input torch==2.0.1+cu118 -f https://download.pytorch.org/whl/torch_stable.html
+pip3 install --no-input torch==2.0.1+cu118 torchvision==0.15.2+cu118 -f https://download.pytorch.org/whl/torch_stable.html
 
 pip3 install --no-input cython
 
 echo "Installing mmcv"
-pip3 install --no-input mmcv-full==2.0.1 -f https://download.openmmlab.com/mmcv/dist/cu113/torch1.10.0/index.html
+pip3 install --no-input mmcv-full==1.4.7 -f https://download.openmmlab.com/mmcv/dist/cu118/torch2.0.1/index.html
 
-# onnx
+pip3 install --no-input cython
 pip3 install --no-input protobuf==3.19.4
+# onnx
 pip3 install --no-input pybind11[global]         # for building the below onnx custom fork
 pip3 install --no-input https://github.com/TexasInstruments/onnx/archive/tidl-j7.zip
+
 pip3 install --no-input torchinfo
 pip3 install --no-input pycocotools
 

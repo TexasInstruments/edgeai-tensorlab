@@ -26,7 +26,7 @@ from mmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_chec
 from mmdet.utils import convert_to_lite_model
 from contextlib import redirect_stdout
 
-from torchvision.edgeailite import xnn
+from edgeai_torchtoolkit.v1 import xnn
 
 
 def parse_args():

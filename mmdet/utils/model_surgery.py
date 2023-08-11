@@ -30,7 +30,7 @@ import copy
 import torch
 import mmcv
 from mmcv.cnn import bricks
-from torchvision.edgeailite import xnn
+from edgeai_torchtoolkit.v1 import xnn
 
 
 __all__ = [
@@ -51,13 +51,13 @@ def replace_maxpool2d(m):
 def convert_to_lite_model(model, cfg):
     from mmdet.models.backbones.csp_darknet import Focus, FocusLite
     convert_to_lite_model_args = cfg.convert_to_lite_model if isinstance(cfg.convert_to_lite_model, dict) else dict()
-    replacements_dict = copy.deepcopy(xnn.model_surgery.get_replacements_dict())
+    replacements_dict = copy.deepcopy(xnn.surgery.get_replacements_dict())
     replacements_ext = {
         Focus:[FocusLite, 'in_channels', 'out_channels', 'kernel_size', 'stride'],
         bricks.Swish:[torch.nn.ReLU],
         torch.nn.MaxPool2d:[replace_maxpool2d]
     }
     replacements_dict.update(replacements_ext)
-    model = xnn.model_surgery.convert_to_lite_model(model, replacements_dict=replacements_dict,
+    model = xnn.surgery.convert_to_lite_model(model, replacements_dict=replacements_dict,
                                                     **convert_to_lite_model_args)
     return model

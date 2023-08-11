@@ -7,7 +7,7 @@ from mmcv.runner import BaseModule, auto_fp16
 
 from ..builder import NECKS
 
-from torchvision.edgeailite import xnn
+from edgeai_torchtoolkit.v1 import xnn
 
 
 @NECKS.register_module()
