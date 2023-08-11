@@ -280,7 +280,7 @@ def main(args):
     model = model_utils.get_model(args.model, weights=args.weights_enum, num_classes=num_classes, model_surgery=args.model_surgery)
 
     if args.model_surgery == xao.surgery.ModelSyrgeryType.MODEL_SURGERY_LEGACY:
-        model = xnn.model_surgery.convert_to_lite_model(model)
+        model = xnn.surgery.convert_to_lite_model(model)
     elif args.model_surgery == xao.surgery.ModelSyrgeryType.MODEL_SURGERY_FX:
         model = xao.surgery.replace_unsuppoted_layers(model)
     
