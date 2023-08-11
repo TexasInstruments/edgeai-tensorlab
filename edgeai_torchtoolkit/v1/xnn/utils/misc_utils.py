@@ -258,6 +258,12 @@ def is_url(v):
     return is_url
 
 
+def is_url_or_file(v):
+    is_url_ = is_url(v)
+    is_file_ = isinstance(v, str) and (v.startswith("/") or v.startswith("./"))
+    return is_url_ or is_file_
+    
+
 def default_arg(parser, option, value, modify_argv=True):
     '''Change the default value of action in ArgumentParser instance'''
     option1 = option
