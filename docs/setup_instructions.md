@@ -47,6 +47,7 @@ After cloning this repository, install it as a Python package by running:
 ```
 ./setup_pc.sh
 ```
+
 In the [requirements_pc.txt](../requirements_pc.txt), we have pillow-simd (as it is faster), but you can replace it with pillow if pillow-simd installation fails.
 
 This setup script downloads several packages from **[edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools]** and installs them. These packages are used for model compilation and also inference on PC (simulation).
@@ -59,6 +60,13 @@ or
 ```
 from edgeai_benchmark import *
 ```
+
+## Version compatibility
+The setup script setup_pc.sh by default installs the tidl_tools for the latest SDK version. Have a look at the environmnet variable TIDL_TOOLS_RELEASE_NAME defined inside the setup script. There is limitied support to install tidl_tools for previous SDK versions by specifying a version_tag. For example:
+```
+./setup_pc.sh <version_tag>
+```
+Please go through the script to understand more details and version_tag to be used for previous releases. However this is for reference rather than for actual usage as the Python requirements for previous releases may not be taken care correctly in this branch. Use the correct git branch for this repository to work correctly for a specific version. For example, git branches such as r9.0, r8.6, r8.5 etc are vailable for this repository. The same is true for several of our other git repositories.
 
 
 ## Additional Requirement: ModelZoo

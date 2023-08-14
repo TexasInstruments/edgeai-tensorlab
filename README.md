@@ -28,9 +28,13 @@ Getting the correct functionality and accuracy with DNN Models is not easy. Seve
 <hr>
 
 ## Supported SOCs
-At the moment, this repository supports compilation and inference for the following SoCs: **TDA4VM**, **AM68A**, **AM62A**, **AM69A**
+At the moment, this repository supports compilation and inference for the following SoCs: **TDA4VM**, **AM68A**, **AM62A**, **AM69A**, **AM62**
 
 A reference to <SOC> in this repository as commandline argument to the scripts refer to one of these SoCs.
+
+This <SOC> argument is used for multiple purposes:
+- To set TIDL_TOOLS_PATH and LD_LIBRARY_PATH used to point to the correct tidl_tools for a device
+- To choose the correct preset (of compilation flags) from the dictionary TARGET_DEVICE_SETTINGS_PRESETS in [constants.py](./edgeai_benchmark/constants.py)
 
 <hr>
 
