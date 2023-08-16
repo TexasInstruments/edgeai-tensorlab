@@ -48,11 +48,21 @@ pip3 install --upgrade pip setuptools
 
 ######################################################################
 echo 'Installing python packages...'
+echo 'Installing python packages...'
+# there as issue with installing pillow-simd through requirements - force it here
+pip uninstall --yes pillow
+pip install --no-input -U --force-reinstall pillow-simd
+
+echo "installing requirements"
+pip3 install --no-input -r ./requirements_pc.txt
+
+# building onnx from soure requires carefull steps
+# make sure that we are using system cmake
+pip uninstall --yes cmake
 # pybind11[global] is needed for building the onnx package.
 # for some reason, this has to be installed before the requirements file is used.
-pip3 install --no-input pybind11[global]
-# now apply the requirements file
-pip3 install --no-input -r ./requirements_pc.txt
+pip3 install --no-input pybind11[global] protobuf==3.19.4
+pybind11_DIR=$(pybind11-config --cmakedir) pip3 install --no-input https://github.com/TexasInstruments/onnx/archive/tidl-j7.zip
 
 ######################################################################
 #NOTE: THIS STEP INSTALLS THE EDITABLE LOCAL MODULE pytidl
