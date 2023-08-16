@@ -2,10 +2,10 @@
 
 
 current_time=$(date '+%Y%m%d_%H%M%S')
-model=resnet50 #mobilenet_v2 #resnet50
-weights=ResNet50_Weights.IMAGENET1K_V1 #MobileNet_V2_Weights.IMAGENET1K_V1 #ResNet50_Weights.IMAGENET1K_V1
+model=mobilenet_v2 #mobilenet_v2 #resnet50
+weights=MobileNet_V2_Weights.IMAGENET1K_V1 #MobileNet_V2_Weights.IMAGENET1K_V1 #ResNet50_Weights.IMAGENET1K_V1
 output_dir=./data/checkpoints/${current_time}_imagenet_classification_${model}
-epochs=60 #60 #16 #150 #90 #25
+epochs=10 #60 #16 #150 #90 #25
 batch_size=64 #32 #128
 lr=0.0001 #0.0001 #0.001
 lr_scheduler=cosineannealinglr
@@ -13,9 +13,9 @@ lr_warmup_epochs=0
 wd=0.00004 #0.0001
 
 quantization=1
-# Options: DEFAULT WT8_AT8 WC8_AT8 WT8P2_AT8P2 WC8P2_AT8P2 WC4_AT8 WC4R4_AT8 WC4_AT4 WC4R4_AT4R4
-# can use two types with a + for mixed precision: WC4_AT4+WC8_AT8 WC4_AT4+WC8_AT8
-quantization_type="WT8P2_AT8P2"
+# Options: DEFAULT WT8_AT8 WC8_AT8 WT8SP2_AT8SP2 WC8SP2_AT8SP2 WC4_AT8 WC4R4_AT8 WC4_AT4 WC4R4_AT4R4
+# can use two types with a + for mixed precision: "WC4_AT4+WC8_AT8" "WC4R4_AT4R4+WC8_AT8"
+quantization_type="DEFAULT"
 
 # needed when using --use-deterministic-algorithms which sets torch.use_deterministic_algorithms(True)
 # but this may increase the memory required.

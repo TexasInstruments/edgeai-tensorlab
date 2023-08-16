@@ -547,9 +547,9 @@ def get_args_parser(add_help=True):
     # distributed training parameters
     parser.add_argument("--world-size", default=1, type=int, help="number of distributed processes")
     parser.add_argument("--dist-url", default="env://", type=str, help="url used to set up distributed training")
-    parser.add_argument("--distributed", default=None, type=xnn.utils.str2bool_or_none,
+    parser.add_argument("--distributed", default=0, type=int,
                         help="use dstributed training even if this script is not launched using torch.disctibuted.launch or run")
-    parser.add_argument("--parallel", default=xnn.utils.str2bool_or_none, type=str, help="can use data parallel mode with distributed is not used")
+    parser.add_argument("--parallel", default=0, type=int, help="can use data parallel mode with distributed is not used")
 
     parser.add_argument(
         "--model-ema", action="store_true", help="enable tracking Exponential Moving Average of model parameters"
