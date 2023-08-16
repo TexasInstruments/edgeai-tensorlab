@@ -31,7 +31,7 @@
 ##################################################################
 # to run background jobs
 set -m
-set -e
+#set -e
 
 ##################################################################
 # target_device - use one of: TDA4VM AM62A AM68A AM69A
@@ -85,7 +85,9 @@ function f_list_running_jobs() {
 echo "-------------------------------------------------------------------"
 proc_id=$$
 # run all the shortlisted models with these settings
-models_list_file="./work_dirs/modelartifacts/benchmarks_models_list.txt"
+modelartifacts_folder="./work_dirs/modelartifacts"
+models_list_file="${modelartifacts_folder}/benchmarks_models_list.txt"
+mkdir -p ${modelartifacts_folder}
 python3 ./scripts/generate_models_list.py ${settings_file} --target_device ${TARGET_SOC} --models_list_file $models_list_file --dataset_loading False
 num_lines=$(wc -l < ${models_list_file})
 echo $num_lines
