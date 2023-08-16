@@ -31,6 +31,7 @@
 ##################################################################
 # to run background jobs
 set -m
+set -e
 
 ##################################################################
 # target_device - use one of: TDA4VM AM62A AM68A AM69A
@@ -93,12 +94,12 @@ parallel_device=0
 for model_id in $(cat ${models_list_file}); do
   while [ $(f_num_running_jobs) -ge $NUM_PARALLEL_PROCESSES ]; do
       timestamp=$(date +'%Y%m%d-%H%M%S')
-      num_running_jobs=$(jobs -r | wc -l)
+      num_running_jobs=$(f_num_running_jobs)
       echo -ne "\r\e[0K proc_id:$proc_id timestamp:$timestamp num_running_jobs:$num_running_jobs"
       sleep 10
   done
   timestamp=$(date +'%Y%m%d-%H%M%S')
-  num_running_jobs=$(jobs -r | wc -l)
+  num_running_jobs=$(f_num_running_jobs)
   parallel_device=$((parallel_device+1))
   parallel_device=$((parallel_device%NUM_PARALLEL_DEVICES))
   echo " "
@@ -112,9 +113,9 @@ for model_id in $(cat ${models_list_file}); do
 done
 
 echo "-------------------------------------------------------------------"
-while [ f_num_running_jobs -ge 1 ]; do
+while [ $(f_num_running_jobs) -ge 1 ]; do
     timestamp=$(date +'%Y%m%d-%H%M%S')
-    num_running_jobs=$(jobs -r | wc -l)
+    num_running_jobs=$(f_num_running_jobs)
     echo -ne "\r\e[0K proc_id:$proc_id timestamp:$timestamp num_running_jobs:$num_running_jobs"
     sleep 10
 done
