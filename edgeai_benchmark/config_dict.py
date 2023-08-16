@@ -140,10 +140,9 @@ class ConfigDict(dict):
         self.target_machine = 'pc' #'evm' #'pc'
         # artifacts - suffix : attach this suffix to the run_dir where artifacts are created
         self.run_suffix = None
-        # for parallel execution on CUDA/gpu. if you don't have CUDA/gpu, these don't matter
-        # if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. specify 4 will use the gpus: 0,1,2,3
+        # important note: for parallel execution on CUDA/gpu. requires CUDA compiled TIDL (tidl_tools) is required.
+        # if you have gpu's, these wil be used for CUDA_VISIBLE_DEVICES. eg. specify 4 will use the gpus: 0,1,2,3
         # it can also be specified as a list with actual GPU ids, instead of an integer: [0,1,2,3]
-        # important note: to use CUDA/gpu, CUDA compiled TIDL (tidl_tools) is required.
         self.parallel_devices = None
         # for parallel execution on pc only (cpu or gpu).
         # number fo parallel processes to run.

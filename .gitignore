@@ -15,6 +15,7 @@ work_dirs/
 backup/*
 tutorials/.ipynb_checkpoints/
 tools/
+tools-*/
 !tools/readme.txt
 tidl_tools_backup/
 backup/
