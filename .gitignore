@@ -9,6 +9,7 @@ torchvision/version.py
 */**/**/*.pyc
 */**/*~
 *~
+data/
 
 docs/build
 # sphinx-gallery
