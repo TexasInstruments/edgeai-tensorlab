@@ -7,7 +7,7 @@ sudo apt-get install -y libjpeg-dev zlib1g-dev cmake libffi-dev protobuf-compile
 
 ######################################################################
 # upgrade pip
-pip3 install --upgrade pip setuptools
+pip3 install --no-input --upgrade pip setuptools
 
 ######################################################################
 echo 'Installing python packages...'
@@ -29,7 +29,7 @@ pybind11_DIR=$(pybind11-config --cmakedir) pip3 install --no-input https://githu
 ######################################################################
 # may need pytorch nightly to build this package
 echo "installing pytorch - use the applopriate index-url from https://pytorch.org/get-started/locally/"
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip3 install --no-input torch==2.0.1+cu118 torchvision==0.15.2+cu118 -f https://download.pytorch.org/whl/torch_stable.html
 
 # no need to do this install this repo - we can use off-the-shelf torchvision installed by pip
 # but if you want to install from this repo (may involve CUDA/C++ compilation), uncomment the following
