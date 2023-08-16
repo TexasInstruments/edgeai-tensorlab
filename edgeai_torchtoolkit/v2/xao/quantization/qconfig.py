@@ -79,8 +79,8 @@ class QConfigType(enum.Enum):
 
     WT8_AT8 = "WT8_AT8"
     WC8_AT8 = "WC8_AT8"
-    WT8P2_AT8P2 = "WT8P2_AT8P2"
-    WC8P2_AT8P2 = "WC8P2_AT8P2"
+    WT8SP2_AT8SP2 = "WT8SP2_AT8SP2"
+    WC8SP2_AT8SP2 = "WC8SP2_AT8SP2"
 
     WC4_AT8 = "WC4_AT8"
     WC4R4_AT8 = "WC4R4_AT8"
@@ -115,11 +115,11 @@ _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.WT8P2_AT8P2] = QConfig(
+_QCONFIG_TYPE_TO_DICT[QConfigType.WT8SP2_AT8SP2] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePower2WeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptivePower2ActivationObserver))
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.WC8P2_AT8P2] = QConfig(
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC8SP2_AT8SP2] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePower2PerChannelWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptivePower2ActivationObserver))
 
