@@ -1,0 +1,10 @@
+Not using distributed mode
+Namespace(data_path='./data/datasets/image_folder_classification', dataset='folder', annotation_prefix='instances', model='mobilenet_v2_lite', device='cpu', gpus=1, batch_size=32, epochs=90, workers=16, opt='sgd', lr=0.1, momentum=0.9, weight_decay=0.0001, norm_weight_decay=None, bias_weight_decay=None, transformer_embedding_decay=None, label_smoothing=0.0, mixup_alpha=0.0, cutmix_alpha=0.0, lr_scheduler='steplr', lr_warmup_epochs=0, lr_warmup_method='constant', lr_warmup_decay=0.01, lr_step_size=30, lr_gamma=0.1, lr_min=0.0, print_freq=100, output_dir='.', resume='', start_epoch=0, cache_dataset=False, sync_bn=False, test_only=False, pretrained=None, auto_augment=None, ra_magnitude=9, augmix_severity=3, random_erase=0.0, amp=False, world_size=1, dist_url='env://', distributed=False, parallel=<function str2bool_or_none at 0x7f5eed622680>, model_ema=False, model_ema_steps=32, model_ema_decay=0.99998, use_deterministic_algorithms=False, interpolation='bilinear', val_resize_size=256, val_crop_size=224, train_crop_size=224, clip_grad_norm=None, ra_sampler=False, ra_reps=3, weights=None, model_surgery=1, quantization=0, quantization_type=None, pruning=0, pruning_ratio=0.5, pruning_type=1, compile_model=0, opset_version=None, train_epoch_size_factor=0.0, val_epoch_size_factor=0.0)
+Loading data
+Loading training data
+Took 2.9284400939941406
+Loading validation data
+Creating data loaders
+Creating model
+Start training
+Epoch: [0]  [    0/40037]  eta: 1 day, 2:04:08  lr: 0.1  img/s: 21.008596890919208  loss: 6.8981 (6.8981)  acc1: 0.0000 (0.0000)  acc5: 0.0000 (0.0000)  time: 2.3441  data: 0.8208

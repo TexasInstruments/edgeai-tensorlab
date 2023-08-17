@@ -5,7 +5,7 @@ current_time=$(date '+%Y%m%d_%H%M%S')
 model=mobilenet_v2 #mobilenet_v2 #resnet50
 weights=MobileNet_V2_Weights.IMAGENET1K_V1 #MobileNet_V2_Weights.IMAGENET1K_V1 #ResNet50_Weights.IMAGENET1K_V1
 output_dir=./data/checkpoints/${current_time}_imagenet_classification_${model}
-epochs=10 #60 #16 #150 #90 #25
+epochs=25 #60 #16 #150 #90 #25
 batch_size=64 #32 #128
 lr=0.0001 #0.0001 #0.001
 lr_scheduler=cosineannealinglr
@@ -27,8 +27,8 @@ torchrun --nproc_per_node 4 ./references/classification/train.py --data-path ./d
          --epochs ${epochs} --batch-size ${batch_size} --wd=${wd} --weights=${weights} \
          --lr=${lr} --lr-scheduler ${lr_scheduler} --lr-warmup-epochs ${lr_warmup_epochs} \
          --model ${model} --output-dir ${output_dir} \
-         --quantization=${quantization} --quantization-type=${quantization_type} \
-         --train-epoch-size-factor 0.1
+         --quantization=${quantization} --quantization-type=${quantization_type} #\
+         #--train-epoch-size-factor 0.1
 
 
 python3 ./references/classification/train.py --data-path ./data/datasets/imagenet \
