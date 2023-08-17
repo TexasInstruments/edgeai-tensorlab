@@ -320,6 +320,8 @@ def main(args):
 
     opt_name = args.opt.lower()
     if opt_name.startswith("sgd"):
+        # in general use torch.optim.SGD
+        # xao.utils.optim.AdaptiveSGD is required only if you want to freeze certain parameters by setting requires_update = False. 
         optimizer = xao.utils.optim.AdaptiveSGD(
             parameters,
             lr=args.lr,
