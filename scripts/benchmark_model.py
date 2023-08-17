@@ -72,4 +72,4 @@ if __name__ == '__main__':
         assert run_dir is not None, 'run_dir must be provided when model_selection is None'
 
     # run the accuracy pipeline
-    tools.run_model(settings, run_dir)
+    interfaces.run_model(settings, run_dir)

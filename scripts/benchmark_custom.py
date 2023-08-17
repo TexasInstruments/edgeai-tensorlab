@@ -291,7 +291,7 @@ if __name__ == '__main__':
     pipeline_configs = create_configs(settings, work_dir)
 
     # run the accuracy pipeline
-    tools.run_accuracy(settings, work_dir, pipeline_configs)
+    interfaces.run_accuracy(settings, work_dir, pipeline_configs)
 
     # package the artifacts
-    tools.run_package(settings, work_dir, packaged_dir, custom_model=True)
+    interfaces.run_package(settings, work_dir, packaged_dir, custom_model=True)

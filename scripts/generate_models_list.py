@@ -75,7 +75,7 @@ if __name__ == '__main__':
         kwargs['models_list_file'] = os.path.join(settings.modelartifacts_path, "models_list.txt")
 
     # run the accuracy pipeline
-    pipeline_configs = tools.select_configs(settings, work_dir)
+    pipeline_configs = interfaces.select_configs(settings, work_dir)
     model_keys = pipeline_configs.keys()
     with open(kwargs['models_list_file'], "w") as fp:
         for model_key in model_keys:

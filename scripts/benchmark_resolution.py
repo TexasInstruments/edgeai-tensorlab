@@ -94,4 +94,4 @@ if __name__ == '__main__':
     print(f'work_dir: {work_dir}')
 
     # run the accuracy pipeline
-    tools.run_accuracy(settings, work_dir)
+    interfaces.run_accuracy(settings, work_dir)

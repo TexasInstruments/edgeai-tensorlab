@@ -72,7 +72,7 @@ if __name__ == '__main__':
             out_dir = cmds.out_dir
         print(f'package_dir: {out_dir}')
 
-        tools.run_package(settings, work_dir, out_dir, param_template=param_template)
+        interfaces.run_package(settings, work_dir, out_dir, param_template=param_template)
     else:
         print('TIDL_ARTIFACT_SYMLINKS is not set - run this script using run_package_artifacts_for_evm.sh')
     #

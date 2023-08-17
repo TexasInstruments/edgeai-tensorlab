@@ -27,31 +27,18 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-import os
-import sys
-import argparse
-
-from edgeai_benchmark import *
+from .. import utils
 
 
-if __name__ == '__main__':
-    # the cwd must be the root of the repository
-    if os.path.split(os.getcwd())[-1] == 'scripts':
-        os.chdir('../')
-    #
+def get_configs(settings, work_dir):
+    # import the configs module
+    configs_module = utils.import_folder(settings.configs_path)
+    pipeline_configs = configs_module.get_configs(settings, work_dir)
+    return pipeline_configs
 
-    parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-    parser.add_argument('settings_file', type=str)
-    parser.add_argument('--target_device', type=str, default=None)
-    parser.add_argument('--modelartifacts_path', type=str)
-    parser.add_argument('--report_perfsim', type=utils.str_to_bool)
-    parser.add_argument('--skip_pattern', type=str, default='_package')
-    cmds = parser.parse_args()
 
-    kwargs = vars(cmds)
-    settings = config_settings.ConfigSettings(cmds.settings_file, **kwargs)
-    print(f'settings: {settings}')
-    sys.stdout.flush()
-
-    interfaces.run_report(settings, skip_pattern=cmds.skip_pattern)
-    print("Report generated at {}".format(settings.modelartifacts_path))
+def select_configs(settings, work_dir, session_name=None):
+    # import the configs module
+    configs_module = utils.import_folder(settings.configs_path)
+    pipeline_configs = configs_module.select_configs(settings, work_dir, session_name)
+    return pipeline_configs
