@@ -183,7 +183,7 @@ class ModelCompilation():
         if hasattr(calib_dataset, "num_keypoints"):
             self.settings['num_kpts'] = calib_dataset.num_keypoints
         #
-        pipeline_configs = edgeai_benchmark.tools.select_configs(self.settings, self.work_dir)
+        pipeline_configs = edgeai_benchmark.interfaces.select_configs(self.settings, self.work_dir)
         num_pipeline_configs = len(pipeline_configs)
         assert num_pipeline_configs == 1, f'specify a unique model name in edgeai-benchmark. found {num_pipeline_configs} configs'
         pipeline_config = list(pipeline_configs.values())[0]
@@ -241,11 +241,11 @@ class ModelCompilation():
                                                    'please see compilation log file for the status.'))
         #
         # run the accuracy pipeline
-        edgeai_benchmark.tools.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
+        edgeai_benchmark.interfaces.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
         # remove special characters
         utils.cleanup_special_chars(self.params.compilation.log_file_path)
         # package artifacts
-        edgeai_benchmark.tools.package_artifacts(self.settings, self.work_dir, out_dir=self.package_dir, custom_model=True)
+        edgeai_benchmark.interfaces.package_artifacts(self.settings, self.work_dir, out_dir=self.package_dir, custom_model=True)
         # make a symlink to the packaged artifacts
         # internally we use a short path as tidl has file path length restrictions
         # for use outside, create symlink to a more descriptive file
