@@ -40,10 +40,15 @@ fi
 
 # target device
 target_device=${1:-tda4vm}
-parent_dir=$(realpath ..)
+PARENT_DIR=$(realpath ..)
 docker_image_name="benchmark:v1"
 docker_container_name="benchmark-${target_device}"
 datasets_path_pc=${2:-/data/hdd/datasets/benchmark/datasets} #${2:-/data/ssd/datasets}
+
+# initialize http_proxy and https_proxy if they are not defined
+http_proxy=${http_proxy:-""}
+https_proxy=${https_proxy:-""}
+no_proxy=${no_proxy:-""}
 
 # Number of containers existing with the given name
 container_count=$(docker ps -a | grep ${docker_container_name} | wc -l)
@@ -54,11 +59,15 @@ then
     echo "Starting a new container: ${docker_container_name}"
     docker run -it \
         --name "${docker_container_name}" \
-        -v ${parent_dir}:/home/edgeai/code \
+        -v ${PARENT_DIR}:/opt/code \
         -v ${datasets_path_pc}:${datasets_path_pc} \
         --privileged \
         --network host \
         --shm-size 10gb \
+        -e http_proxy=${http_proxy} \
+        -e https_proxy=${https_proxy} \
+        -e no_proxy=${no_proxy} \
+        --user $(id -u):$(id -g) \
         ${docker_image_name} bash
 elif [ $container_count -eq 1 ]
 then
