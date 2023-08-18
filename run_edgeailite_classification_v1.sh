@@ -69,8 +69,8 @@
 #MobileNetV2 based Models
 #------------------------
 #### Training with MobileNetV2
-#python3 ./references/edgeailite/main/classification/train_classification_main.py --dataset_name image_folder_classification --model_name mobilenetv2_tv_x1 \
-#--data_path ./data/datasets/image_folder_classification --weight_decay 4e-5 --epochs 150 --batch_size 512 --lr 0.1
+python3 ./references/edgeailite/main/classification/train_classification_main.py --dataset_name image_folder_classification --model_name mobilenetv2_tv_x1 \
+--data_path ./data/datasets/image_folder_classification --weight_decay 4e-5 --epochs 150 --batch_size 512 --lr 0.1
 
 #### Training with MobileNetV2 - Small Resolution
 #python3 ./references/edgeailite/main/classification/train_classification_main.py --dataset_name image_folder_classification --model_name mobilenetv2_tv_x1 \

@@ -116,9 +116,9 @@ EXTRA_OPTIONS="" #"--enable_fp16 True"
 #MobileNetV2 based Models
 #------------------------
 #### Cityscapes Semantic Segmentation - Training with MobileNetV2+DeeplabV3Lite
-# python3 ./references/edgeailite/main/pixel2pixel/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name deeplabv3plus_mobilenetv2_tv_edgeailite \
-# --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 \
-# --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth ${EXTRA_OPTIONS}
+python3 ./references/edgeailite/main/pixel2pixel/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name deeplabv3plus_mobilenetv2_tv_edgeailite \
+--data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 \
+--pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth ${EXTRA_OPTIONS}
 
 #### Cityscapes Semantic Segmentation - Training with MobileNetV2+FPNEdgeAILite
 #python3 ./references/edgeailite/main/pixel2pixel/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name fpn_aspp_mobilenetv2_tv_edgeailite \

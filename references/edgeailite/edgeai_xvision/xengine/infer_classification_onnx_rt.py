@@ -266,9 +266,11 @@ def count_flops(args, model):
     is_cuda = next(model.parameters()).is_cuda
     input_list = create_rand_inputs(args, is_cuda)
     model.eval()
-    flops = xnn.utils.forward_count_flops(model, input_list)
-    gflops = flops/1e9
-    print('=> Resize = {}, Crop = {}, GFLOPs = {}, GMACs = {}'.format(args.img_resize, args.img_crop, gflops, gflops/2))
+    total_mult_adds, total_params = xnn.utils.get_model_complexity(model, input_list)
+    total_mult_adds_giga = total_mult_adds/1e9
+    total_flops = total_mult_adds_giga*2
+    total_params_mega = total_params/1e6
+    print('=> Resize = {}, Crop = {}, GFLOPs = {}, GMACs = {}, MegaParams = {}'.format(args.img_resize, args.img_crop, total_flops, total_mult_adds_giga, total_params_mega))
 
 
 def write_onnx_model(args, model, save_path, name='checkpoint.onnx'):

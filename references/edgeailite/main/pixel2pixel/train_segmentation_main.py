@@ -40,7 +40,7 @@ import numpy as np
 
 ################################
 from edgeai_torchtoolkit.v1.xnn.utils import str2bool
-from edgea_xvision.xengine import train_pixel2pixel
+from edgeai_xvision.xengine import train_pixel2pixel
 
 
 def get_args_parser():
