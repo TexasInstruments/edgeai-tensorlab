@@ -29,10 +29,6 @@
 #
 #################################################################################
 
-import warnings
-
-warnings.warn("WARNING - xnn.quantization is based on the modules. For superior functionality, please use the torch.fx based xao.quantization instead")
-
 from .quant_train_module import *
 from .quant_calib_module import *
 from .quant_test_module import *

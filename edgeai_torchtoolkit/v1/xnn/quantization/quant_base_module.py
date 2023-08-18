@@ -30,6 +30,8 @@
 #################################################################################
 
 import copy
+import warnings
+
 from .quant_graph_module import *
 
 
@@ -58,6 +60,9 @@ class QuantBaseModule(QuantGraphModule):
                  range_shrink_weights=None, range_shrink_activations=None,
                  power2_weight_range=None, power2_activation_range=None, model_surgery_quantize=True, 
                  quantize_in=True, quantize_out=True, verbose_mode=False, **kwargs):
+        
+        warnings.warn("WARNING - xnn.quantization is based on the modules. For latest functionality, please use the torch.fx based xao.quantization instead")
+
         super().__init__(module, quantize_in=quantize_in, quantize_out=quantize_out)
         self.bitwidth_weights = bitwidth_weights
         self.bitwidth_activations = bitwidth_activations

@@ -29,10 +29,6 @@
 #
 #################################################################################
 
-import warnings
-
-warnings.warn("WARNING - xnn.surgery is based on the modules. For superior functionality, please use the torch.fx based xao.surgery instead")
-
 from .replace_modules import *
 from .convert_to_lite import *
 

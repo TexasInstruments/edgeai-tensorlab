@@ -43,7 +43,7 @@ from .attr_dict import *
 from .weights_utils import *
 from .image_utils import *
 from .module_utils import *
-from .count_flops import forward_count_flops
+from .model_complexity import *
 from .bn_utils import *
 from .range_utils import *
 from .quant_utils import *

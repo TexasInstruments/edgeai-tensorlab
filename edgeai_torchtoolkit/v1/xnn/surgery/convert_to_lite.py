@@ -34,6 +34,7 @@ import functools
 import torch
 import inspect
 import math
+import warnings
 
 from torchvision.ops.misc import SqueezeExcitation
 from .. import utils
@@ -159,6 +160,7 @@ def _create_lite_model_impl(model_function, pretrained_backbone_names=None, repl
 
 
 def convert_to_lite_model(model, inplace=True, replacements_dict=None, **kwargs):
+    warnings.warn("WARNING - xnn.surgery is based on the modules. For superior functionality, please use the torch.fx based xao.surgery instead")
     replacements_dict = replacements_dict or get_replacements_dict(**kwargs)
     model = replace_modules_func(model, inplace=inplace, replacements_dict=replacements_dict)
     return model
