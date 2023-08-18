@@ -93,7 +93,7 @@ cv2.setNumThreads(0)
 ################################
 #import of torch should be after CUDA_VISIBLE_DEVICES for it to take effect
 import torch
-from references.edgeailite.engine import train_pixel2pixel
+from edgeai_xvision.xengine import train_pixel2pixel
 
 # Create the parser and set default arguments
 args = train_pixel2pixel.get_config()

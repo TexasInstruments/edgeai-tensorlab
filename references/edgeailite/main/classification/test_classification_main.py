@@ -80,7 +80,7 @@ if 'gpus' in vars(cmds):
 cv2.setNumThreads(0)
 
 ################################
-from references.edgeailite.engine import test_classification
+from edgeai_xvision.xengine import test_classification
 
 #Create the parse and set default arguments
 args = test_classification.get_config()

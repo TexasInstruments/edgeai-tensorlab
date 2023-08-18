@@ -79,7 +79,7 @@ cv2.setNumThreads(0)
 
 
 ################################
-from references.edgeailite.engine import test_pixel2pixel_onnx
+from edgeai_xvision.xengine import test_pixel2pixel_onnx
 
 # Create the parse and set default arguments
 args = test_pixel2pixel_onnx.get_config()

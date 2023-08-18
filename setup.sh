@@ -31,6 +31,11 @@ pybind11_DIR=$(pybind11-config --cmakedir) pip3 install --no-input https://githu
 echo "installing pytorch - use the applopriate index-url from https://pytorch.org/get-started/locally/"
 pip3 install --no-input torch==2.0.1+cu118 torchvision==0.15.2+cu118 -f https://download.pytorch.org/whl/torch_stable.html
 
-# no need to do this install this repo - we can use off-the-shelf torchvision installed by pip
+######################################################################
+# setup the xvision package, which is inside references/edgeailite
+python3 ./references/edgeailite/setup.py develop
+
+######################################################################
+# no need to do this build/install torchvision from this repo - we can use off-the-shelf torchvision installed above along with torch install
 # but if you want to install from this repo (may involve CUDA/C++ compilation), uncomment the following
 #python3 setup.py develop

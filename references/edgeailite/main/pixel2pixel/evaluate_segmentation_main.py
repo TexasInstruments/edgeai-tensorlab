@@ -39,7 +39,7 @@ import datetime
 import numpy as np
 
 ################################
-from references.edgeailite.engine import evaluate_pixel2pixel
+from edgeai_xvision.xengine import evaluate_pixel2pixel
 
 ################################
 # to avoid hangs in data loader with multi threads

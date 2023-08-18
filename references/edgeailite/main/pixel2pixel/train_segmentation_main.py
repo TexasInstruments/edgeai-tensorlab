@@ -39,7 +39,7 @@ import datetime
 import numpy as np
 
 ################################
-from torchvision.edgeailite.xnn.utils import str2bool
+from edgeai_torchtoolkit.v1.xnn.utils import str2bool
 parser = argparse.ArgumentParser()
 parser.add_argument('--image_mean', type=float, nargs='*', default=None, help='image_mean')
 parser.add_argument('--image_scale', type=float, nargs='*', default=None, help='image_scale')
@@ -117,7 +117,7 @@ cv2.setNumThreads(0)
 ################################
 #import of torch should be after CUDA_VISIBLE_DEVICES for it to take effect
 import torch
-from references.edgeailite.engine import train_pixel2pixel
+from edgeai_xvision.xengine import train_pixel2pixel
 
 # Create the parser and set default arguments
 args = train_pixel2pixel.get_config()

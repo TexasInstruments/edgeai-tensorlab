@@ -10,6 +10,7 @@ torchvision/version.py
 */**/*~
 *~
 data/
+*.egg-info/
 
 docs/build
 # sphinx-gallery

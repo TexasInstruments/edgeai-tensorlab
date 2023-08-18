@@ -82,7 +82,7 @@ if 'gpus' in vars(cmds):
 cv2.setNumThreads(0)
 
 ################################
-from references.edgeailite.engine import infer_classification_onnx_rt
+from edgeai_xvision.xengine import infer_classification_onnx_rt
 
 #Create the parse and set default arguments
 args = infer_classification_onnx_rt.get_config()
