@@ -52,8 +52,8 @@ import warnings
 
 from edgeai_torchtoolkit.v1 import xnn
 from edgeai_xvision import xvision
-from torchvision.edgeailite.xvision.transforms import image_transforms
-from torchvision.edgeailite.xvision import losses as pixel2pixel_losses
+from edgeai_xvision.xvision.transforms import image_transforms
+from edgeai_xvision.xvision import losses as pixel2pixel_losses
 from .infer_pixel2pixel import compute_accuracy
 
 ##################################################
@@ -804,7 +804,7 @@ def train(args, train_dataset, train_loader, model, optimizer, epoch, train_writ
             epoch_str = '{}/{}'.format(epoch + 1, args.epochs)
             progress_bar.set_description("{}=> {}  ".format(progressbar_color, args.phase))
             multi_task_factors_print = ['{:.3f}'.format(float(lmf)) for lmf in args.multi_task_factors] if args.multi_task_factors is not None else None
-            progress_bar.set_postfix(Epoch=epoch_str, LR=lr, DataTime=str(data_time), LossMult=multi_task_factors_print, Loss=avg_loss, Output=output_string)
+            progress_bar.set_postfix(dict(Epoch=epoch_str, LR=lr, DataTime=str(data_time), LossMult=multi_task_factors_print, Loss=avg_loss, Output=output_string))
             progress_bar.update(iter_id-last_update_iter)
             last_update_iter = iter_id
 
@@ -918,7 +918,7 @@ def validate(args, val_dataset, val_loader, model, epoch, val_writer):
 
             epoch_str = '{}/{}'.format(epoch + 1, args.epochs)
             progress_bar.set_description("=> validation")
-            progress_bar.set_postfix(Epoch=epoch_str, DataTime=data_time, Output="{}".format(output_string))
+            progress_bar.set_postfix(dict(Epoch=epoch_str, DataTime=data_time, Output="{}".format(output_string)))
             progress_bar.update(iter_id-last_update_iter)
             last_update_iter = iter_id
         #
@@ -1209,14 +1209,14 @@ def get_train_transform(args):
     # image normalization can be at the beginning of transforms or at the end
     image_mean = np.array(args.image_mean, dtype=np.float32)
     image_scale = np.array(args.image_scale, dtype=np.float32)
-    image_prenorm = image_transforms.NormalizeMeanScale(mean=image_mean, scale=image_scale) if args.image_prenorm else None
-    image_postnorm = image_transforms.NormalizeMeanScale(mean=image_mean, scale=image_scale) if (not image_prenorm) else None
-    reverse_channels = image_transforms.ReverseImageChannels() if args.input_channel_reverse else None
-    color_2_gray = image_transforms.RandomColor2Gray(is_flow=args.is_flow, random_threshold=args.prob_color_to_gray[0]) if args.prob_color_to_gray[0] != 0.0 else None
+    image_prenorm = image_transforms.NormalizeMeanScale(mean=image_mean, scale=image_scale) if args.image_prenorm else image_transforms.BypassImages()
+    image_postnorm = image_transforms.NormalizeMeanScale(mean=image_mean, scale=image_scale) if (not image_prenorm) else image_transforms.BypassImages()
+    reverse_channels = image_transforms.ReverseImageChannels() if args.input_channel_reverse else image_transforms.BypassImages()
+    color_2_gray = image_transforms.RandomColor2Gray(is_flow=args.is_flow, random_threshold=args.prob_color_to_gray[0]) if args.prob_color_to_gray[0] != 0.0 else image_transforms.BypassImages()
 
     # crop size used only for training
     image_train_output_scaling = image_transforms.Scale(args.rand_resize, target_size=args.rand_output_size, is_flow=args.is_flow) \
-        if (args.rand_output_size is not None and args.rand_output_size != args.rand_resize) else None
+        if (args.rand_output_size is not None and args.rand_output_size != args.rand_resize) else image_transforms.BypassImages()
     train_transform = image_transforms.Compose([
         reverse_channels,
         image_prenorm,
@@ -1239,10 +1239,10 @@ def get_validation_transform(args):
     # image normalization can be at the beginning of transforms or at the end
     image_mean = np.array(args.image_mean, dtype=np.float32)
     image_scale = np.array(args.image_scale, dtype=np.float32)
-    image_prenorm = image_transforms.NormalizeMeanScale(mean=image_mean, scale=image_scale) if args.image_prenorm else None
-    image_postnorm = image_transforms.NormalizeMeanScale(mean=image_mean, scale=image_scale) if (not image_prenorm) else None
-    reverse_channels = image_transforms.ReverseImageChannels() if args.input_channel_reverse else None
-    color_2_gray = image_transforms.RandomColor2Gray(is_flow=args.is_flow, random_threshold=args.prob_color_to_gray[1]) if args.prob_color_to_gray[1] != 0.0 else None
+    image_prenorm = image_transforms.NormalizeMeanScale(mean=image_mean, scale=image_scale) if args.image_prenorm else image_transforms.BypassImages()
+    image_postnorm = image_transforms.NormalizeMeanScale(mean=image_mean, scale=image_scale) if (not image_prenorm) else image_transforms.BypassImages()
+    reverse_channels = image_transforms.ReverseImageChannels() if args.input_channel_reverse else image_transforms.BypassImages()
+    color_2_gray = image_transforms.RandomColor2Gray(is_flow=args.is_flow, random_threshold=args.prob_color_to_gray[1]) if args.prob_color_to_gray[1] != 0.0 else image_transforms.BypassImages()
 
     # prediction is resized to output_size before evaluation.
     val_transform = image_transforms.Compose([

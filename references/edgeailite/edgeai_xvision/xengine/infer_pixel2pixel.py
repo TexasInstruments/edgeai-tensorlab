@@ -46,6 +46,7 @@ import matplotlib.pyplot as plt
 
 from edgeai_torchtoolkit.v1 import xnn
 from edgeai_xvision import xvision
+from edgeai_xvision.xvision.transforms import image_transforms
 from .engine_utils import *
 
 # ################################################
@@ -729,9 +730,9 @@ def get_transforms(args):
     # image normalization can be at the beginning of transforms or at the end
     args.image_mean = np.array(args.image_mean, dtype=np.float32)
     args.image_scale = np.array(args.image_scale, dtype=np.float32)
-    image_prenorm = xvision.transforms.image_transforms.NormalizeMeanScale(mean=args.image_mean, scale=args.image_scale) if args.image_prenorm else None
-    image_postnorm = xvision.transforms.image_transforms.NormalizeMeanScale(mean=args.image_mean, scale=args.image_scale) if (not image_prenorm) else None
-    color_2_gray = xvision.transforms.image_transforms.RandomColor2Gray(is_flow=args.is_flow, random_threshold=  args.prob_color_to_gray[1]) if args.prob_color_to_gray != 0.0 else None
+    image_prenorm = image_transforms.NormalizeMeanScale(mean=args.image_mean, scale=args.image_scale) if args.image_prenorm else image_transforms.BypassImages()
+    image_postnorm = image_transforms.NormalizeMeanScale(mean=args.image_mean, scale=args.image_scale) if (not image_prenorm) else image_transforms.BypassImages()
+    color_2_gray = image_transforms.RandomColor2Gray(is_flow=args.is_flow, random_threshold=  args.prob_color_to_gray[1]) if args.prob_color_to_gray != 0.0 else image_transforms.BypassImages()
 
     #target size must be according to output_size. prediction will be resized to output_size before evaluation.
     test_transform = xvision.transforms.image_transforms.Compose([

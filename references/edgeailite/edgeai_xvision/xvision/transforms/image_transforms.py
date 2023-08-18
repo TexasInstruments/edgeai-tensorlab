@@ -65,6 +65,26 @@ import PIL
 from .image_transform_utils import *
 
 
+class ConditionalImageTransform(object):
+    """
+    Just a wrapper to handle None transform
+    """
+    def __init__(self, t, condition=True):
+        super().__init__()
+        self.t = t
+        self.condition = condition
+    
+    def forward(self, image, target, condition=True):
+        return self.t(image, target) if self.t and self.condition and condition else (image, target)
+    
+
+class BypassImages(object):
+    def __call__(self, images, targets):
+        assert isinstance(images, (list, tuple)), 'Input must a list'
+        assert isinstance(targets, (list, tuple)), 'Target must a list'
+        return images, targets
+    
+
 class CheckImages(object):
     def __call__(self, images, targets):
         assert isinstance(images, (list, tuple)), 'Input must a list'

@@ -80,7 +80,7 @@ import glob
 from .dataset_utils import split2list, ListDataset
 import cv2
 import numpy as np
-from torchvision.edgeailite.xnn import utils as xnn_utils
+from edgeai_torchtoolkit.v1.xnn import utils as xnn_utils
 
 __all__ = ['kitti_flow_occ','kitti_flow_noc','kitti_sceneflow_occ']
 

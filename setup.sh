@@ -32,8 +32,9 @@ echo "installing pytorch - use the applopriate index-url from https://pytorch.or
 pip3 install --no-input torch==2.0.1+cu118 torchvision==0.15.2+cu118 -f https://download.pytorch.org/whl/torch_stable.html
 
 ######################################################################
-# setup the xvision package, which is inside references/edgeailite
-python3 ./references/edgeailite/setup.py develop
+# setup the edgeai_xvision package, which is inside references/edgeailite
+pip3 install --no-input -r ./references/edgeailite/requirements.txt
+pip3 install -e ./references/edgeailite/
 
 ######################################################################
 # no need to do this build/install torchvision from this repo - we can use off-the-shelf torchvision installed above along with torch install

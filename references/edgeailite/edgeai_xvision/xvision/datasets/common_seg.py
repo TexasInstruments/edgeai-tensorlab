@@ -6,8 +6,8 @@ import copy
 import cv2
 from PIL import Image
 
-from torchvision.edgeailite import xnn
-from torchvision.edgeailite.xvision.datasets.dataset_utils import dataset_split
+from edgeai_torchtoolkit.v1 import xnn
+from edgeai_xvision.xvision.datasets.dataset_utils import dataset_split
 
 __all__ = ['common_segmentation']
 

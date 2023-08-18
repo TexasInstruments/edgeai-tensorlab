@@ -216,7 +216,7 @@ def validate(args, val_loader, model, criterion):
             prefix = '**' if final_iter else '=>'
             if use_progressbar:
                 progress_bar.set_description('{} validation'.format(prefix))
-                progress_bar.set_postfix(Epoch='{}'.format(status_str))
+                progress_bar.set_postfix(dict(Epoch='{}'.format(status_str)))
                 progress_bar.update(iteration - last_update_iter)
                 last_update_iter = iteration
             else:

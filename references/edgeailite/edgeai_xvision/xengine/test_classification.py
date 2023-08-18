@@ -609,7 +609,7 @@ def train(args, train_loader, model, criterion, optimizer, epoch, grad_scaler):
                          .format(epoch=epoch_str, cur_lr=args.cur_lr, batch_time=batch_time, data_time=data_time, loss=losses, top1=top1, top5=top5)
 
             progress_bar.set_description(f'=> {args.phase}  ')
-            progress_bar.set_postfix(Epoch='{}'.format(status_str))
+            progress_bar.set_postfix(dict(Epoch='{}'.format(status_str)))
             progress_bar.update(iteration-last_update_iter)
             last_update_iter = iteration
         #
@@ -692,7 +692,7 @@ def validate(args, val_loader, model, criterion, epoch):
                            
                 prefix = '**' if final_iter else '=>'
                 progress_bar.set_description('{} {}'.format(prefix, 'validation'))
-                progress_bar.set_postfix(Epoch='{}'.format(status_str))
+                progress_bar.set_postfix(dict(Epoch='{}'.format(status_str)))
                 progress_bar.update(iteration - last_update_iter)
                 last_update_iter = iteration
             #
@@ -816,10 +816,10 @@ def get_dataset_sampler(dataset_object, epoch_size, balanced_sampler=False):
     
 
 def get_train_transform(args):
-    normalize = torchvision.transforms.NormalizeMeanScale(mean=args.image_mean, scale=args.image_scale) \
-        if (args.image_mean is not None and args.image_scale is not None) else None
-    multi_color_transform = torchvision.transforms.MultiColor(args.multi_color_modes) if (args.multi_color_modes is not None) else None
-    reverse_channels = torchvision.transforms.ReverseChannels() if args.input_channel_reverse else None
+    normalize = xvision.transforms.NormalizeMeanScale(mean=args.image_mean, scale=args.image_scale) \
+        if (args.image_mean is not None and args.image_scale is not None) else xvision.transforms.Bypass()
+    multi_color_transform = xvision.transforms.MultiColor(args.multi_color_modes) if (args.multi_color_modes is not None) else xvision.transforms.Bypass()
+    reverse_channels = xvision.transforms.ReverseChannels() if args.input_channel_reverse else xvision.transforms.Bypass()
 
     train_resize_crop_transform = torchvision.transforms.RandomResizedCrop(size=args.img_crop, scale=args.rand_scale) \
         if args.rand_scale else torchvision.transforms.RandomCrop(size=args.img_crop)
@@ -833,7 +833,7 @@ def get_train_transform(args):
         train_transform_list += [torchvision.transforms.autoaugment.AutoAugment(auto_augument_policy)]
     #
     train_transform_list += [multi_color_transform,
-                             torchvision.transforms.ToFloat(),
+                             xvision.transforms.ToFloat(),
                              torchvision.transforms.ToTensor(),
                              normalize]
     # RandomErasing operates on tensors - not PIL.Image - so do it after ToTensor
@@ -844,18 +844,18 @@ def get_train_transform(args):
     return train_transform
 
 def get_validation_transform(args):
-    normalize = torchvision.transforms.NormalizeMeanScale(mean=args.image_mean, scale=args.image_scale) \
-        if (args.image_mean is not None and args.image_scale is not None) else None
-    multi_color_transform = torchvision.transforms.MultiColor(args.multi_color_modes) if (args.multi_color_modes is not None) else None
-    reverse_channels = torchvision.transforms.ReverseChannels() if args.input_channel_reverse else None
+    normalize = xvision.transforms.NormalizeMeanScale(mean=args.image_mean, scale=args.image_scale) \
+        if (args.image_mean is not None and args.image_scale is not None) else xvision.transforms.Bypass()
+    multi_color_transform = xvision.transforms.MultiColor(args.multi_color_modes) if (args.multi_color_modes is not None) else xvision.transforms.Bypass()
+    reverse_channels = xvision.transforms.ReverseChannels() if args.input_channel_reverse else xvision.transforms.Bypass()
 
     # pass tuple to Resize() to resize to exact size without respecting aspect ratio (typical caffe style)
-    val_resize_crop_transform = torchvision.transforms.Resize(size=args.img_resize) if args.img_resize else torchvision.transforms.Bypass()
+    val_resize_crop_transform = torchvision.transforms.Resize(size=args.img_resize) if args.img_resize else xvision.transforms.Bypass()
     val_transform = torchvision.transforms.Compose([reverse_channels,
                                                val_resize_crop_transform,
                                                torchvision.transforms.CenterCrop(size=args.img_crop),
                                                multi_color_transform,
-                                               torchvision.transforms.ToFloat(),
+                                               xvision.transforms.ToFloat(),
                                                torchvision.transforms.ToTensor(),
                                                normalize])
     return val_transform

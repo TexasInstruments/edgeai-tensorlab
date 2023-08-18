@@ -278,7 +278,7 @@ class CityscapesBaseMotionLoader():
 class CityscapesDataLoader(data.Dataset):
     def __init__(self, dataset_config, root, split="train", gt="gtFine", transforms=None, image_folders=('leftImg8bit',),
                  search_images=False, load_segmentation=True, load_depth=False, load_motion=False, load_flow=False,
-                 load_segmentation_five_class=False, inference=False, additional_info=False, input_offsets=None):
+                 load_segmentation_five_class=False, inference=False, additional_info=False, input_offsets=None, annotation_prefix=None):
         super().__init__()
         if split not in ['train', 'val', 'test']:
             warnings.warn(f'unknown split specified: {split}')

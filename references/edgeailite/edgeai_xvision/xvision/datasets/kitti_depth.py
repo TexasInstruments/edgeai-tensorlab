@@ -56,7 +56,7 @@ from .dataset_utils import split2list, ListDataset, ListDatasetWithAdditionalInf
 import cv2
 import numpy as np
 import warnings
-from torchvision.edgeailite.xnn import utils as xnn_utils
+from edgeai_torchtoolkit.v1.xnn import utils as xnn_utils
 
 __all__ = ['kitti_depth','kitti_depth2','kitti_depth_sceneflow', 'kitti_depth_infer']
 
