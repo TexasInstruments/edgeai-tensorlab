@@ -1,12 +1,12 @@
 # base image
 ARG REPO_LOCATION=""
-FROM ${REPO_LOCATION}ubuntu:18.04
+FROM ${REPO_LOCATION}ubuntu:22.04
 
 # user
-# ARG USER_ID=1000
-# ARG USER_GID=$USER_ID
 ARG USER_NAME=edgeai
 ENV HOME_DIR=/opt
+# ARG USER_ID=1000
+# ARG USER_GID=$USER_ID
 
 # build settings
 ARG PROJECT_NAME="modelmaker"
@@ -26,12 +26,11 @@ RUN if [ ! -z $http_proxy ]; then echo "Acquire::http::proxy \"${http_proxy}\";"
     if [ ! -z $https_proxy ]; then echo "Acquire::https::proxy \"${https_proxy}\";" >> /etc/apt/apt.conf; fi
 
 # baseline
-RUN apt update && apt install -y sudo git iputils-ping wget cmake build-essential libgtk2.0 apt-utils
+RUN apt update && apt install -y sudo git curl iputils-ping wget cmake build-essential libgtk-3-0 apt-utils \
+    libbz2-dev xz-utils libreadline-dev libncurses5-dev libssl-dev libsqlite3-dev liblzma-dev
 
 # additional packages
-RUN apt install -y curl libjpeg-dev zlib1g-dev graphviz graphviz-dev libbz2-dev \
-                   build-essential xz-utils libreadline-dev libncurses5-dev libssl-dev \
-                   libsqlite3-dev liblzma-dev
+RUN apt install -y libffi-dev libjpeg-dev zlib1g-dev graphviz graphviz-dev protobuf-compiler
 
 # ##################################################################
 # Method 1: these lines would have created a user and switched to it
@@ -90,10 +89,10 @@ SHELL ["/bin/bash", "--login", "-c"]
 
 # create virtualenv
 RUN source ${HOME_DIR}/.bashrc && \
-    pyenv install 3.6 && \
-    pyenv virtualenv 3.6 py36 && \
+    pyenv install 3.10 && \
+    pyenv virtualenv 3.10 py310 && \
     pyenv rehash && \
-    echo 'pyenv activate py36' >> ${HOME_DIR}/.pyenvrc && \
+    echo 'pyenv activate py310' >> ${HOME_DIR}/.pyenvrc && \
     echo ' ' >> ${HOME_DIR}/.pyenvrc
 
 # update pip setuptools
@@ -110,4 +109,5 @@ RUN chmod -R ugo+rwx ${HOME_DIR}
 
 # Note 3: in the container, .bashrc or .pyenvrc may need to be sourced to activate the Python environment
 # if it is not being activated automatically.
-# source /opt/.bashrc
+# source ${HOME_DIR}/.bashrc
+

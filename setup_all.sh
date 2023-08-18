@@ -53,10 +53,10 @@ echo "SOURCE_LOCATION="${SOURCE_LOCATION}
 # clone
 echo "cloning git repositories. this may take some time..."
 
-if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch r8.6 ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
-if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r8.6 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
-if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r8.6 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
-if [[ ! -d ../edgeai-modelzoo ]]; then git clone ${FAST_CLONE_MODELZOO} --branch r8.6 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; fi
+if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch r9.0 ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
+if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r9.0 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
+if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r9.0 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
+if [[ ! -d ../edgeai-modelzoo ]]; then git clone ${FAST_CLONE_MODELZOO} --branch r9.0 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; fi
 
 if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
   sed -i s/'PLUGINS_ENABLE_EXTRA = False'/'PLUGINS_ENABLE_EXTRA = True'/g ./edgeai_modelmaker/ai_modules/vision/constants.py
@@ -86,16 +86,15 @@ cd ../edgeai-mmdetection
 
 echo "installing: https://github.com/TexasInstruments/edgeai-benchmark"
 cd ../edgeai-benchmark
-./setup_pc.sh r8.6
+./setup_pc.sh r9.0
 
 echo "installing edgeai-modelmaker"
 cd ../edgeai-modelmaker
 ./setup.sh
 
-# there as issue with installing pillow-simd through requirements - force it here
-# 7.2.0.post1 is what works in Python3.6 - newer Python versions may be able to use a more recent one
+# make sure that we are using pillow-simd (which is faster)
 pip uninstall --yes pillow
-pip install --no-input -U --force-reinstall pillow-simd==7.2.0.post1
+pip install --no-input -U --force-reinstall pillow-simd
 
 ls -d ../edgeai-*
 
