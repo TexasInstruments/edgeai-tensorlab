@@ -67,7 +67,7 @@ echo "cloning done."
 #################################################################################
 # upgrade pip
 pip install --no-input --upgrade pip setuptools
-pip install --no-input --upgrade wheel cython numpy
+pip install --no-input --upgrade wheel cython numpy==1.23.0
 
 #################################################################################
 echo "preparing environment..."
@@ -78,11 +78,14 @@ echo "installing repositories..."
 
 echo "installing: https://github.com/TexasInstruments/edgeai-torchvision"
 cd ../edgeai-torchvision
-./setup.sh
+./setup_cpu.sh
 
 echo "installing: https://github.com/TexasInstruments/edgeai-mmdetection"
 cd ../edgeai-mmdetection
-./setup.sh
+./setup_cpu.sh
+
+# uninstall the onnxruntime was installed by setups above, so that the correct version can be installed.
+pip uninstall --yes onnxruntime
 
 echo "installing: https://github.com/TexasInstruments/edgeai-benchmark"
 cd ../edgeai-benchmark

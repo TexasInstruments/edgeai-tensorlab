@@ -42,7 +42,7 @@ training:
     # options are: 'yolox_s_lite', 'yolox_tiny_lite', 'yolox_nano_lite', 'yolox_pico_lite', 'yolox_femto_lite'
     model_name: 'yolox_nano_lite'
 
-    training_epochs: 15 #30
+    # training_epochs: 15 #30
     # batch_size: 8 #32
     # learning_rate: 0.005
     # num_gpus: 0 #1 #4

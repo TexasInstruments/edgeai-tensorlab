@@ -284,7 +284,7 @@ class ModelTraining:
         '''
         os.makedirs(self.params.training.training_path, exist_ok=True)
 
-        distributed = self.params.training.num_gpus > 1
+        distributed = 1 if self.params.training.num_gpus > 1 else 0
         device = 'cuda' if self.params.training.num_gpus > 0 else 'cpu'
         # training params
         argv = ['--model', f'{self.params.training.model_training_id}',
