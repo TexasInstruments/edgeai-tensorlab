@@ -126,8 +126,12 @@ def quantize_dequantize_func(x, scale_tensor, width_min:float, width_max:float, 
     elif round_type == 'round_sym': # typically for weights
         rand_val = (-0.5) * (x < 0).float() + (0.5) * (x >= 0).float()
         x_scaled_round = (x_scaled+rand_val).int().float()
-    else:
+    elif round_type == 'round_torch':
         x_scaled_round = torch.round(x_scaled)
+    elif round_type is None:
+        x_scaled_round = x_scaled
+    else:
+        assert False, 'quantize_dequantize_func: unknown round tyoe'
     #
     # invert the scale
     scale_inv = scale_tensor.pow(-1.0)

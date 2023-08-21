@@ -31,17 +31,16 @@
 
 import torch
 
-
-# add forward to FloatFunctional
-class FloatFunctionalBlock(torch.nn.quantized.FloatFunctional):
+class FloatFunctionalBlock(torch.nn.Module):
     def __init__(self, func_name):
         super().__init__()
         self.func_name = func_name
+        self.func = torch.nn.quantized.FloatFunctional()
 
     def forward(self, *inputs):
         if isinstance(inputs, (list,tuple)) and len(inputs) == 1:
             inputs = inputs[0]
         #
-        func = getattr(self, self.func_name)
+        func = getattr(self.func, self.func_name)
         return func(*inputs)
 

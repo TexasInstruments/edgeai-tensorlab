@@ -33,6 +33,7 @@ from .quant_train_module import *
 from .quant_calib_module import *
 from .quant_test_module import *
 
+
 def is_quant_module(model):
     return isinstance(model, (QuantCalibrateModule, QuantTrainModule, QuantTestModule))
- 
+
