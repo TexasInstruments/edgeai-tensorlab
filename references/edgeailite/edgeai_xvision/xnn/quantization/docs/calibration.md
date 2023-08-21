@@ -37,7 +37,7 @@ As explained, the method of **Calibration does not need ground truth, loss funct
 The section briefly explains how to make use of our helper/wrapper module to do the calibration of your model. For further details, please see references.edgeailite.engine.train_classification.py and references.edgeailite.engine.train_pixel2pixel.py. The step by step process is as follows:
 
 ```
-from edgeai_torchtoolkit.v1 import xnn
+from edgeai_xvision import xnn
 
 # create your model here:
 model = ...

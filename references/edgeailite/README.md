@@ -1,4 +1,4 @@
-# EdgeAI-TorchVision
+# EdgeAI-XVision - Examples Models & Training Scripts
 Model Training Examples For Embedded AI Development - in PyTorch.
 
 <br><hr><br>
@@ -37,7 +37,3 @@ Apart from [torchvision](https://github.com/pytorch/vision), our source code use
 
 <br><hr><br>
 
-
-## License
-
-Please see the [LICENSE](./LICENSE) file for more information about the license under which this code is made available.

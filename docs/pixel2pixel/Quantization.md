@@ -1,3 +1,6 @@
 # Quantization
 
-Model Optimization Tools including QAT tools have been moved to [edgeai-modeltoolkit](https://github.com/TexasInstruments/edgeai-modeltoolkit). Please visit the [new location](https://github.com/TexasInstruments/edgeai-modeltoolkit/blob/master/edgeai_torchtoolkit/docs/quantization.md).
+Model Optimization Tools including Quantization Aware Training (QAT) tools have moved - please visit the new location of quantization documentation [here](../../references/edgeailite/edgeai_xvision/xnn/quantization/README.md).
+
+Note: Soon, Model Optimization Tools including QAT tools will be moved out to a separate git repository.
+

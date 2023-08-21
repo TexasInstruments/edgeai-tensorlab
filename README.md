@@ -29,27 +29,12 @@ The scripts in this repository requires torchvision to be installed using this r
 
 ## Categories of Models and Scripts
 
-We have two categories of models and scripts in this repository:
+We have categories of models and scripts in this repository:
 
 
 <hr>
 
-### Category 1: Original torchvision models and their "lite" variants
-
-[See the original TorchVision documentation](README.rst)
-![](https://static.pepy.tech/badge/torchvision) ![](https://img.shields.io/badge/dynamic/json.svg?label=docs&url=https%3A%2F%2Fpypi.org%2Fpypi%2Ftorchvision%2Fjson&query=%24.info.version&colorB=brightgreen&prefix=v)
-
-While some models in this category work on our platform, several of them have unsupported layers and will either not work or will be slow. To make sure that unsupported layers are replaced with appropriate layers we use tools provided in [edgeai-modeltoolkit](https://github.com/TexasInstruments/edgeai-modeltoolkit)
-
-These "lite" models (1) provide more variety to our Model Zoo making it richer (2) extensible as torchvision adds more models in the future (3) stay close to the official version of these models.
-
-**Note**: these models are still in developmet and some of them may not be fully supported in TIDL yet.
-
-The shell scripts **run_torchvision_....sh** can be used to train, evaluate or export these "lite" models.
-
-<hr>
-
-### Category 2: Our 'edgeailite' models
+### Category 1: Our 'edgeailite' models
 
 [See documentation of our edgeailite extensions to torchvision](./references/edgeailite/README.md)
 
@@ -64,8 +49,34 @@ Scripts are provided for training low complexity DNN models for a variety of tas
 - Multi-Task Estimation
 - And more...
 
-These models, transforms, and training scrpts are in [./references/edgeailite](./references/edgeailite). The models in our model zoo that were trained using these scripts carries a keyword "edgeailite". See the list of supported "edgeailite" models here: [./torchvision/edgeailite/xvision/models](./references/edgeailite/xvision/models)
+These models, transforms, and training scrpts are in [./references/edgeailite](./references/edgeailite). The models in our model zoo that were trained using these scripts carries a keyword "edgeailite".
 
 The shell scripts **run_edgeailite_....sh** can be used to train, evaluate or export these "edgeailite" models. 
 
+
 <hr>
+
+### Category 2: "lite" variants of original torchvision models
+These are models that created replacing unsupported layers of torchvision models with supported ones - we call them "lite" models. These "lite" models (1) provide more variety to our Model Zoo making it richer (2) extensible as torchvision adds more models in the future (3) stay close to the official version of these models.
+
+The shell scripts **run_torchvision_....sh** can be used to train, evaluate or export these "lite" models.
+
+
+<hr>
+
+## Category 3: Original torchvision models and documentation
+This repository is built on top of **0.15.x** release of torchvision. We do not modify torchvision python package itself, so the user can use off-the-shelf as is done in our [setup](./setup.sh) script. See the original torchvision documentation:
+- [online html version][https://pytorch.org/vision/0.15/]
+- [the local git version](./README.rst)
+
+
+<hr>
+
+## Guidelines for Model training & quantization
+Quantization (especially 8-bit Quantization) is important to get best throughput for inference. Quantization can be done using either **Post Training Quantization (PTQ)** or **Quantization Aware Training (QAT)**. Guidelines for Model training and tools for QAT are given the **[documentation on Quantization](./references/edgeailite/edgeai_xvision/xnn/quantization/README.md)**.
+
+- Post Training Quantization (PTQ): TIDL natively supports PTQ - it can take floating point models and can quantize them using advanced calibration methods. In the above link, we have provided guidelines on how to choose models and how to train them for best accuracy with quantization - these guidelines are important to reduce accuracy drop during quantization with **PTQ**. 
+
+- Quantization Aware Training (QAT): In spite of following these guidelines, if there are models that have significant accuracy drop with PTQ, it is possible to improve the accuracy using **QAT**. See the above link for more details.
+
+

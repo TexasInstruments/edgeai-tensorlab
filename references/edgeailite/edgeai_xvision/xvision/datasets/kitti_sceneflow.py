@@ -80,7 +80,7 @@ import glob
 from .dataset_utils import split2list, ListDataset
 import cv2
 import numpy as np
-from edgeai_torchtoolkit.v1.xnn import utils as xnn_utils
+from edgeai_xvision import xnn
 
 __all__ = ['kitti_flow_occ','kitti_flow_noc','kitti_sceneflow_occ']
 
@@ -109,7 +109,7 @@ def kitti_flow_noc(dataset_config, root, transforms=None, split=80):
 
 def kitti_sceneflow_occ(dataset_config, root, transforms=None, split=80):
     print('{}=> kitti_occ_sceneflow dataset has empty depth. Sparse estimation mode may be needed to ignore it {}'
-          .format(xnn_utils.TermColor.YELLOW, xnn_utils.TermColor.END))
+          .format(xnn.utils.TermColor.YELLOW, xnn.utils.TermColor.END))
     train_list, test_list = make_dataset(root, split, True)
     train_dataset = ListDataset(root, train_list, transforms[0], loader=kitti_occ_sceneflow_loader)
     # All test sample are cropped to lowest possible size of KITTI images

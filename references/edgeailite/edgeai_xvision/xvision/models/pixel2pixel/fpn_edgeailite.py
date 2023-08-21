@@ -38,7 +38,7 @@ https://arxiv.org/abs/1612.03144
 
 import torch
 import numpy as np
-from edgeai_torchtoolkit.v1 import xnn
+from edgeai_xvision import xnn
 
 from .pixel2pixelnet import *
 from ..multi_input_net import MobileNetV2TVMI4, ResNet50MI4, \

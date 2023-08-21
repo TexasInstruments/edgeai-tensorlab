@@ -49,7 +49,7 @@ import torch.utils.data.distributed
 import onnx
 import onnxruntime
 
-from edgeai_torchtoolkit.v1 import xnn
+from edgeai_xvision import xnn
 from edgeai_xvision import xvision
 
 

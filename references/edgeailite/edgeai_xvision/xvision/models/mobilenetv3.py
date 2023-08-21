@@ -73,7 +73,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence
 from .utils import load_state_dict_from_url
 from .mobilenetv2 import _make_divisible, ConvBNActivation
 
-from edgeai_torchtoolkit.v1 import xnn
+from edgeai_xvision import xnn
 
 __all__ = ["MobileNetV3", "mobilenet_v3_large", "mobilenet_v3_small", "MobileNetV3Lite", "mobilenet_v3_lite_large", "mobilenet_v3_lite_small"]
 

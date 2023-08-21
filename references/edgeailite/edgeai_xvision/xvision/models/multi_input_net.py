@@ -65,7 +65,7 @@
 
 import copy
 import torch
-from edgeai_torchtoolkit.v1 import xnn
+from edgeai_xvision import xnn
 from .mobilenetv2 import MobileNetV2TV
 from .resnet import resnet50_with_model_config
 from .regnet import regnetx400mf_with_model_config, regnetx800mf_with_model_config, \

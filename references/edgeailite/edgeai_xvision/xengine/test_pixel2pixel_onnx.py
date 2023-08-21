@@ -46,7 +46,7 @@ import onnx
 import caffe2
 import caffe2.python.onnx.backend
 
-from edgeai_torchtoolkit.v1 import xnn
+from edgeai_xvision import xnn
 from edgeai_xvision import xvision
 
 

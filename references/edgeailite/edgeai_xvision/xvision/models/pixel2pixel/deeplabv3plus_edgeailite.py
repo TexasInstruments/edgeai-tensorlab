@@ -40,7 +40,7 @@ Google Inc., https://arxiv.org/pdf/1802.02611.pdf
 import torch
 import numpy as np
 
-from edgeai_torchtoolkit.v1 import xnn
+from edgeai_xvision import xnn
 from .pixel2pixelnet import *
 
 try: from .pixel2pixelnet_internal import *

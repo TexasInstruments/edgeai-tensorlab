@@ -1,4 +1,5 @@
-# Copyright (c) 2018-2021, Texas Instruments
+#################################################################################
+# Copyright (c) 2018-2021, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -25,8 +26,52 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#################################################################################
 
 from . import xnn
 from . import xvision
 from . import xengine
+
+
+class SyrgeryType:
+    NO_SURGERY = 0
+    SURGERY_LEGACY = 1
+    SURGERY_FX = 2
+
+    @classmethod
+    def get_dict(cls):
+        return {k:v for k,v in cls.__dict__.items() if not k.startswith("__")}
+
+    @classmethod
+    def get_choices(cls):
+        return {v:k for k,v in cls.__dict__.items() if not k.startswith("__")}
+    
+
+class PrunerType():
+    NO_PRUNING = 0
+    UNSTRUCTURED = 1
+    N2M_PRUNING = 2
+    CHANNEL_PRUNING = 3
+
+    @classmethod
+    def get_dict(cls):
+        return {k:v for k,v in __class__.__dict__.items() if not k.startswith("__")}
+
+    @classmethod
+    def get_choices(cls):
+        return {v:k for k,v in __class__.__dict__.items() if not k.startswith("__")}
+    
+class QuantizationType():
+    NO_QUANTIZATION = 0
+    QUANTIZATION_LEGACY = 1
+    QUANTIZATION_FX = 2
+
+    @classmethod
+    def get_dict(cls):
+        return {k:v for k,v in cls.__dict__.items() if not k.startswith("__")}
+
+    @classmethod
+    def get_choices(cls):
+        return {v:k for k,v in cls.__dict__.items() if not k.startswith("__")}
 

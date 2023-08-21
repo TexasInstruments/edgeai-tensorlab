@@ -17,8 +17,8 @@ from torchvision.transforms.functional import InterpolationMode
 
 import dataset_utils
 import model_utils
-from edgeai_torchtoolkit.v1 import xnn
-from edgeai_torchtoolkit.v2 import xao
+import edgeai_xvision
+from edgeai_xvision import xnn
 
 
 def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, args, model_ema=None, scaler=None):
@@ -228,7 +228,7 @@ def main(args):
         utils.mkdir(args.output_dir)
 
     # create logger that tee writes to file
-    xao.utils.TeeLogger(os.path.join(args.output_dir, 'run.log'))
+    xnn.utils.TeeLogger(os.path.join(args.output_dir, 'run.log'))
 
     # weights can be an external url or a pretrained enum in torhvision
     (args.weights_url, args.weights_enum) = (args.weights, None) if xnn.utils.is_url_or_file(args.weights) else (None, args.weights)
@@ -279,20 +279,23 @@ def main(args):
     print("Creating model")
     model = model_utils.get_model(args.model, weights=args.weights_enum, num_classes=num_classes, model_surgery=args.model_surgery)
 
-    if args.model_surgery == xao.surgery.ModelSyrgeryType.MODEL_SURGERY_LEGACY:
+    if args.model_surgery == edgeai_xvision.SyrgeryType.SURGERY_LEGACY:
         model = xnn.surgery.convert_to_lite_model(model)
-    elif args.model_surgery == xao.surgery.ModelSyrgeryType.MODEL_SURGERY_FX:
-        model = xao.surgery.replace_unsuppoted_layers(model)
+    elif args.model_surgery == edgeai_xvision.SyrgeryType.MODEL_SURGERY_FX:
+        model = edgeai_xvision.xao.surgery.replace_unsuppoted_layers(model)
     
     if args.weights_url:
         print(f"loading pretrained checkpoint from: {args.weights_url}")
         xnn.utils.load_weights(model, args.weights_url)
 
     if args.pruning:
-        model = xao.pruning.PrunerModule(model)
+        model = edgeai_xvision.xao.pruning.PrunerModule(model)
     
-    if args.quantization:
-        model = xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
+    if args.quantization == edgeai_xvision.QuantizationType.QUANTIZATION_LEGACY:
+        dummy_input = torch.rand(1,3,args.val_crop_size,args.val_crop_size)
+        model = xnn.quantization.QuantTrainModule(model, dummy_input=dummy_input)
+    elif args.quantization == edgeai_xvision.QuantizationType.QUANTIZATION_FX:
+        model = edgeai_xvision.xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
     
     model.to(device)
 
@@ -321,8 +324,8 @@ def main(args):
     opt_name = args.opt.lower()
     if opt_name.startswith("sgd"):
         # in general use torch.optim.SGD
-        # xao.utils.optim.AdaptiveSGD is required only if you want to freeze certain parameters by setting requires_update = False. 
-        optimizer = xao.utils.optim.AdaptiveSGD(
+        # AdaptiveSGD is required only if you want to freeze certain parameters by setting requires_update = False. 
+        optimizer = edgeai_xvision.xnn.optim.AdaptiveSGD(
             parameters,
             lr=args.lr,
             momentum=args.momentum,
@@ -591,12 +594,10 @@ def get_args_parser(add_help=True):
     parser.add_argument("--weights", default=None, type=str, help="the weights enum name to load")
 
     # options to create faster models
-    parser.add_argument("--model-surgery", "--lite-model", default=xao.surgery.ModelSyrgeryType.NO_SURGERY, type=int, 
-                        choices=xao.surgery.ModelSyrgeryType.get_dict(),
-                        help="model surgery to create lite models")
+    parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_xvision.SyrgeryType.get_choices(), help="model surgery to create lite models")
 
-    parser.add_argument("--quantization", default=0, type=int, choices=xao.quantization.QConfigMethod.choices(), help="Quaantization Aware Training (QAT)")
-    parser.add_argument("--quantization-type", default=None, help="Quaantization Bitdepth - applies only if quantization is enabled")
+    parser.add_argument("--quantization", default=0, type=int, choices=edgeai_xvision.QuantizationType.get_choices(), help="Quaantization Aware Training (QAT)")
+    parser.add_argument("--quantization-type", default=None, help="Actual Quaantization Flavour - applies only if quantization is enabled")
 
     parser.add_argument("--pruning", default=0, help="Pruning/Sparsity")
     parser.add_argument("--pruning-ratio", default=0.5, help="Pruning/Sparsity Factor - applies only of pruning is enabled")

@@ -56,7 +56,7 @@ from .dataset_utils import split2list, ListDataset, ListDatasetWithAdditionalInf
 import cv2
 import numpy as np
 import warnings
-from edgeai_torchtoolkit.v1.xnn import utils as xnn_utils
+from edgeai_xvision import xnn
 
 __all__ = ['kitti_depth','kitti_depth2','kitti_depth_sceneflow', 'kitti_depth_infer']
 
@@ -78,7 +78,7 @@ def kitti_depth2(dataset_config, root, split, transforms):
 #load two images, one target depth and insert two blank images for flow target
 def kitti_depth_sceneflow(dataset_config, root, split=None, transforms=None):
     print('{}=> kitti_depth_sceneflow dataset has empty flow. Sparse estimation mode may be needed to ignore it {}'
-          .format(xnn_utils.TermColor.YELLOW, xnn_utils.TermColor.END))
+          .format(xnn.utils.TermColor.YELLOW, xnn.utils.TermColor.END))
     return kitti_depth_factory(root, split, transforms, loader=kitti_depth_sceneflow_loader, num_images=2, num_targets=1)
 def kitti_depth_infer(dataset_config, root, split, transforms):
     if isinstance(split, (list,tuple)) and len(split)>1 and isinstance(transforms, (list,tuple)) and len(transforms)>1:

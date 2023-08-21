@@ -13,6 +13,10 @@ from torch import nn
 from torch.optim.lr_scheduler import PolynomialLR
 from torchvision.transforms import functional as F, InterpolationMode
 
+import model_utils
+import edgeai_xvision
+from edgeai_xvision import xnn
+
 
 def get_dataset(dir_path, name, image_set, transform):
     def sbd(*args, **kwargs):
@@ -123,6 +127,12 @@ def main(args):
     if args.output_dir:
         utils.mkdir(args.output_dir)
 
+    # create logger that tee writes to file
+    xnn.utils.TeeLogger(os.path.join(args.output_dir, 'run.log'))
+
+    # weights can be an external url or a pretrained enum in torhvision
+    (args.weights_url, args.weights_enum) = (args.weights, None) if xnn.utils.is_url_or_file(args.weights) else (None, args.weights)
+    
     utils.init_distributed_mode(args)
     print(args)
 
@@ -157,13 +167,15 @@ def main(args):
         dataset_test, batch_size=1, sampler=test_sampler, num_workers=args.workers, collate_fn=utils.collate_fn
     )
 
-    model = torchvision.models.get_model(
-        args.model,
-        weights=args.weights,
-        weights_backbone=args.weights_backbone,
-        num_classes=num_classes,
-        aux_loss=args.aux_loss,
-    )
+
+    print("Creating model")
+    model = model_utils.get_model(args.model, weights=args.weights_enum, weights_backbone=args.weights_backbone, num_classes=num_classes, aux_loss=args.aux_loss, model_surgery=args.model_surgery)
+
+
+    if args.weights_url:
+        print(f"loading pretrained checkpoint from: {args.weights_url}")
+        xnn.utils.load_weights(model, args.weights_url)
+
     model.to(device)
     if args.distributed:
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
@@ -307,6 +319,8 @@ def get_args_parser(add_help=True):
     # Mixed precision training parameters
     parser.add_argument("--amp", action="store_true", help="Use torch.cuda.amp for mixed precision training")
 
+    # options to create faster models
+    parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_xvision.SyrgeryType.get_choices(), help="model surgery to create lite models")
     return parser
 
 

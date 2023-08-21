@@ -69,7 +69,7 @@ import torch.nn as nn
 import collections
 from .utils import load_state_dict_from_url
 from typing import Type, Any, Callable, Union, List, Optional
-from edgeai_torchtoolkit.v1 import xnn
+from edgeai_xvision import xnn
 
 
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',

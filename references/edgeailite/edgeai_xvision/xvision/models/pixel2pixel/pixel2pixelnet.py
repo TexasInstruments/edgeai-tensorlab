@@ -30,7 +30,7 @@
 #################################################################################
 
 import torch
-from edgeai_torchtoolkit.v1 import xnn
+from edgeai_xvision import xnn
 from .pixel2pixelnet_utils import *
 
 

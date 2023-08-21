@@ -97,6 +97,7 @@ class SchedulerWrapper(torch.optim.lr_scheduler._LRScheduler):
             self.get_lr()
         #
 
+
     def get_lr(self):
         epoch = self.lr_scheduler.last_epoch
         if self.warmup_epochs and epoch <= self.warmup_epochs:
@@ -114,6 +115,7 @@ class SchedulerWrapper(torch.optim.lr_scheduler._LRScheduler):
         #
         return lr
 
+
     def step(self):
         # some of the scheduler implementations in torch.option may be recursive (depends on previous lr) eg. cosine
         # so it is necessary to restore the original lr from scheduler
@@ -127,8 +129,10 @@ class SchedulerWrapper(torch.optim.lr_scheduler._LRScheduler):
         # return the lr - warmup will be applied in this step
         return self.get_lr()
 
+
     def load_state_dict(self, state):
         self.lr_scheduler.load_state_dict(state)
+
 
     def state_dict(self):
         return self.lr_scheduler.state_dict()

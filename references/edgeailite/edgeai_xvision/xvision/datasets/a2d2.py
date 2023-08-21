@@ -46,7 +46,7 @@ import json
 from torch.utils import data
 import sys
 import warnings
-from edgeai_torchtoolkit.v1 import xnn
+from edgeai_xvision import xnn
 
 ###########################################
 # config settings

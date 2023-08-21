@@ -3,7 +3,9 @@ import torchvision
 
 
 MODEL_SURGERY_NAMES_ORIGINAL2LITE = {
-    "mobilenet_v2": "mobilenet_v2_lite"
+    "mobilenet_v2": "mobilenet_v2_lite",
+    "mobilenet_v3_large": "mobilenet_v3_large_lite",
+    "mobilenet_v3_small": "mobilenet_v3_small_lite"
 }
 
 
