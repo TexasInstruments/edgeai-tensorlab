@@ -10,7 +10,7 @@ from torch.nn.modules.batchnorm import _BatchNorm
 from ..builder import BACKBONES
 from ..utils import ResLayer
 
-from edgeai_torchtoolkit.v1 import xnn
+from edgeai_xvision import xnn
 
 class BasicBlock(BaseModule):
     expansion = 1

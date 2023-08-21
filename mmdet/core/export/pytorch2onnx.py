@@ -9,7 +9,7 @@ from mmcv.runner import load_checkpoint
 from mmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint
 from mmdet.utils import convert_to_lite_model
 
-from edgeai_torchtoolkit.v1 import xnn
+from edgeai_xvision import xnn
 
 
 def generate_inputs_and_wrap_model(config_path,

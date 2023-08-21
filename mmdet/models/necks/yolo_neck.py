@@ -8,7 +8,7 @@ from mmcv.cnn import ConvModule
 from mmcv.runner import BaseModule
 
 from ..builder import NECKS
-from edgeai_torchtoolkit.v1 import xnn
+from edgeai_xvision import xnn
 
 
 class DetectionBlock(BaseModule):

@@ -73,7 +73,7 @@ from mmcv.runner import BaseModule, load_checkpoint
 
 from mmdet.utils import get_root_logger
 from mmdet.models.builder import BACKBONES
-from edgeai_torchtoolkit.v1 import xnn
+from edgeai_xvision import xnn
 
 ###################################################
 # mmdetection has added MobileNet backbone recently. That is why this is renamed with lite

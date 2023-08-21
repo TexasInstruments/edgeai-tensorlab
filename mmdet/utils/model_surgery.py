@@ -30,7 +30,7 @@ import copy
 import torch
 import mmcv
 from mmcv.cnn import bricks
-from edgeai_torchtoolkit.v1 import xnn
+from edgeai_xvision import xnn
 
 
 __all__ = [
