@@ -40,6 +40,10 @@ echo "For more details, see: https://github.com/open-mmlab/mmdetection/blob/mast
 python3 setup.py develop
 
 ######################################################################
-echo "This package depends on edegeai_xvision that is installed from edgeai-torchvision. Please clone and install that package."
+# apply patch to support latest torch with older mmcv
+python3 ./tools/deployment/torch_onnx_patch/torch_onnx_patch.py
+
+######################################################################
+echo "This package depends on edegeai_xvision that is installed from edgeai-torchvision. Please clone and run setup.sh from: "
 echo "URL: https://github.com/TexasInstruments/edgeai-torchvision"
 
