@@ -114,9 +114,11 @@ def get_replacements_dict(groups_dw=None, group_size_dw=None):
                 the remaining entries are properties that have to be copied from old module to newly created module.
     '''
     replacements_dict_lite = {
-        torch.nn.ReLU6: [torch.nn.ReLU, 'inplace'],
-        torch.nn.Hardswish: [torch.nn.ReLU, 'inplace'],
-        torch.nn.SiLU: [torch.nn.ReLU, 'inplace'],
+        torch.nn.ReLU: [torch.nn.ReLU], #'inplace' is not used
+        torch.nn.Dropout: [torch.nn.Dropout, 'p'], #'inplace' is not used
+        torch.nn.ReLU6: [torch.nn.ReLU], #'inplace' is not used
+        torch.nn.Hardswish: [torch.nn.ReLU], #'inplace' is not used
+        torch.nn.SiLU: [torch.nn.ReLU], #'inplace' is not used
         SqueezeExcitation: [torch.nn.Identity],
         # with_normalization: whether to insert BN after replacing 3x3/5x5 conv etc. with dw-seperable conv
         # with_activation: whether to insert ReLU after replacing conv with dw-seperable conv

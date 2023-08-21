@@ -129,14 +129,6 @@ class PDPPruningParametrization(nn.Module):
         return A
 
 
-class PruningType(enum.Enum):
-    NO_PRUNING = 0
-    UNSTRUCTURED = 1
-    N2M_PRUNING = 2
-    CHANNEL_PRUNING = 3
-
-
-
 class PrunerModule(torch.nn.Module):
     def __init__(self, module, pruning_ratio=0.5, total_epochs=10, pruning_class=PruningParametrization,
                  pruning_type:PruningType=PruningType.UNSTRUCTURED, channel_pruning=False, copy_args=[],
