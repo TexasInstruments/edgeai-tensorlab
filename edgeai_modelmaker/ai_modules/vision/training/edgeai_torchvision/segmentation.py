@@ -231,15 +231,13 @@ class ModelTraining:
         '''
         os.makedirs(self.params.training.training_path, exist_ok=True)
 
-        gpu_count = len(self.params.training.num_gpus.split())
-
-        distributed = gpu_count > 1
-        device = 'cuda' if gpu_count > 0 else 'cpu'
+        distributed = 1 if self.params.training.num_gpus > 1 else 0
+        device = 'cuda' if self.params.training.num_gpus > 0 else 'cpu'
 
         # training params
         argv = ['--model_name', f'{self.params.training.model_training_id}',
                 '--pretrained', f'{self.params.training.pretrained_checkpoint_path}',
-                '--dataset', 'tiscape_segmentation',
+                '--dataset', 'common_segmentation',
                 '--data_path', f'{self.params.dataset.dataset_path}',
                 '--annotation_prefix', f'{self.params.dataset.annotation_prefix}',
                 # '--num_classes', f'{self.params.training.num_classes}',
@@ -259,7 +257,7 @@ class ModelTraining:
         #    (self.params.training.input_cropsize,self.params.training.input_cropsize)
         #argv += ['--input-size', f'{input_size[0]}', f'{input_size[1]}']
         # import dynamically - force_import every time to avoid clashes with scripts in other repositories
-        train = utils.import_file_or_folder(os.path.join(edgeai_torchvision_path,'references', 'edgeailite', 'scripts', 'train_segmentation_main.py'),__name__, force_import=True)
+        train = utils.import_file_or_folder(os.path.join(edgeai_torchvision_path,'references', 'edgeailite', 'main', 'pixel2pixel', 'train_segmentation_main.py'), __name__, force_import=True)
         args = train.get_args_parser().parse_args(argv)
         #args.quit_event = self.quit_event
         # launch the training
