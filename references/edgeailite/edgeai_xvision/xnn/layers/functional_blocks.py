@@ -1,4 +1,5 @@
-# Copyright (c) 2018-2021, Texas Instruments
+#################################################################################
+# Copyright (c) 2018-2021, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -25,8 +26,22 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#################################################################################
 
-from . import xnn
-from . import xvision
-from . import xengine
+import torch
+
+
+# add forward to FloatFunctional
+class FloatFunctionalBlock(torch.nn.quantized.FloatFunctional):
+    def __init__(self, func_name):
+        super().__init__()
+        self.func_name = func_name
+
+    def forward(self, *inputs):
+        if isinstance(inputs, (list,tuple)) and len(inputs) == 1:
+            inputs = inputs[0]
+        #
+        func = getattr(self, self.func_name)
+        return func(*inputs)
 
