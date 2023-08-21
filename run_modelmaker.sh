@@ -71,4 +71,4 @@ echo "TIDL_TOOLS_PATH                   : ${TIDL_TOOLS_PATH}"
 echo "LD_LIBRARY_PATH                   : ${LD_LIBRARY_PATH}"
 
 #################################################################################
-python3 ./scripts/run_modelmaker.py $2 --target_device $1
+python ./scripts/run_modelmaker.py $2 --target_device $1
