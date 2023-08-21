@@ -32,7 +32,7 @@ pybind11_DIR=$(pybind11-config --cmakedir) pip3 install --no-input https://githu
 
 ######################################################################
 # no need to do this build/install torchvision from this repo - we can use off-the-shelf torchvision installed above along with torch install
-# but if you want to install from this repo (may involve CUDA/C++ compilation), uncomment the following
+# but if you want to install from this repo (may involve C++ compilation), uncomment the following
 #python3 setup.py develop
 
 ######################################################################

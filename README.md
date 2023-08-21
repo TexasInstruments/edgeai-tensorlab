@@ -57,7 +57,9 @@ The shell scripts **run_edgeailite_....sh** can be used to train, evaluate or ex
 <hr>
 
 ### Category 2: "lite" variants of original torchvision models
-These are models that created replacing unsupported layers of torchvision models with supported ones - we call them "lite" models. These "lite" models (1) provide more variety to our Model Zoo making it richer (2) extensible as torchvision adds more models in the future (3) stay close to the official version of these models.
+These are models that created replacing unsupported layers of torchvision models with supported ones - we call them "lite" models. This replacing is done by using our model surgery tool, just after the model is created, in the training script. These "lite" models (1) provide more variety to our Model Zoo making it richer (2) extensible, as torchvision adds more models in the future (3) stay close to the official version of these models.
+
+To see examples of this model surgery, please refer to [references/classification/train.py](./references/classification/train.py) and [references/segmentation/train.py](./references/segmentation/train.py)
 
 The shell scripts **run_torchvision_....sh** can be used to train, evaluate or export these "lite" models.
 

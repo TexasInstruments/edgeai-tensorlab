@@ -2,14 +2,11 @@ import torch
 import torchvision
 
 
-MODEL_SURGERY_NAMES_ORIGINAL2LITE = {
-    "mobilenet_v2": "mobilenet_v2_lite",
-    "mobilenet_v3_large": "mobilenet_v3_large_lite",
-    "mobilenet_v3_small": "mobilenet_v3_small_lite"
+MODEL_SURGERY_NAMES_LITE2ORIGINAL = {
+    "mobilenet_v2_lite": "mobilenet_v2",
+    "mobilenet_v3_large_lite": "mobilenet_v3_large",
+    "mobilenet_v3_small_lite": "mobilenet_v3_small",
 }
-
-
-MODEL_SURGERY_NAMES_LITE2ORIGINAL = {v:k for k,v in MODEL_SURGERY_NAMES_ORIGINAL2LITE.items()}
 
 
 def get_model(model_name, weights, num_classes, model_surgery):
