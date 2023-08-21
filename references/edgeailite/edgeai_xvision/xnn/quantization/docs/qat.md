@@ -35,7 +35,7 @@ Within a few epochs, we should get reasonable quantization accuracy.
 
 
 #### How to use  QuantTrainModule
-In order to enable quantized training, we have developed the wrapper class edgeai_torchtoolkit.v1.xnn.quantization.QuantTrainModule. A simple example for using this module is given in the script [examples/quantization_example.py](../../examples/quantization_example.py) and calling this is demonstrated in [run_quantization_example.sh](../../run_quantization_example.sh). The usage of this module can also be seen in train_classification.py and train_pixel2pixel.py in [references/edgeailite/engine](../../references/edgeailite/engine). The following is a brief description of how to use this wrapper module:
+In order to enable quantized training, we have developed the wrapper class edgeai_xvision.xnn.quantization.QuantTrainModule. A simple example for using this module is given in the script [examples/quantization_example.py](../../examples/quantization_example.py) and calling this is demonstrated in [run_quantization_example.sh](../../run_quantization_example.sh). The usage of this module can also be seen in train_classification.py and train_pixel2pixel.py in [references/edgeailite/engine](../../references/edgeailite/engine). The following is a brief description of how to use this wrapper module:
 ```
 from edgeai_xvision import xnn
 
