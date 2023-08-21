@@ -53,7 +53,7 @@ then
         -v ${PARENT_DIR}:/opt/code \
         --privileged \
         --network host \
-        --shm-size 10gb \
+        --shm-size 25G \
         -e http_proxy=${http_proxy} \
         -e https_proxy=${https_proxy} \
         -e no_proxy=${no_proxy} \
