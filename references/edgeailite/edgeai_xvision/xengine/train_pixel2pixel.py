@@ -238,7 +238,7 @@ def main(args):
         warnings.warn('switching off bias calibration in validation')
     #
 
-    to_device = lambda src_object, non_blocking=False: src_object.cuda() if args.device in ('cuda', None) else src_object
+    to_device = lambda src_object, non_blocking=False: src_object.cuda(non_blocking=non_blocking) if args.device in ('cuda', None) else src_object
 
     #################################################
     args.rand_resize = args.img_resize if args.rand_resize is None else args.rand_resize
@@ -662,7 +662,7 @@ def is_valid_phase(phase):
 
 ###################################################################
 def train(args, train_dataset, train_loader, model, optimizer, epoch, train_writer, scheduler, grad_scaler):
-    to_device = lambda src_object, non_blocking=False: src_object.cuda() if args.device in ('cuda', None) else src_object
+    to_device = lambda src_object, non_blocking=False: src_object.cuda(non_blocking=non_blocking) if args.device in ('cuda', None) else src_object
     batch_time = xnn.utils.AverageMeter()
     data_time = xnn.utils.AverageMeter()
     # if the loss/ metric is already an average, no need to further average
@@ -858,7 +858,7 @@ def train(args, train_dataset, train_loader, model, optimizer, epoch, train_writ
 
 ###################################################################
 def validate(args, val_dataset, val_loader, model, epoch, val_writer):
-    to_device = lambda src_object, non_blocking=False: src_object.cuda() if args.device in ('cuda', None) else src_object
+    to_device = lambda src_object, non_blocking=False: src_object.cuda(non_blocking=non_blocking) if args.device in ('cuda', None) else src_object
     data_time = xnn.utils.AverageMeter()
     # if the loss/ metric is already an average, no need to further average
     avg_metric = [xnn.utils.AverageMeter(print_avg=(not task_metric[0].info()['is_avg'])) for task_metric in args.metric_modules]
