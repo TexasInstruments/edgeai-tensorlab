@@ -238,6 +238,8 @@ def main(args):
         warnings.warn('switching off bias calibration in validation')
     #
 
+    to_device = lambda src_object, non_blocking=False: src_object.cuda() if args.device in ('cuda', None) else src_object
+
     #################################################
     args.rand_resize = args.img_resize if args.rand_resize is None else args.rand_resize
     args.rand_crop = args.img_resize if args.rand_crop is None else args.rand_crop
@@ -375,7 +377,7 @@ def main(args):
                     p_file = p
                 #
                 print(f'=> loading pretrained weights file: {p}')
-                p_data = torch.load(p_file)
+                p_data = torch.load(p_file, map_location='cpu')
             #
             pretrained_data.append(p_data)
             model_surgery_quantize = p_data['quantize'] if 'quantize' in p_data else False
@@ -464,7 +466,7 @@ def main(args):
         model = torch.nn.DataParallel(model)
 
     #################################################
-    model = model.cuda()
+    model = to_device(model)
 
     #################################################
     # for help in debug/print
@@ -490,11 +492,11 @@ def main(args):
             #
             loss_fn_raw = pixel2pixel_losses.__dict__[loss_fn](**kw_args)
             if args.parallel_criterion:
-                loss_fn = torch.nn.DataParallel(loss_fn_raw).cuda() if args.parallel_criterion else loss_fn_raw.cuda()
+                loss_fn = to_device(torch.nn.DataParallel(loss_fn_raw)) if args.parallel_criterion else to_device(loss_fn_raw)
                 loss_fn.info = loss_fn_raw.info
                 loss_fn.clear = loss_fn_raw.clear
             else:
-                loss_fn = loss_fn_raw.cuda()
+                loss_fn = to_device(loss_fn_raw)
             #
             args.loss_modules[task_dx][loss_idx] = loss_fn
     #
@@ -517,11 +519,11 @@ def main(args):
             #
             metric_fn_raw = pixel2pixel_losses.__dict__[metric_fn](**kw_args)
             if args.parallel_criterion:
-                metric_fn = torch.nn.DataParallel(metric_fn_raw).cuda()
+                metric_fn = to_device(torch.nn.DataParallel(metric_fn_raw))
                 metric_fn.info = metric_fn_raw.info
                 metric_fn.clear = metric_fn_raw.clear
             else:
-                metric_fn = metric_fn_raw.cuda()
+                metric_fn = to_device(metric_fn_raw)
             #
             args.metric_modules[task_dx][midx] = metric_fn
     #
@@ -660,6 +662,7 @@ def is_valid_phase(phase):
 
 ###################################################################
 def train(args, train_dataset, train_loader, model, optimizer, epoch, train_writer, scheduler, grad_scaler):
+    to_device = lambda src_object, non_blocking=False: src_object.cuda() if args.device in ('cuda', None) else src_object
     batch_time = xnn.utils.AverageMeter()
     data_time = xnn.utils.AverageMeter()
     # if the loss/ metric is already an average, no need to further average
@@ -720,8 +723,8 @@ def train(args, train_dataset, train_loader, model, optimizer, epoch, train_writ
 
         lr = scheduler.get_lr()[0]
 
-        input_list = [[jj.cuda() for jj in img] if isinstance(img,(list,tuple)) else  img.cuda() for img in inputs]
-        target_list = [tgt.cuda(non_blocking=True) for tgt in targets]
+        input_list = [[to_device(jj) for jj in img] if isinstance(img,(list,tuple)) else  to_device(img) for img in inputs]
+        target_list = [to_device(tgt, non_blocking=True) for tgt in targets]
         target_sizes = [tgt.shape for tgt in target_list]
         batch_size_cur = target_sizes[0][0]
 
@@ -855,6 +858,7 @@ def train(args, train_dataset, train_loader, model, optimizer, epoch, train_writ
 
 ###################################################################
 def validate(args, val_dataset, val_loader, model, epoch, val_writer):
+    to_device = lambda src_object, non_blocking=False: src_object.cuda() if args.device in ('cuda', None) else src_object
     data_time = xnn.utils.AverageMeter()
     # if the loss/ metric is already an average, no need to further average
     avg_metric = [xnn.utils.AverageMeter(print_avg=(not task_metric[0].info()['is_avg'])) for task_metric in args.metric_modules]
@@ -883,8 +887,8 @@ def validate(args, val_dataset, val_loader, model, epoch, val_writer):
     ##########################
     for iter_id, (inputs, targets) in enumerate(val_loader):
         data_time.update(time.time() - end_time)
-        input_list = [[jj.cuda() for jj in img] if isinstance(img,(list,tuple)) else img.cuda() for img in inputs]
-        target_list = [j.cuda(non_blocking=True) for j in targets]
+        input_list = [[to_device(jj) for jj in img] if isinstance(img,(list,tuple)) else to_device(img) for img in inputs]
+        target_list = [to_device(j, non_blocking=True) for j in targets]
         target_sizes = [tgt.shape for tgt in target_list]
         batch_size_cur = target_sizes[0][0]
 
@@ -977,14 +981,14 @@ def create_rand_inputs(args, is_cuda):
     if not args.model_config.input_nv12:
         for i_ch in args.model_config.input_channels:
             x = torch.rand((1, i_ch, args.img_resize[0], args.img_resize[1]))
-            x = x.cuda() if is_cuda else x
+            x = to_device(x) if is_cuda else x
             dummy_input.append(x)
     else: #nv12    
         for i_ch in args.model_config.input_channels:
             y = torch.rand((1, 1, args.img_resize[0], args.img_resize[1]))
             uv = torch.rand((1, 1, args.img_resize[0]//2, args.img_resize[1]))
-            y = y.cuda() if is_cuda else y
-            uv = uv.cuda() if is_cuda else uv
+            y = to_device(y) if is_cuda else y
+            uv = to_device(uv) if is_cuda else uv
             dummy_input.append([y,uv])
 
     return dummy_input
