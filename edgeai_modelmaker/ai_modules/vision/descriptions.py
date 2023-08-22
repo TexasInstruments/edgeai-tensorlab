@@ -37,7 +37,7 @@ from . import datasets
 from . import training
 from . import compilation
 from .params import init_params
-
+from ... import version
 
 def _get_paretto_front_best(xy_list, x_index=0, y_index=1, inverse_relaionship=False):
     xy_list = sorted(xy_list, key=lambda x:x[x_index], reverse=inverse_relaionship)
@@ -110,11 +110,13 @@ def set_model_selection_factor(model_descriptions):
             if not xy_list_shortlisted:
                 xy_list_shortlisted = [(1, 1, xy[2]) for xy in xy_list]
             #
-            xy_list_shortlisted = get_paretto_front_combined(xy_list_shortlisted)
-            for paretto_id, xy in enumerate(xy_list_shortlisted):
-                xy_id = xy[2]
-                m = model_desc_list[xy_id]
-                m.training.target_devices[target_device].model_selection_factor = paretto_id
+            if len(xy_list_shortlisted) > 0:
+                xy_list_shortlisted = get_paretto_front_combined(xy_list_shortlisted)
+                for paretto_id, xy in enumerate(xy_list_shortlisted):
+                    xy_id = xy[2]
+                    m = model_desc_list[xy_id]
+                    m.training.target_devices[target_device].model_selection_factor = paretto_id
+                #
             #
         #
     #

@@ -59,8 +59,17 @@ _model_descriptions = {
             pretrained_checkpoint_path='/home/a0504871/Desktop/best_ckpt.pth',
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_KEYPOINT_DETECTION],
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=108, performance_infer_time_ms=1000/108,
-                                                     accuracy_factor=56.0, accuracy_unit='AP50%', accuracy_factor2=37.4, accuracy_unit2='AP[.5:.95]%')
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=77.8, performance_infer_time_ms=1000/77.8,
+                                                     accuracy_factor=78.0, accuracy_unit='AP50%', accuracy_factor2=49.6, accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=68.89, performance_infer_time_ms=1000/68.89,
+                                                     accuracy_factor=78.0, accuracy_unit='AP50%', accuracy_factor2=49.6, accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM69A: dict(performance_fps=68.89, 
+                                                    performance_infer_time_ms=f"{1000/68.89} (with 1/4th device capability)",
+                                                    accuracy_factor=78.0, accuracy_unit='AP50%', accuracy_factor2=49.6, accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=15.17, performance_infer_time_ms=1000/15.17,
+                                                     accuracy_factor=78.0, accuracy_unit='AP50%', accuracy_factor2=49.6, accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM62: dict(performance_fps=77.8/200, performance_infer_time_ms=1000/(77.8/200),
+                                                     accuracy_factor=78.0, accuracy_unit='AP50%', accuracy_factor2=49.6, accuracy_unit2='AP[.5:.95]%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
