@@ -1466,7 +1466,53 @@
         "model_training_id":"yolox-s-human-pose-ti-lite",
         "training_backend":"edgeai_yolox",
         "pretrained_checkpoint_path":"/home/a0504871/Desktop/best_ckpt.pth",
-        "target_devices":{},
+        "target_devices":{
+          "TDA4VM":{
+            "performance_fps":77.8,
+            "performance_infer_time_ms":12.853470437017995,
+            "accuracy_factor":78.0,
+            "accuracy_unit":"AP50%",
+            "accuracy_factor2":49.6,
+            "accuracy_unit2":"AP[.5:.95]%",
+            "model_selection_factor":0
+          },
+          "AM68A":{
+            "performance_fps":68.89,
+            "performance_infer_time_ms":14.515894904920888,
+            "accuracy_factor":78.0,
+            "accuracy_unit":"AP50%",
+            "accuracy_factor2":49.6,
+            "accuracy_unit2":"AP[.5:.95]%",
+            "model_selection_factor":0
+          },
+          "AM69A":{
+            "performance_fps":68.89,
+            "performance_infer_time_ms":"14.515894904920888 (with 1/4th device capability)",
+            "accuracy_factor":78.0,
+            "accuracy_unit":"AP50%",
+            "accuracy_factor2":49.6,
+            "accuracy_unit2":"AP[.5:.95]%",
+            "model_selection_factor":0
+          },
+          "AM62A":{
+            "performance_fps":15.17,
+            "performance_infer_time_ms":65.91957811470007,
+            "accuracy_factor":78.0,
+            "accuracy_unit":"AP50%",
+            "accuracy_factor2":49.6,
+            "accuracy_unit2":"AP[.5:.95]%",
+            "model_selection_factor":0
+          },
+          "AM62":{
+            "performance_fps":0.389,
+            "performance_infer_time_ms":2570.694087403599,
+            "accuracy_factor":78.0,
+            "accuracy_unit":"AP50%",
+            "accuracy_factor2":49.6,
+            "accuracy_unit2":"AP[.5:.95]%",
+            "model_selection_factor":0
+          }
+        },
         "project_path":null,
         "dataset_path":null,
         "training_path":null,
