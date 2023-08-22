@@ -31,4 +31,4 @@
 #
 #################################################################################
 
-python ./scripts/run_download_all.py $@
+python3 ./scripts/run_download_all.py $@

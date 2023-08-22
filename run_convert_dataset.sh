@@ -32,25 +32,25 @@
 #################################################################################
 export PYTHONPATH=.:$PYTHONPATH
 
-#python ./scripts/convert_dataset.py --source_format=cityscapes --source_anno /user/a0393608/work//code/ti/algoref/vision-dataset/annotatedJSON/tiscapes/data/gtFine --source_data=/user/a0393608/work//code/ti/algoref/vision-dataset/annotatedJSON/tiscapes/data/leftImg8bit --dest_anno=/user/a0393608/work//code/ti/algoref/vision-dataset/annotatedJSON/tiscapes/data/annotations/instances.json
+#python3 ./scripts/convert_dataset.py --source_format=cityscapes --source_anno /user/a0393608/work//code/ti/algoref/vision-dataset/annotatedJSON/tiscapes/data/gtFine --source_data=/user/a0393608/work//code/ti/algoref/vision-dataset/annotatedJSON/tiscapes/data/leftImg8bit --dest_anno=/user/a0393608/work//code/ti/algoref/vision-dataset/annotatedJSON/tiscapes/data/annotations/instances.json
 
-#python ./scripts/convert_dataset.py --source_format=image_splits --source_data=./data/examples/datasets/potatatochips_classification/images --dest_anno=./data/examples/datasets/potatatochips_classification/annotations/instances.json
+#python3 ./scripts/convert_dataset.py --source_format=image_splits --source_data=./data/examples/datasets/potatatochips_classification/images --dest_anno=./data/examples/datasets/potatatochips_classification/annotations/instances.json
 
-#python ./scripts/convert_dataset.py --source_format=labelstudio_detection --source_anno=./data/examples/datasets/animal_detection/annotations/instances_labelstudio-detection-json-min.json --source_data=./data/examples/datasets/animal_detection/images --dest_anno=./data/examples/datasets/animal_detection/annotations/instances.json
+#python3 ./scripts/convert_dataset.py --source_format=labelstudio_detection --source_anno=./data/examples/datasets/animal_detection/annotations/instances_labelstudio-detection-json-min.json --source_data=./data/examples/datasets/animal_detection/images --dest_anno=./data/examples/datasets/animal_detection/annotations/instances.json
 
-#python ./scripts/convert_dataset.py --source_format=labelstudio_classification --source_anno=./data/examples/datasets/animal_classification/annotations/labels_labelstudio-classification-json-min.json --source_data=./data/examples/datasets/animal_classification/images --dest_anno=./data/examples/datasets/animal_classification/annotations/labels.json
+#python3 ./scripts/convert_dataset.py --source_format=labelstudio_classification --source_anno=./data/examples/datasets/animal_classification/annotations/labels_labelstudio-classification-json-min.json --source_data=./data/examples/datasets/animal_classification/images --dest_anno=./data/examples/datasets/animal_classification/annotations/labels.json
 
-#python ./scripts/convert_dataset.py --source_format=coco_splits --source_anno=./data/examples/datasets/coco_detection/annotations/instances_train2017.json,./data/examples/datasets/coco_detection/annotations/instances_val2017.json --source_data=./data/examples/datasets/coco_detection/train2017,./data/examples/datasets/coco_detection/val2017 --dest_anno=./data/examples/datasets/coco_detection/annotations/instances.json
+#python3 ./scripts/convert_dataset.py --source_format=coco_splits --source_anno=./data/examples/datasets/coco_detection/annotations/instances_train2017.json,./data/examples/datasets/coco_detection/annotations/instances_val2017.json --source_data=./data/examples/datasets/coco_detection/train2017,./data/examples/datasets/coco_detection/val2017 --dest_anno=./data/examples/datasets/coco_detection/annotations/instances.json
 
 # ---------------------------For Segmentation -----------------------------------
 #--------- Model Maker folder structure formatting-------------------------------
-#python ./scripts/convert_dataset.py \
+#python3 ./scripts/convert_dataset.py \
 # --source_format=modelmaker_format \
 # --input_dataset_path="/home/a0504871/Downloads/labelstudio_extracted"
 #--------------------------------------------------------------------------------
 
 #-------- Sorting the annotation file based on the preference order--------------
-#python ./scripts/convert_dataset.py \
+#python3 ./scripts/convert_dataset.py \
 #--source_format=sort_annotations \
 
 #--annotation_file_path="./data/downloads/tiscapes2017_driving/annotations/stuff.json" \
@@ -58,7 +58,7 @@ export PYTHONPATH=.:$PYTHONPATH
 #---------------------------------------------------------------------------------
 
 #-------- Sorting the annotation file based on the preference order--------------
-#python ./scripts/convert_dataset.py \
+#python3 ./scripts/convert_dataset.py \
 #--source_format=sort_annotations \
 #--annotation_file_path="/home/a0504871/Downloads/dataset/annotations/instances.json" \
 #--preference_order="vehicle,trafficsign,human"
