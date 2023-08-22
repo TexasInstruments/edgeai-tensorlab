@@ -5,6 +5,9 @@
     ],
     "edgeai_mmdetection":[
       "detection"
+    ],
+    "edgeai_yolox":[
+      "keypoint_detection"
     ]
   },
   "model_descriptions":{
@@ -1420,6 +1423,108 @@
           "label_offset_pred":0
         }
       }
+    },
+    "yolox_s_keypoint":{
+      "common":{
+        "verbose_mode":true,
+        "download_path":"./data/downloads",
+        "projects_path":"./data/projects",
+        "project_path":null,
+        "project_run_path":null,
+        "task_type":"keypoint_detection",
+        "target_machine":"evm",
+        "target_device":null,
+        "run_name":"{date-time}/{model_name}",
+        "target_module":"vision"
+      },
+      "download":null,
+      "dataset":{
+        "enable":true,
+        "dataset_name":null,
+        "dataset_path":null,
+        "extract_path":null,
+        "split_factor":0.8,
+        "split_names":[
+          "train",
+          "val"
+        ],
+        "max_num_files":10000,
+        "input_data_path":null,
+        "input_annotation_path":null,
+        "data_path_splits":null,
+        "data_dir":"images",
+        "annotation_path_splits":null,
+        "annotation_dir":"annotations",
+        "annotation_prefix":"instances",
+        "annotation_format":"coco_json",
+        "dataset_download":true,
+        "dataset_reload":false
+      },
+      "training":{
+        "enable":true,
+        "model_name":"yolox_s_keypoint",
+        "model_training_id":"yolox-s-human-pose-ti-lite",
+        "training_backend":"edgeai_yolox",
+        "pretrained_checkpoint_path":"/home/a0504871/Desktop/best_ckpt.pth",
+        "target_devices":{},
+        "project_path":null,
+        "dataset_path":null,
+        "training_path":null,
+        "log_file_path":null,
+        "log_summary_regex":null,
+        "summary_file_path":null,
+        "model_checkpoint_path":null,
+        "model_export_path":null,
+        "model_proto_path":null,
+        "model_packaged_path":null,
+        "training_epochs":15,
+        "warmup_epochs":1,
+        "num_last_epochs":5,
+        "batch_size":8,
+        "learning_rate":0.002,
+        "num_classes":null,
+        "weight_decay":0.0001,
+        "input_resize":640,
+        "input_cropsize":640,
+        "training_device":null,
+        "num_gpus":0,
+        "distributed":true,
+        "training_master_port":29500,
+        "model_architecture":"yolox",
+        "training_devices":{
+          "cpu":true,
+          "cuda":true
+        }
+      },
+      "compilation":{
+        "enable":true,
+        "model_compilation_id":"kd-7060",
+        "compilation_path":null,
+        "model_compiled_path":null,
+        "log_file_path":null,
+        "log_summary_regex":null,
+        "summary_file_path":null,
+        "output_tensors_path":null,
+        "model_packaged_path":null,
+        "model_visualization_path":null,
+        "tensor_bits":8,
+        "calibration_frames":10,
+        "calibration_iterations":10,
+        "num_frames":null,
+        "num_output_frames":50,
+        "detection_threshold":0.6,
+        "detection_top_k":200,
+        "save_output":true,
+        "tidl_offload":true,
+        "input_optimization":false,
+        "capture_log":true,
+        "runtime_options":{
+          "advanced_options:output_feature_16bit_names_list":"370, 426, 482, 538"
+        },
+        "metric":{
+          "label_offset_pred":0
+        }
+      }
     }
   },
   "preset_descriptions":{
@@ -2230,7 +2335,7 @@
     }
   },
   "version_descriptions":{
-    "version":"8.6",
+    "version":"9.0.0",
     "sdk_version":"8.6",
     "sdk_release":"08_06_00"
   },

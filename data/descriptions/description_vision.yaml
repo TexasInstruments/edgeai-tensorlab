@@ -1087,6 +1087,99 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
+  yolox_s_keypoint:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      target_module: vision
+      task_type: keypoint_detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 0
+      model_compilation_id: kd-7060
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 370, 426, 482, 538
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: 10000
+      split_factor: 0.8
+      split_names:
+      - train
+      - val
+    download: null
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 640
+      input_resize: 640
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: yolox
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: yolox_s_keypoint
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: yolox-s-human-pose-ti-lite
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: /home/a0504871/Desktop/best_ckpt.pth
+      project_path: null
+      summary_file_path: null
+      target_devices: {}
+      training_backend: edgeai_yolox
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
   yolox_s_lite:
     common:
       download_path: ./data/downloads
@@ -2081,7 +2174,9 @@ training_module_descriptions:
   - detection
   edgeai_torchvision:
   - segmentation
+  edgeai_yolox:
+  - keypoint_detection
 version_descriptions:
   sdk_release: 08_06_00
   sdk_version: '8.6'
-  version: '8.6'
+  version: 9.0.0
