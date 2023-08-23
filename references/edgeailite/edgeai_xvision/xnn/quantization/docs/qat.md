@@ -35,7 +35,7 @@ Within a few epochs, we should get reasonable quantization accuracy.
 
 
 #### How to use  QuantTrainModule
-In order to enable quantized training, we have developed the wrapper class edgeai_xvision.xnn.quantization.QuantTrainModule. A simple example for using this module is given in the script [examples/quantization_example.py](../../examples/quantization_example.py) and calling this is demonstrated in [run_quantization_example.sh](../../run_quantization_example.sh). The usage of this module can also be seen in train_classification.py and train_pixel2pixel.py in [references/edgeailite/engine](../../references/edgeailite/engine). The following is a brief description of how to use this wrapper module:
+In order to enable quantized training, we have developed the wrapper class xnn.quantization.QuantTrainModule. The usage of this module can also be seen in [references/classification/train.py](https://github.com/TexasInstruments/edgeai-torchvision/blob/master/references/classification/train.py) and train_pixel2pixel.py in [references/edgeailite/edgeai_xvision/xengine](https://github.com/TexasInstruments/edgeai-torchvision/tree/master/references/edgeailite/edgeai_xvision/xengine). The following is a brief description of how to use this wrapper module:
 ```
 from edgeai_xvision import xnn
 
@@ -47,7 +47,8 @@ dummy_input = torch.rand((1,3,384,768))
 
 # wrap your model in xnn.quantization.QuantTrainModule. 
 # once it is wrapped, the actual model is in model.module
-model = xnn.quantization.QuantTrainModule(model, dummy_input=dummy_input)
+# num_training_epochs is the number of epochs of training your training script
+model = xnn.quantization.QuantTrainModule(model, dummy_input=dummy_input, total_epochs=num_training_epochs)
 
 # load your pretrained weights here into model.module
 pretrained_data = torch.load(pretrained_path)
@@ -69,19 +70,19 @@ torch.save(model.module.state_dict(), os.path.join(save_path,'model.pth'))
 
 As can be seen, it is easy to incorporate QuantTrainModule in your existing training code as the only thing required is to wrap your original model in QuantTrainModule. Careful attention needs to be given to how the parameters of the pretrained model is loaded and trained model is saved as shown in the above code snippet.
 
-Optional: We have provided a utility function called torchvision.edgeailite.xnn.utils.load_weights() that prints which parameters are loaded correctly and which are not - you can use this load function if needed to ensure that your parameters are loaded correctly.
+It is seen to be beneficial (for higher accuracy) to freeze the BatchNorm and Quantization ranges after a few epochs during QAT. In order to do this, we need to take in the argument total_epochs.
+
+Optional: We have provided a utility function called edgeai_xvision.xnn.utils.load_weights() that prints which parameters are loaded correctly and which are not - you can use this load function if needed to ensure that your parameters are loaded correctly.
 
 
 ### Implementation Notes, Recommendations & Limitations for QAT
 **Please read carefully** - closely following these recommendations can save hours or days of debug related to quantization accuracy issues.
 
-**The same module should not be re-used multiple times within the module** in order that the feature map range estimation is correct. Unfortunately, in the torchvision ResNet models, the ReLU module in the BasicBlock and BottleneckBlock are re-used multiple times. We have corrected this by defining separate ReLU modules. This change is minor and **does not** affect the loading of existing pretrained weights. See the [our modified ResNet model definition here](../../torchvision/models/resnet.py).<br>
-
 **Use Modules instead of functionals or tensor operations** (by Module we mean classes derived from torch.nn.Module). We make use of Modules heavily in our quantization tools - in order to do range collection, in order to merge Convolution/BatchNorm/ReLU in order to decide whether to quantize a certain tensor and so on. For example use torch.nn.ReLU instead of torch.nn.functional.relu(), torch.nn.AdaptiveAvgPool2d() instead of torch.nn.functional.adaptive_avg_pool2d(), torch.nn.Flatten() instead of torch.nn.functional.flatten() etc.<br>
 
-Other notable modules provided are: [xnn.layers.AddBlock](../../torchvision/edgeailite/xnn/layers/common_blocks.py) to do elementwise addition and [xnn.layers.CatBlock](../../torchvision/edgeailite/xnn/layers/common_blocks.py) to do concatenation of tensors. Use these in the models instead of tensor operations. Note that if there are multiple element wise additions in a model, each of them should use a different instance of xnn.layers.AddBlock (since the same module should not be re-used multiple times - see above). The same restriction applies for xnn.layers.CatBlock or any other module as well.
+Other notable modules provided are: [xnn.layers.AddBlock](../../layers/common_blocks.py) to do elementwise addition and [xnn.layers.CatBlock](../../layers/common_blocks.py) to do concatenation of tensors. Use these in the models instead of tensor operations. Note that if there are multiple element wise additions in a model, each of them should use a different instance of xnn.layers.AddBlock (since the same module should not be re-used multiple times - see above). The same restriction applies for xnn.layers.CatBlock or any other module as well.
 
-**Interpolation/Upsample/Resize** has been tricky in PyTorch in the sense that the ONNX graph generated used to be unnecessarily complicated. Recent versions of PyTorch has fixed it - but the right options must be used to get the clean graph. We have provided a functional form as well as a module form of this operator with the capability to export a clean ONNX graph [xnn.layers.resize_with, xnn.layers.ResizeWith](../../torchvision/xnn/layers/resize_blocks.py)
+**Interpolation/Upsample/Resize** has been tricky in PyTorch in the sense that the ONNX graph generated used to be unnecessarily complicated. Recent versions of PyTorch has fixed it - but the right options must be used to get the clean graph. We have provided a functional form as well as a module form of this operator with the capability to export a clean ONNX graph [xnn.layers.resize_with, xnn.layers.ResizeWith](../../layers/resize_blocks.py)
 
 If you have done QAT and is getting poor accuracy either in the Python code or during inference in the platform, please inspect your model carefully to see if the above recommendations have been followed - some of these can be easily missed by oversight - and can result in painful debugging that could have been avoided.<br>
 
@@ -90,8 +91,6 @@ However, if a function does not change the range of feature map, it is not criti
 **Multi-GPU training/validation** with DataParallel or DistributedDataParallel is supported with our QAT modules, QuantTrainModule and QuantTestModule.<br>
 
 If your training crashes because of insufficient GPU memory, reduce the batch size and try again.
-
-It is seen to be beneficial (for higher accuracy) to freeze the BatchNorm and Quantization ranges after a few epochs during QAT. The utility functions xnn.utils.freeze_bn(model) and xnn.layers.freeze_quant_range(model) can be used for this. See example usage of these functions [here](../../references/edgeailite/scripts/quantize_classification_example.py)
 
 
 ### Compilation of QAT Models in TIDL
@@ -125,17 +124,7 @@ advanced_options = {quantization_scale_type = 1}  #to use power of 2 quantizatio
 ```
 
 ####  Example training commands for QAT in this repository
-ImageNet Classification: *In this example, only a fraction of the training samples are used in each training epoch to speedup training. Remove the argument --epoch_size to use all the training samples.*
-```
-python ./references/edgeailite/scripts/train_classification_main.py --dataset_name image_folder_classification --model_name mobilenetv2_tv_x1 --data_path ./data/datasets/image_folder_classification --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --batch_size 64 --quantize True --epochs 50 --epoch_size 0.1 --lr 1e-5 --evaluate_start False
-```
-
-Cityscapes Semantic Segmentation:<br>
-```
-python ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 --pretrained ./data/modelzoo/pytorch/semantic_segmentation/cityscapes/jacinto_ai/deeplabv3plus_edgeailite_mobilenetv2_tv_resize768x384_best.pth.tar --batch_size 6 --quantize True --epochs 50 --lr 1e-5 --evaluate_start False
-```
-
-For more examples, please see the files run_edgeailite_qunatization_example.sh and references/edgeailite/scripts/quantize_classification_example.py
+Example quantization scripts are given in [run_edgeailite_quantization_v1.sh](https://github.com/TexasInstruments/edgeai-torchvision/blob/master/run_edgeailite_quantization_v1.sh)
 
 
 ## Post Training Calibration For Quantization (Calibration)
@@ -143,4 +132,4 @@ For more examples, please see the files run_edgeailite_qunatization_example.sh a
 
 We also have a faster, but less accurate alternative for called Calibration. Post Training Calibration or simply Calibration is a method to reduce the accuracy loss with quantization. This is an approximate method and does not use ground truth or back-propagation. 
 
-If you are interested, you can take a look at the [documentation of Calibration here](Calibration.md). However, in a training framework such as PyTorch, it is possible to get better accuracy with QAT and we recommend to use that.<br>
+If you are interested, you can take a look at the [documentation of Calibration here](./calibration.md). However, in a training framework such as PyTorch, it is possible to get better accuracy with QAT and we recommend to use that.<br>

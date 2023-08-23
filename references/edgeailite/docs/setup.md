@@ -27,16 +27,14 @@ echo '' >> ${HOME}/.bashrc
 exec ${SHELL}
 ```
 
-From SDK/TIDL version 9.0, the Python version required is 3.10. Create a Python 3.10 environment if you don't have it and activate it before following the rest of the instructions.
+From SDK/TIDL version 9.0, the Python version required is 3.10 (Note: Prior to SDK/TIDL version 9.0, the Python version required was 3.6). Create a Python 3.10 environment if you don't have it and activate it before following the rest of the instructions.
 ```
 pyenv install 3.10
 pyenv virtualenv 3.10 torchvision
-pyenv activate benchmark
+pyenv activate torchvision
 pip install --upgrade pip
 pip install --upgrade setuptools
 ```
-
-Note: Prior to SDK/TIDL version 9.0, the Python version required was 3.6
 
 Activation of Python environment - this activation step needs to be done everytime one starts a new terminal or shell. (Alternately, this also can be written to the .bashrc, so that this will be the default penv environment).
 ```

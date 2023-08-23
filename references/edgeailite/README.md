@@ -21,7 +21,7 @@ This code provides a set of low complexity deep learning examples and models for
 
 [Object Detection](./docs/object_detection.md)<br>
 
-[Object Keypoint detection / Human Pose Estimation](./docs/keypoint_estimation.md)<br>
+[Object Keypoint detection / Human Pose Estimation](./docs/keypoint_detection.md)<br>
 
 
 <br><hr><br>
