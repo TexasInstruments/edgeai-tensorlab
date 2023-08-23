@@ -54,20 +54,15 @@ TARGET_DEVICE_AM69A = 'AM69A'
 TARGET_DEVICE_AM62 = 'AM62'
 
 TARGET_DEVICES = [
-    TARGET_DEVICE_TDA4VM,
     TARGET_DEVICE_AM62A,
+    TARGET_DEVICE_AM62,
+    TARGET_DEVICE_TDA4VM,
     TARGET_DEVICE_AM68A,
     TARGET_DEVICE_AM69A,
-    # TODO: enable this and also add TARGET_DEVICE_DETAILS_AM62
-    # TARGET_DEVICE_AM62
 ]
 
-# these contains additional devices that are not currently supported in release.
-# additional devices such as TARGET_DEVICE_AM62 can be added as well
-TARGET_DEVICES_ALL = TARGET_DEVICES + [
-    # TODO: remove from here ad add to TARGET_DEVICES
-    TARGET_DEVICE_AM62
-]
+# include additional devices that are not currently supported in release.
+TARGET_DEVICES_ALL = TARGET_DEVICES
 
 TARGET_DEVICE_TYPE_MPU = 'MPU'
 TARGET_DEVICE_TYPE_MCU = 'MCU'
@@ -95,21 +90,22 @@ TRAINING_BATCH_SIZE_DEFAULT = {
 }
 
 
-TARGET_SDK_VERSION = '8.6'
-TARGET_SDK_RELEASE = '08_06_00'
+TARGET_SDK_VERSION = '9.0'
+TARGET_SDK_RELEASE = '09_00_00'
 
 
 EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION = \
 f'''* Edge AI introduction: https://ti.com/edgeai
+* Edge AI model development information: https://github.com/TexasInstruments/edgeai
 * Edge AI tools introduction: https://dev.ti.com/edgeai/
-* Edge AI model development information: https://github.com/TexasInstruments/edgeai'''
+'''
 
-
+##### TDA4VM ######
 TARGET_DEVICE_SETUP_INSTRUCTIONS_TDA4VM = \
 f'''* Product information: https://www.ti.com/product/TDA4VM
 * Development board: https://www.ti.com/tool/SK-TDA4VM
 * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM
-* SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/TDA4VM/{TARGET_SDK_RELEASE}/exports/docs/common/sdk_overview.html
+* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM
 * SDK release: {TARGET_SDK_RELEASE}'''
 
 
@@ -128,11 +124,12 @@ Additional information:
 {EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}'''
 
 
+##### AM62A ######
 TARGET_DEVICE_SETUP_INSTRUCTIONS_AM62A = \
 f'''* Product information: https://www.ti.com/product/AM62A7
 * Development board: https://www.ti.com/tool/SK-AM62A-LP
 * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A
-* SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM62AX/{TARGET_SDK_RELEASE}/exports/docs/common/sdk_overview.html
+* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A
 * SDK release: {TARGET_SDK_RELEASE}'''
 
 
@@ -151,11 +148,12 @@ Additional information:
 {EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}'''
 
 
+##### AM68A ######
 TARGET_DEVICE_SETUP_INSTRUCTIONS_AM68A = \
 f'''* Product information: https://www.ti.com/product/AM68A
 * Development board: https://www.ti.com/tool/SK-AM68
 * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A
-* SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM68A/{TARGET_SDK_RELEASE}/exports/docs/common/sdk_overview.html
+* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A
 * SDK release: {TARGET_SDK_RELEASE}'''
 
 
@@ -174,11 +172,12 @@ Additional information:
 {EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}'''
 
 
+##### AM69A ######
 TARGET_DEVICE_SETUP_INSTRUCTIONS_AM69A = \
 f'''* Product information: https://www.ti.com/product/AM69A
 * Development board: https://www.ti.com/tool/SK-AM69
 * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A
-* SDK documentation & board setup: https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-edgeai/AM69A/{TARGET_SDK_RELEASE}/exports/docs/common/sdk_overview.html
+* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A
 * SDK release: {TARGET_SDK_RELEASE}'''
 
 
@@ -196,17 +195,32 @@ Important links:
 Additional information:
 {EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}'''
 
+##### AM62 ######
+TARGET_DEVICE_SETUP_INSTRUCTIONS_AM62 = \
+f'''* Product information: https://www.ti.com/product/AM625
+* Development board: https://www.ti.com/tool/SK-AM62
+* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62X
+* SDK documentation & board setup: See analytics application and Edge AI documentation at https://www.ti.com/tool/SK-AM62#order-start-development
+* SDK release: {TARGET_SDK_RELEASE}'''
+
+
+TARGET_DEVICE_DETAILS_AM62 = \
+f'''Efficient 2 TOPS AI capability at edge
+Specification:
+* 2 TOPS Deep Learning accelerator
+* Quad Arm® Cortex®-A53
+* Integrated ISP
+* More details : https://www.ti.com/product/AM625
+
+Important links:
+{TARGET_DEVICE_SETUP_INSTRUCTIONS_AM62}
+
+Additional information:
+{EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}'''
+
 
 # higher device_selection_factor indicates higher performance device.
 TARGET_DEVICE_DESCRIPTIONS = {
-    TARGET_DEVICE_TDA4VM: {
-        'device_name': TARGET_DEVICE_TDA4VM,
-        'device_type': TARGET_DEVICE_TYPE_MPU,
-        'device_selection_factor': 1,
-        'device_details': TARGET_DEVICE_DETAILS_TDA4VM,
-        'sdk_version': TARGET_SDK_VERSION,
-        'sdk_release': TARGET_SDK_RELEASE,
-    },
     TARGET_DEVICE_AM62A: {
         'device_name': TARGET_DEVICE_AM62A,
         'device_type': TARGET_DEVICE_TYPE_MPU,
@@ -215,10 +229,26 @@ TARGET_DEVICE_DESCRIPTIONS = {
         'sdk_version': TARGET_SDK_VERSION,
         'sdk_release': TARGET_SDK_RELEASE,
     },
+    TARGET_DEVICE_AM62: {
+        'device_name': TARGET_DEVICE_AM62,
+        'device_type': TARGET_DEVICE_TYPE_MPU,
+        'device_selection_factor': 1,
+        'device_details': TARGET_DEVICE_DETAILS_AM62,
+        'sdk_version': TARGET_SDK_VERSION,
+        'sdk_release': TARGET_SDK_RELEASE,
+    },
+    TARGET_DEVICE_TDA4VM: {
+        'device_name': TARGET_DEVICE_TDA4VM,
+        'device_type': TARGET_DEVICE_TYPE_MPU,
+        'device_selection_factor': 2,
+        'device_details': TARGET_DEVICE_DETAILS_TDA4VM,
+        'sdk_version': TARGET_SDK_VERSION,
+        'sdk_release': TARGET_SDK_RELEASE,
+    },
     TARGET_DEVICE_AM68A: {
         'device_name': TARGET_DEVICE_AM68A,
         'device_type': TARGET_DEVICE_TYPE_MPU,
-        'device_selection_factor': 2,
+        'device_selection_factor': 3,
         'device_details': TARGET_DEVICE_DETAILS_AM68A,
         'sdk_version': TARGET_SDK_VERSION,
         'sdk_release': TARGET_SDK_RELEASE,
@@ -226,7 +256,7 @@ TARGET_DEVICE_DESCRIPTIONS = {
     TARGET_DEVICE_AM69A: {
         'device_name': TARGET_DEVICE_AM69A,
         'device_type': TARGET_DEVICE_TYPE_MPU,
-        'device_selection_factor': 3,
+        'device_selection_factor': 4,
         'device_details': TARGET_DEVICE_DETAILS_AM69A,
         'sdk_version': TARGET_SDK_VERSION,
         'sdk_release': TARGET_SDK_RELEASE,
@@ -246,18 +276,18 @@ TASK_DESCRIPTIONS = {
         'target_devices': TARGET_DEVICES,
         'stages': ['dataset', 'training', 'compilation'],
     },
-    #TASK_TYPE_SEGMENTATION: {
-    #    'task_name': 'Semantic Segmentation',
-    #    'target_module': 'vision',
-    #    'target_devices': TARGET_DEVICES,
-    #    'stages': ['dataset', 'training', 'compilation'],
-    #},
-    #TASK_TYPE_KEYPOINT_DETECTION: {
-    #    'task_name': 'Keypoint Detection',
-    #    'target_module': 'vision',
-    #    'target_devices': TARGET_DEVICES,
-    #    'stages': ['dataset', 'training', 'compilation'],
-    #}
+    TASK_TYPE_SEGMENTATION: {
+       'task_name': 'Semantic Segmentation',
+       'target_module': 'vision',
+       'target_devices': TARGET_DEVICES,
+       'stages': ['dataset', 'training', 'compilation'],
+    },
+    TASK_TYPE_KEYPOINT_DETECTION: {
+       'task_name': 'Keypoint Detection',
+       'target_module': 'vision',
+       'target_devices': TARGET_DEVICES,
+       'stages': ['dataset', 'training', 'compilation'],
+    }
 }
 
 # compilation settings for various speed and accuracy tradeoffs:
@@ -265,7 +295,6 @@ TASK_DESCRIPTIONS = {
 # prototxt is not used in AM62 - so those values does not have effect in AM62 - they are given just for completeness.
 # if we really wan't to change the detections settings in AM62, we will have to modify the onnx file, but that's not easy.
 
-# TODO: Need to add preset descriptions for the TASK_TYPE_KEYPOINT_DETECTION
 PRESET_DESCRIPTIONS = {
     TARGET_DEVICE_TDA4VM: {
         TASK_TYPE_CLASSIFICATION: {
@@ -319,21 +348,21 @@ PRESET_DESCRIPTIONS = {
                 compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
-        TASK_TYPE_SEGMENTATION: {
+        TASK_TYPE_KEYPOINT_DETECTION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=16)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+                compilation=dict(calibration_frames=3, calibration_iterations=3, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
             ),
         },
     },
@@ -390,22 +419,21 @@ PRESET_DESCRIPTIONS = {
                 compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
-        TASK_TYPE_SEGMENTATION: {
+        TASK_TYPE_KEYPOINT_DETECTION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=16)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None,
-                                 detection_top_k=None, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+                compilation=dict(calibration_frames=3, calibration_iterations=3, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
             ),
         },
     },
@@ -428,6 +456,41 @@ PRESET_DESCRIPTIONS = {
             ),
         },
         TASK_TYPE_DETECTION: {
+            'best_accuracy_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
+            ),
+            'high_accuracy_preset': dict(
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
+            ),
+            'default_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
+            ),
+            'high_speed_preset': dict(
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
+            ),
+            'best_speed_preset': dict(
+                compilation=dict(calibration_frames=3, calibration_iterations=3, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
+            ),
+        },
+        TASK_TYPE_SEGMENTATION: {
+            'best_accuracy_preset': dict(
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=16)
+            ),
+            'high_accuracy_preset': dict(
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None,
+                                 detection_top_k=None, tensor_bits=8)
+            ),
+            'default_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+            ),
+            'high_speed_preset': dict(
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+            ),
+            'best_speed_preset': dict(
+                compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+            ),
+        },
+        TASK_TYPE_KEYPOINT_DETECTION: {
             'best_accuracy_preset': dict(
                 compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
             ),
@@ -497,74 +560,21 @@ PRESET_DESCRIPTIONS = {
                 compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
-    },
-    TARGET_DEVICE_AM62: {
-        TASK_TYPE_CLASSIFICATION: {
+        TASK_TYPE_KEYPOINT_DETECTION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
-            ),
-        },
-        TASK_TYPE_DETECTION: {
-            'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.05, detection_top_k=500, tensor_bits=32, tidl_offload=False)
-            ),
-            'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=32, tidl_offload=False)
-            ),
-            'default_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=32, tidl_offload=False)
-            ),
-            'high_speed_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=32, tidl_offload=False)
-            ),
-            'best_speed_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.6, detection_top_k=200, tensor_bits=32, tidl_offload=False)
-            ),
-        },
-        TASK_TYPE_SEGMENTATION: {
-            'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
-            ),
-            'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
-            ),
-            'default_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
-            ),
-            'high_speed_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
-            ),
-            'best_speed_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
-            ),
-        },
-        TASK_TYPE_SEGMENTATION: {
-            'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=16)
-            ),
-            'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
-            ),
-            'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=8)
-            ),
-            'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
-            ),
-            'best_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+                compilation=dict(calibration_frames=3, calibration_iterations=3, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
             ),
         },
     },
@@ -618,6 +628,23 @@ PRESET_DESCRIPTIONS = {
             ),
             'best_speed_preset': dict(
                 compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
+            ),
+        },
+        TASK_TYPE_KEYPOINT_DETECTION: {
+            'best_accuracy_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.05, detection_top_k=500, tensor_bits=32)
+            ),
+            'high_accuracy_preset': dict(
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.6, detection_top_k=200, tensor_bits=32)
+            ),
+            'default_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.6, detection_top_k=200, tensor_bits=32)
+            ),
+            'high_speed_preset': dict(
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.6, detection_top_k=200, tensor_bits=32)
+            ),
+            'best_speed_preset': dict(
+                compilation=dict(calibration_frames=3, calibration_iterations=3, detection_threshold=0.6, detection_top_k=200, tensor_bits=32)
             ),
         },
     },
@@ -664,6 +691,24 @@ SAMPLE_DATASET_DESCRIPTIONS = {
     'tiscapes2017_driving' : {
         'common': {
             'task_type': TASK_TYPE_DETECTION,
+        },
+        'dataset': {
+            'dataset_name': 'tiscapes2017_driving',
+            'input_data_path': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip',
+        },
+        'info': {
+            'dataset_url': 'http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip',
+            'dataset_detailed_name': 'TIScapes driving detection',
+            'dataset_description': 'Example driving scenario object detection dataset with 4 categories and 2116 images',
+            'dataset_size': 461038628,
+            'dataset_frames': 2116,
+            'dataset_source': 'Images & annotations from TI',
+            'dataset_license': 'BSD 3-Clause'
+        }
+    },
+    'tiscapes2017_driving' : {
+        'common': {
+            'task_type': TASK_TYPE_SEGMENTATION,
         },
         'dataset': {
             'dataset_name': 'tiscapes2017_driving',
