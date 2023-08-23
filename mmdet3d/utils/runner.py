@@ -80,21 +80,23 @@ class XMMDetNoOptimizerHook(OptimizerHook):
 @HOOKS.register_module()
 class FreezeRangeHook(Hook):
     def before_train_epoch(self, runner):
-        #offset_epoch = runner.max_epochs // 10
+        # #offset_epoch = runner.max_epochs // 10
         
-        #if offset_epoch<= 0:
-        #    offset_epoch = 1
+        # #if offset_epoch<= 0:
+        # #    offset_epoch = 1
         
-        offset_epoch = 1
+        # offset_epoch = 1
 
-        freeze_bn_epoch = (runner.max_epochs // 2) - offset_epoch
-        freeze_range_epoch = (runner.max_epochs // 2) + offset_epoch
-        if runner.epoch >= 1 and runner.epoch >= freeze_bn_epoch:
-            xnn.utils.print_once('Freezing BN')
-            xnn.utils.freeze_bn(runner.model)
-        #
-        if runner.epoch >= 2 and runner.epoch >= freeze_range_epoch:
-            xnn.utils.print_once('Freezing Activation ranges')
-            xnn.layers.freeze_quant_range(runner.model)
-        #
-
+        # freeze_bn_epoch = (runner.max_epochs // 2) - offset_epoch
+        # freeze_range_epoch = (runner.max_epochs // 2) + offset_epoch
+        # if runner.epoch >= 1 and runner.epoch >= freeze_bn_epoch:
+        #     xnn.utils.print_once('Freezing BN')
+        #     xnn.utils.freeze_bn(runner.model)
+        # #
+        # if runner.epoch >= 2 and runner.epoch >= freeze_range_epoch:
+        #     xnn.utils.print_once('Freezing Activation ranges')
+        #     xnn.layers.freeze_quant_range(runner.model)
+        # #
+        # this freezing is now done inside the QuantTrainModule()
+        # so this hook is not required
+        pass

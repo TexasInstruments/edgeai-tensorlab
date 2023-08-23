@@ -267,7 +267,7 @@ def main():
         raw_voxel_feat = np.fromfile(os.path.join(data_dir,sample_bin_file),dtype=np.float32)
         raw_voxel_feat = torch.tensor(raw_voxel_feat.reshape((-1,cfg.train_pipeline[0]['use_dim'])))
 
-        model = XMMDetQuantTrainModule(model, [raw_voxel_feat,raw_voxel_feat])
+        model = XMMDetQuantTrainModule(model, [raw_voxel_feat,raw_voxel_feat], total_epochs=cfg.runner.max_epochs)
         model.module.init_weights()
     else:
         model.init_weights()
