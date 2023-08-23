@@ -221,7 +221,7 @@ def main(args=None):
             cfg.gpu_ids = cfg.gpu_ids[:1]
             model = XMMDetQuantCalibrateModule(model, dummy_input)
         elif cfg.quantize:
-            model = XMMDetQuantTrainModule(model, dummy_input)
+            model = XMMDetQuantTrainModule(model, dummy_input, total_epochs=cfg.runner.max_epochs)
         #
 
     datasets = [build_dataset(cfg.data.train)]

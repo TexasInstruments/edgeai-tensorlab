@@ -26,7 +26,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# edgeai_xvision is installed by the setup of https://github.com/TexasInstruments/edgeai-torchvision 
 from edgeai_xvision import xnn
+
 
 class XMMDetQuantCalibrateModule(xnn.quantization.QuantCalibrateModule):
     def __init__(self, model,  dummy_input, *args, forward_analyze_method='forward_dummy', **kwargs):
