@@ -236,21 +236,37 @@ class ModelCompilation():
         ''''
         The actual compilation function. Move this to a worker process, if this function is called from a GUI.
         '''
+
+        # running import and inference separately for more stability
+        # run import
         if self.params.compilation.capture_log:
-            print(edgeai_benchmark.utils.log_color('\nINFO', 'compilation in progress',
-                                                   'please see compilation log file for the status.'))
+            # when capture_log, detailed log will only be in the log file - so print this info
+            print(edgeai_benchmark.utils.log_color('\nINFO', 'model import is in progress',
+                                                   'please see the log file for status.'))
         #
-        # run the accuracy pipeline
+        self.settings.run_inference = False
         edgeai_benchmark.interfaces.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
+        # run inference
+        if self.params.compilation.capture_log:
+            # when capture_log, detailed log will only be in the log file - so print this info
+            print(edgeai_benchmark.utils.log_color('\nINFO', 'model inference is in progress',
+                                                   'please see the log file for status.'))
+        #
+        self.settings.run_inference = True
+        edgeai_benchmark.interfaces.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
+
         # remove special characters
         utils.cleanup_special_chars(self.params.compilation.log_file_path)
+
         # package artifacts
         edgeai_benchmark.interfaces.package_artifacts(self.settings, self.work_dir, out_dir=self.package_dir, custom_model=True)
+        
         # make a symlink to the packaged artifacts
         # internally we use a short path as tidl has file path length restrictions
         # for use outside, create symlink to a more descriptive file
         packaged_artifact_path = self._get_packaged_artifact_path()
         utils.make_symlink(packaged_artifact_path, self.params.compilation.model_packaged_path)
+        
         return self.params
 
     def _get_settings(self, model_selection, calib_dataset, val_dataset):
