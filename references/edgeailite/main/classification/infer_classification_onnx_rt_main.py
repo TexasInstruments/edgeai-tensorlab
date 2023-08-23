@@ -60,7 +60,7 @@ parser.add_argument('--epoch_size', type=float, default=None, help='epoch size. 
 parser.add_argument('--img_resize', type=int, default=None, help='images will be first resized to this size during training and validation')
 # parser.add_argument('--rand_scale', type=float, nargs=2, default=None, help='during training (only) fraction of the image to crop (this will then be resized to img_crop)')
 parser.add_argument('--img_crop', type=int, default=None, help='the cropped portion (validation), cropped pertion will be resized to this size (training)')
-parser.add_argument('--quantize', type=str2bool, default=None, help='Quantize the model')
+parser.add_argument("--quantization", "--quantize", dest="quantize", type=str2bool, default=None, help='Quantize the model')
 #parser.add_argument('--model_surgery', type=str, default=None, choices=[None, 'pact2'], help='whether to transform the model after defining')
 parser.add_argument('--pretrained', type=str, default=None, help='pretrained model')
 # parser.add_argument('--resume', type=str, default=None, help='resume an unfinished training from this model')

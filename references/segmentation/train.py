@@ -2,6 +2,7 @@ import datetime
 import os
 import time
 import warnings
+import copy 
 
 import presets
 import torch
@@ -35,7 +36,7 @@ def get_dataset(dir_path, name, image_set, transform):
 
 def get_transform(train, args):
     if train:
-        return presets.SegmentationPresetTrain(base_size=520, crop_size=480)
+        return presets.SegmentationPresetTrain(base_size=args.base_size, crop_size=args.crop_size)
     elif args.weights and args.test_only:
         weights = torchvision.models.get_weight(args.weights)
         trans = weights.transforms()
@@ -48,7 +49,7 @@ def get_transform(train, args):
 
         return preprocessing
     else:
-        return presets.SegmentationPresetEval(base_size=520)
+        return presets.SegmentationPresetEval(base_size=args.base_size)
 
 
 def criterion(inputs, target):
@@ -62,14 +63,15 @@ def criterion(inputs, target):
     return losses["out"] + 0.5 * losses["aux"]
 
 
-def evaluate(model, data_loader, device, num_classes):
+def evaluate(args, model, data_loader, device, num_classes):
     model.eval()
     confmat = utils.ConfusionMatrix(num_classes)
     metric_logger = utils.MetricLogger(delimiter="  ")
     header = "Test:"
     num_processed_samples = 0
+    dataset_len = len(data_loader)
     with torch.inference_mode():
-        for image, target in metric_logger.log_every(data_loader, 100, header):
+        for i, (image, target) in enumerate(metric_logger.log_every(data_loader, 100, header)):
             image, target = image.to(device), target.to(device)
             output = model(image)
             output = output["out"]
@@ -78,6 +80,8 @@ def evaluate(model, data_loader, device, num_classes):
             # FIXME need to take into account that the datasets
             # could have been padded in distributed setup
             num_processed_samples += image.shape[0]
+            if args.val_epoch_size_factor and i >= round(args.val_epoch_size_factor * dataset_len):
+                break
 
         confmat.reduce_from_all_processes()
 
@@ -98,12 +102,13 @@ def evaluate(model, data_loader, device, num_classes):
     return confmat
 
 
-def train_one_epoch(model, criterion, optimizer, data_loader, lr_scheduler, device, epoch, print_freq, scaler=None):
+def train_one_epoch(args, model, criterion, optimizer, data_loader, lr_scheduler, device, epoch, print_freq, scaler=None):
     model.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter("lr", utils.SmoothedValue(window_size=1, fmt="{value}"))
     header = f"Epoch: [{epoch}]"
-    for image, target in metric_logger.log_every(data_loader, print_freq, header):
+    dataset_len = len(data_loader)
+    for i, (image, target) in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
         image, target = image.to(device), target.to(device)
         with torch.cuda.amp.autocast(enabled=scaler is not None):
             output = model(image)
@@ -121,7 +126,16 @@ def train_one_epoch(model, criterion, optimizer, data_loader, lr_scheduler, devi
         lr_scheduler.step()
 
         metric_logger.update(loss=loss.item(), lr=optimizer.param_groups[0]["lr"])
+        if args.train_epoch_size_factor and i >= round(args.train_epoch_size_factor * dataset_len):
+            break
 
+def export_model(args, model, epoch, model_name):
+    export_device="cpu"
+    model_copy = copy.deepcopy(model)
+    model_converted = model_copy.convert() if args.quantization and hasattr(model_copy, "convert") else model_copy
+    model_converted = model_converted.to(export_device)
+    example_input = torch.rand((1,3,args.base_size,args.base_size), device=export_device)
+    utils.export_on_master(model_converted, example_input, os.path.join(args.output_dir, model_name), opset_version=args.opset_version)
 
 def main(args):
     if args.output_dir:
@@ -169,12 +183,25 @@ def main(args):
 
 
     print("Creating model")
-    model = model_utils.get_model(args.model, weights=args.weights_enum, weights_backbone=args.weights_backbone, num_classes=num_classes, aux_loss=args.aux_loss, model_surgery=args.model_surgery)
+    model, surgery_kwargs = model_utils.get_model(args.model, weights=args.weights_enum, weights_backbone=args.weights_backbone, num_classes=num_classes, aux_loss=args.aux_loss, model_surgery=args.model_surgery)
 
+    if args.model_surgery == edgeai_xvision.SyrgeryType.SURGERY_LEGACY:
+        model = xnn.surgery.convert_to_lite_model(model, **surgery_kwargs)
+    elif args.model_surgery == edgeai_xvision.SyrgeryType.SURGERY_FX:
+        model = edgeai_xvision.xao.surgery.replace_unsuppoted_layers(model)
 
     if args.weights_url:
         print(f"loading pretrained checkpoint from: {args.weights_url}")
         xnn.utils.load_weights(model, args.weights_url)
+
+    if args.pruning:
+        model = edgeai_xvision.xao.pruning.PrunerModule(model)
+    
+    if args.quantization == edgeai_xvision.QuantizationType.QUANTIZATION_LEGACY:
+        dummy_input = torch.rand(1,3,args.base_size,args.base_size)
+        model = xnn.quantization.QuantTrainModule(model, dummy_input=dummy_input, total_epochs=args.epochs)
+    elif args.quantization == edgeai_xvision.QuantizationType.QUANTIZATION_FX:
+        model = edgeai_xvision.xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
 
     model.to(device)
     if args.distributed:
@@ -184,6 +211,9 @@ def main(args):
     if args.distributed:
         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
         model_without_ddp = model.module
+
+    if args.quantization:
+        model_without_ddp = model_without_ddp.module
 
     params_to_optimize = [
         {"params": [p for p in model_without_ddp.backbone.parameters() if p.requires_grad]},
@@ -236,7 +266,7 @@ def main(args):
         # We disable the cudnn benchmarking because it can noticeably affect the accuracy
         torch.backends.cudnn.benchmark = False
         torch.backends.cudnn.deterministic = True
-        confmat = evaluate(model, data_loader_test, device=device, num_classes=num_classes)
+        confmat = evaluate(args, model, data_loader_test, device=device, num_classes=num_classes)
         print(confmat)
         return
 
@@ -244,8 +274,8 @@ def main(args):
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
-        train_one_epoch(model, criterion, optimizer, data_loader, lr_scheduler, device, epoch, args.print_freq, scaler)
-        confmat = evaluate(model, data_loader_test, device=device, num_classes=num_classes)
+        train_one_epoch(args, model, criterion, optimizer, data_loader, lr_scheduler, device, epoch, args.print_freq, scaler)
+        confmat = evaluate(args, model, data_loader_test, device=device, num_classes=num_classes)
         print(confmat)
         checkpoint = {
             "model": model_without_ddp.state_dict(),
@@ -258,6 +288,7 @@ def main(args):
             checkpoint["scaler"] = scaler.state_dict()
         utils.save_on_master(checkpoint, os.path.join(args.output_dir, f"model_{epoch}.pth"))
         utils.save_on_master(checkpoint, os.path.join(args.output_dir, "checkpoint.pth"))
+        export_model(args, model_without_ddp, epoch, model_name=args.model)
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
@@ -318,9 +349,30 @@ def get_args_parser(add_help=True):
 
     # Mixed precision training parameters
     parser.add_argument("--amp", action="store_true", help="Use torch.cuda.amp for mixed precision training")
+    
+    parser.add_argument(
+        "--base-size", default=520, type=int, help="the size used for validation (default: 520)"
+    )
+    parser.add_argument(
+        "--crop-size", default=480, type=int, help="the crop size used for training (default: 480)"
+    )
 
     # options to create faster models
     parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_xvision.SyrgeryType.get_choices(), help="model surgery to create lite models")
+
+    parser.add_argument("--quantization", "--quantize", dest="quantization", default=0, type=int, choices=edgeai_xvision.QuantizationType.get_choices(), help="Quaantization Aware Training (QAT)")
+    parser.add_argument("--quantization-type", default=None, help="Actual Quaantization Flavour - applies only if quantization is enabled")
+
+    parser.add_argument("--pruning", default=0, help="Pruning/Sparsity")
+    parser.add_argument("--pruning-ratio", default=0.5, help="Pruning/Sparsity Factor - applies only of pruning is enabled")
+    parser.add_argument("--pruning-type", default=1, help="Pruning/Sparsity Type - applies only of pruning is enabled")
+
+    parser.add_argument("--opset-version", default=11, help="ONNX Opset version")
+    parser.add_argument("--train-epoch-size-factor", default=0.0, type=float,
+                        help="Training validation breaks after one iteration - for quick experimentation")
+    parser.add_argument("--val-epoch-size-factor", default=0.0, type=float,
+                        help="Training validation breaks after one iteration - for quick experimentation")
+    
     return parser
 
 

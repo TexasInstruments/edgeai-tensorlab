@@ -57,7 +57,7 @@ parser.add_argument('--img_resize', type=int, nargs=2, default=None, help='img_r
 parser.add_argument('--rand_scale', type=float, nargs=2, default=None, help='random scale factors for training')
 parser.add_argument('--rand_crop', type=int, nargs=2, default=None, help='random crop for training')
 parser.add_argument('--output_size', type=int, nargs=2, default=None, help='output size of the evaluation - prediction/groundtruth. this is not used while training as it blows up memory requirement')
-parser.add_argument('--quantize', type=str2bool, default=None, help='Quantize the model')
+parser.add_argument("--quantization", "--quantize", dest="quantize", type=str2bool, default=None, help='Quantize the model')
 #parser.add_argument('--model_surgery', type=str, default=None, choices=[None, 'pact2'], help='whether to transform the model after defining')
 parser.add_argument('--pretrained', type=str, default=None, help='pretrained model')
 parser.add_argument('--resume', type=str, default=None, help='resume an unfinished training from this model')

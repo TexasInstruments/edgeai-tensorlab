@@ -408,7 +408,7 @@ def main(args):
             model = xnn.quantization.QuantTrainModule(model, per_channel_q=args.per_channel_q,
                         histogram_range=args.histogram_range, bitwidth_weights=args.bitwidth_weights,
                         bitwidth_activations=args.bitwidth_activations, constrain_bias=args.constrain_bias,
-                        dummy_input=dummy_input)
+                        dummy_input=dummy_input, total_epochs=args.epochs)
         elif 'calibration' in args.phase:
             model = xnn.quantization.QuantCalibrateModule(model, per_channel_q=args.per_channel_q,
                         bitwidth_weights=args.bitwidth_weights, bitwidth_activations=args.bitwidth_activations,
@@ -673,16 +673,6 @@ def train(args, train_dataset, train_loader, model, optimizer, epoch, train_writ
     ##########################
     # switch to train mode
     model.train()
-
-    # freeze bn and range after some epochs during quantization
-    if args.freeze_bn or (args.quantize and epoch > 2 and epoch >= ((args.epochs//2)-1)):
-        xnn.utils.print_once('Freezing BN for subsequent epochs')
-        xnn.utils.freeze_bn(model)
-    #
-    if (args.quantize and epoch > 4 and epoch >= ((args.epochs//2)+1)):
-        xnn.utils.print_once('Freezing ranges for subsequent epochs')
-        xnn.layers.freeze_quant_range(model)
-    #
 
     #freeze layers 
     if args.freeze_layers is not None:

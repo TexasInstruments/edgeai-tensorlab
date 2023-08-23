@@ -52,14 +52,19 @@ class QuantTrainModule(QuantBaseModule):
                  histogram_range=True, bias_calibration=False, constrain_weights=None,
                  range_shrink_weights=None, range_shrink_activations=None,
                  power2_weight_range=None, power2_activation_range=None, constrain_bias=None, 
-                 quantize_in=True, quantize_out=True, verbose_mode=False, **kwargs):
+                 quantize_in=True, quantize_out=True, verbose_mode=False, total_epochs=0, **kwargs):
         constrain_weights = (not per_channel_q) if constrain_weights is None else constrain_weights
         super().__init__(module, dummy_input, *args, bitwidth_weights=bitwidth_weights, bitwidth_activations=bitwidth_activations,
                          per_channel_q=per_channel_q, histogram_range=histogram_range, bias_calibration=bias_calibration,
                          constrain_weights=constrain_weights, constrain_bias=constrain_bias,
                          range_shrink_weights=range_shrink_weights, range_shrink_activations=range_shrink_activations,
                          power2_weight_range=power2_weight_range, power2_activation_range=power2_activation_range,
-                         model_surgery_quantize=True, quantize_in=quantize_in, quantize_out=quantize_out, verbose_mode=verbose_mode, **kwargs)
+                         model_surgery_quantize=True, quantize_in=quantize_in, quantize_out=quantize_out, verbose_mode=verbose_mode,  **kwargs)
+        if not total_epochs:
+            raise RuntimeError("total_epochs must be provided")
+        #
+        self.total_epochs = total_epochs
+        self.num_epochs_tracked = 0
 
     def forward(self, inputs, *args, **kwargs):
         # counters such as num_batches_tracked are used. update them.
@@ -71,6 +76,41 @@ class QuantTrainModule(QuantBaseModule):
         outputs = self.module(inputs, *args, **kwargs)
         return outputs
 
+    def train(self, mode: bool = True):
+        # put the model in expected mode
+        super().train(mode=mode)
+        # also freeze the params if required
+        if mode is True:
+            # set the default epoch at which freeze occurs during training (if missing)
+            num_batch_norm_update_epochs = ((self.total_epochs//2)-1)
+            num_observer_update_epochs = ((self.total_epochs//2)+1)
+            freeze_bn = (self.num_epochs_tracked >= num_batch_norm_update_epochs)
+            freeze_observers = (self.num_epochs_tracked >= num_observer_update_epochs)
+            if freeze_bn:
+                utils.print_once('Freezing BN for subsequent epochs')
+            #
+            if freeze_observers:
+                utils.print_once('Freezing ranges for subsequent epochs')
+            #
+            self.freeze(freeze_bn=freeze_bn, freeze_observers=freeze_observers)
+            self.num_epochs_tracked += 1
+        else:
+            self.freeze()
+        #
+        return self
+    
+    def freeze(self, freeze_bn=True, freeze_observers=True):
+        # freeze bn and range after some epochs during quantization
+        if freeze_bn:
+            utils.freeze_bn(self)
+        #
+        if freeze_observers:
+            layers.freeze_quant_range(self)
+        #
+
+    def unfreeze(self, freeze_bn=False, freeze_observers=False):
+        self.freeze(freeze_bn=freeze_bn, freeze_observers=freeze_observers)
+    
     def adjust_bitwidth(self):
         # adjust bitwidth here, if needed, to do gradual bitwidth adjustment
         pass

@@ -64,7 +64,7 @@ parser.add_argument('--resume', type=str, default=None, help='resume an unfinish
 parser.add_argument('--phase', type=str, default=None, help='training/calibration/validation')
 parser.add_argument('--evaluate_start', type=str2bool, default=None, help='Whether to run validation before the training')
 #
-parser.add_argument('--quantize', type=str2bool, default=None, help='Quantize the model')
+parser.add_argument("--quantization", "--quantize", dest="quantize", type=str2bool, default=None, help='Quantize the model')
 parser.add_argument('--histogram_range', type=str2bool, default=None, help='run only evaluation and no training')
 parser.add_argument('--per_channel_q', type=str2bool, default=None, help='run only evaluation and no training')
 parser.add_argument('--bias_calibration', type=str2bool, default=None, help='run only evaluation and no training')

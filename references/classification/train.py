@@ -216,8 +216,8 @@ def load_data(traindir, valdir, args):
 
 def export_model(args, model, epoch, model_name):
     export_device="cpu"
-    model_device = next(model.parameters()).device
-    model_converted = copy.deepcopy(model).convert() if args.quantization else copy.deepcopy(model)
+    model_copy = copy.deepcopy(model)
+    model_converted = model_copy.convert() if args.quantization and hasattr(model_copy, "convert") else model_copy
     model_converted = model_converted.to(export_device)
     example_input = torch.rand((1,3,args.val_crop_size,args.val_crop_size), device=export_device)
     utils.export_on_master(model_converted, example_input, os.path.join(args.output_dir, model_name), opset_version=args.opset_version)
@@ -277,11 +277,11 @@ def main(args):
     )
 
     print("Creating model")
-    model = model_utils.get_model(args.model, weights=args.weights_enum, num_classes=num_classes, model_surgery=args.model_surgery)
+    model, surgery_kwargs = model_utils.get_model(args.model, weights=args.weights_enum, num_classes=num_classes, model_surgery=args.model_surgery)
 
     if args.model_surgery == edgeai_xvision.SyrgeryType.SURGERY_LEGACY:
-        model = xnn.surgery.convert_to_lite_model(model)
-    elif args.model_surgery == edgeai_xvision.SyrgeryType.MODEL_SURGERY_FX:
+        model = xnn.surgery.convert_to_lite_model(model, **surgery_kwargs)
+    elif args.model_surgery == edgeai_xvision.SyrgeryType.SURGERY_FX:
         model = edgeai_xvision.xao.surgery.replace_unsuppoted_layers(model)
     
     if args.weights_url:
@@ -293,7 +293,7 @@ def main(args):
     
     if args.quantization == edgeai_xvision.QuantizationType.QUANTIZATION_LEGACY:
         dummy_input = torch.rand(1,3,args.val_crop_size,args.val_crop_size)
-        model = xnn.quantization.QuantTrainModule(model, dummy_input=dummy_input)
+        model = xnn.quantization.QuantTrainModule(model, dummy_input=dummy_input, total_epochs=args.epochs)
     elif args.quantization == edgeai_xvision.QuantizationType.QUANTIZATION_FX:
         model = edgeai_xvision.xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
     
@@ -325,7 +325,7 @@ def main(args):
     if opt_name.startswith("sgd"):
         # in general use torch.optim.SGD
         # AdaptiveSGD is required only if you want to freeze certain parameters by setting requires_update = False. 
-        optimizer = edgeai_xvision.xnn.optim.AdaptiveSGD(
+        optimizer = xnn.optim.AdaptiveSGD(
             parameters,
             lr=args.lr,
             momentum=args.momentum,
@@ -385,6 +385,9 @@ def main(args):
         model = torch.nn.parallel.DataParallel(model)
         model_without_ddp = model.module
 
+    if args.quantization:
+        model_without_ddp = model_without_ddp.module
+        
     model_ema = None
     if args.model_ema:
         # Decay adjustment that aims to keep the decay independent of other hyper-parameters originally proposed at:
@@ -596,7 +599,7 @@ def get_args_parser(add_help=True):
     # options to create faster models
     parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_xvision.SyrgeryType.get_choices(), help="model surgery to create lite models")
 
-    parser.add_argument("--quantization", default=0, type=int, choices=edgeai_xvision.QuantizationType.get_choices(), help="Quaantization Aware Training (QAT)")
+    parser.add_argument("--quantization", "--quantize", dest="quantization", default=0, type=int, choices=edgeai_xvision.QuantizationType.get_choices(), help="Quaantization Aware Training (QAT)")
     parser.add_argument("--quantization-type", default=None, help="Actual Quaantization Flavour - applies only if quantization is enabled")
 
     parser.add_argument("--pruning", default=0, help="Pruning/Sparsity")

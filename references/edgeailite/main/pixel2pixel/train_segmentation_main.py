@@ -81,7 +81,7 @@ def get_args_parser():
     parser.add_argument('--workers', type=int, default=None, help='number of workers for dataloading')
     parser.add_argument('--save_onnx', type=str2bool, default=None, help='Whether to export onnx model or not')
     #
-    parser.add_argument('--quantize', type=str2bool, default=None, help='Quantize the model')
+    parser.add_argument("--quantization", "--quantize", dest="quantize", type=str2bool, default=None, help='Quantize the model')
     parser.add_argument('--histogram_range', type=str2bool, default=None, help='run only evaluation and no training')
     parser.add_argument('--per_channel_q', type=str2bool, default=None, help='run only evaluation and no training')
     parser.add_argument('--bias_calibration', type=str2bool, default=None, help='run only evaluation and no training')
