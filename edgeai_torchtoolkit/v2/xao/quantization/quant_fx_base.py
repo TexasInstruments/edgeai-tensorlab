@@ -6,6 +6,7 @@ from torch.ao.quantization import QConfigMapping
 from torch.ao.quantization import FakeQuantize
 import statistics
 
+from ....v1 import xnn
 from .. import surgery
 from . import observer
 from . import fake_quanitze
@@ -75,15 +76,22 @@ class QuantFxBaseModule(torch.nn.Module):
         self.load_state_dict(data_dict, strict=strict)
 
     def train(self, mode: bool = True):
-        # set the default epoch at which freeze occurs during training (if missing)
-        num_batch_norm_update_epochs = self.num_batch_norm_update_epochs or ((self.total_epochs//2)-1)
-        num_observer_update_epochs = self.num_observer_update_epochs or ((self.total_epochs//2)+1)
         # put the model in expected mode
         super().train(mode=mode)
         # also freeze the params if required
         if mode is True:
-            self.freeze(freeze_bn=(self.num_epochs_tracked >= num_batch_norm_update_epochs),
-                        freeze_observers=(self.num_epochs_tracked >= num_observer_update_epochs))
+            # set the default epoch at which freeze occurs during training (if missing)
+            num_batch_norm_update_epochs = self.num_batch_norm_update_epochs or ((self.total_epochs//2)-1)
+            num_observer_update_epochs = self.num_observer_update_epochs or ((self.total_epochs//2)+1)
+            freeze_bn = (self.num_epochs_tracked >= num_batch_norm_update_epochs)
+            freeze_observers = (self.num_epochs_tracked >= num_observer_update_epochs)
+            if freeze_bn:
+                xnn.utils.print_once('Freezing BN for subsequent epochs')
+            #
+            if freeze_observers:
+                xnn.utils.print_once('Freezing ranges for subsequent epochs')
+            #
+            self.freeze(freeze_bn=freeze_bn, freeze_observers=freeze_observers)
             self.adjust_gradual_quantization()
             self.num_epochs_tracked += 1
         else:
@@ -226,9 +234,9 @@ class QuantFxBaseModule(torch.nn.Module):
         #
         return self
 
-    def unfreeze(self, model, unfreeze_bn=True, unfreeze_observers=True):
-        freeze(model, not unfreeze_bn, not unfreeze_observers)
-        return model
+    def unfreeze(self, freeze_bn=False, freeze_observers=False):
+        self.freeze(freeze_bn, freeze_observers)
+        return self
 
     def forward(self, *input, **kwargs):
         return self.module(*input, **kwargs)
