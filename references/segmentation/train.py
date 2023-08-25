@@ -188,7 +188,7 @@ def main(args):
     if args.model_surgery == edgeai_xvision.SyrgeryType.SURGERY_LEGACY:
         model = xnn.surgery.convert_to_lite_model(model, **surgery_kwargs)
     elif args.model_surgery == edgeai_xvision.SyrgeryType.SURGERY_FX:
-        model = edgeai_xvision.xao.surgery.replace_unsuppoted_layers(model)
+        model = edgeai_xvision.xao.surgery.convert_to_lite_fx(model)
 
     if args.weights_url:
         print(f"loading pretrained checkpoint from: {args.weights_url}")
