@@ -205,11 +205,12 @@ f'''* Product information: https://www.ti.com/product/AM625
 
 
 TARGET_DEVICE_DETAILS_AM62 = \
-f'''Efficient 2 TOPS AI capability at edge
+f'''Human-machine-interaction SoC
 Specification:
-* 2 TOPS Deep Learning accelerator
-* Quad Arm® Cortex®-A53
-* Integrated ISP
+* Arm® Cortex®-A53-based edge AI and full-HD dual display
+* Up to Quad Arm® Cortex®-A53 at up to 1.4 GHz
+* 3D Graphics Processing Unit
+MHz
 * More details : https://www.ti.com/product/AM625
 
 Important links:
