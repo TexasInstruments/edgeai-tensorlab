@@ -2685,7 +2685,25 @@
         "dataset_license":"CC0 1.0 Universal Public Domain Dedication"
       }
     },
-    "tiscapes2017_driving":{
+    "tiscapes2017_driving_detection":{
+      "common":{
+        "task_type":"detection"
+      },
+      "dataset":{
+        "dataset_name":"tiscapes2017_driving",
+        "input_data_path":"http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip"
+      },
+      "info":{
+        "dataset_url":"http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip",
+        "dataset_detailed_name":"TIScapes driving detection",
+        "dataset_description":"Example driving scenario object detection dataset with 4 categories and 2116 images",
+        "dataset_size":461038628,
+        "dataset_frames":2116,
+        "dataset_source":"Images & annotations from TI",
+        "dataset_license":"BSD 3-Clause"
+      }
+    },
+    "tiscapes2017_driving_segmentation":{
       "common":{
         "task_type":"segmentation"
       },
