@@ -33,8 +33,12 @@ help_descriptions: "\n## Overview\nThis is a tool for collecting data, training 
   * SDK release: 09_00_00\n\n### AM69A\n* Product information: https://www.ti.com/product/AM69A\n\
   * Development board: https://www.ti.com/tool/SK-AM69\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n\
   * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n\
-  * SDK release: 09_00_00\n\n## Additional information\n* Edge AI introduction: https://ti.com/edgeai\n\
-  * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
+  * SDK release: 09_00_00\n\n### AM62\n* Product information: https://www.ti.com/product/AM625\n\
+  * Development board: https://www.ti.com/tool/SK-AM62\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62X\n\
+  * SDK documentation & board setup: See analytics application and Edge AI documentation\
+  \ at https://www.ti.com/tool/SK-AM62#order-start-development\n* SDK release: 09_00_00\n\
+  \n## Additional information\n* Edge AI introduction: https://ti.com/edgeai\n* Edge\
+  \ AI model development information: https://github.com/TexasInstruments/edgeai\n\
   * Edge AI tools introduction: https://dev.ti.com/edgeai/\n\n\n## Dataset format\n\
   - The dataset format is similar to that of the [COCO](https://cocodataset.org/)\
   \ dataset, but there are some changes as explained below.\n- The annotated json\
@@ -2294,10 +2298,11 @@ sample_dataset_descriptions:
       dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip
 target_device_descriptions:
   AM62:
-    device_details: "Efficient 2 TOPS AI capability at edge\nSpecification:\n* 2 TOPS\
-      \ Deep Learning accelerator\n* Quad Arm\xAE Cortex\xAE-A53\n* Integrated ISP\n\
-      * More details : https://www.ti.com/product/AM625\n\nImportant links:\n* Product\
-      \ information: https://www.ti.com/product/AM625\n* Development board: https://www.ti.com/tool/SK-AM62\n\
+    device_details: "Human-machine-interaction SoC\nSpecification:\n* Arm\xAE Cortex\xAE\
+      -A53-based edge AI and full-HD dual display\n* Up to Quad Arm\xAE Cortex\xAE\
+      -A53 at up to 1.4 GHz\n* 3D Graphics Processing Unit\nMHz\n* More details :\
+      \ https://www.ti.com/product/AM625\n\nImportant links:\n* Product information:\
+      \ https://www.ti.com/product/AM625\n* Development board: https://www.ti.com/tool/SK-AM62\n\
       * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62X\n\
       * SDK documentation & board setup: See analytics application and Edge AI documentation\
       \ at https://www.ti.com/tool/SK-AM62#order-start-development\n* SDK release:\
@@ -2477,6 +2482,7 @@ training_module_descriptions:
   edgeai_mmdetection:
   - detection
   edgeai_torchvision:
+  - classification
   - segmentation
   edgeai_yolox:
   - keypoint_detection

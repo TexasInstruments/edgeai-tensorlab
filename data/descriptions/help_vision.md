@@ -50,6 +50,13 @@ These are the devices that are supported currently. As additional devices are su
 * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A
 * SDK release: 09_00_00
 
+### AM62
+* Product information: https://www.ti.com/product/AM625
+* Development board: https://www.ti.com/tool/SK-AM62
+* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62X
+* SDK documentation & board setup: See analytics application and Edge AI documentation at https://www.ti.com/tool/SK-AM62#order-start-development
+* SDK release: 09_00_00
+
 ## Additional information
 * Edge AI introduction: https://ti.com/edgeai
 * Edge AI model development information: https://github.com/TexasInstruments/edgeai
