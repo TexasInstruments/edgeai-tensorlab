@@ -57,10 +57,14 @@ def _replace_pool_size_ge_5(model:nn.Module, pool_class=nn.MaxPool2d,pool_functi
                     padding=module.padding
                     replacement= nn.Sequential()
                     while k_size > 4:
-                        if k_size % 2 ==0: replacement.append(pool_class(kernel_size=2,stride=1,padding=(0,0,1,1)))    
+                        # if k_size % 2 ==0: replacement.append(pool_class(kernel_size=2,stride=1,padding=(0,0,1,1)))
+                        if k_size % 2 == 0:
+                            replacement.append(pool_class(kernel_size=2, stride=1, padding=(1,1)))
                         else: replacement.append(pool_class(kernel_size=3,stride=1,padding=1))
                         k_size-=2
-                    replacement.append(pool_class(kernel_size=k_size,stride=stride,padding=1 if padding %2 !=0 else (0,0,1,1)))
+                    # replacement.append(pool_class(kernel_size=k_size,stride=stride,padding=1 if padding %2 !=0 else (0,0,1,1)))
+                    replacement.append(
+                        pool_class(kernel_size=k_size, stride=stride, padding=1 if padding % 2 != 0 else (1,1)))
                     replacer._replace_pattern(traced_model,node,node,replacement,no_of_pool)
                     no_of_pool+=1
         
@@ -72,10 +76,14 @@ def _replace_pool_size_ge_5(model:nn.Module, pool_class=nn.MaxPool2d,pool_functi
             replacement= nn.Sequential()
             if k_size>4:
                 while k_size > 4:
-                    if k_size % 2 ==0: replacement.append(pool_class(kernel_size=2,stride=1,padding=(0,0,1,1)))    
+                    # if k_size % 2 ==0: replacement.append(pool_class(kernel_size=2,stride=1,padding=(0,0,1,1)))
+                    if k_size % 2 == 0:
+                        replacement.append(pool_class(kernel_size=2, stride=1, padding=(1,1)))
                     else: replacement.append(pool_class(kernel_size=3,stride=1,padding=1))
                     k_size-=2
-                replacement.append(pool_class(kernel_size=k_size,stride=stride,padding=1 if padding %2 !=0 else (0,0,1,1)))
+                # replacement.append(pool_class(kernel_size=k_size,stride=stride,padding=1 if padding %2 !=0 else (0,0,1,1)))
+                replacement.append(
+                    pool_class(kernel_size=k_size, stride=stride, padding=1 if padding % 2 != 0 else (1,1)))
                 new_node_name=f'replaced_{pool_class.__name__.lower()}_{no_of_pool}'
                 traced_model.add_submodule(new_node_name,replacement)
                 args=(node.args[0],)
