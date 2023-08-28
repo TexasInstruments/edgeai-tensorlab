@@ -91,7 +91,7 @@ def get_configs(settings, work_dir):
                          "advanced_options:add_data_convert_ops": 0}),
                 model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_640_20220301_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_pose_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS(), keypoint=True),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':47.9}, model_shortlist=10)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':49.6, 'accuracy_ap50%':78.0}, model_shortlist=10)
         ),
 
     }
