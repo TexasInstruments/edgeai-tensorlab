@@ -40,9 +40,9 @@ echo ${SHELL}
 
 Step 1.2a: Install system dependencies
 ```
-sudo apt install -y build-essential xz-utils libreadline-dev libncurses5-dev libssl-dev 
-sudo apt install -y libbz2-dev libsqlite3-dev liblzma-dev python3.6-tk
-sudo apt install -y curl libjpeg-dev zlib1g-dev graphviz graphviz-dev 
+sudo apt update
+sudo apt install build-essential curl libbz2-dev libffi-dev liblzma-dev libncursesw5-dev libreadline-dev libsqlite3-dev libssl-dev libxml2-dev libxmlsec1-dev llvm make tk-dev xz-utils wget curl
+sudo apt install -y libffi-dev libjpeg-dev zlib1g-dev graphviz graphviz-dev protobuf-compiler
 ```
 
 Step 1.3a: Install pyenv using the following commands

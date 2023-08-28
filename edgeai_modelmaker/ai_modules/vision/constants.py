@@ -688,7 +688,7 @@ SAMPLE_DATASET_DESCRIPTIONS = {
             'dataset_license': 'CC0 1.0 Universal Public Domain Dedication'
         }
     },
-    'tiscapes2017_driving' : {
+    'tiscapes2017_driving_detection' : {
         'common': {
             'task_type': TASK_TYPE_DETECTION,
         },
@@ -706,7 +706,7 @@ SAMPLE_DATASET_DESCRIPTIONS = {
             'dataset_license': 'BSD 3-Clause'
         }
     },
-    'tiscapes2017_driving' : {
+    'tiscapes2017_driving_segmentation' : {
         'common': {
             'task_type': TASK_TYPE_SEGMENTATION,
         },
