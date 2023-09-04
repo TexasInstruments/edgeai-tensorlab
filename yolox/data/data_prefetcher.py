@@ -50,3 +50,16 @@ class DataPrefetcher:
     @staticmethod
     def _record_stream_for_image(input):
         input.record_stream(torch.cuda.current_stream())
+
+
+class DataPrefetcherCPU:
+    def __init__(self, loader):
+        self.loader = iter(loader)
+
+    def preload(self):
+        pass
+
+    def next(self):
+        input, target, _, data_index = next(self.loader)
+        return input, target, data_index
+

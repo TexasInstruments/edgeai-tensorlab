@@ -215,9 +215,9 @@ def run(**kwargs):
         exp.od_weights = args.ckpt
 
     with open(args.train_ann) as train_ann_fp:
-            train_anno = json.load(train_ann_fp)
-            categories = train_anno['categories']
-            exp.num_kpts = len(categories[0]['keypoints'])
+        train_anno = json.load(train_ann_fp)
+        categories = train_anno['categories']
+        exp.num_kpts = len(categories[0]['keypoints'])
 
     if not args.experiment_name:
         args.experiment_name = ''

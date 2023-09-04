@@ -74,6 +74,9 @@ class Exp(BaseExp):
         self.human_pose = False
         self.visualize = False
 
+        # -----------------  device -----------------
+        self.training_device = "cuda" #"cuda" #"cuda"
+
     def get_model(self):
         from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
 
@@ -213,7 +216,7 @@ class Exp(BaseExp):
         return train_loader
 
     def random_resize(self, data_loader, epoch, rank, is_distributed):
-        tensor = torch.LongTensor(2).cuda()
+        tensor = torch.LongTensor(2).cuda() if self.training_device == "cuda" else torch.LongTensor(2)
 
         if rank == 0:
             size_factor = self.input_size[1] * 1.0 / self.input_size[0]

@@ -11,7 +11,7 @@ import torch
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.tensorboard import SummaryWriter
 
-from yolox.data import DataPrefetcher
+from yolox.data import DataPrefetcher, DataPrefetcherCPU
 from yolox.utils import (
     MeterBuffer,
     ModelEMA,
@@ -45,7 +45,7 @@ class Trainer:
         self.is_distributed = get_world_size() > 1
         self.rank = get_rank()
         self.local_rank = get_local_rank()
-        self.device = "cuda:{}".format(self.local_rank)
+        self.device = "{}:{}".format(exp.training_device, self.local_rank) if exp.training_device == "cuda" else "cpu"
         self.use_model_ema = exp.ema
         self.state_dict_object_detect = None
 
@@ -154,7 +154,9 @@ class Trainer:
         logger.info("exp value:\n{}".format(self.exp))
 
         # model related init
-        torch.cuda.set_device(self.local_rank)
+        if self.exp.training_device == "cuda":
+            torch.cuda.set_device(self.local_rank)
+        #
         model = self.exp.get_model()
         logger.info(
             "Model Summary: {}".format(get_model_info(model, self.exp.test_size))
@@ -176,7 +178,7 @@ class Trainer:
             cache_img=self.args.cache,
         )
         logger.info("init prefetcher, this might take one minute or less...")
-        self.prefetcher = DataPrefetcher(self.train_loader)
+        self.prefetcher = DataPrefetcher(self.train_loader) if self.exp.training_device == "cuda" else DataPrefetcherCPU(self.train_loader)
         # max_iter means iters per epoch
         self.max_iter = len(self.train_loader)
 
