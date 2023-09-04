@@ -60,9 +60,11 @@ _training_module_descriptions.update({'edgeai_mmdetection':[constants.TASK_TYPE_
 #
 
 # edgeai-yolox
-from . import edgeai_yolox
-_model_descriptions.update(edgeai_yolox.keypoint_detection.get_model_descriptions())
-_training_module_descriptions.update({'edgeai_yolox':[constants.TASK_TYPE_KEYPOINT_DETECTION]})
+if constants.PLUGINS_ENABLE_EXTRA:
+    from . import edgeai_yolox
+    _model_descriptions.update(edgeai_yolox.keypoint_detection.get_model_descriptions())
+    _training_module_descriptions.update({'edgeai_yolox':[constants.TASK_TYPE_KEYPOINT_DETECTION]})
+#
 
 
 def get_training_module_descriptions(target_device=None, training_device=None):

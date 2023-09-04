@@ -12,36 +12,39 @@ common:
 dataset:
     # enable/disable dataset loading
     enable: True #False
+    
     # specify annotation prefix (of th annotation file) if needed - default is 'instances'.
-    annotation_prefix: person_keypoints
+    # annotation_prefix: person_keypoints
     # specify split names (of th annotation file) if needed - default is ['train', 'val'].
-    split_names: ['train2017', 'val2017']
+    # split_names: ['train2017', 'val2017']
     # specify max number of files to get splitted(of th annotation file) if needed - default is [750, 250].
     # max_num_files: [750, 250] #None
     # -------------------------------------
     # Keypoint Detection Dataset Examples:
+    #
     # -------------------------------------
     # Example 1, (known datasets): 'coco_kpts'
     # dataset_name: coco_keypoint_detection
+    #
     # -------------------------------------
-    dataset_name: keypoint_detection_coco
     # Example 2, give a dataset name and input_data_path.
+    # dataset_name: coco_keypoints_val2017
     # input_data_path could be a path to zip file, tar file, folder OR http, https link to zip or tar files
-    # -----------------------------------------------------------------------------------------------------
-    # for input_data_path these are provided with this repository as examples:
-    #    'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip'
-    #    'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip'
+    # input_data_path: "./data/downloads/datasets/coco_keypoints_val2017"
+    #
     # -------------------------------------
-    input_data_path: "/home/a0504871/work/ti/datasets/COCO/"
     # Example 3, give image folders with annotation files (require list with values for both train and val splits)
     # dataset_name: coco_keypoint_detection
     # input_data_path: ["./data/projects/coco_keypoint_detection/dataset/train2017",
     #                        "./data/projects/coco_keypoint_detection/dataset/val2017"]
     # input_annotation_path: ["./data/projects/coco_keypoint_detection/dataset/annotations/person_keypoints_train2017.json",
     #                        "./data/projects/coco_keypoint_detection/dataset/annotations/person_keypoints_val2017.json"]
+    #
     # -------------------------------------
-    input_annotation_path: ["/home/a0504871/work/ti/datasets/COCO/annotations/person_keypoints_train2017.json",
-                            "/home/a0504871/work/ti/datasets/COCO/annotations/person_keypoints_val2017.json"]
+    # This simple dataset can be constucted by taking images in val2017 and putting in images folder
+    # and then taking person_keypoints_val2017.json and renaming it at annotations/instances.json
+    dataset_name: coco_keypoints_val2017
+    input_data_path: "./data/downloads/datasets/coco_keypoints_val2017"
 
 training:
     # enable/disable training

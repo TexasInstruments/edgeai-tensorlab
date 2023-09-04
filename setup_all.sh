@@ -59,6 +59,7 @@ if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r9.0 ${SOURCE_LOCAT
 if [[ ! -d ../edgeai-modelzoo ]]; then git clone ${FAST_CLONE_MODELZOO} --branch r9.0 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; fi
 
 if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
+  if [[ ! -d ../edgeai-yolox ]]; then git clone --branch r9.0 ${SOURCE_LOCATION}edgeai-yolox.git ../edgeai-yolox; fi
   sed -i s/'PLUGINS_ENABLE_EXTRA = False'/'PLUGINS_ENABLE_EXTRA = True'/g ./edgeai_modelmaker/ai_modules/vision/constants.py
 fi
 
@@ -82,6 +83,10 @@ cd ../edgeai-torchvision
 
 echo "installing: https://github.com/TexasInstruments/edgeai-mmdetection"
 cd ../edgeai-mmdetection
+./setup_cpu.sh
+
+echo "installing: https://github.com/TexasInstruments/edgeai-yolox"
+cd ../edgeai-yolox
 ./setup_cpu.sh
 
 # uninstall the onnxruntime was installed by setups above, so that the correct version can be installed.

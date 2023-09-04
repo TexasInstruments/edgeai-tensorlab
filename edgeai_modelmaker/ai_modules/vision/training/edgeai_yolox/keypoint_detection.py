@@ -41,7 +41,7 @@ repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../.
 
 edgeai_yolox_path = os.path.join(repo_parent_path, 'edgeai-yolox')
 edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
-www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_05_00_01/edgeai-yolov5/pretrained_models'
+www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01'
 
 
 _model_descriptions = {
@@ -56,7 +56,7 @@ _model_descriptions = {
             model_architecture='yolox',
             input_resize=640,
             input_cropsize=640,
-            pretrained_checkpoint_path='/home/a0504871/Desktop/best_ckpt.pth',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_640_20220301_checkpoint.pth',
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_KEYPOINT_DETECTION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=77.8, performance_infer_time_ms=1000/77.8,
@@ -172,8 +172,9 @@ class ModelTraining:
                      'dataset': 'coco_kpts',
                      'devices': self.params.training.num_gpus,
                      'batch-size': self.params.training.batch_size,
-                     'fp16': True,
-                     'occupy': True,
+                     'fp16': True if self.params.training.num_gpus else False,
+                     'occupy': True if self.params.training.num_gpus else False,
+                     'training_device': 'cuda' if self.params.training.num_gpus else 'cpu',
                      'task': 'human_pose',
                      'ckpt': f'{self.params.training.pretrained_checkpoint_path}',
                      'max_epochs': self.params.training.training_epochs,
@@ -182,7 +183,7 @@ class ModelTraining:
                      'data_dir': f'{self.params.dataset.dataset_path}',
                      'train_ann': self.train_ann_file,
                      'val_ann': self.val_ann_file,
-                     'img_folder_names': self.params.dataset.split_names
+                     'img_folder_names': self.params.dataset.split_names,
                      }
 
         # import dynamically - force_import every time to avoid clashes with scripts in other repositories
