@@ -75,9 +75,6 @@ def main(config):
     # run
     model_runner.run()
 
-    # finish up
-    print(f'Trained model is at: {model_runner.get_params().training.training_path}')
-    print(f'Compiled model is at: {model_runner.get_params().compilation.model_packaged_path}')
     return True
 
 

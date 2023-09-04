@@ -159,6 +159,7 @@ class ModelRunner():
                 self.params.training.model_proto_path, self.params.training.log_file_path]
             self.package_trained_model(model_training_package_files, self.params.training.model_packaged_path)
             # we are done with training
+            print(f'Trained model is at: {self.params.training.training_path}', flush=True)
             with open(self.params.training.log_file_path, 'a') as lfp:
                 lfp.write('\nSUCCESS: ModelMaker - Training completed.')
             #
@@ -169,6 +170,7 @@ class ModelRunner():
         if self.params.compilation.enable:
             self.model_compilation.clear()
             self.model_compilation.run()
+            print(f'Compiled model is at: {self.params.compilation.model_packaged_path}', flush=True)
             with open(self.params.compilation.log_file_path, 'a') as lfp:
                 lfp.write('\nSUCCESS: ModelMaker - Compilation completed.')
             #
