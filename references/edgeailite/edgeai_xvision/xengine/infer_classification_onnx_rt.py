@@ -160,6 +160,10 @@ def main(args):
     val_loader = get_data_loaders(args)
     validate(args, val_loader, model, criterion)
 
+    if args.logger is not None:
+        args.logger.close()
+        args.logger = None
+
 
 def validate(args, val_loader, model, criterion):
 

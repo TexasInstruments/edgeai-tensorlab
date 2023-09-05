@@ -943,6 +943,7 @@ def validate(args, val_dataset, val_loader, model, epoch, val_writer):
 ###################################################################
 def close(args):
     if args.logger is not None:
+        args.logger.close()
         del args.logger
         args.logger = None
     #

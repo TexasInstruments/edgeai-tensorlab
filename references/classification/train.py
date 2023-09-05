@@ -228,7 +228,7 @@ def main(args):
         utils.mkdir(args.output_dir)
 
     # create logger that tee writes to file
-    xnn.utils.TeeLogger(os.path.join(args.output_dir, 'run.log'))
+    logger = xnn.utils.TeeLogger(os.path.join(args.output_dir, 'run.log'))
 
     # weights can be an external url or a pretrained enum in torhvision
     (args.weights_url, args.weights_enum) = (args.weights, None) if xnn.utils.is_url_or_file(args.weights) else (None, args.weights)
@@ -455,6 +455,7 @@ def main(args):
                 export_model(args, model_without_ddp, epoch, f"model.onnx")
                 best_acc = epoch_acc
 
+    logger.close()
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print(f"Training time {total_time_str}")

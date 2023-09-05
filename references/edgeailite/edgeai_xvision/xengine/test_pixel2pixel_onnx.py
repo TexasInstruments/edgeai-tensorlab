@@ -234,6 +234,11 @@ def main(args):
     if args.create_video:
         create_video(args, infer_path=infer_path)
 
+    if args.logger is not None:
+        args.logger.close()
+        args.logger = None
+
+
 def validate(args, val_dataset, val_loader, model, epoch, infer_path):
     data_time = xnn.utils.AverageMeter()
     avg_metric = xnn.utils.AverageMeter()
