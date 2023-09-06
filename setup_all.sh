@@ -77,22 +77,24 @@ git config --global --add safe.directory $(pwd)
 
 echo "installing repositories..."
 
-echo "installing: https://github.com/TexasInstruments/edgeai-torchvision"
+echo "installing: edgeai-torchvision"
 cd ../edgeai-torchvision
 ./setup_cpu.sh
 
-echo "installing: https://github.com/TexasInstruments/edgeai-mmdetection"
+echo "installing: edgeai-mmdetection"
 cd ../edgeai-mmdetection
 ./setup_cpu.sh
 
-echo "installing: https://github.com/TexasInstruments/edgeai-yolox"
-cd ../edgeai-yolox
-./setup_cpu.sh
+if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
+  echo "installing: edgeai-yolox"
+  cd ../edgeai-yolox
+  ./setup_cpu.sh
+fi
 
 # uninstall the onnxruntime was installed by setups above, so that the correct version can be installed.
 pip uninstall --yes onnxruntime
 
-echo "installing: https://github.com/TexasInstruments/edgeai-benchmark"
+echo "installing: edgeai-benchmark"
 cd ../edgeai-benchmark
 ./setup_pc.sh r9.0
 
