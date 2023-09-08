@@ -205,7 +205,8 @@ class ModelTraining:
                   data_dir=args_yolo['data_dir'],
                   train_ann=args_yolo['train_ann'],
                   val_ann=args_yolo['val_ann'],
-                  img_folder_names=args_yolo['img_folder_names']
+                  img_folder_names=args_yolo['img_folder_names'],
+                  training_device=args_yolo['training_device']
         )
 
         # parameters required for the compilation part
