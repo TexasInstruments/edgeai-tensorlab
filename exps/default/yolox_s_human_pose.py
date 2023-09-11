@@ -167,6 +167,7 @@ class Exp(MyExp):
                 testdev=testdev,
                 human_pose=self.human_pose,
                 visualize=self.visualize,
-                output_dir = output_dir
+                output_dir=output_dir,
+                device_type=self.device_type
             )
         return evaluator

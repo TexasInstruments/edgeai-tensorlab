@@ -34,7 +34,7 @@ class COCOHumanPoseEvaluator:
 
     def __init__(
         self, dataloader, img_size, confthre, nmsthre, num_classes, testdev=False, human_pose=True, visualize=False, output_dir=None, num_kpts=17,
-            default_sigmas=None
+            default_sigmas=None, device_type=None
     ):
         """
         Args:
@@ -58,6 +58,8 @@ class COCOHumanPoseEvaluator:
         self.default_sigmas = default_sigmas
         if default_sigmas is None:
             raise RuntimeError("default_sigmas must not be None")
+
+        self.device_type = device_type
 
 
     def evaluate(
@@ -84,7 +86,8 @@ class COCOHumanPoseEvaluator:
             summary (sr): summary info of evaluation.
         """
         # TODO half to amp_test
-        tensor_type = torch.cuda.HalfTensor if half else torch.cuda.FloatTensor
+        tensor_type = torch.FloatTensor if self.device_type == "cpu" else (torch.cuda.HalfTensor if half else torch.cuda.FloatTensor)
+        tensor_type_float = torch.FloatTensor if self.device_type == "cpu" else torch.cuda.FloatTensor
         model = model.eval()
         if half:
             model = model.half()
@@ -144,7 +147,7 @@ class COCOHumanPoseEvaluator:
 
             data_list.extend(self.convert_to_coco_format(outputs, info_imgs, ids))
 
-        statistics = torch.cuda.FloatTensor([inference_time, nms_time, n_samples])
+        statistics = tensor_type_float([inference_time, nms_time, n_samples])
         if distributed:
             data_list = gather(data_list, dst=0)
             data_list = list(itertools.chain(*data_list))

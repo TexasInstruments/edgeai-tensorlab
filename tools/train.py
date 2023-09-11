@@ -63,6 +63,9 @@ def make_parser():
         "-d", "--devices", default=None, type=int, help="device for training"
     )
     parser.add_argument(
+        "--device_type", default=None, type=int, help="device type for training. cpu for cpu based training, otherwise gpu based training"
+    )
+    parser.add_argument(
         "-w", "--workers", default=None, type=int, help="number of workers per gpu"
     )
     parser.add_argument(
@@ -210,6 +213,7 @@ def run(**kwargs):
     exp.img_folder_names = args.img_folder_names
     exp.flip_prob = 0
     exp.default_sigmas = False
+    exp.device_type = args.device_type
 
     if args.ckpt is not None:
         exp.od_weights = args.ckpt

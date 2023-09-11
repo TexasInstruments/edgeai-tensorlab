@@ -45,7 +45,7 @@ class Trainer:
         self.is_distributed = get_world_size() > 1
         self.rank = get_rank()
         self.local_rank = get_local_rank()
-        self.device = "{}:{}".format(exp.training_device, self.local_rank) if exp.training_device == "cuda" else "cpu"
+        self.device = (exp.device_type if exp.device_type == "cpu" else "{}:{}".format(exp.device_type, self.local_rank))
         self.use_model_ema = exp.ema
         self.state_dict_object_detect = None
 
@@ -115,8 +115,11 @@ class Trainer:
                 plots.plot_images(inps, targets, fname=f, human_pose=human_pose, object_pose=object_pose)
             else:
                 plots.plot_images(inps, targets, fname=f, human_pose=human_pose, object_pose=object_pose, dataset=self.train_loader.dataset._dataset, data_index=data_index)
-        with torch.cuda.amp.autocast(enabled=self.amp_training):
+        if self.exp.device_type == "cpu":
             outputs = self.model(inps, targets)
+        else:
+            with torch.cuda.amp.autocast(enabled=self.amp_training):
+                outputs = self.model(inps, targets)
 
         loss = outputs["total_loss"]
 
@@ -154,7 +157,7 @@ class Trainer:
         logger.info("exp value:\n{}".format(self.exp))
 
         # model related init
-        if self.exp.training_device == "cuda":
+        if self.exp.device_type != "cpu":
             torch.cuda.set_device(self.local_rank)
         #
         model = self.exp.get_model()
@@ -178,7 +181,7 @@ class Trainer:
             cache_img=self.args.cache,
         )
         logger.info("init prefetcher, this might take one minute or less...")
-        self.prefetcher = DataPrefetcher(self.train_loader) if self.exp.training_device == "cuda" else DataPrefetcherCPU(self.train_loader)
+        self.prefetcher = DataPrefetcherCPU(self.train_loader) if self.exp.device_type == "cpu" else DataPrefetcher(self.train_loader)
         # max_iter means iters per epoch
         self.max_iter = len(self.train_loader)
 

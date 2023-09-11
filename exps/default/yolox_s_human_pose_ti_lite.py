@@ -182,6 +182,7 @@ class Exp(MyExp):
                 visualize=self.visualize,
                 output_dir=output_dir,
                 num_kpts=self.num_kpts,
-                default_sigmas=self.default_sigmas
+                default_sigmas=self.default_sigmas,
+                device_type=self.device_type
             )
         return evaluator
