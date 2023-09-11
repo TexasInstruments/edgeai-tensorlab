@@ -171,10 +171,10 @@ class ModelTraining:
         args_yolo = {'name': f'{self.params.training.model_training_id}',
                      'dataset': 'coco_kpts',
                      'devices': self.params.training.num_gpus,
+                     'device_type': 'cuda' if self.params.training.num_gpus else 'cpu',
                      'batch-size': self.params.training.batch_size,
                      'fp16': True if self.params.training.num_gpus else False,
                      'occupy': True if self.params.training.num_gpus else False,
-                     'training_device': 'cuda' if self.params.training.num_gpus else 'cpu',
                      'task': 'human_pose',
                      'ckpt': f'{self.params.training.pretrained_checkpoint_path}',
                      'max_epochs': self.params.training.training_epochs,
@@ -195,6 +195,7 @@ class ModelTraining:
                   ckpt=args_yolo['ckpt'],
                   dataset=args_yolo['dataset'],
                   devices=args_yolo['devices'],
+                  device_type=args_yolo['device_type'],
                   batch_size=args_yolo['batch-size'],
                   fp16=args_yolo['fp16'],
                   occupy=args_yolo['occupy'],
@@ -206,7 +207,6 @@ class ModelTraining:
                   train_ann=args_yolo['train_ann'],
                   val_ann=args_yolo['val_ann'],
                   img_folder_names=args_yolo['img_folder_names'],
-                  training_device=args_yolo['training_device']
         )
 
         # parameters required for the compilation part
