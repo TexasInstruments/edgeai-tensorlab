@@ -91,20 +91,22 @@ TARGET_DEVICE_SETTINGS_PRESETS = {
         # TDA4VM does not support the per-channel asymmetric quantization
     },
     TARGET_DEVICE_AM62A : {
-        # disabling per-channel asymmetric quantization for AM62A for now, due to an issue in EVM 
+        # disabling per-channel asymmetric quantization for now, until it is more stable
         # 'runtime_options': {
         #     'advanced_options:quantization_scale_type': 4
         # }
     },
     TARGET_DEVICE_AM68A : {
-        'runtime_options': {
-            'advanced_options:quantization_scale_type': 4
-        }
+        # disabling per-channel asymmetric quantization for now, until it is more stable
+        # 'runtime_options': {
+        #     'advanced_options:quantization_scale_type': 4
+        # }
     },
     TARGET_DEVICE_AM69A : {
-        'runtime_options': {
-            'advanced_options:quantization_scale_type': 4
-        }
+        # disabling per-channel asymmetric quantization for now, until it is more stable
+        # 'runtime_options': {
+        #     'advanced_options:quantization_scale_type': 4
+        # }
     },
     TARGET_DEVICE_AM62 : {
         'tidl_offload': False,
