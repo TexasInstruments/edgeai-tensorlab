@@ -44,11 +44,22 @@ edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
 www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01'
 
 
+model_urls = {
+    'yolox_s_keypoint': [
+        {
+            'download_url': f'{www_modelzoo_path}/models/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_640_20220301_checkpoint.pth',
+            'download_path': os.path.join('{download_path}', 'pretrained', 'yolox_s_keypoint')
+        },
+    ],
+}
+
+
 _model_descriptions = {
     'yolox_s_keypoint': dict(
         common=dict(
             task_type=constants.TASK_TYPE_KEYPOINT_DETECTION,
         ),
+        download=model_urls['yolox_s_keypoint'],
         training=dict(
             training_backend='edgeai_yolox',
             model_name='yolox_s_keypoint',
