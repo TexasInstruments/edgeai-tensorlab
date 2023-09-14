@@ -17,8 +17,8 @@ from torchvision.transforms.functional import InterpolationMode
 
 import dataset_utils
 import model_utils
-import edgeai_xvision
-from edgeai_xvision import xnn
+import edgeai_torchtoolkit
+from edgeai_torchtoolkit.v1 import xnn
 
 
 def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, args, model_ema=None, scaler=None):
@@ -279,23 +279,23 @@ def main(args):
     print("Creating model")
     model, surgery_kwargs = model_utils.get_model(args.model, weights=args.weights_enum, num_classes=num_classes, model_surgery=args.model_surgery)
 
-    if args.model_surgery == edgeai_xvision.SyrgeryType.SURGERY_LEGACY:
+    if args.model_surgery == edgeai_torchtoolkit.SyrgeryType.SURGERY_LEGACY:
         model = xnn.surgery.convert_to_lite_model(model, **surgery_kwargs)
-    elif args.model_surgery == edgeai_xvision.SyrgeryType.SURGERY_FX:
-        model = edgeai_xvision.xao.surgery.convert_to_lite_fx(model)
+    elif args.model_surgery == edgeai_torchtoolkit.SyrgeryType.SURGERY_FX:
+        model = edgeai_torchtoolkit.v2.xao.surgery.convert_to_lite_fx(model)
     
     if args.weights_url:
         print(f"loading pretrained checkpoint from: {args.weights_url}")
         xnn.utils.load_weights(model, args.weights_url)
 
     if args.pruning:
-        model = edgeai_xvision.xao.pruning.PrunerModule(model)
+        model = edgeai_torchtoolkit.v2.xao.pruning.PrunerModule(model)
     
-    if args.quantization == edgeai_xvision.QuantizationType.QUANTIZATION_LEGACY:
+    if args.quantization == edgeai_torchtoolkit.QuantizationType.QUANTIZATION_LEGACY:
         dummy_input = torch.rand(1,3,args.val_crop_size,args.val_crop_size)
         model = xnn.quantization.QuantTrainModule(model, dummy_input=dummy_input, total_epochs=args.epochs)
-    elif args.quantization == edgeai_xvision.QuantizationType.QUANTIZATION_FX:
-        model = edgeai_xvision.xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
+    elif args.quantization == edgeai_torchtoolkit.QuantizationType.QUANTIZATION_FX:
+        model = edgeai_torchtoolkit.v2.xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
     
     model.to(device)
 
@@ -598,9 +598,9 @@ def get_args_parser(add_help=True):
     parser.add_argument("--weights", default=None, type=str, help="the weights enum name to load")
 
     # options to create faster models
-    parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_xvision.SyrgeryType.get_choices(), help="model surgery to create lite models")
+    parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_torchtoolkit.SyrgeryType.get_choices(), help="model surgery to create lite models")
 
-    parser.add_argument("--quantization", "--quantize", dest="quantization", default=0, type=int, choices=edgeai_xvision.QuantizationType.get_choices(), help="Quaantization Aware Training (QAT)")
+    parser.add_argument("--quantization", "--quantize", dest="quantization", default=0, type=int, choices=edgeai_torchtoolkit.QuantizationType.get_choices(), help="Quaantization Aware Training (QAT)")
     parser.add_argument("--quantization-type", default=None, help="Actual Quaantization Flavour - applies only if quantization is enabled")
 
     parser.add_argument("--pruning", default=0, help="Pruning/Sparsity")
@@ -608,7 +608,7 @@ def get_args_parser(add_help=True):
     parser.add_argument("--pruning-type", default=1, help="Pruning/Sparsity Type - applies only of pruning is enabled")
 
     parser.add_argument("--compile-model", default=0, type=int, help="Compile the model using PyTorch2.0 functionality")
-    parser.add_argument("--opset-version", default=11, help="ONNX Opset version")
+    parser.add_argument("--opset-version", default=11, type=int, help="ONNX Opset version")
     parser.add_argument("--train-epoch-size-factor", default=0.0, type=float,
                         help="Training validation breaks after one iteration - for quick experimentation")
     parser.add_argument("--val-epoch-size-factor", default=0.0, type=float,
