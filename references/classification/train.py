@@ -279,22 +279,24 @@ def main(args):
     print("Creating model")
     model, surgery_kwargs = model_utils.get_model(args.model, weights=args.weights_enum, num_classes=num_classes, model_surgery=args.model_surgery)
 
-    if args.model_surgery == edgeai_torchtoolkit.SyrgeryType.SURGERY_LEGACY:
+    if args.model_surgery == edgeai_torchtoolkit.SyrgeryVersion.SURGERY_LEGACY:
         model = xnn.surgery.convert_to_lite_model(model, **surgery_kwargs)
-    elif args.model_surgery == edgeai_torchtoolkit.SyrgeryType.SURGERY_FX:
+    elif args.model_surgery == edgeai_torchtoolkit.SyrgeryVersion.SURGERY_FX:
         model = edgeai_torchtoolkit.v2.xao.surgery.convert_to_lite_fx(model)
     
     if args.weights_url:
         print(f"loading pretrained checkpoint from: {args.weights_url}")
         xnn.utils.load_weights(model, args.weights_url)
 
-    if args.pruning:
+    if args.pruning == edgeai_torchtoolkit.PruningVersion.PRUNING_LEGACY:
+        assert False, "Pruning is currently not supported in the legacy modules based method"
+    elif args.pruning == edgeai_torchtoolkit.PruningVersion.PRUNING_FX:
         model = edgeai_torchtoolkit.v2.xao.pruning.PrunerModule(model)
     
-    if args.quantization == edgeai_torchtoolkit.QuantizationType.QUANTIZATION_LEGACY:
+    if args.quantization == edgeai_torchtoolkit.QuantizationVersion.QUANTIZATION_LEGACY:
         dummy_input = torch.rand(1,3,args.val_crop_size,args.val_crop_size)
         model = xnn.quantization.QuantTrainModule(model, dummy_input=dummy_input, total_epochs=args.epochs)
-    elif args.quantization == edgeai_torchtoolkit.QuantizationType.QUANTIZATION_FX:
+    elif args.quantization == edgeai_torchtoolkit.QuantizationVersion.QUANTIZATION_FX:
         model = edgeai_torchtoolkit.v2.xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
     
     model.to(device)
@@ -598,14 +600,14 @@ def get_args_parser(add_help=True):
     parser.add_argument("--weights", default=None, type=str, help="the weights enum name to load")
 
     # options to create faster models
-    parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_torchtoolkit.SyrgeryType.get_choices(), help="model surgery to create lite models")
+    parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_torchtoolkit.SyrgeryVersion.get_choices(), help="model surgery to create lite models")
 
-    parser.add_argument("--quantization", "--quantize", dest="quantization", default=0, type=int, choices=edgeai_torchtoolkit.QuantizationType.get_choices(), help="Quaantization Aware Training (QAT)")
+    parser.add_argument("--quantization", "--quantize", dest="quantization", default=0, type=int, choices=edgeai_torchtoolkit.QuantizationVersion.get_choices(), help="Quaantization Aware Training (QAT)")
     parser.add_argument("--quantization-type", default=None, help="Actual Quaantization Flavour - applies only if quantization is enabled")
 
-    parser.add_argument("--pruning", default=0, help="Pruning/Sparsity")
-    parser.add_argument("--pruning-ratio", default=0.5, help="Pruning/Sparsity Factor - applies only of pruning is enabled")
+    parser.add_argument("--pruning", default=0, type=int, choices=edgeai_torchtoolkit.PruningVersion.get_choices(), help="Pruning/Sparsity")
     parser.add_argument("--pruning-type", default=1, help="Pruning/Sparsity Type - applies only of pruning is enabled")
+    parser.add_argument("--pruning-ratio", default=0.5, help="Pruning/Sparsity Factor - applies only of pruning is enabled")
 
     parser.add_argument("--compile-model", default=0, type=int, help="Compile the model using PyTorch2.0 functionality")
     parser.add_argument("--opset-version", default=11, type=int, help="ONNX Opset version")

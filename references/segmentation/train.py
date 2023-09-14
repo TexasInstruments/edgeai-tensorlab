@@ -185,22 +185,24 @@ def main(args):
     print("Creating model")
     model, surgery_kwargs = model_utils.get_model(args.model, weights=args.weights_enum, weights_backbone=args.weights_backbone, num_classes=num_classes, aux_loss=args.aux_loss, model_surgery=args.model_surgery)
 
-    if args.model_surgery == edgeai_xvision.SyrgeryType.SURGERY_LEGACY:
+    if args.model_surgery == edgeai_xvision.SyrgeryVersion.SURGERY_LEGACY:
         model = xnn.surgery.convert_to_lite_model(model, **surgery_kwargs)
-    elif args.model_surgery == edgeai_xvision.SyrgeryType.SURGERY_FX:
+    elif args.model_surgery == edgeai_xvision.SyrgeryVersion.SURGERY_FX:
         model = edgeai_xvision.xao.surgery.convert_to_lite_fx(model)
 
     if args.weights_url:
         print(f"loading pretrained checkpoint from: {args.weights_url}")
         xnn.utils.load_weights(model, args.weights_url)
 
-    if args.pruning:
-        model = edgeai_xvision.xao.pruning.PrunerModule(model)
+    if args.pruning == edgeai_torchtoolkit.PruningVersion.PRUNING_LEGACY:
+        assert False, "Pruning is currently not supported in the legacy modules based method"
+    elif args.pruning == edgeai_torchtoolkit.PruningVersion.PRUNING_FX:
+        model = edgeai_torchtoolkit.v2.xao.pruning.PrunerModule(model)
     
-    if args.quantization == edgeai_xvision.QuantizationType.QUANTIZATION_LEGACY:
+    if args.quantization == edgeai_xvision.QuantizationVersion.QUANTIZATION_LEGACY:
         dummy_input = torch.rand(1,3,args.base_size,args.base_size)
         model = xnn.quantization.QuantTrainModule(model, dummy_input=dummy_input, total_epochs=args.epochs)
-    elif args.quantization == edgeai_xvision.QuantizationType.QUANTIZATION_FX:
+    elif args.quantization == edgeai_xvision.QuantizationVersion.QUANTIZATION_FX:
         model = edgeai_xvision.xao.quantization.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
 
     model.to(device)
@@ -359,9 +361,9 @@ def get_args_parser(add_help=True):
     )
 
     # options to create faster models
-    parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_xvision.SyrgeryType.get_choices(), help="model surgery to create lite models")
+    parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_xvision.SyrgeryVersion.get_choices(), help="model surgery to create lite models")
 
-    parser.add_argument("--quantization", "--quantize", dest="quantization", default=0, type=int, choices=edgeai_xvision.QuantizationType.get_choices(), help="Quaantization Aware Training (QAT)")
+    parser.add_argument("--quantization", "--quantize", dest="quantization", default=0, type=int, choices=edgeai_xvision.QuantizationVersion.get_choices(), help="Quaantization Aware Training (QAT)")
     parser.add_argument("--quantization-type", default=None, help="Actual Quaantization Flavour - applies only if quantization is enabled")
 
     parser.add_argument("--pruning", default=0, help="Pruning/Sparsity")
