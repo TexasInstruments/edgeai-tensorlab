@@ -131,7 +131,7 @@ class PDPPruningParametrization(nn.Module):
 
 class PrunerModule(torch.nn.Module):
     def __init__(self, module, pruning_ratio=0.5, total_epochs=10, pruning_class=PruningParametrization,
-                 pruning_type:PruningType=PruningType.UNSTRUCTURED, channel_pruning=False, copy_args=[],
+                 pruning_type=None, channel_pruning=False, copy_args=[],
                  train_epoch_per_iter=5, epsilon=0.015, global_pruning=False, n2m_pruning=False, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.module = module

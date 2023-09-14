@@ -30,19 +30,23 @@ class QuantFxBaseModule(torch.nn.Module):
 
         # split if qconfig is a comma separated list of segments
         # (qconfig will change after some epochs if this has comma separated values)
-        qconfig_type = tuple(qconfig_type.split(","))
+        if not isinstance(qconfig_type, str):
+            raise RuntimeError("qconfig_type must be a string")
+        #
+
         # further split based on + for mixed precision
-        qconfig_type = [qconf.split("+") for qconf in qconfig_type]
-        if any([len(qconf) > 2 for qconf in qconfig_type]):
+        qconfig_type = qconfig_type.split("+")
+        if len(qconfig_type) > 2:
             raise RuntimeError(f"maximum of 2 entries are supported in qconfig_type:{qconfig_type}")
         #
-        qconfig_mapping = qconfig.get_qconfig_mapping(is_qat, backend, qconfig_type[0])
+
+        qconfig_mapping = qconfig.get_qconfig_mapping(is_qat, backend, qconfig_type)
         if is_qat:
             model = quantize_fx.prepare_qat_fx(model, qconfig_mapping, example_inputs)
         else:
             model = quantize_fx.prepare_fx(model, qconfig_mapping, example_inputs)
         #
-        model = qconfig.adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type[0])
+        model = qconfig.adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type)
         self.module = model
 
         # other parameters
@@ -56,7 +60,7 @@ class QuantFxBaseModule(torch.nn.Module):
         # set the quantization backend - qnnpack, fbgemm, x86, onednn etc.
         self.set_quant_backend(backend)
         # related to adaptive quantization
-        self.quant_segment_index = 0
+
         self.qconfig_mode = qconfig.QConfigMode(qconfig_mode)
         self.forzen_layer_names_list = []
 
@@ -103,29 +107,6 @@ class QuantFxBaseModule(torch.nn.Module):
         '''
         adjust quantization parameters on epoch basis
         '''
-        if len(self.qconfig_type) > 1:
-            quant_segment_index = self.num_epochs_tracked//(self.total_epochs//len(self.qconfig_type))
-            qconfig_type = self.qconfig_type[quant_segment_index]
-            print(f"qconfig is a list - quant_segment_index:{quant_segment_index}, qconfig_type:{qconfig_type}")
-            if quant_segment_index != self.quant_segment_index:
-                # change the qconfig if it is a comma separated list and this is a new segment
-                current_device = next(self.parameters()).device
-                qconfig_dict = qconfig.get_qconfig(self.is_qat, self.backend, qconfig_type[0])
-                for np, mp in list(self.named_modules()):
-                    for nc, mc in list(mp.named_children()):
-                        if isinstance(mc, fake_quanitze.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES):
-                            setattr(mp, nc, qconfig_dict.weight().to(current_device))
-                        #
-                        if isinstance(mc, fake_quanitze.ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES):
-                            setattr(mp, nc, qconfig_dict.activation().to(current_device))
-                        #
-                    #
-                #
-                self.module = qconfig.adjust_mixed_precision_qconfig(
-                    self.module, self.is_qat, self.backend, qconfig_type)
-                self.quant_segment_index = quant_segment_index
-            #
-        #
         if self.qconfig_mode != qconfig.QConfigMode.DEFAULT and self.total_epochs >= 10:
             # find unstable layers and freeze them
             self.adaptive_freeze_layers(fake_quanitze.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES)
