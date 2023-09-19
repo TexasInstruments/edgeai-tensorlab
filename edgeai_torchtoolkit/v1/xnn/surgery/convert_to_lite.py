@@ -119,6 +119,7 @@ def get_replacements_dict(groups_dw=None, group_size_dw=None):
         torch.nn.ReLU6: [torch.nn.ReLU], #'inplace' is not used
         torch.nn.Hardswish: [torch.nn.ReLU], #'inplace' is not used
         torch.nn.SiLU: [torch.nn.ReLU], #'inplace' is not used
+        torch.nn.LeakyReLU: [torch.nn.ReLU],  # 'inplace' is not used
         SqueezeExcitation: [torch.nn.Identity],
         # with_normalization: whether to insert BN after replacing 3x3/5x5 conv etc. with dw-seperable conv
         # with_activation: whether to insert ReLU after replacing conv with dw-seperable conv

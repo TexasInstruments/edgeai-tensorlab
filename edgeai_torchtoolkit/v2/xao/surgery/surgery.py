@@ -33,7 +33,7 @@ _unsupported_module_dict={
     nn.GELU():nn.ReLU(),
     nn.SiLU():nn.ReLU(),
     nn.Hardsigmoid():nn.ReLU(),
-    # nn.LeakyReLU():nn.ReLU(),
+    nn.LeakyReLU():nn.ReLU(),
     nn.Dropout(inplace=True):nn.Dropout(),
     custom_modules.Focus():custom_modules.ConvBNRModule(3,12,(5,5),(2,2),2), # will only effective if focus appears jus after the input
     'layerNorm':custom_surgery_functions.replace_layer_norm, # not effective if len(input.shape) != 4 till date
