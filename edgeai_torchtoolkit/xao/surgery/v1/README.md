@@ -26,7 +26,7 @@ This can be used to get the default replacement dict. This replacement dict can 
 
 #### Usage:
 ```
-replacement_dict = edgeai_torchvision.surgery.v1.get_replacement_dict_default()
+replacement_dict = copy.deepcopy(edgeai_torchvision.surgery.v1.get_replacement_dict_default())
 replacement_dict.update({torch.nn.GELU: torch.nn.ReLU})
 ```
 
@@ -37,13 +37,11 @@ model = edgeai_torchvision.surgery.v1.convert_to_lite_model(model, replacement_d
 
 It is possible to pass additional arguments to the replacement entries
 ```
-replacement_dict = edgeai_torchvision.surgery.v1.get_replacement_dict_default()
 replacement_dict.update({torch.nn.GELU: [torch.nn.ReLU, dict(inplace=True)]})
 ```
 
 To take the value from source modules being replaced to the new modules that are replacing them, just provide the attribute names as strings.
 ```
-replacement_dict = edgeai_torchvision.surgery.v1.get_replacement_dict_default()
 replacement_dict.update({torch.nn.LeakyReLU: [torch.nn.ReLU, 'inplace']})
 ```
 
