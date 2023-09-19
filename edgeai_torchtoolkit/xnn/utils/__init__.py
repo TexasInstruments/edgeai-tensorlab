@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
-
-# Copyright (c) 2018-2023, Texas Instruments
+#################################################################################
+# Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,12 +26,43 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#################################################################################
 
-######################################################################
-# Installing dependencies
-#echo 'installing pytorch...'
-#pip3 install --no-input torch torchvision torchaudio
-echo 'installing requirements...'
-pip3 install --no-input -r ./edgeai_torchtoolkit/requirements.txt
-echo 'installing the toolkit...'
-python3 ./edgeai_torchtoolkit/setup.py develop
+from .print_utils import *
+from .function_utils import *
+from .data_utils import *
+from .load_weights import *
+from .tensor_utils import *
+from .logger import *
+from .hist_utils import *
+from .params_base import *
+from .misc_utils import *
+from .config_dict import *
+from .attr_dict import *
+from .weights_utils import *
+from .image_utils import *
+from .module_utils import *
+from .model_complexity import *
+from .bn_utils import *
+from .range_utils import *
+from .quant_utils import *
+from .amp import *
+from .path_utils import *
+from .import_utils import *
+from .distributed_utils import *
+
+
+try: from .tensor_utils_internal import *
+except: pass
+
+try: from .export_utils_internal import *
+except: pass
+
+# change has_range_estimator to True here to use a more accurate range estimator
+has_range_estimator = False #True
+if has_range_estimator:
+    try: from .range_estimator_internal import *
+    except: has_range_estimator = False
+#
+

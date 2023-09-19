@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
-
-# Copyright (c) 2018-2023, Texas Instruments
+#################################################################################
+# Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,12 +26,23 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#################################################################################
 
-######################################################################
-# Installing dependencies
-#echo 'installing pytorch...'
-#pip3 install --no-input torch torchvision torchaudio
-echo 'installing requirements...'
-pip3 install --no-input -r ./edgeai_torchtoolkit/requirements.txt
-echo 'installing the toolkit...'
-python3 ./edgeai_torchtoolkit/setup.py develop
+from . import v1
+from . import v2
+from .v2 import *
+
+
+class SyrgeryVersion:
+    NO_SURGERY = 0
+    SURGERY_V1 = SURGERY_LEGACY = 1
+    SURGERY_V2 = SURGERY_FX = 2
+
+    @classmethod
+    def get_dict(cls):
+        return {k:v for k,v in cls.__dict__.items() if not k.startswith("__")}
+
+    @classmethod
+    def get_choices(cls):
+        return {v:k for k,v in cls.__dict__.items() if not k.startswith("__")}

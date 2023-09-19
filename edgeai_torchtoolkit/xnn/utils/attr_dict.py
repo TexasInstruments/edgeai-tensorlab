@@ -29,9 +29,52 @@
 #
 #################################################################################
 
-from . import xnn
-from . import xao
+import copy
 
-from .xao.surgery import SyrgeryVersion
-from .xao.pruning import PruningVersion
-from .xao.quantization import QuantizationVersion
+# a simple config node class
+class AttrDict(dict):
+    def __init__(self):
+        super().__init__()
+        self.__dict__ = self
+
+
+    def merge_from(self, src_cfg):
+        if src_cfg is not None:
+            for src_key, src_val in src_cfg.items():
+                self[src_key] = src_val
+            #
+        #
+        return self
+
+
+    def clone(self):
+        new_cfg = type(self)()
+        new_cfg.merge_from(self)
+        return new_cfg
+
+
+    def __deepcopy__(self, memodict):
+        new_config = self.clone()
+        memodict[id(self)] = new_config
+        return new_config
+
+
+# config node is derived from AttrDict
+# important node: This class handles a list specially - it will be split when the split when split() is called
+# this is to support multiple decoder in a multi-task network.
+# so use a tuple when specifiying array-like params for one decoder and encapsulate the tuple in a list for multi-task.
+class ConfigNode(AttrDict):
+    def __init__(self):
+        super().__init__()
+
+    def split(self, index):
+        new_config = self.clone()
+        for src_key, src_val in self.items():
+            if isinstance(src_val, list):
+                assert index < len(src_val), 'Model_config parameter {} is a list. If its a list, the length {} \
+                                                is expected to match the number of decoders.'.format(src_key, len(src_val))
+                new_config[src_key] = src_val[index]
+            else:
+                new_config[src_key] = src_val
+        #
+        return new_config

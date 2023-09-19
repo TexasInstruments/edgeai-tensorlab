@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
-
-# Copyright (c) 2018-2023, Texas Instruments
+#################################################################################
+# Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,12 +26,17 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#################################################################################
 
-######################################################################
-# Installing dependencies
-#echo 'installing pytorch...'
-#pip3 install --no-input torch torchvision torchaudio
-echo 'installing requirements...'
-pip3 install --no-input -r ./edgeai_torchtoolkit/requirements.txt
-echo 'installing the toolkit...'
-python3 ./edgeai_torchtoolkit/setup.py develop
+import enum
+import torch
+from typing import Union, Dict, Any
+
+from . import custom_modules, custom_surgery_functions,surgery
+from .surgery import SurgeryModule, replace_unsuppoted_layers, get_replacement_dict_default
+
+
+def convert_to_lite_fx(model:torch.nn.Module,replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, verbose_mode:bool=False, **kwargs):
+    return replace_unsuppoted_layers(model, replacement_dict=replacement_dict, verbose_mode=verbose_mode, **kwargs)
+

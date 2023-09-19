@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
-
-# Copyright (c) 2018-2023, Texas Instruments
+#################################################################################
+# Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,12 +26,28 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#################################################################################
 
-######################################################################
-# Installing dependencies
-#echo 'installing pytorch...'
-#pip3 install --no-input torch torchvision torchaudio
-echo 'installing requirements...'
-pip3 install --no-input -r ./edgeai_torchtoolkit/requirements.txt
-echo 'installing the toolkit...'
-python3 ./edgeai_torchtoolkit/setup.py develop
+
+from .import functional
+from .layer_config import *
+from .normalization import *
+from .activation import *
+
+from .common_blocks import *
+from .conv_blocks import *
+from .deconv_blocks import *
+from .resize_blocks import *
+from .functional_blocks import *
+
+from .multi_task import *
+from .rf_blocks import *
+
+from .model_utils import *
+
+# optional/experimental
+try:
+    from .blocks_internal import *
+except:
+    pass

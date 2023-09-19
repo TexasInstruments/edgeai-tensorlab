@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
-
-# Copyright (c) 2018-2023, Texas Instruments
+#################################################################################
+# Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,12 +26,24 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#################################################################################
 
-######################################################################
-# Installing dependencies
-#echo 'installing pytorch...'
-#pip3 install --no-input torch torchvision torchaudio
-echo 'installing requirements...'
-pip3 install --no-input -r ./edgeai_torchtoolkit/requirements.txt
-echo 'installing the toolkit...'
-python3 ./edgeai_torchtoolkit/setup.py develop
+
+from .pruner_config import *
+from .pruner_module import PrunerQuantModule, PrunerModule, PruningParametrization, PDPPruningParametrization
+
+
+class PruningVersion():
+    NO_PRUNING = 0
+    PRUNING_V1 = PRUNING_LEGACY = 1 # not implemented
+    PRUNING_V2 = PRUNING_FX = 2
+
+    @classmethod
+    def get_dict(cls):
+        return {k:v for k,v in __class__.__dict__.items() if not k.startswith("__")}
+
+    @classmethod
+    def get_choices(cls):
+        return {v:k for k,v in __class__.__dict__.items() if not k.startswith("__")}
+

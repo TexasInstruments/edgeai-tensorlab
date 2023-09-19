@@ -29,9 +29,32 @@
 #
 #################################################################################
 
-from . import xnn
-from . import xao
+import torch
 
-from .xao.surgery import SyrgeryVersion
-from .xao.pruning import PruningVersion
-from .xao.quantization import QuantizationVersion
+def module_weights_init(module, a=0, nonlinearity='relu', weight_init='normal', mode='fan_out', bias_init=0.0):
+    assert nonlinearity in ('relu', 'leaky_relu'), f"nonlinearity must be one of ('relu', 'leaky_relu'), got: {nonlinearity}"
+    # weight initialization
+    for m in module.modules():
+        # not ConvTranspose2d is not handled here.
+        # let pytorch's default initialization be used for now.
+        if isinstance(m, torch.nn.Conv2d):
+            if weight_init == 'normal':
+                torch.nn.init.kaiming_normal_(m.weight, a=a, mode=mode, nonlinearity=nonlinearity)
+            elif weight_init == 'uniform':
+                torch.nn.init.kaiming_uniform_(m.weight, a=a, mode=mode, nonlinearity=nonlinearity)
+            else:
+                assert False, f"unknown init type. must be one of ('normal', 'uniform'), got: {weight_init}"
+            #
+            if m.bias is not None:
+                torch.nn.init.constant_(m.bias, bias_init)
+        elif isinstance(m, (torch.nn.BatchNorm2d, torch.nn.GroupNorm)):
+            torch.nn.init.ones_(m.weight)
+            if m.bias is not None:
+                torch.nn.init.constant_(m.bias, bias_init)
+        elif isinstance(m, torch.nn.Linear):
+            torch.nn.init.normal_(m.weight, 0, 0.01)
+            torch.nn.init.constant_(m.bias, bias_init)
+
+
+
+

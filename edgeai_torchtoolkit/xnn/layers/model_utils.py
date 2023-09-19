@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
-
-# Copyright (c) 2018-2023, Texas Instruments
+#################################################################################
+# Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,12 +26,41 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#################################################################################
 
-######################################################################
-# Installing dependencies
-#echo 'installing pytorch...'
-#pip3 install --no-input torch torchvision torchaudio
-echo 'installing requirements...'
-pip3 install --no-input -r ./edgeai_torchtoolkit/requirements.txt
-echo 'installing the toolkit...'
-python3 ./edgeai_torchtoolkit/setup.py develop
+import torch
+
+def _get_last_bias_module_sequential(module):
+    last_m = None
+    for m_idx, m in enumerate(list(module)[::-1]):
+        if isinstance(m, torch.nn.Sequential):
+            return _get_last_bias_module_sequential(m)
+        elif hasattr(m, 'bias') and m.bias is not None:
+            return m
+        #
+    return last_m
+
+
+def get_last_bias_modules(module):
+    last_ms = []
+    if hasattr(module, 'conv') and hasattr(module, 'res'):
+        last_ms.append(_get_last_bias_module_sequential(module.conv))
+        if hasattr(module, 'res') and module.res is not None:
+            last_ms.append(_get_last_bias_module_sequential(module.res))
+        #
+    elif isinstance(module, torch.nn.Sequential):
+        last_ms.append(_get_last_bias_module_sequential(module))
+    elif hasattr(module, 'bias') and module.bias is not None:
+        last_ms.append(module)
+    else:
+        for m in list(module.modules())[::-1]:
+            if hasattr(m, 'bias') and m.bias is not None:
+                last_ms.append(m)
+                break
+            #
+        #
+    #
+    last_ms = [m for m in last_ms if m is not None]
+    return last_ms
+
