@@ -156,8 +156,9 @@ def postprocess_export(prediction, num_classes, conf_thre=0.7, nms_thre=0.45, ta
         detections = torch.cat(tensor_cat_inp, 1)
 
         detections = detections[conf_mask]
-        if not detections.size(0):
-            continue
+        # manu: commenting out to avoid onnx export error.
+        # if not detections.size(0):
+        #     continue
         class_2d_offset = detections[:, -1:] * 4096  # class_2d_offser
 
         nms_out_index = torchvision.ops.nms(
