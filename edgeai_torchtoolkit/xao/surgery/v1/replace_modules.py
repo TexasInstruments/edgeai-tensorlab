@@ -43,22 +43,22 @@ from .. import layers
 __all__ = ['replace_modules']
 
 
-def replace_modules(model, inplace=True, replacements_dict=None, **kwargs):
-    assert replacements_dict is not None, 'replacements_dict must be provided'
+def replace_modules(model, inplace=True, replacement_dict=None, **kwargs):
+    assert replacement_dict is not None, 'replacement_dict must be provided'
     model = model if inplace else copy.deepcopy(inplace)
     for p_name, parent_m in model.named_modules():
         for c_name, current_m in parent_m.named_children():
-            if not _replace_with_new_module(parent_m, c_name, current_m, replacements_dict, **kwargs):
-                replace_modules(current_m, inplace=inplace, replacements_dict=replacements_dict, **kwargs)
+            if not _replace_with_new_module(parent_m, c_name, current_m, replacement_dict, **kwargs):
+                replace_modules(current_m, inplace=inplace, replacement_dict=replacement_dict, **kwargs)
             #
         #
     #
     return model
 
 
-def _replace_with_new_module(parent, c_name, current_m, replacements_dict, **kwargs):
-    for k_check, v_params in replacements_dict.items():
-        assert callable(k_check), f'the key in replacements_dict must be a class or function: {k_check}'
+def _replace_with_new_module(parent, c_name, current_m, replacement_dict, **kwargs):
+    for k_check, v_params in replacement_dict.items():
+        assert callable(k_check), f'the key in replacement_dict must be a class or function: {k_check}'
         if inspect.isclass(k_check):
             do_replace = isinstance(current_m, k_check)
         else:
@@ -66,16 +66,18 @@ def _replace_with_new_module(parent, c_name, current_m, replacements_dict, **kwa
         #
         if do_replace:
             # first entry is the constructor or a callable that constructs
-            new_constructor = v_params[0]
-            assert callable(new_constructor), f'the value in replacements_dict must be a class or function: {new_constructor}'
+            new_constructor = v_params[0] if isinstance(v_params, (list,tuple)) else v_params
+            assert callable(new_constructor), f'the value in replacement_dict must be a class or function: {new_constructor}'
             # the parameters of the new moulde that has to be copied from current
             new_args = {}
-            if isinstance(v_params[-1], dict):
-                new_args.update(v_params[-1])
-                v_params = v_params[:-1]
-            #
-            for k in v_params[1:]:
-                new_args.update({k:getattr(current_m,k)})
+            if isinstance(v_params, (list,tuple)) and len(v_params) > 1:
+                for v_params_k in v_params[1:]:
+                    if isinstance(v_params_k, dict):
+                        new_args.update(v_params_k)
+                    elif isinstance(v_params_k, str):
+                        new_args.update({v_params_k:getattr(current_m,v_params_k)})
+                    #
+                #
             #
             # create the new module that replaces the existing
             if inspect.isclass(new_constructor):

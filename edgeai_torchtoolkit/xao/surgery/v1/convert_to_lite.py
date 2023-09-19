@@ -57,7 +57,7 @@ from .replace_modules import replace_modules as replace_modules_func
 #################################################################################################
 
 
-__all__ = ['convert_to_lite_model', 'create_lite_model', 'get_replacements_dict']
+__all__ = ['convert_to_lite_model', 'create_lite_model', 'get_replacement_dict_default']
 
 
 def _check_dummy(current_m):
@@ -106,14 +106,14 @@ def _replace_conv2d(current_m=None, groups_dw=None, group_size_dw=1,
     return current_m
 
 
-def get_replacements_dict(groups_dw=None, group_size_dw=None):
+def get_replacement_dict_default(groups_dw=None, group_size_dw=None):
     '''
     A dictionary with the fllowing structure.
     key: a torch.nn.Module that has to be replaced OR a callable which takes a module as input and returns boolean
     value: a list. the fist entry is a constructor or a callable that creates the replacement module
                 the remaining entries are properties that have to be copied from old module to newly created module.
     '''
-    replacements_dict_lite = {
+    replacement_dict_lite = {
         torch.nn.ReLU: [torch.nn.ReLU], #'inplace' is not used
         torch.nn.Dropout: [torch.nn.Dropout, 'p'], #'inplace' is not used
         torch.nn.ReLU6: [torch.nn.ReLU], #'inplace' is not used
@@ -128,21 +128,21 @@ def get_replacements_dict(groups_dw=None, group_size_dw=None):
         # the key should return a boolean and the first entry of value(list) should return an instance of torch.nn.Module
         _check_dummy: [_replace_dummy]
     }
-    return replacements_dict_lite
+    return replacement_dict_lite
 
 
 # this function can be used after creating the model to transform it into a lite model.
 def create_lite_model(model_function, pretrained_backbone_names=None, pretrained=None, model_urls_dict=None,
-                      model_name_lite=None, replacements_dict=None, **kwargs):
+                      model_name_lite=None, replacement_dict=None, **kwargs):
     model_name_lite = model_name_lite or f'{model_function.__name__}_lite'
     lookup_pretrained = pretrained is True and model_urls_dict is not None and model_name_lite in model_urls_dict
     pretrained = model_urls_dict[model_name_lite] if lookup_pretrained else pretrained
     model = _create_lite_model_impl(model_function, pretrained_backbone_names, pretrained=pretrained,
-                                   replacements_dict=replacements_dict, **kwargs)
+                                   replacement_dict=replacement_dict, **kwargs)
     return model
 
 
-def _create_lite_model_impl(model_function, pretrained_backbone_names=None, replacements_dict=None, **kwargs):
+def _create_lite_model_impl(model_function, pretrained_backbone_names=None, replacement_dict=None, **kwargs):
     pretrained = kwargs.pop('pretrained', None)
     pretrained_backbone = kwargs.pop('pretrained_backbone', None)
     # if pretrained is set to true, we will try to hanlde it inside model
@@ -151,7 +151,7 @@ def _create_lite_model_impl(model_function, pretrained_backbone_names=None, repl
     else:
         model = model_function(pretrained=(pretrained is True), **kwargs)
     #
-    model = convert_to_lite_model(model, replacements_dict=replacements_dict, **kwargs)
+    model = convert_to_lite_model(model, replacement_dict=replacement_dict, **kwargs)
     if pretrained and pretrained is not True:
         utils.load_weights(model, pretrained, state_dict_name=['state_dict', 'model'])
     elif pretrained_backbone and pretrained_backbone is not True:
@@ -162,9 +162,9 @@ def _create_lite_model_impl(model_function, pretrained_backbone_names=None, repl
     return model
 
 
-def convert_to_lite_model(model, inplace=True, replacements_dict=None, **kwargs):
+def convert_to_lite_model(model, inplace=True, replacement_dict=None, **kwargs):
     warnings.warn("WARNING - xnn.surgery is based on the modules. For superior functionality, please use the torch.fx based xao.surgery instead")
-    replacements_dict = replacements_dict or get_replacements_dict(**kwargs)
-    model = replace_modules_func(model, inplace=inplace, replacements_dict=replacements_dict)
+    replacement_dict = replacement_dict or get_replacement_dict_default(**kwargs)
+    model = replace_modules_func(model, inplace=inplace, replacement_dict=replacement_dict)
     return model
 

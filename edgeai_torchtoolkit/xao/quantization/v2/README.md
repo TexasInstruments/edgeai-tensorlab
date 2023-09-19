@@ -1,1 +1,2 @@
-This document is under development.
+
+This module is an easy-to-use wrapper around [Pytorch native QAT](https://pytorch.org/docs/stable/quantization.html). Please read that document to get a background. To use our wrapper, there is no need to understand all the details there, as we have tried to make the interface as simple as possible.
