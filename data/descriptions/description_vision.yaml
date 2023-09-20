@@ -1149,7 +1149,9 @@ model_descriptions:
       split_names:
       - train
       - val
-    download: null
+    download:
+    - download_path: '{download_path}/pretrained/yolox_s_keypoint'
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_640_20220301_checkpoint.pth
     training:
       batch_size: 8
       dataset_path: null

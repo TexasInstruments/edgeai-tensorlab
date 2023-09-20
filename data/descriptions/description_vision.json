@@ -1438,7 +1438,12 @@
         "run_name":"{date-time}/{model_name}",
         "target_module":"vision"
       },
-      "download":null,
+      "download":[
+        {
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_640_20220301_checkpoint.pth",
+          "download_path":"{download_path}/pretrained/yolox_s_keypoint"
+        }
+      ],
       "dataset":{
         "enable":true,
         "dataset_name":null,
