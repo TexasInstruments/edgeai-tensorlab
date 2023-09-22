@@ -32,7 +32,7 @@ import torch
 import numpy as np
 import cv2
 
-from edgeai_xvision import xnn
+from edgeai_torchtoolkit import xnn
 
 
 ##################################################

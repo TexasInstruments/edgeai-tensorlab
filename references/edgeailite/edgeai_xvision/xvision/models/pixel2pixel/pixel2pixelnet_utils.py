@@ -29,7 +29,7 @@
 #
 #################################################################################
 
-from edgeai_xvision import xnn
+from edgeai_torchtoolkit import xnn
 import torch
 
 # add prediction and final upsample blocks to edgeailite models

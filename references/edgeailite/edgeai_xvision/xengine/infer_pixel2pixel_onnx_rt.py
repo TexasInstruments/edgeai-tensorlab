@@ -50,7 +50,7 @@ import onnxruntime
 from onnx import helper
 
 
-from edgeai_xvision import xnn
+from edgeai_torchtoolkit import xnn
 from edgeai_xvision import xvision
 
 #sys.path.insert(0, '../devkit-datasets/TI/')

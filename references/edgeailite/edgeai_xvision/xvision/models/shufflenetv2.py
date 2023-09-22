@@ -69,7 +69,7 @@ from torch import Tensor
 import torch.nn as nn
 from .utils import load_state_dict_from_url
 from typing import Callable, Any, List
-from edgeai_xvision import xnn
+from edgeai_torchtoolkit import xnn
 
 __all__ = [
     'ShuffleNetV2', 'shufflenet_v2_x0_5', 'shufflenet_v2_x1_0',
