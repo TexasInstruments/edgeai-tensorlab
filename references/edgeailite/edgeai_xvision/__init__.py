@@ -29,49 +29,8 @@
 #
 #################################################################################
 
-from . import xnn
+
 from . import xvision
 from . import xengine
 
-
-class SyrgeryType:
-    NO_SURGERY = 0
-    SURGERY_LEGACY = 1
-    SURGERY_FX = 2
-
-    @classmethod
-    def get_dict(cls):
-        return {k:v for k,v in cls.__dict__.items() if not k.startswith("__")}
-
-    @classmethod
-    def get_choices(cls):
-        return {v:k for k,v in cls.__dict__.items() if not k.startswith("__")}
-    
-
-class PrunerType():
-    NO_PRUNING = 0
-    UNSTRUCTURED = 1
-    N2M_PRUNING = 2
-    CHANNEL_PRUNING = 3
-
-    @classmethod
-    def get_dict(cls):
-        return {k:v for k,v in __class__.__dict__.items() if not k.startswith("__")}
-
-    @classmethod
-    def get_choices(cls):
-        return {v:k for k,v in __class__.__dict__.items() if not k.startswith("__")}
-    
-class QuantizationType():
-    NO_QUANTIZATION = 0
-    QUANTIZATION_LEGACY = 1
-    QUANTIZATION_FX = 2
-
-    @classmethod
-    def get_dict(cls):
-        return {k:v for k,v in cls.__dict__.items() if not k.startswith("__")}
-
-    @classmethod
-    def get_choices(cls):
-        return {v:k for k,v in cls.__dict__.items() if not k.startswith("__")}
 

@@ -70,4 +70,4 @@ pybind11_DIR=$(pybind11-config --cmakedir) pip3 install --no-input https://githu
 pip3 install --no-input -r ./references/edgeailite/requirements.txt
 pip3 install -e ./references/edgeailite/
 
-
+echo "please install edgeai-modeltoolkit as this repository uses functionalities from there."
