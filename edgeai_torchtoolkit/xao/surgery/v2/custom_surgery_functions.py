@@ -31,12 +31,14 @@
 
 from torch import nn,Tensor
 from torch.fx import symbolic_trace, Node
-from . import replacer
 from torchvision import models,ops
-from . import custom_modules
 import inspect,torch, operator,torchvision
-from edgeai_torchtoolkit.v1.xnn.layers import resize_with_scale_factor
 from copy import deepcopy
+
+from ....xnn.layers import resize_with_scale_factor
+
+from . import replacer
+from . import custom_modules
 
 
 def replace_resize_with_scale_factor(model, verbose_mode=False):

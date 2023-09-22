@@ -29,8 +29,7 @@
 #
 #################################################################################
 
+from . import utils
 from . import layers
 from . import optim
-from . import utils
 from . import onnx
-

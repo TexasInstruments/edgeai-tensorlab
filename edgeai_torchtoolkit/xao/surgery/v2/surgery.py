@@ -32,17 +32,18 @@
 import torch
 from torch import nn
 from torchvision import ops
-from . import custom_modules, custom_surgery_functions
 from typing import Union, Dict, Any
 from copy import deepcopy
 from torch.fx import GraphModule, symbolic_trace
 from inspect import isfunction
-from .replacer import graph_pattern_replacer,replace_module_nodes,replace_function_nodes
 
 try:
     from timm.layers.squeeze_excite import SEModule
 except:
     SEModule = None
+
+from . import custom_modules, custom_surgery_functions
+from .replacer import graph_pattern_replacer,replace_module_nodes,replace_function_nodes
 
 
 __all__ = ['replace_unsuppoted_layers', 'get_replacement_dict_default','SurgeryModule']

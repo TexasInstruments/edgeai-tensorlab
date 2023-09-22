@@ -37,8 +37,8 @@ import math
 import warnings
 
 from torchvision.ops.misc import SqueezeExcitation
-from .. import utils
-from .. import layers
+from ....xnn import utils
+from ....xnn import layers
 from .replace_modules import replace_modules as replace_modules_func
 
 

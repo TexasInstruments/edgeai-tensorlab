@@ -35,10 +35,6 @@ import torch
 import inspect
 import math
 
-from torchvision.ops.misc import SqueezeExcitation
-from .. import utils
-from .. import layers
-
 
 __all__ = ['replace_modules']
 

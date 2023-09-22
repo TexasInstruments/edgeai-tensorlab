@@ -1,7 +1,7 @@
 import math
 import torch
 from torch.ao.quantization import MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver, FakeQuantize
-from ....v1 import xnn
+from .... import xnn
 
 
 # FusedMovingAvgObsFakeQuantize will not use calculate_qparams() only during convert

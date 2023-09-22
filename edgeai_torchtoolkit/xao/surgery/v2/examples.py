@@ -31,9 +31,11 @@
 
 from torch import nn
 from torch.fx import symbolic_trace 
-from edgeai_torchtoolkit.v2.toolkit import xao
 import copy
 import math
+
+from edgeai_torchtoolkit.v2.toolkit import xao
+
 
 class AddModule(nn.Module):
     def forward(self, x, y):

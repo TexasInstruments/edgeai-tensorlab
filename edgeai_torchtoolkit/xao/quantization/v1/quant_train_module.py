@@ -39,8 +39,8 @@ import numpy as np
 import copy
 import warnings
 
-from .. import layers
-from .. import utils
+from ....xnn import layers
+from ....xnn import utils
 from .quant_base_module import *
 
 warnings.filterwarnings('ignore', category=torch.jit.TracerWarning)

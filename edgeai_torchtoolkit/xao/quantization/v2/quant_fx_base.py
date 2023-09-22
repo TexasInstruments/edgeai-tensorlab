@@ -6,8 +6,8 @@ from torch.ao.quantization import QConfigMapping
 from torch.ao.quantization import FakeQuantize
 import statistics
 
-from ....v1 import xnn
-from .. import surgery
+from .... import xnn
+
 from . import observer
 from . import fake_quanitze
 from . import qconfig
@@ -26,7 +26,9 @@ class QuantFxBaseModule(torch.nn.Module):
         # also add a torch.nn.ReLU() incase multiple modules are sharing the same ReLU()
         replacement_dict = {torch.nn.ReLU6(): torch.nn.ReLU(),
                             torch.nn.ReLU(): torch.nn.ReLU()}
-        model = surgery.replace_unsuppoted_layers(model, replacement_dict=replacement_dict)
+
+        from ...surgery import replace_unsuppoted_layers
+        model = replace_unsuppoted_layers(model, replacement_dict=replacement_dict)
 
         # split if qconfig is a comma separated list of segments
         # (qconfig will change after some epochs if this has comma separated values)

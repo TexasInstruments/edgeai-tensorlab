@@ -40,11 +40,13 @@ from torch import distributed as dist
 from enum import Enum
 import time
 
+
 class Summary(Enum):
     NONE = 0
     AVERAGE = 1
     SUM = 2
     COUNT = 3
+
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""

@@ -5,7 +5,7 @@ import torch
 import torch
 from torch.ao.quantization import MinMaxObserver, PerChannelMinMaxObserver, HistogramObserver, \
     MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver
-from ....v1 import xnn
+from .... import xnn
 
 
 ####################################################################

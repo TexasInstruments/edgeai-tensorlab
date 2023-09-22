@@ -32,9 +32,9 @@
 import warnings
 import torch
 import copy
-from .. import utils
-from .. import layers
-from ..utils import AttrDict as Dict
+from ....xnn import layers
+from ....xnn.utils import AttrDict as Dict
+from ....xnn import utils
 from .hooked_module import *
 
 class QuantGraphModule(HookedModule):
