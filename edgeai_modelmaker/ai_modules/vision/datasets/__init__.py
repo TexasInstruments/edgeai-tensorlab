@@ -92,8 +92,10 @@ class DatasetHandling:
             # dataset splits are directly given
             dataset_splits = dict()
             for split_idx, split_name in enumerate(self.params.dataset.split_names):
-                dataset_splits[split_name] = dataset_utils.dataset_load(self.params.common.task_type,
-                    self.params.dataset.input_data_path[split_idx], self.params.dataset.input_annotation_path[split_idx],
+                dataset_splits[split_name] = dataset_utils.dataset_load(
+                    self.params.dataset.input_annotation_path[split_idx],
+                    self.params.dataset.input_data_path[split_idx],
+                    self.params.common.task_type,
                     annotation_format=self.params.dataset.annotation_format)
                 dataset_splits[split_name] = dataset_utils.dataset_split_limit(dataset_splits[split_name],
                                                                                max_num_files[split_idx])
@@ -113,15 +115,18 @@ class DatasetHandling:
             self.params.dataset.input_data_path = input_data_path
             # Loading datasets splits
             for split_idx, split_name in enumerate(self.params.dataset.split_names):
-                dataset_splits[split_name] = dataset_utils.dataset_load(self.params.common.task_type,
-                                                                        self.params.dataset.input_data_path[split_idx],
-                                                                        self.params.dataset.input_annotation_path[split_idx],
-                                                                        annotation_format=self.params.dataset.annotation_format)
+                dataset_splits[split_name] = dataset_utils.dataset_load(
+                    self.params.dataset.input_annotation_path[split_idx],
+                    self.params.dataset.input_data_path[split_idx],
+                    self.params.common.task_type,
+                    annotation_format=self.params.dataset.annotation_format)
         else:
             if self.params.dataset.input_data_path is not None and self.params.dataset.input_annotation_path is not None:
                 # data (images) folder and annotation folder are given
-                dataset_store = dataset_utils.dataset_load(self.params.common.task_type,
-                    self.params.dataset.input_data_path, self.params.dataset.input_annotation_path,
+                dataset_store = dataset_utils.dataset_load(
+                    self.params.dataset.input_annotation_path,
+                    self.params.dataset.input_data_path,
+                    self.params.common.task_type,
                     annotation_format=self.params.dataset.annotation_format)
                 # split the dataset into train/val
                 dataset_splits = dataset_utils.dataset_split(dataset_store,
@@ -132,9 +137,7 @@ class DatasetHandling:
                 download_root = os.path.join(self.params.common.download_path, 'datasets')
                 _, _, input_data_path = utils.download_file(self.params.dataset.input_data_path,
                                                             download_root, self.params.dataset.extract_path)
-                with open(input_annotation_path) as afp:
-                    dataset_store = json.load(afp)
-                #
+                dataset_store = dataset_utils.dataset_load(input_annotation_path)
                 # split the dataset into train/val
                 dataset_splits = dataset_utils.dataset_split(dataset_store, self.params.dataset.split_factor,
                                                              self.params.dataset.split_names)
@@ -150,12 +153,10 @@ class DatasetHandling:
                 #
                 input_images_path, self.params.dataset.input_annotation_path = dataset_download_paths
                 self.params.dataset.input_data_path = input_images_path.replace(self.params.dataset.data_dir, '')
-                with open(self.params.dataset.input_annotation_path) as afp:
-                    dataset_store = json.load(afp)
-                #
+                dataset_store = dataset_utils.dataset_load(self.params.dataset.input_annotation_path)
                 # split the dataset into train/val
                 dataset_splits = dataset_utils.dataset_split(dataset_store,
-                                                             self.params.dataset.split_factor, self.params.dataset.split_names)
+                                                 self.params.dataset.split_factor, self.params.dataset.split_names)
             else:
                 assert False, 'invalid dataset details'
             #

@@ -369,7 +369,7 @@ def dataset_split_link(input_data_path, dataset_dict, input_data_path_split, ann
     return
 
 
-def dataset_load_coco(task_type, input_data_path, input_annotation_path):
+def dataset_load_coco(input_annotation_path, input_data_path=None, task_type=None):
     with open(input_annotation_path) as afp:
         dataset_store = json.load(afp)
     #
@@ -379,6 +379,6 @@ def dataset_load_coco(task_type, input_data_path, input_annotation_path):
     return dataset_store
 
 
-def dataset_load(task_type, input_data_path, input_annotation_path, annotation_format='coco_json', is_dataset_split=False):
-    dataset_store = dataset_load_coco(task_type, input_data_path, input_annotation_path)
+def dataset_load(input_annotation_path, input_data_path=None, task_type=None, annotation_format='coco_json', is_dataset_split=False):
+    dataset_store = dataset_load_coco(input_annotation_path, input_data_path, task_type)
     return dataset_store
