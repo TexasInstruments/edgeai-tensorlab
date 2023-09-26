@@ -69,12 +69,15 @@ def main(config):
     )
 
     # prepare
-    run_params_file = model_runner.prepare()
+    ret_val, run_params_file = model_runner.prepare()
     print(f'Run params is at: {run_params_file}')
 
     # run
-    model_runner.run()
-
+    if ret_val:
+        model_runner.run()
+    else:
+        print('\nERROR: ModelMaker - Training could not start (dataset loading failed)')
+    #
     return True
 
 

@@ -97,6 +97,10 @@ class DatasetHandling:
                     self.params.dataset.input_data_path[split_idx],
                     self.params.common.task_type,
                     annotation_format=self.params.dataset.annotation_format)
+                if dataset_splits[split_name] is None:
+                    print('ERROR: could not load dataset')
+                    return False
+                #
                 dataset_splits[split_name] = dataset_utils.dataset_split_limit(dataset_splits[split_name],
                                                                                max_num_files[split_idx])
                 dataset_utils.dataset_split_write(
@@ -120,27 +124,20 @@ class DatasetHandling:
                     self.params.dataset.input_data_path[split_idx],
                     self.params.common.task_type,
                     annotation_format=self.params.dataset.annotation_format)
+                if dataset_splits[split_name] is None:
+                    print('ERROR: could not load dataset')
+                    return False
+                #
+            #
         else:
             if self.params.dataset.input_data_path is not None and self.params.dataset.input_annotation_path is not None:
-                # data (images) folder and annotation folder are given
-                dataset_store = dataset_utils.dataset_load(
-                    self.params.dataset.input_annotation_path,
-                    self.params.dataset.input_data_path,
-                    self.params.common.task_type,
-                    annotation_format=self.params.dataset.annotation_format)
-                # split the dataset into train/val
-                dataset_splits = dataset_utils.dataset_split(dataset_store,
-                                                             self.params.dataset.split_factor, self.params.dataset.split_names)
+                pass
             elif self.params.dataset.input_data_path is not None:
                 input_annotation_path = os.path.join(self.params.dataset.dataset_path, self.params.dataset.annotation_dir,
                                                      f'{self.params.dataset.annotation_prefix}.json')
                 download_root = os.path.join(self.params.common.download_path, 'datasets')
                 _, _, input_data_path = utils.download_file(self.params.dataset.input_data_path,
                                                             download_root, self.params.dataset.extract_path)
-                dataset_store = dataset_utils.dataset_load(input_annotation_path)
-                # split the dataset into train/val
-                dataset_splits = dataset_utils.dataset_split(dataset_store, self.params.dataset.split_factor,
-                                                             self.params.dataset.split_names)
                 self.params.dataset.input_data_path, self.params.dataset.input_annotation_path = input_data_path, input_annotation_path
             elif self.params.dataset.dataset_name in get_datasets_list(self.params.common.task_type):
                 dataset_backend = get_target_module(self.params.dataset.dataset_name)
@@ -153,13 +150,27 @@ class DatasetHandling:
                 #
                 input_images_path, self.params.dataset.input_annotation_path = dataset_download_paths
                 self.params.dataset.input_data_path = input_images_path.replace(self.params.dataset.data_dir, '')
-                dataset_store = dataset_utils.dataset_load(self.params.dataset.input_annotation_path)
-                # split the dataset into train/val
-                dataset_splits = dataset_utils.dataset_split(dataset_store,
-                                                 self.params.dataset.split_factor, self.params.dataset.split_names)
             else:
-                assert False, 'invalid dataset details'
+                print('ERROR: invalid dataset details')
+                return False
             #
+
+            # data (images) folder and annotation folder are given
+            dataset_store = dataset_utils.dataset_load(
+                self.params.dataset.input_annotation_path,
+                self.params.dataset.input_data_path,
+                self.params.common.task_type,
+                annotation_format=self.params.dataset.annotation_format)
+            if dataset_store is None:
+                print('ERROR: could not load dataset')
+                return False
+            #
+
+            # split the dataset into train/val
+            dataset_splits = dataset_utils.dataset_split(dataset_store,
+                                         self.params.dataset.split_factor,
+                                         self.params.dataset.split_names)
+
             # write dataset splits
             for split_idx, split_name in enumerate(dataset_splits):
                 input_images_path = os.path.join(self.params.dataset.input_data_path, self.params.dataset.data_dir)
@@ -180,6 +191,8 @@ class DatasetHandling:
             print(f'dataset split sizes are limited to:', \
                   {split_name: len(dataset_split['images']) for split_name, dataset_split in dataset_splits.items()})
         #
+        print('dataset loading OK')
+        return True
 
     def get_max_num_fies(self):
         if isinstance(self.params.dataset.max_num_files, (list, tuple)):

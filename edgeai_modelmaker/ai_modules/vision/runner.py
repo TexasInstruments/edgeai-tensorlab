@@ -110,6 +110,8 @@ class ModelRunner():
         pass
 
     def prepare(self):
+        ret_val = True
+
         # create folders
         os.makedirs(self.params.common.project_path, exist_ok=True)
         os.makedirs(self.params.common.project_run_path, exist_ok=True)
@@ -125,7 +127,7 @@ class ModelRunner():
         # actual dataset handling
         if self.params.dataset.enable:
             self.dataset_handling.clear()
-            self.dataset_handling.run()
+            ret_val = self.dataset_handling.run()
         #
 
         #####################################################################
@@ -142,7 +144,8 @@ class ModelRunner():
 
         # write out the description of the current run
         run_params_file = self.write_status_file()
-        return run_params_file
+
+        return ret_val, run_params_file
 
     def run(self):
         #####################################################################

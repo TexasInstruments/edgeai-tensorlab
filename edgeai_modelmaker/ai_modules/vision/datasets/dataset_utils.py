@@ -302,11 +302,6 @@ def _find_annotations_info(dataset_store):
 
 def dataset_split(dataset, split_factor, split_names, random_seed=1):
     random.seed(random_seed)
-    if isinstance(dataset, str):
-        with open(dataset) as fp:
-            dataset = json.load(fp)
-        #
-    #
     dataset_train = dict(info=dataset['info'],
                          categories=dataset['categories'],
                          images=[], annotations=[])
@@ -379,6 +374,30 @@ def dataset_load_coco(input_annotation_path, input_data_path=None, task_type=Non
     return dataset_store
 
 
-def dataset_load(input_annotation_path, input_data_path=None, task_type=None, annotation_format='coco_json', is_dataset_split=False):
+def dataset_load(input_annotation_path, input_data_path=None, task_type=None, annotation_format='coco_json',
+                 is_dataset_split=False, fix_errors=False):
     dataset_store = dataset_load_coco(input_annotation_path, input_data_path, task_type)
+    image_ids = [image_info['id'] for image_info in dataset_store['images']]
+    if (any([isinstance(image_id, str) for image_id in image_ids]) and
+            any([isinstance(image_id, int) for image_id in image_ids])):
+        if fix_errors:
+            print('WARNING: incorrect dataset format - found a mix of int and string image_id - '
+                  'this can cause a crash during dataset loading - changing to ints.')
+            original_to_new_image_id_dict = dict()
+            for image_id, image_info in enumerate(dataset_store['images']):
+                new_image_id = image_id + 1
+                orig_image_id = image_info['id']
+                image_info['id'] = new_image_id
+                image_info['id_orig'] = orig_image_id
+                original_to_new_image_id_dict[orig_image_id] = new_image_id
+            #
+            for anno_id, anno in enumerate(dataset_store['annotations']):
+                anno['image_id'] = original_to_new_image_id_dict[anno['image_id']]
+            #
+        else:
+            print('ERROR: incorrect dataset format - found a mix of int and string image_id - '
+                  'this can cause a crash during dataset loading.')
+            return None
+        #
+    #
     return dataset_store
