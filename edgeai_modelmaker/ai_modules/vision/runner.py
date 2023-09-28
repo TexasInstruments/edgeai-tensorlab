@@ -144,8 +144,19 @@ class ModelRunner():
 
         # write out the description of the current run
         run_params_file = self.write_status_file()
+        print(f'Run params is at: {run_params_file}')
 
-        return ret_val, run_params_file
+        if not ret_val:
+            # dataset is incorrect - training could not start. create a training log file and write error.
+            self.params.training.log_file_path = os.path.join(self.params.training.training_path, 'run.log')
+            os.makedirs(os.path.dirname(self.params.training.log_file_path), exist_ok=True)
+            print('\nERROR: ModelMaker - Training could not start (dataset error)')
+            with open(self.params.training.log_file_path, 'a') as lfp:
+                lfp.write('\nERROR: ModelMaker - Training could not start (dataset error)')
+            #
+        #
+
+        return ret_val
 
     def run(self):
         #####################################################################
@@ -163,6 +174,7 @@ class ModelRunner():
             self.package_trained_model(model_training_package_files, self.params.training.model_packaged_path)
             # we are done with training
             print(f'Trained model is at: {self.params.training.training_path}', flush=True)
+            print('\nSUCCESS: ModelMaker - Training completed.')
             with open(self.params.training.log_file_path, 'a') as lfp:
                 lfp.write('\nSUCCESS: ModelMaker - Training completed.')
             #
