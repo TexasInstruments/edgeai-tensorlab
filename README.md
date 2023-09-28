@@ -260,9 +260,10 @@ Note: **This section is for advanced users only**. Familiarity with NVIDIA GPU a
 
 This tool can train models either on CPU or on GPUs. By default, CPU based training is used. 
 
-It is possible to speedup model training significantly using GPUs (with CUDA support) - if you have those GPUs in the PC. The PyTorch version that we install is capable of supporting CUDA GPUs. However, there are additional steps to be followed to enable GPU support in training.
-
-Once the drivers are installed (as described in the appropriate section below), in the config file, set a value for num_gpus to a value greater than 0 (should not exceed the number of GPUs in the system) to enable GPU based training.
+It is possible to speedup model training significantly using GPUs (with CUDA support) - if you have those GPUs in the PC. The PyTorch version that we install by default is not capable of supporting CUDA GPUs. There are additional steps to be followed to enable GPU support in training. 
+- In the file setup_all.sh, we are using setup_cpu.sh for several of the repositories that we are using. These will have to be changed to setup.sh before running setup_all.sh
+- Install GPU driver and other tools as described in the sections below.
+- In the config file, set a value for num_gpus to a value greater than 0 (should not exceed the number of GPUs in the system) to enable GPU based training.
 
 #### Option 1: When using Native Ubuntu Environment
 
