@@ -2312,7 +2312,7 @@ target_device_descriptions:
       * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
       * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
     device_name: AM62
-    device_selection_factor: 1
+    device_selection_factor: 0
     device_type: MPU
     sdk_release: 09_00_00
     sdk_version: '9.0'
@@ -2327,7 +2327,7 @@ target_device_descriptions:
       \ https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
       * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
     device_name: AM62A
-    device_selection_factor: 0
+    device_selection_factor: 1
     device_type: MPU
     sdk_release: 09_00_00
     sdk_version: '9.0'
@@ -2383,8 +2383,8 @@ task_descriptions:
     - training
     - compilation
     target_devices: &id001
-    - AM62A
     - AM62
+    - AM62A
     - TDA4VM
     - AM68A
     - AM69A

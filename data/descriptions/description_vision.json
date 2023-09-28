@@ -2547,19 +2547,19 @@
     }
   },
   "target_device_descriptions":{
-    "AM62A":{
-      "device_name":"AM62A",
-      "device_type":"MPU",
-      "device_selection_factor":0,
-      "device_details":"Efficient 2 TOPS AI capability at edge\nSpecification:\n* 2 TOPS Deep Learning accelerator\n* Quad Arm\u00ae Cortex\u00ae-A53\n* Integrated ISP\n* More details : https://www.ti.com/product/AM62A7\n\nImportant links:\n* Product information: https://www.ti.com/product/AM62A7\n* Development board: https://www.ti.com/tool/SK-AM62A-LP\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* SDK release: 09_00_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
-      "sdk_version":"9.0",
-      "sdk_release":"09_00_00"
-    },
     "AM62":{
       "device_name":"AM62",
       "device_type":"MPU",
-      "device_selection_factor":1,
+      "device_selection_factor":0,
       "device_details":"Human-machine-interaction SoC\nSpecification:\n* Arm\u00ae Cortex\u00ae-A53-based edge AI and full-HD dual display\n* Up to Quad Arm\u00ae Cortex\u00ae-A53 at up to 1.4 GHz\n* 3D Graphics Processing Unit\nMHz\n* More details : https://www.ti.com/product/AM625\n\nImportant links:\n* Product information: https://www.ti.com/product/AM625\n* Development board: https://www.ti.com/tool/SK-AM62\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62X\n* SDK documentation & board setup: See analytics application and Edge AI documentation at https://www.ti.com/tool/SK-AM62#order-start-development\n* SDK release: 09_00_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
+      "sdk_version":"9.0",
+      "sdk_release":"09_00_00"
+    },
+    "AM62A":{
+      "device_name":"AM62A",
+      "device_type":"MPU",
+      "device_selection_factor":1,
+      "device_details":"Efficient 2 TOPS AI capability at edge\nSpecification:\n* 2 TOPS Deep Learning accelerator\n* Quad Arm\u00ae Cortex\u00ae-A53\n* Integrated ISP\n* More details : https://www.ti.com/product/AM62A7\n\nImportant links:\n* Product information: https://www.ti.com/product/AM62A7\n* Development board: https://www.ti.com/tool/SK-AM62A-LP\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* SDK release: 09_00_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
       "sdk_version":"9.0",
       "sdk_release":"09_00_00"
     },
@@ -2593,8 +2593,8 @@
       "task_name":"Image Classification",
       "target_module":"vision",
       "target_devices":[
-        "AM62A",
         "AM62",
+        "AM62A",
         "TDA4VM",
         "AM68A",
         "AM69A"
@@ -2609,8 +2609,8 @@
       "task_name":"Object Detection",
       "target_module":"vision",
       "target_devices":[
-        "AM62A",
         "AM62",
+        "AM62A",
         "TDA4VM",
         "AM68A",
         "AM69A"
@@ -2625,8 +2625,8 @@
       "task_name":"Semantic Segmentation",
       "target_module":"vision",
       "target_devices":[
-        "AM62A",
         "AM62",
+        "AM62A",
         "TDA4VM",
         "AM68A",
         "AM69A"
@@ -2641,8 +2641,8 @@
       "task_name":"Keypoint Detection",
       "target_module":"vision",
       "target_devices":[
-        "AM62A",
         "AM62",
+        "AM62A",
         "TDA4VM",
         "AM68A",
         "AM69A"

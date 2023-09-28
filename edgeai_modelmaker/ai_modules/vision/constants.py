@@ -41,7 +41,7 @@ TASK_TYPE_KEYPOINT_DETECTION = 'keypoint_detection'
 TASK_TYPES = [
     TASK_TYPE_CLASSIFICATION,
     TASK_TYPE_DETECTION,
-    #TASK_TYPE_SEGMENTATION
+    TASK_TYPE_SEGMENTATION,
     #TASK_TYPE_KEYPOINT_DETECTION
 ]
 
@@ -50,12 +50,11 @@ TARGET_DEVICE_TDA4VM = 'TDA4VM'
 TARGET_DEVICE_AM62A = 'AM62A'
 TARGET_DEVICE_AM68A = 'AM68A'
 TARGET_DEVICE_AM69A = 'AM69A'
-# not used right now - for example, AM62 is not in the list of TARGET_DEVICES
 TARGET_DEVICE_AM62 = 'AM62'
 
 TARGET_DEVICES = [
-    TARGET_DEVICE_AM62A,
     TARGET_DEVICE_AM62,
+    TARGET_DEVICE_AM62A,
     TARGET_DEVICE_TDA4VM,
     TARGET_DEVICE_AM68A,
     TARGET_DEVICE_AM69A,
@@ -222,19 +221,19 @@ Additional information:
 
 # higher device_selection_factor indicates higher performance device.
 TARGET_DEVICE_DESCRIPTIONS = {
-    TARGET_DEVICE_AM62A: {
-        'device_name': TARGET_DEVICE_AM62A,
-        'device_type': TARGET_DEVICE_TYPE_MPU,
-        'device_selection_factor': 0,
-        'device_details': TARGET_DEVICE_DETAILS_AM62A,
-        'sdk_version': TARGET_SDK_VERSION,
-        'sdk_release': TARGET_SDK_RELEASE,
-    },
     TARGET_DEVICE_AM62: {
         'device_name': TARGET_DEVICE_AM62,
         'device_type': TARGET_DEVICE_TYPE_MPU,
-        'device_selection_factor': 1,
+        'device_selection_factor': 0,
         'device_details': TARGET_DEVICE_DETAILS_AM62,
+        'sdk_version': TARGET_SDK_VERSION,
+        'sdk_release': TARGET_SDK_RELEASE,
+    },
+    TARGET_DEVICE_AM62A: {
+        'device_name': TARGET_DEVICE_AM62A,
+        'device_type': TARGET_DEVICE_TYPE_MPU,
+        'device_selection_factor': 1,
+        'device_details': TARGET_DEVICE_DETAILS_AM62A,
         'sdk_version': TARGET_SDK_VERSION,
         'sdk_release': TARGET_SDK_RELEASE,
     },
