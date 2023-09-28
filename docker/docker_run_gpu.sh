@@ -31,11 +31,14 @@
 #
 #################################################################################
 
+docker_image_name="modelmaker:v9.0"
+docker_container_name="${docker_image_name}-ubuntu22.04-py310"
 PARENT_DIR=$(realpath ..)
 
 # This script is intended to work with single container.
 # Number container exist
-cont_count=`docker ps -aq | wc -l`
+container_count=$(docker ps -a | grep ${docker_container_name} | wc -l)
+echo "Number of containers with the given name/tag: ${container_count} "
 
 echo "This script starts the container with GPU support."
 echo "Make sure you have installed GPUs, nvidia drivers and also nvidia-docker2."
@@ -46,9 +49,10 @@ https_proxy=${https_proxy:-""}
 no_proxy=${no_proxy:-""}
 
 #If no container exist, then create the container.
-if [ $cont_count -eq 0 ]
+if [ $container_count -eq 0 ]
 then
     docker run -it \
+        --name "${docker_container_name}" \
         -v ${PARENT_DIR}:/home/edgeai/code \
         --privileged \
         --network host \
@@ -57,15 +61,16 @@ then
         -e http_proxy=${http_proxy} \
         -e https_proxy=${https_proxy} \
         -e no_proxy=${no_proxy} \
-        modelmaker bash
+        --user $(id -u):$(id -g) \
+        ${docker_image_name} bash
 # If one container exist, execute that container.
-elif [ $cont_count -eq 1 ]
+elif [ $container_count -eq 1 ]
 then
-    cont_id=`docker ps -q -l`
-    docker start $cont_id
-    docker exec -it $cont_id /bin/bash
+    echo "Restarting existing container: ${docker_container_name}"
+    docker start "${docker_container_name}"
+    docker exec -it "${docker_container_name}" /bin/bash
 else
-    echo -e "\nMultiple containers are present, so exiting"
+    echo -e "\nMultiple containers found with similar name/tag ${docker_container_name}, so exiting"
     echo -e "To run existing container, use [docker start] and [docker exec] command"
     echo -e "To run the new container, use [docker run] command\n"
 fi

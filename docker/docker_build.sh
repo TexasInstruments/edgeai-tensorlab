@@ -31,6 +31,8 @@
 #
 #################################################################################
 
+docker_image_name="modelmaker:v9.0"
+
 #################################################################################
 # determine if we are behind ti firewall
 ping bitbucket.itg.ti.com -c 1 > /dev/null 2>&1
@@ -53,7 +55,7 @@ no_proxy=${no_proxy:-""}
 echo "building docker image..."
 docker build \
     -f ./docker/Dockerfile \
-    -t modelmaker:v1 \
+    -t ${docker_image_name} \
     --build-arg REPO_LOCATION=${REPO_LOCATION} \
     --build-arg http_proxy=${http_proxy} \
     --build-arg https_proxy=${https_proxy} \
