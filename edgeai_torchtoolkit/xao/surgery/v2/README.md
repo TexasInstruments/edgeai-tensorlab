@@ -10,13 +10,13 @@ This is the main model surgery function.
 #### Usage: 
 ```
 ## insert this line into your model training script
-model = edgeai_torchvision.surgery.v2.convert_to_lite_fx(model)
+model = edgeai_torchtoolkit.xao.surgery.v2.convert_to_lite_fx(model)
 ```
 
 #### Example:
 ```
 model = torchvision.models.mobilenet_v3_large()
-model = edgeai_torchvision.surgery.v2.convert_to_lite_fx(model)
+model = edgeai_torchtoolkit.xao.surgery.v2.convert_to_lite_fx(model)
 ```
 
 ### get_replacement_dict_default
@@ -24,18 +24,18 @@ This can be used to get the default replacement dict. This replacement dict can 
 
 #### Usage:
 ```
-replacement_dict = copy.deepcopy(edgeai_torchvision.surgery.v2.get_replacement_dict_default())
+replacement_dict = copy.deepcopy(edgeai_torchtoolkit.xao.surgery.v2.get_replacement_dict_default())
 replacement_dict.update({torch.nn.GELU: torch.nn.ReLU})
 ```
 
 Now apply the conversion using the updated replacement_dict
 ```
-model = edgeai_torchvision.surgery.v2.convert_to_lite_fx(model, replacement_dict=replacement_dict)
+model = edgeai_torchtoolkit.xao.surgery.v2.convert_to_lite_fx(model, replacement_dict=replacement_dict)
 ```
 
 The value of the replacement entry can also be a function name:
 ```
-replacement_dict = edgeai_torchvision.surgery.v2.get_replacement_dict_default()
+replacement_dict = edgeai_torchtoolkit.xao.surgery.v2.get_replacement_dict_default()
 replacement_dict.update({'layerNorm':custom_surgery_functions.replace_layer_norm})
 ```
 

@@ -22,6 +22,6 @@ Tools and utilities to help the development of Embedded Friendly Deep Neural Net
 <hr>
 
 ### Documentation 
-- [EdgeAI-TorchToolkit documentation](./edgeai_torchtoolkit/README.md) describes how to use these tools. 
+- [**EdgeAI-TorchToolkit documentation**](./edgeai_torchtoolkit/README.md) describes how to use these tools. 
 
 <hr>

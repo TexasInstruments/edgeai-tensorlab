@@ -1,6 +1,6 @@
 ># PyTorch Model Surgery
 ---
-This repository is a model surgery API that will make the models TIDL friendly by changing their inner structure using [torch.fx](https://pytorch.org/docs/stable/fx.html) package.
+This module implements is a model surgery API that can be used to replace layers (operators, functionals, modules) and make models TIDL friendly. [torch.fx](https://pytorch.org/docs/stable/fx.html) package is used for this replacement.
  
 <center>
 <br><img src="Images/Intro_diagram.png"  width = "60%" alt="" /><br>
@@ -76,40 +76,39 @@ This repository is a model surgery API that will make the models TIDL friendly b
 [<p align = 'right'>Go To Top</p>](#table-of-content)
 
 ---
-### [get_replacement_dict_default]()
-```python
-default_dict = surgery.get_replacement_dict_default() # a dict
-```
-- returns the default replacement dictionary defined in the module
-- user can update the dictiony but the mapping should follow for the patterns and their replacements
 
-### [replace_unsupported_layers function]()
-```python
-changed_model = surgery.replace_unsupported_layers(model:nn.Module,replacement_dict=default_dict) # a torch.fx.GraphModule
+### [convert_to_lite_fx function]()
+```
+changed_model = convert_to_lite_fx(model, replacement_dict=None)
 ```
 - returns the module after all changes are done on the model, which are defined in the replacement_dict
 - args:
   - model: the target model we have to surgery on
-  - replacement_dict: the replacement rules in form of pattern(keys) and replacements(vals) 
-    - if repalcement_dict == None: it will take default replacement dict
+  - replacement_dict: the replacement rules in form of pattern(keys) and replacements(values). If repalcement_dict == None, it will take default replacement dict
 
 ### [SurgeryModule Class]()
-```python
-changed_model=surgery.SurgeryModule(model, replacement_dict=default_dict) # a nn.Module
 ```
-- creates a wrapper module over the changed model after going through function [replace_unsupported_layer](#replace_unsupported_layers-function) along with the replacement_dict
+changed_model = SurgeryModule(model, replacement_dict=None)
+```
+- creates a wrapper module that will apply the model surgery function inside.
 - args:
   - model: the target model we have to surgery on
-  - replacement_dict: the replacement rules in form of pattern(keys) and replacements(vals)
-    - if repalcement_dict == None: it will take default replacement dict
-- user can also get the replacement_dict used for surgery by using **get_replacement_dict** method on the changed model object
-```python
-replacement_dict=changed_model.get_replacement_dict() # a dict
+  - replacement_dict: the replacement rules in form of pattern(keys) and replacements(vals). If repalcement_dict == None, it will take default replacement dict
+
+### [get_replacement_dict_default]()
+- user can get the default replacement_dict used for surgery by using **get_replacement_dict_default()**
+- returns the default replacement dictionary defined in the module
+- user can then update the dictionary and pass it to the above apis.
 ```
+replacement_dict = copy.deepcopy(get_replacement_dict_default())
+replacement_dict.update({torch.nn.GELU: torch.nn.ReLU})
+changed_model = convert_to_lite_fx(model, replacement_dict=replacement_dict)
+```
+
 
 ### Example
 #### Example Model
-```py
+```
 class ExampleModule(nn.Module):
     def __init__(self):
         super().__init__()
@@ -130,15 +129,16 @@ class ExampleModule(nn.Module):
     def forward(self,x):
         return torch.nn.functional.gelu(torch.add(self.left(x),self.right(x)))
 
-model= ExampleModule()
+model = ExampleModule()
 ```
+
 #### Onnx Export before any change
 <center>
 <img src='Images/onnx_exampleModule_before.png' width ="60%">
 </center>
 
 #### Example of Replacement Dictionary:
-```py
+```
 replacement_dict={
     #Type refers to class 
      surgery.custom_modules.SEModule1:nn.Identity(),# Type to Module (composite)
@@ -150,17 +150,16 @@ replacement_dict={
      torch.nn.functional.gelu:nn.ReLU(), # function to Type/Module
      torch.add:torch.sub, #function to function
      'conv kernel 7':surgery.custom_surgery_functions.replace_conv2d_kernel_size_ge_7 # custom surgery function
-
 }
 ```
 
 #### function to change according to replacement dict
 
-```py
-from edgeai_torchtoolkit.v2.xao.surgery import surgery
-changed_model=surgery.replace_unsupported_layers(model,replacement_dict=replacement_dict)
 ```
-#### Onnx Export before any change
+changed_model = surgery.replace_unsupported_layers(model,replacement_dict=replacement_dict)
+```
+
+#### Onnx Export after change
 <center>
 <img src='Images/onnx_exampleModule_after.png' width ="30%">
 </center>
@@ -178,7 +177,6 @@ This package says to change the model, we have to go through 3 steps.
 > 1. Modification in the [Intermediate Representation](#intermediate-representation) (Graph)
 > 1. [Code Generation]()
 
-
 <center>
 <br><img src="Images/basic_diagram.png"  width = "75%" alt="" /><br>
 </center>
@@ -187,7 +185,7 @@ This package says to change the model, we have to go through 3 steps.
 It is the process of performing **“symbolic execution”** of the Python code. It feeds fake values, called **Proxies**, through the code. Operations on theses Proxies are recorded.
 
 Code:
-```python
+```
 class ExampleModule(nn.Module):
     def __init__(self):
         super().__init__()
@@ -208,7 +206,6 @@ ExampleModule(
   (act): ReLU()
 )
 
-
 the container for the operations that were recorded during symbolic tracing. It consists of a list of Nodes that represent function inputs, call-sites (to functions, methods, or torch.nn.Module instances), and return values
 def forward(self, x):
     permute = x.permute(0, 1, 2, 3);  x = None
@@ -218,13 +215,14 @@ def forward(self, x):
     return act
 ```
 
-After symbolic trace, [torch.nn.Module](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module) object will be converted [torch.fx.GraphModule](https://pytorch.org/docs/stable/fx.html#torch.fx.GraphModule) object with its own graph and code. Due to this, Inner composite modules (i.e. which are made up of more sub module) will lose their forward functions which can be seen in the **code** attribute of main model's GraphModule along with the the function calls and method calls of different intermediate objects.
+After symbolic trace, [torch.nn.Module](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module) object will be converted [torch.fx.GraphModule](https://pytorch.org/docs/stable/fx.html#torch.fx.GraphModule) object with its own graph and code. Due to this, Inner composite modules (i.e. which are made up of more sub module) will lose their forward functions which can be seen in the **code** attribute of main model's GraphModule along with the function calls and method calls of different intermediate objects.
+
 
 ### Intermediate Representation ([Graph](https://pytorch.org/docs/stable/fx.html#torch.fx.Graph))
 It is the container for the operations that were recorded during symbolic tracing. It consists of a list of Nodes that represent function inputs, call-sites (to functions, methods, or [torch.nn.Module](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module) instances), and return values.
 
 Code:
-```python
+```
 print(traced_model.graph)
 ```
 
@@ -304,7 +302,8 @@ For example, in the above graph the node_list will be:
     - [lint](https://pytorch.org/docs/stable/fx.html#torch.fx.Graph.lint)()
   - printing the graph:
     - [print_tabular](https://pytorch.org/docs/stable/fx.html#torch.fx.Graph.print_tabular)()
-  
+
+
 ### Node Objects
 Node generally contains the following attributes:
 - **Name**: its name
@@ -326,6 +325,7 @@ Code:
 ```python
 print(traced_model.code)
 ```
+
 Output:
 ```
 def forward(self, x):
@@ -391,7 +391,7 @@ Here, we are changing GeLU with ReLU which can be done with pair pattern(GeLU) p
 [<p align = 'right'>Go To Top</p>](#table-of-content)
 
 ---
-As previously said in section [Main API (Usages)](#main-api-usages), this API provides user with following functionalities in in [surgery.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse/edgeai_torchtoolkit/v2/xao/surgery/surgery.py):
+As previously said in section [Main API (Usages)](#main-api-usages), this API provides user with following functionalities in [surgery.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse/edgeai_torchtoolkit/v2/xao/surgery/surgery.py):
 
 - [get_replacement_dict_default](#get_replacement_dict_default)
 - [replace_unsupported_layer function](#replace_unsupported_layers-function)
@@ -412,44 +412,19 @@ def get_replacement_dict_default():
 
 ### Replacing Pattern with Replacement:
 ```python
-def replace_unsupported_layer(model:nn.Module,replacement_dict=None):
+def replace_unsupported_layer(model:nn.Module, replacement_dict=None):
 ```
 - returns the module after all changes are done on the model, which are defined in the replacement_dict
 - args:
   - model: the target model we have to surgery on
   - replacement_dict: the replacement rules in form of pattern(keys) and replacements(vals) 
-    - if repalcement_dict == None: it will take default replacement dict
+    - if repalcement_dict == None, it will take default replacement dict
   
 This function iterates through the replacement_dict and performs surgery according to the pair of pattern(keys) and replacement(values). 
 <center>
 <br><img src="Images/main_api_l1.png"   alt="" /><br>
 </center>
 
-### About SurgeryModule Class
-This is actually wrapper class inherited attriutes from torch.nn.Modules defined as:
-```py
-class SurgeryModule(torch.nn.Module):
-    
-    def __init__(self, model, replacement_dict=None) -> None:
-        super().__init__()
-        self.replacement_dict=replacement_dict or get_replacement_dict_default()
-        self.module = replace_unsuppoted_layers(model, self.replacement_dict)
-
-    def forward(self,x,*args,**kwargs):
-        return self.module(x,*args,**kwargs)
-
-    def get_replacement_dict(self):
-        return self.replacement_dict
-```
-- creates a wrapper module over the changed model after going through function [replace_unsupported_layer](#replace_unsupported_layers-function) along with the replacement_dict
-- args:
-  - model: the target model we have to surgery on
-  - replacement_dict: the replacement rules in form of pattern(keys) and replacements(vals)
-    - if repalcement_dict == None: it will take default replacement dict
-- user can also get the replacement_dict used for surgery by using **get_replacement_dict** method on the changed model object
-```python
-replacement_dict=changed_model.get_replacement_dict() # a dict
-```
 ---
 
 ## Different Types of Possible Replacement Rules
@@ -496,12 +471,12 @@ When we find the start and end of the matches of pattern in main model’s graph
 
 Possible candidate for change:<br>
 
-|Pattern|Replacement|
-|------|------|
-|SqueezeAndExcite 	| nn.Identity()|
-|nn.Dropout(…)	    | nn.Dropout()|	
-|nn.Hardswish()	    | nn.ReLU()|
-|nn.GeLU()		    | nn.ReLU()|
+| Pattern            | Replacement   |
+|--------------------|---------------|
+| SqueezeAndExcite	  | nn.Identity() |
+| nn.Dropout(…)	  | nn.Dropout()  |	
+| nn.Hardswish()     | nn.ReLU()     |
+| nn.GeLU()		  | nn.ReLU()     |
 
 
 All this functionalities are availabe in [replacer.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse/edgeai_torchtoolkit/v2/xao/surgery/replacer.py) file which will be discussed later.

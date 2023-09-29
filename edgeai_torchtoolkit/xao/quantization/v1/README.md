@@ -4,7 +4,6 @@ Quantization of a CNN model is the process of converting floating point data & o
 
 Accuracy of inference can degrade if the CNN model is quantized to 8bits using simple methods and steps have to be taken to minimize this accuracy loss. The parameters of the model need to be adjusted to suit quantization. This includes adjusting of weights, biases and activation ranges. This adjustment can be done as part of Post Training Quantization (PTQ) or as part of Quantization Aware Training (QAT).
 
-
 ## Overview
 Inference engines use fixed point arithmetic to implement neural networks efficiently. For example TI Deep Learning Library (TIDL) for TI’s Jacinto7 TDA4x Devices (eg. TDA4VM, TDA4AL, TDA4VL etc) or AM6XA Devices (eg. AM62A, AM68A, AM69A etc) supports 16-bit and 8-bit fixed point inference modes.
 
@@ -19,7 +18,6 @@ Post Training Quantization (PTQ): Post Training Quantization involves range esti
 Quantization Aware Training (QAT): This is needed only if the accuracy obtained with PTQ is not satisfactory. QAT operates as a second phase after the initial training in floating point, in the training framework. More details are in [Quantization Aware Training (**QAT**) documentation](./docs/qat.md).
 
 In this repository, we have  guidelines on how to choose models and how train them to get the best accuracy with Quantization. It is unlikely that there will be significant accuracy drop with PTQ if these guidelines are followed. In spite of this, if there are models that have significant accuracy drop with quantization, it is possible to improve the accuracy using QAT. Please read more details in the documentation for QAT.
-
 
 ## Results
 
