@@ -63,7 +63,7 @@ def make_parser():
         "-d", "--devices", default=None, type=int, help="device for training"
     )
     parser.add_argument(
-        "--device_type", default=None, type=int, help="device type for training. cpu for cpu based training, otherwise gpu based training"
+        "--device_type", default='cuda', type=str, help="device type for training. cpu for cpu based training, otherwise gpu based training"
     )
     parser.add_argument(
         "-w", "--workers", default=None, type=int, help="number of workers per gpu"
@@ -252,6 +252,12 @@ if __name__ == "__main__":
     args = make_parser().parse_args()
     exp = get_exp(args.exp_file, args.name)
     exp.merge(args.opts)
+
+    # additional merges
+    for key in ['device_type', 'train_ann', 'val_ann']:
+        val = getattr(args, key)
+        if val is not None:
+            setattr(exp, key, val)
 
     if not args.experiment_name:
         args.experiment_name = exp.exp_name

@@ -100,7 +100,7 @@ def prepare_layer_output_names(onnx_model, export_layer_types=None, match_layer=
     layer_output_names = []
     for i in range(len(onnx_model.graph.node)):
         node_inputs = onnx_model.graph.node[i].input
-        if (onnx_model.graph.node[i].op_type in export_layer_types) and (len(node_inputs) == 4):
+        if (onnx_model.graph.node[i].op_type in export_layer_types) and (len(node_inputs) >= 3):
             for j in range(len(onnx_model.graph.node)):
                 if node_inputs[0] in onnx_model.graph.node[j].output:
                     if onnx_model.graph.node[j].op_type == match_layer:

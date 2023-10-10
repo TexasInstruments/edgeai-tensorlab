@@ -81,7 +81,8 @@ class Exp(MyExp):
                         num_kpts=self.num_kpts),
                     cache=cache_img,
                 )
-
+            else:
+                raise RuntimeError(f"unsupported dataset type: {self.data_set}. Please specify --dataset coco_kpts")
 
         dataset = MosaicDetection(
             dataset,

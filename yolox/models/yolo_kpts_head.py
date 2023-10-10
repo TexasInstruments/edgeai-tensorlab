@@ -759,7 +759,7 @@ class YOLOXHeadKPTS(nn.Module):
 
 
     def kpts_loss(self, kpts_preds, kpts_targets, bbox_targets):
-        sigmas = self.sigmas
+        sigmas = self.sigmas.to(device=kpts_preds.device)
         kpts_preds_x, kpts_targets_x = kpts_preds[:, 0::3], kpts_targets[:, 0::2]
         kpts_preds_y, kpts_targets_y = kpts_preds[:, 1::3], kpts_targets[:, 1::2]
         kpts_preds_score = kpts_preds[:, 2::3]
