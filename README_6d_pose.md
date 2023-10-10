@@ -1,21 +1,6 @@
 # YOLO-6D-Pose Multi-Object 6D Pose Estimation Model
 This repository is the official implementation of the paper ["**YOLO-6D-Pose: Enhancing YOLO for Multi Object 6D Pose Estimation**"]().It contains YOLOX based models for 6D Object pose estimation.
 
-## Installation
-Installation instructions are the same as the official repo and are mentioned here for convenience.
-
-Step1. Install YOLOX.
-```shell
-git clone https://github.com/TexasInstruments/edgeai-yolox.git
-cd edgeai-yolox
-pip3 install -U pip && pip3 install -r requirements.txt
-pip3 install -v -e .  # or  python3 setup.py develop
-```
-Step2. Install [pycocotools](https://github.com/cocodataset/cocoapi).
-
-```shell
-pip3 install cython; pip3 install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
-```
 Given below is a sample inference with ground-truth pose in green and predicted pose overlayed with class-specific colors.
 <br/> 
 <p float="left">

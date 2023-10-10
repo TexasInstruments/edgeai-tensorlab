@@ -16,22 +16,6 @@ This repository is based on [Megvii/YOLOX](https://github.com/Megvii-BaseDetecti
 
 For more details, please refer to Megvii's [report on Arxiv](https://arxiv.org/abs/2107.08430).
 
-### Installation
-Installation instructions are the same as the official repo and are mentioned here for convenience.
-
-Step1. Install YOLOX.
-```shell
-git clone https://github.com/TexasInstruments/edgeai-yolox.git
-cd edgeai-yolox
-pip3 install -U pip && pip3 install -r requirements.txt
-pip3 install -v -e .  # or  python3 setup.py develop
-```
-Step2. Install [pycocotools](https://github.com/cocodataset/cocoapi).
-
-```shell
-pip3 install cython; pip3 install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
-```
-
 
 ### Official Models from Megvii.
 
@@ -42,7 +26,7 @@ pip3 install cython; pip3 install 'git+https://github.com/cocodataset/cocoapi.gi
 |[YOLOX-s](./exps/default/yolox_s.py)    |640  |40.5 |40.5      |9.8      |9.0 | 26.8 | [github](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth) |
 |[YOLOX-m](./exps/default/yolox_m.py)    |640  |46.9 |47.2      |12.3     |25.3 |73.8| [github](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m.pth) |
 
-#### Light Models.
+#### Smaller Models.
 
 |Model |size |mAP<sup>val<br>0.5:0.95 | Params<br>(M) |FLOPs<br>(G)| weights |
 | ------        |:---:  |  :---:       |:---:     |:---:  | :---: |
