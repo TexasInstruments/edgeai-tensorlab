@@ -98,11 +98,12 @@ def set_model_selection_factor(model_descriptions):
     task_types = set([m.common.task_type for m in model_descriptions.values()])
     target_devices = [list(m.training.target_devices.keys()) for m in model_descriptions.values()]
     target_devices = set([t for t_list in target_devices for t in t_list])
-    for target_device in target_devices:
-        for task_type in task_types:
+    for task_type in task_types:
+        for target_device in target_devices:
             model_desc_list = [m for m in model_descriptions.values() if m.common.task_type == task_type]
             model_desc_list = [m for m in model_desc_list if target_device in list(m.training.target_devices.keys())]
             performance_infer_time_ms = [m.training.target_devices[target_device].performance_infer_time_ms for m in model_desc_list]
+            performance_infer_time_ms = [float(perf.split(' ')[0]) if isinstance(perf, str) else perf for perf in performance_infer_time_ms]
             accuracy_factor = [m.training.target_devices[target_device].accuracy_factor for m in model_desc_list]
             xy_list = [(performance_infer_time_ms[i], accuracy_factor[i], i) for i in range(len(performance_infer_time_ms))]
             xy_list_shortlisted = [(xy[0], xy[1], xy[2]) for xy in xy_list if isinstance(xy[0], numbers.Real) and isinstance(xy[1], numbers.Real)]

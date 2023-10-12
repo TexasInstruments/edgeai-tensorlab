@@ -217,7 +217,7 @@ model_descriptions:
         AM69A:
           accuracy_factor: 77.04
           accuracy_unit: MeanIoU%
-          model_selection_factor: 2
+          model_selection_factor: 1
           performance_fps: 237
           performance_infer_time_ms: 4.22 (with 1/4th device capability)
         TDA4VM:
@@ -338,7 +338,7 @@ model_descriptions:
         AM69A:
           accuracy_factor: 75.212
           accuracy_unit: MeanIoU%
-          model_selection_factor: 0
+          model_selection_factor: 2
           performance_fps: 272
           performance_infer_time_ms: 3.68 (with 1/4th device capability)
         TDA4VM:
@@ -463,7 +463,7 @@ model_descriptions:
         AM69A:
           accuracy_factor: 72.13
           accuracy_unit: Accuracy Top-1%
-          model_selection_factor: 0
+          model_selection_factor: 2
           performance_fps: null
           performance_infer_time_ms: 2.02 (with 1/4th device capability)
         TDA4VM:
@@ -707,7 +707,7 @@ model_descriptions:
         AM69A:
           accuracy_factor: 75.212
           accuracy_unit: Accuracy Top-1%
-          model_selection_factor: 2
+          model_selection_factor: 0
           performance_fps: null
           performance_infer_time_ms: 2.85 (with 1/4th device capability)
         TDA4VM:
@@ -828,7 +828,7 @@ model_descriptions:
         AM69A:
           accuracy_factor: 77.04
           accuracy_unit: MeanIoU%
-          model_selection_factor: 1
+          model_selection_factor: 0
           performance_fps: 237
           performance_infer_time_ms: 4.22 (with 1/4th device capability)
         TDA4VM:
@@ -964,7 +964,7 @@ model_descriptions:
           accuracy_factor2: 24.8
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 0
+          model_selection_factor: 2
           performance_fps: null
           performance_infer_time_ms: 3.64 (with 1/4th device capability)
         TDA4VM:
@@ -1335,7 +1335,7 @@ model_descriptions:
           accuracy_factor2: 38.3
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 2
+          model_selection_factor: 0
           performance_fps: null
           performance_infer_time_ms: 9.82 (with 1/4th device capability)
         TDA4VM:
