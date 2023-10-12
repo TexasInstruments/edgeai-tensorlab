@@ -11,4 +11,5 @@ onnxruntime>=1.7.0
 pytest
 ubelt
 xdoctest>=0.10.0
-yapf
+# older mmcv that we are using currently does not work with the latest yapf
+yapf==0.40.1
