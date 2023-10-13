@@ -38,6 +38,19 @@ set -m
 # (Note: until r8.5 only TDA4VM was supported)
 TARGET_SOC=${1:-TDA4VM}
 
+# for parallel execution on pc only (cpu or gpu).
+# number fo parallel processes to run.
+# for example 8 will mean 8 models will run in parallel
+# for example 1 will mean one model will run (but in a separae processs from that of the main process)
+# null will mean one process will run, in the same process as the main
+NUM_PARALLEL_PROCESSES=${2:-8}
+
+# for parallel execution on CUDA/gpu. if you don't have CUDA/gpu, these don't matter
+# if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. specify 4 will use the gpus: 0,1,2,3
+# it can also be specified as a list with actual GPU ids, instead of an integer: [0,1,2,3]
+# important note: to use CUDA/gpu, CUDA compiled TIDL (tidl_tools) is required.
+NUM_PARALLEL_DEVICES=${3:-4}
+
 # leave this as pc - no change needed
 # pc: for model compilation and inference on PC, evm: for model inference on EVM
 # after compilation, run_package_artifacts_evm.sh can be used to format and package the compiled artifacts for evm
@@ -58,19 +71,6 @@ source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 #settings_file=settings_import_on_pc.yaml
 settings_file=settings_import_on_pc.yaml
 
-# for parallel execution on pc only (cpu or gpu).
-# number fo parallel processes to run.
-# for example 8 will mean 8 models will run in parallel
-# for example 1 will mean one model will run (but in a separae processs from that of the main process)
-# null will mean one process will run, in the same process as the main
-NUM_PARALLEL_PROCESSES=8
-
-# for parallel execution on CUDA/gpu. if you don't have CUDA/gpu, these don't matter
-# if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. specify 4 will use the gpus: 0,1,2,3
-# it can also be specified as a list with actual GPU ids, instead of an integer: [0,1,2,3]
-# important note: to use CUDA/gpu, CUDA compiled TIDL (tidl_tools) is required.
-NUM_PARALLEL_DEVICES=4
-
 echo "-------------------------------------------------------------------"
 function f_num_running_jobs() {
   n_jobs=$(jobs -r | wc -l)
@@ -80,6 +80,14 @@ function f_num_running_jobs() {
 function f_list_running_jobs() {
   proc_id_jobs=$(pgrep -P $$ -d " ")
   echo $proc_id_jobs
+}
+
+function run_model() {
+    target_device=$1
+    settings_file=$2
+    model_id=$3
+    python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${target_device} --model_selection $model_id --parallel_processes 0 --parallel_devices null --run_inference 0 && \
+    python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${target_device} --model_selection $model_id --parallel_processes 0 --parallel_devices null
 }
 
 echo "-------------------------------------------------------------------"
@@ -109,7 +117,7 @@ for model_id in $(cat ${models_list_file}); do
   echo " proc_id:$proc_id timestamp:$timestamp num_running_jobs:$num_running_jobs running model_id:$model_id on parallel_device:$parallel_device"
   # --parallel_processes 0 is used becuase we don't want to create another process inside.
   # --parallel_devices null is used becuase CUDA_VISIBLE_DEVICES is set here itself - no need to be set inside again
-  CUDA_VISIBLE_DEVICES="$parallel_device" python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC} --model_selection $model_id --parallel_processes 0 --parallel_devices null &
+  CUDA_VISIBLE_DEVICES="$parallel_device" run_model  "${TARGET_SOC}" "${settings_file}" "${model_id}" &
   sleep 1
   echo " ==============================================================="
 done
