@@ -50,15 +50,15 @@ pip3 install --upgrade pip setuptools
 echo 'Installing python packages...'
 echo 'Installing python packages...'
 # there as issue with installing pillow-simd through requirements - force it here
-pip uninstall --yes pillow
-pip install --no-input -U --force-reinstall pillow-simd
+pip3 uninstall --yes pillow
+pip3 install --no-input -U --force-reinstall pillow-simd
 
 echo "installing requirements"
 pip3 install --no-input -r ./requirements_pc.txt
 
 # building onnx from soure requires carefull steps
 # make sure that we are using system cmake
-pip uninstall --yes cmake
+pip3 uninstall --yes cmake
 # pybind11[global] is needed for building the onnx package.
 # for some reason, this has to be installed before the requirements file is used.
 pip3 install --no-input pybind11[global] protobuf==3.19.4

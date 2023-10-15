@@ -96,7 +96,7 @@ proc_id=$$
 modelartifacts_folder="./work_dirs/modelartifacts"
 models_list_file="${modelartifacts_folder}/benchmarks_models_list.txt"
 mkdir -p ${modelartifacts_folder}
-python3 ./scripts/generate_models_list.py ${settings_file} --target_device ${TARGET_SOC} --models_list_file $models_list_file --dataset_loading False
+python3 ./scripts/generate_models_list.py ${settings_file} --target_device ${TARGET_SOC} --models_list_file $models_list_file --dataset_loading False ${@:4}
 num_lines=$(wc -l < ${models_list_file})
 echo $num_lines
 
@@ -117,7 +117,7 @@ for model_id in $(cat ${models_list_file}); do
   echo " proc_id:$proc_id timestamp:$timestamp num_running_jobs:$num_running_jobs running model_id:$model_id on parallel_device:$parallel_device"
   # --parallel_processes 0 is used becuase we don't want to create another process inside.
   # --parallel_devices null is used becuase CUDA_VISIBLE_DEVICES is set here itself - no need to be set inside again
-  CUDA_VISIBLE_DEVICES="$parallel_device" run_model  "${TARGET_SOC}" "${settings_file}" "${model_id}" &
+  CUDA_VISIBLE_DEVICES="$parallel_device" run_model  "${TARGET_SOC}" "${settings_file}" "${model_id}" ${@:4} &
   sleep 1
   echo " ==============================================================="
 done

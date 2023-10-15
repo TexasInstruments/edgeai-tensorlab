@@ -48,6 +48,7 @@ if __name__ == '__main__':
     parser.add_argument('--task_selection', type=str, nargs='*')
     parser.add_argument('--runtime_selection', type=str, nargs='*')
     parser.add_argument('--model_selection', type=str, nargs='*')
+    parser.add_argument('--model_shortlist', type=utils.int_or_none, nargs='*')
     parser.add_argument('--session_type_dict', type=str, nargs='*')
     parser.add_argument('--num_frames', type=int)
     parser.add_argument('--calibration_frames', type=int)
