@@ -66,7 +66,7 @@ if __name__ == '__main__':
         print(f'work_dir: {work_dir}')
 
         if cmds.out_dir is None:
-            package_dir = settings.modelartifacts_path + '_package'
+            package_dir = settings.modelpackage_path
             out_dir = os.path.join(package_dir, f'{settings.tensor_bits}bits')
         else:
             out_dir = cmds.out_dir

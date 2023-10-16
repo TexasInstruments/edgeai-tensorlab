@@ -40,6 +40,9 @@ datasets_path : './dependencies/datasets'
 # path where precompiled modelartifacts are placed
 modelartifacts_path : './work_dirs/modelartifacts/{target_device}'
 
+# path where the packaged precompiled modelartifacts are placed
+modelpackage_path : './work_dirs/modelpackage/{target_device}'
+
 # session types to use for each model type
 session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
 

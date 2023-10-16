@@ -127,6 +127,8 @@ class ConfigDict(dict):
         self.models_path = '../edgeai-modelzoo/models'
         # path where compiled model artifacts are placed
         self.modelartifacts_path = './work_dirs/modelartifacts/{target_device}'
+        # path where compiled packaged model artifacts are placed
+        self.modelpackage_path = './work_dirs/modelpackage/{target_device}'
         # create your datasets under this folder
         self.datasets_path = f'./dependencies/datasets'
         # target_device indicates the SoC for which the model compilation will take place

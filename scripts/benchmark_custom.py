@@ -284,7 +284,7 @@ if __name__ == '__main__':
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir = {work_dir}')
 
-    packaged_dir = os.path.join(f'{settings.modelartifacts_path}_package', f'{settings.tensor_bits}bits')
+    packaged_dir = os.path.join(f'{settings.modelpackage_path}', f'{settings.tensor_bits}bits')
     print(f'packaged_dir = {packaged_dir}')
 
     # now run the actual pipeline
