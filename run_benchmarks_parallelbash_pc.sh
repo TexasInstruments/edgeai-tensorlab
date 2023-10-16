@@ -83,11 +83,8 @@ function f_list_running_jobs() {
 }
 
 function run_model() {
-    target_device=$1
-    settings_file=$2
-    model_id=$3
-    python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${target_device} --model_selection $model_id --parallel_processes 0 --parallel_devices null --run_inference 0 && \
-    python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${target_device} --model_selection $model_id --parallel_processes 0 --parallel_devices null
+    python3 ./scripts/benchmark_modelzoo.py $@ --run_inference 0 && \
+    python3 ./scripts/benchmark_modelzoo.py $@
 }
 
 echo "-------------------------------------------------------------------"
@@ -117,7 +114,7 @@ for model_id in $(cat ${models_list_file}); do
   echo " proc_id:$proc_id timestamp:$timestamp num_running_jobs:$num_running_jobs running model_id:$model_id on parallel_device:$parallel_device"
   # --parallel_processes 0 is used becuase we don't want to create another process inside.
   # --parallel_devices null is used becuase CUDA_VISIBLE_DEVICES is set here itself - no need to be set inside again
-  CUDA_VISIBLE_DEVICES="$parallel_device" run_model  "${TARGET_SOC}" "${settings_file}" "${model_id}" ${@:4} &
+  CUDA_VISIBLE_DEVICES="$parallel_device" run_model "${settings_file}"  --target_device "${TARGET_SOC}" --model_selection "${model_id}" --parallel_processes 0 --parallel_devices null ${@:4} &
   sleep 1
   echo " ==============================================================="
 done
