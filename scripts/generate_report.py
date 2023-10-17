@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('settings_file', type=str)
-    parser.add_argument('--target_device', type=str, default=None)
+    parser.add_argument('--target_device', type=utils.str_or_none)
     parser.add_argument('--modelartifacts_path', type=str)
     parser.add_argument('--report_perfsim', type=utils.str_to_bool)
     parser.add_argument('--skip_pattern', type=str, default='_package')

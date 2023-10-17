@@ -199,6 +199,17 @@ def int_or_none(v):
     return int(v)
 
 
+def str_or_none(v):
+    if v is None:
+        return None
+    elif isinstance(v, str):
+        if v.lower() in ('', 'none', 'null'):
+            return None
+        #
+    #
+    return str(v)
+
+
 def cleanup_dict(inp_dict, template_dict):
     if template_dict is None:
         return inp_dict

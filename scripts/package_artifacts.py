@@ -43,13 +43,14 @@ if __name__ == '__main__':
     parser.add_argument('settings_file', type=str)
     parser.add_argument('--work_dir', type=str)
     parser.add_argument('--out_dir', type=str)
-    parser.add_argument('--target_device', type=str)
+    parser.add_argument('--target_device', type=utils.str_or_none)
+    parser.add_argument('--tensor_bits', type=utils.str_to_int)
     parser.add_argument('--param_template_file', type=str, default='./examples/configs/yaml/param_template.yaml')
 
     cmds = parser.parse_args()
     #kwargs = vars(cmds)
 
-    settings = config_settings.ConfigSettings(cmds.settings_file, target_device=cmds.target_device)
+    settings = config_settings.ConfigSettings(cmds.settings_file, target_device=cmds.target_device, tensor_bits=cmds.tensor_bits)
 
     param_template = None
     if cmds.param_template_file is not None:

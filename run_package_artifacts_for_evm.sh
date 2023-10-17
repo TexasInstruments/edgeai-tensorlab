@@ -54,5 +54,5 @@ settings_file=settings_infer_on_evm.yaml
 
 echo "==================================================================="
 # package the artifacts generated
-python3 ./scripts/package_artifacts.py ${settings_file} --target_device ${TARGET_SOC}
+python3 ./scripts/package_artifacts.py ${settings_file} --target_device ${TARGET_SOC} ${@:2}
 echo "-------------------------------------------------------------------"

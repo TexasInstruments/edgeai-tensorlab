@@ -43,13 +43,13 @@ TARGET_SOC=${1:-TDA4VM}
 # for example 8 will mean 8 models will run in parallel
 # for example 1 will mean one model will run (but in a separae processs from that of the main process)
 # null will mean one process will run, in the same process as the main
-NUM_PARALLEL_PROCESSES=${2:-8}
+NUM_PARALLEL_PROCESSES=${NUM_PARALLEL_PROCESSES:-8}
 
 # for parallel execution on CUDA/gpu. if you don't have CUDA/gpu, these don't matter
 # if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. specify 4 will use the gpus: 0,1,2,3
 # it can also be specified as a list with actual GPU ids, instead of an integer: [0,1,2,3]
 # important note: to use CUDA/gpu, CUDA compiled TIDL (tidl_tools) is required.
-NUM_PARALLEL_DEVICES=${3:-4}
+NUM_PARALLEL_DEVICES=${NUM_PARALLEL_DEVICES:-4}
 
 # leave this as pc - no change needed
 # pc: for model compilation and inference on PC, evm: for model inference on EVM
@@ -93,7 +93,7 @@ proc_id=$$
 modelartifacts_folder="./work_dirs/modelartifacts"
 models_list_file="${modelartifacts_folder}/benchmarks_models_list.txt"
 mkdir -p ${modelartifacts_folder}
-python3 ./scripts/generate_models_list.py ${settings_file} --target_device ${TARGET_SOC} --models_list_file $models_list_file --dataset_loading False ${@:4}
+python3 ./scripts/generate_models_list.py ${settings_file} --target_device ${TARGET_SOC} --models_list_file $models_list_file --dataset_loading False ${@:2}
 num_lines=$(wc -l < ${models_list_file})
 echo $num_lines
 
@@ -114,7 +114,7 @@ for model_id in $(cat ${models_list_file}); do
   echo " proc_id:$proc_id timestamp:$timestamp num_running_jobs:$num_running_jobs running model_id:$model_id on parallel_device:$parallel_device"
   # --parallel_processes 0 is used becuase we don't want to create another process inside.
   # --parallel_devices null is used becuase CUDA_VISIBLE_DEVICES is set here itself - no need to be set inside again
-  CUDA_VISIBLE_DEVICES="$parallel_device" run_model "${settings_file}"  --target_device "${TARGET_SOC}" --model_selection "${model_id}" --parallel_processes 0 --parallel_devices null ${@:4} &
+  CUDA_VISIBLE_DEVICES="$parallel_device" run_model "${settings_file}"  --target_device "${TARGET_SOC}" --model_selection "${model_id}" --parallel_processes 0 --parallel_devices null ${@:2} &
   sleep 1
   echo " ==============================================================="
 done
