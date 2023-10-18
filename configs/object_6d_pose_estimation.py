@@ -65,7 +65,6 @@ def get_configs(settings, work_dir):
                          'object_detection:meta_arch_type': 6,
                          'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/object_6d_pose/ycbv/edgeai-yolox/yolox_s_object_pose_ti_lite_metaarch_640x480.prototxt',
                         'advanced_options:output_feature_16bit_names_list': '597, 837, 840, 843, 847, 850, 853, 856, 1098, 1101, 1104, 1108, 1111, 1114, 1117, 1359, 1362, 1365, 1369, 1372, 1375, 1378',
-                         "advanced_options:add_data_convert_ops": 0,
                         }),
                 model_path=f'{settings.models_path}/vision/object_6d_pose/ycbv/edgeai-yolox/yolox_s_object_pose_ti_lite_640x480_57p75.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolo_6d_object_pose_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS(), object6dpose=True),
