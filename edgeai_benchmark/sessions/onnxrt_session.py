@@ -40,7 +40,6 @@ class ONNXRTSession(BaseRTSession):
     def __init__(self, session_name=constants.SESSION_NAME_ONNXRT, **kwargs):
         super().__init__(session_name=session_name, **kwargs)
         self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NCHW)
-        self.interpreter = None
 
     def start(self):
         super().start()

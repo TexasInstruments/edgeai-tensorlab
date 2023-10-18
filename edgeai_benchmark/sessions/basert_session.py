@@ -37,6 +37,7 @@ import copy
 from colorama import Fore
 import numpy as np
 import tarfile
+import gc
 
 from .. import utils
 from .. import constants
@@ -44,8 +45,9 @@ from ..preprocess.transforms import ImageNormMeanScale
 
 
 class BaseRTSession(utils.ParamsBase):
-    def __init__(self, **kwargs):
+    def __init__(self, force_gc=True, **kwargs):
         super().__init__()
+        self.interpreter = None
         self.kwargs = kwargs
         self.tempfiles = []
         self.is_initialized = False
@@ -53,6 +55,7 @@ class BaseRTSession(utils.ParamsBase):
         self.is_imported = False
         self.is_start_infer_done = False
         self.input_normalizer = None
+        self.force_gc = force_gc
 
         self.kwargs['target_machine'] = self.kwargs.get('target_machine', 'pc')
         self.kwargs['target_device'] = self.kwargs.get('target_device', None)
@@ -190,10 +193,25 @@ class BaseRTSession(utils.ParamsBase):
         return outputs, info_dict
 
     def run(self, calib_data, inputs, info_dict=None):
+        # import / compile the model
         info_dict = self.import_model(calib_data, info_dict)
+        # make sure that the interpreter is freed-up after import
+        if self.force_gc:
+            del self.interpreter
+            self.interpreter = None
+            gc.collect()
+        #
+        # inference
         outputs, info_dict = self.infer_frames(inputs, info_dict)
         infer_stats_dict = self.infer_stats()
         info_dict.update(infer_stats_dict)
+        # optional: make sure that the interpreter is freed-up after inference
+        if self.force_gc:
+            del self.interpreter
+            self.interpreter = None
+            gc.collect()
+        #
+        # return
         return outputs, info_dict
 
     def __del__(self):

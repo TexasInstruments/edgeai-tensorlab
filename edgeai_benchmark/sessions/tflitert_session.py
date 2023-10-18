@@ -42,7 +42,6 @@ class TFLiteRTSession(BaseRTSession):
     def __init__(self, session_name=constants.SESSION_NAME_TFLITERT, **kwargs):
         super().__init__(session_name=session_name, **kwargs)
         self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NHWC)
-        self.interpreter = None
 
     def import_model(self, calib_data, info_dict=None):
         super().import_model(calib_data)

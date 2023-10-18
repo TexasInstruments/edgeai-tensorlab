@@ -39,7 +39,6 @@ class TVMDLRSession(BaseRTSession):
     def __init__(self, session_name=constants.SESSION_NAME_TVMDLR, **kwargs):
         super().__init__(session_name=session_name, **kwargs)
         self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NCHW)
-        self.interpreter = None
         self.supported_machines = ('pc', 'evm')
         target_machine = self.kwargs['target_machine']
         assert target_machine in self.supported_machines, f'invalid target_machine {target_machine}'
