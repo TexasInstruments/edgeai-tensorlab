@@ -32,7 +32,7 @@
 #################################################################################
 
 docker_image_name="modelmaker:v9.0"
-docker_container_name="${docker_image_name}-ubuntu22.04-py310"
+docker_container_name="cnt-modelmaker-v9.0"
 PARENT_DIR=$(realpath ..)
 
 # initialize http_proxy and https_proxy if they are not defined
