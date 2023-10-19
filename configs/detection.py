@@ -266,7 +266,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 44.4}, model_shortlist=40)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 44.4}, model_shortlist=60)
         ),
         'od-8260':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(320, 320, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
