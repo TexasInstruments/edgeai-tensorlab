@@ -39,7 +39,7 @@ if __name__ == '__main__':
         os.chdir('../')
     #
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('settings_file', type=str)
     parser.add_argument('--work_dir', type=str)
     parser.add_argument('--out_dir', type=str)
@@ -48,9 +48,9 @@ if __name__ == '__main__':
     parser.add_argument('--param_template_file', type=str, default='./examples/configs/yaml/param_template.yaml')
 
     cmds = parser.parse_args()
-    #kwargs = vars(cmds)
+    kwargs = vars(cmds)
 
-    settings = config_settings.ConfigSettings(cmds.settings_file, target_device=cmds.target_device, tensor_bits=cmds.tensor_bits)
+    settings = config_settings.ConfigSettings(cmds.settings_file, **kwargs)
 
     param_template = None
     if cmds.param_template_file is not None:
@@ -60,17 +60,16 @@ if __name__ == '__main__':
     #
 
     if 'TIDL_ARTIFACT_SYMLINKS' in os.environ and os.environ['TIDL_ARTIFACT_SYMLINKS']:
-        if cmds.work_dir is None:
+        if 'work_dir' not in kwargs:
             work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
         else:
-            work_dir = cmds.work_dir
+            work_dir = kwargs['work_dir']
         print(f'work_dir: {work_dir}')
 
-        if cmds.out_dir is None:
-            package_dir = settings.modelpackage_path
-            out_dir = os.path.join(package_dir, f'{settings.tensor_bits}bits')
+        if 'out_dir' not in kwargs:
+            out_dir = os.path.join(settings.modelpackage_path, f'{settings.tensor_bits}bits')
         else:
-            out_dir = cmds.out_dir
+            out_dir = kwargs['out_dir']
         print(f'package_dir: {out_dir}')
 
         interfaces.run_package(settings, work_dir, out_dir, param_template=param_template)
