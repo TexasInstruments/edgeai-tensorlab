@@ -94,7 +94,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_s_lite_1024x1024_20220317_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.widerfacedet_det_label_offset_1to1(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None, 'accuracy_ap50%': 72.3}, model_shortlist=50, model_name='OD-8421-yolox-s-lite-mmdet-widerface-1024x1024')
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None, 'accuracy_ap50%': 72.3}, model_shortlist=60, model_name='OD-8421-yolox-s-lite-mmdet-widerface-1024x1024')
         ),
         # more than model complexity, it seems input size helps in face detection - hence the above yolox_s 1024x1024 model is better than this
         # 'od-8430':utils.dict_update(common_cfg,
