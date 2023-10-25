@@ -92,21 +92,21 @@ TARGET_DEVICE_SETTINGS_PRESETS = {
     },
     TARGET_DEVICE_AM62A : {
         # disabling per-channel asymmetric quantization for now, until it is more stable
-        # 'runtime_options': {
-        #     'advanced_options:quantization_scale_type': 4
-        # }
+        'runtime_options': {
+            'advanced_options:quantization_scale_type': 4
+        }
     },
     TARGET_DEVICE_AM68A : {
         # disabling per-channel asymmetric quantization for now, until it is more stable
-        # 'runtime_options': {
-        #     'advanced_options:quantization_scale_type': 4
-        # }
+        'runtime_options': {
+            'advanced_options:quantization_scale_type': 4
+        }
     },
     TARGET_DEVICE_AM69A : {
         # disabling per-channel asymmetric quantization for now, until it is more stable
-        # 'runtime_options': {
-        #     'advanced_options:quantization_scale_type': 4
-        # }
+        'runtime_options': {
+            'advanced_options:quantization_scale_type': 4
+        }
     },
     TARGET_DEVICE_AM62 : {
         'tidl_offload': False,
