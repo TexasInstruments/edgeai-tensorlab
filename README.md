@@ -61,7 +61,7 @@ exec ${SHELL}
 Further details on pyenv installation are given here https://github.com/pyenv/pyenv and https://github.com/pyenv/pyenv-installer
 
 
-Step 1.4a: Install Python 3.6 in pyenv and create an environment
+Step 1.4a: Install Python 3.10 in pyenv and create an environment
 ```
 pyenv install 3.10
 pyenv virtualenv 3.10 py310
