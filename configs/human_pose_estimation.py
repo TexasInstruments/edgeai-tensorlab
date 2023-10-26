@@ -43,7 +43,7 @@ def get_configs(settings, work_dir):
     # Debapriya Maji, Soyeb Nagori, Manu Mathew, Deepak Poddar
     # https://arxiv.org/abs/2204.06806
     common_cfg = {
-        'task_type': 'human_pose_estimation',
+        'task_type': 'keypoint_detection',
         'dataset_category': datasets.DATASET_CATEGORY_COCOKPTS,
         'calibration_dataset': settings.dataset_cache['cocokpts']['calibration_dataset'],
         'input_dataset': settings.dataset_cache['cocokpts']['input_dataset'],

@@ -194,7 +194,7 @@ class ConfigDict(dict):
         # exclude the models that matches with this
         self.model_exclusion = None
         # wild card list to match against the tasks. it null, all tasks will be run
-        # example: ['classification', 'detection', 'segmentation', 'human_pose_estimation', 'detection_3d']
+        # example: ['classification', 'detection', 'segmentation', 'keypoint_detection', 'detection_3d']
         # example: ['classification']
         self.task_selection = None
         # wild card list to match against runtime name. if null, all runtimes will be considered

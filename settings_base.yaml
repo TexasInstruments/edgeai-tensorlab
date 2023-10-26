@@ -64,7 +64,7 @@ model_selection : null
 model_shortlist: null
 
 # wild card list to match against the tasks. it null, all tasks will be run
-# example: ['classification', 'detection', 'segmentation', 'depth_estimation', 'human_pose_estimation', 'detection_3d']
+# example: ['classification', 'detection', 'segmentation', 'depth_estimation', 'keypoint_detection', 'detection_3d']
 # example: 'classification'
 # example: null (Note: null means no filter - run all the tasks)
 task_selection : null
