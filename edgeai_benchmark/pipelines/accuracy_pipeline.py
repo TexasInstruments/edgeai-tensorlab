@@ -201,6 +201,8 @@ class AccuracyPipeline():
 
         # this is the actual import
         self._run_with_log(session.import_model, calib_data)
+        # close the interpreter
+        session.close_interpreter()
 
     def _infer_frames(self, description=''):
         session = self.pipeline_config['session']
@@ -271,6 +273,8 @@ class AccuracyPipeline():
         if 'perfsim_macs' in stats_dict:
             self.infer_stats_dict.update({'perfsim_gmacs': stats_dict['perfsim_macs'] / constants.GIGA_CONST})
         #
+        # close the interpreter
+        session.close_interpreter()
         return output_list
 
     def _evaluate(self, output_list):

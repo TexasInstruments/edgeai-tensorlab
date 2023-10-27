@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import sys
 import datetime
 import shutil
 import tempfile
@@ -195,24 +196,21 @@ class BaseRTSession(utils.ParamsBase):
     def run(self, calib_data, inputs, info_dict=None):
         # import / compile the model
         info_dict = self.import_model(calib_data, info_dict)
-        # make sure that the interpreter is freed-up after import
-        if self.force_gc:
-            del self.interpreter
-            self.interpreter = None
-            gc.collect()
-        #
         # inference
         outputs, info_dict = self.infer_frames(inputs, info_dict)
         infer_stats_dict = self.infer_stats()
         info_dict.update(infer_stats_dict)
+        # return
+        return outputs, info_dict
+
+    def close_interpreter(self):
         # optional: make sure that the interpreter is freed-up after inference
-        if self.force_gc:
+        if self.force_gc and self.interpreter:
             del self.interpreter
             self.interpreter = None
             gc.collect()
         #
-        # return
-        return outputs, info_dict
+        return None
 
     def __del__(self):
         for t in self.tempfiles:
