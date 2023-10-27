@@ -71,7 +71,7 @@ class ConfigSettings(config_dict.ConfigDict):
         return sessions.get_session_name_to_type_dict()[session_name]
 
     def get_runtime_options(self, model_type_or_session_name=None, quantization_scale_type=None, is_qat=False,
-                            det_options=None, ext_options=None, min_options=None, max_options=None, **kwargs):
+                            det_options=None, ext_options=None, min_options=None, max_options=None, fast_calibration=False, **kwargs):
         '''
         example usage for min_options and max_options to set the limit
             settings.runtime_options_onnx_np2(max_options=dict(calibration_frames=25, calibration_iterations=25))
@@ -84,7 +84,7 @@ class ConfigSettings(config_dict.ConfigDict):
         # this is the default runtime_options defined above
         runtime_options_new = self._get_runtime_options_default(
             session_name, quantization_scale_type, is_qat=is_qat, det_options=det_options,
-            min_options=None, max_options=None)
+            min_options=min_options, max_options=max_options, fast_calibration=fast_calibration)
         # this takes care of overrides given as ext_options keyword argument
         if ext_options is not None:
             assert isinstance(ext_options, dict), \
@@ -165,7 +165,7 @@ class ConfigSettings(config_dict.ConfigDict):
         return quantization_scale_type.value if isinstance(quantization_scale_type, enum.Enum) else quantization_scale_type
 
     def _get_runtime_options_default(self, session_name=None, quantization_scale_type=None, is_qat=False, det_options=None,
-                                     min_options=None, max_options=None):
+                                     min_options=None, max_options=None, fast_calibration=False):
         '''
         Args:
             session_name: onnxrt, tflitert or tvmdlr
@@ -174,14 +174,16 @@ class ConfigSettings(config_dict.ConfigDict):
 
         Returns: runtime_options
         '''
+        fast_calibration_factor = self._get_fast_calibration_factor(fast_calibration)
+
         min_options = min_options or dict()
         max_options = max_options or dict()
-        calibration_frames = np.clip(self.calibration_frames,
-                                     min_options.get('calibration_frames', -sys.maxsize),
-                                     max_options.get('calibration_frames', sys.maxsize))
-        calibration_iterations = np.clip(self._get_calibration_iterations(quantization_scale_type, is_qat),
-                                     min_options.get('calibration_iterations', -sys.maxsize),
-                                     max_options.get('calibration_iterations', sys.maxsize))
+
+        calibration_frames = max(int(self.calibration_frames * fast_calibration_factor), 1)
+        calibration_frames = np.clip(calibration_frames, min_options.get('calibration_frames', -sys.maxsize), max_options.get('calibration_frames', sys.maxsize))
+
+        calibration_iterations = max(int(self._get_calibration_iterations(quantization_scale_type, is_qat) * fast_calibration_factor), 1)
+        calibration_iterations = np.clip(calibration_iterations, min_options.get('calibration_iterations', -sys.maxsize), max_options.get('calibration_iterations', sys.maxsize))
 
         runtime_options = {
             ##################################
@@ -257,3 +259,13 @@ class ConfigSettings(config_dict.ConfigDict):
             runtime_options.update(det_options)
         #
         return runtime_options
+
+    def _get_fast_calibration_factor(self, fast_calibration):
+        fast_calibration_factor = self.fast_calibration_factor or 1.0
+        if hasattr(self, 'runtime_options') and self.runtime_options is not None and \
+                self.runtime_options.get('advanced_options:quantization_scale_type', None) == 4:
+            return fast_calibration_factor
+        elif fast_calibration:
+            return fast_calibration_factor
+        else:
+            return 1.0

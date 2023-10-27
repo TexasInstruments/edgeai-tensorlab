@@ -60,6 +60,7 @@ if __name__ == '__main__':
     parser.add_argument('--dataset_loading', type=str, nargs='*')
     parser.add_argument('--parallel_devices', type=utils.int_or_none)
     parser.add_argument('--parallel_processes', type=int)
+    parser.add_argument('--fast_calibration_factor', type=utils.float_or_none)
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)

@@ -58,7 +58,7 @@ def get_configs(settings, work_dir):
         '6dpose-7200':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((480,640), (480,640), reverse_channels=True, backend='cv2'),
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False),
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(fast_calibration=True),
                         {
                          'tensor_bits': 16,
                          'advanced_options:calibration_iterations': 2,

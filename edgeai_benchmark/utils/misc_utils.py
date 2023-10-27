@@ -199,6 +199,20 @@ def int_or_none(v):
     return int(v)
 
 
+def float_or_none(v):
+    if v is None:
+        return None
+    elif isinstance(v, str):
+        if v.lower() in ('', 'none', 'null', 'false', 'no'):
+            return None
+        elif v.lower() in ('0',):
+            return 0.0
+        elif v.lower() in ('true', 'yes', '1'):
+            return 1.0
+        #
+    #
+    return float(v)
+
 def str_or_none(v):
     if v is None:
         return None
