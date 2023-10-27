@@ -204,7 +204,8 @@ class MosaicDetection(Dataset):
 
     def mixup(self, origin_img, origin_labels, input_dim, human_pose=False):
         jit_factor = random.uniform(*self.mixup_scale)
-        FLIP = random.uniform(0, 1) > 0.5
+        flip_prob = self.preproc.flip_prob if self.preproc else 0.0
+        FLIP = random.uniform(0, 1) < flip_prob
         cp_labels = []
         while len(cp_labels) == 0:
             cp_index = random.randint(0, self.__len__() - 1)

@@ -307,12 +307,14 @@ def main(kwargs=None, exp=None):
 def run_export(**kwargs):
     logger.info("kwargs value: {}".format(kwargs))
     exp = get_exp(None, kwargs['name'])
-    exp.max_epoch = kwargs['max_epochs']
+    exp.max_epoch = kwargs['max_epoch']
+    exp.warmup_epochs = max(min(exp.warmup_epochs, exp.max_epoch//4), 1)
+    exp.no_aug_epochs = max(min(exp.no_aug_epochs, exp.max_epoch//4), 1)
     exp.output_dir = kwargs['output_dir']
     with open(kwargs['train_ann']) as train_ann_fp:
-            train_anno = json.load(train_ann_fp)
-            categories = train_anno['categories']
-            exp.num_kpts = len(categories[0]['keypoints'])
+        train_anno = json.load(train_ann_fp)
+        categories = train_anno['categories']
+        exp.num_kpts = len(categories[0]['keypoints'])
 
     main(kwargs=kwargs, exp=exp)
 

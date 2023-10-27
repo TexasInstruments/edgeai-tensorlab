@@ -204,14 +204,16 @@ def run(**kwargs):
     for k, v in kwargs.items():
         setattr(args, k, v)
     exp = get_exp(args.exp_file, args.name)
-    exp.max_epoch = args.max_epochs
+    exp.max_epoch = args.max_epoch
+    exp.warmup_epochs = max(min(exp.warmup_epochs, exp.max_epoch//4), 1)
+    exp.no_aug_epochs = max(min(exp.no_aug_epochs, exp.max_epoch//4), 1)
     exp.output_dir = args.output_dir
     exp.visualize = args.visualize
     exp.data_dir = args.data_dir
     exp.train_ann = args.train_ann
     exp.val_ann = args.val_ann
     exp.img_folder_names = args.img_folder_names
-    exp.flip_prob = 0
+    exp.flip_prob = 0.0
     exp.default_sigmas = False
     exp.device_type = args.device_type
 
