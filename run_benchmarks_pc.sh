@@ -55,14 +55,20 @@ settings_file=settings_import_on_pc.yaml
 
 echo "-------------------------------------------------------------------"
 # run all the shortlisted models with these settings
+# inference doesn't work if run in the same priocess as import - so run import only first
+python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC} --run_inference False ${@:2}
+# now run the inference as separate process
 python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC} ${@:2}
 echo "-------------------------------------------------------------------"
 
 #echo "------------------------------------------------------------------"
-## run few selected models with other runtimes
+## example: to run few selected models with other runtimes if needed
 #python3 ./scripts/benchmark_modelzoo.py ${settings_file}  --target_device ${TARGET_SOC} \
 #        --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
-#        --task_selection classification segmentation \
+#        --model_selection onnx  --run_inference False
+#
+#python3 ./scripts/benchmark_modelzoo.py ${settings_file}  --target_device ${TARGET_SOC} \
+#        --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
 #        --model_selection onnx
 #echo "-------------------------------------------------------------------"
 
