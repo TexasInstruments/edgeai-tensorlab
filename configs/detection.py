@@ -419,7 +419,7 @@ def get_configs(settings, work_dir):
                                         ),
             postprocess=postproc_transforms.get_transform_detection_tflite(normalized_detections=False, ignore_index=0,
                                                             formatter=postprocess.DetectionFormatting(dst_indices=(0,1,2,3,4,5), src_indices=(1,0,3,2,5,4)), resize_with_pad=True,),
-            metric=dict( label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 31.79}, model_shortlist=30)
         ),
         'od-2170': utils.dict_update(common_cfg,
