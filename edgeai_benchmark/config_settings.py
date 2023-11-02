@@ -261,11 +261,8 @@ class ConfigSettings(config_dict.ConfigDict):
         return runtime_options
 
     def _get_fast_calibration_factor(self, fast_calibration):
-        fast_calibration_factor = self.fast_calibration_factor or 1.0
-        if hasattr(self, 'runtime_options') and self.runtime_options is not None and \
-                self.runtime_options.get('advanced_options:quantization_scale_type', None) == 4:
-            return fast_calibration_factor
-        elif fast_calibration:
-            return fast_calibration_factor
+        if fast_calibration:
+            return constants.FAST_CALIBRATION_FACTOR
         else:
-            return 1.0
+            fast_calibration_factor = self.fast_calibration_factor or 1.0
+            return fast_calibration_factor

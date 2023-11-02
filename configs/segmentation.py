@@ -85,7 +85,7 @@ def get_configs(settings, work_dir):
         'ss-8690':utils.dict_update(ade20k32_cfg,
             preprocess=preproc_transforms.get_transform_jai((384,384), (384,384), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=True),
+                runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpn_aspp_regnetx400mf_edgeailite_384x384_20210314_outby4.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':50.85}, model_shortlist=None)
@@ -94,7 +94,7 @@ def get_configs(settings, work_dir):
         'ss-8700':utils.dict_update(ade20k32_cfg,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=True),
+                runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpn_aspp_regnetx800mf_edgeailite_512x512_20210312_outby4.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':53.16}, model_shortlist=None)

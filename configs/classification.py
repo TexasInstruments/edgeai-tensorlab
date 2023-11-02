@@ -137,7 +137,7 @@ def get_configs(settings, work_dir):
         'cl-6100':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(fast_calibration=True),
+                runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet18.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':69.76}, model_shortlist=30)
         ),
@@ -145,7 +145,7 @@ def get_configs(settings, work_dir):
         'cl-6110':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=True),
+                runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet50.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':76.15}, model_shortlist=30)
         ),
@@ -183,7 +183,7 @@ def get_configs(settings, work_dir):
         'cl-6360':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True),
             session=onnx_session_type(**sessions.get_onnx_bgr_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=True),
+                runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/fbr-pycls/regnetx-200mf.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':68.9}, model_shortlist=1)
         ),
@@ -192,7 +192,7 @@ def get_configs(settings, work_dir):
         'cl-6160':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(fast_calibration=True),
+                runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/regnet_x_400mf_tv.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.834}, model_shortlist=20)
         ),
@@ -200,7 +200,7 @@ def get_configs(settings, work_dir):
         'cl-6170':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(fast_calibration=True),
+                runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/regnet_x_800mf_tv.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.212}, model_shortlist=20)
         ),
@@ -228,7 +228,7 @@ def get_configs(settings, work_dir):
         'cl-0080':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=True),
+                runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/mobilenet_edgetpu_224_1.0_float.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':75.6}, model_shortlist=40)
@@ -237,7 +237,7 @@ def get_configs(settings, work_dir):
         'cl-0160':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.28, 103.53), input_scale=(1.0, 1.0, 1.0)),
-                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=True),
+                runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/resnet50_v1.5.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':76.456}, model_shortlist=30)
@@ -283,7 +283,7 @@ def get_configs(settings, work_dir):
         'cl-0038':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite_quant(),
             session=tflite_session_type(**sessions.get_tflite_quant_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(),
+                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/inception_v1_224_quant.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':69.63}, model_shortlist=None)
@@ -310,7 +310,7 @@ def get_configs(settings, work_dir):
         'cl-0050':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.28, 103.53), input_scale=(1.0, 1.0, 1.0)),
-                runtime_options=settings.runtime_options_tflite_p2(fast_calibration=True),
+                runtime_options=settings.runtime_options_tflite_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/resnet50_v1.tflite'),
             model_info=dict(metric_reference={'accuracy_top1%':75.2}, model_shortlist=None)
         ),
@@ -319,7 +319,7 @@ def get_configs(settings, work_dir):
         'cl-0060':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=True),
+                runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/resnet50_v2.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':75.6}, model_shortlist=None)
@@ -416,7 +416,7 @@ def get_configs(settings, work_dir):
         'cl-3110':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=sessions.TVMDLRSession(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=True),
+                runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet50.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':76.15}, model_shortlist=None)
         ),
@@ -433,7 +433,7 @@ def get_configs(settings, work_dir):
         'cl-3530':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=sessions.TVMDLRSession(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.28, 103.53), input_scale=(1.0, 1.0, 1.0)),
-                runtime_options=settings.runtime_options_tflite_p2(fast_calibration=True),
+                runtime_options=settings.runtime_options_tflite_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/resnet50_v1.tflite'),
             model_info=dict(metric_reference={'accuracy_top1%':75.2}, model_shortlist=None)
         ),

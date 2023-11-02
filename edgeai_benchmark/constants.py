@@ -85,6 +85,11 @@ class QUANTScaleType(enum.Enum):
     QUANT_SCALE_TYPE_NP2_PERCHAN_QAT = 3
     QUANT_SCALE_TYPE_NP2_PERCHAN = 4
 
+
+# we can use fewer number of calibration images and iterations if per channel assymetric quantization is enabled
+FAST_CALIBRATION_FACTOR = 0.5
+
+
 # runtime_options preferred - may not blindly apply for qat models
 TARGET_DEVICE_SETTINGS_PRESETS = {
     TARGET_DEVICE_TDA4VM : {
@@ -94,19 +99,25 @@ TARGET_DEVICE_SETTINGS_PRESETS = {
         # disabling per-channel asymmetric quantization for now, until it is more stable
         'runtime_options': {
             'advanced_options:quantization_scale_type': 4
-        }
+        },
+        # we can use fewer number of calibration images and iterations if per channel assymetric quantization is enabled
+        'fast_calibration_factor': FAST_CALIBRATION_FACTOR
     },
     TARGET_DEVICE_AM68A : {
         # disabling per-channel asymmetric quantization for now, until it is more stable
         'runtime_options': {
             'advanced_options:quantization_scale_type': 4
-        }
+        },
+        # we can use fewer number of calibration images and iterations if per channel assymetric quantization is enabled
+        'fast_calibration_factor': FAST_CALIBRATION_FACTOR
     },
     TARGET_DEVICE_AM69A : {
         # disabling per-channel asymmetric quantization for now, until it is more stable
         'runtime_options': {
             'advanced_options:quantization_scale_type': 4
-        }
+        },
+        # we can use fewer number of calibration images and iterations if per channel assymetric quantization is enabled
+        'fast_calibration_factor': FAST_CALIBRATION_FACTOR
     },
     TARGET_DEVICE_AM62 : {
         'tidl_offload': False,

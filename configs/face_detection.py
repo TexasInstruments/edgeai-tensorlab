@@ -64,8 +64,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_np2(
                     det_options=True, ext_options={'object_detection:meta_arch_type': 6,
                     'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_tiny_lite_416x416_20220318_model.prototxt',
-                    'advanced_options:output_feature_16bit_names_list': '1501, 1179, 1180, 1181, 1195, 1196, 1197, 1211, 1212, 1213'},
-                    fast_calibration=True),
+                    'advanced_options:output_feature_16bit_names_list': '1501, 1179, 1180, 1181, 1195, 1196, 1197, 1211, 1212, 1213'}),
                 model_path=f'{settings.models_path}/vision/detection/widerface/edgeai-mmdet/yolox_tiny_lite_416x416_20220318_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.widerfacedet_det_label_offset_1to1(label_offset=1)),

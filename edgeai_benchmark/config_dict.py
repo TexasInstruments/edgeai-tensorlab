@@ -247,7 +247,7 @@ class ConfigDict(dict):
         # wehther to apply predifened presets based on target_device
         self.target_device_preset = True
         # some models can use faster calibration (fewer frames and iterations)
-        self.fast_calibration_factor = 0.5
+        self.fast_calibration_factor = None
 
     def _parse_include_files(self, include_files, include_base_path):
         input_dict = {}
