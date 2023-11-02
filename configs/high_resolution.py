@@ -116,14 +116,14 @@ def get_configs(settings, work_dir):
         'cl-6101':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=hr_input_sizes[0], crop=hr_input_sizes[0]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), hr_runtime_options),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(fast_calibration=True), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/torchvision/resnet18_{hr_input_sizes_x[0]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=50)
         ),
         'cl-6102':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=hr_input_sizes[1], crop=hr_input_sizes[1]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), hr_runtime_options),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(fast_calibration=True), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/torchvision/resnet18_{hr_input_sizes_x[1]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=50)
         ),
@@ -161,14 +161,14 @@ def get_configs(settings, work_dir):
         'cl-6131':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True, resize=hr_input_sizes[0], crop=hr_input_sizes[0]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), hr_runtime_options),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(fast_calibration=True), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/torchvision/regnet_x_800mf_tv_{hr_input_sizes_x[0]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=60)
         ),
         'cl-6132':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True, resize=hr_input_sizes[1], crop=hr_input_sizes[1]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), hr_runtime_options),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(fast_calibration=True), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/torchvision/regnet_x_800mf_tv_{hr_input_sizes_x[1]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=60)
         ),
@@ -176,7 +176,7 @@ def get_configs(settings, work_dir):
         'cl-6141':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True, resize=hr_input_sizes[0], crop=hr_input_sizes[0]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(), hr_runtime_options),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_np2(fast_calibration=True), hr_runtime_options),
                 model_path=f'{settings.models_path}/vision/high_resolution/imagenet1k/torchvision/regnet_x_1_6gf_tv_{hr_input_sizes_x[0]}.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=60)
         ),
