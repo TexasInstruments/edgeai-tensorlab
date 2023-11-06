@@ -37,7 +37,7 @@ import torch.nn.utils.parametrize as parametrize
 from torch.ao.quantization import quantize_fx
 import copy
 import math
-from ....v1 import xnn
+from ... import xnn
 from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, find_all_connected_conv, get_net_weight_node_channel_prune, get_net_weights_all
 
 
