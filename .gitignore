@@ -5,3 +5,4 @@ data/
 !data/datasets/readme.txt
 !data/checkpoints/readme.txt
 !data/downloads/readme.txt
+*.onnx

@@ -37,179 +37,450 @@ import torch.nn.utils.parametrize as parametrize
 from torch.ao.quantization import quantize_fx
 import copy
 import math
-import enum
+from ....v1 import xnn
+from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, find_all_connected_conv, get_net_weight_node_channel_prune, get_net_weights_all
 
 
-class PruningParametrization(nn.Module):
-    def __init__(self, module1, module2=None, channel_pruning=False, pruning_ratio=0.2, **kwargs):
+class IncrementalPruningParametrization(nn.Module):
+    def __init__(self, curr_node, modules, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False,  
+                 init_train_ep=5, net_weights = None, binary_mask=False, tao=1e-4, *args, **kwargs):
         super().__init__()
         
-        # if there is batchnorm after the conv layer, then we will be using the net weight which is the combination of both batchnorm and conv to find the net weight
-        
-        self.channel_pruning = channel_pruning
-        
-        if module2!=None: #might only work for conv right now, need to see to it
-            target = module1.weight.shape
-            bn_weight = module2.weight[:, None, None, None].expand(target)
-            bn_var = torch.sqrt((module2.running_var + module2.eps)[:, None, None, None].expand(target))
-            net_weight = torch.div(torch.mul(module1.weight, bn_weight), bn_var)  
-            # 4-dim output
-        else:
-            net_weight = module1.weight 
-        
-        if self.channel_pruning:
-            topk = torch.topk(torch.abs(net_weight).mean(dim=[1,2,3]), k=int(pruning_ratio*net_weight.size(0)), largest=False)
-            mask = torch.ones(net_weight.size(0), device = net_weight.device)
-            mask[topk.indices] = 0
-            self.mask = mask
-        else:
-            topk = torch.topk(torch.abs(net_weight).view(-1), k=int(pruning_ratio*net_weight.nelement()), largest=False)
-            mask = torch.ones_like(net_weight)
-            mask.view(-1)[topk.indices] = 0
-            self.mask = mask
-
-    def forward(self, X):
-        if self.channel_pruning:
-            if len(X.shape) == 4:
-                return X * self.mask[:,None,None,None]
-            elif len(X.shape) == 1:
-                return X * self.mask
-        else:
-            return X * self.mask
-
-    def right_inverse(self, A):
-        return A
-
-class PDPPruningParametrization(nn.Module):
-    def __init__(self, module1, module2=None, channel_pruning=False, pruning_ratio=0.2, tao=1e-4, binary_mask=False, n2m_pruning=False, **kwargs):
-        super().__init__()        
-        
-        # if there is batchnorm after the conv layer, then we will be using the net weight which is the combination of both batchnorm and conv to find the net weight
-        
+        self.curr_node = curr_node
+        self.all_modules = modules        
         self.channel_pruning = channel_pruning
         self.tao = tao
         self.binary_mask= binary_mask
         self.n2m_pruning = n2m_pruning
-        
-        if module2!=None: #might only work for conv right now, need to see to it
-            target = module1.weight.shape
-            bn_weight = module2.weight[:, None, None, None].expand(target)
-            bn_var = torch.sqrt((module2.running_var + module2.eps)[:, None, None, None].expand(target))
-            net_weight = torch.div(torch.mul(module1.weight.clone(), bn_weight), bn_var)
-            # 4-dim output
-        else:
-            net_weight = module1.weight.clone()
-        
-        if self.channel_pruning:
-            print("Not yet implemented")
-            raise NotImplementedError
-        
-        elif self.n2m_pruning:
-            # prune 41 elements for every 64 elements
-            mask = torch.ones_like(net_weight)
-            net_weight2 = torch.pow(net_weight,2)/self.tao
-            # exp of values were going inf and because of that nan was coming, limiting that
-            net_weight2 = torch.where(net_weight2>80, 80, net_weight2)
+        self.pruning_ratio = pruning_ratio
+        self.init_train_ep = init_train_ep
+        if "epoch_count" in kwargs:
+            self.epoch_count = kwargs.get("epoch_count")
+        if "total_epochs" in kwargs:
+            self.total_epochs = kwargs.get("total_epochs")
+        if "prunechannelunstructured" in kwargs:
+            self.prunechannelunstructured = kwargs.get("prunechannelunstructured")
             
-            if (int((1-pruning_ratio)*64)!=0) and (int(pruning_ratio*64)!=0):
+        net_weight = net_weights[self.curr_node.target]
+        
+        # avoid error in backprop with detach
+        net_weight = net_weight.detach()
+        
+        # TODO : some problem with dealing with the depthwise layer, something wrong in logic
+        is_depthwise = (self.all_modules[self.curr_node.target].weight.shape[1] == 1) # we do not want to prune depthwise layers
+        if int(self.pruning_ratio*net_weight.nelement())==0 or net_weight.size(0)<=32:
+            if channel_pruning:
+                mask = torch.ones(net_weight.size(0)).to(net_weight.device)
+            else:
+                mask = torch.ones_like(net_weight)
+        elif is_depthwise and not(channel_pruning):
+            mask = torch.ones_like(net_weight)
+        else:
+            mask = self.create_mask(net_weight)
+
+        self.mask = mask
+                
+    def create_mask(self, net_weight):
+        # epoch count is one indexed for some reason, manage according to that
+        if self.epoch_count<=self.init_train_ep:
+            if self.channel_pruning:
+                soft_mask = torch.ones(net_weight.size(0), device = net_weight.device)
+            else:
+                soft_mask = torch.ones_like(net_weight)
+        else:
+            total_epochs_knee_point = (self.total_epochs-self.init_train_ep)*2//3
+            alpha_factor = 0
+                     
+            if self.n2m_pruning: 
+                # prune 41 elements for every 64 elements (pass 41/64 in the self.pruning_ratio)
+                weight_abs = torch.abs(net_weight)
+                soft_mask = torch.ones_like(net_weight)
                 for i in range(math.ceil(len(net_weight.view(-1))/64)):
                     start_iter = 64*i
-                    end_iter = min(64*(i+1), len(mask.view(-1)))
-                    Wh = torch.topk(torch.abs(net_weight).view(-1)[start_iter:end_iter], k=int((1-pruning_ratio)*64), largest=True)
-                    Wl = torch.topk(torch.abs(net_weight).view(-1)[start_iter:end_iter], k=int(pruning_ratio*64), largest=False)
+                    end_iter = min(64*(i+1), len(net_weight.view(-1)))
+                    prune_elements = (self.pruning_ratio)*(self.epoch_count-self.init_train_ep)/(total_epochs_knee_point-self.init_train_ep)
+                    keep_elem_k = min(int((1-prune_elements)*64), end_iter - start_iter)
+                    if (keep_elem_k==0) or ((end_iter - start_iter - keep_elem_k)==0):
+                        continue    
+                    Wh = torch.topk(torch.abs(weight_abs).view(-1)[start_iter:end_iter], k=keep_elem_k, largest=True)
+                    Wl = torch.topk(torch.abs(weight_abs).view(-1)[start_iter:end_iter], k=(end_iter - start_iter - keep_elem_k), largest=False)
                     t = (torch.min(Wh.values)+ torch.max(Wl.values))/2
-                    t2 = torch.pow(t,2)/self.tao
+                    soft_mask.view(-1)[start_iter:end_iter] = (weight_abs.view(-1)[start_iter:end_iter] < t)*alpha_factor + (weight_abs.view(-1)[start_iter:end_iter] >= t)*1.0
+            
+            else:
+                if self.channel_pruning:
+                     # FPGM based finding channels to prune
+                    weight_to_opt = net_weight
+                    rough_median = torch.median(weight_to_opt, dim=0).values
+                    all_dist = torch.ones(weight_to_opt.shape[0], device = net_weight.device)
+                    for i in range(all_dist.shape[0]):
+                        all_dist[i] = torch.norm(weight_to_opt[i]-rough_median, p=2)
+                    net_weight=all_dist
                     
-                    mask.view(-1)[start_iter:end_iter] = torch.exp(net_weight2.view(-1)[start_iter:end_iter]) / (torch.exp(net_weight2.view(-1)[start_iter:end_iter]) +  torch.exp(t2))
+                #     # L2 norm based finding channel to prune
+                #     L2_norm_channel = torch.ones(net_weight.size(0), device = net_weight.device)
+                #     for i in range(net_weight.size(0)):
+                #         L2_norm_channel[i] = torch.norm(net_weight[i], p=1).item() 
+                #     net_weight = L2_norm_channel
                 
-            mask.detach_()
-                
-            if self.binary_mask:
-                self.mask = (mask >= 0.5)
-            else:
-                self.mask = mask
-            
-        else:
-            if int(pruning_ratio*net_weight.nelement())==0 or int((1-pruning_ratio)*net_weight.nelement())==0:
-                self.mask = torch.ones_like(net_weight)
-                
-            else:
-                Wh = torch.topk(torch.abs(net_weight).view(-1), k=int((1-pruning_ratio)*net_weight.nelement()), largest=True)
-                Wl = torch.topk(torch.abs(net_weight).view(-1), k=int(pruning_ratio*net_weight.nelement()), largest=False)
+                # unstructured + channel pruning
+                weight_abs = torch.abs(net_weight)
+                prune_elements = (self.pruning_ratio)*(self.epoch_count-self.init_train_ep)/(total_epochs_knee_point-self.init_train_ep)
+                keep_elem_k = int((1-prune_elements)*weight_abs.nelement())
+                Wh = torch.topk(torch.abs(weight_abs).view(-1), k=keep_elem_k, largest=True)
+                Wl = torch.topk(torch.abs(weight_abs).view(-1), k=(weight_abs.nelement() - keep_elem_k), largest=False)
                 t = (torch.min(Wh.values)+ torch.max(Wl.values))/2
-                t2 = torch.pow(t,2)/self.tao
-                net_weight2 = torch.pow(net_weight,2)/self.tao
-                # exp of values were going inf and because of that nan was coming, limiting that
-                net_weight2 = torch.where(net_weight2>80, 80, net_weight2)
-                mask = torch.exp(net_weight2) / (torch.exp(net_weight2) +  torch.exp(t2))
-                mask.detach_()
-                if self.binary_mask:
-                    self.mask = (mask >= 0.5)
-                else:
-                    self.mask = mask
-            
+                soft_mask = (weight_abs < t)*alpha_factor + (weight_abs >= t)*1.0
+        
+        return soft_mask 
+        
     def forward(self, X):
-        if self.channel_pruning:
-            if len(X.shape) == 4:
+        if self.mask.device!=X.device: # temporary fix, not sure what the exact issue is, only needed for torchvision testing #TODO
+            self.mask = self.mask.to(X.device)
+            
+        if self.channel_pruning: # pruning cannot be same for both weight and bias
+            if len(X.shape) == 4: # weights 
                 return X * self.mask[:,None,None,None]
-            elif len(X.shape) == 1:
+            elif len(X.shape) == 1: # bias 
                 return X * self.mask
-        else:
+        else: # X shape is of length 4 
             return X * self.mask
 
     def right_inverse(self, A):
         return A
 
 
+class SoftPruningParametrization(nn.Module):
+    def __init__(self, curr_node, modules, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False,  
+                 init_train_ep=5, net_weights = None, binary_mask=False, tao=1e-4, *args, **kwargs):
+        super().__init__()        
+        
+        # if there is batchnorm after the conv layer, then we will be using the net weight which is the combination of both batchnorm and conv to find the net weight
+        
+        self.curr_node = curr_node
+        self.all_modules = modules        
+        self.channel_pruning = channel_pruning
+        self.tao = tao
+        self.binary_mask= binary_mask
+        self.n2m_pruning = n2m_pruning
+        self.pruning_ratio = pruning_ratio
+        self.init_train_ep = init_train_ep
+        if "epoch_count" in kwargs:
+            self.epoch_count = kwargs.get("epoch_count")
+        if "total_epochs" in kwargs:
+            self.total_epochs = kwargs.get("total_epochs")
+        if "prunechannelunstructured" in kwargs:
+            self.prunechannelunstructured = kwargs.get("prunechannelunstructured")
+            
+        net_weight = net_weights[self.curr_node.target]
+        
+        # avoid error in backprop with detach
+        net_weight = net_weight.detach()
+        
+        # TODO : some problem with dealing with the depthwise layer, something wrong in logic
+        is_depthwise = (self.all_modules[self.curr_node.target].weight.shape[1] == 1) # we do not want to prune depthwise layers
+        if int(self.pruning_ratio*net_weight.nelement())==0 or net_weight.size(0)<=32:
+            if channel_pruning:
+                mask = torch.ones(net_weight.size(0)).to(net_weight.device)
+            else:
+                mask = torch.ones_like(net_weight)
+        elif is_depthwise and not(channel_pruning):
+            mask = torch.ones_like(net_weight)
+        else:
+            mask = self.create_mask(net_weight)
+
+        if self.binary_mask:
+            self.mask = (mask >= 0.5)
+        else:
+            self.mask = mask
+                
+    def create_mask(self, net_weight):
+        return torch.ones_like(net_weight)
+        
+    def forward(self, X):
+        if self.mask.device!=X.device: # temporary fix, not sure what the exact issue is, only needed for torchvision testing #TODO
+            self.mask = self.mask.to(X.device)
+            
+        if self.channel_pruning: # pruning cannot be same for both weight and bias
+            if len(X.shape) == 4: # weights 
+                return X * self.mask[:,None,None,None]
+            elif len(X.shape) == 1: # bias 
+                return X * self.mask
+        else: # X shape is of length 4 
+            return X * self.mask
+
+    def right_inverse(self, A):
+        return A
+
+
+class SigmoidPruningParametrization(SoftPruningParametrization):
+    # epoch count is one indexed for some reason, manage according to that
+    def create_mask(self, net_weight):
+        if self.epoch_count<=self.init_train_ep:
+            if self.channel_pruning:
+                soft_mask = torch.ones(net_weight.size(0), device = net_weight.device)
+            else:
+                soft_mask = torch.ones_like(net_weight)
+                
+        else:             
+            if self.n2m_pruning: 
+                # prune 41 elements for every 64 elements (pass 41/64 in the self.pruning_ratio)
+                # epoch count is one indexed for some reason, manage according to that
+                weight_abs = torch.abs(net_weight)
+                weight_offseted = torch.ones_like(net_weight)
+                for i in range(math.ceil(len(net_weight.view(-1))/64)):
+                    start_iter = 64*i
+                    end_iter = min(64*(i+1), len(net_weight.view(-1)))
+                    keep_elem_k = min(int((1-self.pruning_ratio)*64), end_iter - start_iter)
+                    if (keep_elem_k==0) or ((end_iter - start_iter - keep_elem_k)==0):
+                        continue
+                    Wh = torch.topk(torch.abs(weight_abs).view(-1)[start_iter:end_iter], k=keep_elem_k, largest=True)
+                    Wl = torch.topk(torch.abs(weight_abs).view(-1)[start_iter:end_iter], k=(end_iter - start_iter - keep_elem_k), largest=False)
+                    t = (torch.min(Wh.values)+ torch.max(Wl.values))/2
+                    weight_offseted.view(-1)[start_iter:end_iter] = weight_abs.view(-1)[start_iter:end_iter] - t
+
+            else:
+                if self.channel_pruning:
+                     # FPGM based finding channels to prune
+                    weight_to_opt = net_weight
+                    rough_median = torch.median(weight_to_opt, dim=0).values
+                    # here, rough median would be a single value rather than a vector (vector would have been more preferable)
+                    # all_dist = abs(weight_to_opt-rough_median)
+                    all_dist = torch.ones(weight_to_opt.shape[0], device = net_weight.device)
+                    for i in range(all_dist.shape[0]):
+                        # all_dist[i] = abs(weight_to_opt[i]-rough_median)
+                        all_dist[i] = torch.norm(weight_to_opt[i]-rough_median, p=2)
+                    net_weight=all_dist
+                    
+                    # # channel pruning, calculating L2 norm for each channel and pruning on the basis of that
+                    # L2_norm_channel = torch.ones(net_weight.size(0), device = net_weight.device)
+                    # for i in range(net_weight.size(0)):
+                    #     L2_norm_channel[i] = torch.norm(net_weight[i], p=1).item()
+                    # net_weight = L2_norm_channel
+
+                # unstructured pruning + channel pruning
+                weight_abs = torch.abs(net_weight)
+                keep_elem_k = int((1-self.pruning_ratio)*weight_abs.nelement())
+                Wh = torch.topk(torch.abs(weight_abs).view(-1), k=keep_elem_k, largest=True)
+                Wl = torch.topk(torch.abs(weight_abs).view(-1), k=(weight_abs.nelement() - keep_elem_k), largest=False)
+                t = (torch.min(Wh.values)+ torch.max(Wl.values))/2
+                weight_offseted = weight_abs - t
+                
+            sigmoid_domain = 3.0
+            offset_factor = (2*sigmoid_domain+2)*(((self.epoch_count-self.init_train_ep))/self.total_epochs) #trying to push values away from 0, to find clear boundary/mask
+            weight_spread = 1.0*(self.epoch_count-self.init_train_ep)/self.total_epochs  # limiting weights closer to 3 in the initial epochs to prevent huge pruning
+            weight_min, weight_max = xnn.utils.extrema(weight_offseted, range_shrink_percentile=0.01)
+            weight_offseted_abs_max = max(abs(weight_min), abs(weight_max))
+            
+            weight_offseted_scaled = (weight_offseted * weight_spread / weight_offseted_abs_max) + sigmoid_domain
+            weight_offseted_scaled = weight_offseted_scaled + ((weight_offseted_scaled<sigmoid_domain)*(-offset_factor) + (weight_offseted_scaled>=sigmoid_domain)*(offset_factor))
+            soft_mask = torch.nn.functional.hardsigmoid(weight_offseted_scaled) 
+        # hard sigmoid has a limit, below -3, it is 0, above +3, it is 1. Between them it is (x+3)/6
+        
+        return soft_mask      
+                 
+
+class BlendPruningParametrization(SoftPruningParametrization):
+    def create_mask(self, net_weight):
+        # epoch count is one indexed for some reason, manage according to that
+        if self.epoch_count<=self.init_train_ep:
+            if self.channel_pruning:
+                soft_mask = torch.ones(net_weight.size(0), device = net_weight.device)
+            else:
+                soft_mask = torch.ones_like(net_weight)
+        else:
+            total_epochs_knee_point = (self.total_epochs-self.init_train_ep)*2//3
+            if self.epoch_count<=self.init_train_ep:
+                alpha_factor = 1
+            elif self.epoch_count>total_epochs_knee_point:
+                alpha_factor = 0
+            else:
+                alpha_factor = math.pow(self.epoch_count-total_epochs_knee_point,2)/math.pow(total_epochs_knee_point-self.init_train_ep, 2)
+                     
+            if self.n2m_pruning: 
+                # prune 41 elements for every 64 elements (pass 41/64 in the self.pruning_ratio)
+                weight_abs = torch.abs(net_weight)
+                soft_mask = torch.ones_like(net_weight)
+                for i in range(math.ceil(len(net_weight.view(-1))/64)):
+                    start_iter = 64*i
+                    end_iter = min(64*(i+1), len(net_weight.view(-1)))
+                    keep_elem_k = min(int((1-self.pruning_ratio)*64), end_iter - start_iter)
+                    if (keep_elem_k==0) or ((end_iter - start_iter - keep_elem_k)==0):
+                        continue
+                    Wh = torch.topk(torch.abs(weight_abs).view(-1)[start_iter:end_iter], k=keep_elem_k, largest=True)
+                    Wl = torch.topk(torch.abs(weight_abs).view(-1)[start_iter:end_iter], k=(end_iter - start_iter - keep_elem_k), largest=False)
+                    t = (torch.min(Wh.values)+ torch.max(Wl.values))/2
+                    soft_mask.view(-1)[start_iter:end_iter] = (weight_abs.view(-1)[start_iter:end_iter] < t)*alpha_factor + (weight_abs.view(-1)[start_iter:end_iter] >= t)*1.0
+            
+            elif self.prunechannelunstructured:
+                # prune the pruning ratio number of elements in each channel of the layer instead of considering the full layer 
+                weight_abs = torch.abs(net_weight)
+                soft_mask = torch.ones_like(net_weight)
+                for i in range(weight_abs.shape[0]):
+                    keep_elem_k = int((1-self.pruning_ratio)*weight_abs[i].nelement())
+                    if keep_elem_k==0:
+                        continue
+                    Wh = torch.topk(torch.abs(weight_abs[i]).view(-1), k=keep_elem_k, largest=True)
+                    Wl = torch.topk(torch.abs(weight_abs[i]).view(-1), k=(weight_abs[i].nelement() - keep_elem_k), largest=False)
+                    t = (torch.min(Wh.values)+ torch.max(Wl.values))/2
+                    soft_mask[i] = (weight_abs[i] < t)*alpha_factor + (weight_abs[i] >= t)*1.0
+            
+            else:
+                if self.channel_pruning:
+                     # FPGM based finding channels to prune
+                    weight_to_opt = net_weight
+                    rough_median = torch.median(weight_to_opt, dim=0).values
+                    all_dist = torch.ones(weight_to_opt.shape[0], device = net_weight.device)
+                    for i in range(all_dist.shape[0]):
+                        all_dist[i] = torch.norm(weight_to_opt[i]-rough_median, p=2)
+                    net_weight=all_dist
+                    
+                #     # L2 norm based finding channel to prune
+                #     L2_norm_channel = torch.ones(net_weight.size(0), device = net_weight.device)
+                #     for i in range(net_weight.size(0)):
+                #         L2_norm_channel[i] = torch.norm(net_weight[i], p=2).item() 
+                #     net_weight = L2_norm_channel
+                
+                # unstructured + channel pruning
+                weight_abs = torch.abs(net_weight)
+                keep_elem_k = int((1-self.pruning_ratio)*weight_abs.nelement())
+                Wh = torch.topk(torch.abs(weight_abs).view(-1), k=keep_elem_k, largest=True)
+                Wl = torch.topk(torch.abs(weight_abs).view(-1), k=(weight_abs.nelement() - keep_elem_k), largest=False)
+                t = (torch.min(Wh.values)+ torch.max(Wl.values))/2
+                soft_mask = (weight_abs < t)*alpha_factor + (weight_abs >= t)*1.0
+                
+        return soft_mask   
+    
+         
 class PrunerModule(torch.nn.Module):
-    def __init__(self, module, pruning_ratio=0.5, total_epochs=10, pruning_class=PruningParametrization,
-                 pruning_type=None, channel_pruning=False, copy_args=[],
-                 train_epoch_per_iter=5, epsilon=0.015, global_pruning=False, n2m_pruning=False, *args, **kwargs) -> None:
+    def __init__(self, module, pruning_ratio=0.8, total_epochs=10, pruning_class='blend', copy_args=[],
+                 global_pruning=False, pruning_type='channel', init_train_ep=5, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.module = module
         
         self.epoch_count = 0
         self.pruning_ratio = pruning_ratio
         self.total_epochs = total_epochs
-        self.pruning_class = pruning_class
         self.sparsity = 0
-        self.train_epoch_per_iter = train_epoch_per_iter
-        self.epsilon = epsilon
+        self.init_train_ep = init_train_ep
         
-        self.next_module_names = dict()
-        self.create_mapping()
+        pruning_class_dict = {"blend": BlendPruningParametrization, 
+                 "sigmoid": SigmoidPruningParametrization, 
+                 "incremental": IncrementalPruningParametrization}
         
-        self.channel_pruning = channel_pruning
+        self.pruning_class = pruning_class_dict[pruning_class]
+        
+        #responsible for creating a next mapping (basically helps combine the weight of BN and conv)
+        self.next_bn_nodes = create_bn_conv_mapping(module)
+        
+        self.channel_pruning = False
+        self.n2m_pruning = False
+        self.prunechannelunstructured = False
+        
+        if pruning_type=='channel':
+            self.channel_pruning = True
+        elif pruning_type=='n2m':
+            self.n2m_pruning = True
+        elif pruning_type=='prunechannelunstructured':
+            self.prunechannelunstructured = True
         self.global_pruning = global_pruning
-        self.n2m_pruning = n2m_pruning
         
-        if self.global_pruning:
-            self.get_layer_pruning_ratio()
+        if self.channel_pruning:
+            # creating the next node list, which contains the connection to all convs to the current conv
+            self.next_conv_node_list = create_next_conv_node_list(module)
+            # returns the list of all conv that share the same output
+            self.all_connected_nodes = find_all_connected_conv(module)
+        else:
+            self.next_conv_node_list = None
+            self.all_connected_nodes = None
+        
+        if self.n2m_pruning and self.global_pruning:
+            print("Cannot do both global pruning along with n2m pruning, it doesn't make sense! \n")
+            raise NotImplementedError
         
         for copy_arg in copy_args:
             setattr(self, copy_arg, getattr(module, copy_arg))
+            
+        self.net_weights = get_net_weights_all(module, self.next_conv_node_list, self.all_connected_nodes, self.next_bn_nodes, self.channel_pruning, self.global_pruning)
+        
+        if self.global_pruning:
+            if self.channel_pruning:
+                self.get_layer_pruning_ratio_channel(pruning_ratio)
+            else:
+                self.get_layer_pruning_ratio(pruning_ratio)
         #
     
-    def get_layer_pruning_ratio(self):
+    def get_layer_pruning_ratio(self, pruning_ratio=0.6):
         fx_model = fx.symbolic_trace(self.module)
         modules = dict(fx_model.named_modules())
         model_graph = fx_model.graph
         # can also include the batchnorm merged weights over here
-        pruning_ratio = dict()
         set_of_all_weights = torch.empty(0)
         for node in model_graph.nodes:
             if node.target=='output':
                 continue
             if node.args and isinstance(node.target, str):
-                if isinstance(modules[node.target], torch.nn.Conv2d):
-                    set_of_all_weights = torch.cat((set_of_all_weights, modules[node.target].weight.view(-1)))
+                if isinstance(modules[node.target], torch.nn.Conv2d) and (modules[node.target].weight.size(1) != 1):
+                    set_of_all_weights = torch.cat((set_of_all_weights, modules[node.target].weight.mean(dim=[1,2,3]))) if self.channel_pruning else torch.cat((set_of_all_weights, modules[node.target].weight.view(-1)))
                     
-        topk = torch.topk(torch.abs(set_of_all_weights), k=int(0.6*len(set_of_all_weights)), largest=False)
+        topk = torch.topk(torch.abs(set_of_all_weights), k=int(pruning_ratio*len(set_of_all_weights)), largest=False)
         indexes = topk.indices
         sorted_idx, _ = torch.sort(indexes)
         
+        pruning_ratio = dict()
         idx_iter = 0
         total_params = 0
+        limit_factor=0.7
+        for node in model_graph.nodes:
+            if node.target=='output':
+                continue
+            if node.args and isinstance(node.target, str):
+                if isinstance(modules[node.target], torch.nn.Conv2d):
+                    if (modules[node.target].weight.size(1) != 1):
+                        net_params = modules[node.target].weight.shape[0] if self.channel_pruning else torch.numel(modules[node.target].weight)
+                        total_params+=net_params
+                        curr_idx = torch.min((sorted_idx < total_params),0).indices.item()-1
+                        if curr_idx<0:
+                            curr_idx = len(sorted_idx)
+                        pruning_ratio[node.target] = (curr_idx-idx_iter)/net_params
+                        if pruning_ratio[node.target] >= limit_factor:
+                            print("{} is getting the pruning ratio of {} which is a problem, so limiting to {}".format(node.target, pruning_ratio[node.target], limit_factor))
+                            pruning_ratio[node.target] = limit_factor
+                        idx_iter = curr_idx
+                    else:
+                        pruning_ratio[node.target] = 0 
+                    
+        self.pruning_ratio = pruning_ratio
+        print(pruning_ratio)
+      
+        return self
+    
+    def get_layer_pruning_ratio_channel(self, pruning_ratio=0.6): ################## not complete TODO : Global channel pruning
+        fx_model = fx.symbolic_trace(self.module)
+        modules = dict(fx_model.named_modules())
+        model_graph = fx_model.graph
+        # can also include the batchnorm merged weights over here
+        # set_of_all_weights = torch.empty(0)
+        set_of_all_channel_avg_norms = torch.empty(0)
+        for node in model_graph.nodes:
+            if node.target=='output':
+                continue
+            if node.args and isinstance(node.target, str):
+                if isinstance(modules[node.target], torch.nn.Conv2d):
+                    if (modules[node.target].weight.shape[1]!=1) and (modules[node.target].weight.shape[0]>32):
+                        mean, std = torch.mean(self.net_weights[node.target]), torch.std(self.net_weights[node.target])
+                        k = (self.net_weights[node.target]-mean)/std
+                        set_of_all_channel_avg_norms = torch.cat((set_of_all_channel_avg_norms, k))
+                    # set_of_all_weights = torch.cat((set_of_all_weights, modules[node.target].weight.view(-1)))
+                    
+        topk = torch.topk(torch.abs(set_of_all_channel_avg_norms), k=int(len(set_of_all_channel_avg_norms)*pruning_ratio), largest=False)
+        indexes = topk.indices
+        sorted_idx, _ = torch.sort(indexes)
+        
+        pruning_ratio = dict()
+        idx_iter = 0
+        total_params = 0
+        max_prune = 0.8
         for node in model_graph.nodes:
             if node.target=='output':
                 continue
@@ -220,36 +491,14 @@ class PrunerModule(torch.nn.Module):
                     curr_idx = torch.min((sorted_idx < total_params),0).indices.item()-1
                     if curr_idx<0:
                         curr_idx = len(sorted_idx)
-                    pruning_ratio[node.target] = (curr_idx-idx_iter)/net_params
-                    idx_iter = curr_idx 
-                    
+                pruning_ratio[node.target] = min((curr_idx-idx_iter)/net_params, max_prune)
+                idx_iter = curr_idx 
+        
+        # depthwise is not pruning same as the previous conv, maybe some where, 1-2 extra channels pruned, will reduce accuracy           
         self.pruning_ratio = pruning_ratio
+        print(pruning_ratio)
       
         return self
-        
-    
-    def create_mapping(self):
-        # need to check all the layers connected to conv2d and linear and we would have to include them all in the mapping list
-        
-        if isinstance(self.module, torch.fx.GraphModule): # the QAT model is already a graph and thus cannnot be traced
-            fx_model = self.module
-        else:
-            fx_model = fx.symbolic_trace(self.module)
-        
-        # the QAT module will already be merged and thus we would not have to calculate all this.
-            
-        modules = dict(fx_model.named_modules())
-        model_graph = fx_model.graph
-        for node in model_graph.nodes:
-            if node.target=='output':
-                continue
-            if node.args and isinstance(node.target, str) and (node.target in modules):
-                if isinstance(modules[node.target], torch.nn.BatchNorm2d):
-                    if len(node.args[0].users)>1: # dont merge if conv has multiple users
-                        continue
-                    if isinstance(modules[node.args[0].target], torch.nn.Conv2d):
-                    # if isinstance(modules[node.args[0].target], torch.nn.Conv2d) or isinstance(modules[node.args[0].target], torch.nn.Linear):
-                        self.next_module_names[node.args[0].target] = node.target
       
     def train(self, mode: bool = True):
         super().train(mode)
@@ -262,9 +511,7 @@ class PrunerModule(torch.nn.Module):
             self.insert_parametrization(binary_mask=True)
             self.remove_parametrization()
             self.calculate_sparsity()
-            
-        # else:  # not of use probably, it will be nothing (0)
-        #     self.calculate_sparsity()
+            print("The final sparsity of the network is {}".format(self.sparsity))
 
         return self
         
@@ -274,25 +521,8 @@ class PrunerModule(torch.nn.Module):
     def insert_parametrization(self, binary_mask=False):
         # start_epoch=max(round(self.total_epochs*0.15),0)
         # last_epoch = (self.total_epochs-start_epoch)
-        if self.n2m_pruning: # hard coded this for our use case, however need to make the code changeable
-            self.pruning_ratio = 41/64
-            
-        if self.pruning_class == PDPPruningParametrization:
-            if isinstance(self.pruning_ratio, float):
-                curr_pruning_ratio =  self.pruning_ratio*min(1, self.epsilon*(self.epoch_count))
-            else: # layer level pruning
-                curr_pruning_ratio = copy.deepcopy(self.pruning_ratio)
-                curr_pruning_ratio.update((x, y*min(1, self.epsilon*(self.epoch_count))) for x, y in self.pruning_ratio.items())
-                
-        else:
-            if isinstance(self.pruning_ratio, float):
-                curr_pruning_ratio = self.pruning_ratio*((self.epoch_count//self.train_epoch_per_iter)/(self.total_epochs//self.train_epoch_per_iter))
-            else:
-                curr_pruning_ratio = copy.deepcopy(self.pruning_ratio)
-                curr_pruning_ratio.update((x, y*((self.epoch_count//self.train_epoch_per_iter)/(self.total_epochs//self.train_epoch_per_iter))) for x, y in self.pruning_ratio.items())
-                
-        # pruning_ratio = max(self.pruning_ratio*(self.epoch_count-start_epoch)/(last_epoch-start_epoch),0)
-        # pruning_ratio = min(pruning_ratio, self.pruning_ratio)
+        # if self.n2m_pruning: # hard coded this for our use case, however need to make the code changeable 
+        #     self.pruning_ratio = 41/64
         
         if isinstance(self.module, torch.fx.GraphModule): # the QAT model is already a graph and thus cannnot be traced
             fx_model = self.module
@@ -307,33 +537,28 @@ class PrunerModule(torch.nn.Module):
                 continue
             if node.args and isinstance(node.target, str) and (node.target in modules):
                 if isinstance(modules[node.target], nn.Conv2d):
-                # if isinstance(modules[node.target], nn.Conv2d) or isinstance(modules[node.target], nn.Linear):
-                    if node.target in self.next_module_names:
-                        # send both the modules(conv/fc + BN) to the pruning
-                        if isinstance(self.pruning_ratio, float):
-                            parameterization = self.pruning_class(modules[node.target], modules[self.next_module_names[node.target]], self.channel_pruning, curr_pruning_ratio, binary_mask=binary_mask, n2m_pruning=self.n2m_pruning)
-                        else:
-                            parameterization = self.pruning_class(modules[node.target], modules[self.next_module_names[node.target]], self.channel_pruning, curr_pruning_ratio[node.target], binary_mask=binary_mask)
+                    pruning_ratio = self.pruning_ratio if isinstance(self.pruning_ratio, float) else self.pruning_ratio[node.target]
+                    parameterization = self.pruning_class(curr_node=node, modules=modules, channel_pruning=self.channel_pruning, pruning_ratio=pruning_ratio,
+                                                        n2m_pruning=self.n2m_pruning, init_train_ep=self.init_train_ep, prunechannelunstructured=self.prunechannelunstructured,
+                                                        epoch_count=self.epoch_count, total_epochs=self.total_epochs, net_weights = self.net_weights, binary_mask=binary_mask)
+                    
+                    parametrize.register_parametrization(modules[node.target], "weight", parameterization)
+                    if self.channel_pruning:
+                        if modules[node.target].bias is not None:
+                            parametrize.register_parametrization(modules[node.target], "bias", parameterization)
+                        if node.target in self.next_bn_nodes:
+                            parametrize.register_parametrization(modules[self.next_bn_nodes[node.target].target], "weight", parameterization) 
+                            parametrize.register_parametrization(modules[self.next_bn_nodes[node.target].target], "bias", parameterization)
+                        # also put the same parametrization in the next dwconv(along with its BN), if there is one connected to this 
+                        for n_id in self.next_conv_node_list[node.target]:
+                            if modules[n_id.target].weight.shape[1]==1: #n_id node is dwconv 
+                                parametrize.register_parametrization(modules[n_id.target], "weight", parameterization)
+                                if modules[n_id.target].bias is not None:
+                                    parametrize.register_parametrization(modules[n_id.target], "bias", parameterization)
+                                if n_id.target in self.next_bn_nodes:
+                                    parametrize.register_parametrization(modules[self.next_bn_nodes[n_id.target].target], "weight", parameterization) 
+                                    parametrize.register_parametrization(modules[self.next_bn_nodes[n_id.target].target], "bias", parameterization)
                         
-                        parametrize.register_parametrization(modules[node.target], "weight", parameterization)
-                        if self.channel_pruning:
-                            if modules[node.target].bias is not None:
-                                parametrize.register_parametrization(modules[node.target], "bias", parameterization)
-                            parametrize.register_parametrization(modules[self.next_module_names[node.target]], "weight", parameterization) 
-                            parametrize.register_parametrization(modules[self.next_module_names[node.target]], "bias", parameterization)      
-                        #
-                                                 
-                    else:
-                        # send only the original one 
-                        if isinstance(self.pruning_ratio, float):
-                            parameterization = self.pruning_class(modules[node.target], None, self.channel_pruning, curr_pruning_ratio, binary_mask=binary_mask, n2m_pruning=self.n2m_pruning)
-                        else:
-                            parameterization = self.pruning_class(modules[node.target], None, self.channel_pruning, curr_pruning_ratio[node.target], binary_mask=binary_mask)
-                        
-                        parametrize.register_parametrization(modules[node.target], "weight", parameterization)
-                        if self.channel_pruning:
-                            if modules[node.target].bias is not None:
-                                parametrize.register_parametrization(modules[node.target], "bias", parameterization) 
 
         return self
     
@@ -349,8 +574,24 @@ class PrunerModule(torch.nn.Module):
     def calculate_sparsity(self):
         num_zeros = 0
         num_elements = 0
+        
+        # Make layer wise computionally pruning ratio, overall as well TODO  
+        
+        # if self.channel_pruning:
+        #     for module_name, module in self.module.named_modules():
+        #         if isinstance(module, (torch.nn.Conv2d, torch.nn.Linear)):
+        #             for param_name, param in module.named_parameters():
+        #                 if "weight" in param_name:
+        #                     num_zeros += torch.sum(param == 0).item()
+        #                     num_elements += param.nelement()
+        #                 if "bias" in param_name:
+        #                     num_zeros += torch.sum(param == 0).item()
+        #                     num_elements += param.nelement()
 
         for module_name, module in self.module.named_modules():
+            
+            if isinstance(module, torch.nn.Linear):
+                continue
             
             if isinstance(module, (torch.ao.nn.quantized.Conv2d, torch.ao.nn.quantized.Linear)):
                 num_zeros += torch.sum(module.weight()==0).item()
@@ -376,4 +617,35 @@ class PrunerModule(torch.nn.Module):
                     num_zeros += (torch.numel(module.bias) - torch.count_nonzero(module.bias).item())
             
         self.sparsity = num_zeros / num_elements
+        return self
+
+
+class PrunerQuantModule(PrunerModule):
+    def __init__(self, module, pruning_ratio=0.8, total_epochs=10, pruning_class='blend', copy_args=[], quant_backend='qnnpack', 
+                 global_pruning=False, pruning_type='channel', init_train_ep=5, *args, **kwargs) -> None:
+        super().__init__(module, pruning_ratio, total_epochs, pruning_class, copy_args, global_pruning, pruning_type, init_train_ep, *args, **kwargs)
+        
+        self.module = nn.Sequential(
+            torch.ao.quantization.QuantStub(),
+            module,
+            torch.ao.quantization.DeQuantStub()
+        )
+        self.example_inputs = [torch.randn(1,3,224,224)]
+        self.qconfig_mapping = torch.ao.quantization.get_default_qat_qconfig_mapping(quant_backend)
+        self.module = quantize_fx.prepare_qat_fx(self.module, self.qconfig_mapping, self.example_inputs) 
+        
+    def train(self, mode: bool = True):
+        super().train(mode)
+
+        if self.epoch_count == self.total_epochs and not mode:
+            print("Now convert the fake quantized model to quantized one")
+            self.convert()
+                
+        return self
+
+    def convert(self, inplace=False, device='cpu'):
+        self.module_quant = copy.deepcopy(self.module)
+        self.module_quant = self.module_quant.to(torch.device(device))
+        self.module_quant = quantize_fx.convert_fx(self.module_quant)
+        self.module_quant.to(torch.device(next(self.module.parameters()).device))
         return self

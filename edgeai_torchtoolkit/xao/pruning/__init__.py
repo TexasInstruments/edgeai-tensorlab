@@ -30,8 +30,8 @@
 #################################################################################
 
 
-from .pruner_config import *
-from .pruner_module import PrunerModule, PruningParametrization, PDPPruningParametrization
+from .pruner_module import PrunerQuantModule, PrunerModule, SigmoidPruningParametrization, BlendPruningParametrization, IncrementalPruningParametrization
+from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, create_channel_pruned_model, get_net_weights_all
 
 
 class PruningVersion():

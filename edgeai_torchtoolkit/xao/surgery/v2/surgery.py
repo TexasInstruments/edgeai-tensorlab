@@ -46,7 +46,7 @@ from . import custom_modules, custom_surgery_functions
 from .replacer import graph_pattern_replacer,replace_module_nodes,replace_function_nodes
 
 
-__all__ = ['replace_unsuppoted_layers', 'get_replacement_dict_default','SurgeryModule']
+__all__ = ['replace_unsupported_layers', 'get_replacement_dict_default','SurgeryModule']
 
 
 #put composite modules first, then primary module
@@ -85,7 +85,7 @@ def _is_replacable(pattern:Union[GraphModule, nn.Module, callable]):
     return True
 
 
-def replace_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, verbose_mode:bool=False):
+def replace_unsupported_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, verbose_mode:bool=False):
     '''
     main function that does the surgery
 
@@ -99,6 +99,13 @@ def replace_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn
     type            ->  type/nn.Module      : replaces sub-module of same type as patttern using traditional python approach 
     '''
     
+    if model.training:
+        RuntimeWarning("The model is in train mode, converting to eval mode. This might change the network behaviour.")
+        model.eval()
+        is_train_mode = True
+    else:
+        is_train_mode = False
+        
     replacement_dict = replacement_dict or _unsupported_module_dict
     model = deepcopy(model)
 
@@ -133,6 +140,10 @@ def replace_unsuppoted_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn
                 # calls the main surgery function
                 model = graph_pattern_replacer(model, pattern, replacement, verbose_mode=verbose_mode)
     model = custom_surgery_functions.remove_identiy(model)
+    
+    if is_train_mode:
+        model.train()
+        
     return model
 
 
@@ -153,7 +164,7 @@ class SurgeryModule(torch.nn.Module):
         '''perform surgery on the model and creates a new model'''
         super().__init__()
         self.replacement_dict=replacement_dict or get_replacement_dict_default()
-        self.module = replace_unsuppoted_layers(model, self.replacement_dict)
+        self.module = replace_unsupported_layers(model, self.replacement_dict)
 
     def forward(self,x,*args,**kwargs):
         '''
