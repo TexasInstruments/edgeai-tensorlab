@@ -96,27 +96,24 @@ TARGET_DEVICE_SETTINGS_PRESETS = {
         # TDA4VM does not support the per-channel asymmetric quantization
     },
     TARGET_DEVICE_AM62A : {
-        # disabling per-channel asymmetric quantization for now, until it is more stable
         'runtime_options': {
             'advanced_options:quantization_scale_type': 4
         },
-        # we can use fewer number of calibration images and iterations if per channel assymetric quantization is enabled
+        # we can use fewer number of calibration images and iterations if per channel asymmetric quantization is enabled
         'fast_calibration_factor': FAST_CALIBRATION_FACTOR
     },
     TARGET_DEVICE_AM68A : {
-        # disabling per-channel asymmetric quantization for now, until it is more stable
         'runtime_options': {
             'advanced_options:quantization_scale_type': 4
         },
-        # we can use fewer number of calibration images and iterations if per channel assymetric quantization is enabled
+        # we can use fewer number of calibration images and iterations if per channel asymmetric quantization is enabled
         'fast_calibration_factor': FAST_CALIBRATION_FACTOR
     },
     TARGET_DEVICE_AM69A : {
-        # disabling per-channel asymmetric quantization for now, until it is more stable
         'runtime_options': {
             'advanced_options:quantization_scale_type': 4
         },
-        # we can use fewer number of calibration images and iterations if per channel assymetric quantization is enabled
+        # we can use fewer number of calibration images and iterations if per channel asymmetric quantization is enabled
         'fast_calibration_factor': FAST_CALIBRATION_FACTOR
     },
     TARGET_DEVICE_AM62 : {
