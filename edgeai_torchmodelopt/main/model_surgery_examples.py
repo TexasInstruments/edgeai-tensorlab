@@ -37,7 +37,7 @@ import torch
 import torchvision
 import onnx
 import onnxsim
-from edgeai_torchtoolkit.v2 import xao
+from edgeai_torchmodelopt.v2 import xmo
 
 
 def main(args):
@@ -54,7 +54,7 @@ def main(args):
         output_path = os.path.join(args.output_path, name+".onnx")
         torch.onnx.export(model, input_tensor, output_path)
         # surgery
-        model = xao.surgery.replace_unsuppoted_layers(model, verbose_mode=False)
+        model = xmo.surgery.replace_unsuppoted_layers(model, verbose_mode=False)
         output_path = os.path.join(args.output_path, name+"_lite.onnx")
         torch.onnx.export(model, input_tensor, output_path)
         # onnx_model = onnx.load(output_path)

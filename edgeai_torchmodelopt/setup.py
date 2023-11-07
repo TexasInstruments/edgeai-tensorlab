@@ -55,12 +55,12 @@ if __name__ == '__main__':
         long_description = readme.read()
 
     setup(
-        name='edgeai_torchtoolkit',
+        name='edgeai_torchmodelopt',
         version=get_version(),
-        description='EdgeAI Model ToolKit For Torch',
+        description='EdgeAI Model Optimization ToolKit For Torch',
         long_description=long_description,
         long_description_content_type='text/markdown',
-        url='https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse',
+        url='https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeloptimization/browse',
         author='EdgeAI, TIDL & Analytics Algo Teams',
         author_email='edgeai-devkit@list.ti.com',
         classifiers=[
@@ -73,7 +73,7 @@ if __name__ == '__main__':
         include_package_data=True,
         install_requires=[],
         project_urls={
-            'Source': 'https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse',
+            'Source': 'https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeloptimization/browse',
             'Bug Reports': 'https://e2e.ti.com/support/processors/f/791/tags/jacinto_2D00_ai_2D00_devkit',
         },
     )
