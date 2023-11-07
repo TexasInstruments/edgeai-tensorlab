@@ -114,7 +114,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/unet_aspp_mobilenetv2_edgeailite_512x512_20210306_outby2.onnx'),
             postprocess=postproc_segmentation_onnx,
-            model_info=dict(metric_reference={'accuracy_mean_iou%':50.07}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_mean_iou%':50.07}, model_shortlist=20)
         ),
         'ss-8650':utils.dict_update(ade20k32_cfg,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
@@ -140,7 +140,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405.onnx'),
             postprocess=postproc_segmentation_onnx,
-            model_info=dict(metric_reference={'accuracy_mean_iou%':57.77}, model_shortlist=30)
+            model_info=dict(metric_reference={'accuracy_mean_iou%':57.77}, model_shortlist=20)
         ),
         'ss-8720':utils.dict_update(cocoseg21_cfg,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
@@ -148,7 +148,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/fpn_aspp_regnetx800mf_edgeailite_512x512_20210405.onnx'),
             postprocess=postproc_segmentation_onnx,
-            model_info=dict(metric_reference={'accuracy_mean_iou%':61.09}, model_shortlist=30)
+            model_info=dict(metric_reference={'accuracy_mean_iou%':61.09}, model_shortlist=20)
         ),
         'ss-8730':utils.dict_update(cocoseg21_cfg,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
