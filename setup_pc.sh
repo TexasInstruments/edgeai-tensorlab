@@ -56,13 +56,8 @@ pip3 install --no-input -U --force-reinstall pillow-simd
 echo "installing requirements"
 pip3 install --no-input -r ./requirements_pc.txt
 
-# building onnx from soure requires carefull steps
-# make sure that we are using system cmake
-pip3 uninstall --yes cmake
-# pybind11[global] is needed for building the onnx package.
-# for some reason, this has to be installed before the requirements file is used.
-pip3 install --no-input pybind11[global] protobuf==3.19.4
-pybind11_DIR=$(pybind11-config --cmakedir) pip3 install --no-input https://github.com/TexasInstruments/onnx/archive/tidl-j7.zip
+# can we move this inside the requirements file is used.
+pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
 
 ######################################################################
 #NOTE: THIS STEP INSTALLS THE EDITABLE LOCAL MODULE pytidl
@@ -138,92 +133,7 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r8.
     TARGET_SOC=${TARGET_SOCS[$soc_idx]}
     TIDL_TOOLS_DOWNLOAD_LINKS[$soc_idx]="https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_06_00_00/TIDL_TOOLS_RC5/${TARGET_SOC}/tidl_tools.tar.gz"
   done
-elif [[ $TIDL_TOOLS_RELEASE_NAME == "r8.5" ]]; then
-  # python version check = 3.6
-  version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,6) and sys.version_info < (3,7) else 1;print(r)'`
-  if [ $version_match -ne 0 ]; then
-      echo "python version must be == 3.6 for $TIDL_TOOLS_RELEASE_NAME"
-      exit 1
-  fi
-  # installers for 8.5 release
-  echo 'tidl_tools version 8.5'
-  TARGET_SOCS=(TDA4VM)
-  TIDL_TOOLS_RELEASE_ID=08_05_00_00
-  TIDL_TOOLS_VERSION_NAME=8.5
-  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_05_00_00/ubuntu18_04_x86_64/pywhl/dlr-1.10.0-py3-none-any.whl
-  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_05_00_00/ubuntu18_04_x86_64/pywhl/tvm-0.9.dev0-cp36-cp36m-linux_x86_64.whl
-  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_05_00_00/ubuntu18_04_x86_64/pywhl/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
-  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_05_00_00/ubuntu18_04_x86_64/pywhl/tflite_runtime-2.8.2-cp36-cp36m-linux_x86_64.whl
-  TIDL_TOOLS_DOWNLOAD_LINKS[0]="https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_05_00_00/tidl_tools.tar.gz"
-elif [[ $TIDL_TOOLS_RELEASE_NAME == "r8.4" ]]; then
-  # python version check = 3.6
-  version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,6) and sys.version_info < (3,7) else 1;print(r)'`
-  if [ $version_match -ne 0 ]; then
-      echo "python version must be == 3.6 for $TIDL_TOOLS_RELEASE_NAME"
-      exit 1
-  fi
-  # installers for 8.4 release
-  echo 'tidl_tools version 8.4'
-  TARGET_SOCS=(TDA4VM)
-  TIDL_TOOLS_RELEASE_ID=08_04_00_00
-  TIDL_TOOLS_VERSION_NAME=8.4
-  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_04_00_00/x86_64/pywhl/dlr-1.10.0-py3-none-any.whl
-  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_04_00_00/x86_64/pywhl/tvm-1.11.1.dev335+g13a4007ca-cp36-cp36m-linux_x86_64.whl
-  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_04_00_00/x86_64/pywhl/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
-  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_04_00_00/x86_64/pywhl/tflite_runtime-2.8.2-cp36-cp36m-linux_x86_64.whl
-  TIDL_TOOLS_DOWNLOAD_LINKS[0]="https://software-dl.ti.com/jacinto7/esd/tidl-tools/08_04_00_00/tidl_tools.tar.gz"
-elif [[ $TIDL_TOOLS_RELEASE_NAME == "r8.2" ]]; then
-  # python version check = 3.6
-  version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,6) and sys.version_info < (3,7) else 1;print(r)'`
-  if [ $version_match -ne 0 ]; then
-      echo "python version must be == 3.6 for $TIDL_TOOLS_RELEASE_NAME"
-      exit 1
-  fi
-  # installers for 8.2 release
-  echo 'tidl_tools version 8.2'
-  TARGET_SOCS=(TDA4VM)
-  TIDL_TOOLS_RELEASE_ID=08_02_00_01
-  TIDL_TOOLS_VERSION_NAME=8.2
-  pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08_02_00_01-rc1/dlr-1.10.0-py3-none-any.whl
-  pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08_02_00_05/tvm-0.8.dev0-cp36-cp36m-linux_x86_64.whl
-  pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08_02_00_01-rc1/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
-  pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tflite_runtime-2.4.0-py3-none-any.whl
-  TIDL_TOOLS_DOWNLOAD_LINKS[0]="https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08_02_00_01-rc1/tidl_tools.tar.gz"
-elif [[ $TIDL_TOOLS_RELEASE_NAME == "r8.1" ]]; then
-  # python version check = 3.6
-  version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,6) and sys.version_info < (3,7) else 1;print(r)'`
-  if [ $version_match -ne 0 ]; then
-      echo "python version must be == 3.6 for $TIDL_TOOLS_RELEASE_NAME"
-      exit 1
-  fi
-  # installers for 8.1 release
-  echo 'tidl_tools version 8.1'
-  TARGET_SOCS=(TDA4VM)
-  TIDL_TOOLS_RELEASE_ID=08_01_00_00
-  TIDL_TOOLS_VERSION_NAME=8.1
-  pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/dlr-1.8.0-py3-none-any.whl
-  pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tvm-0.8.dev0-cp36-cp36m-linux_x86_64.whl
-  pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08_01_00_09-rc1/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
-  pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tflite_runtime-2.4.0-py3-none-any.whl
-  TIDL_TOOLS_DOWNLOAD_LINKS[0]="https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08_01_00_09-rc1/tidl_tools.tar.gz"
-elif [[ $TIDL_TOOLS_RELEASE_NAME == "r8.0" ]]; then
-  # python version check = 3.6
-  version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,6) and sys.version_info < (3,7) else 1;print(r)'`
-  if [ $version_match -ne 0 ]; then
-      echo "python version must be == 3.6 for $TIDL_TOOLS_RELEASE_NAME"
-      exit 1
-  fi
-  # installers for 8.0 release
-  echo 'tidl_tools version 8.0'
-  TARGET_SOCS=(TDA4VM)
-  TIDL_TOOLS_RELEASE_ID=08_00_00_00
-  TIDL_TOOLS_VERSION_NAME=8.0
-  pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/dlr-1.8.0-py3-none-any.whl
-  pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tvm-0.8.dev0-cp36-cp36m-linux_x86_64.whl
-  pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/onnxruntime_tidl-1.7.0-cp36-cp36m-linux_x86_64.whl
-  pip3 install --no-input https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tflite_runtime-2.4.0-py3-none-any.whl
-  TIDL_TOOLS_DOWNLOAD_LINKS[0]="https://github.com/TexasInstruments/edgeai-tidl-tools/releases/download/08.00.00-rc1/tidl_tools.tar.gz"
-elif  [[ $TIDL_TOOLS_RELEASE_NAME == "test" ]]; then
+elif  [[ $TIDL_TOOLS_RELEASE_NAME == "test9.0.6" ]]; then
   # python version check = 3.10
   version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,10) and sys.version_info < (3,11) else 1;print(r)'`
   if [ $version_match -ne 0 ]; then
@@ -243,6 +153,31 @@ elif  [[ $TIDL_TOOLS_RELEASE_NAME == "test" ]]; then
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/onnxruntime_tidl-1.7.0-cp310-cp310-linux_x86_64.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tflite_runtime-2.8.2-cp310-cp310-linux_x86_64.whl
   TIDL_TOOLS_DOWNLOAD_LINKS=("http://edgeaisrv2.dhcp.ti.com/publish/tidl/j721e/09_00_06_00/tidl_tools.tar.gz" "http://edgeaisrv2.dhcp.ti.com/publish/tidl/j721s2/09_00_06_00/tidl_tools.tar.gz" "http://edgeaisrv2.dhcp.ti.com/publish/tidl/j784s4/09_00_06_00/tidl_tools.tar.gz" "http://edgeaisrv2.dhcp.ti.com/publish/tidl/am62a/09_00_06_01/tidl_tools.tar.gz")
+  for (( soc_idx=0; soc_idx<"${#TARGET_SOCS[@]}"; soc_idx++ )); do
+    TARGET_SOC=${TARGET_SOCS[$soc_idx]}
+    TIDL_TOOLS_DOWNLOAD_LINK=${TIDL_TOOLS_DOWNLOAD_LINKS[$soc_idx]}
+    echo "$TARGET_SOC $TIDL_TOOLS_DOWNLOAD_LINK"
+  done
+elif  [[ $TIDL_TOOLS_RELEASE_NAME == "test" ]]; then
+  # python version check = 3.10
+  version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,10) and sys.version_info < (3,11) else 1;print(r)'`
+  if [ $version_match -ne 0 ]; then
+      echo "python version must be == 3.10 for $TIDL_TOOLS_RELEASE_NAME"
+      exit 1
+  fi
+  # installers for internal release
+  echo "--------------------------------------------------------------------------------------------------------------"
+  echo "Important note: The release name provided is not a a known version. Assuming that it is an internal release tag: ${TIDL_TOOLS_RELEASE_NAME}"
+  echo "If instead a release version is required, then use the appropriate name. eg: r9.0"
+  echo "--------------------------------------------------------------------------------------------------------------"
+  TARGET_SOCS=(TDA4VM AM68A AM69A AM62A)
+  TIDL_TOOLS_RELEASE_ID=09_00_00_01
+  TIDL_TOOLS_VERSION_NAME=test
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/dlr-1.13.0-py3-none-any.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tvm-0.12.0-cp310-cp310-linux_x86_64.whl
+  pip3 install --no-input http://edgeaisrv2.dhcp.ti.com/publish/tidl/osrt/onnxruntime_tidl-1.14.0-cp310-cp310-linux_x86_64.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tflite_runtime-2.8.2-cp310-cp310-linux_x86_64.whl
+  TIDL_TOOLS_DOWNLOAD_LINKS=("http://edgeaisrv2.dhcp.ti.com/publish/tidl/j721e/09_00_06_00/tidl_tools.tar.gz" "http://edgeaisrv2.dhcp.ti.com/publish/tidl/j721s2/09_00_06_00/tidl_tools.tar.gz" "http://edgeaisrv2.dhcp.ti.com/publish/tidl/j784s4/09_01_00_00/tidl_tools.tar.gz" "http://edgeaisrv2.dhcp.ti.com/publish/tidl/am62a/09_00_06_01/tidl_tools.tar.gz")
   for (( soc_idx=0; soc_idx<"${#TARGET_SOCS[@]}"; soc_idx++ )); do
     TARGET_SOC=${TARGET_SOCS[$soc_idx]}
     TIDL_TOOLS_DOWNLOAD_LINK=${TIDL_TOOLS_DOWNLOAD_LINKS[$soc_idx]}
