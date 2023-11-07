@@ -33,7 +33,7 @@
 import torch
 import torch.fx as fx
 import torchvision
-from edgeai_torchtoolkit.v2.xao.pruning import create_channel_pruned_model
+from edgeai_torchtoolkit.v2.xmodelopt.pruning import create_channel_pruned_model
 import copy
 
 model = torchvision.models.mobilenet_v2()

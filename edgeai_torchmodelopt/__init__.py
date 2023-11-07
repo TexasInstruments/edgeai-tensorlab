@@ -30,8 +30,8 @@
 #################################################################################
 
 from . import xnn
-from . import xao
+from . import xmodelopt
 
-from .xao.surgery import SyrgeryVersion
-from .xao.pruning import PruningVersion
-from .xao.quantization import QuantizationVersion
+from .xmodelopt.surgery import SyrgeryVersion
+from .xmodelopt.pruning import PruningVersion
+from .xmodelopt.quantization import QuantizationVersion

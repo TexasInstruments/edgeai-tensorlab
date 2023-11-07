@@ -61,7 +61,7 @@ class QuantBaseModule(QuantGraphModule):
                  power2_weight_range=None, power2_activation_range=None, model_surgery_quantize=True, 
                  quantize_in=True, quantize_out=True, verbose_mode=False, **kwargs):
         
-        warnings.warn("WARNING - xnn.quantization is based on modules. For latest functionality, please use the torch.fx based xao.quantization instead")
+        warnings.warn("WARNING - xnn.quantization is based on modules. For latest functionality, please use the torch.fx based xmodelopt.quantization instead")
 
         super().__init__(module, quantize_in=quantize_in, quantize_out=quantize_out)
         self.bitwidth_weights = bitwidth_weights

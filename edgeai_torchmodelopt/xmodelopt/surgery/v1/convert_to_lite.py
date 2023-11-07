@@ -163,7 +163,7 @@ def _create_lite_model_impl(model_function, pretrained_backbone_names=None, repl
 
 
 def convert_to_lite_model(model, inplace=True, replacement_dict=None, **kwargs):
-    warnings.warn("WARNING - xnn.surgery is based on the modules. For superior functionality, please use the torch.fx based xao.surgery instead")
+    warnings.warn("WARNING - xnn.surgery is based on the modules. For superior functionality, please use the torch.fx based xmodelopt.surgery instead")
     replacement_dict = replacement_dict or get_replacement_dict_default(**kwargs)
     model = replace_modules_func(model, inplace=inplace, replacement_dict=replacement_dict)
     return model
