@@ -30,16 +30,33 @@
 #################################################################################
 
 
-class PrunerType():
-    NO_PRUNING = 0
-    UNSTRUCTURED = 1
-    N2M_PRUNING = 2
-    CHANNEL_PRUNING = 3
+import torch
+import torch.fx as fx
+import torchvision
+from edgeai_torchtoolkit.v2.xao.pruning import create_channel_pruned_model
+import copy
 
-    @classmethod
-    def get_dict(cls):
-        return {k:v for k,v in __class__.__dict__.items() if not k.startswith("__")}
+model = torchvision.models.mobilenet_v2()
+# model = torchvision.models.resnet50()
+current_model_dict = model.state_dict()
+model_path = '/home/a0491009/pruning/edgeai-torchvision/data/checkpoints/20232010_123521_imagenet_classification_mobilenet_v2/model_79.pth'
+# model_path = '/home/a0491009/pruning/edgeai-torchvision/data/checkpoints/20231910_102016_imagenet_classification_mobilenet_v2/model_79.pth'
+# model_path = "/home/a0491009/pruning/edgeai-torchvision/data/checkpoints/20231008_181902_imagenet_classification_mobilenet_v2/model_5.pth"
+state_dict = torch.load(model_path)
+state_dict = state_dict['model']
 
-    @classmethod
-    def get_choices(cls):
-        return {v:k for k,v in __class__.__dict__.items() if not k.startswith("__")}
+new_state_dict={k:v if v.size()==current_model_dict[k].size()  else  current_model_dict[k] for k,v in zip(current_model_dict.keys(), state_dict.values())}
+model.load_state_dict(state_dict=new_state_dict)
+
+orig_model = copy.deepcopy(model)
+
+final_model = create_channel_pruned_model(model)
+
+dummy_input = torch.randn(10, 3, 224, 224)
+print("The forward pass is starting \n")
+
+y = final_model(dummy_input)
+print("The forward pass completed \n")
+
+torch.onnx.export(orig_model, dummy_input, model_path[:-4]+"_orig.onnx")
+torch.onnx.export(final_model, dummy_input, model_path[:-4]+"_final.onnx")

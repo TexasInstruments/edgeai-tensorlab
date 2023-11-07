@@ -96,9 +96,9 @@ class Focus(nn.Module):
 
 # a typical convulation module to be used as replacement
 class ConvBNRModule(nn.Module):
-    def __init__(self,in_channels,out_channels,kernel_size,stride,padding) -> None:
+    def __init__(self,in_channels,out_channels,kernel_size,stride,padding,groups=1) -> None:
         super().__init__()
-        self.conv=nn.Conv2d(in_channels,out_channels,kernel_size,stride,padding)
+        self.conv=nn.Conv2d(in_channels,out_channels,kernel_size,stride,padding, groups=groups)
         self.bn=nn.BatchNorm2d(out_channels)
         self.act=nn.ReLU()
     
@@ -120,8 +120,8 @@ class ReplacementCNBlock(nn.Module):
     def __init__(self, dim) -> None:
         super().__init__()
         self.block = nn.Sequential(
-            ConvBNRModule(dim,dim,kernel_size=3,stride=1,padding=1),
-            ConvBNRModule(dim,dim,kernel_size=5,stride=1,padding=2),
+            ConvBNRModule(dim,dim,kernel_size=5,stride=1,padding=2, groups=dim), # depthwise conv layer
+            ConvBNRModule(dim,dim,kernel_size=3,stride=1,padding=1, groups=dim), # depthwise conv layer 
             ConvBNRModule(dim,4*dim,kernel_size=1,stride=1,padding=0),
             nn.Conv2d(4*dim,dim,kernel_size=1,stride=1,padding=0),
             nn.BatchNorm2d(dim)
