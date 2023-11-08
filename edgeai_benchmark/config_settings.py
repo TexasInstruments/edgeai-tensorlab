@@ -71,7 +71,8 @@ class ConfigSettings(config_dict.ConfigDict):
         return sessions.get_session_name_to_type_dict()[session_name]
 
     def get_runtime_options(self, model_type_or_session_name=None, quantization_scale_type=None, is_qat=False,
-                            det_options=None, ext_options=None, min_options=None, max_options=None, fast_calibration=False, **kwargs):
+                            det_options=None, ext_options=None, min_options=None, max_options=None, fast_calibration=False,
+                            prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_NONE, **kwargs):
         '''
         example usage for min_options and max_options to set the limit
             settings.runtime_options_onnx_np2(max_options=dict(calibration_frames=25, calibration_iterations=25))
@@ -84,7 +85,8 @@ class ConfigSettings(config_dict.ConfigDict):
         # this is the default runtime_options defined above
         runtime_options_new = self._get_runtime_options_default(
             session_name, quantization_scale_type, is_qat=is_qat, det_options=det_options,
-            min_options=min_options, max_options=max_options, fast_calibration=fast_calibration)
+            min_options=min_options, max_options=max_options, fast_calibration=fast_calibration,
+            prequantized_model_type=prequantized_model_type)
         # this takes care of overrides given as ext_options keyword argument
         if ext_options is not None:
             assert isinstance(ext_options, dict), \
@@ -204,7 +206,7 @@ class ConfigSettings(config_dict.ConfigDict):
             'tensor_bits': self.tensor_bits,
             'accuracy_level': self._get_calibration_accuracy_level(quantization_scale_type, is_qat),
             # debug level
-            'debug_level': 0,
+            'debug_level': 2, #0,
             'priority': 0,
             ##################################
             # advanced_options

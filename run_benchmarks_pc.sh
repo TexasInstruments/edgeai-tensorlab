@@ -58,7 +58,7 @@ echo "-------------------------------------------------------------------"
 # inference doesn't work if run in the same priocess as import - so run import only first
 python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC} --run_inference False ${@:2}
 # now run the inference as separate process
-python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC} ${@:2}
+python3 ./scripts/benchmark_modelzoo.py ${settings_file} --target_device ${TARGET_SOC} --run_import False ${@:2}
 echo "-------------------------------------------------------------------"
 
 #echo "------------------------------------------------------------------"

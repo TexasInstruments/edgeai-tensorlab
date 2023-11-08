@@ -84,7 +84,7 @@ function f_list_running_jobs() {
 
 function run_model() {
     python3 ./scripts/benchmark_modelzoo.py $@ --run_inference 0 && \
-    python3 ./scripts/benchmark_modelzoo.py $@
+    python3 ./scripts/benchmark_modelzoo.py $@ --run_import 0
 }
 
 echo "-------------------------------------------------------------------"

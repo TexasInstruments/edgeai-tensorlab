@@ -104,6 +104,8 @@ class BaseRTSession(utils.ParamsBase):
             assert self.kwargs['target_machine'] in self.kwargs['supported_machines'], \
                 f"unsupported target machine, must be one of {self.kwargs['supported_machines']}"
         #
+        self.kwargs['with_onnxsim'] = self.kwargs.get('with_onnxsim', False)
+
         # store the current directory so that we can go back there any time
         self.cwd = os.getcwd()
 
@@ -479,6 +481,7 @@ class BaseRTSession(utils.ParamsBase):
     def get_model(self, meta_file_key='object_detection:meta_layers_names_list',
                   quant_params_proto_key='quant_params_proto_path'):
         model_folder = self.kwargs['model_folder']
+        with_onnxsim = self.kwargs['with_onnxsim']
 
         # download the file if it is an http or https link
         model_path = self.kwargs['model_path']
@@ -524,6 +527,14 @@ class BaseRTSession(utils.ParamsBase):
         # run this only one time - that is what the (not model_file_exists) check does
         if (not model_file_exists) and model_file0.endswith('.onnx'):
             import onnx
+            if with_onnxsim:
+                from onnxsim import simplify
+                onnx_model = onnx.load(model_file0)
+                onnx_model, check_ok = simplify(onnx_model)
+                if check_ok:
+                    onnx.save(onnx_model, model_file0)
+                #
+            #
             onnx.shape_inference.infer_shapes_path(model_file0, model_file0)
         #
         if self.kwargs['input_mean'] is not None and self.kwargs['input_scale'] is not None:
