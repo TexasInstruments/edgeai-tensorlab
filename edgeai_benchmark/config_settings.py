@@ -145,6 +145,10 @@ class ConfigSettings(config_dict.ConfigDict):
     def runtime_options_mxnet_p2_qat(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2_QAT, **kwargs):
         return self.get_runtime_options(constants.MODEL_TYPE_MXNET, quantization_scale_type=quantization_scale_type, is_qat=True, **kwargs)
 
+    def runtime_options_onnx_qat(self, quantization_scale_type=None, **kwargs):
+        RuntimeError('quantization_scale_type should be specified')
+        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, quantization_scale_type=quantization_scale_type, is_qat=True, **kwargs)
+
     def _get_calibration_iterations(self, quantization_scale_type, is_qat):
         # note that calibration_iterations has effect only if accuracy_level>0
         # so we can just set it to the max value here.
@@ -165,7 +169,8 @@ class ConfigSettings(config_dict.ConfigDict):
         return quantization_scale_type.value if isinstance(quantization_scale_type, enum.Enum) else quantization_scale_type
 
     def _get_runtime_options_default(self, session_name=None, quantization_scale_type=None, is_qat=False, det_options=None,
-                                     min_options=None, max_options=None, fast_calibration=False):
+                                     min_options=None, max_options=None, fast_calibration=False,
+                                     prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_NONE):
         '''
         Args:
             session_name: onnxrt, tflitert or tvmdlr
@@ -174,6 +179,9 @@ class ConfigSettings(config_dict.ConfigDict):
 
         Returns: runtime_options
         '''
+        prequantized_model_type_v1 = (is_qat and prequantized_model_type == constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_V1)
+        prequantized_model_type_v2 = (is_qat and prequantized_model_type == constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_V2)
+
         fast_calibration_factor = self._get_fast_calibration_factor(fast_calibration)
 
         min_options = min_options or dict()
@@ -229,6 +237,9 @@ class ConfigSettings(config_dict.ConfigDict):
             #################################
             "ti_internal_nc_flag" : 83886080
         }
+        if prequantized_model_type_v2:
+            runtime_options.update({'advanced_options:prequantized_model': 1})
+        #
         # if detection options are needed, set them.
         if det_options is True:
             # some of the od post proc options can be specified in runtime_options

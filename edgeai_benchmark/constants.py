@@ -82,8 +82,14 @@ class QUANTScaleType(enum.Enum):
     QUANT_SCALE_TYPE_P2_QAT = 1
     QUANT_SCALE_TYPE_UNUSED = 2
     # these are not supported in TDA4VM, but for other SoCs, these are the recommended modes
-    QUANT_SCALE_TYPE_NP2_PERCHAN_QAT = 3
+    QUANT_SCALE_TYPE_PREQUANT_TFLITE = 3
     QUANT_SCALE_TYPE_NP2_PERCHAN = 4
+
+
+class PreQuantizedModelType(enum.Enum):
+    PREQUANTIZED_MODEL_TYPE_NONE = 0
+    PREQUANTIZED_MODEL_TYPE_V1 = 1
+    PREQUANTIZED_MODEL_TYPE_V2 = 2
 
 
 # we can use fewer number of calibration images and iterations if per channel assymetric quantization is enabled
