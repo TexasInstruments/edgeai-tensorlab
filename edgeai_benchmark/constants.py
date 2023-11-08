@@ -76,7 +76,8 @@ TARGET_DEVICE_AM68A = 'AM68A'
 TARGET_DEVICE_AM69A = 'AM69A'
 TARGET_DEVICE_AM62 = 'AM62'
 
-class QUANTScaleType(enum.Enum):
+
+class QUANTScaleType:
     QUANT_SCALE_TYPE_NP2 = 0
     QUANT_SCALE_TYPE_P2 = 1
     QUANT_SCALE_TYPE_P2_QAT = 1
@@ -86,7 +87,7 @@ class QUANTScaleType(enum.Enum):
     QUANT_SCALE_TYPE_NP2_PERCHAN = 4
 
 
-class PreQuantizedModelType(enum.Enum):
+class PreQuantizedModelType:
     PREQUANTIZED_MODEL_TYPE_NONE = 0
     PREQUANTIZED_MODEL_TYPE_V1 = 1
     PREQUANTIZED_MODEL_TYPE_V2 = 2
