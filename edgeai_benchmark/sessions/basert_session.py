@@ -144,7 +144,7 @@ class BaseRTSession(utils.ParamsBase):
         # _set_default_options requires to know the artifacts_folder
         # that's why this is not done in the constructor
         self._set_default_options()
-        
+
         # set the flag
         self.is_started = True
 
@@ -476,7 +476,8 @@ class BaseRTSession(utils.ParamsBase):
         run_dir = os.path.join(work_dir, f'{run_name}')
         return run_dir
 
-    def get_model(self, meta_file_key='object_detection:meta_layers_names_list', quant_file_key='quant_params_proto_path'):
+    def get_model(self, meta_file_key='object_detection:meta_layers_names_list',
+                  quant_params_proto_key='quant_params_proto_path'):
         model_folder = self.kwargs['model_folder']
 
         # download the file if it is an http or https link
@@ -487,11 +488,13 @@ class BaseRTSession(utils.ParamsBase):
         # we could have just used self.kwargs['model_path'], but do this for legacy reasons
         self.kwargs['model_file'] = model_file
 
-        quant_file = self.kwargs.get(quant_file_key, True)
-        if quant_file is True:
-            quant_file = os.path.splitext(model_file)[0] + "_qparams.prototxt" 
-            self.kwargs['runtime_options']['advanced_options:'+quant_file_key] = quant_file
-
+        quant_params_proto_path = self.kwargs.get(quant_params_proto_key, True)
+        if quant_params_proto_path:
+            if quant_params_proto_path is True:
+                quant_params_proto_path = os.path.splitext(model_file)[0] + "_qparams.prototxt"
+            #
+            self.kwargs['runtime_options']['advanced_options:'+quant_params_proto_key] = quant_params_proto_path
+        #
         print(utils.log_color('INFO', 'model_path', model_path))
         print(utils.log_color('INFO', 'model_file', model_file))
         print(utils.log_color('INFO', 'quant_file', quant_file))
@@ -499,7 +502,7 @@ class BaseRTSession(utils.ParamsBase):
         model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
         model_file_exists = utils.file_exists(model_file0)
         if not model_file_exists:
-            # download to modelzoo if the the given path is a url or a link file
+            # download to modelzoo if the given path is a url or a link file
             model_folder_download = model_folder if utils.is_url(model_path) else os.path.dirname(model_path)
             model_path = utils.download_files(model_path, root=model_folder_download)
             # make a local copy to the run_dir/model folder
