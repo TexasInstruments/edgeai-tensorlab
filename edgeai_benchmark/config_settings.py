@@ -206,7 +206,7 @@ class ConfigSettings(config_dict.ConfigDict):
             'tensor_bits': self.tensor_bits,
             'accuracy_level': self._get_calibration_accuracy_level(quantization_scale_type, is_qat),
             # debug level
-            'debug_level': 2, #0,
+            'debug_level': 0,
             'priority': 0,
             ##################################
             # advanced_options
