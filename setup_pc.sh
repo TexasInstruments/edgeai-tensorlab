@@ -177,7 +177,7 @@ elif  [[ $TIDL_TOOLS_RELEASE_NAME == "test" ]]; then
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tvm-0.12.0-cp310-cp310-linux_x86_64.whl
   pip3 install --no-input http://edgeaisrv2.dhcp.ti.com/publish/tidl/osrt/onnxruntime_tidl-1.14.0-cp310-cp310-linux_x86_64.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tflite_runtime-2.8.2-cp310-cp310-linux_x86_64.whl
-  TIDL_TOOLS_DOWNLOAD_LINKS=("http://edgeaisrv2.dhcp.ti.com/publish/tidl/j721e/09_00_06_00/tidl_tools.tar.gz" "http://edgeaisrv2.dhcp.ti.com/publish/tidl/j721s2/09_00_06_00/tidl_tools.tar.gz" "http://edgeaisrv2.dhcp.ti.com/publish/tidl/j784s4/09_01_00_00/tidl_tools.tar.gz" "http://edgeaisrv2.dhcp.ti.com/publish/tidl/am62a/09_00_06_01/tidl_tools.tar.gz")
+  TIDL_TOOLS_DOWNLOAD_LINKS=("http://edgeaisrv2.dhcp.ti.com/publish/tidl/j721e/09_01_00_00/tidl_tools.tar.gz" "http://edgeaisrv2.dhcp.ti.com/publish/tidl/j721s2/09_01_00_00/tidl_tools.tar.gz" "http://edgeaisrv2.dhcp.ti.com/publish/tidl/j784s4/09_01_00_00/tidl_tools.tar.gz" "http://edgeaisrv2.dhcp.ti.com/publish/tidl/am62a/09_01_00_00/tidl_tools.tar.gz")
   for (( soc_idx=0; soc_idx<"${#TARGET_SOCS[@]}"; soc_idx++ )); do
     TARGET_SOC=${TARGET_SOCS[$soc_idx]}
     TIDL_TOOLS_DOWNLOAD_LINK=${TIDL_TOOLS_DOWNLOAD_LINKS[$soc_idx]}

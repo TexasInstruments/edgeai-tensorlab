@@ -488,12 +488,12 @@ class BaseRTSession(utils.ParamsBase):
         # we could have just used self.kwargs['model_path'], but do this for legacy reasons
         self.kwargs['model_file'] = model_file
 
-        quant_params_proto_path = self.kwargs.get(quant_params_proto_key, True)
-        if quant_params_proto_path:
-            if quant_params_proto_path is True:
-                quant_params_proto_path = os.path.splitext(model_file)[0] + "_qparams.prototxt"
+        quant_file = self.kwargs.get(quant_params_proto_key, True)
+        if quant_file:
+            if quant_file is True:
+                quant_file = os.path.splitext(model_file)[0] + "_qparams.prototxt"
             #
-            self.kwargs['runtime_options']['advanced_options:'+quant_params_proto_key] = quant_params_proto_path
+            self.kwargs['runtime_options']['advanced_options:'+quant_params_proto_key] = quant_file
         #
         print(utils.log_color('INFO', 'model_path', model_path))
         print(utils.log_color('INFO', 'model_file', model_file))
