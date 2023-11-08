@@ -97,7 +97,7 @@ def get_configs(settings, work_dir):
         # 'ss-5818': utils.dict_update(robokitseg_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=sessions.TVMDLRSession(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
-        #         runtime_options=settings.runtime_options_onnx_p2_qat(),
+        #         runtime_options=settings.runtime_options_onnx_qat_v1(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mnetv2_edgeailite_robokit_768x432_qat-p2.onnx'),
         #     postprocess=postproc_transforms.get_transform_segmentation_onnx(),
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':54.1}, model_shortlist=20)
@@ -180,7 +180,7 @@ def get_configs(settings, work_dir):
         # 'ss-8618':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
-        #         runtime_options=settings.runtime_options_onnx_p2_qat(),
+        #         runtime_options=settings.runtime_options_onnx_qat_v1(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailtie_512x512_20210308_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':51.61})
@@ -188,7 +188,7 @@ def get_configs(settings, work_dir):
         # 'ss-8638':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
-        #         runtime_options=settings.runtime_options_onnx_p2_qat(),
+        #         runtime_options=settings.runtime_options_onnx_qat_v1(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/unetlite_aspp_mobilenetv2_512x512_ade20k32_20210306_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':49.98})
@@ -197,7 +197,7 @@ def get_configs(settings, work_dir):
         # 'ss-8658':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
-        #         runtime_options=settings.runtime_options_onnx_p2_qat(),
+        #         runtime_options=settings.runtime_options_onnx_qat_v1(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpn_aspp_mobilenetv2_edgeailite_512x512_20210306_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':50.93})
@@ -206,7 +206,7 @@ def get_configs(settings, work_dir):
         # 'ss-8678':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
-        #         runtime_options=settings.runtime_options_onnx_p2_qat(),
+        #         runtime_options=settings.runtime_options_onnx_qat_v1(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpn_aspp_mobilenetv2_1p4_edgeailite_512x512_20210307_qat.onnx'),
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':53.01})

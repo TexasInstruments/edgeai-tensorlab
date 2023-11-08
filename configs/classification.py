@@ -72,7 +72,7 @@ def get_configs(settings, work_dir):
         'cl-6078':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2_qat(),
+                runtime_options=settings.runtime_options_onnx_qat_v1(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_qat-p2_20201213.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.13}, model_shortlist=None)
         ),
@@ -80,7 +80,7 @@ def get_configs(settings, work_dir):
         'cl-6158':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir, input_optimization=False),
-                runtime_options=settings.runtime_options_onnx_p2_qat(),
+                runtime_options=settings.runtime_options_onnx_qat_v1(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_1p4_qat-p2_20210112.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.22}, model_shortlist=None)
         ),
@@ -96,7 +96,7 @@ def get_configs(settings, work_dir):
         'cl-6488':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2_qat(),
+                runtime_options=settings.runtime_options_onnx_qat_v1(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_qat-p2_20210429.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':61.836}, model_shortlist=40)
         ),
@@ -129,7 +129,7 @@ def get_configs(settings, work_dir):
         'cl-6098':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2_qat(),
+                runtime_options=settings.runtime_options_onnx_qat_v1(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_qat-p2.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.31}, model_shortlist=40)
         ),
@@ -408,7 +408,7 @@ def get_configs(settings, work_dir):
         'cl-3098':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=sessions.TVMDLRSession(**sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2_qat(),
+                runtime_options=settings.runtime_options_onnx_qat_v1(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_qat-p2.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.31}, model_shortlist=None)
         ),

@@ -136,18 +136,22 @@ class ConfigSettings(config_dict.ConfigDict):
         #
         return self.get_runtime_options(constants.MODEL_TYPE_MXNET, quantization_scale_type=quantization_scale_type, is_qat=False, **kwargs)
 
-    def runtime_options_onnx_p2_qat(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2_QAT, **kwargs):
-        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, quantization_scale_type=quantization_scale_type, is_qat=True, **kwargs)
+    def runtime_options_onnx_qat_v1(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2_QAT, **kwargs):
+        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, quantization_scale_type=quantization_scale_type, is_qat=True,
+                                        prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_V1, **kwargs)
 
-    def runtime_options_tflite_p2_qat(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2_QAT, **kwargs):
-        return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, quantization_scale_type=quantization_scale_type, is_qat=True, **kwargs)
+    def runtime_options_tflite_qat_v1(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2_QAT, **kwargs):
+        return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, quantization_scale_type=quantization_scale_type, is_qat=True,
+                                        prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_V1, **kwargs)
 
-    def runtime_options_mxnet_p2_qat(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2_QAT, **kwargs):
-        return self.get_runtime_options(constants.MODEL_TYPE_MXNET, quantization_scale_type=quantization_scale_type, is_qat=True, **kwargs)
+    def runtime_options_mxnet_qat_v1(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2_QAT, **kwargs):
+        return self.get_runtime_options(constants.MODEL_TYPE_MXNET, quantization_scale_type=quantization_scale_type, is_qat=True,
+                                        prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_V1, **kwargs)
 
-    def runtime_options_onnx_qat(self, quantization_scale_type=None, **kwargs):
+    def runtime_options_onnx_qat_v2(self, quantization_scale_type=None, **kwargs):
         RuntimeError('quantization_scale_type should be specified')
-        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, quantization_scale_type=quantization_scale_type, is_qat=True, **kwargs)
+        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, quantization_scale_type=quantization_scale_type, is_qat=True,
+                                        prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_V2, **kwargs)
 
     def _get_calibration_iterations(self, quantization_scale_type, is_qat):
         # note that calibration_iterations has effect only if accuracy_level>0
