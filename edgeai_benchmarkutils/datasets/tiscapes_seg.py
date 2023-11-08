@@ -26,21 +26,31 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os
+#################################################################################
 
-from . import constants
-from . import config_settings
-from . import datasets, preprocess, sessions, postprocess, metrics, utils
+from .modelmaker_datasets import *
 
 
-def get_settings_file(target_machine='pc', with_model_import=False):
-    supported_machines = ('pc', 'evm')
-    assert target_machine in supported_machines, f'target_machine must be one of {supported_machines}'
-    if target_machine == 'pc' or with_model_import:
-        settings_file = os.path.abspath(
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), '../settings_import_on_pc.yaml'))
-    elif target_machine == 'evm':
-        settings_file = os.path.abspath(
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), '../settings_infer_on_evm.yaml'))
-    #
-    return settings_file
+class TIScapesSegmentationDataset(ModelMakerSegmentationDataset):
+    def __init__(self, num_classes=4, download=True, num_frames=None, name="tiscapes_seg", **kwargs):
+        super().__init__(num_classes=num_classes, download=download, num_frames=num_frames, name=name, **kwargs)
+
+    def download(self, path, split):
+        root = path
+        images_folder = os.path.join(path, split)
+        annotations_folder = os.path.join(path, 'annotations')
+        if (not self.force_download) and os.path.exists(path) and \
+                os.path.exists(images_folder) and os.path.exists(annotations_folder):
+            print(utils.log_color('\nINFO', 'dataset exists - will reuse', path))
+            return
+        #
+        print(utils.log_color('\nINFO', 'downloading and preparing dataset', path + ' This may take some time.'))
+        print(f'{Fore.YELLOW}'
+              f'\nTIScape Dataset:'
+              f'{Fore.RESET}\n')
+
+        dataset_url = 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip'
+        download_root = os.path.join(root, 'download')
+        dataset_path = utils.download_file(dataset_url, root=download_root, extract_root=root)
+        print(utils.log_color('\nINFO', 'dataset ready', path))
+        return

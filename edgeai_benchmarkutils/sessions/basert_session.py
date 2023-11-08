@@ -118,10 +118,6 @@ class BaseRTSession(utils.ParamsBase):
         if not self.is_initialized:
             self.initialize()
         #
-        # _set_default_options requires to know the artifacts_folder
-        # that's why this is not done in the constructor
-        self._set_default_options()
-
         # if the run_dir doesn't exist, check if tarfile exists or can be downloaded/untarred
         run_dir = self.kwargs['run_dir']
         if not os.path.exists(run_dir):
@@ -144,6 +140,11 @@ class BaseRTSession(utils.ParamsBase):
         os.makedirs(self.kwargs['model_folder'], exist_ok=True)
         # download or copy the model and add any optimizations required
         self.get_model()
+
+        # _set_default_options requires to know the artifacts_folder
+        # that's why this is not done in the constructor
+        self._set_default_options()
+        
         # set the flag
         self.is_started = True
 
