@@ -31,7 +31,7 @@ from .. import utils
 from .transforms import *
 from .keypoints import *
 from .object_6d_pose import *
-
+from . import transforms as postprocess_transform_types
 
 class PostProcessTransforms(utils.TransformsCompose):
     def __init__(self, settings, transforms=None, **kwargs):
@@ -65,6 +65,13 @@ class PostProcessTransforms(utils.TransformsCompose):
             postprocess_detection += [IgnoreIndex(ignore_index)]
         #
         if formatter is not None:
+            if isinstance(formatter, str):
+                formatter_name = formatter
+                formatter = getattr(postprocess_transform_types, formatter_name)()
+            elif isinstance(formatter, dict) and 'type' in formatter:
+                formatter_name = formatter.pop('type')
+                formatter = getattr(postprocess_transform_types, formatter_name)(**formatter)
+            #
             postprocess_detection += [formatter]
         #
         postprocess_detection += [DetectionResizePad(resize_with_pad=resize_with_pad, keypoint=keypoint, object6dpose=object6dpose,
