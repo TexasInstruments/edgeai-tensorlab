@@ -33,6 +33,7 @@ from edgeai_benchmark import datasets
 from edgeai_benchmark.pipelines.pipeline_runner import PipelineRunner
 
 from . import classification
+from . import classification_v2
 from . import detection
 from . import face_detection
 from . import segmentation
@@ -40,9 +41,6 @@ from . import human_pose_estimation
 from . import object_6d_pose_estimation
 from . import depth_estimation
 from . import high_resolution
-
-# not working yet
-# from . import classification_v2
 
 
 def get_configs(settings, work_dir):
@@ -54,6 +52,7 @@ def get_configs(settings, work_dir):
     pipeline_configs = {}
     # merge all the config dictionaries
     pipeline_configs.update(classification.get_configs(settings, work_dir))
+    pipeline_configs.update(classification_v2.get_configs(settings, work_dir))
     pipeline_configs.update(detection.get_configs(settings, work_dir))
     pipeline_configs.update(face_detection.get_configs(settings, work_dir))
     pipeline_configs.update(segmentation.get_configs(settings, work_dir))
@@ -61,9 +60,6 @@ def get_configs(settings, work_dir):
     pipeline_configs.update(object_6d_pose_estimation.get_configs(settings, work_dir))
     pipeline_configs.update(depth_estimation.get_configs(settings,work_dir))
     pipeline_configs.update(high_resolution.get_configs(settings,work_dir))
-
-    # not working yet
-    # pipeline_configs.update(classification_v2.get_configs(settings, work_dir))
 
     if settings.experimental_models:
         from . import classification_experimental
