@@ -54,6 +54,23 @@ def get_configs(settings, work_dir):
         #################################################################
         #       ONNX MODELS
         #################jai-devkit models###############################
+        # edgeai-torchvison: classification mobilenetv2_lite 224x224 expected_metric: 72.13% top-1 accuracy
+        'cl-6500':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_p2(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/mobilenet_v2_lite_20231101_model.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':72.13}, model_shortlist=None)
+        ),
+        # edgeai-torchvison: classification mobilenetv3_large_lite_224x224 expected_metric: 72.13% top-1 accuracy
+        'cl-6510':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_p2(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/mobilenet_v3_large_lite_20231011_model.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':72.122}, model_shortlist=None)
+        ),
+        ################################## QAT models using Pytorch native QAT ##########################
         # edgeai-torchvison: classification mobilenetv2_224x224 pytorch-qat expected_metric: 71.602% top-1 accuracy
         'cl-6700':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
@@ -77,6 +94,6 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_qat_v2(quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN, **quant_params_proto_path_disable_option),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/resnet50_wt-v1_qat-v2-w4c-w8t_20230713_model.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.048}, model_shortlist=None)
-        ),
+        ),        
     }
     return pipeline_configs
