@@ -37,7 +37,7 @@ import datetime
 import numpy as np
 
 ################################
-from edgeai_torchtoolkit.xnn.utils import str2bool
+from edgeai_torchmodelopt.xnn.utils import str2bool
 parser = argparse.ArgumentParser()
 parser.add_argument('--save_path', type=str, default=None, help='checkpoint save folder')
 parser.add_argument('--gpus', type=int, nargs='*', default=None, help='Base learning rate')

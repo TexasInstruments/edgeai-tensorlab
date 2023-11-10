@@ -17,7 +17,7 @@ from torchvision.transforms.functional import InterpolationMode
 
 import dataset_utils
 import model_utils
-import edgeai_torchtoolkit
+import edgeai_torchmodelopt
 
 
 def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, args, model_ema=None, scaler=None):
@@ -227,10 +227,10 @@ def main(args):
         utils.mkdir(args.output_dir)
 
     # create logger that tee writes to file
-    logger = edgeai_torchtoolkit.xnn.utils.TeeLogger(os.path.join(args.output_dir, 'run.log'))
+    logger = edgeai_torchmodelopt.xnn.utils.TeeLogger(os.path.join(args.output_dir, 'run.log'))
 
     # weights can be an external url or a pretrained enum in torhvision
-    (args.weights_url, args.weights_enum) = (args.weights, None) if edgeai_torchtoolkit.xnn.utils.is_url_or_file(args.weights) else (None, args.weights)
+    (args.weights_url, args.weights_enum) = (args.weights, None) if edgeai_torchmodelopt.xnn.utils.is_url_or_file(args.weights) else (None, args.weights)
     
     utils.init_distributed_mode(args)
     print(args)
@@ -278,25 +278,25 @@ def main(args):
     print("Creating model")
     model, surgery_kwargs = model_utils.get_model(args.model, weights=args.weights_enum, num_classes=num_classes, model_surgery=args.model_surgery)
 
-    if args.model_surgery == edgeai_torchtoolkit.SyrgeryVersion.SURGERY_LEGACY:
-        model = edgeai_torchtoolkit.xao.surgery.v1.convert_to_lite_model(model, **surgery_kwargs)
-    elif args.model_surgery == edgeai_torchtoolkit.SyrgeryVersion.SURGERY_FX:
-        model = edgeai_torchtoolkit.xao.surgery.v2.convert_to_lite_fx(model)
+    if args.model_surgery == edgeai_torchmodelopt.xmodelopt.SyrgeryVersion.SURGERY_LEGACY:
+        model = edgeai_torchmodelopt.xmodelopt.surgery.v1.convert_to_lite_model(model, **surgery_kwargs)
+    elif args.model_surgery == edgeai_torchmodelopt.xmodelopt.SyrgeryVersion.SURGERY_FX:
+        model = edgeai_torchmodelopt.xmodelopt.surgery.v2.convert_to_lite_fx(model)
     
     if args.weights_url:
         print(f"loading pretrained checkpoint from: {args.weights_url}")
-        edgeai_torchtoolkit.xnn.utils.load_weights(model, args.weights_url)
+        edgeai_torchmodelopt.xnn.utils.load_weights(model, args.weights_url)
 
-    if args.pruning == edgeai_torchtoolkit.PruningVersion.PRUNING_LEGACY:
+    if args.pruning == edgeai_torchmodelopt.xmodelopt.PruningVersion.PRUNING_LEGACY:
         assert False, "Pruning is currently not supported in the legacy modules based method"
-    elif args.pruning == edgeai_torchtoolkit.PruningVersion.PRUNING_FX:
-        model = edgeai_torchtoolkit.xao.pruning.v2.PrunerModule(model)
+    elif args.pruning == edgeai_torchmodelopt.xmodelopt.PruningVersion.PRUNING_FX:
+        model = edgeai_torchmodelopt.xmodelopt.pruning.v2.PrunerModule(model)
     
-    if args.quantization == edgeai_torchtoolkit.QuantizationVersion.QUANTIZATION_LEGACY:
+    if args.quantization == edgeai_torchmodelopt.xmodelopt.QuantizationVersion.QUANTIZATION_LEGACY:
         dummy_input = torch.rand(1,3,args.val_crop_size,args.val_crop_size)
-        model = edgeai_torchtoolkit.xao.quantization.v1.QuantTrainModule(model, dummy_input=dummy_input, total_epochs=args.epochs)
-    elif args.quantization == edgeai_torchtoolkit.QuantizationVersion.QUANTIZATION_FX:
-        model = edgeai_torchtoolkit.xao.quantization.v2.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
+        model = edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTrainModule(model, dummy_input=dummy_input, total_epochs=args.epochs)
+    elif args.quantization == edgeai_torchmodelopt.xmodelopt.QuantizationVersion.QUANTIZATION_FX:
+        model = edgeai_torchmodelopt.xmodelopt.quantization.v2.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
     
     model.to(device)
 
@@ -326,7 +326,7 @@ def main(args):
     if opt_name.startswith("sgd"):
         # in general use torch.optim.SGD
         # AdaptiveSGD is required only if you want to freeze certain parameters by setting requires_update = False. 
-        optimizer = edgeai_torchtoolkit.xnn.optim.AdaptiveSGD(
+        optimizer = edgeai_torchmodelopt.xnn.optim.AdaptiveSGD(
             parameters,
             lr=args.lr,
             momentum=args.momentum,
@@ -599,12 +599,12 @@ def get_args_parser(add_help=True):
     parser.add_argument("--weights", default=None, type=str, help="the weights enum name to load")
 
     # options to create faster models
-    parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_torchtoolkit.SyrgeryVersion.get_choices(), help="model surgery to create lite models")
+    parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_torchmodelopt.xmodelopt.SyrgeryVersion.get_choices(), help="model surgery to create lite models")
 
-    parser.add_argument("--quantization", "--quantize", dest="quantization", default=0, type=int, choices=edgeai_torchtoolkit.QuantizationVersion.get_choices(), help="Quaantization Aware Training (QAT)")
+    parser.add_argument("--quantization", "--quantize", dest="quantization", default=0, type=int, choices=edgeai_torchmodelopt.xmodelopt.QuantizationVersion.get_choices(), help="Quaantization Aware Training (QAT)")
     parser.add_argument("--quantization-type", default=None, help="Actual Quaantization Flavour - applies only if quantization is enabled")
 
-    parser.add_argument("--pruning", default=0, type=int, choices=edgeai_torchtoolkit.PruningVersion.get_choices(), help="Pruning/Sparsity")
+    parser.add_argument("--pruning", default=0, type=int, choices=edgeai_torchmodelopt.xmodelopt.PruningVersion.get_choices(), help="Pruning/Sparsity")
     parser.add_argument("--pruning-type", default=1, help="Pruning/Sparsity Type - applies only of pruning is enabled")
     parser.add_argument("--pruning-ratio", default=0.5, help="Pruning/Sparsity Factor - applies only of pruning is enabled")
 

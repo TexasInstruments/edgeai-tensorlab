@@ -29,7 +29,7 @@
 import os
 import numpy as np
 import torch
-from edgeai_torchtoolkit import xnn
+from edgeai_torchmodelopt import xnn
 from edgeai_xvision import xvision
 
 

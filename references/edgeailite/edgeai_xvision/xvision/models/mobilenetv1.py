@@ -65,7 +65,7 @@
 
 import torch
 from .utils import *
-from edgeai_torchtoolkit import xnn
+from edgeai_torchmodelopt import xnn
 
 ###################################################
 __all__ = ['MobileNetV1Base', 'MobileNetV1', 'mobilenet_v1', 'get_config']

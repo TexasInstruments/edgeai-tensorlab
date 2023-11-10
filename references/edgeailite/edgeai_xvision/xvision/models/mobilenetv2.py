@@ -68,7 +68,7 @@ from torch import nn, Tensor
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
 from .utils import *
-from edgeai_torchtoolkit import xnn
+from edgeai_torchmodelopt import xnn
 
 ###################################################
 __all__ = ['MobileNetV2Base', 'MobileNetV2',

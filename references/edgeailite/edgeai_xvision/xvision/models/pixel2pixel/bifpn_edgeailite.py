@@ -40,7 +40,7 @@
 import copy
 import torch
 import numpy as np
-from edgeai_torchtoolkit import xnn
+from edgeai_torchmodelopt import xnn
 
 from .pixel2pixelnet import *
 from ..multi_input_net import MobileNetV2TVMI4, ResNet50MI4, \

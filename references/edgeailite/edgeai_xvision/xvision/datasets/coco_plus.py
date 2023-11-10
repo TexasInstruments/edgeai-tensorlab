@@ -78,7 +78,7 @@ import numpy as np
 import copy
 import cv2
 
-from edgeai_torchtoolkit import xnn
+from edgeai_torchmodelopt import xnn
 
 __all__ = ['coco_segmentation', 'coco_seg21']
 

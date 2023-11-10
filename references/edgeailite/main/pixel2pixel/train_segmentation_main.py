@@ -39,7 +39,7 @@ import datetime
 import numpy as np
 
 ################################
-from edgeai_torchtoolkit.xnn.utils import str2bool
+from edgeai_torchmodelopt.xnn.utils import str2bool
 from edgeai_xvision.xengine import train_pixel2pixel
 
 

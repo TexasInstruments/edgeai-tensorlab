@@ -50,7 +50,7 @@ import progiter
 from packaging import version
 import warnings
 
-from edgeai_torchtoolkit import xnn
+from edgeai_torchmodelopt import xnn
 from edgeai_xvision import xvision
 from edgeai_xvision.xvision.transforms import image_transforms
 from edgeai_xvision.xvision import losses as pixel2pixel_losses

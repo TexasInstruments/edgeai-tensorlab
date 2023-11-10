@@ -35,7 +35,7 @@ import torch.nn.functional as F
 import numpy as np
 import torch
 from .loss_utils import *
-from edgeai_torchtoolkit import xnn
+from edgeai_torchmodelopt import xnn
 
 __all__ = ['segmentation_loss', 'segmentation_metrics', 'SegmentationMetricsCalc']
 

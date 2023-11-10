@@ -63,7 +63,7 @@
 #
 #################################################################################
 
-from edgeai_torchtoolkit import xnn
+from edgeai_torchmodelopt import xnn
 
 from . import mobilenetv2
 from . import mobilenetv1
