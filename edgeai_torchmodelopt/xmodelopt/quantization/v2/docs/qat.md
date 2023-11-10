@@ -5,7 +5,7 @@ QAT is easy to incorporate into an existing PyTorch training code. We provide a 
 
 The overall flow of training is as follows:<br>
 - Step 1:Train your model in floating point as usual.<br>
-- Step 2: Starting from the floating point model as pretrained weights, do Quantization Aware Training. In order to do this wrap your model in the wrapper module called  edgeai_torchtoolkit.xao.quantization.v2.QATFxModule and perform training with a small learning rate. About 25 to 50 epochs of training may be required to get the best accuracy.<br>
+- Step 2: Starting from the floating point model as pretrained weights, do Quantization Aware Training. In order to do this wrap your model in the wrapper module called  edgeai_torchtoolkit.xmodelopt.quantization.v2.QATFxModule and perform training with a small learning rate. About 25 to 50 epochs of training may be required to get the best accuracy.<br>
 
 QATFxModule does the following operations to the model. Note that QATFxModule will handle these tasks - the only thing that is required is to wrap the user's module in QATFxModule as explained in the section "How to use  QATFxModule".<br>
 - Replace layers in the model by their Fake Quantized versions - including merging Conv+BN+Activation layers & range collection.<br>
@@ -28,7 +28,7 @@ dummy_input = torch.rand((1,3,384,768))
 
 # wrap your model in xnn.quantization.QATFxModule. 
 # once it is wrapped, the actual model is in model.module
-model = edgeai_torchtoolkit.xao.quantization.v2.QATFxModule(model)
+model = edgeai_torchtoolkit.xmodelopt.quantization.v2.QATFxModule(model)
 
 # load your pretrained weights here into model.module
 pretrained_data = torch.load(pretrained_path)

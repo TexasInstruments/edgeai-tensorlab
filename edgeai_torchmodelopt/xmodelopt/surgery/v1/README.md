@@ -12,13 +12,13 @@ This is the main model surgery function.
 #### Usage: 
 ```
 ## insert this line into your model training script
-model = edgeai_torchtoolkit.xao.surgery.v1.convert_to_lite_model(model)
+model = edgeai_torchtoolkit.xmodelopt.surgery.v1.convert_to_lite_model(model)
 ```
 
 #### Example:
 ```
 model = torchvision.models.mobilenet_v3_large()
-model = edgeai_torchtoolkit.xao.surgery.v1.convert_to_lite_model(model)
+model = edgeai_torchtoolkit.xmodelopt.surgery.v1.convert_to_lite_model(model)
 ```
 
 ### get_replacement_dict_default
@@ -26,13 +26,13 @@ This can be used to get the default replacement dict. This replacement dict can 
 
 #### Usage:
 ```
-replacement_dict = copy.deepcopy(edgeai_torchtoolkit.xao.surgery.v1.get_replacement_dict_default())
+replacement_dict = copy.deepcopy(edgeai_torchtoolkit.xmodelopt.surgery.v1.get_replacement_dict_default())
 replacement_dict.update({torch.nn.GELU: torch.nn.ReLU})
 ```
 
 Now apply the conversion using the updated replacement_dict
 ```
-model = edgeai_torchtoolkit.xao.surgery.v1.convert_to_lite_model(model, replacement_dict=replacement_dict)
+model = edgeai_torchtoolkit.xmodelopt.surgery.v1.convert_to_lite_model(model, replacement_dict=replacement_dict)
 ```
 
 It is possible to pass additional arguments to the replacement entries

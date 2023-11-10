@@ -46,7 +46,7 @@ model = ...
 dummy_input = torch.rand((1,3,384,768))
 
 #wrap your model in xnn.quantization.QuantCalibrateModule. Once it is wrapped, the actual model is in model.module
-model = edgeai_torchtoolkit.xao.quantization.v1.QuantCalibrateModule(model, dummy_input=dummy_input)
+model = edgeai_torchtoolkit.xmodelopt.quantization.v1.QuantCalibrateModule(model, dummy_input=dummy_input)
 
 # load your pretrained weights here into model.module
 pretrained_data = torch.load(pretrained_path)
