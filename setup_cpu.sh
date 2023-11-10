@@ -26,13 +26,8 @@ echo "Installing mmcv"
 FORCE_CUDA=0 pip3 install --no-input mmcv-full==1.4.8 -f https://download.openmmlab.com/mmcv/dist/cpu/torch2.0.1/index.html
 
 ######################################################################
-# building onnx from soure requires carefull steps
-# make sure that we are using system cmake
-pip uninstall --yes cmake
-# pybind11[global] is needed for building the onnx package.
-# for some reason, this has to be installed before the requirements file is used.
-pip3 install --no-input pybind11[global] protobuf==3.19.4
-pybind11_DIR=$(pybind11-config --cmakedir) pip3 install --no-input https://github.com/TexasInstruments/onnx/archive/tidl-j7.zip
+# can we move this inside the requirements file is used.
+pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
 
 ######################################################################
 echo "Installing mmdetection"
