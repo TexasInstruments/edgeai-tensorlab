@@ -27,10 +27,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # edgeai_xvision is installed by the setup of https://github.com/TexasInstruments/edgeai-torchvision 
-from edgeai_xvision import xnn
+import edgeai_torchmodelopt
 
 
-class XMMDetQuantCalibrateModule(xnn.quantization.QuantCalibrateModule):
+class XMMDetQuantCalibrateModule(edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantCalibrateModule):
     def __init__(self, model,  dummy_input, *args, forward_analyze_method='forward_dummy', **kwargs):
         super().__init__(model, dummy_input, *args, forward_analyze_method=forward_analyze_method, **kwargs)
 
@@ -44,7 +44,7 @@ class XMMDetQuantCalibrateModule(xnn.quantization.QuantCalibrateModule):
         return self.module.val_step(*args, **kwargs)
 
 
-class XMMDetQuantTrainModule(xnn.quantization.QuantTrainModule):
+class XMMDetQuantTrainModule(edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTrainModule):
     def __init__(self, model,  dummy_input, *args, forward_analyze_method='forward_dummy', **kwargs):
         super().__init__(model, dummy_input, *args, forward_analyze_method=forward_analyze_method, **kwargs)
 
@@ -58,7 +58,7 @@ class XMMDetQuantTrainModule(xnn.quantization.QuantTrainModule):
         return self.module.val_step(*args, **kwargs)
 
 
-class XMMDetQuantTestModule(xnn.quantization.QuantTestModule):
+class XMMDetQuantTestModule(edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTestModule):
     def __init__(self, model,  dummy_input, *args, forward_analyze_method='forward_dummy', **kwargs):
         super().__init__(model, dummy_input, *args, forward_analyze_method=forward_analyze_method, **kwargs)
 

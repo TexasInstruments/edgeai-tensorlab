@@ -1,7 +1,7 @@
 
 cudnn_benchmark = True
 
-# replace torch.nn.functional.interpolate with torchvision.edgeailite.xnn.layers.resize_with_scale_factor
+# replace torch.nn.functional.interpolate with edgeai_torchmodelopt.xnn.layers.resize_with_scale_factor
 # torchvision.edgeailite requires edgeai-torchvision to be installed
 resize_with_scale_factor = True
 

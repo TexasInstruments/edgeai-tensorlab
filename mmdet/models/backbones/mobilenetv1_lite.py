@@ -73,14 +73,14 @@ from mmcv.runner import BaseModule
 
 from mmdet.utils import get_root_logger
 from mmdet.models.builder import BACKBONES
-from edgeai_xvision import xnn
+import edgeai_torchmodelopt
 
 ###################################################
 __all__ = ['MobileNetV1LiteBase', 'MobileNetV1Lite', 'mobilenet_v1_lite']
 
 
 ###################################################
-class ModelConfig(xnn.utils.ConfigNode):
+class ModelConfig(edgeai_torchmodelopt.xnn.utils.ConfigNode):
     def __init__(self):
         super().__init__()
         self.input_channels = 3
@@ -88,7 +88,7 @@ class ModelConfig(xnn.utils.ConfigNode):
         self.width_mult = 1.
         self.expand_ratio = 6
         self.strides = (2,2,2,2,2)
-        self.activation = xnn.layers.DefaultAct2d
+        self.activation = edgeai_torchmodelopt.xnn.layers.DefaultAct2d
         self.use_blocks = False
         self.kernel_size = 3
         self.dropout = False
@@ -159,13 +159,13 @@ class MobileNetV1LiteBase(BaseModule):
         kernel_size = self.model_config.kernel_size
 
         # building first layer
-        output_channels = xnn.utils.make_divisible_by8(self.model_config.layer_setting[0][1] * width_mult)
-        features = [xnn.layers.ConvNormAct2d(3, output_channels, kernel_size=kernel_size, stride=s0, activation=activation)]
+        output_channels = edgeai_torchmodelopt.xnn.utils.make_divisible_by8(self.model_config.layer_setting[0][1] * width_mult)
+        features = [edgeai_torchmodelopt.xnn.layers.ConvNormAct2d(3, output_channels, kernel_size=kernel_size, stride=s0, activation=activation)]
         channels = output_channels
 
         # building inverted residual blocks
         for t, c, n, s in self.model_config.layer_setting[1:]:
-            output_channels = xnn.utils.make_divisible_by8(c * width_mult)
+            output_channels = edgeai_torchmodelopt.xnn.utils.make_divisible_by8(c * width_mult)
             for i in range(n):
                 stride = s if i == 0 else 1
                 block = BlockBuilder(channels, output_channels, stride=stride, kernel_size=kernel_size, activation=(activation,activation))
@@ -177,7 +177,7 @@ class MobileNetV1LiteBase(BaseModule):
         # building classifier
         if self.model_config.num_classes is not None:
             self.classifier = torch.nn.Sequential(
-                torch.nn.Dropout(0.2) if self.model_config.dropout else xnn.layers.BypassBlock(),
+                torch.nn.Dropout(0.2) if self.model_config.dropout else edgeai_torchmodelopt.xnn.layers.BypassBlock(),
                 torch.nn.Linear(channels, self.num_classes),
             )
         #
@@ -187,7 +187,7 @@ class MobileNetV1LiteBase(BaseModule):
 
     def forward(self, x):
         x = self.features(x)
-        xnn.utils.print_once('=> feature size is: ', x.size())
+        edgeai_torchmodelopt.xnn.utils.print_once('=> feature size is: ', x.size())
         x = torch.nn.functional.adaptive_avg_pool2d(x, (1,1))
         x = torch.flatten(x, 1)
         x = self.classifier(x)
@@ -204,13 +204,13 @@ class MobileNetV1Lite(MobileNetV1LiteBase):
             elif key in ('out_indices', 'strides', 'extra_channels', 'frozen_stages', 'act_cfg'):
                 setattr(model_config, key, value)
         #
-        super().__init__(xnn.layers.ConvDWSepNormAct2d, model_config, pretrained=pretrained, init_cfg=init_cfg)
+        super().__init__(edgeai_torchmodelopt.xnn.layers.ConvDWSepNormAct2d, model_config, pretrained=pretrained, init_cfg=init_cfg)
 
         self.extra = self._make_extra_layers(1024, self.model_config.extra_channels) \
             if self.model_config.extra_channels else None
 
         # weights init
-        xnn.utils.module_weights_init(self)
+        edgeai_torchmodelopt.xnn.utils.module_weights_init(self)
 
     # def init_weights(self, pretrained=None):
     #     if pretrained is not None:
@@ -234,11 +234,11 @@ class MobileNetV1Lite(MobileNetV1LiteBase):
             out = []
             shortcut_strides = self.model_config.shortcut_strides
             for s_stride, short_chan in zip(shortcut_strides, self.model_config.shortcut_channels):
-                shape_s = xnn.utils.get_shape_with_stride(in_shape, s_stride)
+                shape_s = edgeai_torchmodelopt.xnn.utils.get_shape_with_stride(in_shape, s_stride)
                 shape_s[1] = short_chan
                 # do not want this to be traced by jit
                 shape_s = [int(s) for s in shape_s]
-                x_s = xnn.utils.get_blob_from_list(x_list, shape_s)
+                x_s = edgeai_torchmodelopt.xnn.utils.get_blob_from_list(x_list, shape_s)
                 out.append(x_s)
 
             if self.model_config.out_indices is not None:
@@ -269,7 +269,7 @@ class MobileNetV1Lite(MobileNetV1LiteBase):
         extra_layers = []
         for i, out_ch in enumerate(outplanes):
             activation = (act_dw, True)
-            layer = xnn.layers.ConvDWSepNormAct2d(inplanes, out_ch, stride=2, kernel_size=kernel_size, activation=activation)
+            layer = edgeai_torchmodelopt.xnn.layers.ConvDWSepNormAct2d(inplanes, out_ch, stride=2, kernel_size=kernel_size, activation=activation)
             extra_layers.append(layer)
             inplanes = out_ch
         #
@@ -286,6 +286,6 @@ def mobilenet_v1_lite(pretrained=False, progress=True, **kwargs):
     """
     model = MobileNetV1(**kwargs)
     if pretrained:
-        state_dict = xnn.utils.load_state_dict_from_url(model_urls['mobilenet_v1'], progress=progress)
+        state_dict = edgeai_torchmodelopt.xnn.utils.load_state_dict_from_url(model_urls['mobilenet_v1'], progress=progress)
         model.load_state_dict(state_dict)
     return model

@@ -10,7 +10,7 @@ from torch.nn.modules.batchnorm import _BatchNorm
 from ..builder import BACKBONES
 from ..utils import ResLayer
 
-from edgeai_xvision import xnn
+import edgeai_torchmodelopt
 
 class BasicBlock(BaseModule):
     expansion = 1
@@ -54,7 +54,7 @@ class BasicBlock(BaseModule):
         self.downsample = downsample
         self.stride = stride
         self.dilation = dilation
-        self.add = xnn.layers.AddBlock()
+        self.add = edgeai_torchmodelopt.xnn.layers.AddBlock()
         self.with_cp = with_cp
 
     @property
@@ -212,7 +212,7 @@ class Bottleneck(BaseModule):
         self.relu2 = nn.ReLU(inplace=True)
         self.relu3 = nn.ReLU(inplace=True)
         self.downsample = downsample
-        self.add = xnn.layers.AddBlock()
+        self.add = edgeai_torchmodelopt.xnn.layers.AddBlock()
 
         if self.with_plugins:
             self.after_conv1_plugin_names = self.make_block_plugins(

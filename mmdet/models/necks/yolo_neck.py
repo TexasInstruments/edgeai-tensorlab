@@ -8,7 +8,7 @@ from mmcv.cnn import ConvModule
 from mmcv.runner import BaseModule
 
 from ..builder import NECKS
-from edgeai_xvision import xnn
+import edgeai_torchmodelopt
 
 
 class DetectionBlock(BaseModule):
@@ -119,7 +119,7 @@ class YOLOV3Neck(BaseModule):
             # in_c + out_c : High-lvl feats will be cat with low-lvl feats
             self.add_module(f'detect{i+1}',
                             DetectionBlock(in_c + out_c, out_c, **cfg))
-            self.cats.append(xnn.layers.CatBlock(dim=1))
+            self.cats.append(edgeai_torchmodelopt.xnn.layers.CatBlock(dim=1))
 
     def forward(self, feats):
         assert len(feats) == self.num_scales

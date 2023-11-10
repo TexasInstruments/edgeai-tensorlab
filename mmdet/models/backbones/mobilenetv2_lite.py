@@ -73,7 +73,7 @@ from mmcv.runner import BaseModule, load_checkpoint
 
 from mmdet.utils import get_root_logger
 from mmdet.models.builder import BACKBONES
-from edgeai_xvision import xnn
+import edgeai_torchmodelopt
 
 ###################################################
 # mmdetection has added MobileNet backbone recently. That is why this is renamed with lite
@@ -83,7 +83,7 @@ __all__ = ['MobileNetV2LiteBase', 'MobileNetV2Lite', 'mobilenet_v2_lite',
 
 
 ###################################################
-class ModelConfig(xnn.utils.ConfigNode):
+class ModelConfig(edgeai_torchmodelopt.xnn.utils.ConfigNode):
     def __init__(self):
         super().__init__()
         self.input_channels = 3
@@ -91,7 +91,7 @@ class ModelConfig(xnn.utils.ConfigNode):
         self.width_mult = 1.
         self.expand_ratio = 6
         self.strides = (2,2,2,2,2)
-        self.activation = xnn.layers.DefaultAct2d
+        self.activation = edgeai_torchmodelopt.xnn.layers.DefaultAct2d
         self.use_blocks = False
         self.kernel_size = 3
         self.dropout = False
@@ -133,14 +133,14 @@ class InvertedResidual(torch.nn.Module):
         seq_layers = []
         if expand_ratio != 1:
             # pw
-            seq_layers.append(xnn.layers.ConvNormAct2d(inp, hidden_dim, kernel_size=1, activation=activation))
+            seq_layers.append(edgeai_torchmodelopt.xnn.layers.ConvNormAct2d(inp, hidden_dim, kernel_size=1, activation=activation))
         #
         seq_layers.extend([
             # dw
-            xnn.layers.ConvNormAct2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=stride, groups=hidden_dim, activation=activation_dw),
+            edgeai_torchmodelopt.xnn.layers.ConvNormAct2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=stride, groups=hidden_dim, activation=activation_dw),
             # pw-linear
             torch.nn.Conv2d(hidden_dim, oup, 1, 1, 0, bias=False),
-            xnn.layers.DefaultNorm2d(oup),
+            edgeai_torchmodelopt.xnn.layers.DefaultNorm2d(oup),
         ])
 
         if linear_dw:
@@ -149,7 +149,7 @@ class InvertedResidual(torch.nn.Module):
         self.conv = torch.nn.Sequential(*seq_layers)
 
         if self.use_res_connect:
-            self.add = xnn.layers.AddBlock(signed=True)
+            self.add = edgeai_torchmodelopt.xnn.layers.AddBlock(signed=True)
 
     def forward(self, x):
         if self.use_res_connect:
@@ -217,13 +217,13 @@ class MobileNetV2LiteBase(BaseModule):
         kernel_size = self.model_config.kernel_size
 
         # building first layer
-        output_channels = xnn.utils.make_divisible_by8(self.model_config.layer_setting[0][1] * width_mult)
-        features = [xnn.layers.ConvNormAct2d(3, output_channels, kernel_size=kernel_size, stride=s0, activation=activation)]
+        output_channels = edgeai_torchmodelopt.xnn.utils.make_divisible_by8(self.model_config.layer_setting[0][1] * width_mult)
+        features = [edgeai_torchmodelopt.xnn.layers.ConvNormAct2d(3, output_channels, kernel_size=kernel_size, stride=s0, activation=activation)]
         channels = output_channels
 
         # building inverted residual blocks
         for t, c, n, s in self.model_config.layer_setting[1:-1]:
-            output_channels = xnn.utils.make_divisible_by8(c * width_mult)
+            output_channels = edgeai_torchmodelopt.xnn.utils.make_divisible_by8(c * width_mult)
             for i in range(n):
                 stride = s if i == 0 else 1
                 block = BlockBuilder(channels, output_channels, stride=stride, kernel_size=kernel_size, activation=activation, expand_ratio=t, linear_dw=linear_dw)
@@ -234,11 +234,11 @@ class MobileNetV2LiteBase(BaseModule):
 
         # building classifier
         if self.model_config.num_classes is not None:
-            output_channels = xnn.utils.make_divisible_by8(self.model_config.layer_setting[-1][1] * width_mult)
-            features.append(xnn.layers.ConvNormAct2d(channels, output_channels, kernel_size=1, activation=activation))
+            output_channels = edgeai_torchmodelopt.xnn.utils.make_divisible_by8(self.model_config.layer_setting[-1][1] * width_mult)
+            features.append(edgeai_torchmodelopt.xnn.layers.ConvNormAct2d(channels, output_channels, kernel_size=1, activation=activation))
             channels = output_channels 
             self.classifier = torch.nn.Sequential(
-                torch.nn.Dropout(0.2) if self.model_config.dropout else xnn.layers.BypassBlock(),
+                torch.nn.Dropout(0.2) if self.model_config.dropout else edgeai_torchmodelopt.xnn.layers.BypassBlock(),
                 torch.nn.Linear(channels, self.num_classes),
             )
         #
@@ -248,7 +248,7 @@ class MobileNetV2LiteBase(BaseModule):
 
     def forward(self, x):
         x = self.features(x)
-        xnn.utils.print_once('=> feature size is: ', x.size())
+        edgeai_torchmodelopt.xnn.utils.print_once('=> feature size is: ', x.size())
         x = torch.nn.functional.adaptive_avg_pool2d(x, (1,1))
         x = torch.flatten(x, 1)
         x = self.classifier(x)
@@ -274,7 +274,7 @@ class MobileNetV2Lite(MobileNetV2LiteBase):
             if self.model_config.extra_channels else None
 
         # weights init
-        xnn.utils.module_weights_init(self)
+        edgeai_torchmodelopt.xnn.utils.module_weights_init(self)
 
     # def init_weights(self, pretrained=None):
     #     if pretrained is not None:
@@ -299,11 +299,11 @@ class MobileNetV2Lite(MobileNetV2LiteBase):
             out = []
             shortcut_strides = self.model_config.shortcut_strides
             for s_stride, short_chan in zip(shortcut_strides, self.model_config.shortcut_channels):
-                shape_s = xnn.utils.get_shape_with_stride(in_shape, s_stride)
+                shape_s = edgeai_torchmodelopt.xnn.utils.get_shape_with_stride(in_shape, s_stride)
                 shape_s[1] = short_chan
                 # do not want this to be traced by jit
                 shape_s = [int(s) for s in shape_s]
-                x_s = xnn.utils.get_blob_from_list(x_list, shape_s)
+                x_s = edgeai_torchmodelopt.xnn.utils.get_blob_from_list(x_list, shape_s)
                 out.append(x_s)
 
             if self.model_config.out_indices is not None:
@@ -334,7 +334,7 @@ class MobileNetV2Lite(MobileNetV2LiteBase):
         extra_layers = []
         for i, out_ch in enumerate(outplanes):
             activation = (act_dw, True)
-            layer = xnn.layers.ConvDWSepNormAct2d(inplanes, out_ch, stride=2, kernel_size=kernel_size, activation=activation)
+            layer = edgeai_torchmodelopt.xnn.layers.ConvDWSepNormAct2d(inplanes, out_ch, stride=2, kernel_size=kernel_size, activation=activation)
             extra_layers.append(layer)
             inplanes = out_ch
         #
@@ -357,7 +357,7 @@ def mobilenet_v2_lite(pretrained=False, progress=True, **kwargs):
     """
     model = MobileNetV2Lite(**kwargs)
     if pretrained is True:
-        state_dict = xnn.utils.load_state_dict_from_url(model_urls['mobilenet_v2_lite'], progress=progress)
+        state_dict = edgeai_torchmodelopt.xnn.utils.load_state_dict_from_url(model_urls['mobilenet_v2_lite'], progress=progress)
         model.load_state_dict(state_dict)
     return model
 
@@ -373,6 +373,6 @@ def mobilenet_v2p5_lite(pretrained=False, progress=True, **kwargs):
     """
     model = MobileNetV2P5Lite(**kwargs)
     if pretrained is True:
-        state_dict = xnn.utils.load_state_dict_from_url(model_urls['mobilenet_v2p5_lite'], progress=progress)
+        state_dict = edgeai_torchmodelopt.xnn.utils.load_state_dict_from_url(model_urls['mobilenet_v2p5_lite'], progress=progress)
         model.load_state_dict(state_dict)
     return model

@@ -16,7 +16,7 @@ from mmdet.core.export.model_wrappers import ONNXRuntimeDetector
 from mmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_checkpoint, is_mmdet_quant_module
 from mmdet.utils import save_model_proto, patch_onnx_file
 
-from edgeai_xvision import xnn
+import edgeai_torchmodelopt
 
 
 def pytorch2onnx(args,
@@ -396,7 +396,7 @@ def main(args):
 
     if hasattr(cfg, 'resize_with_scale_factor') and cfg.resize_with_scale_factor:
         torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
-        torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
+        torch.nn.functional.interpolate = edgeai_torchmodelopt.xnn.layers.resize_with_scale_factor
 
     # build the model and load checkpoint
     model = build_model_from_cfg(args.config, args.checkpoint,

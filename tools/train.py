@@ -27,7 +27,7 @@ from mmdet.utils import remove_if_exists, make_symlink
 from contextlib import redirect_stdout
 import importlib
 
-from edgeai_xvision import xnn
+import edgeai_torchmodelopt
 
 
 def parse_args():
@@ -194,7 +194,7 @@ def main(args=None):
 
     if hasattr(cfg, 'resize_with_scale_factor') and cfg.resize_with_scale_factor:
         torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
-        torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
+        torch.nn.functional.interpolate = edgeai_torchmodelopt.xnn.layers.resize_with_scale_factor
 
     model = build_detector(
         cfg.model,

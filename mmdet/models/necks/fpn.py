@@ -7,7 +7,7 @@ from mmcv.runner import BaseModule, auto_fp16
 
 from ..builder import NECKS
 
-from edgeai_xvision import xnn
+import edgeai_torchmodelopt
 
 
 @NECKS.register_module()
@@ -131,7 +131,7 @@ class FPN(BaseModule):
 
             self.lateral_convs.append(l_conv)
             self.fpn_convs.append(fpn_conv)
-            self.adds.append(xnn.layers.AddBlock())
+            self.adds.append(edgeai_torchmodelopt.xnn.layers.AddBlock())
 
         # add extra conv layers (e.g., RetinaNet)
         extra_levels = num_outs - self.backbone_end_level + self.start_level

@@ -26,7 +26,7 @@ from mmdet.utils import XMMDetQuantTestModule, save_model_proto, mmdet_load_chec
 from mmdet.utils import convert_to_lite_model
 from contextlib import redirect_stdout
 
-from edgeai_xvision import xnn
+import edgeai_torchmodelopt
 
 
 def parse_args():
@@ -228,7 +228,7 @@ def main(args=None):
 
     if hasattr(cfg, 'resize_with_scale_factor') and cfg.resize_with_scale_factor:
         torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
-        torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
+        torch.nn.functional.interpolate = edgeai_torchmodelopt.edgeai_torchmodelopt.xnn.layers.resize_with_scale_factor
 
     # build the model and load checkpoint
     cfg.model.train_cfg = None
