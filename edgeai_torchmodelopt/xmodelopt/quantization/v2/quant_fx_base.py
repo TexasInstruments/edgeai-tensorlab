@@ -27,8 +27,8 @@ class QuantFxBaseModule(torch.nn.Module):
         replacement_dict = {torch.nn.ReLU6(): torch.nn.ReLU(),
                             torch.nn.ReLU(): torch.nn.ReLU()}
 
-        from ...surgery import replace_unsuppoted_layers
-        model = replace_unsuppoted_layers(model, replacement_dict=replacement_dict)
+        from ...surgery import replace_unsupported_layers
+        model = replace_unsupported_layers(model, replacement_dict=replacement_dict)
 
         # split if qconfig is a comma separated list of segments
         # (qconfig will change after some epochs if this has comma separated values)
