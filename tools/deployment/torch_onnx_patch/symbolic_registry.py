@@ -36,3 +36,9 @@ def register_op(opname, op, domain, version):
     domain = domain or ""
     symbolic_name = f"{domain}::{opname}"
     return torch.onnx.register_custom_op_symbolic(symbolic_name, symbolic_fn=op, opset_version=version)
+
+
+def _node_get_item(node, str):
+    sel = node.kindOf(str)
+    return getattr(node, sel)(key)
+

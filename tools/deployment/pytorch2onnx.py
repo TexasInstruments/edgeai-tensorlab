@@ -367,12 +367,26 @@ def parse_args():
     return args
 
 
+# https://github.com/openai/CLIP/issues/79
+# From https://github.com/pytorch/pytorch/blob/2efe4d809fdc94501fc38bf429e9a8d4205b51b6/torch/utils/tensorboard/_pytorch_graph.py#L384
+def _node_getitem(node: torch._C.Node, key: str):
+    """Gets attributes of a node which is polymorphic over return type."""
+    sel = node.kindOf(key)
+    return getattr(node, sel)(key)
+
+
 def main(args):
     warnings.warn('Arguments like `--mean`, `--std`, `--dataset` would be \
         parsed directly from config file and are deprecated and \
         will be removed in future releases.')
 
     assert args.opset_version == 11, 'MMDet only support opset 11 now'
+
+    # 2023/11/13 added to support older mmcv on latest Pytorch
+    # TODO: remove this after upgrading mmdet/mmcv
+    if not hasattr(torch._C.Node, '__getitem__'):
+        torch._C.Node.__getitem__ = _node_getitem
+    #
 
     try:
         from mmcv.onnx.symbolic import register_extra_symbolics
@@ -435,6 +449,7 @@ def main(args):
     msg += 'MMDeploy: https://github.com/open-mmlab/mmdeploy'
     msg += reset_style
     warnings.warn(msg)
+
 
 if __name__ == '__main__':
     args = parse_args()
