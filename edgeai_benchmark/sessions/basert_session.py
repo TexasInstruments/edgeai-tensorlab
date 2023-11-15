@@ -105,6 +105,7 @@ class BaseRTSession(utils.ParamsBase):
                 f"unsupported target machine, must be one of {self.kwargs['supported_machines']}"
         #
         self.kwargs['with_onnxsim'] = self.kwargs.get('with_onnxsim', False)
+        self.kwargs['shape_inference'] = self.kwargs.get('shape_inference', True)
 
         # store the current directory so that we can go back there any time
         self.cwd = os.getcwd()
@@ -481,7 +482,6 @@ class BaseRTSession(utils.ParamsBase):
     def get_model(self, meta_file_key='object_detection:meta_layers_names_list',
                   quant_params_proto_key='quant_params_proto_path'):
         model_folder = self.kwargs['model_folder']
-        with_onnxsim = self.kwargs['with_onnxsim']
 
         # download the file if it is an http or https link
         model_path = self.kwargs['model_path']
@@ -511,31 +511,22 @@ class BaseRTSession(utils.ParamsBase):
             # make a local copy to the run_dir/model folder
             model_path = utils.download_files(model_path, root=model_folder)
         #
-
         # optimize the model to speedup inference.
         # for example, the input of the model can be converted to 8bit and mean/scale can be moved inside the model
-        if self.kwargs['input_optimization'] and self.kwargs['tensor_bits'] == 8 and \
-                self.kwargs['input_mean'] is not None and self.kwargs['input_scale'] is not None:
-            optimization_done = self._optimize_model(is_new_file=(not model_file_exists))
-            if optimization_done:
-                # set the mean and scale in kwargs to None as they have been absorbed inside.
-                self.kwargs['input_mean'] = None
-                self.kwargs['input_scale'] = None
-            #
-        #
-        # run onnx shape inference on the model - tidl may thow errors if the onnx model doesn't have shapes
-        # run this only one time - that is what the (not model_file_exists) check does
-        if (not model_file_exists) and model_file0.endswith('.onnx'):
-            import onnx
-            if with_onnxsim:
-                from onnxsim import simplify
-                onnx_model = onnx.load(model_file0)
-                onnx_model, check_ok = simplify(onnx_model)
-                if check_ok:
-                    onnx.save(onnx_model, model_file0)
-                #
-            #
-            onnx.shape_inference.infer_shapes_path(model_file0, model_file0)
+        # for prequantized models, it may also be required to run onnx-simplifier (this will be run if it is set for the model)
+        # also does shape_inference for onnx models
+        apply_input_optimization = self._optimize_model(model_file,
+                                                 is_new_file=(not model_file_exists),
+                                                 input_optimization=self.kwargs['input_optimization'],
+                                                 tensor_bits=self.kwargs['tensor_bits'],
+                                                 input_mean=self.kwargs['input_mean'],
+                                                 input_scale=self.kwargs['input_scale'],
+                                                 with_onnxsim=self.kwargs['with_onnxsim'],
+                                                 shape_inference=self.kwargs['shape_inference'])
+        if apply_input_optimization:
+            # set the mean and scale in kwargs to None as they have been absorbed inside.
+            self.kwargs['input_mean'] = None
+            self.kwargs['input_scale'] = None
         #
         if self.kwargs['input_mean'] is not None and self.kwargs['input_scale'] is not None:
             # mean scale could not be absorbed inside the model - do it explicitly
@@ -561,26 +552,44 @@ class BaseRTSession(utils.ParamsBase):
             self._replace_confidence_threshold(meta_file)
         #
 
-    def _optimize_model(self, is_new_file=True):
-        model_file = self.kwargs['model_file']
+    def _optimize_model(self, model_file, is_new_file=True, input_optimization=False, tensor_bits=None,
+                        input_mean=None, input_scale=None, with_onnxsim=False, shape_inference=True):
         model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
-        input_mean = self.kwargs['input_mean']
-        input_scale = self.kwargs['input_scale']
-        optimization_done = False
+        apply_input_optimization = (input_optimization and tensor_bits == 8 and input_mean is not None and input_scale is not None)
         if model_file0.endswith('.onnx'):
             if is_new_file:
-                from osrt_model_tools.onnx_tools import onnx_model_opt as onnxopt
-                onnxopt.tidlOnnxModelOptimize(model_file0, model_file0, input_scale, input_mean)
+                # merge the mean & scale inside the model
+                if apply_input_optimization:
+                    from osrt_model_tools.onnx_tools import onnx_model_opt as onnxopt
+                    onnxopt.tidlOnnxModelOptimize(model_file0, model_file0, input_scale, input_mean)
+                #
+                # run onnx simplifier on this model if with_onnxsim is set for this model
+                if with_onnxsim:
+                    import onnx
+                    from onnxsim import simplify
+                    onnx_model = onnx.load(model_file0)
+                    onnx_model, check_ok = simplify(onnx_model)
+                    if check_ok:
+                        onnx.save(onnx_model, model_file0)
+                    #
+                #
+                # run onnx shape inference on the model - tidl may thow errors if the onnx model doesn't have shapes
+                # run this only one time - that is what the (not model_file_exists) check does
+                if shape_inference:
+                    import onnx
+                    onnx.shape_inference.infer_shapes_path(model_file0, model_file0)
+                #
             #
-            optimization_done = True
         elif model_file0.endswith('.tflite'):
             if is_new_file:
-                from osrt_model_tools.tflite_tools import tflite_model_opt as tflopt
-                tflopt.tidlTfliteModelOptimize(model_file0, model_file0, input_scale, input_mean)
+                # merge the mean & scale inside the model
+                if apply_input_optimization:
+                    from osrt_model_tools.tflite_tools import tflite_model_opt as tflopt
+                    tflopt.tidlTfliteModelOptimize(model_file0, model_file0, input_scale, input_mean)
+                #
             #
-            optimization_done = True
         #
-        return optimization_done
+        return apply_input_optimization
 
     def _replace_confidence_threshold(self, filename):
         if not filename.endswith('.prototxt'):

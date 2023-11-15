@@ -207,7 +207,7 @@ class ConfigSettings(config_dict.ConfigDict):
             'accuracy_level': self._get_calibration_accuracy_level(quantization_scale_type, is_qat),
             # debug level
             'debug_level': 0,
-            'priority': 0,
+            'inference_mode': 0,
             ##################################
             # advanced_options
             #################################
@@ -241,7 +241,7 @@ class ConfigSettings(config_dict.ConfigDict):
             ##################################
             # additional options (internal / performance estimation)
             #################################
-            "ti_internal_nc_flag" : 83886080
+            "ti_internal_nc_flag" : 83886080, #1601
         }
         if prequantized_model_type_v2:
             runtime_options.update({'advanced_options:prequantized_model': 1})
