@@ -215,7 +215,7 @@ class ModelTraining:
                 log_summary_regex=log_summary_regex,
                 summary_file_path=os.path.join(self.params.training.training_path, 'summary.yaml'),
                 model_checkpoint_path=os.path.join(self.params.training.training_path, 'checkpoint.pth'),
-                model_export_path=os.path.join(self.params.training.training_path, 'model.onnx'),
+                model_export_path=os.path.join(self.params.training.training_path, 'model_best.onnx'),
                 model_proto_path=None,
                 num_classes=len(self.object_categories),
             )
