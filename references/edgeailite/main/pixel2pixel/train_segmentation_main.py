@@ -131,9 +131,11 @@ def main(arguemnts):
             else:
                 save_path = arguemnts.save_path
             if isinstance(arguemnts.model, str) and arguemnts.model.endswith('.onnx'):
-                arguemnts.model = os.path.join(save_path, 'model.onnx')
+                # arguemnts.model = os.path.join(save_path, 'model.onnx')
+                arguemnts.model = os.path.join(save_path, 'model_best.onnx')
             #
-            arguemnts.pretrained = os.path.join(save_path, 'model.pth')
+            # arguemnts.pretrained = os.path.join(save_path, 'model.pth')
+            arguemnts.pretrained = os.path.join(save_path, 'model_best.pth')
         #
         arguemnts.phase = 'training_quantize'
         arguemnts.quantize = False
@@ -150,9 +152,11 @@ def main(arguemnts):
         else:
             save_path = arguemnts.save_path
         if isinstance(arguemnts.model, str) and arguemnts.model.endswith('.onnx'):
-            arguemnts.model = os.path.join(save_path, 'model.onnx')
+            # arguemnts.model = os.path.join(save_path, 'model.onnx')
+            arguemnts.model = os.path.join(save_path, 'model_best.onnx')
 
-        arguemnts.pretrained = os.path.join(save_path, 'model.pth')
+        # arguemnts.pretrained = os.path.join(save_path, 'model.pth')
+        arguemnts.pretrained = os.path.join(save_path, 'model_best.pth')
 
         if 'training' in arguemnts.phase:
             # DataParallel isn't enabled for QuantCalibrateModule and QuantTestModule.

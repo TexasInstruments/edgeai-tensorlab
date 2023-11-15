@@ -1013,8 +1013,11 @@ def add_node_names(onnx_model_name):
             #print("name: ", onnx_model.graph.node[i].name)
             #print("input: ", onnx_model.graph.node[i].input)
             #print("output: ", onnx_model.graph.node[i].output)
-            onnx_model.graph.node[i].input[j] = onnx_model.graph.node[i].input[j].split(':')[0]
-            onnx_model.graph.node[i].name = derive_node_name(onnx_model.graph.node[i].input)
+
+            ## these cause name conflicts in some onnx models
+            # onnx_model.graph.node[i].input[j] = onnx_model.graph.node[i].input[j].split(':')[0]
+            # print(onnx_model.graph.node[i].input[j])
+            onnx_model.graph.node[i].name = derive_node_name(onnx_model.graph.node[i].input) + str(i) # resolve name conflicts
         #
     #
     #update model inplace
@@ -1030,7 +1033,7 @@ def write_onnx_model(args, model, save_path, name='checkpoint.onnx', save_traced
                       do_constant_folding=True, opset_version=args.opset_version)
 
     #torch onnx export does not update names. Do it using onnx.save
-    add_node_names(onnx_model_name=onnx_file)
+    # add_node_names(onnx_model_name=onnx_file)
     # infer shapes
     onnx.shape_inference.infer_shapes_path(onnx_file, onnx_file)
 
