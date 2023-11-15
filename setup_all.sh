@@ -36,15 +36,13 @@
 USE_INTERNAL_REPO=0
 
 # set to 1 to enable other extra models
-PLUGINS_ENABLE_EXTRA=0
+PLUGINS_ENABLE_EXTRA=1
 
 #################################################################################
 if [[ ${USE_INTERNAL_REPO} -eq 0 ]]; then
     SOURCE_LOCATION="https://github.com/TexasInstruments/"
-    FAST_CLONE_MODELZOO=""
 else
     SOURCE_LOCATION="ssh://git@bitbucket.itg.ti.com/edgeai-algo/"
-    FAST_CLONE_MODELZOO="--single-branch"
 fi
 # print
 echo "SOURCE_LOCATION="${SOURCE_LOCATION}
@@ -52,15 +50,14 @@ echo "SOURCE_LOCATION="${SOURCE_LOCATION}
 #################################################################################
 # clone
 echo "cloning git repositories. this may take some time..."
-
-if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch r9.0 ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
-if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r9.0 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
-if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r9.0 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
-if [[ ! -d ../edgeai-modelzoo ]]; then git clone ${FAST_CLONE_MODELZOO} --branch r9.0 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; fi
+echo "please remove the folders ../edgeai-benchmark ../edgeai-mmdetection ../edgeai-torchvision ../edgeai-modelzoo ../edgeai-yolox"
+if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch master ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
+if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
+if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
+if [[ ! -d ../edgeai-modelzoo ]]; then git clone "--single-branch" --branch r9.0 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; fi
 
 if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
-  if [[ ! -d ../edgeai-yolox ]]; then git clone --branch r9.0 ${SOURCE_LOCATION}edgeai-yolox.git ../edgeai-yolox; fi
-  sed -i s/'PLUGINS_ENABLE_EXTRA = False'/'PLUGINS_ENABLE_EXTRA = True'/g ./edgeai_modelmaker/ai_modules/vision/constants.py
+  if [[ ! -d ../edgeai-yolox ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-yolox.git ../edgeai-yolox; fi
 fi
 
 echo "cloning done."
@@ -96,7 +93,7 @@ pip uninstall --yes onnxruntime
 
 echo "installing: edgeai-benchmark"
 cd ../edgeai-benchmark
-./setup_pc.sh r9.0
+./setup_pc.sh test9.1
 
 echo "installing edgeai-modelmaker"
 cd ../edgeai-modelmaker
