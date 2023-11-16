@@ -48,6 +48,8 @@ def get_configs(settings, work_dir):
         'postprocess': postproc_transforms.get_transform_classification()
     }
 
+    quant_params_proto_path_disable_option = {constants.ADVANCED_OPTIONS_QUANT_FILE_KEY: ''}
+
     pipeline_configs = {
         #################################################################
         #       ONNX MODELS
@@ -56,7 +58,7 @@ def get_configs(settings, work_dir):
         'cl-6500':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, with_onnxsim=True),
-                runtime_options=settings.runtime_options_onnx_qat_v2(quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN),
+                runtime_options=settings.runtime_options_onnx_qat_v2(quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN, **quant_params_proto_path_disable_option),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/mobilenetv2_wt-v1_qat-w8c-w8t_20230712_model.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.602}, model_shortlist=None)
         ),
@@ -64,7 +66,7 @@ def get_configs(settings, work_dir):
         'cl-6510':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, with_onnxsim=True),
-                runtime_options=settings.runtime_options_onnx_qat_v2(quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2_QAT),
+                runtime_options=settings.runtime_options_onnx_qat_v2(quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2_QAT, **quant_params_proto_path_disable_option),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/mobilenetv2_wt-v1_qat-w8csp2-w8tsp2_20230711_model.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.556}, model_shortlist=None)
         ),
@@ -72,7 +74,7 @@ def get_configs(settings, work_dir):
         'cl-6520':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, with_onnxsim=True),
-                runtime_options=settings.runtime_options_onnx_qat_v2(quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN),
+                runtime_options=settings.runtime_options_onnx_qat_v2(quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN, **quant_params_proto_path_disable_option),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/resnet50_wt-v1_qat-w4c-w8t_20230713_model.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.048}, model_shortlist=None)
         ),

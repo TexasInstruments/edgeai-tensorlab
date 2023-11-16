@@ -93,6 +93,11 @@ class PreQuantizedModelType:
     PREQUANTIZED_MODEL_TYPE_V2 = 2
 
 
+# some options in runtime_options
+OBJECT_DETECTION_META_FILE_KEY = 'object_detection:meta_layers_names_list'
+ADVANCED_OPTIONS_QUANT_FILE_KEY = 'advanced_options:quant_params_proto_path'
+
+
 # we can use fewer number of calibration images and iterations if per channel assymetric quantization is enabled
 FAST_CALIBRATION_FACTOR = 0.5
 

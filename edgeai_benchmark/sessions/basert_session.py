@@ -479,8 +479,7 @@ class BaseRTSession(utils.ParamsBase):
         run_dir = os.path.join(work_dir, f'{run_name}')
         return run_dir
 
-    def get_model(self, meta_file_key='object_detection:meta_layers_names_list',
-                  quant_params_proto_key='quant_params_proto_path'):
+    def get_model(self):
         model_folder = self.kwargs['model_folder']
 
         # download the file if it is an http or https link
@@ -491,13 +490,12 @@ class BaseRTSession(utils.ParamsBase):
         # we could have just used self.kwargs['model_path'], but do this for legacy reasons
         self.kwargs['model_file'] = model_file
 
-        quant_file = self.kwargs.get(quant_params_proto_key, True)
-        if quant_file:
-            if quant_file is True:
-                quant_file = os.path.splitext(model_file)[0] + "_qparams.prototxt"
-            #
-            self.kwargs['runtime_options']['advanced_options:'+quant_params_proto_key] = quant_file
+        quant_file = self.kwargs['runtime_options'].get(constants.ADVANCED_OPTIONS_QUANT_FILE_KEY, True)
+        if quant_file is True:
+            quant_file = os.path.splitext(model_file)[0] + "_qparams.prototxt"
+            self.kwargs['runtime_options'][constants.ADVANCED_OPTIONS_QUANT_FILE_KEY] = quant_file
         #
+
         print(utils.log_color('INFO', 'model_path', model_path))
         print(utils.log_color('INFO', 'model_file', model_file))
         print(utils.log_color('INFO', 'quant_file', quant_file))
@@ -535,7 +533,7 @@ class BaseRTSession(utils.ParamsBase):
                 self.kwargs['input_data_layout'])
         #
         # meta_file
-        meta_path = self.kwargs['runtime_options'].get(meta_file_key, None)
+        meta_path = self.kwargs['runtime_options'].get(constants.OBJECT_DETECTION_META_FILE_KEY, None)
         if meta_path is not None:
             # get the path of the local copy that will be made
             meta_file = utils.get_local_path(meta_path, model_folder)
@@ -547,7 +545,7 @@ class BaseRTSession(utils.ParamsBase):
                 meta_path = utils.download_file(meta_path, root=model_folder)
             #
             # write the local path
-            self.kwargs['runtime_options'][meta_file_key] = meta_file
+            self.kwargs['runtime_options'][constants.OBJECT_DETECTION_META_FILE_KEY] = meta_file
             # replace confidence_threshold in opject detection prototxt
             self._replace_confidence_threshold(meta_file)
         #
