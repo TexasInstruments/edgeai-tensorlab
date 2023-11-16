@@ -55,7 +55,7 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################jai-devkit models###############################
         # edgeai-torchvison: classification mobilenetv2_224x224 pytorch-qat expected_metric: 71.602% top-1 accuracy
-        'cl-6500':utils.dict_update(common_cfg,
+        'cl-6700':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, with_onnxsim=True),
                 runtime_options=settings.runtime_options_onnx_qat_v2(quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN, **quant_params_proto_path_disable_option),
@@ -63,7 +63,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':71.602}, model_shortlist=None)
         ),
         # edgeai-torchvison: classification mobilenetv2_224x224 pytorch-qat-sp2 expected_metric: 71.556% top-1 accuracy
-        'cl-6510':utils.dict_update(common_cfg,
+        'cl-6710':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, with_onnxsim=True),
                 runtime_options=settings.runtime_options_onnx_qat_v2(quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2_QAT, **quant_params_proto_path_disable_option),
@@ -71,7 +71,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':71.556}, model_shortlist=None)
         ),
         # edgeai-torchvison: classification resnet50_wt-v1_qat-w4c-w8t pytorch-qat-4bit-wt 224x224 expected_metric: 75.048% top-1 accuracy
-        'cl-6520':utils.dict_update(common_cfg,
+        'cl-6720':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, with_onnxsim=True),
                 runtime_options=settings.runtime_options_onnx_qat_v2(quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN, **quant_params_proto_path_disable_option),
