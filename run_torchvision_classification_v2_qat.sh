@@ -5,6 +5,9 @@
 # PYTHONPATH must start with a : to be able to load local modules
 export PYTHONPATH=:$PYTHONPATH
 
+# Date/time in YYYYMMDD-HHmmSS format
+DATE_TIME=`date +'%Y%m%d-%H%M%S'`
+
 #=========================================================================================
 # sample models that can be used
 #model=resnet50
@@ -31,12 +34,14 @@ export PYTHONPATH=:$PYTHONPATH
 
 #=========================================================================================
 model=mobilenet_v2
-model_weights="MobileNet_V2_Weights.IMAGENET1K_V1"
+model_weights="MobileNet_V2_Weights.IMAGENET1K_V2" #"MobileNet_V2_Weights.IMAGENET1K_V1"
 
 #=========================================================================================
-command="./references/classification/train.py --data-path=./data/datasets/imagenet --output-dir=./data/checkpoints/imagenet_classification_${model} \
+# --quantization-type can be one of: WT8SP2_AT8SP2, WC8_AT8
+
+command="./references/classification/train.py --data-path=./data/datasets/imagenet --output-dir=./data/checkpoints/${DATE_TIME}_imagenet_classification_${model} \
 --epochs=10 --batch-size=32 --wd=0.00004 --lr=0.0001 --lr-scheduler=cosineannealinglr --lr-warmup-epochs=0 \
---model=${model} --weights=${model_weights} --model-surgery=0 --quantization=2 --quantization-type=DEFAULT \
+--model=${model} --weights=${model_weights} --model-surgery=0 --quantization=2 --quantization-type=WT8SP2_AT8SP2 \
 --train-epoch-size-factor=0.2 --opset-version=13"
 
 # single GPU (--device=cuda:0)or CPU (--device=cpu) run
