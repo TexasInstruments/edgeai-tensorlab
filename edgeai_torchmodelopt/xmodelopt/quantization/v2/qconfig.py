@@ -77,10 +77,8 @@ class QConfigType(enum.Enum):
     DISABLED = 0
     DEFAULT = "DEFAULT"
 
-    WT8_AT8 = "WT8_AT8"
     WC8_AT8 = "WC8_AT8"
     WT8SP2_AT8SP2 = "WT8SP2_AT8SP2"
-    WC8SP2_AT8SP2 = "WC8SP2_AT8SP2"
 
     WC4_AT8 = "WC4_AT8"
     WC4R4_AT8 = "WC4R4_AT8"
@@ -103,13 +101,8 @@ class QConfigMode(enum.Enum):
         return [e.value for e in cls]
 
 
-
 ####################################################################
 _QCONFIG_TYPE_TO_DICT = dict()
-
-_QCONFIG_TYPE_TO_DICT[QConfigType.WT8_AT8] = QConfig(
-    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveWeightObserver),
-    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
 
 _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelWeightObserver),
@@ -117,10 +110,6 @@ _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8] = QConfig(
 
 _QCONFIG_TYPE_TO_DICT[QConfigType.WT8SP2_AT8SP2] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePower2WeightObserver),
-    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptivePower2ActivationObserver))
-
-_QCONFIG_TYPE_TO_DICT[QConfigType.WC8SP2_AT8SP2] = QConfig(
-    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePower2PerChannelWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptivePower2ActivationObserver))
 
 ###########
@@ -137,15 +126,15 @@ _QCONFIG_TYPE_TO_DICT[QConfigType.WC4_AT4] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveLowBITPerChannelWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveLowBITActivationObserver))
 
-
 _QCONFIG_TYPE_TO_DICT[QConfigType.WC4R4_AT4R4] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptiveRangeRestricted4LowBITPerChannelWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveRangeRestricted4LowBITActivationObserver))
 
 ###########
-# get_default_qat_qconfig from pytorch uses fused_moving_avg_obs_fake_quant and that cannot be exported to onnx
+_QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WT8SP2_AT8SP2]
+
+# Note: get_default_qat_qconfig from pytorch uses fused_moving_avg_obs_fake_quant and that cannot be exported to onnx
 #_QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = get_default_qat_qconfig()
-_QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8]
 
 ####################################################################
 
