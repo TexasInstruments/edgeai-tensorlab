@@ -132,7 +132,7 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
     metric_title = [m+'_metric' for m in results_collection.keys()]
     performance_title = [m+'_'+p for m in results_collection.keys() for p in performance_keys]
     title_line = ['serial_num', 'model_id', 'runtime_name', 'task_type', 'input_resolution', 'model_path', 'metric_name'] + \
-        metric_title + performance_title + ['metric_reference'] + ['run_dir', 'artifact_name']
+        metric_title + performance_title + ['metric_reference'] + ['model_shortlist', 'run_dir', 'artifact_name']
 
     for serial_num, (artifact_id, pipeline_params_anchor) in enumerate(results_anchor.items()):
         model_id = pipeline_params_anchor['session']['model_id']
@@ -150,6 +150,7 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
             results_line_dict['model_path'] = os.path.basename(model_path)
             results_line_dict['task_type'] = pipeline_params_anchor['task_type'] \
                 if 'task_type' in pipeline_params_anchor else None
+            results_line_dict['model_shortlist'] = pipeline_params_anchor['model_info'].get('model_shortlist', None)
         #
         metric_name, _, metric_reference = get_metric(pipeline_params_anchor, metric_keys)
         results_line_dict['metric_name'] = metric_name
