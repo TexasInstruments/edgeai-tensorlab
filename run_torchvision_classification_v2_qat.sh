@@ -20,33 +20,35 @@ DATE_TIME=`date +'%Y%m%d-%H%M%S'`
 #model=regnetx800mf
 #model=regnetx1p6gf
 
-# these lite models will be available only if --model-surgery <argument> argument is set
+# these lite models are created using model surgery from models in torchvision
+# these lite models will be available only if --model-surgery <argument> argument is set to one of these
 # --model-surgery 1: legacy module based surgery
 # --model-surgery 2: advanced model surgery with torch.fx (to be released)
-#model=mobilenet_v2_lite
 #model=mobilenet_v3_large_lite
 #model=mobilenet_v3_small_lite
+model=mobilenet_v2_lite
 
 #=========================================================================================
 # set the appropriate pretrained weights for the above model
 #model_weights="MobileNet_V2_Weights.IMAGENET1K_V1"
+model_weights="MobileNet_V2_Weights.IMAGENET1K_V2"
 #model_weights="ResNet50_Weights.IMAGENET1K_V1"
 
-#=========================================================================================
-model=mobilenet_v2
-model_weights="MobileNet_V2_Weights.IMAGENET1K_V2" #"MobileNet_V2_Weights.IMAGENET1K_V1"
+output_dir="./data/checkpoints/torchvision/${DATE_TIME}_imagenet_classification_${model}"
 
-#=========================================================================================
 # --quantization-type can be one of: WT8SP2_AT8SP2, WC8_AT8
 
-command="./references/classification/train.py --data-path=./data/datasets/imagenet --output-dir=./data/checkpoints/${DATE_TIME}_imagenet_classification_${model} \
+#=========================================================================================
+command="./references/classification/train.py --data-path=./data/datasets/imagenet \
 --epochs=10 --batch-size=32 --wd=0.00004 --lr=0.0001 --lr-scheduler=cosineannealinglr --lr-warmup-epochs=0 \
---model=${model} --weights=${model_weights} --model-surgery=0 --quantization=2 --quantization-type=WT8SP2_AT8SP2 \
+--model=${model} --model-surgery=2 --quantization=2 --quantization-type=WC8_AT8 \
 --train-epoch-size-factor=0.2 --opset-version=13"
 
-# single GPU (--device=cuda:0)or CPU (--device=cpu) run
-#python ${command}
+# training: single GPU (--device=cuda:0)or CPU (--device=cpu) run
+# python ${command}
 
-# multi-gpu distributed data parallel
-torchrun --nproc_per_node 4 ${command}
+# training: multi-gpu distributed data parallel
+torchrun --nproc_per_node 4 ${command} --weights=${model_weights} --output-dir=${output_dir}
 
+# testing after the training
+# torchrun --nproc_per_node 4 ${command} --test-only --weights=${output_dir}/checkpoint.pth --output-dir=${output_dir}/test

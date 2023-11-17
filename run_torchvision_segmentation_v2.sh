@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# torch.fx based model surgery and training
-
 # PYTHONPATH must start with a : to be able to load local modules
 export PYTHONPATH=:$PYTHONPATH
 
@@ -9,27 +7,16 @@ export PYTHONPATH=:$PYTHONPATH
 DATE_TIME=`date +'%Y%m%d-%H%M%S'`
 
 #=========================================================================================
-# sample models that can be used
-model=mobilenet_v2
-#model=mobilenet_v2
-#model=resnet18
-#model=resnet50
-#model=regnetx200mf
-#model=regnetx400mf
-#model=regnetx400mf
-#model=regnetx800mf
-#model=regnetx1p6gf
-
 # these lite models will be available only if --model-surgery <argument> argument is set
 # --model-surgery 1: legacy module based surgery
 # --model-surgery 2: advanced model surgery with torch.fx (to be released)
-#model=mobilenet_v2_lite
-#model=mobilenet_v3_large_lite
-#model=mobilenet_v3_small_lite
+model=deeplabv3_mobilenet_v3_large_lite
+#model=deeplabv3plus_mobilenet_v3_large_lite
+#model=lraspp_mobilenet_v3_large_lite
 
 #=========================================================================================
-output_dir="./data/checkpoints/torchvision/${DATE_TIME}_imagenet_classification_${model}"
+output_dir="./data/checkpoints/torchvision/${DATE_TIME}_coco_segmentation_${model}"
 
 #=========================================================================================
-torchrun --nproc_per_node 4 ./references/classification/train.py --data-path ./data/datasets/imagenet/ --model ${model} \
---model-surgery 2  --output-dir=${output_dir}
+torchrun --nproc_per_node 4 ./references/segmentation/train.py --data-path ./data/datasets/coco --model ${model} \
+--epochs=60 --batch-size=8 --model-surgery 2 --output-dir=${output_dir}

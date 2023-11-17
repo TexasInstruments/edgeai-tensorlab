@@ -282,9 +282,9 @@ def main(args):
         model = edgeai_torchmodelopt.xmodelopt.surgery.v1.convert_to_lite_model(model, **surgery_kwargs)
     elif args.model_surgery == edgeai_torchmodelopt.xmodelopt.surgery.SyrgeryVersion.SURGERY_FX:
         model = edgeai_torchmodelopt.xmodelopt.surgery.v2.convert_to_lite_fx(model)
-    
-    if args.weights_url:
-        print(f"loading pretrained checkpoint from: {args.weights_url}")
+
+    if args.weights_url and (not args.test_only):
+        print(f"loading pretrained checkpoint for training: {args.weights_url}")
         edgeai_torchmodelopt.xnn.utils.load_weights(model, args.weights_url)
 
     if args.pruning == edgeai_torchmodelopt.xmodelopt.pruning.PruningVersion.PRUNING_LEGACY:
@@ -297,7 +297,11 @@ def main(args):
         model = edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTrainModule(model, dummy_input=dummy_input, total_epochs=args.epochs)
     elif args.quantization == edgeai_torchmodelopt.xmodelopt.quantization.QuantizationVersion.QUANTIZATION_FX:
         model = edgeai_torchmodelopt.xmodelopt.quantization.v2.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
-    
+
+    if args.weights_url and args.test_only:
+        print(f"loading pretrained checkpoint for test: {args.weights_url}")
+        edgeai_torchmodelopt.xnn.utils.load_weights(model, args.weights_url)
+
     model.to(device)
 
     if args.distributed and args.sync_bn:
