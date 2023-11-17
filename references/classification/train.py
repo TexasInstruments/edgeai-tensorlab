@@ -285,7 +285,7 @@ def main(args):
 
     if args.weights_url and (not args.test_only):
         print(f"loading pretrained checkpoint for training: {args.weights_url}")
-        edgeai_torchmodelopt.xnn.utils.load_weights(model, args.weights_url)
+        edgeai_torchmodelopt.xnn.utils.load_weights(model, args.weights_url, state_dict_name=args.weights_state_dict_name)
 
     if args.pruning == edgeai_torchmodelopt.xmodelopt.pruning.PruningVersion.PRUNING_LEGACY:
         assert False, "Pruning is currently not supported in the legacy modules based method"
@@ -300,7 +300,7 @@ def main(args):
 
     if args.weights_url and args.test_only:
         print(f"loading pretrained checkpoint for test: {args.weights_url}")
-        edgeai_torchmodelopt.xnn.utils.load_weights(model, args.weights_url)
+        edgeai_torchmodelopt.xnn.utils.load_weights(model, args.weights_url, state_dict_name=args.weights_state_dict_name)
 
     model.to(device)
 
@@ -601,6 +601,7 @@ def get_args_parser(add_help=True):
         "--ra-reps", default=3, type=int, help="number of repetitions for Repeated Augmentation (default: 3)"
     )
     parser.add_argument("--weights", default=None, type=str, help="the weights enum name to load")
+    parser.add_argument("--weights-state-dict-name", default="model", type=str, help="the weights member name to load from the checkpoint")
 
     # options to create faster models
     parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_torchmodelopt.xmodelopt.surgery.SyrgeryVersion.get_choices(), help="model surgery to create lite models")
