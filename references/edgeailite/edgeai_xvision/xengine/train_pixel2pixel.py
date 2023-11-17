@@ -50,6 +50,7 @@ import progiter
 from packaging import version
 import warnings
 
+import edgeai_torchmodelopt
 from edgeai_torchmodelopt import xnn
 from edgeai_xvision import xvision
 from edgeai_xvision.xvision.transforms import image_transforms
@@ -239,6 +240,7 @@ def main(args):
     #
 
     to_device = lambda src_object, non_blocking=False: src_object.cuda(non_blocking=non_blocking) if args.device in ('cuda', None) else src_object
+    module_to_device = lambda src_object, non_blocking=False: src_object.cuda() if args.device in ('cuda', None) else src_object
 
     #################################################
     args.rand_resize = args.img_resize if args.rand_resize is None else args.rand_resize
@@ -405,18 +407,18 @@ def main(args):
         dummy_input = create_rand_inputs(args, is_cuda=is_cuda)
         #
         if 'training' in args.phase:
-            model = xnn.quantization.QuantTrainModule(model, per_channel_q=args.per_channel_q,
+            model = edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTrainModule(model, per_channel_q=args.per_channel_q,
                         histogram_range=args.histogram_range, bitwidth_weights=args.bitwidth_weights,
                         bitwidth_activations=args.bitwidth_activations, constrain_bias=args.constrain_bias,
                         dummy_input=dummy_input, total_epochs=args.epochs)
         elif 'calibration' in args.phase:
-            model = xnn.quantization.QuantCalibrateModule(model, per_channel_q=args.per_channel_q,
+            model = edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantCalibrateModule(model, per_channel_q=args.per_channel_q,
                         bitwidth_weights=args.bitwidth_weights, bitwidth_activations=args.bitwidth_activations,
                         histogram_range=args.histogram_range, constrain_bias=args.constrain_bias,
                         bias_calibration=args.bias_calibration, dummy_input=dummy_input, lr_calib=args.lr_calib)
         elif 'validation' in args.phase:
             # Note: bias_calibration is not emabled
-            model = xnn.quantization.QuantTestModule(model, per_channel_q=args.per_channel_q,
+            model = edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTestModule(model, per_channel_q=args.per_channel_q,
                         bitwidth_weights=args.bitwidth_weights, bitwidth_activations=args.bitwidth_activations,
                         histogram_range=args.histogram_range, constrain_bias=args.constrain_bias,
                         dummy_input=dummy_input, model_surgery_quantize=model_surgery_quantize)
@@ -462,11 +464,11 @@ def main(args):
 
     #################################################
     # DataParallel does not work for QuantCalibrateModule or QuantTestModule
-    if args.parallel_model and (not isinstance(model, (xnn.quantization.QuantCalibrateModule, xnn.quantization.QuantTestModule))):
+    if args.parallel_model and (not isinstance(model, (edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantCalibrateModule, edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTestModule))):
         model = torch.nn.DataParallel(model)
 
     #################################################
-    model = to_device(model)
+    model = module_to_device(model)
 
     #################################################
     # for help in debug/print
@@ -492,7 +494,7 @@ def main(args):
             #
             loss_fn_raw = pixel2pixel_losses.__dict__[loss_fn](**kw_args)
             if args.parallel_criterion:
-                loss_fn = to_device(torch.nn.DataParallel(loss_fn_raw)) if args.parallel_criterion else to_device(loss_fn_raw)
+                loss_fn = module_to_device(torch.nn.DataParallel(loss_fn_raw)) if args.parallel_criterion else module_to_device(loss_fn_raw)
                 loss_fn.info = loss_fn_raw.info
                 loss_fn.clear = loss_fn_raw.clear
             else:
@@ -519,11 +521,11 @@ def main(args):
             #
             metric_fn_raw = pixel2pixel_losses.__dict__[metric_fn](**kw_args)
             if args.parallel_criterion:
-                metric_fn = to_device(torch.nn.DataParallel(metric_fn_raw))
+                metric_fn = module_to_device(torch.nn.DataParallel(metric_fn_raw))
                 metric_fn.info = metric_fn_raw.info
                 metric_fn.clear = metric_fn_raw.clear
             else:
-                metric_fn = to_device(metric_fn_raw)
+                metric_fn = module_to_device(metric_fn_raw)
             #
             args.metric_modules[task_dx][midx] = metric_fn
     #
@@ -963,7 +965,7 @@ def get_save_path(args, phase=None):
 def get_model_orig(model):
     is_parallel_model = isinstance(model, (torch.nn.DataParallel, torch.nn.parallel.DistributedDataParallel))
     model_orig = (model.module if is_parallel_model else model)
-    model_orig = (model_orig.module if isinstance(model_orig, (xnn.quantization.QuantBaseModule)) else model_orig)
+    model_orig = (model_orig.module if isinstance(model_orig, (edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantBaseModule)) else model_orig)
     return model_orig
 
 

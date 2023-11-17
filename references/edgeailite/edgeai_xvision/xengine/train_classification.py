@@ -53,6 +53,7 @@ import onnx
 from onnx import shape_inference
 
 import torchvision
+import edgeai_torchmodelopt
 from edgeai_torchmodelopt import xnn
 from edgeai_xvision import xvision
 
@@ -285,19 +286,19 @@ def main(args):
         dummy_input = create_rand_inputs(args, is_cuda=is_cuda)
         #
         if 'training' in args.phase:
-            model = xnn.quantization.QuantTrainModule(model, per_channel_q=args.per_channel_q,
+            model = edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTrainModule(model, per_channel_q=args.per_channel_q,
                         histogram_range=args.histogram_range, bitwidth_weights=args.bitwidth_weights,
                         bitwidth_activations=args.bitwidth_activations, constrain_bias=args.constrain_bias,
                         dummy_input=dummy_input, total_epochs=args.epochs)
         elif 'calibration' in args.phase:
-            model = xnn.quantization.QuantCalibrateModule(model, per_channel_q=args.per_channel_q,
+            model = edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantCalibrateModule(model, per_channel_q=args.per_channel_q,
                         bitwidth_weights=args.bitwidth_weights, bitwidth_activations=args.bitwidth_activations,
                         histogram_range=args.histogram_range,  constrain_bias=args.constrain_bias,
                         bias_calibration=args.bias_calibration, dummy_input=dummy_input,
                         lr_calib=args.lr_calib)
         elif 'validation' in args.phase:
             # Note: bias_calibration is not used in test
-            model = xnn.quantization.QuantTestModule(model, per_channel_q=args.per_channel_q,
+            model = edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTestModule(model, per_channel_q=args.per_channel_q,
                         bitwidth_weights=args.bitwidth_weights, bitwidth_activations=args.bitwidth_activations,
                         histogram_range=args.histogram_range, dummy_input=dummy_input,
                         model_surgery_quantize=model_surgery_quantize)
@@ -338,7 +339,7 @@ def main(args):
 
     #################################################
     # DataParallel does not work for QuantCalibrateModule or QuantTestModule
-    if args.parallel_model and (not isinstance(model, (xnn.quantization.QuantCalibrateModule, xnn.quantization.QuantTestModule))):
+    if args.parallel_model and (not isinstance(model, (edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantCalibrateModule, edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTestModule))):
         if args.distributed:
             model = torch.nn.parallel.DistributedDataParallel(model)
         else:
@@ -477,7 +478,7 @@ def get_save_path(args, phase=None):
 def get_model_orig(model):
     is_parallel_model = isinstance(model, (torch.nn.DataParallel, torch.nn.parallel.DistributedDataParallel))
     model_orig = (model.module if is_parallel_model else model)
-    model_orig = (model_orig.module if isinstance(model_orig, (xnn.quantization.QuantBaseModule)) else model_orig)
+    model_orig = (model_orig.module if isinstance(model_orig, (edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantBaseModule)) else model_orig)
     return model_orig
 
 

@@ -53,6 +53,7 @@ import onnx
 from onnx import shape_inference
 
 import torchvision
+import edgeai_torchmodelopt
 from edgeai_torchmodelopt import xnn
 from edgeai_xvision import xvision
 

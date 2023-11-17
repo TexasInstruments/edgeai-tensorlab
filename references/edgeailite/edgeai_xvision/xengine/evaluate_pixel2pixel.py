@@ -32,6 +32,7 @@ import torch
 import numpy as np
 import cv2
 
+import edgeai_torchmodelopt
 from edgeai_torchmodelopt import xnn
 
 
