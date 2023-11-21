@@ -35,6 +35,7 @@ from edgeai_benchmark.pipelines.pipeline_runner import PipelineRunner
 from . import classification
 from . import classification_v2
 from . import detection
+from . import detection_v2
 from . import face_detection
 from . import segmentation
 from . import human_pose_estimation
@@ -54,6 +55,7 @@ def get_configs(settings, work_dir):
     pipeline_configs.update(classification.get_configs(settings, work_dir))
     pipeline_configs.update(classification_v2.get_configs(settings, work_dir))
     pipeline_configs.update(detection.get_configs(settings, work_dir))
+    pipeline_configs.update(detection_v2.get_configs(settings, work_dir))
     pipeline_configs.update(face_detection.get_configs(settings, work_dir))
     pipeline_configs.update(segmentation.get_configs(settings, work_dir))
     pipeline_configs.update(human_pose_estimation.get_configs(settings,work_dir))
