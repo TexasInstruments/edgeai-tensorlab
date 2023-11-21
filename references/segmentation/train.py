@@ -374,7 +374,7 @@ def get_args_parser(add_help=True):
     parser.add_argument("--pruning-ratio", default=0.5, help="Pruning/Sparsity Factor - applies only of pruning is enabled")
     parser.add_argument("--pruning-type", default=1, help="Pruning/Sparsity Type - applies only of pruning is enabled")
 
-    parser.add_argument("--opset-version", default=11, help="ONNX Opset version")
+    parser.add_argument("--opset-version", default=18, help="ONNX Opset version")
     parser.add_argument("--train-epoch-size-factor", default=0.0, type=float,
                         help="Training validation breaks after one iteration - for quick experimentation")
     parser.add_argument("--val-epoch-size-factor", default=0.0, type=float,
