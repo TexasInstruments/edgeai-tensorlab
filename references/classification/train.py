@@ -228,6 +228,21 @@ def export_model(args, model, epoch, model_name):
     utils.export_on_master(model_copy, example_input, os.path.join(args.output_dir, model_name), opset_version=args.opset_version)
 
 
+def split_weights(weights_name):
+    weights_list = weights_name.split(',')
+    weights_urls = []
+    weights_enums = []
+    for w in weights_list:
+        w = w.lstrip()
+        if edgeai_torchmodelopt.xnn.utils.is_url_or_file(w):
+            weights_urls.append(w)
+        else:
+            weights_enums.append(w)
+        #
+    #
+    return ((weights_urls[0] if len(weights_urls)>0 else None), (weights_enums[0] if len(weights_enums)>0 else None))
+
+
 def main(args):
     if args.output_dir:
         utils.mkdir(args.output_dir)
@@ -236,7 +251,7 @@ def main(args):
     logger = edgeai_torchmodelopt.xnn.utils.TeeLogger(os.path.join(args.output_dir, 'run.log'))
 
     # weights can be an external url or a pretrained enum in torhvision
-    (args.weights_url, args.weights_enum) = (args.weights, None) if edgeai_torchmodelopt.xnn.utils.is_url_or_file(args.weights) else (None, args.weights)
+    (args.weights_url, args.weights_enum) = split_weights(args.weights)
     
     utils.init_distributed_mode(args)
     print(args)

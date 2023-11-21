@@ -33,7 +33,7 @@ model=mobilenet_v2_lite
 #model_weights="MobileNet_V2_Weights.IMAGENET1K_V1"
 #model_weights="MobileNet_V2_Weights.IMAGENET1K_V2"
 #model_weights="ResNet50_Weights.IMAGENET1K_V1"
-model_weights="../edgeai-modelzoo/models/vision/classification/imagenet1k/edgeai-tv2/mobilenet_v2_lite_wt-v2_20231101_checkpoint.pth"
+model_weights="../edgeai-modelzoo/models/vision/classification/imagenet1k/edgeai-tv2/mobilenet_v2_lite_wt-v2_20231101_checkpoint.pth,MobileNet_V2_Weights.IMAGENET1K_V2"
 
 output_dir="./data/checkpoints/torchvision/${DATE_TIME}_imagenet_classification_${model}"
 
