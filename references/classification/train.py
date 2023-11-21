@@ -216,10 +216,16 @@ def load_data(traindir, valdir, args):
 def export_model(args, model, epoch, model_name):
     export_device="cpu"
     model_copy = copy.deepcopy(model)
-    model_converted = model_copy.convert() if args.quantization and hasattr(model_copy, "convert") else model_copy
-    model_converted = model_converted.to(export_device)
+    model_copy = model_copy.to(export_device)
+    if args.quantization:
+        if hasattr(model_copy, "convert"):
+            model_copy = model_copy.convert()
+        else:
+            model_copy = torch.ao.quantization.quantize_fx.convert_fx(model_copy)
+        #
+    #
     example_input = torch.rand((1,3,args.val_crop_size,args.val_crop_size), device=export_device)
-    utils.export_on_master(model_converted, example_input, os.path.join(args.output_dir, model_name), opset_version=args.opset_version)
+    utils.export_on_master(model_copy, example_input, os.path.join(args.output_dir, model_name), opset_version=args.opset_version)
 
 
 def main(args):
@@ -390,9 +396,6 @@ def main(args):
         model = torch.nn.parallel.DataParallel(model)
         model_without_ddp = model.module
 
-    if args.quantization:
-        model_without_ddp = model_without_ddp.module
-        
     model_ema = None
     if args.model_ema:
         # Decay adjustment that aims to keep the decay independent of other hyper-parameters originally proposed at:

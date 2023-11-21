@@ -128,13 +128,21 @@ def train_one_epoch(args, model, criterion, optimizer, data_loader, lr_scheduler
         if args.train_epoch_size_factor and i >= round(args.train_epoch_size_factor * dataset_len):
             break
 
+
 def export_model(args, model, epoch, model_name):
     export_device="cpu"
     model_copy = copy.deepcopy(model)
-    model_converted = model_copy.convert() if args.quantization and hasattr(model_copy, "convert") else model_copy
-    model_converted = model_converted.to(export_device)
+    model_copy = model_copy.to(export_device)
+    if args.quantization:
+        if hasattr(model_copy, "convert"):
+            model_copy = model_copy.convert()
+        else:
+            model_copy = torch.ao.quantization.quantize_fx.convert_fx(model_copy)
+        #
+    #
     example_input = torch.rand((1,3,args.base_size,args.base_size), device=export_device)
-    utils.export_on_master(model_converted, example_input, os.path.join(args.output_dir, model_name), opset_version=args.opset_version)
+    utils.export_on_master(model_copy, example_input, os.path.join(args.output_dir, model_name), opset_version=args.opset_version)
+
 
 def main(args):
     if args.output_dir:
@@ -212,9 +220,6 @@ def main(args):
     if args.distributed:
         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
         model_without_ddp = model.module
-
-    if args.quantization:
-        model_without_ddp = model_without_ddp.module
 
     params_to_optimize = [
         {"params": [p for p in model_without_ddp.backbone.parameters() if p.requires_grad]},
