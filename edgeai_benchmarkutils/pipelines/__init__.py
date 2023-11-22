@@ -26,21 +26,4 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os
-
-from . import constants
-from . import config_settings
-from . import pipelines, datasets, preprocess, sessions, postprocess, metrics, utils, interfaces
-
-
-def get_settings_file(target_machine='pc', with_model_import=False):
-    supported_machines = ('pc', 'evm')
-    assert target_machine in supported_machines, f'target_machine must be one of {supported_machines}'
-    if target_machine == 'pc' or with_model_import:
-        settings_file = os.path.abspath(
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), '../settings_import_on_pc.yaml'))
-    elif target_machine == 'evm':
-        settings_file = os.path.abspath(
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), '../settings_infer_on_evm.yaml'))
-    #
-    return settings_file
+from .pipeline_runner import *

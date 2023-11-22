@@ -76,14 +76,26 @@ TARGET_DEVICE_AM68A = 'AM68A'
 TARGET_DEVICE_AM69A = 'AM69A'
 TARGET_DEVICE_AM62 = 'AM62'
 
-class QUANTScaleType(enum.Enum):
+
+class QUANTScaleType:
     QUANT_SCALE_TYPE_NP2 = 0
     QUANT_SCALE_TYPE_P2 = 1
     QUANT_SCALE_TYPE_P2_QAT = 1
     QUANT_SCALE_TYPE_UNUSED = 2
     # these are not supported in TDA4VM, but for other SoCs, these are the recommended modes
-    QUANT_SCALE_TYPE_NP2_PERCHAN_QAT = 3
+    QUANT_SCALE_TYPE_PREQUANT_TFLITE = 3
     QUANT_SCALE_TYPE_NP2_PERCHAN = 4
+
+
+class PreQuantizedModelType:
+    PREQUANTIZED_MODEL_TYPE_NONE = 0
+    PREQUANTIZED_MODEL_TYPE_V1 = 1
+    PREQUANTIZED_MODEL_TYPE_V2 = 2
+
+
+# some options in runtime_options
+OBJECT_DETECTION_META_FILE_KEY = 'object_detection:meta_layers_names_list'
+ADVANCED_OPTIONS_QUANT_FILE_KEY = 'advanced_options:quant_params_proto_path'
 
 
 # we can use fewer number of calibration images and iterations if per channel assymetric quantization is enabled

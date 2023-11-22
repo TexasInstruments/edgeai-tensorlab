@@ -43,6 +43,8 @@ import math
 from .keypoints import *
 
 
+
+
 ##############################################################################
 # utils
 def get_font_cv2():
@@ -154,11 +156,10 @@ class ReshapeList():
         self.reshape_list = reshape_list
 
     def __call__(self, tensor_list, info_dict):
-        if 'dataset_info' in info_dict:
-            if 'keypoints' in info_dict['dataset_info']['categories'][0]:
-                num_keypoints = len(info_dict['dataset_info']['categories'][0]['keypoints'])
-                reshape_list = [(-1, 6+num_keypoints*3)]
-                self.reshape_list = reshape_list
+        if 'dataset_info' in info_dict and 'keypoints' in info_dict['dataset_info']['categories'][0]:
+            num_keypoints = len(info_dict['dataset_info']['categories'][0]['keypoints'])
+            reshape_list = [(-1, 6+num_keypoints*3)]
+            self.reshape_list = reshape_list
         if self.reshape_list is not None:
             tensor_list_out = []
             for t_orig, t_shape in zip(tensor_list, self.reshape_list):
@@ -397,15 +398,17 @@ class DetectionResizePad():
         self.object6dpose = object6dpose
 
     def __call__(self, bbox, info_dict):
-        img_data = info_dict['data']
-        assert isinstance(img_data, np.ndarray), 'only supports np array for now'
+        if 'data' in info_dict:
+            img_data = info_dict['data']
+            assert isinstance(img_data, np.ndarray), 'only supports np array for now'
         # avoid accidental overflow
         bbox = bbox.clip(-1e6, 1e6)
         # img size without pad
         data_shape = info_dict['data_shape']
         data_height, data_width, _ = data_shape
-        resize_shape = info_dict['resize_shape']
-        resize_height, resize_width, _ = resize_shape
+        if 'resize_shape' in info_dict:
+            resize_shape = info_dict['resize_shape']
+            resize_height, resize_width, _ = resize_shape
         if self.resize_with_pad:
             # account for padding
             border = info_dict['resize_border']
