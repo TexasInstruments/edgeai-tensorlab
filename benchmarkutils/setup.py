@@ -54,8 +54,8 @@ def import_file_folder(file_or_folder_name):
     return imported_module
 
 
-def get_version(package_name):
-    version_file = os.path.realpath(os.path.join(os.path.dirname(__file__), f'{package_name}/version.py'))
+def get_version():
+    version_file = os.path.realpath(os.path.join(os.path.dirname(__file__), 'version.py'))
     print(f"version_file={version_file}")
     version = import_file_folder(version_file)
     hash = git_hash()
@@ -64,19 +64,18 @@ def get_version(package_name):
 
 
 def main():
-    package_name = 'edgeai_benchmarkutils'
+    version_str = get_version()
 
-    version_str = get_version(package_name)
-
-    requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), f'{package_name}/requirements.txt'))
+    requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), 'requirements.txt'))
     with open(requirements_file) as fp:
         requirements = fp.read().splitlines()
 
-    with open('README.md',  encoding="utf8") as readme:
+    readme_file = os.path.realpath(os.path.join(os.path.dirname(__file__), 'README.md'))
+    with open(readme_file,  encoding="utf8") as readme:
         long_description = readme.read()
 
     setup(
-        name=package_name,
+        name='edgeai_benchmarkutils',
         version=version_str,
         description='EdgeAI Model Benchmark Utils',
         long_description=long_description,

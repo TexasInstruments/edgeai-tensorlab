@@ -33,6 +33,6 @@
 #echo 'installing pytorch...'
 #pip3 install --no-input torch torchvision torchaudio
 echo 'installing requirements...'
-pip3 install --no-input -r ./edgeai_benchmarkutils/requirements.txt
+pip3 install --no-input -r ./benchmarkutils/requirements.txt
 echo 'installing the toolkit...'
-python3 ./edgeai_benchmarkutils/setup.py develop
+python3 ./benchmarkutils/setup.py develop
