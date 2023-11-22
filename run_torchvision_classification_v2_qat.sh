@@ -33,17 +33,20 @@ model=mobilenet_v2_lite
 #model_weights="MobileNet_V2_Weights.IMAGENET1K_V1"
 #model_weights="MobileNet_V2_Weights.IMAGENET1K_V2"
 #model_weights="ResNet50_Weights.IMAGENET1K_V1"
-model_weights="../edgeai-modelzoo/models/vision/classification/imagenet1k/edgeai-tv2/mobilenet_v2_lite_wt-v2_20231101_checkpoint.pth,MobileNet_V2_Weights.IMAGENET1K_V2"
+model_weights="../edgeai-modelzoo/models/vision/classification/imagenet1k/edgeai-tv2/mobilenet_v2_lite_wt-v2_20231101_checkpoint.pth"
 
 output_dir="./data/checkpoints/torchvision/${DATE_TIME}_imagenet_classification_${model}"
+
+val_resize_size=232 #256 #232
+val_crop_size=224
 
 # --quantization-type can be one of: WT8SP2_AT8SP2, WC8_AT8
 
 #=========================================================================================
 command="./references/classification/train.py --data-path=./data/datasets/imagenet \
---epochs=25 --batch-size=64 --wd=0.00004 --lr=0.0001 --lr-scheduler=cosineannealinglr --lr-warmup-epochs=0 \
+--epochs=25 --batch-size=64 --wd=4e-5 --lr=0.0001 --lr-scheduler=cosineannealinglr --lr-warmup-epochs=1 \
 --model=${model} --model-surgery=2 --quantization=2 --quantization-type=WC8_AT8 \
---train-epoch-size-factor=0.2 --opset-version=18"
+--train-epoch-size-factor=0.2 --opset-version=18 --val-resize-size=$val_resize_size --val-crop-size=$val_crop_size"
 
 # training: single GPU (--device=cuda:0)or CPU (--device=cpu) run
 # python3 ${command} --weights=${model_weights} --output-dir=${output_dir}

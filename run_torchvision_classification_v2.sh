@@ -10,26 +10,46 @@ DATE_TIME=`date +'%Y%m%d-%H%M%S'`
 
 #=========================================================================================
 # sample models that can be used
-model=mobilenet_v2
+#model=resnet50
+#model=mobilenet_v2
 #model=mobilenet_v2
 #model=resnet18
-#model=resnet50
 #model=regnetx200mf
 #model=regnetx400mf
 #model=regnetx400mf
 #model=regnetx800mf
 #model=regnetx1p6gf
 
-# these lite models will be available only if --model-surgery <argument> argument is set
+# these lite models are created using model surgery from models in torchvision
+# these lite models will be available only if --model-surgery <argument> argument is set to one of these
 # --model-surgery 1: legacy module based surgery
 # --model-surgery 2: advanced model surgery with torch.fx (to be released)
-#model=mobilenet_v2_lite
 #model=mobilenet_v3_large_lite
 #model=mobilenet_v3_small_lite
+model=mobilenet_v2_lite
 
 #=========================================================================================
+# set the appropriate pretrained weights for the above model
+#model_weights="ResNet50_Weights.IMAGENET1K_V1"
+#model_weights="MobileNet_V2_Weights.IMAGENET1K_V1"
+model_weights="MobileNet_V2_Weights.IMAGENET1K_V2"
+
 output_dir="./data/checkpoints/torchvision/${DATE_TIME}_imagenet_classification_${model}"
 
+val_resize_size=232 #256 #232
+val_crop_size=224
+
 #=========================================================================================
-torchrun --nproc_per_node 4 ./references/classification/train.py --data-path ./data/datasets/imagenet/ --model ${model} \
---model-surgery 2  --output-dir=${output_dir}
+command="./references/classification/train.py --data-path=./data/datasets/imagenet \
+--epochs=150 --batch-size=64 --wd=4e-5 --lr=0.05 --lr-scheduler=cosineannealinglr --lr-warmup-epochs=5 \
+--model=${model} --model-surgery=2 \
+--opset-version=18 --val-resize-size=$val_resize_size --val-crop-size=$val_crop_size"
+
+# training: single GPU (--device=cuda:0)or CPU (--device=cpu) run
+# python3 ${command} --weights=${model_weights} --output-dir=${output_dir}
+
+# training: multi-gpu distributed data parallel
+torchrun --nproc_per_node 4 ${command} --weights=${model_weights} --output-dir=${output_dir}
+
+# testing after the training
+# torchrun --nproc_per_node 4 ${command} --test-only --weights=${output_dir}/checkpoint.pth --output-dir=${output_dir}/test
