@@ -117,9 +117,9 @@ from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
 
-from edgeai_benchmark.utils import *
+from ..utils import *
 # from ..utils import *
-from edgeai_benchmark.datasets.dataset_base import *
+from ..datasets.dataset_base import *
 # from .dataset_base import *
 
 __all__ = ['COCOKeypoints', '_get_mapping_id_name']

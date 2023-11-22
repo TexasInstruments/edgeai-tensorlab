@@ -42,9 +42,9 @@ from pycocotools.cocoeval import COCOeval
 from plyfile import PlyData
 from sklearn.neighbors import KDTree
 
-from edgeai_benchmark.utils import *
+from ..utils import *
 # from ..utils import *
-from edgeai_benchmark.datasets.dataset_base import *
+from ..datasets.dataset_base import *
 # from .dataset_base import *
 
 __all__ = ['YCBV', '_get_mapping_id_name']
