@@ -47,16 +47,15 @@ def get_version():
     return version_str
 
 
-if __name__ == '__main__':
+def main():
     version_str = get_version()
 
-    long_description = ''
     with open('README.md',  encoding="utf8") as readme:
         long_description = readme.read()
 
     setup(
         name='edgeai_benchmarkutils',
-        version=get_version(),
+        version=version_str,
         description='EdgeAI Model Benchmark Utils',
         long_description=long_description,
         long_description_content_type='text/markdown',
@@ -65,7 +64,7 @@ if __name__ == '__main__':
         author_email='edgeai-devkit@list.ti.com',
         classifiers=[
             'Development Status :: 4 - Beta'
-            'Programming Language :: Python :: 3.6'
+            'Programming Language :: Python :: 3.7'
         ],
         keywords = 'artifical intelligence, deep learning, quantization',
         python_requires='>=3.6',
@@ -78,3 +77,6 @@ if __name__ == '__main__':
         },
     )
 
+
+if __name__ == '__main__':
+    main()

@@ -37,7 +37,7 @@ from .. import utils
 from .. import datasets
 from .model_transformation import *
 from .accuracy_pipeline import *
-from edgeai_benchmark import preprocess
+from .. import preprocess
 
 
 class PipelineRunner():
