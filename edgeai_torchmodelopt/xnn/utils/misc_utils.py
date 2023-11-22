@@ -260,7 +260,7 @@ def is_url(v):
 
 def is_url_or_file(v):
     is_url_ = is_url(v)
-    is_file_ = isinstance(v, str) and (v.startswith("/") or v.startswith("./"))
+    is_file_ = isinstance(v, str) and (v.startswith("/") or v.startswith("."))
     return is_url_ or is_file_
     
 

@@ -225,6 +225,7 @@ class QuantFxBaseModule(torch.nn.Module):
         return self.module(*input, **kwargs)
 
     def convert(self, inplace=False, device='cpu'):
+        self.freeze()
         # make a copy inorder not to alter the original
         model = self.module if inplace else copy.deepcopy(self.module)
         # convert requires cpu model
