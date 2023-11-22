@@ -41,7 +41,7 @@ def git_hash():
 
 
 def get_version():
-    from version import __version__
+    from edgeai_benchmark.version import __version__
     hash = git_hash()
     version_str = __version__ + '+' + hash.strip().decode('ascii') if (hash is not None) else __version__
     return version_str
