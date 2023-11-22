@@ -54,29 +54,13 @@ def get_configs(settings, work_dir):
         #################################################################
         #       ONNX MODELS
         #################jai-devkit models###############################
-        # edgeai-torchvison: classification mobilenetv2_224x224 pytorch-qat expected_metric: 71.602% top-1 accuracy
-        'cl-6700':utils.dict_update(common_cfg,
+        # edgeai-torchvison: classification mobilenetv2_224x224 pytorch-qat expected_metric: 72.454% top-1 accuracy
+        'cl-6508':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, with_onnxsim=True),
                 runtime_options=settings.runtime_options_onnx_qat_v2(quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN, **quant_params_proto_path_disable_option),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/mobilenetv2_wt-v1_qat-v2-w8c-w8t_20230712_model.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':71.602}, model_shortlist=None)
-        ),
-        # edgeai-torchvison: classification mobilenetv2_224x224 pytorch-qat-sp2 expected_metric: 71.556% top-1 accuracy
-        'cl-6710':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, with_onnxsim=True),
-                runtime_options=settings.runtime_options_onnx_qat_v2(quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2_QAT, **quant_params_proto_path_disable_option),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/mobilenetv2_wt-v1_qat-v2-w8csp2-w8tsp2_20230711_model.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':71.556}, model_shortlist=None)
-        ),
-        # edgeai-torchvison: classification resnet50_wt-v1_qat-w4c-w8t pytorch-qat-4bit-wt 224x224 expected_metric: 75.048% top-1 accuracy
-        'cl-6720':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, with_onnxsim=True),
-                runtime_options=settings.runtime_options_onnx_qat_v2(quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN, **quant_params_proto_path_disable_option),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/resnet50_wt-v1_qat-v2-w4c-w8t_20230713_model.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.048}, model_shortlist=None)
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/mobilenet_v2_lite_wt-v2_qat-v2-wc8-at8_20231120_model.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':72.454}, model_shortlist=None)
         ),
     }
     return pipeline_configs
