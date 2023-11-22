@@ -67,6 +67,8 @@ def main():
     version_str = get_version()
 
     requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), 'requirements.txt'))
+    root_folder = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+
     with open(requirements_file) as fp:
         requirements = fp.read().splitlines()
 
@@ -88,7 +90,7 @@ def main():
         ],
         keywords = 'artifical intelligence, deep learning, quantization',
         python_requires='>=3.6',
-        packages=find_packages(where=".."),
+        packages=find_packages(where=root_folder),
         include_package_data=True,
         install_requires=requirements,
         project_urls={
