@@ -77,7 +77,7 @@ def get_configs(settings, work_dir):
                 model_path=f'../edgeai-modelzoo-cl/models/vision/detection/coco/edgeai-mmyolo/yolov5_nano-v61_lite_syncbn_fast_20231101_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.4}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 25.1}, model_shortlist=None)
         ),
 
         #yolov5-small
@@ -93,7 +93,7 @@ def get_configs(settings, work_dir):
                 model_path=f'../edgeai-modelzoo-cl/models/vision/detection/coco/edgeai-mmyolo/yolov5_small-v61_lite_syncbn_fast_20231009_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.4}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 35.5}, model_shortlist=None)
         ),
 
         #yolov7-tiny
@@ -109,7 +109,7 @@ def get_configs(settings, work_dir):
                 model_path=f'/data/hdd/users/a0508577/work/edgeai-algo/edgeai-modelzoo-cl/models/vision/detection/coco/edgeai-mmyolo/yolov7_tiny_lite_syncbn_fast_640x640_20230830_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.4}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':36.7}, model_shortlist=None)
         ),
 
 
@@ -125,7 +125,7 @@ def get_configs(settings, work_dir):
                 model_path=f'/data/hdd/users/a0508577/work/edgeai-algo/edgeai-mmyolo/work_dirs/yolov8_n_syncbn_fast_8xb16-500e_coco/best_coco_bbox_mAP_epoch_300.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.4}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':34.5}, model_shortlist=None)
         ),
 
         #yolov8-small
@@ -140,7 +140,7 @@ def get_configs(settings, work_dir):
                 model_path=f'/data/hdd/users/a0508577/work/edgeai-algo/edgeai-mmyolo/work_dirs/yolov8_s_syncbn_fast_8xb16-500e_coco/best_coco_bbox_mAP_epoch_296.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.4}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':42.4}, model_shortlist=None)
         ),
         
     }
