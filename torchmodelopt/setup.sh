@@ -1,4 +1,6 @@
-# Copyright (c) 2018-2021, Texas Instruments
+#!/usr/bin/env bash
+
+# Copyright (c) 2018-2023, Texas Instruments
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -26,6 +28,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from edgeai_torchmodelopt import setup
-
-setup.main()
+######################################################################
+# Installing dependencies
+#echo 'installing pytorch...'
+#pip3 install --no-input torch torchvision torchaudio
+echo 'installing the pytorch model optimization toolkit...'
+python3 ./setup.py develop

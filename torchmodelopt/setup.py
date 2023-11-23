@@ -26,7 +26,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import sys
 import os
+import importlib
 import subprocess
 from setuptools import setup, Extension, find_packages
 
@@ -40,18 +42,36 @@ def git_hash():
         return None
 
 
+def import_file_folder(file_or_folder_name):
+    if file_or_folder_name.endswith(os.sep):
+        file_or_folder_name = file_or_folder_name[:-1]
+    #
+    parent_folder = os.path.dirname(file_or_folder_name)
+    basename = os.path.splitext(os.path.basename(file_or_folder_name))[0]
+    sys.path.insert(0, parent_folder)
+    imported_module = importlib.import_module(basename, __name__)
+    sys.path.pop(0)
+    return imported_module
+
+
 def get_version():
-    from version import __version__
+    version_file = os.path.realpath(os.path.join(os.path.dirname(__file__), 'version.py'))
+    print(f"version_file={version_file}")
+    version = import_file_folder(version_file)
     hash = git_hash()
-    version_str = __version__ + '+' + hash.strip().decode('ascii') if (hash is not None) else __version__
+    version_str = version.__version__ + '+' + hash.strip().decode('ascii') if (hash is not None) else version.__version__
     return version_str
 
 
 def main():
     version_str = get_version()
 
-    long_description = ''
-    with open('README.md',  encoding="utf8") as readme:
+    requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), 'requirements.txt'))
+    with open(requirements_file) as fp:
+        requirements = fp.read().splitlines()
+
+    readme_file = os.path.realpath(os.path.join(os.path.dirname(__file__), 'README.md'))
+    with open(readme_file,  encoding="utf8") as readme:
         long_description = readme.read()
 
     setup(
@@ -68,10 +88,10 @@ def main():
             'Programming Language :: Python :: 3.7'
         ],
         keywords = 'artifical intelligence, deep learning, quantization',
-        python_requires='>=3.6',
+        python_requires='>=3.7',
         packages=find_packages(),
         include_package_data=True,
-        install_requires=[],
+        install_requires=requirements,
         project_urls={
             'Source': 'https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeloptimization/browse',
             'Bug Reports': 'https://e2e.ti.com/support/processors/f/791/tags/jacinto_2D00_ai_2D00_devkit',
