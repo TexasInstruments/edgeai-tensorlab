@@ -34,9 +34,14 @@ import glob
 from .. import utils
 
 
-def run_rewrite_results(work_dir, results_yaml):
+def get_run_dirs(work_dir):
     run_dirs = glob.glob(f'{work_dir}/*')
     run_dirs = [f for f in run_dirs if os.path.isdir(f)]
+    return run_dirs
+
+
+def run_rewrite_results(work_dir, results_yaml):
+    run_dirs = get_run_dirs(work_dir)
     results = {}
     for run_dir in run_dirs:
         try:
@@ -83,9 +88,10 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
     work_dirs = [w for w in work_dirs if '32bits' in w] + [w for w in work_dirs if '32bits' not in w]
 
     work_dir_keys = []
-    results_max_len = 0
-    results_max_id = 0
-    results_max_name = None
+    work_dir_results_max_len = 0
+    work_dir_results_max_id = 0
+    work_dir_results_max_name = None
+    work_dir_results_max_path = None
     results_collection = dict()
     for work_id, work_dir in enumerate(work_dirs):
         results_yaml = os.path.join(work_dir, 'results.yaml')
@@ -94,32 +100,34 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
             run_rewrite_results(work_dir, results_yaml)
         #
         work_dir_splits = os.path.normpath(work_dir).split(os.sep)
+        run_dirs = get_run_dirs(work_dir)
         work_dir_key = '_'.join(work_dir_splits[-2:])
         if skip_pattern is None or skip_pattern not in work_dir_key:
             with open(results_yaml) as rfp:
                 results = yaml.safe_load(rfp)
                 results_collection[work_dir_key] = results
-                if len(results) > results_max_len:
-                    results_max_len = len(results)
-                    results_max_id = work_id
-                    results_max_name = work_dir_key
+                if len(run_dirs) > work_dir_results_max_len:
+                    work_dir_results_max_len = len(run_dirs)
+                    work_dir_results_max_id = work_id
+                    work_dir_results_max_name = work_dir_key
+                    work_dir_results_max_path = work_dir
                 #
             #
             work_dir_keys.append(work_dir_key)
         #
     #
-    if len(results_collection) == 0 or results_max_name is None:
+    if len(results_collection) == 0 or work_dir_results_max_name is None:
         print('no results found - no report to generate.')
         return
     #
 
-    results_anchor = results_collection[results_max_name]
+    results_anchor = results_collection[work_dir_results_max_name]
     if results_anchor is None:
         print('no result found - cannot generate report.')
         return
     #
 
-    print(f'results found for {results_max_len} models')
+    print(f'results found for {work_dir_results_max_len} models')
 
     metric_keys = ['accuracy_top1%', 'accuracy_mean_iou%', 'accuracy_ap[.5:.95]%', 'accuracy_delta_1%',
                    'accuracy_ap_3d_moderate%', 'accuracy_add(s)_p1%']
@@ -131,16 +139,25 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
     results_table = dict()
     metric_title = [m+'_metric' for m in results_collection.keys()]
     performance_title = [m+'_'+p for m in results_collection.keys() for p in performance_keys]
-    title_line = ['serial_num', 'model_id', 'runtime_name', 'task_type', 'input_resolution', 'model_path', 'metric_name'] + \
-        metric_title + performance_title + ['metric_reference'] + ['model_shortlist', 'run_dir', 'artifact_name']
+    title_line = ['serial_num', 'model_id', 'runtime_name', 'task_type', 'run_dir', 'model_path', 'input_resolution', 'metric_name'] + \
+        metric_title + performance_title + ['metric_reference'] + ['model_shortlist', 'artifact_name']
 
-    for serial_num, (artifact_id, pipeline_params_anchor) in enumerate(results_anchor.items()):
-        model_id = pipeline_params_anchor['session']['model_id']
+    run_dirs = get_run_dirs(work_dir_results_max_path)
+    for serial_num, run_dir in enumerate(run_dirs):
         results_line_dict = {title_key:None for title_key in title_line}
-        results_line_dict['serial_num'] = serial_num+1
-        results_line_dict['model_id'] = model_id
 
+        run_dir_basename = os.path.basename(run_dir)
+        run_dir_splits = run_dir_basename.split('_')
+        artifact_id = '_'.join(run_dir_splits[:2]) if len(run_dir_splits) > 1 else run_dir_splits[0]
+        model_id = run_dir_splits[0]
+
+        results_line_dict['model_id'] = model_id
+        results_line_dict['serial_num'] = serial_num+1
+
+        pipeline_params_anchor = results_anchor.get(artifact_id, None)
         if pipeline_params_anchor is not None:
+            model_id_from_result = pipeline_params_anchor['session']['model_id']
+            assert model_id == model_id_from_result, f"model_id={model_id} doesnt match model_id_from_result={model_id_from_result}"
             results_line_dict['runtime_name'] = pipeline_params_anchor['session']['session_name']
             preprocess_crop = pipeline_params_anchor['preprocess'].get('crop',None)
             results_line_dict['input_resolution'] = 'x'.join(map(str, preprocess_crop)) \
@@ -168,9 +185,7 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
             #
         #
 
-        run_dir = pipeline_params_anchor['session']['run_dir'] if pipeline_params_anchor is not None else None
-        run_dir_basename = os.path.basename(run_dir)
-        results_line_dict['run_dir'] = run_dir_basename if run_dir is not None else None
+        results_line_dict['run_dir'] = run_dir_basename
 
         artifact_id = '_'.join(run_dir_basename.split('_')[:2])
         artifact_name = utils.get_artifact_name(artifact_id)
