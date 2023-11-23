@@ -30,7 +30,7 @@ import os
 import yaml
 import re
 
-from . import utils
+from . import misc_utils
 
 
 class AttrDict(dict):
@@ -88,7 +88,7 @@ class AttrDict(dict):
 
     def _parse_include_files(self, include_files, include_base_path):
         input_dict = {}
-        include_files = utils.as_list(include_files)
+        include_files = misc_utils.as_list(include_files)
         for include_file in include_files:
             append_base = not (include_file.startswith('/') and include_file.startswith('./'))
             include_file = os.path.join(include_base_path, include_file) if append_base else include_file

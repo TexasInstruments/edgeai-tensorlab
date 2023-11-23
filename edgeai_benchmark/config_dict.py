@@ -31,10 +31,9 @@ import yaml
 import re
 
 from . import utils
-from . import attr_dict
 
 
-class ConfigDict(attr_dict.AttrDict):
+class ConfigDict(utils.AttrDict):
     def __init__(self, input=None, **kwargs):
         super().__init__(input, **kwargs)
         # collect basic keys that are added during initialization
