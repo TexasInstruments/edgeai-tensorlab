@@ -59,23 +59,23 @@ def get_configs(settings, work_dir):
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_p2(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/mobilenet_v2_lite_20231101_model.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':72.8}, model_shortlist=None)
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/mobilenet_v2_lite_wt-v2_20231101_model.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':72.8}, model_shortlist=120)
         ),
         # edgeai-torchvison: classification mobilenetv3_large_lite_224x224 expected_metric: 71.7% top-1 accuracy
         'cl-6510':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_p2(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/mobilenet_v3_large_lite_20231011_model.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':71.7}, model_shortlist=None)
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/mobilenet_v3_large_lite_wt-v2_20231011_model.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':71.7}, model_shortlist=120)
         ),
         # edgeai-torchvision: classification resnet18_224x224 expected_metric: 69.76% top-1 accuracy
         'cl-6520':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_np2(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/resnet18_lite_20230920.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/resnet18_lite_wt-v1_20230920.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':69.76}, model_shortlist=None)
         ),
         # edgeai-torchvision: classification resnet50_lite_224x224 expected_metric: 80.86% top-1 accuracy
@@ -83,56 +83,56 @@ def get_configs(settings, work_dir):
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_p2(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/resnet50_lite_20230919.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':80.86}, model_shortlist=30)
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/resnet50_lite_wt-v2_20230919.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':80.86}, model_shortlist=120)
         ),
         # edgeai-torchvision: classification resnet101_224x224 expected_metric: 81.88% top-1 accuracy
         'cl-6540':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_np2(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/resnet101_lite_20230919.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':81.88}, model_shortlist=None)
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/resnet101_lite_wt-v2_20230919.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':81.88}, model_shortlist=120)
         ),
         # edgeai-torchvision: classification resnext50_224x224 expected_metric: 81.2% top-1 accuracy
         'cl-6550':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_np2(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/resnext50_32x4d_lite_20230920.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':81.2}, model_shortlist=None)
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/resnext50_32x4d_lite_wt-v2_20230920.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':81.2}, model_shortlist=120)
         ),
         # edgeai-torchvision: classification resnext101_224x224 expected_metric: 82.83% top-1 accuracy
         'cl-6560':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_np2(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/resnext101_32x8d_lite_20230920.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':82.83}, model_shortlist=None)
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/resnext101_32x8d_lite_wt-v2_20230920.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':82.83}, model_shortlist=120)
         ),
         # edgeai-torchvision: classification regnet_x_1_6gf_lite_224x224 expected_metric: 79.67% top-1 accuracy
         'cl-6570':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_np2(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/regnet_x_1_6gf_lite_20230920.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':79.67}, model_shortlist=None)
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/regnet_x_1_6gf_lite_wt-v2_20230920.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':79.67}, model_shortlist=120)
         ),
         # edgeai-torchvision: classification regnet_x_400mf_lite101_224x224 expected_metric: 74.86% top-1 accuracy
         'cl-6580':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_np2(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/regnet_x_400mf_lite_20230920.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':74.86}, model_shortlist=None)
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/regnet_x_400mf_lite_wt-v2_20230920.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':74.86}, model_shortlist=120)
         ),
         # edgeai-torchvision: classification regnet_x_800mf_lite_224x224 expected_metric: 75.21% top-1 accuracy
         'cl-6590':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_np2(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/regnet_x_800mf_lite_20230920.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/regnet_x_800mf_lite_wt-v2_20230920.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=120)
         ),
         ################################## deit/swin ##################
         'cl-6600':utils.dict_update(common_cfg,
@@ -191,7 +191,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, with_onnxsim=True),
                 runtime_options=settings.runtime_options_onnx_qat_v2(quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN, **quant_params_proto_path_disable_option),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/mobilenet_v2_lite_wt-v2_qat-v2-wc8-at8_20231120_model.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':72.454}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_top1%':72.454}, model_shortlist=20)
         ),
     }
     return pipeline_configs
