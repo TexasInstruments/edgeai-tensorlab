@@ -23,3 +23,49 @@ Install this repository as a local editable Python package (for development) by 
 cd torchmodelopt
 ./setup.sh
 ```
+
+# Introduction
+
+## Major Features
+
+
+
+## Supported Devices
+
+
+
+## Overview
+
+
+
+## Why use our toolkit?
+
+
+
+# Installation
+
+
+
+
+# Getting Started
+
+
+## User Guides
+
+
+
+## Advanced Guides
+
+
+# Results 
+""" give overview of Different Trained Models and the obtained Accuracies as well as guidelines """
+
+
+# FAQ
+
+
+# Contributions
+
+
+
+# License
