@@ -179,13 +179,11 @@ class SoftPruningParametrization(nn.Module):
         
         # TODO : some problem with dealing with the depthwise layer, something wrong in logic
         is_depthwise = (self.all_modules[self.curr_node.target].weight.shape[1] == 1) # we do not want to prune depthwise layers
-        if int(self.pruning_ratio*net_weight.nelement())==0 or net_weight.size(0)<=32:
+        if int(self.pruning_ratio*net_weight.nelement())==0 or net_weight.size(0)<=32 or is_depthwise:
             if channel_pruning:
                 mask = torch.ones(net_weight.size(0)).to(net_weight.device)
             else:
                 mask = torch.ones_like(net_weight)
-        elif is_depthwise and not(channel_pruning):
-            mask = torch.ones_like(net_weight)
         else:
             mask = self.create_mask(net_weight)
 
