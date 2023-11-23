@@ -28,6 +28,7 @@
 
 from .params_base import *
 from .misc_utils import *
+from .attr_dict import *
 from .download_utils import *
 from .file_utils import *
 from .logger_utils import *
