@@ -30,9 +30,5 @@
 
 ######################################################################
 # Installing dependencies
-#echo 'installing pytorch...'
-#pip3 install --no-input torch torchvision torchaudio
-echo 'installing requirements...'
-pip3 install --no-input -r ./benchmarkutils/requirements.txt
-echo 'installing the toolkit...'
-python3 ./benchmarkutils/setup.py develop
+echo 'installing the edgeai_benchmarkutils...'
+python3 ./setup.py develop
