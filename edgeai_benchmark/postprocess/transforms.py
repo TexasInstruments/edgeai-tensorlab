@@ -86,12 +86,17 @@ def apply_label_offset(label, label_offset):
 
 
 ##############################################################################
-class IndexArray():
-    def __init__(self, index=0):
-        self.index = index
+class SqueezeAxis():
+    def __init__(self, axis=0):
+        self.axis = axis
 
     def __call__(self, input, info_dict):
-        return input[self.index], info_dict
+        if isinstance(self.axis, (list,tuple)):
+            return np.squeeze(input, self.axis)
+        elif self.axis == 0:
+            return input[self.axis], info_dict
+        else:
+            return np.squeeze(input, self.axis)
 
 
 class ArgMax():
@@ -595,8 +600,10 @@ class NPTensorToImage(object):
 
     def __call__(self, tensor, info_dict):
         assert isinstance(tensor, np.ndarray), 'input tensor must be an array'
-        if tensor.ndim >= 3 and tensor.shape[0] == 1:
-            tensor = tensor[0]
+        for max_num_squeeze in range(3):
+            if tensor.ndim >= 3 and tensor.shape[0] == 1:
+                tensor = tensor[0]
+            #
         #
         if tensor.ndim == 2:
             if self.data_layout == 'NHWC':
