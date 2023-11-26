@@ -80,7 +80,6 @@ TARGET_DEVICE_AM62 = 'AM62'
 class QUANTScaleType:
     QUANT_SCALE_TYPE_NP2 = 0
     QUANT_SCALE_TYPE_P2 = 1
-    QUANT_SCALE_TYPE_P2_QAT = 1
     QUANT_SCALE_TYPE_UNUSED = 2
     # these are not supported in TDA4VM, but for other SoCs, these are the recommended modes
     QUANT_SCALE_TYPE_PREQUANT_TFLITE = 3
