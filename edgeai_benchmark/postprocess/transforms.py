@@ -113,8 +113,7 @@ class ArgMax():
             if self.data_layout == constants.NHWC:
                 argmax_axis = -1
             elif self.data_layout == constants.NCHW:
-                argmax_axis = (0 if tensor.ndim ==3 else (1 if tensor.ndim == 4 else
-                    (2 if tensor.ndim == 5 else (3 if tensor.ndim == 6 else None))))
+                argmax_axis = ((tensor.ndim-3) if tensor.ndim >= 3  else None)
             #
         else:
             argmax_axis = self.axis
