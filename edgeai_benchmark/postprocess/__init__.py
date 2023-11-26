@@ -42,7 +42,7 @@ class PostProcessTransforms(utils.TransformsCompose):
     # post process transforms for classification
     ###############################################################
     def get_transform_classification(self):
-        postprocess_classification = [SqueezeAxis(), ArgMax()]
+        postprocess_classification = [SqueezeAxis(), ArgMax(axis=-1)]
         if self.settings.save_output:
             postprocess_classification += [ClassificationImageSave(self.settings.num_output_frames)]
         #
@@ -132,10 +132,9 @@ class PostProcessTransforms(utils.TransformsCompose):
     # post process transforms for segmentation
     ###############################################################
     def get_transform_segmentation_base(self, data_layout, with_argmax=True):
-        channel_axis = -1 if data_layout == constants.NHWC else 1
         postprocess_segmentation = [SqueezeAxis()]
         if with_argmax:
-            postprocess_segmentation += [ArgMax(axis=channel_axis)]
+            postprocess_segmentation += [ArgMax(axis=None, data_layout=data_layout)]
         #
         postprocess_segmentation += [NPTensorToImage(data_layout=data_layout),
                                      SegmentationImageResize(),
