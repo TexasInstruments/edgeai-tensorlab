@@ -1,4 +1,3 @@
-protobuf==3.19.4
 tensorboard==2.11.2
 progiter
 
