@@ -42,6 +42,7 @@ from . import human_pose_estimation
 from . import object_6d_pose_estimation
 from . import depth_estimation
 from . import high_resolution
+from . import miscllaneous
 
 
 def get_configs(settings, work_dir):
@@ -62,6 +63,7 @@ def get_configs(settings, work_dir):
     pipeline_configs.update(object_6d_pose_estimation.get_configs(settings, work_dir))
     pipeline_configs.update(depth_estimation.get_configs(settings,work_dir))
     pipeline_configs.update(high_resolution.get_configs(settings,work_dir))
+    pipeline_configs.update(miscllaneous.get_configs(settings,work_dir))
 
     if settings.experimental_models:
         from . import classification_experimental

@@ -47,6 +47,8 @@ from .coco_kpts import *
 from .widerface_det import *
 
 from .robokit_seg import *
+from .robokit_visloc import *
+
 from .kitti_2015 import *
 
 try:
@@ -67,6 +69,7 @@ DATASET_CATEGORY_COCOKPTS = 'cocokpts'
 DATASET_CATEGORY_NYUDEPTHV2 = 'nyudepthv2'
 DATASET_CATEGORY_CITYSCAPES = 'cityscapes'
 DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD = 'ti-robokit_semseg_zed1hd'
+DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD = 'ti-robokit_visloc_zed1hd'
 DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS = 'kitti_lidar_det_1class'
 DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS = 'kitti_lidar_det_3class'
 DATASET_CATEGORY_KITTI_2015 = 'kitti_2015'
@@ -90,6 +93,7 @@ dataset_info_dict = {
     'voc2012': {'task_type':'segmentation', 'category':DATASET_CATEGORY_VOC2012, 'type':VOC2012Segmentation, 'size':1449, 'split':'val'},
     'cocoseg21': {'task_type':'segmentation', 'category':DATASET_CATEGORY_COCOSEG21, 'type':COCOSegmentation, 'size':5000, 'split':'val2017'},
     'ti-robokit_semseg_zed1hd': {'task_type':'segmentation', 'category':DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD, 'type':RobokitSegmentation, 'size':49, 'split':'val'},
+    'ti-robokit_visloc_zed1hd': {'task_type':'visual_localization', 'category':DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD, 'type':RobokitVisualLocalization, 'size':49, 'split':'val'},
     #------------------------human pose estimation datasets--------------------------#
     'cocokpts': {'task_type':'keypoint_detection', 'category':DATASET_CATEGORY_COCOKPTS, 'type':COCOKeypoints, 'size':5000, 'split':'val2017'},
     #------------------------depth estimation datasets--------------------------#
@@ -368,6 +372,31 @@ def get_datasets(settings, download=False, dataset_list=None):
 
         dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['calibration_dataset'] = RobokitSegmentation(**dataset_calib_cfg, download=True)
         dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['input_dataset'] = RobokitSegmentation(**dataset_val_cfg, download=True)
+    #
+
+    if check_dataset_load(settings, DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD) and (DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD in dataset_list):
+        print(utils.log_color("\nINFO", f"lodaing dataset", f"category:{DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD} variant:{DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD}"))
+        dataset_calib_cfg = dict(
+            path=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd',
+            split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/train_img_gt_pair.txt',
+            num_classes=19,
+            shuffle=True,
+            num_frames=min(settings.calibration_frames,150),
+            name=DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD
+        )
+
+        # dataset parameters for actual inference
+        dataset_val_cfg = dict(
+            path=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd',
+            split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/val_img_gt_pair.txt',
+            num_classes=19,
+            shuffle=True,
+            num_frames=min(settings.num_frames,49),
+            name=DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD
+        )
+
+        dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD]['calibration_dataset'] = RobokitVisualLocalization(**dataset_calib_cfg, download=True)
+        dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD]['input_dataset'] = RobokitVisualLocalization(**dataset_val_cfg, download=True)
     #
 
     # the following are datasets cannot be downloaded automatically

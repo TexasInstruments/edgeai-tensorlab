@@ -41,6 +41,14 @@ class PostProcessTransforms(utils.TransformsCompose):
     ###############################################################
     # post process transforms for classification
     ###############################################################
+    def get_transform_none(self):
+        postprocess_none = []
+        transforms = PostProcessTransforms(None, postprocess_none)
+        return transforms
+
+    ###############################################################
+    # post process transforms for classification
+    ###############################################################
     def get_transform_classification(self):
         postprocess_classification = [SqueezeAxis(), ArgMax(axis=-1)]
         if self.settings.save_output:
