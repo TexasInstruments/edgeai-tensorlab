@@ -51,10 +51,10 @@ echo "SOURCE_LOCATION="${SOURCE_LOCATION}
 # clone
 echo "cloning git repositories. this may take some time..."
 echo "please remove the folders ../edgeai-benchmark ../edgeai-mmdetection ../edgeai-torchvision ../edgeai-modelzoo ../edgeai-yolox"
-if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch master ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
-if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
-if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
-if [[ ! -d ../edgeai-modelzoo ]]; then git clone "--single-branch" --branch r9.0 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; fi
+if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch main ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; else git stash; git checkout main; git pull --rebase; fi
+if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; else git stash; git checkout r9.1; git pull --rebase; fi
+if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; else git stash; git checkout r9.1; git pull --rebase; fi
+if [[ ! -d ../edgeai-modelzoo ]]; then git clone "--single-branch" --branch r9.1 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; else git stash; git checkout r9.1; git pull --rebase; fi
 
 if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
   if [[ ! -d ../edgeai-yolox ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-yolox.git ../edgeai-yolox; fi
