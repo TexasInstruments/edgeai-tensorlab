@@ -45,8 +45,8 @@ def get_configs(settings, work_dir):
     common_cfg = {
         'task_type': 'object_6d_pose_estimation',
         'dataset_category': datasets.DATASET_CATEGORY_YCBV,
-        'calibration_dataset': settings.dataset_cache['ycbv']['calibration_dataset'],
-        'input_dataset': settings.dataset_cache['ycbv']['input_dataset'],
+        'calibration_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_YCBV]['calibration_dataset'],
+        'input_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_YCBV]['input_dataset'],
         'postprocess': postproc_transforms.get_transform_detection_yolo_6d_object_pose_onnx()
     }
 

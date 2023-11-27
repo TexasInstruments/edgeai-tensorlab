@@ -43,8 +43,8 @@ def get_configs(settings, work_dir):
     common_cfg = {
         'task_type': 'detection',
         'dataset_category': datasets.DATASET_CATEGORY_COCO,
-        'calibration_dataset': settings.dataset_cache['coco']['calibration_dataset'],
-        'input_dataset': settings.dataset_cache['coco']['input_dataset'],
+        'calibration_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_COCO]['calibration_dataset'],
+        'input_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_COCO]['input_dataset'],
     }
 
     postproc_detection_onnx = postproc_transforms.get_transform_detection_onnx()

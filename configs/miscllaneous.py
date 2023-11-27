@@ -42,8 +42,8 @@ def get_configs(settings, work_dir):
     robokitseg_cfg = {
         'task_type': 'visual_localization',
         'dataset_category': datasets.DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD,
-        'calibration_dataset': settings.dataset_cache['ti-robokit_semseg_zed1hd']['calibration_dataset'],
-        'input_dataset': settings.dataset_cache['ti-robokit_semseg_zed1hd']['input_dataset'],
+        'calibration_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD]['calibration_dataset'],
+        'input_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD]['input_dataset'],
     }
 
     pipeline_configs = {
@@ -52,8 +52,8 @@ def get_configs(settings, work_dir):
         #################mlperf models###################################
         ###############robokit visual localization model######################
         'visloc-7500': utils.dict_update(robokitseg_cfg,
-            preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
-            session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
+            preprocess=preproc_transforms.get_transform_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
+            session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/visual_localization/carla/edgeai-tv/tiad_dkaze_carla_768x384_model.onnx'),
             postprocess=postproc_transforms.get_transform_none(),

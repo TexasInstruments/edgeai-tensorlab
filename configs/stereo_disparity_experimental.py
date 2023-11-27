@@ -42,8 +42,8 @@ def get_configs(settings, work_dir):
     kitti2015_cfg = {
         'task_type': 'stereo_disparity',
         'dataset_category': datasets.DATASET_CATEGORY_KITTI_2015,
-        'calibration_dataset': settings.dataset_cache['kitti_2015']['calibration_dataset'],
-        'input_dataset': settings.dataset_cache['kitti_2015']['input_dataset'],
+        'calibration_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_KITTI_2015]['calibration_dataset'],
+        'input_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_KITTI_2015]['input_dataset'],
     }
 
     common_session_cfg = sessions.get_common_session_cfg(settings, work_dir=work_dir)

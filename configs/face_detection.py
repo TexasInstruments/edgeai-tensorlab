@@ -43,8 +43,8 @@ def get_configs(settings, work_dir):
     common_cfg = {
         'task_type': 'detection',
         'dataset_category': datasets.DATASET_CATEGORY_WIDERFACE,
-        'calibration_dataset': settings.dataset_cache['widerface']['calibration_dataset'],
-        'input_dataset': settings.dataset_cache['widerface']['input_dataset'],
+        'calibration_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_WIDERFACE]['calibration_dataset'],
+        'input_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_WIDERFACE]['input_dataset'],
     }
 
     postproc_detection_onnx = postproc_transforms.get_transform_detection_onnx()

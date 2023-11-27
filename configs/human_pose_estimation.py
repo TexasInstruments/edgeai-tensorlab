@@ -45,8 +45,8 @@ def get_configs(settings, work_dir):
     common_cfg = {
         'task_type': 'keypoint_detection',
         'dataset_category': datasets.DATASET_CATEGORY_COCOKPTS,
-        'calibration_dataset': settings.dataset_cache['cocokpts']['calibration_dataset'],
-        'input_dataset': settings.dataset_cache['cocokpts']['input_dataset'],
+        'calibration_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_COCOKPTS]['calibration_dataset'],
+        'input_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_COCOKPTS]['input_dataset'],
         'postprocess': postproc_transforms.get_transform_human_pose_estimation_onnx() 
     }
 

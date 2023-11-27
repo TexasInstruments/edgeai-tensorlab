@@ -40,8 +40,8 @@ def get_configs(settings, work_dir):
     common_cfg_1class = {
         'task_type': 'detection_3d',
         'dataset_category': datasets.DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS,
-        'calibration_dataset': settings.dataset_cache['kitti_lidar_det_1class']['calibration_dataset'],
-        'input_dataset': settings.dataset_cache['kitti_lidar_det_1class']['input_dataset'],
+        'calibration_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS]['calibration_dataset'],
+        'input_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS]['input_dataset'],
         'postprocess': None
     }
 
