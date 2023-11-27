@@ -51,7 +51,7 @@ class TFLiteRTSession(BaseRTSession):
 
         self._get_input_output_details_tflite(self.interpreter)
 
-        for in_data in calib_data:
+        for frame_id, in_data in enumerate(calib_data):
             in_data = utils.as_tuple(in_data)
             if self.input_normalizer is not None:
                 in_data, _ = self.input_normalizer(in_data, {})
@@ -61,6 +61,7 @@ class TFLiteRTSession(BaseRTSession):
             #
             self.interpreter.invoke()
             outputs = [self._get_tensor(output_detail) for output_detail in self.interpreter.get_output_details()]
+            self._update_output_details(outputs)
         #
         return info_dict
 
@@ -89,6 +90,7 @@ class TFLiteRTSession(BaseRTSession):
         self.interpreter.invoke()
         info_dict['session_invoke_time'] = (time.time() - start_time)
         outputs = [self._get_tensor(output_detail) for output_detail in self.interpreter.get_output_details()]
+        self._update_output_details(outputs)
         return outputs, info_dict
 
     def set_runtime_option(self, option, value):

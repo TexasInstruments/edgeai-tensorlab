@@ -327,6 +327,14 @@ class BaseRTSession(utils.ParamsBase):
             self.kwargs['output_details'] = output_details
         #
 
+    def _update_output_details(self, outputs):
+        output_details = self.kwargs['output_details']
+        for (output, output_detail) in zip(outputs, output_details):
+            output_shape = list(output.shape)
+            output_detail['shape'] = output_shape
+        #
+        self.kwargs['output_details'] = output_details
+
     def _tidl_infer_stats(self):
         assert self.is_imported is True, 'the given model must be an imported one.'
         benchmark_dict = self.interpreter.get_TI_benchmark_data()

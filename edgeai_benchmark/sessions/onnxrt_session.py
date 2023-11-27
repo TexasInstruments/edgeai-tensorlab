@@ -53,7 +53,7 @@ class ONNXRTSession(BaseRTSession):
         self._get_input_output_details_onnx(self.interpreter)
 
         # provide the calibration data and run the import
-        for in_data in calib_data:
+        for frame_idx, in_data in enumerate(calib_data):
             if not isinstance(in_data, list):
                 in_data = utils.as_tuple(in_data)
 
@@ -69,6 +69,7 @@ class ONNXRTSession(BaseRTSession):
                 if self.kwargs['output_details'] is not None else None
             # run the actual import step
             outputs = self.interpreter.run(output_keys, calib_dict)
+            self._update_output_details(outputs)
         #
 
         print("================================ import model =============")
@@ -104,6 +105,7 @@ class ONNXRTSession(BaseRTSession):
         start_time = time.time()
         outputs = self.interpreter.run(output_keys, input_dict)
         info_dict['session_invoke_time'] = (time.time() - start_time)
+        self._update_output_details(outputs)
         return outputs, info_dict
 
     def set_runtime_option(self, option, value):
