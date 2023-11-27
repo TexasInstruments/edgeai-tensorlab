@@ -31,6 +31,7 @@
 
 from . import xnn
 from . import xmodelopt
+from . import xonnx
 
 from .xmodelopt.surgery import SyrgeryVersion
 from .xmodelopt.pruning import PruningVersion
