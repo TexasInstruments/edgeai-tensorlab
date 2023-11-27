@@ -43,7 +43,7 @@ TARGET_SOC=${1:-TDA4VM}
 # for example 8 will mean 8 models will run in parallel
 # for example 1 will mean one model will run (but in a separae processs from that of the main process)
 # null will mean one process will run, in the same process as the main
-NUM_PARALLEL_PROCESSES=${NUM_PARALLEL_PROCESSES:-8}
+NUM_PARALLEL_PROCESSES=${NUM_PARALLEL_PROCESSES:-16}
 
 # for parallel execution on CUDA/gpu. if you don't have CUDA/gpu, these don't matter
 # if you have gpu's these wil be used for CUDA_VISIBLE_DEVICES. eg. specify 4 will use the gpus: 0,1,2,3
