@@ -33,3 +33,6 @@ try:
     from .onnx2pytorch_internal import import_onnx
 except:
     pass
+    
+from .rename_onnx_layers import *
+
