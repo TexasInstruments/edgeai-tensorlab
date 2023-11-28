@@ -151,6 +151,9 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
     for serial_num, run_dir in enumerate(run_dirs):
         results_line_dict = {title_key:None for title_key in title_line}
 
+        param_yaml = os.path.join(run_dir, 'param.yaml')
+        compilation_done = os.path.exists(param_yaml)
+
         run_dir_basename = os.path.basename(run_dir)
         run_dir_splits = run_dir_basename.split('_')
         artifact_id = '_'.join(run_dir_splits[:2]) if len(run_dir_splits) > 1 else run_dir_splits[0]
@@ -174,14 +177,14 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
                 if 'task_type' in pipeline_params_anchor else None
             results_line_dict['model_shortlist'] = pipeline_params_anchor['model_info'].get('model_shortlist', None)
         #
-        metric_name, _, metric_reference = get_metric(pipeline_params_anchor, metric_keys)
+        metric_name, _, metric_reference = get_metric(pipeline_params_anchor, metric_keys, compilation_done)
         results_line_dict['metric_name'] = metric_name
         results_line_dict['metric_reference'] = metric_reference
 
         # now populate results for each setting/work_id
         for work_id, (work_dir_key, param_results) in enumerate(results_collection.items()):
             param_result = param_results[artifact_id] if artifact_id in param_results else None
-            _, metric_value, _ = get_metric(param_result, metric_keys)
+            _, metric_value, _ = get_metric(param_result, metric_keys, compilation_done)
             results_line_dict[metric_title[work_id]] = metric_value
             performance_line_dict = get_performance(param_result, performance_keys)
             if performance_line_dict is not None:
@@ -216,7 +219,7 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
     #
 
 
-def get_metric(pipeline_params, metric_keys):
+def get_metric(pipeline_params, metric_keys, compilation_done):
     metric_name = None
     metric = None
     metric_reference = None
@@ -229,6 +232,10 @@ def get_metric(pipeline_params, metric_keys):
                     metric_name = metric_key
                 #
             #
+        elif compilation_done is True:
+            metric = 'no_inference'
+        elif compilation_done is False:
+            metric = 'no_compilation'
         #
         if 'model_info' in pipeline_params and pipeline_params['model_info'] is not None:
             model_info = pipeline_params['model_info']
