@@ -139,8 +139,8 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
     results_table = dict()
     metric_title = [m+'_metric' for m in results_collection.keys()]
     performance_title = [m+'_'+p for m in results_collection.keys() for p in performance_keys]
-    title_line = ['serial_num', 'model_id', 'runtime_name', 'task_type', 'run_dir', 'model_path', 'input_resolution', 'metric_name'] + \
-        metric_title + performance_title + ['metric_reference'] + ['model_shortlist', 'artifact_name']
+    title_line = ['serial_num', 'model_id', 'runtime_name', 'task_type', 'run_dir', 'input_resolution', 'metric_name'] + \
+        metric_title + performance_title + ['metric_reference'] + ['model_shortlist', 'model_path', 'artifact_name']
 
     run_dirs = get_run_dirs(work_dir_results_max_path)
     for serial_num, run_dir in enumerate(run_dirs):
