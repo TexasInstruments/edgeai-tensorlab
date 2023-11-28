@@ -42,7 +42,7 @@ repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../.
 
 edgeai_torchvision_path = os.path.join(repo_parent_path, 'edgeai-torchvision')
 edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
-www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest'
+www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01'
 
 # Need to modify later based on the available models
 _model_descriptions = {
@@ -57,7 +57,7 @@ _model_descriptions = {
             model_architecture='backbone',
             input_resize=(512,512),
             input_cropsize=(512,512),
-            pretrained_checkpoint_path=f'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/segmentation/cocoseg21/edgeai-tv/fpn_aspp_regnetx800mf_edgeailite_512x512_20210405_checkpoint.pth',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/segmentation/cocoseg21/edgeai-tv/fpn_aspp_regnetx800mf_edgeailite_512x512_20210405_checkpoint.pth',
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_SEGMENTATION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=272, performance_infer_time_ms=1000/272,
@@ -93,7 +93,7 @@ _model_descriptions = {
             model_architecture='backbone',
             input_resize=(512,512),
             input_cropsize=(512,512),
-            pretrained_checkpoint_path=f'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/segmentation/cocoseg21/edgeai-tv/unet_aspp_mobilenetv2_edgeailite_512x512_20210407_checkpoint.pth',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/segmentation/cocoseg21/edgeai-tv/unet_aspp_mobilenetv2_edgeailite_512x512_20210407_checkpoint.pth',
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_SEGMENTATION]//2,
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=237, performance_infer_time_ms=1000/237,
@@ -129,7 +129,7 @@ _model_descriptions = {
             model_architecture='backbone',
             input_resize=(512,512),
             input_cropsize=(512,512),
-            pretrained_checkpoint_path=f'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/segmentation/cocoseg21/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405_checkpoint.pth',
+            pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/segmentation/cocoseg21/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405_checkpoint.pth',
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_SEGMENTATION]//2,
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=237, performance_infer_time_ms=1000/237,
