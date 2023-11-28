@@ -138,15 +138,15 @@ class ConfigSettings(config_dict.ConfigDict):
         #
         return self.get_runtime_options(constants.MODEL_TYPE_MXNET, quantization_scale_type=quantization_scale_type, is_qat=False, **kwargs)
 
-    def runtime_options_onnx_qat_v1(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2_QAT, **kwargs):
+    def runtime_options_onnx_qat_v1(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, **kwargs):
         return self.get_runtime_options(constants.MODEL_TYPE_ONNX, quantization_scale_type=quantization_scale_type, is_qat=True,
                                         prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_V1, **kwargs)
 
-    def runtime_options_tflite_qat_v1(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2_QAT, **kwargs):
+    def runtime_options_tflite_qat_v1(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, **kwargs):
         return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, quantization_scale_type=quantization_scale_type, is_qat=True,
                                         prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_V1, **kwargs)
 
-    def runtime_options_mxnet_qat_v1(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2_QAT, **kwargs):
+    def runtime_options_mxnet_qat_v1(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, **kwargs):
         return self.get_runtime_options(constants.MODEL_TYPE_MXNET, quantization_scale_type=quantization_scale_type, is_qat=True,
                                         prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_V1, **kwargs)
 

@@ -40,6 +40,8 @@ import cv2
 from munkres import Munkres
 from numpy.lib.stride_tricks import as_strided
 import math
+
+from .. import constants
 from .keypoints import *
 
 
@@ -86,26 +88,39 @@ def apply_label_offset(label, label_offset):
 
 
 ##############################################################################
-class IndexArray():
-    def __init__(self, index=0):
-        self.index = index
+class SqueezeAxis():
+    def __init__(self, axis=0):
+        self.axis = axis
 
     def __call__(self, input, info_dict):
-        return input[self.index], info_dict
+        if isinstance(self.axis, (list,tuple)):
+            return np.squeeze(input, self.axis)
+        elif self.axis == 0:
+            return input[self.axis], info_dict
+        else:
+            return np.squeeze(input, self.axis)
 
 
 class ArgMax():
-    def __init__(self, axis=-1):
+    def __init__(self, axis=None, data_layout=None):
         self.axis = axis
+        self.data_layout = data_layout
 
     def __call__(self, tensor, info_dict):
+        argmax_axis = None
         if self.axis is None:
-            axis = 1 if tensor.ndim == 4 else 0
+            assert self.data_layout is not None, 'data_layout should not be None when axis in None'
+            if self.data_layout == constants.NHWC:
+                argmax_axis = -1
+            elif self.data_layout == constants.NCHW:
+                argmax_axis = ((tensor.ndim-3) if tensor.ndim >= 3  else None)
+            #
         else:
-            axis = self.axis
+            argmax_axis = self.axis
         #
-        if tensor.shape[axis] > 1:
-            tensor = tensor.argmax(axis=axis)
+        assert argmax_axis is not None, f'unsupport axis {axis} or data_layout {self.data_layout}'
+        if tensor.shape[argmax_axis] > 1:
+            tensor = tensor.argmax(axis=argmax_axis)
             tensor = tensor[0]
         #
         return tensor, info_dict
@@ -595,17 +610,22 @@ class NPTensorToImage(object):
 
     def __call__(self, tensor, info_dict):
         assert isinstance(tensor, np.ndarray), 'input tensor must be an array'
-        if tensor.ndim >= 3 and tensor.shape[0] == 1:
-            tensor = tensor[0]
+        max_num_squeeze = 3
+        for squeeze_index in range(max_num_squeeze):
+            if tensor.ndim >= 3 and tensor.shape[0] == 1:
+                tensor = tensor[0]
+            #
         #
         if tensor.ndim == 2:
             if self.data_layout == 'NHWC':
                 tensor = tensor[..., np.newaxis]
             else:
                 tensor = tensor[np.newaxis, ...]
+            #
+        #
         assert tensor.ndim == 3, 'could not convert to image'
         tensor = np.transpose(tensor, (1, 2, 0)) if self.data_layout == 'NCHW' else tensor
-        assert tensor.shape[2] in (1, 3), 'invalid number of channels'
+        assert tensor.shape[2] in (1, 3), f'invalid number of channels. expected 1 or 3 channels, got {tensor.shape[2]}'
         return tensor, info_dict
 
     def __repr__(self):

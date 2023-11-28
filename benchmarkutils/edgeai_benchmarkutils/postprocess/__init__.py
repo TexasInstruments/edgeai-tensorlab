@@ -41,8 +41,16 @@ class PostProcessTransforms(utils.TransformsCompose):
     ###############################################################
     # post process transforms for classification
     ###############################################################
+    def get_transform_none(self):
+        postprocess_none = []
+        transforms = PostProcessTransforms(None, postprocess_none)
+        return transforms
+
+    ###############################################################
+    # post process transforms for classification
+    ###############################################################
     def get_transform_classification(self):
-        postprocess_classification = [IndexArray(), ArgMax()]
+        postprocess_classification = [SqueezeAxis(), ArgMax(axis=-1)]
         if self.settings.save_output:
             postprocess_classification += [ClassificationImageSave(self.settings.num_output_frames)]
         #
@@ -59,7 +67,7 @@ class PostProcessTransforms(utils.TransformsCompose):
                                  Concat(axis=-1, end_index=3)]
         if squeeze_axis is not None:
             #  TODO make this more generic to squeeze any axis
-            postprocess_detection += [IndexArray()]
+            postprocess_detection += [SqueezeAxis()]
         #
         if ignore_index is not None:
             postprocess_detection += [IgnoreIndex(ignore_index)]
@@ -132,10 +140,9 @@ class PostProcessTransforms(utils.TransformsCompose):
     # post process transforms for segmentation
     ###############################################################
     def get_transform_segmentation_base(self, data_layout, with_argmax=True):
-        channel_axis = -1 if data_layout == constants.NHWC else 1
-        postprocess_segmentation = [IndexArray()]
+        postprocess_segmentation = [SqueezeAxis()]
         if with_argmax:
-            postprocess_segmentation += [ArgMax(axis=channel_axis)]
+            postprocess_segmentation += [ArgMax(axis=None, data_layout=data_layout)]
         #
         postprocess_segmentation += [NPTensorToImage(data_layout=data_layout),
                                      SegmentationImageResize(),
@@ -160,7 +167,7 @@ class PostProcessTransforms(utils.TransformsCompose):
     ###############################################################
     def get_transform_human_pose_estimation_base(self, data_layout, with_udp=True):
         # channel_axis = -1 if data_layout == constants.NHWC else 1
-        # postprocess_human_pose_estimation = [IndexArray()] #just removes the first axis from output list, final size (c,w,h)
+        # postprocess_human_pose_estimation = [SqueezeAxis()] #just removes the first axis from output list, final size (c,w,h)
         postprocess_human_pose_estimation = [HumanPoseHeatmapParser(use_udp=with_udp),
                                              KeypointsProject2Image(use_udp=with_udp)]
 
@@ -179,7 +186,7 @@ class PostProcessTransforms(utils.TransformsCompose):
     # post process transforms for depth estimation
     ###############################################################
     def get_transform_depth_estimation_base(self, data_layout):
-        postprocess_depth_estimation = [IndexArray(),
+        postprocess_depth_estimation = [SqueezeAxis(),
                                         NPTensorToImage(data_layout=data_layout),
                                         DepthImageResize()]
         if self.settings.save_output:
@@ -204,7 +211,7 @@ class PostProcessTransforms(utils.TransformsCompose):
     # post process transforms for disparity estimation
     ###############################################################
     def get_transform_disparity_estimation_base(self, data_layout):
-        postprocess_disparity_estimation = [IndexArray(),
+        postprocess_disparity_estimation = [SqueezeAxis(),
                                             NPTensorToImage(data_layout=data_layout)]
         
         # To REVISIT!
