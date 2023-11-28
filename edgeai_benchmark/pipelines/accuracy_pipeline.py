@@ -47,6 +47,7 @@ class AccuracyPipeline():
         self.session = self.pipeline_config['session']
         self.run_dir = self.session.get_param('run_dir')
         self.run_dir_base = os.path.split(self.run_dir)[-1]
+        self.config_yaml = os.path.join(self.run_dir, 'config.yaml')
         # these files will be written after import and inference respectively
         self.param_yaml = os.path.join(self.run_dir, 'param.yaml')
         self.result_yaml = os.path.join(self.run_dir, 'result.yaml')
@@ -141,17 +142,31 @@ class AccuracyPipeline():
         run_import = ((not os.path.exists(self.param_yaml)) if self.settings.run_missing else True) \
             if self.settings.run_import else False
         if run_import:
+            # dump the config params
+            if self.settings.enable_logging:
+                param_dict = utils.pretty_object(self.pipeline_config)
+                with open(self.config_yaml, 'w') as fp:
+                    yaml.safe_dump(param_dict, fp, sort_keys=False)
+                #
+            #
+
             start_time = time.time()
             self.write_log(utils.log_color('\nINFO', f'import {description}', self.run_dir_base + ' - this may take some time...'))
+            # import stats
             self._import_model(description)
             elapsed_time = time.time() - start_time
             self.write_log(utils.log_color('\nINFO', f'import completed {description}', f'{self.run_dir_base} - {elapsed_time:.0f} sec'))
+
             # collect the input params
             param_dict = utils.pretty_object(self.pipeline_config)
             param_result = param_dict
-            # dump the params
+
+            # dump the params after import
             if self.settings.enable_logging:
                 with open(self.param_yaml, 'w') as fp:
+                    yaml.safe_dump(param_dict, fp, sort_keys=False)
+                #
+                with open(self.config_yaml, 'w') as fp:
                     yaml.safe_dump(param_dict, fp, sort_keys=False)
                 #
             #

@@ -44,17 +44,22 @@ def run_rewrite_results(work_dir, results_yaml):
     run_dirs = get_run_dirs(work_dir)
     results = {}
     for run_dir in run_dirs:
-        try:
-            result_yaml = os.path.join(run_dir, 'result.yaml')
-            with open(result_yaml) as fp:
+        result_yaml = os.path.join(run_dir, 'result.yaml')
+        config_yaml = os.path.join(run_dir, 'config.yaml')
+        result_or_config_yaml = None
+        if os.path.exists(result_yaml):
+            result_or_config_yaml = result_yaml
+        elif os.path.exists(config_yaml):
+            result_or_config_yaml = config_yaml
+        #
+        if result_or_config_yaml:
+            with open(result_or_config_yaml) as fp:
                 result = yaml.safe_load(fp)
                 model_id = result['session']['model_id']
                 session_name = result['session']['session_name']
                 artifact_id = f'{model_id}_{session_name}'
                 results[artifact_id] = result
             #
-        except:
-            pass
         #
     #
     results = utils.sorted_dict(results)
