@@ -126,6 +126,8 @@ class ONNXRTSession(BaseRTSession):
         #
         runtime_options = self.kwargs["runtime_options"]
         sess_options = onnxruntime.SessionOptions()
+        # suppress warnings
+        sess_options.log_severity_level = 3
 
         if self.kwargs['tidl_offload']:
             ep_list = ['TIDLCompilationProvider', 'CPUExecutionProvider'] if is_import else \
