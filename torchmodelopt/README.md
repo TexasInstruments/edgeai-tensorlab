@@ -84,6 +84,12 @@ This is the basic usage, the detailed usage for the API is documented in [Model 
 
 ### Sparsity
 
+    from edgeai_torchtoolkit import xmodelopt
+    model = xmodelopt.pruning.PrunerModule(model, pruning_ratio=pruning_ratio, total_epochs=epochs, pruning_type=pruning_type)
+
+> Here, desired pruning ratio, total training epochs, and the pruning type (Options : 'channel' (default), 'n2m', 'prunechannelunstructured', 'unstructured') needs to be specified.
+
+This is the basic usage, the detailed usage for the API is documented in [Model Sparsity](/edgeai-modeloptimization/torchmodelopt/edgeai_torchmodelopt/xmodelopt/pruning/README.md).
 
 
 

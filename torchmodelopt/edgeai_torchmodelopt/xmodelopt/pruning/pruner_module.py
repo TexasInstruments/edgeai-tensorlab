@@ -381,6 +381,8 @@ class PrunerModule(torch.nn.Module):
             self.n2m_pruning = True
         elif pruning_type=='prunechannelunstructured':
             self.prunechannelunstructured = True
+        elif pruning_type=='unstructured':
+            pass
         self.global_pruning = global_pruning
         
         if self.channel_pruning:

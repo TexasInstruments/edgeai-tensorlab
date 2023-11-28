@@ -42,7 +42,7 @@ We can also specify the following, depepnding on the use case :
 
 1. init_train_ep - the number of epochs that need to be trained before weights start to get pruned (Default: 5)
 2. pruning_class - the pruning class to be used (Options : 'blend' (default), 'sigmoid', 'incremental'). However, only blend class has been tested. The user can make their own pruning class as well. Refer to Section : Advanced Usage
-3.  pruning_type - the type of pruning that we want to incorporate in the network (Options: 'channel' (default), 'n2m', 'prunechannelunstructured')
+3. pruning_type - the type of pruning that we want to incorporate in the network (Options: 'channel' (default), 'n2m', 'prunechannelunstructured', 'unstructured')
 4. global_pruning - whether we want to prune each layer with a different pruning ratio, depending on the spread of weights (Default: False)
 
 
