@@ -61,6 +61,7 @@ if __name__ == '__main__':
     parser.add_argument('--parallel_devices', type=utils.int_or_none)
     parser.add_argument('--parallel_processes', type=int)
     parser.add_argument('--fast_calibration_factor', type=utils.float_or_none)
+    parser.add_argument('--experimental_models', type=utils.str_to_bool)
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)
