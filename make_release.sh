@@ -30,9 +30,9 @@
 
 git stash
 git checkout release
-git rebase master
+git rebase main
 git push --force
-git push github release:master --force
-git checkout master
+git push github release:main --force
+git checkout main
 #git stash pop
 
