@@ -266,10 +266,10 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_np2(
                    det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                    'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_model.prototxt',
+                    'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_m_lite_640x640_20220228_model.prototxt',
                     'advanced_options:output_feature_16bit_names_list': '1256, 934, 935, 936, 950, 951, 952, 966, 967, 968'},
                     fast_calibration=True),
-                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_model.onnx'),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_m_lite_640x640_20220228_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 44.4}, model_shortlist=80)
