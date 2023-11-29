@@ -31,8 +31,8 @@
 #
 #################################################################################
 
-docker_image_name="modelmaker:v9.0"
-docker_container_name="cnt-modelmaker-v9.0"
+docker_image_name="modelmaker:v9.1"
+docker_container_name="cnt-modelmaker-v9.1"
 PARENT_DIR=$(realpath ..)
 
 # initialize http_proxy and https_proxy if they are not defined
