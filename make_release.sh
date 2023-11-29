@@ -55,6 +55,6 @@ git commit -a -m 'release commit'
 
 #git push
 
-git checkout main
+#git checkout main
 
 #git stash pop
