@@ -310,8 +310,10 @@ def main(args):
 
     if args.pruning == edgeai_torchmodelopt.xmodelopt.pruning.PruningVersion.PRUNING_LEGACY:
         assert False, "Pruning is currently not supported in the legacy modules based method"
-    elif args.pruning == edgeai_torchmodelopt.xmodelopt.pruning.PruningVersion.PRUNING_FX:
-        model = edgeai_torchmodelopt.xmodelopt.pruning.v2.PrunerModule(model)
+    elif args.pruning == edgeai_torchmodelopt.xmodelopt.pruning.PruningVersion.PRUNING_FX: #2
+        model = edgeai_torchmodelopt.xmodelopt.pruning.PrunerModule(model, pruning_ratio=args.pruning_ratio, total_epochs=args.epochs, init_train_ep = args.init_train_ep,
+                                            pruning_class=args.pruning_class, pruning_type=args.pruning_type, global_pruning=args.global_pruning)
+        
     
     if args.quantization == edgeai_torchmodelopt.xmodelopt.quantization.QuantizationVersion.QUANTIZATION_LEGACY:
         dummy_input = torch.rand(1,3,args.val_crop_size,args.val_crop_size)
@@ -405,7 +407,7 @@ def main(args):
 
     model_without_ddp = model
     if args.distributed:
-        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
+        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu], find_unused_parameters=True)
         model_without_ddp = model.module
     elif args.parallel:
         model = torch.nn.parallel.DataParallel(model)
@@ -627,10 +629,13 @@ def get_args_parser(add_help=True):
     parser.add_argument("--quantization", "--quantize", dest="quantization", default=0, type=int, choices=edgeai_torchmodelopt.xmodelopt.quantization.QuantizationVersion.get_choices(), help="Quaantization Aware Training (QAT)")
     parser.add_argument("--quantization-type", default=None, help="Actual Quaantization Flavour - applies only if quantization is enabled")
 
-    parser.add_argument("--pruning", default=0, type=int, choices=edgeai_torchmodelopt.xmodelopt.pruning.PruningVersion.get_choices(), help="Pruning/Sparsity")
-    parser.add_argument("--pruning-type", default=1, help="Pruning/Sparsity Type - applies only of pruning is enabled")
-    parser.add_argument("--pruning-ratio", default=0.5, help="Pruning/Sparsity Factor - applies only of pruning is enabled")
-
+    parser.add_argument("--pruning", default=0, type=int, help="Pruning/Sparsity")
+    parser.add_argument("--pruning-ratio", default=0.640625, type=float, help="Pruning/Sparsity Factor - applies only if pruning is enabled")
+    parser.add_argument("--pruning-type", default='channel', type=str, help="Pruning/Sparsity Type - applies only of pruning is enabled, (options: channel(default), n2m, prunechannelunstructured)")
+    parser.add_argument("--pruning-class", default='blend', type=str, help="pruning parametrization class to be used. (options: blend(default), sigmoid, incremental)")
+    parser.add_argument("--global-pruning", default=0, type=int, help="Whether to do global pruning (Only supported by unstructured and channel pruning)")
+    parser.add_argument("--init-train-ep", default=5, type=int, help="epochs to train for before starting the pruning")
+    
     parser.add_argument("--compile-model", default=0, type=int, help="Compile the model using PyTorch2.0 functionality")
     parser.add_argument("--opset-version", default=18, type=int, help="ONNX Opset version")
     parser.add_argument("--train-epoch-size-factor", default=0.0, type=float,
