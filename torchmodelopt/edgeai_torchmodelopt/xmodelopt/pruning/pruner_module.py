@@ -93,16 +93,14 @@ class IncrementalPruningParametrization(nn.Module):
             alpha_factor = 0
                      
             if self.n2m_pruning: 
-                numerator = Fraction(self.pruning_ratio).limit_denominator().numerator
-                denominator = Fraction(self.pruning_ratio).limit_denominator().denominator
                 # prune 41 elements for every 64 elements (pass 41/64 in the self.pruning_ratio)
                 weight_abs = torch.abs(net_weight)
                 soft_mask = torch.ones_like(net_weight)
-                for i in range(math.ceil(len(net_weight.view(-1))/denominator)):
-                    start_iter = denominator*i
-                    end_iter = min(denominator*(i+1), len(net_weight.view(-1)))
+                for i in range(math.ceil(len(net_weight.view(-1))/self.m)):
+                    start_iter = self.m*i
+                    end_iter = min(self.m*(i+1), len(net_weight.view(-1)))
                     prune_elements = (self.pruning_ratio)*(self.epoch_count-self.init_train_ep)/(total_epochs_knee_point-self.init_train_ep)
-                    keep_elem_k = min(int((1-prune_elements)*denominator), end_iter - start_iter)
+                    keep_elem_k = min(int((1-prune_elements)*self.m), end_iter - start_iter)
                     if (keep_elem_k==0) or ((end_iter - start_iter - keep_elem_k)==0):
                         continue    
                     Wh = torch.topk(torch.abs(weight_abs).view(-1)[start_iter:end_iter], k=keep_elem_k, largest=True)
@@ -224,16 +222,14 @@ class SigmoidPruningParametrization(SoftPruningParametrization):
                 soft_mask = torch.ones_like(net_weight)
                 
         else:             
-            if self.n2m_pruning: 
-                numerator = Fraction(self.pruning_ratio).limit_denominator().numerator
-                denominator = Fraction(self.pruning_ratio).limit_denominator().denominator
+            if self.n2m_pruning:
                 # prune 41 elements for every 64 elements (pass 41/64 in the self.pruning_ratio)
                 weight_abs = torch.abs(net_weight)
                 soft_mask = torch.ones_like(net_weight)
-                for i in range(math.ceil(len(net_weight.view(-1))/denominator)):
-                    start_iter = denominator*i
-                    end_iter = min(denominator*(i+1), len(net_weight.view(-1)))
-                    keep_elem_k = min(int((1-self.pruning_ratio)*denominator), end_iter - start_iter)
+                for i in range(math.ceil(len(net_weight.view(-1))/self.m)):
+                    start_iter = self.m*i
+                    end_iter = min(self.m*(i+1), len(net_weight.view(-1)))
+                    keep_elem_k = min(int((1-self.pruning_ratio)*self.m), end_iter - start_iter)
                     if (keep_elem_k==0) or ((end_iter - start_iter - keep_elem_k)==0):
                         continue
                     Wh = torch.topk(torch.abs(weight_abs).view(-1)[start_iter:end_iter], k=keep_elem_k, largest=True)
@@ -299,16 +295,14 @@ class BlendPruningParametrization(SoftPruningParametrization):
             else:
                 alpha_factor = math.pow(self.epoch_count-total_epochs_knee_point,2)/math.pow(total_epochs_knee_point-self.init_train_ep, 2)
                      
-            if self.n2m_pruning: 
-                numerator = Fraction(self.pruning_ratio).limit_denominator().numerator
-                denominator = Fraction(self.pruning_ratio).limit_denominator().denominator
+            if self.n2m_pruning:
                 # prune 41 elements for every 64 elements (pass 41/64 in the self.pruning_ratio)
                 weight_abs = torch.abs(net_weight)
                 soft_mask = torch.ones_like(net_weight)
-                for i in range(math.ceil(len(net_weight.view(-1))/denominator)):
-                    start_iter = denominator*i
-                    end_iter = min(denominator*(i+1), len(net_weight.view(-1)))
-                    keep_elem_k = min(int((1-self.pruning_ratio)*denominator), end_iter - start_iter)
+                for i in range(math.ceil(len(net_weight.view(-1))/self.m)):
+                    start_iter = self.m*i
+                    end_iter = min(self.m*(i+1), len(net_weight.view(-1)))
+                    keep_elem_k = min(int((1-self.pruning_ratio)*self.m), end_iter - start_iter)
                     if (keep_elem_k==0) or ((end_iter - start_iter - keep_elem_k)==0):
                         continue
                     Wh = torch.topk(torch.abs(weight_abs).view(-1)[start_iter:end_iter], k=keep_elem_k, largest=True)
@@ -399,6 +393,12 @@ class PrunerModule(torch.nn.Module):
         elif pruning_type=='unstructured':
             pass
         self.global_pruning = pruning_global
+        
+        if self.n2m_pruning:
+            if "m" not in kwargs:
+                raise RuntimeError("The value of m should be provided in case of n:m pruning")
+            else:
+                self.m = kwargs.get("m")
         
         if self.channel_pruning:
             # creating the next node list, which contains the connection to all convs to the current conv

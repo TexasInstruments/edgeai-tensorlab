@@ -42,10 +42,14 @@ Here, we need to specify :
 
 We can also specify the following, depepnding on the use case :
 
-1. pruning_init_train_ep - the number of epochs that need to be trained before weights start to get pruned (Default: 5)
-2. pruning_class - the pruning class to be used (Options : 'blend' (default), 'sigmoid', 'incremental'). However, only blend class has been tested. The user can make their own pruning class as well. Refer to Section : Advanced Usage
-3. pruning_type - the type of pruning that we want to incorporate in the network (Options: 'channel' (default), 'n2m', 'prunechannelunstructured', 'unstructured')
-4. pruning_global - whether we want to prune each layer with a different pruning ratio, depending on the spread of weights (Default: False)
+- pruning_init_train_ep - the number of epochs that need to be trained before weights start to get pruned (Default: 5)
+- pruning_class - the pruning class to be used (Options : 'blend' (default), 'sigmoid', 'incremental'). However, only blend class has been tested. The user can make their own pruning class as well from these modules
+- pruning_type - the type of pruning that we want to incorporate in the network. The options are :
+    - channel : This is the default option, where complete channels of the original network are pruned 
+    - n2m : Here, of m consecutive weights, n weights gets pruned, however the pruning ratio should be specified in decimal itself and **the value of 'm' should also be passed**. 
+    - prunechannelunstructured : Here, the pruning ratio is maintained for each layers of the network, however, within the layer, there is no structure
+    - unstructured : This is unstructured pruning across the whole model
+- pruning_global - whether we want to prune each layer with a different pruning ratio, depending on the spread of weights (Default: False)
 
 
 > This could be incorporated in the training script itself, and model thereafter could be trained as it was getting trained before.
