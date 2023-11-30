@@ -73,7 +73,7 @@ class QConfigMethod(enum.Enum):
         return [e.value for e in cls]
 
 
-class QConfigType(enum.Enum):
+class QConfigType():
     DISABLED = 0
     DEFAULT = "DEFAULT"
 
@@ -140,7 +140,7 @@ _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.W
 
 
 def get_qconfig(is_qat, backend, qconfig_type=None):
-    qconfig_type = QConfigType(qconfig_type)
+    # qconfig_type = QConfigType(qconfig_type)
     if qconfig_type not in _QCONFIG_TYPE_TO_DICT:
         raise RuntimeError("Unknown qconfig_type: " + str(qconfig_type))
     #
