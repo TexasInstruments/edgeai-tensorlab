@@ -633,8 +633,8 @@ def get_args_parser(add_help=True):
     parser.add_argument("--pruning-ratio", default=0.640625, type=float, help="Pruning/Sparsity Factor - applies only if pruning is enabled")
     parser.add_argument("--pruning-type", default='channel', type=str, help="Pruning/Sparsity Type - applies only of pruning is enabled, (options: channel(default), n2m, prunechannelunstructured)")
     parser.add_argument("--pruning-class", default='blend', type=str, help="pruning parametrization class to be used. (options: blend(default), sigmoid, incremental)")
-    parser.add_argument("--global-pruning", default=0, type=int, help="Whether to do global pruning (Only supported by unstructured and channel pruning)")
-    parser.add_argument("--init-train-ep", default=5, type=int, help="epochs to train for before starting the pruning")
+    parser.add_argument("--pruning-global", default=0, type=int, help="Whether to do global pruning (Only supported by unstructured and channel pruning)")
+    parser.add_argument("--pruning-init-train-ep", default=5, type=int, help="epochs to train for before starting the pruning")
     
     parser.add_argument("--compile-model", default=0, type=int, help="Compile the model using PyTorch2.0 functionality")
     parser.add_argument("--opset-version", default=18, type=int, help="ONNX Opset version")
