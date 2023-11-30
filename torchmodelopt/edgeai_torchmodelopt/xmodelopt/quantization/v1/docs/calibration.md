@@ -37,7 +37,7 @@ As explained, the method of **Calibration does not need ground truth, loss funct
 The section briefly explains how to make use of our helper/wrapper module to do the calibration of your model. For further details, please see references.edgeailite.engine.train_classification.py and references.edgeailite.engine.train_pixel2pixel.py. The step by step process is as follows:
 
 ```
-from edgeai_torchtoolkit.v1 import xnn
+from edgeai_torchmodelopt.v1 import xnn
 
 # create your model here:
 model = ...
@@ -46,7 +46,7 @@ model = ...
 dummy_input = torch.rand((1,3,384,768))
 
 #wrap your model in xnn.quantization.QuantCalibrateModule. Once it is wrapped, the actual model is in model.module
-model = edgeai_torchtoolkit.xmodelopt.quantization.v1.QuantCalibrateModule(model, dummy_input=dummy_input)
+model = edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantCalibrateModule(model, dummy_input=dummy_input)
 
 # load your pretrained weights here into model.module
 pretrained_data = torch.load(pretrained_path)

@@ -28,22 +28,24 @@ Unstructured pruning is thus, we are making the weights 0 without any predefined
 
 Pruner wrapper can be directly wrapped around your model while training, which allows you to introduce pruning.
 
-    from edgeai_torchtoolkit import xmodelopt
+    from edgeai_torchmodelopt import xmodelopt
     model = xmodelopt.pruning.PrunerModule(model, pruning_ratio=args.pruning_ratio, total_epochs=args.epochs, 
-                            init_train_ep = args.init_train_ep, pruning_class=args.pruning_class, 
-                            pruning_type=args.pruning_type, global_pruning=args.global_pruning)
+                            pruning_init_train_ep = args.pruning_init_train_ep, pruning_class=args.pruning_class, 
+                            pruning_type=args.pruning_type, pruning_global=args.pruning_global)
 
 Here, we need to specify : 
 
-1.  pruning ratio - the amount of pruning we need in the network by the end of training process
-2.  total_epochs - total number of training epochs
+-  pruning_ratio - the ratio of total weights that need to be pruned the end of training process. For example, a pruning ratio of 0.3 would mean, incase of 
+    - channel sparsity that, 30 % of the total channels are getting pruned
+    - n2m pruning that, for every 10 consecutive weights, 3 weights are getting pruned
+-  total_epochs - total number of training epochs
 
 We can also specify the following, depepnding on the use case :
 
-1. init_train_ep - the number of epochs that need to be trained before weights start to get pruned (Default: 5)
+1. pruning_init_train_ep - the number of epochs that need to be trained before weights start to get pruned (Default: 5)
 2. pruning_class - the pruning class to be used (Options : 'blend' (default), 'sigmoid', 'incremental'). However, only blend class has been tested. The user can make their own pruning class as well. Refer to Section : Advanced Usage
 3. pruning_type - the type of pruning that we want to incorporate in the network (Options: 'channel' (default), 'n2m', 'prunechannelunstructured', 'unstructured')
-4. global_pruning - whether we want to prune each layer with a different pruning ratio, depending on the spread of weights (Default: False)
+4. pruning_global - whether we want to prune each layer with a different pruning ratio, depending on the spread of weights (Default: False)
 
 
 > This could be incorporated in the training script itself, and model thereafter could be trained as it was getting trained before.

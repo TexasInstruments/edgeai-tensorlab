@@ -22,14 +22,6 @@ class QuantFxBaseModule(torch.nn.Module):
             raise RuntimeError("total_epochs must be provided")
         #
 
-        # replace ReLU6() by ReLU() as torch.ao.quantization currently does not handle ReLU6() correctly
-        # also add a torch.nn.ReLU() incase multiple modules are sharing the same ReLU()
-        replacement_dict = {torch.nn.ReLU6(): torch.nn.ReLU(),
-                            torch.nn.ReLU(): torch.nn.ReLU()}
-
-        from ...surgery import replace_unsupported_layers
-        model = replace_unsupported_layers(model, replacement_dict=replacement_dict)
-
         # split if qconfig is a comma separated list of segments
         # (qconfig will change after some epochs if this has comma separated values)
         if not isinstance(qconfig_type, str):

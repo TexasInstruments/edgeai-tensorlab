@@ -37,6 +37,7 @@ import torch.nn.utils.parametrize as parametrize
 from torch.ao.quantization import quantize_fx
 import copy
 import math
+from fractions import Fraction
 from ... import xnn
 from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, find_all_connected_conv, get_net_weight_node_channel_prune, get_net_weights_all
 
@@ -92,14 +93,16 @@ class IncrementalPruningParametrization(nn.Module):
             alpha_factor = 0
                      
             if self.n2m_pruning: 
+                numerator = Fraction(self.pruning_ratio).limit_denominator().numerator
+                denominator = Fraction(self.pruning_ratio).limit_denominator().denominator
                 # prune 41 elements for every 64 elements (pass 41/64 in the self.pruning_ratio)
                 weight_abs = torch.abs(net_weight)
                 soft_mask = torch.ones_like(net_weight)
-                for i in range(math.ceil(len(net_weight.view(-1))/64)):
-                    start_iter = 64*i
-                    end_iter = min(64*(i+1), len(net_weight.view(-1)))
+                for i in range(math.ceil(len(net_weight.view(-1))/denominator)):
+                    start_iter = denominator*i
+                    end_iter = min(denominator*(i+1), len(net_weight.view(-1)))
                     prune_elements = (self.pruning_ratio)*(self.epoch_count-self.init_train_ep)/(total_epochs_knee_point-self.init_train_ep)
-                    keep_elem_k = min(int((1-prune_elements)*64), end_iter - start_iter)
+                    keep_elem_k = min(int((1-prune_elements)*denominator), end_iter - start_iter)
                     if (keep_elem_k==0) or ((end_iter - start_iter - keep_elem_k)==0):
                         continue    
                     Wh = torch.topk(torch.abs(weight_abs).view(-1)[start_iter:end_iter], k=keep_elem_k, largest=True)
@@ -222,14 +225,15 @@ class SigmoidPruningParametrization(SoftPruningParametrization):
                 
         else:             
             if self.n2m_pruning: 
+                numerator = Fraction(self.pruning_ratio).limit_denominator().numerator
+                denominator = Fraction(self.pruning_ratio).limit_denominator().denominator
                 # prune 41 elements for every 64 elements (pass 41/64 in the self.pruning_ratio)
-                # epoch count is one indexed for some reason, manage according to that
                 weight_abs = torch.abs(net_weight)
-                weight_offseted = torch.ones_like(net_weight)
-                for i in range(math.ceil(len(net_weight.view(-1))/64)):
-                    start_iter = 64*i
-                    end_iter = min(64*(i+1), len(net_weight.view(-1)))
-                    keep_elem_k = min(int((1-self.pruning_ratio)*64), end_iter - start_iter)
+                soft_mask = torch.ones_like(net_weight)
+                for i in range(math.ceil(len(net_weight.view(-1))/denominator)):
+                    start_iter = denominator*i
+                    end_iter = min(denominator*(i+1), len(net_weight.view(-1)))
+                    keep_elem_k = min(int((1-self.pruning_ratio)*denominator), end_iter - start_iter)
                     if (keep_elem_k==0) or ((end_iter - start_iter - keep_elem_k)==0):
                         continue
                     Wh = torch.topk(torch.abs(weight_abs).view(-1)[start_iter:end_iter], k=keep_elem_k, largest=True)
@@ -296,13 +300,15 @@ class BlendPruningParametrization(SoftPruningParametrization):
                 alpha_factor = math.pow(self.epoch_count-total_epochs_knee_point,2)/math.pow(total_epochs_knee_point-self.init_train_ep, 2)
                      
             if self.n2m_pruning: 
+                numerator = Fraction(self.pruning_ratio).limit_denominator().numerator
+                denominator = Fraction(self.pruning_ratio).limit_denominator().denominator
                 # prune 41 elements for every 64 elements (pass 41/64 in the self.pruning_ratio)
                 weight_abs = torch.abs(net_weight)
                 soft_mask = torch.ones_like(net_weight)
-                for i in range(math.ceil(len(net_weight.view(-1))/64)):
-                    start_iter = 64*i
-                    end_iter = min(64*(i+1), len(net_weight.view(-1)))
-                    keep_elem_k = min(int((1-self.pruning_ratio)*64), end_iter - start_iter)
+                for i in range(math.ceil(len(net_weight.view(-1))/denominator)):
+                    start_iter = denominator*i
+                    end_iter = min(denominator*(i+1), len(net_weight.view(-1)))
+                    keep_elem_k = min(int((1-self.pruning_ratio)*denominator), end_iter - start_iter)
                     if (keep_elem_k==0) or ((end_iter - start_iter - keep_elem_k)==0):
                         continue
                     Wh = torch.topk(torch.abs(weight_abs).view(-1)[start_iter:end_iter], k=keep_elem_k, largest=True)
@@ -351,8 +357,8 @@ class BlendPruningParametrization(SoftPruningParametrization):
     
          
 class PrunerModule(torch.nn.Module):
-    def __init__(self, module, pruning_ratio=0.8, total_epochs=10, pruning_class='blend', copy_args=[],
-                 global_pruning=False, pruning_type='channel', init_train_ep=5, *args, **kwargs) -> None:
+    def __init__(self, module, pruning_ratio=None, total_epochs=None, pruning_class='blend', copy_args=[],
+                 pruning_global=False, pruning_type='channel', pruning_init_train_ep=5, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.module = module
         
@@ -360,8 +366,17 @@ class PrunerModule(torch.nn.Module):
         self.pruning_ratio = pruning_ratio
         self.total_epochs = total_epochs
         self.sparsity = 0
-        self.init_train_ep = init_train_ep
+        self.init_train_ep = pruning_init_train_ep
         
+        if pruning_ratio==0:
+            raise RuntimeError("pruning ratio of 0 is not supported , try turning off pruning and trying again")
+        if not(pruning_ratio and total_epochs):
+            raise RuntimeError("pruning ratio and total epochs are necessary to be provided")
+        elif not(pruning_ratio):
+            raise RuntimeError("pruning ratio should be provided")
+        elif not(total_epochs):
+            raise RuntimeError("total epochs should be provided")
+            
         pruning_class_dict = {"blend": BlendPruningParametrization, 
                  "sigmoid": SigmoidPruningParametrization, 
                  "incremental": IncrementalPruningParametrization}
@@ -383,7 +398,7 @@ class PrunerModule(torch.nn.Module):
             self.prunechannelunstructured = True
         elif pruning_type=='unstructured':
             pass
-        self.global_pruning = global_pruning
+        self.global_pruning = pruning_global
         
         if self.channel_pruning:
             # creating the next node list, which contains the connection to all convs to the current conv
@@ -622,8 +637,8 @@ class PrunerModule(torch.nn.Module):
 
 class PrunerQuantModule(PrunerModule):
     def __init__(self, module, pruning_ratio=0.8, total_epochs=10, pruning_class='blend', copy_args=[], quant_backend='qnnpack', 
-                 global_pruning=False, pruning_type='channel', init_train_ep=5, *args, **kwargs) -> None:
-        super().__init__(module, pruning_ratio, total_epochs, pruning_class, copy_args, global_pruning, pruning_type, init_train_ep, *args, **kwargs)
+                 pruning_global=False, pruning_type='channel', pruning_init_train_ep=5, *args, **kwargs) -> None:
+        super().__init__(module, pruning_ratio, total_epochs, pruning_class, copy_args, pruning_global, pruning_type, pruning_init_train_ep, *args, **kwargs)
         
         self.module = nn.Sequential(
             torch.ao.quantization.QuantStub(),
