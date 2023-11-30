@@ -48,13 +48,16 @@ The user can add a single line of code to introduce each of them as shown in the
 
 ## Installation
 
-### pip installation
-> pip3 install "git+https://github.com/TexasInstruments/edgeai-modeloptimization.git#subdirectory=torchmodelopt"
+### Package installation
+Install the package for usage
 
-### Local (editable) Installation
-Install this repository as a local editable Python package (for development) by running setup.sh from the directory torchmodelopt:
+    pip3 install "git+https://github.com/TexasInstruments/edgeai-modeloptimization.git#subdirectory=torchmodelopt"
 
-> ./setup.sh
+### Source Installation
+Install this repository as a local editable Python package (for development)
+
+    cd edgeai-modeloptimization/torchmodelopt
+    ./setup.sh
 
 
 ## User Guides
@@ -64,7 +67,7 @@ Install this repository as a local editable Python package (for development) by 
     import edgeai_torchtoolkit
     # wrap your model in xnn.quantization.QATFxModule. 
     # once it is wrapped, the actual model is in model.module
-    model = edgeai_torchtoolkit.xmodelopt.quantization.v2.QATFxModule(model)
+    model = edgeai_torchtoolkit.xmodelopt.quantization.v2.QATFxModule(model, total_epochs=epochs)
 
 This is the basic usage, the detailed usage for the API is documented in [Quantization](/edgeai-modeloptimization/torchmodelopt/edgeai_torchmodelopt/xmodelopt/quantization/v2/README.md).
 
@@ -74,20 +77,20 @@ This is the basic usage, the detailed usage for the API is documented in [Quanti
     import edgeai_torchtoolkit
     model = edgeai_torchtoolkit.xmodelopt.surgery.v2.convert_to_lite_fx(model)
 
-    # adding custom layers for replacement in surgery
-    import edgeai_torchtoolkit
-    replacement_dict = edgeai_torchtoolkit.xmodelopt.surgery.v2.get_replacement_dict_default()
-    replacement_dict.update({'layerNorm':custom_surgery_functions.replace_layer_norm})
-    model = edgeai_torchtoolkit.xmodelopt.surgery.v2.convert_to_lite_fx(model, replacement_dict=replacement_dict)
+<!-- # adding custom layers for replacement in surgery
+import edgeai_torchtoolkit
+replacement_dict = edgeai_torchtoolkit.xmodelopt.surgery.v2.get_replacement_dict_default()
+replacement_dict.update({'layerNorm':custom_surgery_functions.replace_layer_norm})
+model = edgeai_torchtoolkit.xmodelopt.surgery.v2.convert_to_lite_fx(model, replacement_dict=replacement_dict) -->
 
-This is the basic usage, the detailed usage for the API is documented in [Model Surgery](/edgeai-modeloptimization/torchmodelopt/edgeai_torchmodelopt/xmodelopt/surgery/v2/README.md).
+This is the basic usage, the detailed usage and adding the custom replacement dictionary for the API is documented in [Model Surgery](/edgeai-modeloptimization/torchmodelopt/edgeai_torchmodelopt/xmodelopt/surgery/v2/README.md).
 
 ### Sparsity
 
     from edgeai_torchtoolkit import xmodelopt
     model = xmodelopt.pruning.PrunerModule(model, pruning_ratio=pruning_ratio, total_epochs=epochs, pruning_type=pruning_type)
 
-> Here, desired pruning ratio, total training epochs, and the pruning type (Options : 'channel' (default), 'n2m', 'prunechannelunstructured', 'unstructured') needs to be specified.
+> Here, desired pruning ratio, total training epochs, and the pruning type (Options : 'channel', 'n2m', 'prunechannelunstructured', 'unstructured') needs to be specified.
 
 This is the basic usage, the detailed usage for the API is documented in [Model Sparsity](/edgeai-modeloptimization/torchmodelopt/edgeai_torchmodelopt/xmodelopt/pruning/README.md).
 
@@ -98,6 +101,7 @@ This is the basic usage, the detailed usage for the API is documented in [Model 
 
 
 # FAQ
+
 
 
 # Contributions

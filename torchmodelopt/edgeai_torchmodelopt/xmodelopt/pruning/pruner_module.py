@@ -575,7 +575,7 @@ class PrunerModule(torch.nn.Module):
         num_zeros = 0
         num_elements = 0
         
-        # Make layer wise computionally pruning ratio, overall as well TODO  
+        # Make layer wise computionally pruning ratio, overall as well #TODO  
         
         # if self.channel_pruning:
         #     for module_name, module in self.module.named_modules():

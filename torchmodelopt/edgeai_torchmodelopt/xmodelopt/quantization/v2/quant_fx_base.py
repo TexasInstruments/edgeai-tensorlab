@@ -14,7 +14,7 @@ from . import qconfig
 
 
 class QuantFxBaseModule(torch.nn.Module):
-    def __init__(self, model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qnnpack",
+    def __init__(self, model, qconfig_type=qconfig.QConfigType.DEFAULT, example_inputs=None, is_qat=True, backend="qnnpack",
                  total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
                  qconfig_mode=qconfig.QConfigMode.DEFAULT):
         super().__init__()
