@@ -47,7 +47,7 @@ command="./references/classification/train.py --data-path=./data/datasets/imagen
 --epochs=25 --batch-size=64 --wd=4e-5 --lr=0.0001 --lr-scheduler=cosineannealinglr --lr-warmup-epochs=1 \
 --model=${model} --model-surgery=2 --quantization=0 --quantization-type=WT8SP2_AT8SP2 \
 --train-epoch-size-factor=0.2 --opset-version=18 --val-resize-size=$val_resize_size --val-crop-size=$val_crop_size \
---pruning=2 --pruning-type=channel --global-pruning=0"
+--pruning=2 --pruning-type=channel --pruning-global=0"
 
 # training: single GPU (--device=cuda:0)or CPU (--device=cpu) run
 # python3 ${command} --weights=${model_weights} --output-dir=${output_dir}

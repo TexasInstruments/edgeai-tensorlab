@@ -311,8 +311,8 @@ def main(args):
     if args.pruning == edgeai_torchmodelopt.xmodelopt.pruning.PruningVersion.PRUNING_LEGACY:
         assert False, "Pruning is currently not supported in the legacy modules based method"
     elif args.pruning == edgeai_torchmodelopt.xmodelopt.pruning.PruningVersion.PRUNING_FX: #2
-        model = edgeai_torchmodelopt.xmodelopt.pruning.PrunerModule(model, pruning_ratio=args.pruning_ratio, total_epochs=args.epochs, init_train_ep = args.init_train_ep,
-                                            pruning_class=args.pruning_class, pruning_type=args.pruning_type, global_pruning=args.global_pruning)
+        model = edgeai_torchmodelopt.xmodelopt.pruning.PrunerModule(model, pruning_ratio=args.pruning_ratio, total_epochs=args.epochs, pruning_init_train_ep = args.pruning_init_train_ep,
+                                            pruning_class=args.pruning_class, pruning_type=args.pruning_type, pruning_global=args.pruning_global)
         
     
     if args.quantization == edgeai_torchmodelopt.xmodelopt.quantization.QuantizationVersion.QUANTIZATION_LEGACY:
