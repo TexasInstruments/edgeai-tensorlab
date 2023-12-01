@@ -36,12 +36,13 @@ Torch model optimiation toolkit supports the following major features.
 
 ### Supported Devices
 
+-->
+
 ### Why use our toolkit?
 
-Our toolkit provides the APIs for quantization, surgery as well as sparsity along with multiple torch.nn tools, for user to seemlessly introduce them in their own training code. 
+Our toolkit provides the APIs for quantization, surgery as well as sparsity along with multiple torch.nn tools, for user to seemlessly introduce them in their own training code even for someone having basic knowledge of pytorch. 
 The user can add a single line of code to introduce each of them as shown in the user guides. 
-
--->
+We have tested our algorithms which are the part of the toolkit and have obtained good results as shown in the results section.
 
 
 # Getting Started
@@ -97,11 +98,75 @@ This is the basic usage, the detailed usage for the API is documented in [Model 
 
 
 # Results 
-""" give overview of Different Trained Models and the obtained Accuracies as well as guidelines """
 
+The results are using the torchvision models. The classification models are trained on the imagenet dataset and the detection models are trained using the coco dataset.
+
+## Model Surgery
+
+We use the default dictionary for model surgery. Here are the classification model results. 
+
+| Models        | Torchvision Accuracy          | Lite Model Accuracy   |
+| ------------- |:-------------:    | :-----:                |
+| MobileNet_V3_Large_Weights.IMAGENET1K_V2  | 75.274    | 71.7                 |
+| MobileNet_V2_Weights.IMAGENET1K_V2     | 72.154         |   72.88                 |
+| ResNet18_Weights.IMAGENET1K_V1 | 69.758          |    69.758                 |
+| ResNet50_Weights.IMAGENET1K_V2 | 80.9 | 80.9|
+| ResNet101_Weights.IMAGENET1K_V2 | 81.9 | 81.9|
+| ResNeXt50_32X4D_Weights.IMAGENET1K_V2 | 81.2 | 81.2 | 
+| ResNeXt101_32X8D_Weights.IMAGENET1K_V2 | 82.83 | 82.83 |
+| RegNet_X_400MF_Weights.IMAGENET1K_V2 | 74.86 | 74.86 | 
+| RegNet_X_800MF_Weights.IMAGENET1K_V2 | 77.52 | 77.52 |
+| RegNet_X_1_6GF_Weights.IMAGENET1K_V2 | 79.67 | 79.67 |
+
+Here are the object detection model results.
+
+| Models        |  Accuracy          | Lite Model Accuracy   |
+| ------------- |:-------------:    | :-----:                |
+| yolov5_nano  | 28.0    | 25.1                 |
+| yolov5_small     | 37.7         |   35.5                |
+| yolov7_tiny | 37.5          |    36.7                 |
+| yolov8_nano | 37.2 | 34.5|
+| yolov8_small | 44.2 | 42.4|
+
+
+## Quantization
+
+| Models        |  Accuracy          | Quantized Model Accuracy   |
+| ------------- |:-------------:    | :-----:                |
+| MobileNetv2  | 71.88 | 70.37           |
+| ResNet50     | 76.13         |   76.02               |
+
+
+## Model Sparsity
+
+We here show results on pruning the network with n:m pruning and channel pruning using our blending based pruning algorithm.
+
+Here are the results on 41:64 (n:m) pruning, that comes up to 0.640625 pruning ratio.
+
+| Models        |  Accuracy          | Pruned Model Accuracy   |
+| ------------- |:-------------:    | :-----:                |
+| MobileNetv2  | 71.88 | 70.37           |
+| ResNet50     | 76.13         |   76.02               |
+
+
+Below are the results with networks having 30 \% channel sparsity. These networks could give upto 50% FLOP reduction and double the speedup. 
+
+| Models        |  Accuracy          | Pruned Model Accuracy   |
+| ------------- |:-------------:    | :-----:                |
+| MobileNetv2  | 71.88 | 64.64          |
+| ResNet50     | 76.13         |   74.07              |
 
 # FAQ
 
+Question 1: I am getting error "RuntimeError: Expected to have finished reduction in the prior iteration before starting a new one. This error indicates that your module has parameters that were not used in producing loss." while training.
+
+> Solution 1: Try setting 'find_unused_parameters=True' while wrapping the model in torch.nn.parallel.DistributedDataParallel. 
+
+Question 2: Can I use different parts of the toolkit together?
+
+> Solution 2: Surgery currently works with both sparsity and quantization individually, but sparsity together with quantization is cyrrently not supported. It will be made available soon. 
 
 
 # Contributions
+
+In case of any queries, you can directly contact [parakh08](https://github.com/parakh08) on p-agarwal@ti.com or [mathmanu](https://github.com/mathmanu) on mathew.manu@ti.com .
