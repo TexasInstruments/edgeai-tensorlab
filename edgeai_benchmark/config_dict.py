@@ -52,7 +52,7 @@ class ConfigDict(utils.AttrDict):
         # execution pipeline type - currently only accuracy pipeline is defined
         self.pipeline_type = 'accuracy'
         # number of frames for inference
-        self.num_frames = 10000 #50000
+        self.num_frames = 1000 #10000 #50000
         # number of frames to be used for post training quantization / calibration
         self.calibration_frames = 25 #50
         # number of iterations to be used for post training quantization / calibration
