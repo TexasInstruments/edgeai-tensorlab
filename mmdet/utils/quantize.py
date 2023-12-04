@@ -26,7 +26,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# edgeai_xvision is installed by the setup of https://github.com/TexasInstruments/edgeai-torchvision 
 import edgeai_torchmodelopt
 
 

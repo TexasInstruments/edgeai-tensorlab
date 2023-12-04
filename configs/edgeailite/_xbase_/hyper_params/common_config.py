@@ -1,12 +1,12 @@
 cudnn_benchmark = True
 
 # replace torch.nn.functional.interpolate with edgeai_torchmodelopt.xnn.layers.resize_with_scale_factor
-# torchvision.edgeailite requires edgeai-torchvision to be installed
+# edgeai_torchmodelopt needs to be installed from edgeai-modeloptimization
 resize_with_scale_factor = True
 
 # replace complex activation functions with ReLU.
 # Also replace regular convolutions with depthwise-separable convolutions.
-# torchvision.edgeailite requires edgeai-torchvision to be installed
+# edgeai_torchmodelopt needs to be installed from edgeai-modeloptimization
 # Note: this has now n
 # convert_to_lite_model = dict(group_size_dw=1)
 

@@ -16,7 +16,7 @@ img_norm_cfg = dict(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], to_rgb=False)
 
 # replace complex activation functions with ReLU.
 # Also replace regular convolutions with depthwise-separable convolutions.
-# torchvision.edgeailite requires edgeai-torchvision to be installed
+# edgeai_torchmodelopt needs to be installed from edgeai-modeloptimization
 convert_to_lite_model = dict(group_size_dw=None)
 
 _base_ = [
