@@ -44,7 +44,7 @@ from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_c
 class IncrementalPruningParametrization(nn.Module):
     # incrementally a portion of weights are completely zeroed out every epoch
     def __init__(self, curr_node, modules, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False,  
-                 init_train_ep=5, net_weights = None, binary_mask=False, tao=1e-4, *args, **kwargs):
+                 init_train_ep=5, net_weights = None, binary_mask=False, tao=1e-4, **kwargs):
         super().__init__()
         
         self.curr_node = curr_node
@@ -157,7 +157,7 @@ class IncrementalPruningParametrization(nn.Module):
 class SoftPruningParametrization(nn.Module):
     # Parametrization technique where the weights are not completely zeroed out, however, they are pruned to zero incrementally with every epoch
     def __init__(self, curr_node, modules, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False,  
-                 init_train_ep=5, net_weights = None, binary_mask=False, tao=1e-4, *args, **kwargs):
+                 init_train_ep=5, net_weights = None, binary_mask=False, tao=1e-4, **kwargs):
         super().__init__()        
         
         # if there is batchnorm after the conv layer, then we will be using the net weight which is the combination of both batchnorm and conv to find the net weight
@@ -359,8 +359,8 @@ class BlendPruningParametrization(SoftPruningParametrization):
          
 class PrunerModule(torch.nn.Module):
     def __init__(self, module, pruning_ratio=None, total_epochs=None, pruning_class='blend', copy_args=[],
-                 pruning_global=False, pruning_type='channel', pruning_init_train_ep=5, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+                 pruning_global=False, pruning_type='channel', pruning_init_train_ep=5, pruning_m=None, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.module = module
         
         self.epoch_count = 0
@@ -401,11 +401,10 @@ class PrunerModule(torch.nn.Module):
             pass
         self.global_pruning = pruning_global
         
-        if self.n2m_pruning:
-            if "m" not in kwargs:
-                raise RuntimeError("The value of m should be provided in case of n:m pruning")
-            else:
-                self.m = kwargs.get("m")
+        if pruning_m is None:
+            raise RuntimeError("The value of m should be provided in case of n:m pruning")
+        else:
+            self.m = pruning_m
         
         if self.channel_pruning:
             # creating the next node list, which contains the connection to all convs to the current conv
@@ -631,8 +630,8 @@ class PrunerModule(torch.nn.Module):
 
 class PrunerQuantModule(PrunerModule): # still under development
     def __init__(self, module, pruning_ratio=0.8, total_epochs=10, pruning_class='blend', copy_args=[], quant_backend='qnnpack', 
-                 pruning_global=False, pruning_type='channel', pruning_init_train_ep=5, *args, **kwargs) -> None:
-        super().__init__(module, pruning_ratio, total_epochs, pruning_class, copy_args, pruning_global, pruning_type, pruning_init_train_ep, *args, **kwargs)
+                 pruning_global=False, pruning_type='channel', pruning_init_train_ep=5, **kwargs) -> None:
+        super().__init__(module, pruning_ratio, total_epochs, pruning_class, copy_args, pruning_global, pruning_type, pruning_init_train_ep, **kwargs)
         
         self.module = nn.Sequential(
             torch.ao.quantization.QuantStub(),
