@@ -2,3 +2,4 @@
 -r requirements/optional.txt
 -r requirements/runtime.txt
 -r requirements/tests.txt
+git+https://github.com/TexasInstruments/edgeai-modeloptimization.git@r9.1#subdirectory=torchmodelopt
