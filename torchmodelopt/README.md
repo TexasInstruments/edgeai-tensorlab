@@ -1,5 +1,26 @@
 # EdgeAI Torch Model Optimization Toolkit
 
+## Table of contents
+1. [Introduction](#introduction)
+2. [Overview](#overview)
+    1. [Quantization](#quantization)
+    2. [Model Surgery](#model-surgery)
+    3. [Sparsity](#sparsity)
+    4. [Model Utilities](#model-utilities)
+3. [Getting Started](#getting-started)
+    1. [Installation](#installation)
+    2. [User Guides](#user-guides)
+        1. [Quantization](#quantization-1)
+        2. [Model Surgery](#model-surgery-1)
+        3. [Sparsity](#sparsity-1)
+4. [Results](#results)
+    1. [Model Surgery](#model-surgery-2)
+    2. [Quantization](#quantization-2)
+    3. [Sparsity](#sparsity-2)
+5. [FAQ](#faq)
+6. [Contributors](#contributors) 
+
+
 ## Introduction
 Tools to help development of Embedded Friendly Deep Neural Network Models in [Pytorch](https://pytorch.org) we call these **model optimization tools**. This contains [xmodelopt](./edgeai_torchmodelopt/xmodelopt) which is our extension of [torch.ao](https://github.com/pytorch/pytorch/tree/main/torch/ao) model architecture optimization tools. These are tools to make models more efficient and embedded friendly. <br>
 
@@ -19,9 +40,7 @@ Torch model optimiation toolkit supports the following major features.
 - Legacy Model surgery tool (v1): [edgeai_torchmodelopt.xmodelopt.surgery.v1](./edgeai_torchmodelopt/xmodelopt/surgery/v1) - Our legacy implementation of Model surgery using **torch.nn** modules.<br>
 
 ### Sparsity:
-
-- Prune/sparsify a model: [edgeai_torchmodelopt.xmodelopt.pruning](./edgeai_torchmodelopt/xmodelopt/pruning) - Both structured and unstructured pruning is supported. Structured pruning includes N:M pruning and channel pruning. Here, we provide with a few parametrization techniques, and the user can bring their own technique as well and implement as a part of the toolkit.
-<br>
+- Prune/sparsify a model: [edgeai_torchmodelopt.xmodelopt.pruning](./edgeai_torchmodelopt/xmodelopt/pruning) - Both structured and unstructured pruning is supported. Structured pruning includes N:M pruning and channel pruning. Here, we provide with a few parametrization techniques, and the user can bring their own technique as well and implement as a part of the toolkit.<br>
 
 - Channel Sparsity uses torch.fx to find the connections and obtain a smaller network after the training with induced sparsity finishes. 
 
@@ -38,7 +57,7 @@ Torch model optimiation toolkit supports the following major features.
 
 -->
 
-### Why use our toolkit?
+## Why use our toolkit?
 
 Our toolkit provides the APIs for quantization, surgery as well as sparsity along with multiple torch.nn tools, for user to seemlessly introduce them in their own training code even for someone having basic knowledge of pytorch. 
 The user can add a single line of code to introduce each of them as shown in the user guides. 
@@ -91,7 +110,7 @@ This is the basic usage, the detailed usage and adding the custom replacement di
     from edgeai_torchmodelopt import xmodelopt
     model = xmodelopt.pruning.PrunerModule(model, pruning_ratio=pruning_ratio, total_epochs=epochs, pruning_type=pruning_type)
 
-> Here, desired pruning ratio, total training epochs, and the pruning type (Options : 'channel', 'n2m', 'prunechannelunstructured', 'unstructured') needs to be specified.
+> Here, desired pruning ratio(ex. 0.6), total training epochs, and the pruning type (Options : 'channel', 'n2m', 'prunechannelunstructured', 'unstructured') needs to be specified.
 
 This is the basic usage, the detailed usage for the API is documented in [Model Sparsity](./edgeai_torchmodelopt/xmodelopt/pruning/README.md).
 
@@ -142,7 +161,8 @@ Following are the results of 8 bit quantization of torchvision models and their 
 
 Here are the results on pruning the network with n:m pruning and channel pruning using our blending based pruning algorithm.
 
-Below are the results with networks having 30% channel sparsity. These networks could give upto 50% FLOP reduction and double the speedup. 
+Below are the results with networks having 30% channel sparsity. These networks could give upto 50% FLOP reduction and double the speedup.
+After obtaining 30% channel sparsity, only 70% of the channels remain and the operations (MACs) are dependant on the square of the parameters. Thus, 49% of the operations remain and thus would lead to 51% FLOP reduction.
 
 | Models        |  Accuracy          | Pruned Model Accuracy   |
 | ------------- |:-------------:    | :-----:                |
@@ -168,6 +188,10 @@ Question 1: I am getting error "RuntimeError: Expected to have finished reductio
 Question 2: Can I use different parts of the toolkit together?
 
 > Solution 2: Surgery currently works with both sparsity and quantization individually, but sparsity together with quantization is cyrrently not supported. It will be made available soon. 
+
+Question 3: I am seeing a huge drop in accuracy while training when using multi-gpu configuration.
+
+> Solution 3: Some configurations are seeing that, however, after the training, the model will be able to give the desired accuracy, otherwise single-gpu configuration could be used. 
 
 
 # Contributors
