@@ -423,6 +423,7 @@ class PrunerModule(torch.nn.Module):
         for copy_arg in copy_args:
             setattr(self, copy_arg, getattr(module, copy_arg))
             
+        # to get net weights for each of the layers, incorporating all the required dependancies
         self.net_weights = get_net_weights_all(module, self.next_conv_node_list, self.all_connected_nodes, self.next_bn_nodes, self.channel_pruning, self.global_pruning)
         
         if self.global_pruning:
@@ -452,7 +453,7 @@ class PrunerModule(torch.nn.Module):
         pruning_ratio = dict()
         idx_iter = 0
         total_params = 0
-        limit_factor=0.7
+        limit_factor=0.7 # to not prune a layer with more than limit_factor*100% of its weights
         for node in model_graph.nodes:
             if node.target=='output':
                 continue
@@ -502,7 +503,7 @@ class PrunerModule(torch.nn.Module):
         pruning_ratio = dict()
         idx_iter = 0
         total_params = 0
-        max_prune = 0.8
+        max_prune = 0.8 # to not prune a layer with more than max_prune*100% of its channels
         for node in model_graph.nodes:
             if node.target=='output':
                 continue
@@ -524,8 +525,8 @@ class PrunerModule(torch.nn.Module):
       
     def train(self, mode: bool = True):
         super().train(mode)
-        if mode:
-            self.remove_parametrization(leave_parameterized=False)
+        if mode: #train mode
+            self.remove_parametrization(leave_parameterized=False) # we do not want to keep the old mask, rest of the weights are adjusted according to this one
             self.epoch_count += 1
             self.insert_parametrization()
             
@@ -541,6 +542,7 @@ class PrunerModule(torch.nn.Module):
         return self.module(*args, **kwargs)
         
     def insert_parametrization(self, binary_mask=False):
+        # for each of the nodes/layers, we calculate the parametrization/ mask and then register it over the weights and biases
         
         if isinstance(self.module, torch.fx.GraphModule): # the QAT model is already a graph and thus cannnot be traced
             fx_model = self.module
@@ -577,10 +579,10 @@ class PrunerModule(torch.nn.Module):
                                     parametrize.register_parametrization(modules[self.next_bn_nodes[n_id.target].target], "weight", parameterization) 
                                     parametrize.register_parametrization(modules[self.next_bn_nodes[n_id.target].target], "bias", parameterization)
                         
-
         return self
     
     def remove_parametrization(self, leave_parameterized=True):
+        # leave_parametrized=False would leave the original parameter instead of the parametrized parameter
         for module_name, module in self.module.named_modules():
             if isinstance(module, (torch.nn.Conv2d, torch.nn.Linear, torch.nn.BatchNorm2d)):
                 if parametrize.is_parametrized(module, 'weight'):
@@ -627,7 +629,7 @@ class PrunerModule(torch.nn.Module):
         return self
 
 
-class PrunerQuantModule(PrunerModule):
+class PrunerQuantModule(PrunerModule): # still under development
     def __init__(self, module, pruning_ratio=0.8, total_epochs=10, pruning_class='blend', copy_args=[], quant_backend='qnnpack', 
                  pruning_global=False, pruning_type='channel', pruning_init_train_ep=5, *args, **kwargs) -> None:
         super().__init__(module, pruning_ratio, total_epochs, pruning_class, copy_args, pruning_global, pruning_type, pruning_init_train_ep, *args, **kwargs)

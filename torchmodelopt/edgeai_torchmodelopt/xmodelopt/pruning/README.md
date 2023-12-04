@@ -31,7 +31,7 @@ Pruner wrapper can be directly wrapped around your model while training, which a
     from edgeai_torchmodelopt import xmodelopt
     model = xmodelopt.pruning.PrunerModule(model, pruning_ratio=args.pruning_ratio, total_epochs=args.epochs, 
                             pruning_init_train_ep = args.pruning_init_train_ep, pruning_class=args.pruning_class, 
-                            pruning_type=args.pruning_type, pruning_global=args.pruning_global)
+                            pruning_type=args.pruning_type, pruning_global=args.pruning_global, pruning_m=args.pruning_m)
 
 Here, we need to specify : 
 
@@ -50,9 +50,9 @@ We can also specify the following, depepnding on the use case :
     - prunechannelunstructured : Here, the pruning ratio is maintained for each layers of the network, however, within the layer, there is no structure
     - unstructured : This is unstructured pruning across the whole model
 - pruning_global - whether we want to prune each layer with a different pruning ratio, depending on the spread of weights (Default: False)
+- pruning_m - the value of "m" in case of n:m pruning. This needs to be provided along with the pruning ratio.
 
-
-> This could be incorporated in the training script itself, and model thereafter could be trained as it was getting trained before.
+> This could be incorporated in the training script itself, and model thereafter could be trained as it was getting trained before to achieve the desired sparsity
 
 
 <!-- ## Advanced Usage 

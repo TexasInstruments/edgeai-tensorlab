@@ -103,7 +103,7 @@ The results are using the torchvision models. The classification models are trai
 
 ## Model Surgery
 
-We use the default dictionary for model surgery. Here are the classification model results. 
+We use the default dictionary for model surgery. Here are the classification model results. The models that we obtain after the model surgery are called as lite models.
 
 | Models        | Torchvision Accuracy          | Lite Model Accuracy   |
 | ------------- |:-------------:    | :-----:                |
@@ -131,10 +131,12 @@ Here are the object detection model results.
 
 ## Quantization
 
+Here, we show results on quantizing the mobilenetv2 and resnet50 models from float 32 bit, to int 8 bit. We see a marginal drop in accuracy for these networks. The networks are trained on imagenet dataset using the torchvision training package.
+
 | Models        |  Accuracy          | Quantized Model Accuracy   |
 | ------------- |:-------------:    | :-----:                |
-| MobileNetv2  | 71.88 | 70.37           |
-| ResNet50     | 76.13         |   76.02               |
+| MobileNetv2-lite  | 72.938 | 72.476           |
+| ResNet50     | 76.13         |   75.052              |
 
 
 ## Model Sparsity
@@ -155,6 +157,8 @@ Below are the results with networks having 30 \% channel sparsity. These network
 | ------------- |:-------------:    | :-----:                |
 | MobileNetv2  | 71.88 | 64.64          |
 | ResNet50     | 76.13         |   74.07              |
+
+<h3> > The results obtained are preliminary results, and have scope for optimizations. </h3>
 
 # FAQ
 
