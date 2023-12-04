@@ -1,8 +1,11 @@
 # EdgeAI-MMDetection
 
-### Notice
+### Notice 1
 - If you have not visited the landing page of at https://github.com/TexasInstruments/edgeai, please do so before attempting to use this repository. We skip most of the introduction in this repository.
 - This repository is located in Github at: https://github.com/TexasInstruments/edgeai-torchvision
+
+### Notice 2
+- The scripts in this repository use Model Optimization Tools in edgeai-modeloptimization. It is installed during pip install using requirements.txt file - so there is no need to clone it, unless you want to modify it.
 
 <hr>
 
