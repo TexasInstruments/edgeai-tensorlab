@@ -70,7 +70,7 @@ Install this repository as a local editable Python package (for development)
     # once it is wrapped, the actual model is in model.module
     model = edgeai_torchmodelopt.xmodelopt.quantization.v2.QATFxModule(model, total_epochs=epochs)
 
-This is the basic usage, the detailed usage for the API is documented in [Quantization](./edgeai_torchmodelopt/xmodelopt/quantization/v2/README.md).
+The details of the quantization is available at [quantization landing page](./edgeai_torchmodelopt/xmodelopt/quantization/v2/README.md) and user guide for the QAT API is documented in [QAT](./edgeai_torchmodelopt/xmodelopt/quantization/v2/docs/qat.md).
 
 ### Model Surgery
 
