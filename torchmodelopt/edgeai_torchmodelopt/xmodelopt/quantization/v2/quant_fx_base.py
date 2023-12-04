@@ -14,21 +14,13 @@ from . import qconfig
 
 
 class QuantFxBaseModule(torch.nn.Module):
-    def __init__(self, model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qnnpack",
+    def __init__(self, model, qconfig_type=qconfig.QConfigType.DEFAULT, example_inputs=None, is_qat=True, backend="qnnpack",
                  total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
                  qconfig_mode=qconfig.QConfigMode.DEFAULT):
         super().__init__()
         if not total_epochs:
             raise RuntimeError("total_epochs must be provided")
         #
-
-        # replace ReLU6() by ReLU() as torch.ao.quantization currently does not handle ReLU6() correctly
-        # also add a torch.nn.ReLU() incase multiple modules are sharing the same ReLU()
-        replacement_dict = {torch.nn.ReLU6(): torch.nn.ReLU(),
-                            torch.nn.ReLU(): torch.nn.ReLU()}
-
-        from ...surgery import replace_unsupported_layers
-        model = replace_unsupported_layers(model, replacement_dict=replacement_dict)
 
         # split if qconfig is a comma separated list of segments
         # (qconfig will change after some epochs if this has comma separated values)

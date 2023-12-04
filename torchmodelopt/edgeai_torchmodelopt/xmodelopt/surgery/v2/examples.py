@@ -34,7 +34,7 @@ from torch.fx import symbolic_trace
 import copy
 import math
 
-from edgeai_torchtoolkit.v2.toolkit import xmodelopt
+from edgeai_torchmodelopt import xmodelopt
 
 
 class AddModule(nn.Module):

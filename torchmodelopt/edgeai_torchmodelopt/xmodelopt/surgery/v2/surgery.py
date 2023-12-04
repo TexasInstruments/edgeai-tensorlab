@@ -62,6 +62,7 @@ _unsupported_module_dict={
     nn.ReLU(inplace=True):nn.ReLU(),
     nn.Hardswish():nn.ReLU(),
     nn.ReLU6():nn.ReLU(),
+    nn.ReLU():nn.ReLU(), # check if it might be required for QAT, if ranges are different #TODO
     nn.GELU():nn.ReLU(),
     nn.SiLU():nn.ReLU(),
     nn.Hardsigmoid():nn.ReLU(),

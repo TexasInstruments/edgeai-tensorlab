@@ -35,8 +35,8 @@ import torch.fx as fx
 import torch.nn as nn
 
 def find_in_node(orig_node, curr_node, modules, next_conv_node_list):
-    # recursive call to find the related conv layers to the orig conv layer
-    condn = (curr_node.target!='output') and isinstance(curr_node.target, str)  and isinstance(modules[curr_node.target], torch.nn.Conv2d)
+    # recursive call to find the related conv layers to the orig conv layer in its users (below layers)
+    condn = (curr_node.target!='output') and isinstance(curr_node.target, str) and (curr_node.target in modules) and isinstance(modules[curr_node.target], torch.nn.Conv2d)
     if condn and (curr_node.target in modules) and curr_node!=orig_node:
         if modules[curr_node.target].in_channels == modules[orig_node.target].out_channels:
             next_conv_node_list[orig_node.target].append(curr_node)
@@ -65,7 +65,7 @@ def create_bn_conv_mapping(module):
             continue
         if node.args and isinstance(node.target, str) and (node.target in modules):
             if isinstance(modules[node.target], torch.nn.BatchNorm2d):
-                if len(node.args[0].users)>1: # dont merge if conv has multiple users
+                if len(node.args[0].users)>1 or (node.args[0].target not in modules) : # dont merge if conv has multiple users or there is no connected conv
                     continue
                 if isinstance(modules[node.args[0].target], torch.nn.Conv2d):
                     next_bn_nodes[node.args[0].target] = node

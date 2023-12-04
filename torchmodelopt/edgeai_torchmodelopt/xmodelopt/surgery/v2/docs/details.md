@@ -391,7 +391,7 @@ Here, we are changing GeLU with ReLU which can be done with pair pattern(GeLU) p
 [<p align = 'right'>Go To Top</p>](#table-of-content)
 
 ---
-As previously said in section [Main API (Usages)](#main-api-usages), this API provides user with following functionalities in [surgery.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse/edgeai_torchtoolkit/v2/xmodelopt/surgery/surgery.py):
+As previously said in section [Main API (Usages)](#main-api-usages), this API provides user with following functionalities in [surgery.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse//v2/xmodelopt/surgery/surgery.py):
 
 - [get_replacement_dict_default](#get_replacement_dict_default)
 - [replace_unsupported_layer function](#replace_unsupported_layers-function)
@@ -479,9 +479,9 @@ Possible candidate for change:<br>
 | nn.GeLU()		  | nn.ReLU()     |
 
 
-All this functionalities are availabe in [replacer.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse/edgeai_torchtoolkit/v2/xmodelopt/surgery/replacer.py) file which will be discussed later.
+All this functionalities are availabe in [replacer.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse//v2/xmodelopt/surgery/replacer.py) file which will be discussed later.
 
-For patterns and Replacements which are composite models, some of them are defiend in [custom_modules.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse/edgeai_torchtoolkit/v2/xmodelopt/surgery/custom_.py) file.
+For patterns and Replacements which are composite models, some of them are defiend in [custom_modules.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse//v2/xmodelopt/surgery/custom_.py) file.
 
 <center><table>
 <tr>
@@ -580,7 +580,7 @@ Users also can add their own surgery functions that will return the changed mode
         <th><b>Conv2D with kernel_size = 7  to equivalent series of Conv2D with kernel_size = 3 and a Conv2D with kernel_size = 5 </b></th>
         <th><b>Change in ONNX export of the model</b></th>
         </tr></table></center>
-Example for these custom functions are available in [custom_surgery_functions.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse/edgeai_torchtoolkit/v2/xmodelopt/surgery/custom_surgery_functions.py)
+Example for these custom functions are available in [custom_surgery_functions.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse//v2/xmodelopt/surgery/custom_surgery_functions.py)
 
 ---
 ## Other Module Components
@@ -593,7 +593,7 @@ This repository contains 3 functionality files except main API file:
 2. [custom_modules.py](#custom_modulespy)
 3. [custom_surgery_function.py](#custom_surgery_functionspy)
 
-### [replacer.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse/edgeai_torchtoolkit/v2/xmodelopt/surgery/replacer.py)
+### [replacer.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse//v2/xmodelopt/surgery/replacer.py)
 
 This file contains all the functions used generic surgery method [replacement type 1 Module to Module Change](#replacement-type-1-module-to-module-change) which are listed below:
 
@@ -675,7 +675,7 @@ and [replacement type 3 function to type/module change](#replacement-type-3-func
 >- [Replacement type 1 module to module change](#replacement-type-1-module-to-module-change) uses [graph_pattern_replacer](#graph_pattern_replacer) function to call rest of the functions for its replacement.
 >- For understanding those function utilities user can refer to the corresponding [type of replacement rules](#different-types-of-possible-replacement-rules). 
 
-### [custom_surgery_functions.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse/edgeai_torchtoolkit/v2/xmodelopt/surgery/custom_surgery_functions.py)
+### [custom_surgery_functions.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse//v2/xmodelopt/surgery/custom_surgery_functions.py)
 
 This modules contain all custom made surgery function which can't be done in generic process with current development of the project.All of these function can be used in [replacement type 5 custom surgery function](#replacement-type-5-custom-surgery-function) so user can refer for their utilities and examples.
 
@@ -712,7 +712,7 @@ The functions are listed below:
 #### **remove_identiy**
 - removes nn.Identity() nodes.
 
-### [custom_modules.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse/edgeai_torchtoolkit/v2/xmodelopt/surgery/custom_modules.py)
+### [custom_modules.py](https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modeltoolkit/browse//v2/xmodelopt/surgery/custom_modules.py)
 
 This file serves as a pool of custom made modules for all other files which can be used as pattern or replacement models. The models are listed below:
 
