@@ -12,7 +12,7 @@ If you have not visited the following landing pages, please do so before attempt
 ### Documentation
 [EdgeAIK-TorchModelOpt Documentation](./torchmodelopt/README.md) - Tools and utilities to help the development of Embedded Friendly Deep Neural Network Models in [Pytorch](https://pytorch.org) - we call these **model optimization tools**.
 
-### Installation Instructions
+<!-- ### Installation Instructions
 
 #### pip installation
 pip3 install "git+https://github.com/TexasInstruments/edgeai-modeloptimization.git#subdirectory=torchmodelopt"
@@ -22,4 +22,4 @@ Install this repository as a local editable Python package (for development) by 
 ```
 cd torchmodelopt
 ./setup.sh
-```
+``` -->
