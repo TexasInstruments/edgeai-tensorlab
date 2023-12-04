@@ -60,6 +60,7 @@ def prune_layer_names(in_model_path, out_model_path, opset_version=11, updateGra
         while(tidlIsNodeOutputNameUsedInGraph(originalGraph, nodeIdx)):
             nodeIdx += 1
         newName = str(nodeIdx).encode('utf-8')
+        originalGraph.node[node1].name = newName
 
         for node2 in range(len(originalGraph.node)):
             for inputIdx in range(len(originalGraph.node[node2].input)):
