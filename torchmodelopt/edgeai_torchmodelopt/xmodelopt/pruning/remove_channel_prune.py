@@ -39,9 +39,7 @@ import copy
 model = torchvision.models.mobilenet_v2()
 # model = torchvision.models.resnet50()
 current_model_dict = model.state_dict()
-model_path = '/home/a0491009/pruning/edgeai-torchvision/data/checkpoints/20232010_123521_imagenet_classification_mobilenet_v2/model_79.pth'
-# model_path = '/home/a0491009/pruning/edgeai-torchvision/data/checkpoints/20231910_102016_imagenet_classification_mobilenet_v2/model_79.pth'
-# model_path = "/home/a0491009/pruning/edgeai-torchvision/data/checkpoints/20231008_181902_imagenet_classification_mobilenet_v2/model_5.pth"
+model_path = './data/checkpoints/20232010_123521_imagenet_classification_mobilenet_v2/model_79.pth'
 state_dict = torch.load(model_path)
 state_dict = state_dict['model']
 

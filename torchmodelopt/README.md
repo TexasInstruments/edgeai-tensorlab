@@ -22,10 +22,10 @@
 
 
 ## Introduction
-Tools to help development of Embedded Friendly Deep Neural Network Models in [Pytorch](https://pytorch.org) we call these **model optimization tools**. This contains [xmodelopt](./edgeai_torchmodelopt/xmodelopt) which is our extension of [torch.ao](https://github.com/pytorch/pytorch/tree/main/torch/ao) model architecture optimization tools. These are tools to make models more efficient and embedded friendly. <br>
+Tools to help development of Embedded Friendly Deep Neural Network Models in [Pytorch](https://pytorch.org). We call these **model optimization tools** because they help in making the models more efficient. This contains [xmodelopt](./edgeai_torchmodelopt/xmodelopt) which is our extension of [torch.ao](https://github.com/pytorch/pytorch/tree/main/torch/ao) model architecture optimization tools. <br>
 
 ## Overview
-Torch model optimiation toolkit supports the following major features.
+Torch model optimization toolkit supports the following major features.
 
 ### Quantization:
 
@@ -35,7 +35,7 @@ Torch model optimiation toolkit supports the following major features.
 
 ### Model Surgery:
 
-- **Latest Model surgery tool (v2)**: [edgeai_torchmodelopt.xmodelopt.surgery.v2](./edgeai_torchmodelopt/xmodelopt/surgery/v2) - Easily replace layers (Modules, operators, functional) with other layers without modifying the model code. Easily replace unsupported layers (in a certain SoC) with other supported layers; create embedded friendly models. This uses torch.fx based surgery to handle models that uses torch modules, operators and functionals. (Compared to this, legacy surgery using **torch.nn** can only handle modules)<br>
+- **Latest Model surgery tool (v2)**: [edgeai_torchmodelopt.xmodelopt.surgery.v2](./edgeai_torchmodelopt/xmodelopt/surgery/v2) - Easily replace layers (Modules, operators, functional) which could also include SOC specific unsupported layers with other layers without modifying the model code to create embedded friendly models. This uses torch.fx based surgery to handle models that uses torch modules, operators and functionals. (Compared to this, legacy surgery using **torch.nn** can only handle modules)<br>
 
 - Legacy Model surgery tool (v1): [edgeai_torchmodelopt.xmodelopt.surgery.v1](./edgeai_torchmodelopt/xmodelopt/surgery/v1) - Our legacy implementation of Model surgery using **torch.nn** modules.<br>
 
@@ -47,6 +47,7 @@ Torch model optimiation toolkit supports the following major features.
 ### Model Utilities:
 
 - This package also contains edgeai_torchmodelopt.xnn which is our extension of torch.nn neural network model utilities. This is for advanced users and contains several undocumented utilities.
+########################################################## EXPLAIN MORE
 
 > ## Note
 > The Quantization and Model Surgery tools are available in both (v1 and v2), but their interfaces and functionality are slightly different. We recommend to use the latest version (torch.fx based v2) tools whenever possible, but there may be situations in which legacy tools may be useful. For example the QAT models from torch.fx will be supported in TIDL only from the 9.1 release (November 2023). <br> <br>
@@ -193,6 +194,9 @@ Question 3: I am seeing a huge drop in accuracy while training when using multi-
 
 > Solution 3: Some configurations are seeing that, however, after the training, the model will be able to give the desired accuracy, otherwise single-gpu configuration could be used. 
 
+Question 4: I am getting RuntimeError: Only Tensors created explicitly by the user (graph leaves) support the deepcopy protocol at the moment.
+
+> Solution 4: copy.deepcopy(model) is not supported while training and the training code might have it. It needs to be diabled and same model needs to be used. Make sure to keep the the model on same device though to enable training.
 
 # Contributors
 
