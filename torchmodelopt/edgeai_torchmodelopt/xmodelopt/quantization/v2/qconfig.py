@@ -131,7 +131,7 @@ _QCONFIG_TYPE_TO_DICT[QConfigType.WC4R4_AT4R4] = QConfig(
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveRangeRestricted4LowBITActivationObserver))
 
 ###########
-_QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WT8SP2_AT8SP2]
+_QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8]
 
 # Note: get_default_qat_qconfig from pytorch uses fused_moving_avg_obs_fake_quant and that cannot be exported to onnx
 #_QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = get_default_qat_qconfig()

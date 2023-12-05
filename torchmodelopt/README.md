@@ -40,7 +40,9 @@ Torch model optimization toolkit supports the following major features.
 - Legacy Model surgery tool (v1): [edgeai_torchmodelopt.xmodelopt.surgery.v1](./edgeai_torchmodelopt/xmodelopt/surgery/v1) - Our legacy implementation of Model surgery using **torch.nn** modules.<br>
 
 ### Sparsity:
-- Prune/sparsify a model: [edgeai_torchmodelopt.xmodelopt.pruning](./edgeai_torchmodelopt/xmodelopt/pruning) - Both structured and unstructured pruning is supported. Structured pruning includes N:M pruning and channel pruning. Here, we provide with a few parametrization techniques, and the user can bring their own technique as well and implement as a part of the toolkit.<br>
+
+- Prune/sparsify a model: [edgeai_torchmodelopt.xmodelopt.pruning](./edgeai_torchmodelopt/xmodelopt/pruning) - Both structured and unstructured pruning is supported. Structured pruning includes N:M pruning and channel pruning. Here, we provide with a few parametrization techniques, and the user can bring their own technique as well and implement as a part of the toolkit.
+<br>
 
 - Channel Sparsity uses torch.fx to find the connections and obtain a smaller network after the training with induced sparsity finishes. 
 
@@ -58,7 +60,7 @@ Torch model optimization toolkit supports the following major features.
 
 -->
 
-## Why use our toolkit?
+### Why use our toolkit?
 
 Our toolkit provides the APIs for quantization, surgery as well as sparsity along with multiple torch.nn tools, for user to seemlessly introduce them in their own training code even for someone having basic knowledge of pytorch. 
 The user can add a single line of code to introduce each of them as shown in the user guides. 
