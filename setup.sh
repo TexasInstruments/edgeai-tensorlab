@@ -59,6 +59,9 @@ pip3 install --no-input mmcv-full==1.4.8 -f https://download.openmmlab.com/mmcv/
 # can we move this inside the requirements file is used.
 pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
 
+# error when moving this inside requirements file
+pip3 install --no-input git+https://github.com/TexasInstruments/edgeai-modeloptimization.git@r9.1#subdirectory=torchmodelopt
+
 ######################################################################
 echo "Installing mmdetection"
 echo "For more details, see: https://github.com/open-mmlab/mmdetection/blob/master/docs/get_started.md and https://github.com/open-mmlab/mmdetection"
