@@ -38,6 +38,9 @@ This <SOC> argument is used for multiple purposes:
 
 <hr>
 
+## Version information
+By default, the tidl_tools that are installed are for the latest EdgeAI-SDK/TIDL release. however, if you would like to use an older version of tidl_tools, checkout the corresponding git branch and use that.
+
 ## Setup on PC
 See the [setup instructions](./docs/setup_instructions.md)
 
