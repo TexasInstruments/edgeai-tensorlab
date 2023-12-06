@@ -10,7 +10,7 @@ pip install -r requirements_evm.txt
 ## Usage on EVM
 ### Running inference / benchmark on *SOC/device* using pre-compiled model artifacts
 
-Make sure that the modelartifacts_path in settings_base.yaml is pointing to the place where compiled model artifacts are present. 
+Make sure that the modelartifacts_path in settings_base.yaml is pointing to the place where compiled model artifacts are present. See the "Pre-Complied Model Artifacts" section for more details.
 
 Remove result.yaml files (if present) from all the compiled model artifacts folders. If this file is present, the below script will just report the result from that without actually running inference.
 
