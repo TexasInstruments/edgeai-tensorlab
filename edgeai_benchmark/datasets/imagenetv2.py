@@ -103,17 +103,17 @@ class ImageNetV2(ImageClassification):
 
 class ImageNetV2A(ImageNetV2):
     def __init__(self, *args, name='imagenetv2c', **kwargs):
-        url = 'https://s3-us-west-2.amazonaws.com/imagenetv2public/imagenetv2-threshold0.7.tar.gz'
+        url = 'https://huggingface.co/datasets/vaishaal/ImageNetV2/resolve/main/imagenetv2-top-images.tar.gz'
         super().__init__(*args, url=url, name=name, **kwargs)
 
 
 class ImageNetV2B(ImageNetV2):
     def __init__(self, *args, name='imagenetv2b', **kwargs):
-        url = 'https://s3-us-west-2.amazonaws.com/imagenetv2public/imagenetv2-matched-frequency.tar.gz'
+        url = 'https://huggingface.co/datasets/vaishaal/ImageNetV2/resolve/main/imagenetv2-matched-frequency.tar.gz'
         super().__init__(*args, url=url, name=name, **kwargs)
 
 
 class ImageNetV2C(ImageNetV2):
     def __init__(self, *args, name='imagenetv2c', **kwargs):
-        url = 'https://s3-us-west-2.amazonaws.com/imagenetv2public/imagenetv2-top-images.tar.gz'
+        url = 'https://huggingface.co/datasets/vaishaal/ImageNetV2/resolve/main/imagenetv2-top-images.tar.gz'
         super().__init__(*args, url=url, name=name, **kwargs)
