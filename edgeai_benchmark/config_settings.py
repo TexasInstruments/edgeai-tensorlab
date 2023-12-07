@@ -150,10 +150,7 @@ class ConfigSettings(config_dict.ConfigDict):
         return self.get_runtime_options(constants.MODEL_TYPE_MXNET, quantization_scale_type=quantization_scale_type, is_qat=True,
                                         prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_V1, **kwargs)
 
-    def runtime_options_onnx_qat_v2(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, **kwargs):
-        if self.runtime_options:
-            quantization_scale_type = self.runtime_options.get('advanced_options:quantization_scale_type', quantization_scale_type)
-        #
+    def runtime_options_onnx_qat_v2(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN, **kwargs):
         return self.get_runtime_options(constants.MODEL_TYPE_ONNX, quantization_scale_type=quantization_scale_type, is_qat=True,
                                         prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_V2, **kwargs)
 
