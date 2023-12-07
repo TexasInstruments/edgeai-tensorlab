@@ -52,9 +52,9 @@ def get_configs(settings, work_dir):
         #################mlperf models###################################
         ###############robokit visual localization model######################
         'visloc-7500': utils.dict_update(robokitseg_cfg,
-            preprocess=preproc_transforms.get_transform_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
+            preprocess=preproc_transforms.get_transform_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_LINEAR),
             session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir, input_optimization=False),
-                runtime_options=settings.runtime_options_onnx_p2(),
+                runtime_options=settings.runtime_options_onnx_qat_v1(),
                 model_path=f'{settings.models_path}/vision/visual_localization/carla/edgeai-tv/tiad_dkaze_carla_768x384_model.onnx'),
             postprocess=postproc_transforms.get_transform_none(),
             model_info=dict(metric_reference={'accuracy_localization%':None}, model_shortlist=10)
