@@ -53,7 +53,8 @@ def main(args):
         print(f"Exporting {name}")
         model = torchvision.models.get_model(name)
         output_path = os.path.join(args.output_path, name+".onnx")
-        torch.onnx.export(model, input_tensor, output_path)
+        torch.onnx.export(model, input_tensor, output_path, opset_version=18)
+        onnx.shape_inference.infer_shapes_path(output_path, output_path)
 
         # surgery
         if args.model_surgery ==xmodelopt.surgery.SyrgeryVersion.SURGERY_V1:
@@ -88,10 +89,11 @@ def main(args):
             model_converted = model
 
         output_path = os.path.join(args.output_path, name+name_suffix)
-        torch.onnx.export(model_converted, input_tensor, output_path)
+        torch.onnx.export(model_converted, input_tensor, output_path, opset_version=18)
         # onnx_model = onnx.load(output_path)
         # onnx_model, _ = onnxsim.simplify(onnx_model)
         # onnx.save(onnx_model, output_path)
+        onnx.shape_inference.infer_shapes_path(output_path, output_path)
 
 
 if __name__ == "__main__":
