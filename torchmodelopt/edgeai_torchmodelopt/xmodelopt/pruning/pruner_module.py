@@ -529,9 +529,7 @@ class PrunerModule(torch.nn.Module):
       
         return self
       
-    def train(self, mode: bool = True):  
-        if mode:
-            self.module.cuda()      
+    def train(self, mode: bool = True): 
         super().train(mode)
         if mode: #train mode
             self.remove_parametrization(leave_parameterized=False) # we do not want to keep the old mask, rest of the weights are adjusted according to this one

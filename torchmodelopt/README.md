@@ -131,7 +131,7 @@ We use the default dictionary for model surgery. Here are the classification mod
 | Models        | Torchvision Accuracy          | Lite Model Accuracy   |
 | ------------- |:-------------:    | :-----:                |
 | MobileNet_V2   | 72.154         |   72.88                 |
-| MobileNet_V3_Large  | 75.274    | 71.7                 |
+| MobileNet_V3_Large  | 75.274    | 71.7*                 |
 | EfficientNet_B0 | 77.69 | 73.57* |
 | EfficientNet_B1 | 79.83 | 74.49* |
 
