@@ -26,7 +26,7 @@ DATE_TIME=`date +'%Y%m%d-%H%M%S'`
 # --model-surgery 2: advanced model surgery with torch.fx (to be released)
 #model=mobilenet_v3_large_lite
 #model=mobilenet_v3_small_lite
-model=mobilenet_v2_lite
+model=mobilenet_v2
 
 #=========================================================================================
 # set the appropriate pretrained weights for the above model
@@ -44,10 +44,10 @@ val_crop_size=224
 
 #=========================================================================================
 command="./references/classification/train.py --data-path=./data/datasets/imagenet \
---epochs=25 --batch-size=64 --wd=4e-5 --lr=0.0001 --lr-scheduler=cosineannealinglr --lr-warmup-epochs=1 \
---model=${model} --model-surgery=2 --quantization=0 --quantization-type=WT8SP2_AT8SP2 \
---train-epoch-size-factor=0.2 --opset-version=18 --val-resize-size=$val_resize_size --val-crop-size=$val_crop_size \
---pruning=2 --pruning-type=channel --pruning-global=0"
+--epochs=80 --batch-size=256 --wd=4e-5 --lr=0.005 --lr-scheduler=cosineannealinglr --lr-warmup-epochs=3 \
+--model=${model} --model-surgery=2 --quantization=0 --quantization-type=WT8SP2_AT8SP2 --val-epoch-size-factor=1 \
+--train-epoch-size-factor=1 --opset-version=18 --val-resize-size=$val_resize_size --val-crop-size=$val_crop_size \
+--pruning=2 --pruning-type=n2m --pruning-global=0 --pruning-ratio=0.640625 --pruning-m=64 --pruning-init-train-ep=5"
 
 # training: single GPU (--device=cuda:0)or CPU (--device=cpu) run
 # python3 ${command} --weights=${model_weights} --output-dir=${output_dir}

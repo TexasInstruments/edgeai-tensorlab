@@ -214,18 +214,16 @@ def load_data(traindir, valdir, args):
 
 
 def export_model(args, model, epoch, model_name):
-    export_device="cpu"
-    model_copy = copy.deepcopy(model)
-    model_copy = model_copy.to(export_device)
+    export_device = next(model.parameters()).device
     if args.quantization:
-        if hasattr(model_copy, "convert"):
-            model_copy = model_copy.convert()
+        if hasattr(model, "convert"):
+            model = model.convert()
         else:
-            model_copy = torch.ao.quantization.quantize_fx.convert_fx(model_copy)
+            model = torch.ao.quantization.quantize_fx.convert_fx(model)
         #
     #
     example_input = torch.rand((1,3,args.val_crop_size,args.val_crop_size), device=export_device)
-    utils.export_on_master(model_copy, example_input, os.path.join(args.output_dir, model_name), opset_version=args.opset_version)
+    utils.export_on_master(model, example_input, os.path.join(args.output_dir, model_name), opset_version=args.opset_version)
 
 
 def split_weights(weights_name):
@@ -311,9 +309,8 @@ def main(args):
     if args.pruning == edgeai_torchmodelopt.xmodelopt.pruning.PruningVersion.PRUNING_LEGACY:
         assert False, "Pruning is currently not supported in the legacy modules based method"
     elif args.pruning == edgeai_torchmodelopt.xmodelopt.pruning.PruningVersion.PRUNING_FX: #2
-        model = edgeai_torchmodelopt.xmodelopt.pruning.PrunerModule(model, pruning_ratio=args.pruning_ratio, total_epochs=args.epochs, pruning_init_train_ep = args.pruning_init_train_ep,
-                                            pruning_class=args.pruning_class, pruning_type=args.pruning_type, pruning_global=args.pruning_global)
-        
+        model = edgeai_torchmodelopt.xmodelopt.pruning.PrunerModule(model, pruning_ratio=args.pruning_ratio, total_epochs=args.epochs, pruning_init_train_ep=args.pruning_init_train_ep,
+                                            pruning_class=args.pruning_class, pruning_type=args.pruning_type, pruning_global=args.pruning_global, pruning_m=args.pruning_m)
     
     if args.quantization == edgeai_torchmodelopt.xmodelopt.quantization.QuantizationVersion.QUANTIZATION_LEGACY:
         dummy_input = torch.rand(1,3,args.val_crop_size,args.val_crop_size)
@@ -446,7 +443,7 @@ def main(args):
             evaluate(args, model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
         else:
             evaluate(args, model, criterion, data_loader_test, device=device)
-        # export_model(args, model_without_ddp, 0, "model_test.onnx")
+        export_model(args, model_without_ddp, 0, "model_test.onnx")
         return
 
     print("Start training")
@@ -635,6 +632,7 @@ def get_args_parser(add_help=True):
     parser.add_argument("--pruning-class", default='blend', type=str, help="pruning parametrization class to be used. (options: blend(default), sigmoid, incremental)")
     parser.add_argument("--pruning-global", default=0, type=int, help="Whether to do global pruning (Only supported by unstructured and channel pruning)")
     parser.add_argument("--pruning-init-train-ep", default=5, type=int, help="epochs to train for before starting the pruning")
+    parser.add_argument("--pruning-m", type=int, help="The value of m in n:m pruning. Used only in case of n:m pruning")
     
     parser.add_argument("--compile-model", default=0, type=int, help="Compile the model using PyTorch2.0 functionality")
     parser.add_argument("--opset-version", default=18, type=int, help="ONNX Opset version")
