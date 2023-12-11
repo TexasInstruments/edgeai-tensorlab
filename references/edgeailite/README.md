@@ -4,7 +4,7 @@ Model Training Examples For Embedded AI Development - in PyTorch.
 <br><hr><br>
 
 ## Introduction
-This code provides a set of low complexity deep learning examples and models for low power embedded systems. Low power embedded systems often requires balancing of complexity and accuracy. This is a tough task and requires significant amount of expertise and experimentation. We call this process **complexity optimization**. In addition we would like to bridge the gap between Deep Learning training frameworks and real-time embedded inference by providing ready to use examples and enable **ease of use**. Scripts for training, validation, complexity analysis are also provided. 
+This code provides a set of low complexity deep learning examples and models for low power embedded systems. Low power embedded systems often requires balancing of complexity and accuracy; this is a tough task that requires significant amount of expertise and experimentation. In addition, we would like to bridge the gap between Deep Learning training frameworks and real-time embedded inference by providing ready to use examples and scripts for training, validation and complexity analysis. 
 
 <br><hr><br>
 
@@ -21,17 +21,7 @@ This code provides a set of low complexity deep learning examples and models for
 
 [Object Detection](./docs/object_detection.md)<br>
 
-[Object Keypoint detection / Human Pose Estimation](./docs/keypoint_detection.md)<br>
-
-
-<br><hr><br>
-
-## Guidelines for Model training & quantization
-Quantization (especially 8-bit Quantization) is important to get best throughput for inference. Quantization can be done using either **Post Training Quantization (PTQ)** or **Quantization Aware Training (QAT)**. Guidelines for Model training and tools for QAT are given the **[documentation on Quantization](./edgeai_xvision/xnn/quantization/README.md)**.
-
-- Post Training Quantization (PTQ): TIDL natively supports PTQ - it can take floating point models and can quantize them using advanced calibration methods. In the above link, we have provided guidelines on how to choose models and how to train them for best accuracy with quantization - these guidelines are important to reduce accuracy drop during quantization with **PTQ**. 
-
-- Quantization Aware Training (QAT): In spite of following these guidelines, if there are models that have significant accuracy drop with PTQ, it is possible to improve the accuracy using **QAT**. See the above link for more details.
+[Keypoint detection / Human Pose Estimation](./docs/keypoint_detection.md)<br>
 
 
 <br><hr><br>

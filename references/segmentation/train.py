@@ -193,9 +193,9 @@ def main(args):
     model, surgery_kwargs = model_utils.get_model(args.model, weights=args.weights_enum, weights_backbone=args.weights_backbone, num_classes=num_classes, aux_loss=args.aux_loss, model_surgery=args.model_surgery)
 
     if args.model_surgery == edgeai_torchmodelopt.SyrgeryVersion.SURGERY_LEGACY:
-        model = edgeai_torchmodelopt.xao.surgery.v1.convert_to_lite_model(model, **surgery_kwargs)
+        model = edgeai_torchmodelopt.xmodelopt.surgery.v1.convert_to_lite_model(model, **surgery_kwargs)
     elif args.model_surgery == edgeai_torchmodelopt.SyrgeryVersion.SURGERY_FX:
-        model = edgeai_torchmodelopt.xao.surgery.v2.convert_to_lite_fx(model)
+        model = edgeai_torchmodelopt.xmodelopt.surgery.v2.convert_to_lite_fx(model)
 
     if args.weights_url:
         print(f"loading pretrained checkpoint from: {args.weights_url}")
@@ -204,13 +204,13 @@ def main(args):
     if args.pruning == edgeai_torchmodelopt.PruningVersion.PRUNING_LEGACY:
         assert False, "Pruning is currently not supported in the legacy modules based method"
     elif args.pruning == edgeai_torchmodelopt.PruningVersion.PRUNING_FX:
-        model = edgeai_torchmodelopt.xao.pruning.v2.PrunerModule(model)
+        model = edgeai_torchmodelopt.xmodelopt.pruning.v2.PrunerModule(model)
     
     if args.quantization == edgeai_torchmodelopt.QuantizationVersion.QUANTIZATION_LEGACY:
         dummy_input = torch.rand(1,3,args.base_size,args.base_size)
-        model = edgeai_torchmodelopt.xao.quantization.v1.QuantTrainModule(model, dummy_input=dummy_input, total_epochs=args.epochs)
+        model = edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTrainModule(model, dummy_input=dummy_input, total_epochs=args.epochs)
     elif args.quantization == edgeai_torchmodelopt.QuantizationVersion.QUANTIZATION_FX:
-        model = edgeai_torchmodelopt.xao.quantization.v2.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
+        model = edgeai_torchmodelopt.xmodelopt.quantization.v2.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
 
     model.to(device)
     if args.distributed:
