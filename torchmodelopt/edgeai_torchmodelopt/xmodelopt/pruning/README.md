@@ -54,6 +54,21 @@ We can also specify the following, depepnding on the use case :
 
 > This could be incorporated in the training script itself, and model thereafter could be trained as it was getting trained before to achieve the desired sparsity
 
+## Channel Pruned Network
+
+After the channel pruning, we can obtain a smaller network as well to test, which will give FLOP reductions irrespective of the hardware implementation. For example, for a layer with 64 output channels, and pruning ratio of 0.25, would have 48 output channels in the final_model..
+
+
+    from edgeai_torchmodelopt.xmodelopt.pruning import create_channel_pruned_model
+
+    ***
+    load model here and checkpoints here
+    ***
+
+    final_model = create_channel_pruned_model(model)
+
+    // the final_model would not have pruned channels
+
 
 <!-- ## Advanced Usage 
 

@@ -28,7 +28,7 @@ dummy_input = torch.rand((1,3,384,768))
 
 # wrap your model in xnn.quantization.QATFxModule. 
 # once it is wrapped, the actual model is in model.module
-model = edgeai_torchmodelopt.xmodelopt.quantization.v2.QATFxModule(model)
+model = edgeai_torchmodelopt.xmodelopt.quantization.v2.QATFxModule(model, total_epochs=epochs)
 
 # load your pretrained weights here into model.module
 pretrained_data = torch.load(pretrained_path)

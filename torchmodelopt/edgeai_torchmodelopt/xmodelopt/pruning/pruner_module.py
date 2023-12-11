@@ -62,6 +62,8 @@ class IncrementalPruningParametrization(nn.Module):
             self.total_epochs = kwargs.get("total_epochs")
         if "prunechannelunstructured" in kwargs:
             self.prunechannelunstructured = kwargs.get("prunechannelunstructured")
+        if "m" in kwargs:
+            self.m = kwargs.get("m")
             
         net_weight = net_weights[self.curr_node.target]
         
@@ -177,6 +179,8 @@ class SoftPruningParametrization(nn.Module):
             self.total_epochs = kwargs.get("total_epochs")
         if "prunechannelunstructured" in kwargs:
             self.prunechannelunstructured = kwargs.get("prunechannelunstructured")
+        if "m" in kwargs:
+            self.m = kwargs.get("m")
             
         net_weight = net_weights[self.curr_node.target]
         
@@ -189,7 +193,7 @@ class SoftPruningParametrization(nn.Module):
             if channel_pruning:
                 mask = torch.ones(net_weight.size(0)).to(net_weight.device)
             else:
-                mask = torch.ones_like(net_weight)
+                mask = torch.ones_like(net_weight).to(net_weight.device)
         else:
             mask = self.create_mask(net_weight)
 
@@ -401,10 +405,13 @@ class PrunerModule(torch.nn.Module):
             pass
         self.global_pruning = pruning_global
         
-        if pruning_m is None:
-            raise RuntimeError("The value of m should be provided in case of n:m pruning")
+        if self.n2m_pruning:
+            if pruning_m is None:
+                raise RuntimeError("The value of m should be provided in case of n:m pruning")
+            else:
+                self.m = pruning_m
         else:
-            self.m = pruning_m
+            self.m = None
         
         if self.channel_pruning:
             # creating the next node list, which contains the connection to all convs to the current conv
@@ -522,15 +529,15 @@ class PrunerModule(torch.nn.Module):
       
         return self
       
-    def train(self, mode: bool = True):
+    def train(self, mode: bool = True): 
         super().train(mode)
         if mode: #train mode
             self.remove_parametrization(leave_parameterized=False) # we do not want to keep the old mask, rest of the weights are adjusted according to this one
             self.epoch_count += 1
             self.insert_parametrization()
             
-        elif self.epoch_count==self.total_epochs:
-            self.insert_parametrization(binary_mask=True)
+        elif self.epoch_count==self.total_epochs: # evaluation in the final epoch, we would want to completely prune out the weights
+            self.insert_parametrization(binary_mask=True) # binary_mask=True gives hard mask
             self.remove_parametrization()
             self.calculate_sparsity()
             print("The final sparsity of the network is {}".format(self.sparsity))
@@ -559,7 +566,7 @@ class PrunerModule(torch.nn.Module):
                     pruning_ratio = self.pruning_ratio if isinstance(self.pruning_ratio, float) else self.pruning_ratio[node.target]
                     parameterization = self.pruning_class(curr_node=node, modules=modules, channel_pruning=self.channel_pruning, pruning_ratio=pruning_ratio,
                                                         n2m_pruning=self.n2m_pruning, init_train_ep=self.init_train_ep, prunechannelunstructured=self.prunechannelunstructured,
-                                                        epoch_count=self.epoch_count, total_epochs=self.total_epochs, net_weights = self.net_weights, binary_mask=binary_mask)
+                                                        epoch_count=self.epoch_count, total_epochs=self.total_epochs, net_weights = self.net_weights, binary_mask=binary_mask, m=self.m)
                     
                     parametrize.register_parametrization(modules[node.target], "weight", parameterization)
                     if self.channel_pruning:

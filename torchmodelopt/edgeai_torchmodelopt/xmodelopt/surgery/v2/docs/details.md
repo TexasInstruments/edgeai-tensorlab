@@ -3,7 +3,7 @@
 This module implements is a model surgery API that can be used to replace layers (operators, functionals, modules) and make models TIDL friendly. [torch.fx](https://pytorch.org/docs/stable/fx.html) package is used for this replacement.
  
 <center>
-<br><img src="Images/Intro_diagram.png"  width = "60%" alt="" /><br>
+<br><img src="../Images/Intro_diagram.png"  width = "60%" alt="" /><br>
 </center>
 
 ---
@@ -134,7 +134,7 @@ model = ExampleModule()
 
 #### Onnx Export before any change
 <center>
-<img src='Images/onnx_exampleModule_before.png' width ="60%">
+<img src='../Images/onnx_exampleModule_before.png' width ="60%">
 </center>
 
 #### Example of Replacement Dictionary:
@@ -161,7 +161,7 @@ changed_model = surgery.replace_unsupported_layers(model,replacement_dict=replac
 
 #### Onnx Export after change
 <center>
-<img src='Images/onnx_exampleModule_after.png' width ="30%">
+<img src='../Images/onnx_exampleModule_after.png' width ="30%">
 </center>
 
 ---
@@ -178,7 +178,7 @@ This package says to change the model, we have to go through 3 steps.
 > 1. [Code Generation]()
 
 <center>
-<br><img src="Images/basic_diagram.png"  width = "75%" alt="" /><br>
+<br><img src="../Images/basic_diagram.png"  width = "75%" alt="" /><br>
 </center>
 
 ### [Symbolic Trace](https://pytorch.org/docs/stable/fx.html#torch.fx.symbolic_trace)
@@ -259,7 +259,7 @@ output         output   output                   (act,)            {}
 ```
 
 <center>
-<br><img src="Images/basic_model_graph.png"   width="40%" alt="" /><br>
+<br><img src="../Images/basic_model_graph.png"   width="40%" alt="" /><br>
 </center>
 
 Graph records the operation in 6 categories:
@@ -283,7 +283,7 @@ Graph records the operation in 6 categories:
 Graph has the following attributes: 
 - **nodes:** of node_list type which has all the nodes in a topological order
 <center>
-<br><img src="Images/topological_example.png"  width="60%"  alt="" /><br>
+<br><img src="../Images/topological_example.png"  width="60%"  alt="" /><br>
 </center>
 For example, in the above graph the node_list will be:
 <br><b><center>[x,y,add,sub,mul]</center></b>
@@ -314,7 +314,7 @@ Node generally contains the following attributes:
 - **Args**: argument passed to it. It also contains the node address it takes input from
 - **Kwargs**: kwyword argument passed to it. It also contains the node address it takes input from
 <center>
-<br><img src="Images/node_table.png"    width="60%" alt="" /><br>
+<br><img src="../Images/node_table.png"    width="60%" alt="" /><br>
 </center>
 ### Code Generation
 After changing the nodes in the graph, we can generate a code for the graph that will be the forward function for the module. After that, the module structure, graph and the forward code for the model in wrapper object of class [torch.fx.GraphModule](https://pytorch.org/docs/stable/fx.html#torch.fx.GraphModule). So,
@@ -376,8 +376,8 @@ Parent Module can be reached from the dictionary returned by **name_modules()** 
 
 <center><table>
 <tr>
-<th><img src="Images/gelu2relu.png"   alt="" />  </th>
-<th><img src="Images/onnx_gelu2relu.png"   alt="" /></th>
+<th><img src="../Images/gelu2relu.png"   alt="" />  </th>
+<th><img src="../Images/onnx_gelu2relu.png"   alt="" /></th>
 </tr>
 <tr>
 <th><b>GeLU to ReLU</b></th>
@@ -422,7 +422,7 @@ def replace_unsupported_layer(model:nn.Module, replacement_dict=None):
   
 This function iterates through the replacement_dict and performs surgery according to the pair of pattern(keys) and replacement(values). 
 <center>
-<br><img src="Images/main_api_l1.png"   alt="" /><br>
+<br><img src="../Images/main_api_l1.png"   alt="" /><br>
 </center>
 
 ---
@@ -455,7 +455,7 @@ For this we use node_lists of both main model’s graph and pattern’s graph.
 - After that this will be a simple linear pattern search in a linear list after discarding input nodes and output node.
 - For comparing nodes in both graph, we first match their operation (op) and then follow according to the following table:
 <center>
-<br><img src ="Images/node_match.png"  width="60%"> 
+<br><img src ="../Images/node_match.png"  width="60%"> 
 </center>
 Note: Till Date, Pattern with either single node or single input and single output is supported for replacement	
 
@@ -485,16 +485,16 @@ For patterns and Replacements which are composite models, some of them are defie
 
 <center><table>
 <tr>
-<th><img src="Images/SE2I.png"   alt="" />  </th>
-<th><img src="Images/onnx_SE2I.png"   alt="" /></th>
+<th><img src="../Images/SE2I.png"   alt="" />  </th>
+<th><img src="../Images/onnx_SE2I.png"   alt="" /></th>
 </tr>
 <tr>
 <th><b>Squeeze And Excite to Identity </b></th>
 <th><b>Change in ONNX export of the model</b></th>
 </tr>
 <tr>
-<th><img src="Images/gelu2relu.png"   alt="" />  </th>
-<th><img src="Images/onnx_gelu2relu.png"   alt="" /></th>
+<th><img src="../Images/gelu2relu.png"   alt="" />  </th>
+<th><img src="../Images/onnx_gelu2relu.png"   alt="" /></th>
 </tr>
 <tr>
 <th><b>GeLU to ReLU</b></th>
@@ -510,8 +510,8 @@ Then it shifts the incoming and outgoing edges from the pattern to the new node.
 
 <center><table>
 <tr>
-<th><img src="Images/relu62relu.png"   alt="" />  </th>
-<th><img src="Images/onnx_relu62relu.png"   alt="" /></th>
+<th><img src="../Images/relu62relu.png"   alt="" />  </th>
+<th><img src="../Images/onnx_relu62relu.png"   alt="" /></th>
 </tr>
 <tr>
 <th><b>ReLU6 to ReLU </b></th>
@@ -528,8 +528,8 @@ Then it shifts the incoming and outgoing edges from the pattern to the new node
 
 <center><table>
 <tr>
-<th><img src="Images/silu2relu.png"   alt="" />  </th>
-<th><img src="Images/onnx_silu2relu.png"  /></th>
+<th><img src="../Images/silu2relu.png"   alt="" />  </th>
+<th><img src="../Images/onnx_silu2relu.png"  /></th>
 </tr>
 <tr>
 <th><b>SiLU to ReLU </b></th>
@@ -547,8 +547,8 @@ It is better to be used before any symbolic trace is done on the model as after 
 
 <center><table>
 <tr>
-<th><img src="Images/SE2I.png"   alt="" />  </th>
-<th><img src="Images/onnx_SE2I.png"   alt="" /></th>
+<th><img src="../Images/SE2I.png"   alt="" />  </th>
+<th><img src="../Images/onnx_SE2I.png"   alt="" /></th>
 </tr>
 <tr>
 <th><b>Squeeze And Excite to Identity </b></th>
@@ -563,8 +563,8 @@ Users also can add their own surgery functions that will return the changed mode
         1. LayerNorm to BatchNorm
         <center><table>
         <tr>
-        <th><img src="Images/layernorm2batchnorm2d.png"   alt="" />  </th>
-        <th><img src="Images/onnx_layernorm2batchnorm2d.png"   alt="" /></th>
+        <th><img src="../Images/layernorm2batchnorm2d.png"   alt="" />  </th>
+        <th><img src="../Images/onnx_layernorm2batchnorm2d.png"   alt="" /></th>
         </tr>
         <tr>
         <th><b>LayerNorm to BatchNorm2d </b></th>
@@ -573,8 +573,8 @@ Users also can add their own surgery functions that will return the changed mode
 		2. Conv. with kernel size greater than five : Equivalent series of Conv. of kernel 	  size 3 and a Conv. of kernel 5, etc
         <center><table>
         <tr>
-        <th><img src="Images/conv_replacement.png"   alt="" />  </th>
-        <th><img src="Images/onnx_conv_replacement.png"   alt="" /></th>
+        <th><img src="../Images/conv_replacement.png"   alt="" />  </th>
+        <th><img src="../Images/onnx_conv_replacement.png"   alt="" /></th>
         </tr>
         <tr>
         <th><b>Conv2D with kernel_size = 7  to equivalent series of Conv2D with kernel_size = 3 and a Conv2D with kernel_size = 5 </b></th>
@@ -627,7 +627,7 @@ def _are_both_node_equal(first_node:Node,second_node:Node,first_graoh_module:Uni
 - till now for two node to be same they must have same operation
 
 <center>
-<br><img src ="Images/node_match.png" width="60%">
+<br><img src ="../Images/node_match.png" width="60%">
 </center>
 
 #### **straight_chain_searcher**
