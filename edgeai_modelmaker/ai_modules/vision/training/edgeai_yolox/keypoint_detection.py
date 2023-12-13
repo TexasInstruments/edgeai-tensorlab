@@ -91,7 +91,7 @@ _model_descriptions = {
             model_compilation_id='kd-7060',
             input_optimization=False,
             runtime_options={
-                'advanced_options:output_feature_16bit_names_list': '370, 426, 482, 538'
+                'advanced_options:output_feature_16bit_names_list': '/0/head/cls_preds.0/Conv_output_0, /0/head/reg_preds.0/Conv_output_0, /0/head/obj_preds.0/Conv_output_0, /0/head/kpts_preds.0/Conv_output_0, /0/head/cls_preds.1/Conv_output_0, /0/head/reg_preds.1/Conv_output_0, /0/head/obj_preds.1/Conv_output_0, /0/head/kpts_preds.1/Conv_output_0, /0/head/cls_preds.2/Conv_output_0, /0/head/reg_preds.2/Conv_output_0, /0/head/obj_preds.2/Conv_output_0, /0/head/kpts_preds.2/Conv_output_0'
             },
             metric=dict(label_offset_pred=0)
         )

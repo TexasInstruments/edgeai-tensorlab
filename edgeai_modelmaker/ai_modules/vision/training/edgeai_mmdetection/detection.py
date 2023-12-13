@@ -109,7 +109,7 @@ _model_descriptions = {
     #     compilation=dict(
     #         model_compilation_id='od-8260',
     #         runtime_options={
-    #             'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
+    #             'advanced_options:output_feature_16bit_names_list': '/multi_level_conv_obj.2/Conv_output_0, /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0, /multi_level_conv_obj.1/Conv_output_0, /multi_level_conv_reg.1/Conv_output_0, /multi_level_conv_cls.1/Conv_output_0, /multi_level_conv_obj.0/Conv_output_0, /multi_level_conv_reg.0/Conv_output_0, /multi_level_conv_cls.0/Conv_output_0'
     #         },
     #         metric=dict(label_offset_pred=0)
     #     )
@@ -140,7 +140,7 @@ _model_descriptions = {
         compilation=dict(
             model_compilation_id='od-8270',
             runtime_options={
-                'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
+                'advanced_options:output_feature_16bit_names_list': '/multi_level_conv_obj.2/Conv_output_0, /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0, /multi_level_conv_obj.1/Conv_output_0, /multi_level_conv_reg.1/Conv_output_0, /multi_level_conv_cls.1/Conv_output_0, /multi_level_conv_obj.0/Conv_output_0, /multi_level_conv_reg.0/Conv_output_0, /multi_level_conv_cls.0/Conv_output_0'
             },
             metric=dict(label_offset_pred=0)
         )
@@ -179,7 +179,7 @@ _model_descriptions = {
         compilation=dict(
             model_compilation_id='od-8200',
             runtime_options={
-                'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
+                'advanced_options:output_feature_16bit_names_list': '/multi_level_conv_obj.2/Conv_output_0, /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0, /multi_level_conv_obj.1/Conv_output_0, /multi_level_conv_reg.1/Conv_output_0, /multi_level_conv_cls.1/Conv_output_0, /multi_level_conv_obj.0/Conv_output_0, /multi_level_conv_reg.0/Conv_output_0, /multi_level_conv_cls.0/Conv_output_0'
             },
             metric=dict(label_offset_pred=0)
         )
@@ -218,7 +218,7 @@ _model_descriptions = {
         compilation=dict(
             model_compilation_id='od-8210',
             runtime_options={
-                'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
+                'advanced_options:output_feature_16bit_names_list': '/multi_level_conv_obj.2/Conv_output_0, /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0, /multi_level_conv_obj.1/Conv_output_0, /multi_level_conv_reg.1/Conv_output_0, /multi_level_conv_cls.1/Conv_output_0, /multi_level_conv_obj.0/Conv_output_0, /multi_level_conv_reg.0/Conv_output_0, /multi_level_conv_cls.0/Conv_output_0'
             },
             metric=dict(label_offset_pred=0)
         )
@@ -255,7 +255,7 @@ _model_descriptions = {
         compilation=dict(
             model_compilation_id='od-8220',
             runtime_options={
-                'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
+                'advanced_options:output_feature_16bit_names_list': '/multi_level_conv_obj.2/Conv_output_0, /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0, /multi_level_conv_obj.1/Conv_output_0, /multi_level_conv_reg.1/Conv_output_0, /multi_level_conv_cls.1/Conv_output_0, /multi_level_conv_obj.0/Conv_output_0, /multi_level_conv_reg.0/Conv_output_0, /multi_level_conv_cls.0/Conv_output_0'
             },
             metric=dict(label_offset_pred=0)
         )
