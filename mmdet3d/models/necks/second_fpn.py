@@ -6,7 +6,7 @@ from mmcv.runner import BaseModule, auto_fp16
 from torch import nn as nn
 
 from ..builder import NECKS
-from torchvision.edgeailite import xnn
+import edgeai_torchmodelopt
 
 @NECKS.register_module()
 class SECONDFPN(BaseModule):
@@ -114,7 +114,7 @@ class SECONDFPN(BaseModule):
                 dict(type='Kaiming', layer='ConvTranspose2d'),
                 dict(type='Constant', layer='NaiveSyncBatchNorm2d', val=1.0)
             ]
-        self.cat = xnn.layers.CatBlock(dim=1)
+        self.cat = edgeai_torchmodelopt.xnn.layers.CatBlock(dim=1)
 
     @auto_fp16()
     def forward(self, x):

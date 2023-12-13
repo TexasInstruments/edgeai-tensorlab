@@ -3,7 +3,6 @@ import mmcv
 from mmcv.runner.builder import RUNNERS
 from mmcv.runner import EpochBasedRunner
 from mmcv.runner import OptimizerHook, HOOKS, Hook
-from torchvision.edgeailite import xnn
 from .quantize import is_mmdet_quant_module
 
 
@@ -80,6 +79,8 @@ class XMMDetNoOptimizerHook(OptimizerHook):
 @HOOKS.register_module()
 class FreezeRangeHook(Hook):
     def before_train_epoch(self, runner):
+        # These are now handled inside QuantTrainModule itself
+        # import edgeai_torchmodelopt
         # #offset_epoch = runner.max_epochs // 10
         
         # #if offset_epoch<= 0:
@@ -90,12 +91,12 @@ class FreezeRangeHook(Hook):
         # freeze_bn_epoch = (runner.max_epochs // 2) - offset_epoch
         # freeze_range_epoch = (runner.max_epochs // 2) + offset_epoch
         # if runner.epoch >= 1 and runner.epoch >= freeze_bn_epoch:
-        #     xnn.utils.print_once('Freezing BN')
-        #     xnn.utils.freeze_bn(runner.model)
+        #     edgeai_torchmodelopt.xnn.utils.print_once('Freezing BN')
+        #     edgeai_torchmodelopt.xnn.utils.freeze_bn(runner.model)
         # #
         # if runner.epoch >= 2 and runner.epoch >= freeze_range_epoch:
-        #     xnn.utils.print_once('Freezing Activation ranges')
-        #     xnn.layers.freeze_quant_range(runner.model)
+        #     edgeai_torchmodelopt.xnn.utils.print_once('Freezing Activation ranges')
+        #     edgeai_torchmodelopt.xnn.layers.freeze_quant_range(runner.model)
         # #
         # this freezing is now done inside the QuantTrainModule()
         # so this hook is not required
