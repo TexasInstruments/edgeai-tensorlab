@@ -108,10 +108,10 @@ TARGET_DEVICE_SETTINGS_PRESETS = {
     },
     TARGET_DEVICE_AM62A : {
         'runtime_options': {
-            'advanced_options:quantization_scale_type': 4
+            #'advanced_options:quantization_scale_type': 4
         },
         # we can use fewer number of calibration images and iterations if per channel asymmetric quantization is enabled
-        'fast_calibration_factor': FAST_CALIBRATION_FACTOR
+        #'fast_calibration_factor': FAST_CALIBRATION_FACTOR
     },
     TARGET_DEVICE_AM68A : {
         'runtime_options': {
