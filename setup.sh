@@ -38,22 +38,22 @@ sudo apt-get install -y libjpeg-dev zlib1g-dev cmake libffi-dev protobuf-compile
 pip3 install --no-input --upgrade pip setuptools
 
 ######################################################################
-echo "installing pytorch - use the applopriate index-url from https://pytorch.org/get-started/locally/"
-pip3 install --no-input torch==2.0.1+cu118 torchvision==0.15.2+cu118 -f https://download.pytorch.org/whl/torch_stable.html
+#echo "installing pytorch - use the applopriate index-url from https://pytorch.org/get-started/locally/"
+#pip3 install --no-input torch==2.0.1+cu118 torchvision==0.15.2+cu118 -f https://download.pytorch.org/whl/torch_stable.html
 
-echo 'Installing python packages...'
-# there as issue with installing pillow-simd through requirements - force it here
-pip uninstall --yes pillow
-pip install --no-input -U --force-reinstall pillow-simd
-pip3 install --no-input cython wheel numpy==1.23.0
-pip3 install --no-input torchinfo pycocotools opencv-python
+#echo 'Installing python packages...'
+## there as issue with installing pillow-simd through requirements - force it here
+#pip uninstall --yes pillow
+#pip install --no-input -U --force-reinstall pillow-simd
+#pip3 install --no-input cython wheel numpy==1.23.0
+#pip3 install --no-input torchinfo pycocotools opencv-python
 
 echo "installing requirements"
 pip3 install --no-input -r requirements.txt
 
 ######################################################################
-echo "Installing mmcv"
-pip3 install --no-input mmcv-full==1.4.8 -f https://download.openmmlab.com/mmcv/dist/cu118/torch2.0.1/index.html
+#echo "Installing mmcv"
+#pip3 install --no-input mmcv-full==1.4.8 -f https://download.openmmlab.com/mmcv/dist/cu118/torch2.0.1/index.html
 
 ######################################################################
 # can we move this inside the requirements file is used.
