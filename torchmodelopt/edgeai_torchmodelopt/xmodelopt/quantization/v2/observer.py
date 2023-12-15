@@ -105,8 +105,6 @@ class AdaptiveActivationObserver(MovingAverageFastHistogramObserver):
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
         self.power2 = power2
         self.range_val = range_val
-        self.quant_min_orig = self.quant_min
-        self.quant_max_orig = self.quant_max
 
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
@@ -114,10 +112,10 @@ class AdaptiveActivationObserver(MovingAverageFastHistogramObserver):
         if not self.power2:
             return super()._calculate_qparams(min_val, max_val)
         else:
-            self.quant_min = observer_utils.ceil2_num(self.quant_min_orig)
-            self.quant_max = observer_utils.ceil2_num(self.quant_max_orig)
+            quant_min_orig, quant_max_orig = self.quant_min, self.quant_max
+            self.quant_min, self.quant_max = observer_utils.ceil2_num(self.quant_min), observer_utils.ceil2_num(self.quant_max)
             qparams = super()._calculate_qparams(observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val))
-            self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
+            self.quant_min, self.quant_max = quant_min_orig, quant_max_orig
             return qparams
 
     def forward(self, x_orig):
