@@ -56,15 +56,15 @@ def get_configs(settings, work_dir):
         ################# onnx models ###############################
         # yolox based 6d object pose estimation - post processing is handled completely by TIDL
         '6dpose-7200':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx((480,640), (480,640), reverse_channels=True, backend='cv2'),
+            preprocess=preproc_transforms.get_transform_onnx((480,640), (480,640), reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(fast_calibration=True),
                         {
-                         'tensor_bits': 16,
-                         'advanced_options:calibration_iterations': 2,
+                         # 'tensor_bits': 16,
+                         # 'advanced_options:calibration_iterations': 2,
                          'object_detection:meta_arch_type': 6,
                          'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/object_6d_pose/ycbv/edgeai-yolox/yolox_s_object_pose_ti_lite_metaarch_640x480.prototxt',
-                        'advanced_options:output_feature_16bit_names_list': '597, 837, 840, 843, 847, 850, 853, 856, 1098, 1101, 1104, 1108, 1111, 1114, 1117, 1359, 1362, 1365, 1369, 1372, 1375, 1378',
+                        'advanced_options:output_feature_16bit_names_list': '597, 826, 833, 834, 844, 854, 855, 1021, 1028, 1029, 1039, 1049, 1050, 1216, 1223, 1224, 1234, 1244, 1245',
                         }),
                 model_path=f'{settings.models_path}/vision/object_6d_pose/ycbv/edgeai-yolox/yolox_s_object_pose_ti_lite_640x480_57p75.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolo_6d_object_pose_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS(), object6dpose=True),
