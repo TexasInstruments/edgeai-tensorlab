@@ -29,8 +29,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ######################################################################
-# change default tidl_tools version if needed - examples: latest stable r9.0 r8.6 r8.5 r8.4
-TIDL_TOOLS_RELEASE_NAME="${1:-r9.0}"
+# change default tidl_tools version if needed - examples: latest stable r9.1 r9.0
+TIDL_TOOLS_RELEASE_NAME="${1:-r9.1}"
 echo "tidl_tools version ${TIDL_TOOLS_RELEASE_NAME}"
 #######################################################################
 echo 'Installing system dependencies'
@@ -106,7 +106,7 @@ echo "Installing tidl_tools verion: ${TIDL_TOOLS_RELEASE_NAME} ..."
 # an array to keep download links
 declare -a TIDL_TOOLS_DOWNLOAD_LINKS
 
-if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "test9.1" ]]; then
+if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r9.1" ]]; then
   # python version check = 3.10
   version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,10) and sys.version_info < (3,11) else 1;print(r)'`
   if [ $version_match -ne 0 ]; then
@@ -120,13 +120,13 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "test9
   echo "--------------------------------------------------------------------------------------------------------------"
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A)
   TIDL_TOOLS_RELEASE_ID=09_01_00_00
-  TIDL_TOOLS_VERSION_NAME="test9.1"
-  pip3 install --no-input http://edgeaisrv2.dhcp.ti.com/publish/tidl/osrt/dlr-1.13.0-py3-none-any.whl
-  pip3 install --no-input http://edgeaisrv2.dhcp.ti.com/publish/tidl/osrt/tvm-0.12.0-cp310-cp310-linux_x86_64.whl
+  TIDL_TOOLS_VERSION_NAME="9.1"
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/dlr-1.13.0-py3-none-any.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tvm-0.12.0-cp310-cp310-linux_x86_64.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/onnxruntime_tidl-1.14.0-cp310-cp310-linux_x86_64.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tflite_runtime-2.8.2-cp310-cp310-linux_x86_64.whl
   # these are internal links for now
-  TIDL_TOOLS_DOWNLOAD_LINKS=("http://edgeaisrv2.dhcp.ti.com/publish/tidl/j721e/09_01_00_02/tidl_tools.tar.gz" "http://edgeaisrv2.dhcp.ti.com/publish/tidl/j721s2/09_01_00_02/tidl_tools.tar.gz" "http://edgeaisrv2.dhcp.ti.com/publish/tidl/j784s4/09_01_00_02/tidl_tools.tar.gz" "http://edgeaisrv2.dhcp.ti.com/publish/tidl/am62a/09_01_00_02/tidl_tools.tar.gz")
+  TIDL_TOOLS_DOWNLOAD_LINKS=("https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM68PA/tidl_tools.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM68A/tidl_tools.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM69A/tidl_tools.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM62A/tidl_tools.tar.gz")
   for (( soc_idx=0; soc_idx<"${#TARGET_SOCS[@]}"; soc_idx++ )); do
     TARGET_SOC=${TARGET_SOCS[$soc_idx]}
     TIDL_TOOLS_DOWNLOAD_LINK=${TIDL_TOOLS_DOWNLOAD_LINKS[$soc_idx]}
