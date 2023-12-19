@@ -23,8 +23,9 @@ Tasks and Models
 
 These functionalities that are supported are fully integrated and the user can control it by setting  parameters in the config file.  
 
+## Setup 
 
-## Step 1: OS & Environment 
+### Step 1: OS & Environment 
 
 This repository can be used from native Ubuntu bash terminal directly or from within a docker environment.
 
@@ -104,7 +105,7 @@ cd /opt/code/edgeai-modelmaker
 ```
 
 
-## Step 2: Setup the model training and compilation repositories
+### Step 2: Setup the model training and compilation repositories
 
 This tool depends on several repositories that we have published at https://github.com/TexasInstruments
 
@@ -142,7 +143,7 @@ In setup_all.sh, there are flags to enable additional models:
 PLUGINS_ENABLE_EXTRA: Setting this to 1 during setup enables additional models. 
 
 
-## Step 3: Run the ready-made examples
+### Step 3: Run the ready-made examples
 
 ```
 ./run_modelmaker.sh <target_device> <config_file>
@@ -166,7 +167,7 @@ Where TDA4VM above is an example of target_device supported.
 The list of target devices supported depends on the tidl-tools installed by [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark). Currently **TDA4VM, AM68A, AM62A and AM69A** are supported.
 
 
-## Step 4: Prepare your own dataset with your own images and object types (Data annotation)
+### Step 4: Prepare your own dataset with your own images and object types (Data annotation)
 - This section explains how to create and annotate your own dataset with your own object classes.
 - Data Annotation can be done in any suitable tool as long as the format of the annotated is supported in this repository. The following description to use Label Studio is just an example.
 - The annotation file must be in [COCO JSON](https://cocodataset.org/#format-data) format. LabelStudio supports exporting the dataset to COCO JSON format for Object Detection. For Image Classification, Label Studio can export in JSOM-Min format and this tool provides a converter script to convert to COCO JSON like format.
@@ -196,7 +197,7 @@ pip install -r requirements/labelstudio.txt
 - However, the JSON-MIN format has to be converted to the COCO-JSON format by using an example given in [run_convert_dataset.sh](./run_convert_dataset.sh). For Image Classification task, use source_format as labelstudio_classification. Label Studio can also export into JSON-MIN for Object detection. In case you did that, use source_format as labelstudio_detection for the converter script.
 
 
-## Step 5: Dataset format
+### Step 5: Dataset format
 - The dataset format is similar to that of the [COCO](https://cocodataset.org/) dataset, but there are some changes as explained below.
 - The annotated json file and images must be under a suitable folder with the dataset name. 
 - Under the folder with dataset name, the following folders must exist: 
@@ -218,7 +219,7 @@ data/datasets/dataset_name
 
 - Use a suitable dataset name instead of dataset_name
 - The default annotation file name for object detection is instances.json
-- The format of the annotation file is similar to that of the [COCO dataset 2017 Train/Val annotations](https://cocodataset.org/#download) - a json file containing 'info', 'images', 'categories' and 'annotations'.
+- The format of the annotation file is similar to that of the [COCO dataset 2017 Train/Val annotations](https://cocodataset.org/#download) - a json file containing 'info', 'images', 'categories' and 'annotations'. 'bbox' field in the annotation is required and is used as the ground truth.
 - Look at the example dataset [animal_classification](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip) to understand further.
 - In the config file, provide the name of the dataset (dataset_name in this example) in the field dataset_name and provide the path or URL in the field input_data_path.
 - Then the ModelMaker tool can be invoked with the config file.
@@ -238,8 +239,29 @@ data/datasets/dataset_name
 
 - Use a suitable dataset name instead of dataset_name
 - The default annotation file name for image classification is instances.json
-- The format of the annotation file is similar to that of the COCO dataset - a json file containing 'info', 'images', 'categories' and 'annotations'. However, one difference is that the bounding box information is not used for classification task and need not be present. The category information in each annotation (called the 'id' field) is needed.
+- The format of the annotation file is similar to that of the COCO dataset - a json file containing 'info', 'images', 'categories' and 'annotations'. However, one difference is that the 'bbox' or 'segmentation' information is not used for classification task and need not be present. The category information in each annotation (called the 'id' field) is needed.
 - Look at the example dataset [animal_detection](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip) to understand further.
+- In the config file, provide the name of the dataset (dataset_name in this example) in the field dataset_name and provide the path or URL in the field input_data_path.
+- Then the ModelMaker tool can be invoked with the config file.
+
+
+#### Semantic Segmentation dataset format
+An object detection dataset should have the following structure. 
+
+<pre>
+data/datasets/dataset_name
+                             |
+                             |--images
+                             |     |-- the image files should be here
+                             |
+                             |--annotations
+                                   |--instances.json
+</pre>
+
+- Use a suitable dataset name instead of dataset_name
+- The default annotation file name for object detection is instances.json
+- The format of the annotation file is similar to that of the [COCO dataset 2017 Train/Val annotations](https://cocodataset.org/#download) - a json file containing 'info', 'images', 'categories' and 'annotations'. 'segmentation' field in the annotation is required and is used as the ground truth. 
+- Look at the example dataset [animal_classification](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip) to understand further.
 - In the config file, provide the name of the dataset (dataset_name in this example) in the field dataset_name and provide the path or URL in the field input_data_path.
 - Then the ModelMaker tool can be invoked with the config file.
 
