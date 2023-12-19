@@ -5,25 +5,49 @@ If you have not visited the following landing pages, please do so before attempt
 - https://www.ti.com/edgeai 
 - https://github.com/TexasInstruments/edgeai
 
+<hr>
+
+#### Release Notes
+See the [release notes document](./docs/release_notes.md)
 
 <hr>
 
+## Introduction
+
 EdgeAI-ModelMaker is an end-to-end model development tool that contains dataset handling, model training and compilation. Currently, it doesn't have an integrated feature to annotate data, but can accept annotated Dataset from a tool such as [Label Studio](https://labelstud.io/)
 
-We have published several repositories for model training, model compilation and modelzoo as explained in our [edgeai gihub page](https://github.com/TexasInstruments/edgeai). This repository is an attempt to stitch several of them together to make a simple and consistent interface for model development. This does not support all the models that can be trained and compiled using our tools, but only a subset. This is a commandline tool and requires a Linux PC.
+We have published several repositories for model training, model compilation and modelzoo as explained in our [edgeai gihub page](https://github.com/TexasInstruments/edgeai). This repository is an attempt to stitch several of them together to make [release_notes.md](docs%2Frelease_notes.md)a simple and consistent interface for model development. This does not support all the models that can be trained and compiled using our tools, but only a subset. This is a commandline tool and requires a Linux PC.
 
-The following are the key functionality supported by this tool:
+#### The following are the key operations supported by this tool:
 - Dataset handling: This dataset formats supported by this tool is described in a section below. This can convert dataset formats and can automatically split the given dataset into train and validation sets (if it is not already split).
 - Model training: Model training repositories such as [edgeai-torchvision](https://github.com/TexasInstruments/edgeai-torchvision) and [edgeai-mmdetection](https://github.com/TexasInstruments/edgeai-mmdetection) are integrated. Several models with pretrained checkpoints are incorporated for each of these repositories. 
 - Model compilation: Model compilation tools [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) and [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) for TI's EdgeAI SoCs have been integrated.
 
-Tasks and Models
-- Image classification and Object detection tasks are supported currently.
-- The models supported and their parameters are collected in a [description file](./data/descriptions/description_vision.yaml) for convenience.
+These functionalities that are supported are fully integrated and the user can control it by setting  parameters in the config file. 
 
-These functionalities that are supported are fully integrated and the user can control it by setting  parameters in the config file.  
+#### Task Types
+- Image Classification
+- Object Detection
+- Semantic Segmentation
+- Keypoint Detection
 
-## Setup 
+#### Model Types
+For Object Detection, we use YOLOX models. For Image Classification we have support for MobileNetV2 and RegNetX. For Semantic Segmentation we have support DeepLabV3Plus, FPN and UNet models. For Keypoint Detection we use the [YOLO-pose](https://arxiv.org/abs/2204.06806) method.
+
+#### SoCs supported
+These are devices with Analytics Accelerators (DSP and Matrix Multiplier Acceletator) along with ARM cores.
+- AM62A
+- AM68A / TDA4AL, TDA4VE, TDA4VL
+- AM69A / TDA4VH, TDA4AH, TDA4VP, TDA4AP
+- TDA4VM (AM68PA)
+
+These are non-accelerated devices (model inference runs on ARM cores) supported.
+- AM62
+
+The details of these SoCs are [here](https://github.com/TexasInstruments/edgeai/blob/master/readme_sdk.md) 
+
+
+## Setup Instructions
 
 ### Step 1: OS & Environment 
 
