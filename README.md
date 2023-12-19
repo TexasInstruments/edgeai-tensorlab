@@ -8,7 +8,7 @@ If you have not visited the following landing pages, please do so before attempt
 <hr>
 
 #### Release Notes
-See the [release notes document](./docs/release_notes.md)
+- See the [release notes document](./docs/release_notes.md)
 
 <hr>
 
