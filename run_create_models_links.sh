@@ -28,4 +28,11 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-python3 ./scripts/make_link_files.py
+version=$(python3 version.py --delimiter=_)
+
+directory_prefix=models
+
+dest_url="http://software-dl.ti.com/jacinto7/esd/modelzoo/${version}/${directory_prefix}/"
+
+python3 ./scripts/make_link_files.py ${dest_url}
+

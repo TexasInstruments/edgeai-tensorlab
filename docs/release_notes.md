@@ -1,9 +1,24 @@
+
+## Release 9.1 (09_01_00)
+- Date: December 2023
+- Release branch: r9.1
+- [Models & Documentation](https://github.com/TexasInstruments/edgeai-modelzoo/tree/r9.1)
+- [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/09_01_00/)
+- [Compiled Model artifacts](../modelartifacts)
+
+
+## Release 9.0 (09_00_00)
+- Date: August 2023
+- Release branch: r9.0
+- [Models & Documentation](https://github.com/TexasInstruments/edgeai-modelzoo/tree/r9.0)
+- [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/09_00_00/)
+
+
 ## Release 8.6 (08_06_00_01)
 - Date: 1 March 2023
-- Release tag: r8.6
+- Release branch: r8.6
 - [Models & Documentation](https://github.com/TexasInstruments/edgeai-modelzoo/tree/r8.6)
 - [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/manifest.html)
-- [Compiled Model artifacts](../modelartifacts)
 - [Compiled Model artifacts list for TDA4VM](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/modelartifacts/TDA4VM/8bits/artifacts.csv)
 - [Compiled Model artifacts list for AM62A](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/modelartifacts/AM62A/8bits/artifacts.csv)
 - [Compiled Model artifacts list for AM68A](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/modelartifacts/AM68A/8bits/artifacts.csv)
@@ -12,7 +27,7 @@
 
 ## Release 8.2 (08_02_00_11)
 - Date: 6 April 2022
-- Release tag: r8.2
+- Release branch: r8.2
 - [Models Code & Documentation](https://github.com/TexasInstruments/edgeai-modelzoo/tree/r8.2)
 - [Compiled Model artifacts list at ti.com](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_02_00_11/modelartifacts/8bits/artifacts.csv)
 - [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_02_00_11/manifest.html)

@@ -31,23 +31,40 @@
 import os
 import glob
 import re
+import sys
+import argparse
 
 
-dest_url = 'http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/'
+def main(dest_url=None):
+    supported_ext = ['.tf', '.tflite', '.pth', '.pt', '.ptl', '.onnx', '.json', '.params', '.prototxt', '.caffemodel']
 
-supported_ext = ['.tf', '.tflite', '.pth', '.pt', '.ptl', '.onnx', '.json', '.params', '.prototxt', '.caffemodel']
+    files = glob.glob('models/*/*/*/*/*')
 
-files = glob.glob('models/*/*/*/*/*')
+    for file_name in files:
+        file_ext = os.path.splitext(file_name)[1]
+        if file_ext in supported_ext:
+            dirname = os.path.dirname(file_name)
+            basename = os.path.basename(file_name)
+            dest_filename = re.sub('^models/', dest_url, file_name)
+            #print(file_name, new_filename)
+            link_name = file_name + '.link'
+            print(link_name)
+            with open(link_name, 'w') as fp:
+                fp.write(dest_filename)
+            #
 
-for file_name in files:
-    file_ext = os.path.splitext(file_name)[1]
-    if file_ext in supported_ext:
-        dirname = os.path.dirname(file_name)
-        basename = os.path.basename(file_name)
-        dest_filename = re.sub('^models/', dest_url, file_name)
-        #print(file_name, new_filename)
-        link_name = file_name + '.link'
-        print(link_name)
-        with open(link_name, 'w') as fp:
-            fp.write(dest_filename)
-        #
+
+if __name__ == '__main__':
+    print(f'argv: {sys.argv}')
+    # the cwd must be the root of the respository
+    if os.path.split(os.getcwd())[-1] == 'scripts':
+        os.chdir('../')
+    #
+
+    parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
+    parser.add_argument('dest_url', type=str, default=None)
+    cmds = parser.parse_args()
+
+    kwargs = vars(cmds)
+
+    main(**kwargs)

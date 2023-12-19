@@ -1,1 +1,0 @@
-For AM62A, most of the models are compiled with symmetric quantization, due to an issue with symmetric quantization. However 3dod-7100 is compiled with asymmetric quantization (reused from previous compilation).

@@ -38,11 +38,11 @@ version=$(python3 version.py --delimiter=_)
 
 directory_prefix=modelartifacts/${TARGET_SOC}/8bits
 
-url=http://software-dl.ti.com/jacinto7/esd/modelzoo/${version}/${directory_prefix}
+dest_url=http://software-dl.ti.com/jacinto7/esd/modelzoo/${version}/${directory_prefix}
 
 for artifact in $(ls -1 ./${directory_prefix}/*.tar.gz)
 do
 artifact_basename=$(basename ${artifact})
 echo ${artifact_basename}
-echo ${url}/${artifact_basename} > ./${directory_prefix}/${artifact_basename}.link
+echo ${dest_url}/${artifact_basename} > ./${directory_prefix}/${artifact_basename}.link
 done
