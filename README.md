@@ -36,6 +36,8 @@ This <SOC> argument is used for multiple purposes:
 - To set TIDL_TOOLS_PATH and LD_LIBRARY_PATH used to point to the correct tidl_tools for a device
 - To choose the correct preset (of compilation flags) from the dictionary TARGET_DEVICE_SETTINGS_PRESETS in [constants.py](./edgeai_benchmark/constants.py)
 
+More details regarding SoCs and devices can be seen at the [EdgeAI landing repository](https://github.com/TexasInstruments/edgeai/blob/main/readme_sdk.md).
+
 <hr>
 
 ## Version information
