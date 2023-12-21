@@ -61,10 +61,8 @@ Torch model optimization toolkit supports the following major features.
 -->
 
 ### Why use our toolkit?
-
-Our toolkit provides the APIs for quantization, surgery as well as sparsity along with multiple torch.nn tools, for user to seemlessly introduce them in their own training code even for someone having basic knowledge of pytorch. 
-The user can add a single line of code to introduce each of them as shown in the user guides. 
-We have tested our algorithms which are the part of the toolkit and have obtained good results as shown in the results section.
+- Our toolkit provides the APIs for quantization, surgery as well as pruning/sparsity along with other tools, for users to seamlessly introduce them in their own training code. 
+- These are wrapped in easy to use interfaces so that even someone with basic knowledge of Pytorch can use these. The user can add a single line of code to introduce each of these functionality as shown in the user guides. 
 
 
 # Getting Started

@@ -23,16 +23,17 @@ import edgeai_torchmodelopt
 # create your model here:
 model = ...
 
-# create a dummy input - this is required to analyze the model - fill in the input image size expected by your model.
-dummy_input = torch.rand((1,3,384,768))
+# load your pretrained checkpoint/weights here to do QAT
+pretrained_data = torch.load(pretrained_path)
+model.load_state_dict(pretrained_data)
 
 # wrap your model in xnn.quantization.QATFxModule. 
 # once it is wrapped, the actual model is in model.module
 model = edgeai_torchmodelopt.xmodelopt.quantization.v2.QATFxModule(model, total_epochs=epochs)
 
-# load your pretrained weights here into model.module
-pretrained_data = torch.load(pretrained_path)
-model.module.load_state_dict(pretrained_data)
+## Note: if you want to test your model after QAT, loading of the QAT checkpoint/weights should be here into model.module
+## pretrained_qat_data = torch.load(pretrained_qat_path)
+## model.module.load_state_dict(pretrained_qat_data)
 
 # your training loop here with with loss, backward, optimizer and scheduler. 
 # this is the usual training loop - but use a lower learning rate such as 1e-5
@@ -41,13 +42,19 @@ for images, target in my_dataset_train:
     output = model(images)
     # loss, backward(), optimizer step etc comes here as usual in training
 
-# save the model - the trained module is in model.module
 model.eval()
+
+# save the checkpoint/weights - the trained module is in model.module
 torch.save(model.module.state_dict(), os.path.join(save_path,'model.pth'))
 
-# export onnx model - QAT model can export a clean onnx graph with clips in eval mode.
+# convert the model to operate with integer operations (instead of QDQ FakeQuantize operations)
 model = model.convert()
-torch.onnx.export(model.module, dummy_input, os.path.join(save_path,'model.onnx'), export_params=True, verbose=False, do_constant_folding=True, opset_version=13)
+
+# create a dummy input - this is required for onnx export.
+dummy_input = torch.rand((1,3,384,768))
+
+# export the model to onnx format - the trained module is in model.module
+torch.onnx.export(model.module, dummy_input, os.path.join(save_path,'model.onnx'), export_params=True, verbose=False, do_constant_folding=True, opset_version=18)
 ```
 
 Optional: Careful attention needs to be given to how the parameters of the pretrained model is loaded and trained model is saved as shown in the above code snippet. We have provided a utility function called edgeai_torchmodelopt.xnn.utils.load_weights() that prints which parameters are loaded correctly and which are not - you can use this load function if needed to ensure that your parameters are loaded correctly.

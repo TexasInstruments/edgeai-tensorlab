@@ -42,6 +42,10 @@ from edgeai_torchmodelopt.v1 import xnn
 # create your model here:
 model = ...
 
+# load your pretrained checkpoint/weights here to do QAT
+pretrained_data = torch.load(pretrained_path)
+model.load_state_dict(pretrained_data)
+
 # create a dummy input - this is required to analyze the model - fill in the input image size expected by your model.
 dummy_input = torch.rand((1,3,384,768))
 
@@ -49,9 +53,9 @@ dummy_input = torch.rand((1,3,384,768))
 # once it is wrapped, the actual model is in model.module
 model = edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTrainModule(model, dummy_input=dummy_input)
 
-# load your pretrained weights here into model.module
-pretrained_data = torch.load(pretrained_path)
-model.module.load_state_dict(pretrained_data)
+## Note: if you want to test your model after QAT, loading of the QAT checkpoint/weights should be here into model.module
+## pretrained_qat_data = torch.load(pretrained_qat_path)
+## model.module.load_state_dict(pretrained_qat_data)
 
 # your training loop here with with loss, backward, optimizer and scheduler. 
 # this is the usual training loop - but use a lower learning rate such as 1e-5
@@ -60,11 +64,14 @@ for images, target in my_dataset_train:
     output = model(images)
     # loss, backward(), optimizer step etc comes here as usual in training
 
-# save the model - the trained module is in model.module
-# QAT model can export a clean onnx graph with clips in eval mode.
 model.eval()
-torch.onnx.export(model.module, dummy_input, os.path.join(save_path,'model.onnx'), export_params=True, verbose=False, do_constant_folding=True, opset_version=9)
+
+# save the checkpoint/weights
 torch.save(model.module.state_dict(), os.path.join(save_path,'model.pth'))
+
+# export the model to onnx format - the trained module is in model.module
+# QAT model can export a clean onnx graph with clips in eval mode.
+torch.onnx.export(model.module, dummy_input, os.path.join(save_path,'model.onnx'), export_params=True, verbose=False, do_constant_folding=True, opset_version=11)
 ```
 
 As can be seen, it is easy to incorporate QuantTrainModule in your existing training code as the only thing required is to wrap your original model in QuantTrainModule. Careful attention needs to be given to how the parameters of the pretrained model is loaded and trained model is saved as shown in the above code snippet.
