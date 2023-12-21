@@ -63,7 +63,7 @@ class QuantGraphModule(HookedModule):
         # # if the original module has load_weights, add it to the quant module also
         # if hasattr(module, 'load_weights'):
         #     def load_weights(m, state_dict, change_names_dict=None):
-        #         utils.load_weights(m.module, state_dict, change_names_dict=change_names_dict)
+        #         xnn.utils.load_weights(m.module, state_dict, change_names_dict=change_names_dict)
         #     #
         #     self.load_weights = types.MethodType(load_weights, self)
         # #
