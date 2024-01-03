@@ -574,10 +574,16 @@ class SSDAnchorGenerator(AnchorGenerator):
                         'or 0.15 when input_size is 512, got'
                         f' {basesize_ratio_range[0]}.')
             else:
-                raise ValueError(
-                    'Only support 300 or 512 in SSDAnchorGenerator when '
-                    'not setting min_sizes and max_sizes, '
-                    f'got {self.input_size}.')
+                if basesize_ratio_range[0] == 0.1:  # SSD512 COCO
+                    min_sizes.insert(0, int(self.input_size * 4 / 100))
+                    max_sizes.insert(0, int(self.input_size * 10 / 100))
+                else:
+                    min_sizes.insert(0, int(self.input_size * basesize_ratio_range[0] * 0.4))
+                    max_sizes.insert(0, int(self.input_size * basesize_ratio_range[0]))
+                # raise ValueError(
+                #     'Only support 300 or 512 in SSDAnchorGenerator when '
+                #     'not setting min_sizes and max_sizes, '
+                #     f'got {self.input_size}.')
 
         assert len(min_sizes) == len(max_sizes) == len(strides)
 
