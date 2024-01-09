@@ -278,8 +278,7 @@ def main(args):
 
     #################################################
     if args.logger is None:
-        log_file = os.path.splitext(os.path.basename(__file__))[0] + '.log'
-        args.logger = xnn.utils.TeeLogger(filename=os.path.join(save_path,log_file))
+        args.logger = xnn.utils.TeeLogger(filename=os.path.join(save_path,'run.log'))
 
     #################################################
     # global settings. rand seeds for repeatability
