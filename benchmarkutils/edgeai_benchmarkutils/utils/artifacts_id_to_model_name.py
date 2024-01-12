@@ -395,6 +395,8 @@ shortlisted_model_list = {
     '3dod-7100_onnxrt' : 'ONR-3DOD-7100-pointPillars-lidar-10000-496x432',
     # 6dpose
     '6dpose-7200_onnxrt': 'ONR-6DP-7200-yolox-s-6d-object_pose-640x480',
+    # human pose / keypoint detection
+    'kd-7060_onnxrt': 'ONR-KD-7060-human-pose-yolox-s-640x640',
     # classification
     'cl-0000_tflitert': 'TFL-CL-0000-mobileNetV1-mlperf',
     'cl-0010_tflitert': 'TFL-CL-0010-mobileNetV2',
@@ -402,8 +404,6 @@ shortlisted_model_list = {
     'cl-0160_tflitert': 'TFL-CL-0160-resNet50V1p5-mlperf',
     'cl-3090_tvmdlr': 'TVM-CL-3090-mobileNetV2-tv',
     'cl-6090_onnxrt': 'ONR-CL-6090-mobileNetV2-tv',
-    'cl-6091_onnxrt': 'ONR-CL-6091-mobileNetV2-tv-512x512',
-    'cl-6092_onnxrt': 'ONR-CL-6092-mobileNetV2-tv-1024x1024',
     'cl-6100_onnxrt': 'ONR-CL-6100-resNet18',
     'cl-6101_onnxrt': 'ONR-CL-6101-resNet18-512x512',
     'cl-6102_onnxrt': 'ONR-CL-6102-resNet18-1024x1024',
@@ -413,7 +413,14 @@ shortlisted_model_list = {
     'cl-6360_onnxrt': 'ONR-CL-6360-regNetx-200mf',
     'cl-6480_onnxrt': 'ONR-CL-6480-mobv3-lite-small',
     'cl-6490_onnxrt': 'ONR-CL-6490-mobv3-lite-large',
-    'kd-7060_onnxrt': 'ONR-KD-7060-human-pose-yolox-s-640x640',
+    # additional models added
+    'cl-6180_onnxrt': 'ONR-CL-6180-regNetX-1.6gf-tv',
+    'cl-0080_tflitert': 'TFL-CL-0080-mobileNet-edgeTPU-mlperf',
+    'cl-0140_tflitert': 'TFL-CL-0140-efficientNet-lite4',
+    'cl-0090_tflitert': 'TFL-CL-0090-efficientNet-edgeTPU-s',
+    'cl-6098_onnxrt': 'ONR-CL-6098-mobileNetV2-tv-qat',
+    'cl-6488_onnxrt': 'ONR-CL-6488-mobv3-lite-small-qat',
+    # detection
     'od-2000_tflitert': 'TFL-OD-2000-ssd-mobV1-coco-mlperf-300x300',
     'od-2010_tflitert': 'TFL-OD-2010-ssd-mobV2-coco-mlperf-300x300',
     'od-2080_tflitert':'TFL-OD-2080-ssd-mobV2-fpnlite-coco-tpu-8-320x320',
@@ -426,6 +433,11 @@ shortlisted_model_list = {
     'od-8270_onnxrt': 'ONR-OD-8270-yolox-pico-lite-mmdet-coco-320x320',
     'od-8410_onnxrt': 'ONR-OD-8410-yolox-tiny-lite-mmdet-widerface-416x416',
     'od-8420_onnxrt': 'ONR-OD-8420-yolox-s-lite-mmdet-widerface-640x640',
+    # additional models added
+    'od-8230_onnxrt': 'ONR-OD-8230-yolox-m-lite-mmdet-coco-640x640',
+    'od-2020_tflitert': 'TFL-OD-2020-ssdLite-mobDet-DSP-coco-320x320',
+    'od-2030_tflitert': 'TFL-OD-2030-ssdLite-mobDet-EdgeTPU-coco-320x320',
+    # segmentation
     'ss-2580_tflitert': 'TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512',
     'ss-5710_tvmdlr': 'TVM-SS-5710-deeplabv3lite-mobv2-cocoseg21-512x512', # replaced with ss-5720 with ss-5710
     'ss-8610_onnxrt': 'ONR-SS-8610-deeplabv3lite-mobv2-ade20k32-512x512',
@@ -433,38 +445,59 @@ shortlisted_model_list = {
     'ss-8710_onnxrt': 'ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512',
     'ss-8720_onnxrt': 'ONR-SS-8720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
     # additional models added
-    'cl-6180_onnxrt': 'ONR-CL-6180-regNetX-1.6gf-tv',
-    'cl-0080_tflitert': 'TFL-CL-0080-mobileNet-edgeTPU-mlperf',
-    'cl-0140_tflitert': 'TFL-CL-0140-efficientNet-lite4',
-    'cl-0090_tflitert': 'TFL-CL-0090-efficientNet-edgeTPU-s',
-    'cl-6098_onnxrt': 'ONR-CL-6098-mobileNetV2-tv-qat',
-    'cl-6488_onnxrt': 'ONR-CL-6488-mobv3-lite-small-qat',
-    'od-8230_onnxrt': 'ONR-OD-8230-yolox-m-lite-mmdet-coco-640x640',
-    'od-2020_tflitert': 'TFL-OD-2020-ssdLite-mobDet-DSP-coco-320x320',
-    'od-2030_tflitert': 'TFL-OD-2030-ssdLite-mobDet-EdgeTPU-coco-320x320',
     'ss-8740_onnxrt': 'ONR-SS-8740-lraspp-mobV3-ti-lite-large-cocoseg21-512x512',
     'ss-8818_onnxrt': 'ONR-SS-8818-deeplabv3lite-mobv2-qat-robokit-768x432', # for robokit
+    #512x512
+    'cl-6061_onnxrt': 'ONR-CL-6061-mobileNetV1-512x512',
+    'cl-6071_onnxrt': 'ONR-CL-6071-mobileNetV2-512x512',
+    'cl-6081_onnxrt': 'ONR-CL-6081-shuffleNetV2-512x512',
+    'cl-6091_onnxrt': 'ONR-CL-6091-mobileNetV2-tv-512x512',
+    'cl-6101_onnxrt': 'ONR-CL-6101-resNet18-512x512',
+    'cl-6111_onnxrt': 'ONR-CL-6111-resNet50-512x512',
+    'cl-6121_onnxrt': 'ONR-CL-6121-regNetX-400mf-pycls-512x512',
+    'cl-6131_onnxrt': 'ONR-CL-6131-regNetX-800mf-pycls-512x512',
+    'cl-6141_onnxrt': 'ONR-CL-6141-regNetX-1.6gf-pycls-512x512',
+    'cl-6151_onnxrt': 'ONR-CL-6151-mobileNetV2-1p4-qat-512x512',
+    #1024x1024
+    'cl-6062_onnxrt': 'ONR-CL-6062-mobileNetV1-1024x1024',
+    'cl-6072_onnxrt': 'ONR-CL-6072-mobileNetV2-1024x1024',
+    'cl-6082_onnxrt': 'ONR-CL-6082-shuffleNetV2-1024x1024',
+    'cl-6092_onnxrt': 'ONR-CL-6092-mobileNetV2-tv-1024x1024',
+    'cl-6102_onnxrt': 'ONR-CL-6102-resNet18-1024x1024',
+    'cl-6112_onnxrt': 'ONR-CL-6112-resNet50-1024x1024',
+    'cl-6122_onnxrt': 'ONR-CL-6122-regNetX-400mf-pycls-1024x1024',
+    'cl-6132_onnxrt': 'ONR-CL-6132-regNetX-800mf-pycls-1024x1024',
+    'cl-6142_onnxrt': 'ONR-CL-6142-regNetX-1.6gf-pycls-1024x1024',
+    'cl-6152_onnxrt': 'ONR-CL-6152-mobileNetV2-1p4-qat-1024x1024',
+    ########
 }
 
 
 recommended_model_list = {
+    # classification
     'cl-6360_onnxrt': 'ONR-CL-6360-regNetx-200mf',
     'cl-0000_tflitert': 'TFL-CL-0000-mobileNetV1-mlperf',
     'cl-3090_tvmdlr': 'TVM-CL-3090-mobileNetV2-tv',
 
+    # object detection
     'od-8020_onnxrt': 'ONR-OD-8020-ssd-lite-mobv2-mmdet-coco-512x512',
     'od-8200_onnxrt': 'ONR-OD-8200-yolox-nano-lite-mmdet-coco-416x416',
     'od-8220_onnxrt': 'ONR-OD-8220-yolox-s-lite-mmdet-coco-640x640',
-    'od-8420_onnxrt': 'ONR-OD-8420-yolox-s-lite-mmdet-widerface-640x640',
     'od-2020_tflitert': 'TFL-OD-2020-ssdLite-mobDet-DSP-coco-320x320',
     'od-8270_onnxrt': 'ONR-OD-8270-yolox-pico-lite-mmdet-coco-320x320', #primarily for AM62
     'od-5120_tvmdlr': 'TVM-OD-5120-ssdLite-mobDet-DSP-coco-320x320',
 
+    # face detection
+    'od-8410_onnxrt': 'ONR-OD-8410-yolox-tiny-lite-mmdet-widerface-416x416',
+    'od-8420_onnxrt': 'ONR-OD-8420-yolox-s-lite-mmdet-widerface-640x640',
+
+    # segmentation
     'ss-8610_onnxrt': 'ONR-SS-8610-deeplabv3lite-mobv2-ade20k32-512x512',
     'ss-2580_tflitert': 'TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512',
     'ss-5710_tvmdlr': 'TVM-SS-5710-deeplabv3lite-mobv2-cocoseg21-512x512',
     'ss-8818_onnxrt': 'ONR-SS-8818-deeplabv3lite-mobv2-qat-robokit-768x432', # for robokit
-    
+
+    # keypoint detection
     'kd-7060_onnxrt': 'ONR-KD-7060-human-pose-yolox-s-640x640',
 }
 
