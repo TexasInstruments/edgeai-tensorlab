@@ -969,6 +969,7 @@ def get_model_orig(model):
 
 
 def create_rand_inputs(args, is_cuda):
+    to_device = lambda src_object, non_blocking=False: src_object.cuda(non_blocking=non_blocking) if args.device in ('cuda', None) else src_object
     dummy_input = []
     if not args.model_config.input_nv12:
         for i_ch in args.model_config.input_channels:
