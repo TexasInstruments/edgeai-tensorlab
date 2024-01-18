@@ -133,75 +133,9 @@ class AdaptiveActivationObserver(MovingAverageFastHistogramObserver):
 
 
 ####################################################################
-class AdaptivePower2WeightObserver(AdaptiveWeightObserver):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, power2=True, **kwargs)
-
-
-class AdaptivePower2PerChannelWeightObserver(AdaptivePerChannelWeightObserver):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, power2=True, **kwargs)
-
-
-class AdaptivePower2ActivationObserver(AdaptiveActivationObserver):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, power2=True, **kwargs)
-
-
-####################################################################
-class AdaptiveLowBITPerChannelWeightObserver(AdaptivePerChannelWeightObserver):
-    def __init__(self, *args, quant_min=None, quant_max=None, **kwargs):
-        quant_min = quant_min or -8
-        quant_max = quant_max or +7
-        super().__init__(*args, quant_min=quant_min, quant_max=quant_max, **kwargs)
-
-
-class AdaptiveLowBITActivationObserver(AdaptiveActivationObserver):
-    def __init__(self, *args, quant_min=None, quant_max=None, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, **kwargs):
-        quant_min = quant_min or 0
-        quant_max = quant_max or 15
-        super().__init__(*args, quant_min=quant_min, quant_max=quant_max, range_shrink_percentile=range_shrink_percentile, **kwargs)
-
-
-####################################################################
-class AdaptiveLowBITPower2PerChannelWeightObserver(AdaptivePower2PerChannelWeightObserver):
-    def __init__(self, *args, quant_min=None, quant_max=None, **kwargs):
-        quant_min = quant_min or -8
-        quant_max = quant_max or +7
-        super().__init__(*args, quant_min=quant_min, quant_max=quant_max, **kwargs)
-
-
-class AdaptiveLowBITPower2ActivationObserver(AdaptivePower2ActivationObserver):
-    def __init__(self, *args, quant_min=None, quant_max=None, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, **kwargs):
-        quant_min = quant_min or 0
-        quant_max = quant_max or 15
-        super().__init__(*args, quant_min=quant_min, quant_max=quant_max, range_shrink_percentile=range_shrink_percentile, **kwargs)
-
-
-####################################################################
-class AdaptiveRangeRestricted4LowBITPerChannelWeightObserver(AdaptiveLowBITPerChannelWeightObserver):
-    def __init__(self, *args, range_val=4.0, **kwargs) -> None:
-        super().__init__(*args, range_val=range_val, **kwargs)
-
-
-class AdaptiveRangeRestricted4LowBITActivationObserver(AdaptiveLowBITActivationObserver):
-    def __init__(self, *args, range_val=4.0, **kwargs) -> None:
-        super().__init__(*args, range_val=range_val, **kwargs)
-
-
-####################################################################
 ADAPTIVE_WEIGHT_OBSERVER_TYPES = (AdaptiveWeightObserver,
-                                  AdaptivePerChannelWeightObserver,
-                                  AdaptivePower2WeightObserver,
-                                  AdaptivePower2PerChannelWeightObserver,
-                                  AdaptiveLowBITPerChannelWeightObserver,
-                                  AdaptiveLowBITPower2PerChannelWeightObserver,
-                                  AdaptiveRangeRestricted4LowBITPerChannelWeightObserver)
+                                  AdaptivePerChannelWeightObserver)
 
-ADAPTIVE_ACTIVATION_OBSERVER_TYPES = (AdaptiveActivationObserver,
-                                      AdaptivePower2ActivationObserver,
-                                      AdaptiveLowBITActivationObserver,
-                                      AdaptiveLowBITPower2ActivationObserver,
-                                      AdaptiveRangeRestricted4LowBITActivationObserver)
+ADAPTIVE_ACTIVATION_OBSERVER_TYPES = (AdaptiveActivationObserver,)
 
 ADAPTIVE_OBSERVER_TYPES = tuple(list(ADAPTIVE_WEIGHT_OBSERVER_TYPES) + list(ADAPTIVE_ACTIVATION_OBSERVER_TYPES))

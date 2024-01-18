@@ -30,13 +30,20 @@
 #################################################################################
 
 import os
-import numpy as np
-import cv2
+import copy
+import functools
 import torch
-from .. import layers as xtensor_layers
-from .image_utils import *
 
-##################################################
+
+#########################################################################
+def partialclass(cls, *args, **kwargs):
+    class PartialClass(cls):
+        __init__ = functools.partialmethod(cls.__init__, *args, **kwargs)
+    #
+    return PartialClass
+
+
+#########################################################################
 # a utility function used for argument parsing
 def str2bool(v):
   if isinstance(v, (str)):
@@ -88,7 +95,7 @@ def recursive_glob(rootdir='.', suffix=''):
             for filename in filenames if filename.endswith(suffix)]
 
 
-###############################################################
+#########################################################################
 def get_shape_with_stride(in_shape, stride):
     shape_s = [in_shape[0],in_shape[1],in_shape[2]//stride,in_shape[3]//stride]
     if (int(in_shape[2]) % 2) == 1:
