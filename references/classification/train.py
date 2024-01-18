@@ -214,7 +214,6 @@ def load_data(traindir, valdir, args):
 
 
 def export_model(args, model, epoch, model_name):
-    export_device = next(model.parameters()).device
     if args.quantization:
         if hasattr(model, "convert"):
             model = model.convert()
@@ -222,6 +221,7 @@ def export_model(args, model, epoch, model_name):
             model = torch.ao.quantization.quantize_fx.convert_fx(model)
         #
     #
+    export_device = next(model.parameters()).device
     example_input = torch.rand((1,3,args.val_crop_size,args.val_crop_size), device=export_device)
     utils.export_on_master(model, example_input, os.path.join(args.output_dir, model_name), opset_version=args.opset_version)
 
