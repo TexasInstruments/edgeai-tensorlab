@@ -136,8 +136,10 @@ def export_model(args, model, epoch, model_name):
         else:
             model = torch.ao.quantization.quantize_fx.convert_fx(model)
         #
+        export_device = 'cpu'
+    else:
+        export_device = next(model.parameters()).device
     #
-    export_device = next(model.parameters()).device
     example_input = torch.rand((1,3,args.base_size,args.base_size), device=export_device)
     utils.export_on_master(model, example_input, os.path.join(args.output_dir, model_name), opset_version=args.opset_version)
 
