@@ -5,6 +5,7 @@ import random
 import torch
 from torch.ao.quantization import MinMaxObserver, PerChannelMinMaxObserver, HistogramObserver, \
     MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver
+
 from .... import xnn
 from . import observer_utils
 
@@ -139,3 +140,15 @@ ADAPTIVE_WEIGHT_OBSERVER_TYPES = (AdaptiveWeightObserver,
 ADAPTIVE_ACTIVATION_OBSERVER_TYPES = (AdaptiveActivationObserver,)
 
 ADAPTIVE_OBSERVER_TYPES = tuple(list(ADAPTIVE_WEIGHT_OBSERVER_TYPES) + list(ADAPTIVE_ACTIVATION_OBSERVER_TYPES))
+
+
+####################################################################
+# additional derived observers
+AdaptivePower2WeightObserver = xnn.utils.partialclass(AdaptiveWeightObserver, power2=True, class_name='AdaptivePower2WeightObserver')
+AdaptivePerChannelPower2WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, power2=True, class_name='AdaptivePerChannelPower2WeightObserver')
+AdaptivePerChannelBit4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, class_name='AdaptivePerChannelBit4WeightObserver')
+AdaptivePerChannelBit4Range4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_val=4.0, class_name='AdaptivePerChannelBit4Range4WeightObserver')
+
+AdaptivePower2ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, power2=True, class_name='AdaptivePower2ActivationObserver')
+AdaptiveBit4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, class_name='AdaptiveBit4ActivationObserver')
+AdaptiveBit4Range4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_val=4.0, class_name='AdaptiveBit4Range4ActivationObserver')

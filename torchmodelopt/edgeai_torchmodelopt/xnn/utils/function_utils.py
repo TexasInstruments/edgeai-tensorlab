@@ -36,14 +36,6 @@ import torch
 
 
 #########################################################################
-def partialclass(cls, *args, **kwargs):
-    class PartialClass(cls):
-        __init__ = functools.partialmethod(cls.__init__, *args, **kwargs)
-    #
-    return PartialClass
-
-
-#########################################################################
 # a utility function used for argument parsing
 def str2bool(v):
   if isinstance(v, (str)):
@@ -118,3 +110,33 @@ def get_blob_from_list(x_list, search_shape, start_dim=None):
     return x_ret
 
 
+#########################################################################
+def partialclass(cls, *args, class_name='PartialClass', **kwargs):
+    __init__ = functools.partialmethod(cls.__init__, *args, **kwargs)
+    PartialClass = type(class_name, (cls,), {'__init__': __init__})
+    return PartialClass
+
+
+# Use the more compact implementation above
+# def partialclass(cls, *new_args, class_name='PartialClass', **new_kwargs):
+#     def __init__(self, *args, **kwargs):
+#         kwargs = copy.deepcopy(kwargs)
+#         for k in new_kwargs:
+#             if k in kwargs:
+#                 kwargs.pop(k)
+#             #
+#         #
+#         cls.__init__(self, *args, *new_args, **kwargs, **new_kwargs)
+#     #
+#     PartialClass = type(class_name, (cls,), {'__init__': __init__})
+#     return PartialClass
+
+
+# This implementation works, but better to use one of the above implementation to specify class_name as well
+# def partialclass(cls, *args, **kwargs):
+#     class PartialClass(cls):
+#         __init__ = functools.partialmethod(cls.__init__, *args, **kwargs)
+#     #
+#     return PartialClass
+
+#########################################################################

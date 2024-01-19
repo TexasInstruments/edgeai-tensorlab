@@ -35,8 +35,6 @@ from torch.ao.quantization import QConfig, QConfigMapping, get_default_qat_qconf
 from torch.ao.quantization import MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver, \
     FakeQuantize, FusedMovingAvgObsFakeQuantize
 
-from .... import xnn
-
 from . import observer
 from . import fake_quanitze
 
@@ -112,30 +110,30 @@ _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8] = QConfig(
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
 
 _QCONFIG_TYPE_TO_DICT[QConfigType.WT8SP2_AT8SP2] = QConfig(
-    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=xnn.utils.partialclass(observer.AdaptiveWeightObserver, power2=True)),
-    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=xnn.utils.partialclass(observer.AdaptiveActivationObserver, power2=True)))
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePower2WeightObserver),
+    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptivePower2ActivationObserver))
 
 _QCONFIG_TYPE_TO_DICT[QConfigType.WC8SP2_AT8SP2] = QConfig(
-    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=xnn.utils.partialclass(observer.AdaptivePerChannelWeightObserver, power2=True)),
-    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=xnn.utils.partialclass(observer.AdaptiveActivationObserver, power2=True)))
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelPower2WeightObserver),
+    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptivePower2ActivationObserver))
 
 ###########
 _QCONFIG_TYPE_TO_DICT[QConfigType.WC4_AT8] = QConfig(
-    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=xnn.utils.partialclass(observer.AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7)),
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelBit4WeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
 
 _QCONFIG_TYPE_TO_DICT[QConfigType.WC4R4_AT8] = QConfig(
-    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=xnn.utils.partialclass(observer.AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_val=4.0)),
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelBit4Range4WeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
 
 ###########
 _QCONFIG_TYPE_TO_DICT[QConfigType.WC4_AT4] = QConfig(
-    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=xnn.utils.partialclass(observer.AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7)),
-    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=xnn.utils.partialclass(observer.AdaptiveActivationObserver, quant_min=0, quant_max=15)))
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelBit4WeightObserver),
+    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveBit4ActivationObserver))
 
 _QCONFIG_TYPE_TO_DICT[QConfigType.WC4R4_AT4R4] = QConfig(
-    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=xnn.utils.partialclass(observer.AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_val=4.0)),
-    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=xnn.utils.partialclass(observer.AdaptiveActivationObserver, quant_min=0, quant_max=15, range_val=4.0)))
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelBit4Range4WeightObserver),
+    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveBit4Range4ActivationObserver))
 
 ###########
 _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8]
