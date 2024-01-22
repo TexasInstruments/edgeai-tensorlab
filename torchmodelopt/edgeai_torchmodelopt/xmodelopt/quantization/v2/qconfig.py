@@ -84,8 +84,8 @@ class QConfigType():
     WC8SYM_AT8SYM = "WC8SYM_AT8SYM"     # per-channel symmetric quantization for weights, per-tensor symmetric quantization for activations
 
     # symmetric power-of-2
-    WT8SP2_AT8SP2 = "WT8SP2_AT8SP2"     # per-tensor symmetric power-power-of-2 quantization for both weights and activations
-    WC8SP2_AT8SP2 = "WC8SP2_AT8SP2"     # per-channel symmetric power-power-of-2 quantization for weights, per-tensor symmetric power-power-of-2 quantization for activations
+    WT8SYMP2_AT8SYMP2 = "WT8SYMP2_AT8SYMP2"     # per-tensor symmetric power-power-of-2 quantization for both weights and activations
+    WC8SYMP2_AT8SYMP2 = "WC8SYMP2_AT8SYMP2"     # per-channel symmetric power-power-of-2 quantization for weights, per-tensor symmetric power-power-of-2 quantization for activations
 
     # 4-bits
     WC4_AT8 = "WC4_AT8"                 # 4-bits per-channel quantization for weights, 8-bit per-tensor quantization for activations
@@ -131,11 +131,11 @@ _QCONFIG_TYPE_TO_DICT[QConfigType.WC8SYM_AT8SYM] = QConfig(
 
 ###########
 # symmetric power-of-2
-_QCONFIG_TYPE_TO_DICT[QConfigType.WT8SP2_AT8SP2] = QConfig(
+_QCONFIG_TYPE_TO_DICT[QConfigType.WT8SYMP2_AT8SYMP2] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePower2WeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveSymPower2ActivationObserver))
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.WC8SP2_AT8SP2] = QConfig(
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC8SYMP2_AT8SYMP2] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelPower2WeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveSymPower2ActivationObserver))
 

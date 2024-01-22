@@ -35,14 +35,16 @@ class AdaptiveWeightObserver(FastHistogramObserver):
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
         r"""Calculates the quantization parameters."""
-        if not self.power2:
-            return super()._calculate_qparams(min_val, max_val)
-        else:
+        # weights qparams are always symmetric and this is ensured inside the super class, no need to handle it here.
+        if self.power2:
             quant_min_orig, quant_max_orig = self.quant_min, self.quant_max
-            self.quant_min, self.quant_max = observer_utils.ceil2_num(quant_min_orig), observer_utils.ceil2_num(quant_max_orig)
-            qparams = super()._calculate_qparams(observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val))
+            self.quant_min, self.quant_max = observer_utils.ceil2_num(self.quant_min), observer_utils.ceil2_num(self.quant_max)
+            min_val, max_val = observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val)
+            qparams = super()._calculate_qparams(min_val, max_val)
             self.quant_min, self.quant_max = quant_min_orig, quant_max_orig
             return qparams
+        else:
+            return super()._calculate_qparams(min_val, max_val)
 
     def forward(self, x_orig):
         x_orig = super().forward(x_orig)
@@ -75,14 +77,16 @@ class AdaptivePerChannelWeightObserver(PerChannelMinMaxObserver):
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
         r"""Calculates the quantization parameters."""
-        if not self.power2:
-            return super()._calculate_qparams(min_val, max_val)
-        else:
+        # weights qparams are always symmetric and this is ensured inside the super class, no need to handle it here.
+        if self.power2:
             quant_min_orig, quant_max_orig = self.quant_min, self.quant_max
-            self.quant_min, self.quant_max = observer_utils.ceil2_num(quant_min_orig), observer_utils.ceil2_num(quant_max_orig)
-            qparams = super()._calculate_qparams(observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val))
+            self.quant_min, self.quant_max = observer_utils.ceil2_num(self.quant_min), observer_utils.ceil2_num(self.quant_max)
+            min_val, max_val = observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val)
+            qparams = super()._calculate_qparams(min_val, max_val)
             self.quant_min, self.quant_max = quant_min_orig, quant_max_orig
             return qparams
+        else:
+            return super()._calculate_qparams(min_val, max_val)
 
     def forward(self, x_orig):
         x_orig = super().forward(x_orig)
@@ -116,20 +120,23 @@ class AdaptiveActivationObserver(MovingAverageFastHistogramObserver):
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
         r"""Calculates the quantization parameters."""
-        if self.symmetric:
-            signed_range = torch.min(min_val.detach()).item() < 0.0
-            max_abs = torch.max(torch.abs(min_val), torch.abs(max_val))
-            min_val = -max_abs if signed_range else 0.0
-            max_val = max_abs
-        #
-        if not self.power2:
-            return super()._calculate_qparams(min_val, max_val)
-        else:
+        if self.symmetric or self.power2:
+            if self.symmetric:
+                signed_range = torch.min(min_val.detach()).item() < 0.0
+                max_abs = torch.max(torch.abs(min_val), torch.abs(max_val))
+                min_val = -max_abs if signed_range else max_abs * 0.0
+                max_val = max_abs
+            #
             quant_min_orig, quant_max_orig = self.quant_min, self.quant_max
             self.quant_min, self.quant_max = observer_utils.ceil2_num(self.quant_min), observer_utils.ceil2_num(self.quant_max)
-            qparams = super()._calculate_qparams(observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val))
+            if self.power2:
+                min_val, max_val = observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val)
+            #
+            qparams = super()._calculate_qparams(min_val, max_val)
             self.quant_min, self.quant_max = quant_min_orig, quant_max_orig
             return qparams
+        else:
+            return super()._calculate_qparams(min_val, max_val)
 
     def forward(self, x_orig):
         x_orig = super().forward(x_orig)
