@@ -31,8 +31,6 @@ class AdaptiveWeightObserver(FastHistogramObserver):
         self.power2 = power2
         self.range_max = range_max
         self.fixed_range = fixed_range
-        self.quant_min_orig = self.quant_min
-        self.quant_max_orig = self.quant_max
 
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
@@ -40,10 +38,10 @@ class AdaptiveWeightObserver(FastHistogramObserver):
         if not self.power2:
             return super()._calculate_qparams(min_val, max_val)
         else:
-            self.quant_min = observer_utils.ceil2_num(self.quant_min_orig)
-            self.quant_max = observer_utils.ceil2_num(self.quant_max_orig)
+            quant_min_orig, quant_max_orig = self.quant_min, self.quant_max
+            self.quant_min, self.quant_max = observer_utils.ceil2_num(quant_min_orig), observer_utils.ceil2_num(quant_max_orig)
             qparams = super()._calculate_qparams(observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val))
-            self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
+            self.quant_min, self.quant_max = quant_min_orig, quant_max_orig
             return qparams
 
     def forward(self, x_orig):
@@ -71,10 +69,8 @@ class AdaptivePerChannelWeightObserver(PerChannelMinMaxObserver):
         qscheme = qscheme or torch.per_channel_symmetric
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
         self.power2 = power2
-        self.fixed_range = fixed_range
         self.range_max = range_max
-        self.quant_min_orig = self.quant_min
-        self.quant_max_orig = self.quant_max
+        self.fixed_range = fixed_range
 
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
@@ -82,10 +78,10 @@ class AdaptivePerChannelWeightObserver(PerChannelMinMaxObserver):
         if not self.power2:
             return super()._calculate_qparams(min_val, max_val)
         else:
-            self.quant_min = observer_utils.ceil2_num(self.quant_min_orig)
-            self.quant_max = observer_utils.ceil2_num(self.quant_max_orig)
+            quant_min_orig, quant_max_orig = self.quant_min, self.quant_max
+            self.quant_min, self.quant_max = observer_utils.ceil2_num(quant_min_orig), observer_utils.ceil2_num(quant_max_orig)
             qparams = super()._calculate_qparams(observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val))
-            self.quant_min, self.quant_max = self.quant_min_orig, self.quant_max_orig
+            self.quant_min, self.quant_max = quant_min_orig, quant_max_orig
             return qparams
 
     def forward(self, x_orig):
@@ -106,7 +102,7 @@ class AdaptivePerChannelWeightObserver(PerChannelMinMaxObserver):
 
 
 class AdaptiveActivationObserver(MovingAverageFastHistogramObserver):
-    def __init__(self, *args, quant_min=None, quant_max=None, dtype=None, qscheme=None, power2=False, range_max=None, **kwargs):
+    def __init__(self, *args, quant_min=None, quant_max=None, dtype=None, qscheme=None, power2=False, range_max=None, fixed_range=False, **kwargs):
         quant_min = quant_min or 0
         quant_max = quant_max or 255
         dtype = dtype or torch.quint8
@@ -114,6 +110,7 @@ class AdaptiveActivationObserver(MovingAverageFastHistogramObserver):
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
         self.power2 = power2
         self.range_max = range_max
+        self.fixed_range = fixed_range
 
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
