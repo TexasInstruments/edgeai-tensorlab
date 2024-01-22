@@ -77,17 +77,27 @@ class QConfigType():
     DISABLED = 0
     DEFAULT = "DEFAULT"                 # default behavior is same as that of WC8_AT8
 
+    # per-channel
     WC8_AT8 = "WC8_AT8"                 # per-channel quantization for weights, per-tensor quantization for activations
+
+    # symmetric
+    WC8SYM_AT8SYM = "WC8SYM_AT8SYM"     # per-channel symmetric quantization for weights, per-tensor symmetric quantization for activations
+
+    # symmetric power-of-2
     WT8SP2_AT8SP2 = "WT8SP2_AT8SP2"     # per-tensor symmetric power-power-of-2 quantization for both weights and activations
     WC8SP2_AT8SP2 = "WC8SP2_AT8SP2"     # per-channel symmetric power-power-of-2 quantization for weights, per-tensor symmetric power-power-of-2 quantization for activations
 
-    WC4_AT8 = "WC4_AT8"                 # 4-bit per-channel quantization for weights, 8-bit per-tensor quantization for activations
-    WC4M4_AT8 = "WC4M4_AT8"             # maximum range of weights is restricted to 4
-    WC4R4_AT8 = "WC4R4_AT8"             # range of weights is fixed to 4
+    # 4-bits
+    WC4_AT8 = "WC4_AT8"                 # 4-bits per-channel quantization for weights, 8-bit per-tensor quantization for activations
+    WC4_AT4 = "WC4_AT4"                 # 4-bits per-channel weights, 4-bits activations
+    WC4M4_AT8 = "WC4M4_AT8"             # 4-bits maximum range of weights is restricted to 4
+    WC4M4_AT4M4 = "WC4M4_AT4M4"         # 4-bits maximum range of both weight and activations is restricted to 4
 
-    WC4_AT4 = "WC4_AT4"
-    WC4M4_AT4M4 = "WC4M4_AT4M4"         # maximum range of both weight and activations is restricted to 4
-    WC4R4_AT4R4 = "WC4R4_AT4R4"         # range of both weight and activations is fixed to 4
+    # fixed range
+    WC8R4_AT8 = "WC8R4_AT8"             # range of weights is fixed to 4
+    WC8R4_AT8R4 = "WC8R4_AT8R4"         # range of both weight and activations is fixed to 4
+    WC4R4_AT8 = "WC4R4_AT8"             # 4-bits range of 4 weights
+    WC4R4_AT4R4 = "WC4R4_AT4R4"         # 4-bits range of 4 weights and activations
 
     @classmethod
     def choices(cls):
@@ -107,39 +117,63 @@ class QConfigMode(enum.Enum):
 ####################################################################
 _QCONFIG_TYPE_TO_DICT = dict()
 
+####################################################################
+# per-channel
 _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelWeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
 
+###########
+# symmetric
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC8SYM_AT8SYM] = QConfig(
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelWeightObserver),
+    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveSymActivationObserver))
+
+###########
+# symmetric power-of-2
 _QCONFIG_TYPE_TO_DICT[QConfigType.WT8SP2_AT8SP2] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePower2WeightObserver),
-    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptivePower2ActivationObserver))
+    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveSymPower2ActivationObserver))
 
 _QCONFIG_TYPE_TO_DICT[QConfigType.WC8SP2_AT8SP2] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelPower2WeightObserver),
-    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptivePower2ActivationObserver))
+    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveSymPower2ActivationObserver))
 
-###########
+####################################################################
+# fixed range
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC8R4_AT8] = QConfig(
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelFixedRange4WeightObserver),
+    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
+
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC8R4_AT8R4] = QConfig(
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelFixedRange4WeightObserver),
+    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveBit4FixedRange4ActivationObserver))
+
+####################################################################
+# 4 bit modes
 _QCONFIG_TYPE_TO_DICT[QConfigType.WC4_AT8] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelBit4WeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
 
-_QCONFIG_TYPE_TO_DICT[QConfigType.WC4M4_AT8] = QConfig(
-    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelBit4MaxRange4WeightObserver),
-    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
-
-_QCONFIG_TYPE_TO_DICT[QConfigType.WC4R4_AT8] = QConfig(
-    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelBit4FixedRange4WeightObserver),
-    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
-
-###########
 _QCONFIG_TYPE_TO_DICT[QConfigType.WC4_AT4] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelBit4WeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveBit4ActivationObserver))
 
+###########
+# 4 bit modes with max range restriction
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC4M4_AT8] = QConfig(
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelBit4MaxRange4WeightObserver),
+    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
+
 _QCONFIG_TYPE_TO_DICT[QConfigType.WC4M4_AT4M4] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelBit4MaxRange4WeightObserver),
     activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveBit4MaxRange4ActivationObserver))
+
+###########
+# 4-bits fixed range
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC4R4_AT8] = QConfig(
+    weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelBit4FixedRange4WeightObserver),
+    activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=observer.AdaptiveActivationObserver))
 
 _QCONFIG_TYPE_TO_DICT[QConfigType.WC4R4_AT4R4] = QConfig(
     weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=observer.AdaptivePerChannelBit4FixedRange4WeightObserver),
