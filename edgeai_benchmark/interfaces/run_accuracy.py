@@ -83,6 +83,9 @@ def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_fun
     sys.stdout.flush()
 
     # now actually run the configs
+    results_list = None
     if settings.run_import or settings.run_inference:
-        pipeline_runner.run()
+        results_list = pipeline_runner.run()
     #
+
+    return results_list
