@@ -144,7 +144,7 @@ def get_qconfig(is_qat, backend, qconfig_type=None):
         weight_quant_min = qconfig_type.get('weight_quant_min', -(2 ** (weight_bitwidth-1)))
         weight_quant_max = qconfig_type.get('weight_quant_max', (2 ** (weight_bitwidth-1)) - 1)
         weight_per_channel = qconfig_type.get('weight_per_channel', True)
-        weight_power2 = qconfig_type.get('weight_power2', False)
+        weight_power2_scale = qconfig_type.get('weight_power2_scale', False)
         weight_range_max = qconfig_type.get('weight_range_max', None)
         weight_fixed_range = qconfig_type.get('weight_fixed_range', False)
         # activation
@@ -155,11 +155,11 @@ def get_qconfig(is_qat, backend, qconfig_type=None):
         activation_range_max = qconfig_type.get('activation_range_max', None)
         activation_fixed_range = qconfig_type.get('activation_fixed_range', False)
         activation_symmetric = qconfig_type.get('activation_symmetric', False)
-        activation_power2 = qconfig_type.get('activation_power2', False)
+        activation_power2_scale = qconfig_type.get('activation_power2_scale', False)
         # qconfig
         WeightObserverBaseToUse = observer.AdaptivePerChannelWeightObserver if weight_per_channel else observer.AdaptiveWeightObserver
-        weight_observer = xnn.utils.partialclass(WeightObserverBaseToUse, quant_min=weight_quant_min, quant_max=weight_quant_max, power2=weight_power2, range_max=weight_range_max, fixed_range=weight_fixed_range, class_name=weight_observer_name)
-        activation_observer = xnn.utils.partialclass(observer.AdaptiveActivationObserver, quant_min=activation_quant_min, quant_max=activation_quant_max, symmetric=activation_symmetric, power2=activation_power2, range_max=activation_range_max, fixed_range=activation_fixed_range, class_name=activation_observer_name)
+        weight_observer = xnn.utils.partialclass(WeightObserverBaseToUse, quant_min=weight_quant_min, quant_max=weight_quant_max, power2_scale=weight_power2_scale, range_max=weight_range_max, fixed_range=weight_fixed_range, class_name=weight_observer_name)
+        activation_observer = xnn.utils.partialclass(observer.AdaptiveActivationObserver, quant_min=activation_quant_min, quant_max=activation_quant_max, symmetric=activation_symmetric, power2_scale=activation_power2_scale, range_max=activation_range_max, fixed_range=activation_fixed_range, class_name=activation_observer_name)
         qconfig_obj = QConfig(weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=weight_observer), activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=activation_observer))
         return qconfig_obj
     else:

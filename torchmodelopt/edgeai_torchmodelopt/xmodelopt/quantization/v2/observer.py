@@ -22,13 +22,13 @@ MovingAverageFastHistogramObserver = observer_utils.MovingAverageRangeShrinkHist
 
 ####################################################################
 class AdaptiveWeightObserver(FastHistogramObserver):
-    def __init__(self, *args, quant_min=None, quant_max=None, dtype=None, qscheme=None, power2=False, range_max=None, fixed_range=False, **kwargs):
+    def __init__(self, *args, quant_min=None, quant_max=None, dtype=None, qscheme=None, power2_scale=False, range_max=None, fixed_range=False, **kwargs):
         quant_min = quant_min or -128
         quant_max = quant_max or +127
         dtype = dtype or torch.qint8
         qscheme = qscheme or torch.per_tensor_symmetric
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
-        self.power2 = power2
+        self.power2_scale = power2_scale
         self.range_max = range_max
         self.fixed_range = fixed_range
 
@@ -36,7 +36,7 @@ class AdaptiveWeightObserver(FastHistogramObserver):
     def _calculate_qparams(self, min_val, max_val):
         r"""Calculates the quantization parameters."""
         # weights qparams are always symmetric and this is ensured inside the super class, no need to handle it here.
-        if self.power2:
+        if self.power2_scale:
             quant_min_orig, quant_max_orig = self.quant_min, self.quant_max
             self.quant_min, self.quant_max = observer_utils.ceil2_num(self.quant_min), observer_utils.ceil2_num(self.quant_max)
             min_val, max_val = observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val)
@@ -64,13 +64,13 @@ class AdaptiveWeightObserver(FastHistogramObserver):
 
 
 class AdaptivePerChannelWeightObserver(PerChannelMinMaxObserver):
-    def __init__(self, *args, quant_min=None, quant_max=None, dtype=None, qscheme=None, power2=False, range_max=None, fixed_range=False, **kwargs):
+    def __init__(self, *args, quant_min=None, quant_max=None, dtype=None, qscheme=None, power2_scale=False, range_max=None, fixed_range=False, **kwargs):
         quant_min = quant_min or -128
         quant_max = quant_max or +127
         dtype = dtype or torch.qint8
         qscheme = qscheme or torch.per_channel_symmetric
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
-        self.power2 = power2
+        self.power2_scale = power2_scale
         self.range_max = range_max
         self.fixed_range = fixed_range
 
@@ -78,7 +78,7 @@ class AdaptivePerChannelWeightObserver(PerChannelMinMaxObserver):
     def _calculate_qparams(self, min_val, max_val):
         r"""Calculates the quantization parameters."""
         # weights qparams are always symmetric and this is ensured inside the super class, no need to handle it here.
-        if self.power2:
+        if self.power2_scale:
             quant_min_orig, quant_max_orig = self.quant_min, self.quant_max
             self.quant_min, self.quant_max = observer_utils.ceil2_num(self.quant_min), observer_utils.ceil2_num(self.quant_max)
             min_val, max_val = observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val)
@@ -106,21 +106,21 @@ class AdaptivePerChannelWeightObserver(PerChannelMinMaxObserver):
 
 
 class AdaptiveActivationObserver(MovingAverageFastHistogramObserver):
-    def __init__(self, *args, quant_min=None, quant_max=None, dtype=None, qscheme=None, symmetric=False, power2=False, range_max=None, fixed_range=False, **kwargs):
+    def __init__(self, *args, quant_min=None, quant_max=None, dtype=None, qscheme=None, symmetric=False, power2_scale=False, range_max=None, fixed_range=False, **kwargs):
         quant_min = quant_min or 0
         quant_max = quant_max or 255
         dtype = dtype or torch.quint8
         qscheme = qscheme or torch.per_tensor_affine
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
         self.symmetric = symmetric
-        self.power2 = power2
+        self.power2_scale = power2_scale
         self.range_max = range_max
         self.fixed_range = fixed_range
 
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
         r"""Calculates the quantization parameters."""
-        if self.symmetric or self.power2:
+        if self.symmetric or self.power2_scale:
             if self.symmetric:
                 signed_range = torch.min(min_val.detach()).item() < 0.0
                 max_abs = torch.max(torch.abs(min_val), torch.abs(max_val))
@@ -129,7 +129,7 @@ class AdaptiveActivationObserver(MovingAverageFastHistogramObserver):
             #
             quant_min_orig, quant_max_orig = self.quant_min, self.quant_max
             self.quant_min, self.quant_max = observer_utils.ceil2_num(self.quant_min), observer_utils.ceil2_num(self.quant_max)
-            if self.power2:
+            if self.power2_scale:
                 min_val, max_val = observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val)
             #
             qparams = super()._calculate_qparams(min_val, max_val)
@@ -167,8 +167,8 @@ ADAPTIVE_OBSERVER_TYPES = tuple(list(ADAPTIVE_WEIGHT_OBSERVER_TYPES) + list(ADAP
 ####################################################################
 # additional weight observers
 AdaptivePerChannelFixedRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, range_max=4.0, fixed_range=True, class_name='AdaptivePerChannelFixedRange4WeightObserver')
-AdaptivePower2WeightObserver = xnn.utils.partialclass(AdaptiveWeightObserver, power2=True, class_name='AdaptivePower2WeightObserver')
-AdaptivePerChannelPower2WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, power2=True, class_name='AdaptivePerChannelPower2WeightObserver')
+AdaptivePower2WeightObserver = xnn.utils.partialclass(AdaptiveWeightObserver, power2_scale=True, class_name='AdaptivePower2WeightObserver')
+AdaptivePerChannelPower2WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, power2_scale=True, class_name='AdaptivePerChannelPower2WeightObserver')
 
 AdaptivePerChannelBit4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptivePerChannelBit4WeightObserver')
 AdaptivePerChannelBit4MaxRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_max=4.0, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptivePerChannelBit4MaxRange4WeightObserver')
@@ -177,8 +177,8 @@ AdaptivePerChannelBit4FixedRange4WeightObserver = xnn.utils.partialclass(Adaptiv
 # additional activation observers
 AdaptiveFixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, range_max=4.0, fixed_range=True, class_name='AdaptiveFixedRange4ActivationObserver')
 AdaptiveSymActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, symmetric=True, class_name='AdaptiveSymActivationObserver')
-AdaptiveSymPower2ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, symmetric=True, power2=True, class_name='AdaptiveSymPower2ActivationObserver')
-AdaptiveSymPower2FixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, symmetric=True, power2=True, range_max=4, fixed_range=True, class_name='AdaptiveSymPower2FixedRange4ActivationObserver')
+AdaptiveSymPower2ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, symmetric=True, power2_scale=True, class_name='AdaptiveSymPower2ActivationObserver')
+AdaptiveSymPower2FixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, symmetric=True, power2_scale=True, range_max=4, fixed_range=True, class_name='AdaptiveSymPower2FixedRange4ActivationObserver')
 
 AdaptiveBit4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptiveBit4ActivationObserver')
 AdaptiveBit4MaxRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_max=4.0, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptiveBit4MaxRange4ActivationObserver')
