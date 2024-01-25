@@ -178,6 +178,7 @@ AdaptivePerChannelBit4FixedRange4WeightObserver = xnn.utils.partialclass(Adaptiv
 AdaptiveFixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, range_max=4.0, fixed_range=True, class_name='AdaptiveFixedRange4ActivationObserver')
 AdaptiveSymActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, symmetric=True, class_name='AdaptiveSymActivationObserver')
 AdaptiveSymPower2ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, symmetric=True, power2=True, class_name='AdaptiveSymPower2ActivationObserver')
+AdaptiveSymPower2FixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, symmetric=True, power2=True, range_max=4, fixed_range=True, class_name='AdaptiveSymPower2FixedRange4ActivationObserver')
 
 AdaptiveBit4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptiveBit4ActivationObserver')
 AdaptiveBit4MaxRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_max=4.0, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptiveBit4MaxRange4ActivationObserver')

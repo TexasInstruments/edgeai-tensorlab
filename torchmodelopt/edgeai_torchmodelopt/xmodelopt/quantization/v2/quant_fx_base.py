@@ -22,14 +22,8 @@ class QuantFxBaseModule(torch.nn.Module):
             raise RuntimeError("total_epochs must be provided")
         #
 
-        # split if qconfig is a comma separated list of segments
-        # (qconfig will change after some epochs if this has comma separated values)
-        if not isinstance(qconfig_type, str):
-            raise RuntimeError("qconfig_type must be a string")
-        #
-
-        # further split based on + for mixed precision
-        qconfig_type = qconfig_type.split("+")
+        # split based on + for mixed precision
+        qconfig_type = qconfig_type.split("+") if isinstance(qconfig_type, str) else (qconfig_type, )
         if len(qconfig_type) > 2:
             raise RuntimeError(f"maximum of 2 entries are supported in qconfig_type:{qconfig_type}")
         #
@@ -216,12 +210,12 @@ class QuantFxBaseModule(torch.nn.Module):
     def forward(self, *input, **kwargs):
         return self.module(*input, **kwargs)
 
-    def convert(self, inplace=False, device='cpu'):
+    def convert(self, inplace=False, device='cpu', convert_custom_config=None):
         self.freeze()
         # make a copy inorder not to alter the original
         model = self.module if inplace else copy.deepcopy(self.module)
         # convert requires cpu model
         model = model.to(torch.device(device))
         # now do the actual conversion
-        model = quantize_fx.convert_fx(model)
+        model = quantize_fx.convert_fx(model, convert_custom_config=convert_custom_config)
         return model
