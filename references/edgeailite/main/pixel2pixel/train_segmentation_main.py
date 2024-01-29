@@ -146,7 +146,7 @@ def main(arguemnts):
 
     ################################
     # In addition run a separate validation
-    if 'training' in arguemnts.phase or 'calibration' in arguemnts.phase:
+    if 'validation' in arguemnts.phase: #'training' in arguemnts.phase or 'calibration' in arguemnts.phase:
         if arguemnts.save_path is None:
             save_path = train_pixel2pixel.get_save_path(arguemnts)
         else:
