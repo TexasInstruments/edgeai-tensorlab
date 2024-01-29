@@ -204,7 +204,7 @@ class ModelTraining:
                  'regex':[{'op':'search', 'pattern':r'Epoch:\s\[\d+\]\sTotal\stime:[\s\S]*?loss\:\s+(?<loss>\d+\.\d+)', 'group':1}],
                  },
                 {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Validation Accuracy', 'unit':'Accuracy MeanIoU%', 'value':None,
-                 'regex':[{'op':'search', 'pattern':r'Validation 100%\.*MeanIoU%=(?<accuracy>[-+e\d+\.\d+]+)', 'group':1, 'scale_factor':1}],
+                 'regex':[{'op':'search', 'pattern':r'validation 100%.*MeanIoU=(?<accuracy>[-+e\d+\.\d+]+)', 'group':1, 'scale_factor':1}],
                  }]
         }
 
