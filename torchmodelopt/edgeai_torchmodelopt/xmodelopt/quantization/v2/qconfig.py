@@ -138,29 +138,31 @@ def get_qconfig(is_qat, backend, qconfig_type=None):
         qconfig_obj = _QCONFIG_TYPE_TO_DICT[qconfig_type]
     elif isinstance(qconfig_type, dict):
         # custom qconfig_type parameters are given in a dict
-        # weight
-        weight_observer_name = qconfig_type.get('weight_observer_name', 'CustomAdaptiveWeightObserver')
-        weight_bitwidth = qconfig_type.get('weight_bitwidth', 8)
-        weight_quant_min = qconfig_type.get('weight_quant_min', -(2 ** (weight_bitwidth-1)))
-        weight_quant_max = qconfig_type.get('weight_quant_max', (2 ** (weight_bitwidth-1)) - 1)
-        weight_per_channel = qconfig_type.get('weight_per_channel', True)
-        weight_power2_scale = qconfig_type.get('weight_power2_scale', False)
-        weight_range_max = qconfig_type.get('weight_range_max', None)
-        weight_fixed_range = qconfig_type.get('weight_fixed_range', False)
-        # activation
-        activation_observer_name = qconfig_type.get('activation_observer_name', 'CustomAdaptiveActivationObserver')
-        activation_bitwidth = qconfig_type.get('activation_bitwidth', 8)
-        activation_quant_min = qconfig_type.get('activation_quant_min', 0)
-        activation_quant_max = qconfig_type.get('activation_quant_max', (2 ** activation_bitwidth) - 1)
-        activation_range_max = qconfig_type.get('activation_range_max', None)
-        activation_fixed_range = qconfig_type.get('activation_fixed_range', False)
-        activation_symmetric = qconfig_type.get('activation_symmetric', False)
-        activation_power2_scale = qconfig_type.get('activation_power2_scale', False)
+        weight_qconfig = qconfig_type['weight']
+        weight_bitwidth = weight_qconfig.get('bitwidth', 8)
+        weight_qscheme = weight_qconfig.get('qscheme', torch.per_channel_symmetric)
+        activation_qconfig = qconfig_type['activation']
+        activation_bitwidth = activation_qconfig.get('bitwidth', 8)
         # qconfig
-        WeightObserverBaseToUse = observer.AdaptivePerChannelWeightObserver if weight_per_channel else observer.AdaptiveWeightObserver
-        weight_observer = xnn.utils.partialclass(WeightObserverBaseToUse, quant_min=weight_quant_min, quant_max=weight_quant_max, power2_scale=weight_power2_scale, range_max=weight_range_max, fixed_range=weight_fixed_range, class_name=weight_observer_name)
-        activation_observer = xnn.utils.partialclass(observer.AdaptiveActivationObserver, quant_min=activation_quant_min, quant_max=activation_quant_max, symmetric=activation_symmetric, power2_scale=activation_power2_scale, range_max=activation_range_max, fixed_range=activation_fixed_range, class_name=activation_observer_name)
-        qconfig_obj = QConfig(weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=weight_observer), activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=activation_observer))
+        WeightObserverBaseToUse = observer.AdaptivePerChannelWeightObserver if weight_qscheme == torch.per_channel_symmetric \
+            else observer.AdaptiveWeightObserver
+        weight_observer = xnn.utils.partialclass(WeightObserverBaseToUse,
+                                                 quant_min=weight_qconfig.get('quant_min', -(2 ** (weight_bitwidth-1))),
+                                                 quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth-1)) - 1),
+                                                 power2_scale=weight_qconfig.get('power2_scale', False),
+                                                 range_max=weight_qconfig.get('range_max', None),
+                                                 fixed_range=weight_qconfig.get('fixed_range', False),
+                                                 class_name=weight_qconfig.get('observer_name', 'CustomAdaptiveWeightObserver'))
+        activation_observer = xnn.utils.partialclass(observer.AdaptiveActivationObserver,
+                                                 quant_min=activation_qconfig.get('quant_min', 0),
+                                                 quant_max=activation_qconfig.get('quant_max', (2 ** activation_bitwidth) - 1),
+                                                 qscheme=activation_qconfig.get('qscheme', torch.per_tensor_affine),
+                                                 power2_scale=activation_qconfig.get('power2_scale', False),
+                                                 range_max=activation_qconfig.get('range_max', None),
+                                                 fixed_range=activation_qconfig.get('fixed_range', False),
+                                                 class_name=activation_qconfig.get('observer_name', 'CustomAdaptiveActivationObserver'))
+        qconfig_obj = QConfig(weight=fake_quanitze.AdaptiveWeightFakeQuantize.with_args(observer=weight_observer),
+                              activation=fake_quanitze.AdaptiveActivationFakeQuantize.with_args(observer=activation_observer))
         return qconfig_obj
     else:
         raise RuntimeError("Unknown qconfig_type: " + str(qconfig_type))

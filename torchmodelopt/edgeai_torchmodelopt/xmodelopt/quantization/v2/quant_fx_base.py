@@ -210,12 +210,12 @@ class QuantFxBaseModule(torch.nn.Module):
     def forward(self, *input, **kwargs):
         return self.module(*input, **kwargs)
 
-    def convert(self, inplace=False, device='cpu', convert_custom_config=None):
+    def convert(self, inplace=False, device='cpu', convert_custom_config=None, backend_config=None):
         self.freeze()
         # make a copy inorder not to alter the original
         model = self.module if inplace else copy.deepcopy(self.module)
         # convert requires cpu model
         model = model.to(torch.device(device))
         # now do the actual conversion
-        model = quantize_fx.convert_fx(model, convert_custom_config=convert_custom_config)
+        model = quantize_fx.convert_fx(model, convert_custom_config=convert_custom_config, backend_config=backend_config)
         return model
