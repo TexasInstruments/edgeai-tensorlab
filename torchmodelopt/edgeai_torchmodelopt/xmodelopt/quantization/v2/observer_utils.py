@@ -69,7 +69,6 @@ class MSEHistogramObserverBase(MovingAverageMSEHistogramObserverBase):
 RANGE_SHRINK_PERCENTILE_DEFAULT = 0.01
 RANGE_SHRINK_PERCENTILE_LOWBIT = 0.1
 
-
 class MovingAverageRangeShrinkHistogramObserverBase(MinMaxObserver):
     # histogram observer may improve accuracy.
     # default histogram observer in torch.ao.quantization is too slow - so using a custom one
@@ -115,7 +114,13 @@ class MovingAverageRangeShrinkHistogramObserverBase(MinMaxObserver):
         return x_orig
 
     def histogram_range(self, x_orig):
-        return xnn.utils.extrema_fast(x_orig, range_shrink_percentile=self.range_shrink_percentile)
+        # quantile_l = self.range_shrink_percentile/100.0
+        # quantile_h = 1.0 - quantile_l
+        # r_min = torch.quantile(x_orig, quantile_l)
+        # r_max = torch.quantile(x_orig, quantile_h)
+        # r_min_max = (r_min, r_max)
+        r_min_max = xnn.utils.extrema_fast(x_orig, range_shrink_percentile=self.range_shrink_percentile)
+        return r_min_max
 
 
 class RangeShrinkHistogramObserverBase(MovingAverageRangeShrinkHistogramObserverBase):

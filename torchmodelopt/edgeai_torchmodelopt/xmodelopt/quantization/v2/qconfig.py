@@ -131,7 +131,7 @@ _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.W
 ####################################################################
 
 
-def get_qconfig(is_qat, backend, qconfig_type=None):
+def get_qconfig(is_qat, backend='qnnpack', qconfig_type=None):
     if isinstance(qconfig_type, QConfig):
         return qconfig_type
     elif isinstance(qconfig_type, str) and qconfig_type in _QCONFIG_TYPE_TO_DICT:

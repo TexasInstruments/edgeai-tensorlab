@@ -47,7 +47,7 @@ def replace_resize_with_scale_factor(model, verbose_mode=False):
     self-made function is required as we have to modify keyword arguments
     '''
 
-    traced_m =  symbolic_trace(model)
+    traced_m=symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     pattern_m= nn.Upsample()
     traced_pattern= symbolic_trace(pattern_m)
     matches= replacer.straight_chain_searcher(traced_m,traced_pattern)
@@ -74,8 +74,8 @@ def _replace_pool_size_ge_5(model:nn.Module, pool_class=nn.MaxPool2d,pool_functi
     
     to have same output pixels original stride is added to last maxpool module
     '''
-    
-    traced_model=symbolic_trace(model)
+
+    traced_model = symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     modules=dict(traced_model.named_modules())
     
     no_of_pool=0
@@ -147,7 +147,7 @@ def replace_conv2d_kernel_size_gt_7(model:nn.Module, verbose_mode=False):
     to have same output pixels original stride is added to last conv module
     '''
 
-    traced_model=symbolic_trace(model)
+    traced_model = symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     modules=dict(traced_model.named_modules())
     no_of_conv=0
     import math, random
@@ -210,7 +210,7 @@ def replace_conv2d_kernel_size_gt_7(model:nn.Module, verbose_mode=False):
 
 
 def replace_cnblock(model:nn.Module, verbose_mode=False):
-    traced_model=symbolic_trace(model)
+    traced_model = symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     t_modules= dict(traced_model.named_modules())
     from torchvision.models.convnext import CNBlock
     pattern = symbolic_trace(CNBlock(34,0.125,0.000001))
@@ -424,7 +424,7 @@ def replace_se_layer(model:nn.Module, verbose_mode=False):
 
 def remove_identiy(model:nn.Module, verbose_mode=False):
     model=deepcopy(model)
-    traced_model=symbolic_trace(model)
+    traced_model=symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     modules= dict(traced_model.named_modules())
     n=0
     nodes=[]

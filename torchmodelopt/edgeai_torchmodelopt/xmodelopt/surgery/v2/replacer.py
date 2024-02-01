@@ -368,9 +368,9 @@ def graph_pattern_replacer(main_module:Union[GraphModule,nn.Module,callable],pat
     '''
     replace_module = replace_module() if type(replace_module) == type else replace_module
 
-    if type(main_module) != GraphModule:
+    if not isinstance(main_module, GraphModule):
         main_module = symbolic_trace(main_module)
-    if type(pattern_module) != GraphModule:
+    if not isinstance(pattern_module, GraphModule):
         pattern_module = symbolic_trace(pattern_module)
 
     pattern_nodes = []
