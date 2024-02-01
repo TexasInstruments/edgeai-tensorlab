@@ -124,7 +124,7 @@ def replace_unsupported_layers(model:nn.Module,replacement_dict:Dict[Any,Union[n
             model = replace_function_nodes(model, pattern, replacement, verbose_mode=verbose_mode, **kwargs)
         elif isfunction(replacement):
             # for self-made surgery function 
-            model = replacement(model, verbose_mode=verbose_mode)
+            model = replacement(model, pattern = pattern, verbose_mode=verbose_mode)
         else:
             # class of MOdule of
             if isinstance(pattern, type):

@@ -117,3 +117,25 @@ def replace_conv2d(m:nn.Module):
     traced_m.recompile()
     return traced_m
 
+class CustomModule(nn.Module):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.acts = nn.Sequential(
+            nn.ReLU(),
+            nn.ReLU6(),
+            nn.ReLU(),
+            nn.ReLU6(),
+            nn.ReLU(),
+            nn.ReLU6(),
+        )
+    def forward(self,x):
+        return self.acts(x)
+    
+pattern_type= [nn.ReLU,nn.ReLU6]
+model = symbolic_trace(CustomModule())
+print(model)
+matches = xmodelopt.surgery.v2.replacer.straight_type_chain_searcher(model,pattern_type)
+print(len(matches))
+
+xmodelopt.surgery.v2.replacer._replace_all_matches(model,matches,nn.ReLU())
+print(model)

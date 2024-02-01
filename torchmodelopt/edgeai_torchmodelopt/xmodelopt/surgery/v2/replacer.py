@@ -115,7 +115,7 @@ def replace_function_nodes(model, pattern_function, replacement, verbose_mode=Fa
     return traced_model
 
 #checks whether two nodes are  equal or not
-def _are_both_node_equal(first_node:Node,second_node:Node,first_graoh_module:Union[GraphModule,None]=None,second_graph_module:Union[GraphModule,None]=None):
+def _are_both_node_equal(first_node:Node,second_node:Node,first_graph_module:Union[GraphModule,None]=None,second_graph_module:Union[GraphModule,None]=None):
     '''
     checks whether two nodes are equal or not.
     till now for two node to be same they must have same operation
@@ -152,11 +152,11 @@ def _are_both_node_equal(first_node:Node,second_node:Node,first_graoh_module:Uni
             _,target2=_get_parent_name(second_node.target)
             return target1 == target2
 
-        if (first_graoh_module==None) or (second_graph_module==None):
+        if (first_graph_module==None) or (second_graph_module==None):
                 raise RuntimeError("GraphModules are required for both nodes\nas at least one of them is 'call_module' node.")
 
         #for call_module node
-        modules_in_1st_graph = dict(first_graoh_module.named_modules())
+        modules_in_1st_graph = dict(first_graph_module.named_modules())
         modules_in_2nd_graph = dict(second_graph_module.named_modules())
         module_1=modules_in_1st_graph[first_node.target]
         module_2=modules_in_2nd_graph[second_node.target]
@@ -220,6 +220,58 @@ def straight_chain_searcher(main_module:GraphModule, pattern_module:GraphModule)
                 second_start_index = -1
             patt_index += 1
             patt_index = patt_index % pattern_module_node_num
+            main_index += 1
+        else:
+            inp, out = -1, -1
+            patt_index = 0
+            if second_start_index == -1:
+                main_index += 1
+            else:
+                main_index = second_start_index
+                second_start_index = -1
+
+    return matched
+
+
+def straight_type_chain_searcher(main_module:GraphModule, type_pattern:List[type]):
+    '''
+    searches for straight pattern of type of module matches in node list of the graph
+
+    '''
+    # it only allows:
+    #     i)  if pattern has one input and one output
+    #     ii) if pattern has only one node other than placeholders or output
+
+    main_module_nodes:list[fx.Node] = list(main_module.graph.nodes)
+    modules_in_main_graph = dict(main_module.named_modules())
+    main_module_node_num = len(main_module_nodes)
+    pattern_type_num = len(type_pattern)
+    
+    assert isinstance(type_pattern,list) and all(isinstance(typ,type) for typ in type_pattern),\
+        'This function only supports searching for a straight sequence of types of module!'
+
+    # similar approach to searching pattern in an list
+    main_index = 0
+    patt_index = 0
+    matched = list()
+    second_start_index = -1
+    inp, out = -1, -1
+    while(main_index < main_module_node_num):
+        main_node = main_module_nodes[main_index]
+        patn_type = type_pattern[patt_index]
+        # cond = _are_both_node_equal(main_node, patn_type, main_module, pattern_module)
+        cond = main_node.op == 'call_module' and isinstance(modules_in_main_graph[main_node.target],patn_type)
+        if cond:
+            if main_node == type_pattern[0] and second_start_index ==-1 and patt_index != 0:
+                second_start_index = main_index
+            if patt_index == 0:
+                inp = main_node
+            if patt_index == (pattern_type_num-1):
+                out = main_node
+                matched.append((inp, out))
+                second_start_index = -1
+            patt_index += 1
+            patt_index = patt_index % pattern_type_num
             main_index += 1
         else:
             inp, out = -1, -1

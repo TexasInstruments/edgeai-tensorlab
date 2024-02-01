@@ -41,7 +41,7 @@ from . import replacer
 from . import custom_modules
 
 
-def replace_resize_with_scale_factor(model, verbose_mode=False):
+def replace_resize_with_scale_factor(model, pattern= None, verbose_mode=False):
     '''
     replaces all resize wih 'resize with scale factor only'
     self-made function is required as we have to modify keyword arguments
@@ -67,7 +67,7 @@ def replace_resize_with_scale_factor(model, verbose_mode=False):
     return traced_m
 
  
-def _replace_pool_size_ge_5(model:nn.Module, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d, verbose_mode=False):
+def _replace_pool_size_ge_5(model:nn.Module, pattern= None, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d, verbose_mode=False):
     '''
     replaces all pool 2d module or function having kernel size greater than or equal to 5
     with a stack of pool2d modules having kernel size 3
@@ -133,13 +133,13 @@ def _replace_pool_size_ge_5(model:nn.Module, pool_class=nn.MaxPool2d,pool_functi
 
 
 def replace_maxpool2d_kernel_size_ge_5(model:nn.Module, verbose_mode=False):
-    return _replace_pool_size_ge_5(model, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d, verbose_mode=verbose_mode)
+    return _replace_pool_size_ge_5(model, pattern= None, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d, verbose_mode=verbose_mode)
     
 def replace_avgpool2d_kernel_size_ge_5(model:nn.Module, verbose_mode=False):
-    return _replace_pool_size_ge_5(model,pool_class=nn.AvgPool2d,pool_function=nn.functional.avg_pool2d, verbose_mode=verbose_mode)
+    return _replace_pool_size_ge_5(model, pattern= None, pool_class=nn.AvgPool2d,pool_function=nn.functional.avg_pool2d, verbose_mode=verbose_mode)
 
 
-def replace_conv2d_kernel_size_gt_7(model:nn.Module, verbose_mode=False):
+def replace_conv2d_kernel_size_gt_7(model:nn.Module, pattern= None, verbose_mode=False):
     '''
     replaces all conv2d module or function having kernel size greater than or equal to 7
     with a stack of conv2d modules having kernel size 3
@@ -235,7 +235,7 @@ def replace_cnblock(model:nn.Module, verbose_mode=False):
     return traced_model
 
 
-def replace_layer_norm(model:nn.Module, verbose_mode=False):
+def replace_layer_norm(model:nn.Module, pattern= None, verbose_mode=False):
     traced_model=remove_identiy(model)
     no_of_layer_norm=0
     t_modules= dict(traced_model.named_modules())
@@ -370,7 +370,7 @@ def replace_layer_norm(model:nn.Module, verbose_mode=False):
 
 
 #not effective so not implemented
-def replace_se_layer(model:nn.Module, verbose_mode=False):
+def replace_se_layer(model:nn.Module, pattern= None, verbose_mode=False):
     traced_model=remove_identiy(model)
     modules=dict(traced_model.named_modules())
      
@@ -422,7 +422,7 @@ def replace_se_layer(model:nn.Module, verbose_mode=False):
     return traced_model
 
 
-def remove_identiy(model:nn.Module, verbose_mode=False):
+def remove_identiy(model:nn.Module, pattern= None, verbose_mode=False):
     model=deepcopy(model)
     traced_model=symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     modules= dict(traced_model.named_modules())
