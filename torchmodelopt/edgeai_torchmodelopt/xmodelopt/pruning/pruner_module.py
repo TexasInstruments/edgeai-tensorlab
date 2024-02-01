@@ -38,7 +38,7 @@ from torch.ao.quantization import quantize_fx
 import copy
 import math
 from ... import xnn
-from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, find_all_connected_conv, get_net_weight_node_channel_prune, get_net_weights_all
+from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, find_all_connected_conv, get_net_weight_node_channel_prune, get_net_weights_all,create_channel_pruned_model
 
 
 class IncrementalPruningParametrization(nn.Module):
@@ -542,6 +542,7 @@ class PrunerModule(torch.nn.Module):
             self.insert_parametrization(binary_mask=True) # binary_mask=True gives hard mask
             self.remove_parametrization()
             self.calculate_sparsity()
+            self.module = create_channel_pruned_model(self.module) if self.channel_pruning else self.module
             print("The final sparsity of the network is {}".format(self.sparsity))
 
         return self
