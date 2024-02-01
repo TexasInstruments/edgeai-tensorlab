@@ -33,6 +33,7 @@ from torch import nn
 from torch.fx import symbolic_trace 
 import copy
 import math
+import torch
 
 from edgeai_torchmodelopt import xmodelopt
 
@@ -129,13 +130,13 @@ class CustomModule(nn.Module):
             nn.ReLU6(),
         )
     def forward(self,x):
-        return self.acts(x)
+        return torch.relu(self.acts(x))
     
-pattern_type= [nn.ReLU,nn.ReLU6]
+pattern_type= [nn.ReLU,nn.ReLU6,torch.relu]
 model = symbolic_trace(CustomModule())
 print(model)
 matches = xmodelopt.surgery.v2.replacer.straight_type_chain_searcher(model,pattern_type)
 print(len(matches))
 
-xmodelopt.surgery.v2.replacer._replace_all_matches(model,matches,nn.ReLU())
+xmodelopt.surgery.v2.replacer._replace_all_matches(model,matches,nn.Identity())
 print(model)

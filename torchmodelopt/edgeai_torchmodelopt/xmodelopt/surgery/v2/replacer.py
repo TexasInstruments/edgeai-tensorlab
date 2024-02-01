@@ -31,6 +31,7 @@
 
 import warnings
 import torch
+import types
 from inspect import getmodule, isfunction
 from torch import nn,fx,Tensor
 from torch.fx import symbolic_trace,GraphModule, Node
@@ -233,7 +234,7 @@ def straight_chain_searcher(main_module:GraphModule, pattern_module:GraphModule)
     return matched
 
 
-def straight_type_chain_searcher(main_module:GraphModule, type_pattern:List[type]):
+def straight_type_chain_searcher(main_module:GraphModule, type_pattern:List):
     '''
     searches for straight pattern of type of module matches in node list of the graph
 
@@ -247,7 +248,7 @@ def straight_type_chain_searcher(main_module:GraphModule, type_pattern:List[type
     main_module_node_num = len(main_module_nodes)
     pattern_type_num = len(type_pattern)
     
-    assert isinstance(type_pattern,list) and all(isinstance(typ,type) for typ in type_pattern),\
+    assert isinstance(type_pattern,list) and all(isinstance(typ,(type,str,)) or isinstance(typ,(types.FunctionType,types.BuiltinFunctionType)) for typ in type_pattern),\
         'This function only supports searching for a straight sequence of types of module!'
 
     # similar approach to searching pattern in an list
@@ -256,11 +257,27 @@ def straight_type_chain_searcher(main_module:GraphModule, type_pattern:List[type
     matched = list()
     second_start_index = -1
     inp, out = -1, -1
+    
+    operationDict={torch.add:operator.add,torch.sub:operator.sub,torch.mul:operator.mul,operator.add:torch.add,operator.sub:torch.sub,operator.mul:torch.mul} 
+    def are_both_function_equal(first_function,second_function):
+        if first_function==second_function:
+            #if both refer to same function
+            return True
+
+        elif first_function.target in operationDict.keys():
+            #if it is one  of add, sub, mul from either of operator module or torch module it should be the counter part
+            return second_function == operationDict[first_function]
+
+        else: return False
+        
+    
     while(main_index < main_module_node_num):
         main_node = main_module_nodes[main_index]
         patn_type = type_pattern[patt_index]
         # cond = _are_both_node_equal(main_node, patn_type, main_module, pattern_module)
-        cond = main_node.op == 'call_module' and isinstance(modules_in_main_graph[main_node.target],patn_type)
+        cond = (main_node.op == 'call_module' and isinstance(patn_type,type) and isinstance(modules_in_main_graph[main_node.target],patn_type))\
+            or (main_node.op == 'call_method' and isinstance(patn_type,str)and main_node.target == patn_type)\
+            or (main_node.op == 'call_function' and isinstance(patn_type,(types.FunctionType,types.BuiltinFunctionType)) and are_both_function_equal(main_node.target,patn_type))
         if cond:
             if main_node == type_pattern[0] and second_start_index ==-1 and patt_index != 0:
                 second_start_index = main_index
