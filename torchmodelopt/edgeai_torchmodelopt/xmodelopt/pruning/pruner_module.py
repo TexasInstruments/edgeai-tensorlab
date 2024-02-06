@@ -212,7 +212,7 @@ class SoftPruningParametrization(nn.Module):
             self.mask = self.mask.to(X.device)
             
         if self.channel_pruning: # pruning cannot be same for both weight and bias
-            if len(X.shape) == 4: # weights 
+            if len(X.shape) == 4: # weights
                 return X * self.mask[:,None,None,None]
             elif len(X.shape) == 1: # bias 
                 return X * self.mask
@@ -542,7 +542,6 @@ class PrunerModule(torch.nn.Module):
             self.insert_parametrization(binary_mask=True) # binary_mask=True gives hard mask
             self.remove_parametrization()
             self.calculate_sparsity()
-            self.module = create_channel_pruned_model(self.module) if self.channel_pruning else self.module
             print("The final sparsity of the network is {}".format(self.sparsity))
 
         return self
