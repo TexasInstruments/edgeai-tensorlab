@@ -371,7 +371,7 @@ class PrunerModule(torch.nn.Module):
         
         self.epoch_count = 0
         self.pruning_ratio = pruning_ratio
-        self.total_epochs = total_epochs
+        self.total_epochs = total_epochs+1
         self.sparsity = 0
         self.init_train_ep = pruning_init_train_ep
         
