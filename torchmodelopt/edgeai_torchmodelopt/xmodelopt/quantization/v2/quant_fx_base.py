@@ -8,15 +8,15 @@ import statistics
 
 from .... import xnn
 
-from . import observer
-from . import fake_quanitze
-from . import qconfig
+from . import observer_types
+from . import fake_quanitze_types
+from . import qconfig_types
 
 
 class QuantFxBaseModule(torch.nn.Module):
-    def __init__(self, model, qconfig_type=qconfig.QConfigType.DEFAULT, example_inputs=None, is_qat=True, backend="qnnpack",
+    def __init__(self, model, qconfig_type=qconfig_types.QConfigType.DEFAULT, example_inputs=None, is_qat=True, backend="qnnpack",
                  total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
-                 qconfig_mode=qconfig.QConfigMode.DEFAULT):
+                 qconfig_mode=qconfig_types.QConfigMode.DEFAULT):
         super().__init__()
         if not total_epochs:
             raise RuntimeError("total_epochs must be provided")
@@ -28,13 +28,13 @@ class QuantFxBaseModule(torch.nn.Module):
             raise RuntimeError(f"maximum of 2 entries are supported in qconfig_type:{qconfig_type}")
         #
 
-        qconfig_mapping = qconfig.get_qconfig_mapping(is_qat, backend, qconfig_type)
+        qconfig_mapping = qconfig_types.get_qconfig_mapping(is_qat, backend, qconfig_type)
         if is_qat:
             model = quantize_fx.prepare_qat_fx(model, qconfig_mapping, example_inputs)
         else:
             model = quantize_fx.prepare_fx(model, qconfig_mapping, example_inputs)
         #
-        model = qconfig.adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type)
+        model = qconfig_types.adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type)
         self.module = model
 
         # other parameters
@@ -49,7 +49,7 @@ class QuantFxBaseModule(torch.nn.Module):
         self.set_quant_backend(backend)
         # related to adaptive quantization
 
-        self.qconfig_mode = qconfig.QConfigMode(qconfig_mode)
+        self.qconfig_mode = qconfig_types.QConfigMode(qconfig_mode)
         self.forzen_layer_names_list = []
 
     def set_quant_backend(self, backend=None):
@@ -95,9 +95,9 @@ class QuantFxBaseModule(torch.nn.Module):
         '''
         adjust quantization parameters on epoch basis
         '''
-        if self.qconfig_mode != qconfig.QConfigMode.DEFAULT and self.total_epochs >= 10:
+        if self.qconfig_mode != qconfig_types.QConfigMode.DEFAULT and self.total_epochs >= 10:
             # find unstable layers and freeze them
-            self.adaptive_freeze_layers(fake_quanitze.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES)
+            self.adaptive_freeze_layers(fake_quanitze_types.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES)
 
     def is_fake_quant_with_param(self, pmodule, cmodule, fake_quant_types):
         num_params = len(list(pmodule.parameters(recurse=False)))
@@ -105,7 +105,7 @@ class QuantFxBaseModule(torch.nn.Module):
 
     def adaptive_freeze_layers(self, fake_quant_types, **kwargs):
         epoch_gradual_quant_start = max(self.total_epochs//2, 1)
-        if self.qconfig_mode == qconfig.QConfigMode.FREEZE_DEPTHWISE_LAYERS:
+        if self.qconfig_mode == qconfig_types.QConfigMode.FREEZE_DEPTHWISE_LAYERS:
             num_total_layers = 0
             self.forzen_layer_names_list = []
             is_freezing_epoch = (self.num_epochs_tracked >= epoch_gradual_quant_start)
@@ -137,7 +137,7 @@ class QuantFxBaseModule(torch.nn.Module):
             #
             print(f"using adaptive quantization - qconfig_mode:{self.qconfig_mode} "
                   f"num_frozen_layers:{len(self.forzen_layer_names_list)}/{num_total_layers} ")
-        elif self.qconfig_mode == qconfig.QConfigMode.FREEZE_UNSTABLE_LAYERS:
+        elif self.qconfig_mode == qconfig_types.QConfigMode.FREEZE_UNSTABLE_LAYERS:
             num_total_layers = 0
             delta_change_list = []
             for pname, pmodule in list(self.named_modules()):

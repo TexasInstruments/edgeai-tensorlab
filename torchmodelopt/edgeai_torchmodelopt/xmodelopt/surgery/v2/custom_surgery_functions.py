@@ -423,7 +423,7 @@ def replace_se_layer(model:nn.Module, pattern= None, verbose_mode=False):
 
 
 def remove_identiy(model:nn.Module, pattern= None, verbose_mode=False):
-    model=deepcopy(model)
+    # model=deepcopy(model)
     traced_model=symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     modules= dict(traced_model.named_modules())
     n=0
