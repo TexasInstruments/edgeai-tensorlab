@@ -9,14 +9,13 @@ from PIL import Image
 from edgeai_torchmodelopt import xnn
 from edgeai_xvision.xvision.datasets.dataset_utils import dataset_split
 
-__all__ = ['common_segmentation']
+__all__ = ['common_segmentation', 'common_segmentation_with_background']
 
 
 class CommonSegmentation():
-    def __init__(self, root, split, shuffle=False, num_imgs=None, num_classes=None, **kwargs):
+    def __init__(self, root, split, shuffle=False, num_imgs=None, num_classes=None, with_background=False, **kwargs):
         from pycocotools.coco import COCO
-        num_classes = 5 if num_classes is None else num_classes
-        self.categories = range(1, num_classes+1)
+        self.with_background = with_background
         self.class_names = None
         self.annotation_prefix = kwargs['annotation_prefix']
 
@@ -31,6 +30,13 @@ class CommonSegmentation():
         self.tiscape_dataset = COCO(os.path.join(annotations_dir, f'{self.annotation_prefix}_{split}.json'))
 
         self.cat_ids = self.tiscape_dataset.getCatIds()
+        if num_classes:
+            assert num_classes == len(self.cat_ids), f'the provided num_classes={num_classes} does not match the length of cat_ids={self.cat_ids}'
+        #
+        self.num_classes_anno = len(self.cat_ids)
+        self.num_classes_used = (self.num_classes_anno + 1)if with_background else self.num_classes_anno
+        self.categories = range(0, self.num_classes_anno+1) if with_background else range(1, self.num_classes_anno+1)
+
         img_ids = self.tiscape_dataset.getImgIds()
         self.img_ids = self._remove_images_without_annotations(img_ids)
 
@@ -97,7 +103,7 @@ class CommonSegmentation():
         #
         anno = copy.deepcopy(anno)
         for obj in anno:
-            obj["category_id"] = self.categories.index(obj["category_id"]) + 1
+            obj["category_id"] = self.categories.index(obj["category_id"]) 
         #
         return image, anno
 
@@ -140,43 +146,41 @@ class CommonSegmentation():
 
 
 class CommonSegmentationPlus(CommonSegmentation):
-
-    def __init__(self, *args, num_classes=5, transforms=None, **kwargs):
+    def __init__(self, *args, num_classes=None, transforms=None, with_background=False, **kwargs):
         # 21 class is a special case, otherwise use all the classes
         # in get_item a modulo is done to map the target to the required num_classes
-        super().__init__(*args, num_classes=num_classes, **kwargs)
-        self.num_classes_ = num_classes
+        super().__init__(*args, num_classes=num_classes, with_background=with_background, **kwargs)
         self.void_classes = []
-        self.valid_classes = range(1, self.num_classes_+1)
+        self.valid_classes = self.categories
         self.ignore_index = 255
-        self.class_map = dict(zip(self.valid_classes, range(1, self.num_classes_+1)))
-        self.colors = xnn.utils.get_color_palette(num_classes+1)
-        self.colors = (self.colors * self.num_classes_)[1:self.num_classes_+1]
-        self.label_colours = dict(zip(range(self.num_classes_), self.colors))
+        self.class_map = dict(zip(self.valid_classes, self.valid_classes))
+        self.colors = xnn.utils.get_color_palette(self.num_classes_used)
+        self.colors = (self.colors * self.num_classes_used)[:self.num_classes_used]
+        self.label_colours = dict(zip(range(self.num_classes_used), self.colors))
         self.transforms = transforms
 
     def __getitem__(self, item):
         image, target = super().__getitem__(item)
-        target[target==0] = self.num_classes_
-        #target = np.remainder(target, self.num_classes_)
+        #target[target==0] = self.num_classes_used
+        #target = np.remainder(target, self.num_classes_used)
         image = [image]
         target = [target]
         if self.transforms is not None:
             image, target = self.transforms(image, target)
         #
-        target[0][target == 0] = 255
-        target[0][target != 255] -= 1
+        #target[0][target == 0] = 255
+        #target[0][target != 255] -= 1
         return image, target
 
     def num_classes(self):
-        nc = [self.num_classes_]
+        nc = [self.num_classes_used]
         return nc
 
     def decode_segmap(self, temp):
         r = temp.copy()
         g = temp.copy()
         b = temp.copy()
-        for l in range(0, self.num_classes_):
+        for l in range(0, self.num_classes_used):
             r[temp == l] = self.label_colours[l][0]
             g[temp == l] = self.label_colours[l][1]
             b[temp == l] = self.label_colours[l][2]
@@ -202,7 +206,7 @@ def get_config(file_name):
     dataset_config = xnn.utils.ConfigNode()
     with open(file_name) as afp:
         datastore = json.load(afp)
-    dataset_config.num_classes = len(datastore["categories"]) + 1  # Read from the json file
+    dataset_config.num_classes = len(datastore["categories"])
     return dataset_config
 
 
@@ -215,7 +219,7 @@ def write_to_jsonfile(path, filename, data):
             json.dump(data, fp)
 
 
-def common_segmentation(dataset_config, root, split=None, transforms=None, annotation_prefix="stuff", *args, **kwargs):
+def common_segmentation(dataset_config, root, *args, split=None, transforms=None, annotation_prefix="stuff", with_background=False, **kwargs):
     train_split = val_split = None
     annotation_file = os.path.join(root, 'annotations', f'{annotation_prefix}.json')
     instances = dataset_split(annotation_file, 0.2)
@@ -226,13 +230,17 @@ def common_segmentation(dataset_config, root, split=None, transforms=None, annot
         if split_name.startswith('train'):
             write_to_jsonfile(os.path.join(root, 'annotations'), f"{annotation_prefix}_{split_name}", instances[split_name])
             train_split = CommonSegmentationPlus(root, split_name, num_classes=dataset_config.num_classes,
-                                                  transforms=transforms[0], annotation_prefix=annotation_prefix, *args, **kwargs)
+                                                  transforms=transforms[0], annotation_prefix=annotation_prefix, with_background=with_background, *args, **kwargs)
         elif split_name.startswith('val'):
             write_to_jsonfile(os.path.join(root, 'annotations'), f"{annotation_prefix}_{split_name}", instances[split_name])
             val_split = CommonSegmentationPlus(root, split_name, num_classes=dataset_config.num_classes,
-                                                transforms=transforms[1], annotation_prefix=annotation_prefix, *args, **kwargs)
+                                                transforms=transforms[1], annotation_prefix=annotation_prefix, with_background=with_background, *args, **kwargs)
         else:
             assert False, 'unknown split'
         #
     #
     return train_split, val_split
+
+
+def common_segmentation_with_background(*args, with_background=True, **kwargs):
+    return common_segmentation(*args, with_background=with_background, **kwargs)
