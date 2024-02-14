@@ -99,7 +99,8 @@ def init_params(*args, **kwargs):
             training_device=None,  # 'cpu', 'cuda'
             num_gpus=0,  # 0,1..4
             distributed=True,
-            training_master_port=29500
+            training_master_port=29500,
+            with_background_class=None
         ),
         compilation=dict(
             enable=True,

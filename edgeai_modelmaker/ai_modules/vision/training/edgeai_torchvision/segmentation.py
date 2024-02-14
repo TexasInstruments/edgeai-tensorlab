@@ -59,6 +59,7 @@ _model_descriptions = {
             input_cropsize=(512,512),
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/segmentation/cocoseg21/edgeai-tv/fpn_aspp_regnetx800mf_edgeailite_512x512_20210405_checkpoint.pth',
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_SEGMENTATION],
+            with_background_class=True,
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=272, performance_infer_time_ms=1000/272,
                                                      accuracy_factor=75.212, accuracy_unit='MeanIoU%'),
@@ -95,6 +96,7 @@ _model_descriptions = {
             input_cropsize=(512,512),
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/segmentation/cocoseg21/edgeai-tv/unet_aspp_mobilenetv2_edgeailite_512x512_20210407_checkpoint.pth',
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_SEGMENTATION]//2,
+            with_background_class=True,
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=237, performance_infer_time_ms=1000/237,
                                                      accuracy_factor=77.040, accuracy_unit='MeanIoU%'),
@@ -131,6 +133,7 @@ _model_descriptions = {
             input_cropsize=(512,512),
             pretrained_checkpoint_path=f'{www_modelzoo_path}/models/vision/segmentation/cocoseg21/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405_checkpoint.pth',
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_SEGMENTATION]//2,
+            with_background_class=True,
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=237, performance_infer_time_ms=1000/237,
                                                      accuracy_factor=77.040, accuracy_unit='MeanIoU%'),
@@ -231,10 +234,13 @@ class ModelTraining:
         distributed = 1 if self.params.training.num_gpus > 1 else 0
         device = 'cuda' if self.params.training.num_gpus > 0 else 'cpu'
 
+        add_background_class = (self.params.training.with_background_class is True)
+        dataset_loader_name = 'common_segmentation_with_background_class' if add_background_class else 'common_segmentation'
+
         # training params
         argv = ['--model_name', f'{self.params.training.model_training_id}',
                 '--pretrained', f'{self.params.training.pretrained_checkpoint_path}',
-                '--dataset', 'common_segmentation',
+                '--dataset', dataset_loader_name,
                 '--data_path', f'{self.params.dataset.dataset_path}',
                 '--annotation_prefix', f'{self.params.dataset.annotation_prefix}',
                 # '--num_classes', f'{self.params.training.num_classes}',

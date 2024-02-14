@@ -147,12 +147,14 @@ class ModelCompilation():
         '''
         prepare for model compilation
         '''
+        dataset_kwargs = {}
         if self.params.common.task_type == 'detection':
             dataset_loader = edgeai_benchmark.datasets.ModelMakerDetectionDataset
         elif self.params.common.task_type == 'classification':
             dataset_loader = edgeai_benchmark.datasets.ModelMakerClassificationDataset
         elif self.params.common.task_type == 'segmentation':
             dataset_loader = edgeai_benchmark.datasets.ModelMakerSegmentationDataset
+            dataset_kwargs.update(dict(with_background_class=self.params.training.with_background_class))
         elif self.params.common.task_type == 'keypoint_detection':
             dataset_loader = edgeai_benchmark.datasets.ModelMakerKeypointDetectionDataset
         else:
@@ -165,14 +167,16 @@ class ModelCompilation():
             split=self.params.dataset.split_names[0],
             shuffle=True,
             num_frames=self.params.compilation.calibration_frames, # num_frames is not critical here,
-            annotation_prefix=self.params.dataset.annotation_prefix
+            annotation_prefix=self.params.dataset.annotation_prefix,
+            **dataset_kwargs
         )
         val_dataset = dataset_loader(
             path=self.params.dataset.dataset_path,
             split=self.params.dataset.split_names[1],
             shuffle=False, # can be set to True as well, if needed
             num_frames=self.params.compilation.num_frames, # this num_frames is important for accuracy calculation
-            annotation_prefix=self.params.dataset.annotation_prefix
+            annotation_prefix=self.params.dataset.annotation_prefix,
+            **dataset_kwargs
         )
 
         self.settings_file = edgeai_benchmark.get_settings_file(target_machine=self.params.common.target_machine, with_model_import=True)
@@ -229,6 +233,13 @@ class ModelCompilation():
             categories = dataset_info['categories']
             min_cat_id = min([cat['id'] for cat in categories])
             pipeline_config['metric']['label_offset_pred'] = min_cat_id
+        #
+        postprocess = pipeline_config['postprocess']
+        for transform in postprocess.transforms:
+            if isinstance(transform, edgeai_benchmark.postprocess.SegmentationImageSave):
+                num_classes = val_dataset.get_num_classes()
+                transform.compute_colors(num_classes)
+            #
         #
         self.pipeline_configs = pipeline_configs
 
