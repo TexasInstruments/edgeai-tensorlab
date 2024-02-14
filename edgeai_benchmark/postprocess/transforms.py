@@ -294,18 +294,28 @@ class SegmentationImagetoBytes():
 
 
 class SegmentationImageSave():
-    def __init__(self, num_output_frames=None):
-        # self.colors = [(r, g, b) for r in range(0, 256, 32) for g in range(0, 256, 32) for b in range(0, 256, 32)]
-        self.colors = [
-            (255,0,0),
-            (0,255,0),
-            (0,0,255),
-            (255,255,0),
-            (0,255,255),
-            (255,0,255)
-        ]
+    def __init__(self, num_output_frames=None, num_classes=None):
+        self.num_classes = num_classes
         self.num_output_frames = num_output_frames
         self.output_frame_idx = 0
+        self.compute_colors(num_classes)
+
+    def compute_colors(self, num_classes):
+        self.num_classes = num_classes
+        if num_classes and num_classes < 8:
+            self.colors = [(0, 0, 0), (255,0,0), (0,255,0), (0,0,255), (255,255,0), (0,255,255), (255,0,255), (255,255,255)]
+        else:
+            color_step = 63 if not num_classes else (255 if num_classes < 8 else (127 if num_classes < 27 else 63))
+            self.colors = [(r, g, b) for r in range(0, 256, color_step) for g in range(0, 256, color_step) for b in range(0, 256, color_step)]
+        #
+        # convert label to color here
+        self.palette = self.colors
+        for i, p in enumerate(self.palette):
+            self.palette[i] = np.array(p, dtype=np.uint8)
+            self.palette[i] = self.palette[i][..., ::-1]  # RGB->BGR, since palette is expected to be given in RGB format
+        #
+        self.palette = np.array(self.palette)
+        return self.colors
 
     def __call__(self, tensor, info_dict):
         if self.output_frame_idx >= self.num_output_frames:
@@ -320,12 +330,6 @@ class SegmentationImageSave():
         os.makedirs(save_dir, exist_ok=True)
         save_path = os.path.join(save_dir, image_name)
 
-        # convert label to color here
-        palette = self.colors
-        for i, p in enumerate(palette):
-            palette[i] = np.array(p, dtype=np.uint8)
-            palette[i] = palette[i][..., ::-1]  # RGB->BGR, since palette is expected to be given in RGB format
-
         prediction = np.array(tensor, dtype=np.uint8)
 
         if len(prediction.shape) > 2 and prediction.shape[0] > 1:
@@ -333,13 +337,16 @@ class SegmentationImageSave():
 
         prediction = np.squeeze(prediction)
         prediction_size = info_dict['data_shape']
-        output_image = np.array(palette)[prediction.ravel()].reshape(prediction_size)
+        prediction = np.remainder(prediction, len(self.colors))
+        output_image = self.palette[prediction.ravel()].reshape(prediction_size)
+
         input_bgr = cv2.imread(data_path)  # Read the actual RGB image
         # if args.img_border_crop is not None:
         #    t, l, h, w = args.img_border_crop
         #    input_bgr = input_bgr[t:t + h, l:l + w]
         input_bgr = cv2.resize(input_bgr, dsize=(prediction.shape[1], prediction.shape[0]))
         output_image = self.chroma_blend(input_bgr, output_image)
+
         cv2.imwrite(save_path, output_image)
         if isinstance(output_image, np.ndarray):
             # convert image to BGR

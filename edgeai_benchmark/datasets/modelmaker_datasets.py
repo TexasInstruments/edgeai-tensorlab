@@ -44,7 +44,7 @@ from . import coco_seg
 
 
 class ModelMakerDetectionDataset(coco_det.COCODetection):
-    def __init__(self, num_classes=90, download=False, num_frames=None, name='modelmaker',
+    def __init__(self, num_classes=None, download=False, num_frames=None, name='modelmaker',
                  annotation_prefix='instances', **kwargs):
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
         path = kwargs['path']
@@ -57,6 +57,8 @@ class ModelMakerDetectionDataset(coco_det.COCODetection):
             self.dataset_store = json.load(afp)
         #
         self.kwargs['dataset_info'] = self.get_dataset_info()
+        num_classes = num_classes or len(self.kwargs['dataset_info']['categories'])
+        self.num_classes = num_classes
 
     def download(self, path, split):
         return
@@ -70,6 +72,9 @@ class ModelMakerDetectionDataset(coco_det.COCODetection):
             #
         #
         return dataset_store
+
+    def get_num_classes(self):
+        return self.num_classes
 
 
 class ModelMakerClassificationDataset(DatasetBase):
@@ -111,6 +116,9 @@ class ModelMakerClassificationDataset(DatasetBase):
             #
         #
         return dataset_store
+
+    def get_num_classes(self):
+        return self.num_classes
 
     def __getitem__(self, idx, with_label=False, **kwargs):
         image_info = self.images_info[idx]
@@ -167,9 +175,10 @@ class ModelMakerClassificationDataset(DatasetBase):
 
 
 class ModelMakerSegmentationDataset(DatasetBase):
-    def __init__(self, num_classes=None, download=False, num_frames=None, name="modelmaker_seg", **kwargs):
+    def __init__(self, num_classes=None, download=False, num_frames=None, with_background_class=True, name="modelmaker_seg", **kwargs):
         super().__init__(num_classes=num_classes, num_frames=num_frames, name=name, **kwargs)
         self.force_download = True if download == 'always' else False
+        self.with_background_class = with_background_class
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'kwargs must have path and split'
         path = self.kwargs['path']
         split = self.kwargs['split']
@@ -195,15 +204,22 @@ class ModelMakerSegmentationDataset(DatasetBase):
         with open(self.annotation_file) as afp:
             json_data = json.load(afp)
 
-        self.num_classes = len(json_data["categories"]) + 1 if num_classes is None else num_classes
-        num_classes = self.num_classes
-
         self.coco_dataset = COCO(self.annotation_file)
 
         self.cat_ids = self.coco_dataset.getCatIds()
         img_ids = self.coco_dataset.getImgIds()
 
-        self.categories = range(1, num_classes+1)
+        categories = [cat['id'] for cat in json_data["categories"]]
+        min_cat_id = min([cat['id'] for cat in json_data['categories']])
+        if self.with_background_class and min_cat_id > 0:
+            self.categories = [0] + categories
+            self.num_classes = len(json_data["categories"]) + 1 if num_classes is None else num_classes
+        else:
+            self.categories = categories
+            self.num_classes = len(json_data["categories"]) if num_classes is None else num_classes
+        #
+        num_classes = self.num_classes
+
         self.img_ids = self._remove_images_without_annotations(img_ids)
 
         max_frames = len(self.coco_dataset.imgs)
@@ -244,6 +260,9 @@ class ModelMakerSegmentationDataset(DatasetBase):
         path = path.rstrip('/')
         root = os.sep.join(os.path.split(path)[:-1])
         return root
+
+    def get_num_classes(self):
+        return self.num_classes
 
     def __getitem__(self, idx, with_label=False):
         img_id = self.img_ids[idx]
@@ -308,6 +327,10 @@ class ModelMakerSegmentationDataset(DatasetBase):
             if key in self.dataset_store.keys():
                 dataset_store.update({key: self.dataset_store[key]})
             #
+        #
+        min_cat_id = min([cat['id'] for cat in dataset_store['categories']])
+        if self.with_background_class and min_cat_id > 0:
+            dataset_store['categories'] = [dict(id=0, supercategory=0, name='background')] + dataset_store['categories']
         #
         return dataset_store
 
