@@ -201,7 +201,7 @@ class ModelTraining:
         log_summary_regex = {
             'js': [
                 {'type':'Epoch', 'name':'Epoch', 'description':'Epochs', 'unit':'Epoch', 'value':None,
-                 'regex':[{'op':'search', 'pattern':r'Epoch:\s+\[(?<eid>\d+)\]s+Total" -> "validation 100.00%.*Epoch=(?<eid>\d+)/', 'group':1}],
+                 'regex':[{'op':'search', 'pattern':r'validation 100.00%.*Epoch=(?<eid>d+)', 'group':1}],
                 },
                 {'type':'Validation Accuracy', 'name':'Accuracy', 'description':'Validation Accuracy', 'unit':'Accuracy MeanIoU%', 'value':None,
                  'regex':[{'op':'search', 'pattern':r'validation 100%.*MeanIoU=(?<accuracy>[-+e\d+\.\d+]+)', 'group':1, 'scale_factor':1}],
