@@ -236,6 +236,7 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
+      with_background_class: true
   fpn_aspp_regnetx800mf_edgeailite:
     common:
       download_path: ./data/downloads
@@ -357,6 +358,7 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
+      with_background_class: true
   mobilenet_v2_lite:
     common:
       download_path: ./data/downloads
@@ -482,6 +484,7 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
+      with_background_class: null
   regnet_x_400mf:
     common:
       download_path: ./data/downloads
@@ -607,6 +610,7 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
+      with_background_class: null
   regnet_x_800mf:
     common:
       download_path: ./data/downloads
@@ -726,6 +730,7 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
+      with_background_class: null
   unet_aspp_mobilenetv2_tv_edgeailite:
     common:
       download_path: ./data/downloads
@@ -847,6 +852,7 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
+      with_background_class: true
   yolox_nano_lite:
     common:
       download_path: ./data/downloads
@@ -988,6 +994,7 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
+      with_background_class: null
   yolox_pico_lite:
     common:
       download_path: ./data/downloads
@@ -1097,6 +1104,7 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
+      with_background_class: null
   yolox_s_keypoint:
     common:
       download_path: ./data/downloads
@@ -1236,6 +1244,7 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
+      with_background_class: null
   yolox_s_lite:
     common:
       download_path: ./data/downloads
@@ -1369,6 +1378,7 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
+      with_background_class: null
   yolox_tiny_lite:
     common:
       download_path: ./data/downloads
@@ -1510,6 +1520,7 @@ model_descriptions:
       training_path: null
       warmup_epochs: 1
       weight_decay: 0.0001
+      with_background_class: null
 preset_descriptions:
   AM62:
     classification:

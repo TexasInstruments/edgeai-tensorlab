@@ -120,6 +120,7 @@
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
+        "with_background_class":null,
         "model_architecture":"backbone",
         "training_devices":{
           "cpu":true,
@@ -261,6 +262,7 @@
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
+        "with_background_class":null,
         "model_architecture":"backbone",
         "training_devices":{
           "cpu":true,
@@ -395,6 +397,7 @@
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
+        "with_background_class":null,
         "model_architecture":"backbone",
         "training_devices":{
           "cpu":true,
@@ -529,6 +532,7 @@
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
+        "with_background_class":true,
         "model_architecture":"backbone",
         "training_devices":{
           "cpu":true,
@@ -666,6 +670,7 @@
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
+        "with_background_class":true,
         "model_architecture":"backbone",
         "training_devices":{
           "cpu":true,
@@ -810,6 +815,7 @@
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
+        "with_background_class":true,
         "model_architecture":"backbone",
         "training_devices":{
           "cpu":true,
@@ -930,6 +936,7 @@
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
+        "with_background_class":null,
         "model_architecture":"yolox",
         "training_devices":{
           "cpu":true,
@@ -1086,6 +1093,7 @@
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
+        "with_background_class":null,
         "model_architecture":"yolox",
         "training_devices":{
           "cpu":true,
@@ -1242,6 +1250,7 @@
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
+        "with_background_class":null,
         "model_architecture":"yolox",
         "training_devices":{
           "cpu":true,
@@ -1389,6 +1398,7 @@
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
+        "with_background_class":null,
         "model_architecture":"yolox",
         "training_devices":{
           "cpu":true,
@@ -1542,6 +1552,7 @@
         "num_gpus":0,
         "distributed":true,
         "training_master_port":29500,
+        "with_background_class":null,
         "model_architecture":"yolox",
         "training_devices":{
           "cpu":true,
