@@ -34,7 +34,8 @@ class CommonSegmentation():
             assert num_classes == len(self.cat_ids), f'the provided num_classes={num_classes} does not match the length of cat_ids={self.cat_ids}'
         #
         self.num_classes_anno = len(self.cat_ids)
-        if with_background_class and min(self.cat_ids) > 0:
+        self.min_class_id = min(self.cat_ids)
+        if with_background_class and self.min_class_id > 0:
             self.num_classes_used = (self.num_classes_anno + 1)
             self.categories = [0] + self.cat_ids
         else:
@@ -171,7 +172,7 @@ class CommonSegmentationPlus(CommonSegmentation):
         if self.transforms is not None:
             image, target = self.transforms(image, target)
         #
-        if not self.with_background_class:
+        if not self.with_background_class and self.min_class_id>0:
             # target[target==0] = self.num_classes_used
             # target = np.remainder(target, self.num_classes_used)
             target[0][target == 0] = 255
