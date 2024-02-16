@@ -29,6 +29,7 @@
 #
 #################################################################################
 
+import os
 import copy
 import torch
 from torch.ao.quantization import quantize_fx
@@ -41,6 +42,14 @@ from .... import xnn
 from . import observer_types
 from . import fake_quanitze_types
 from . import qconfig_types
+
+
+class ModelFormat:
+    FLOAT_MODEL = 0
+    FAKEQ_MODEL = 1
+    QDQ_MODEL = 2
+    INT_MODEL = 3
+    _NUM_FORMATS_ = 4
 
 
 class QuantFxBaseModule(torch.nn.Module):
@@ -240,12 +249,25 @@ class QuantFxBaseModule(torch.nn.Module):
     def forward(self, *input, **kwargs):
         return self.module(*input, **kwargs)
 
-    def convert(self, inplace=False, device='cpu', convert_custom_config=None, backend_config=None):
+    def convert(self, device='cpu', convert_custom_config=None, backend_config=None, model_format=None):
         self.freeze()
-        # make a copy inorder not to alter the original
-        model = self if inplace else copy.deepcopy(self)
         # convert requires cpu model
-        model = model.to(torch.device(device))
+        self.to(torch.device(device))
         # now do the actual conversion
-        model.module = quantize_fx.convert_fx(model.module, convert_custom_config=convert_custom_config, backend_config=backend_config)
-        return model
+        self.module = quantize_fx.convert_fx(self.module, convert_custom_config=convert_custom_config, backend_config=backend_config)
+        return self
+
+    def export(self, example_input, filename='model.onnx', opset_version=17, model_format=None):
+        if model_format == ModelFormat.INT_MODEL:
+            # # Convert QDQ format to Int8 format
+            import onnxruntime as ort
+            qdq_filename = os.path.splitext(filename)[0] + '_qdq.onnx'
+            torch.onnx.export(self, example_input, qdq_filename, opset_version=opset_version)
+            so = ort.SessionOptions()
+            so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
+            so.optimized_model_filepath = filename
+            # logger.info("Inplace conversion of QDQ model to INT8 model at: {}".format(onnx_file))
+            ort.InferenceSession(qdq_filename, so)
+        else:
+                torch.onnx.export(self, example_input, filename, opset_version=opset_version)
+        #
