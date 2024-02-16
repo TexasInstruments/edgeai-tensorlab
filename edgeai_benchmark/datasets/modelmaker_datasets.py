@@ -207,22 +207,18 @@ class ModelMakerSegmentationDataset(DatasetBase):
         self.coco_dataset = COCO(self.annotation_file)
 
         self.cat_ids = self.coco_dataset.getCatIds()
-        img_ids = self.coco_dataset.getImgIds()
+        self.img_ids = self.coco_dataset.getImgIds()
 
-        categories = [cat['id'] for cat in json_data["categories"]]
-        min_cat_id = min([cat['id'] for cat in json_data['categories']])
-        if self.with_background_class and min_cat_id > 0:
-            self.categories = [0] + categories
-            self.num_classes = len(json_data["categories"]) + 1 if num_classes is None else num_classes
-        else:
-            self.categories = categories
-            self.num_classes = len(json_data["categories"]) if num_classes is None else num_classes
+        self.min_class_id = min(self.cat_ids)
+        if self.with_background_class and self.min_class_id > 0:
+            self.cat_ids = [0] + self.cat_ids
         #
-        num_classes = self.num_classes
+        self.num_classes = len(self.cat_ids) if num_classes is None else num_classes
+        self.categories = self.cat_ids
 
-        self.img_ids = self._remove_images_without_annotations(img_ids)
+        img_ids_shortlisted = self._remove_images_without_annotations(self.img_ids)
 
-        max_frames = len(self.coco_dataset.imgs)
+        max_frames = len(img_ids_shortlisted)
         num_frames = self.kwargs.get('num_frames', None)
         num_frames = min(num_frames, max_frames) if num_frames is not None else max_frames
 
@@ -231,13 +227,14 @@ class ModelMakerSegmentationDataset(DatasetBase):
             random.seed(int(shuffle))
             random.shuffle(imgs_list)
         #
-        self.coco_dataset.imgs = {k: v for k, v in imgs_list[:num_frames]}
+        imgs_list_shortlisted = [(k, v) for k, v in imgs_list if k in img_ids_shortlisted]
+        self.coco_dataset.imgs  = dict(imgs_list_shortlisted[:num_frames])
 
-        max_frames = len(self.coco_dataset.imgs)
+        max_frames = len(self.img_ids)
         num_frames = self.kwargs.get('num_frames', None)
         num_frames = min(num_frames, max_frames) if num_frames is not None else max_frames
 
-        self.cat_ids = self.coco_dataset.getCatIds()
+        # self.cat_ids = self.coco_dataset.getCatIds()
         self.img_ids = self.coco_dataset.getImgIds()
         self.num_frames = self.kwargs['num_frames'] = num_frames
 
@@ -275,8 +272,12 @@ class ModelMakerSegmentationDataset(DatasetBase):
             image = PIL.Image.open(image_path)
             image, anno = self._filter_and_remap_categories(image, anno)
             image, target = self._convert_polys_to_mask(image, anno)
-            target[target == 0] = self.num_classes
-            target[target != 0] -= 1
+            if not self.with_background_class and self.min_class_id > 0:
+                # target[target == 0] = self.num_classes
+                # target[target != 0] -= 1
+                target[target == 0] = 255
+                target[target != 255] -= 1
+            #
             # write the label file to a temorary dir so that it can be used by evaluate()
             image_basename = os.path.basename(image_path)
             label_path = os.path.join(self.label_dir, image_basename)
