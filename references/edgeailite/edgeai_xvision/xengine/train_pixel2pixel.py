@@ -598,7 +598,7 @@ def main(args):
     #################################################
     if args.evaluate_start:
         with torch.no_grad():
-            validate(args, val_dataset, val_loader, model, args.start_epoch, val_writer)
+            validate(args, val_dataset, val_loader, model, args.start_epoch, val_writer , description="_pretrained")
 
     grad_scaler = torch.cuda.amp.GradScaler() if args.model_config.enable_fp16 else None
 
@@ -848,7 +848,7 @@ def train(args, train_dataset, train_loader, model, optimizer, epoch, train_writ
 
 
 ###################################################################
-def validate(args, val_dataset, val_loader, model, epoch, val_writer):
+def validate(args, val_dataset, val_loader, model, epoch, val_writer, description=""):
     to_device = lambda src_object, non_blocking=False: src_object.cuda(non_blocking=non_blocking) if args.device in ('cuda', None) else src_object
     data_time = xnn.utils.AverageMeter()
     # if the loss/ metric is already an average, no need to further average
@@ -912,7 +912,7 @@ def validate(args, val_dataset, val_loader, model, epoch, val_writer):
                 output_string += '[{}={}]'.format(metric_names[task_idx], str(avg_metric[task_idx]))
 
             epoch_str = '{}/{}'.format(epoch + 1, args.epochs)
-            progress_bar.set_description("=> validation")
+            progress_bar.set_description("=> validation" + description)
             progress_bar.set_postfix(dict(Epoch=epoch_str, DataTime=data_time, Output="{}".format(output_string)))
             progress_bar.update(iter_id-last_update_iter)
             last_update_iter = iter_id
