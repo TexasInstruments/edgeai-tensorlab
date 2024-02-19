@@ -257,7 +257,7 @@ class QuantFxBaseModule(torch.nn.Module):
         self.module = quantize_fx.convert_fx(self.module, convert_custom_config=convert_custom_config, backend_config=backend_config)
         return self
 
-    def export(self, example_input, filename='model.onnx', opset_version=17, model_format=None):
+    def export(self, example_input, filename='model.onnx', opset_version=17, model_format=None, preserve_qdq_model=False):
         if model_format == ModelFormat.INT_MODEL:
             # # Convert QDQ format to Int8 format
             import onnxruntime as ort
@@ -268,6 +268,9 @@ class QuantFxBaseModule(torch.nn.Module):
             so.optimized_model_filepath = filename
             # logger.info("Inplace conversion of QDQ model to INT8 model at: {}".format(onnx_file))
             ort.InferenceSession(qdq_filename, so)
+            if not preserve_qdq_model:
+                os.remove(qdq_filename)
+            #
         else:
                 torch.onnx.export(self, example_input, filename, opset_version=opset_version)
         #
