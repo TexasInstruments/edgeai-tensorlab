@@ -261,7 +261,7 @@ class ModelMakerSegmentationDataset(DatasetBase):
     def get_num_classes(self):
         return self.num_classes
 
-    def __getitem__(self, idx, with_label=False):
+    def __getitem__(self, idx, with_label=False, label_as_array=False):
         img_id = self.img_ids[idx]
         img = self.coco_dataset.loadImgs([img_id])[0]
         image_path = os.path.join(self.image_dir, img['file_name'])
@@ -272,18 +272,17 @@ class ModelMakerSegmentationDataset(DatasetBase):
             image = PIL.Image.open(image_path)
             image, anno = self._filter_and_remap_categories(image, anno)
             image, target = self._convert_polys_to_mask(image, anno)
-            if not self.with_background_class and self.min_class_id > 0:
-                # target[target == 0] = self.num_classes
-                # target[target != 0] -= 1
-                target[target == 0] = 255
-                target[target != 255] -= 1
+            self.encode_segmap(target)
+            if not label_as_array:
+                # write the label file to a temorary dir so that it can be used by evaluate()
+                image_basename = os.path.basename(image_path)
+                label_path = os.path.join(self.label_dir, image_basename)
+                label_path = os.path.splitext(label_path)[0] + '.png'
+                cv2.imwrite(label_path, target)
+                return image_path, label_path
+            else:
+                return image_path, target
             #
-            # write the label file to a temorary dir so that it can be used by evaluate()
-            image_basename = os.path.basename(image_path)
-            label_path = os.path.join(self.label_dir, image_basename)
-            label_path = os.path.splitext(label_path)[0] + '.png'
-            cv2.imwrite(label_path, target)
-            return image_path, label_path
         else:
             return image_path
         #
@@ -297,7 +296,12 @@ class ModelMakerSegmentationDataset(DatasetBase):
         #
 
     def encode_segmap(self, label_img):
-        # label has already been encoded
+        if not self.with_background_class and self.min_class_id > 0:
+            # target[target == 0] = self.num_classes
+            # target[target != 0] -= 1
+            label_img[label_img == 0] = 255
+            label_img[label_img != 255] -= 1
+        #
         return label_img
 
     def __call__(self, predictions, **kwargs):
@@ -307,9 +311,8 @@ class ModelMakerSegmentationDataset(DatasetBase):
         cmatrix = None
         num_frames = min(self.num_frames, len(predictions))
         for n in range(num_frames):
-            image_file, label_file = self.__getitem__(n, with_label=True)
-            label_img = PIL.Image.open(label_file)
-            label_img = self.encode_segmap(label_img)
+            image_file, label_img = self.__getitem__(n, with_label=True, label_as_array=True)
+            # label_img = PIL.Image.open(label_file)
             # reshape prediction is needed
             output = predictions[n]
             output = output.astype(np.uint8)
