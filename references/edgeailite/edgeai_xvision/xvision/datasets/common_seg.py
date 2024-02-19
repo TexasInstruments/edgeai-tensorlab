@@ -37,11 +37,10 @@ class CommonSegmentation():
         self.min_class_id = min(self.cat_ids)
         if with_background_class and self.min_class_id > 0:
             self.num_classes_used = (self.num_classes_anno + 1)
-            self.categories = [0] + self.cat_ids
         else:
             self.num_classes_used = self.num_classes_anno
-            self.categories = self.cat_ids
         #
+        self.categories = self.cat_ids
 
         img_ids = self.tiscape_dataset.getImgIds()
         self.img_ids = self._remove_images_without_annotations(img_ids)
@@ -109,7 +108,7 @@ class CommonSegmentation():
         #
         anno = copy.deepcopy(anno)
         for obj in anno:
-            obj["category_id"] = self.categories.index(obj["category_id"]) 
+            obj["category_id"] = self.categories.index(obj["category_id"])  + 1
     #
         return image, anno
 
