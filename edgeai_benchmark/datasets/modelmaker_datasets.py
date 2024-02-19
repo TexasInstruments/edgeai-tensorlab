@@ -211,9 +211,10 @@ class ModelMakerSegmentationDataset(DatasetBase):
 
         self.min_class_id = min(self.cat_ids)
         if self.with_background_class and self.min_class_id > 0:
-            self.cat_ids = [0] + self.cat_ids
+            self.num_classes = len(self.cat_ids) + 1
+        else:
+            self.num_classes = len(self.cat_ids)
         #
-        self.num_classes = len(self.cat_ids) if num_classes is None else num_classes
         self.categories = self.cat_ids
 
         img_ids_shortlisted = self._remove_images_without_annotations(self.img_ids)
