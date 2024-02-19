@@ -35,7 +35,7 @@ from torchvision import ops
 from typing import Union, Dict, Any
 from copy import deepcopy
 from torch.fx import GraphModule, symbolic_trace
-from inspect import isfunction
+from inspect import isfunction, ismethod
 
 try:
     from timm.layers.squeeze_excite import SEModule
@@ -122,7 +122,7 @@ def replace_unsupported_layers(model:nn.Module,replacement_dict:Dict[Any,Union[n
             else:
                 kwargs = dict()
             model = replace_function_nodes(model, pattern, replacement, verbose_mode=verbose_mode, **kwargs)
-        elif isfunction(replacement):
+        elif isfunction(replacement) or ismethod(replacement):
             # for self-made surgery function 
             model = replacement(model, pattern = pattern, verbose_mode=verbose_mode)
         else:

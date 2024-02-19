@@ -44,11 +44,11 @@ from . import fake_quanitze_types
 from . import qconfig_types
 
 
-class ModelFormat:
-    FLOAT_MODEL = 0
-    FAKEQ_MODEL = 1
-    QDQ_MODEL = 2
-    INT_MODEL = 3
+class ModelQuantFormat:
+    FLOAT_MODEL = "FLOAT_MODEL"
+    FAKEQ_MODEL = "FAKEQ_MODEL"
+    QDQ_MODEL = "QDQ_MODEL"
+    INT_MODEL = "INT_MODEL"
     _NUM_FORMATS_ = 4
 
 
@@ -60,7 +60,6 @@ class QuantFxBaseModule(torch.nn.Module):
         if not total_epochs:
             raise RuntimeError("total_epochs must be provided")
         #
-
         # split based on + for mixed precision
         qconfig_type = qconfig_type.split("+") if isinstance(qconfig_type, str) else (qconfig_type, )
         if len(qconfig_type) > 2:
@@ -249,7 +248,7 @@ class QuantFxBaseModule(torch.nn.Module):
     def forward(self, *input, **kwargs):
         return self.module(*input, **kwargs)
 
-    def convert(self, device='cpu', convert_custom_config=None, backend_config=None, model_format=None):
+    def convert(self, device='cpu', model_quant_format=None, convert_custom_config=None, backend_config=None):
         self.freeze()
         # convert requires cpu model
         self.to(torch.device(device))
@@ -257,8 +256,9 @@ class QuantFxBaseModule(torch.nn.Module):
         self.module = quantize_fx.convert_fx(self.module, convert_custom_config=convert_custom_config, backend_config=backend_config)
         return self
 
-    def export(self, example_input, filename='model.onnx', opset_version=17, model_format=None, preserve_qdq_model=False):
-        if model_format == ModelFormat.INT_MODEL:
+    def export(self, example_input, filename='model.onnx', opset_version=17, model_quant_format=None, preserve_qdq_model=True,
+               simplify=False, skipped_optimizers=None):
+        if model_quant_format == ModelQuantFormat.INT_MODEL:
             # # Convert QDQ format to Int8 format
             import onnxruntime as ort
             qdq_filename = os.path.splitext(filename)[0] + '_qdq.onnx'
@@ -272,5 +272,12 @@ class QuantFxBaseModule(torch.nn.Module):
                 os.remove(qdq_filename)
             #
         else:
-                torch.onnx.export(self, example_input, filename, opset_version=opset_version)
+            torch.onnx.export(self, example_input, filename, opset_version=opset_version)
+        #
+        if simplify:
+            import onnx
+            from onnxsim import simplify
+            onnx_model = onnx.load(filename)
+            onnx_model, check = simplify(onnx_model, skipped_optimizers=skipped_optimizers)
+            onnx.save(onnx_model, filename)
         #

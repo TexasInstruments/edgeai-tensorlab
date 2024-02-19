@@ -264,7 +264,7 @@ def straight_type_chain_searcher(main_module:GraphModule, type_pattern:List):
             #if both refer to same function
             return True
 
-        elif first_function.target in operationDict.keys():
+        elif hasattr(first_function, 'target') and first_function.target in operationDict.keys():
             #if it is one  of add, sub, mul from either of operator module or torch module it should be the counter part
             return second_function == operationDict[first_function]
 
