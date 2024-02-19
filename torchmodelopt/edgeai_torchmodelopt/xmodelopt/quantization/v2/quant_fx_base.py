@@ -101,7 +101,7 @@ class QuantFxBaseModule(torch.nn.Module):
         if state_dict_name:
             state_dict_names = state_dict_name if isinstance(state_dict_name, (list,tuple)) else [state_dict_name]
             for s_name in state_dict_names:
-                data_dict = state_dict[s_name] if ((data_dict is not None) and s_name in data_dict) else data_dict
+                data_dict = data_dict[s_name] if ((data_dict is not None) and s_name in data_dict) else data_dict
             #
         #
         self.load_state_dict(data_dict, strict=strict)
