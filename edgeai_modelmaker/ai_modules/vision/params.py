@@ -104,6 +104,7 @@ def init_params(*args, **kwargs):
         ),
         compilation=dict(
             enable=True,
+            preset_name=None,
             model_compilation_id=None,
             compilation_path=None, # top level compilation path
             model_compiled_path=None, # compiled path for the model

@@ -58,7 +58,11 @@ def main(config):
     preset_descriptions = ai_target_module.runner.ModelRunner.get_preset_descriptions(params)
     target_device = config['common']['target_device']
     task_type = config['common']['task_type']
-    preset_description = preset_descriptions[target_device][task_type]['default_preset']
+    compilation_preset_name = 'default_preset'
+    if 'preset_name' in config['compilation']:
+        compilation_preset_name = config['compilation']['preset_name']
+    #
+    preset_description = preset_descriptions[target_device][task_type][compilation_preset_name]
 
     # update the params with model_description, preset and config
     params = params.update(model_description).update(preset_description).update(config)
