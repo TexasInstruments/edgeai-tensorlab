@@ -79,14 +79,18 @@ class QConfigMethod(enum.Enum):
 class QConfigType():
     DISABLED = 0
     DEFAULT = "DEFAULT"                         # default behavior is same as that of WC8_AT8
-    WT8SYMP2_AT8SYMP2 = "WT8SYMP2_AT8SYMP2"     # per-tensor symmetric power-power-of-2 quantization for both weights and activations
     WC8_AT8 = "WC8_AT8"                         # per-channel quantization for weights, per-tensor quantization for activations
+
+    WT8SYMP2_AT8SYMP2 = "WT8SYMP2_AT8SYMP2"     # per-tensor symmetric power-power-of-2 quantization for both weights and activations
+    WC8SYMP2_AT8SYMP2 = "WC8SYMP2_AT8SYMP2"     # per-channel symmetric power-power-of-2 quantization for weights, per-tensor symmetric for activations
+    WC8SYMP2_AT8SYMP2R4 = "WC8SYMP2_AT8SYMP2R4" # same as above with fixed activation range
+
     WC4_AT8 = "WC4_AT8"                         # 4-bits per-channel quantization for weights, 8-bit per-tensor quantization for activations
-    WC4M4_AT8 = "WC4M4_AT8"                     # restricted range weights
+    WC4M4_AT8 = "WC4M4_AT8"                     # same as above with a maximum weight range
 
     @classmethod
     def choices(cls):
-        return [e.value for e in cls]
+        return [value for value in dir(cls) if not value.startswith('__') and value != 'choices']
 
 
 class QConfigMode(enum.Enum):
@@ -99,29 +103,89 @@ class QConfigMode(enum.Enum):
         return [e.value for e in cls]
 
 
+def get_repr_string_from_dict(input_dict):
+    repr_string = []
+    for k, v in input_dict.items():
+        repr_string += [f'{k}_{v}'.replace('.', '_')]
+    #
+    return '__'.join(repr_string)
+
+
+####################################################################
+def get_weight_observer_from_dict(weight_qconfig):
+    observer_name = 'CustomAdaptiveWeightObserver' + '__' + get_repr_string_from_dict(weight_qconfig)
+    weight_bitwidth = weight_qconfig.get('bitwidth', 8)
+    weight_qscheme = weight_qconfig.get('qscheme', torch.per_channel_symmetric)
+    # qconfig
+    WeightObserverBaseToUse = observer_types.AdaptivePerChannelWeightObserver \
+        if weight_qscheme == torch.per_channel_symmetric else observer_types.AdaptiveWeightObserver
+    weight_observer = xnn.utils.partialclass(WeightObserverBaseToUse,
+                                             quant_min=weight_qconfig.get('quant_min', -(2 ** (weight_bitwidth-1))),
+                                             quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth-1)) - 1),
+                                             dtype=weight_qconfig.get('dtype', torch.qint8),
+                                             power2_scale=weight_qconfig.get('power2_scale', False),
+                                             range_max=weight_qconfig.get('range_max', None),
+                                             fixed_range=weight_qconfig.get('fixed_range', False),
+                                             class_name=weight_qconfig.get('observer_name', observer_name))
+    return weight_observer
+
+
+def get_activation_observer_from_dict(activation_qconfig):
+    observer_name = 'CustomAdaptiveActivationObserver' + get_repr_string_from_dict(activation_qconfig)
+    activation_bitwidth = activation_qconfig.get('bitwidth', 8)
+    activation_observer = xnn.utils.partialclass(observer_types.AdaptiveActivationObserver,
+                                             quant_min=activation_qconfig.get('quant_min', 0),
+                                             quant_max=activation_qconfig.get('quant_max', (2 ** activation_bitwidth) - 1),
+                                             dtype=activation_qconfig.get('dtype', torch.quint8),
+                                             qscheme=activation_qconfig.get('qscheme', torch.per_tensor_affine),
+                                             power2_scale=activation_qconfig.get('power2_scale', False),
+                                             range_max=activation_qconfig.get('range_max', None),
+                                             fixed_range=activation_qconfig.get('fixed_range', False),
+                                             class_name=activation_qconfig.get('observer_name', observer_name))
+    return activation_observer
+
+
+def get_qconfig_from_dict(qconfig_dict):
+    # custom qconfig_type parameters are given in a dict
+    weight_observer = get_weight_observer_from_dict(qconfig_dict['weight'])
+    activation_observer = get_activation_observer_from_dict(qconfig_dict['activation'])
+    qconfig_obj = QConfig(weight=fake_quanitze_types.AdaptiveWeightFakeQuantize.with_args(observer=weight_observer),
+                          activation=fake_quanitze_types.AdaptiveActivationFakeQuantize.with_args(observer=activation_observer))
+    return qconfig_obj
+
+
 ####################################################################
 _QCONFIG_TYPE_TO_DICT = dict()
 
-####################################################################
 # per-channel
-_QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8] = QConfig(
-    weight=fake_quanitze_types.AdaptiveWeightFakeQuantize.with_args(observer=observer_types.AdaptivePerChannelWeightObserver),
-    activation=fake_quanitze_types.AdaptiveActivationFakeQuantize.with_args(observer=observer_types.AdaptiveActivationObserver))
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8] = get_qconfig_from_dict(dict(
+    weight=dict(qscheme=torch.per_channel_symmetric),
+    activation=dict(qscheme=torch.per_tensor_affine)))
 
 # symmetric power-of-2
-_QCONFIG_TYPE_TO_DICT[QConfigType.WT8SYMP2_AT8SYMP2] = QConfig(
-    weight=fake_quanitze_types.AdaptiveWeightFakeQuantize.with_args(observer=observer_types.AdaptivePower2WeightObserver),
-    activation=fake_quanitze_types.AdaptiveActivationFakeQuantize.with_args(observer=observer_types.AdaptiveSymPower2ActivationObserver))
+_QCONFIG_TYPE_TO_DICT[QConfigType.WT8SYMP2_AT8SYMP2] = get_qconfig_from_dict(dict(
+    weight=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True),
+    activation=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True)))
 
-# 4 bit modes
-_QCONFIG_TYPE_TO_DICT[QConfigType.WC4_AT8] = QConfig(
-    weight=fake_quanitze_types.AdaptiveWeightFakeQuantize.with_args(observer=observer_types.AdaptivePerChannelBit4WeightObserver),
-    activation=fake_quanitze_types.AdaptiveActivationFakeQuantize.with_args(observer=observer_types.AdaptiveActivationObserver))
+# per-channel symmetric power-of-2
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC8SYMP2_AT8SYMP2] =get_qconfig_from_dict(dict(
+    weight=dict(qscheme=torch.per_channel_symmetric, power2_scale=True),
+    activation=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True)))
 
-# restricted range
-_QCONFIG_TYPE_TO_DICT[QConfigType.WC4M4_AT8] = QConfig(
-    weight=fake_quanitze_types.AdaptiveWeightFakeQuantize.with_args(observer=observer_types.AdaptivePerChannelBit4MaxRange4WeightObserver),
-    activation=fake_quanitze_types.AdaptiveActivationFakeQuantize.with_args(observer=observer_types.AdaptiveActivationObserver))
+# per-channel symmetric power-of-2, fixed activation range
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC8SYMP2_AT8SYMP2R4] =get_qconfig_from_dict(dict(
+    weight=dict(qscheme=torch.per_channel_symmetric, power2_scale=True),
+    activation=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True, rage_max=4, fixed_range=True)))
+
+# 4 bit weight
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC4_AT8] = get_qconfig_from_dict(dict(
+    weight=dict(bitwidth=4, qscheme=torch.per_channel_symmetric),
+    activation=dict(qscheme=torch.per_tensor_affine)))
+
+# 4 bit weight, restricted range
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC4M4_AT8] = get_qconfig_from_dict(dict(
+    weight=dict(bitwidth=4, qscheme=torch.per_channel_symmetric, range_max=4),
+    activation=dict(qscheme=torch.per_tensor_affine)))
 
 ###########
 _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8]
@@ -139,34 +203,7 @@ def get_qconfig(is_qat, backend='qnnpack', qconfig_type=None):
         qconfig_obj = _QCONFIG_TYPE_TO_DICT[qconfig_type]
     elif isinstance(qconfig_type, dict):
         # custom qconfig_type parameters are given in a dict
-        weight_qconfig = qconfig_type['weight']
-        weight_bitwidth = weight_qconfig.get('bitwidth', 8)
-        weight_qscheme = weight_qconfig.get('qscheme', torch.per_channel_symmetric)
-        activation_qconfig = qconfig_type['activation']
-        activation_bitwidth = activation_qconfig.get('bitwidth', 8)
-        # qconfig
-        WeightObserverBaseToUse = observer_types.AdaptivePerChannelWeightObserver if weight_qscheme == torch.per_channel_symmetric \
-            else observer_types.AdaptiveWeightObserver
-        weight_observer = xnn.utils.partialclass(WeightObserverBaseToUse,
-                                                 quant_min=weight_qconfig.get('quant_min', -(2 ** (weight_bitwidth-1))),
-                                                 quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth-1)) - 1),
-                                                 dtype=weight_qconfig.get('dtype', torch.qint8),
-                                                 power2_scale=weight_qconfig.get('power2_scale', False),
-                                                 range_max=weight_qconfig.get('range_max', None),
-                                                 fixed_range=weight_qconfig.get('fixed_range', False),
-                                                 class_name=weight_qconfig.get('observer_name', 'CustomAdaptiveWeightObserver'))
-        activation_observer = xnn.utils.partialclass(observer_types.AdaptiveActivationObserver,
-                                                 quant_min=activation_qconfig.get('quant_min', 0),
-                                                 quant_max=activation_qconfig.get('quant_max', (2 ** activation_bitwidth) - 1),
-                                                 dtype=activation_qconfig.get('dtype', torch.quint8),
-                                                 qscheme=activation_qconfig.get('qscheme', torch.per_tensor_affine),
-                                                 power2_scale=activation_qconfig.get('power2_scale', False),
-                                                 range_max=activation_qconfig.get('range_max', None),
-                                                 fixed_range=activation_qconfig.get('fixed_range', False),
-                                                 class_name=activation_qconfig.get('observer_name', 'CustomAdaptiveActivationObserver'))
-        qconfig_obj = QConfig(weight=fake_quanitze_types.AdaptiveWeightFakeQuantize.with_args(observer=weight_observer),
-                              activation=fake_quanitze_types.AdaptiveActivationFakeQuantize.with_args(observer=activation_observer))
-        return qconfig_obj
+        qconfig_obj = get_qconfig_from_dict(is_qat=is_qat, backend=backend, qconfig_type=qconfig_type)
     else:
         raise RuntimeError("Unknown qconfig_type: " + str(qconfig_type))
     #

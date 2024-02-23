@@ -53,13 +53,21 @@ class ModelQuantFormat:
 
 
 class QuantFxBaseModule(torch.nn.Module):
-    def __init__(self, model, *args, qconfig_type=qconfig_types.QConfigType.DEFAULT, example_inputs=None, is_qat=True, backend="qnnpack",
+    def __init__(self, model, *args, qconfig_type=None, example_inputs=None, is_qat=True, backend="qnnpack",
                  total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
                  qconfig_mode=qconfig_types.QConfigMode.DEFAULT):
+        '''
+        model: input model to be used for QAT
+        qconfig_type: qconfig_type can be one of the modes defined in qconfig_types (string)
+            or it can be a dict that will be passed to qconfig_types.get_config_from_dict()
+            it can also be an instance of torch.ao.quantization.QConfig as used when using torch.ao.quantization apis
+        '''
         super().__init__()
         if not total_epochs:
             raise RuntimeError("total_epochs must be provided")
         #
+        # handle None here
+        qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
         # split based on + for mixed precision
         qconfig_type = qconfig_type.split("+") if isinstance(qconfig_type, str) else (qconfig_type, )
         if len(qconfig_type) > 2:
