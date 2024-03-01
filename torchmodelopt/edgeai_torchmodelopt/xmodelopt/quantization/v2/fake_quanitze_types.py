@@ -124,7 +124,9 @@ class AdaptiveActivationFakeQuantize(AdaptiveFakeQuantize):
     '''
     Create a subclass, just to distinguish between the ones used for activation and weight
     '''
-    pass
+    def forward(self, X):
+        x_q = super().forward(X)
+        return x_q
 
 
 ####################################################################
