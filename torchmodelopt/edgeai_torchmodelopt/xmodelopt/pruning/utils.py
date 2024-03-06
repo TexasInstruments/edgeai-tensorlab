@@ -34,6 +34,8 @@ import torch
 import torch.fx as fx
 import torch.nn as nn
 
+import operator
+
 def find_in_node(orig_node, curr_node, modules, next_conv_node_list):
     # recursive call to find the related conv layers to the orig conv layer in its users (below layers)
     condn = (curr_node.target!='output') and isinstance(curr_node.target, str) and (curr_node.target in modules) and isinstance(modules[curr_node.target], torch.nn.Conv2d)
@@ -211,7 +213,7 @@ def find_all_connected_conv(model):
     connected_list_prev = ['init']
     all_connected_list = []
     for node in model_graph.nodes:
-        if len(node.args)>1: # to find layers like add
+        if (len(node.args)>1) and not(node.target in (torch.mul,operator.mul)): # to find layers like add, removing mul layer
             if all(isinstance(n_id, torch.fx.node.Node) for n_id in node.args): # to remove nodes like gemm, which has node, int as two inputs
                 # this might be a problem for layers like concat, as they have axis as input and thus is a problem #TODO
                 # also if there is concat layer, it wont affect us because any number of channels can be concat to anything #TODO

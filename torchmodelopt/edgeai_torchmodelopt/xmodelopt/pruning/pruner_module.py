@@ -289,6 +289,13 @@ class SigmoidPruningParametrization(SoftPruningParametrization):
                  
 
 class BlendPruningParametrization(SoftPruningParametrization):
+    def __init__(self, curr_node, modules, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False, init_train_ep=5, net_weights=None, binary_mask=False, tao=0.0001, **kwargs):
+        if 'p' in kwargs:
+            p = kwargs.pop('p')
+        else:
+            p=None
+        self.p =p
+        super().__init__(curr_node, modules, channel_pruning, pruning_ratio, n2m_pruning, init_train_ep, net_weights, binary_mask, tao, **kwargs)
     def create_mask(self, net_weight):
         # epoch count is one indexed for some reason, manage according to that
         if self.epoch_count<=self.init_train_ep:
@@ -304,7 +311,7 @@ class BlendPruningParametrization(SoftPruningParametrization):
             elif self.epoch_count>total_epochs_knee_point:
                 alpha_factor = 0
             else:
-                alpha_factor = math.pow(self.epoch_count-total_epochs_knee_point,2)/math.pow(total_epochs_knee_point-self.init_train_ep, 2)
+                alpha_factor = math.pow(abs(self.epoch_count-total_epochs_knee_point),self.p)/math.pow(total_epochs_knee_point-self.init_train_ep, self.p)
                      
             if self.n2m_pruning:
                 # prune 41 elements for every 64 elements (pass 41/64 in the self.pruning_ratio)
@@ -364,7 +371,7 @@ class BlendPruningParametrization(SoftPruningParametrization):
     
          
 class PrunerModule(torch.nn.Module):
-    def __init__(self, module, pruning_ratio=None, total_epochs=None, pruning_class='blend', copy_args=[],
+    def __init__(self, module, pruning_ratio=None, total_epochs=None, pruning_class='blend',p=2.0, copy_args=[],
                  pruning_global=False, pruning_type='channel', pruning_init_train_ep=5, pruning_m=None, **kwargs) -> None:
         super().__init__(**kwargs)
         self.module = module
@@ -374,6 +381,7 @@ class PrunerModule(torch.nn.Module):
         self.total_epochs = total_epochs+1
         self.sparsity = 0
         self.init_train_ep = pruning_init_train_ep
+        self.p = p
         
         if pruning_ratio==0:
             raise RuntimeError("pruning ratio of 0 is not supported , try turning off pruning and trying again")
@@ -566,9 +574,14 @@ class PrunerModule(torch.nn.Module):
             if node.args and isinstance(node.target, str) and (node.target in modules):
                 if isinstance(modules[node.target], nn.Conv2d):
                     pruning_ratio = self.pruning_ratio if isinstance(self.pruning_ratio, float) else self.pruning_ratio[node.target]
+                    if self.pruning_class == BlendPruningParametrization:
+                        p_kwargs = {'p':self.p}
+                    else:
+                        p_kwargs = {}
+                    
                     parameterization = self.pruning_class(curr_node=node, modules=modules, channel_pruning=self.channel_pruning, pruning_ratio=pruning_ratio,
                                                         n2m_pruning=self.n2m_pruning, init_train_ep=self.init_train_ep, prunechannelunstructured=self.prunechannelunstructured,
-                                                        epoch_count=self.epoch_count, total_epochs=self.total_epochs, net_weights = self.net_weights, binary_mask=binary_mask, m=self.m)
+                                                        epoch_count=self.epoch_count, total_epochs=self.total_epochs, net_weights = self.net_weights, binary_mask=binary_mask, m=self.m,**p_kwargs)
                     
                     parametrize.register_parametrization(modules[node.target], "weight", parameterization)
                     if self.channel_pruning:
