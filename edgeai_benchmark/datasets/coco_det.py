@@ -257,6 +257,7 @@ class COCODetection(DatasetBase):
                 dataset_store.update({key: self.dataset_store[key]})
             #
         #
+        dataset_store.update(dict(color_map=self.get_color_map()))
         return dataset_store
 
     def _format_detections(self, bbox_label_score, image_id, label_offset=0, class_map=None):

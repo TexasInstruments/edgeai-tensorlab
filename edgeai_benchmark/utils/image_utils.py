@@ -31,7 +31,7 @@ import numpy as np
 
 # Author: Manu Mathew
 # Date: 2021 March
-def get_color_palette(num_classes):
+def get_color_palette_generic(num_classes):
     num_classes_3 = np.power(num_classes, 1.0/3)
     delta_color = int(256/num_classes_3)
     colors = [(r, g, b) for r in range(0,256,delta_color)
@@ -54,4 +54,23 @@ def get_color_palette(num_classes):
     if shortage > 0:
         colors_list += colors[-shortage:]
     #
+    if len(colors_list) < 256:
+        colors_list += [(255,255,255)] * (256-len(colors_list))
+    #
+    assert len(colors_list) == 256, f'incorrect length for color palette {len(colors_list)}'
     return colors_list
+
+    
+def get_color_palette(num_classes):
+    if num_classes < 8:
+        color_step = 255
+    elif num_classes < 27:
+        color_step = 127
+    elif num_classes < 64:
+        color_step = 63        
+    else:
+        color_step  = 31
+    #
+    color_map = [(r, g, b) for r in range(0, 256, color_step) for g in range(0, 256, color_step) for b in range(0, 256, color_step)]
+    return color_map
+

@@ -258,6 +258,7 @@ class COCOSegmentation(DatasetBase):
                 dataset_store.update({key: self.dataset_store[key]})
             #
         #
+        dataset_store.update(dict(color_map=self.get_color_map()))        
         return dataset_store
 
     def _remove_images_without_annotations(self, img_ids):

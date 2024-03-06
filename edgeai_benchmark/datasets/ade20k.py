@@ -70,7 +70,7 @@ class ADE20KSegmentation(DatasetBase):
         self.load_classes()
 
         # if a color representation is needed
-        self.colors = utils.get_color_palette(num_classes)
+        self.color_map = utils.get_color_palette(num_classes)
 
         image_dir = os.path.join(self.kwargs['path'], 'images', self.kwargs['split'])
         images_pattern = os.path.join(image_dir, '*.jpg')
@@ -145,9 +145,9 @@ class ADE20KSegmentation(DatasetBase):
         g = seg_img.copy()
         b = seg_img.copy()
         for l in range(0, self.num_classes_):
-            r[seg_img == l] = self.colors[l][0]
-            g[seg_img == l] = self.colors[l][1]
-            b[seg_img == l] = self.colors[l][2]
+            r[seg_img == l] = self.color_map[l][0]
+            g[seg_img == l] = self.color_map[l][1]
+            b[seg_img == l] = self.color_map[l][2]
         #
 
         rgb = np.zeros((seg_img.shape[0], seg_img.shape[1], 3))
