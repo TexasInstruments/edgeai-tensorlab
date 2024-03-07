@@ -335,12 +335,12 @@ def coco_det_label_offset_80to90(label_offset=1):
 
 # convert from 90 class index (typical output of a tensorflow detector) to 90 or 91 class
 # (original labels of coco starts from 1, and 0 is background)
-def coco_det_label_offset_90to90(label_offset=1):
-    coco_label_table = range(1,91)
+def coco_det_label_offset_90to90(label_offset=1, num_classes=90):
+    coco_label_table = range(1,num_classes+1)
     if label_offset == 1:
         # 0 => 1, 1 => 2, .. 90 => 91
         coco_label_offset = {k:v for k,v in enumerate(coco_label_table)}
-        coco_label_offset.update({-1:0,90:91})
+        coco_label_offset.update({-1:0,num_classes:(num_classes+1)})
     elif label_offset == 0:
         # 0 => 0, 1 => 1, .. 90 => 90
         coco_label_offset = {(k+1):v for k,v in enumerate(coco_label_table)}
@@ -349,6 +349,10 @@ def coco_det_label_offset_90to90(label_offset=1):
         assert False, f'unsupported value for label_offset {label_offset}'
     #
     return coco_label_offset
+
+
+def coco_det_label_offset_91to91(label_offset=0, num_classes=91):
+    return coco_det_label_offset_90to90(label_offset, num_classes)
 
 
 ################################################################################################
