@@ -183,6 +183,17 @@ class ReshapeList():
             self.reshape_list = reshape_list
         if self.reshape_list is not None:
             tensor_list_out = []
+            # if isinstance(self.reshape_list,tuple) and self.reshape_list[0] == 'detr' :
+            #     tensor_list_softmax=[]
+            #     tensor_list_softmax.append(tensor_list[1])
+            #     tensor_list_argmax = np.argmax(tensor_list[0],axis=-1)
+            #     softmax_score = softmax(tensor_list[0])[:,:,:-1]
+            #     tensor_list_softmax.append(np.argmax(softmax_score,axis=-1))
+            #     tensor_list_softmax.append(np.max(softmax_score,axis=-1))
+            #     tensor_list = tensor_list_softmax
+            #     for t_orig, t_shape in zip(tensor_list, self.reshape_list[1]):
+            #         tensor_list_out.append(t_orig.reshape(t_shape))
+            #     return tensor_list_out, info_dict
             for t_orig, t_shape in zip(tensor_list, self.reshape_list):
                 tensor_list_out.append(t_orig.reshape(t_shape))
             #

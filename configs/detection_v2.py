@@ -183,13 +183,12 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, #input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)
                                                                       ),
                 runtime_options=settings.runtime_options_onnx_np2(
-                    det_options=True, ext_options={
-                      #  'object_detection:meta_arch_type': 6,
-                      #  'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov3_d53_relu_416x416_20210117_model.prototxt',
-                     'advanced_options:output_feature_16bit_names_list':'694, 698, 702'},
+                    det_options=True, ext_options={'object_detection:meta_arch_type': 6,
+                    #  'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov3_d53_relu_416x416_20210117_model.prototxt',
+                     'advanced_options:output_feature_16bit_names_list':'694, 698, 702'}
                      ),
                 model_path=f'../edgeai-modelforest/models/vision/experimental/detr_resnet-50-simplified.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=None,logits_to_label_score=True,formatter=postprocess.DetectionXYWH2XYXYCenterXY()),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,4),(-1,1),(-1,1)],scores_and_bbox_to_box_ls=True,formatter=postprocess.DetectionXYWH2XYXYCenterXY()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0,num_classes=91)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':30.7}, model_shortlist=None)
         ),
