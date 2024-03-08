@@ -183,17 +183,6 @@ class ReshapeList():
             self.reshape_list = reshape_list
         if self.reshape_list is not None:
             tensor_list_out = []
-            # if isinstance(self.reshape_list,tuple) and self.reshape_list[0] == 'detr' :
-            #     tensor_list_softmax=[]
-            #     tensor_list_softmax.append(tensor_list[1])
-            #     tensor_list_argmax = np.argmax(tensor_list[0],axis=-1)
-            #     softmax_score = softmax(tensor_list[0])[:,:,:-1]
-            #     tensor_list_softmax.append(np.argmax(softmax_score,axis=-1))
-            #     tensor_list_softmax.append(np.max(softmax_score,axis=-1))
-            #     tensor_list = tensor_list_softmax
-            #     for t_orig, t_shape in zip(tensor_list, self.reshape_list[1]):
-            #         tensor_list_out.append(t_orig.reshape(t_shape))
-            #     return tensor_list_out, info_dict
             for t_orig, t_shape in zip(tensor_list, self.reshape_list):
                 tensor_list_out.append(t_orig.reshape(t_shape))
             #
@@ -490,24 +479,25 @@ class DetectionFilter():
         return bbox, info_dict
 
 
-class DETRScoresAndBBoxToBoxLS():
-    def __init__(self, det_scores_index=0, det_bbox_index=1, det_background_class_id=-1):
-        self.det_scores_index = det_scores_index
-        self.det_bbox_index = det_bbox_index
-        self.det_background_class_id = det_background_class_id
+class LogitsToLabelScore():
+    def __init__(self, scores_index=0, bbox_index=1, background_class_id=-1):
+        self.scores_index = scores_index
+        self.bbox_index = bbox_index
+        self.background_class_id = background_class_id
 
     def __call__(self, tensor_list, info_dict):
         tensor_list_softmax=[]
-        tensor_list_softmax.append(tensor_list[self.det_bbox_index])
-        tensor_list_argmax = np.argmax(tensor_list[self.det_scores_index], axis=-1)
-        softmax_score = softmax(tensor_list[self.det_scores_index])
-        if self.det_background_class_id == -1:  
-            softmax_score = softmax_score[:,:,:self.det_background_class_id]
-        elif self.det_background_class_id is not None:
-            softmax_score = softmax_score[:,:,self.det_background_class_id+1:]
-
-        tensor_list_softmax.append(np.argmax(softmax_score,axis=-1))
-        tensor_list_softmax.append(np.max(softmax_score,axis=-1))
+        if self.bbox_index is not None:
+            tensor_list_softmax.append(tensor_list[self.bbox_index].reshape(-1,4))
+        #
+        softmax_score = softmax(tensor_list[self.scores_index])
+        if self.background_class_id == -1:  
+            softmax_score = softmax_score[:,:,:self.background_class_id]
+        elif self.background_class_id is not None:
+            softmax_score = softmax_score[:,:,self.background_class_id+1:]
+        #
+        tensor_list_softmax.append(np.argmax(softmax_score,axis=-1).reshape(-1,1))
+        tensor_list_softmax.append(np.max(softmax_score,axis=-1).reshape(-1,1))
         return tensor_list_softmax, info_dict  
     
 

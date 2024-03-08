@@ -61,14 +61,14 @@ class PostProcessTransforms(utils.TransformsCompose):
     # post process transforms for detection
     ###############################################################
     def get_transform_detection_base(self, formatter=None, resize_with_pad=False, keypoint=False, object6dpose=False, normalized_detections=True,
-                                     shuffle_indices=None, squeeze_axis=0, reshape_list=None, ignore_index=None, scores_and_bbox_to_box_ls=False):
+                                     shuffle_indices=None, squeeze_axis=0, reshape_list=None, ignore_index=None, logits_to_label_score=False):
         
         postprocess_detection = []
-        if scores_and_bbox_to_box_ls:
-            postprocess_detection += [DETRScoresAndBBoxToBoxLS()]
+        postprocess_detection += [ReshapeList(reshape_list=reshape_list)]
+        if logits_to_label_score:
+            postprocess_detection += [LogitsToLabelScore()]
         #
-        postprocess_detection += [ReshapeList(reshape_list=reshape_list),
-                                 ShuffleList(indices=shuffle_indices),
+        postprocess_detection += [ShuffleList(indices=shuffle_indices),
                                  Concat(axis=-1, end_index=3)]
         if squeeze_axis is not None:
             #  TODO make this more generic to squeeze any axis
@@ -110,14 +110,14 @@ class PostProcessTransforms(utils.TransformsCompose):
                                            detection_threshold=self.settings.detection_threshold,
                                            save_output=self.settings.save_output, formatter=formatter, resize_with_pad=resize_with_pad,
                                            normalized_detections=normalized_detections, shuffle_indices=shuffle_indices,
-                                           squeeze_axis=squeeze_axis, ignore_index=ignore_index, scores_and_bbox_to_box_ls=scores_and_bbox_to_box_ls)
+                                           squeeze_axis=squeeze_axis, ignore_index=ignore_index, logits_to_label_score=logits_to_label_score)
         return transforms
 
     def get_transform_detection_onnx(self, formatter=None, **kwargs):
         return self.get_transform_detection_base(formatter=formatter, **kwargs)
 
-    def get_transform_detection_mmdet_onnx(self, formatter=None, reshape_list=[(-1,5), (-1,1)],scores_and_bbox_to_box_ls=False, **kwargs):
-        return self.get_transform_detection_base(formatter=formatter, reshape_list=reshape_list,scores_and_bbox_to_box_ls=scores_and_bbox_to_box_ls, **kwargs)
+    def get_transform_detection_mmdet_onnx(self, formatter=None, reshape_list=[(-1,5), (-1,1)], **kwargs):
+        return self.get_transform_detection_base(formatter=formatter, reshape_list=reshape_list, **kwargs)
 
     def get_transform_detection_yolov5_onnx(self, formatter=None, **kwargs):
         return self.get_transform_detection_base(formatter=formatter, reshape_list=[(-1,6)], **kwargs)
