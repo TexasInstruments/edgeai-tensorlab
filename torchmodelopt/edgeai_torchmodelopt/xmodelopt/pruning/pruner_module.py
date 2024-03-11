@@ -378,7 +378,7 @@ class PrunerModule(torch.nn.Module):
         
         self.epoch_count = 0
         self.pruning_ratio = pruning_ratio
-        self.total_epochs = total_epochs+1
+        self.total_epochs = total_epochs
         self.sparsity = 0
         self.init_train_ep = pruning_init_train_ep
         self.p = p
@@ -551,7 +551,6 @@ class PrunerModule(torch.nn.Module):
             self.remove_parametrization()
             self.calculate_sparsity()
             print("The final sparsity of the network is {}".format(self.sparsity))
-
         return self
         
     def forward(self, *args, **kwargs):
