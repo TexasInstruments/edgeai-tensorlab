@@ -79,7 +79,7 @@ def chroma_blend_alpha(image, color):
 
 # Author: Manu Mathew
 # Date: 2021 March
-def get_color_palette(num_classes):
+def get_color_palette_generic(num_classes):
     num_classes_3 = np.power(num_classes, 1.0/3)
     delta_color = int(256/num_classes_3)
     colors = [(r, g, b) for r in range(0,256,delta_color)
@@ -109,15 +109,29 @@ def get_color_palette(num_classes):
     return colors_list
 
 
+def get_color_palette(num_classes):
+    if num_classes < 8:
+        color_step = 255
+    elif num_classes < 27:
+        color_step = 127
+    elif num_classes < 64:
+        color_step = 63        
+    else:
+        color_step  = 31
+    #
+    color_map = [(r, g, b) for r in range(0, 256, color_step) for g in range(0, 256, color_step) for b in range(0, 256, color_step)]
+    return color_map
+
+
 def segmap_to_color(seg_img, num_classes):
-    colors = get_color_palette(num_classes)
+    color_map = get_color_palette(num_classes)
     r = copy.deepcopy(seg_img)
     g = copy.deepcopy(seg_img)
     b = copy.deepcopy(seg_img)
     for l in range(0, num_classes):
-        r[seg_img == l] = colors[l][0]
-        g[seg_img == l] = colors[l][1]
-        b[seg_img == l] = colors[l][2]
+        r[seg_img == l] = color_map[l][0]
+        g[seg_img == l] = color_map[l][1]
+        b[seg_img == l] = color_map[l][2]
     #
     rgb = np.zeros((seg_img.shape[0], seg_img.shape[1], 3))
     rgb[:, :, 0] = r / 255.0
