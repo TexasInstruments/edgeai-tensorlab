@@ -106,14 +106,54 @@ class ConvBNRModule(nn.Module):
         return self.act(self.bn(self.conv(x)))
 
 
-class ReplaceBatchNorm2d(nn.Module):
-        def __init__(self, num_features) -> None:
-            super().__init__()
-            self.bn=nn.BatchNorm2d(num_features=num_features)
-        def forward(self,x:Tensor):
-            out= x.permute(0,3,1,2)
-            out= self.bn(out)
-            return out.permute(0,2,3,1)
+class Permute(torch.nn.Module):
+    def __init__(self,shape:list|tuple, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.shape = shape
+    def forward(self,x):
+        return torch.permute(x,self.shape)
+
+
+class ReplaceBatchNorm(nn.Module):
+    def __init__(self,num_features ,*args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.num_features = num_features
+        self.layer = None
+        self.permute1= None
+        self.permute2= None
+        self.module_list = None
+    
+    # 
+    def forward(self,x:torch.Tensor):
+        if self.module_list:
+            return self.module_list(x)
+        if len(x.shape) ==3:
+            # x= x.permute(0,2,1)
+            # x = self.layer(x)
+            # return x.permute(0,2,1)
+            self.permute1 = self.permute1 or Permute([0,2,1])
+            self.layer =self.layer or  nn.BatchNorm1d(self.num_features)
+            self.permute2 = self.permute2 or Permute([0,2,1])
+            self.module_list= nn.Sequential(
+                self.permute1,
+                self.layer,
+                self.permute2
+            )
+        elif len(x.shape) ==4:
+            # x = x.permute(0,3,1,2)
+            # x = self.layer(x)
+            # return x.permute(0,2,3,1)
+            self.permute1 = self.permute1 or Permute([0,3,1,2])
+            self.layer =self.layer or  nn.BatchNorm2d(self.num_features)
+            self.permute2 = self.permute2 or Permute([0,2,3,1])
+            self.module_list= nn.Sequential(
+                self.permute1,
+                self.layer,
+                self.permute2
+            )
+        else:
+            self.module_list = nn.Identity() 
+        return self.module_list(x)
 
 
 class ReplacementCNBlock(nn.Module):

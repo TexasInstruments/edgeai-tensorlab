@@ -44,7 +44,7 @@ except:
 
 from . import custom_modules, custom_surgery_functions
 from .replacer import graph_pattern_replacer,replace_module_nodes,replace_function_nodes
-
+from .custom_symbolic_trace import custom_symbolic_trace
 
 __all__ = ['replace_unsupported_layers', 'get_replacement_dict_default','SurgeryModule']
 
@@ -81,13 +81,13 @@ _unsupported_module_dict={
 def _is_replacable(pattern:Union[GraphModule, nn.Module, callable]):
     try:
         if not isinstance(pattern,GraphModule):
-            pattern = symbolic_trace(pattern)
+            pattern = custom_symbolic_trace(pattern)
     except:
         return False
     return True
 
 
-def replace_unsupported_layers(model:nn.Module, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[], verbose_mode:bool=False):
+def replace_unsupported_layers(model:nn.Module, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[], example_input=None, verbose_mode:bool=False):
     '''
     main function that does the surgery
 
@@ -125,7 +125,7 @@ def replace_unsupported_layers(model:nn.Module, replacement_dict:Dict[Any,Union[
             model = replace_function_nodes(model, pattern, replacement, verbose_mode=verbose_mode, **kwargs)
         elif isfunction(replacement) or ismethod(replacement):
             # for self-made surgery function 
-            model = replacement(model, pattern = pattern, verbose_mode=verbose_mode)
+            model = replacement(model, pattern = pattern, example_input = example_input,verbose_mode=verbose_mode)
         else:
             # class of MOdule of
             if isinstance(pattern, type):
