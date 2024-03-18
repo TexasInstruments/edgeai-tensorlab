@@ -43,7 +43,7 @@ from . import custom_modules
 from typing import Iterable
 
 
-def replace_resize_with_scale_factor(model, pattern= None, example_input = None, verbose_mode=False,):
+def replace_resize_with_scale_factor(model,verbose_mode=False, **kwargs):
     '''
     replaces all resize wih 'resize with scale factor only'
     self-made function is required as we have to modify keyword arguments
@@ -70,7 +70,7 @@ def replace_resize_with_scale_factor(model, pattern= None, example_input = None,
 
  
 
-def _replace_pool_size_ge_5(model:nn.Module, pattern= None, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d, example_input = None, verbose_mode=False):
+def _replace_pool_size_ge_5(model:nn.Module,  pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d,  verbose_mode=False, **kwargs):
     '''
     replaces all pool 2d module or function having kernel size greater than or equal to 5
     with a stack of pool2d modules having kernel size 3
@@ -135,14 +135,14 @@ def _replace_pool_size_ge_5(model:nn.Module, pattern= None, pool_class=nn.MaxPoo
     return traced_model
 
 
-def replace_maxpool2d_kernel_size_ge_5(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
-    return _replace_pool_size_ge_5(model, pattern= pattern, example_input = example_input, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d, verbose_mode=verbose_mode)
+def replace_maxpool2d_kernel_size_ge_5(model:nn.Module, verbose_mode=False, **kwargs):
+    return _replace_pool_size_ge_5(model, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d, verbose_mode=verbose_mode, **kwargs)
     
-def replace_avgpool2d_kernel_size_ge_5(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
-    return _replace_pool_size_ge_5(model, pattern= pattern, example_input = example_input,pool_class=nn.AvgPool2d,pool_function=nn.functional.avg_pool2d, verbose_mode=verbose_mode)
+def replace_avgpool2d_kernel_size_ge_5(model:nn.Module,  verbose_mode=False, **kwargs):
+    return _replace_pool_size_ge_5(model, pool_class=nn.AvgPool2d,pool_function=nn.functional.avg_pool2d, verbose_mode=verbose_mode, **kwargs)
 
 
-def replace_conv2d_kernel_size_gt_7(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
+def replace_conv2d_kernel_size_gt_7(model:nn.Module, verbose_mode=False, **kwargs):
     '''
     replaces all conv2d module or function having kernel size greater than or equal to 7
     with a stack of conv2d modules having kernel size 3
@@ -270,7 +270,7 @@ def replace_conv2d_kernel_size_6(model:nn.Module, pattern= None, verbose_mode=Fa
     return traced_model
 
 
-def replace_cnblock(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
+def replace_cnblock(model:nn.Module, verbose_mode=False,**kwargs):
     traced_model = custom_symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     t_modules= dict(traced_model.named_modules())
     from torchvision.models.convnext import CNBlock
@@ -296,8 +296,7 @@ def replace_cnblock(model:nn.Module, pattern= None, example_input = None, verbos
     return traced_model
 
 
-
-def replace_layer_norm(model:nn.Module, pattern= None, example_input:torch.Tensor = None, verbose_mode=False):
+def replace_layer_norm(model:nn.Module, example_input:torch.Tensor = None, verbose_mode=False, **kwargs):
     traced_model=remove_identiy(model)
     no_of_layer_norm=0
     t_modules= dict(traced_model.named_modules())
@@ -407,7 +406,9 @@ def replace_layer_norm(model:nn.Module, pattern= None, example_input:torch.Tenso
 
 
 #not effective so not implemented
-def replace_se_layer(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
+
+def replace_se_layer(model:nn.Module, verbose_mode=False, **kwargs):
+    traced_model=remove_identiy(model)
     modules=dict(traced_model.named_modules())
      
     matched=[]
@@ -458,8 +459,11 @@ def replace_se_layer(model:nn.Module, pattern= None, example_input = None, verbo
     return traced_model
 
 
-def remove_identiy(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
-    traced_model=symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model    
+def remove_identiy(model:nn.Module, verbose_mode=False, **kwargs):
+    model=deepcopy(model)
+    traced_model=custom_symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
+    modules= dict(traced_model.named_modules())
+    n=0
     nodes=[]
     for node in traced_model.graph.nodes:
         if (node.op == 'call_module'):
