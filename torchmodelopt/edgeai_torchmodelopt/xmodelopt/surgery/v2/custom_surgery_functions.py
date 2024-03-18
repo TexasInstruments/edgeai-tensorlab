@@ -43,14 +43,16 @@ from . import custom_modules
 from typing import Iterable
 
 
-def replace_resize_with_scale_factor(model,verbose_mode=False, **kwargs):
+def replace_resize_with_scale_factor(model, pattern= None, example_input = None, verbose_mode=False,):
     '''
     replaces all resize wih 'resize with scale factor only'
     self-made function is required as we have to modify keyword arguments
     '''
 
     traced_m=custom_symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
+    traced_m=custom_symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     pattern_m= nn.Upsample()
+    traced_pattern= custom_symbolic_trace(pattern_m)
     traced_pattern= custom_symbolic_trace(pattern_m)
     matches= replacer.straight_chain_searcher(traced_m,traced_pattern)
     
@@ -68,9 +70,9 @@ def replace_resize_with_scale_factor(model,verbose_mode=False, **kwargs):
         print('resize',len(matches))
     return traced_m
 
- 
 
-def _replace_pool_size_ge_5(model:nn.Module,  pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d,  verbose_mode=False, **kwargs):
+
+def _replace_pool_size_ge_5(model:nn.Module, pattern= None, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d, example_input = None, verbose_mode=False):
     '''
     replaces all pool 2d module or function having kernel size greater than or equal to 5
     with a stack of pool2d modules having kernel size 3
@@ -127,7 +129,7 @@ def _replace_pool_size_ge_5(model:nn.Module,  pool_class=nn.MaxPool2d,pool_funct
                     new_node=traced_model.graph.call_module(new_node_name,args,{})
                     node.replace_all_uses_with(new_node)
                 traced_model.graph.erase_node(node)
-         
+        
     traced_model.graph.lint()
     traced_model.recompile()
     if verbose_mode:
@@ -135,14 +137,14 @@ def _replace_pool_size_ge_5(model:nn.Module,  pool_class=nn.MaxPool2d,pool_funct
     return traced_model
 
 
-def replace_maxpool2d_kernel_size_ge_5(model:nn.Module, verbose_mode=False, **kwargs):
-    return _replace_pool_size_ge_5(model, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d, verbose_mode=verbose_mode, **kwargs)
+def replace_maxpool2d_kernel_size_ge_5(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
+    return _replace_pool_size_ge_5(model, pattern= pattern, example_input = example_input, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d, verbose_mode=verbose_mode)
     
-def replace_avgpool2d_kernel_size_ge_5(model:nn.Module,  verbose_mode=False, **kwargs):
-    return _replace_pool_size_ge_5(model, pool_class=nn.AvgPool2d,pool_function=nn.functional.avg_pool2d, verbose_mode=verbose_mode, **kwargs)
+def replace_avgpool2d_kernel_size_ge_5(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
+    return _replace_pool_size_ge_5(model, pattern= pattern, example_input = example_input,pool_class=nn.AvgPool2d,pool_function=nn.functional.avg_pool2d, verbose_mode=verbose_mode)
 
 
-def replace_conv2d_kernel_size_gt_7(model:nn.Module, verbose_mode=False, **kwargs):
+def replace_conv2d_kernel_size_gt_7(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
     '''
     replaces all conv2d module or function having kernel size greater than or equal to 7
     with a stack of conv2d modules having kernel size 3
@@ -270,7 +272,7 @@ def replace_conv2d_kernel_size_6(model:nn.Module, verbose_mode=False,**kwargs):
     return traced_model
 
 
-def replace_cnblock(model:nn.Module, verbose_mode=False,**kwargs):
+def replace_cnblock(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
     traced_model = custom_symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     t_modules= dict(traced_model.named_modules())
     from torchvision.models.convnext import CNBlock
@@ -296,11 +298,12 @@ def replace_cnblock(model:nn.Module, verbose_mode=False,**kwargs):
     return traced_model
 
 
-def replace_layer_norm(model:nn.Module, example_input:torch.Tensor = None, verbose_mode=False, **kwargs):
+
+def replace_layer_norm(model:nn.Module, pattern= None, example_input:torch.Tensor = None, verbose_mode=False):
     traced_model=remove_identiy(model)
     no_of_layer_norm=0
     t_modules= dict(traced_model.named_modules())
-    assert example_input is not None, f'The parameter \'example_input\' is required but got {example_input}, as the replacement layer depends on it'
+    assert example_input is not None, f'The parameter \'example_input\' is required but got{example_input}, as the replacement layer depends on it'
     assert isinstance(example_input,torch.Tensor),f'The parmeter must be a tensor but got {example_input.__class__.__name__}'
     for node in traced_model.graph.nodes:
         module=None
@@ -318,6 +321,17 @@ def replace_layer_norm(model:nn.Module, example_input:torch.Tensor = None, verbo
             # searching for any global average pool or mean
             while len(arg.users)==1 or len(args) == 1 :
                 if arg.op in ['get_attr','placeholder']: break
+                if isinstance(arg.args[0],Node):
+                    arg = arg.args[0] 
+                elif isinstance(arg.args[0],Iterable):
+                    temp_args = [a for a in arg.args if isinstance(a,Node)]
+                    if len(temp_args):
+                        arg = temp_args[0] 
+                    else: 
+                        break
+                if (arg.op == 'call_method' and arg.target=='mean') or (arg.target==nn.functional.adaptive_avg_pool2d) \
+                    or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
+                    prev = arg
                 if isinstance(arg.args[0],Node):
                     arg = arg.args[0] 
                 elif isinstance(arg.args[0],Iterable):
@@ -382,7 +396,18 @@ def replace_layer_norm(model:nn.Module, example_input:torch.Tensor = None, verbo
                         else: 
                             break
                     if (arg.op == 'call_method' and arg.target=='mean') or (arg.target==nn.functional.adaptive_avg_pool2d) \
-                       or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
+                        or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
+                        prev = arg
+                    if isinstance(arg.args[0],Node):
+                        arg = arg.args[0] 
+                    elif isinstance(arg.args[0],Iterable):
+                        temp_args = [a for a in arg.args if isinstance(a,Node)]
+                        if len(temp_args):
+                            arg = temp_args[0] 
+                        else: 
+                            break
+                    if (arg.op == 'call_method' and arg.target=='mean') or (arg.target==nn.functional.adaptive_avg_pool2d) \
+                        or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
                         prev = arg
                         break
                     args=[]
@@ -412,11 +437,11 @@ def replace_layer_norm(model:nn.Module, example_input:torch.Tensor = None, verbo
 
 
 #not effective so not implemented
+def replace_se_layer(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
 
-def replace_se_layer(model:nn.Module, verbose_mode=False, **kwargs):
     traced_model=remove_identiy(model)
     modules=dict(traced_model.named_modules())
-     
+    
     matched=[]
     nodes=[]
     for node in traced_model.graph.nodes:
@@ -432,7 +457,6 @@ def replace_se_layer(model:nn.Module, verbose_mode=False, **kwargs):
                     nn.functional.leaky_relu,
                     nn.functional.gelu,
                     nn.functional.hardtanh,)
-                                     
     while i< len(nodes):
         node=nodes[i]
         if ((node.op == 'call_module' and isinstance(modules[node.target],nn.AdaptiveAvgPool2d)) 
