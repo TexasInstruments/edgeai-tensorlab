@@ -38,18 +38,20 @@ from copy import deepcopy
 from ....xnn.layers import resize_with_scale_factor
 
 from . import replacer
+from .custom_symbolic_trace import custom_symbolic_trace
 from . import custom_modules
+from typing import Iterable
 
 
-def replace_resize_with_scale_factor(model, pattern=None, verbose_mode=False):
+def replace_resize_with_scale_factor(model, pattern= None, example_input = None, verbose_mode=False,):
     '''
     replaces all resize wih 'resize with scale factor only'
     self-made function is required as we have to modify keyword arguments
     '''
 
-    traced_m=symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
+    traced_m=custom_symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     pattern_m= nn.Upsample()
-    traced_pattern= symbolic_trace(pattern_m)
+    traced_pattern= custom_symbolic_trace(pattern_m)
     matches= replacer.straight_chain_searcher(traced_m,traced_pattern)
     
     for start,end in matches:
@@ -67,7 +69,8 @@ def replace_resize_with_scale_factor(model, pattern=None, verbose_mode=False):
     return traced_m
 
  
-def _replace_pool_size_ge_5(model:nn.Module, pattern=None, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d, verbose_mode=False):
+
+def _replace_pool_size_ge_5(model:nn.Module, pattern= None, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d, example_input = None, verbose_mode=False):
     '''
     replaces all pool 2d module or function having kernel size greater than or equal to 5
     with a stack of pool2d modules having kernel size 3
@@ -75,7 +78,7 @@ def _replace_pool_size_ge_5(model:nn.Module, pattern=None, pool_class=nn.MaxPool
     to have same output pixels original stride is added to last maxpool module
     '''
 
-    traced_model = symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
+    traced_model = custom_symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     modules=dict(traced_model.named_modules())
     
     no_of_pool=0
@@ -132,14 +135,14 @@ def _replace_pool_size_ge_5(model:nn.Module, pattern=None, pool_class=nn.MaxPool
     return traced_model
 
 
-def replace_maxpool2d_kernel_size_ge_5(model:nn.Module, pattern=None, verbose_mode=False):
-    return _replace_pool_size_ge_5(model, pattern= None, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d, verbose_mode=verbose_mode)
+def replace_maxpool2d_kernel_size_ge_5(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
+    return _replace_pool_size_ge_5(model, pattern= pattern, example_input = example_input, pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d, verbose_mode=verbose_mode)
     
-def replace_avgpool2d_kernel_size_ge_5(model:nn.Module, pattern=None, verbose_mode=False):
-    return _replace_pool_size_ge_5(model, pattern= None, pool_class=nn.AvgPool2d,pool_function=nn.functional.avg_pool2d, verbose_mode=verbose_mode)
+def replace_avgpool2d_kernel_size_ge_5(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
+    return _replace_pool_size_ge_5(model, pattern= pattern, example_input = example_input,pool_class=nn.AvgPool2d,pool_function=nn.functional.avg_pool2d, verbose_mode=verbose_mode)
 
 
-def replace_conv2d_kernel_size_gt_7(model:nn.Module, pattern= None, verbose_mode=False):
+def replace_conv2d_kernel_size_gt_7(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
     '''
     replaces all conv2d module or function having kernel size greater than or equal to 7
     with a stack of conv2d modules having kernel size 3
@@ -147,7 +150,7 @@ def replace_conv2d_kernel_size_gt_7(model:nn.Module, pattern= None, verbose_mode
     to have same output pixels original stride is added to last conv module
     '''
 
-    traced_model = symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
+    traced_model = custom_symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     modules=dict(traced_model.named_modules())
     no_of_conv=0
     import math, random
@@ -266,11 +269,12 @@ def replace_conv2d_kernel_size_6(model:nn.Module, pattern= None, verbose_mode=Fa
         print('conv changed', no_of_conv)
     return traced_model
 
-def replace_cnblock(model:nn.Module, pattern=None, verbose_mode=False):
-    traced_model = symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
+
+def replace_cnblock(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
+    traced_model = custom_symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     t_modules= dict(traced_model.named_modules())
     from torchvision.models.convnext import CNBlock
-    pattern = symbolic_trace(CNBlock(34,0.125,0.000001))
+    pattern = custom_symbolic_trace(CNBlock(34,0.125,0.000001))
     matched=replacer.straight_chain_searcher(traced_model,pattern)
     for start,end in matched:
         ptr = start
@@ -292,36 +296,47 @@ def replace_cnblock(model:nn.Module, pattern=None, verbose_mode=False):
     return traced_model
 
 
-def replace_layer_norm(model:nn.Module, pattern=None, verbose_mode=False):
+
+def replace_layer_norm(model:nn.Module, pattern= None, example_input:torch.Tensor = None, verbose_mode=False):
     traced_model=remove_identiy(model)
     no_of_layer_norm=0
     t_modules= dict(traced_model.named_modules())
-
+    assert example_input is not None, f'The parameter \'example_input\' is required but got{example_input}, as the replacement layer depends on it'
+    assert isinstance(example_input,torch.Tensor),f'The parmeter must be a tensor but got {example_input.__class__.__name__}'
     for node in traced_model.graph.nodes:
         module=None
-        replacement=None
-        if node.target== nn.functional.layer_norm:
-            arg= node.args[0]
             args=[]
-            for arg1 in arg.args:
-                if type(arg1) == Node:
+                if isinstance(arg1,  Node):
                     args.append(arg1)
+                elif isinstance(arg,Iterable):
+                    args.extend([a for a in arg if isinstance(a,Node)])
+            # searching for any global average pool or mean
             while len(arg.users)==1 or len(args) == 1 :
                 if arg.op in ['get_attr','placeholder']: break
-                arg = arg.args[0]
-                if (arg.op == 'call_method' and arg.target=='mean') or (arg.target==nn.functional.adaptive_avg_pool2d) or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
+                if isinstance(arg.args[0],Node):
+                    arg = arg.args[0] 
+                elif isinstance(arg.args[0],Iterable):
+                    temp_args = [a for a in arg.args if isinstance(a,Node)]
+                    if len(temp_args):
+                        arg = temp_args[0] 
+                    else: 
+                        break
+                if (arg.op == 'call_method' and arg.target=='mean') or (arg.target==nn.functional.adaptive_avg_pool2d) \
+                    or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
+                    prev = arg
                     break
                 args=[]
                 for arg1 in arg.args:
-                    if type(arg1) == Node:
+                    if isinstance(arg1,  Node):
                         args.append(arg1)
-            replacement=None
-            prev=arg
-            if (prev.op == 'call_method' and prev.target=='mean') or (prev.target==nn.functional.adaptive_avg_pool2d) or (prev.op == 'call_module' and type(t_modules[prev.target]) == nn.AdaptiveAvgPool2d):
+                    elif isinstance(arg,Iterable):
+                        args.extend([a for a in arg if isinstance(a,Node)])
+
+            if prev:
                 replacement = nn.Identity()
             else:
                 num_features=node.args[1][0]
-                replacement=custom_modules.ReplaceBatchNorm2d(num_features)
+                replacement= custom_modules.ReplaceBatchNorm(num_features)
             args=(node.args[0],)
             arg=args[0]
             args_arg=arg.args[0]
@@ -339,31 +354,44 @@ def replace_layer_norm(model:nn.Module, pattern=None, verbose_mode=False):
                 temp = ptr
                 ptr=ptr.prev
                 traced_model.graph.erase_node(temp)
-
         elif node.op == 'call_module':
             module=t_modules[node.target]
-            if type(module) == nn.LayerNorm:
+            prev = None
+            if isinstance(module,nn.LayerNorm):
                 arg= node.args[0]
                 args=[]
                 for arg1 in arg.args:
-                    if type(arg1) == Node:
+                    if isinstance(arg1,  Node):
                         args.append(arg1)
+                    elif isinstance(arg,Iterable):
+                        args.extend([a for a in arg if isinstance(a,Node)])
+                # searching for any global average pool or mean
                 while len(arg.users)==1 or len(args) == 1 :
                     if arg.op in ['get_attr','placeholder']: break
-                    arg = arg.args[0]
-                    if (arg.op == 'call_method' and arg.target=='mean') or (arg.target==nn.functional.adaptive_avg_pool2d) or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
+                    if isinstance(arg.args[0],Node):
+                        arg = arg.args[0] 
+                    elif isinstance(arg.args[0],Iterable):
+                        temp_args = [a for a in arg.args if isinstance(a,Node)]
+                        if len(temp_args):
+                            arg = temp_args[0] 
+                        else: 
+                            break
+                    if (arg.op == 'call_method' and arg.target=='mean') or (arg.target==nn.functional.adaptive_avg_pool2d) \
+                       or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
+                        prev = arg
                         break
                     args=[]
                     for arg1 in arg.args:
-                        if type(arg1) == Node and node.op != 'gett_attr':
+                        if isinstance(arg1,  Node):
                             args.append(arg1)
-                replacement=None
-                prev=arg
-                if (prev.op == 'call_method' and prev.target=='mean') or (prev.target==nn.functional.adaptive_avg_pool2d) or (prev.op == 'call_module' and type(t_modules[prev.target]) == nn.AdaptiveAvgPool2d):
+                        elif isinstance(arg,Iterable):
+                            args.extend([a for a in arg if isinstance(a,Node)])
+
+                if prev:
                     replacement = nn.Identity()
                 else:
                     num_features=module.normalized_shape[0]
-                    replacement= custom_modules.ReplaceBatchNorm2d(num_features)
+                    replacement= custom_modules.ReplaceBatchNorm(num_features)
                 parent_name,name=replacer._get_parent_name(node.target)
                 replacement=deepcopy(replacement)
                 t_modules[node.target]=replacement
@@ -373,62 +401,13 @@ def replace_layer_norm(model:nn.Module, pattern=None, verbose_mode=False):
     traced_model.recompile()
     if verbose_mode:
         print('layernorm',no_of_layer_norm)
-    permute_nodes=[]
-    traced_model=remove_identiy(traced_model)
-    for node in traced_model.graph.nodes:
-        if (node.op == 'call_method' and node.target == 'permute') or (node.target == torch.permute):
-            if len(node.users) ==1:
-                permute_nodes.append(node)
-    i= len(permute_nodes)-1
-    while i>=0:
-        node=permute_nodes[i]
-        arg=node.args[0]
-        if len(arg.users) >1:
-            i-=1
-            continue
-        changes_in_dim=[]
-        if type(node.args[1]) == int:
-            changes_in_dim=[node.args[1:]]
-        elif len(node.args)==2:
-            changes_in_dim=[node.args[1]]
-        while (arg.op == 'call_method' and arg.target == 'permute')or (arg.target == torch.permute):
-            args_arg=arg.args[0]
-            if type(arg.args[1]) == int:
-                changes_in_dim.append(arg.args[1:])
-            elif len(arg.args)==2:
-                changes_in_dim.append(arg.args[1])
-            arg.replace_all_uses_with(args_arg)
-            permute_nodes.remove(arg)
-            i-=1
-            traced_model.graph.erase_node(arg)
-            arg=args_arg
-        dim=[0,1,2,3]
-        j=len(changes_in_dim)-1
-        if j>0:
-            while j>=0:
-                change_in_dim=changes_in_dim[j]
-                new_dim=[0,0,0,0]
-                for k in range(len(dim)):
-                    new_dim[k]=dim[change_in_dim[k]]
-                dim=new_dim
-                j-=1
-            if dim == [0,1,2,3]:
-                node.replace_all_uses_with(arg)
-                traced_model.graph.erase_node(node)                
-            else:
-                if type(node.args[1]) == int:
-                    node.args=(arg,*dim)
-                elif len(node.args)==2:
-                    node.args=(arg,dim)
-            traced_model.graph.lint()
-            traced_model.recompile()
-        i-=1
+    # to initialize correct batchnorm layer depending upon input shape
+    traced_model(example_input)
     return traced_model
 
 
 #not effective so not implemented
-def replace_se_layer(model:nn.Module, pattern=None, verbose_mode=False):
-    traced_model=remove_identiy(model)
+def replace_se_layer(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
     modules=dict(traced_model.named_modules())
      
     matched=[]
@@ -479,15 +458,11 @@ def replace_se_layer(model:nn.Module, pattern=None, verbose_mode=False):
     return traced_model
 
 
-def remove_identiy(model:nn.Module, pattern=None, verbose_mode=False):
-    # model=deepcopy(model)
-    traced_model=symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
-    modules= dict(traced_model.named_modules())
-    n=0
+def remove_identiy(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
+    traced_model=symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model    
     nodes=[]
     for node in traced_model.graph.nodes:
         if (node.op == 'call_module'):
-            if type(modules[node.target]) == nn.Identity:
                 nodes.append(node)
     for node in nodes:
         try:
