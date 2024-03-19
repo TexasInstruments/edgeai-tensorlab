@@ -1,0 +1,42 @@
+task_type: depth_estimation
+input_dataset: nyudepthv2
+preprocess:
+  resize:
+  - 256
+  - 256
+  crop:
+  - 256
+  - 256
+  data_layout: NCHW
+  reverse_channels: false
+  backend: cv2
+  interpolation: 2
+  resize_with_pad: false
+  pad_color: 0
+session:
+  session_name: onnxrt
+  target_device: null
+  input_optimization: false
+  input_data_layout: NCHW
+  input_mean:
+  - 123.675
+  - 116.28
+  - 103.53
+  input_scale:
+  - 0.017125
+  - 0.017507
+  - 0.017429
+  runtime_options:
+    advanced_options:output_feature_16bit_names_list: 511, 983
+    advanced_options:params_16bit_names_list: ''
+  model_path: midas-small.onnx
+  model_id: de-7310
+  input_details: null
+  output_details: null
+  num_inputs: 1
+  artifacts_folder: artifacts
+postprocess:
+  save_output: false
+metric: {}
+model_info:
+  metric_reference: {}
