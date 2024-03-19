@@ -44,7 +44,7 @@ NHWC = 'NHWC'
 # pipeline type constants
 PIPELINE_UNDEFINED = None
 PIPELINE_ACCURACY = 'accuracy'
-PIPELINE_COMPARE = 'compare'
+PIPELINE_GEN_CONFIG = 'gen_config'
 
 # frequency of the core C7x/MMA processor that accelerates Deep Learning Tasks
 # this constant is used to convert cycles to time : time = cycles / DSP_FREQ

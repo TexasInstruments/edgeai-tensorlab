@@ -37,6 +37,7 @@ from .. import utils
 from .. import datasets
 from .model_transformation import *
 from .accuracy_pipeline import *
+from .gen_config_pipeline import *
 from .. import preprocess
 
 
@@ -147,12 +148,12 @@ class PipelineRunner():
                 accuracy_result = accuracy_pipeline(description)
                 result.update(accuracy_result)
             #
-        elif settings.pipeline_type == constants.PIPELINE_SOMETHING:
+        elif settings.pipeline_type == constants.PIPELINE_GEN_CONFIG:
             # this is just an example of how other pipelines can be implemented.
             # 'something' used here is not real and it is not supported
-            with SomethingPipeline(settings, pipeline_config) as something_pipeline:
-                something_result = something_pipeline(description)
-                result.update(something_result)
+            with GenConfigPipeline(settings, pipeline_config) as gen_config_pipeline:
+                gen_config_result = gen_config_pipeline(description)
+                result.update(gen_config_result)
             #
         else:
             assert False, f'unknown pipeline: {settings.pipeline_type}'
