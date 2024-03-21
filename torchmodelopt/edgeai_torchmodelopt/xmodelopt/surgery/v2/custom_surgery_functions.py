@@ -302,7 +302,7 @@ def replace_layer_norm(model:nn.Module, example_input:torch.Tensor = None, verbo
     traced_model=remove_identiy(model)
     no_of_layer_norm=0
     t_modules= dict(traced_model.named_modules())
-    assert example_input is not None, f'The parameter \'example_input\' is required but got{example_input}, as the replacement layer depends on it'
+    assert example_input is not None, f'The parameter \'example_input\' is required but got {example_input}, as the replacement layer depends on it'
     assert isinstance(example_input,torch.Tensor),f'The parmeter must be a tensor but got {example_input.__class__.__name__}'
     for node in traced_model.graph.nodes:
         module=None
