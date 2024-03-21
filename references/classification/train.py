@@ -442,11 +442,11 @@ def main(args):
         torch.backends.cudnn.benchmark = False
         torch.backends.cudnn.deterministic = True
         if model_ema:
-            evaluate(args, model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
+            acc = evaluate(args, model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
         else:
-            evaluate(args, model, criterion, data_loader_test, device=device)
+            acc = evaluate(args, model, criterion, data_loader_test, device=device)
         export_model(args, model_without_ddp, 0, "model_test.onnx")
-        return
+        return acc
 
     print("Start training")
     start_time = time.time()
