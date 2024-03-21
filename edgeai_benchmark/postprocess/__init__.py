@@ -61,14 +61,9 @@ class PostProcessTransforms(utils.TransformsCompose):
     # post process transforms for detection
     ###############################################################
     def get_transform_detection_base(self, formatter=None, resize_with_pad=False, keypoint=False, object6dpose=False, normalized_detections=True,
-                                     shuffle_indices=None, squeeze_axis=0, reshape_list=None, ignore_index=None, logits_to_label_score=False):
-        
-        postprocess_detection = []
-        postprocess_detection += [ReshapeList(reshape_list=reshape_list)]
-        if logits_to_label_score:
-            postprocess_detection += [LogitsToLabelScore()]
-        #
-        postprocess_detection += [ShuffleList(indices=shuffle_indices),
+                                     shuffle_indices=None, squeeze_axis=0, reshape_list=None, ignore_index=None, **kwargs):
+        postprocess_detection = [ReshapeList(reshape_list=reshape_list),
+                                 ShuffleList(indices=shuffle_indices),
                                  Concat(axis=-1, end_index=3)]
         if squeeze_axis is not None:
             #  TODO make this more generic to squeeze any axis
