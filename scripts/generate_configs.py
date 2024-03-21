@@ -85,4 +85,23 @@ if __name__ == '__main__':
         os.environ['TIDL_TOOLS_PATH'] = ""
 
     # run the pipeline
-    interfaces.run_accuracy(settings, work_dir)
+    results_list = interfaces.run_gen_config(settings, work_dir)
+
+    models_path_full = os.path.normpath(os.path.abspath(settings.models_path))
+
+    configs_dict={'configs': {}}
+    for result_dict in results_list:
+        if result_dict:
+           config_path = result_dict['config_path']
+           with open(config_path) as fp:
+               config_dict = yaml.safe_load(fp)
+           #
+           model_id = config_dict['session']['model_id']
+           config_path = os.path.normpath(os.path.abspath(config_path))
+           config_path = config_path.replace(models_path_full+os.sep, '')
+           configs_dict['config_paths'][model_id] = config_path
+
+    configlist_path = os.path.join(settings.models_path, 'configs.yaml')
+    with open(configlist_path, 'w') as fp:
+        yaml.safe_dump(configs_dict, fp, sort_keys=False)
+    #
