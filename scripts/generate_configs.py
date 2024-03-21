@@ -63,7 +63,7 @@ if __name__ == '__main__':
     parser.add_argument('--parallel_processes', type=int)
     parser.add_argument('--fast_calibration_factor', type=utils.float_or_none)
     parser.add_argument('--experimental_models', type=utils.str_to_bool)
-    parser.add_argument('--param_template_file', type=str, default='./examples/configs/yaml/param_template.yaml')
+    parser.add_argument('--param_template_file', type=str, default='./examples/configs/yaml/param_template_config.yaml')
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)
@@ -99,7 +99,7 @@ if __name__ == '__main__':
            model_id = config_dict['session']['model_id']
            config_path = os.path.normpath(os.path.abspath(config_path))
            config_path = config_path.replace(models_path_full+os.sep, '')
-           configs_dict['config_paths'][model_id] = config_path
+           configs_dict['configs'][model_id] = config_path
 
     configlist_path = os.path.join(settings.models_path, 'configs.yaml')
     with open(configlist_path, 'w') as fp:

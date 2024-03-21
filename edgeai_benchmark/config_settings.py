@@ -158,19 +158,21 @@ class ConfigSettings(config_dict.ConfigDict):
         return self.get_runtime_options(constants.MODEL_TYPE_ONNX, quantization_scale_type=quantization_scale_type, is_qat=True,
                                         prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_V2, **kwargs)
 
-    def _get_calibration_iterations(self, quantization_scale_type, is_qat):
+    def _get_calibration_iterations(self, quantization_scale_type, is_qat, prequantized_model_type):
         # note that calibration_iterations has effect only if accuracy_level>0
         # so we can just set it to the max value here.
         # for more information see: get_calibration_accuracy_level()
         # Not overriding for 16b now
-        return -1 if is_qat else self.calibration_iterations
+        quantized_model = is_qat or prequantized_model_type != constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_NONE
+        return -1 if quantized_model else self.calibration_iterations
 
-    def _get_calibration_accuracy_level(self, quantization_scale_type, is_qat):
+    def _get_calibration_accuracy_level(self, quantization_scale_type, is_qat, prequantized_model_type):
         # For QAT models, simple calibration is sufficient, so we shall use accuracy_level=0
         #use advance calib for 16b too
-        return 0 if is_qat else 1
+        quantized_model = is_qat or prequantized_model_type != constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_NONE
+        return 0 if quantized_model else 1
 
-    def _get_quantization_scale_type(self, quantization_scale_type, is_qat):
+    def _get_quantization_scale_type(self, quantization_scale_type, is_qat, prequantized_model_type):
         # 0 (non-power of 2, default)
         # 1 (power of 2, might be helpful sometimes, needed for p2 qat models)
         # 3 (non-power of 2 qat/prequantized model, supported in newer devices)
@@ -199,7 +201,7 @@ class ConfigSettings(config_dict.ConfigDict):
         calibration_frames = max(int(self.calibration_frames * fast_calibration_factor), 1)
         calibration_frames = np.clip(calibration_frames, min_options.get('calibration_frames', -sys.maxsize), max_options.get('calibration_frames', sys.maxsize))
 
-        calibration_iterations = max(int(self._get_calibration_iterations(quantization_scale_type, is_qat) * fast_calibration_factor), 1)
+        calibration_iterations = max(int(self._get_calibration_iterations(quantization_scale_type, is_qat, prequantized_model_type) * fast_calibration_factor), 1)
         calibration_iterations = np.clip(calibration_iterations, min_options.get('calibration_iterations', -sys.maxsize), max_options.get('calibration_iterations', sys.maxsize))
 
         runtime_options = {
@@ -207,7 +209,7 @@ class ConfigSettings(config_dict.ConfigDict):
             # basic_options
             #################################
             'tensor_bits': self.tensor_bits,
-            'accuracy_level': self._get_calibration_accuracy_level(quantization_scale_type, is_qat),
+            'accuracy_level': self._get_calibration_accuracy_level(quantization_scale_type, is_qat, prequantized_model_type),
             # debug level
             'debug_level': 0,
             'inference_mode': 0,
@@ -222,7 +224,7 @@ class ConfigSettings(config_dict.ConfigDict):
             # note that calibration_iterations has effect only if accuracy_level>0
             'advanced_options:calibration_iterations': calibration_iterations,
             # 0 (non-power of 2, default), 1 (power of 2, might be helpful sometimes, needed for qat models)
-            'advanced_options:quantization_scale_type': self._get_quantization_scale_type(quantization_scale_type, is_qat),
+            'advanced_options:quantization_scale_type': self._get_quantization_scale_type(quantization_scale_type, is_qat, prequantized_model_type),
             # further quantization/calibration options - these take effect
             # only if the accuracy_level in basic options is set to 9
             'advanced_options:activation_clipping': 1,
@@ -245,6 +247,12 @@ class ConfigSettings(config_dict.ConfigDict):
             # additional options (internal / performance estimation)
             #################################
             "ti_internal_nc_flag" : 83886080, #1601
+            #################################
+            # additional options (for info only)
+            #################################
+            # 'info': {
+            #     'prequantized_model_type': prequantized_model_type
+            # }
         }
         if prequantized_model_type_v2:
             runtime_options.update({'advanced_options:prequantized_model': 1})

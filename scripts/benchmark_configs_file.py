@@ -41,17 +41,29 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('settings_file', type=str, default=None)
-    parser.add_argument('--run_dir', type=str, default=None)
+    parser.add_argument('--target_device', type=str)
     parser.add_argument('--tensor_bits', type=utils.str_to_int)
     parser.add_argument('--configs_path', type=str)
+    parser.add_argument('--configs_file', type=str, default='configs.yaml') # can be a file containing a dict of all config files
+    parser.add_argument('--config_file', type=str, default=None) # or can be a single config file
     parser.add_argument('--models_path', type=str)
+    parser.add_argument('--task_selection', type=str, nargs='*')
+    parser.add_argument('--runtime_selection', type=str, nargs='*')
     parser.add_argument('--model_selection', type=str, nargs='*')
+    parser.add_argument('--model_shortlist', type=utils.int_or_none)
     parser.add_argument('--session_type_dict', type=str, nargs='*')
     parser.add_argument('--num_frames', type=int)
     parser.add_argument('--calibration_frames', type=int)
     parser.add_argument('--calibration_iterations', type=int)
-    parser.add_argument('--parallel_devices', type=int, nargs='*')
-    parser.add_argument('--experimental_models', type=int, default=1)
+    parser.add_argument('--run_import', type=utils.str_to_bool)
+    parser.add_argument('--run_inference', type=utils.str_to_bool)
+    parser.add_argument('--modelartifacts_path', type=str)
+    parser.add_argument('--modelpackage_path', type=str)
+    parser.add_argument('--dataset_loading', type=str, nargs='*')
+    parser.add_argument('--parallel_devices', type=utils.int_or_none)
+    parser.add_argument('--parallel_processes', type=int)
+    parser.add_argument('--fast_calibration_factor', type=utils.float_or_none)
+    parser.add_argument('--experimental_models', type=utils.str_to_bool)
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)
@@ -62,14 +74,8 @@ if __name__ == '__main__':
     print(f'settings: {settings}')
     sys.stdout.flush()
 
-    run_dir = kwargs.get('run_dir', None)
-    print(f'run_dir: {run_dir}')
-
-    model_selection = kwargs.get('model_selection', None)
-    print(f'model_selection: {model_selection}')
-
-    if model_selection is None:
-        assert run_dir is not None, 'run_dir must be provided when model_selection is None'
+    work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
+    print(f'work_dir: {work_dir}')
 
     # run the accuracy pipeline
-    interfaces.run_model(settings, run_dir)
+    interfaces.run_configs_file(settings, work_dir)
