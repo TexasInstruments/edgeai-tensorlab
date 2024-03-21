@@ -38,5 +38,5 @@ from .surgery import SurgeryModule, replace_unsupported_layers, get_replacement_
 
 
 def convert_to_lite_fx(model:torch.nn.Module,replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, verbose_mode:bool=False, **kwargs):
-    return replace_unsupported_layers(model, replacement_dict=replacement_dict, verbose_mode=verbose_mode, **kwargs)
+    return replace_unsupported_layers(model, replacement_dict=replacement_dict, verbose_mode=verbose_mode,example_input=torch.rand(1,3,224,224), **kwargs)
 
