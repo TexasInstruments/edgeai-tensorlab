@@ -30,7 +30,6 @@ session:
   model_path: model/mobilenet_v2_tv.onnx
   session_name: onnxrt
   target_device: AM68A
-task_type: classification
 postprocess:
   label_offset_pred: 0
   formatter:

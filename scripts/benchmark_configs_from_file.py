@@ -30,6 +30,7 @@ import os
 import sys
 import argparse
 from edgeai_benchmark import *
+from benchmark_modelzoo import get_arg_parser
 
 
 if __name__ == '__main__':
@@ -39,32 +40,19 @@ if __name__ == '__main__':
         os.chdir('../')
     #
 
-    parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-    parser.add_argument('settings_file', type=str, default=None)
-    parser.add_argument('--target_device', type=str)
-    parser.add_argument('--tensor_bits', type=utils.str_to_int)
-    parser.add_argument('--configs_path', type=str)
-    parser.add_argument('--configs_file', type=str, default='configs.yaml') # can be a file containing a dict of all config files
+    # reuse the existing arg parser from benchmark_modelzoo.py
+    parser = get_arg_parser()
+    # add these new arguments
+    parser.add_argument('--configs_file', type=str, default=None) # can be a file containing a dict of all config files
     parser.add_argument('--config_file', type=str, default=None) # or can be a single config file
-    parser.add_argument('--models_path', type=str)
-    parser.add_argument('--task_selection', type=str, nargs='*')
-    parser.add_argument('--runtime_selection', type=str, nargs='*')
-    parser.add_argument('--model_selection', type=str, nargs='*')
-    parser.add_argument('--model_shortlist', type=utils.int_or_none)
-    parser.add_argument('--session_type_dict', type=str, nargs='*')
-    parser.add_argument('--num_frames', type=int)
-    parser.add_argument('--calibration_frames', type=int)
-    parser.add_argument('--calibration_iterations', type=int)
-    parser.add_argument('--run_import', type=utils.str_to_bool)
-    parser.add_argument('--run_inference', type=utils.str_to_bool)
-    parser.add_argument('--modelartifacts_path', type=str)
-    parser.add_argument('--modelpackage_path', type=str)
-    parser.add_argument('--dataset_loading', type=str, nargs='*')
-    parser.add_argument('--parallel_devices', type=utils.int_or_none)
-    parser.add_argument('--parallel_processes', type=int)
-    parser.add_argument('--fast_calibration_factor', type=utils.float_or_none)
-    parser.add_argument('--experimental_models', type=utils.str_to_bool)
     cmds = parser.parse_args()
+
+    if cmds.configs_file is not None or cmds.config_file is None:
+        print ('Either --configs_file or --config_file must be specified. \n'
+         'For example, this will look for configs.yaml for a set of models '
+         'in the location spcified by models_path: --configs_file configs.yaml. \n'
+         'This will run a specific config file for a model: --config_file <path to config.yaml>')
+        exit()
 
     kwargs = vars(cmds)
     if 'session_type_dict' in kwargs:

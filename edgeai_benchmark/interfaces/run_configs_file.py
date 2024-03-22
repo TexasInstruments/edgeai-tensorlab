@@ -133,8 +133,10 @@ def run_configs_file(settings, work_dir, pipeline_configs=None, modify_pipelines
         # read and create configs from configs_file
         pipeline_configs = {}
         for model_id, config_file in configs_dict['configs'].items():
-            config_file_full_path = os.path.join(settings.models_path, config_file)
-            pipeline_config = pipeline_param_to_config(settings, config_file_full_path)
+            if config_file == os.path.basename(config_file):
+                config_file = os.path.join(settings.models_path, config_file)
+            #
+            pipeline_config = pipeline_param_to_config(settings, config_file)
             pipeline_configs[model_id] = pipeline_config
         #
 
