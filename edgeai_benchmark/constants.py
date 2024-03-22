@@ -72,6 +72,7 @@ SESSION_NAMES_DICT = {SESSION_NAME_TVMDLR:'TVM', SESSION_NAME_TFLITERT:'TFL', SE
 # target devices/socs supported.
 TARGET_DEVICE_TDA4VM = 'TDA4VM'
 TARGET_DEVICE_AM62A = 'AM62A'
+TARGET_DEVICE_AM67A = 'AM67A'
 TARGET_DEVICE_AM68A = 'AM68A'
 TARGET_DEVICE_AM69A = 'AM69A'
 TARGET_DEVICE_AM62 = 'AM62'
@@ -112,6 +113,13 @@ TARGET_DEVICE_SETTINGS_PRESETS = {
         },
         # we can use fewer number of calibration images and iterations if per channel asymmetric quantization is enabled
         #'fast_calibration_factor': FAST_CALIBRATION_FACTOR
+    },
+    TARGET_DEVICE_AM67A: {
+        'runtime_options': {
+            # 'advanced_options:quantization_scale_type': 4
+        },
+        # we can use fewer number of calibration images and iterations if per channel asymmetric quantization is enabled
+        # 'fast_calibration_factor': FAST_CALIBRATION_FACTOR
     },
     TARGET_DEVICE_AM68A : {
         'runtime_options': {
