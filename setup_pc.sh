@@ -119,10 +119,9 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "test9.2" ]]; then
   fi
   # installers for internal release
   echo "--------------------------------------------------------------------------------------------------------------"
-  echo "Important note: The release name provided is not a a known version. Assuming that it is an internal release tag: ${TIDL_TOOLS_RELEASE_NAME}"
-  echo "If instead a release version is required, then use the appropriate name. eg: r9.0"
+  echo "Important note: The release name provided is: ${TIDL_TOOLS_RELEASE_NAME}"
   echo "--------------------------------------------------------------------------------------------------------------"
-  TARGET_SOCS=(TDA4VM AM68A AM69A AM62A)   # TODO: Add AM67A
+  TARGET_SOCS=(TDA4VM AM68A AM69A AM62A AM67A)
   TIDL_TOOLS_RELEASE_ID=09_02_03_00
   TIDL_TOOLS_VERSION_NAME="9.2"
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/dlr-1.13.0-py3-none-any.whl
@@ -145,8 +144,7 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r9.
   fi
   # installers for internal release
   echo "--------------------------------------------------------------------------------------------------------------"
-  echo "Important note: The release name provided is not a a known version. Assuming that it is an internal release tag: ${TIDL_TOOLS_RELEASE_NAME}"
-  echo "If instead a release version is required, then use the appropriate name. eg: r9.0"
+  echo "Important note: The release name provided is: ${TIDL_TOOLS_RELEASE_NAME}"
   echo "--------------------------------------------------------------------------------------------------------------"
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A)
   TIDL_TOOLS_RELEASE_ID=09_01_00_00
@@ -195,6 +193,9 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r9.
       echo "python version must be == 3.10 for $TIDL_TOOLS_RELEASE_NAME"
       exit 1
   fi
+  echo "--------------------------------------------------------------------------------------------------------------"
+  echo "Important note: The release name provided is: ${TIDL_TOOLS_RELEASE_NAME}"
+  echo "--------------------------------------------------------------------------------------------------------------"
   # installers for 9.0 release
   echo 'tidl_tools version 9.0'
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A)
