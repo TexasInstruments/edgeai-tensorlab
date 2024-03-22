@@ -56,6 +56,24 @@ pip3 install --no-input -U --force-reinstall pillow-simd
 echo "installing requirements"
 pip3 install --no-input -r ./requirements_pc.txt
 
+if [[ $TIDL_TOOLS_RELEASE_NAME == "test9.2" ]]; then
+  # can we move this inside the requirements file is used.
+  pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
+elif [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r9.1" || $TIDL_TOOLS_RELEASE_NAME == "test9.1" ]]; then
+  # can we move this inside the requirements file is used.
+  pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
+elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.0" || $TIDL_TOOLS_RELEASE_NAME == "test9.0.1" ]]; then
+  # building onnx from soure requires carefull steps
+  # make sure that we are using system cmake
+  pip uninstall --yes cmake
+  # pybind11[global] is needed for building the onnx package.
+  # for some reason, this has to be installed before the requirements file is used.
+  pip3 install --no-input pybind11[global] protobuf==3.19.4
+  pybind11_DIR=$(pybind11-config --cmakedir) pip3 install --no-input https://github.com/TexasInstruments/onnx/archive/tidl-j7.zip
+else
+  echo "tidl_tools version was not given - todl_tools cannot be installed."
+fi
+
 
 ######################################################################
 #NOTE: THIS STEP INSTALLS THE EDITABLE LOCAL MODULE pytidl
@@ -91,7 +109,33 @@ echo "Installing tidl_tools verion: ${TIDL_TOOLS_RELEASE_NAME} ..."
 # an array to keep download links
 declare -a TIDL_TOOLS_DOWNLOAD_LINKS
 
-if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r9.2" ]]; then
+if [[ $TIDL_TOOLS_RELEASE_NAME == "test9.2" ]]; then
+  # python version check = 3.10
+  version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,10) and sys.version_info < (3,11) else 1;print(r)'`
+  if [ $version_match -ne 0 ]; then
+      echo "python version must be == 3.10 for $TIDL_TOOLS_RELEASE_NAME"
+      exit 1
+  fi
+  # installers for internal release
+  echo "--------------------------------------------------------------------------------------------------------------"
+  echo "Important note: The release name provided is not a a known version. Assuming that it is an internal release tag: ${TIDL_TOOLS_RELEASE_NAME}"
+  echo "If instead a release version is required, then use the appropriate name. eg: r9.0"
+  echo "--------------------------------------------------------------------------------------------------------------"
+  TARGET_SOCS=(TDA4VM AM68A AM69A AM62A)   # TODO: Add AM67A
+  TIDL_TOOLS_RELEASE_ID=09_02_03_00
+  TIDL_TOOLS_VERSION_NAME="9.2"
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/dlr-1.13.0-py3-none-any.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tvm-0.12.0-cp310-cp310-linux_x86_64.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/onnxruntime_tidl-1.14.0-cp310-cp310-linux_x86_64.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tflite_runtime-2.8.2-cp310-cp310-linux_x86_64.whl
+  # these are internal links for now
+  TIDL_TOOLS_DOWNLOAD_LINKS=("https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM68PA/tidl_tools.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM68A/tidl_tools.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM69A/tidl_tools.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM62A/tidl_tools.tar.gz")
+  for (( soc_idx=0; soc_idx<"${#TARGET_SOCS[@]}"; soc_idx++ )); do
+    TARGET_SOC=${TARGET_SOCS[$soc_idx]}
+    TIDL_TOOLS_DOWNLOAD_LINK=${TIDL_TOOLS_DOWNLOAD_LINKS[$soc_idx]}
+    echo "$TARGET_SOC $TIDL_TOOLS_DOWNLOAD_LINK"
+  done
+elif [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r9.1" ]]; then
   # python version check = 3.10
   version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,10) and sys.version_info < (3,11) else 1;print(r)'`
   if [ $version_match -ne 0 ]; then
