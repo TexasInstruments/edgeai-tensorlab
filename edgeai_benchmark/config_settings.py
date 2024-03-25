@@ -75,7 +75,7 @@ class ConfigSettings(config_dict.ConfigDict):
                             prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_NONE, **kwargs):
         '''
         example usage for min_options and max_options to set the limit
-            settings.runtime_options_onnx_np2(max_options=dict(calibration_frames=25, calibration_iterations=25))
+            settings.runtime_options_onnx_np2(max_options={'advanced_options:calibration_frames':25, 'advanced_options:calibration_iterations':25})
              similarly min_options can be used to set lower limit
              currently only calibration_frames and calibration_iterations are handled in this function.
         '''
@@ -199,10 +199,10 @@ class ConfigSettings(config_dict.ConfigDict):
         max_options = max_options or dict()
 
         calibration_frames = max(int(self.calibration_frames * fast_calibration_factor), 1)
-        calibration_frames = np.clip(calibration_frames, min_options.get('calibration_frames', -sys.maxsize), max_options.get('calibration_frames', sys.maxsize))
+        calibration_frames = np.clip(calibration_frames, min_options.get('advanced_options:calibration_frames', -sys.maxsize), max_options.get('advanced_options:calibration_frames', sys.maxsize))
 
         calibration_iterations = max(int(self._get_calibration_iterations(quantization_scale_type, is_qat, prequantized_model_type) * fast_calibration_factor), 1)
-        calibration_iterations = np.clip(calibration_iterations, min_options.get('calibration_iterations', -sys.maxsize), max_options.get('calibration_iterations', sys.maxsize))
+        calibration_iterations = np.clip(calibration_iterations, min_options.get('advanced_options:calibration_iterations', -sys.maxsize), max_options.get('advanced_options:calibration_iterations', sys.maxsize))
 
         runtime_options = {
             ##################################

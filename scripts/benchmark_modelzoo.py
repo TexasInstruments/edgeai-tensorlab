@@ -76,11 +76,6 @@ if __name__ == '__main__':
     #
     settings = config_settings.ConfigSettings(cmds.settings_file, **kwargs)
     print(f'settings: {settings}')
-    if os.path.splitext(settings.configs_path)[-1] == '.yaml':
-        print(f'Using model config(s) from file: {cmds.configs_path}')
-    else:
-        print(f'Using model config from Python module: {settings.configs_path}')
-    #
     sys.stdout.flush()
 
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')

@@ -36,7 +36,7 @@ from .. import utils, preprocess, postprocess, pipelines, datasets, sessions, co
 __all__ = ['get_configs_from_file']
 
 
-def pipeline_param_to_config(settings, config_file_or_pipeline_param):
+def pipeline_param_to_config(settings, config_file_or_pipeline_param, work_dir):
     if isinstance(config_file_or_pipeline_param, str):
         with open(config_file_or_pipeline_param) as cfp:
             pipeline_param = yaml.safe_load(cfp)
@@ -63,17 +63,27 @@ def pipeline_param_to_config(settings, config_file_or_pipeline_param):
     prequantized_model_type = runtime_options_in_config['info']['prequantized_model_type']
     runtime_options_in_settings = settings.get_runtime_options(prequantized_model_type=prequantized_model_type)
     runtime_options = copy.deepcopy(runtime_options_in_settings)
-    runtime_options.update(runtime_options_in_config)
+    # conditional update
+    for rt_opt_key, rt_opt_value in runtime_options_in_config.items():
+        if rt_opt_key in ['advanced_options:calibration_frames', 'advanced_options:calibration_iterations'] \
+            and rt_opt_key in runtime_options_in_config:
+            rt_opt_value = min(runtime_options_in_settings[rt_opt_key], runtime_options_in_config[rt_opt_key])
+        #
+        runtime_options[rt_opt_key] = rt_opt_value
+    #
 
     # handle device specific overrides
-    runtime_options.update(settings.runtime_options)
+    if settings.runtime_options is not None:
+        runtime_options.update(settings.runtime_options)
+    #
     if settings.target_device == constants.TARGET_DEVICE_TDA4VM:
-        if runtime_options['advanced_options:quantization_scale_type'] == constants.QUANT_SCALE_TYPE_NP2_PERCHAN:
-            runtime_options['advanced_options:quantization_scale_type'] = constants.QUANT_SCALE_TYPE_P2
+        if runtime_options['advanced_options:quantization_scale_type'] == constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN:
+            runtime_options['advanced_options:quantization_scale_type'] = constants.QUANTScaleType.QUANT_SCALE_TYPE_P2
         #
     #
 
     # set it to pipeline_params
+    pipeline_param['session']['work_dir'] = work_dir
     pipeline_param['session']['runtime_options'] = runtime_options
 
     if session_name == constants.SESSION_NAME_ONNXRT:
@@ -128,7 +138,7 @@ def get_configs_from_file(settings, work_dir):
         if not config_file.startswith(os.sep):
             config_file = os.path.abspath(os.path.join(settings.models_path, config_file))
         #
-        pipeline_config = pipeline_param_to_config(settings, config_file)
+        pipeline_config = pipeline_param_to_config(settings, config_file, work_dir)
         pipeline_configs[model_id] = pipeline_config
     #
     return pipeline_configs

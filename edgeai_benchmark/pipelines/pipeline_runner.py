@@ -44,6 +44,12 @@ from .. import preprocess
 class PipelineRunner():
     def __init__(self, settings, pipeline_configs):
         self.settings = settings
+        self.pipeline_configs = self.filter_pipeline_configs(pipeline_configs)
+
+    def get_pipeline_configs(self):
+        return self.pipeline_configs
+
+    def filter_pipeline_configs(self, pipeline_configs):
         for model_id, pipeline_config in pipeline_configs.items():
             # set model_id in each config
             pipeline_config['session'].set_param('model_id', model_id)
@@ -71,7 +77,7 @@ class PipelineRunner():
         #
 
         # additional filtering required
-        if settings.pipeline_type == constants.PIPELINE_GEN_CONFIG:
+        if self.settings.pipeline_type == constants.PIPELINE_GEN_CONFIG:
             pipelines_selected = {}
             pipelines_selected1_ordered = {}
             # we will go in this order of preference
@@ -91,33 +97,33 @@ class PipelineRunner():
             pipelines_selected = pipelines_selected1
         #
 
-        if settings.config_range is not None:
-            pipelines_selected = dict(itertools.islice(pipelines_selected.items(), *settings.config_range))
+        if self.settings.config_range is not None:
+            pipelines_selected = dict(itertools.islice(pipelines_selected.items(), *self.settings.config_range))
         #
-        if settings.model_transformation_dict is not None:
-            pipelines_selected = model_transformation(settings, pipelines_selected)
+        if self.settings.model_transformation_dict is not None:
+            pipelines_selected = model_transformation(self.settings, pipelines_selected)
         #
-        self.pipeline_configs = pipelines_selected
 
         # check the datasets and download if they are missing
         pipeline_config_dataset_list = []
-        for pipeline_key, pipeline_config in self.pipeline_configs.items():
+        for pipeline_key, pipeline_config in pipelines_selected.items():
             pipeline_config_dataset_list.append(pipeline_config['calibration_dataset'])
             pipeline_config_dataset_list.append(pipeline_config['input_dataset'])
         #
         # sending dataset_list to download_datasets will cause only those to be downloaded
-        download_ok = datasets.download_datasets(settings, dataset_list=pipeline_config_dataset_list)
+        download_ok = datasets.download_datasets(self.settings, dataset_list=pipeline_config_dataset_list)
         # populate the dataset objects into the pipeline_configs
-        for pipeline_key, pipeline_config in self.pipeline_configs.items():
+        for pipeline_key, pipeline_config in pipelines_selected.items():
             if isinstance(pipeline_config['calibration_dataset'], str):
                 dataset_category_name = pipeline_config['calibration_dataset']
-                pipeline_config['calibration_dataset'] = copy.deepcopy(settings.dataset_cache[dataset_category_name]['calibration_dataset'])
+                pipeline_config['calibration_dataset'] = copy.deepcopy(self.settings.dataset_cache[dataset_category_name]['calibration_dataset'])
             #
             if isinstance(pipeline_config['input_dataset'], str):
                 dataset_category_name = pipeline_config['input_dataset']
-                pipeline_config['input_dataset'] = copy.deepcopy(settings.dataset_cache[dataset_category_name]['input_dataset'])
+                pipeline_config['input_dataset'] = copy.deepcopy(self.settings.dataset_cache[dataset_category_name]['input_dataset'])
             #
         #
+        return pipelines_selected
 
     def run(self):
         if self.settings.parallel_processes in (None, 0):

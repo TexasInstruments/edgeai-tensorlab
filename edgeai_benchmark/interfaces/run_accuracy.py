@@ -50,8 +50,10 @@ def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_fun
     if pipeline_configs is None:
         is_config_file = (os.path.splitext(settings.configs_path)[-1] == '.yaml')
         if is_config_file:
+            print(f'Using model config(s) from file: {settings.configs_path}')
             pipeline_configs = get_configs_from_file(settings, work_dir)
         else:
+            print(f'Using model config from Python module: {settings.configs_path}')
             pipeline_configs = get_configs_from_module(settings, work_dir)
         #
         # initialize datasets
