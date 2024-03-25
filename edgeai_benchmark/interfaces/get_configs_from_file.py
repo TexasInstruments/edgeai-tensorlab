@@ -32,7 +32,6 @@ import copy
 import argparse
 import yaml
 from .. import utils, preprocess, postprocess, pipelines, datasets, sessions, config_dict, config_settings, constants
-from .run_accuracy import *
 
 __all__ = ['get_configs_from_file']
 

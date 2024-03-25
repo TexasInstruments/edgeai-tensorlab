@@ -30,6 +30,8 @@ import os
 import sys
 import argparse
 from .. import utils, pipelines, config_settings, datasets
+from .get_configs_from_module import *
+from .get_configs_from_file import *
 from .get_configs import *
 
 __all__ = ['run_accuracy']
