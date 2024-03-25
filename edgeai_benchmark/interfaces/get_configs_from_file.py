@@ -34,7 +34,7 @@ import yaml
 from .. import utils, preprocess, postprocess, pipelines, datasets, sessions, config_dict, config_settings, constants
 from .run_accuracy import *
 
-__all__ = ['run_configs_file']
+__all__ = ['get_configs_from_file']
 
 
 def pipeline_param_to_config(settings, config_file_or_pipeline_param):
@@ -60,23 +60,21 @@ def pipeline_param_to_config(settings, config_file_or_pipeline_param):
     preprocess_pipeline = preprocess.PreProcessTransforms(settings).get_transform_base(**pipeline_param['preprocess'])
     pipeline_config['preprocess'] = preprocess_pipeline
 
-    runtime_options = pipeline_param['session']['runtime_options']
-    # override runtime_options if necessary
+    runtime_options_in_config = pipeline_param['session']['runtime_options']
+    prequantized_model_type = runtime_options_in_config['info']['prequantized_model_type']
+    runtime_options_in_settings = settings.get_runtime_options(prequantized_model_type=prequantized_model_type)
+    runtime_options = copy.deepcopy(runtime_options_in_settings)
+    runtime_options.update(runtime_options_in_config)
+
+    # handle device specific overrides
+    runtime_options.update(settings.runtime_options)
     if settings.target_device == constants.TARGET_DEVICE_TDA4VM:
-        # handle unsupported case for TDA4VM
         if runtime_options['advanced_options:quantization_scale_type'] == constants.QUANT_SCALE_TYPE_NP2_PERCHAN:
             runtime_options['advanced_options:quantization_scale_type'] = constants.QUANT_SCALE_TYPE_P2
         #
     #
-    if settings.calibration_frames is not None:
-        runtime_options['advanced_options:calibration_frames'] = settings.calibration_frames
-    #
-    if settings.calibration_iterations is not None:
-        runtime_options['advanced_options:calibration_iterations'] = settings.calibration_iterations
-    #
-    if settings.tensor_bits is not None:
-        runtime_options['tensor_bits'] = settings.tensor_bits
-    #
+
+    # set it to pipeline_params
     pipeline_param['session']['runtime_options'] = runtime_options
 
     if session_name == constants.SESSION_NAME_ONNXRT:
@@ -111,37 +109,27 @@ def pipeline_param_to_config(settings, config_file_or_pipeline_param):
 
     return pipeline_config
 
-def run_configs_file(settings, work_dir, pipeline_configs=None, modify_pipelines_func=None):
-    # get the default configs if pipeline_configs is not given from outside
-    if pipeline_configs is None:
-        if settings.config_file is not None:
-            configs_dict = {'configs': {'model-1': settings.config_file}}
-        elif settings.configs_file is not None:
-            configs_file = settings.configs_file
-            if configs_file == os.path.basename(configs_file):
-                configs_file = os.path.join(settings.models_path, configs_file)
-            #
-            with open(configs_file) as fp:
-                configs_dict = yaml.safe_load(fp)
-            #
-        else:
-            assert settings.configs_file is not None or settings.config_file, \
-                f'either settings.configs_file or settings.config_file must be provided'
-            configs_dict = {}
+def get_configs_from_file(settings, work_dir):
+    config_file = settings.configs_path
+    if config_file == os.path.basename(config_file):
+            config_file = os.path.abspath(os.path.join(settings.models_path, config_file))
         #
-
-        # read and create configs from configs_file
-        pipeline_configs = {}
-        for model_id, config_file in configs_dict['configs'].items():
-            if config_file == os.path.basename(config_file):
-                config_file = os.path.join(settings.models_path, config_file)
-            #
-            pipeline_config = pipeline_param_to_config(settings, config_file)
-            pipeline_configs[model_id] = pipeline_config
-        #
-
-        initialize_ok = datasets.initialize_datasets(settings)
+    with open(config_file) as fp:
+        configs_dict = yaml.safe_load(fp)
+        assert isinstance(configs_dict, dict), f'config file contnet must be a dict {config_file}'
+    #
+    if 'configs' not in configs_dict:
+        configs_dict = {'configs': {'model-1': config_file}}
     #
 
-    results_list = run_accuracy(settings, work_dir, pipeline_configs, modify_pipelines_func)
-    return results_list
+    # read and create configs from configs_file
+    pipeline_configs = {}
+    for model_id, config_file in configs_dict['configs'].items():
+        config_file = os.path.normpath(config_file)
+        if not config_file.startswith(os.sep):
+            config_file = os.path.abspath(os.path.join(settings.models_path, config_file))
+        #
+        pipeline_config = pipeline_param_to_config(settings, config_file)
+        pipeline_configs[model_id] = pipeline_config
+    #
+    return pipeline_configs

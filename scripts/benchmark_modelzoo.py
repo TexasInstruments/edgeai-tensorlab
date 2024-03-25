@@ -36,7 +36,10 @@ def get_arg_parser():
     parser.add_argument('settings_file', type=str, default=None)
     parser.add_argument('--target_device', type=str)
     parser.add_argument('--tensor_bits', type=utils.str_to_int)
-    parser.add_argument('--configs_path', type=str)
+    parser.add_argument('--configs_path', type=str, help='Path to configs. Can be one of: '
+                        '\n  Python module, such as in ./configs OR '
+                        '\n  a configs file such as ../edgeai-modelzoo/models/configs.yaml. '
+                        '\n  default is Python module at: ./configs')
     parser.add_argument('--models_path', type=str)
     parser.add_argument('--task_selection', type=str, nargs='*')
     parser.add_argument('--runtime_selection', type=str, nargs='*')
@@ -73,6 +76,11 @@ if __name__ == '__main__':
     #
     settings = config_settings.ConfigSettings(cmds.settings_file, **kwargs)
     print(f'settings: {settings}')
+    if os.path.splitext(settings.configs_path)[-1] == '.yaml':
+        print(f'Using model config(s) from file: {cmds.configs_path}')
+    else:
+        print(f'Using model config from Python module: {settings.configs_path}')
+    #
     sys.stdout.flush()
 
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')

@@ -27,13 +27,18 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from .get_configs_from_module import *
-from .get_configs_from_file import *
+from .. import utils
 
 
-def get_configs(settings, work_dir):
-    return get_configs_from_module(settings, work_dir)
+def get_configs_from_module(settings, work_dir):
+    # import the configs module
+    configs_module = utils.import_folder(settings.configs_path)
+    pipeline_configs = configs_module.get_configs(settings, work_dir)
+    return pipeline_configs
 
+def select_configs_from_module(settings, work_dir, session_name=None):
+    # import the configs module
+    configs_module = utils.import_folder(settings.configs_path)
+    pipeline_configs = configs_module.select_configs(settings, work_dir, session_name)
+    return pipeline_configs
 
-def select_configs(settings, work_dir, session_name=None):
-    return select_configs_from_module(settings, work_dir, session_name=session_name)
