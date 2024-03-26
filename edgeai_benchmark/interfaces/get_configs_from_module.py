@@ -36,9 +36,9 @@ def get_configs_from_module(settings, work_dir):
     pipeline_configs = configs_module.get_configs(settings, work_dir)
     return pipeline_configs
 
-def select_configs_from_module(settings, work_dir, session_name=None):
+def select_configs_from_module(settings, work_dir, session_name=None, remove_models=False):
     # import the configs module
     configs_module = utils.import_folder(settings.configs_path)
-    pipeline_configs = configs_module.select_configs(settings, work_dir, session_name)
+    pipeline_configs = configs_module.select_configs(settings, work_dir, session_name, remove_models)
     return pipeline_configs
 

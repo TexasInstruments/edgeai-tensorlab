@@ -142,3 +142,16 @@ def get_configs_from_file(settings, work_dir):
         pipeline_configs[model_id] = pipeline_config
     #
     return pipeline_configs
+
+def select_configs_from_file(settings, work_dir, session_name=None, remove_models=False):
+    pipeline_configs = get_configs_from_file(settings, work_dir)
+    if session_name is not None:
+        pipeline_configs = {pipeline_id:pipeline_config for pipeline_id, pipeline_config in pipeline_configs.items() \
+                if pipeline_config['session'].peek_param('session_name') == session_name}
+    #
+    if remove_models:
+        pipeline_configs = {pipeline_id:pipeline_config for pipeline_id, pipeline_config in pipeline_configs.items() \
+                if os.path.exists(os.path.join(pipeline_config['session'].peek_param('run_dir'), 'param.yaml')) or
+                   os.path.exists(pipeline_config['session'].peek_param('run_dir')+'.tar.gz') }
+    #
+    return pipeline_configs

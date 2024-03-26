@@ -30,8 +30,6 @@ import os
 import sys
 import argparse
 from .. import utils, pipelines, config_settings, datasets
-from .get_configs_from_module import *
-from .get_configs_from_file import *
 from .get_configs import *
 
 __all__ = ['run_accuracy']
@@ -48,14 +46,8 @@ def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_fun
 
     # get the default configs if pipeline_configs is not given from outside
     if pipeline_configs is None:
-        is_config_file = (os.path.splitext(settings.configs_path)[-1] == '.yaml')
-        if is_config_file:
-            print(f'Using model config(s) from file: {settings.configs_path}')
-            pipeline_configs = get_configs_from_file(settings, work_dir)
-        else:
-            print(f'Using model config from Python module: {settings.configs_path}')
-            pipeline_configs = get_configs_from_module(settings, work_dir)
-        #
+        # get a dict of model configs
+        pipeline_configs = get_configs(settings, work_dir)
         # initialize datasets
         initialize_ok = datasets.initialize_datasets(settings)
     #
