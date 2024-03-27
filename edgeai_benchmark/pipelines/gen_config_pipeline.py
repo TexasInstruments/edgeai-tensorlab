@@ -67,6 +67,8 @@ class GenConfigPipeline(BasePipeline):
                 if model_proto_path is not None:
                     self.pipeline_config['session'].kwargs['runtime_options']['object_detection:meta_layers_names_list'] = os.path.basename(model_proto_path)
                 #
+                # config file is not specific to any device.
+                # The one who uses the config file should spcify the device in his settings.
                 self.pipeline_config['session'].kwargs['target_device'] = None
                 pipeline_param = utils.pretty_object(self.pipeline_config)
                 pipeline_param = utils.cleanup_dict(pipeline_param, param_template)
