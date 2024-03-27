@@ -29,8 +29,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
-echo "=> Recommend to use the alternate script run_benchmarks_parallelbash_pc.sh as back-to-back import followed by inference doesnt work with this script."
-read -p "=> OR press any key to continue..."
+echo "=> Recommend to use the alternate script run_benchmarks_parallelbash_pc.sh"
+echo "   for import and inference across models in parallel."
 
 ##################################################################
 # target_device - use one of: TDA4VM AM62A AM68A AM69A
