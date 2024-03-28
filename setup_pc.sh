@@ -56,7 +56,7 @@ pip3 install --no-input -U --force-reinstall pillow-simd
 echo "installing requirements"
 pip3 install --no-input -r ./requirements_pc.txt
 
-if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "test9.1" ]]; then
+if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r9.1" || $TIDL_TOOLS_RELEASE_NAME == "test9.1" ]]; then
   # can we move this inside the requirements file is used.
   pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
 elif [[ $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r9.0" || $TIDL_TOOLS_RELEASE_NAME == "test9.0.1" ]]; then
