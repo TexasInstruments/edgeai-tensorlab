@@ -1,6 +1,5 @@
 # Quantization
 
-Model Optimization Tools including Quantization Aware Training (QAT) tools have moved - please visit the new location of quantization documentation [here](../../references/edgeailite/edgeai_xvision/xnn/quantization/README.md).
+Model Optimization Tools including Quantization Aware Training (QAT) have moved - please visit the new location: https://github.com/TexasInstruments/edgeai-modeloptimization
 
-Note: Soon, Model Optimization Tools including QAT tools will be moved out to a separate git repository.
-
+Note: Pytorch based model training tools are in the folder [torchmodelopt](https://github.com/TexasInstruments/edgeai-modeloptimization/tree/main/torchmodelopt). The model training [scripts in this repository](../../references) make use of [torchmodelopt](https://github.com/TexasInstruments/edgeai-modeloptimization/tree/main/torchmodelopt). Read its documentation, clone that repository and run its setup to install the model optimization tools provided there.
