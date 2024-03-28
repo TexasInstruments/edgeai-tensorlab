@@ -302,6 +302,7 @@ def main(args):
     if args.model_surgery == edgeai_torchmodelopt.xmodelopt.surgery.SyrgeryVersion.SURGERY_LEGACY:
         model = edgeai_torchmodelopt.xmodelopt.surgery.v1.convert_to_lite_model(model, **surgery_kwargs)
     elif args.model_surgery == edgeai_torchmodelopt.xmodelopt.surgery.SyrgeryVersion.SURGERY_FX:
+        print("Performing Surgery on the Model")
         model = edgeai_torchmodelopt.xmodelopt.surgery.v2.convert_to_lite_fx(model)
 
     if args.weights_url and (not args.test_only):
@@ -441,6 +442,7 @@ def main(args):
         # We disable the cudnn benchmarking because it can noticeably affect the accuracy
         torch.backends.cudnn.benchmark = False
         torch.backends.cudnn.deterministic = True
+        print("Start Testing")
         if model_ema:
             acc = evaluate(args, model_ema, criterion, data_loader_test, device=device, log_suffix="EMA")
         else:

@@ -39,7 +39,8 @@ pip3 install --no-input --upgrade pip setuptools
 
 ######################################################################
 echo "installing pytorch - use the applopriate index-url from https://pytorch.org/get-started/locally/"
-pip3 install --no-input torch==2.0.1+cu118 torchvision==0.15.2+cu118 -f https://download.pytorch.org/whl/torch_stable.html
+# pip3 install --no-input torch==2.0.1+cu118 torchvision==0.15.2+cu118 -f https://download.pytorch.org/whl/torch_stable.html
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
 echo 'Installing python packages...'
 # there as issue with installing pillow-simd through requirements - force it here
