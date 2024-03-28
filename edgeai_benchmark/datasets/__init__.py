@@ -28,6 +28,7 @@
 
 import warnings
 
+from .onnx_backend_dataset import *
 from .image_cls import *
 from .image_seg import *
 from .image_det import *
