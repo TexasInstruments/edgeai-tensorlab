@@ -7,6 +7,7 @@ import pytest
 import onnx
 '''
 Pytest file for ONNX Backend tests
+Note: Pass in --disable-tidl-offload to pytest command in order to compile just for CPU
 '''
 
 
@@ -21,6 +22,11 @@ node_tests_root = os.path.join(onnx_root, "backend/test/data/node")
 @pytest.fixture
 def node_tests_root_fixture():
     return node_tests_root
+
+@pytest.fixture(scope="session")
+def tidl_offload(pytestconfig):
+    return pytestconfig.getoption("disable_tidl_offload")
+
 
 # Fail when TIDL offload is disabled 
 # Interestingly not the same nodes as 
@@ -343,16 +349,12 @@ node_tests_to_run = os.listdir(node_tests_root)
 
 # Test onnx node test
 @pytest.mark.parametrize("node_name", node_tests_to_run)
-def test_onnx_backend_node(node_tests_root_fixture : str, node_name : str):
+def test_onnx_backend_node(tidl_offload : bool, node_tests_root_fixture : str, node_name : str):
     '''
     Pytest for onnx backend node tests using the edgeai-benchmark framework
     '''
 
     test_dir = os.path.join(node_tests_root_fixture, node_name)
-
-    # TODO: Need a better system for finding config files
-    if os.path.split(os.getcwd())[-1] in ('tests'):
-        os.chdir('../')
   
     assert os.path.exists(test_dir), f"test path {test_dir} doesn't exist"
     assert os.environ.get('TIDL_RT_AVX_REF') is not None, "Make sure to source run_set_env.sh"
@@ -362,8 +364,7 @@ def test_onnx_backend_node(node_tests_root_fixture : str, node_name : str):
     assert os.environ['TIDL_RT_DDR_STATS'] == '1'
     assert os.environ['TIDL_RT_PERFSTATS'] == '1'
 
-    settings = config_settings.ConfigSettings('./settings_import_on_pc.yaml', target_device = "TDA4VM",
-                    calibration_frames=1, calibration_iterations=5, num_frames=1, tidl_offload=False)
+    settings = config_settings.ConfigSettings('./onnx_backend.yaml', target_device = "TDA4VM", tidl_offload=tidl_offload)
 
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
 
