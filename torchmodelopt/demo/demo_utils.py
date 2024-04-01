@@ -1,6 +1,8 @@
 import sys
 import importlib
 import os
+import torch
+from torch import nn
 from torch.nn.modules import Module
 from torchinfo.formatting import FormattingOptions
 from torchinfo.layer_info import *

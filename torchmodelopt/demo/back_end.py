@@ -5,8 +5,8 @@ from torch import nn
 
 from demo_utils import  summary
 from demo_utils import import_file_or_folder
-from edgeai_torchmodelopt.xmodelopt.pruning.fx.utils import create_channel_pruned_model
-from edgeai_torchmodelopt.xmodelopt.pruning.fx.pruner_module import PrunerModule
+from edgeai_torchmodelopt.xmodelopt.pruning.v2.utils import create_channel_pruned_model
+from edgeai_torchmodelopt.xmodelopt.pruning.v2.pruner_module import PrunerModule
 
 # from edgeai_xvision.references.classification import train as train_module
 
