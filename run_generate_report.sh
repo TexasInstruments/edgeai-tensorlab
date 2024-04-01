@@ -31,17 +31,77 @@
 ##################################################################
 # target_device - use one of: TDA4VM AM62A AM68A AM69A
 # (Note: until r8.5 only TDA4VM was supported)
-# if --target_device is provided, this script will generate report for only that device
-# without that the report will contain all devices
-TARGET_SOC=${1:-None}
+TARGET_SOC=None
 
+# leave this as pc - no change needed
+# pc: for model compilation and inference on PC, evm: for model inference on EVM
+# after compilation, run_package_artifacts_evm.sh can be used to format and package the compiled artifacts for evm
+TARGET_MACHINE=pc
 
-# specify one of the following settings - options can be changed inside the yaml
-#settings_file=settings_infer_on_evm.yaml
-#settings_file=settings_import_on_pc.yaml
-settings_file=settings_import_on_pc.yaml
+# launch the python script with debugpy for remote attach
+DEBUG=false
+HOSTNAME=$(hostname)
+PORT=5678
 
+##################################################################
+for arg in "$@"
+do 
+    case "$arg" in
+        "-d"|"--debug")
+            DEBUG=true
+            ;;
+        "TDA4VM"|"AM62A"|"AM68A"|"AM69A")
+            TARGET_SOC=$arg
+            ;;
+        "-h"|"--help")
+            cat << EOF
+Usage: $0 [OPTIONS] [TARGET_SOC]
+This script generates a CSV summary of the results of a benchmarking session by calling:
+    ./scripts/generate_report.py
+
+Options:
+-d, --debug     Launch the Python script with debugpy for remote attach.
+-h, --help      Display this help message and exit.
+
+TARGET_SOC:
+Specify the target device. Use one of: TDA4VM, AM62A, AM68A, AM69A. Defaults to TDA4VM.
+Note: Until r8.5, only TDA4VM was supported.
+
+Debug Mode:
+If debug mode is enabled, the script will wait for a debugpy to attach at ${HOSTNAME}:${PORT}.
+See https://code.visualstudio.com/docs/python/debugging#_example for more info on using debugpy attach with VS Code.
+
+Example:
+$0 # defaults to None, no debug
+$0 [-d|--debug] AM62A # select device with debug
+EOF
+            exit 0
+            ;;
+    esac
+done
+##################################################################
+
+# set environment variables
+# also point to the right type of artifacts (pc or evm)
+source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
+
+# specify one of the following - additional options can be changed inside the yaml
+# SETTINGS=settings_infer_on_evm.yaml
+SETTINGS=settings_import_on_pc.yaml
+##################################################################
+
+PYARGS="./scripts/generate_report.py ${SETTINGS} --target_device ${TARGET_SOC}"
+PYDEBUG="python3 -m debugpy --listen ${HOSTNAME}:${PORT} --wait-for-client"
 echo "==================================================================="
-# generate the final report with results for all the artifacts generated
-python3 ./scripts/generate_report.py ${settings_file} --target_device ${TARGET_SOC} ${@:2}
-echo "-------------------------------------------------------------------"
+
+if $DEBUG
+then
+    echo "Waiting for attach @ ${HOSTNAME}:${PORT} to debug..." 
+    echo "See --help for more info."
+    ${PYDEBUG} ${PYARGS}
+    echo "-------------------------------------------------------------------"
+else
+    python3 ${PYARGS}
+    echo "-------------------------------------------------------------------"
+fi
+echo "==================================================================="

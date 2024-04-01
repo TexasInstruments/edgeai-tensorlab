@@ -31,15 +31,43 @@
 ##################################################################
 # until r8.5: TDA4VM
 # from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
-TARGET_SOC=${1:-TDA4VM}
+TARGET_SOC=TDA4VM
 
 # pc: for model compilation and inference on PC, evm: for model inference on EVM
 TARGET_MACHINE=pc
 
-echo "TARGET_SOC: ${TARGET_SOC}"
-echo "Pass the appropriate commandline argument to use another one."
-
 ##################################################################
+for arg in "$@"
+do 
+    case "$arg" in
+        "TDA4VM"|"AM62A"|"AM68A"|"AM69A")
+            TARGET_SOC=$arg
+            ;;
+        "-h"|"--help")
+            cat << EOF
+Usage: $0 [OPTIONS] [TARGET_SOC]
+This script
+
+Options:
+-h, --help      Display this help message and exit.
+
+TARGET_SOC:
+Specify the target device. Use one of: TDA4VM, AM62A, AM68A, AM69A. Defaults to TDA4VM.
+Note: Until r8.5, only TDA4VM was supported.  
+
+Example:
+$0 # defaults to TDA4VM
+$0 AM62A # select device
+EOF
+            exit 0
+            ;;
+    esac
+done
+
+echo "TARGET_SOC:     ${TARGET_SOC}"
+echo "TARGET_MACHINE: ${TARGET_MACHINE}"
+##################################################################
+
 pip3 install jupyter
 
 ##################################################################
@@ -49,4 +77,3 @@ source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 
 # run the script
 jupyter notebook --ip=localhost
-
