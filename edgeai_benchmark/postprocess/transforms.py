@@ -86,6 +86,11 @@ def apply_label_offset(label, label_offset):
     #
     return label
 
+def softmax(tensor,axis=-1):
+    tensor = tensor - np.expand_dims(np.max(tensor, axis = axis), axis)
+    tensor = np.exp(tensor)
+    ax_sum = np.expand_dims(np.sum(tensor, axis = axis), axis)
+    return tensor / ax_sum
 
 ##############################################################################
 class SqueezeAxis():
@@ -118,7 +123,7 @@ class ArgMax():
         else:
             argmax_axis = self.axis
         #
-        assert argmax_axis is not None, f'unsupport axis {axis} or data_layout {self.data_layout}'
+        assert argmax_axis is not None, f'unsupport axis {self.axis} or data_layout {self.data_layout}'
         if tensor.shape[argmax_axis] > 1:
             tensor = tensor.argmax(axis=argmax_axis)
             tensor = tensor[0]
@@ -178,6 +183,17 @@ class ReshapeList():
             self.reshape_list = reshape_list
         if self.reshape_list is not None:
             tensor_list_out = []
+            # if isinstance(self.reshape_list,tuple) and self.reshape_list[0] == 'detr' :
+            #     tensor_list_softmax=[]
+            #     tensor_list_softmax.append(tensor_list[1])
+            #     tensor_list_argmax = np.argmax(tensor_list[0],axis=-1)
+            #     softmax_score = softmax(tensor_list[0])[:,:,:-1]
+            #     tensor_list_softmax.append(np.argmax(softmax_score,axis=-1))
+            #     tensor_list_softmax.append(np.max(softmax_score,axis=-1))
+            #     tensor_list = tensor_list_softmax
+            #     for t_orig, t_shape in zip(tensor_list, self.reshape_list[1]):
+            #         tensor_list_out.append(t_orig.reshape(t_shape))
+            #     return tensor_list_out, info_dict
             for t_orig, t_shape in zip(tensor_list, self.reshape_list):
                 tensor_list_out.append(t_orig.reshape(t_shape))
             #
@@ -185,7 +201,7 @@ class ReshapeList():
             tensor_list_out = tensor_list
         #
         return tensor_list_out, info_dict
-
+    
 
 class IgnoreIndex():
     def __init__(self, indice=None):
@@ -474,6 +490,28 @@ class DetectionFilter():
         return bbox, info_dict
 
 
+class LogitsToLabelScore():
+    def __init__(self, scores_index=0, bbox_index=1, background_class_id=-1):
+        self.scores_index = scores_index
+        self.bbox_index = bbox_index
+        self.background_class_id = background_class_id
+
+    def __call__(self, tensor_list, info_dict):
+        tensor_list_softmax=[]
+        if self.bbox_index is not None:
+            tensor_list_softmax.append(tensor_list[self.bbox_index].reshape(-1,4))
+        #
+        softmax_score = softmax(tensor_list[self.scores_index])
+        if self.background_class_id == -1:  
+            softmax_score = softmax_score[:,:,:self.background_class_id]
+        elif self.background_class_id is not None:
+            softmax_score = softmax_score[:,:,self.background_class_id+1:]
+        #
+        tensor_list_softmax.append(np.argmax(softmax_score,axis=-1).reshape(-1,1))
+        tensor_list_softmax.append(np.max(softmax_score,axis=-1).reshape(-1,1))
+        return tensor_list_softmax, info_dict  
+    
+
 class DetectionFormatting():
     def __init__(self, dst_indices, src_indices):
         self.src_indices = src_indices
@@ -516,10 +554,28 @@ class DetectionXYWH2XYXY():
         bbox[..., 2] = x2
         bbox[..., 3] = y2
         return bbox, info_dict
-
+    
+class DetectionXYWH2XYXYCenterXY():
+    def __call__(self, bbox, info_dict):
+        x1 = bbox[..., 0] - 0.5 * bbox[..., 2]
+        y1 = bbox[..., 1] - 0.5 * bbox[..., 3]
+        x2 = bbox[..., 0] + 0.5 * bbox[..., 2]
+        y2 = bbox[..., 1] + 0.5 * bbox[..., 3]
+        img_shape =  info_dict['data_shape']
+        resize_shape =  info_dict['resize_shape']
+        bbox[..., 0] = x1 * resize_shape[1]
+        bbox[..., 1] = y1 * resize_shape[0]
+        bbox[..., 2] = x2 * resize_shape[1]
+        bbox[..., 3] = y2 * resize_shape[0]
+        return bbox, info_dict
+    
 
 class DetectionBoxSL2BoxLS(DetectionFormatting):
     def __init__(self, dst_indices=(4, 5), src_indices=(5, 4)):
+        super().__init__(dst_indices, src_indices)
+
+class Yolov4DetectionBoxSL2BoxLS(DetectionFormatting):
+    def __init__(self, dst_indices=(0,1,2,3,4), src_indices=(1,2,3,4,0)):
         super().__init__(dst_indices, src_indices)
 
 
