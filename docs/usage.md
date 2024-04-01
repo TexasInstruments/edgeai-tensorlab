@@ -43,8 +43,8 @@ The `--debug` flag allows for the attaching of a debugpy debugger to the top lev
 * As an even faster alternative to running `run_benchmarks_pc.sh` with parallel_processes, use `run_benchmarks_parallelbash_pc.sh` to get the highest throughput benchmarking.
 
 ## Compiling with a custom model or custom configuration
-To compile a custom model or a custom pipeline configuration, first, compose a custom configuration in `./scripts/benchmark_custom.py`.
-* For a simple example of setting up a custom pipeline configuration, reference `./tutorials/tutorial_classification.ipynb` or `./tutorials/tutorial_detection.ipynb`.
+To compile a custom model or a custom pipeline configuration, first, compose a custom configuration in `/scripts/benchmark_custom.py`.
+* For a simple example of setting up a custom pipeline configuration, reference `/tutorials/tutorial_classification.ipynb` or `/tutorials/tutorial_detection.ipynb`.
 
 Next, launch the custom configuration by calling 
 ```
@@ -73,3 +73,33 @@ run_package_artifacts_for_evm.sh <SOC> [-d|--debug] [-h|--help]
 * Copying datasets and compiled artifacts to EVM can be time consuming and can use significant disk space (which may not be available on the EVM).
 * To run on EVM, we recommend to share your the datasets and work_dirs folders in your PC to the EVM and using NFS. [exportfs](https://www.tutorialspoint.com/unix_commands/exportfs.htm) can be used for this NFS sharing.
 
+## Debugging
+To debug the python scripts in `/scripts/`, which are called from the top level bash scripts, use `debugpy`'s attach capability. 
+
+For all bash scripts with `debugpy` launching supported, use `./<SCRIPT.sh> --debug` to enable debugging. Then, for every call of a python script, `debugpy` will wait for a debugger to attach to the process. 
+
+To see which scripts are `debugpy` enabled, use the `--help` flag to see if `--debug` is supported.
+
+### Attaching with VSCode
+1. Ensure that the [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) and [Python Debugger](https://marketplace.visualstudio.com/items?itemName=ms-python.debugpy) extensions are installed
+2. Create a debug `launch.json` configuration similar to the following, filling out `<HOSTNAME>`:
+```
+"configurations": [
+    {
+        "name": "Python: Remote Attach",
+        "type": "debugpy",
+        "request": "attach",
+        "connect": {
+            "host": "<HOSTNAME>",
+            "port": 5678
+        },
+        "justMyCode": false
+
+    },
+]
+```
+
+See [here](https://code.visualstudio.com/docs/python/debugging#_example) for more information about debugpy in VSCode.
+
+### Attaching with other IDEs
+Users of other IDEs must research how to attach a debugpy client in the IDE of their choice. 
