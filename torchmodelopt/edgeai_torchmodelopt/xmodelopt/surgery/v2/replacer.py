@@ -38,8 +38,9 @@ from torch.fx import symbolic_trace,GraphModule, Node
 from typing import Dict, Any, Union, List
 import operator
 import copy
-from . import custom_modules
+# from . import custom_modules
 
+from .custom_symbolic_trace import custom_symbolic_trace
 '''
 this module's function are implemented to changes nodes only.
 no change is made on the incoming arguments and keyword arguments.
@@ -76,7 +77,7 @@ def replace_module_nodes(model, pattern, replacement, verbose_mode:bool=False):
 
 def replace_function_nodes(model, pattern_function, replacement, verbose_mode=False, **kwargs):
     '''replaces a call function node to node with replacement function '''
-    traced_model = symbolic_trace(copy.deepcopy(model))
+    traced_model = custom_symbolic_trace(copy.deepcopy(model))
     no_of_module = 0
     n = 0
     if isfunction(replacement) or type(replacement).__name__ in ('builtin_function_or_method','function'):
@@ -111,6 +112,7 @@ def replace_function_nodes(model, pattern_function, replacement, verbose_mode=Fa
                     traced_model.graph.erase_node(node)
     traced_model.graph.lint()
     traced_model.recompile()
+    _remove_hanging_nodes(main_module=traced_model)
     if verbose_mode:
         print(pattern_function,str(n+no_of_module))
     return traced_model
@@ -263,8 +265,10 @@ def straight_type_chain_searcher(main_module:GraphModule, type_pattern:List):
         if first_function==second_function:
             #if both refer to same function
             return True
-
         elif hasattr(first_function, 'target') and first_function.target in operationDict.keys():
+            #if it is one  of add, sub, mul from either of operator module or torch module it should be the counter part
+            return second_function == operationDict[first_function]            
+        elif first_function in operationDict.keys():
             #if it is one  of add, sub, mul from either of operator module or torch module it should be the counter part
             return second_function == operationDict[first_function]
 
@@ -319,7 +323,7 @@ def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:
     if start == end:
         # if start is a call function or call method node
         if start.op in ['call_function', 'call_method']:
-            traced_replacement = symbolic_trace(replace_module)
+            traced_replacement = custom_symbolic_trace(replace_module)
             replacement_nodes = []
 
             # removes all placeholders and output node
@@ -391,6 +395,7 @@ def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:
                 if type(arg) == Node:
                     if arg.op != "get_attr":
                         args.append(arg)
+
             new_node = main_module.graph.call_module(new_node_name, tuple(args),{})
             ptr = start
             while ptr != end:
@@ -412,7 +417,24 @@ def _replace_pattern(main_module:GraphModule,start:Node,end:Node,replace_module:
             ptr.replace_all_uses_with(new_node)
             main_module.graph.erase_node(end)
         # main_modules.update({new_node_name:replace_module})
+    main_module.graph.lint()
+    main_module.recompile()
+    _remove_hanging_nodes(main_module)
 
+
+def _remove_hanging_nodes(main_module:GraphModule):
+    
+    def find_hanging_nodes(main_module:GraphModule):
+        count =[]
+        for node in main_module.graph.nodes:
+            if (node.op != 'output' and len(node.users)==0):
+                count.append(node)
+        return count
+    h_nodes=find_hanging_nodes(main_module)
+    while len(h_nodes)>0:
+        for node in h_nodes:
+            main_module.graph.erase_node(node)
+        h_nodes=find_hanging_nodes(main_module)
     main_module.graph.lint()
     main_module.recompile()
 
@@ -438,9 +460,9 @@ def graph_pattern_replacer(main_module:Union[GraphModule,nn.Module,callable],pat
     replace_module = replace_module() if type(replace_module) == type else replace_module
 
     if not isinstance(main_module, GraphModule):
-        main_module = symbolic_trace(main_module)
+        main_module = custom_symbolic_trace(main_module)
     if not isinstance(pattern_module, GraphModule):
-        pattern_module = symbolic_trace(pattern_module)
+        pattern_module = custom_symbolic_trace(pattern_module)
 
     pattern_nodes = []
     number_of_input = 0

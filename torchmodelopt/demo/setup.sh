@@ -1,5 +1,6 @@
-#################################################################################
-# Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
+#!/usr/bin/env bash
+
+# Copyright (c) 2023-2024, Texas Instruments
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -26,21 +27,11 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-#################################################################################
 
-import enum
-import torch
-from typing import Union, Dict, Any
-import warnings
+######################################################################
 
-from . import custom_modules, custom_surgery_functions,surgery
-from .surgery import SurgeryModule, replace_unsupported_layers, get_replacement_dict_default
+pip install -r demo/requirements.txt
 
 
-def convert_to_lite_fx(model:torch.nn.Module,replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, verbose_mode:bool=False, example_input = None,**kwargs):
-    if example_input is None:
-        warnings.warn("example_input optional and used only in models using LayerNorm. Using a default value since it was not provided.")
-        example_input = torch.rand(1,3,224,224) # Default input shape
-    return replace_unsupported_layers(model, replacement_dict=replacement_dict, verbose_mode=verbose_mode,example_input=example_input, **kwargs)
+echo "This demo requires https://github.com/TexasInstruments/edgeai-torchvision. Please clone it and run its setup file."
 
