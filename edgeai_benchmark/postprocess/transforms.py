@@ -171,7 +171,8 @@ class ReshapeList():
         self.reshape_list = reshape_list
 
     def __call__(self, tensor_list, info_dict):
-        if 'dataset_info' in info_dict and 'keypoints' in info_dict['dataset_info']['categories'][0]:
+        keypoints = info_dict['dataset_info']['categories'][0].get('keypoints', None) if info_dict.get('dataset_info', None) else None
+        if keypoints is not None:
             num_keypoints = len(info_dict['dataset_info']['categories'][0]['keypoints'])
             reshape_list = [(-1, 6+num_keypoints*3)]
             self.reshape_list = reshape_list
