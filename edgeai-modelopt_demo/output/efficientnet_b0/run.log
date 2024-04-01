@@ -1,109 +1,0 @@
-Not using distributed mode
-Namespace(data_path='~/Kunal/edgeai-modelopt_demo/imagenette', dataset='folder', annotation_prefix='instances', model='efficientnet_b0', device='cuda', gpus=1, batch_size=64, epochs=10, workers=16, opt='sgd', lr=0.05, momentum=0.9, weight_decay=4e-05, norm_weight_decay=None, bias_weight_decay=None, transformer_embedding_decay=None, label_smoothing=0.0, mixup_alpha=0.0, cutmix_alpha=0.0, lr_scheduler='cosineannealinglr', lr_warmup_epochs=1, lr_warmup_method='constant', lr_warmup_decay=0.01, lr_step_size=30, lr_gamma=0.1, lr_min=0.0, print_freq=100, output_dir='./output/efficientnet_b0', resume='', start_epoch=0, cache_dataset=False, sync_bn=False, test_only=False, auto_augment=None, ra_magnitude=9, augmix_severity=3, random_erase=0.0, amp=False, world_size=1, dist_url='env://', distributed=False, parallel=0, model_ema=False, model_ema_steps=32, model_ema_decay=0.99998, use_deterministic_algorithms=False, interpolation='bilinear', val_resize_size=232, val_crop_size=224, train_crop_size=224, clip_grad_norm=None, ra_sampler=False, ra_reps=3, weights=None, weights_state_dict_name='model', model_surgery=2, surgery_json='/home/a0507161/Kunal/edgeai-modelopt_demo//surgery_dict.json', quantization=0, quantization_type=None, pruning=0, pruning_ratio=0.640625, pruning_type='channel', pruning_class='blend', pruning_global=0, pruning_init_train_ep=5, pruning_m=None, compile_model=0, opset_version=18, train_epoch_size_factor=0.0, val_epoch_size_factor=0.0, weights_url=None, weights_enum='')
-Loading data
-Loading training data
-Took 0.02088308334350586
-Loading validation data
-Creating data loaders
-Creating model
-/home/a0507161/.pyenv/versions/py310/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
-  warnings.warn(
-/home/a0507161/.pyenv/versions/py310/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=EfficientNet_B0_Weights.IMAGENET1K_V1`. You can also use `weights=EfficientNet_B0_Weights.DEFAULT` to get the most up-to-date weights.
-  warnings.warn(msg)
-Downloading: "https://download.pytorch.org/models/efficientnet_b0_rwightman-3dd342df.pth" to /home/a0507161/.cache/torch/hub/checkpoints/efficientnet_b0_rwightman-3dd342df.pth
-  0%|          | 0.00/20.5M [00:00<?, ?B/s]  0%|          | 8.00k/20.5M [00:00<09:37, 37.1kB/s]  0%|          | 40.0k/20.5M [00:00<03:31, 101kB/s]   0%|          | 88.0k/20.5M [00:00<02:17, 155kB/s]  1%|          | 176k/20.5M [00:00<01:17, 275kB/s]   2%|1         | 384k/20.5M [00:01<00:39, 533kB/s]  3%|2         | 592k/20.5M [00:01<00:24, 844kB/s]  4%|3         | 800k/20.5M [00:01<00:19, 1.06MB/s]  5%|5         | 1.05M/20.5M [00:01<00:14, 1.45MB/s]  6%|6         | 1.25M/20.5M [00:01<00:13, 1.52MB/s]  7%|7         | 1.50M/20.5M [00:01<00:11, 1.79MB/s]  8%|8         | 1.73M/20.5M [00:01<00:10, 1.79MB/s]  9%|9         | 1.92M/20.5M [00:01<00:10, 1.78MB/s] 11%|#         | 2.23M/20.5M [00:01<00:09, 2.10MB/s] 12%|#1        | 2.45M/20.5M [00:02<00:09, 2.06MB/s] 14%|#3        | 2.77M/20.5M [00:02<00:08, 2.25MB/s] 15%|#5        | 3.08M/20.5M [00:02<00:07, 2.51MB/s] 16%|#6        | 3.33M/20.5M [00:02<00:07, 2.38MB/s] 18%|#7        | 3.65M/20.5M [00:02<00:06, 2.64MB/s] 19%|#9        | 3.92M/20.5M [00:02<00:06, 2.52MB/s] 21%|##        | 4.25M/20.5M [00:02<00:06, 2.77MB/s] 22%|##2       | 4.53M/20.5M [00:02<00:06, 2.66MB/s] 23%|##3       | 4.80M/20.5M [00:03<00:06, 2.53MB/s] 25%|##5       | 5.19M/20.5M [00:03<00:05, 2.94MB/s] 27%|##6       | 5.48M/20.5M [00:03<00:05, 2.77MB/s] 29%|##8       | 5.88M/20.5M [00:03<00:05, 3.03MB/s] 30%|###       | 6.17M/20.5M [00:03<00:05, 2.97MB/s] 32%|###2      | 6.58M/20.5M [00:03<00:04, 3.22MB/s] 34%|###3      | 6.89M/20.5M [00:03<00:04, 3.14MB/s] 36%|###5      | 7.34M/20.5M [00:03<00:04, 3.37MB/s] 37%|###7      | 7.66M/20.5M [00:03<00:04, 3.34MB/s] 40%|###9      | 8.12M/20.5M [00:04<00:03, 3.56MB/s] 41%|####1     | 8.46M/20.5M [00:04<00:03, 3.29MB/s] 44%|####3     | 8.97M/20.5M [00:04<00:03, 3.42MB/s] 47%|####6     | 9.53M/20.5M [00:04<00:02, 3.85MB/s] 48%|####8     | 9.91M/20.5M [00:04<00:03, 3.51MB/s] 52%|#####1    | 10.6M/20.5M [00:04<00:02, 4.47MB/s] 54%|#####4    | 11.1M/20.5M [00:04<00:02, 3.90MB/s] 57%|#####7    | 11.7M/20.5M [00:04<00:02, 4.49MB/s] 59%|#####9    | 12.1M/20.5M [00:05<00:02, 4.28MB/s] 62%|######2   | 12.7M/20.5M [00:05<00:02, 4.04MB/s] 65%|######5   | 13.4M/20.5M [00:05<00:01, 4.68MB/s] 68%|######7   | 13.8M/20.5M [00:05<00:01, 4.24MB/s] 71%|#######   | 14.5M/20.5M [00:05<00:01, 4.65MB/s] 73%|#######2  | 14.9M/20.5M [00:05<00:01, 4.64MB/s] 76%|#######6  | 15.6M/20.5M [00:05<00:00, 5.19MB/s] 79%|#######8  | 16.1M/20.5M [00:05<00:00, 4.78MB/s] 82%|########2 | 16.8M/20.5M [00:06<00:00, 5.32MB/s] 85%|########4 | 17.3M/20.5M [00:06<00:00, 5.17MB/s] 88%|########8 | 18.1M/20.5M [00:06<00:00, 5.69MB/s] 91%|######### | 18.6M/20.5M [00:06<00:00, 5.47MB/s] 95%|#########4| 19.4M/20.5M [00:06<00:00, 6.07MB/s] 98%|#########7| 20.0M/20.5M [00:06<00:00, 5.61MB/s]100%|##########| 20.5M/20.5M [00:06<00:00, 3.20MB/s]
-Start training
-Epoch: [0]  [  0/148]  eta: 0:05:44  lr: 0.0005  img/s: 41.95589554862045  loss: 5.3040 (5.3040)  acc1: 10.9375 (10.9375)  acc5: 42.1875 (42.1875)  time: 2.3295  data: 0.8041  max mem: 3480
-Epoch: [0]  [100/148]  eta: 0:00:05  lr: 0.0005  img/s: 779.6760763423964  loss: 2.6032 (3.2070)  acc1: 15.6250 (14.6968)  acc5: 67.1875 (59.6999)  time: 0.0823  data: 0.0002  max mem: 3480
-Epoch: [0] Total time: 0:00:15
-/home/a0507161/.pyenv/versions/py310/lib/python3.10/site-packages/torch/optim/lr_scheduler.py:152: UserWarning: The epoch parameter in `scheduler.step()` was not necessary and is being deprecated where possible. Please use `scheduler.step()` to step the scheduler. During the deprecation, if epoch is different from None, the closed form is used instead of the new chainable form, where available. Please open an issue if you are unable to replicate your use case: https://github.com/pytorch/pytorch/issues/new/choose.
-  warnings.warn(EPOCH_DEPRECATION_WARNING, UserWarning)
-Test:   [ 0/62]  eta: 0:00:38  loss: 1.8898 (1.8898)  acc1: 45.3125 (45.3125)  acc5: 90.6250 (90.6250)  time: 0.6181  data: 0.5921  max mem: 3480
-Test:  Total time: 0:00:02
-Test:  Acc@1 40.637 Acc@5 83.414
-============= Diagnostic Run torch.onnx.export version 2.0.1+cu118 =============
-verbose: False, log level: Level.ERROR
-======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
-
-Epoch: [1]  [  0/148]  eta: 0:01:15  lr: 0.05  img/s: 602.8464247215236  loss: 2.3685 (2.3685)  acc1: 25.0000 (25.0000)  acc5: 76.5625 (76.5625)  time: 0.5069  data: 0.4007  max mem: 3480
-Epoch: [1]  [100/148]  eta: 0:00:04  lr: 0.05  img/s: 775.0857736840586  loss: 2.6437 (2.9629)  acc1: 25.0000 (20.4981)  acc5: 71.8750 (66.9709)  time: 0.0827  data: 0.0002  max mem: 3480
-Epoch: [1] Total time: 0:00:12
-Test:   [ 0/62]  eta: 0:00:27  loss: 1.7789 (1.7789)  acc1: 67.1875 (67.1875)  acc5: 96.8750 (96.8750)  time: 0.4414  data: 0.4175  max mem: 3480
-Test:  Total time: 0:00:02
-Test:  Acc@1 27.006 Acc@5 76.178
-Epoch: [2]  [  0/148]  eta: 0:01:19  lr: 0.048492315519647715  img/s: 706.1006402466292  loss: 2.1772 (2.1772)  acc1: 18.7500 (18.7500)  acc5: 73.4375 (73.4375)  time: 0.5386  data: 0.4479  max mem: 3480
-Epoch: [2]  [100/148]  eta: 0:00:04  lr: 0.048492315519647715  img/s: 772.498362542807  loss: 1.9592 (2.2383)  acc1: 35.9375 (31.6522)  acc5: 81.2500 (80.6621)  time: 0.0832  data: 0.0001  max mem: 3480
-Epoch: [2] Total time: 0:00:12
-Test:   [ 0/62]  eta: 0:00:28  loss: 12.3471 (12.3471)  acc1: 20.3125 (20.3125)  acc5: 84.3750 (84.3750)  time: 0.4622  data: 0.4381  max mem: 3480
-Test:  Total time: 0:00:02
-Test:  Acc@1 33.197 Acc@5 78.701
-Epoch: [3]  [  0/148]  eta: 0:01:17  lr: 0.044151111077974446  img/s: 780.8849714043018  loss: 1.9711 (1.9711)  acc1: 42.1875 (42.1875)  acc5: 81.2500 (81.2500)  time: 0.5214  data: 0.4394  max mem: 3480
-Epoch: [3]  [100/148]  eta: 0:00:04  lr: 0.044151111077974446  img/s: 769.4713191938245  loss: 1.7731 (1.8533)  acc1: 42.1875 (41.0427)  acc5: 85.9375 (85.7519)  time: 0.0833  data: 0.0002  max mem: 3480
-Epoch: [3] Total time: 0:00:12
-Test:   [ 0/62]  eta: 0:00:28  loss: 1.1847 (1.1847)  acc1: 68.7500 (68.7500)  acc5: 93.7500 (93.7500)  time: 0.4633  data: 0.4392  max mem: 3480
-Test:  Total time: 0:00:02
-Test:  Acc@1 54.904 Acc@5 92.561
-============= Diagnostic Run torch.onnx.export version 2.0.1+cu118 =============
-verbose: False, log level: Level.ERROR
-======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
-
-Epoch: [4]  [  0/148]  eta: 0:01:16  lr: 0.0375  img/s: 772.76299978985  loss: 1.4969 (1.4969)  acc1: 46.8750 (46.8750)  acc5: 93.7500 (93.7500)  time: 0.5177  data: 0.4349  max mem: 3480
-Epoch: [4]  [100/148]  eta: 0:00:04  lr: 0.0375  img/s: 766.3956923059353  loss: 1.5094 (1.5448)  acc1: 50.0000 (49.5514)  acc5: 92.1875 (89.5111)  time: 0.0838  data: 0.0002  max mem: 3480
-Epoch: [4] Total time: 0:00:12
-Test:   [ 0/62]  eta: 0:00:29  loss: 1.0983 (1.0983)  acc1: 70.3125 (70.3125)  acc5: 92.1875 (92.1875)  time: 0.4813  data: 0.4572  max mem: 3480
-Test:  Total time: 0:00:02
-Test:  Acc@1 60.204 Acc@5 94.115
-============= Diagnostic Run torch.onnx.export version 2.0.1+cu118 =============
-verbose: False, log level: Level.ERROR
-======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
-
-Epoch: [5]  [  0/148]  eta: 0:01:13  lr: 0.029341204441673263  img/s: 705.1583664763026  loss: 1.4234 (1.4234)  acc1: 57.8125 (57.8125)  acc5: 92.1875 (92.1875)  time: 0.4965  data: 0.4057  max mem: 3480
-Epoch: [5]  [100/148]  eta: 0:00:04  lr: 0.029341204441673263  img/s: 768.3040754235275  loss: 1.2438 (1.3472)  acc1: 56.2500 (55.4920)  acc5: 92.1875 (92.0328)  time: 0.0838  data: 0.0002  max mem: 3480
-Epoch: [5] Total time: 0:00:12
-Test:   [ 0/62]  eta: 0:00:25  loss: 0.9488 (0.9488)  acc1: 71.8750 (71.8750)  acc5: 90.6250 (90.6250)  time: 0.4152  data: 0.3909  max mem: 3480
-Test:  Total time: 0:00:02
-Test:  Acc@1 64.408 Acc@5 95.210
-============= Diagnostic Run torch.onnx.export version 2.0.1+cu118 =============
-verbose: False, log level: Level.ERROR
-======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
-
-Epoch: [6]  [  0/148]  eta: 0:01:25  lr: 0.020658795558326743  img/s: 741.1433635844071  loss: 1.3586 (1.3586)  acc1: 51.5625 (51.5625)  acc5: 89.0625 (89.0625)  time: 0.5754  data: 0.4890  max mem: 3480
-Epoch: [6]  [100/148]  eta: 0:00:04  lr: 0.020658795558326743  img/s: 765.3141136757595  loss: 1.1764 (1.1927)  acc1: 62.5000 (61.0458)  acc5: 93.7500 (93.7036)  time: 0.0842  data: 0.0002  max mem: 3480
-Epoch: [6] Total time: 0:00:12
-Test:   [ 0/62]  eta: 0:00:26  loss: 0.6558 (0.6558)  acc1: 84.3750 (84.3750)  acc5: 92.1875 (92.1875)  time: 0.4322  data: 0.4078  max mem: 3480
-Test:  Total time: 0:00:02
-Test:  Acc@1 70.038 Acc@5 96.280
-============= Diagnostic Run torch.onnx.export version 2.0.1+cu118 =============
-verbose: False, log level: Level.ERROR
-======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
-
-Epoch: [7]  [  0/148]  eta: 0:01:34  lr: 0.012500000000000006  img/s: 771.6256787483148  loss: 1.3480 (1.3480)  acc1: 57.8125 (57.8125)  acc5: 92.1875 (92.1875)  time: 0.6402  data: 0.5573  max mem: 3480
-Epoch: [7]  [100/148]  eta: 0:00:04  lr: 0.012500000000000006  img/s: 762.0443483025177  loss: 1.0959 (1.1301)  acc1: 62.5000 (62.4691)  acc5: 93.7500 (94.0749)  time: 0.0843  data: 0.0002  max mem: 3480
-Epoch: [7] Total time: 0:00:13
-Test:   [ 0/62]  eta: 0:00:28  loss: 35.0778 (35.0778)  acc1: 82.8125 (82.8125)  acc5: 92.1875 (92.1875)  time: 0.4617  data: 0.4377  max mem: 3480
-Test:  Total time: 0:00:02
-Test:  Acc@1 71.159 Acc@5 96.459
-============= Diagnostic Run torch.onnx.export version 2.0.1+cu118 =============
-verbose: False, log level: Level.ERROR
-======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
-
-Epoch: [8]  [  0/148]  eta: 0:01:12  lr: 0.005848888922025552  img/s: 744.6074572961338  loss: 1.0590 (1.0590)  acc1: 62.5000 (62.5000)  acc5: 93.7500 (93.7500)  time: 0.4885  data: 0.4025  max mem: 3480
-Epoch: [8]  [100/148]  eta: 0:00:04  lr: 0.005848888922025552  img/s: 764.5316039656975  loss: 1.0250 (1.0549)  acc1: 68.7500 (65.8106)  acc5: 93.7500 (94.3688)  time: 0.0840  data: 0.0002  max mem: 3480
-Epoch: [8] Total time: 0:00:12
-Test:   [ 0/62]  eta: 0:00:31  loss: 0.6723 (0.6723)  acc1: 84.3750 (84.3750)  acc5: 92.1875 (92.1875)  time: 0.5156  data: 0.4916  max mem: 3480
-Test:  Total time: 0:00:02
-Test:  Acc@1 73.223 Acc@5 96.688
-============= Diagnostic Run torch.onnx.export version 2.0.1+cu118 =============
-verbose: False, log level: Level.ERROR
-======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
-
-Epoch: [9]  [  0/148]  eta: 0:01:29  lr: 0.0015076844803522923  img/s: 736.2585670636379  loss: 1.0877 (1.0877)  acc1: 60.9375 (60.9375)  acc5: 95.3125 (95.3125)  time: 0.6075  data: 0.5205  max mem: 3480
-Epoch: [9]  [100/148]  eta: 0:00:04  lr: 0.0015076844803522923  img/s: 763.4096812815853  loss: 0.9789 (1.0271)  acc1: 64.0625 (65.7797)  acc5: 95.3125 (95.0804)  time: 0.0842  data: 0.0001  max mem: 3480
-Epoch: [9] Total time: 0:00:13
-Test:   [ 0/62]  eta: 0:00:31  loss: 0.5599 (0.5599)  acc1: 85.9375 (85.9375)  acc5: 95.3125 (95.3125)  time: 0.5029  data: 0.4789  max mem: 3480
-Test:  Total time: 0:00:02
-Test:  Acc@1 73.987 Acc@5 96.815
-============= Diagnostic Run torch.onnx.export version 2.0.1+cu118 =============
-verbose: False, log level: Level.ERROR
-======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
-
