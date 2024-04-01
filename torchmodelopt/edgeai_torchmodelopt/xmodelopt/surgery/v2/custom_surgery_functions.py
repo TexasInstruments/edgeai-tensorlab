@@ -188,7 +188,7 @@ def replace_conv2d_kernel_size_gt_7(model:nn.Module, pattern= None, verbose_mode
             out_channels=weight_shape[0]
             k_size=weight_shape[2]
             replacement= nn.Sequential()
-            while k_size > 5:
+            while k_size > 7:
                 temp_out_channels= 2**(round(math.log2(in_channels))+random.choice([-1,0,1]))
                 replacement.append(custom_modules.ConvBNRModule(in_channels,temp_out_channels, kernel_size=3,stride=1,padding=1))
                 in_channels=temp_out_channels
@@ -208,6 +208,63 @@ def replace_conv2d_kernel_size_gt_7(model:nn.Module, pattern= None, verbose_mode
         print('conv changed', no_of_conv)
     return traced_model
 
+def replace_conv2d_kernel_size_6(model:nn.Module, pattern= None, verbose_mode=False):
+    '''
+    replaces all conv2d module or function having kernel size greater than or equal to 7
+    with a stack of conv2d modules having kernel size 3
+    
+    to have same output pixels original stride is added to last conv module
+    '''
+
+    traced_model = symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
+    modules=dict(traced_model.named_modules())
+    no_of_conv=0
+    
+    for node in traced_model.graph.nodes:
+        if node.op == 'call_module':
+            #for call module conv
+            module=modules[node.target]
+            if isinstance(module,nn.Conv2d):
+                if module.kernel_size[0] == 6:
+                    in_channels=module.in_channels
+                    out_channels=module.out_channels
+                    k_size=module.kernel_size[0]
+                    stride=module.stride[0]
+                    padding=module.padding[0]
+                    replacement= nn.Sequential()
+                    padding=min(2,padding)
+                    replacement.append(nn.Conv2d(in_channels, out_channels, kernel_size=5,stride=stride,padding=padding))
+                    replacer._replace_pattern(traced_model,node,node,replacement,no_of_conv)
+                    # no_of_conv+=1
+        
+        if node.target == nn.functional.conv2d:
+            #for functional conv
+            args=node.args
+            weight_node=args[1]
+            parent_name,name=replacer._get_parent_name(weight_node.target)
+            parent_module=modules[parent_name]
+            weight=parent_module.__getattr__(name)
+            weight_shape=weight.shape
+            stride=args[3][0]
+            padding=args[4][0]
+            in_channels=weight_shape[1]
+            out_channels=weight_shape[0]
+            k_size=weight_shape[2]
+            replacement= nn.Sequential()
+            padding=min(2,padding)
+            replacement.append(nn.Conv2d(in_channels, out_channels, kernel_size=5,stride=stride,padding=padding))
+            traced_model.add_submodule(f'replaced_conv_{no_of_conv}',replacement)
+            args=(node.args[0],)
+            with traced_model.graph.inserting_before(node):
+                new_node=traced_model.graph.call_module(f'replaced_conv_{no_of_conv}',args,{})
+                node.replace_all_uses_with(new_node)
+            traced_model.graph.erase_node(node)
+        
+    traced_model.graph.lint()
+    traced_model.recompile()
+    if verbose_mode:
+        print('conv changed', no_of_conv)
+    return traced_model
 
 def replace_cnblock(model:nn.Module, pattern=None, verbose_mode=False):
     traced_model = symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model

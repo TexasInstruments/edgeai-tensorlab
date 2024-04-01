@@ -74,6 +74,7 @@ _unsupported_module_dict={
     'maxpool_ge_5':custom_surgery_functions.replace_maxpool2d_kernel_size_ge_5, # for segmentation model -> deeplabv3
     'avgpool_ge_5':custom_surgery_functions.replace_avgpool2d_kernel_size_ge_5,
     'conv_ge_7':custom_surgery_functions.replace_conv2d_kernel_size_gt_7,
+    'conv_6':custom_surgery_functions.replace_conv2d_kernel_size_6,
 }
 
 
