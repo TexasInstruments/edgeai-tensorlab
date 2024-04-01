@@ -358,7 +358,7 @@ other_fails = [
 
 known_failing_test_cases = cpu_failing_testcases + other_fails + fatal_python_error 
 
-#node_tests_to_run = os.listdir(node_tests_root)
+node_tests_to_run = os.listdir(node_tests_root)
 
 # Uncomment below line to filter out known failures
 # node_tests_to_run = [node_test for node_test in os.listdir(node_tests_root) if node_test not in known_failing_test_cases]
