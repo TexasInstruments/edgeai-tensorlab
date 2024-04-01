@@ -61,7 +61,7 @@ result_path="${out_dir}/result.csv"
 #Run Evaluation and report generaing script for all models
 for i in ${!models[@]}; do
     model=${models[$i]}
-    command="./scripts/test_surgery.py --data-path=${dataset_path} --gpus=$gpus \
+    command="./scripts/test_model_surgery.py --data-path=${dataset_path} --gpus=$gpus \
     --batch-size=${batch_sizes[$i]} --model=${model} \
     --original-accuracy=${ORIGINAL_ACCURACY[$i]} \
     --opset-version=18 --val-resize-size=$val_resize_size --val-crop-size=$val_crop_size"
