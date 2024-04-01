@@ -35,6 +35,9 @@ __all__ = ['run_accuracy']
 
 
 def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_func=None):
+    
+    
+
     # verify that targt device is correct
     if settings.target_device is not None and 'TIDL_TOOLS_PATH' in os.environ and \
             os.environ['TIDL_TOOLS_PATH'] is not None:
@@ -55,6 +58,9 @@ def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_fun
 
     # create the pipeline_runner which will manage the sessions.
     pipeline_runner = pipelines.PipelineRunner(settings, pipeline_configs)
+
+    # TODO: Support import and inference in the same run_accuracy call
+    assert not (settings.run_import and settings.run_inference), "Running import and inference in the same run_accuracy call is not supported"
 
     ############################################################################
     # at this point, pipeline_runner.pipeline_configs is a dictionary that has the selected configs
@@ -86,6 +92,5 @@ def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_fun
     results_list = None
     if settings.run_import or settings.run_inference:
         results_list = pipeline_runner.run()
-    #
 
     return results_list

@@ -10,6 +10,9 @@ Pytest file for ONNX Backend tests
 Note: Pass in --disable-tidl-offload to pytest command in order to compile just for CPU
 '''
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 # TODO: Extend tests to check correctness (might need to create new accuracy pipeline?)
 # TODO: Maybe integrate within ONNX's formal backend test framework
@@ -26,6 +29,10 @@ def node_tests_root_fixture():
 @pytest.fixture(scope="session")
 def tidl_offload(pytestconfig):
     return pytestconfig.getoption("disable_tidl_offload")
+
+@pytest.fixture(scope="session")
+def run_infer(pytestconfig):
+    return pytestconfig.getoption("run_infer")
 
 
 # Fail when TIDL offload is disabled 
@@ -67,6 +74,8 @@ fatal_python_error = ['test_argmax_default_axis_example', \
 'test_argmax_negative_axis_keepdims_example_select_last_index', \
 'test_argmax_negative_axis_keepdims_random', \
 'test_argmax_negative_axis_keepdims_random_select_last_index', \
+'test_batchnorm_epsilon',\
+'test_batchnorm_epsilon_training_mode',\
 'test_bitshift_right_uint64', \
 'test_bitshift_right_uint8', \
 'test_bitwise_or_i16_4d', \
@@ -331,6 +340,14 @@ other_fails = [
 
 # crashes entire shell
 'test_prelu_example', \
+'test_batchnorm_example',\
+'test_batchnorm_example_training_mode',\
+
+# hangs
+'test_quantizelinear_axis',\
+'test_dequantizelinear',\
+'test_reshape_reordered_last_dims',\
+'test_gemm_transposeB',\
 
 # Calling ialg.algAlloc failed with status = -1120
 'test_div', \
@@ -338,24 +355,24 @@ other_fails = [
 'test_div_uint8', \
 ]
 
-print([test for test in other_fails if test not in cpu_failing_testcases])
 
-known_failing_test_cases = cpu_failing_testcases + fatal_python_error + other_fails
+known_failing_test_cases = cpu_failing_testcases + other_fails + fatal_python_error 
 
-node_tests_to_run = os.listdir(node_tests_root)
+#node_tests_to_run = os.listdir(node_tests_root)
 
 # Uncomment below line to filter out known failures
 # node_tests_to_run = [node_test for node_test in os.listdir(node_tests_root) if node_test not in known_failing_test_cases]
 
 # Test onnx node test
 @pytest.mark.parametrize("node_name", node_tests_to_run)
-def test_onnx_backend_node(tidl_offload : bool, node_tests_root_fixture : str, node_name : str):
+def test_onnx_backend_node(tidl_offload : bool, run_infer : bool, node_tests_root_fixture : str, node_name : str):
     '''
     Pytest for onnx backend node tests using the edgeai-benchmark framework
     '''
 
     test_dir = os.path.join(node_tests_root_fixture, node_name)
   
+    # Check environment is set up correctly
     assert os.path.exists(test_dir), f"test path {test_dir} doesn't exist"
     assert os.environ.get('TIDL_RT_AVX_REF') is not None, "Make sure to source run_set_env.sh"
     assert os.path.exists(os.environ['TIDL_TOOLS_PATH'])
@@ -371,7 +388,7 @@ def test_onnx_backend_node(tidl_offload : bool, node_tests_root_fixture : str, n
     session_name = constants.SESSION_NAME_ONNXRT
 
     session_type = settings.get_session_type(session_name)
-    runtime_options = settings.get_runtime_options(session_name, is_qat=False, debug_level = 3)
+    runtime_options = settings.get_runtime_options(session_name, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, is_qat=False, debug_level = 3)
     
     preproc_transforms = preprocess.PreProcessTransforms(settings)
     postproc_transforms = postprocess.PostProcessTransforms(settings)
@@ -381,21 +398,38 @@ def test_onnx_backend_node(tidl_offload : bool, node_tests_root_fixture : str, n
     ob_dataset  = datasets.ONNXBackendDataset(path = test_dir)
 
     pipeline_configs = {
-        'test_abs': dict(
+        node_name: dict(
             task_type='classification',
             dataset_category = datasets.DATASET_CATEGORY_IMAGENET,
             calibration_dataset=ob_dataset,
             input_dataset=ob_dataset,
             preprocess=preproc_transforms.get_transform_none(),
             session=session_type(**onnx_session_cfg,
-                runtime_options=settings.runtime_options_onnx_p2(),
+                runtime_options=runtime_options,
                 model_path=os.path.join(test_dir, "model.onnx")),
             postprocess=postproc_transforms.get_transform_none(),
             model_info=dict(metric_reference={'accuracy_top1%':71.88})
         ),
     }
   
-    interfaces.run_accuracy(settings, work_dir, pipeline_configs)
+    
+    # Run infer
+    if(run_infer):
+        logger.debug("Inferring")
+        settings.run_import    = False
+        settings.run_inference = True
+        results_list = interfaces.run_accuracy(settings, work_dir, pipeline_configs)
+        logger.debug(results_list[0]['result'])
+    
+    # Otherwise run import
+    else:
+        logger.debug("Importing")
+        interfaces.run_accuracy(settings, work_dir, pipeline_configs)
+
+
+    
+
+    
     
 
 
