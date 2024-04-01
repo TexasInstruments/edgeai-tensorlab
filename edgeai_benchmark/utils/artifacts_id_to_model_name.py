@@ -360,8 +360,8 @@ model_id_artifacts_pair = {
     'ss-8740_onnxrt': 'ONR-SS-8740-lraspp-mobV3-ti-lite-large-cocoseg21-512x512', #added in SDK8.0 #'ss-21-105-0'
 
     # Models for Robokit
-    'ss-8810_onnxrt': 'ONR-SS-8810-deeplabv3lite-mobv2-robokit-768x432',
-    'ss-8818_onnxrt': 'ONR-SS-8818-deeplabv3lite-mobv2-qat-robokit-768x432',
+    'ss-7610_onnxrt': 'ONR-SS-7610-deeplabv3lite-mobv2-robokit-768x432',
+    'ss-7618_onnxrt': 'ONR-SS-7618-deeplabv3lite-mobv2-qat-robokit-768x432',
     'ss-5810_tvmdlr': 'TVM-SS-5810-deeplabv3lite-mobv2-robokit-768x432',
     'ss-5818_tvmdlr': 'TVM-SS-5818-deeplabv3lite-mobv2-qat-robokit-768x432',
 
@@ -446,7 +446,7 @@ shortlisted_model_list = {
     'ss-8720_onnxrt': 'ONR-SS-8720-deeplabv3lite-regnetx800mf-cocoseg21-512x512',
     # additional models added
     'ss-8740_onnxrt': 'ONR-SS-8740-lraspp-mobV3-ti-lite-large-cocoseg21-512x512',
-    'ss-8818_onnxrt': 'ONR-SS-8818-deeplabv3lite-mobv2-qat-robokit-768x432', # for robokit
+    'ss-7618_onnxrt': 'ONR-SS-7618-deeplabv3lite-mobv2-qat-robokit-768x432', # for robokit
     # #512x512
     # 'cl-6061_onnxrt': 'ONR-CL-6061-mobileNetV1-512x512',
     # 'cl-6071_onnxrt': 'ONR-CL-6071-mobileNetV2-512x512',
@@ -495,7 +495,7 @@ recommended_model_list = {
     'ss-8610_onnxrt': 'ONR-SS-8610-deeplabv3lite-mobv2-ade20k32-512x512',
     'ss-2580_tflitert': 'TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512',
     'ss-5710_tvmdlr': 'TVM-SS-5710-deeplabv3lite-mobv2-cocoseg21-512x512',
-    'ss-8818_onnxrt': 'ONR-SS-8818-deeplabv3lite-mobv2-qat-robokit-768x432', # for robokit
+    'ss-7618_onnxrt': 'ONR-SS-7618-deeplabv3lite-mobv2-qat-robokit-768x432', # for robokit
 
     # keypoint detection
     'kd-7060_onnxrt': 'ONR-KD-7060-human-pose-yolox-s-640x640',

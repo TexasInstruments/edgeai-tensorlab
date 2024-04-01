@@ -167,7 +167,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_mean_iou%':59.80}, model_shortlist=40)
         ),
         ###############robokit segmentation model######################
-        'ss-8818': utils.dict_update(robokitseg_cfg,
+        'ss-7618': utils.dict_update(robokitseg_cfg,
             preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_qat_v1(),
