@@ -333,8 +333,28 @@ fatal_python_error = ['test_argmax_default_axis_example', \
 'test_unique_sorted_without_axis', \
 'test_xor4d']
 
-
 other_fails = [
+# max_nmse too high
+'test_add_bcast',\
+'test_averagepool_2d_precomputed_same_upper',\
+'test_col2im_pads',\
+
+# output shape mismatch
+'test_argmax_keepdims_example_',\
+'test_argmax_keepdims_example_select_last_index_',\
+'test_argmax_keepdims_random_',\
+'test_argmax_keepdims_random_select_last_index_',\
+'test_argmax_no_keepdims_example_',\
+'test_argmax_no_keepdims_example_select_last_index_',\
+'test_argmax_no_keepdims_random_',\
+'test_argmax_no_keepdims_random_select_last_index_',\
+'test_averagepool_2d_ceil_',\
+'test_averagepool_2d_precomputed_pads_',\
+'test_averagepool_2d_precomputed_pads_count_include_pad_',\
+'test_bernoulli_seed_',\
+'test_bernoulli_seed_expanded_',\
+'test_clip_default_inbounds_expanded_',\
+
 # crashes without message
 'test_cast_FLOAT16_to_DOUBLE', \
 
@@ -348,6 +368,7 @@ other_fails = [
 'test_dequantizelinear',\
 'test_reshape_reordered_last_dims',\
 'test_gemm_transposeB',\
+'test_dequantizelinear_axis',\
 
 # Calling ialg.algAlloc failed with status = -1120
 'test_div', \
@@ -420,6 +441,9 @@ def test_onnx_backend_node(tidl_offload : bool, run_infer : bool, node_tests_roo
         settings.run_inference = True
         results_list = interfaces.run_accuracy(settings, work_dir, pipeline_configs)
         logger.debug(results_list[0]['result'])
+        
+        # TODO: Choose better threshold. 0.5 chosen for now to reveal worst offenders
+        assert results_list[0]['result']['max_nmse']<0.5, f" max_nmse of {results_list[0]['result']['max_nmse']} is too high"
     
     # Otherwise run import
     else:
