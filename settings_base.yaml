@@ -13,18 +13,18 @@ target_device : null
 tensor_bits : 8
 
 # number of frames for inference
-num_frames : 1 #1000 #10000 #50000 # TODO: change to 1 to run fast (accuracy won' tbe good, though)
+num_frames : 1000 #10000 #50000
 
 # number of frames to be used for post training quantization / calibration
-calibration_frames : 1 #25 #50 # TODO: change to 1 to run fast (accuracy won' tbe good, though)
+calibration_frames : 25 #50
 
-# number of itrations to be used for post training quantization / calibration
-calibration_iterations : 1 #25 #50 # TODO: change to 1 to run fast (accuracy won' tbe good, though)
+# number of iterations to be used for post training quantization / calibration
+calibration_iterations : 25 #50
 
 # runtime_options to be passed to the core session. default: null or a dict
 # eg. (in next line and with preceding spaces to indicate this is a dict entry) accuracy_level : 0
 # runtime_options :
-#   accuracy_level: 1    #this is automaticallly set as 1 if you set tensor bits as 8
+#   accuracy_level: 1    #this is automatically set as 1 if you set tensor bits as 8
 #   advanced_options:output_feature_16bit_names_list: '363,561' #layers that you want to be treated as 16 bit
 
 # folder where benchmark configs are defined. this should be python importable
@@ -38,7 +38,7 @@ models_path : '../edgeai-modelzoo/models'
 datasets_path : './dependencies/datasets'
 
 # path where precompiled modelartifacts are placed
-modelartifacts_path : './work_dirs/modelartifacts2/{target_device}'
+modelartifacts_path : './work_dirs/modelartifacts/{target_device}'
 
 # path where the packaged precompiled modelartifacts are placed
 modelpackage_path : './work_dirs/modelpackage/{target_device}'
@@ -61,13 +61,13 @@ model_selection : null
 #   examples: 10
 #   examples: 20
 #   examples: 30
-model_shortlist: 60 # TODO: set to 60 to run the set of models tidl uses in r9.1
+model_shortlist: 100
 
 # wild card list to match against the tasks. it null, all tasks will be run
 # example: ['classification', 'detection', 'segmentation', 'depth_estimation', 'keypoint_detection', 'detection_3d']
 # example: 'classification'
 # example: null (Note: null means no filter - run all the tasks)
-task_selection : ['classification']
+task_selection : null
 
 # wild card list to match against runtime name. if null, all runtimes will be considered
 # example: ['onnxrt', 'tflitert', 'tvmdlr']
@@ -78,7 +78,7 @@ runtime_selection : null
 # set this to null to run all the models
 # example: ['coco']
 # example: ['imagenet', 'coco', 'cocoseg21', 'ade20k', 'cocokpts', 'kitti_lidar_det', 'ti-robokit_semseg_zed1hd', 'ycbv']
-dataset_selection : ['imagenet']
+dataset_selection : null
 
 # use TIDL offload to speedup inference
 tidl_offload : True
