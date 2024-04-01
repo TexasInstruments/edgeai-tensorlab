@@ -232,9 +232,9 @@ class COCOSegmentationPlus(COCOSegmentation):
         self.valid_classes = range(self.num_classes_)
         self.ignore_index = 255
         self.class_map = dict(zip(self.valid_classes, range(self.num_classes_)))
-        self.colors = xnn.utils.get_color_palette(num_classes)
-        self.colors = (self.colors * self.num_classes_)[:self.num_classes_]
-        self.label_colours = dict(zip(range(self.num_classes_), self.colors))
+        self.color_map = xnn.utils.get_color_palette(num_classes)
+        self.color_map = (self.color_map * self.num_classes_)[:self.num_classes_]
+        self.label_colours = dict(zip(range(self.num_classes_), self.color_map))
         self.transforms = transforms
 
     def __getitem__(self, item):
