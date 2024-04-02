@@ -387,6 +387,20 @@ model_id_artifacts_pair = {
 
     # 6dpose
     '6dpose-7200_onnxrt': 'ONR-6DP-7200-yolox-s-6d-object_pose-640x480',
+
+    # additional yolo detection models added
+    'od-8800_onnxrt': 'ONR-OD-8800-scaled-yolov4-csp-lite-640x640',
+    'od-8810_onnxrt': 'ONR-OD-8810-yolov5-nano-v61-lite-640x640',
+    'od-8820_onnxrt': 'ONR-OD-8820-yolov5-small-v61-lite-640x640',
+    #'od-8830_onnxrt': 'ONR-OD-8830-yolov6-n-lite-640x640',
+    #'od-8840_onnxrt': 'ONR-OD-8840-yolov6-s-lite-640x640',
+    'od-8850_onnxrt': 'ONR-OD-8850-yolov7-tiny-lite-640x640',
+    'od-8860_onnxrt': 'ONR-OD-8860-yolov7-large-lite-640x640',
+    'od-8870_onnxrt': 'ONR-OD-8870-yolov8-n-640x640',
+    'od-8880_onnxrt': 'ONR-OD-8880-scaled-yolov4-csp-lite-640x640',
+    'od-8890_onnxrt': 'ONR-OD-8890-scaled-yolov4-csp-lite-640x640',
+    'od-8900_onnxrt': 'ONR-OD-8900-scaled-yolov4-csp-lite-640x640',
+    'od-8910_onnxrt': 'ONR-OD-8910-scaled-yolov4-csp-lite-640x640',
 }
 
 
@@ -447,6 +461,7 @@ shortlisted_model_list = {
     # additional models added
     'ss-8740_onnxrt': 'ONR-SS-8740-lraspp-mobV3-ti-lite-large-cocoseg21-512x512',
     'ss-7618_onnxrt': 'ONR-SS-7618-deeplabv3lite-mobv2-qat-robokit-768x432', # for robokit
+
     # #512x512
     # 'cl-6061_onnxrt': 'ONR-CL-6061-mobileNetV1-512x512',
     # 'cl-6071_onnxrt': 'ONR-CL-6071-mobileNetV2-512x512',
