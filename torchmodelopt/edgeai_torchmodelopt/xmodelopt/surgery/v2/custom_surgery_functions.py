@@ -304,7 +304,13 @@ def replace_layer_norm(model:nn.Module, example_input:torch.Tensor = None, verbo
     assert isinstance(example_input,torch.Tensor),f'The parmeter must be a tensor but got {example_input.__class__.__name__}'
     for node in traced_model.graph.nodes:
         module=None
+        prev = None
+        if node.op == 'call_function'  and node.target== nn.functional.layer_norm:
+            arg= node.args[0]
             args=[]
+            for arg1 in arg.args:
+                # searching for any global average pool or mean
+                args=[]
                 if isinstance(arg1,  Node):
                     args.append(arg1)
                 elif isinstance(arg,Iterable):
