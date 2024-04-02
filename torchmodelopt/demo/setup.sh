@@ -30,7 +30,7 @@
 
 ######################################################################
 
-pip install -r demo/requirements.txt
+pip install -r requirements.txt
 
 
 echo "This demo requires https://github.com/TexasInstruments/edgeai-torchvision. Please clone it and run its setup file."
