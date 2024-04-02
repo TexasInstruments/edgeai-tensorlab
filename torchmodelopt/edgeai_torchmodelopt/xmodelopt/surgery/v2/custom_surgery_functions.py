@@ -211,7 +211,7 @@ def replace_conv2d_kernel_size_gt_7(model:nn.Module, verbose_mode=False, **kwarg
         print('conv changed', no_of_conv)
     return traced_model
 
-def replace_conv2d_kernel_size_6(model:nn.Module, pattern= None, verbose_mode=False):
+def replace_conv2d_kernel_size_6(model:nn.Module, verbose_mode=False,**kwargs):
     '''
     replaces all conv2d module or function having kernel size greater than or equal to 7
     with a stack of conv2d modules having kernel size 3
@@ -472,7 +472,7 @@ def remove_identiy(model:nn.Module, verbose_mode=False, **kwargs):
     n=0
     nodes=[]
     for node in traced_model.graph.nodes:
-        if (node.op == 'call_module'):
+        if (node.op == 'call_module') and isinstance(modules[node.target],nn.Identity):
                 nodes.append(node)
     for node in nodes:
         try:
@@ -480,7 +480,8 @@ def remove_identiy(model:nn.Module, verbose_mode=False, **kwargs):
             copy_found=False
             for node_1 in nodes:
                 if node!=node_1 and node.target==node_1.target:
-                   copy_found=True
+                    copy_found=True
+                    break
             if not copy_found:
                 parent_name,name=replacer._get_parent_name(node.target)           
                 modules[parent_name].__delattr__(name)
