@@ -31,7 +31,6 @@
 ######################################################################
 # change default tidl_tools version if needed - examples: latest stable r9.1 r9.0
 TIDL_TOOLS_RELEASE_NAME="${1:-r9.2}"
-TIDL_TOOLS_RELEASE_NAME="${1:-r9.2}"
 echo "tidl_tools version ${TIDL_TOOLS_RELEASE_NAME}"
 #######################################################################
 echo 'Installing system dependencies'
