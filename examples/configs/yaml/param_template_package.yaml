@@ -45,5 +45,6 @@ postprocess:
   resize_with_pad: false
   shuffle_indices: null
   squeeze_axis: null
+  logits_bbox_to_bbox_ls: false
 metric:
   label_offset_pred: null

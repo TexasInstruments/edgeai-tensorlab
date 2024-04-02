@@ -126,6 +126,13 @@ class ONNXRTSession(BaseRTSession):
         #
         runtime_options = self.kwargs["runtime_options"]
         sess_options = onnxruntime.SessionOptions()
+        
+        onnxruntime_graph_optimization_level = self.kwargs["runtime_options"].get('onnxruntime:graph_optimization_level', None)
+        if onnxruntime_graph_optimization_level is not None:
+            # for transformer models, it is necessary to set graph_optimization_level in session options for onnxruntime
+            # to onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL so that TIDL can properly handle the model.
+            sess_options.graph_optimization_level = onnxruntime_graph_optimization_level
+        
         # suppress warnings
         sess_options.log_severity_level = 3
 
