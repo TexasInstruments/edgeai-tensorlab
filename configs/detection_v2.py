@@ -156,11 +156,11 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=settings.runtime_options_onnx_np2(
                      det_options=True, ext_options={'object_detection:meta_arch_type': 8,
-                     'object_detection:meta_layers_names_list':f'/data/files/a0508577/work/edgeai-algo/edgeai-mmyolo/work_dirs/yolov8_n_syncbn_fast_8xb16-500e_coco/yolov8_nano_2023117.prototxt',
+                     'object_detection:meta_layers_names_list':f'../edgeai-modelzoo-cl/models/vision/detection/coco/edgeai-mmyolo/yolov8_nano_lite_640x640_20231118_model.prototxt',
                      'advanced_options:output_feature_16bit_names_list':''
                      },
                      ),
-                model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmyolo/work_dirs/yolov8_n_syncbn_fast_8xb16-500e_coco/best_coco_bbox_mAP_epoch_300.onnx'),
+                model_path=f'../edgeai-modelzoo-cl/models/vision/detection/coco/edgeai-mmyolo/yolov8_nano_lite_640x640_20231118_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':34.5}, model_shortlist=None)
@@ -171,11 +171,11 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=settings.runtime_options_onnx_np2(
                      det_options=True, ext_options={'object_detection:meta_arch_type': 8,
-                     'object_detection:meta_layers_names_list':f'../edgeai-modelzoo-cl/models/vision/detection/coco/edgeai-mmyolo/yolov8_small_lite_640x640_2023117.prototxt',
+                     'object_detection:meta_layers_names_list':f'../edgeai-modelzoo-cl/models/vision/detection/coco/edgeai-mmyolo/yolov8_small_lite_640x640_20231117_model.prototxt',
                      'advanced_options:output_feature_16bit_names_list':'1,129,134,139,144,149,154'
                      },
                      fast_calibration=True),
-                model_path=f'../edgeai-modelzoo-cl/models/vision/detection/coco/edgeai-mmyolo/yolov8_small_lite_640x640_2023117.onnx'),
+                model_path=f'../edgeai-modelzoo-cl/models/vision/detection/coco/edgeai-mmyolo/yolov8_small_lite_640x640_20231117_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':42.4}, model_shortlist=70)
