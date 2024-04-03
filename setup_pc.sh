@@ -56,25 +56,6 @@ pip3 install --no-input -U --force-reinstall pillow-simd
 echo "installing requirements"
 pip3 install --no-input -r ./requirements_pc.txt
 
-if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r9.2" ]]; then
-  # can we move this inside the requirements file is used.
-  pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
-elif [[ $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r9.1" || $TIDL_TOOLS_RELEASE_NAME == "test9.1" ]]; then
-  # can we move this inside the requirements file is used.
-  pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
-elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.0" || $TIDL_TOOLS_RELEASE_NAME == "test9.0.1" ]]; then
-  # building onnx from soure requires carefull steps
-  # make sure that we are using system cmake
-  pip uninstall --yes cmake
-  # pybind11[global] is needed for building the onnx package.
-  # for some reason, this has to be installed before the requirements file is used.
-  pip3 install --no-input pybind11[global] protobuf==3.19.4
-  pybind11_DIR=$(pybind11-config --cmakedir) pip3 install --no-input https://github.com/TexasInstruments/onnx/archive/tidl-j7.zip
-else
-  echo "tidl_tools version was not given - todl_tools cannot be installed."
-fi
-
-
 ######################################################################
 #NOTE: THIS STEP INSTALLS THE EDITABLE LOCAL MODULE pytidl
 echo 'Installing as a local module using setup.py'
@@ -120,6 +101,10 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r9.2"
   echo "--------------------------------------------------------------------------------------------------------------"
   echo "Important note: The release name provided is: ${TIDL_TOOLS_RELEASE_NAME}"
   echo "--------------------------------------------------------------------------------------------------------------"
+
+  # onnx - override the onnx version installed by onnxsim
+  pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
+
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A AM67A)
   TIDL_TOOLS_RELEASE_ID=09_02_03_00
   TIDL_TOOLS_VERSION_NAME="9.2"
@@ -134,6 +119,7 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r9.2"
     TIDL_TOOLS_DOWNLOAD_LINK=${TIDL_TOOLS_DOWNLOAD_LINKS[$soc_idx]}
     echo "$TARGET_SOC $TIDL_TOOLS_DOWNLOAD_LINK"
   done
+
 elif [[ $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r9.1" ]]; then
   # python version check = 3.10
   version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,10) and sys.version_info < (3,11) else 1;print(r)'`
@@ -145,6 +131,10 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r9.
   echo "--------------------------------------------------------------------------------------------------------------"
   echo "Important note: The release name provided is: ${TIDL_TOOLS_RELEASE_NAME}"
   echo "--------------------------------------------------------------------------------------------------------------"
+  
+  # onnx - override the onnx version installed by onnxsim
+  pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
+
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A)
   TIDL_TOOLS_RELEASE_ID=09_01_00_00
   TIDL_TOOLS_VERSION_NAME="9.1"
@@ -196,6 +186,7 @@ elif  [[ $TIDL_TOOLS_RELEASE_NAME == "test9.0.1" ]]; then
     TIDL_TOOLS_DOWNLOAD_LINK=${TIDL_TOOLS_DOWNLOAD_LINKS[$soc_idx]}
     echo "$TARGET_SOC $TIDL_TOOLS_DOWNLOAD_LINK"
   done
+  
 elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.0" ]]; then
   # python version check = 3.10
   version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,10) and sys.version_info < (3,11) else 1;print(r)'`
