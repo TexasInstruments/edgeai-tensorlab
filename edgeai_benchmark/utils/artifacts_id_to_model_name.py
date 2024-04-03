@@ -396,11 +396,10 @@ model_id_artifacts_pair = {
     #'od-8840_onnxrt': 'ONR-OD-8840-yolov6-s-lite-640x640',
     'od-8850_onnxrt': 'ONR-OD-8850-yolov7-tiny-lite-640x640',
     'od-8860_onnxrt': 'ONR-OD-8860-yolov7-large-lite-640x640',
-    'od-8870_onnxrt': 'ONR-OD-8870-yolov8-n-640x640',
-    'od-8880_onnxrt': 'ONR-OD-8880-scaled-yolov4-csp-lite-640x640',
-    'od-8890_onnxrt': 'ONR-OD-8890-scaled-yolov4-csp-lite-640x640',
-    'od-8900_onnxrt': 'ONR-OD-8900-scaled-yolov4-csp-lite-640x640',
-    'od-8910_onnxrt': 'ONR-OD-8910-scaled-yolov4-csp-lite-640x640',
+    'od-8870_onnxrt': 'ONR-OD-8870-yolov8-nano-lite-640x640',
+    'od-8880_onnxrt': 'ONR-OD-8880-yolov8-small-lite-640x640',
+    'od-8890_onnxrt': 'ONR-OD-8890-yolox-tiny-lite-416x416',
+    'od-8900_onnxrt': 'ONR-OD-8900-yolox-small-lite-640x640',
 }
 
 
@@ -485,6 +484,18 @@ shortlisted_model_list = {
     # 'cl-6142_onnxrt': 'ONR-CL-6142-regNetX-1.6gf-pycls-1024x1024',
     # 'cl-6152_onnxrt': 'ONR-CL-6152-mobileNetV2-1p4-qat-1024x1024',
     ########
+    # additional yolo detection models added
+    'od-8800_onnxrt': 'ONR-OD-8800-scaled-yolov4-csp-lite-640x640',
+    'od-8810_onnxrt': 'ONR-OD-8810-yolov5-nano-v61-lite-640x640',
+    'od-8820_onnxrt': 'ONR-OD-8820-yolov5-small-v61-lite-640x640',
+    #'od-8830_onnxrt': 'ONR-OD-8830-yolov6-n-lite-640x640',
+    #'od-8840_onnxrt': 'ONR-OD-8840-yolov6-s-lite-640x640',
+    'od-8850_onnxrt': 'ONR-OD-8850-yolov7-tiny-lite-640x640',
+    'od-8860_onnxrt': 'ONR-OD-8860-yolov7-large-lite-640x640',
+    'od-8870_onnxrt': 'ONR-OD-8870-yolov8-nano-lite-640x640',
+    'od-8880_onnxrt': 'ONR-OD-8880-yolov8-small-lite-640x640',
+    'od-8890_onnxrt': 'ONR-OD-8890-yolox-tiny-lite-416x416',
+    'od-8900_onnxrt': 'ONR-OD-8900-yolox-small-lite-640x640',
 }
 
 
