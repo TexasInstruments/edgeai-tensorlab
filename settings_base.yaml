@@ -18,13 +18,13 @@ num_frames : 1000 #10000 #50000
 # number of frames to be used for post training quantization / calibration
 calibration_frames : 25 #50
 
-# number of itrations to be used for post training quantization / calibration
+# number of iterations to be used for post training quantization / calibration
 calibration_iterations : 25 #50
 
 # runtime_options to be passed to the core session. default: null or a dict
 # eg. (in next line and with preceding spaces to indicate this is a dict entry) accuracy_level : 0
 # runtime_options :
-#   accuracy_level: 1    #this is automaticallly set as 1 if you set tensor bits as 8
+#   accuracy_level: 1    #this is automatically set as 1 if you set tensor bits as 8
 #   advanced_options:output_feature_16bit_names_list: '363,561' #layers that you want to be treated as 16 bit
 
 # folder where benchmark configs are defined. this should be python importable

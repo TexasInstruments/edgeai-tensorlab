@@ -56,7 +56,6 @@ pip3 install --no-input -U --force-reinstall pillow-simd
 echo "installing requirements"
 pip3 install --no-input -r ./requirements_pc.txt
 
-
 ######################################################################
 #NOTE: THIS STEP INSTALLS THE EDITABLE LOCAL MODULE pytidl
 echo 'Installing as a local module using setup.py'
@@ -128,14 +127,14 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r9.
       echo "python version must be == 3.10 for $TIDL_TOOLS_RELEASE_NAME"
       exit 1
   fi
-
-  # onnx - override the onnx version installed by onnxsim
-  pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
-
   # installers for internal release
   echo "--------------------------------------------------------------------------------------------------------------"
   echo "Important note: The release name provided is: ${TIDL_TOOLS_RELEASE_NAME}"
   echo "--------------------------------------------------------------------------------------------------------------"
+  
+  # onnx - override the onnx version installed by onnxsim
+  pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
+
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A)
   TIDL_TOOLS_RELEASE_ID=09_01_00_00
   TIDL_TOOLS_VERSION_NAME="9.1"
@@ -187,7 +186,7 @@ elif  [[ $TIDL_TOOLS_RELEASE_NAME == "test9.0.1" ]]; then
     TIDL_TOOLS_DOWNLOAD_LINK=${TIDL_TOOLS_DOWNLOAD_LINKS[$soc_idx]}
     echo "$TARGET_SOC $TIDL_TOOLS_DOWNLOAD_LINK"
   done
-
+  
 elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.0" ]]; then
   # python version check = 3.10
   version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,10) and sys.version_info < (3,11) else 1;print(r)'`

@@ -29,12 +29,40 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
-# until r8.5: TDA4VM
-# from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
 TARGET_SOC=${1:-TDA4VM}
-
-# for model compilation on evm: evm
 TARGET_MACHINE=${2:-pc}
+
+##################################################################
+for arg in "$@"
+do 
+    case "$arg" in
+        "-h"|"--help")
+            cat << EOF
+Usage: $0 [TARGET_SOC] [TARGET_MACHINE] [OPTIONS]
+This script sets up TIDL tools for usage on a target machine, "pc" or "evm". 
+This is a helper script called by the main entrypoint scripts. The script expects
+the compilation artifacts to be located at "./work_dirs/modelartifacts/${TARGET_SOC}/8bits". 
+
+Options:
+-d, --debug     Launch the Python script with debugpy for remote attach.
+-h, --help      Display this help message and exit.
+
+TARGET_SOC:
+Specify the target device. Use one of: TDA4VM, AM62A, AM68A, AM69A. Defaults to TDA4VM.
+Note: Until r8.5, only TDA4VM was supported.  
+
+TARGET_MACHINE:
+Specify the target machine to run benchmarking on: pc or evm.
+
+Example:
+$0 # defaults to TDA4VM, no debug
+$0 AM62A pc # select AM69A on pc
+EOF
+            exit 0
+            ;;
+    esac
+done
+##################################################################
 
 ##################################################################
 # for onnxruntime and tflite_runtime, the artifacts are same for pc and evm devices
