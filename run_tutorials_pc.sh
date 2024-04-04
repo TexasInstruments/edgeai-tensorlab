@@ -40,7 +40,7 @@ TARGET_MACHINE=pc
 for arg in "$@"
 do 
     case "$arg" in
-        "TDA4VM"|"AM62A"|"AM68A"|"AM69A")
+        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62")
             TARGET_SOC=$arg
             ;;
         "-h"|"--help")

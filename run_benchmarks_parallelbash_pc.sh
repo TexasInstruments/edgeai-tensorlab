@@ -57,7 +57,7 @@ NUM_PARALLEL_DEVICES=4
 while(( "$#" ));
 do 
     case "$1" in
-        "TDA4VM"|"AM62A"|"AM68A"|"AM69A")
+        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62")
             TARGET_SOC=$1
             shift
             ;;
