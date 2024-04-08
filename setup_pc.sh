@@ -106,14 +106,14 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r9.2"
   pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
 
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A AM67A)
-  TIDL_TOOLS_RELEASE_ID=09_02_03_00
+  TIDL_TOOLS_RELEASE_ID=09_02_06_00
   TIDL_TOOLS_VERSION_NAME="9.2"
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/dlr-1.13.0-py3-none-any.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tvm-0.12.0-cp310-cp310-linux_x86_64.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/onnxruntime_tidl-1.14.0-cp310-cp310-linux_x86_64.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tflite_runtime-2.8.2-cp310-cp310-linux_x86_64.whl
   # these are internal links for now
-  TIDL_TOOLS_DOWNLOAD_LINKS=("https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM68PA/tidl_tools.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM68A/tidl_tools.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM69A/tidl_tools.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM62A/tidl_tools.tar.gz")
+  TIDL_TOOLS_DOWNLOAD_LINKS=("https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM68PA/tidl_tools.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM68A/tidl_tools.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM69A/tidl_tools.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM62A/tidl_tools.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM67A/tidl_tools.tar.gz")
   for (( soc_idx=0; soc_idx<"${#TARGET_SOCS[@]}"; soc_idx++ )); do
     TARGET_SOC=${TARGET_SOCS[$soc_idx]}
     TIDL_TOOLS_DOWNLOAD_LINK=${TIDL_TOOLS_DOWNLOAD_LINKS[$soc_idx]}
