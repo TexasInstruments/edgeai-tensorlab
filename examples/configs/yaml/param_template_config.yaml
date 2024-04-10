@@ -52,6 +52,7 @@ session:
     advanced_options:weight_clipping: 1
     advanced_options:bias_calibration: 1
     advanced_options:add_data_convert_ops: 3    # optimize data conversion options by moving them from arm to c7x
+    advanced_options:prequantized_model: 0
     onnxruntime:graph_optimization_level: null
     info: null # Optional
   model_path: yolox_nano_lite_416x416_20220214_model.onnx
