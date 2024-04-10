@@ -9,5 +9,5 @@ If you have not visited the following landing pages, please do so before attempt
 
 ## EdgeAI-TorchModelOpt
 
-### Documentation[README.md](torchmodelopt%2FREADME.md)
+### Documentation
 [EdgeAI-TorchModelOpt Documentation](./torchmodelopt/README.md) - Tools and utilities to help the development of embedded friendly DNN(Deep Neural Network) Models in [Pytorch](https://pytorch.org) - we call these **model optimization tools**.

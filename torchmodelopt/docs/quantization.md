@@ -20,18 +20,18 @@ On all the latest devices with MMAv2 accelerator, TIDL supports models trained w
 ### Latest Quantization Aware Training / QAT (v2) wrapper
 [edgeai_torchmodelopt.xmodelopt.quantization.v2](../edgeai_torchmodelopt/xmodelopt/quantization/v2) - Easy to use thin wrapper over Pytorch Native Quantization Aware Training (QAT) that uses **torch.fx** (built on top of **torch.ao** architecture optimization tools). Compared to the legacy QAT using **torch.nn** modules, torch.fx based QAT is able to handle models that uses torch operators and functionals as well. 
 
-Details of this quantization wrapper is available at [quantization landing page](../edgeai_torchmodelopt/xmodelopt/quantization/v2/README.md)<br>
+Details of this quantization wrapper is available [here](../edgeai_torchmodelopt/xmodelopt/quantization/v2/README.md)<br>
 
-The user guide for the QAT API is documented in [QAT](../edgeai_torchmodelopt/xmodelopt/quantization/v2/docs/qat.md).
+The user guide for the QAT API is documented in [v2 QAT documentation](../edgeai_torchmodelopt/xmodelopt/quantization/v2/docs/qat.md).
 
 **Note**: Models trained with this wrapper is supported in TIDL version 9.1, December 2023 onwards. 
 
 ### Legacy Quantization Aware Training / QAT (v1): 
 [edgeai_torchmodelopt.xmodelopt.quantization.v1](../edgeai_torchmodelopt/xmodelopt/quantization/v1) - Our legacy implementation of Quantization Aware Training (QAT) using **torch.nn** modules. This is required for QAT that is compatible with TDA4VM (which uses legacy MMAv1 accelerator)<br>
 
-Details of this quantization wrapper is available at [quantization landing page](../edgeai_torchmodelopt/xmodelopt/quantization/v1/README.md)
+Details of this quantization wrapper is available [here](../edgeai_torchmodelopt/xmodelopt/quantization/v1/README.md)
 
-The user guide for the QAT API is documented in [QAT](../edgeai_torchmodelopt/xmodelopt/quantization/v1/docs/qat.md).
+The user guide for the QAT API is documented in [v1 QAT documentation](../edgeai_torchmodelopt/xmodelopt/quantization/v1/docs/qat.md).
 
 ## Results
 
