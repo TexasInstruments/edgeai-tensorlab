@@ -310,11 +310,11 @@ model_id_artifacts_pair = {
     'od-8430_onnxrt': 'ONR-OD-8430-yolox-m-lite-mmdet-widerface-640x640',
 
     # Edgeai-Yolov5
-    'od-8100_onnxrt': 'ONR-OD-8100-yolov5-s6-ti-lite-coco-640x640',
-    'od-8110_onnxrt': 'ONR-OD-8110-yolov5-s6-ti-lite-coco-384x384',
-    'od-8120_onnxrt': 'ONR-OD-8120-yolov5-m6-ti-lite-coco-640x640',
-    'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640',
-    'od-8450_onnxrt': 'ONR-OD-8450-yolov5-s6-ti-lite-widerface-640x640',
+    'od-8100_onnxrt': 'ONR-OD-8100-yolov5-s6-ti-lite-coco-640x640-gplv3',
+    'od-8110_onnxrt': 'ONR-OD-8110-yolov5-s6-ti-lite-coco-384x384-gplv3',
+    'od-8120_onnxrt': 'ONR-OD-8120-yolov5-m6-ti-lite-coco-640x640-gplv3',
+    'od-8130_onnxrt': 'ONR-OD-8130-yolov5-l6-ti-lite-coco-640x640-gplv3',
+    'od-8450_onnxrt': 'ONR-OD-8450-yolov5-s6-ti-lite-widerface-640x640-gplv3',
 
     # Edgeai-Yolox
     'od-8140_onnxrt': 'ONR-OD-8140-yolox-s-ti-lite-coco-640x640',
@@ -370,8 +370,8 @@ model_id_artifacts_pair = {
     'kd-7010_onnxrt': 'ONR-KD-7010-human-pose-ae-res50v2-fpn-spp-udp-512x512',
     'kd-7020_onnxrt': 'ONR-KD-7020-human-pose-ae-mobv2-pan-spp-udp-512x512',
     'kd-7030_onnxrt': 'ONR-KD-7030-human-pose-ae-res50v2-pan-spp-udp-512x512',
-    'kd-7040_onnxrt': 'ONR-KD-7040-human-pose-yolov5s6-640x640',
-    'kd-7050_onnxrt': 'ONR-KD-7050-human-pose-yolov5s6-mixp-640x640',
+    'kd-7040_onnxrt': 'ONR-KD-7040-human-pose-yolov5s6-640x640-gplv3',
+    'kd-7050_onnxrt': 'ONR-KD-7050-human-pose-yolov5s6-mixp-640x640-gplv3',
     'kd-7060_onnxrt': 'ONR-KD-7060-human-pose-yolox-s-640x640',
 
     'od-2150_tflitert':'TFL-OD-2150-efficientdet-lite1-relu-coco-384x384',
@@ -389,17 +389,17 @@ model_id_artifacts_pair = {
     '6dpose-7200_onnxrt': 'ONR-6DP-7200-yolox-s-6d-object_pose-640x480',
 
     # additional yolo detection models added
-    'od-8800_onnxrt': 'ONR-OD-8800-scaled-yolov4-csp-lite-640x640',
-    'od-8810_onnxrt': 'ONR-OD-8810-yolov5-nano-v61-lite-640x640',
-    'od-8820_onnxrt': 'ONR-OD-8820-yolov5-small-v61-lite-640x640',
-    #'od-8830_onnxrt': 'ONR-OD-8830-yolov6-n-lite-640x640',
-    #'od-8840_onnxrt': 'ONR-OD-8840-yolov6-s-lite-640x640',
-    'od-8850_onnxrt': 'ONR-OD-8850-yolov7-tiny-lite-640x640',
-    'od-8860_onnxrt': 'ONR-OD-8860-yolov7-large-lite-640x640',
-    'od-8870_onnxrt': 'ONR-OD-8870-yolov8-nano-lite-640x640',
-    'od-8880_onnxrt': 'ONR-OD-8880-yolov8-small-lite-640x640',
-    'od-8890_onnxrt': 'ONR-OD-8890-yolox-tiny-lite-416x416',
-    'od-8900_onnxrt': 'ONR-OD-8900-yolox-small-lite-640x640',
+    'od-8800_onnxrt': 'ONR-OD-8800-scaled-yolov4-csp-lite-640x640-gplv3',
+    'od-8810_onnxrt': 'ONR-OD-8810-yolov5-nano-v61-lite-640x640-gplv3',
+    'od-8820_onnxrt': 'ONR-OD-8820-yolov5-small-v61-lite-640x640-gplv3',
+    #'od-8830_onnxrt': 'ONR-OD-8830-yolov6-n-lite-640x640-gplv3',
+    #'od-8840_onnxrt': 'ONR-OD-8840-yolov6-s-lite-640x640-gplv3',
+    'od-8850_onnxrt': 'ONR-OD-8850-yolov7-tiny-lite-640x640-gplv3',
+    'od-8860_onnxrt': 'ONR-OD-8860-yolov7-large-lite-640x640-gplv3',
+    'od-8870_onnxrt': 'ONR-OD-8870-yolov8-nano-lite-640x640-gplv3',
+    'od-8880_onnxrt': 'ONR-OD-8880-yolov8-small-lite-640x640-gplv3',
+    'od-8890_onnxrt': 'ONR-OD-8890-yolox-tiny-lite-416x416-gplv3',
+    'od-8900_onnxrt': 'ONR-OD-8900-yolox-small-lite-640x640-gplv3',
 }
 
 
@@ -485,17 +485,17 @@ shortlisted_model_list = {
     # 'cl-6152_onnxrt': 'ONR-CL-6152-mobileNetV2-1p4-qat-1024x1024',
     ########
     # additional yolo detection models added
-    'od-8800_onnxrt': 'ONR-OD-8800-scaled-yolov4-csp-lite-640x640',
-    'od-8810_onnxrt': 'ONR-OD-8810-yolov5-nano-v61-lite-640x640',
-    'od-8820_onnxrt': 'ONR-OD-8820-yolov5-small-v61-lite-640x640',
-    #'od-8830_onnxrt': 'ONR-OD-8830-yolov6-n-lite-640x640',
-    #'od-8840_onnxrt': 'ONR-OD-8840-yolov6-s-lite-640x640',
-    'od-8850_onnxrt': 'ONR-OD-8850-yolov7-tiny-lite-640x640',
-    'od-8860_onnxrt': 'ONR-OD-8860-yolov7-large-lite-640x640',
-    'od-8870_onnxrt': 'ONR-OD-8870-yolov8-nano-lite-640x640',
-    'od-8880_onnxrt': 'ONR-OD-8880-yolov8-small-lite-640x640',
-    'od-8890_onnxrt': 'ONR-OD-8890-yolox-tiny-lite-416x416',
-    'od-8900_onnxrt': 'ONR-OD-8900-yolox-small-lite-640x640',
+    'od-8800_onnxrt': 'ONR-OD-8800-scaled-yolov4-csp-lite-640x640-gplv3',
+    'od-8810_onnxrt': 'ONR-OD-8810-yolov5-nano-v61-lite-640x640-gplv3',
+    'od-8820_onnxrt': 'ONR-OD-8820-yolov5-small-v61-lite-640x640-gplv3',
+    #'od-8830_onnxrt': 'ONR-OD-8830-yolov6-n-lite-640x640-gplv3',
+    #'od-8840_onnxrt': 'ONR-OD-8840-yolov6-s-lite-640x640-gplv3',
+    'od-8850_onnxrt': 'ONR-OD-8850-yolov7-tiny-lite-640x640-gplv3',
+    'od-8860_onnxrt': 'ONR-OD-8860-yolov7-large-lite-640x640-gplv3',
+    'od-8870_onnxrt': 'ONR-OD-8870-yolov8-nano-lite-640x640-gplv3',
+    'od-8880_onnxrt': 'ONR-OD-8880-yolov8-small-lite-640x640-gplv3',
+    'od-8890_onnxrt': 'ONR-OD-8890-yolox-tiny-lite-416x416-gplv3',
+    'od-8900_onnxrt': 'ONR-OD-8900-yolox-small-lite-640x640-gplv3',
 }
 
 
