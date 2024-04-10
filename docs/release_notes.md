@@ -1,4 +1,13 @@
 
+## Release 9.2 (09_02_00)
+- Date: April 2024
+- Release branch: r9.2
+#### ModelZoo and compiled Model Artifacts
+- [Models & Documentation](https://github.com/TexasInstruments/edgeai-modelzoo/tree/r9.2)
+- [Compiled Model artifacts](https://github.com/TexasInstruments/edgeai-modelzoo/tree/r9.2/modelartifacts)
+- [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/09_02_00/)
+
+
 ## Release 9.1 (09_01_00)
 - Date: December 2023
 - Release branch: r9.1
