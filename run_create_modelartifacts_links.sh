@@ -29,8 +29,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
-# target_device - use one of: TDA4VM AM62A AM68A AM69A
-# (Note: until r8.5 only TDA4VM was supported)
+# target_device - use one of: TDA4VM AM62A AM68A AM69A AM67A AM62
 TARGET_SOC=${1:-TDA4VM}
 
 ##################################################################

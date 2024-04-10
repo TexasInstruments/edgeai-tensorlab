@@ -1,4 +1,6 @@
 task_type: detection
+dataset_category: coco
+calibration_dataset: coco
 input_dataset: coco
 preprocess:
   resize:
@@ -27,8 +29,21 @@ session:
   - 0.017507
   - 0.017125
   runtime_options:
+    tensor_bits: 8
+    accuracy_level: 1
+    advanced_options:high_resolution_optimization: 0
+    advanced_options:pre_batchnorm_fold: 1
+    advanced_options:calibration_frames: 1
+    advanced_options:calibration_iterations: 1
+    advanced_options:quantization_scale_type: 4
+    advanced_options:activation_clipping: 1
+    advanced_options:weight_clipping: 1
+    advanced_options:bias_calibration: 1
     advanced_options:output_feature_16bit_names_list: ''
     advanced_options:params_16bit_names_list: ''
+    advanced_options:add_data_convert_ops: 3
+    info:
+      prequantized_model_type: 0
     object_detection:meta_arch_type: 5
     object_detection:meta_layers_names_list: retinanet_regnetx-800mf_fpn_bgr_lite_512x512_20200908_model.prototxt
   model_path: retinanet_regnetx-800mf_fpn_bgr_lite_512x512_20200908_model.onnx
@@ -36,7 +51,6 @@ session:
   input_details: null
   output_details: null
   num_inputs: 1
-  artifacts_folder: artifacts
 postprocess:
   detection_threshold: 0.3
   save_output: false
@@ -53,6 +67,7 @@ postprocess:
   shuffle_indices: null
   squeeze_axis: null
   ignore_index: null
+  logits_bbox_to_bbox_ls: false
 metric:
   label_offset_pred:
     0: 1
@@ -139,3 +154,4 @@ metric:
 model_info:
   metric_reference:
     accuracy_ap[.5:.95]%: 33.0
+  model_shortlist: null
