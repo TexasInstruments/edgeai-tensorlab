@@ -163,7 +163,7 @@ def get_configs(settings, work_dir):
                 model_path=f'../edgeai-modelzoo-cl/models/vision/detection/coco/edgeai-mmyolo-gplv3/yolov8_nano_lite_640x640_20231118_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':34.5}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':34.5}, model_shortlist=70)
         ),
         #yolov8-small
         'od-8880':utils.dict_update(common_cfg,
