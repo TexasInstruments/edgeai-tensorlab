@@ -168,59 +168,6 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':33.0}, model_shortlist=None)
         ),
-        # yolov5 models - IMPORTANT - see licence of the repository edgeai-yolov5 before using this model
-        'od-8100':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640,  resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
-                runtime_options=settings.runtime_options_onnx_np2(
-                    det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                     'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5/yolov5s6_640_ti_lite_metaarch.prototxt',
-                     'advanced_options:output_feature_16bit_names_list':'370, 680, 990, 1300'},
-                     fast_calibration=True),
-                model_path=f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5/yolov5s6_640_ti_lite_37p4_56p0.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.4}, model_shortlist=None)
-        ),
-        'od-8110':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(384, 384,  resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
-                runtime_options=settings.runtime_options_onnx_np2(
-                    det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                     'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5/yolov5s6_384_ti_lite_metaarch.prototxt',
-                     'advanced_options:output_feature_16bit_names_list':'168, 370, 680, 990, 1300'},
-                     fast_calibration=True),
-                model_path=f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5/yolov5s6_384_ti_lite_32p8_51p2.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.8}, model_shortlist=None)
-        ),
-        'od-8120':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
-                runtime_options=settings.runtime_options_onnx_np2(
-                    det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                     'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5/yolov5m6_640_ti_lite_metaarch.prototxt',
-                     'advanced_options:output_feature_16bit_names_list':'228, 498, 808, 1118, 1428'},
-                     fast_calibration=True),
-                model_path=f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5/yolov5m6_640_ti_lite_44p1_62p9.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False,  resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':44.1}, model_shortlist=None)
-        ),
-        'od-8130':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
-                runtime_options=settings.runtime_options_onnx_np2(
-                    det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                     'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5/yolov5l6_640_ti_lite_metaarch.prototxt',
-                     'advanced_options:output_feature_16bit_names_list':'288, 626, 936, 1246, 1556'},
-                     fast_calibration=True),
-                model_path=f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5/yolov5l6_640_ti_lite_47p1_65p6.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False,  resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':47.1}, model_shortlist=None)
-        ),
         # yolox lite versions from edgeai-mmdet
         'od-8200':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),

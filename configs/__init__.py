@@ -68,6 +68,7 @@ def get_configs(settings, work_dir):
     if settings.experimental_models:
         from . import classification_experimental
         from . import detection_experimental
+        from . import face_detection_experimental
         from . import segmentation_experimental
         from . import human_pose_estimation_experimental
         from . import detection_3d_experimental
@@ -75,6 +76,7 @@ def get_configs(settings, work_dir):
         # now get the experimental configs
         pipeline_configs.update(classification_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(detection_experimental.get_configs(settings, work_dir))
+        pipeline_configs.update(face_detection_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(segmentation_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(human_pose_estimation_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(detection_3d_experimental.get_configs(settings, work_dir))
