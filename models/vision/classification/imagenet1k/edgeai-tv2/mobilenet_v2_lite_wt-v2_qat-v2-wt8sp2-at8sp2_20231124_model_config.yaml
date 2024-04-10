@@ -39,6 +39,7 @@ session:
     advanced_options:output_feature_16bit_names_list: ''
     advanced_options:params_16bit_names_list: ''
     advanced_options:add_data_convert_ops: 3
+    advanced_options:prequantized_model: 1
     info:
       prequantized_model_type: 2
   model_path: mobilenet_v2_lite_wt-v2_qat-v2-wt8sp2-at8sp2_20231124_model.onnx
