@@ -68,8 +68,6 @@ See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md) that we
 ## Model inference
 [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) - as mentioned earlier edgeai-benchmark has been used to compile the models in the repository and compiled model artifacts are provided. edgeai-benchmark can also be used for inference & accuracy/performance benchmark of these models on PC or on EVM.
 
-[PROCESSOR-SDK-LINUX-SK-TDA4VM](https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM) - Processor SDK Linux for TDA4VM Starter Kit can seamlessly use model artifacts from this repository. The SDK provides software and tools to let you effectively balance deep learning performance with system power and cost on Texas Instrument’s processors for edge AI applications such as latest TDA4 class of SoCs. We offer a practical embedded inference solution for next-generation vehicles, smart cameras, edge AI boxes, and autonomous machines and robots. In addition to general compute core and deep learning cores accelerator, our processors for edge AI integrate imaging, vision, multimedia cores hardware accelerators and with security enablers and optional microcontrollers for applications that require SIL-3 and ASIL-D functional safety certifications. With a few simple steps you can run high performance computer vision and deep learning demos using a live camera and display.
-
 <hr>
 
 ## LICENSE
