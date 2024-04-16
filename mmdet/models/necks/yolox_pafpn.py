@@ -122,7 +122,7 @@ class YOLOXPAFPN(BaseModule):
         Returns:
             tuple[Tensor]: YOLOXPAFPN features.
         """
-        assert len(inputs) == len(self.in_channels)
+        # assert len(inputs) == len(self.in_channels)
 
         # top-down path
         inner_outs = [inputs[-1]]

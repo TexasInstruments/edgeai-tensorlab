@@ -2,6 +2,7 @@
 import argparse
 import os
 import os.path as osp
+import warnings
 
 from mmengine.config import Config, DictAction
 from mmengine.registry import RUNNERS
@@ -108,6 +109,16 @@ def main():
         cfg.resume = True
         cfg.load_from = args.resume
 
+    if args.quantization and 'custom_hooks' in cfg:
+        hooks_to_remove = ['EMAHook']
+        for hook_type in hooks_to_remove:
+            if any([hook_cfg.type == hook_type for hook_cfg in cfg.custom_hooks]):
+                warnings.warn(f'{hook_type} is currently not supported in quantization - removing it')
+            #
+            cfg.custom_hooks = [hook_cfg for hook_cfg in cfg.custom_hooks if hook_cfg.type != hook_type]
+        #
+    #
+
     # build the runner from config
     if 'runner_type' not in cfg:
         # build the default runner
@@ -140,7 +151,6 @@ def main():
         elif isinstance(runner.model.bbox_head.head_module, (YOLOv8HeadModule, YOLOv6HeadModule)):
             runner.model.bbox_head.head_module = xmodelopt.surgery.v1.convert_to_lite_model(runner.model.bbox_head.head_module)
         runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
-    print("\n\n model summary : \n",runner.model)
 
     if args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V1:
         if is_model_wrapper(runner.model):
@@ -154,9 +164,16 @@ def main():
         if is_model_wrapper(runner.model):
             runner.model = runner.model.module
         #
-        runner.model = xmodelopt.quantization.v2.QATFxModule(runner.model, total_epochs=runner.max_epochs)
+        if hasattr(runner.model, 'quant_init'):
+            print('wrapping the model to prepare for quantization')
+            runner.model = runner.model.quant_init(xmodelopt.quantization.v2.QATFxModule, total_epochs=runner.max_epochs)
+        else:
+            raise RuntimeError(f'quant_init method is not supported for {type(runner.model)}')
+
         runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
     #
+
+    #print("\n\n model summary : \n",runner.model)
 
     # start training
     runner.train()
