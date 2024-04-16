@@ -36,6 +36,7 @@ from torch.ao.quantization import quantize_fx
 from torch.ao.quantization import QConfigMapping
 from torch.ao.quantization import FakeQuantize
 import statistics
+import functools
 
 from .... import xnn
 
@@ -55,7 +56,7 @@ class ModelQuantFormat:
 class QuantFxBaseModule(torch.nn.Module):
     def __init__(self, model, *args, qconfig_type=None, example_inputs=None, is_qat=True, backend="qnnpack",
                  total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
-                 qconfig_mode=qconfig_types.QConfigMode.DEFAULT):
+                 qconfig_mode=qconfig_types.QConfigMode.DEFAULT, passthrough_attributes=None):
         '''
         model: input model to be used for QAT
         qconfig_type: qconfig_type can be one of the modes defined in qconfig_types (string)
@@ -97,6 +98,18 @@ class QuantFxBaseModule(torch.nn.Module):
 
         self.qconfig_mode = qconfig_types.QConfigMode(qconfig_mode)
         self.forzen_layer_names_list = []
+        self.add_passthrough_attributes(passthrough_attributes)
+
+    def add_passthrough_attributes(self, passthrough_attributes):
+        if passthrough_attributes is not None:
+            for attribute_name in passthrough_attributes:
+                if hasattr(self.module, attribute_name):
+                    attribute_getter = lambda self: getattr(self.module, attribute_name)
+                    attribute_setter = lambda self, value: setattr(self.module, attribute_name, value)
+                    new_property = property(fget=attribute_getter, fset=attribute_setter)
+                    setattr(self.__class__, attribute_name, new_property)
+                #
+            #
 
     def set_quant_backend(self, backend=None):
         if backend not in torch.backends.quantized.supported_engines:
