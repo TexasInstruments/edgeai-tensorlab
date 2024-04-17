@@ -34,6 +34,7 @@ class ONNXBackendDataset(DatasetBase):
             file_bytes               = open(fpath, mode = 'rb').read()
             tensor                   = TensorProto.FromString(file_bytes)
             np_array                 = numpy_helper.to_array((tensor))
+            tensor_name              = tensor.name if tensor.name is not "" else "x"
             if("input_" in fname):
                 self.inputs[tensor.name] = np_array
             else:
