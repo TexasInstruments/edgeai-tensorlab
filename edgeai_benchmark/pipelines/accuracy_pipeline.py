@@ -33,48 +33,12 @@ import yaml
 import time
 import itertools
 from .. import utils, constants
+from .base_pipeline import BasePipeline
 
 
-class AccuracyPipeline():
+class AccuracyPipeline(BasePipeline):
     def __init__(self, settings, pipeline_config):
-        self.info_dict = dict()
-        self.settings = settings
-        self.pipeline_config = pipeline_config
-        self.avg_inference_time = None
-        self.logger = None
-        # run_dir is assigned after initialize is called in PipelineRunner
-        # if it has not been created, it will be created in start
-        self.session = self.pipeline_config['session']
-        self.run_dir = self.session.get_param('run_dir')
-        self.run_dir_base = os.path.split(self.run_dir)[-1]
-        self.config_yaml = os.path.join(self.run_dir, 'config.yaml')
-        # these files will be written after import and inference respectively
-        self.param_yaml = os.path.join(self.run_dir, 'param.yaml')
-        self.result_yaml = os.path.join(self.run_dir, 'result.yaml')
-        # pop out dataset info from the pipeline config,
-        # because it will increase the size of the para.yaml and result.yaml files
-        self.pipeline_config['calibration_dataset'].get_param('kwargs').pop('dataset_info', None)
-        self.dataset_info = self.pipeline_config['input_dataset'].get_param('kwargs').pop('dataset_info', None)
-        if self.dataset_info is not None:
-            self.dataset_info_file = os.path.join(self.run_dir, 'dataset.yaml')
-            self.pipeline_config['input_dataset'].get_param('kwargs')['dataset_info'] = self.dataset_info_file
-            self.pipeline_config['calibration_dataset'].get_param('kwargs')['dataset_info'] = self.dataset_info_file
-        #
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
-
-    def __del__(self):
-        self.close()
-
-    def close(self):
-        if self.logger is not None:
-            self.logger.close()
-            self.logger = None
-        #
+        super().__init__(settings, pipeline_config)
 
     def __call__(self, description=''):
         ##################################################################
@@ -127,12 +91,6 @@ class AccuracyPipeline():
         self.logger.close()
         self.logger = None
         return param_result
-
-    def write_log(self, message):
-        if self.logger is not None:
-            self.logger.write(message)
-        else:
-            print(message)
 
     def _run(self, description=''):
         param_result = {}

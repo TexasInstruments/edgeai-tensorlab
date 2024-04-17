@@ -279,10 +279,7 @@ class Object6dPoseImageSave:
         self.cadmodels = None
         self.camera_matrix = None
         self.class_to_cuboid = None
-        self.color_step = 32 #32
-        self.colors = [(r,g,b) for r in range(0,256,self.color_step) \
-                       for g in range(0,256,self.color_step) \
-                       for b in range(0,256,self.color_step)]
+        self.color_map = None
         self.num_output_frames = num_output_frames
         self.output_frame_idx = 0
         
@@ -290,6 +287,9 @@ class Object6dPoseImageSave:
         if self.output_frame_idx >= self.num_output_frames:
             self.output_frame_idx += 1
             return result, info_dict
+        #
+        if self.color_map is None:
+            self.color_map = info_dict['dataset_info']['color_map']
         #
         if self.cadmodels is None:
             data_path = info_dict.get('data_path', './dependencies/datasets/ycbv/')
@@ -325,7 +325,7 @@ class Object6dPoseImageSave:
             if score < conf:
                 continue
             rotation, translation, cls_id = pose_results['rotation'][det_id].reshape(3,3), pose_results['translation'][det_id],  int(pose_results['cls'][det_id])
-            colour = self.colors[cls_id % len(self.colors)]
+            colour = self.color_map[cls_id % len(self.color_map)]
             cuboid_corners_2d = self.project_3d_2d(self.class_to_cuboid[cls_id], rotation, translation, self.camera_matrix)
             img = self.draw_cuboid_2d(img, cuboid_corners=cuboid_corners_2d, colour=colour)
         return img

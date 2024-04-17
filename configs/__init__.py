@@ -68,6 +68,7 @@ def get_configs(settings, work_dir):
     if settings.experimental_models:
         from . import classification_experimental
         from . import detection_experimental
+        from . import face_detection_experimental
         from . import segmentation_experimental
         from . import human_pose_estimation_experimental
         from . import detection_3d_experimental
@@ -75,6 +76,7 @@ def get_configs(settings, work_dir):
         # now get the experimental configs
         pipeline_configs.update(classification_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(detection_experimental.get_configs(settings, work_dir))
+        pipeline_configs.update(face_detection_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(segmentation_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(human_pose_estimation_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(detection_3d_experimental.get_configs(settings, work_dir))
@@ -85,8 +87,7 @@ def get_configs(settings, work_dir):
 
 def select_configs(settings, work_dir, session_name=None, remove_models=False):
     pipeline_configs = get_configs(settings, work_dir)
-    pipeline_runner = PipelineRunner(settings, pipeline_configs)
-    pipeline_configs = pipeline_runner.pipeline_configs
+    pipeline_configs = PipelineRunner(settings, pipeline_configs).get_pipeline_configs()
     if session_name is not None:
         pipeline_configs = {pipeline_id:pipeline_config for pipeline_id, pipeline_config in pipeline_configs.items() \
                 if pipeline_config['session'].peek_param('session_name') == session_name}

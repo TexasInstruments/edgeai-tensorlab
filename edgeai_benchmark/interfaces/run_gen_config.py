@@ -27,29 +27,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-from .get_configs_from_module import *
-from .get_configs_from_file import *
+import sys
+import argparse
+from .. import utils, pipelines, config_settings, datasets
+from .run_accuracy import *
+
+__all__ = ['run_gen_config']
 
 
-def get_configs(settings, work_dir):
-    is_config_file = (os.path.splitext(settings.configs_path)[-1] == '.yaml')
-    if is_config_file:
-        print(f'Using model config(s) from file: {settings.configs_path}')
-        pipeline_configs = get_configs_from_file(settings, work_dir)
-    else:
-        print(f'Using model configs from Python module: {settings.configs_path}')
-        pipeline_configs = get_configs_from_module(settings, work_dir)
-    #
-    return pipeline_configs
-
-
-def select_configs(settings, work_dir, session_name=None, remove_models=False):
-    is_config_file = (os.path.splitext(settings.configs_path)[-1] == '.yaml')
-    if is_config_file:
-        print(f'Selecting model config(s) from file: {settings.configs_path}')
-        pipeline_configs = select_configs_from_file(settings, work_dir, session_name=session_name, remove_models=remove_models)
-    else:
-        print(f'Selecting model configs from Python module: {settings.configs_path}')
-        pipeline_configs = select_configs_from_module(settings, work_dir, session_name=session_name, remove_models=remove_models)
-    #
-    return pipeline_configs
+def run_gen_config(*args, **kwargs):
+    results_list = run_accuracy(*args, **kwargs)
+    return results_list

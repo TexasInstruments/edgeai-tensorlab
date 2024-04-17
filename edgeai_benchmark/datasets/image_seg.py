@@ -41,6 +41,7 @@ class ImageSegmentation(ImagePixel2Pixel):
         assert 'num_classes' in kwargs, f'num_classes must be provided while creating {self.__class__.__name__}'
         assert name is not None, 'Please provide a name for this dataset'
         self.num_classes = self.kwargs['num_classes']
+        self.kwargs['dataset_info'] = self.get_dataset_info()
 
     def __call__(self, predictions, **kwargs):
         return self.evaluate(predictions, **kwargs)
@@ -61,3 +62,9 @@ class ImageSegmentation(ImagePixel2Pixel):
         accuracy = utils.segmentation_accuracy(cmatrix)
         return accuracy
 
+    def get_dataset_info(self):
+        dataset_store = dict()
+        dataset_store['info'] = {'description': 'Dataset Description'}
+        dataset_store['categories'] = [{'id':k, 'name':str(k), 'supercategory': k} for k in range(self.num_classes)]
+        dataset_store.update(dict(color_map=self.get_color_map()))
+        return dataset_store

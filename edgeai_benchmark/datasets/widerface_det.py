@@ -266,6 +266,7 @@ class WiderFaceDetection(coco_det.COCODetection):
                 dataset_store.update({key: self.dataset_store[key]})
             #
         #
+        dataset_store.update(dict(color_map=self.get_color_map()))        
         return dataset_store
 
 

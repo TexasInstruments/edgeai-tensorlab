@@ -29,6 +29,7 @@
 import os
 import sys
 import argparse
+import yaml
 from edgeai_benchmark import *
 
 
@@ -41,17 +42,28 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('settings_file', type=str, default=None)
-    parser.add_argument('--run_dir', type=str, default=None)
+    parser.add_argument('--target_device', type=str)
     parser.add_argument('--tensor_bits', type=utils.str_to_int)
     parser.add_argument('--configs_path', type=str)
     parser.add_argument('--models_path', type=str)
+    parser.add_argument('--task_selection', type=str, nargs='*')
+    parser.add_argument('--runtime_selection', type=str, nargs='*')
     parser.add_argument('--model_selection', type=str, nargs='*')
+    parser.add_argument('--model_shortlist', type=utils.int_or_none)
     parser.add_argument('--session_type_dict', type=str, nargs='*')
     parser.add_argument('--num_frames', type=int)
     parser.add_argument('--calibration_frames', type=int)
     parser.add_argument('--calibration_iterations', type=int)
-    parser.add_argument('--parallel_devices', type=int, nargs='*')
-    parser.add_argument('--experimental_models', type=int, default=1)
+    parser.add_argument('--run_import', type=utils.str_to_bool)
+    parser.add_argument('--run_inference', type=utils.str_to_bool)
+    parser.add_argument('--modelartifacts_path', type=str)
+    parser.add_argument('--modelpackage_path', type=str)
+    parser.add_argument('--dataset_loading', type=str, nargs='*')
+    parser.add_argument('--parallel_devices', type=utils.int_or_none)
+    parser.add_argument('--parallel_processes', type=int)
+    parser.add_argument('--fast_calibration_factor', type=utils.float_or_none)
+    parser.add_argument('--experimental_models', type=utils.str_to_bool)
+    parser.add_argument('--param_template_file', type=str, default='./examples/configs/yaml/param_template_config.yaml')
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)
@@ -62,14 +74,34 @@ if __name__ == '__main__':
     print(f'settings: {settings}')
     sys.stdout.flush()
 
-    run_dir = kwargs.get('run_dir', None)
-    print(f'run_dir: {run_dir}')
+    work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
+    print(f'work_dir: {work_dir}')
 
-    model_selection = kwargs.get('model_selection', None)
-    print(f'model_selection: {model_selection}')
+    settings.pipeline_type = constants.PIPELINE_GEN_CONFIG
+    settings.param_template_file = settings.param_template_file or cmds.param_template_file
+    settings.dataset_loading = False
+    settings.input_optimization = False
+    if 'TIDL_TOOLS_PATH' not in os.environ:
+        os.environ['TIDL_TOOLS_PATH'] = ""
 
-    if model_selection is None:
-        assert run_dir is not None, 'run_dir must be provided when model_selection is None'
+    # run the pipeline
+    results_list = interfaces.run_gen_config(settings, work_dir)
 
-    # run the accuracy pipeline
-    interfaces.run_model(settings, run_dir)
+    models_path_full = os.path.normpath(os.path.abspath(settings.models_path))
+
+    configs_dict={'configs': {}}
+    for result_dict in results_list:
+        if result_dict:
+           config_path = result_dict['config_path']
+           with open(config_path) as fp:
+               config_dict = yaml.safe_load(fp)
+           #
+           model_id = config_dict['session']['model_id']
+           config_path = os.path.normpath(os.path.abspath(config_path))
+           config_path = config_path.replace(models_path_full+os.sep, '')
+           configs_dict['configs'][model_id] = config_path
+
+    configlist_path = os.path.join(settings.models_path, 'configs.yaml')
+    with open(configlist_path, 'w') as fp:
+        yaml.safe_dump(configs_dict, fp, sort_keys=False)
+    #

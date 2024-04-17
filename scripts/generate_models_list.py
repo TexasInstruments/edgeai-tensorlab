@@ -79,10 +79,15 @@ if __name__ == '__main__':
     if kwargs['models_list_file'] is None:
         kwargs['models_list_file'] = os.path.join(settings.modelartifacts_path, "models_list.txt")
 
-    # run the accuracy pipeline
-    pipeline_configs = interfaces.select_configs(settings, work_dir)
+    # get a dict of model configs
+    pipeline_configs = interfaces.get_configs(settings, work_dir)
+
+    # filter the configs
+    pipeline_configs = pipelines.PipelineRunner(settings, pipeline_configs).get_pipeline_configs()
+
     model_keys = pipeline_configs.keys()
     with open(kwargs['models_list_file'], "w") as fp:
         for model_key in model_keys:
             fp.write(f"{model_key}\n")
         #
+    #

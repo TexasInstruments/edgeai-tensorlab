@@ -115,7 +115,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/shufflenet_v2_x1.0.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':69.36}, model_shortlist=80)
+            model_info=dict(metric_reference={'accuracy_top1%':69.36}, model_shortlist=90)
         ),
         # torchvision: classification mobilenetv2_224x224 expected_metric: 71.88% top-1 accuracy
         'cl-6090':utils.dict_update(common_cfg,
@@ -277,7 +277,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_float_1.4_224.tflite'),
             metric=dict(label_offset_pred=-1),
-            model_info=dict(metric_reference={'accuracy_top1%':75.0}, model_shortlist=80)
+            model_info=dict(metric_reference={'accuracy_top1%':75.0}, model_shortlist=90)
         ),
         # tf hosted models: classification inception_v1_224_quant expected_metric: 69.63% top-1 accuracy
         'cl-0038':utils.dict_update(common_cfg,
@@ -286,7 +286,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_tflite_np2(fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/inception_v1_224_quant.tflite'),
             metric=dict(label_offset_pred=-1),
-            model_info=dict(metric_reference={'accuracy_top1%':69.63}, model_shortlist=80)
+            model_info=dict(metric_reference={'accuracy_top1%':69.63}, model_shortlist=90)
         ),
         # tf hosted models: classification inception_v3 expected_metric: 78% top-1 accuracy
         'cl-0040':utils.dict_update(common_cfg,
@@ -295,7 +295,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_tflite_np2(fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/inception_v3.tflite'),
             metric=dict(label_offset_pred=-1),
-            model_info=dict(metric_reference={'accuracy_top1%':78.0}, model_shortlist=80)
+            model_info=dict(metric_reference={'accuracy_top1%':78.0}, model_shortlist=90)
         ),
         # tf hosted models: classification mnasnet expected_metric: 74.08% top-1 accuracy
         'cl-0070':utils.dict_update(common_cfg,
@@ -357,7 +357,7 @@ def get_configs(settings, work_dir):
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite1-fp32.tflite'),
-            model_info=dict(metric_reference={'accuracy_top1%':76.7}, model_shortlist=80)
+            model_info=dict(metric_reference={'accuracy_top1%':76.7}, model_shortlist=90)
         ),
         # tensorflow/tpu: classification efficinetnet-lite4_300x300 expected_metric: 81.5% top-1 accuracy
         'cl-0140':utils.dict_update(common_cfg,
@@ -383,7 +383,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_tflite_np2(fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-edgetpu-M_float.tflite'),
             metric=dict(label_offset_pred=-1),
-            model_info=dict(metric_reference={'accuracy_top1%':78.69}, model_shortlist=80)
+            model_info=dict(metric_reference={'accuracy_top1%':78.69}, model_shortlist=90)
         ),
         # tensorflow/tpu: classification efficientnet-edgetpu-L expected_metric: 80.62% top-1 accuracy
         'cl-0190':utils.dict_update(common_cfg,

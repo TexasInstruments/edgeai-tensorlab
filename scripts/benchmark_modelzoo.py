@@ -31,19 +31,15 @@ import sys
 import argparse
 from edgeai_benchmark import *
 
-
-if __name__ == '__main__':
-    print(f'argv: {sys.argv}')
-    # the cwd must be the root of the respository
-    if os.path.split(os.getcwd())[-1] == 'scripts':
-        os.chdir('../')
-    #
-
+def get_arg_parser():
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('settings_file', type=str, default=None)
     parser.add_argument('--target_device', type=str)
     parser.add_argument('--tensor_bits', type=utils.str_to_int)
-    parser.add_argument('--configs_path', type=str)
+    parser.add_argument('--configs_path', type=str, help='Path to configs. Can be one of: '
+                        '\n  Python module, such as in ./configs OR '
+                        '\n  a configs file such as ../edgeai-modelzoo/models/configs.yaml. '
+                        '\n  default is Python module at: ./configs')
     parser.add_argument('--models_path', type=str)
     parser.add_argument('--task_selection', type=str, nargs='*')
     parser.add_argument('--runtime_selection', type=str, nargs='*')
@@ -62,6 +58,16 @@ if __name__ == '__main__':
     parser.add_argument('--parallel_processes', type=int)
     parser.add_argument('--fast_calibration_factor', type=utils.float_or_none)
     parser.add_argument('--experimental_models', type=utils.str_to_bool)
+    return parser
+
+if __name__ == '__main__':
+    print(f'argv: {sys.argv}')
+    # the cwd must be the root of the respository
+    if os.path.split(os.getcwd())[-1] == 'scripts':
+        os.chdir('../')
+    #
+
+    parser = get_arg_parser()
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)

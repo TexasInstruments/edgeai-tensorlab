@@ -33,6 +33,34 @@ TARGET_SOC=${1:-TDA4VM}
 TARGET_MACHINE=${2:-pc}
 
 ##################################################################
+for arg in "$@"
+do 
+    case "$arg" in
+        "-h"|"--help")
+            cat << EOF
+Usage: $0 [TARGET_SOC] [TARGET_MACHINE] [OPTIONS]
+This script sets up the environment to enable proper usage of TIDL tools and scripts.
+
+Options:
+-h, --help      Display this help message and exit.
+
+TARGET_SOC:
+Specify the target device. Use one of: TDA4VM, AM62A, AM68A, AM69A. Defaults to TDA4VM.
+Note: Until r8.5, only TDA4VM was supported.  
+
+TARGET_MACHINE:
+Specify the target machine to run benchmarking on: pc or evm.
+
+Example:
+$0 # defaults to TDA4VM
+$0 AM62A pc # select AM69A on pc
+EOF
+            exit 0
+            ;;
+    esac
+done
+
+##################################################################
 # tvmdlr artifacts are different for pc and evm device
 # point to the right artifact before this script executes
 source run_set_target_machine.sh ${TARGET_SOC} ${TARGET_MACHINE}

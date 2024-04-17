@@ -29,51 +29,31 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
-# until r8.5: TDA4VM
-# from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
-TARGET_SOC=TDA4VM
-
-# pc: for model compilation and inference on PC, evm: for model inference on EVM
-TARGET_MACHINE=pc
+# Generate confg yaml files and write into the same location as the the models
+# (i.e. inside the edgeai-modelzoo or wherever the model_path is pointing to)
+# It will also write a configs.yaml at the location of settings.models_path
+# that lists all such config yaml files.
+# This configs.yaml file or individial config yaml files can be given to
+# run_benchmrks_pc.sh OR run_benchmarks_parallelbash_pc.sh OR directly to scripts/benchmark_modelzoo.py
+# to import or infer the the model using the parameters specified in that config file.
 
 ##################################################################
-for arg in "$@"
-do 
-    case "$arg" in
-        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62")
-            TARGET_SOC=$arg
-            ;;
-        "-h"|"--help")
-            cat << EOF
-Usage: $0 [OPTIONS] [TARGET_SOC]
-This script
+# target_device - use one of: TDA4VM AM62A AM68A AM69A AM67A AM62
+TARGET_SOC=${1:-AM68A}
 
-Options:
--h, --help      Display this help message and exit.
-
-TARGET_SOC:
-Specify the target device. Use one of: TDA4VM, AM62A, AM68A, AM69A. Defaults to TDA4VM.
-Note: Until r8.5, only TDA4VM was supported.  
-
-Example:
-$0 # defaults to TDA4VM
-$0 AM62A # select device
-EOF
-            exit 0
-            ;;
-    esac
-done
-
-echo "TARGET_SOC:     ${TARGET_SOC}"
-echo "TARGET_MACHINE: ${TARGET_MACHINE}"
-##################################################################
-
-pip3 install jupyter
 
 ##################################################################
 # set environment variables
 # also point to the right type of artifacts (pc or evm)
 source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 
-# run the script
-jupyter notebook --ip=localhost
+##################################################################
+# specify one of the following settings - options can be changed inside the yaml
+#settings_file=settings_infer_on_evm.yaml
+#settings_file=settings_import_on_pc.yaml
+settings_file=settings_import_on_pc.yaml
+
+echo "==================================================================="
+# generate the final report with results for all the artifacts generated
+python3 ./scripts/generate_configs.py ${settings_file} --target_device ${TARGET_SOC} ${@:2}
+echo "-------------------------------------------------------------------"

@@ -34,8 +34,8 @@ TIDL_PLATFORM = "J7"
 
 # TIDL version that is supported by default - however this is not the only version that is supported.
 # This version actually depends on tidl_tools that is being used - so what is populated here is just for guidance.
-TIDL_VERSION = (9,1,0)
-TIDL_VERSION_STR = '9.1.0'
+TIDL_VERSION = (9,2,0)
+TIDL_VERSION_STR = '9.2.0'
 
 # data layout constants
 NCHW = 'NCHW'
@@ -44,7 +44,7 @@ NHWC = 'NHWC'
 # pipeline type constants
 PIPELINE_UNDEFINED = None
 PIPELINE_ACCURACY = 'accuracy'
-PIPELINE_COMPARE = 'compare'
+PIPELINE_GEN_CONFIG = 'gen_config'
 
 # frequency of the core C7x/MMA processor that accelerates Deep Learning Tasks
 # this constant is used to convert cycles to time : time = cycles / DSP_FREQ
@@ -56,6 +56,27 @@ MEGA_CONST = 1e6  # convert raw data to mega : example bytes to mega bytes (MB)
 GIGA_CONST = 1e9
 ULTRA_CONST = 1e6
 
+# task_type
+TASK_TYPE_CLASSIFICATION = 'classification'
+TASK_TYPE_DETECTION = 'detection'
+TASK_TYPE_SEGMENTATION = 'segmentation'
+TASK_TYPE_KEYPOINT_DETECTION = 'keypoint_detection'
+TASK_TYPE_DEPTH_ESTIMATION = 'depth_estimation'
+TASK_TYPE_DETECTION_3DOD = 'detection_3d'
+TASK_TYPE_OBJECT_6D_POSE_ESTIMATION = 'object_6d_pose_estimation'
+TASK_TYPE_VISUAL_LOCALIZATION = 'visual_localization'
+
+TASK_TYPES = [
+    TASK_TYPE_CLASSIFICATION,
+    TASK_TYPE_DETECTION,
+    TASK_TYPE_SEGMENTATION,
+    TASK_TYPE_KEYPOINT_DETECTION,
+    TASK_TYPE_DEPTH_ESTIMATION,
+    TASK_TYPE_DETECTION_3DOD,
+    TASK_TYPE_OBJECT_6D_POSE_ESTIMATION,
+    TASK_TYPE_VISUAL_LOCALIZATION
+]
+
 # supported model types
 MODEL_TYPE_ONNX = 'onnx'
 MODEL_TYPE_TFLITE = 'tflite'
@@ -66,12 +87,13 @@ MODEL_TYPES = [MODEL_TYPE_ONNX, MODEL_TYPE_TFLITE, MODEL_TYPE_MXNET]
 SESSION_NAME_TVMDLR = 'tvmdlr'
 SESSION_NAME_TFLITERT = 'tflitert'
 SESSION_NAME_ONNXRT = 'onnxrt'
-SESSION_NAMES = [SESSION_NAME_TVMDLR, SESSION_NAME_TFLITERT, SESSION_NAME_ONNXRT]
-SESSION_NAMES_DICT = {SESSION_NAME_TVMDLR:'TVM', SESSION_NAME_TFLITERT:'TFL', SESSION_NAME_ONNXRT:'ONR'}
+SESSION_NAMES = [SESSION_NAME_ONNXRT, SESSION_NAME_TFLITERT, SESSION_NAME_TVMDLR]
+SESSION_NAMES_DICT = {SESSION_NAME_ONNXRT:'ONR', SESSION_NAME_TFLITERT:'TFL', SESSION_NAME_TVMDLR:'TVM'}
 
 # target devices/socs supported.
 TARGET_DEVICE_TDA4VM = 'TDA4VM'
 TARGET_DEVICE_AM62A = 'AM62A'
+TARGET_DEVICE_AM67A = 'AM67A'
 TARGET_DEVICE_AM68A = 'AM68A'
 TARGET_DEVICE_AM69A = 'AM69A'
 TARGET_DEVICE_AM62 = 'AM62'
@@ -108,10 +130,17 @@ TARGET_DEVICE_SETTINGS_PRESETS = {
     },
     TARGET_DEVICE_AM62A : {
         'runtime_options': {
-            #'advanced_options:quantization_scale_type': 4
+            'advanced_options:quantization_scale_type': 4
         },
         # we can use fewer number of calibration images and iterations if per channel asymmetric quantization is enabled
-        #'fast_calibration_factor': FAST_CALIBRATION_FACTOR
+        'fast_calibration_factor': FAST_CALIBRATION_FACTOR
+    },
+    TARGET_DEVICE_AM67A: {
+        'runtime_options': {
+            'advanced_options:quantization_scale_type': 4
+        },
+        # we can use fewer number of calibration images and iterations if per channel asymmetric quantization is enabled
+        'fast_calibration_factor': FAST_CALIBRATION_FACTOR
     },
     TARGET_DEVICE_AM68A : {
         'runtime_options': {

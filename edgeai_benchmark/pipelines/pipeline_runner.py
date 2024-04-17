@@ -37,12 +37,19 @@ from .. import utils
 from .. import datasets
 from .model_transformation import *
 from .accuracy_pipeline import *
+from .gen_config_pipeline import *
 from .. import preprocess
 
 
 class PipelineRunner():
     def __init__(self, settings, pipeline_configs):
         self.settings = settings
+        self.pipeline_configs = self.filter_pipeline_configs(pipeline_configs)
+
+    def get_pipeline_configs(self):
+        return self.pipeline_configs
+
+    def filter_pipeline_configs(self, pipeline_configs):
         for model_id, pipeline_config in pipeline_configs.items():
             # set model_id in each config
             pipeline_config['session'].set_param('model_id', model_id)
@@ -62,39 +69,61 @@ class PipelineRunner():
             # #
         #
         # short list a set of models based on the wild card given in model_selection
-        pipelines_selected = {}
+        pipelines_selected1 = {}
         for model_id, pipeline_config in pipeline_configs.items():
             if self._check_model_selection(self.settings, pipeline_config):
-                pipelines_selected.update({model_id: pipeline_config})
+                pipelines_selected1.update({model_id: pipeline_config})
             #
         #
-        if settings.config_range is not None:
-            pipelines_selected = dict(itertools.islice(pipelines_selected.items(), *settings.config_range))
+
+        # additional filtering required
+        if self.settings.pipeline_type == constants.PIPELINE_GEN_CONFIG:
+            pipelines_selected = {}
+            pipelines_selected1_ordered = {}
+            # we will go in this order of preference
+            for supported_session_name in constants.SESSION_NAMES:
+                for model_id, pipeline_config in pipelines_selected1.items():
+                    model_path = pipeline_config['session'].kwargs['model_path']
+                    session_name = pipeline_config['session'].kwargs['session_name']
+                    if session_name == supported_session_name and model_path not in pipelines_selected1_ordered:
+                        pipelines_selected1_ordered.update({model_path: (model_id, pipeline_config)})
+                    #
+                #
+            #
+            for model_path, (model_id, pipeline_config) in pipelines_selected1_ordered.items():
+                pipelines_selected.update({model_id: pipeline_config})
+            #
+        else:
+            pipelines_selected = pipelines_selected1
         #
-        if settings.model_transformation_dict is not None:
-            pipelines_selected = model_transformation(settings, pipelines_selected)
+
+        if self.settings.config_range is not None:
+            pipelines_selected = dict(itertools.islice(pipelines_selected.items(), *self.settings.config_range))
         #
-        self.pipeline_configs = pipelines_selected
+        if self.settings.model_transformation_dict is not None:
+            pipelines_selected = model_transformation(self.settings, pipelines_selected)
+        #
 
         # check the datasets and download if they are missing
         pipeline_config_dataset_list = []
-        for pipeline_key, pipeline_config in self.pipeline_configs.items():
+        for pipeline_key, pipeline_config in pipelines_selected.items():
             pipeline_config_dataset_list.append(pipeline_config['calibration_dataset'])
             pipeline_config_dataset_list.append(pipeline_config['input_dataset'])
         #
         # sending dataset_list to download_datasets will cause only those to be downloaded
-        download_ok = datasets.download_datasets(settings, dataset_list=pipeline_config_dataset_list)
+        download_ok = datasets.download_datasets(self.settings, dataset_list=pipeline_config_dataset_list)
         # populate the dataset objects into the pipeline_configs
-        for pipeline_key, pipeline_config in self.pipeline_configs.items():
+        for pipeline_key, pipeline_config in pipelines_selected.items():
             if isinstance(pipeline_config['calibration_dataset'], str):
                 dataset_category_name = pipeline_config['calibration_dataset']
-                pipeline_config['calibration_dataset'] = copy.deepcopy(settings.dataset_cache[dataset_category_name]['calibration_dataset'])
+                pipeline_config['calibration_dataset'] = copy.deepcopy(self.settings.dataset_cache[dataset_category_name]['calibration_dataset'])
             #
             if isinstance(pipeline_config['input_dataset'], str):
                 dataset_category_name = pipeline_config['input_dataset']
-                pipeline_config['input_dataset'] = copy.deepcopy(settings.dataset_cache[dataset_category_name]['input_dataset'])
+                pipeline_config['input_dataset'] = copy.deepcopy(self.settings.dataset_cache[dataset_category_name]['input_dataset'])
             #
         #
+        return pipelines_selected
 
     def run(self):
         if self.settings.parallel_processes in (None, 0):
@@ -147,12 +176,12 @@ class PipelineRunner():
                 accuracy_result = accuracy_pipeline(description)
                 result.update(accuracy_result)
             #
-        elif settings.pipeline_type == constants.PIPELINE_SOMETHING:
+        elif settings.pipeline_type == constants.PIPELINE_GEN_CONFIG:
             # this is just an example of how other pipelines can be implemented.
             # 'something' used here is not real and it is not supported
-            with SomethingPipeline(settings, pipeline_config) as something_pipeline:
-                something_result = something_pipeline(description)
-                result.update(something_result)
+            with GenConfigPipeline(settings, pipeline_config) as gen_config_pipeline:
+                gen_config_result = gen_config_pipeline(description)
+                result.update(gen_config_result)
             #
         else:
             assert False, f'unknown pipeline: {settings.pipeline_type}'

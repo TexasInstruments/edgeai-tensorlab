@@ -41,7 +41,7 @@ class PostProcessTransforms(utils.TransformsCompose):
     ###############################################################
     # post process transforms for classification
     ###############################################################
-    def get_transform_none(self):
+    def get_transform_none(self, **kwargs):
         postprocess_none = []
         transforms = PostProcessTransforms(None, postprocess_none)
         return transforms
@@ -61,8 +61,13 @@ class PostProcessTransforms(utils.TransformsCompose):
     # post process transforms for detection
     ###############################################################
     def get_transform_detection_base(self, formatter=None, resize_with_pad=False, keypoint=False, object6dpose=False, normalized_detections=True,
-                                     shuffle_indices=None, squeeze_axis=0, reshape_list=None, ignore_index=None):
-        postprocess_detection = [ReshapeList(reshape_list=reshape_list),
+                                     shuffle_indices=None, squeeze_axis=0, reshape_list=None, ignore_index=None, logits_bbox_to_bbox_ls=False):
+        
+        postprocess_detection = []
+        if logits_bbox_to_bbox_ls:
+            postprocess_detection += [LogitsToLabelScore()]
+        #
+        postprocess_detection += [ReshapeList(reshape_list=reshape_list),
                                  ShuffleList(indices=shuffle_indices),
                                  Concat(axis=-1, end_index=3)]
         if squeeze_axis is not None:
@@ -105,14 +110,14 @@ class PostProcessTransforms(utils.TransformsCompose):
                                            detection_threshold=self.settings.detection_threshold,
                                            save_output=self.settings.save_output, formatter=formatter, resize_with_pad=resize_with_pad,
                                            normalized_detections=normalized_detections, shuffle_indices=shuffle_indices,
-                                           squeeze_axis=squeeze_axis, ignore_index=ignore_index)
+                                           squeeze_axis=squeeze_axis, ignore_index=ignore_index, logits_bbox_to_bbox_ls=logits_bbox_to_bbox_ls)
         return transforms
 
     def get_transform_detection_onnx(self, formatter=None, **kwargs):
         return self.get_transform_detection_base(formatter=formatter, **kwargs)
 
-    def get_transform_detection_mmdet_onnx(self, formatter=None, **kwargs):
-        return self.get_transform_detection_base(formatter=formatter, reshape_list=[(-1,5), (-1,1)], **kwargs)
+    def get_transform_detection_mmdet_onnx(self, formatter=None, reshape_list=[(-1,5), (-1,1)],logits_bbox_to_bbox_ls=False, **kwargs):
+        return self.get_transform_detection_base(formatter=formatter, reshape_list=reshape_list,logits_bbox_to_bbox_ls=logits_bbox_to_bbox_ls, **kwargs)
 
     def get_transform_detection_yolov5_onnx(self, formatter=None, **kwargs):
         return self.get_transform_detection_base(formatter=formatter, reshape_list=[(-1,6)], **kwargs)
@@ -139,7 +144,7 @@ class PostProcessTransforms(utils.TransformsCompose):
     ###############################################################
     # post process transforms for segmentation
     ###############################################################
-    def get_transform_segmentation_base(self, data_layout, with_argmax=True):
+    def get_transform_segmentation_base(self, data_layout=None, with_argmax=True, **kwargs):
         postprocess_segmentation = [SqueezeAxis()]
         if with_argmax:
             postprocess_segmentation += [ArgMax(axis=None, data_layout=data_layout)]
@@ -165,7 +170,7 @@ class PostProcessTransforms(utils.TransformsCompose):
     ###############################################################
     # post process transforms for human pose estimation
     ###############################################################
-    def get_transform_human_pose_estimation_base(self, data_layout, with_udp=True):
+    def get_transform_human_pose_estimation_base(self, data_layout=None, with_udp=True, **kwargs):
         # channel_axis = -1 if data_layout == constants.NHWC else 1
         # postprocess_human_pose_estimation = [SqueezeAxis()] #just removes the first axis from output list, final size (c,w,h)
         postprocess_human_pose_estimation = [HumanPoseHeatmapParser(use_udp=with_udp),
@@ -185,7 +190,7 @@ class PostProcessTransforms(utils.TransformsCompose):
     ###############################################################
     # post process transforms for depth estimation
     ###############################################################
-    def get_transform_depth_estimation_base(self, data_layout):
+    def get_transform_depth_estimation_base(self, data_layout=None, **kwargs):
         postprocess_depth_estimation = [SqueezeAxis(),
                                         NPTensorToImage(data_layout=data_layout),
                                         DepthImageResize()]
@@ -197,10 +202,10 @@ class PostProcessTransforms(utils.TransformsCompose):
                                            save_output=self.settings.save_output)
         return transforms
 
-    def get_transform_depth_estimation_onnx(self, data_layout=constants.NCHW):
+    def get_transform_depth_estimation_onnx(self, data_layout=constants.NCHW, **kwargs):
         return self.get_transform_depth_estimation_base(data_layout=data_layout)
 
-    def get_transform_lidar_base(self):
+    def get_transform_lidar_base(self, **kwargs):
         postprocess_lidar = [
             OD3DOutPutPorcess(self.settings.detection_threshold)
         ]

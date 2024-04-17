@@ -31,34 +31,102 @@
 ##################################################################
 # target_device - use one of: TDA4VM AM62A AM68A AM69A
 # (Note: until r8.5 only TDA4VM was supported)
-TARGET_SOC=${1:-TDA4VM}
+TARGET_SOC=TDA4VM
 
 # leave this as pc - no change needed
 # pc: for model compilation and inference on PC, evm: for model inference on EVM
 # after compilation, run_package_artifacts_evm.sh can be used to format and package the compiled artifacts for evm
 TARGET_MACHINE=pc
 
-echo #############################################################
-echo "target_device/SOC: ${TARGET_SOC}"
-echo "Pass the appropriate commandline argument to use another target_device"
+# launch the python script with debugpy for remote attach
+DEBUG=false
+HOSTNAME=$(hostname)
+PORT=5678
 
 ##################################################################
+for arg in "$@"
+do 
+    case "$arg" in
+        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62")
+            TARGET_SOC=$arg
+            ;;
+        "-d"|"--debug")
+            DEBUG=true
+            ;;
+        "-h"|"--help")
+            cat << EOF
+Usage: $0 [OPTIONS] [TARGET_SOC]
+This script sets up the environment and runs benchmarking of a custom model configuration for a specified target device by calling the following:
+    ./scripts/benchmark_custom.py
+    ./scripts/generate_report.py
+
+To change the custom configuration, modify ./scripts/benchmark_custom.py.
+
+Options:
+-d, --debug     Launch the Python script with debugpy for remote attach.
+-h, --help      Display this help message and exit.
+
+TARGET_SOC:
+Specify the target device. Use one of: TDA4VM, AM62A, AM68A, AM69A. Defaults to TDA4VM.
+Note: Until r8.5, only TDA4VM was supported.  
+
+Debug Mode:
+If debug mode is enabled, the script will wait for a debugpy to attach at ${HOSTNAME}:${PORT}.
+See https://code.visualstudio.com/docs/python/debugging#_example for more info on using debugpy attach with VS Code.
+
+Example:
+$0 # defaults to TDA4VM, no debug
+$0 [-d|--debug] AM62A # select device with debug
+EOF
+            exit 0
+            ;;
+    esac
+done
+
+echo "TARGET_SOC:     ${TARGET_SOC}"
+echo "TARGET_MACHINE: ${TARGET_MACHINE}"
+echo "DEBUG MODE:     ${DEBUG} @ ${HOSTNAME}:${PORT}"
+##################################################################
+
 # set environment variables
 # also point to the right type of artifacts (pc or evm)
 source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 
 # specify one of the following - additional options can be changed inside the yaml
-#settings_file=settings_infer_on_evm.yaml
-#settings_file=settings_import_on_pc.yaml
-settings_file=settings_import_on_pc.yaml
+# SETTINGS=settings_infer_on_evm.yaml
+SETTINGS=settings_import_on_pc.yaml
+##################################################################
 
+PYARGS1="./scripts/benchmark_custom.py ${SETTINGS} --target_device ${TARGET_SOC}"
+PYARGS2="./scripts/generate_report.py ${SETTINGS}"
+PYDEBUG="python3 -m debugpy --listen ${HOSTNAME}:${PORT} --wait-for-client"
+echo "==================================================================="
+
+if $DEBUG
+then
+    # Launch script 1, waiting for debugger attachment.
+    echo "Waiting for attach @ ${HOSTNAME}:${PORT} to debug the following:"
+    echo ${PYARGS1} 
+    echo "See --help for more info."
+    ${PYDEBUG} ${PYARGS1}
+    [ $? -ne 0 ] && exit # Continue only on prior success.
+    echo "-------------------------------------------------------------------"
+    
+    # Launch script 2, waiting for debugger attachment.
+    echo "Waiting for attach @ ${HOSTNAME}:${PORT} to debug the following:"
+    echo ${PYARGS2} 
+    echo "See --help for more info."
+    ${PYDEBUG} ${PYARGS2}            
+    echo "-------------------------------------------------------------------"
+else
+    # Launch script 1.
+    python3 ${PYARGS1}
+    [ $? -ne 0 ] && exit # Continue only on prior success.
+    echo "-------------------------------------------------------------------"
+
+    # Launch script 2.
+    python3 ${PYARGS2}
+    echo "-------------------------------------------------------------------"
+fi
 
 echo "==================================================================="
-## run all the shortlisted models with these settings
-python3 ./scripts/benchmark_custom.py ${settings_file} --target_device ${TARGET_SOC}
-echo "-------------------------------------------------------------------"
-
-echo "==================================================================="
-# generate the final report with results for all the artifacts generated
-python3 ./scripts/generate_report.py ${settings_file}
-echo "-------------------------------------------------------------------"

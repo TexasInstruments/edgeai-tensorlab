@@ -26,30 +26,19 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os
-from .get_configs_from_module import *
-from .get_configs_from_file import *
+
+from .. import utils
 
 
-def get_configs(settings, work_dir):
-    is_config_file = (os.path.splitext(settings.configs_path)[-1] == '.yaml')
-    if is_config_file:
-        print(f'Using model config(s) from file: {settings.configs_path}')
-        pipeline_configs = get_configs_from_file(settings, work_dir)
-    else:
-        print(f'Using model configs from Python module: {settings.configs_path}')
-        pipeline_configs = get_configs_from_module(settings, work_dir)
-    #
+def get_configs_from_module(settings, work_dir):
+    # import the configs module
+    configs_module = utils.import_folder(settings.configs_path)
+    pipeline_configs = configs_module.get_configs(settings, work_dir)
     return pipeline_configs
 
-
-def select_configs(settings, work_dir, session_name=None, remove_models=False):
-    is_config_file = (os.path.splitext(settings.configs_path)[-1] == '.yaml')
-    if is_config_file:
-        print(f'Selecting model config(s) from file: {settings.configs_path}')
-        pipeline_configs = select_configs_from_file(settings, work_dir, session_name=session_name, remove_models=remove_models)
-    else:
-        print(f'Selecting model configs from Python module: {settings.configs_path}')
-        pipeline_configs = select_configs_from_module(settings, work_dir, session_name=session_name, remove_models=remove_models)
-    #
+def select_configs_from_module(settings, work_dir, session_name=None, remove_models=False):
+    # import the configs module
+    configs_module = utils.import_folder(settings.configs_path)
+    pipeline_configs = configs_module.select_configs(settings, work_dir, session_name, remove_models)
     return pipeline_configs
+

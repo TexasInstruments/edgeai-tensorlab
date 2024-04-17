@@ -43,10 +43,10 @@ def _progress_miniters(iterable, total=None):
     return miniters
 
 
-def _progress_format(desc_len=60, colors=None):
-    if colors is not None:
-        assert len(colors) == 4, f'colors must have length 4'
-        format_arg = (colors[0], desc_len, colors[1], colors[2], colors[3], Fore.RESET)
+def _progress_format(desc_len=60, color_map=None):
+    if color_map is not None:
+        assert len(color_map) == 4, f'color_map must have length 4'
+        format_arg = (color_map[0], desc_len, color_map[1], color_map[2], color_map[3], Fore.RESET)
         bar_format = '%s{desc:%s}|%s{percentage:4.0f}%%|%s{bar:10}|%s{r_bar}%s' % format_arg
     else:
         bar_format = '{desc:%s}|{percentage:4.0f}%%|{bar:10}|{r_bar}' % desc_len
@@ -62,12 +62,12 @@ def _progress_desc(desc, desc_len=60):
 
 ######################################################################
 def progress_step_tqdm(iterable, desc, total=None, miniters=None, mininterval=10.0, bar_format=None,
-                       desc_len=60, file=sys.stdout, leave=True, colors=None, **kwargs):
+                       desc_len=60, file=sys.stdout, leave=True, color_map=None, **kwargs):
     """
     Uses a tqdm variant that updates only once in a while
     """
     return TqdmStep(iterable=iterable, desc=desc, total=total, miniters=miniters, mininterval=mininterval,
-                bar_format=bar_format, file=file, leave=leave, desc_len=desc_len, colors=colors, **kwargs)
+                bar_format=bar_format, file=file, leave=leave, desc_len=desc_len, color_map=color_map, **kwargs)
 
 
 class TqdmStep(tqdm):
@@ -76,11 +76,11 @@ class TqdmStep(tqdm):
     and also updates only once in a while
     """
     def __init__(self, iterable, desc=None, total=None, bar_format=None, miniters=None, mininterval=30.0,
-                 desc_len=60, colors=None, **kwargs):
+                 desc_len=60, color_map=None, **kwargs):
         desc = _progress_desc(desc, desc_len)
         # somehow controlling update interval with miniters doesn't work (gets overwritten to 1)
         # miniters = _progress_miniters(iterable, total) if miniters is None else miniters
-        bar_format = _progress_format(desc_len, colors) if bar_format is None else bar_format
+        bar_format = _progress_format(desc_len, color_map) if bar_format is None else bar_format
         super().__init__(iterable, desc=desc, total=total, bar_format=bar_format, miniters=miniters, mininterval=mininterval, **kwargs)
         # display bar even before the first iteration. useful if the first iteration itself  takes some time
         display_time_bar(desc, num_completed=0, total=self.total, start_time=0, end_time=0, file=self.fp)
@@ -89,8 +89,8 @@ class TqdmStep(tqdm):
 ######################################################################
 # a lighter version of progress_step that doesn't use tqdm
 # this prints the iteration descriptor even before the first iteration
-def progress_step_lite(iterable, desc, desc_len=60, total=None, miniters=None, colors=None, **kwargs):
-    return ProgressStepLite(iterable, desc, total=total, miniters=miniters, colors=colors, desc_len=desc_len, **kwargs)
+def progress_step_lite(iterable, desc, desc_len=60, total=None, miniters=None, color_map=None, **kwargs):
+    return ProgressStepLite(iterable, desc, total=total, miniters=miniters, color_map=color_map, desc_len=desc_len, **kwargs)
 
 
 class ProgressStepLite:
@@ -102,7 +102,7 @@ class ProgressStepLite:
     2021 Feb 16
     """
     def __init__(self, iterable, desc, total=None, miniters=1, file=None,
-                 desc_len=60, colors=None, position=0, **kwargs):
+                 desc_len=60, color_map=None, position=0, **kwargs):
         super().__init__()
         self.total = iterable.__len__() if hasattr(iterable, '__len__') else total
         miniters = _progress_miniters(iterable, total) if miniters is None else miniters
@@ -110,7 +110,7 @@ class ProgressStepLite:
         self.desc = _progress_desc(desc, desc_len)
         self.step_size = miniters
         self.file = file if file is not None else sys.stdout
-        self.colors = colors
+        self.color_map = color_map
         self.position = position
         self.num_completed = 0
         self.start_time = time.time()
@@ -134,7 +134,7 @@ class ProgressStepLite:
         if force or (self.num_completed % self.step_size) == 0 or (self.num_completed == self.total):
             self._set_position()
             display_time_bar(self.desc, self.num_completed, total=self.total, start_time=self.start_time,
-                             end_time=end_time, file=self.file, colors=self.colors)
+                             end_time=end_time, file=self.file, color_map=self.color_map)
             self._reset_position()
         #
 

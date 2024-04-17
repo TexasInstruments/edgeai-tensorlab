@@ -114,7 +114,7 @@ class YCBV(DatasetBase):
         ]
 
         self.classes = ['__background__'] + self.cats
-        self.num_classes = len(self.classes)
+        self.kwargs['num_classes'] = self.num_classes = len(self.classes)
         self._class_to_ind = dict(zip(self.classes, range(self.num_classes)))
         self._class_to_coco_ind = dict(zip(self.cats, self.coco_dataset.getCatIds()))
         self.img_ids = self.coco_dataset.getImgIds()
@@ -147,6 +147,7 @@ class YCBV(DatasetBase):
                 dataset_store[key] = dict(dataset_store[key])
             #
         #
+        dataset_store.update(dict(color_map=self.get_color_map()))        
         return dataset_store
 
     def download(self, path, split):

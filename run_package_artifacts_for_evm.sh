@@ -31,28 +31,76 @@
 ##################################################################
 # target_device - use one of: TDA4VM AM62A AM68A AM69A
 # (Note: until r8.5 only TDA4VM was supported)
-TARGET_SOC=${1:-TDA4VM}
+TARGET_SOC=TDA4VM
 
 # leave this as evm - no change needed
 # after compilation, run_package_artifacts_evm.sh can be used to format and package the compiled artifacts for evm
 TARGET_MACHINE=evm
 
-echo #############################################################
-echo "target_device/SOC: ${TARGET_SOC}"
-echo "Pass the appropriate commandline argument to use another target_device"
+# launch the python script with debugpy for remote attach
+DEBUG=false
+HOSTNAME=$(hostname)
+PORT=5678
 
 ##################################################################
+for arg in "$@"
+do 
+    case "$arg" in
+        "-d"|"--debug")
+            DEBUG=true
+            ;;
+        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62")
+            TARGET_SOC=$arg
+            ;;
+        "-h"|"--help")
+            cat << EOF
+Usage: $0 [OPTIONS] [TARGET_SOC]
+This script prepares compilation artifacts for usage on EVM by calling the following:
+    ./scripts/package_artifacts.py
+
+Options:
+-d, --debug     Launch the Python script with debugpy for remote attach.
+-h, --help      Display this help message and exit.
+
+TARGET_SOC:
+Specify the target device. Use one of: TDA4VM, AM62A, AM68A, AM69A. Defaults to TDA4VM.
+Note: Until r8.5, only TDA4VM was supported.
+
+Debug Mode:
+If debug mode is enabled, the script will wait for a debugpy to attach at ${HOSTNAME}:${PORT}.
+See https://code.visualstudio.com/docs/python/debugging#_example for more info on using debugpy attach with VS Code.
+
+Example:
+$0 # defaults to TDA4VM, no debug
+$0 [-d|--debug] AM62A # select device with debug
+EOF
+            exit 0
+            ;;
+    esac
+done
+##################################################################
+
 # set environment variables
 # also point to the right type of artifacts (pc or evm)
 source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 
+# specify one of the following - additional options can be changed inside the yaml
+# SETTINGS=settings_infer_on_evm.yaml
+SETTINGS=settings_infer_on_evm.yaml
+##################################################################
 
-# specify one of the following settings - options can be changed inside the yaml
-#settings_file=settings_infer_on_evm.yaml
-#settings_file=settings_import_on_pc.yaml
-settings_file=settings_infer_on_evm.yaml
-
+PYARGS="./scripts/package_artifacts.py ${SETTINGS} --target_device ${TARGET_SOC}"
+PYDEBUG="python3 -m debugpy --listen ${HOSTNAME}:${PORT} --wait-for-client"
 echo "==================================================================="
-# package the artifacts generated
-python3 ./scripts/package_artifacts.py ${settings_file} --target_device ${TARGET_SOC} ${@:2}
-echo "-------------------------------------------------------------------"
+
+if $DEBUG
+then
+    echo "Waiting for attach @ ${HOSTNAME}:${PORT} to debug..." 
+    echo "See --help for more info."
+    ${PYDEBUG} ${PYARGS}
+    echo "-------------------------------------------------------------------"
+else
+    python3 ${PYARGS}
+    echo "-------------------------------------------------------------------"
+fi
+echo "==================================================================="

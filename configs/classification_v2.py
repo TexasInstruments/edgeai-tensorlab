@@ -138,51 +138,59 @@ def get_configs(settings, work_dir):
         'cl-6600':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(),
-                model_path=f'/data/hdd/users/a0508577/work/other/varun_model_classification/deit_tiny_1.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+                model_path=f'../edgeai-modelforest/models/vision/experimental/deit_tiny_1.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=80)
         ),
         'cl-6610':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(),
-                model_path=f'/data/hdd/users/a0508577/work/other/varun_model_classification/deit_small_patch16_224_sim.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+                model_path=f'../edgeai-modelforest/models/vision/experimental/deit_small_patch16_224_sim.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=80)
         ),
         'cl-6620':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(),
-                model_path=f'/data/hdd/users/a0508577/work/other/varun_model_classification/deit3_small_patch16_224_sim.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+                model_path=f'../edgeai-modelforest/models/vision/experimental/deit3_small_patch16_224_sim.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=80)
         ),
         'cl-6630':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(),
-                model_path=f'/data/hdd/users/a0508577/work/other/varun_model_classification/swin_tiny_1.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+                model_path=f'../edgeai-modelforest/models/vision/experimental/swin_tiny_1.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=80)
         ),
         'cl-6640':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(),
-                model_path=f'/data/hdd/users/a0508577/work/other/varun_model_classification/swin_base_patch4_window12_384_1.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+                model_path=f'../edgeai-modelforest/models/vision/experimental/swin_base_patch4_window12_384_1.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=80)
         ),
         'cl-6650':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(),
-                model_path=f'/data/hdd/users/a0508577/work/other/varun_model_classification/swinv2_tiny_window8_256_sim.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+                model_path=f'../edgeai-modelforest/models/vision/experimental/swinv2_tiny_window8_256_sim.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=80)
         ),
         'cl-6660':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+                model_path=f'../edgeai-modelforest/models/vision/experimental/swinv2_base_window12to24_192to384_22kft1k.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=80)
+        ),
+        #regnet_x_16gf
+        'cl-6670':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_np2(),
-                model_path=f'/data/hdd/users/a0508577/work/other/varun_model_classification/swinv2_base_window12to24_192to384_22kft1k.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
+                model_path=f'../edgeai-modelforest/models/vision/experimental/regnet_x_16gf.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':79.67}, model_shortlist=100)
         ),
         ################################## QAT models using Pytorch native QAT ##########################
         # edgeai-torchvison: classification mobilenetv2_224x224 pytorch-qat-perchannel expected_metric: 72.476% top-1 accuracy

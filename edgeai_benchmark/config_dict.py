@@ -184,3 +184,5 @@ class ConfigDict(utils.AttrDict):
         self.target_device_preset = True
         # some models can use faster calibration (fewer frames and iterations)
         self.fast_calibration_factor = None
+        # cna use this file as template to cleanup model config file
+        self.param_template_file = None

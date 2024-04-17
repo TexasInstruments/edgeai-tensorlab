@@ -30,6 +30,7 @@ import os
 import sys
 import argparse
 from .. import utils, pipelines, config_settings, datasets
+from .get_configs import *
 
 __all__ = ['run_accuracy']
 
@@ -48,12 +49,10 @@ def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_fun
 
     # get the default configs if pipeline_configs is not given from outside
     if pipeline_configs is None:
-        # import the configs module
-        configs_module = utils.import_folder(settings.configs_path)
+        # get a dict of model configs
+        pipeline_configs = get_configs(settings, work_dir)
         # initialize datasets
         initialize_ok = datasets.initialize_datasets(settings)
-        # get the configs for supported models as a dictionary
-        pipeline_configs = configs_module.get_configs(settings, work_dir)
     #
 
     # create the pipeline_runner which will manage the sessions.

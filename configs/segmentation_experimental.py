@@ -83,7 +83,7 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################mlperf models###################################
         #------------------------robokit models-----------------------
-        # 'ss-8810': utils.dict_update(robokitseg_cfg,
+        # 'ss-7610': utils.dict_update(robokitseg_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_np2(),
