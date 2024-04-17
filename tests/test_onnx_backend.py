@@ -414,7 +414,7 @@ def test_onnx_backend_node(tidl_offload : bool, run_infer : bool, node_tests_roo
     '''
     Pytest for onnx backend node tests using the edgeai-benchmark framework
     Note command-line options --disable-tidl-offload (disable offload to TIDL) and --run-infer (default is import, this enables inference after import)
-    Example of running a single test: pytest test_onnx_backend_node[test_conv_with_strides_no_padding] --disable-tidl-offload
+    Example of running a single test: test_onnx_backend.py::test_onnx_backend_node[test_conv_with_strides_no_padding] --disable-tidl-offload
     '''
     test_dir = os.path.join(node_tests_root_fixture, test_name)
     test_onnx_backend(tidl_offload = tidl_offload, 
@@ -428,7 +428,7 @@ def test_onnx_backend_simple(tidl_offload : bool, run_infer : bool, simple_tests
     '''
     Pytest for onnx backend node tests using the edgeai-benchmark framework
     Note command-line options --disable-tidl-offload (disable offload to TIDL) and --run-infer (default is import, this enables inference after import)
-    Example of running a single test: pytest test_onnx_backend_simple[test_expand_shape_model1] --disable-tidl-offload
+    Example of running a single test: test_onnx_backend.py::test_onnx_backend_simple[test_expand_shape_model1] --disable-tidl-offload
     '''
     test_dir = os.path.join(simple_tests_root_fixture, test_name)
     test_onnx_backend(tidl_offload = tidl_offload, 
@@ -442,7 +442,7 @@ def test_onnx_backend_pc(tidl_offload : bool, run_infer : bool, pc_tests_root_fi
     '''
     Pytest for onnx backend node tests using the edgeai-benchmark framework
     Note command-line options --disable-tidl-offload (disable offload to TIDL) and --run-infer (default is import, this enables inference after import)
-    Example of running a single test: pytest test_onnx_backend_pc[test_AvgPool1d] --disable-tidl-offload
+    Example of running a single test: test_onnx_backend.py::test_onnx_backend_pc[test_AvgPool1d] --disable-tidl-offload
     '''
     test_dir = os.path.join(pc_tests_root_fixture, test_name)
     test_onnx_backend(tidl_offload = tidl_offload, 
@@ -455,7 +455,7 @@ def test_onnx_backend_po(tidl_offload : bool, run_infer : bool, po_tests_root_fi
     '''
     Pytest for onnx backend node tests using the edgeai-benchmark framework
     Note command-line options --disable-tidl-offload (disable offload to TIDL) and --run-infer (default is import, this enables inference after import)
-    Example of running a single test: pytest test_onnx_backend_po[test_operator_add_broadcast] --disable-tidl-offload
+    Example of running a single test: test_onnx_backend.py::test_onnx_backend_po[test_operator_add_broadcast] --disable-tidl-offload
     '''
     test_dir = os.path.join(po_tests_root_fixture, test_name)
     test_onnx_backend(tidl_offload = tidl_offload, 
