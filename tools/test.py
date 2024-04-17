@@ -186,7 +186,7 @@ def main():
         #
         test_loader = runner.build_dataloader(runner._test_dataloader)
         example_input = next(iter(test_loader))
-        runner.model = xmodelopt.quantization.v1.QuantTrainModule(runner.model, dummy_input=example_input,
+        runner.model = runner.model.quant_init(xmodelopt.quantization.v1.QuantTestModule, dummy_input=example_input,
                                                                   total_epochs=runner.max_epochs)
         runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
     elif args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V2:
@@ -203,7 +203,7 @@ def main():
     #
 
     #print("\n\n model summary : \n",runner.model)
-    
+
     # start testing
     runner.test()
 
