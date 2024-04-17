@@ -163,7 +163,8 @@ def main():
             #
             test_loader = runner.build_dataloader(runner._test_dataloader)
             example_input = next(iter(test_loader))
-            runner.model = runner.model.quant_init(xmodelopt.quantization.v1.QuantTrainModule, dummy_input=example_input,
+            quant_wrapper = xmodelopt.quantization.v1.QuantTrainModule
+            runner.model = runner.model.quant_init(quant_wrapper, dummy_input=example_input,
                                                                       total_epochs=runner.max_epochs)
             runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
         elif args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V2:
@@ -172,7 +173,8 @@ def main():
             #
             if hasattr(runner.model, 'quant_init'):
                 print('wrapping the model to prepare for quantization')
-                runner.model = runner.model.quant_init(xmodelopt.quantization.v2.QATFxModule, total_epochs=runner.max_epochs)
+                quant_wrapper = xmodelopt.quantization.v2.QATFxModule
+                runner.model = runner.model.quant_init(quant_wrapper, total_epochs=runner.max_epochs)
             else:
                 raise RuntimeError(f'quant_init method is not supported for {type(runner.model)}')
 
