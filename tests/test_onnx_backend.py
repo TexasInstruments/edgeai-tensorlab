@@ -7,24 +7,43 @@ import pytest
 import onnx
 '''
 Pytest file for ONNX Backend tests
-Note: Pass in --disable-tidl-offload to pytest command in order to compile just for CPU
+Note: Pass in --disable-tidl-offload to pytest command in order to disable TIDL offload
+Note: Pass in --run-infer to pytest command in order to run inference (default is import which must be done first)
 '''
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-# TODO: Extend tests to check correctness (might need to create new accuracy pipeline?)
-# TODO: Maybe integrate within ONNX's formal backend test framework
+# TODO: Maybe integrate within ONNX's formal backend test framework using Backend class
+# TODO: Add onnx backend full model tests
 
 # Use onnx import to find backend node test root
-onnx_root       = os.path.dirname(onnx.__file__)
-node_tests_root = os.path.join(onnx_root, "backend/test/data/node")
+onnx_root         = os.path.dirname(onnx.__file__)
+data_root         = os.path.join(onnx_root, "backend/test/data")
+node_tests_root   = os.path.join(data_root, "node")
+pc_tests_root     = os.path.join(data_root, "pytorch-converted")
+po_tests_root     = os.path.join(data_root, "pytorch-operator")
+simple_tests_root = os.path.join(data_root, "simple")
 
-# Fixture to pass node_tests_root to tests
+# Fixtures to pass root dirs to tests
 @pytest.fixture
 def node_tests_root_fixture():
     return node_tests_root
+
+# pytorch-converted
+@pytest.fixture
+def pc_tests_root_fixture():
+    return pc_tests_root
+
+# pytorch-operator
+@pytest.fixture
+def po_tests_root_fixture():
+    return po_tests_root
+
+@pytest.fixture
+def simple_tests_root_fixture():
+    return simple_tests_root
 
 @pytest.fixture(scope="session")
 def tidl_offload(pytestconfig):
@@ -358,17 +377,18 @@ other_fails = [
 # crashes without message
 'test_cast_FLOAT16_to_DOUBLE', \
 
-# crashes entire shell
-'test_prelu_example', \
+# hangs
 'test_batchnorm_example',\
 'test_batchnorm_example_training_mode',\
-
-# hangs
 'test_quantizelinear_axis',\
 'test_dequantizelinear',\
 'test_reshape_reordered_last_dims',\
+'test_reshape_zero_and_negative_dim',\
+'test_reshape_zero_dim'
 'test_gemm_transposeB',\
+'test_gemm_default_zero_bias',\
 'test_dequantizelinear_axis',\
+'test_prelu_example', \
 
 # Calling ialg.algAlloc failed with status = -1120
 'test_div', \
@@ -380,56 +400,101 @@ other_fails = [
 known_failing_test_cases = cpu_failing_testcases + other_fails + fatal_python_error 
 
 node_tests_to_run = os.listdir(node_tests_root)
-
 # Uncomment below line to filter out known failures
 # node_tests_to_run = [node_test for node_test in os.listdir(node_tests_root) if node_test not in known_failing_test_cases]
 
+simple_tests_to_run = os.listdir(simple_tests_root)
+pc_tests_to_run     = os.listdir(pc_tests_root)
+po_tests_to_run     = os.listdir(po_tests_root)
+
+
 # Test onnx node test
-@pytest.mark.parametrize("node_name", node_tests_to_run)
-def test_onnx_backend_node(tidl_offload : bool, run_infer : bool, node_tests_root_fixture : str, node_name : str):
+@pytest.mark.parametrize("test_name", node_tests_to_run)
+def test_onnx_backend_node(tidl_offload : bool, run_infer : bool, node_tests_root_fixture : str, test_name : str):
     '''
     Pytest for onnx backend node tests using the edgeai-benchmark framework
+    Note command-line options --disable-offload (disable offload to TIDL) and --run-infer (default is import, this enables inference after import)
+    Example of running a single test: pytest test_onnx_backend_node[test_conv_with_strides_no_padding] --disable-offload
     '''
+    test_dir = os.path.join(node_tests_root_fixture, test_name)
+    test_onnx_backend(tidl_offload = tidl_offload, 
+                      run_infer    = run_infer, 
+                      test_dir     = test_dir)
 
-    test_dir = os.path.join(node_tests_root_fixture, node_name)
+
+# Test onnx simple test
+@pytest.mark.parametrize("test_name", simple_tests_to_run)
+def test_onnx_backend_simple(tidl_offload : bool, run_infer : bool, simple_tests_root_fixture : str, test_name : str):
+    '''
+    Pytest for onnx backend node tests using the edgeai-benchmark framework
+    Note command-line options --disable-offload (disable offload to TIDL) and --run-infer (default is import, this enables inference after import)
+    Example of running a single test: pytest test_onnx_backend_simple[test_expand_shape_model1] --disable-offload
+    '''
+    test_dir = os.path.join(simple_tests_root_fixture, test_name)
+    test_onnx_backend(tidl_offload = tidl_offload, 
+                      run_infer    = run_infer, 
+                      test_dir     = test_dir)
+    
+
+# Test onnx pytorch-converted test
+@pytest.mark.parametrize("test_name", pc_tests_to_run)
+def test_onnx_backend_pc(tidl_offload : bool, run_infer : bool, pc_tests_root_fixture : str, test_name : str):
+    '''
+    Pytest for onnx backend node tests using the edgeai-benchmark framework
+    Note command-line options --disable-offload (disable offload to TIDL) and --run-infer (default is import, this enables inference after import)
+    Example of running a single test: pytest test_onnx_backend_pc[test_AvgPool1d] --disable-offload
+    '''
+    test_dir = os.path.join(pc_tests_root_fixture, test_name)
+    test_onnx_backend(tidl_offload = tidl_offload, 
+                      run_infer    = run_infer, 
+                      test_dir     = test_dir)
+
+# Test onnx pytorch-operator test
+@pytest.mark.parametrize("test_name", po_tests_to_run)
+def test_onnx_backend_po(tidl_offload : bool, run_infer : bool, po_tests_root_fixture : str, test_name : str):
+    '''
+    Pytest for onnx backend node tests using the edgeai-benchmark framework
+    Note command-line options --disable-offload (disable offload to TIDL) and --run-infer (default is import, this enables inference after import)
+    Example of running a single test: pytest test_onnx_backend_po[test_operator_add_broadcast] --disable-offload
+    '''
+    test_dir = os.path.join(po_tests_root_fixture, test_name)
+    test_onnx_backend(tidl_offload = tidl_offload, 
+                      run_infer    = run_infer, 
+                      test_dir     = test_dir)
+
+
+# Utility function to perform onnx backend test
+def test_onnx_backend(tidl_offload : bool, run_infer : bool, test_dir : str):
   
     # Check environment is set up correctly
     assert os.path.exists(test_dir), f"test path {test_dir} doesn't exist"
     assert os.environ.get('TIDL_RT_AVX_REF') is not None, "Make sure to source run_set_env.sh"
     assert os.path.exists(os.environ['TIDL_TOOLS_PATH'])
     assert os.path.exists(os.environ['ARM64_GCC_PATH'])
-    assert os.environ['TIDL_ARTIFACT_SYMLINKS'] == '1'
-    assert os.environ['TIDL_RT_DDR_STATS'] == '1'
-    assert os.environ['TIDL_RT_PERFSTATS'] == '1'
 
+    # Declare config object
     settings = config_settings.ConfigSettings('./onnx_backend.yaml', target_device = "TDA4VM", tidl_offload=tidl_offload)
 
+    # Declare ONNX Session
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
-
-    session_name = constants.SESSION_NAME_ONNXRT
-
-    session_type = settings.get_session_type(session_name)
-    runtime_options = settings.get_runtime_options(session_name, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, is_qat=False, debug_level = 3)
-    
-    preproc_transforms = preprocess.PreProcessTransforms(settings)
-    postproc_transforms = postprocess.PostProcessTransforms(settings)
-
+    session_name     = constants.SESSION_NAME_ONNXRT
+    session_type     = settings.get_session_type(session_name)
+    runtime_options  = settings.get_runtime_options(session_name, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, is_qat=False, debug_level = 3)
     onnx_session_cfg = sessions.get_nomeanscale_session_cfg(settings, work_dir=work_dir)
-   
+    session          = session_type(**onnx_session_cfg, runtime_options=runtime_options, model_path=os.path.join(test_dir, "model.onnx"))
+
+    # Declare dataset
     ob_dataset  = datasets.ONNXBackendDataset(path = test_dir)
 
+    # Declare pipeline configs to 
     pipeline_configs = {
-        node_name: dict(
-            task_type='classification',
+        os.path.basename(test_dir): dict(
             dataset_category = datasets.DATASET_CATEGORY_IMAGENET,
             calibration_dataset=ob_dataset,
             input_dataset=ob_dataset,
-            preprocess=preproc_transforms.get_transform_none(),
-            session=session_type(**onnx_session_cfg,
-                runtime_options=runtime_options,
-                model_path=os.path.join(test_dir, "model.onnx")),
-            postprocess=postproc_transforms.get_transform_none(),
-            model_info=dict(metric_reference={'accuracy_top1%':71.88})
+            preprocess=preprocess.PreProcessTransforms(settings).get_transform_none(),
+            session=session,
+            postprocess=postprocess.PostProcessTransforms(settings).get_transform_none(),
         ),
     }
   
@@ -451,18 +516,6 @@ def test_onnx_backend_node(tidl_offload : bool, run_infer : bool, node_tests_roo
         interfaces.run_accuracy(settings, work_dir, pipeline_configs)
 
 
-    
-
-    
-    
-
-
-
-# TODO: Add onnx backend model tests
-
-# out_dir = f'{work_dir}_package'
-# os.makedirs(out_dir)
-# interfaces.package_artifacts(settings, work_dir, out_dir)
 
 
 
