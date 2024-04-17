@@ -2,13 +2,16 @@
 import argparse
 import os
 import os.path as osp
+import warnings
 
 from mmengine.config import Config, DictAction
 from mmengine.registry import RUNNERS
 from mmengine.runner import Runner
+from mmengine.model import is_model_wrapper
 
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 
+from edgeai_torchmodelopt import xmodelopt
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a detector')
@@ -50,6 +53,8 @@ def parse_args():
     # will pass the `--local-rank` parameter to `tools/train.py` instead
     # of `--local_rank`.
     parser.add_argument('--local_rank', '--local-rank', type=int, default=0)
+    parser.add_argument('--model-surgery', type=int, default=0)
+    parser.add_argument('--quantization', type=int, default=0)
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
@@ -104,6 +109,16 @@ def main():
         cfg.resume = True
         cfg.load_from = args.resume
 
+    if args.quantization and 'custom_hooks' in cfg:
+        hooks_to_remove = ['EMAHook']
+        for hook_type in hooks_to_remove:
+            if any([hook_cfg.type == hook_type for hook_cfg in cfg.custom_hooks]):
+                warnings.warn(f'{hook_type} is currently not supported in quantization - removing it')
+            #
+            cfg.custom_hooks = [hook_cfg for hook_cfg in cfg.custom_hooks if hook_cfg.type != hook_type]
+        #
+    #
+
     # build the runner from config
     if 'runner_type' not in cfg:
         # build the default runner
@@ -112,6 +127,53 @@ def main():
         # build customized runner from the registry
         # if 'runner_type' is set in the cfg
         runner = RUNNERS.build(cfg)
+
+    # model surgery
+    if args.model_surgery:
+        surgery_fn = xmodelopt.surgery.v1.convert_to_lite_model if args.model_surgery == 1 \
+                     else (xmodelopt.surgery.v2.convert_to_lite_fx if args.model_surgery == 2 else None)
+        
+        runner._init_model_weights()
+        if is_model_wrapper(runner.model):
+            runner.model = runner.model.module
+        runner.model.backbone = surgery_fn(runner.model.backbone)
+        runner.model.neck = surgery_fn(runner.model.neck)
+        # Only head_module of head goes through model_surgery as it contains all compute layers
+        if not isinstance(runner.model.bbox_head.head_module, (YOLOv5HeadModule, YOLOv7HeadModule, YOLOv8HeadModule, YOLOv6HeadModule)):
+            if hasattr(runner.model.bbox_head.head_module, 'reg_max'):
+                reg_max = runner.model.bbox_head.head_module.reg_max
+            else:
+                reg_max = None
+            runner.model.bbox_head.head_module = \
+                surgery_fn(runner.model.bbox_head.head_module)
+            if reg_max is not None:
+                runner.model.bbox_head.head_module.reg_max = reg_max
+        elif isinstance(runner.model.bbox_head.head_module, (YOLOv8HeadModule, YOLOv6HeadModule)):
+            runner.model.bbox_head.head_module = xmodelopt.surgery.v1.convert_to_lite_model(runner.model.bbox_head.head_module)
+        runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
+
+    if args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V1:
+        if is_model_wrapper(runner.model):
+            runner.model = runner.model.module
+        #
+        test_loader = runner.build_dataloader(runner._test_dataloader)
+        example_input = next(iter(test_loader))
+        runner.model = xmodelopt.quantization.v1.QuantTrainModule(runner.model, dummy_input=example_input, total_epochs=runner.max_epochs)
+        runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
+    elif args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V2:
+        if is_model_wrapper(runner.model):
+            runner.model = runner.model.module
+        #
+        if hasattr(runner.model, 'quant_init'):
+            print('wrapping the model to prepare for quantization')
+            runner.model = runner.model.quant_init(xmodelopt.quantization.v2.QATFxModule, total_epochs=runner.max_epochs)
+        else:
+            raise RuntimeError(f'quant_init method is not supported for {type(runner.model)}')
+
+        runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
+    #
+
+    #print("\n\n model summary : \n",runner.model)
 
     # start training
     runner.train()
