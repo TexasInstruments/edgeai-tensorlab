@@ -36,10 +36,10 @@ class ONNXBackendDataset(DatasetBase):
             np_array                 = numpy_helper.to_array((tensor))
             tensor_name              = tensor.name if tensor.name is not "" else "x"
             if("input_" in fname):
-                self.inputs[tensor.name] = np_array
+                self.inputs[tensor_name] = np_array
             else:
                 assert "output_" in fname
-                self.expected_outputs[tensor.name] = np_array
+                self.expected_outputs[tensor_name] = np_array
 
         super().__init__(**kwargs)
         ...
