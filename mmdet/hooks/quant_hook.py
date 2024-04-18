@@ -53,7 +53,7 @@ class QATFxHook(QuantBaseHook):
     def __init__(self, is_qat=True):
         self.is_qat = is_qat
 
-    def before_run(self, runner) -> None:
+    def _quant_init(self, runner) -> None:
         cfg = runner.cfg
         if not cfg.quantization:
             return
@@ -91,6 +91,12 @@ class QATFxHook(QuantBaseHook):
             if is_wrapped:
                 runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
             #
+
+    def before_train(self, runner) -> None:
+        return self._quant_init(runner)
+
+    def before_val(self, runner) -> None:
+        return self._quant_init(runner)
 
 
 @HOOKS.register_module()
