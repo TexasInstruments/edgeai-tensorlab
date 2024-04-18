@@ -37,8 +37,6 @@ __all__ = ['run_accuracy']
 
 def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_func=None):
     
-    
-
     # verify that targt device is correct
     if settings.target_device is not None and 'TIDL_TOOLS_PATH' in os.environ and \
             os.environ['TIDL_TOOLS_PATH'] is not None:
