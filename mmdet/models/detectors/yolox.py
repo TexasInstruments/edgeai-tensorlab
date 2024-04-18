@@ -42,6 +42,20 @@ class YOLOX(SingleStageDetector):
             data_preprocessor=data_preprocessor,
             init_cfg=init_cfg)
 
+    def surgery_init(self, surgery_wrapper, **kwargs):
+        self.backbone = surgery_wrapper(self.backbone, **kwargs)
+        self.neck = surgery_wrapper(self.neck, **kwargs)
+        # handle self.bbox_head
+        num_heads = len(self.bbox_head.multi_level_cls_convs)
+        for head_index in range(num_heads):
+            self.bbox_head.multi_level_cls_convs[head_index] = surgery_wrapper(self.bbox_head.multi_level_cls_convs[head_index], **kwargs)
+            self.bbox_head.multi_level_reg_convs[head_index] = surgery_wrapper(self.bbox_head.multi_level_reg_convs[head_index], **kwargs)
+            self.bbox_head.multi_level_conv_cls[head_index] = surgery_wrapper(self.bbox_head.multi_level_conv_cls[head_index], **kwargs)
+            self.bbox_head.multi_level_conv_reg[head_index] = surgery_wrapper(self.bbox_head.multi_level_conv_reg[head_index], **kwargs)
+            self.bbox_head.multi_level_conv_obj[head_index] = surgery_wrapper(self.bbox_head.multi_level_conv_obj[head_index], **kwargs)
+        #
+        return self
+
     def quant_init(self, quant_wrapper, **kwargs):
         self.backbone = quant_wrapper(self.backbone, **kwargs)
         self.neck = quant_wrapper(self.neck, **kwargs)
@@ -50,9 +64,9 @@ class YOLOX(SingleStageDetector):
         for head_index in range(num_heads):
             self.bbox_head.multi_level_cls_convs[head_index] = quant_wrapper(self.bbox_head.multi_level_cls_convs[head_index], **kwargs)
             self.bbox_head.multi_level_reg_convs[head_index] = quant_wrapper(self.bbox_head.multi_level_reg_convs[head_index], **kwargs)
-            self.bbox_head.multi_level_conv_cls[head_index] = quant_wrapper(self.bbox_head.multi_level_conv_cls[head_index], passthrough_attributes=('bias',), **kwargs)
+            self.bbox_head.multi_level_conv_cls[head_index] = quant_wrapper(self.bbox_head.multi_level_conv_cls[head_index], **kwargs)
             self.bbox_head.multi_level_conv_reg[head_index] = quant_wrapper(self.bbox_head.multi_level_conv_reg[head_index], **kwargs)
-            self.bbox_head.multi_level_conv_obj[head_index] = quant_wrapper(self.bbox_head.multi_level_conv_obj[head_index], passthrough_attributes=('bias',), **kwargs)
+            self.bbox_head.multi_level_conv_obj[head_index] = quant_wrapper(self.bbox_head.multi_level_conv_obj[head_index], **kwargs)
         #
         return self
 

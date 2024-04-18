@@ -9,6 +9,7 @@ from mmengine.registry import RUNNERS
 from mmengine.runner import Runner
 from mmengine.model import is_model_wrapper
 
+import mmdet.hooks
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 
 from edgeai_torchmodelopt import xmodelopt
@@ -109,8 +110,8 @@ def main():
         cfg.resume = True
         cfg.load_from = args.resume
 
+    cfg.quantization = args.quantization
     if args.quantization:
-        cfg.quantization = args.quantization
         if 'custom_hooks' in cfg:
             hooks_to_remove = ['EMAHook']
             for hook_type in hooks_to_remove:
@@ -119,6 +120,19 @@ def main():
                 #
                 cfg.custom_hooks = [hook_cfg for hook_cfg in cfg.custom_hooks if hook_cfg.type != hook_type]
             #
+        else:
+            cfg.custom_hooks = []
+        #
+        quant_hook_exists = False
+        for hook_cfg in cfg.custom_hooks:
+            if hook_cfg.type in mmdet.hooks.quant_hook.all:
+                quant_hook_exists = True
+            #
+        #
+        if not quant_hook_exists:
+            cfg.custom_hooks += [dict(
+                type='QATFxHook'
+            )]
         #
     #
 
@@ -133,54 +147,25 @@ def main():
 
     # model surgery
     if args.model_surgery:
-        surgery_fn = xmodelopt.surgery.v1.convert_to_lite_model if args.model_surgery == 1 \
-                     else (xmodelopt.surgery.v2.convert_to_lite_fx if args.model_surgery == 2 else None)
-        
         runner._init_model_weights()
+
+        surgery_wrapper = xmodelopt.surgery.v1.convert_to_lite_model if args.model_surgery == 1 \
+                     else (xmodelopt.surgery.v2.convert_to_lite_fx if args.model_surgery == 2 else None)
+
+        is_wrapped = False
         if is_model_wrapper(runner.model):
             runner.model = runner.model.module
-        runner.model.backbone = surgery_fn(runner.model.backbone)
-        runner.model.neck = surgery_fn(runner.model.neck)
-        # Only head_module of head goes through model_surgery as it contains all compute layers
-        if not isinstance(runner.model.bbox_head.head_module, (YOLOv5HeadModule, YOLOv7HeadModule, YOLOv8HeadModule, YOLOv6HeadModule)):
-            if hasattr(runner.model.bbox_head.head_module, 'reg_max'):
-                reg_max = runner.model.bbox_head.head_module.reg_max
-            else:
-                reg_max = None
-            runner.model.bbox_head.head_module = \
-                surgery_fn(runner.model.bbox_head.head_module)
-            if reg_max is not None:
-                runner.model.bbox_head.head_module.reg_max = reg_max
-        elif isinstance(runner.model.bbox_head.head_module, (YOLOv8HeadModule, YOLOv6HeadModule)):
-            runner.model.bbox_head.head_module = xmodelopt.surgery.v1.convert_to_lite_model(runner.model.bbox_head.head_module)
-        runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
-
-    if args.quantization:
-        # wrap the model
-        if args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V1:
-            if is_model_wrapper(runner.model):
-                runner.model = runner.model.module
-            #
-            test_loader = runner.build_dataloader(runner._test_dataloader)
-            example_input = next(iter(test_loader))
-            quant_wrapper = xmodelopt.quantization.v1.QuantTrainModule
-            runner.model = runner.model.quant_init(quant_wrapper, dummy_input=example_input,
-                                                                      total_epochs=runner.max_epochs)
-            runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
-        elif args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V2:
-            if is_model_wrapper(runner.model):
-                runner.model = runner.model.module
-            #
-            if hasattr(runner.model, 'quant_init'):
-                print('wrapping the model to prepare for quantization')
-                quant_wrapper = xmodelopt.quantization.v2.QATFxModule
-                runner.model = runner.model.quant_init(quant_wrapper, total_epochs=runner.max_epochs)
-            else:
-                raise RuntimeError(f'quant_init method is not supported for {type(runner.model)}')
-
+            is_wrapped = True
+        #
+        if hasattr(runner.model, 'surgery_init'):
+            print('wrapping the model to prepare for surgery')
+            runner.model = runner.model.surgery_init(surgery_wrapper, total_epochs=runner.max_epochs)
+        else:
+            raise RuntimeError(f'surgery_init method is not supported for {type(runner.model)}')
+        #
+        if is_wrapped:
             runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
         #
-    #
 
     #print("\n\n model summary : \n",runner.model)
 
