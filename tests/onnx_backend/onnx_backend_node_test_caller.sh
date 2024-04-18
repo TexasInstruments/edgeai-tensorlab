@@ -1,7 +1,7 @@
 #!/bin/bash
 # Note: The typical way to call a group of pytest tests would be using the pytest command
-#       This script is a workaround to interleave import and infer tests and recover from segmentation faults
-# Note: -capture=tee-sys will output stdout and stderr for each test,  --log-cli-level=DEBUG will set the global logging level
+#       This script is a workaround to try to get rid of discrepancies observed between running single tests and running large test suites
+#            Those discrepancies have not been seen lately (or at least have not been as common) -- delete this script if it doens't prove to be helpful
 
 log_fname=onnx_backend_tests_log.txt
 rm $log_fname
