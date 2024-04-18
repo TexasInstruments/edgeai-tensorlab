@@ -9,9 +9,8 @@ from mmengine.registry import RUNNERS
 from mmengine.runner import Runner
 from mmengine.model import is_model_wrapper
 
-import mmdet.hooks
 from mmdet.utils import setup_cache_size_limit_of_dynamo
-
+import mmdet.hooks
 from edgeai_torchmodelopt import xmodelopt
 
 def parse_args():
