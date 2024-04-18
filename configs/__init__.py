@@ -48,7 +48,7 @@ from . import miscllaneous
 def get_configs(settings, work_dir):
     # load the datasets - it is done only once and re-used for all configs
     if settings.dataset_cache is None:
-        settings.dataset_cache = datasets.get_datasets(settings)
+        settings.dataset_cache = datasets.get_datasets(settings, download=True)
     #
 
     pipeline_configs = {}
