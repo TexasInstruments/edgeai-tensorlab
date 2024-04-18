@@ -84,10 +84,6 @@ class PreProcessTransforms(utils.TransformsCompose):
                                       reverse_channels=reverse_channels, backend=backend, interpolation=interpolation,
                                       resize_with_pad=resize_with_pad, add_flip_image=add_flip_image, pad_color=pad_color)
         return transforms
-    
-    def get_transform_none(self):
-        transforms = PreProcessTransforms(None, [])
-        return transforms
 
     def get_transform_jai(self, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
                         backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False):
