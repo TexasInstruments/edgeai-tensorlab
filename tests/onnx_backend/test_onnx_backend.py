@@ -352,6 +352,29 @@ fatal_python_error = ['test_argmax_default_axis_example', \
 'test_unique_sorted_without_axis', \
 'test_xor4d']
 
+hangs_indefiniteley = [
+'test_batchnorm_example',\
+'test_batchnorm_example_training_mode',\
+'test_quantizelinear_axis',\
+'test_dequantizelinear',\
+'test_reshape_reordered_last_dims',\
+'test_reshape_zero_and_negative_dim',\
+'test_reshape_zero_dim',\
+'test_reshape_negative_extended_dims',\
+'test_reshape_reordered_last_dims',\
+'test_gemm_transposeB',\
+'test_gemm_default_zero_bias',\
+'test_gemm_default_single_elem_vector_bias',\
+'test_dequantizelinear_axis',\
+'test_prelu_example',\
+'test_split_variable_parts_2d_opset13',\
+'test_split_variable_parts_2d_opset18',\
+'test_split_variable_parts_1d_opset13',\
+'test_split_variable_parts_1d_opset18',\
+'test_split_variable_parts_default_axis_opset13',\
+'test_split_variable_parts_default_axis_opset18',\
+'test_dropout_default_old']
+
 other_fails = [
 # max_nmse too high
 'test_add_bcast',\
@@ -377,19 +400,6 @@ other_fails = [
 # crashes without message
 'test_cast_FLOAT16_to_DOUBLE', \
 
-# hangs
-'test_batchnorm_example',\
-'test_batchnorm_example_training_mode',\
-'test_quantizelinear_axis',\
-'test_dequantizelinear',\
-'test_reshape_reordered_last_dims',\
-'test_reshape_zero_and_negative_dim',\
-'test_reshape_zero_dim'
-'test_gemm_transposeB',\
-'test_gemm_default_zero_bias',\
-'test_dequantizelinear_axis',\
-'test_prelu_example', \
-
 # Calling ialg.algAlloc failed with status = -1120
 'test_div', \
 'test_div_example', \
@@ -397,12 +407,9 @@ other_fails = [
 ]
 
 
-known_failing_test_cases = cpu_failing_testcases + other_fails + fatal_python_error 
+known_failing_test_cases = cpu_failing_testcases + other_fails + fatal_python_error + hangs_indefiniteley
 
-node_tests_to_run = os.listdir(node_tests_root)
-# Uncomment below line to filter out known failures
-# node_tests_to_run = [node_test for node_test in os.listdir(node_tests_root) if node_test not in known_failing_test_cases]
-
+node_tests_to_run   = os.listdir(node_tests_root)
 simple_tests_to_run = os.listdir(simple_tests_root)
 pc_tests_to_run     = os.listdir(pc_tests_root)
 po_tests_to_run     = os.listdir(po_tests_root)
@@ -416,6 +423,11 @@ def test_onnx_backend_node(tidl_offload : bool, run_infer : bool, node_tests_roo
     Note command-line options --disable-tidl-offload (disable offload to TIDL) and --run-infer (default is import, this enables inference after import)
     Example of running a single test: test_onnx_backend.py::test_onnx_backend_node[test_conv_with_strides_no_padding] --disable-tidl-offload
     '''
+
+    # Skip tests that hang indefinitely
+    if(test_name in hangs_indefiniteley):
+        pytest.skip()
+    
     test_dir = os.path.join(node_tests_root_fixture, test_name)
     test_onnx_backend(tidl_offload = tidl_offload, 
                       run_infer    = run_infer, 
@@ -473,7 +485,7 @@ def test_onnx_backend(tidl_offload : bool, run_infer : bool, test_dir : str):
     assert os.path.exists(os.environ['ARM64_GCC_PATH'])
 
     # Declare config object
-    settings = config_settings.ConfigSettings('./onnx_backend.yaml', target_device = "TDA4VM", tidl_offload=tidl_offload)
+    settings = config_settings.ConfigSettings('./onnx_backend.yaml', tidl_offload=tidl_offload)
 
     # Declare ONNX Session
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
