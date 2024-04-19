@@ -51,6 +51,9 @@ class QuantFxBaseModule(torch.nn.Module):
 
     def train(self, *args, **kwargs):
         return quant_fx_func.train(self.module, *args, **kwargs)
+    
+    def calibrate(self, *args, **kwargs):
+        return quant_fx_func.calibrate(self.module, *args, **kwargs)
 
     def freeze(self, *args, **kwargs):
         return quant_fx_func.freeze(self.module, *args, **kwargs)

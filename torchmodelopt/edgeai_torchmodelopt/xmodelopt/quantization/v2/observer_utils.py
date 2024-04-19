@@ -151,8 +151,10 @@ class MovingAverageRangeShrinkHistogramObserverBase(MinMaxObserver):
         # r_min = torch.quantile(x_orig, quantile_l)
         # r_max = torch.quantile(x_orig, quantile_h)
         # r_min_max = (r_min, r_max)
-        r_min_max = xnn.utils.extrema_fast(x_orig, range_shrink_percentile=self.range_shrink_percentile)
-        return r_min_max
+        min_val, max_val = xnn.utils.extrema_fast(x_orig, range_shrink_percentile=self.range_shrink_percentile)
+        if torch.isnan(min_val) or torch.isnan(max_val):
+            return torch.min(x_orig), torch.max(x_orig)
+        return min_val, max_val
 
 
 class RangeShrinkHistogramObserverBase(MovingAverageRangeShrinkHistogramObserverBase):

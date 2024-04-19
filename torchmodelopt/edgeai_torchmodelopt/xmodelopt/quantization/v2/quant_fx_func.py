@@ -33,6 +33,13 @@ import types
 import os
 import torch
 from torch.ao.quantization import quantize_fx
+from torch.ao.quantization import QConfigMapping
+from torch.ao.quantization import FakeQuantize
+from torch.ao.quantization import get_default_qconfig
+import statistics
+import functools
+import types
+
 
 from .... import xnn
 
@@ -75,6 +82,7 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
     torch.backends.quantized.engine = backend
 
     qconfig_mapping = qconfig_types.get_qconfig_mapping(is_qat, backend, qconfig_type)
+    qconfig_mapping1 = QConfigMapping().set_global(get_default_qconfig("qnnpack"))
     if is_qat:
         model = quantize_fx.prepare_qat_fx(model, qconfig_mapping, example_inputs)
     else:
@@ -171,7 +179,8 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
 
 def train(self, mode: bool = True):
     # put the model in expected mode
-    self.__train_backup__(mode=mode)
+    if hasattr(self, "__train_backup__"):
+        self.__train_backup__(mode=mode)
     # also freeze the params if required
     if mode is True:
         # set the default epoch at which freeze occurs during training (if missing)
@@ -193,6 +202,12 @@ def train(self, mode: bool = True):
     #
     return self
 
+
+def calibrate(self, freeze_bn=True, freeze_observers=False):
+    self.eval()
+    freeze(self, freeze_bn, freeze_observers)
+    return self
+    
 
 def load_weights(self, pretrained, *args, strict=True, state_dict_name=None, **kwargs):
     data_dict = torch.load(self, pretrained, *args, **kwargs)
