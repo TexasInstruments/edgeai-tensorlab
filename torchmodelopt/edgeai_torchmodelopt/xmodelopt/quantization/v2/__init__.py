@@ -37,4 +37,3 @@ from .quant_fx_base import *
 from .quant_fx_module import *
 
 from . import quant_fx_func
-

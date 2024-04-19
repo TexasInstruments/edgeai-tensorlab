@@ -100,6 +100,7 @@ class MSEHistogramObserverBase(MovingAverageMSEHistogramObserverBase):
 RANGE_SHRINK_PERCENTILE_DEFAULT = 0.01
 RANGE_SHRINK_PERCENTILE_LOWBIT = 0.1
 
+
 class MovingAverageRangeShrinkHistogramObserverBase(MinMaxObserver):
     # histogram observer may improve accuracy.
     # default histogram observer in torch.ao.quantization is too slow - so using a custom one
