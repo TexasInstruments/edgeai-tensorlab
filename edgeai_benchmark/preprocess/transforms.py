@@ -215,6 +215,8 @@ class ImageNormMeanScale(object):
         """
         if isinstance(tensor, (list,tuple)):
             tensor = [F.normalize_mean_scale(t, self.mean, self.scale, self.data_layout, self.inplace) for t in tensor]
+        elif isinstance(tensor, dict):
+            tensor = {name:F.normalize_mean_scale(t, self.mean, self.scale, self.data_layout, self.inplace) for name, t in tensor.items()}
         else:
             tensor = F.normalize_mean_scale(tensor, self.mean, self.scale, self.data_layout, self.inplace)
         #

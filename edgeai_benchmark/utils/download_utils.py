@@ -426,15 +426,15 @@ def extract_archive(from_path: str, to_path: Optional[str] = None, remove_finish
     if _is_tar(from_path):
         mode = 'r' if mode is None else mode
         with tarfile.open(from_path, mode) as tar:
-            tar.extractall(path=to_path)
+            tar.extractall(path=to_path, filter='data')
     elif _is_targz(from_path) or _is_tgz(from_path):
         mode = 'r:gz' if mode is None else mode
         with tarfile.open(from_path, mode) as tar:
-            tar.extractall(path=to_path)
+            tar.extractall(path=to_path, filter='data')
     elif _is_tarxz(from_path):
         mode = 'r:xz' if mode is None else mode
         with tarfile.open(from_path, mode) as tar:
-            tar.extractall(path=to_path)
+            tar.extractall(path=to_path, filter='data')
     elif _is_gzip(from_path):
         mode = 'r' if mode is None else mode
         to_path = os.path.join(to_path, os.path.splitext(os.path.basename(from_path))[0])

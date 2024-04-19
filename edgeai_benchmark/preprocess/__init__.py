@@ -113,3 +113,6 @@ class PreProcessTransforms(utils.TransformsCompose):
 
         return transforms
 
+    def get_transform_none(self):
+        return PreProcessTransforms(self.settings, transforms=[])
+

@@ -54,13 +54,11 @@ class ONNXRTSession(BaseRTSession):
 
         # provide the calibration data and run the import
         for frame_idx, in_data in enumerate(calib_data):
-            if not isinstance(in_data, list):
-                in_data = utils.as_tuple(in_data)
+            calib_dict = self.get_in_dict(in_data)    
 
             if self.input_normalizer is not None:
-                in_data, _ = self.input_normalizer(in_data, {})
-            #
-            calib_dict = {getattr(d_info, 'name'):d for d_info, d in zip(self.interpreter.get_inputs(),in_data)}
+                calib_dict, _ = self.input_normalizer(calib_dict, {})
+            
             # model may need additional inputs given in extra_inputs
             if self.kwargs['extra_inputs'] is not None:
                 calib_dict.update(self.kwargs['extra_inputs'])
@@ -84,16 +82,24 @@ class ONNXRTSession(BaseRTSession):
         os.chdir(self.cwd)
         return True
 
+    def get_in_dict(self, in_data):
+        if not isinstance(in_data, list) and not isinstance(in_data, dict):
+            in_data = utils.as_tuple(in_data)        
+
+        if isinstance(in_data, dict):
+            return in_data
+        
+        return {getattr(d_info, 'name'):d for d_info, d in zip(self.interpreter.get_inputs(),in_data)}
+        
+
     def infer_frame(self, input, info_dict=None):
         super().infer_frame(input, info_dict)
 
-        if not isinstance(input, list):
-            in_data = utils.as_tuple(input)        
+        input_dict = self.get_in_dict(input)
 
         if self.input_normalizer is not None:
-            in_data, _ = self.input_normalizer(in_data, {})
-        #
-        input_dict = {getattr(d_info, 'name'):d for d_info, d in zip(self.interpreter.get_inputs(),in_data)}
+            input_dict, _ = self.input_normalizer(input_dict, {})
+
         # model needs additional inputs given in extra_inputs
         if self.kwargs['extra_inputs'] is not None:
             input_dict.update(self.kwargs['extra_inputs'])
