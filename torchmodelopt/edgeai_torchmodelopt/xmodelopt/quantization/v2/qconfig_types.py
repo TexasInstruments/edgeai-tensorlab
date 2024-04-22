@@ -80,6 +80,8 @@ class QConfigType():
     DISABLED = 0
     DEFAULT = "DEFAULT"                         # default behavior is same as that of WC8_AT8
     WC8_AT8 = "WC8_AT8"                         # per-channel quantization for weights, per-tensor quantization for activations
+    
+    MSA_WC8_AT8 = "MSA_WC8_AT8"                 # WC8_AT8 + no range shrink (mostly for attention networks with important peaks)
 
     WT8SYMP2_AT8SYMP2 = "WT8SYMP2_AT8SYMP2"     # per-tensor symmetric power-power-of-2 quantization for both weights and activations
     WC8SYMP2_AT8SYMP2 = "WC8SYMP2_AT8SYMP2"     # per-channel symmetric power-power-of-2 quantization for weights, per-tensor symmetric for activations
@@ -141,14 +143,15 @@ def get_activation_observer_from_dict(activation_qconfig):
                                              power2_scale=activation_qconfig.get('power2_scale', False),
                                              range_max=activation_qconfig.get('range_max', None),
                                              fixed_range=activation_qconfig.get('fixed_range', False),
-                                             class_name=activation_qconfig.get('observer_name', observer_name))
+                                             class_name=activation_qconfig.get('observer_name', observer_name),
+                                             range_shrink_percentile=activation_qconfig.get('range_shrink_percentile', 0.01))
     return activation_observer
 
 
 def get_qconfig_from_dict(qconfig_dict):
     # custom qconfig_type parameters are given in a dict
-    weight_observer = get_weight_observer_from_dict(qconfig_dict['weight'])
-    activation_observer = get_activation_observer_from_dict(qconfig_dict['activation'])
+    weight_observer = get_weight_observer_from_dict(qconfig_dict['weight']) if isinstance(qconfig_dict['weight'], dict) else qconfig_dict['weight']
+    activation_observer = get_activation_observer_from_dict(qconfig_dict['activation']) if isinstance(qconfig_dict['activation'], dict) else qconfig_dict['activation']
     qconfig_obj = QConfig(weight=fake_quanitze_types.AdaptiveWeightFakeQuantize.with_args(observer=weight_observer),
                           activation=fake_quanitze_types.AdaptiveActivationFakeQuantize.with_args(observer=activation_observer))
     return qconfig_obj
@@ -162,18 +165,23 @@ _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8] = get_qconfig_from_dict(dict(
     weight=dict(qscheme=torch.per_channel_symmetric),
     activation=dict(qscheme=torch.per_tensor_affine)))
 
+# per-channel transformers
+_QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8_AT8] = get_qconfig_from_dict(dict(
+    weight=dict(qscheme=torch.per_channel_symmetric),
+    activation=dict(qscheme=torch.per_tensor_affine, range_shrink_percentile=0)))
+
 # symmetric power-of-2
 _QCONFIG_TYPE_TO_DICT[QConfigType.WT8SYMP2_AT8SYMP2] = get_qconfig_from_dict(dict(
     weight=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True),
     activation=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True)))
 
 # per-channel symmetric power-of-2
-_QCONFIG_TYPE_TO_DICT[QConfigType.WC8SYMP2_AT8SYMP2] =get_qconfig_from_dict(dict(
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC8SYMP2_AT8SYMP2] = get_qconfig_from_dict(dict(
     weight=dict(qscheme=torch.per_channel_symmetric, power2_scale=True),
     activation=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True)))
 
 # per-channel symmetric power-of-2, fixed activation range
-_QCONFIG_TYPE_TO_DICT[QConfigType.WC8SYMP2_AT8SYMP2R4] =get_qconfig_from_dict(dict(
+_QCONFIG_TYPE_TO_DICT[QConfigType.WC8SYMP2_AT8SYMP2R4] = get_qconfig_from_dict(dict(
     weight=dict(qscheme=torch.per_channel_symmetric, power2_scale=True),
     activation=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True, rage_max=4, fixed_range=True)))
 
@@ -188,7 +196,8 @@ _QCONFIG_TYPE_TO_DICT[QConfigType.WC4M4_AT8] = get_qconfig_from_dict(dict(
     activation=dict(qscheme=torch.per_tensor_affine)))
 
 ###########
-_QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8]
+# _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8]
+_QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8_AT8]
 
 # Note: get_default_qat_qconfig from pytorch uses fused_moving_avg_obs_fake_quant and that cannot be exported to onnx
 #_QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = get_default_qat_qconfig()
