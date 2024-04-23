@@ -87,7 +87,7 @@ def _is_replacable(pattern:Union[GraphModule, nn.Module, callable]):
     return True
 
 
-def replace_unsupported_layers(model:nn.Module,replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, verbose_mode:bool=False):
+def replace_unsupported_layers(model:nn.Module, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[], verbose_mode:bool=False):
     '''
     main function that does the surgery
 
@@ -129,7 +129,7 @@ def replace_unsupported_layers(model:nn.Module,replacement_dict:Dict[Any,Union[n
         else:
             # class of MOdule of
             if isinstance(pattern, type):
-                replace_module_nodes(model, pattern, replacement, verbose_mode=verbose_mode)
+                replace_module_nodes(model, pattern, replacement, copy_args=copy_args, verbose_mode=verbose_mode)
             else:
                 # for nn.Module
                 if pattern.__class__.__name__ in dir(torch.nn):
