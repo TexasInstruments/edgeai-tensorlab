@@ -37,6 +37,8 @@ from torch.ao.quantization import QConfigMapping
 from torch.ao.quantization import FakeQuantize
 import statistics
 import functools
+from torch.onnx import symbolic_helper
+from torch.onnx._internal import jit_utils
 
 from .... import xnn
 
@@ -145,3 +147,16 @@ def adaptive_freeze_layers(self, fake_quant_types, **kwargs):
               f"num_frozen_layers:{len(self.__quant_params__.forzen_layer_names_list)}/{num_total_layers} "
               f"frozen_layers:{self.__quant_params__.forzen_layer_names_list} ")
     #
+
+
+def quantized_softmax(g: jit_utils.GraphContext, x, dim, op_scale, op_zero_point):
+    x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
+    output = g.op("Softmax", x)
+    return symbolic_helper.quantize_helper(g, output, op_scale, op_zero_point)
+
+
+def quantized_matmul(g: jit_utils.GraphContext, x, y, op_scale, op_zero_point):
+    x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
+    y, _, _, _ = symbolic_helper.dequantize_helper(g, y)
+    output = g.op("MatMul", x, y)
+    return symbolic_helper.quantize_helper(g, output, op_scale, op_zero_point)
