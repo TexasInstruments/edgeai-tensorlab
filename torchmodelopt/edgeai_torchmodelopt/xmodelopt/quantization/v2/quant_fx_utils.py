@@ -187,6 +187,7 @@ class QuantAttention(nn.Module):
         self.attn_drop = nn.Dropout(attn_drop)
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
+        self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         B, N, C = x.shape
@@ -196,7 +197,7 @@ class QuantAttention(nn.Module):
 
         q = torch.mul(q, torch.tensor(self.scale))
         attn = torch.matmul(q, k.transpose(-2, -1))
-        attn = attn.softmax(dim=-1)
+        attn = self.softmax(attn)
         attn = self.attn_drop(attn)
         x = torch.matmul(attn, v)
 
