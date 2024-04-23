@@ -205,3 +205,26 @@ class QuantAttention(nn.Module):
         x = self.proj(x)
         x = self.proj_drop(x)
         return x
+
+
+@torch.fx.wrap
+def LayerNormWithoutGB(x, eps):
+    mean = torch.mean(x, dim=-1, keepdim=True)
+    var = torch.square(x - mean).mean(dim=-1, keepdim=True)
+    return (x - mean) / torch.sqrt(var + eps)
+
+
+class QuantLayerNorm(torch.nn.Module):
+    
+    def __init__(self, 
+                 normalized_shape = tuple(), 
+                 eps: float = 1e-5, 
+                 elementwise_affine: bool = True,
+                 device=None, dtype=None):
+        super().__init__()
+                
+    def forward(self, x):
+        y = LayerNormWithoutGB(x, self.eps)
+        y = torch.mul(y, self.weight)
+        y = torch.add(y, self.bias)
+        return y
