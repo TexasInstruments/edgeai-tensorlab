@@ -1,7 +1,4 @@
 import os
-import tempfile
-import argparse
-import cv2
 from edgeai_benchmark import *
 import pytest
 import onnx
@@ -14,8 +11,8 @@ Note: Pass in --run-infer to pytest command in order to run inference (default i
 '''
 
 import logging
-
 logger = logging.getLogger(__name__)
+logger.setLevel("INFO")
 
 # TODO: Maybe integrate within ONNX's formal backend test framework using Backend class
 # TODO: Add onnx backend full model tests
@@ -77,7 +74,7 @@ def test_onnx_backend_node(tidl_offload : bool, run_infer : bool, node_tests_roo
         pytest.skip()
 
     test_dir = os.path.join(node_tests_root_fixture, test_name)
-    test_onnx_backend(tidl_offload = tidl_offload, 
+    perform_onnx_backend(tidl_offload = tidl_offload, 
                       run_infer    = run_infer, 
                       test_dir     = test_dir)
 
@@ -91,7 +88,7 @@ def test_onnx_backend_simple(tidl_offload : bool, run_infer : bool, simple_tests
     Example of running a single test: test_onnx_backend.py::test_onnx_backend_simple[test_expand_shape_model1] --disable-tidl-offload
     '''
     test_dir = os.path.join(simple_tests_root_fixture, test_name)
-    test_onnx_backend(tidl_offload = tidl_offload, 
+    perform_onnx_backend(tidl_offload = tidl_offload, 
                       run_infer    = run_infer, 
                       test_dir     = test_dir)
     
@@ -105,7 +102,7 @@ def test_onnx_backend_pc(tidl_offload : bool, run_infer : bool, pc_tests_root_fi
     Example of running a single test: test_onnx_backend.py::test_onnx_backend_pc[test_AvgPool1d] --disable-tidl-offload
     '''
     test_dir = os.path.join(pc_tests_root_fixture, test_name)
-    test_onnx_backend(tidl_offload = tidl_offload, 
+    perform_onnx_backend(tidl_offload = tidl_offload, 
                       run_infer    = run_infer, 
                       test_dir     = test_dir)
 
@@ -118,13 +115,13 @@ def test_onnx_backend_po(tidl_offload : bool, run_infer : bool, po_tests_root_fi
     Example of running a single test: test_onnx_backend.py::test_onnx_backend_po[test_operator_add_broadcast] --disable-tidl-offload
     '''
     test_dir = os.path.join(po_tests_root_fixture, test_name)
-    test_onnx_backend(tidl_offload = tidl_offload, 
+    perform_onnx_backend(tidl_offload = tidl_offload, 
                       run_infer    = run_infer, 
                       test_dir     = test_dir)
 
 
 # Utility function to perform onnx backend test
-def test_onnx_backend(tidl_offload : bool, run_infer : bool, test_dir : str):
+def perform_onnx_backend(tidl_offload : bool, run_infer : bool, test_dir : str):
   
     # Check environment is set up correctly
     assert os.path.exists(test_dir), f"test path {test_dir} doesn't exist"
@@ -133,7 +130,8 @@ def test_onnx_backend(tidl_offload : bool, run_infer : bool, test_dir : str):
     assert os.path.exists(os.environ['ARM64_GCC_PATH'])
 
     # Declare config object
-    settings = config_settings.ConfigSettings('./onnx_backend.yaml', tidl_offload=tidl_offload)
+    cur_dir = os.path.dirname(__file__)
+    settings = config_settings.ConfigSettings(os.path.join(cur_dir,'onnx_backend.yaml'), tidl_offload=tidl_offload)
 
     # Declare ONNX Session
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
@@ -165,10 +163,13 @@ def test_onnx_backend(tidl_offload : bool, run_infer : bool, test_dir : str):
         settings.run_import    = False
         settings.run_inference = True
         results_list = interfaces.run_accuracy(settings, work_dir, pipeline_configs)
+        
+        assert len(results_list) > 0, " Results not found!!!! "
         logger.debug(results_list[0]['result'])
         
         # TODO: Choose better threshold. 0.5 chosen for now to reveal worst offenders
-        assert results_list[0]['result']['max_nmse']<0.5, f" max_nmse of {results_list[0]['result']['max_nmse']} is too high"
+        if(results_list[0]['result']['max_nmse']>0.5):
+            pytest.fail(f" max_nmse of {results_list[0]['result']['max_nmse']} is too high")
     
     # Otherwise run import
     else:
