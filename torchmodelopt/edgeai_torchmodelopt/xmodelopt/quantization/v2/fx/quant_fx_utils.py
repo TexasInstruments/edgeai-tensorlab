@@ -39,7 +39,10 @@ import statistics
 import functools
 from torch.onnx import symbolic_helper
 from torch.onnx._internal import jit_utils
+<<<<<<< HEAD
 from torch import nn
+=======
+>>>>>>> dd585c7 (fix quantized export)
 
 from ..... import xnn
 
@@ -160,6 +163,7 @@ def quantized_matmul(g: jit_utils.GraphContext, x, y, op_scale, op_zero_point):
     x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
     y, _, _, _ = symbolic_helper.dequantize_helper(g, y)
     output = g.op("MatMul", x, y)
+<<<<<<< HEAD
     return symbolic_helper.quantize_helper(g, output, op_scale, op_zero_point)
 
 
@@ -241,3 +245,6 @@ class QuantLayerNorm(torch.nn.Module):
         y = torch.mul(y, self.weight)
         y = torch.add(y, self.bias)
         return y
+=======
+    return symbolic_helper.quantize_helper(g, output, op_scale, op_zero_point)
+>>>>>>> dd585c7 (fix quantized export)

@@ -41,6 +41,7 @@ import statistics
 import functools
 import types
 from torch.onnx import register_custom_op_symbolic
+import copy
 
 
 from ..... import xnn
@@ -112,7 +113,6 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
     torch.backends.quantized.engine = backend
 
     qconfig_mapping = qconfig_types.get_qconfig_mapping(is_qat, backend, qconfig_type)
-    qconfig_mapping1 = QConfigMapping().set_global(get_default_qconfig("qnnpack"))
     if is_qat:
         model = quantize_fx.prepare_qat_fx(model, qconfig_mapping, example_inputs)
     else:
