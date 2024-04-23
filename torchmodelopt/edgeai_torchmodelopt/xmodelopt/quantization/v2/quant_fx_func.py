@@ -163,12 +163,13 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
         symbolic_fn=quant_fx_utils.quantized_softmax, 
         opset_version=17)
     
-    self = convert(self)
+    model = copy.deepcopy(self)
+    model = convert(model)
     if model_quant_format == ModelQuantFormat.INT_MODEL:
         # # Convert QDQ format to Int8 format
         import onnxruntime as ort
         qdq_filename = os.path.splitext(filename)[0] + '_qdq.onnx'
-        torch.onnx.export(self, example_input.to('cpu'), qdq_filename, opset_version=opset_version)
+        torch.onnx.export(model, example_input.to('cpu'), qdq_filename, opset_version=opset_version)
         so = ort.SessionOptions()
         so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
         so.optimized_model_filepath = filename
@@ -178,7 +179,7 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
             os.remove(qdq_filename)
         #
     else:
-        torch.onnx.export(self, example_input.to('cpu'), filename, opset_version=opset_version)
+        torch.onnx.export(model, example_input.to('cpu'), filename, opset_version=opset_version)
     #
     if simplify:
         import onnx

@@ -32,7 +32,7 @@
 import enum
 import warnings
 import torch
-from torch.ao.quantization import QConfig, QConfigMapping, get_default_qat_qconfig
+from torch.ao.quantization import QConfig, QConfigMapping, get_default_qat_qconfig, get_default_qconfig_mapping
 from torch.ao.quantization import MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver, \
     FakeQuantize, FusedMovingAvgObsFakeQuantize
 
