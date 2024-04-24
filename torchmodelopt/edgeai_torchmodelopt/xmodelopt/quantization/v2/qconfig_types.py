@@ -276,3 +276,45 @@ def adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type):
         #
     #
     return model
+
+
+def adjust_matmul_inputs_qconfig(model):
+    # setting symmetric quantization scheme for the inputs of the matmul
+    for node in model.graph.nodes:
+        for n_id in node.users:
+            if n_id.target=='output':
+                continue
+            if n_id.target==torch.matmul:
+                if "softmax" in str(node.args[0].args[0].args[0].target): # TODO make better
+                    pass
+                else:
+                    f = getattr(model, str(node))
+                    f.activation_post_process.symmetric = True
+                    setattr(model, str(node), f)  
+                #
+            #
+        #
+    #
+    return model
+
+def adjust_fc_outlier_supression(model):
+    all_modules = dict(model.named_modules())
+    for node in model.graph.nodes:
+        if node.name.endswith('mlp_fc2'):
+            new_activation_observer = xnn.utils.partialclass(observer_types.AdaptiveOutlierRemovalActivationObserver,
+                quant_min=all_modules[node.next.target].activation_post_process.quant_min,
+                quant_max=all_modules[node.next.target].activation_post_process.quant_max,
+                dtype=all_modules[node.next.target].activation_post_process.dtype,
+                qscheme=all_modules[node.next.target].activation_post_process.qscheme,
+                power2_scale=all_modules[node.next.target].activation_post_process.power2_scale,
+                range_max=all_modules[node.next.target].activation_post_process.range_max,
+                fixed_range=all_modules[node.next.target].activation_post_process.fixed_range,
+                class_name='OutlierRemoval' + all_modules[node.next.target].activation_post_process._get_name(),
+                range_shrink_percentile=all_modules[node.next.target].activation_post_process.range_shrink_percentile)   
+            orig_fake_quantize = getattr(model, str(node.next))
+            new_fake_quantize = fake_quanitze_types.AdaptiveActivationFakeQuantize.with_args(observer=new_activation_observer)
+            setattr(model, str(node.next), new_fake_quantize().to(orig_fake_quantize.zero_point.device))
+            #
+        #
+    #
+    return model

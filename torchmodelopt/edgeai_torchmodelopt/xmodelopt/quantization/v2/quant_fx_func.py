@@ -88,23 +88,6 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
     else:
         model = quantize_fx.prepare_fx(model, qconfig_mapping, example_inputs)
     #
-    
-    # setting symmetric quantization scheme for the inputs of the matmul
-    for node in model.graph.nodes:
-        for n_id in node.users:
-            if n_id.target=='output':
-                continue
-            if n_id.target == torch.matmul:
-                if "softmax" in str(node.args[0].args[0].args[0].target): # TODO make better
-                    pass
-                else:
-                    f = getattr(model, str(node))
-                    f.activation_post_process.symmetric = True
-                    setattr(model, str(node), f)  
-                #
-            #
-        #
-    #
 
     # a place to put all state variables
     model.__quant_params__ = xnn.utils.AttrDict()
@@ -120,6 +103,8 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
     model.__quant_params__.qconfig_mode = qconfig_types.QConfigMode(qconfig_mode)
     model.__quant_params__.forzen_layer_names_list = []
 
+    model = qconfig_types.adjust_matmul_inputs_qconfig(model)
+    model = qconfig_types.adjust_fc_outlier_supression(model)
     model = qconfig_types.adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type)
 
     if add_methods:
