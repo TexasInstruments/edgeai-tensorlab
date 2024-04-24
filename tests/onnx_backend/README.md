@@ -12,8 +12,8 @@ To use these tests, ensure that you have installed pytest as well as helpful plu
 
 Here are some ways you might want to run these backend tests: 
 
-- Run compilation for all backend tests with timestamped log and report: `pytest --html=logs/report+$(date -d "today" +"%Y%m%d%H%M").log | tee logs/compilation_$(date -d "today" +"%Y%m%d%H%M").log`
-- Run inference for all backend tests with timestamped log and report: `pytest --html=logs/report+$(date -d "today" +"%Y%m%d%H%M").log --run-infer | tee logs/inference_$(date -d "today" +"%Y%m%d%H%M").log`
+- Run compilation for all backend tests with timestamped log and report: `pytest --html=logs/$(date -d "today" +"%Y%m%d%H%M")_comp.html | tee logs/$(date -d "today" +"%Y%m%d%H%M")_comp.log`
+- Run inference for all backend tests with timestamped log and report: `pytest --html=logs/$(date -d "today" +"%Y%m%d%H%M")_infer.html --run-infer | tee logs/$(date -d "today" +"%Y%m%d%H%M")_infer.log`
 - Run a single node compilation test: `pytest test_onnx_backend.py::test_onnx_backend_node[test_conv_with_strides_no_padding]`
 - Run a single node compilation test without offload to tidl: `pytest test_onnx_backend.py::test_onnx_backend_node[test_conv_with_strides_no_padding] --disable-tidl-offload`
 - Run a single node inference test: `pytest test_onnx_backend.py::test_onnx_backend_node[test_conv_with_strides_no_padding] --run-infer`
