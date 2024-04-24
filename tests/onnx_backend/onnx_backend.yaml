@@ -11,3 +11,8 @@ run_inference : False
 model_shortlist: null
 parallel_processes : null
 run_missing : False
+
+inference_nmse_thresholds : 
+  default : 0.5
+# Example of overriding the default for a operator
+#  test_add_bcast : 0.6

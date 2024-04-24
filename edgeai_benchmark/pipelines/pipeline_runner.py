@@ -202,6 +202,7 @@ class PipelineRunner():
             print(utils.log_color('\nINFO', 'starting', os.path.basename(run_dir)))
             result = cls._run_pipeline_impl(basic_settings, pipeline_config, description)
         except Exception as e:
+            result = {"error" : str(e)}
             traceback.print_exc()
             print(str(e))
         #

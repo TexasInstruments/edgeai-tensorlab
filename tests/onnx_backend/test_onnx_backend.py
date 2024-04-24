@@ -165,16 +165,21 @@ def perform_onnx_backend(tidl_offload : bool, run_infer : bool, test_dir : str):
         results_list = interfaces.run_accuracy(settings, work_dir, pipeline_configs)
         
         assert len(results_list) > 0, " Results not found!!!! "
+        assert results_list[0].get("error") is None, " Internal OSRT/TIDL Error:\n {} ".format(results_list[0]["error"])
+
         logger.debug(results_list[0]['result'])
         
-        # TODO: Choose better threshold. 0.5 chosen for now to reveal worst offenders
-        if(results_list[0]['result']['max_nmse']>0.5):
-            pytest.fail(f" max_nmse of {results_list[0]['result']['max_nmse']} is too high")
+        test_name = os.path.basename(test_dir)
+        threshold = settings.inference_nmse_thresholds.get(test_name) or settings.inference_nmse_thresholds.get("default")
+        if(results_list[0]['result']['max_nmse'] > threshold):
+            pytest.fail(f" max_nmse of {results_list[0]['result']['max_nmse']} is higher than threshold {threshold}")
     
     # Otherwise run import
     else:
         logger.debug("Importing")
-        interfaces.run_accuracy(settings, work_dir, pipeline_configs)
+        results_list = interfaces.run_accuracy(settings, work_dir, pipeline_configs)
+        assert len(results_list) > 0, " Results not found!!!! "
+        assert results_list[0].get("error") is None, " Internal OSRT/TIDL Error:\n {} ".format(results_list[0]["error"])
 
 
 
