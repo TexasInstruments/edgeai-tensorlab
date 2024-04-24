@@ -160,7 +160,6 @@ def quantized_matmul(g: jit_utils.GraphContext, x, y, op_scale, op_zero_point):
     x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
     y, _, _, _ = symbolic_helper.dequantize_helper(g, y)
     output = g.op("MatMul", x, y)
-<<<<<<< HEAD
     return symbolic_helper.quantize_helper(g, output, op_scale, op_zero_point)
 
 
@@ -242,9 +241,17 @@ class QuantLayerNorm(torch.nn.Module):
         y = torch.mul(y, self.weight)
         y = torch.add(y, self.bias)
         return y
-=======
-    return symbolic_helper.quantize_helper(g, output, op_scale, op_zero_point)
 
+
+@torch.fx.wrap
+def _get_rel_pos_bias(relative_position_bias_table, relative_position_index, window_area) -> torch.Tensor:
+    relative_position_bias = relative_position_bias_table[
+        relative_position_index.view(-1)].view(window_area, window_area, -1)  # Wh*Ww,Wh*Ww,nH
+    relative_position_bias = torch.permute(relative_position_bias, (2, 0, 1))  # nH, Wh*Ww, Wh*Ww
+    relative_position_bias = relative_position_bias.reshape(1, -1, window_area, window_area)
+    return relative_position_bias
+    
+    
 # similar class as to default attention, however it supports model export as well as quantizing matmul operation
 class QuantAttention(nn.Module):
     
@@ -270,20 +277,24 @@ class QuantAttention(nn.Module):
         self.attn_drop = nn.Dropout(attn_drop)
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
+        self.softmax = nn.Softmax(dim=-1)
+        self.relative_position_bias_table = None
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, **kwargs) -> torch.Tensor:
         B, N, C = x.shape
-        qkv = torch.permute(self.qkv(x).reshape(B, N, 3, -1, self.head_dim), (2, 0, 3, 1, 4))
+        qkv = torch.permute(self.qkv(x).reshape(B, N, 3, self.num_heads, -1), (2, 0, 3, 1, 4))
         q, k, v = qkv.unbind(0)
         q, k = self.q_norm(q), self.k_norm(k)
 
         q = torch.mul(q, torch.tensor(self.scale))
         attn = torch.matmul(q, k.transpose(-2, -1))
-        attn = attn.softmax(dim=-1)
+        if self.relative_position_bias_table is not None:
+            attn = attn + _get_rel_pos_bias(self.relative_position_bias_table, self.relative_position_index, self.window_area)
+        attn = self.softmax(attn)
         attn = self.attn_drop(attn)
         x = torch.matmul(attn, v)
 
-        x = x.transpose(1, 2).reshape(B, N, C)
+        x = x.transpose(1, 2).reshape(B, N, -1)
         x = self.proj(x)
         x = self.proj_drop(x)
         return x
