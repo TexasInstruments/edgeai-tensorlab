@@ -2,7 +2,7 @@ import os
 from edgeai_benchmark import *
 import pytest
 import onnx
-from .backend_test_known_results import cpu_failing_node_tests, compilation_failing_node_tests, inference_failing_node_tests
+from .backend_test_known_results import expected_fails
 
 '''
 Pytest file for ONNX Backend tests
@@ -52,11 +52,15 @@ def tidl_offload(pytestconfig):
 def run_infer(pytestconfig):
     return pytestconfig.getoption("run_infer")
 
+def retrieve_tests(root_dir):
+    all_tests = os.listdir(root_dir)
+    tests_with_expected_fails_marked = [pytest.param(test, marks=pytest.mark.xfail) if test in expected_fails else test for test in all_tests]
+    return tests_with_expected_fails_marked
 
-node_tests_to_run   = os.listdir(node_tests_root)
-simple_tests_to_run = os.listdir(simple_tests_root)
-pc_tests_to_run     = os.listdir(pc_tests_root)
-po_tests_to_run     = os.listdir(po_tests_root)
+node_tests_to_run   = retrieve_tests(node_tests_root)
+simple_tests_to_run = retrieve_tests(simple_tests_root)
+pc_tests_to_run     = retrieve_tests(pc_tests_root)
+po_tests_to_run     = retrieve_tests(po_tests_root)
 
 
 # Test onnx node test
@@ -69,9 +73,6 @@ def test_onnx_backend_node(tidl_offload : bool, run_infer : bool, node_tests_roo
     Example of running a single test: test_onnx_backend.py::test_onnx_backend_node[test_conv_with_strides_no_padding] --disable-tidl-offload
     '''
 
-    # Skip tests that fail with CPU mode
-    if(test_name in cpu_failing_node_tests):
-        pytest.skip()
 
     test_dir = os.path.join(node_tests_root_fixture, test_name)
     perform_onnx_backend(tidl_offload = tidl_offload, 
