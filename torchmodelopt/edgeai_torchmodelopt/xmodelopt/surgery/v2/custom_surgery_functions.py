@@ -510,3 +510,45 @@ def remove_identiy(model:nn.Module, pattern=None, verbose_mode=False):
     if verbose_mode:
         print('Identity removed',n)
     return traced_model
+
+
+class ReplacementPermute(nn.Module):
+    def __init__(self, dims):
+        super().__init__()
+        self.dims = dims
+        
+    def forward(self, x):
+        return torch.permute(x, self.dims)
+        
+            
+def replace_permute_layer(model:nn.Module, pattern=None, verbose_mode=False):
+    model = torch.fx.symbolic_trace(model)
+    i = 0
+    for node in model.graph.nodes:
+        if node.op == 'call_method' and node.target=='permute':
+            replacement = ReplacementPermute(node.args[1:])
+            prepared_replacement = torch.fx.symbolic_trace(replacement)
+            with model.graph.inserting_before(node):
+                new_node_name = type(replacement).__name__+str(i)
+                model.add_submodule(new_node_name, deepcopy(prepared_replacement))
+                new_args = []
+                for arg in node.args:
+                    if type(arg) == Node:
+                        if arg.op != "get_attr":
+                            new_args.append(arg)
+                        #
+                    #
+                #
+                new_node = model.graph.call_module(new_node_name, tuple(new_args), {})
+                node.replace_all_uses_with(new_node)
+                model.graph.erase_node(node)
+            #
+            i+=1    
+        #
+    #
+    model.graph.lint()
+    model.recompile()
+    if verbose_mode:
+        print('reshape/permute : ', i)
+        
+    return model
