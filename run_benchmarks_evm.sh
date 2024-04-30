@@ -145,7 +145,7 @@ else
     # Launch script 2 for each model.
     for MODEL_ID in $(cat ${MODELS_LIST}); do
         echo "running MODEL_ID:$MODEL_ID"
-        python3 ${PYARGS2}
+        python3 ${PYARGS2} --model_selection $MODEL_ID
     done
     echo "-------------------------------------------------------------------"
 

@@ -1,5 +1,5 @@
 from .dataset_base import DatasetBase
-from .random import RandomDataset
+# from .random import RandomDataset
 from .imagenet import ImageNetCls
 import numpy as np
 import os

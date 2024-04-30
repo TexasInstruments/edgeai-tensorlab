@@ -164,7 +164,7 @@ for model_id in $(cat ${MODELS_LIST}); do
   echo " proc_id:$proc_id timestamp:$timestamp num_running_jobs:$num_running_jobs running model_id:$model_id on parallel_device:$parallel_device"
   # --parallel_processes 0 is used becuase we don't want to create another process inside.
   # --parallel_devices null is used becuase CUDA_VISIBLE_DEVICES is set here itself - no need to be set inside again
-  CUDA_VISIBLE_DEVICES="$parallel_device" run_model "${SETTINGS}"  --target_device "${TARGET_SOC}" --model_selection "${model_id}" --parallel_processes 0 --parallel_devices null ${@:2} &
+  CUDA_VISIBLE_DEVICES="$parallel_device" run_model "${SETTINGS}" --target_device "${TARGET_SOC}" --model_selection "${model_id}" --parallel_processes 0 --parallel_devices null ${@:2} &
   sleep 1
   echo " ==============================================================="
 done
