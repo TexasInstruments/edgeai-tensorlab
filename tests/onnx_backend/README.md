@@ -12,8 +12,8 @@ To use these tests, ensure that you have installed pytest as well as helpful plu
 
 Here are some ways you might want to run these backend tests: 
 
-- Run compilation for all backend tests with timestamped log and report: `pytest --html=logs/$(date -d "today" +"%Y%m%d%H%M")_comp.html | tee logs/$(date -d "today" +"%Y%m%d%H%M")_comp.log`
-- Run inference for all backend tests with timestamped log and report: `pytest --html=logs/$(date -d "today" +"%Y%m%d%H%M")_infer.html --run-infer | tee logs/$(date -d "today" +"%Y%m%d%H%M")_infer.log`
+- Run compilation for all backend tests with timestamped log and report: `pytest | tee logs/$(date -d "today" +"%Y%m%d%H%M")_comp.log`
+- Run inference for all backend tests with timestamped log and report: `pytest --run-infer | tee logs/$(date -d "today" +"%Y%m%d%H%M")_infer.log`
 - Run a single node compilation test: `pytest test_onnx_backend.py::test_onnx_backend_node[test_conv_with_strides_no_padding]`
 - Run a single node compilation test without offload to tidl: `pytest test_onnx_backend.py::test_onnx_backend_node[test_conv_with_strides_no_padding] --disable-tidl-offload`
 - Run a single node inference test: `pytest test_onnx_backend.py::test_onnx_backend_node[test_conv_with_strides_no_padding] --run-infer`
@@ -48,7 +48,7 @@ pytest --run-infer
 
 - PyTest timeout is a PyTest plugin which allows you to terminate a test after a timeout threshold is reached. This is necessary because certain tests hang indefinitely
 
-- PyTest-html is a plugin which allows you to output a test report to a convenient html file. In the latest version of pytest-html (4.1.1 as of writing this) the report was missing test cases where pytest-xdist workers crashed due to a fatal python error. Therefore we are using an old version 3.2.0. 
+- PyTest-html is a plugin which allows you to output a test report to a convenient html file. Use the `--html` option to override the log file name. In the latest version of pytest-html (4.1.1 as of writing this) the report was missing test cases where pytest-xdist workers crashed due to a fatal python error. Therefore we are using an old version 3.2.0. 
 
 - Tests are automatically retrieved from your current onnx python package location. The list of tests can be found in <onnx_python_package_root>/backend/test/data
     - You will find in the above location that there are several folders of tests which correspond to different categories of tests

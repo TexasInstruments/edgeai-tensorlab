@@ -4,6 +4,8 @@ import sys
 import pytest
 from py.xml import html
 import re
+import os
+from datetime import datetime
 sys.stdout = sys.stderr
 
 
@@ -12,6 +14,10 @@ def pytest_addoption(parser):
     parser.addoption("--run-infer", action="store_true", default=False)
     parser.addoption("--no-subprocess", action="store_true", default=False)
 
+# Configures html report name and path
+@pytest.hookimpl(tryfirst=True)
+def pytest_configure(config):
+    config.option.htmlpath = 'logs/report_' + datetime.now().strftime("%m-%d-%Y_%H-%M-%S")+".html"
 
 # Adds the tidl_subgraphs attribute to test report
 @pytest.hookimpl(hookwrapper=True)
