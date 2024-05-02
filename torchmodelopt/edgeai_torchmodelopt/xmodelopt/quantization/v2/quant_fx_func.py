@@ -47,9 +47,16 @@ from .... import xnn
 
 from ...surgery.v2 import custom_surgery_functions, replace_unsupported_layers
 
+from . import observer_types
+from . import fake_quanitze_types
 from . import qconfig_types
 from . import quant_fx_utils
 
+try:
+    from timm import models
+    has_timm = True
+except:
+    has_timm = False
 try:
     from timm import models
     has_timm = True
