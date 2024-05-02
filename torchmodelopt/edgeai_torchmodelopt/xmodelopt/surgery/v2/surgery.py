@@ -63,13 +63,13 @@ _unsupported_module_dict={
     nn.Hardswish():nn.ReLU(),
     nn.ReLU6():nn.ReLU(),
     nn.ReLU():nn.ReLU(), # check if it might be required for QAT, if ranges are different #TODO
-    nn.GELU():nn.ReLU(),
+    # nn.GELU():nn.ReLU(),
     nn.SiLU():nn.ReLU(),
     nn.Hardsigmoid():nn.ReLU(),
     nn.LeakyReLU():nn.ReLU(),
     nn.Dropout(inplace=True):nn.Dropout(),
     custom_modules.Focus():custom_modules.ConvBNRModule(3,12,(5,5),(2,2),2), # will only effective if focus appears jus after the input
-    'layerNorm':custom_surgery_functions.replace_layer_norm, # not effective if len(input.shape) != 4 till date
+    # 'layerNorm':custom_surgery_functions.replace_layer_norm, # not effective if len(input.shape) != 4 till date
     'upsample':custom_surgery_functions.replace_resize_with_scale_factor, # for segmentation model -> deeplabv3
     'maxpool_ge_5':custom_surgery_functions.replace_maxpool2d_kernel_size_ge_5, # for segmentation model -> deeplabv3
     'avgpool_ge_5':custom_surgery_functions.replace_avgpool2d_kernel_size_ge_5,

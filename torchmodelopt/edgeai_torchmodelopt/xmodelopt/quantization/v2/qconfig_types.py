@@ -278,6 +278,15 @@ def adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type):
     return model
 
 
+def is_softmax_present(node, find_level):
+    if "softmax" in str(node.args[0].target):
+        return True
+    elif find_level>0:
+        return is_softmax_present(node.args[0], find_level-1)
+    else:
+        return False
+
+
 def adjust_matmul_inputs_qconfig(model):
     # setting symmetric quantization scheme for the inputs of the matmul
     for node in model.graph.nodes:
@@ -285,7 +294,7 @@ def adjust_matmul_inputs_qconfig(model):
             if n_id.target=='output':
                 continue
             if n_id.target==torch.matmul:
-                if "softmax" in str(node.args[0].args[0].args[0].target): # TODO make better
+                if is_softmax_present(node, 4):
                     pass
                 else:
                     f = getattr(model, str(node))

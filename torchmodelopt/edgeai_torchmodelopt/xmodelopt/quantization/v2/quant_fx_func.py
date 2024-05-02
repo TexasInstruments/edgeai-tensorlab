@@ -32,6 +32,7 @@
 import types
 import os
 import torch
+import torch.nn as nn
 from torch.ao.quantization import quantize_fx
 from torch.ao.quantization import QConfigMapping
 from torch.ao.quantization import FakeQuantize
@@ -44,9 +45,18 @@ from torch.onnx import register_custom_op_symbolic
 
 from .... import xnn
 
+from ...surgery.v2 import custom_surgery_functions, replace_unsupported_layers
+
+from . import observer_types
+from . import fake_quanitze_types
 from . import qconfig_types
 from . import quant_fx_utils
 
+try:
+    from timm import models
+    has_timm = True
+except:
+    has_timm = False
 
 class ModelQuantFormat:
     FLOAT_MODEL = "FLOAT_MODEL"
@@ -68,6 +78,25 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
     if not total_epochs:
         raise RuntimeError("total_epochs must be provided")
     #
+    
+    if has_timm:
+        replacement_dict={
+            models.vision_transformer.Attention : quant_fx_utils.QuantAttention,
+            models.swin_transformer.WindowAttention : quant_fx_utils.QuantAttention,
+            nn.LayerNorm : quant_fx_utils.QuantLayerNorm,
+            'permute' : custom_surgery_functions.replace_permute_layer
+        }
+    else:
+        replacement_dict={
+            nn.LayerNorm : quant_fx_utils.QuantLayerNorm,
+            'permute' : custom_surgery_functions.replace_permute_layer
+        }
+        
+    orig_device = next(model.parameters()).device
+    copy_args=["scale", "qkv", "proj", "num_heads", "head_dim", "weight", "bias", "eps",
+                "relative_position_index", "relative_position_bias_table", "window_area"]
+    model = replace_unsupported_layers(model, replacement_dict, copy_args=copy_args)
+    model = model.to(orig_device)
 
     # handle None here
     qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
