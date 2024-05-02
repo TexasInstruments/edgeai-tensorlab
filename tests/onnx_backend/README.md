@@ -28,6 +28,8 @@ See notes below for an explanation of all the command-line options seen above, a
 
 - To disable TIDL offload, include command-line argument `--disable-tidl-offload`
 
+- By default the tests use a host process and a sub-process in order to effectively capture the output of fatal python failures. To run each test in its own process use the command-line argument `--no-subprocess`
+
 - Bug: Compilation and inference cannot be performed in the same script ([JIRA here](https://jira.itg.ti.com/browse/TIDL-3845)). By default, each test only performs compilation. To run inference, add command-line option `--run-infer`. Therefore to run compilation and inference for all tests, run the following commands:
 
 ```bash
