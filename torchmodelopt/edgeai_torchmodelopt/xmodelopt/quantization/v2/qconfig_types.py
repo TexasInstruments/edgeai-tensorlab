@@ -35,6 +35,9 @@ import torch
 from torch.ao.quantization import QConfig, QConfigMapping, get_default_qat_qconfig, get_default_qconfig_mapping
 from torch.ao.quantization import MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver, \
     FakeQuantize, FusedMovingAvgObsFakeQuantize
+import torch.ao.quantization
+import torch.ao.quantization.quantize_fx
+import torch.nn as nn
 
 from .... import xnn
 
@@ -306,23 +309,45 @@ def adjust_matmul_inputs_qconfig(model):
     #
     return model
 
+    
+def is_mlp_fc2_layer(all_modules, node, find_level, found_gelu=False):
+    if find_level<0:
+        return False
+    elif node.target in all_modules:
+        if isinstance(all_modules[node.target], nn.Linear):
+            if found_gelu: 
+                return True
+            else: 
+                # found linear before the gelu layer
+                return False
+            #
+        #
+        elif isinstance(all_modules[node.target], nn.GELU):
+            found_gelu = True
+        #
+    #
+    return is_mlp_fc2_layer(all_modules, node.args[0], find_level-1, found_gelu)
+    
+
 def adjust_fc_outlier_supression(model):
+    # changing the observer of the second fc layer in each mlp to outlier removal observer
     all_modules = dict(model.named_modules())
     for node in model.graph.nodes:
-        if node.name.endswith('mlp_fc2'):
-            new_activation_observer = xnn.utils.partialclass(observer_types.AdaptiveOutlierRemovalActivationObserver,
-                quant_min=all_modules[node.next.target].activation_post_process.quant_min,
-                quant_max=all_modules[node.next.target].activation_post_process.quant_max,
-                dtype=all_modules[node.next.target].activation_post_process.dtype,
-                qscheme=all_modules[node.next.target].activation_post_process.qscheme,
-                power2_scale=all_modules[node.next.target].activation_post_process.power2_scale,
-                range_max=all_modules[node.next.target].activation_post_process.range_max,
-                fixed_range=all_modules[node.next.target].activation_post_process.fixed_range,
-                class_name='OutlierRemoval' + all_modules[node.next.target].activation_post_process._get_name(),
-                range_shrink_percentile=all_modules[node.next.target].activation_post_process.range_shrink_percentile)   
-            orig_fake_quantize = getattr(model, str(node.next))
-            new_fake_quantize = fake_quanitze_types.AdaptiveActivationFakeQuantize.with_args(observer=new_activation_observer)
-            setattr(model, str(node.next), new_fake_quantize().to(orig_fake_quantize.zero_point.device))
+        if (node.target in all_modules) and isinstance(all_modules[node.target], nn.Linear):
+            if is_mlp_fc2_layer(all_modules, node.args[0], 6):
+                new_activation_observer = xnn.utils.partialclass(observer_types.AdaptiveOutlierRemovalActivationObserver,
+                    quant_min=all_modules[node.next.target].activation_post_process.quant_min,
+                    quant_max=all_modules[node.next.target].activation_post_process.quant_max,
+                    dtype=all_modules[node.next.target].activation_post_process.dtype,
+                    qscheme=all_modules[node.next.target].activation_post_process.qscheme,
+                    power2_scale=all_modules[node.next.target].activation_post_process.power2_scale,
+                    range_max=all_modules[node.next.target].activation_post_process.range_max,
+                    fixed_range=all_modules[node.next.target].activation_post_process.fixed_range,
+                    class_name='OutlierRemoval' + all_modules[node.next.target].activation_post_process._get_name(),
+                    range_shrink_percentile=all_modules[node.next.target].activation_post_process.range_shrink_percentile)   
+                orig_fake_quantize = getattr(model, str(node.next))
+                new_fake_quantize = fake_quanitze_types.AdaptiveActivationFakeQuantize.with_args(observer=new_activation_observer)
+                setattr(model, str(node.next), new_fake_quantize().to(orig_fake_quantize.zero_point.device))
             #
         #
     #
