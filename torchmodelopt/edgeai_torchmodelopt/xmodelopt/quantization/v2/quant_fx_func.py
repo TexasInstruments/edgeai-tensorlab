@@ -29,20 +29,13 @@
 #
 #################################################################################
 
+import types
 import os
-import copy
 import torch
 from torch.ao.quantization import quantize_fx
-from torch.ao.quantization import QConfigMapping
-from torch.ao.quantization import FakeQuantize
-import statistics
-import functools
-import types
 
 from .... import xnn
 
-from . import observer_types
-from . import fake_quanitze_types
 from . import qconfig_types
 from . import quant_fx_utils
 
@@ -55,7 +48,7 @@ class ModelQuantFormat:
     _NUM_FORMATS_ = 4
 
 
-def init(model, *args, qconfig_type=None, example_inputs=None, is_qat=True, backend="qnnpack",
+def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qnnpack",
                  total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
                  qconfig_mode=qconfig_types.QConfigMode.DEFAULT, add_methods=True, **kwargs):
 
