@@ -24,19 +24,19 @@ help_descriptions: "\n## Overview\nThis is a tool for collecting data, training 
   * Product information: https://www.ti.com/product/TDA4VM\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n\
   * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n\
   * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n\
-  * SDK release: 09_01_00\n\n### AM62A\n* Product information: https://www.ti.com/product/AM62A7\n\
+  * SDK release: 09_02_00\n\n### AM62A\n* Product information: https://www.ti.com/product/AM62A7\n\
   * Development board: https://www.ti.com/tool/SK-AM62A-LP\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n\
   * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n\
-  * SDK release: 09_01_00\n\n### AM68A\n* Product information: https://www.ti.com/product/AM68A\n\
+  * SDK release: 09_02_00\n\n### AM68A\n* Product information: https://www.ti.com/product/AM68A\n\
   * Development board: https://www.ti.com/tool/SK-AM68\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n\
   * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n\
-  * SDK release: 09_01_00\n\n### AM69A\n* Product information: https://www.ti.com/product/AM69A\n\
+  * SDK release: 09_02_00\n\n### AM69A\n* Product information: https://www.ti.com/product/AM69A\n\
   * Development board: https://www.ti.com/tool/SK-AM69\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n\
   * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n\
-  * SDK release: 09_01_00\n\n### AM62\n* Product information: https://www.ti.com/product/AM625\n\
+  * SDK release: 09_02_00\n\n### AM62\n* Product information: https://www.ti.com/product/AM625\n\
   * Development board: https://www.ti.com/tool/SK-AM62\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62X\n\
   * SDK documentation & board setup: See analytics application and Edge AI documentation\
-  \ at https://www.ti.com/tool/SK-AM62#order-start-development\n* SDK release: 09_01_00\n\
+  \ at https://www.ti.com/tool/SK-AM62#order-start-development\n* SDK release: 09_02_00\n\
   \n## Additional information\n* Edge AI introduction: https://ti.com/edgeai\n* Edge\
   \ AI model development information: https://github.com/TexasInstruments/edgeai\n\
   * Edge AI tools introduction: https://dev.ti.com/edgeai/\n\n\n## Dataset format\n\
@@ -141,6 +141,7 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
+      preset_name: null
       runtime_options:
         tensor_bits: 8
       save_output: true
@@ -269,6 +270,7 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
+      preset_name: null
       runtime_options:
         tensor_bits: 16
       save_output: true
@@ -391,6 +393,7 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
+      preset_name: null
       save_output: true
       summary_file_path: null
       tensor_bits: 8
@@ -517,6 +520,7 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
+      preset_name: null
       save_output: true
       summary_file_path: null
       tensor_bits: 8
@@ -643,6 +647,7 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
+      preset_name: null
       save_output: true
       summary_file_path: null
       tensor_bits: 8
@@ -763,6 +768,7 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
+      preset_name: null
       runtime_options:
         tensor_bits: 8
       save_output: true
@@ -885,6 +891,7 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
+      preset_name: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: /multi_level_conv_obj.2/Conv_output_0,
           /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0,
@@ -1027,6 +1034,7 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
+      preset_name: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: /multi_level_conv_obj.2/Conv_output_0,
           /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0,
@@ -1137,6 +1145,7 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
+      preset_name: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: /0/head/cls_preds.0/Conv_output_0,
           /0/head/reg_preds.0/Conv_output_0, /0/head/obj_preds.0/Conv_output_0, /0/head/kpts_preds.0/Conv_output_0,
@@ -1277,6 +1286,7 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
+      preset_name: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: /multi_level_conv_obj.2/Conv_output_0,
           /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0,
@@ -1411,6 +1421,7 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
+      preset_name: null
       runtime_options:
         advanced_options:output_feature_16bit_names_list: /multi_level_conv_obj.2/Conv_output_0,
           /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0,
@@ -1801,8 +1812,8 @@ preset_descriptions:
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 1
+          calibration_frames: 3
+          calibration_iterations: 3
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
@@ -1946,8 +1957,8 @@ preset_descriptions:
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 1
+          calibration_frames: 3
+          calibration_iterations: 3
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
@@ -2091,8 +2102,8 @@ preset_descriptions:
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 1
+          calibration_frames: 3
+          calibration_iterations: 3
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
@@ -2236,8 +2247,8 @@ preset_descriptions:
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 1
+          calibration_frames: 3
+          calibration_iterations: 3
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
@@ -2335,14 +2346,14 @@ target_device_descriptions:
       * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62X\n\
       * SDK documentation & board setup: See analytics application and Edge AI documentation\
       \ at https://www.ti.com/tool/SK-AM62#order-start-development\n* SDK release:\
-      \ 09_01_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n\
+      \ 09_02_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n\
       * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
       * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
     device_name: AM62
     device_selection_factor: 0
     device_type: MPU
-    sdk_release: 09_01_00
-    sdk_version: 9.1.0
+    sdk_release: 09_02_00
+    sdk_version: 9.2.0
   AM62A:
     device_details: "Efficient 2 TOPS AI capability at edge\nSpecification:\n* 2 TOPS\
       \ Deep Learning accelerator\n* Quad Arm\xAE Cortex\xAE-A53\n* Integrated ISP\n\
@@ -2350,14 +2361,14 @@ target_device_descriptions:
       \ information: https://www.ti.com/product/AM62A7\n* Development board: https://www.ti.com/tool/SK-AM62A-LP\n\
       * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n\
       * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n\
-      * SDK release: 09_01_00\n\nAdditional information:\n* Edge AI introduction:\
+      * SDK release: 09_02_00\n\nAdditional information:\n* Edge AI introduction:\
       \ https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
       * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
     device_name: AM62A
     device_selection_factor: 1
     device_type: MPU
-    sdk_release: 09_01_00
-    sdk_version: 9.1.0
+    sdk_release: 09_02_00
+    sdk_version: 9.2.0
   AM68A:
     device_details: "Efficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS\
       \ Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated ISP\n\
@@ -2365,14 +2376,14 @@ target_device_descriptions:
       \ information: https://www.ti.com/product/AM68A\n* Development board: https://www.ti.com/tool/SK-AM68\n\
       * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n\
       * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n\
-      * SDK release: 09_01_00\n\nAdditional information:\n* Edge AI introduction:\
+      * SDK release: 09_02_00\n\nAdditional information:\n* Edge AI introduction:\
       \ https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
       * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
     device_name: AM68A
     device_selection_factor: 3
     device_type: MPU
-    sdk_release: 09_01_00
-    sdk_version: 9.1.0
+    sdk_release: 09_02_00
+    sdk_version: 9.2.0
   AM69A:
     device_details: "Efficient 32 TOPS AI capability at edge\nSpecification:\n* 32\
       \ TOPS Deep Learning accelerator\n* 8 Arm\xAE Cortex\xAE-A72\n* Integrated ISP\n\
@@ -2380,14 +2391,14 @@ target_device_descriptions:
       \ information: https://www.ti.com/product/AM69A\n* Development board: https://www.ti.com/tool/SK-AM69\n\
       * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n\
       * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n\
-      * SDK release: 09_01_00\n\nAdditional information:\n* Edge AI introduction:\
+      * SDK release: 09_02_00\n\nAdditional information:\n* Edge AI introduction:\
       \ https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
       * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
     device_name: AM69A
     device_selection_factor: 4
     device_type: MPU
-    sdk_release: 09_01_00
-    sdk_version: 9.1.0
+    sdk_release: 09_02_00
+    sdk_version: 9.2.0
   TDA4VM:
     device_details: "Efficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS\
       \ Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated ISP\n\
@@ -2395,14 +2406,14 @@ target_device_descriptions:
       \ information: https://www.ti.com/product/TDA4VM\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n\
       * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n\
       * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n\
-      * SDK release: 09_01_00\n\nAdditional information:\n* Edge AI introduction:\
+      * SDK release: 09_02_00\n\nAdditional information:\n* Edge AI introduction:\
       \ https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
       * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
     device_name: TDA4VM
     device_selection_factor: 2
     device_type: MPU
-    sdk_release: 09_01_00
-    sdk_version: 9.1.0
+    sdk_release: 09_02_00
+    sdk_version: 9.2.0
 task_descriptions:
   classification:
     stages:
@@ -2516,6 +2527,6 @@ training_module_descriptions:
   edgeai_yolox:
   - keypoint_detection
 version_descriptions:
-  sdk_release: 09_01_00
-  sdk_version: 9.1.0
-  version: 9.1.0
+  sdk_release: 09_02_00
+  sdk_version: 9.2.0
+  version: 9.2.0

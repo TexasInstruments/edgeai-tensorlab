@@ -89,8 +89,8 @@ TRAINING_BATCH_SIZE_DEFAULT = {
 }
 
 
-TARGET_SDK_VERSION = '9.1.0'
-TARGET_SDK_RELEASE = '09_01_00'
+TARGET_SDK_VERSION = '9.2.0'
+TARGET_SDK_RELEASE = '09_02_00'
 
 
 EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION = \
@@ -345,7 +345,7 @@ PRESET_DESCRIPTIONS = {
                 compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+                compilation=dict(calibration_frames=3, calibration_iterations=3, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
         TASK_TYPE_KEYPOINT_DETECTION: {
@@ -416,7 +416,7 @@ PRESET_DESCRIPTIONS = {
                 compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+                compilation=dict(calibration_frames=3, calibration_iterations=3, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
         TASK_TYPE_KEYPOINT_DETECTION: {
@@ -487,7 +487,7 @@ PRESET_DESCRIPTIONS = {
                 compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+                compilation=dict(calibration_frames=3, calibration_iterations=3, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
         TASK_TYPE_KEYPOINT_DETECTION: {
@@ -557,7 +557,7 @@ PRESET_DESCRIPTIONS = {
                 compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=8)
+                compilation=dict(calibration_frames=3, calibration_iterations=3, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
         TASK_TYPE_KEYPOINT_DETECTION: {
