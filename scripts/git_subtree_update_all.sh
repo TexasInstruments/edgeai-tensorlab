@@ -29,7 +29,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-git subtree pull --prefix edgeai-docs ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-docs.git r8.0
+#git subtree pull --prefix edgeai-docs ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-docs.git r8.0
 git subtree pull --prefix edgeai-modelzoo ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modelzoo.git r8.0
 git subtree pull --prefix edgeai-modelmaker ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modelmaker.git r8.0
 git subtree pull --prefix edgeai-modeloptimization ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modeloptimization.git r8.0
