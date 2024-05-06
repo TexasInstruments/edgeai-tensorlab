@@ -1,0 +1,15 @@
+six
+#numpy
+#scipy
+matplotlib
+#pillow
+#pillow-simd
+colorama
+progiter
+protobuf==3.19
+#opencv-python
+#tensorboard
+#onnx
+packaging
+#pycocotools
+#pyyaml
