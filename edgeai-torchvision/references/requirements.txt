@@ -1,0 +1,15 @@
+six
+numpy
+scipy
+matplotlib
+#pillow
+pillow-simd
+colorama
+progiter
+protobuf
+opencv-python
+tensorboard
+onnx
+packaging
+pycocotools
+pyyaml
