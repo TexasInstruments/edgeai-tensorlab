@@ -1,0 +1,16 @@
+numpy
+scipy
+matplotlib
+#pillow
+pillow-simd
+colorama
+opencv-python
+pycocotools
+pyyaml
+tensorboard==2.4
+ninja
+torchinfo
+# additional requirements added for new features in references
+onnx
+progiter
+packaging
