@@ -1,0 +1,28 @@
+# include_files is a special keyword - other files that need to be merged with this dict
+include_files : ['settings_base.yaml']
+
+# important parameter. set this to 'pc' to do import and inference in pc
+# set this to 'evm' to run inference in device. for inference on device run_import
+# below should be switched off and it is assumed that the artifacts are already created.
+# supported values: 'evm' 'pc'
+target_machine : 'pc'
+
+# run import of the model - only to be used in pc - set this to False for evm
+# for pc this can be True or False
+run_import : True
+
+# run inference - for inference in evm, it is assumed that the artifacts folders are already available
+run_inference : True
+
+# number of parallel executions - for parallel execution on pc only.
+# options: integer, list of integers or null
+# specify either a list of integers for parallel execution or null for sequentiall execution
+# if you are not using cuda compiled tidl on pc, these actual numbers in the list don't matter,
+# but the size of the list determines the number of parallel processes
+# if you have cuda compiled tidl, these integers wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
+# null will run the models sequentially.
+# example: null #(for sequential)
+# example: 1
+# example: 4
+# example: [0,1,2,3]
+parallel_devices : 1
