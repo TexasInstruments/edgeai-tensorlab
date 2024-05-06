@@ -1,0 +1,9 @@
+task_type,session_name,run_dir,model_name,size,shortlisted,recommended
+classification,tflitert,cl-0000_tflitert_imagenet1k_mlperf_mobilenet_v1_1.0_224_tflite,TFL-CL-0000-mobileNetV1-mlperf,15715902,True,True
+classification,onnxrt,cl-6360_onnxrt_imagenet1k_fbr-pycls_regnetx-200mf_onnx,ONR-CL-6360-regNetx-200mf,10105998,True,True
+detection,tflitert,od-2010_tflitert_coco_mlperf_ssd_mobilenet_v2_300_float_tflite,TFL-OD-2010-ssd-mobV2-coco-mlperf-300x300,62394638,True,True
+detection,onnxrt,od-8200_onnxrt_coco_edgeai-mmdet_yolox_nano_lite_416x416_20220214_model_onnx,ONR-OD-8200-yolox-nano-lite-mmdet-coco-416x416,8410702,True,True
+detection,onnxrt,od-8270_onnxrt_coco_edgeai-mmdet_yolox_pico_lite_320x320_20230410_model_onnx,ONR-OD-8270-yolox-pico-lite-mmdet-coco-320x320,4757286,True,True
+detection,onnxrt,od-8410_onnxrt_widerface_edgeai-mmdet_yolox_tiny_lite_416x416_20220318_model_onnx,ONR-OD-8410-yolox-tiny-lite-mmdet-widerface-416x416,18733903,True,True
+segmentation,onnxrt,ss-8630_onnxrt_ade20k32_edgeai-tv_unet_aspp_mobilenetv2_edgeailite_512x512_20210306_outby2_onnx,ONR-SS-8630-unetlite-aspp-mobv2-tv-ade20k32-512x512,9456034,True,True
+segmentation,onnxrt,ss-8710_onnxrt_cocoseg21_edgeai-tv_deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405_onnx,ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512,9177285,True,True
