@@ -13,4 +13,4 @@ If you have not visited the following landing pages, please do so before attempt
 
 
 ## ONNX Model Optimizer
-* [TIDL ONNX Model Optimizer](https://github.com/TexasInstruments/edgeai-tidl-tools/tree/rel_09_02/scripts/osrt_model_tools/onnx_tools/tidl-onnx-model-optimizer) - This module contains various modifications and optimizations on the original ONNX graph and generates a new optimized ONNX model with the same functionality as the original model but with a more optimized structure for TIDL-RT inference.
+* [TIDL ONNX Model Optimizer](https://github.com/TexasInstruments/edgeai-tidl-tools/tree/master/scripts/osrt_model_tools/onnx_tools/tidl-onnx-model-optimizer) - This module contains various modifications and optimizations on the original ONNX graph and generates a new optimized ONNX model with the same functionality as the original model but with a more optimized structure for TIDL-RT inference.
