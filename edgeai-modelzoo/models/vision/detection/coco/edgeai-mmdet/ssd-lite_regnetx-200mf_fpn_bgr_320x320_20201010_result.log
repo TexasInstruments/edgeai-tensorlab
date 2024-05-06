@@ -1,0 +1,42 @@
+loading annotations into memory...loading annotations into memory...loading annotations into memory...
+
+
+loading annotations into memory...
+Done (t=0.51s)
+creating index...
+Done (t=0.51s)
+creating index...
+Done (t=0.52s)
+creating index...
+index created!
+index created!
+Done (t=0.56s)
+creating index...
+index created!
+index created!
+
+writing results to ./work_dirs/ssd-lite_regnet_fpn_bgr/result.pkl
+
+Evaluating bbox...
+Loading and preparing results...
+DONE (t=6.58s)
+creating index...
+index created!
+Running per image evaluation...
+Evaluate annotation type *bbox*
+DONE (t=70.37s).
+Accumulating evaluation results...
+DONE (t=18.24s).
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.207
+Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.367
+Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.204
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.042
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.182
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = 0.394
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.313
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.315
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.315
+Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.092
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.299
+Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = 0.545
+{'bbox_mAP': 0.207, 'bbox_mAP_50': 0.367, 'bbox_mAP_75': 0.204, 'bbox_mAP_s': 0.042, 'bbox_mAP_m': 0.182, 'bbox_mAP_l': 0.394, 'bbox_mAP_copypaste': '0.207 0.367 0.204 0.042 0.182 0.394'}
