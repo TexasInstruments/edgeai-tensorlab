@@ -1,0 +1,24 @@
+cython
+#numpy==1.23.0
+wheel
+#opencv-python-headless<4.3
+#protobuf==3.19.4
+#pybind11[global]         # for building the below onnx custom fork
+#onnx==1.9.0              # onnx==1.9.0 doesn't work with python 3.10 - using the custom fork below
+#https://github.com/TexasInstruments/onnx/archive/tidl-j7.zip
+#tflite
+pillow
+pycocotools
+colorama
+tqdm
+pyyaml
+#mxnet
+pytest
+json_tricks
+munkres
+h5py
+scipy
+pillow
+plyfile
+scikit-learn
+#git+https://github.com/TexasInstruments/edgeai-tidl-tools.git#subdirectory=scripts
