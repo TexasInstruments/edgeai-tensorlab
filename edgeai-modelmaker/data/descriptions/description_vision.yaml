@@ -1,0 +1,2231 @@
+help_descriptions:
+  common: {}
+  compilation:
+    calibration_frames:
+      description: Calibration is a process of improving the accuracy during fixed
+        point quantization. Typically, higher number of Calibration Frames give higher
+        accuracy, but it can also be time consuming.
+      name: Calibration Frames
+    calibration_iterations:
+      description: Calibration is a process of improving the accuracy during fixed
+        point quantization. Calibration happens in iterations. Typically, higher number
+        of Calibration Iterations give higher accuracy, but it can also be time consuming.
+      name: Calibration Iterations
+    detection_threshold:
+      description: 'Also called Confidence Threshold. A threshold used to select good
+        detection boxes. This is typically applied before a before the Non Max Suppression.
+        Higher Detection Threshold means less false detections (False Positives),
+        but may also result in misses (False Negatives). '
+      name: Detection Threshold
+    detection_top_k:
+      description: 'Number of detection boxes to be selected during the initial shortlisting
+        before the Non Max Suppression.A higher number is typically used while measuring
+        accuracy, but may impact the performance. '
+      name: Detection TopK
+    tensor_bits:
+      description: 'Bitdepth used to quantize the weights and activations in the neural
+        network. The neural network inference happens at this bit precision. '
+      name: Tensor Bits
+  dataset: {}
+  training:
+    batch_size:
+      description: Batch size specifies the number of inputs that are propagated through
+        the neural network in one iteration. Several such iterations make up one Epoch.Higher
+        batch size require higher memory and too low batch size can typically impact
+        the accuracy.
+      name: Batch Size
+    learning_rate:
+      description: Learning Rate determines the step size used by the optimization
+        algorithm at each iteration while moving towards the optimal solution. It
+        is a hyper parameter that can be tuned to get best accuracy. Eg. A small Learning
+        Rate typically gives good accuracy while fine tuning a model for a different
+        task.
+      name: Learning Rate
+    training_epochs:
+      description: Epoch is a term that is used to indicate a pass over the entire
+        training dataset. It is a hyper parameter that can be tuned to get best accuracy.
+        Eg. A model trained for 30 Epochs may give better accuracy than a model trained
+        for 15 Epochs.
+      name: Epochs
+    weight_decay:
+      description: Weight decay is a regularization technique that can improve stability
+        and generalization of a machine learning algorithm. It is typically done using
+        L2 regularization that penalizes parameters (weights, biases) according to
+        their L2 norm.
+      name: Weight Decay
+model_descriptions:
+  mobilenet_v2_lite_tv:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 1
+      model_compilation_id: cl-6070
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 64
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: mobilenet_v2_lite_tv
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: mobilenet_v2_lite
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        AM62:
+          accuracy_factor: 72.13
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 0
+          performance_fps: 10
+          performance_infer_time_ms: 100.0
+        TDA4VM:
+          accuracy_factor: 72.13
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 3
+          performance_fps: 477
+          performance_infer_time_ms: 2.0964360587002098
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  mobilenet_v3_large_lite_tv:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 1
+      model_compilation_id: cl-6490
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 64
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: mobilenet_v3_large_lite_tv
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: mobilenet_v3_large_lite
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507_checkpoint.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        AM62:
+          accuracy_factor: 72.12
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 1
+          performance_fps: 14
+          performance_infer_time_ms: 71.42857142857143
+        TDA4VM:
+          accuracy_factor: 72.12
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: null
+          performance_fps: 267
+          performance_infer_time_ms: 3.745318352059925
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  mobilenet_v3_small_lite_tv:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 1
+      model_compilation_id: cl-6480
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 64
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: mobilenet_v3_small_lite_tv
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: mobilenet_v3_small_lite
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429_checkpoint.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        AM62:
+          accuracy_factor: 62.688
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 2
+          performance_fps: 34
+          performance_infer_time_ms: 29.41176470588235
+        TDA4VM:
+          accuracy_factor: 62.688
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 4
+          performance_fps: 751
+          performance_infer_time_ms: 1.3315579227696406
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  regnet_x_1_6gf_tv:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 1
+      model_compilation_id: cl-6180
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 32
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: regnet_x_1_6gf_tv
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: regnet_x_1_6gf
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://download.pytorch.org/models/regnet_x_1_6gf-e3633e7f.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        TDA4VM:
+          accuracy_factor: 77.04
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 0
+          performance_fps: 237
+          performance_infer_time_ms: 4.219409282700422
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  regnet_x_400mf_tv:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 1
+      model_compilation_id: cl-6160
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 64
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: regnet_x_400mf_tv
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: regnet_x_400mf
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://download.pytorch.org/models/regnet_x_400mf-adf1edd5.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        TDA4VM:
+          accuracy_factor: 72.834
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 2
+          performance_fps: 288
+          performance_infer_time_ms: 3.4722222222222223
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  regnet_x_800mf_tv:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: classification
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 1
+      model_compilation_id: cl-6170
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 64
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 224
+      input_resize: 256
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: backbone
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: regnet_x_800mf_tv
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: regnet_x_800mf
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        TDA4VM:
+          accuracy_factor: 75.212
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 1
+          performance_fps: 272
+          performance_infer_time_ms: 3.676470588235294
+      training_backend: edgeai_torchvision
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  ssd_mobilenetv2_fpn_lite_mmdet:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 0
+      model_compilation_id: od-8030
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: null
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize:
+      - 512
+      - 512
+      input_resize:
+      - 512
+      - 512
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: ssd
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: ssd_mobilenetv2_fpn_lite_mmdet
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: ssd_mobilenet_fpn_lite
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_checkpoint.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        AM62:
+          accuracy_factor: 27.2
+          accuracy_unit: AP[.5:.95]%
+          model_selection_factor: 0
+          performance_fps: 0.5
+          performance_infer_time_ms: 2000.0
+        TDA4VM:
+          accuracy_factor: 27.2
+          accuracy_unit: AP[.5:.95]%
+          model_selection_factor: 6
+          performance_fps: 179
+          performance_infer_time_ms: 5.58659217877095
+      training_backend: edgeai_mmdetection
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  ssd_mobilenetv2_lite_mmdet:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 0
+      model_compilation_id: od-8020
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: null
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize:
+      - 320
+      - 320
+      input_resize:
+      - 320
+      - 320
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: ssd
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: ssd_mobilenetv2_lite_mmdet
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: ssd_mobilenet_lite_320x320
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_lite_512x512_20201214_checkpoint.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        AM62:
+          accuracy_factor: 22.1
+          accuracy_unit: AP[.5:.95]%
+          model_selection_factor: 1
+          performance_fps: 1.5
+          performance_infer_time_ms: 666.6666666666666
+        TDA4VM:
+          accuracy_factor: 22.1
+          accuracy_unit: AP[.5:.95]%
+          model_selection_factor: 9
+          performance_fps: 654
+          performance_infer_time_ms: 1.529051987767584
+      training_backend: edgeai_mmdetection
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 0
+      model_compilation_id: od-8060
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: null
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 4
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize:
+      - 768
+      - 768
+      input_resize:
+      - 768
+      - 768
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: ssd
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: ssd_regnetx_1p6gf_fpn_bgr_lite_mmdet
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: ssd_regnetx_1p6gf_fpn_bgr_lite
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-1.6gf_fpn_bgr_lite_768x768_20200923_checkpoint.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        TDA4VM:
+          accuracy_factor: 37.0
+          accuracy_unit: AP[.5:.95]%
+          model_selection_factor: null
+          performance_fps: 43
+          performance_infer_time_ms: 23.25581395348837
+      training_backend: edgeai_mmdetection
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  ssd_regnetx_200mf_fpn_bgr_lite_mmdet:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 0
+      model_compilation_id: od-8040
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: null
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize:
+      - 320
+      - 320
+      input_resize:
+      - 320
+      - 320
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: ssd
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: ssd_regnetx_200mf_fpn_bgr_lite_mmdet
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: ssd_regnetx_200mf_fpn_bgr_lite
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-200mf_fpn_bgr_lite_320x320_20201010_checkpoint.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        AM62:
+          accuracy_factor: 20.7
+          accuracy_unit: AP[.5:.95]%
+          model_selection_factor: 2
+          performance_fps: 2.3
+          performance_infer_time_ms: 434.7826086956522
+        TDA4VM:
+          accuracy_factor: 20.7
+          accuracy_unit: AP[.5:.95]%
+          model_selection_factor: null
+          performance_fps: 183
+          performance_infer_time_ms: 5.46448087431694
+      training_backend: edgeai_mmdetection
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  ssd_regnetx_800mf_fpn_bgr_lite_mmdet:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 0
+      model_compilation_id: od-8050
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: null
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize:
+      - 512
+      - 512
+      input_resize:
+      - 512
+      - 512
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: ssd
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: ssd_regnetx_800mf_fpn_bgr_lite_mmdet
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: ssd_regnetx_800mf_fpn_bgr_lite
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/ssd_regnetx-800mf_fpn_bgr_lite_512x512_20200919_checkpoint.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        TDA4VM:
+          accuracy_factor: 32.8
+          accuracy_unit: AP[.5:.95]%
+          model_selection_factor: 2
+          performance_fps: 94
+          performance_infer_time_ms: 10.638297872340425
+      training_backend: edgeai_mmdetection
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  yolov5l6_640_ti_lite:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 0
+      model_compilation_id: od-8130
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 288, 626, 682, 738, 794
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 4
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 640
+      input_resize: 640
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: yolov5
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: yolov5l6_640_ti_lite
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: yolov5l6
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/latest/edgeai-yolov5/pretrained_models/checkpoints/detection/coco/edgeai-yolov5/yolov5l6_640_ti_lite/weights/best.pt
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        TDA4VM:
+          accuracy_factor: 47.1
+          accuracy_unit: AP[.5:.95]%
+          model_selection_factor: 0
+          performance_fps: 21
+          performance_infer_time_ms: 47.61904761904762
+      training_backend: edgeai_yolov5
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  yolov5m6_640_ti_lite:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 0
+      model_compilation_id: od-8120
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 228, 498, 554, 610, 666
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 4
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 640
+      input_resize: 640
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: yolov5
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: yolov5m6_640_ti_lite
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: yolov5m6
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/latest/edgeai-yolov5/pretrained_models/checkpoints/detection/coco/edgeai-yolov5/yolov5m6_640_ti_lite/weights/best.pt
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        TDA4VM:
+          accuracy_factor: 44.1
+          accuracy_unit: AP[.5:.95]%
+          model_selection_factor: null
+          performance_fps: 46
+          performance_infer_time_ms: 21.73913043478261
+      training_backend: edgeai_yolov5
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  yolov5s6_384_ti_lite:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 0
+      model_compilation_id: od-8110
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 370, 426, 482, 538
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 384
+      input_resize: 384
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: yolov5
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: yolov5s6_384_ti_lite
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: yolov5s6
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/latest/edgeai-yolov5/pretrained_models/checkpoints/detection/coco/edgeai-yolov5/yolov5s6_384_ti_lite/weights/best.pt
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        TDA4VM:
+          accuracy_factor: 32.8
+          accuracy_unit: AP[.5:.95]%
+          model_selection_factor: 5
+          performance_fps: 170
+          performance_infer_time_ms: 5.882352941176471
+      training_backend: edgeai_yolov5
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  yolov5s6_640_ti_lite:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 0
+      model_compilation_id: od-8100
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 370, 426, 482, 538
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 640
+      input_resize: 640
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: yolov5
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: yolov5s6_640_ti_lite
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: yolov5s6
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/latest/edgeai-yolov5/pretrained_models/checkpoints/detection/coco/edgeai-yolov5/yolov5s6_640_ti_lite/weights/best.pt
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        TDA4VM:
+          accuracy_factor: 37.4
+          accuracy_unit: AP[.5:.95]%
+          model_selection_factor: 4
+          performance_fps: 108
+          performance_infer_time_ms: 9.25925925925926
+      training_backend: edgeai_yolov5
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  yolox_m_lite_mmdet:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 0
+      model_compilation_id: od-8230
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1546, 1547, 1548, 1562,
+          1563, 1564, 1578, 1579, 1580
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 4
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 640
+      input_resize: 640
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: yolox
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: yolox_m_lite_640x640_mmdet
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: yolox_m_lite
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_m_lite_20220228_checkpoint.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        TDA4VM:
+          accuracy_factor: 44.4
+          accuracy_unit: AP[.5:.95]%
+          model_selection_factor: 1
+          performance_fps: 46
+          performance_infer_time_ms: 21.73913043478261
+      training_backend: edgeai_mmdetection
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  yolox_nano_lite_mmdet:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 0
+      model_compilation_id: od-8200
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
+          1196, 1195, 1181, 1180, 1179
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 416
+      input_resize: 416
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: yolox
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: yolox_nano_lite_416x416_mmdet
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: yolox_nano_lite
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        TDA4VM:
+          accuracy_factor: 24.8
+          accuracy_unit: AP[.5:.95]%
+          model_selection_factor: 8
+          performance_fps: 287
+          performance_infer_time_ms: 3.484320557491289
+      training_backend: edgeai_mmdetection
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  yolox_s_lite_mmdet:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 0
+      model_compilation_id: od-8220
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
+          1196, 1195, 1181, 1180, 1179
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 640
+      input_resize: 640
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: yolox
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: yolox_s_lite_640x640_mmdet
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: yolox_s_lite
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        TDA4VM:
+          accuracy_factor: 38.3
+          accuracy_unit: AP[.5:.95]%
+          model_selection_factor: 3
+          performance_fps: 102
+          performance_infer_time_ms: 9.803921568627452
+      training_backend: edgeai_mmdetection
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+  yolox_tiny_lite_mmdet:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: evm
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      capture_log: true
+      compilation_path: null
+      detection_threshold: 0.6
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 0
+      model_compilation_id: od-8210
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 1213, 1212, 1211, 1197,
+          1196, 1195, 1181, 1180, 1179
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: null
+      split_factor: 0.75
+      split_names:
+      - train
+      - val
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 416
+      input_resize: 416
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: yolox
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: yolox_tiny_lite_416x416_mmdet
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: yolox_tiny_lite
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        TDA4VM:
+          accuracy_factor: 30.5
+          accuracy_unit: AP[.5:.95]%
+          model_selection_factor: 7
+          performance_fps: 220
+          performance_infer_time_ms: 4.545454545454546
+      training_backend: edgeai_mmdetection
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+preset_descriptions:
+  AM62:
+    classification:
+      best_accuracy_preset:
+        compilation:
+          calibration_frames: 1
+          calibration_iterations: 1
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 32
+          tidl_offload: false
+      best_speed_preset:
+        compilation:
+          calibration_frames: 1
+          calibration_iterations: 1
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 32
+          tidl_offload: false
+      default_preset:
+        compilation:
+          calibration_frames: 1
+          calibration_iterations: 1
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 32
+          tidl_offload: false
+      high_accuracy_preset:
+        compilation:
+          calibration_frames: 1
+          calibration_iterations: 1
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 32
+          tidl_offload: false
+      high_speed_preset:
+        compilation:
+          calibration_frames: 1
+          calibration_iterations: 1
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 32
+          tidl_offload: false
+    detection:
+      best_accuracy_preset:
+        compilation:
+          calibration_frames: 1
+          calibration_iterations: 1
+          detection_threshold: 0.05
+          detection_top_k: 500
+          tensor_bits: 32
+          tidl_offload: false
+      best_speed_preset:
+        compilation:
+          calibration_frames: 1
+          calibration_iterations: 1
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 32
+          tidl_offload: false
+      default_preset:
+        compilation:
+          calibration_frames: 1
+          calibration_iterations: 1
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 32
+          tidl_offload: false
+      high_accuracy_preset:
+        compilation:
+          calibration_frames: 1
+          calibration_iterations: 1
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 32
+          tidl_offload: false
+      high_speed_preset:
+        compilation:
+          calibration_frames: 1
+          calibration_iterations: 1
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 32
+          tidl_offload: false
+  TDA4VM:
+    classification:
+      best_accuracy_preset:
+        compilation:
+          calibration_frames: 25
+          calibration_iterations: 25
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 16
+      best_speed_preset:
+        compilation:
+          calibration_frames: 5
+          calibration_iterations: 1
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      default_preset:
+        compilation:
+          calibration_frames: 10
+          calibration_iterations: 10
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      high_accuracy_preset:
+        compilation:
+          calibration_frames: 25
+          calibration_iterations: 25
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      high_speed_preset:
+        compilation:
+          calibration_frames: 5
+          calibration_iterations: 5
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+    detection:
+      best_accuracy_preset:
+        compilation:
+          calibration_frames: 25
+          calibration_iterations: 25
+          detection_threshold: 0.05
+          detection_top_k: 500
+          tensor_bits: 16
+      best_speed_preset:
+        compilation:
+          calibration_frames: 5
+          calibration_iterations: 1
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 8
+      default_preset:
+        compilation:
+          calibration_frames: 10
+          calibration_iterations: 10
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 8
+      high_accuracy_preset:
+        compilation:
+          calibration_frames: 25
+          calibration_iterations: 25
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 8
+      high_speed_preset:
+        compilation:
+          calibration_frames: 5
+          calibration_iterations: 5
+          detection_threshold: 0.6
+          detection_top_k: 200
+          tensor_bits: 8
+sample_dataset_descriptions:
+  animal_classification:
+    common:
+      task_type: classification
+    dataset:
+      dataset_name: animal_classification
+      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip
+    info:
+      dataset_description: Example cat-dog image classification dataset with 2 categories
+        and 118 images
+      dataset_detailed_name: Animal classification
+      dataset_frames: 118
+      dataset_license: CC0 1.0 Universal Public Domain Dedication
+      dataset_size: 16137224
+      dataset_source: CC0 Public Domain Images from creativecommons.org, annotations
+        by TI
+      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_classification.zip
+  animal_detection:
+    common:
+      task_type: detection
+    dataset:
+      dataset_name: animal_detection
+      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip
+    info:
+      dataset_description: Example cat-dog object detection dataset with 2 categories
+        and 99 images
+      dataset_detailed_name: Animal detection
+      dataset_frames: 99
+      dataset_license: CC0 1.0 Universal Public Domain Dedication
+      dataset_size: 15290214
+      dataset_source: CC0 Public Domain Images from creativecommons.org, annotations
+        by TI
+      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/animal_detection.zip
+  tiscapes2017_driving:
+    common:
+      task_type: detection
+    dataset:
+      dataset_name: tiscapes2017_driving
+      input_data_path: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip
+    info:
+      dataset_description: Example driving scenario object detection dataset with
+        4 categories and 2116 images
+      dataset_detailed_name: TIScapes driving detection
+      dataset_frames: 2116
+      dataset_license: BSD 3-Clause
+      dataset_size: 461038628
+      dataset_source: Images & annotations from TI
+      dataset_url: http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip
+target_device_descriptions:
+  AM62:
+    device_details: "\nThe low-cost AM62x Sitara\u2122 MPU family of application processors\
+      \ are built for Linux\xAE application development.\nWith scalable Arm\xAE Cortex\xAE\
+      -A53 performance and embedded features, such as: dual-display support and 3D\n\
+      graphics acceleration, along with an extensive set of peripherals that make\
+      \ the AM62x device well-suited for\na broad range of industrial and automotive\
+      \ applications while offering intelligent features and optimized power architecture\
+      \ as well.\nProcessor Cores:\n* Up to Quad 64-bit Arm\xAE Cortex\xAE-A53 microprocessor\
+      \ subsystem at up to 1.4 GHz\n* Single-core Arm\xAE Cortex\xAE-M4F MCU at up\
+      \ to 400 MHz\n* Dedicated Device and Power Manager\nMultimedia:\n* Display subsystem\n\
+      * 3D Graphics Processing Unit\n* One Camera Serial interface (CSI-Rx) - 4 Lane\n\
+      with DPHY\nFor more information, see the following links:\n- product page: https://www.ti.com/product/AM623\n\
+      - product page: https://www.ti.com/product/AM625\n- starterkit: https://www.ti.com/tool/SK-AM62\n\
+      - top level landing page: https://ti.com/edgeai\n- software development page\
+      \ - introduction: https://dev.ti.com/edgeai/\n- software development page -\
+      \ model development: https://github.com/TexasInstruments/edgeai\n- software\
+      \ development page - sdk: https://www.ti.com/tool/PROCESSOR-SDK-AM62X\n"
+    device_name: AM62
+    device_selection_factor: 0
+    device_type: MPU
+  TDA4VM:
+    device_details: "\nThe TDA4VM processor family is based on the evolutionary Jacinto\u2122\
+      \ 7 architecture, targeted at ADAS, \nAutonomous Vehicle (AV) and industrial\
+      \ applications applications. \nThe unique combination high-performance compute,\
+      \ deeplearning engine, \ndedicated accelerators for signal and image processing\
+      \ in an functional safety compliant\ntargeted architecture make the TDA4VM devices\
+      \ a great fit for several industrial applications, such as: \nRobotics, Machine\
+      \ Vision, Radar, and so on. \nKey cores include next generation DSP with scalar\
+      \ and vector cores,\ndedicated deep learning and traditional algorithm accelerators,\
+      \ latest Arm and GPU processors for general\ncompute, an integrated next generation\
+      \ imaging subsystem (ISP), video codec, Ethernet hub and isolated MCU\nisland.\
+      \ All protected by automotive grade safety and security hardware accelerators.\n\
+      Processor Cores:\n* C7x floating point, vector DSP, up to 1.0 GHz, 80 GFLOPS,\
+      \ 256 GOPS\n* Deep-learning matrix multiply accelerator (MMA), up to 8 TOPS\
+      \ (8b) at 1.0 GHz\n* Vision Processing Accelerators (VPAC) with Image Signal\
+      \ Processor (ISP) and multiple vision assist accelerators\n* Depth and Motion\
+      \ Processing Accelerators (DMPAC)\n* Dual 64-bit Arm\xAE Cortex\xAE-A72 microprocessor\
+      \ subsystem at up to 2.0 GHz\n* Six Arm\xAE Cortex\xAE-R5F MCUs at up to 1.0\
+      \ GHz compute partition\n* Two C66x floating point DSP, up to 1.35 GHz, 40 GFLOPS,\
+      \ 160 GOPS\n* 3D GPU PowerVR\xAE Rogue 8XE GE8430, up to 750 MHz, 96 GFLOPS,\
+      \ 6 Gpix/sec\n* Custom-designed interconnect fabric supporting near max processing\
+      \ entitlement    \nFor more information, see the following links:\n- product\
+      \ page: https://www.ti.com/product/TDA4VM\n- starterkit: https://www.ti.com/tool/SK-TDA4VM\n\
+      - top level landing page: https://ti.com/edgeai\n- software development page\
+      \ - introduction: https://dev.ti.com/edgeai/\n- software development page -\
+      \ model development: https://github.com/TexasInstruments/edgeai\n- software\
+      \ development page - sdk: https://www.ti.com/tool/PROCESSOR-SDK-J721E\n"
+    device_name: TDA4VM
+    device_selection_factor: 1
+    device_type: MPU
+task_descriptions:
+  classification:
+    stages:
+    - dataset
+    - training
+    - compilation
+    target_devices:
+    - TDA4VM
+    - AM62
+    target_module: vision
+    task_name: Image Classification
+  detection:
+    stages:
+    - dataset
+    - training
+    - compilation
+    target_devices:
+    - TDA4VM
+    - AM62
+    target_module: vision
+    task_name: Object Detection
+training_module_descriptions:
+  edgeai_mmdetection:
+  - detection
+  edgeai_torchvision:
+  - classification
+  edgeai_yolov5:
+  - detection
