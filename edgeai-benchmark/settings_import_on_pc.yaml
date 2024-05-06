@@ -1,0 +1,19 @@
+# include_files is a special keyword - other files that need to be merged with this dict
+include_files : ['settings_base.yaml']
+
+# important parameter. set this to 'pc' to do import and inference in pc
+# set this to 'j7' to run inference in device. for inference on device run_import
+# below should be switched off and it is assumed that the artifacts are already created.
+# supported values: 'j7' 'pc'
+target_device : 'pc'
+
+# run import of the model - only to be used in pc - set this to False for j7 evm
+# for pc this can be True or False
+run_import : True
+
+# run inference - for inference in j7 evm, it is assumed that the artifacts folders are already available
+run_inference : True
+
+# parallel execution on pc only - not supported on j7 device
+# models are processed in parallel if this is a list. set to null to disable parallelism
+parallel_devices : [0,1,2,3] #null

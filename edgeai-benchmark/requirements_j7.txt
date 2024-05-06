@@ -1,0 +1,17 @@
+numpy>=1.20  
+#onnx==1.8.1
+#tflite
+pillow
+opencv-python-headless
+pycocotools
+colorama
+tqdm
+pyyaml
+#mxnet
+pytest
+json_tricks
+munkres
+#git+https://github.com/yogin16/prototxt_parser.git
+h5py
+scipy
+pillow

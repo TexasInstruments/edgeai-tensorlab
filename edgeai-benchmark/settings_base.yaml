@@ -1,0 +1,108 @@
+# execution pipeline type - currently only accuracy pipeline is defined
+pipeline_type : 'accuracy'
+
+# important parameter. set this to 'pc' to do import and inference in pc
+# set this to 'j7' to run inference in device. for inference on device run_import
+# below should be switched off and it is assumed that the artifacts are already created.
+# supported values: 'j7' 'pc'
+target_device : 'pc'
+
+# quantization bit precision
+# options are: 8 16 32
+tensor_bits : 8
+
+# run import of the model - only to be used in pc - set this to False for j7 evm
+# for pc this can be True or False
+run_import : True
+
+# run inference - for inference in j7 evm, it is assumed that the artifacts folders are already available
+run_inference : True
+
+# for parallel execution on pc only (cpu or gpu).
+# specify either a list of integers for parallel execution or null for sequentially execution
+# if you are not using cuda compiled tidl on pc, these actual numbers in the list don't matter,
+# but the size of the list determines the number of parallel processes
+# if you have cuda compiled tidl, these integers wil be used for CUDA_VISIBLE_DEVICES. eg. [0,1,2,3,0,1,2,3]
+# null will run the models sequentially.
+parallel_devices : null #[0,1,2,3]
+
+# number of frames for inference
+num_frames : 10000 #50000
+
+# number of frames to be used for post training quantization / calibration
+calibration_frames : 50 #100
+
+# number of itrations to be used for post training quantization / calibration
+calibration_iterations : 50 #100
+
+# runtime_options to be passed to the core session. default: null or a dict
+# eg. (in next line and with preceding spaces to indicate this is a dict entry) accuracy_level : 0
+# runtime_options :
+#   accuracy_level: 1    #this is automaticallly set as 1 if you set tensor bits as 8
+#   advanced_options:output_feature_16bit_names_list: '363,561' #layers that you want to be treated as 16 bit
+
+# folder where benchmark configs are defined. this should be python importable
+# # if this is None, the internally defined minimal set of configs will be used
+configs_path : './configs'
+
+# folder where models are available
+models_path : '../edgeai-modelzoo/models'
+
+# create your datasets under this folder
+datasets_path : './dependencies/datasets'
+
+# path where precompiled modelartifacts are placed
+modelartifacts_path : './work_dirs/modelartifacts'
+
+# session types to use for each model type
+session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
+
+# wild card list to match against model_path, model_id or model_type - if null, all models wil be shortlisted
+# only models matching these criteria will be considered - even for model_selection
+# examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
+# examples: ['resnet18.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision'] ['coco']
+# examples: [cl-0000, od-2020, ss-2580, cl-3410, od-5020, ss-5720, cl-6360, od-8050, od-8220, od-8420, ss-8610, kd-7060]
+model_selection : null
+
+# wild card list to match against the tasks. it null, all tasks will be run
+# example: ['classification', 'detection', 'segmentation', 'depth_estimation', 'human_pose_estimation', 'detection_3d']
+# example: 'classification'
+# example: null (Note: null means no filter - run all the tasks)
+task_selection : null
+
+# wild card list to match against dataset type - if null, all datasets will be shortlisted
+# example: ['coco']
+# example: ['imagenet', 'cocoseg21', 'ade20k', 'cocokpts', 'kitti_lidar_det', 'ti-robokit_semseg_zed1hd']
+dataset_loading : null
+
+# use TIDL offload to speedup inference
+tidl_offload : True
+
+# input optimization to improve FPS: False or null
+# null will cause the default value set in sessions.__init__ to be used.
+input_optimization : null
+
+# detection threshold
+detection_thr : 0.3
+
+# verbose mode - print out more information
+verbose : False
+
+# save detection, segmentation, human pose estimation output
+save_output : False
+
+# it defines if we want to use udp postprocessing in human pose estimation.
+# Paper ref: Huang et al. The Devil is in the Details: Delving into Unbiased
+# Data Processing for Human Pose Estimation (CVPR 2020).
+with_udp : True
+
+# it will add horizontally flipped images in info_dict and run inference over the flipped image also
+flip_test : False
+
+# enable use of experimental models - these model files may not be available in modelzoo in some cases
+experimental_models : False
+
+# dataset type to use if there are multiple variants for each dataset
+# imagenetv2c is available for quick download - so use it in the release branch
+dataset_type_dict:
+  'imagenet': 'imagenetv2c'
