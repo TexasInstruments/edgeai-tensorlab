@@ -1,0 +1,7 @@
+data/*
+!data/readme.txt
+work_dirs/*
+checkpoints/*
+!work_dirs/readme.txt
+*.pyc
+.idea/*
