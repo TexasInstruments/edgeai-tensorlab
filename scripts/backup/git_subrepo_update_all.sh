@@ -29,17 +29,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-git subrepo pull edgeai-docs -b release
-git subrepo pull edgeai-modelzoo -b release
-git subrepo pull edgeai-modelmaker -b release
-git subrepo pull edgeai-modeloptimization -b release
-git subrepo pull edgeai-modelutils -b release
-git subrepo pull edgeai-benchmark -b release
-git subrepo pull edgeai-torchvision -b release/latest
-git subrepo pull edgeai-yolox -b release
-git subrepo pull edgeai-mmdetection -b release
-git subrepo pull edgeai-mmdetection3d -b release
-git subrepo pull edgeai-mmpose -b release
-git subrepo pull edgeai-mmrazor -b release
-git subrepo pull edgeai-mmdeploy -b release
-git subrepo pull edgeai-datasets -b release
+#git subrepo pull edgeai-docs -b r9.2
+git subrepo pull edgeai-modelzoo -b r9.2
+git subrepo pull edgeai-modelmaker -b r9.2
+git subrepo pull edgeai-modeloptimization -b r9.2
+git subrepo pull edgeai-modelutils -b r9.2
+git subrepo pull edgeai-benchmark -b r9.2
+git subrepo pull edgeai-torchvision -b r9.2
+git subrepo pull edgeai-yolox -b r9.2
+git subrepo pull edgeai-mmdetection -b r9.2
+git subrepo pull edgeai-mmdetection3d -b r9.2
+git subrepo pull edgeai-mmpose -b r9.2
+git subrepo pull edgeai-mmrazor -b r9.2
+git subrepo pull edgeai-mmdeploy -b r9.2
+git subrepo pull edgeai-datasets -b r9.2

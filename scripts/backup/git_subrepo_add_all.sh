@@ -29,17 +29,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-docs.git edgeai-docs -b release
-git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modelzoo.git edgeai-modelzoo -b release
-git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modelmaker.git edgeai-modelmaker -b release
-git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modeloptimization.git edgeai-modeloptimization -b release
-git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modelutils.git edgeai-modelutils -b release
-git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-benchmark.git edgeai-benchmark -b release
-git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-torchvision.git edgeai-torchvision -b release/latest
-git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-yolox.git edgeai-yolox -b release
-git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmdetection.git edgeai-mmdetection -b release
-git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmdetection3d.git edgeai-mmdetection3d -b release
-git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmpose.git edgeai-mmpose -b release
-git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmrazor.git edgeai-mmrazor -b release
-git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmdeploy.git edgeai-mmdeploy -b release
-git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-datasets.git edgeai-datasets -b release
+#git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-docs.git edgeai-docs -b r9.2
+git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modelzoo.git edgeai-modelzoo -b r9.2
+git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modelmaker.git edgeai-modelmaker -b r9.2
+git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modeloptimization.git edgeai-modeloptimization -b r9.2
+git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modelutils.git edgeai-modelutils -b r9.2
+git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-benchmark.git edgeai-benchmark -b r9.2
+git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-torchvision.git edgeai-torchvision -b r9.2
+git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-yolox.git edgeai-yolox -b r9.2
+git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmdetection.git edgeai-mmdetection -b r9.2
+git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmdetection3d.git edgeai-mmdetection3d -b r9.2
+git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmpose.git edgeai-mmpose -b r9.2
+git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmrazor.git edgeai-mmrazor -b r9.2
+git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmdeploy.git edgeai-mmdeploy -b r9.2
+git subrepo clone ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-datasets.git edgeai-datasets -b r9.2
