@@ -1,0 +1,63 @@
+
+common:
+    target_module: 'vision'
+    task_type: 'keypoint_detection'
+    target_device: 'TDA4VM'
+    # run_name can be any string, but there are some special cases:
+    # {date-time} will be replaced with datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    # {model_name} will be replaced with the name of the model
+    run_name: '{date-time}/{model_name}'
+
+# Need to modify later according to the data loaders
+dataset:
+    # enable/disable dataset loading
+    enable: True #False
+    
+    # specify annotation prefix (of th annotation file) if needed - default is 'instances'.
+    # annotation_prefix: person_keypoints
+    # specify split names (of th annotation file) if needed - default is ['train', 'val'].
+    # split_names: ['train2017', 'val2017']
+    # specify max number of files to get splitted(of th annotation file) if needed - default is [750, 250].
+    # max_num_files: [750, 250] #None
+    # -------------------------------------
+    # Keypoint Detection Dataset Examples:
+    #
+    # -------------------------------------
+    # Example 1, (known datasets): 'coco_kpts'
+    # dataset_name: coco_keypoint_detection
+    #
+    # -------------------------------------
+    # Example 2, give a dataset name and input_data_path.
+    # dataset_name: coco_keypoints_val2017
+    # input_data_path could be a path to zip file, tar file, folder OR http, https link to zip or tar files
+    # input_data_path: "./data/downloads/datasets/coco_keypoints_val2017"
+    #
+    # -------------------------------------
+    # Example 3, give image folders with annotation files (require list with values for both train and val splits)
+    # dataset_name: coco_keypoint_detection
+    # input_data_path: ["./data/projects/coco_keypoint_detection/dataset/train2017",
+    #                        "./data/projects/coco_keypoint_detection/dataset/val2017"]
+    # input_annotation_path: ["./data/projects/coco_keypoint_detection/dataset/annotations/person_keypoints_train2017.json",
+    #                        "./data/projects/coco_keypoint_detection/dataset/annotations/person_keypoints_val2017.json"]
+    #
+    # -------------------------------------
+    # This simple dataset can be constucted by taking images in val2017 and putting in images folder
+    # and then taking person_keypoints_val2017.json and renaming it at annotations/instances.json
+    dataset_name: coco_keypoints_val2017
+    input_data_path: "./data/downloads/datasets/coco_keypoints_val2017"
+
+training:
+    # enable/disable training
+    enable: True #False
+    # Keypoint Detection model chosen can be changed here if needed
+    # Available models: yolox_s_keypoint
+    model_name: 'yolox_s_keypoint'
+    # training_epochs: 15
+    # batch_size: 16 #16
+    # learning_rate: 0.001
+    # num_gpus: 1
+
+compilation:
+    # enable/disable compilation
+    enable: True #False
+    # tensor_bits: 8 #16 #32
