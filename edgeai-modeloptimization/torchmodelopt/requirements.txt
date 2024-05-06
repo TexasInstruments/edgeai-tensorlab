@@ -1,0 +1,8 @@
+progressbar
+colorama
+opencv-python
+scipy
+matplotlib
+pyyaml
+torchinfo
+onnxsim
