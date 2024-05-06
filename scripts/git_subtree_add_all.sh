@@ -29,17 +29,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-#git subtree add --prefix edgeai-docs ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-docs.git r8.0
-git subtree add --prefix edgeai-modelzoo ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modelzoo.git r8.0
-git subtree add --prefix edgeai-modelmaker ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modelmaker.git r8.0
-git subtree add --prefix edgeai-modeloptimization ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modeloptimization.git r8.0
-git subtree add --prefix edgeai-modelutils ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modelutils.git r8.0
-git subtree add --prefix edgeai-benchmark ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-benchmark.git r8.0
-git subtree add --prefix edgeai-torchvision ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-torchvision.git r8.0
-git subtree add --prefix edgeai-yolox ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-yolox.git r8.0
-git subtree add --prefix edgeai-mmdetection ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmdetection.git r8.0
-git subtree add --prefix edgeai-mmdetection3d ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmdetection3d.git r8.0
-git subtree add --prefix edgeai-mmpose ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmpose.git r8.0
-git subtree add --prefix edgeai-mmrazor ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmrazor.git r8.0
-git subtree add --prefix edgeai-mmdeploy ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmdeploy.git r8.0
-git subtree add --prefix edgeai-datasets ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-datasets.git r8.0
+#git subtree add --prefix edgeai-docs ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-docs.git r8.4
+git subtree add --prefix edgeai-modelzoo ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modelzoo.git r8.4
+git subtree add --prefix edgeai-modelmaker ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modelmaker.git r8.4
+git subtree add --prefix edgeai-modeloptimization ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modeloptimization.git r8.4
+git subtree add --prefix edgeai-modelutils ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-modelutils.git r8.4
+git subtree add --prefix edgeai-benchmark ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-benchmark.git r8.4
+git subtree add --prefix edgeai-torchvision ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-torchvision.git r8.4
+git subtree add --prefix edgeai-yolox ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-yolox.git r8.4
+git subtree add --prefix edgeai-mmdetection ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmdetection.git r8.4
+git subtree add --prefix edgeai-mmdetection3d ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmdetection3d.git r8.4
+git subtree add --prefix edgeai-mmpose ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmpose.git r8.4
+git subtree add --prefix edgeai-mmrazor ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmrazor.git r8.4
+git subtree add --prefix edgeai-mmdeploy ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmdeploy.git r8.4
+git subtree add --prefix edgeai-datasets ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-datasets.git r8.4
