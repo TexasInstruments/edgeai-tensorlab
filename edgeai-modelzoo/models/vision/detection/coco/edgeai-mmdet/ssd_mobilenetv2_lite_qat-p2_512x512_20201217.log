@@ -1,0 +1,1113 @@
+2020-12-17 12:48:22,323 - mmdet - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: linux
+Python: 3.7.7 (default, May  7 2020, 21:25:33) [GCC 7.3.0]
+CUDA available: True
+GPU 0,1,2,3: GeForce GTX 1080 Ti
+CUDA_HOME: /usr/local/cuda
+NVCC: Build cuda_11.1.TC455_06.29190527_0
+GCC: gcc (Ubuntu 5.5.0-12ubuntu1) 5.5.0 20171010
+PyTorch: 1.6.0
+PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) Math Kernel Library Version 2020.0.2 Product Build 20200624 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v1.5.0 (Git Hash e2ac1fac44c5078ca927cb9b90e1b3066a0b2ed0)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 10.2
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_37,code=compute_37
+  - CuDNN 7.6.5
+  - Magma 2.5.2
+  - Build settings: BLAS=MKL, BUILD_TYPE=Release, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DUSE_VULKAN_WRAPPER -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, USE_CUDA=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, USE_STATIC_DISPATCH=OFF, 
+
+TorchVision: 0.7.0
+OpenCV: 4.3.0
+MMCV: 1.2.1
+MMCV Compiler: GCC 5.5
+MMCV CUDA Compiler: 10.2
+MMDetection: 2.7.0+ab190e5
+------------------------------------------------------------
+
+2020-12-17 12:48:22,721 - mmdet - INFO - Distributed training: True
+2020-12-17 12:48:23,057 - mmdet - INFO - Config:
+dataset_type = 'CocoDataset'
+data_root = 'data/coco/'
+dataset_repeats = 1
+data = dict(
+    samples_per_gpu=16,
+    workers_per_gpu=0,
+    train=dict(
+        type='RepeatDataset',
+        times=1,
+        dataset=dict(
+            type='CocoDataset',
+            ann_file='data/coco/annotations/instances_train2017.json',
+            img_prefix='data/coco/train2017/',
+            pipeline=[
+                dict(type='LoadImageFromFile', to_float32=True),
+                dict(type='LoadAnnotations', with_bbox=True),
+                dict(type='Bypass'),
+                dict(
+                    type='Expand',
+                    mean=[123.675, 116.28, 103.53],
+                    to_rgb=True,
+                    ratio_range=(1, 4)),
+                dict(
+                    type='MinIoURandomCrop',
+                    min_ious=(0.1, 0.3, 0.5, 0.7, 0.9),
+                    min_crop_size=0.3),
+                dict(type='Resize', img_scale=(512, 512), keep_ratio=False),
+                dict(
+                    type='Normalize',
+                    mean=[123.675, 116.28, 103.53],
+                    std=[58.395, 57.12, 57.375],
+                    to_rgb=True),
+                dict(type='RandomFlip', flip_ratio=0.5),
+                dict(type='DefaultFormatBundle'),
+                dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
+            ])),
+    val=dict(
+        type='CocoDataset',
+        ann_file='data/coco/annotations/instances_val2017.json',
+        img_prefix='data/coco/val2017/',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(
+                type='MultiScaleFlipAug',
+                img_scale=(512, 512),
+                flip=False,
+                transforms=[
+                    dict(type='Resize', keep_ratio=False),
+                    dict(type='RandomFlip'),
+                    dict(
+                        type='Normalize',
+                        mean=[123.675, 116.28, 103.53],
+                        std=[58.395, 57.12, 57.375],
+                        to_rgb=True),
+                    dict(type='ImageToTensor', keys=['img']),
+                    dict(type='Collect', keys=['img'])
+                ])
+        ]),
+    test=dict(
+        type='CocoDataset',
+        ann_file='data/coco/annotations/instances_val2017.json',
+        img_prefix='data/coco/val2017/',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(
+                type='MultiScaleFlipAug',
+                img_scale=(512, 512),
+                flip=False,
+                transforms=[
+                    dict(type='Resize', keep_ratio=False),
+                    dict(type='RandomFlip'),
+                    dict(
+                        type='Normalize',
+                        mean=[123.675, 116.28, 103.53],
+                        std=[58.395, 57.12, 57.375],
+                        to_rgb=True),
+                    dict(type='ImageToTensor', keys=['img']),
+                    dict(type='Collect', keys=['img'])
+                ])
+        ]))
+evaluation = dict(interval=1, metric='bbox')
+cudnn_benchmark = True
+checkpoint_config = dict(interval=1)
+log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])
+dist_params = dict(backend='nccl')
+log_level = 'INFO'
+load_from = './work_dirs/ssd-lite_mobilenet/latest.pth'
+resume_from = None
+workflow = [('train', 1)]
+print_model_complexity = True
+train_cfg = dict(
+    assigner=dict(
+        type='MaxIoUAssigner',
+        pos_iou_thr=0.5,
+        neg_iou_thr=0.5,
+        min_pos_iou=0.0,
+        ignore_iof_thr=-1,
+        gt_max_assign_all=False),
+    smoothl1_beta=1.0,
+    allowed_border=-1,
+    pos_weight=-1,
+    neg_pos_ratio=3,
+    debug=False)
+test_cfg = dict(
+    nms=dict(type='nms', iou_thr=0.45),
+    min_bbox_size=0,
+    score_thr=0.02,
+    max_per_img=200)
+optimizer = dict(type='SGD', lr=0.0004, momentum=0.9, weight_decay=4e-05)
+optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
+warmup_cfg = dict(warmup='linear', warmup_iters=1000, warmup_ratio=0.001)
+lr_config = dict(
+    policy='CosineAnnealing',
+    min_lr_ratio=0.0001,
+    warmup='linear',
+    warmup_iters=1000,
+    warmup_ratio=0.001)
+total_epochs = 12
+input_size = (512, 512)
+num_classes_dict = dict(CocoDataset=80, VOCDataset=20, CityscapesDataset=8)
+num_classes = 80
+img_norm_cfg = dict(
+    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+quantize = True
+initial_learning_rate = 0.04
+samples_per_gpu = 16
+backbone_type = 'MobileNetV2'
+mobilenetv2_pretrained = 'torchvision://mobilenet_v2'
+mobilenetv1_pretrained = './data/modelzoo/pytorch/image_classification/imagenet1k/jacinto_ai/mobilenet_v1_2019-09-06_17-15-44.pth'
+pretrained = 'torchvision://mobilenet_v2'
+bacbone_out_channels = (96, 320, 512, 256, 256, 256)
+backbone_out_indices = (1, 2, 3, 4)
+basesize_ratio_range = (0.1, 0.9)
+conv_cfg = dict(type='ConvDWSep')
+norm_cfg = dict(type='BN')
+model = dict(
+    type='SingleStageDetector',
+    pretrained='torchvision://mobilenet_v2',
+    backbone=dict(
+        type='MobileNetV2',
+        strides=(2, 2, 2, 2, 2),
+        depth=None,
+        with_last_pool=False,
+        ceil_mode=True,
+        need_extra=4,
+        out_indices=(3, 4),
+        out_feature_indices=None,
+        l2_norm_scale=None),
+    neck=None,
+    bbox_head=dict(
+        type='SSDLiteHead',
+        in_channels=(96, 320, 512, 256, 256, 256),
+        num_classes=80,
+        conv_cfg=dict(type='ConvDWSep'),
+        anchor_generator=dict(
+            type='SSDAnchorGenerator',
+            scale_major=False,
+            input_size=(512, 512),
+            basesize_ratio_range=(0.1, 0.9),
+            strides=[16, 32, 64, 128, 256, 512],
+            ratios=[[2], [2, 3], [2, 3], [2, 3], [2, 3], [2]]),
+        bbox_coder=dict(
+            type='DeltaXYWHBBoxCoder',
+            target_means=[0.0, 0.0, 0.0, 0.0],
+            target_stds=[0.1, 0.1, 0.2, 0.2])))
+train_pipeline = [
+    dict(type='LoadImageFromFile', to_float32=True),
+    dict(type='LoadAnnotations', with_bbox=True),
+    dict(type='Bypass'),
+    dict(
+        type='Expand',
+        mean=[123.675, 116.28, 103.53],
+        to_rgb=True,
+        ratio_range=(1, 4)),
+    dict(
+        type='MinIoURandomCrop',
+        min_ious=(0.1, 0.3, 0.5, 0.7, 0.9),
+        min_crop_size=0.3),
+    dict(type='Resize', img_scale=(512, 512), keep_ratio=False),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='RandomFlip', flip_ratio=0.5),
+    dict(type='DefaultFormatBundle'),
+    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(
+        type='MultiScaleFlipAug',
+        img_scale=(512, 512),
+        flip=False,
+        transforms=[
+            dict(type='Resize', keep_ratio=False),
+            dict(type='RandomFlip'),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ])
+]
+work_dir = './work_dirs/ssd-lite_mobilenet'
+gpu_ids = range(0, 4)
+
+2020-12-17 12:48:23,154 - mmdet - INFO - load model from: torchvision://mobilenet_v2
+2020-12-17 12:48:24,777 - mmdet - WARNING - The model and loaded state dict do not match exactly
+
+unexpected key in source state_dict: classifier.1.weight, classifier.1.bias, features.18.0.weight, features.18.1.weight, features.18.1.bias, features.18.1.running_mean, features.18.1.running_var, features.18.1.num_batches_tracked
+
+missing keys in source state_dict: extra.0.0.0.weight, extra.0.0.1.weight, extra.0.0.1.bias, extra.0.0.1.running_mean, extra.0.0.1.running_var, extra.0.1.0.weight, extra.0.1.1.weight, extra.0.1.1.bias, extra.0.1.1.running_mean, extra.0.1.1.running_var, extra.1.0.0.weight, extra.1.0.1.weight, extra.1.0.1.bias, extra.1.0.1.running_mean, extra.1.0.1.running_var, extra.1.1.0.weight, extra.1.1.1.weight, extra.1.1.1.bias, extra.1.1.1.running_mean, extra.1.1.1.running_var, extra.2.0.0.weight, extra.2.0.1.weight, extra.2.0.1.bias, extra.2.0.1.running_mean, extra.2.0.1.running_var, extra.2.1.0.weight, extra.2.1.1.weight, extra.2.1.1.bias, extra.2.1.1.running_mean, extra.2.1.1.running_var, extra.3.0.0.weight, extra.3.0.1.weight, extra.3.0.1.bias, extra.3.0.1.running_mean, extra.3.0.1.running_var, extra.3.1.0.weight, extra.3.1.1.weight, extra.3.1.1.bias, extra.3.1.1.running_mean, extra.3.1.1.running_var
+
+2020-12-17 12:48:25,113 - mmdet - INFO - SingleStageDetector(
+  1.674 GMac, 100.000% MACs, 
+  (backbone): MobileNetV2(
+    1.574 GMac, 94.005% MACs, 
+    (features): Sequential(
+      1.561 GMac, 93.206% MACs, 
+      (0): Sequential(
+        0.063 GMac, 3.758% MACs, 
+        (0): Conv2d(0.057 GMac, 3.382% MACs, 3, 32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(0.004 GMac, 0.251% MACs, 32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(0.002 GMac, 0.125% MACs, )
+      )
+      (1): InvertedResidual(
+        0.061 GMac, 3.632% MACs, 
+        (conv): Sequential(
+          0.061 GMac, 3.632% MACs, 
+          (0): Sequential(
+            0.025 GMac, 1.503% MACs, 
+            (0): Conv2d(0.019 GMac, 1.127% MACs, 32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=32, bias=False)
+            (1): BatchNorm2d(0.004 GMac, 0.251% MACs, 32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.002 GMac, 0.125% MACs, )
+          )
+          (1): Conv2d(0.034 GMac, 2.004% MACs, 32, 16, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (2): BatchNorm2d(0.002 GMac, 0.125% MACs, 16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+      )
+      (2): InvertedResidual(
+        0.177 GMac, 10.568% MACs, 
+        (conv): Sequential(
+          0.177 GMac, 10.568% MACs, 
+          (0): Sequential(
+            0.12 GMac, 7.140% MACs, 
+            (0): Conv2d(0.101 GMac, 6.012% MACs, 16, 96, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(0.013 GMac, 0.752% MACs, 96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.006 GMac, 0.376% MACs, )
+          )
+          (1): Sequential(
+            0.019 GMac, 1.127% MACs, 
+            (0): Conv2d(0.014 GMac, 0.845% MACs, 96, 96, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), groups=96, bias=False)
+            (1): BatchNorm2d(0.003 GMac, 0.188% MACs, 96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.002 GMac, 0.094% MACs, )
+          )
+          (2): Conv2d(0.038 GMac, 2.255% MACs, 96, 24, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(0.001 GMac, 0.047% MACs, 24, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+      )
+      (3): InvertedResidual(
+        0.149 GMac, 8.924% MACs, 
+        (conv): Sequential(
+          0.149 GMac, 8.924% MACs, 
+          (0): Sequential(
+            0.064 GMac, 3.805% MACs, 
+            (0): Conv2d(0.057 GMac, 3.382% MACs, 24, 144, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(0.005 GMac, 0.282% MACs, 144, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.002 GMac, 0.141% MACs, )
+          )
+          (1): Sequential(
+            0.028 GMac, 1.691% MACs, 
+            (0): Conv2d(0.021 GMac, 1.268% MACs, 144, 144, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=144, bias=False)
+            (1): BatchNorm2d(0.005 GMac, 0.282% MACs, 144, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.002 GMac, 0.141% MACs, )
+          )
+          (2): Conv2d(0.057 GMac, 3.382% MACs, 144, 24, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(0.001 GMac, 0.047% MACs, 24, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+        (add): AddBlock(inplace=False, signed=True)
+      )
+      (4): InvertedResidual(
+        0.09 GMac, 5.370% MACs, 
+        (conv): Sequential(
+          0.09 GMac, 5.370% MACs, 
+          (0): Sequential(
+            0.064 GMac, 3.805% MACs, 
+            (0): Conv2d(0.057 GMac, 3.382% MACs, 24, 144, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(0.005 GMac, 0.282% MACs, 144, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.002 GMac, 0.141% MACs, )
+          )
+          (1): Sequential(
+            0.007 GMac, 0.423% MACs, 
+            (0): Conv2d(0.005 GMac, 0.317% MACs, 144, 144, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), groups=144, bias=False)
+            (1): BatchNorm2d(0.001 GMac, 0.070% MACs, 144, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.001 GMac, 0.035% MACs, )
+          )
+          (2): Conv2d(0.019 GMac, 1.127% MACs, 144, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(0.0 GMac, 0.016% MACs, 32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+      )
+      (5): InvertedResidual(
+        0.062 GMac, 3.726% MACs, 
+        (conv): Sequential(
+          0.062 GMac, 3.726% MACs, 
+          (0): Sequential(
+            0.028 GMac, 1.644% MACs, 
+            (0): Conv2d(0.025 GMac, 1.503% MACs, 32, 192, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(0.002 GMac, 0.094% MACs, 192, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.001 GMac, 0.047% MACs, )
+          )
+          (1): Sequential(
+            0.009 GMac, 0.564% MACs, 
+            (0): Conv2d(0.007 GMac, 0.423% MACs, 192, 192, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=192, bias=False)
+            (1): BatchNorm2d(0.002 GMac, 0.094% MACs, 192, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.001 GMac, 0.047% MACs, )
+          )
+          (2): Conv2d(0.025 GMac, 1.503% MACs, 192, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(0.0 GMac, 0.016% MACs, 32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+        (add): AddBlock(inplace=False, signed=True)
+      )
+      (6): InvertedResidual(
+        0.062 GMac, 3.726% MACs, 
+        (conv): Sequential(
+          0.062 GMac, 3.726% MACs, 
+          (0): Sequential(
+            0.028 GMac, 1.644% MACs, 
+            (0): Conv2d(0.025 GMac, 1.503% MACs, 32, 192, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(0.002 GMac, 0.094% MACs, 192, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.001 GMac, 0.047% MACs, )
+          )
+          (1): Sequential(
+            0.009 GMac, 0.564% MACs, 
+            (0): Conv2d(0.007 GMac, 0.423% MACs, 192, 192, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=192, bias=False)
+            (1): BatchNorm2d(0.002 GMac, 0.094% MACs, 192, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.001 GMac, 0.047% MACs, )
+          )
+          (2): Conv2d(0.025 GMac, 1.503% MACs, 192, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(0.0 GMac, 0.016% MACs, 32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+        (add): AddBlock(inplace=False, signed=True)
+      )
+      (7): InvertedResidual(
+        0.043 GMac, 2.544% MACs, 
+        (conv): Sequential(
+          0.043 GMac, 2.544% MACs, 
+          (0): Sequential(
+            0.028 GMac, 1.644% MACs, 
+            (0): Conv2d(0.025 GMac, 1.503% MACs, 32, 192, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(0.002 GMac, 0.094% MACs, 192, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.001 GMac, 0.047% MACs, )
+          )
+          (1): Sequential(
+            0.002 GMac, 0.141% MACs, 
+            (0): Conv2d(0.002 GMac, 0.106% MACs, 192, 192, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), groups=192, bias=False)
+            (1): BatchNorm2d(0.0 GMac, 0.023% MACs, 192, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.0 GMac, 0.012% MACs, )
+          )
+          (2): Conv2d(0.013 GMac, 0.752% MACs, 192, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(0.0 GMac, 0.008% MACs, 64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+      )
+      (8): InvertedResidual(
+        0.056 GMac, 3.366% MACs, 
+        (conv): Sequential(
+          0.056 GMac, 3.366% MACs, 
+          (0): Sequential(
+            0.026 GMac, 1.574% MACs, 
+            (0): Conv2d(0.025 GMac, 1.503% MACs, 64, 384, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(0.001 GMac, 0.047% MACs, 384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.0 GMac, 0.023% MACs, )
+          )
+          (1): Sequential(
+            0.005 GMac, 0.282% MACs, 
+            (0): Conv2d(0.004 GMac, 0.211% MACs, 384, 384, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=384, bias=False)
+            (1): BatchNorm2d(0.001 GMac, 0.047% MACs, 384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.0 GMac, 0.023% MACs, )
+          )
+          (2): Conv2d(0.025 GMac, 1.503% MACs, 384, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(0.0 GMac, 0.008% MACs, 64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+        (add): AddBlock(inplace=False, signed=True)
+      )
+      (9): InvertedResidual(
+        0.056 GMac, 3.366% MACs, 
+        (conv): Sequential(
+          0.056 GMac, 3.366% MACs, 
+          (0): Sequential(
+            0.026 GMac, 1.574% MACs, 
+            (0): Conv2d(0.025 GMac, 1.503% MACs, 64, 384, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(0.001 GMac, 0.047% MACs, 384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.0 GMac, 0.023% MACs, )
+          )
+          (1): Sequential(
+            0.005 GMac, 0.282% MACs, 
+            (0): Conv2d(0.004 GMac, 0.211% MACs, 384, 384, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=384, bias=False)
+            (1): BatchNorm2d(0.001 GMac, 0.047% MACs, 384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.0 GMac, 0.023% MACs, )
+          )
+          (2): Conv2d(0.025 GMac, 1.503% MACs, 384, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(0.0 GMac, 0.008% MACs, 64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+        (add): AddBlock(inplace=False, signed=True)
+      )
+      (10): InvertedResidual(
+        0.056 GMac, 3.366% MACs, 
+        (conv): Sequential(
+          0.056 GMac, 3.366% MACs, 
+          (0): Sequential(
+            0.026 GMac, 1.574% MACs, 
+            (0): Conv2d(0.025 GMac, 1.503% MACs, 64, 384, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(0.001 GMac, 0.047% MACs, 384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.0 GMac, 0.023% MACs, )
+          )
+          (1): Sequential(
+            0.005 GMac, 0.282% MACs, 
+            (0): Conv2d(0.004 GMac, 0.211% MACs, 384, 384, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=384, bias=False)
+            (1): BatchNorm2d(0.001 GMac, 0.047% MACs, 384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.0 GMac, 0.023% MACs, )
+          )
+          (2): Conv2d(0.025 GMac, 1.503% MACs, 384, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(0.0 GMac, 0.008% MACs, 64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+        (add): AddBlock(inplace=False, signed=True)
+      )
+      (11): InvertedResidual(
+        0.069 GMac, 4.122% MACs, 
+        (conv): Sequential(
+          0.069 GMac, 4.122% MACs, 
+          (0): Sequential(
+            0.026 GMac, 1.574% MACs, 
+            (0): Conv2d(0.025 GMac, 1.503% MACs, 64, 384, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(0.001 GMac, 0.047% MACs, 384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.0 GMac, 0.023% MACs, )
+          )
+          (1): Sequential(
+            0.005 GMac, 0.282% MACs, 
+            (0): Conv2d(0.004 GMac, 0.211% MACs, 384, 384, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=384, bias=False)
+            (1): BatchNorm2d(0.001 GMac, 0.047% MACs, 384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.0 GMac, 0.023% MACs, )
+          )
+          (2): Conv2d(0.038 GMac, 2.255% MACs, 384, 96, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(0.0 GMac, 0.012% MACs, 96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+      )
+      (12): InvertedResidual(
+        0.122 GMac, 7.304% MACs, 
+        (conv): Sequential(
+          0.122 GMac, 7.304% MACs, 
+          (0): Sequential(
+            0.058 GMac, 3.488% MACs, 
+            (0): Conv2d(0.057 GMac, 3.382% MACs, 96, 576, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(0.001 GMac, 0.070% MACs, 576, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.001 GMac, 0.035% MACs, )
+          )
+          (1): Sequential(
+            0.007 GMac, 0.423% MACs, 
+            (0): Conv2d(0.005 GMac, 0.317% MACs, 576, 576, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=576, bias=False)
+            (1): BatchNorm2d(0.001 GMac, 0.070% MACs, 576, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.001 GMac, 0.035% MACs, )
+          )
+          (2): Conv2d(0.057 GMac, 3.382% MACs, 576, 96, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(0.0 GMac, 0.012% MACs, 96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+        (add): AddBlock(inplace=False, signed=True)
+      )
+      (13): InvertedResidual(
+        0.122 GMac, 7.304% MACs, 
+        (conv): Sequential(
+          0.122 GMac, 7.304% MACs, 
+          (0): Sequential(
+            0.058 GMac, 3.488% MACs, 
+            (0): Conv2d(0.057 GMac, 3.382% MACs, 96, 576, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(0.001 GMac, 0.070% MACs, 576, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.001 GMac, 0.035% MACs, )
+          )
+          (1): Sequential(
+            0.007 GMac, 0.423% MACs, 
+            (0): Conv2d(0.005 GMac, 0.317% MACs, 576, 576, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=576, bias=False)
+            (1): BatchNorm2d(0.001 GMac, 0.070% MACs, 576, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.001 GMac, 0.035% MACs, )
+          )
+          (2): Conv2d(0.057 GMac, 3.382% MACs, 576, 96, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(0.0 GMac, 0.012% MACs, 96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+        (add): AddBlock(inplace=False, signed=True)
+      )
+      (14): InvertedResidual(
+        0.084 GMac, 5.007% MACs, 
+        (conv): Sequential(
+          0.084 GMac, 5.007% MACs, 
+          (0): Sequential(
+            0.058 GMac, 3.488% MACs, 
+            (0): Conv2d(0.057 GMac, 3.382% MACs, 96, 576, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(0.001 GMac, 0.070% MACs, 576, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.001 GMac, 0.035% MACs, )
+          )
+          (1): Sequential(
+            0.002 GMac, 0.106% MACs, 
+            (0): Conv2d(0.001 GMac, 0.079% MACs, 576, 576, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), groups=576, bias=False)
+            (1): BatchNorm2d(0.0 GMac, 0.018% MACs, 576, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.0 GMac, 0.009% MACs, )
+          )
+          (2): Conv2d(0.024 GMac, 1.409% MACs, 576, 160, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(0.0 GMac, 0.005% MACs, 160, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+      )
+      (15): InvertedResidual(
+        0.082 GMac, 4.922% MACs, 
+        (conv): Sequential(
+          0.082 GMac, 4.922% MACs, 
+          (0): Sequential(
+            0.04 GMac, 2.393% MACs, 
+            (0): Conv2d(0.039 GMac, 2.349% MACs, 160, 960, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(0.0 GMac, 0.029% MACs, 960, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.0 GMac, 0.015% MACs, )
+          )
+          (1): Sequential(
+            0.003 GMac, 0.176% MACs, 
+            (0): Conv2d(0.002 GMac, 0.132% MACs, 960, 960, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=960, bias=False)
+            (1): BatchNorm2d(0.0 GMac, 0.029% MACs, 960, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.0 GMac, 0.015% MACs, )
+          )
+          (2): Conv2d(0.039 GMac, 2.349% MACs, 960, 160, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(0.0 GMac, 0.005% MACs, 160, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+        (add): AddBlock(inplace=False, signed=True)
+      )
+      (16): InvertedResidual(
+        0.082 GMac, 4.922% MACs, 
+        (conv): Sequential(
+          0.082 GMac, 4.922% MACs, 
+          (0): Sequential(
+            0.04 GMac, 2.393% MACs, 
+            (0): Conv2d(0.039 GMac, 2.349% MACs, 160, 960, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(0.0 GMac, 0.029% MACs, 960, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.0 GMac, 0.015% MACs, )
+          )
+          (1): Sequential(
+            0.003 GMac, 0.176% MACs, 
+            (0): Conv2d(0.002 GMac, 0.132% MACs, 960, 960, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=960, bias=False)
+            (1): BatchNorm2d(0.0 GMac, 0.029% MACs, 960, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.0 GMac, 0.015% MACs, )
+          )
+          (2): Conv2d(0.039 GMac, 2.349% MACs, 960, 160, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(0.0 GMac, 0.005% MACs, 160, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+        (add): AddBlock(inplace=False, signed=True)
+      )
+      (17): InvertedResidual(
+        0.122 GMac, 7.276% MACs, 
+        (conv): Sequential(
+          0.122 GMac, 7.276% MACs, 
+          (0): Sequential(
+            0.04 GMac, 2.393% MACs, 
+            (0): Conv2d(0.039 GMac, 2.349% MACs, 160, 960, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(0.0 GMac, 0.029% MACs, 960, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.0 GMac, 0.015% MACs, )
+          )
+          (1): Sequential(
+            0.003 GMac, 0.176% MACs, 
+            (0): Conv2d(0.002 GMac, 0.132% MACs, 960, 960, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=960, bias=False)
+            (1): BatchNorm2d(0.0 GMac, 0.029% MACs, 960, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (2): ReLU(0.0 GMac, 0.015% MACs, )
+          )
+          (2): Conv2d(0.079 GMac, 4.697% MACs, 960, 320, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(0.0 GMac, 0.010% MACs, 320, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+      )
+    )
+    (extra): Sequential(
+      0.013 GMac, 0.799% MACs, 
+      (0): Sequential(
+        0.011 GMac, 0.647% MACs, 
+        (0): Sequential(
+          0.0 GMac, 0.015% MACs, 
+          (0): Conv2d(0.0 GMac, 0.011% MACs, 320, 320, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), groups=320, bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.002% MACs, 320, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.001% MACs, )
+        )
+        (1): Sequential(
+          0.011 GMac, 0.632% MACs, 
+          (0): Conv2d(0.01 GMac, 0.626% MACs, 320, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.004% MACs, 512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.002% MACs, )
+        )
+      )
+      (1): Sequential(
+        0.002 GMac, 0.132% MACs, 
+        (0): Sequential(
+          0.0 GMac, 0.006% MACs, 
+          (0): Conv2d(0.0 GMac, 0.004% MACs, 512, 512, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), groups=512, bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.001% MACs, 512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.000% MACs, )
+        )
+        (1): Sequential(
+          0.002 GMac, 0.126% MACs, 
+          (0): Conv2d(0.002 GMac, 0.125% MACs, 512, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.000% MACs, 256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.000% MACs, )
+        )
+      )
+      (2): Sequential(
+        0.0 GMac, 0.017% MACs, 
+        (0): Sequential(
+          0.0 GMac, 0.001% MACs, 
+          (0): Conv2d(0.0 GMac, 0.001% MACs, 256, 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), groups=256, bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.000% MACs, 256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.000% MACs, )
+        )
+        (1): Sequential(
+          0.0 GMac, 0.016% MACs, 
+          (0): Conv2d(0.0 GMac, 0.016% MACs, 256, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.000% MACs, 256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.000% MACs, )
+        )
+      )
+      (3): Sequential(
+        0.0 GMac, 0.004% MACs, 
+        (0): Sequential(
+          0.0 GMac, 0.000% MACs, 
+          (0): Conv2d(0.0 GMac, 0.000% MACs, 256, 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), groups=256, bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.000% MACs, 256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.000% MACs, )
+        )
+        (1): Sequential(
+          0.0 GMac, 0.004% MACs, 
+          (0): Conv2d(0.0 GMac, 0.004% MACs, 256, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.000% MACs, 256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.000% MACs, )
+        )
+      )
+    )
+  )
+  (bbox_head): SSDLiteHead(
+    0.1 GMac, 5.995% MACs, 
+    (reg_convs): ModuleList(
+      0.007 GMac, 0.424% MACs, 
+      (0): ConvDWSep2d(
+        0.003 GMac, 0.165% MACs, 
+        (0): Sequential(
+          0.001 GMac, 0.070% MACs, 
+          (0): Conv2d(0.001 GMac, 0.053% MACs, 96, 96, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=96, bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.012% MACs, 96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.006% MACs, )
+        )
+        (1): Sequential(
+          0.002 GMac, 0.095% MACs, 
+          (0): Conv2d(0.002 GMac, 0.095% MACs, 96, 16, kernel_size=(1, 1), stride=(1, 1))
+        )
+      )
+      (1): ConvDWSep2d(
+        0.003 GMac, 0.177% MACs, 
+        (0): Sequential(
+          0.001 GMac, 0.059% MACs, 
+          (0): Conv2d(0.001 GMac, 0.044% MACs, 320, 320, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=320, bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.010% MACs, 320, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.005% MACs, )
+        )
+        (1): Sequential(
+          0.002 GMac, 0.118% MACs, 
+          (0): Conv2d(0.002 GMac, 0.118% MACs, 320, 24, kernel_size=(1, 1), stride=(1, 1))
+        )
+      )
+      (2): ConvDWSep2d(
+        0.001 GMac, 0.071% MACs, 
+        (0): Sequential(
+          0.0 GMac, 0.023% MACs, 
+          (0): Conv2d(0.0 GMac, 0.018% MACs, 512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=512, bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.004% MACs, 512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.002% MACs, )
+        )
+        (1): Sequential(
+          0.001 GMac, 0.047% MACs, 
+          (0): Conv2d(0.001 GMac, 0.047% MACs, 512, 24, kernel_size=(1, 1), stride=(1, 1))
+        )
+      )
+      (3): ConvDWSep2d(
+        0.0 GMac, 0.009% MACs, 
+        (0): Sequential(
+          0.0 GMac, 0.003% MACs, 
+          (0): Conv2d(0.0 GMac, 0.002% MACs, 256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=256, bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.000% MACs, 256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.000% MACs, )
+        )
+        (1): Sequential(
+          0.0 GMac, 0.006% MACs, 
+          (0): Conv2d(0.0 GMac, 0.006% MACs, 256, 24, kernel_size=(1, 1), stride=(1, 1))
+        )
+      )
+      (4): ConvDWSep2d(
+        0.0 GMac, 0.002% MACs, 
+        (0): Sequential(
+          0.0 GMac, 0.001% MACs, 
+          (0): Conv2d(0.0 GMac, 0.001% MACs, 256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=256, bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.000% MACs, 256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.000% MACs, )
+        )
+        (1): Sequential(
+          0.0 GMac, 0.001% MACs, 
+          (0): Conv2d(0.0 GMac, 0.001% MACs, 256, 24, kernel_size=(1, 1), stride=(1, 1))
+        )
+      )
+      (5): ConvDWSep2d(
+        0.0 GMac, 0.000% MACs, 
+        (0): Sequential(
+          0.0 GMac, 0.000% MACs, 
+          (0): Conv2d(0.0 GMac, 0.000% MACs, 256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=256, bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.000% MACs, 256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.000% MACs, )
+        )
+        (1): Sequential(
+          0.0 GMac, 0.000% MACs, 
+          (0): Conv2d(0.0 GMac, 0.000% MACs, 256, 16, kernel_size=(1, 1), stride=(1, 1))
+        )
+      )
+    )
+    (cls_convs): ModuleList(
+      0.093 GMac, 5.571% MACs, 
+      (0): ConvDWSep2d(
+        0.033 GMac, 1.993% MACs, 
+        (0): Sequential(
+          0.001 GMac, 0.070% MACs, 
+          (0): Conv2d(0.001 GMac, 0.053% MACs, 96, 96, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=96, bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.012% MACs, 96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.006% MACs, )
+        )
+        (1): Sequential(
+          0.032 GMac, 1.922% MACs, 
+          (0): Conv2d(0.032 GMac, 1.922% MACs, 96, 324, kernel_size=(1, 1), stride=(1, 1))
+        )
+      )
+      (1): ConvDWSep2d(
+        0.041 GMac, 2.444% MACs, 
+        (0): Sequential(
+          0.001 GMac, 0.059% MACs, 
+          (0): Conv2d(0.001 GMac, 0.044% MACs, 320, 320, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=320, bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.010% MACs, 320, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.005% MACs, )
+        )
+        (1): Sequential(
+          0.04 GMac, 2.385% MACs, 
+          (0): Conv2d(0.04 GMac, 2.385% MACs, 320, 486, kernel_size=(1, 1), stride=(1, 1))
+        )
+      )
+      (2): ConvDWSep2d(
+        0.016 GMac, 0.977% MACs, 
+        (0): Sequential(
+          0.0 GMac, 0.023% MACs, 
+          (0): Conv2d(0.0 GMac, 0.018% MACs, 512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=512, bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.004% MACs, 512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.002% MACs, )
+        )
+        (1): Sequential(
+          0.016 GMac, 0.953% MACs, 
+          (0): Conv2d(0.016 GMac, 0.953% MACs, 512, 486, kernel_size=(1, 1), stride=(1, 1))
+        )
+      )
+      (3): ConvDWSep2d(
+        0.002 GMac, 0.122% MACs, 
+        (0): Sequential(
+          0.0 GMac, 0.003% MACs, 
+          (0): Conv2d(0.0 GMac, 0.002% MACs, 256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=256, bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.000% MACs, 256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.000% MACs, )
+        )
+        (1): Sequential(
+          0.002 GMac, 0.119% MACs, 
+          (0): Conv2d(0.002 GMac, 0.119% MACs, 256, 486, kernel_size=(1, 1), stride=(1, 1))
+        )
+      )
+      (4): ConvDWSep2d(
+        0.001 GMac, 0.031% MACs, 
+        (0): Sequential(
+          0.0 GMac, 0.001% MACs, 
+          (0): Conv2d(0.0 GMac, 0.001% MACs, 256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=256, bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.000% MACs, 256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.000% MACs, )
+        )
+        (1): Sequential(
+          0.0 GMac, 0.030% MACs, 
+          (0): Conv2d(0.0 GMac, 0.030% MACs, 256, 486, kernel_size=(1, 1), stride=(1, 1))
+        )
+      )
+      (5): ConvDWSep2d(
+        0.0 GMac, 0.005% MACs, 
+        (0): Sequential(
+          0.0 GMac, 0.000% MACs, 
+          (0): Conv2d(0.0 GMac, 0.000% MACs, 256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=256, bias=False)
+          (1): BatchNorm2d(0.0 GMac, 0.000% MACs, 256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU(0.0 GMac, 0.000% MACs, )
+        )
+        (1): Sequential(
+          0.0 GMac, 0.005% MACs, 
+          (0): Conv2d(0.0 GMac, 0.005% MACs, 256, 324, kernel_size=(1, 1), stride=(1, 1))
+        )
+      )
+    )
+  )
+)
+2020-12-17 12:48:25,114 - mmdet - INFO - 
+
+2020-12-17 12:48:25,118 - mmdet - INFO - Compute   : 1.67 GMac
+2020-12-17 12:48:25,119 - mmdet - INFO - Parameters: 3.1 M
+2020-12-17 12:48:42,096 - mmdet - INFO - load checkpoint from ./work_dirs/ssd-lite_mobilenet/latest.pth
+2020-12-17 12:48:42,151 - mmdet - WARNING - The model and loaded state dict do not match exactly
+
+missing keys in source state_dict: backbone.features.0.0.activation_in.clips_act, backbone.features.0.2.clips_act, backbone.features.1.conv.0.2.clips_act, backbone.features.1.conv.2.activation_q.clips_act, backbone.features.2.conv.0.2.clips_act, backbone.features.2.conv.1.2.clips_act, backbone.features.2.conv.3.activation_q.clips_act, backbone.features.3.conv.0.2.clips_act, backbone.features.3.conv.1.2.clips_act, backbone.features.3.conv.3.activation_q.clips_act, backbone.features.3.add.activation_q.clips_act, backbone.features.4.conv.0.2.clips_act, backbone.features.4.conv.1.2.clips_act, backbone.features.4.conv.3.activation_q.clips_act, backbone.features.5.conv.0.2.clips_act, backbone.features.5.conv.1.2.clips_act, backbone.features.5.conv.3.activation_q.clips_act, backbone.features.5.add.activation_q.clips_act, backbone.features.6.conv.0.2.clips_act, backbone.features.6.conv.1.2.clips_act, backbone.features.6.conv.3.activation_q.clips_act, backbone.features.6.add.activation_q.clips_act, backbone.features.7.conv.0.2.clips_act, backbone.features.7.conv.1.2.clips_act, backbone.features.7.conv.3.activation_q.clips_act, backbone.features.8.conv.0.2.clips_act, backbone.features.8.conv.1.2.clips_act, backbone.features.8.conv.3.activation_q.clips_act, backbone.features.8.add.activation_q.clips_act, backbone.features.9.conv.0.2.clips_act, backbone.features.9.conv.1.2.clips_act, backbone.features.9.conv.3.activation_q.clips_act, backbone.features.9.add.activation_q.clips_act, backbone.features.10.conv.0.2.clips_act, backbone.features.10.conv.1.2.clips_act, backbone.features.10.conv.3.activation_q.clips_act, backbone.features.10.add.activation_q.clips_act, backbone.features.11.conv.0.2.clips_act, backbone.features.11.conv.1.2.clips_act, backbone.features.11.conv.3.activation_q.clips_act, backbone.features.12.conv.0.2.clips_act, backbone.features.12.conv.1.2.clips_act, backbone.features.12.conv.3.activation_q.clips_act, backbone.features.12.add.activation_q.clips_act, backbone.features.13.conv.0.2.clips_act, backbone.features.13.conv.1.2.clips_act, backbone.features.13.conv.3.activation_q.clips_act, backbone.features.13.add.activation_q.clips_act, backbone.features.14.conv.0.2.clips_act, backbone.features.14.conv.1.2.clips_act, backbone.features.14.conv.3.activation_q.clips_act, backbone.features.15.conv.0.2.clips_act, backbone.features.15.conv.1.2.clips_act, backbone.features.15.conv.3.activation_q.clips_act, backbone.features.15.add.activation_q.clips_act, backbone.features.16.conv.0.2.clips_act, backbone.features.16.conv.1.2.clips_act, backbone.features.16.conv.3.activation_q.clips_act, backbone.features.16.add.activation_q.clips_act, backbone.features.17.conv.0.2.clips_act, backbone.features.17.conv.1.2.clips_act, backbone.features.17.conv.3.activation_q.clips_act, backbone.extra.0.0.2.clips_act, backbone.extra.0.1.2.clips_act, backbone.extra.1.0.2.clips_act, backbone.extra.1.1.2.clips_act, backbone.extra.2.0.2.clips_act, backbone.extra.2.1.2.clips_act, backbone.extra.3.0.2.clips_act, backbone.extra.3.1.2.clips_act, bbox_head.reg_convs.0.0.2.clips_act, bbox_head.reg_convs.0.1.0.activation_q.clips_act, bbox_head.reg_convs.1.0.2.clips_act, bbox_head.reg_convs.1.1.0.activation_q.clips_act, bbox_head.reg_convs.2.0.2.clips_act, bbox_head.reg_convs.2.1.0.activation_q.clips_act, bbox_head.reg_convs.3.0.2.clips_act, bbox_head.reg_convs.3.1.0.activation_q.clips_act, bbox_head.reg_convs.4.0.2.clips_act, bbox_head.reg_convs.4.1.0.activation_q.clips_act, bbox_head.reg_convs.5.0.2.clips_act, bbox_head.reg_convs.5.1.0.activation_q.clips_act, bbox_head.cls_convs.0.0.2.clips_act, bbox_head.cls_convs.0.1.0.activation_q.clips_act, bbox_head.cls_convs.1.0.2.clips_act, bbox_head.cls_convs.1.1.0.activation_q.clips_act, bbox_head.cls_convs.2.0.2.clips_act, bbox_head.cls_convs.2.1.0.activation_q.clips_act, bbox_head.cls_convs.3.0.2.clips_act, bbox_head.cls_convs.3.1.0.activation_q.clips_act, bbox_head.cls_convs.4.0.2.clips_act, bbox_head.cls_convs.4.1.0.activation_q.clips_act, bbox_head.cls_convs.5.0.2.clips_act, bbox_head.cls_convs.5.1.0.activation_q.clips_act
+
+2020-12-17 12:48:42,152 - mmdet - INFO - Start running, host: a0393608@uda0393608, work_dir: /data/files/a0393608/files/work/ti/bitbucket/jacinto-ai/pytorch-mmdetection/work_dirs/ssd-lite_mobilenet
+2020-12-17 12:48:42,152 - mmdet - INFO - workflow: [('train', 1)], max: 12 epochs
+2020-12-17 12:51:35,857 - mmdet - INFO - Epoch [1][100/1833]	lr: 3.996e-05, eta: 10:33:53, time: 1.737, data_time: 0.493, memory: 7233, loss_cls: 2.6915, loss_bbox: 1.5314, loss: 4.2228, grad_norm: 12.6416
+2020-12-17 12:54:28,369 - mmdet - INFO - Epoch [1][200/1833]	lr: 7.992e-05, eta: 10:28:50, time: 1.725, data_time: 0.451, memory: 7233, loss_cls: 2.7037, loss_bbox: 1.5492, loss: 4.2529, grad_norm: 8.5560
+2020-12-17 12:57:22,516 - mmdet - INFO - Epoch [1][300/1833]	lr: 1.199e-04, eta: 10:27:12, time: 1.741, data_time: 0.458, memory: 7233, loss_cls: 2.6541, loss_bbox: 1.5322, loss: 4.1863, grad_norm: 14.7450
+2020-12-17 13:00:17,685 - mmdet - INFO - Epoch [1][400/1833]	lr: 1.598e-04, eta: 10:25:51, time: 1.752, data_time: 0.455, memory: 7233, loss_cls: 2.6370, loss_bbox: 1.5086, loss: 4.1456, grad_norm: 8.4352
+2020-12-17 13:03:12,894 - mmdet - INFO - Epoch [1][500/1833]	lr: 1.998e-04, eta: 10:23:54, time: 1.752, data_time: 0.465, memory: 7233, loss_cls: 2.6291, loss_bbox: 1.5208, loss: 4.1498, grad_norm: 7.0982
+2020-12-17 13:06:11,218 - mmdet - INFO - Epoch [1][600/1833]	lr: 2.398e-04, eta: 10:23:29, time: 1.783, data_time: 0.467, memory: 7233, loss_cls: 2.5987, loss_bbox: 1.5018, loss: 4.1005, grad_norm: 7.4640
+2020-12-17 13:10:22,359 - mmdet - INFO - Epoch [1][700/1833]	lr: 2.797e-04, eta: 10:59:15, time: 2.511, data_time: 0.532, memory: 7233, loss_cls: 2.6076, loss_bbox: 1.4965, loss: 4.1041, grad_norm: 6.5391
+2020-12-17 13:14:33,849 - mmdet - INFO - Epoch [1][800/1833]	lr: 3.197e-04, eta: 11:25:11, time: 2.515, data_time: 0.519, memory: 7233, loss_cls: 2.6077, loss_bbox: 1.5061, loss: 4.1138, grad_norm: 7.1056
+2020-12-17 13:18:43,424 - mmdet - INFO - Epoch [1][900/1833]	lr: 3.596e-04, eta: 11:43:41, time: 2.496, data_time: 0.520, memory: 7233, loss_cls: 2.5977, loss_bbox: 1.4930, loss: 4.0907, grad_norm: 5.9760
+2020-12-17 13:22:49,530 - mmdet - INFO - Exp name: ssd-lite_mobilenet.py
+2020-12-17 13:22:49,530 - mmdet - INFO - Epoch [1][1000/1833]	lr: 3.996e-04, eta: 11:56:26, time: 2.461, data_time: 0.518, memory: 7233, loss_cls: 2.6055, loss_bbox: 1.4788, loss: 4.0844, grad_norm: 7.3074
+2020-12-17 13:26:41,035 - mmdet - INFO - Epoch [1][1100/1833]	lr: 4.000e-04, eta: 12:01:30, time: 2.315, data_time: 0.490, memory: 7233, loss_cls: 2.6115, loss_bbox: 1.5004, loss: 4.1119, grad_norm: 6.0649
+2020-12-17 13:30:34,071 - mmdet - INFO - Epoch [1][1200/1833]	lr: 4.000e-04, eta: 12:05:31, time: 2.330, data_time: 0.480, memory: 7233, loss_cls: 2.6091, loss_bbox: 1.5065, loss: 4.1156, grad_norm: 8.8081
+2020-12-17 13:33:57,804 - mmdet - INFO - Epoch [1][1300/1833]	lr: 4.000e-04, eta: 12:00:32, time: 2.037, data_time: 0.538, memory: 7233, loss_cls: 2.6083, loss_bbox: 1.5309, loss: 4.1392, grad_norm: 6.1916
+2020-12-17 13:37:50,949 - mmdet - INFO - Epoch [1][1400/1833]	lr: 4.000e-04, eta: 12:03:00, time: 2.331, data_time: 0.552, memory: 7233, loss_cls: 2.5986, loss_bbox: 1.4989, loss: 4.0975, grad_norm: 5.9568
+2020-12-17 13:42:06,331 - mmdet - INFO - Epoch [1][1500/1833]	lr: 4.000e-04, eta: 12:09:41, time: 2.554, data_time: 0.535, memory: 7233, loss_cls: 2.5752, loss_bbox: 1.4784, loss: 4.0536, grad_norm: 5.9311
+2020-12-17 13:46:21,964 - mmdet - INFO - Epoch [1][1600/1833]	lr: 4.000e-04, eta: 12:15:03, time: 2.556, data_time: 0.542, memory: 7233, loss_cls: 2.5839, loss_bbox: 1.5007, loss: 4.0846, grad_norm: 5.7917
+2020-12-17 13:50:33,418 - mmdet - INFO - Epoch [1][1700/1833]	lr: 4.000e-04, eta: 12:18:27, time: 2.515, data_time: 0.520, memory: 7233, loss_cls: 2.5806, loss_bbox: 1.5125, loss: 4.0932, grad_norm: 5.9548
+2020-12-17 13:54:29,150 - mmdet - INFO - Epoch [1][1800/1833]	lr: 4.000e-04, eta: 12:18:05, time: 2.357, data_time: 0.494, memory: 7233, loss_cls: 2.6230, loss_bbox: 1.5226, loss: 4.1456, grad_norm: 5.8369
+2020-12-17 13:55:46,937 - mmdet - INFO - Saving checkpoint at 1 epochs
+2020-12-17 14:02:35,856 - mmdet - INFO - Evaluating bbox...
+2020-12-17 14:04:20,565 - mmdet - INFO - Exp name: ssd-lite_mobilenet.py
+2020-12-17 14:04:20,565 - mmdet - INFO - Epoch(val) [1][1833]	bbox_mAP: 0.2400, bbox_mAP_50: 0.4160, bbox_mAP_75: 0.2450, bbox_mAP_s: 0.0690, bbox_mAP_m: 0.2480, bbox_mAP_l: 0.4040, bbox_mAP_copypaste: 0.240 0.416 0.245 0.069 0.248 0.404
+2020-12-17 14:08:06,175 - mmdet - INFO - Epoch [2][100/1833]	lr: 3.932e-04, eta: 12:01:48, time: 2.256, data_time: 0.452, memory: 7233, loss_cls: 2.5912, loss_bbox: 1.4820, loss: 4.0733, grad_norm: 6.0898
+2020-12-17 14:11:51,981 - mmdet - INFO - Epoch [2][200/1833]	lr: 3.932e-04, eta: 11:59:49, time: 2.258, data_time: 0.432, memory: 7233, loss_cls: 2.5654, loss_bbox: 1.4471, loss: 4.0124, grad_norm: 8.4054
+2020-12-17 14:15:38,239 - mmdet - INFO - Epoch [2][300/1833]	lr: 3.932e-04, eta: 11:57:45, time: 2.263, data_time: 0.429, memory: 7233, loss_cls: 2.5994, loss_bbox: 1.5179, loss: 4.1173, grad_norm: 5.8882
+2020-12-17 14:19:23,385 - mmdet - INFO - Epoch [2][400/1833]	lr: 3.932e-04, eta: 11:55:22, time: 2.251, data_time: 0.436, memory: 7233, loss_cls: 2.5832, loss_bbox: 1.4975, loss: 4.0807, grad_norm: 5.6561
+2020-12-17 14:23:07,438 - mmdet - INFO - Epoch [2][500/1833]	lr: 3.932e-04, eta: 11:52:43, time: 2.241, data_time: 0.428, memory: 7233, loss_cls: 2.5836, loss_bbox: 1.4946, loss: 4.0781, grad_norm: 5.6138
+2020-12-17 14:26:51,254 - mmdet - INFO - Epoch [2][600/1833]	lr: 3.932e-04, eta: 11:49:56, time: 2.238, data_time: 0.429, memory: 7233, loss_cls: 2.5840, loss_bbox: 1.4720, loss: 4.0560, grad_norm: 5.9507
+2020-12-17 14:30:37,207 - mmdet - INFO - Epoch [2][700/1833]	lr: 3.932e-04, eta: 11:47:22, time: 2.260, data_time: 0.428, memory: 7233, loss_cls: 2.5866, loss_bbox: 1.4674, loss: 4.0541, grad_norm: 6.3211
+2020-12-17 14:34:26,825 - mmdet - INFO - Epoch [2][800/1833]	lr: 3.932e-04, eta: 11:45:09, time: 2.296, data_time: 0.448, memory: 7233, loss_cls: 2.5821, loss_bbox: 1.4959, loss: 4.0780, grad_norm: 5.7063
+2020-12-17 14:38:14,418 - mmdet - INFO - Epoch [2][900/1833]	lr: 3.932e-04, eta: 11:42:34, time: 2.276, data_time: 0.439, memory: 7233, loss_cls: 2.6031, loss_bbox: 1.5117, loss: 4.1148, grad_norm: 6.2780
+2020-12-17 14:41:59,511 - mmdet - INFO - Epoch [2][1000/1833]	lr: 3.932e-04, eta: 11:39:38, time: 2.251, data_time: 0.439, memory: 7233, loss_cls: 2.5952, loss_bbox: 1.5066, loss: 4.1018, grad_norm: 5.7811
+2020-12-17 14:45:42,747 - mmdet - INFO - Epoch [2][1100/1833]	lr: 3.932e-04, eta: 11:36:26, time: 2.232, data_time: 0.425, memory: 7233, loss_cls: 2.5675, loss_bbox: 1.4846, loss: 4.0522, grad_norm: 5.5212
+2020-12-17 14:49:28,576 - mmdet - INFO - Epoch [2][1200/1833]	lr: 3.932e-04, eta: 11:33:28, time: 2.258, data_time: 0.428, memory: 7233, loss_cls: 2.5997, loss_bbox: 1.4988, loss: 4.0985, grad_norm: 5.7875
+2020-12-17 14:53:14,181 - mmdet - INFO - Epoch [2][1300/1833]	lr: 3.932e-04, eta: 11:30:26, time: 2.256, data_time: 0.428, memory: 7233, loss_cls: 2.5954, loss_bbox: 1.5175, loss: 4.1130, grad_norm: 6.0836
+2020-12-17 14:56:58,652 - mmdet - INFO - Epoch [2][1400/1833]	lr: 3.932e-04, eta: 11:27:14, time: 2.245, data_time: 0.432, memory: 7233, loss_cls: 2.5712, loss_bbox: 1.5175, loss: 4.0887, grad_norm: 5.5950
+2020-12-17 15:00:24,957 - mmdet - INFO - Epoch [2][1500/1833]	lr: 3.932e-04, eta: 11:22:19, time: 2.063, data_time: 0.423, memory: 7233, loss_cls: 2.5823, loss_bbox: 1.4950, loss: 4.0773, grad_norm: 5.5160
+2020-12-17 15:03:15,774 - mmdet - INFO - Epoch [2][1600/1833]	lr: 3.932e-04, eta: 11:14:17, time: 1.708, data_time: 0.416, memory: 7233, loss_cls: 2.6091, loss_bbox: 1.5140, loss: 4.1231, grad_norm: 5.9447
+2020-12-17 15:06:05,830 - mmdet - INFO - Epoch [2][1700/1833]	lr: 3.932e-04, eta: 11:06:29, time: 1.701, data_time: 0.409, memory: 7233, loss_cls: 2.5821, loss_bbox: 1.4721, loss: 4.0542, grad_norm: 5.6441
+2020-12-17 15:08:56,997 - mmdet - INFO - Epoch [2][1800/1833]	lr: 3.932e-04, eta: 10:59:03, time: 1.712, data_time: 0.413, memory: 7233, loss_cls: 2.6005, loss_bbox: 1.5351, loss: 4.1355, grad_norm: 5.9024
+2020-12-17 15:09:52,349 - mmdet - INFO - Saving checkpoint at 2 epochs
+2020-12-17 15:14:01,104 - mmdet - INFO - Evaluating bbox...
+2020-12-17 15:15:42,088 - mmdet - INFO - Exp name: ssd-lite_mobilenet.py
+2020-12-17 15:15:42,089 - mmdet - INFO - Epoch(val) [2][1833]	bbox_mAP: 0.2410, bbox_mAP_50: 0.4120, bbox_mAP_75: 0.2460, bbox_mAP_s: 0.0610, bbox_mAP_m: 0.2470, bbox_mAP_l: 0.4010, bbox_mAP_copypaste: 0.241 0.412 0.246 0.061 0.247 0.401
+2020-12-17 15:18:31,148 - mmdet - INFO - Epoch [3][100/1833]	lr: 3.732e-04, eta: 10:44:48, time: 1.691, data_time: 0.418, memory: 7233, loss_cls: 2.5767, loss_bbox: 1.4912, loss: 4.0679, grad_norm: 5.3957
+2020-12-17 15:21:20,640 - mmdet - INFO - Epoch [3][200/1833]	lr: 3.732e-04, eta: 10:37:56, time: 1.695, data_time: 0.401, memory: 7233, loss_cls: 2.5678, loss_bbox: 1.5043, loss: 4.0721, grad_norm: 5.6958
+2020-12-17 15:24:10,305 - mmdet - INFO - Epoch [3][300/1833]	lr: 3.732e-04, eta: 10:31:16, time: 1.697, data_time: 0.401, memory: 7233, loss_cls: 2.5751, loss_bbox: 1.4856, loss: 4.0607, grad_norm: 5.6341
+2020-12-17 15:27:01,796 - mmdet - INFO - Epoch [3][400/1833]	lr: 3.732e-04, eta: 10:24:56, time: 1.715, data_time: 0.404, memory: 7233, loss_cls: 2.5621, loss_bbox: 1.4941, loss: 4.0562, grad_norm: 5.6405
+2020-12-17 15:29:50,956 - mmdet - INFO - Epoch [3][500/1833]	lr: 3.732e-04, eta: 10:18:36, time: 1.692, data_time: 0.405, memory: 7233, loss_cls: 2.5698, loss_bbox: 1.5031, loss: 4.0729, grad_norm: 6.0980
+2020-12-17 15:32:41,165 - mmdet - INFO - Epoch [3][600/1833]	lr: 3.732e-04, eta: 10:12:30, time: 1.702, data_time: 0.401, memory: 7233, loss_cls: 2.5893, loss_bbox: 1.5071, loss: 4.0964, grad_norm: 6.2540
+2020-12-17 15:35:31,706 - mmdet - INFO - Epoch [3][700/1833]	lr: 3.732e-04, eta: 10:06:34, time: 1.705, data_time: 0.410, memory: 7233, loss_cls: 2.5741, loss_bbox: 1.4682, loss: 4.0423, grad_norm: 6.0600
+2020-12-17 15:38:21,139 - mmdet - INFO - Epoch [3][800/1833]	lr: 3.732e-04, eta: 10:00:43, time: 1.694, data_time: 0.403, memory: 7233, loss_cls: 2.5847, loss_bbox: 1.4928, loss: 4.0775, grad_norm: 5.6883
+2020-12-17 15:41:11,626 - mmdet - INFO - Epoch [3][900/1833]	lr: 3.732e-04, eta: 9:55:03, time: 1.705, data_time: 0.404, memory: 7233, loss_cls: 2.5619, loss_bbox: 1.4966, loss: 4.0586, grad_norm: 6.3761
+2020-12-17 15:44:02,028 - mmdet - INFO - Epoch [3][1000/1833]	lr: 3.732e-04, eta: 9:49:30, time: 1.704, data_time: 0.404, memory: 7233, loss_cls: 2.5857, loss_bbox: 1.5189, loss: 4.1046, grad_norm: 5.4334
+2020-12-17 15:46:51,905 - mmdet - INFO - Epoch [3][1100/1833]	lr: 3.732e-04, eta: 9:44:02, time: 1.699, data_time: 0.409, memory: 7233, loss_cls: 2.5835, loss_bbox: 1.4882, loss: 4.0717, grad_norm: 6.2347
+2020-12-17 15:49:41,020 - mmdet - INFO - Epoch [3][1200/1833]	lr: 3.732e-04, eta: 9:38:38, time: 1.691, data_time: 0.410, memory: 7233, loss_cls: 2.5731, loss_bbox: 1.4872, loss: 4.0603, grad_norm: 6.9270
+2020-12-17 15:52:31,473 - mmdet - INFO - Epoch [3][1300/1833]	lr: 3.732e-04, eta: 9:33:25, time: 1.704, data_time: 0.400, memory: 7233, loss_cls: 2.5812, loss_bbox: 1.4886, loss: 4.0697, grad_norm: 6.1780
+2020-12-17 15:55:20,767 - mmdet - INFO - Epoch [3][1400/1833]	lr: 3.732e-04, eta: 9:28:14, time: 1.693, data_time: 0.409, memory: 7233, loss_cls: 2.5814, loss_bbox: 1.4630, loss: 4.0445, grad_norm: 6.0069
+2020-12-17 15:58:11,703 - mmdet - INFO - Epoch [3][1500/1833]	lr: 3.732e-04, eta: 9:23:13, time: 1.709, data_time: 0.399, memory: 7233, loss_cls: 2.6016, loss_bbox: 1.5148, loss: 4.1165, grad_norm: 7.8401
+2020-12-17 16:01:02,435 - mmdet - INFO - Epoch [3][1600/1833]	lr: 3.732e-04, eta: 9:18:17, time: 1.707, data_time: 0.413, memory: 7233, loss_cls: 2.6033, loss_bbox: 1.4889, loss: 4.0923, grad_norm: 6.0828
+2020-12-17 16:03:53,364 - mmdet - INFO - Epoch [3][1700/1833]	lr: 3.732e-04, eta: 9:13:26, time: 1.709, data_time: 0.398, memory: 7233, loss_cls: 2.6009, loss_bbox: 1.5308, loss: 4.1318, grad_norm: 7.1274
+2020-12-17 16:06:44,434 - mmdet - INFO - Epoch [3][1800/1833]	lr: 3.732e-04, eta: 9:08:40, time: 1.711, data_time: 0.410, memory: 7233, loss_cls: 2.5961, loss_bbox: 1.4977, loss: 4.0938, grad_norm: 6.5360
+2020-12-17 16:07:39,868 - mmdet - INFO - Saving checkpoint at 3 epochs
+2020-12-17 16:11:50,193 - mmdet - INFO - Evaluating bbox...
+2020-12-17 16:13:32,183 - mmdet - INFO - Exp name: ssd-lite_mobilenet.py
+2020-12-17 16:13:32,184 - mmdet - INFO - Epoch(val) [3][1833]	bbox_mAP: 0.2420, bbox_mAP_50: 0.4180, bbox_mAP_75: 0.2460, bbox_mAP_s: 0.0660, bbox_mAP_m: 0.2490, bbox_mAP_l: 0.4000, bbox_mAP_copypaste: 0.242 0.418 0.246 0.066 0.249 0.400
+2020-12-17 16:16:21,187 - mmdet - INFO - Epoch [4][100/1833]	lr: 3.414e-04, eta: 8:59:34, time: 1.690, data_time: 0.429, memory: 7233, loss_cls: 2.5935, loss_bbox: 1.5162, loss: 4.1097, grad_norm: 6.3446
+2020-12-17 16:19:10,810 - mmdet - INFO - Epoch [4][200/1833]	lr: 3.414e-04, eta: 8:54:57, time: 1.696, data_time: 0.409, memory: 7233, loss_cls: 2.5844, loss_bbox: 1.5101, loss: 4.0945, grad_norm: 5.8385
+2020-12-17 16:22:01,138 - mmdet - INFO - Epoch [4][300/1833]	lr: 3.414e-04, eta: 8:50:26, time: 1.703, data_time: 0.400, memory: 7233, loss_cls: 2.5600, loss_bbox: 1.4904, loss: 4.0504, grad_norm: 5.9033
+2020-12-17 16:24:50,898 - mmdet - INFO - Epoch [4][400/1833]	lr: 3.414e-04, eta: 8:45:56, time: 1.698, data_time: 0.415, memory: 7233, loss_cls: 2.5632, loss_bbox: 1.4878, loss: 4.0510, grad_norm: 5.6508
+2020-12-17 16:27:41,729 - mmdet - INFO - Epoch [4][500/1833]	lr: 3.414e-04, eta: 8:41:33, time: 1.708, data_time: 0.405, memory: 7233, loss_cls: 2.5897, loss_bbox: 1.5000, loss: 4.0897, grad_norm: 5.9117
+2020-12-17 16:30:31,998 - mmdet - INFO - Epoch [4][600/1833]	lr: 3.414e-04, eta: 8:37:11, time: 1.703, data_time: 0.404, memory: 7233, loss_cls: 2.5896, loss_bbox: 1.4916, loss: 4.0812, grad_norm: 5.5318
+2020-12-17 16:33:21,879 - mmdet - INFO - Epoch [4][700/1833]	lr: 3.414e-04, eta: 8:32:51, time: 1.699, data_time: 0.405, memory: 7233, loss_cls: 2.5766, loss_bbox: 1.4649, loss: 4.0415, grad_norm: 6.1055
+2020-12-17 16:36:11,537 - mmdet - INFO - Epoch [4][800/1833]	lr: 3.414e-04, eta: 8:28:34, time: 1.697, data_time: 0.399, memory: 7233, loss_cls: 2.5964, loss_bbox: 1.5236, loss: 4.1200, grad_norm: 5.7860
+2020-12-17 16:39:01,697 - mmdet - INFO - Epoch [4][900/1833]	lr: 3.414e-04, eta: 8:24:21, time: 1.702, data_time: 0.406, memory: 7233, loss_cls: 2.5902, loss_bbox: 1.4963, loss: 4.0865, grad_norm: 7.9493
+2020-12-17 16:41:51,151 - mmdet - INFO - Epoch [4][1000/1833]	lr: 3.414e-04, eta: 8:20:08, time: 1.695, data_time: 0.404, memory: 7233, loss_cls: 2.5682, loss_bbox: 1.4898, loss: 4.0580, grad_norm: 5.8876
+2020-12-17 16:44:41,792 - mmdet - INFO - Epoch [4][1100/1833]	lr: 3.414e-04, eta: 8:16:01, time: 1.706, data_time: 0.400, memory: 7233, loss_cls: 2.5804, loss_bbox: 1.4995, loss: 4.0800, grad_norm: 5.3607
+2020-12-17 16:47:32,065 - mmdet - INFO - Epoch [4][1200/1833]	lr: 3.414e-04, eta: 8:11:55, time: 1.703, data_time: 0.413, memory: 7233, loss_cls: 2.5894, loss_bbox: 1.5096, loss: 4.0991, grad_norm: 5.8653
+2020-12-17 16:50:22,677 - mmdet - INFO - Epoch [4][1300/1833]	lr: 3.414e-04, eta: 8:07:52, time: 1.706, data_time: 0.405, memory: 7233, loss_cls: 2.5604, loss_bbox: 1.4726, loss: 4.0330, grad_norm: 6.4389
+2020-12-17 16:53:12,922 - mmdet - INFO - Epoch [4][1400/1833]	lr: 3.414e-04, eta: 8:03:50, time: 1.702, data_time: 0.411, memory: 7233, loss_cls: 2.5673, loss_bbox: 1.4832, loss: 4.0505, grad_norm: 5.7360
+2020-12-17 16:56:04,225 - mmdet - INFO - Epoch [4][1500/1833]	lr: 3.414e-04, eta: 7:59:53, time: 1.713, data_time: 0.409, memory: 7233, loss_cls: 2.5933, loss_bbox: 1.5159, loss: 4.1092, grad_norm: 5.8220
+2020-12-17 16:58:54,271 - mmdet - INFO - Epoch [4][1600/1833]	lr: 3.414e-04, eta: 7:55:55, time: 1.700, data_time: 0.410, memory: 7233, loss_cls: 2.5785, loss_bbox: 1.4882, loss: 4.0667, grad_norm: 5.4808
+2020-12-17 17:01:43,786 - mmdet - INFO - Epoch [4][1700/1833]	lr: 3.414e-04, eta: 7:51:58, time: 1.695, data_time: 0.410, memory: 7233, loss_cls: 2.5932, loss_bbox: 1.5348, loss: 4.1280, grad_norm: 5.4968
+2020-12-17 17:04:33,624 - mmdet - INFO - Epoch [4][1800/1833]	lr: 3.414e-04, eta: 7:48:03, time: 1.698, data_time: 0.405, memory: 7233, loss_cls: 2.5801, loss_bbox: 1.5241, loss: 4.1042, grad_norm: 7.6135
+2020-12-17 17:05:29,494 - mmdet - INFO - Saving checkpoint at 4 epochs
+2020-12-17 17:09:38,579 - mmdet - INFO - Evaluating bbox...
+2020-12-17 17:11:17,813 - mmdet - INFO - Exp name: ssd-lite_mobilenet.py
+2020-12-17 17:11:17,814 - mmdet - INFO - Epoch(val) [4][1833]	bbox_mAP: 0.2410, bbox_mAP_50: 0.4170, bbox_mAP_75: 0.2450, bbox_mAP_s: 0.0630, bbox_mAP_m: 0.2460, bbox_mAP_l: 0.3970, bbox_mAP_copypaste: 0.241 0.417 0.245 0.063 0.246 0.397
+2020-12-17 17:14:06,484 - mmdet - INFO - Epoch [5][100/1833]	lr: 3.000e-04, eta: 7:41:01, time: 1.687, data_time: 0.425, memory: 7233, loss_cls: 2.6005, loss_bbox: 1.5089, loss: 4.1094, grad_norm: 5.5497
+2020-12-17 17:16:55,418 - mmdet - INFO - Epoch [5][200/1833]	lr: 3.000e-04, eta: 7:37:11, time: 1.689, data_time: 0.402, memory: 7233, loss_cls: 2.5872, loss_bbox: 1.4994, loss: 4.0865, grad_norm: 6.5662
+2020-12-17 17:19:45,390 - mmdet - INFO - Epoch [5][300/1833]	lr: 3.000e-04, eta: 7:33:24, time: 1.700, data_time: 0.407, memory: 7233, loss_cls: 2.5747, loss_bbox: 1.4743, loss: 4.0490, grad_norm: 5.7843
+2020-12-17 17:22:36,429 - mmdet - INFO - Epoch [5][400/1833]	lr: 3.000e-04, eta: 7:29:41, time: 1.710, data_time: 0.409, memory: 7233, loss_cls: 2.5752, loss_bbox: 1.5102, loss: 4.0854, grad_norm: 6.1388
+2020-12-17 17:25:25,777 - mmdet - INFO - Epoch [5][500/1833]	lr: 3.000e-04, eta: 7:25:56, time: 1.694, data_time: 0.401, memory: 7233, loss_cls: 2.5768, loss_bbox: 1.4914, loss: 4.0682, grad_norm: 5.2437
+2020-12-17 17:28:16,361 - mmdet - INFO - Epoch [5][600/1833]	lr: 3.000e-04, eta: 7:22:15, time: 1.706, data_time: 0.406, memory: 7233, loss_cls: 2.5756, loss_bbox: 1.4721, loss: 4.0478, grad_norm: 5.6557
+2020-12-17 17:31:05,767 - mmdet - INFO - Epoch [5][700/1833]	lr: 3.000e-04, eta: 7:18:33, time: 1.694, data_time: 0.414, memory: 7233, loss_cls: 2.5835, loss_bbox: 1.4875, loss: 4.0710, grad_norm: 5.2887
+2020-12-17 17:33:55,654 - mmdet - INFO - Epoch [5][800/1833]	lr: 3.000e-04, eta: 7:14:52, time: 1.699, data_time: 0.412, memory: 7233, loss_cls: 2.5749, loss_bbox: 1.4550, loss: 4.0299, grad_norm: 5.8103
+2020-12-17 17:36:45,842 - mmdet - INFO - Epoch [5][900/1833]	lr: 3.000e-04, eta: 7:11:14, time: 1.702, data_time: 0.398, memory: 7233, loss_cls: 2.5819, loss_bbox: 1.5027, loss: 4.0847, grad_norm: 6.5100
+2020-12-17 17:39:35,362 - mmdet - INFO - Epoch [5][1000/1833]	lr: 3.000e-04, eta: 7:07:36, time: 1.695, data_time: 0.403, memory: 7233, loss_cls: 2.5808, loss_bbox: 1.4835, loss: 4.0644, grad_norm: 6.0434
+2020-12-17 17:42:24,645 - mmdet - INFO - Epoch [5][1100/1833]	lr: 3.000e-04, eta: 7:03:58, time: 1.693, data_time: 0.400, memory: 7233, loss_cls: 2.5895, loss_bbox: 1.5136, loss: 4.1031, grad_norm: 5.7882
+2020-12-17 17:45:14,951 - mmdet - INFO - Epoch [5][1200/1833]	lr: 3.000e-04, eta: 7:00:24, time: 1.703, data_time: 0.406, memory: 7233, loss_cls: 2.5706, loss_bbox: 1.5015, loss: 4.0721, grad_norm: 5.5600
+2020-12-17 17:48:04,738 - mmdet - INFO - Epoch [5][1300/1833]	lr: 3.000e-04, eta: 6:56:49, time: 1.698, data_time: 0.396, memory: 7233, loss_cls: 2.5716, loss_bbox: 1.4772, loss: 4.0488, grad_norm: 5.9756
+2020-12-17 17:50:53,379 - mmdet - INFO - Epoch [5][1400/1833]	lr: 3.000e-04, eta: 6:53:14, time: 1.686, data_time: 0.401, memory: 7233, loss_cls: 2.5716, loss_bbox: 1.4893, loss: 4.0608, grad_norm: 6.5465
+2020-12-17 17:53:42,490 - mmdet - INFO - Epoch [5][1500/1833]	lr: 3.000e-04, eta: 6:49:40, time: 1.691, data_time: 0.404, memory: 7233, loss_cls: 2.5807, loss_bbox: 1.4948, loss: 4.0755, grad_norm: 5.7366
+2020-12-17 17:56:32,809 - mmdet - INFO - Epoch [5][1600/1833]	lr: 3.000e-04, eta: 6:46:10, time: 1.703, data_time: 0.409, memory: 7233, loss_cls: 2.5910, loss_bbox: 1.4986, loss: 4.0896, grad_norm: 5.7529
+2020-12-17 17:59:22,699 - mmdet - INFO - Epoch [5][1700/1833]	lr: 3.000e-04, eta: 6:42:39, time: 1.699, data_time: 0.406, memory: 7233, loss_cls: 2.5729, loss_bbox: 1.4775, loss: 4.0504, grad_norm: 5.7202
+2020-12-17 18:02:13,257 - mmdet - INFO - Epoch [5][1800/1833]	lr: 3.000e-04, eta: 6:39:11, time: 1.706, data_time: 0.411, memory: 7233, loss_cls: 2.5796, loss_bbox: 1.5077, loss: 4.0873, grad_norm: 5.6834
+2020-12-17 18:03:09,677 - mmdet - INFO - Saving checkpoint at 5 epochs
+2020-12-17 18:07:18,728 - mmdet - INFO - Evaluating bbox...
+2020-12-17 18:08:57,725 - mmdet - INFO - Exp name: ssd-lite_mobilenet.py
+2020-12-17 18:08:57,726 - mmdet - INFO - Epoch(val) [5][1833]	bbox_mAP: 0.2420, bbox_mAP_50: 0.4180, bbox_mAP_75: 0.2450, bbox_mAP_s: 0.0640, bbox_mAP_m: 0.2500, bbox_mAP_l: 0.4010, bbox_mAP_copypaste: 0.242 0.418 0.245 0.064 0.250 0.401
+2020-12-17 18:11:45,685 - mmdet - INFO - Epoch [6][100/1833]	lr: 2.518e-04, eta: 6:33:13, time: 1.680, data_time: 0.422, memory: 7233, loss_cls: 2.5954, loss_bbox: 1.5000, loss: 4.0954, grad_norm: 8.9335
+2020-12-17 18:14:35,091 - mmdet - INFO - Epoch [6][200/1833]	lr: 2.518e-04, eta: 6:29:47, time: 1.694, data_time: 0.409, memory: 7233, loss_cls: 2.6117, loss_bbox: 1.5295, loss: 4.1412, grad_norm: 8.5841
+2020-12-17 18:17:23,415 - mmdet - INFO - Epoch [6][300/1833]	lr: 2.518e-04, eta: 6:26:19, time: 1.683, data_time: 0.404, memory: 7233, loss_cls: 2.6132, loss_bbox: 1.4843, loss: 4.0975, grad_norm: 8.4512
+2020-12-17 18:20:12,116 - mmdet - INFO - Epoch [6][400/1833]	lr: 2.518e-04, eta: 6:22:53, time: 1.687, data_time: 0.404, memory: 7233, loss_cls: 2.5858, loss_bbox: 1.4891, loss: 4.0749, grad_norm: 8.3171
+2020-12-17 18:23:01,698 - mmdet - INFO - Epoch [6][500/1833]	lr: 2.518e-04, eta: 6:19:29, time: 1.696, data_time: 0.414, memory: 7233, loss_cls: 2.5960, loss_bbox: 1.5055, loss: 4.1014, grad_norm: 8.2381
+2020-12-17 18:25:50,952 - mmdet - INFO - Epoch [6][600/1833]	lr: 2.518e-04, eta: 6:16:05, time: 1.693, data_time: 0.408, memory: 7233, loss_cls: 2.5900, loss_bbox: 1.4862, loss: 4.0762, grad_norm: 8.2982
+2020-12-17 18:28:38,939 - mmdet - INFO - Epoch [6][700/1833]	lr: 2.518e-04, eta: 6:12:40, time: 1.680, data_time: 0.410, memory: 7233, loss_cls: 2.5909, loss_bbox: 1.4782, loss: 4.0692, grad_norm: 8.5426
+2020-12-17 18:31:28,447 - mmdet - INFO - Epoch [6][800/1833]	lr: 2.518e-04, eta: 6:09:18, time: 1.695, data_time: 0.400, memory: 7233, loss_cls: 2.5756, loss_bbox: 1.5041, loss: 4.0797, grad_norm: 8.3673
+2020-12-17 18:34:17,924 - mmdet - INFO - Epoch [6][900/1833]	lr: 2.518e-04, eta: 6:05:56, time: 1.695, data_time: 0.404, memory: 7233, loss_cls: 2.5745, loss_bbox: 1.4817, loss: 4.0562, grad_norm: 8.3844
+2020-12-17 18:37:06,595 - mmdet - INFO - Epoch [6][1000/1833]	lr: 2.518e-04, eta: 6:02:34, time: 1.687, data_time: 0.403, memory: 7233, loss_cls: 2.5981, loss_bbox: 1.5086, loss: 4.1067, grad_norm: 8.1465
+2020-12-17 18:39:55,249 - mmdet - INFO - Epoch [6][1100/1833]	lr: 2.518e-04, eta: 5:59:13, time: 1.687, data_time: 0.404, memory: 7233, loss_cls: 2.5932, loss_bbox: 1.5222, loss: 4.1154, grad_norm: 8.2986
+2020-12-17 18:42:44,655 - mmdet - INFO - Epoch [6][1200/1833]	lr: 2.518e-04, eta: 5:55:53, time: 1.694, data_time: 0.399, memory: 7233, loss_cls: 2.6050, loss_bbox: 1.4798, loss: 4.0849, grad_norm: 8.3134
+2020-12-17 18:45:32,979 - mmdet - INFO - Epoch [6][1300/1833]	lr: 2.518e-04, eta: 5:52:33, time: 1.683, data_time: 0.404, memory: 7233, loss_cls: 2.5846, loss_bbox: 1.4670, loss: 4.0516, grad_norm: 8.3165
+2020-12-17 18:48:21,441 - mmdet - INFO - Epoch [6][1400/1833]	lr: 2.518e-04, eta: 5:49:13, time: 1.685, data_time: 0.408, memory: 7233, loss_cls: 2.5897, loss_bbox: 1.5104, loss: 4.1002, grad_norm: 8.2815
+2020-12-17 18:51:09,948 - mmdet - INFO - Epoch [6][1500/1833]	lr: 2.518e-04, eta: 5:45:54, time: 1.685, data_time: 0.404, memory: 7233, loss_cls: 2.5713, loss_bbox: 1.4496, loss: 4.0209, grad_norm: 8.3159
+2020-12-17 18:53:58,045 - mmdet - INFO - Epoch [6][1600/1833]	lr: 2.518e-04, eta: 5:42:35, time: 1.681, data_time: 0.402, memory: 7233, loss_cls: 2.5648, loss_bbox: 1.4745, loss: 4.0393, grad_norm: 8.0853
+2020-12-17 18:56:44,178 - mmdet - INFO - Epoch [6][1700/1833]	lr: 2.518e-04, eta: 5:39:15, time: 1.661, data_time: 0.405, memory: 7233, loss_cls: 2.5669, loss_bbox: 1.4818, loss: 4.0487, grad_norm: 8.2356
+2020-12-17 18:59:31,867 - mmdet - INFO - Epoch [6][1800/1833]	lr: 2.518e-04, eta: 5:35:57, time: 1.677, data_time: 0.407, memory: 7233, loss_cls: 2.5718, loss_bbox: 1.5115, loss: 4.0834, grad_norm: 7.9357
+2020-12-17 19:00:27,914 - mmdet - INFO - Saving checkpoint at 6 epochs
+2020-12-17 19:04:37,294 - mmdet - INFO - Evaluating bbox...
+2020-12-17 19:06:18,219 - mmdet - INFO - Exp name: ssd-lite_mobilenet.py
+2020-12-17 19:06:18,219 - mmdet - INFO - Epoch(val) [6][1833]	bbox_mAP: 0.2410, bbox_mAP_50: 0.4160, bbox_mAP_75: 0.2440, bbox_mAP_s: 0.0670, bbox_mAP_m: 0.2480, bbox_mAP_l: 0.3980, bbox_mAP_copypaste: 0.241 0.416 0.244 0.067 0.248 0.398
+2020-12-17 19:09:06,798 - mmdet - INFO - Epoch [7][100/1833]	lr: 2.000e-04, eta: 5:30:41, time: 1.686, data_time: 0.425, memory: 7233, loss_cls: 2.5759, loss_bbox: 1.4781, loss: 4.0540, grad_norm: 8.1388
+2020-12-17 19:11:55,116 - mmdet - INFO - Epoch [7][200/1833]	lr: 2.000e-04, eta: 5:27:25, time: 1.683, data_time: 0.401, memory: 7233, loss_cls: 2.5764, loss_bbox: 1.4789, loss: 4.0552, grad_norm: 8.0795
+2020-12-17 19:14:44,605 - mmdet - INFO - Epoch [7][300/1833]	lr: 2.000e-04, eta: 5:24:12, time: 1.695, data_time: 0.417, memory: 7233, loss_cls: 2.5935, loss_bbox: 1.4863, loss: 4.0799, grad_norm: 8.1866
+2020-12-17 19:17:32,041 - mmdet - INFO - Epoch [7][400/1833]	lr: 2.000e-04, eta: 5:20:56, time: 1.674, data_time: 0.403, memory: 7233, loss_cls: 2.5813, loss_bbox: 1.4985, loss: 4.0797, grad_norm: 7.9666
+2020-12-17 19:20:21,397 - mmdet - INFO - Epoch [7][500/1833]	lr: 2.000e-04, eta: 5:17:43, time: 1.694, data_time: 0.398, memory: 7233, loss_cls: 2.5865, loss_bbox: 1.4994, loss: 4.0860, grad_norm: 8.1057
+2020-12-17 19:23:11,221 - mmdet - INFO - Epoch [7][600/1833]	lr: 2.000e-04, eta: 5:14:31, time: 1.698, data_time: 0.415, memory: 7233, loss_cls: 2.5817, loss_bbox: 1.5191, loss: 4.1008, grad_norm: 7.9359
+2020-12-17 19:25:59,808 - mmdet - INFO - Epoch [7][700/1833]	lr: 2.000e-04, eta: 5:11:18, time: 1.686, data_time: 0.402, memory: 7233, loss_cls: 2.5856, loss_bbox: 1.5023, loss: 4.0879, grad_norm: 8.0343
+2020-12-17 19:28:48,751 - mmdet - INFO - Epoch [7][800/1833]	lr: 2.000e-04, eta: 5:08:06, time: 1.689, data_time: 0.406, memory: 7233, loss_cls: 2.5971, loss_bbox: 1.5047, loss: 4.1018, grad_norm: 8.1919
+2020-12-17 19:31:36,917 - mmdet - INFO - Epoch [7][900/1833]	lr: 2.000e-04, eta: 5:04:54, time: 1.682, data_time: 0.411, memory: 7233, loss_cls: 2.5710, loss_bbox: 1.4876, loss: 4.0586, grad_norm: 8.1012
+2020-12-17 19:34:25,133 - mmdet - INFO - Epoch [7][1000/1833]	lr: 2.000e-04, eta: 5:01:42, time: 1.682, data_time: 0.409, memory: 7233, loss_cls: 2.5880, loss_bbox: 1.4896, loss: 4.0776, grad_norm: 8.2080
+2020-12-17 19:37:12,945 - mmdet - INFO - Epoch [7][1100/1833]	lr: 2.000e-04, eta: 4:58:30, time: 1.678, data_time: 0.404, memory: 7233, loss_cls: 2.5791, loss_bbox: 1.4626, loss: 4.0418, grad_norm: 8.2009
+2020-12-17 19:40:00,926 - mmdet - INFO - Epoch [7][1200/1833]	lr: 2.000e-04, eta: 4:55:19, time: 1.680, data_time: 0.408, memory: 7233, loss_cls: 2.5953, loss_bbox: 1.5200, loss: 4.1152, grad_norm: 8.0106
+2020-12-17 19:42:50,643 - mmdet - INFO - Epoch [7][1300/1833]	lr: 2.000e-04, eta: 4:52:09, time: 1.697, data_time: 0.403, memory: 7233, loss_cls: 2.5965, loss_bbox: 1.4963, loss: 4.0928, grad_norm: 7.9945
+2020-12-17 19:45:39,929 - mmdet - INFO - Epoch [7][1400/1833]	lr: 2.000e-04, eta: 4:48:59, time: 1.693, data_time: 0.404, memory: 7233, loss_cls: 2.5780, loss_bbox: 1.4819, loss: 4.0599, grad_norm: 8.0814
+2020-12-17 19:48:28,713 - mmdet - INFO - Epoch [7][1500/1833]	lr: 2.000e-04, eta: 4:45:50, time: 1.688, data_time: 0.406, memory: 7233, loss_cls: 2.5858, loss_bbox: 1.4849, loss: 4.0707, grad_norm: 7.9314
+2020-12-17 19:51:18,582 - mmdet - INFO - Epoch [7][1600/1833]	lr: 2.000e-04, eta: 4:42:41, time: 1.699, data_time: 0.408, memory: 7233, loss_cls: 2.5821, loss_bbox: 1.5082, loss: 4.0903, grad_norm: 8.0990
+2020-12-17 19:54:07,929 - mmdet - INFO - Epoch [7][1700/1833]	lr: 2.000e-04, eta: 4:39:33, time: 1.693, data_time: 0.407, memory: 7233, loss_cls: 2.5573, loss_bbox: 1.4844, loss: 4.0417, grad_norm: 7.8053
+2020-12-17 19:56:56,864 - mmdet - INFO - Epoch [7][1800/1833]	lr: 2.000e-04, eta: 4:36:24, time: 1.689, data_time: 0.407, memory: 7233, loss_cls: 2.5685, loss_bbox: 1.4975, loss: 4.0660, grad_norm: 8.0443
+2020-12-17 19:57:53,001 - mmdet - INFO - Saving checkpoint at 7 epochs
+2020-12-17 20:02:00,036 - mmdet - INFO - Evaluating bbox...
+2020-12-17 20:03:41,709 - mmdet - INFO - Exp name: ssd-lite_mobilenet.py
+2020-12-17 20:03:41,710 - mmdet - INFO - Epoch(val) [7][1833]	bbox_mAP: 0.2420, bbox_mAP_50: 0.4170, bbox_mAP_75: 0.2460, bbox_mAP_s: 0.0630, bbox_mAP_m: 0.2470, bbox_mAP_l: 0.4050, bbox_mAP_copypaste: 0.242 0.417 0.246 0.063 0.247 0.405
+2020-12-17 20:05:31,616 - mmdet - INFO - Epoch [8][100/1833]	lr: 1.483e-04, eta: 4:30:53, time: 1.099, data_time: 0.423, memory: 7233, loss_cls: 2.5768, loss_bbox: 1.5234, loss: 4.1001, grad_norm: 7.8801
+2020-12-17 20:07:19,922 - mmdet - INFO - Epoch [8][200/1833]	lr: 1.483e-04, eta: 4:27:05, time: 1.083, data_time: 0.400, memory: 7233, loss_cls: 2.5569, loss_bbox: 1.4878, loss: 4.0447, grad_norm: 7.9348
+2020-12-17 20:09:08,985 - mmdet - INFO - Epoch [8][300/1833]	lr: 1.483e-04, eta: 4:23:19, time: 1.091, data_time: 0.413, memory: 7233, loss_cls: 2.5727, loss_bbox: 1.5254, loss: 4.0981, grad_norm: 7.7220
+2020-12-17 20:10:57,568 - mmdet - INFO - Epoch [8][400/1833]	lr: 1.483e-04, eta: 4:19:35, time: 1.086, data_time: 0.415, memory: 7233, loss_cls: 2.5970, loss_bbox: 1.5369, loss: 4.1340, grad_norm: 7.9676
+2020-12-17 20:12:45,829 - mmdet - INFO - Epoch [8][500/1833]	lr: 1.483e-04, eta: 4:15:52, time: 1.083, data_time: 0.412, memory: 7233, loss_cls: 2.5731, loss_bbox: 1.5052, loss: 4.0783, grad_norm: 7.9416
+2020-12-17 20:14:34,143 - mmdet - INFO - Epoch [8][600/1833]	lr: 1.483e-04, eta: 4:12:11, time: 1.083, data_time: 0.400, memory: 7233, loss_cls: 2.5656, loss_bbox: 1.4704, loss: 4.0360, grad_norm: 7.9039
+2020-12-17 20:16:22,953 - mmdet - INFO - Epoch [8][700/1833]	lr: 1.483e-04, eta: 4:08:32, time: 1.088, data_time: 0.405, memory: 7233, loss_cls: 2.5722, loss_bbox: 1.5041, loss: 4.0763, grad_norm: 7.9476
+2020-12-17 20:18:11,690 - mmdet - INFO - Epoch [8][800/1833]	lr: 1.483e-04, eta: 4:04:54, time: 1.087, data_time: 0.404, memory: 7233, loss_cls: 2.5731, loss_bbox: 1.4660, loss: 4.0392, grad_norm: 7.9233
+2020-12-17 20:19:59,914 - mmdet - INFO - Epoch [8][900/1833]	lr: 1.483e-04, eta: 4:01:18, time: 1.082, data_time: 0.407, memory: 7233, loss_cls: 2.5859, loss_bbox: 1.4915, loss: 4.0774, grad_norm: 8.0540
+2020-12-17 20:21:48,110 - mmdet - INFO - Epoch [8][1000/1833]	lr: 1.483e-04, eta: 3:57:43, time: 1.082, data_time: 0.400, memory: 7233, loss_cls: 2.5620, loss_bbox: 1.4840, loss: 4.0460, grad_norm: 7.8369
+2020-12-17 20:23:37,120 - mmdet - INFO - Epoch [8][1100/1833]	lr: 1.483e-04, eta: 3:54:10, time: 1.090, data_time: 0.402, memory: 7233, loss_cls: 2.5548, loss_bbox: 1.4676, loss: 4.0224, grad_norm: 7.8843
+2020-12-17 20:25:25,293 - mmdet - INFO - Epoch [8][1200/1833]	lr: 1.483e-04, eta: 3:50:39, time: 1.082, data_time: 0.402, memory: 7233, loss_cls: 2.5857, loss_bbox: 1.4909, loss: 4.0766, grad_norm: 7.8969
+2020-12-17 20:27:14,017 - mmdet - INFO - Epoch [8][1300/1833]	lr: 1.483e-04, eta: 3:47:09, time: 1.087, data_time: 0.401, memory: 7233, loss_cls: 2.5662, loss_bbox: 1.4860, loss: 4.0522, grad_norm: 7.9570
+2020-12-17 20:29:02,895 - mmdet - INFO - Epoch [8][1400/1833]	lr: 1.483e-04, eta: 3:43:40, time: 1.089, data_time: 0.414, memory: 7233, loss_cls: 2.5547, loss_bbox: 1.4951, loss: 4.0497, grad_norm: 7.7796
+2020-12-17 20:30:51,396 - mmdet - INFO - Epoch [8][1500/1833]	lr: 1.483e-04, eta: 3:40:13, time: 1.085, data_time: 0.405, memory: 7233, loss_cls: 2.5595, loss_bbox: 1.4881, loss: 4.0476, grad_norm: 7.9401
+2020-12-17 20:32:39,807 - mmdet - INFO - Epoch [8][1600/1833]	lr: 1.483e-04, eta: 3:36:47, time: 1.084, data_time: 0.400, memory: 7233, loss_cls: 2.5683, loss_bbox: 1.5082, loss: 4.0765, grad_norm: 7.9415
+2020-12-17 20:34:28,613 - mmdet - INFO - Epoch [8][1700/1833]	lr: 1.483e-04, eta: 3:33:23, time: 1.088, data_time: 0.404, memory: 7233, loss_cls: 2.5631, loss_bbox: 1.4672, loss: 4.0303, grad_norm: 7.8301
+2020-12-17 20:36:17,416 - mmdet - INFO - Epoch [8][1800/1833]	lr: 1.483e-04, eta: 3:30:00, time: 1.088, data_time: 0.405, memory: 7233, loss_cls: 2.5627, loss_bbox: 1.4808, loss: 4.0435, grad_norm: 7.9935
+2020-12-17 20:36:53,326 - mmdet - INFO - Saving checkpoint at 8 epochs
+2020-12-17 20:40:59,759 - mmdet - INFO - Evaluating bbox...
+2020-12-17 20:42:41,194 - mmdet - INFO - Exp name: ssd-lite_mobilenet.py
+2020-12-17 20:42:41,194 - mmdet - INFO - Epoch(val) [8][1833]	bbox_mAP: 0.2420, bbox_mAP_50: 0.4180, bbox_mAP_75: 0.2460, bbox_mAP_s: 0.0620, bbox_mAP_m: 0.2480, bbox_mAP_l: 0.4050, bbox_mAP_copypaste: 0.242 0.418 0.246 0.062 0.248 0.405
+2020-12-17 20:44:30,667 - mmdet - INFO - Epoch [9][100/1833]	lr: 1.000e-04, eta: 3:25:14, time: 1.095, data_time: 0.421, memory: 7233, loss_cls: 2.5450, loss_bbox: 1.4743, loss: 4.0193, grad_norm: 7.7411
+2020-12-17 20:46:18,638 - mmdet - INFO - Epoch [9][200/1833]	lr: 1.000e-04, eta: 3:21:54, time: 1.080, data_time: 0.405, memory: 7233, loss_cls: 2.5592, loss_bbox: 1.4632, loss: 4.0223, grad_norm: 7.8355
+2020-12-17 20:48:07,336 - mmdet - INFO - Epoch [9][300/1833]	lr: 1.000e-04, eta: 3:18:36, time: 1.087, data_time: 0.404, memory: 7233, loss_cls: 2.5451, loss_bbox: 1.4896, loss: 4.0347, grad_norm: 7.6175
+2020-12-17 20:49:55,900 - mmdet - INFO - Epoch [9][400/1833]	lr: 1.000e-04, eta: 3:15:18, time: 1.086, data_time: 0.398, memory: 7233, loss_cls: 2.5867, loss_bbox: 1.5129, loss: 4.0996, grad_norm: 7.7428
+2020-12-17 20:51:43,933 - mmdet - INFO - Epoch [9][500/1833]	lr: 1.000e-04, eta: 3:12:02, time: 1.080, data_time: 0.403, memory: 7233, loss_cls: 2.5539, loss_bbox: 1.5229, loss: 4.0768, grad_norm: 7.6845
+2020-12-17 20:53:33,096 - mmdet - INFO - Epoch [9][600/1833]	lr: 1.000e-04, eta: 3:08:47, time: 1.092, data_time: 0.408, memory: 7233, loss_cls: 2.5784, loss_bbox: 1.4899, loss: 4.0683, grad_norm: 7.6633
+2020-12-17 20:55:21,552 - mmdet - INFO - Epoch [9][700/1833]	lr: 1.000e-04, eta: 3:05:33, time: 1.085, data_time: 0.400, memory: 7233, loss_cls: 2.5490, loss_bbox: 1.4699, loss: 4.0189, grad_norm: 7.8980
+2020-12-17 20:57:10,501 - mmdet - INFO - Epoch [9][800/1833]	lr: 1.000e-04, eta: 3:02:20, time: 1.090, data_time: 0.401, memory: 7233, loss_cls: 2.5569, loss_bbox: 1.4854, loss: 4.0423, grad_norm: 7.9334
+2020-12-17 20:58:58,952 - mmdet - INFO - Epoch [9][900/1833]	lr: 1.000e-04, eta: 2:59:08, time: 1.085, data_time: 0.399, memory: 7233, loss_cls: 2.5577, loss_bbox: 1.4883, loss: 4.0460, grad_norm: 7.7651
+2020-12-17 21:00:47,642 - mmdet - INFO - Epoch [9][1000/1833]	lr: 1.000e-04, eta: 2:55:57, time: 1.087, data_time: 0.394, memory: 7233, loss_cls: 2.5719, loss_bbox: 1.5036, loss: 4.0756, grad_norm: 7.6560
+2020-12-17 21:02:36,041 - mmdet - INFO - Epoch [9][1100/1833]	lr: 1.000e-04, eta: 2:52:47, time: 1.084, data_time: 0.411, memory: 7233, loss_cls: 2.5607, loss_bbox: 1.4827, loss: 4.0434, grad_norm: 7.9481
+2020-12-17 21:04:23,928 - mmdet - INFO - Epoch [9][1200/1833]	lr: 1.000e-04, eta: 2:49:38, time: 1.079, data_time: 0.406, memory: 7233, loss_cls: 2.5509, loss_bbox: 1.4737, loss: 4.0246, grad_norm: 7.7199
+2020-12-17 21:06:12,417 - mmdet - INFO - Epoch [9][1300/1833]	lr: 1.000e-04, eta: 2:46:31, time: 1.085, data_time: 0.409, memory: 7233, loss_cls: 2.5583, loss_bbox: 1.4990, loss: 4.0573, grad_norm: 7.6577
+2020-12-17 21:08:00,514 - mmdet - INFO - Epoch [9][1400/1833]	lr: 1.000e-04, eta: 2:43:24, time: 1.081, data_time: 0.405, memory: 7233, loss_cls: 2.5725, loss_bbox: 1.4969, loss: 4.0694, grad_norm: 7.8208
+2020-12-17 21:09:49,215 - mmdet - INFO - Epoch [9][1500/1833]	lr: 1.000e-04, eta: 2:40:18, time: 1.087, data_time: 0.401, memory: 7233, loss_cls: 2.5540, loss_bbox: 1.4745, loss: 4.0285, grad_norm: 7.8970
+2020-12-17 21:11:37,811 - mmdet - INFO - Epoch [9][1600/1833]	lr: 1.000e-04, eta: 2:37:13, time: 1.086, data_time: 0.409, memory: 7233, loss_cls: 2.5449, loss_bbox: 1.4531, loss: 3.9980, grad_norm: 7.8623
+2020-12-17 21:13:26,781 - mmdet - INFO - Epoch [9][1700/1833]	lr: 1.000e-04, eta: 2:34:10, time: 1.090, data_time: 0.405, memory: 7233, loss_cls: 2.5781, loss_bbox: 1.4828, loss: 4.0609, grad_norm: 7.7344
+2020-12-17 21:15:15,426 - mmdet - INFO - Epoch [9][1800/1833]	lr: 1.000e-04, eta: 2:31:07, time: 1.086, data_time: 0.409, memory: 7233, loss_cls: 2.5657, loss_bbox: 1.4743, loss: 4.0401, grad_norm: 7.5601
+2020-12-17 21:15:51,185 - mmdet - INFO - Saving checkpoint at 9 epochs
+2020-12-17 21:19:57,146 - mmdet - INFO - Evaluating bbox...
+2020-12-17 21:21:38,884 - mmdet - INFO - Exp name: ssd-lite_mobilenet.py
+2020-12-17 21:21:38,885 - mmdet - INFO - Epoch(val) [9][1833]	bbox_mAP: 0.2440, bbox_mAP_50: 0.4210, bbox_mAP_75: 0.2480, bbox_mAP_s: 0.0660, bbox_mAP_m: 0.2480, bbox_mAP_l: 0.4060, bbox_mAP_copypaste: 0.244 0.421 0.248 0.066 0.248 0.406
+2020-12-17 21:23:28,944 - mmdet - INFO - Epoch [10][100/1833]	lr: 5.861e-05, eta: 2:26:54, time: 1.101, data_time: 0.436, memory: 7233, loss_cls: 2.5669, loss_bbox: 1.4846, loss: 4.0516, grad_norm: 7.9058
+2020-12-17 21:25:18,136 - mmdet - INFO - Epoch [10][200/1833]	lr: 5.861e-05, eta: 2:23:53, time: 1.092, data_time: 0.420, memory: 7233, loss_cls: 2.5701, loss_bbox: 1.4989, loss: 4.0690, grad_norm: 7.7215
+2020-12-17 21:27:06,488 - mmdet - INFO - Epoch [10][300/1833]	lr: 5.861e-05, eta: 2:20:53, time: 1.084, data_time: 0.407, memory: 7233, loss_cls: 2.5317, loss_bbox: 1.4685, loss: 4.0003, grad_norm: 7.9818
+2020-12-17 21:28:55,497 - mmdet - INFO - Epoch [10][400/1833]	lr: 5.861e-05, eta: 2:17:55, time: 1.090, data_time: 0.419, memory: 7233, loss_cls: 2.5307, loss_bbox: 1.4932, loss: 4.0239, grad_norm: 7.7059
+2020-12-17 21:30:44,690 - mmdet - INFO - Epoch [10][500/1833]	lr: 5.861e-05, eta: 2:14:57, time: 1.092, data_time: 0.410, memory: 7233, loss_cls: 2.5478, loss_bbox: 1.4856, loss: 4.0334, grad_norm: 7.8569
+2020-12-17 21:32:33,942 - mmdet - INFO - Epoch [10][600/1833]	lr: 5.861e-05, eta: 2:12:00, time: 1.093, data_time: 0.415, memory: 7233, loss_cls: 2.5513, loss_bbox: 1.4814, loss: 4.0327, grad_norm: 7.7118
+2020-12-17 21:34:23,315 - mmdet - INFO - Epoch [10][700/1833]	lr: 5.861e-05, eta: 2:09:03, time: 1.094, data_time: 0.423, memory: 7233, loss_cls: 2.5571, loss_bbox: 1.4781, loss: 4.0352, grad_norm: 7.5556
+2020-12-17 21:36:12,433 - mmdet - INFO - Epoch [10][800/1833]	lr: 5.861e-05, eta: 2:06:08, time: 1.091, data_time: 0.414, memory: 7233, loss_cls: 2.5666, loss_bbox: 1.5111, loss: 4.0777, grad_norm: 7.7098
+2020-12-17 21:38:00,791 - mmdet - INFO - Epoch [10][900/1833]	lr: 5.861e-05, eta: 2:03:13, time: 1.084, data_time: 0.415, memory: 7233, loss_cls: 2.5494, loss_bbox: 1.4875, loss: 4.0369, grad_norm: 7.6496
+2020-12-17 21:39:49,588 - mmdet - INFO - Epoch [10][1000/1833]	lr: 5.861e-05, eta: 2:00:19, time: 1.088, data_time: 0.417, memory: 7233, loss_cls: 2.5588, loss_bbox: 1.4759, loss: 4.0347, grad_norm: 7.9605
+2020-12-17 21:41:38,098 - mmdet - INFO - Epoch [10][1100/1833]	lr: 5.861e-05, eta: 1:57:25, time: 1.085, data_time: 0.415, memory: 7233, loss_cls: 2.5778, loss_bbox: 1.4905, loss: 4.0683, grad_norm: 7.8416
+2020-12-17 21:43:26,797 - mmdet - INFO - Epoch [10][1200/1833]	lr: 5.861e-05, eta: 1:54:33, time: 1.087, data_time: 0.416, memory: 7233, loss_cls: 2.5700, loss_bbox: 1.4966, loss: 4.0666, grad_norm: 7.7778
+2020-12-17 21:45:15,553 - mmdet - INFO - Epoch [10][1300/1833]	lr: 5.861e-05, eta: 1:51:41, time: 1.088, data_time: 0.416, memory: 7233, loss_cls: 2.5507, loss_bbox: 1.4683, loss: 4.0189, grad_norm: 7.9974
+2020-12-17 21:47:04,322 - mmdet - INFO - Epoch [10][1400/1833]	lr: 5.861e-05, eta: 1:48:49, time: 1.088, data_time: 0.423, memory: 7233, loss_cls: 2.5848, loss_bbox: 1.5125, loss: 4.0973, grad_norm: 7.7962
+2020-12-17 21:48:53,154 - mmdet - INFO - Epoch [10][1500/1833]	lr: 5.861e-05, eta: 1:45:59, time: 1.088, data_time: 0.416, memory: 7233, loss_cls: 2.5568, loss_bbox: 1.4994, loss: 4.0561, grad_norm: 7.6720
+2020-12-17 21:50:42,197 - mmdet - INFO - Epoch [10][1600/1833]	lr: 5.861e-05, eta: 1:43:09, time: 1.090, data_time: 0.420, memory: 7233, loss_cls: 2.5544, loss_bbox: 1.5026, loss: 4.0569, grad_norm: 7.8489
+2020-12-17 21:52:31,513 - mmdet - INFO - Epoch [10][1700/1833]	lr: 5.861e-05, eta: 1:40:20, time: 1.093, data_time: 0.416, memory: 7233, loss_cls: 2.5620, loss_bbox: 1.4802, loss: 4.0421, grad_norm: 7.6718
+2020-12-17 21:54:21,022 - mmdet - INFO - Epoch [10][1800/1833]	lr: 5.861e-05, eta: 1:37:32, time: 1.095, data_time: 0.429, memory: 7233, loss_cls: 2.5652, loss_bbox: 1.4928, loss: 4.0580, grad_norm: 7.7572
+2020-12-17 21:54:56,757 - mmdet - INFO - Saving checkpoint at 10 epochs
+2020-12-17 21:59:01,585 - mmdet - INFO - Evaluating bbox...
+2020-12-17 22:00:43,069 - mmdet - INFO - Exp name: ssd-lite_mobilenet.py
+2020-12-17 22:00:43,069 - mmdet - INFO - Epoch(val) [10][1833]	bbox_mAP: 0.2430, bbox_mAP_50: 0.4190, bbox_mAP_75: 0.2470, bbox_mAP_s: 0.0650, bbox_mAP_m: 0.2490, bbox_mAP_l: 0.4070, bbox_mAP_copypaste: 0.243 0.419 0.247 0.065 0.249 0.407
+2020-12-17 22:02:33,269 - mmdet - INFO - Epoch [11][100/1833]	lr: 2.683e-05, eta: 1:33:42, time: 1.102, data_time: 0.419, memory: 7233, loss_cls: 2.5515, loss_bbox: 1.4981, loss: 4.0497, grad_norm: 7.6182
+2020-12-17 22:04:21,264 - mmdet - INFO - Epoch [11][200/1833]	lr: 2.683e-05, eta: 1:30:55, time: 1.080, data_time: 0.409, memory: 7233, loss_cls: 2.5744, loss_bbox: 1.4983, loss: 4.0728, grad_norm: 7.8769
+2020-12-17 22:06:10,258 - mmdet - INFO - Epoch [11][300/1833]	lr: 2.683e-05, eta: 1:28:09, time: 1.090, data_time: 0.406, memory: 7233, loss_cls: 2.5714, loss_bbox: 1.4852, loss: 4.0566, grad_norm: 7.7907
+2020-12-17 22:07:59,374 - mmdet - INFO - Epoch [11][400/1833]	lr: 2.683e-05, eta: 1:25:23, time: 1.091, data_time: 0.411, memory: 7233, loss_cls: 2.5655, loss_bbox: 1.4925, loss: 4.0580, grad_norm: 7.8208
+2020-12-17 22:09:48,289 - mmdet - INFO - Epoch [11][500/1833]	lr: 2.683e-05, eta: 1:22:38, time: 1.089, data_time: 0.398, memory: 7233, loss_cls: 2.5640, loss_bbox: 1.4892, loss: 4.0532, grad_norm: 7.7392
+2020-12-17 22:11:36,517 - mmdet - INFO - Epoch [11][600/1833]	lr: 2.683e-05, eta: 1:19:54, time: 1.082, data_time: 0.405, memory: 7233, loss_cls: 2.5498, loss_bbox: 1.5044, loss: 4.0542, grad_norm: 7.6528
+2020-12-17 22:13:24,741 - mmdet - INFO - Epoch [11][700/1833]	lr: 2.683e-05, eta: 1:17:10, time: 1.082, data_time: 0.405, memory: 7233, loss_cls: 2.5449, loss_bbox: 1.4369, loss: 3.9818, grad_norm: 7.7912
+2020-12-17 22:15:12,861 - mmdet - INFO - Epoch [11][800/1833]	lr: 2.683e-05, eta: 1:14:27, time: 1.081, data_time: 0.404, memory: 7233, loss_cls: 2.5279, loss_bbox: 1.4756, loss: 4.0034, grad_norm: 7.5993
+2020-12-17 22:17:01,395 - mmdet - INFO - Epoch [11][900/1833]	lr: 2.683e-05, eta: 1:11:44, time: 1.085, data_time: 0.404, memory: 7233, loss_cls: 2.5527, loss_bbox: 1.5283, loss: 4.0809, grad_norm: 7.5254
+2020-12-17 22:18:50,056 - mmdet - INFO - Epoch [11][1000/1833]	lr: 2.683e-05, eta: 1:09:02, time: 1.087, data_time: 0.408, memory: 7233, loss_cls: 2.5399, loss_bbox: 1.4858, loss: 4.0257, grad_norm: 7.7686
+2020-12-17 22:20:38,872 - mmdet - INFO - Epoch [11][1100/1833]	lr: 2.683e-05, eta: 1:06:20, time: 1.088, data_time: 0.402, memory: 7233, loss_cls: 2.5529, loss_bbox: 1.4682, loss: 4.0210, grad_norm: 7.7722
+2020-12-17 22:22:27,271 - mmdet - INFO - Epoch [11][1200/1833]	lr: 2.683e-05, eta: 1:03:39, time: 1.084, data_time: 0.410, memory: 7233, loss_cls: 2.5449, loss_bbox: 1.4684, loss: 4.0133, grad_norm: 7.6122
+2020-12-17 22:24:15,680 - mmdet - INFO - Epoch [11][1300/1833]	lr: 2.683e-05, eta: 1:00:59, time: 1.084, data_time: 0.403, memory: 7233, loss_cls: 2.5434, loss_bbox: 1.4385, loss: 3.9819, grad_norm: 7.7597
+2020-12-17 22:26:04,260 - mmdet - INFO - Epoch [11][1400/1833]	lr: 2.683e-05, eta: 0:58:19, time: 1.086, data_time: 0.405, memory: 7233, loss_cls: 2.5549, loss_bbox: 1.5144, loss: 4.0692, grad_norm: 7.7198
+2020-12-17 22:27:52,932 - mmdet - INFO - Epoch [11][1500/1833]	lr: 2.683e-05, eta: 0:55:39, time: 1.087, data_time: 0.400, memory: 7233, loss_cls: 2.5711, loss_bbox: 1.4663, loss: 4.0374, grad_norm: 7.6832
+2020-12-17 22:29:41,913 - mmdet - INFO - Epoch [11][1600/1833]	lr: 2.683e-05, eta: 0:53:01, time: 1.090, data_time: 0.410, memory: 7233, loss_cls: 2.5412, loss_bbox: 1.4952, loss: 4.0364, grad_norm: 7.6046
+2020-12-17 22:31:30,227 - mmdet - INFO - Epoch [11][1700/1833]	lr: 2.683e-05, eta: 0:50:22, time: 1.083, data_time: 0.396, memory: 7233, loss_cls: 2.5380, loss_bbox: 1.4743, loss: 4.0122, grad_norm: 7.6312
+2020-12-17 22:33:18,368 - mmdet - INFO - Epoch [11][1800/1833]	lr: 2.683e-05, eta: 0:47:44, time: 1.081, data_time: 0.409, memory: 7233, loss_cls: 2.5548, loss_bbox: 1.4853, loss: 4.0401, grad_norm: 7.8949
+2020-12-17 22:33:54,444 - mmdet - INFO - Saving checkpoint at 11 epochs
+2020-12-17 22:38:03,332 - mmdet - INFO - Evaluating bbox...
+2020-12-17 22:39:44,248 - mmdet - INFO - Exp name: ssd-lite_mobilenet.py
+2020-12-17 22:39:44,249 - mmdet - INFO - Epoch(val) [11][1833]	bbox_mAP: 0.2440, bbox_mAP_50: 0.4200, bbox_mAP_75: 0.2490, bbox_mAP_s: 0.0630, bbox_mAP_m: 0.2520, bbox_mAP_l: 0.4070, bbox_mAP_copypaste: 0.244 0.420 0.249 0.063 0.252 0.407
+2020-12-17 22:41:34,444 - mmdet - INFO - Epoch [12][100/1833]	lr: 6.854e-06, eta: 0:44:12, time: 1.102, data_time: 0.431, memory: 7233, loss_cls: 2.5373, loss_bbox: 1.4979, loss: 4.0352, grad_norm: 7.4753
+2020-12-17 22:43:23,448 - mmdet - INFO - Epoch [12][200/1833]	lr: 6.854e-06, eta: 0:41:35, time: 1.090, data_time: 0.421, memory: 7233, loss_cls: 2.5249, loss_bbox: 1.4722, loss: 3.9972, grad_norm: 7.6302
+2020-12-17 22:45:12,565 - mmdet - INFO - Epoch [12][300/1833]	lr: 6.854e-06, eta: 0:38:59, time: 1.091, data_time: 0.418, memory: 7233, loss_cls: 2.5673, loss_bbox: 1.5129, loss: 4.0802, grad_norm: 7.6446
+2020-12-17 22:47:01,044 - mmdet - INFO - Epoch [12][400/1833]	lr: 6.854e-06, eta: 0:36:23, time: 1.085, data_time: 0.422, memory: 7233, loss_cls: 2.5512, loss_bbox: 1.4695, loss: 4.0207, grad_norm: 7.8435
+2020-12-17 22:48:49,671 - mmdet - INFO - Epoch [12][500/1833]	lr: 6.854e-06, eta: 0:33:48, time: 1.086, data_time: 0.417, memory: 7233, loss_cls: 2.5517, loss_bbox: 1.4715, loss: 4.0231, grad_norm: 7.7454
+2020-12-17 22:50:38,371 - mmdet - INFO - Epoch [12][600/1833]	lr: 6.854e-06, eta: 0:31:13, time: 1.087, data_time: 0.410, memory: 7233, loss_cls: 2.5232, loss_bbox: 1.4819, loss: 4.0051, grad_norm: 7.5258
+2020-12-17 22:52:27,352 - mmdet - INFO - Epoch [12][700/1833]	lr: 6.854e-06, eta: 0:28:39, time: 1.090, data_time: 0.417, memory: 7233, loss_cls: 2.5535, loss_bbox: 1.5094, loss: 4.0629, grad_norm: 7.6470
+2020-12-17 22:54:16,176 - mmdet - INFO - Epoch [12][800/1833]	lr: 6.854e-06, eta: 0:26:05, time: 1.088, data_time: 0.413, memory: 7233, loss_cls: 2.5432, loss_bbox: 1.4882, loss: 4.0314, grad_norm: 7.6782
+2020-12-17 22:56:05,509 - mmdet - INFO - Epoch [12][900/1833]	lr: 6.854e-06, eta: 0:23:32, time: 1.093, data_time: 0.415, memory: 7233, loss_cls: 2.5656, loss_bbox: 1.4768, loss: 4.0424, grad_norm: 7.7299
+2020-12-17 22:57:54,412 - mmdet - INFO - Epoch [12][1000/1833]	lr: 6.854e-06, eta: 0:20:59, time: 1.089, data_time: 0.417, memory: 7233, loss_cls: 2.5507, loss_bbox: 1.4903, loss: 4.0410, grad_norm: 7.5774
+2020-12-17 22:59:43,439 - mmdet - INFO - Epoch [12][1100/1833]	lr: 6.854e-06, eta: 0:18:26, time: 1.090, data_time: 0.421, memory: 7233, loss_cls: 2.5532, loss_bbox: 1.4537, loss: 4.0070, grad_norm: 7.7911
+2020-12-17 23:01:32,287 - mmdet - INFO - Epoch [12][1200/1833]	lr: 6.854e-06, eta: 0:15:54, time: 1.088, data_time: 0.424, memory: 7233, loss_cls: 2.5654, loss_bbox: 1.5040, loss: 4.0694, grad_norm: 7.6853
+2020-12-17 23:03:20,782 - mmdet - INFO - Epoch [12][1300/1833]	lr: 6.854e-06, eta: 0:13:22, time: 1.085, data_time: 0.422, memory: 7233, loss_cls: 2.5298, loss_bbox: 1.4650, loss: 3.9948, grad_norm: 7.7064
+2020-12-17 23:05:09,631 - mmdet - INFO - Epoch [12][1400/1833]	lr: 6.854e-06, eta: 0:10:51, time: 1.088, data_time: 0.413, memory: 7233, loss_cls: 2.5337, loss_bbox: 1.4783, loss: 4.0120, grad_norm: 7.5509
+2020-12-17 23:06:58,726 - mmdet - INFO - Epoch [12][1500/1833]	lr: 6.854e-06, eta: 0:08:20, time: 1.091, data_time: 0.417, memory: 7233, loss_cls: 2.5477, loss_bbox: 1.4710, loss: 4.0187, grad_norm: 7.8862
+2020-12-17 23:08:47,699 - mmdet - INFO - Epoch [12][1600/1833]	lr: 6.854e-06, eta: 0:05:49, time: 1.090, data_time: 0.421, memory: 7233, loss_cls: 2.5450, loss_bbox: 1.4645, loss: 4.0095, grad_norm: 7.7535
+2020-12-17 23:10:36,102 - mmdet - INFO - Epoch [12][1700/1833]	lr: 6.854e-06, eta: 0:03:19, time: 1.084, data_time: 0.410, memory: 7233, loss_cls: 2.5646, loss_bbox: 1.4725, loss: 4.0371, grad_norm: 7.8367
+2020-12-17 23:12:25,367 - mmdet - INFO - Epoch [12][1800/1833]	lr: 6.854e-06, eta: 0:00:49, time: 1.093, data_time: 0.422, memory: 7233, loss_cls: 2.5355, loss_bbox: 1.4879, loss: 4.0234, grad_norm: 7.6718
+2020-12-17 23:13:01,517 - mmdet - INFO - Saving checkpoint at 12 epochs
+2020-12-17 23:17:10,418 - mmdet - INFO - Evaluating bbox...
+2020-12-17 23:18:48,161 - mmdet - INFO - Exp name: ssd-lite_mobilenet.py
+2020-12-17 23:18:48,162 - mmdet - INFO - Epoch(val) [12][1833]	bbox_mAP: 0.2430, bbox_mAP_50: 0.4200, bbox_mAP_75: 0.2470, bbox_mAP_s: 0.0640, bbox_mAP_m: 0.2490, bbox_mAP_l: 0.4040, bbox_mAP_copypaste: 0.243 0.420 0.247 0.064 0.249 0.404

@@ -1,0 +1,64 @@
+cl-0000_tflitert:
+  model_name: TFL-CL-0000-mobileNetV1-mlperf
+  recommended: true
+  run_dir: cl-0000_tflitert_imagenet1k_mlperf_mobilenet_v1_1.0_224_tflite
+  session_name: tflitert
+  shortlisted: true
+  size: 15715902
+  task_type: classification
+cl-6360_onnxrt:
+  model_name: ONR-CL-6360-regNetx-200mf
+  recommended: true
+  run_dir: cl-6360_onnxrt_imagenet1k_fbr-pycls_regnetx-200mf_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 10105998
+  task_type: classification
+od-2010_tflitert:
+  model_name: TFL-OD-2010-ssd-mobV2-coco-mlperf-300x300
+  recommended: true
+  run_dir: od-2010_tflitert_coco_mlperf_ssd_mobilenet_v2_300_float_tflite
+  session_name: tflitert
+  shortlisted: true
+  size: 62394638
+  task_type: detection
+od-8200_onnxrt:
+  model_name: ONR-OD-8200-yolox-nano-lite-mmdet-coco-416x416
+  recommended: true
+  run_dir: od-8200_onnxrt_coco_edgeai-mmdet_yolox_nano_lite_416x416_20220214_model_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 8410702
+  task_type: detection
+od-8270_onnxrt:
+  model_name: ONR-OD-8270-yolox-pico-lite-mmdet-coco-320x320
+  recommended: true
+  run_dir: od-8270_onnxrt_coco_edgeai-mmdet_yolox_pico_lite_320x320_20230410_model_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 4757286
+  task_type: detection
+od-8410_onnxrt:
+  model_name: ONR-OD-8410-yolox-tiny-lite-mmdet-widerface-416x416
+  recommended: true
+  run_dir: od-8410_onnxrt_widerface_edgeai-mmdet_yolox_tiny_lite_416x416_20220318_model_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 18733903
+  task_type: detection
+ss-8630_onnxrt:
+  model_name: ONR-SS-8630-unetlite-aspp-mobv2-tv-ade20k32-512x512
+  recommended: true
+  run_dir: ss-8630_onnxrt_ade20k32_edgeai-tv_unet_aspp_mobilenetv2_edgeailite_512x512_20210306_outby2_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 9456034
+  task_type: segmentation
+ss-8710_onnxrt:
+  model_name: ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512
+  recommended: true
+  run_dir: ss-8710_onnxrt_cocoseg21_edgeai-tv_deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 9177285
+  task_type: segmentation
