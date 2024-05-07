@@ -64,7 +64,7 @@ model = dict(
                 num_layers=6,
                 return_intermediate=True,
                 transformerlayers=dict(
-                    type='mmdet.DetrTransformerDecoderLayer',
+                    type='Detr3DTransformerDecoderLayer',
                     attn_cfgs=[
                         dict(
                             type='MultiheadAttention',  # mmcv.
@@ -89,7 +89,7 @@ model = dict(
             voxel_size=voxel_size,
             num_classes=10),
         positional_encoding=dict(
-            type='mmdet.SinePositionalEncoding',
+            type='Detr3DSinePositionalEncoding',
             num_feats=128,
             normalize=True,
             offset=-0.5),

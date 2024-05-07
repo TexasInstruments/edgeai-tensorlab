@@ -4,7 +4,7 @@ from typing import Dict, List, Tuple
 import torch
 import torch.nn as nn
 from mmcv.cnn import Linear
-from mmdet.models.dense_heads import DETRHead
+from mmdet.models.dense_heads.anchor_free_head import AnchorFreeHead
 from mmdet.models.layers import inverse_sigmoid
 from mmdet.models.utils import multi_apply
 from mmdet.utils import InstanceList, OptInstanceList, reduce_mean
@@ -12,39 +12,89 @@ from mmengine.model import bias_init_with_prob
 from mmengine.structures import InstanceData
 from torch import Tensor
 
+from mmcv.cnn import build_activation_layer
+
 from mmdet3d.registry import MODELS, TASK_UTILS
 from .util import normalize_bbox
 
 
 @MODELS.register_module()
-class DETR3DHead(DETRHead):
+class DETR3DHead(AnchorFreeHead):
     """Head of DETR3D.
 
     Args:
+        num_classes (int): Number of categories excluding the background.
+        in_channels (int): Number of channels in the input feature map.
         with_box_refine (bool): Whether to refine the reference points
             in the decoder. Defaults to False.
         as_two_stage (bool) : Whether to generate the proposal from
             the outputs of encoder.
-        transformer (obj:`ConfigDict`): ConfigDict is used for building
-            the Encoder and Decoder.
         bbox_coder (obj:`ConfigDict`): Configs to build the bbox coder
         num_cls_fcs (int) : the number of layers in cls and reg branch
         code_weights (List[double]) : loss weights of
             (cx,cy,l,w,cz,h,sin(φ),cos(φ),v_x,v_y)
         code_size (int) : size of code_weights
+        num_query (int): Number of query in Transformer. Defaults to 100.
+        num_reg_fcs (int): Number of fully-connected layers used in
+            `FFN`, which is then used for the regression head.
+            Defaults to 2.
+        transformer (:obj:`ConfigDict` or dict, optional): Config for
+            transformer. Defaults to None.
+        sync_cls_avg_factor (bool): Whether to sync the avg_factor of all
+            ranks. Defaults to False.
+        positional_encoding (:obj:`ConfigDict` or dict): Config for position
+            encoding.
+        loss_cls (:obj:`ConfigDict` or dict): Config of the classification
+            loss. Defaults to `CrossEntropyLoss`.
+        loss_bbox (:obj:`ConfigDict` or dict): Config of the regression loss.
+            Defaults to `L1Loss`.
+        loss_iou (:obj:`ConfigDict` or dict): Config of the regression iou
+            loss. Defaults to `GIoULoss`.
+        tran_cfg (:obj:`ConfigDict` or dict): Training config of transformer
+            head.
+        test_cfg (:obj:`ConfigDict` or dict): Testing config of transformer
+            head.
+        init_cfg (:obj:`ConfigDict` or dict or list[:obj:`ConfigDict` or \
+            dict], optional): Initialization config dict. Defaults to None.
     """
+    _version = 2
 
     def __init__(
             self,
-            *args,
+            num_classes: int,
+            in_channels: int,
             with_box_refine=False,
             as_two_stage=False,
-            transformer=None,
             bbox_coder=None,
             num_cls_fcs=2,
             code_weights=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.2, 0.2],
             code_size=10,
-            **kwargs):
+            num_query=100,
+            num_reg_fcs=2,
+            transformer=None,
+            sync_cls_avg_factor=False,
+            positional_encoding=dict(
+                type='SinePositionalEncoding', num_feats=128, normalize=True),
+            loss_cls=dict(
+                type='CrossEntropyLoss',
+                bg_cls_weight=0.1,
+                use_sigmoid=False,
+                loss_weight=1.0,
+                class_weight=1.0),
+            loss_bbox=dict(type='L1Loss', loss_weight=5.0),
+            loss_iou=dict(type='GIoULoss', loss_weight=2.0),
+            train_cfg=dict(
+                assigner=dict(
+                    type='HungarianAssigner',
+                    match_costs=[
+                        dict(type='ClassificationCost', weight=1.),
+                        dict(type='BBoxL1Cost', weight=5.0, box_format='xywh'),
+                        dict(type='IoUCost', iou_mode='giou', weight=2.0)
+                    ])),
+            test_cfg=dict(max_per_img=100),
+            init_cfg=None,
+            **kwargs) -> None:
+
         self.with_box_refine = with_box_refine
         self.as_two_stage = as_two_stage
         if self.as_two_stage:
@@ -55,8 +105,67 @@ class DETR3DHead(DETRHead):
         self.bbox_coder = TASK_UTILS.build(bbox_coder)
         self.pc_range = self.bbox_coder.pc_range
         self.num_cls_fcs = num_cls_fcs - 1
-        super(DETR3DHead, self).__init__(
-            *args, transformer=transformer, **kwargs)
+
+
+        super(AnchorFreeHead, self).__init__(init_cfg=init_cfg)
+        self.bg_cls_weight = 0
+        self.sync_cls_avg_factor = sync_cls_avg_factor
+        class_weight = loss_cls.get('class_weight', None)
+        if class_weight is not None and (self.__class__ is DETR3DHead):
+            assert isinstance(class_weight, float), 'Expected ' \
+                'class_weight to have type float. Found ' \
+                f'{type(class_weight)}.'
+            # NOTE following the official DETR rep0, bg_cls_weight means
+            # relative classification weight of the no-object class.
+            bg_cls_weight = loss_cls.get('bg_cls_weight', class_weight)
+            assert isinstance(bg_cls_weight, float), 'Expected ' \
+                'bg_cls_weight to have type float. Found ' \
+                f'{type(bg_cls_weight)}.'
+            class_weight = torch.ones(num_classes + 1) * class_weight
+            # set background class as the last indice
+            class_weight[num_classes] = bg_cls_weight
+            loss_cls.update({'class_weight': class_weight})
+            if 'bg_cls_weight' in loss_cls:
+                loss_cls.pop('bg_cls_weight')
+            self.bg_cls_weight = bg_cls_weight
+
+        if train_cfg:
+            assert 'assigner' in train_cfg, 'assigner should be provided '\
+                'when train_cfg is set.'
+            assigner = train_cfg['assigner']
+            self.assigner = TASK_UTILS.build(assigner)
+            if train_cfg.get('sampler', None) is not None:
+                raise RuntimeError('DETR do not build sampler.')
+
+        self.num_query = num_query
+        self.num_classes = num_classes
+        self.in_channels = in_channels
+        self.num_reg_fcs = num_reg_fcs
+        self.train_cfg = train_cfg
+        self.test_cfg = test_cfg
+        self.loss_cls = MODELS.build(loss_cls)
+        self.loss_bbox = MODELS.build(loss_bbox)
+        self.loss_iou = MODELS.build(loss_iou)
+
+        if self.loss_cls.use_sigmoid:
+            self.cls_out_channels = num_classes
+        else:
+            self.cls_out_channels = num_classes + 1
+        self.act_cfg = transformer.get('act_cfg',
+                                       dict(type='ReLU', inplace=True))
+        self.activate = build_activation_layer(self.act_cfg)
+        self.positional_encoding = TASK_UTILS.build(
+            positional_encoding)
+        self.transformer = MODELS.build(transformer)
+        self.embed_dims = self.transformer.embed_dims
+        assert 'num_feats' in positional_encoding
+        num_feats = positional_encoding['num_feats']
+        assert num_feats * 2 == self.embed_dims, 'embed_dims should' \
+            f' be exactly 2 times of num_feats. Found {self.embed_dims}' \
+            f' and {num_feats}.'
+
+        self._init_layers()
+
         # DETR sampling=False, so use PseudoSampler, format the result
         sampler_cfg = dict(type='PseudoSampler')
         self.sampler = TASK_UTILS.build(sampler_cfg)

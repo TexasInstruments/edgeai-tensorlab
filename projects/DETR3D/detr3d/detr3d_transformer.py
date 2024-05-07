@@ -4,12 +4,13 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from mmcv.cnn.bricks.transformer import (TransformerLayerSequence,
-                                         build_transformer_layer_sequence)
+from mmcv.cnn.bricks.transformer import (BaseTransformerLayer,
+                                         TransformerLayerSequence)
 from mmcv.ops.multi_scale_deform_attn import MultiScaleDeformableAttention
 from mmengine.model import BaseModule, constant_init, xavier_init
 
 from mmdet3d.registry import MODELS
+
 
 
 def inverse_sigmoid(x, eps=1e-5):
@@ -53,7 +54,7 @@ class Detr3DTransformer(BaseModule):
                  decoder=None,
                  **kwargs):
         super(Detr3DTransformer, self).__init__(**kwargs)
-        self.decoder = build_transformer_layer_sequence(decoder)
+        self.decoder = MODELS.build(decoder)
         self.embed_dims = self.decoder.embed_dims
         self.num_feature_levels = num_feature_levels
         self.num_cams = num_cams
@@ -200,6 +201,33 @@ class Detr3DTransformerDecoder(TransformerLayerSequence):
                 intermediate_reference_points)
 
         return output, reference_points
+
+
+@MODELS.register_module()
+class Detr3DTransformerDecoderLayer(BaseTransformerLayer):
+
+    def __init__(self,
+                 attn_cfgs,
+                 feedforward_channels,
+                 ffn_dropout=0.0,
+                 operation_order=None,
+                 act_cfg=dict(type='ReLU', inplace=True),
+                 norm_cfg=dict(type='LN'),
+                 ffn_num_fcs=2,
+                 **kwargs):
+        super(Detr3DTransformerDecoderLayer, self).__init__(
+            attn_cfgs=attn_cfgs,
+            feedforward_channels=feedforward_channels,
+            ffn_dropout=ffn_dropout,
+            operation_order=operation_order,
+            act_cfg=act_cfg,
+            norm_cfg=norm_cfg,
+            ffn_num_fcs=ffn_num_fcs,
+            **kwargs)
+        assert len(operation_order) == 6
+        assert set(operation_order) == set(
+            ['self_attn', 'norm', 'cross_attn', 'ffn'])
+
 
 
 @MODELS.register_module()
