@@ -1,7 +1,17 @@
 
 <hr>
 
-Note: We follow the EdgeAI-SDK (Processor SDK Linux with Edge AI) release numbering. For example, the models compiled with 9.1.0 version (r9.1 branch) works in 09.01.00.XX (09_01_00) SDK release.
+Note: We follow the EdgeAI-SDK (Processor SDK Linux with Edge AI) release numbering. For example, the models compiled with 9.2.0 version (r9.2 branch) works in 09.02.00 (09_02_00) SDK release.
+
+## 9.2.0
+
+### Git branch name: r9.2
+
+### New Features
+- Updated to support TIDL & SDK version 9.2
+
+<hr>
+
 
 ## 9.1.0
 

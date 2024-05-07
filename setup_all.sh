@@ -51,13 +51,13 @@ echo "SOURCE_LOCATION="${SOURCE_LOCATION}
 # clone
 echo "cloning/updating git repositories. this may take some time..."
 echo "if there is any issue, please remove these folders and try again ../edgeai-benchmark ../edgeai-mmdetection ../edgeai-torchvision ../edgeai-modelzoo ../edgeai-yolox"
-if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; else cd ../edgeai-benchmark; git stash; git fetch origin r9.1; git checkout r9.1; git pull --rebase; fi
-if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; else cd ../edgeai-mmdetection; git stash; git fetch origin r9.1; git checkout r9.1; git pull --rebase; fi
-if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; else cd ../edgeai-torchvision; git stash; git fetch origin r9.1; git checkout r9.1; git pull --rebase; fi
-if [[ ! -d ../edgeai-modelzoo ]]; then git clone "--single-branch" --branch r9.1 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; else cd ../edgeai-modelzoo; git stash; git fetch origin r9.1; git checkout r9.1; git pull --rebase; fi
+if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; else cd ../edgeai-benchmark; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase; fi
+if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; else cd ../edgeai-mmdetection; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase; fi
+if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; else cd ../edgeai-torchvision; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase; fi
+if [[ ! -d ../edgeai-modelzoo ]]; then git clone "--single-branch" --branch r9.2 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; else cd ../edgeai-modelzoo; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase; fi
 
 if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
-  if [[ ! -d ../edgeai-yolox ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-yolox.git ../edgeai-yolox; else cd ../edgeai-yolox; git stash; git fetch origin r9.1; git checkout r9.1; git pull --rebase; fi
+  if [[ ! -d ../edgeai-yolox ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-yolox.git ../edgeai-yolox; else cd ../edgeai-yolox; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase; fi
 fi
 
 cd ../edgeai-modelmaker
@@ -94,7 +94,7 @@ pip uninstall --yes onnxruntime
 
 echo "installing: edgeai-benchmark"
 cd ../edgeai-benchmark
-./setup_pc.sh r9.1
+./setup_pc.sh r9.2
 
 echo "installing edgeai-modelmaker"
 cd ../edgeai-modelmaker
