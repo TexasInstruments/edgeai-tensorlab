@@ -19,8 +19,8 @@ import mmdet.hooks
 
 from edgeai_torchmodelopt import xmodelopt
 
-from edgeai_torchtoolkit import xao
-from edgeai_torchtoolkit import xnn
+# from edgeai_torchtoolkit import xao
+# from edgeai_torchtoolkit import xnn
 
 
 # TODO: support fuse_conv_bn and format_only

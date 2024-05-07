@@ -17,6 +17,6 @@ python -m torch.distributed.launch \
     --master_port=$PORT \
     $(dirname "$0")/test.py \
     $CONFIG \
-    $CHECKPOINT --model-surgery 1 \
+    $CHECKPOINT --model-surgery 2 \
     --launcher pytorch \
     ${@:4}

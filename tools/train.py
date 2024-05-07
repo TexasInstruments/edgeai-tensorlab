@@ -137,7 +137,10 @@ def main():
             print_log('wrapping the model to prepare for surgery')
             runner.model = runner.model.surgery_init(surgery_wrapper, total_epochs=runner.max_epochs)
         else:
-            raise RuntimeError(f'surgery_init method is not supported for {type(runner.model)}')
+            # raise RuntimeError(f'surgery_init method is not supported for {type(runner.model)}')
+            runner.model.backbone = surgery_wrapper(runner.model.backbone)
+            runner.model.neck = surgery_wrapper(runner.model.neck)
+            runner.model.bbox_head.head_module = surgery_wrapper(runner.model.bbox_head.head_module)
         #
         if is_wrapped:
             runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
