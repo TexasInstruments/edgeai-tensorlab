@@ -9,6 +9,11 @@ Our documentation landing pages are the following:
 
 <hr>
 
+## Release Notes
+Please see the [release notes](edgeai-modelzoo/docs/release_notes.md)
+
+<hr>
+
 ## Components
 * The subcomponents have detailed documentation. In the browser, navigate into the sub-folders to see detailed documentation. Here is a high level overview.
 
