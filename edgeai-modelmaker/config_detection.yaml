@@ -1,0 +1,53 @@
+
+common:
+    target_module: 'vision'
+    task_type: 'detection'
+    target_device: 'TDA4VM'
+    # run_name can be any string, but there are some special cases:
+    # {date-time} will be replaced with datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    # {model_name} will be replaced with the name of the model
+    run_name: '{date-time}/{model_name}'
+
+dataset:
+    # enable/disable dataset loading
+    enable: True #False
+    # max_num_files: [750, 250] #None
+
+    # Object Detection Dataset Examples:
+    # -------------------------------------
+    # Example 1, (known datasets): 'widerface_detection', 'pascal_voc0712', 'coco_detection', 'udacity_selfdriving', 'tomato_detection', 'tiscapes2017_driving'
+    # dataset_name: widerface_detection
+    # -------------------------------------
+    # Example 2, give a dataset name and input_data_path.
+    # input_data_path could be a path to zip file, tar file, folder OR http, https link to zip or tar files
+    # for input_data_path these are provided with this repository as examples:
+    #    'http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip'
+    #    'http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip'
+    # -------------------------------------
+    # Example 3, give image folders with annotation files (require list with values for both train and val splits)
+    # dataset_name: coco_detection
+    # input_data_path: ["./data/projects/coco_detection/dataset/train2017",
+    #                        "./data/projects/coco_detection/dataset/val2017"]
+    # input_annotation_path: ["./data/projects/coco_detection/dataset/annotations/instances_train2017.json",
+    #                        "./data/projects/coco_detection/dataset/annotations/instances_val2017.json"]
+    # -------------------------------------
+    dataset_name: tiscapes2017_driving
+    input_data_path: 'http://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/tiscapes2017_driving.zip'
+
+training:
+    # enable/disable training
+    enable: True #False
+
+    # Object Detection model chosen can be changed here if needed
+    # options are: 'yolox_s_lite', 'yolox_tiny_lite', 'yolox_nano_lite', 'yolox_pico_lite', 'yolox_femto_lite'
+    model_name: 'yolox_nano_lite'
+
+    # training_epochs: 15 #30
+    # batch_size: 8 #32
+    # learning_rate: 0.005
+    # num_gpus: 0 #1 #4
+
+compilation:
+    # enable/disable compilation
+    enable: True #False
+    # tensor_bits: 8 #16 #32
