@@ -207,37 +207,6 @@ def main():
 
     #print("\n\n model summary : \n",runner.model)
 
-    # start testing
-        
-
-    if args.model_surgery:
-        surgery_fn = xao.surgery.v1.convert_to_lite_model if args.model_surgery == 1 \
-                     else (xao.surgery.v2.convert_to_lite_fx if args.model_surgery == 2 else None)
-        
-        runner._init_model_weights()
-        if is_model_wrapper(runner.model):
-            runner.model = runner.model.module
-        runner.model.backbone = surgery_fn(runner.model.backbone)
-        # runner.model.neck = surgery_fn(runner.model.neck)
-
-        runner.model.bbox_head = \
-                surgery_fn(runner.model.bbox_head)
-        # print("\n\n model summary.......... : \n",runner.model.bbox_head)
-
-        # Only head_module of head goes through model_surgery as it contains all compute layers
-        # if not isinstance(runner.model.bbox_head.head_module, (YOLOv5HeadModule, YOLOv7HeadModule, YOLOv8HeadModule, YOLOv6HeadModule)):
-        #     if hasattr(runner.model.bbox_head.head_module, 'reg_max'):
-        #         reg_max = runner.model.bbox_head.head_module.reg_max
-        #     else:
-        #         reg_max = None
-        #     runner.model.bbox_head.head_module = \
-        #         surgery_fn(runner.model.bbox_head.head_module)
-        #     if reg_max is not None:
-        #         runner.model.bbox_head.head_module.reg_max = reg_max
-        # elif isinstance(runner.model.bbox_head.head_module, (YOLOv8HeadModule, YOLOv6HeadModule)):
-        #     runner.model.bbox_head.head_module = xao.surgery.v1.convert_to_lite_model(runner.model.bbox_head.head_module)
-        runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
-    print("\n\n model summary : \n",runner.model)
     runner.test()
 
 
