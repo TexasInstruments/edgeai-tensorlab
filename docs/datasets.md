@@ -64,5 +64,5 @@ The dataset should be available in the path *dependencies/datasets/cityscpaes* -
 KITTI dataset downloading needs user registration hence our script can not download it automatically. User is requested to register at
 https://www.cvlibs.net/datasets/kitti/ and proceed with manual downloading of the dataset. KITTI dataset is needed for 3D object detection benchmarking.
 
-KITTI 3D-OD dataset needs preprocessing before it can be used in this script for benchmarking. User can refer https://github.com/TexasInstruments/edgeai-mmdetection3d#dataset-preperation for downloading and preprocessing the dataset for 3D-OD benchmarking task.   
+KITTI 3D-OD dataset needs preprocessing before it can be used in this script for benchmarking. User can refer https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-mmdetection3d#dataset-preperation for downloading and preprocessing the dataset for 3D-OD benchmarking task.   
 

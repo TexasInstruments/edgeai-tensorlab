@@ -1,6 +1,6 @@
 # Pre-Complied Model Artifacts
 
-Models and pre-compied model artifacts are provided in another repository called **[edgeai-modelzoo](https://github.com/TexasInstruments/edgeai-modelzoo)**.
+Models and pre-compied model artifacts are provided in another repository called **[edgeai-modelzoo](https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-modelzoo)**.
 
 Please clone that repository. After cloning, edgeai-benchmark and edgeai-modelzoo must be inside the same parent folder for the default settings to work.
 

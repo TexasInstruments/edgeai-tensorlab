@@ -19,12 +19,17 @@ Getting the correct functionality and accuracy with DNN Models is not easy. Seve
 
 <hr>
 
+## Release Notes
+
+
+<hr>
+
 ## Important features:
 - Runs on both PC Simulation (model compilation and inference) and on EVM (model inference only).
 - This package can be used for accuracy and performance (inferene time) estimates.
-- Most of the models in TI ModelZoo [edgeai-modelzoo](https://github.com/TexasInstruments/edgeai-modelzoo) is supported off-the-shelf in this package. Custom model benchmark can also be easily done (please refer to the documentation and example).
+- Most of the models in TI ModelZoo [edgeai-modelzoo](https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-modelzoo) is supported off-the-shelf in this package. Custom model benchmark can also be easily done (please refer to the documentation and example).
 - Uses [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) for model compilation and inference. edgeai-tidl-tools can take a float model and compile it using PTQ (with an iterative calibration procedure) to an INT model for use on target. It can also accept a pre-quantized model to avoid the iterative calibration, so that the compilation is instantaneous. 
-- Read more about quantization in general and specifically about pre-quantized models at [edgeai-modeloptimization/torchmodelopt](https://github.com/TexasInstruments/edgeai-modeloptimization/torchmodelopt)
+- Read more about quantization in general and specifically about pre-quantized models at [edgeai-modeloptimization/torchmodelopt](https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-modeloptimization/torchmodelopt)
 
 <hr>
 

@@ -69,7 +69,7 @@ Please go through the script to understand more details and version_tag to be us
 
 
 ## Additional Requirement: ModelZoo
-DNN Models and pre-compied model artifacts are provided in another repository called **[EdgeAI-ModelZoo](https://github.com/TexasInstruments/edgeai-modelzoo)**. 
+DNN Models and pre-compied model artifacts are provided in another repository called **[EdgeAI-ModelZoo](https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-modelzoo)**. 
 
 DNN models are in the folder edgeai-modelzoo/models and pre-compiled artifacts are in the folder edgeai-modelzoo/modelartifacts/8bits. 
 
