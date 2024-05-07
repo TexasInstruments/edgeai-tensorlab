@@ -10,7 +10,7 @@ Our documentation landing pages are the following:
 <hr>
 
 ## Release Notes
-Please see the [release notes](edgeai-modelzoo/docs/release_notes.md)
+Please see the [release notes](docs/release_notes.md)
 
 <hr>
 
