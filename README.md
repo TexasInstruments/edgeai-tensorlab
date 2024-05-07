@@ -14,9 +14,9 @@ If you have not visited the following landing pages, please do so before attempt
 
 <hr>
 
-## Release Notes
-
-Please see [release notes](./docs/release_notes.md) file.
+## Components
+- [Pretrained Models](models)
+- [Compiled Model Artifacts](modelartifacts) - The pre-compiled model artifacts that we provide with this repository. See additional notes [for precompiled model artifacts](./docs/precompiled_modelartifacts.md) 
 
 <hr>
 
@@ -47,26 +47,26 @@ Please see [release notes](./docs/release_notes.md) file.
 <hr>
 
 ## Supported SoCs
-List of supported SoCs are in [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) 
+List of supported SoCs are in [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-benchmark) 
 
 <hr>
 
 ## Compiling models
 [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) provide information on compiling models for our SoCs. That is a good starting point to get familiarized with import/calibration and inference of models.
 
-[edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) provides higher level scripts for model compilation, inference and accuracy benchmarking. You can find the compilation settings for these models there. The pre-compiled model artifacts here are compiled using that repository. The compiled artifacts from edgeai-benchmark can be used in EdgeAI SDKs of supported SOCs
+[edgeai-benchmark](https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-benchmark) provides higher level scripts for model compilation, inference and accuracy benchmarking. You can find the compilation settings for these models there. The pre-compiled model artifacts here are compiled using that repository. The compiled artifacts from edgeai-benchmark can be used in EdgeAI SDKs of supported SOCs
 
 This repository contains .link files which have the URLs of actual DNN models. These models are arranged according to task that they are used for and then according to the training repositories that were used to train them. If you are using edgeai-benchmark to run model compilation of run benchmark, you have to *git clone* this repository as well.
 
 <hr>
 
 ## Pre-complied model artifacts 
-See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md) that we provide with this repository.
+
 
 <hr>
 
 ## Model inference
-[edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) - as mentioned earlier edgeai-benchmark has been used to compile the models in the repository and compiled model artifacts are provided. edgeai-benchmark can also be used for inference & accuracy/performance benchmark of these models on PC or on EVM.
+[edgeai-benchmark](https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-benchmark) - as mentioned earlier edgeai-benchmark has been used to compile the models in the repository and compiled model artifacts are provided. edgeai-benchmark can also be used for inference & accuracy/performance benchmark of these models on PC or on EVM.
 
 <hr>
 
