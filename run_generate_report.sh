@@ -64,8 +64,8 @@ Options:
 -h, --help      Display this help message and exit.
 
 TARGET_SOC:
-Specify the target device. Use one of: TDA4VM, AM62A, AM68A, AM69A. Defaults to TDA4VM.
-Note: Until r8.5, only TDA4VM was supported.
+Specify the target device (optional). Use one of: TDA4VM, AM62A, AM68A, AM69A, AM67A.
+Default behaviour is to report all results present in modelartifacts_path
 
 Debug Mode:
 If debug mode is enabled, the script will wait for a debugpy to attach at ${HOSTNAME}:${PORT}.
@@ -91,6 +91,9 @@ SETTINGS=settings_import_on_pc.yaml
 ##################################################################
 
 PYARGS="./scripts/generate_report.py ${SETTINGS} --target_device ${TARGET_SOC}"
+# add the following to report perfsim results as well.
+#--report_perfsim True
+
 PYDEBUG="python3 -m debugpy --listen ${HOSTNAME}:${PORT} --wait-for-client"
 echo "==================================================================="
 

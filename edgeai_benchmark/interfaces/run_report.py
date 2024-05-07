@@ -144,7 +144,7 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
     results_table = dict()
     metric_title = [m+'_metric' for m in results_collection.keys()]
     performance_title = [m+'_'+p for m in results_collection.keys() for p in performance_keys]
-    title_line = ['serial_num', 'model_id', 'runtime_name', 'task_type', 'run_dir', 'input_resolution', 'metric_name'] + \
+    title_line = ['serial_num', 'model_id', 'runtime_name', 'task_type', 'dataset_name', 'run_dir', 'input_resolution', 'metric_name'] + \
         metric_title + performance_title + ['metric_reference'] + ['model_shortlist', 'model_path', 'artifact_name']
 
     run_dirs = get_run_dirs(work_dir_results_max_path)
@@ -176,6 +176,7 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
             results_line_dict['task_type'] = pipeline_params_anchor['task_type'] \
                 if 'task_type' in pipeline_params_anchor else None
             results_line_dict['model_shortlist'] = pipeline_params_anchor['model_info'].get('model_shortlist', None)
+            results_line_dict['dataset_name'] = pipeline_params_anchor.get('dataset_category', None)
         #
         metric_name, _, metric_reference = get_metric(pipeline_params_anchor, metric_keys, compilation_done)
         results_line_dict['metric_name'] = metric_name
