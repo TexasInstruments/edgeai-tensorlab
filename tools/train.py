@@ -8,6 +8,7 @@ from mmengine.config import Config, DictAction
 from mmengine.registry import RUNNERS
 from mmengine.runner import Runner
 from mmengine.model import is_model_wrapper
+from mmengine.logging import print_log
 
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 import mmdet.hooks
@@ -110,30 +111,6 @@ def main():
         cfg.load_from = args.resume
 
     cfg.quantization = args.quantization
-    if args.quantization:
-        if 'custom_hooks' in cfg:
-            hooks_to_remove = ['EMAHook']
-            for hook_type in hooks_to_remove:
-                if any([hook_cfg.type == hook_type for hook_cfg in cfg.custom_hooks]):
-                    warnings.warn(f'{hook_type} is currently not supported in quantization - removing it')
-                #
-                cfg.custom_hooks = [hook_cfg for hook_cfg in cfg.custom_hooks if hook_cfg.type != hook_type]
-            #
-        else:
-            cfg.custom_hooks = []
-        #
-        quant_hook_exists = False
-        for hook_cfg in cfg.custom_hooks:
-            if hook_cfg.type in mmdet.hooks.quant_hook.all:
-                quant_hook_exists = True
-            #
-        #
-        if not quant_hook_exists:
-            cfg.custom_hooks += [dict(
-                type='QATFxHook'
-            )]
-        #
-    #
 
     # build the runner from config
     if 'runner_type' not in cfg:
@@ -157,11 +134,42 @@ def main():
             is_wrapped = True
         #
         if hasattr(runner.model, 'surgery_init'):
-            print('wrapping the model to prepare for surgery')
+            print_log('wrapping the model to prepare for surgery')
             runner.model = runner.model.surgery_init(surgery_wrapper, total_epochs=runner.max_epochs)
         else:
             raise RuntimeError(f'surgery_init method is not supported for {type(runner.model)}')
         #
+        if is_wrapped:
+            runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
+        #
+
+    if args.quantization:
+        # load the checkpoint before quantization wrapper
+        runner.load_or_resume()
+
+        is_wrapped = False
+        if is_model_wrapper(runner.model):
+            runner.model = runner.model.module
+            is_wrapped = True
+        #
+
+        if args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V1:
+            test_loader = runner.build_dataloader(runner._test_dataloader)
+            example_input = next(iter(test_loader))
+            runner.model = xmodelopt.quantization.v1.QuantTrainModule(
+                runner.model, dummy_input=example_input, total_epochs=runner.max_epochs)
+        elif args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V2:
+            if hasattr(runner.model, 'quant_init'):
+                print_log('wrapping the model to prepare for quantization')
+                runner.model = runner.model.quant_init(
+                    xmodelopt.quantization.v2.QATFxModule, total_epochs=runner.max_epochs)
+            else:
+                print_log(
+                    f'quant_init method is not supported for {type(runner.model)}. attempting to use the generic wrapper')
+                runner.model = xmodelopt.quantization.v2.QATFxModule(runner.model, total_epochs=runner.max_epochs)
+            #
+        #
+
         if is_wrapped:
             runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
         #
