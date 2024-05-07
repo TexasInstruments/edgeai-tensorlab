@@ -1,0 +1,42 @@
+loading annotations into memory...loading annotations into memory...
+
+loading annotations into memory...
+loading annotations into memory...
+Done (t=0.54s)
+creating index...
+Done (t=0.54s)
+creating index...
+Done (t=0.53s)
+creating index...
+Done (t=0.55s)
+creating index...
+index created!
+index created!
+index created!
+index created!
+
+writing results to ./work_dirs/yolov3_d53_relu/result.pkl
+
+Evaluating bbox...
+Loading and preparing results...
+DONE (t=0.57s)
+creating index...
+index created!
+Running per image evaluation...
+Evaluate annotation type *bbox*
+DONE (t=16.30s).
+Accumulating evaluation results...
+DONE (t=2.42s).
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.307
+Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.512
+Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.320
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.147
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.330
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = 0.443
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.398
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.398
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.398
+Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.208
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.415
+Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = 0.560
+OrderedDict([('bbox_mAP', 0.307), ('bbox_mAP_50', 0.512), ('bbox_mAP_75', 0.32), ('bbox_mAP_s', 0.147), ('bbox_mAP_m', 0.33), ('bbox_mAP_l', 0.443), ('bbox_mAP_copypaste', '0.307 0.512 0.320 0.147 0.330 0.443')])

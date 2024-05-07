@@ -1,0 +1,634 @@
+| distributed init (rank 1): env://
+Namespace(data_path='./data/datasets/imagenet', model='mobilenet_v2', device='cuda', batch_size=128, epochs=60, workers=16, opt='sgd', lr=0.0001, momentum=0.9, weight_decay=4e-05, norm_weight_decay=None, bias_weight_decay=None, transformer_embedding_decay=None, label_smoothing=0.0, mixup_alpha=0.0, cutmix_alpha=0.0, lr_scheduler='cosineannealinglr', lr_warmup_epochs=0, lr_warmup_method='constant', lr_warmup_decay=0.01, lr_step_size=30, lr_gamma=0.1, lr_min=0.0, print_freq=100, output_dir='./data/checkpoints/20230711_074221_imagenet_classification_mobilenet_v2', resume='', start_epoch=0, cache_dataset=False, sync_bn=False, test_only=False, auto_augment=None, ra_magnitude=9, augmix_severity=3, random_erase=0.0, amp=False, world_size=4, dist_url='env://', model_ema=False, model_ema_steps=32, model_ema_decay=0.99998, use_deterministic_algorithms=False, interpolation='bilinear', val_resize_size=256, val_crop_size=224, train_crop_size=224, clip_grad_norm=None, ra_sampler=False, ra_reps=3, weights='MobileNet_V2_Weights.IMAGENET1K_V1', lite_model=0, quantization=1, quantization_type='W8T_A8T_P2', pruning=0, pruning_ratio=0.5, pruning_type=1, compile_model=0, opset_version=None, train_epoch_size_factor=0.1, val_epoch_size_factor=0.0, rank=0, gpu=0, distributed=True, dist_backend='nccl')
+Loading data
+Loading training data
+Took 2.663574457168579
+Loading validation data
+Creating data loaders
+Creating model
+Start training
+Epoch: [0]  [   0/2503]  eta: 13:00:19  lr: 0.0001  img/s: 13.835725247244843  loss: 1.5450 (1.5450)  acc1: 65.6250 (65.6250)  acc5: 81.2500 (81.2500)  time: 18.7053  data: 9.4538  max mem: 15028
+Epoch: [0]  [ 100/2503]  eta: 1:19:23  lr: 0.0001  img/s: 73.89814524738568  loss: 1.3101 (1.4017)  acc1: 68.7500 (66.9632)  acc5: 87.5000 (86.2005)  time: 1.8246  data: 0.0002  max mem: 15028
+Epoch: [0]  [ 200/2503]  eta: 1:13:18  lr: 0.0001  img/s: 72.15106932898692  loss: 1.3028 (1.3662)  acc1: 68.7500 (68.0426)  acc5: 86.7188 (86.5905)  time: 1.8446  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:08  loss: 0.6256 (0.6256)  acc1: 84.3750 (84.3750)  acc5: 93.7500 (93.7500)  time: 8.0505  data: 7.5666  max mem: 15028
+Test:  Total time: 0:00:32
+Test:  Acc@1 70.436 Acc@5 89.442
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [1]  [   0/2503]  eta: 5:59:02  lr: 9.99314767377287e-05  img/s: 93.49662756511421  loss: 1.0282 (1.0282)  acc1: 77.3438 (77.3438)  acc5: 89.0625 (89.0625)  time: 8.6068  data: 7.2378  max mem: 15028
+Epoch: [1]  [ 100/2503]  eta: 1:16:14  lr: 9.99314767377287e-05  img/s: 73.14371413631653  loss: 1.2525 (1.2983)  acc1: 69.5312 (69.1136)  acc5: 87.5000 (87.4304)  time: 1.8329  data: 0.0002  max mem: 15028
+Epoch: [1]  [ 200/2503]  eta: 1:12:04  lr: 9.99314767377287e-05  img/s: 73.97069036759596  loss: 1.2518 (1.2856)  acc1: 69.5312 (69.2942)  acc5: 87.5000 (87.6205)  time: 1.8740  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:09:19  loss: 0.6291 (0.6291)  acc1: 84.3750 (84.3750)  acc5: 95.3125 (95.3125)  time: 5.7052  data: 5.2110  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.770 Acc@5 89.882
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [2]  [   0/2503]  eta: 2:27:40  lr: 9.972609476841367e-05  img/s: 137.8575817304285  loss: 1.0351 (1.0351)  acc1: 72.6562 (72.6562)  acc5: 89.8438 (89.8438)  time: 3.5401  data: 2.6115  max mem: 15028
+Epoch: [2]  [ 100/2503]  eta: 1:13:31  lr: 9.972609476841367e-05  img/s: 62.11150434717318  loss: 1.2302 (1.2603)  acc1: 68.7500 (70.0340)  acc5: 87.5000 (87.7088)  time: 1.8484  data: 0.0002  max mem: 15028
+Epoch: [2]  [ 200/2503]  eta: 1:10:19  lr: 9.972609476841367e-05  img/s: 62.43032019686676  loss: 1.2381 (1.2474)  acc1: 71.8750 (70.0443)  acc5: 88.2812 (88.0830)  time: 1.8364  data: 0.0003  max mem: 15028
+Test:   [ 0/98]  eta: 0:12:11  loss: 0.6756 (0.6756)  acc1: 80.4688 (80.4688)  acc5: 93.7500 (93.7500)  time: 7.4640  data: 7.0176  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.358 Acc@5 89.506
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [3]  [   0/2503]  eta: 2:32:28  lr: 9.93844170297569e-05  img/s: 94.57918824497918  loss: 1.0050 (1.0050)  acc1: 72.6562 (72.6562)  acc5: 92.9688 (92.9688)  time: 3.6551  data: 2.3017  max mem: 15028
+Epoch: [3]  [ 100/2503]  eta: 1:13:42  lr: 9.93844170297569e-05  img/s: 73.26856108935195  loss: 1.1800 (1.2826)  acc1: 71.8750 (69.4462)  acc5: 89.0625 (87.6547)  time: 1.8514  data: 0.0003  max mem: 15028
+Epoch: [3]  [ 200/2503]  eta: 1:10:21  lr: 9.93844170297569e-05  img/s: 72.56916774645454  loss: 1.2715 (1.2720)  acc1: 70.3125 (69.7256)  acc5: 87.5000 (87.8498)  time: 1.8211  data: 0.0003  max mem: 15028
+Test:   [ 0/98]  eta: 0:11:28  loss: 0.6082 (0.6082)  acc1: 83.5938 (83.5938)  acc5: 96.0938 (96.0938)  time: 7.0221  data: 6.3829  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.382 Acc@5 89.694
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [4]  [   0/2503]  eta: 2:36:17  lr: 9.89073800366903e-05  img/s: 107.7059598386871  loss: 1.3442 (1.3442)  acc1: 67.9688 (67.9688)  acc5: 87.5000 (87.5000)  time: 3.7463  data: 2.5578  max mem: 15028
+Epoch: [4]  [ 100/2503]  eta: 1:12:52  lr: 9.89073800366903e-05  img/s: 62.46540446126516  loss: 1.2716 (1.2429)  acc1: 67.9688 (70.1037)  acc5: 86.7188 (87.9796)  time: 1.8161  data: 0.0003  max mem: 15028
+Epoch: [4]  [ 200/2503]  eta: 1:09:48  lr: 9.89073800366903e-05  img/s: 72.07575761847399  loss: 1.2282 (1.2501)  acc1: 68.7500 (69.9394)  acc5: 88.2812 (88.1413)  time: 1.8330  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:24  loss: 0.7338 (0.7338)  acc1: 81.2500 (81.2500)  acc5: 92.1875 (92.1875)  time: 8.2042  data: 7.7542  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.490 Acc@5 89.674
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [5]  [   0/2503]  eta: 2:22:17  lr: 9.829629131445343e-05  img/s: 130.08470914230787  loss: 1.6808 (1.6808)  acc1: 62.5000 (62.5000)  acc5: 80.4688 (80.4688)  time: 3.4110  data: 2.4270  max mem: 15028
+Epoch: [5]  [ 100/2503]  eta: 1:12:48  lr: 9.829629131445343e-05  img/s: 73.97163821403583  loss: 1.2581 (1.2851)  acc1: 71.0938 (69.4075)  acc5: 87.5000 (87.6238)  time: 1.7916  data: 0.0002  max mem: 15028
+Epoch: [5]  [ 200/2503]  eta: 1:10:02  lr: 9.829629131445343e-05  img/s: 73.5173533085697  loss: 1.2955 (1.2727)  acc1: 70.3125 (69.5934)  acc5: 87.5000 (87.8692)  time: 1.8194  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:12:16  loss: 0.8114 (0.8114)  acc1: 79.6875 (79.6875)  acc5: 92.1875 (92.1875)  time: 7.5144  data: 7.1030  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 69.092 Acc@5 88.822
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [6]  [   0/2503]  eta: 2:28:52  lr: 9.75528258147577e-05  img/s: 145.32211801206762  loss: 1.6406 (1.6406)  acc1: 65.6250 (65.6250)  acc5: 82.0312 (82.0312)  time: 3.5685  data: 2.6877  max mem: 15028
+Epoch: [6]  [ 100/2503]  eta: 1:13:37  lr: 9.75528258147577e-05  img/s: 62.81351121748166  loss: 1.2508 (1.2867)  acc1: 69.5312 (69.3456)  acc5: 87.5000 (87.4768)  time: 1.8283  data: 0.0002  max mem: 15028
+Epoch: [6]  [ 200/2503]  eta: 1:10:30  lr: 9.75528258147577e-05  img/s: 71.97016045831751  loss: 1.1675 (1.2729)  acc1: 70.3125 (69.6984)  acc5: 88.2812 (87.6322)  time: 1.8350  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:12:53  loss: 0.6127 (0.6127)  acc1: 82.8125 (82.8125)  acc5: 93.7500 (93.7500)  time: 7.8926  data: 7.4538  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.420 Acc@5 89.492
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [7]  [   0/2503]  eta: 2:23:03  lr: 9.66790213248601e-05  img/s: 102.4632812699799  loss: 1.4083 (1.4083)  acc1: 62.5000 (62.5000)  acc5: 87.5000 (87.5000)  time: 3.4294  data: 2.1802  max mem: 15028
+Epoch: [7]  [ 100/2503]  eta: 1:13:43  lr: 9.66790213248601e-05  img/s: 67.53176479408174  loss: 1.2504 (1.2813)  acc1: 68.7500 (69.5622)  acc5: 87.5000 (87.5696)  time: 1.8659  data: 0.0002  max mem: 15028
+Epoch: [7]  [ 200/2503]  eta: 1:10:23  lr: 9.66790213248601e-05  img/s: 67.34337045175563  loss: 1.2868 (1.2507)  acc1: 70.3125 (69.9899)  acc5: 87.5000 (88.0131)  time: 1.8445  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:14:07  loss: 0.6422 (0.6422)  acc1: 82.8125 (82.8125)  acc5: 93.7500 (93.7500)  time: 8.6523  data: 8.3324  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.058 Acc@5 89.470
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [8]  [   0/2503]  eta: 2:33:32  lr: 9.567727288213006e-05  img/s: 101.8955442909971  loss: 1.6354 (1.6354)  acc1: 60.1562 (60.1562)  acc5: 85.9375 (85.9375)  time: 3.6805  data: 2.4242  max mem: 15028
+Epoch: [8]  [ 100/2503]  eta: 1:13:30  lr: 9.567727288213006e-05  img/s: 72.00940076053236  loss: 1.1530 (1.2831)  acc1: 71.0938 (69.7014)  acc5: 89.0625 (87.5464)  time: 1.8199  data: 0.0002  max mem: 15028
+Epoch: [8]  [ 200/2503]  eta: 1:10:03  lr: 9.567727288213006e-05  img/s: 71.980765118288  loss: 1.2308 (1.2713)  acc1: 69.5312 (69.6556)  acc5: 88.2812 (87.8809)  time: 1.7975  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:11:33  loss: 0.7598 (0.7598)  acc1: 80.4688 (80.4688)  acc5: 92.9688 (92.9688)  time: 7.0751  data: 6.6092  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 69.972 Acc@5 89.182
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [9]  [   0/2503]  eta: 2:31:22  lr: 9.455032620941841e-05  img/s: 123.8083548531861  loss: 1.2932 (1.2932)  acc1: 71.0938 (71.0938)  acc5: 88.2812 (88.2812)  time: 3.6287  data: 2.5948  max mem: 15028
+Epoch: [9]  [ 100/2503]  eta: 1:12:54  lr: 9.455032620941841e-05  img/s: 66.44122108477698  loss: 1.2685 (1.2336)  acc1: 68.7500 (69.9489)  acc5: 88.2812 (88.5752)  time: 1.8353  data: 0.0002  max mem: 15028
+Epoch: [9]  [ 200/2503]  eta: 1:09:45  lr: 9.455032620941841e-05  img/s: 73.9419913000172  loss: 1.2011 (1.2377)  acc1: 71.0938 (69.9782)  acc5: 87.5000 (88.2774)  time: 1.8121  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:11:57  loss: 0.8144 (0.8144)  acc1: 79.6875 (79.6875)  acc5: 92.9688 (92.9688)  time: 7.3242  data: 5.5751  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 69.150 Acc@5 88.638
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [10]  [   0/2503]  eta: 2:33:02  lr: 9.330127018922197e-05  img/s: 139.03429301284396  loss: 1.2609 (1.2609)  acc1: 75.0000 (75.0000)  acc5: 85.1562 (85.1562)  time: 3.6685  data: 2.7478  max mem: 15028
+Epoch: [10]  [ 100/2503]  eta: 1:13:30  lr: 9.330127018922197e-05  img/s: 62.79288162192894  loss: 1.2708 (1.2554)  acc1: 67.9688 (69.8175)  acc5: 88.2812 (88.1420)  time: 1.8406  data: 0.0002  max mem: 15028
+Epoch: [10]  [ 200/2503]  eta: 1:10:12  lr: 9.330127018922197e-05  img/s: 73.6436417567395  loss: 1.3083 (1.2587)  acc1: 69.5312 (69.7606)  acc5: 86.7188 (88.0364)  time: 1.8294  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:14:30  loss: 0.6639 (0.6639)  acc1: 83.5938 (83.5938)  acc5: 92.9688 (92.9688)  time: 8.8837  data: 8.5297  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.580 Acc@5 89.692
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [11]  [   0/2503]  eta: 2:29:07  lr: 9.193352839727123e-05  img/s: 138.13819353620258  loss: 1.3542 (1.3542)  acc1: 65.6250 (65.6250)  acc5: 85.9375 (85.9375)  time: 3.5746  data: 2.6479  max mem: 15028
+Epoch: [11]  [ 100/2503]  eta: 1:13:44  lr: 9.193352839727123e-05  img/s: 62.1118492667709  loss: 1.1076 (1.2340)  acc1: 69.5312 (70.1114)  acc5: 89.0625 (88.7222)  time: 1.8231  data: 0.0002  max mem: 15028
+Epoch: [11]  [ 200/2503]  eta: 1:10:33  lr: 9.193352839727123e-05  img/s: 75.81664229453445  loss: 1.2465 (1.2484)  acc1: 71.0938 (70.0443)  acc5: 87.5000 (88.2968)  time: 1.8296  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:52  loss: 0.6398 (0.6398)  acc1: 81.2500 (81.2500)  acc5: 93.7500 (93.7500)  time: 8.4978  data: 8.0042  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.674 Acc@5 89.674
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [12]  [   0/2503]  eta: 2:24:38  lr: 9.04508497187474e-05  img/s: 134.42164563643047  loss: 1.5483 (1.5483)  acc1: 66.4062 (66.4062)  acc5: 85.9375 (85.9375)  time: 3.4673  data: 2.5150  max mem: 15028
+Epoch: [12]  [ 100/2503]  eta: 1:13:12  lr: 9.04508497187474e-05  img/s: 62.008709640757345  loss: 1.2648 (1.2487)  acc1: 69.5312 (70.2197)  acc5: 87.5000 (88.0183)  time: 1.8279  data: 0.0002  max mem: 15028
+Epoch: [12]  [ 200/2503]  eta: 1:10:02  lr: 9.04508497187474e-05  img/s: 72.4465247129038  loss: 1.2599 (1.2460)  acc1: 71.0938 (70.0443)  acc5: 88.2812 (88.0791)  time: 1.8204  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:14:00  loss: 0.5678 (0.5678)  acc1: 84.3750 (84.3750)  acc5: 93.7500 (93.7500)  time: 8.5722  data: 8.0852  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.860 Acc@5 89.842
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [13]  [   0/2503]  eta: 2:26:23  lr: 8.885729807284857e-05  img/s: 123.80749831193893  loss: 1.3687 (1.3687)  acc1: 73.4375 (73.4375)  acc5: 82.0312 (82.0312)  time: 3.5092  data: 2.4753  max mem: 15028
+Epoch: [13]  [ 100/2503]  eta: 1:12:34  lr: 8.885729807284857e-05  img/s: 62.37366580333304  loss: 1.2196 (1.2721)  acc1: 69.5312 (69.6860)  acc5: 88.2812 (87.8017)  time: 1.8136  data: 0.0003  max mem: 15028
+Epoch: [13]  [ 200/2503]  eta: 1:10:00  lr: 8.885729807284857e-05  img/s: 75.85509916164906  loss: 1.3394 (1.2674)  acc1: 67.1875 (69.6012)  acc5: 87.5000 (87.9120)  time: 1.8575  data: 0.0004  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:37  loss: 0.6241 (0.6241)  acc1: 82.8125 (82.8125)  acc5: 92.9688 (92.9688)  time: 8.3423  data: 7.8197  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.076 Acc@5 89.980
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [14]  [   0/2503]  eta: 2:42:54  lr: 8.715724127386973e-05  img/s: 95.6679463474925  loss: 1.4558 (1.4558)  acc1: 66.4062 (66.4062)  acc5: 85.9375 (85.9375)  time: 3.9053  data: 2.5672  max mem: 15028
+Epoch: [14]  [ 100/2503]  eta: 1:12:44  lr: 8.715724127386973e-05  img/s: 76.40866805032343  loss: 1.2527 (1.2670)  acc1: 69.5312 (69.5235)  acc5: 87.5000 (87.7939)  time: 1.7887  data: 0.0002  max mem: 15028
+Epoch: [14]  [ 200/2503]  eta: 1:09:36  lr: 8.715724127386973e-05  img/s: 66.51546292636814  loss: 1.1878 (1.2438)  acc1: 68.7500 (70.1493)  acc5: 89.8438 (88.0169)  time: 1.8111  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:16:18  loss: 0.6509 (0.6509)  acc1: 82.0312 (82.0312)  acc5: 94.5312 (94.5312)  time: 9.9839  data: 9.6194  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.746 Acc@5 89.682
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [15]  [   0/2503]  eta: 2:30:46  lr: 8.535533905932739e-05  img/s: 139.56255517555834  loss: 1.4255 (1.4255)  acc1: 71.8750 (71.8750)  acc5: 83.5938 (83.5938)  time: 3.6143  data: 2.6971  max mem: 15028
+Epoch: [15]  [ 100/2503]  eta: 1:13:26  lr: 8.535533905932739e-05  img/s: 71.83090177886443  loss: 1.1625 (1.2475)  acc1: 71.0938 (70.1733)  acc5: 89.0625 (87.8171)  time: 1.8322  data: 0.0002  max mem: 15028
+Epoch: [15]  [ 200/2503]  eta: 1:10:37  lr: 8.535533905932739e-05  img/s: 62.71218337479913  loss: 1.2411 (1.2506)  acc1: 69.5312 (70.2775)  acc5: 89.0625 (87.8770)  time: 1.8549  data: 0.0003  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:30  loss: 0.6238 (0.6238)  acc1: 83.5938 (83.5938)  acc5: 93.7500 (93.7500)  time: 8.2694  data: 7.8003  max mem: 15028
+Test:  Total time: 0:00:32
+Test:  Acc@1 70.832 Acc@5 89.904
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [16]  [   0/2503]  eta: 2:25:28  lr: 8.345653031794293e-05  img/s: 123.06804043929121  loss: 0.9791 (0.9791)  acc1: 72.6562 (72.6562)  acc5: 92.9688 (92.9688)  time: 3.4871  data: 2.4470  max mem: 15028
+Epoch: [16]  [ 100/2503]  eta: 1:12:24  lr: 8.345653031794293e-05  img/s: 66.92470394591682  loss: 1.1733 (1.2539)  acc1: 69.5312 (69.8020)  acc5: 88.2812 (87.8558)  time: 1.8143  data: 0.0002  max mem: 15028
+Epoch: [16]  [ 200/2503]  eta: 1:09:07  lr: 8.345653031794293e-05  img/s: 75.28667167202681  loss: 1.1712 (1.2543)  acc1: 71.8750 (69.6595)  acc5: 88.2812 (87.9625)  time: 1.7918  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:43  loss: 0.5886 (0.5886)  acc1: 83.5938 (83.5938)  acc5: 94.5312 (94.5312)  time: 8.4072  data: 7.9320  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.072 Acc@5 89.366
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [17]  [   0/2503]  eta: 2:33:24  lr: 8.146601955249189e-05  img/s: 142.19798560038268  loss: 1.4778 (1.4778)  acc1: 65.6250 (65.6250)  acc5: 83.5938 (83.5938)  time: 3.6775  data: 2.7773  max mem: 15028
+Epoch: [17]  [ 100/2503]  eta: 1:14:00  lr: 8.146601955249189e-05  img/s: 73.07498929132748  loss: 1.1879 (1.2595)  acc1: 68.7500 (69.4539)  acc5: 89.0625 (87.8249)  time: 1.8202  data: 0.0003  max mem: 15028
+Epoch: [17]  [ 200/2503]  eta: 1:10:34  lr: 8.146601955249189e-05  img/s: 76.6797089698125  loss: 1.2312 (1.2633)  acc1: 71.0938 (69.4768)  acc5: 87.5000 (87.7177)  time: 1.8159  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:21  loss: 0.6324 (0.6324)  acc1: 82.0312 (82.0312)  acc5: 96.0938 (96.0938)  time: 8.1836  data: 7.9065  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.930 Acc@5 89.900
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [18]  [   0/2503]  eta: 2:37:17  lr: 7.938926261462367e-05  img/s: 104.22694555210853  loss: 1.4089 (1.4089)  acc1: 68.7500 (68.7500)  acc5: 85.9375 (85.9375)  time: 3.7704  data: 2.5423  max mem: 15028
+Epoch: [18]  [ 100/2503]  eta: 1:14:13  lr: 7.938926261462367e-05  img/s: 72.52462201804177  loss: 1.2332 (1.2452)  acc1: 68.7500 (69.9335)  acc5: 88.2812 (88.1420)  time: 1.8414  data: 0.0002  max mem: 15028
+Epoch: [18]  [ 200/2503]  eta: 1:10:34  lr: 7.938926261462367e-05  img/s: 72.7746033914884  loss: 1.1885 (1.2383)  acc1: 69.5312 (70.3047)  acc5: 89.0625 (88.2463)  time: 1.8227  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:14:25  loss: 0.7001 (0.7001)  acc1: 79.6875 (79.6875)  acc5: 94.5312 (94.5312)  time: 8.8336  data: 8.3181  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 69.844 Acc@5 89.092
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [19]  [   0/2503]  eta: 2:31:10  lr: 7.723195175075138e-05  img/s: 133.01078810870163  loss: 1.2008 (1.2008)  acc1: 71.8750 (71.8750)  acc5: 89.0625 (89.0625)  time: 3.6237  data: 2.6613  max mem: 15028
+Epoch: [19]  [ 100/2503]  eta: 1:13:17  lr: 7.723195175075138e-05  img/s: 72.0995400904026  loss: 1.2364 (1.2363)  acc1: 70.3125 (70.0340)  acc5: 88.2812 (88.3586)  time: 1.8278  data: 0.0002  max mem: 15028
+Epoch: [19]  [ 200/2503]  eta: 1:10:05  lr: 7.723195175075138e-05  img/s: 72.96530569281178  loss: 1.2406 (1.2463)  acc1: 69.5312 (70.1026)  acc5: 86.7188 (88.0830)  time: 1.8051  data: 0.0003  max mem: 15028
+Test:   [ 0/98]  eta: 0:10:55  loss: 0.5909 (0.5909)  acc1: 85.1562 (85.1562)  acc5: 94.5312 (94.5312)  time: 6.6858  data: 6.1762  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.906 Acc@5 89.704
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [20]  [   0/2503]  eta: 2:29:28  lr: 7.500000000000002e-05  img/s: 129.42758087492385  loss: 1.1718 (1.1718)  acc1: 67.9688 (67.9688)  acc5: 89.8438 (89.8438)  time: 3.5831  data: 2.5941  max mem: 15028
+Epoch: [20]  [ 100/2503]  eta: 1:13:21  lr: 7.500000000000002e-05  img/s: 74.98067240176287  loss: 1.1458 (1.2534)  acc1: 71.0938 (69.6395)  acc5: 89.0625 (88.0879)  time: 1.8317  data: 0.0002  max mem: 15028
+Epoch: [20]  [ 200/2503]  eta: 1:10:22  lr: 7.500000000000002e-05  img/s: 68.30744622039856  loss: 1.2935 (1.2649)  acc1: 70.3125 (69.6517)  acc5: 87.5000 (87.7604)  time: 1.8378  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:10:49  loss: 0.7441 (0.7441)  acc1: 82.8125 (82.8125)  acc5: 94.5312 (94.5312)  time: 6.6240  data: 6.0096  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 69.974 Acc@5 89.282
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [21]  [   0/2503]  eta: 2:30:53  lr: 7.269952498697736e-05  img/s: 145.14335798660196  loss: 1.1779 (1.1779)  acc1: 67.9688 (67.9688)  acc5: 88.2812 (88.2812)  time: 3.6171  data: 2.7351  max mem: 15028
+Epoch: [21]  [ 100/2503]  eta: 1:13:14  lr: 7.269952498697736e-05  img/s: 72.19620573523629  loss: 1.2186 (1.2358)  acc1: 68.7500 (69.9644)  acc5: 88.2812 (88.1265)  time: 1.8424  data: 0.0002  max mem: 15028
+Epoch: [21]  [ 200/2503]  eta: 1:10:17  lr: 7.269952498697736e-05  img/s: 62.15990956047819  loss: 1.2349 (1.2443)  acc1: 69.5312 (69.9977)  acc5: 88.2812 (88.0403)  time: 1.8173  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:15:24  loss: 0.5793 (0.5793)  acc1: 85.1562 (85.1562)  acc5: 96.0938 (96.0938)  time: 9.4375  data: 9.2048  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.736 Acc@5 89.762
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [22]  [   0/2503]  eta: 2:25:10  lr: 7.033683215379003e-05  img/s: 134.16144727286903  loss: 1.1097 (1.1097)  acc1: 71.0938 (71.0938)  acc5: 88.2812 (88.2812)  time: 3.4798  data: 2.5257  max mem: 15028
+Epoch: [22]  [ 100/2503]  eta: 1:13:14  lr: 7.033683215379003e-05  img/s: 73.94947719473733  loss: 1.2057 (1.2329)  acc1: 70.3125 (70.3280)  acc5: 88.2812 (88.0337)  time: 1.8093  data: 0.0002  max mem: 15028
+Epoch: [22]  [ 200/2503]  eta: 1:10:14  lr: 7.033683215379003e-05  img/s: 61.521891818737906  loss: 1.2719 (1.2410)  acc1: 67.1875 (70.0676)  acc5: 88.2812 (87.9975)  time: 1.8571  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:32  loss: 0.5781 (0.5781)  acc1: 83.5938 (83.5938)  acc5: 94.5312 (94.5312)  time: 8.2877  data: 8.0956  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.686 Acc@5 89.682
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [23]  [   0/2503]  eta: 2:27:24  lr: 6.791839747726505e-05  img/s: 127.21031594366427  loss: 1.1119 (1.1119)  acc1: 73.4375 (73.4375)  acc5: 90.6250 (90.6250)  time: 3.5337  data: 2.5275  max mem: 15028
+Epoch: [23]  [ 100/2503]  eta: 1:13:47  lr: 6.791839747726505e-05  img/s: 73.96830557109753  loss: 1.1836 (1.2873)  acc1: 71.0938 (69.1445)  acc5: 88.2812 (87.4613)  time: 1.8151  data: 0.0002  max mem: 15028
+Epoch: [23]  [ 200/2503]  eta: 1:10:25  lr: 6.791839747726505e-05  img/s: 74.65259245137828  loss: 1.2268 (1.2590)  acc1: 69.5312 (69.9044)  acc5: 88.2812 (87.8887)  time: 1.8141  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:12:20  loss: 0.6010 (0.6010)  acc1: 82.8125 (82.8125)  acc5: 93.7500 (93.7500)  time: 7.5524  data: 7.1118  max mem: 15028
+Test:  Total time: 0:00:30
+Test:  Acc@1 70.992 Acc@5 89.920
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [24]  [   0/2503]  eta: 2:24:12  lr: 6.54508497187474e-05  img/s: 123.25516694185733  loss: 1.4094 (1.4094)  acc1: 62.5000 (62.5000)  acc5: 88.2812 (88.2812)  time: 3.4568  data: 2.4183  max mem: 15028
+Epoch: [24]  [ 100/2503]  eta: 1:14:18  lr: 6.54508497187474e-05  img/s: 68.07199767713435  loss: 1.2525 (1.2620)  acc1: 68.7500 (69.6860)  acc5: 87.5000 (87.6238)  time: 1.8511  data: 0.0002  max mem: 15028
+Epoch: [24]  [ 200/2503]  eta: 1:10:56  lr: 6.54508497187474e-05  img/s: 74.00751115617878  loss: 1.2337 (1.2549)  acc1: 70.3125 (70.1143)  acc5: 86.7188 (87.7177)  time: 1.8230  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:12:39  loss: 0.6498 (0.6498)  acc1: 81.2500 (81.2500)  acc5: 94.5312 (94.5312)  time: 7.7530  data: 7.2320  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.726 Acc@5 89.690
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [25]  [   0/2503]  eta: 2:30:32  lr: 6.294095225512606e-05  img/s: 141.62174841243944  loss: 1.1414 (1.1414)  acc1: 68.7500 (68.7500)  acc5: 91.4062 (91.4062)  time: 3.6086  data: 2.7047  max mem: 15028
+Epoch: [25]  [ 100/2503]  eta: 1:13:54  lr: 6.294095225512606e-05  img/s: 72.11853280738177  loss: 1.2428 (1.2422)  acc1: 70.3125 (69.7865)  acc5: 88.2812 (88.2890)  time: 1.8347  data: 0.0002  max mem: 15028
+Epoch: [25]  [ 200/2503]  eta: 1:11:06  lr: 6.294095225512606e-05  img/s: 61.36425677275101  loss: 1.2961 (1.2472)  acc1: 67.9688 (69.8694)  acc5: 86.7188 (88.1452)  time: 1.8348  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:14:17  loss: 0.5805 (0.5805)  acc1: 84.3750 (84.3750)  acc5: 95.3125 (95.3125)  time: 8.7500  data: 8.5472  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.774 Acc@5 89.788
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [26]  [   0/2503]  eta: 2:31:16  lr: 6.0395584540887984e-05  img/s: 139.66294168619686  loss: 1.1020 (1.1020)  acc1: 71.8750 (71.8750)  acc5: 90.6250 (90.6250)  time: 3.6262  data: 2.7097  max mem: 15028
+Epoch: [26]  [ 100/2503]  eta: 1:14:47  lr: 6.0395584540887984e-05  img/s: 68.62475919636296  loss: 1.2692 (1.2587)  acc1: 69.5312 (69.9257)  acc5: 87.5000 (87.6702)  time: 1.8741  data: 0.0002  max mem: 15028
+Epoch: [26]  [ 200/2503]  eta: 1:11:10  lr: 6.0395584540887984e-05  img/s: 72.2368884760245  loss: 1.1939 (1.2461)  acc1: 70.3125 (70.0404)  acc5: 88.2812 (87.8887)  time: 1.8248  data: 0.0003  max mem: 15028
+Test:   [ 0/98]  eta: 0:14:30  loss: 0.6379 (0.6379)  acc1: 82.0312 (82.0312)  acc5: 94.5312 (94.5312)  time: 8.8784  data: 8.4730  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.342 Acc@5 89.600
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [27]  [   0/2503]  eta: 2:29:45  lr: 5.782172325201157e-05  img/s: 90.71169571800364  loss: 1.1211 (1.1211)  acc1: 67.9688 (67.9688)  acc5: 90.6250 (90.6250)  time: 3.5900  data: 2.1789  max mem: 15028
+Epoch: [27]  [ 100/2503]  eta: 1:13:45  lr: 5.782172325201157e-05  img/s: 70.35118293753135  loss: 1.1510 (1.2297)  acc1: 71.8750 (70.3899)  acc5: 89.0625 (88.1033)  time: 1.8407  data: 0.0002  max mem: 15028
+Epoch: [27]  [ 200/2503]  eta: 1:10:33  lr: 5.782172325201157e-05  img/s: 70.29576650956521  loss: 1.1099 (1.2336)  acc1: 71.8750 (70.4408)  acc5: 90.6250 (88.1646)  time: 1.8182  data: 0.0003  max mem: 15028
+Test:   [ 0/98]  eta: 0:12:35  loss: 0.6974 (0.6974)  acc1: 81.2500 (81.2500)  acc5: 95.3125 (95.3125)  time: 7.7121  data: 7.1742  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.092 Acc@5 89.418
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [28]  [   0/2503]  eta: 2:33:08  lr: 5.52264231633827e-05  img/s: 138.5832385991106  loss: 1.1725 (1.1725)  acc1: 72.6562 (72.6562)  acc5: 88.2812 (88.2812)  time: 3.6709  data: 2.7472  max mem: 15028
+Epoch: [28]  [ 100/2503]  eta: 1:13:14  lr: 5.52264231633827e-05  img/s: 77.93653859693565  loss: 1.2022 (1.2403)  acc1: 71.0938 (70.1887)  acc5: 89.0625 (88.2348)  time: 1.8223  data: 0.0002  max mem: 15028
+Epoch: [28]  [ 200/2503]  eta: 1:09:52  lr: 5.52264231633827e-05  img/s: 69.02716338402371  loss: 1.2539 (1.2547)  acc1: 69.5312 (69.8383)  acc5: 87.5000 (87.9586)  time: 1.8055  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:14:25  loss: 0.6223 (0.6223)  acc1: 80.4688 (80.4688)  acc5: 95.3125 (95.3125)  time: 8.8356  data: 8.4565  max mem: 15028
+Test:  Total time: 0:00:32
+Test:  Acc@1 70.684 Acc@5 89.716
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [29]  [   0/2503]  eta: 2:30:08  lr: 5.261679781214721e-05  img/s: 137.18030823164773  loss: 1.1244 (1.1244)  acc1: 69.5312 (69.5312)  acc5: 90.6250 (90.6250)  time: 3.5990  data: 2.6659  max mem: 15028
+Epoch: [29]  [ 100/2503]  eta: 1:11:00  lr: 5.261679781214721e-05  img/s: 76.91461170271444  loss: 1.1252 (1.2439)  acc1: 71.8750 (70.5213)  acc5: 88.2812 (87.8790)  time: 1.7614  data: 0.0002  max mem: 15028
+Epoch: [29]  [ 200/2503]  eta: 1:07:58  lr: 5.261679781214721e-05  img/s: 70.53022342437073  loss: 1.3381 (1.2753)  acc1: 67.9688 (69.6595)  acc5: 85.9375 (87.5700)  time: 1.7536  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:11:38  loss: 0.5743 (0.5743)  acc1: 85.9375 (85.9375)  acc5: 94.5312 (94.5312)  time: 7.1316  data: 6.5374  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.208 Acc@5 89.894
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [30]  [   0/2503]  eta: 2:29:20  lr: 5.0000000000000036e-05  img/s: 138.40282172472303  loss: 1.2072 (1.2072)  acc1: 69.5312 (69.5312)  acc5: 85.9375 (85.9375)  time: 3.5799  data: 2.6550  max mem: 15028
+Epoch: [30]  [ 100/2503]  eta: 1:10:55  lr: 5.0000000000000036e-05  img/s: 76.68781426173517  loss: 1.1933 (1.2443)  acc1: 70.3125 (70.1037)  acc5: 89.0625 (88.1111)  time: 1.7696  data: 0.0002  max mem: 15028
+Epoch: [30]  [ 200/2503]  eta: 1:08:01  lr: 5.0000000000000036e-05  img/s: 73.92204650002347  loss: 1.1959 (1.2332)  acc1: 69.5312 (70.1648)  acc5: 89.0625 (88.3279)  time: 1.7542  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:54  loss: 0.6630 (0.6630)  acc1: 83.5938 (83.5938)  acc5: 93.7500 (93.7500)  time: 8.5143  data: 8.0113  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.226 Acc@5 90.020
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [31]  [   0/2503]  eta: 2:07:45  lr: 4.738320218785284e-05  img/s: 425.7403374545708  loss: 1.0980 (1.0980)  acc1: 73.4375 (73.4375)  acc5: 89.8438 (89.8438)  time: 3.0625  data: 2.7618  max mem: 15028
+Epoch: [31]  [ 100/2503]  eta: 0:41:13  lr: 4.738320218785284e-05  img/s: 127.42178278167637  loss: 1.2094 (1.2349)  acc1: 70.3125 (70.0804)  acc5: 89.0625 (88.2812)  time: 1.0063  data: 0.0002  max mem: 15028
+Epoch: [31]  [ 200/2503]  eta: 0:39:05  lr: 4.738320218785284e-05  img/s: 126.9314502296073  loss: 1.2078 (1.2474)  acc1: 71.0938 (69.9666)  acc5: 88.2812 (88.0675)  time: 1.0069  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:14:58  loss: 0.6041 (0.6041)  acc1: 82.8125 (82.8125)  acc5: 94.5312 (94.5312)  time: 9.1725  data: 8.6920  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.236 Acc@5 90.014
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [32]  [   0/2503]  eta: 2:05:15  lr: 4.477357683661736e-05  img/s: 416.40237398666574  loss: 0.9447 (0.9447)  acc1: 77.3438 (77.3438)  acc5: 92.1875 (92.1875)  time: 3.0027  data: 2.6952  max mem: 15028
+Epoch: [32]  [ 100/2503]  eta: 0:41:12  lr: 4.477357683661736e-05  img/s: 127.03101201098455  loss: 1.2413 (1.2067)  acc1: 71.0938 (71.1247)  acc5: 87.5000 (88.6989)  time: 1.0057  data: 0.0004  max mem: 15028
+Epoch: [32]  [ 200/2503]  eta: 0:39:04  lr: 4.477357683661736e-05  img/s: 126.514482557423  loss: 1.2205 (1.2145)  acc1: 71.0938 (70.9033)  acc5: 87.5000 (88.3357)  time: 1.0067  data: 0.0004  max mem: 15028
+Test:   [ 0/98]  eta: 0:12:48  loss: 0.5739 (0.5739)  acc1: 83.5938 (83.5938)  acc5: 95.3125 (95.3125)  time: 7.8468  data: 7.3946  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.320 Acc@5 90.080
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [33]  [   0/2503]  eta: 2:07:24  lr: 4.217827674798848e-05  img/s: 422.4446082870985  loss: 1.2872 (1.2872)  acc1: 67.1875 (67.1875)  acc5: 86.7188 (86.7188)  time: 3.0543  data: 2.7512  max mem: 15028
+Epoch: [33]  [ 100/2503]  eta: 0:41:04  lr: 4.217827674798848e-05  img/s: 127.6669455247089  loss: 1.2594 (1.2424)  acc1: 67.9688 (70.4363)  acc5: 87.5000 (88.2426)  time: 1.0069  data: 0.0003  max mem: 15028
+Epoch: [33]  [ 200/2503]  eta: 0:39:00  lr: 4.217827674798848e-05  img/s: 126.4817261815574  loss: 1.2565 (1.2550)  acc1: 68.7500 (69.7489)  acc5: 87.5000 (88.0791)  time: 1.0081  data: 0.0003  max mem: 15028
+Test:   [ 0/98]  eta: 0:14:36  loss: 0.5919 (0.5919)  acc1: 85.1562 (85.1562)  acc5: 95.3125 (95.3125)  time: 8.9390  data: 8.3679  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.258 Acc@5 89.908
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [34]  [   0/2503]  eta: 2:10:49  lr: 3.9604415459112055e-05  img/s: 431.422946772751  loss: 1.3210 (1.3210)  acc1: 70.3125 (70.3125)  acc5: 88.2812 (88.2812)  time: 3.1360  data: 2.8392  max mem: 15028
+Epoch: [34]  [ 100/2503]  eta: 0:41:09  lr: 3.9604415459112055e-05  img/s: 127.7665398689376  loss: 1.1784 (1.2296)  acc1: 69.5312 (70.6064)  acc5: 89.8438 (88.3586)  time: 1.0063  data: 0.0003  max mem: 15028
+Epoch: [34]  [ 200/2503]  eta: 0:39:03  lr: 3.9604415459112055e-05  img/s: 126.77352332367231  loss: 1.2392 (1.2408)  acc1: 71.0938 (70.3125)  acc5: 89.0625 (87.9703)  time: 1.0074  data: 0.0003  max mem: 15028
+Test:   [ 0/98]  eta: 0:15:27  loss: 0.5858 (0.5858)  acc1: 85.1562 (85.1562)  acc5: 96.0938 (96.0938)  time: 9.4628  data: 8.8031  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.976 Acc@5 89.958
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [35]  [   0/2503]  eta: 1:42:45  lr: 3.705904774487399e-05  img/s: 416.22675469743814  loss: 1.3787 (1.3787)  acc1: 64.0625 (64.0625)  acc5: 85.9375 (85.9375)  time: 2.4631  data: 2.1555  max mem: 15028
+Epoch: [35]  [ 100/2503]  eta: 0:41:01  lr: 3.705904774487399e-05  img/s: 126.90909658236963  loss: 1.1298 (1.2301)  acc1: 70.3125 (70.6915)  acc5: 89.0625 (88.4746)  time: 1.0067  data: 0.0002  max mem: 15028
+Epoch: [35]  [ 200/2503]  eta: 0:38:59  lr: 3.705904774487399e-05  img/s: 127.33314327592872  loss: 1.1418 (1.2182)  acc1: 72.6562 (70.8217)  acc5: 89.8438 (88.5339)  time: 1.0076  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:19  loss: 0.5392 (0.5392)  acc1: 85.9375 (85.9375)  acc5: 96.0938 (96.0938)  time: 8.1621  data: 7.6669  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 70.996 Acc@5 89.838
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [36]  [   0/2503]  eta: 2:06:56  lr: 3.4549150281252656e-05  img/s: 449.93832770425996  loss: 1.0930 (1.0930)  acc1: 70.3125 (70.3125)  acc5: 96.0938 (96.0938)  time: 3.0431  data: 2.7585  max mem: 15028
+Epoch: [36]  [ 100/2503]  eta: 0:41:09  lr: 3.4549150281252656e-05  img/s: 126.93457136513955  loss: 1.1801 (1.2410)  acc1: 70.3125 (70.2197)  acc5: 89.0625 (88.2271)  time: 1.0085  data: 0.0002  max mem: 15028
+Epoch: [36]  [ 200/2503]  eta: 0:39:04  lr: 3.4549150281252656e-05  img/s: 127.46534684964993  loss: 1.3303 (1.2431)  acc1: 67.9688 (70.3591)  acc5: 87.5000 (88.0675)  time: 1.0082  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:12:03  loss: 0.5923 (0.5923)  acc1: 85.1562 (85.1562)  acc5: 94.5312 (94.5312)  time: 7.3842  data: 6.9103  max mem: 15028
+Test:  Total time: 0:00:32
+Test:  Acc@1 71.468 Acc@5 90.094
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [37]  [   0/2503]  eta: 2:05:22  lr: 3.2081602522735006e-05  img/s: 422.4505916910664  loss: 1.2983 (1.2983)  acc1: 67.1875 (67.1875)  acc5: 88.2812 (88.2812)  time: 3.0054  data: 2.7023  max mem: 15028
+Epoch: [37]  [ 100/2503]  eta: 0:41:11  lr: 3.2081602522735006e-05  img/s: 127.27952990555343  loss: 1.2921 (1.2427)  acc1: 70.3125 (70.1655)  acc5: 87.5000 (88.1498)  time: 1.0078  data: 0.0003  max mem: 15028
+Epoch: [37]  [ 200/2503]  eta: 0:39:06  lr: 3.2081602522735006e-05  img/s: 125.87430690939443  loss: 1.2774 (1.2443)  acc1: 68.7500 (70.3242)  acc5: 87.5000 (88.1646)  time: 1.0107  data: 0.0004  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:52  loss: 0.5995 (0.5995)  acc1: 81.2500 (81.2500)  acc5: 95.3125 (95.3125)  time: 8.4977  data: 7.9978  max mem: 15028
+Test:  Total time: 0:00:30
+Test:  Acc@1 71.270 Acc@5 90.030
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [38]  [   0/2503]  eta: 1:57:55  lr: 2.9663167846210015e-05  img/s: 414.4748352510299  loss: 1.5339 (1.5339)  acc1: 60.9375 (60.9375)  acc5: 86.7188 (86.7188)  time: 2.8270  data: 2.5181  max mem: 15028
+Epoch: [38]  [ 100/2503]  eta: 0:41:00  lr: 2.9663167846210015e-05  img/s: 127.23476595734596  loss: 1.2739 (1.2348)  acc1: 68.7500 (69.9103)  acc5: 87.5000 (88.2271)  time: 1.0074  data: 0.0004  max mem: 15028
+Epoch: [38]  [ 200/2503]  eta: 0:38:58  lr: 2.9663167846210015e-05  img/s: 127.30454989629416  loss: 1.1675 (1.2432)  acc1: 71.0938 (69.8888)  acc5: 87.5000 (88.1102)  time: 1.0075  data: 0.0004  max mem: 15028
+Test:   [ 0/98]  eta: 0:12:10  loss: 0.5514 (0.5514)  acc1: 85.1562 (85.1562)  acc5: 94.5312 (94.5312)  time: 7.4579  data: 6.8824  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.382 Acc@5 89.974
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [39]  [   0/2503]  eta: 1:53:19  lr: 2.7300475013022676e-05  img/s: 408.6991730415976  loss: 1.4251 (1.4251)  acc1: 64.8438 (64.8438)  acc5: 86.7188 (86.7188)  time: 2.7166  data: 2.4034  max mem: 15028
+Epoch: [39]  [ 100/2503]  eta: 0:41:12  lr: 2.7300475013022676e-05  img/s: 127.44092915144287  loss: 1.2870 (1.2533)  acc1: 69.5312 (69.4462)  acc5: 86.7188 (87.7475)  time: 1.0066  data: 0.0004  max mem: 15028
+Epoch: [39]  [ 200/2503]  eta: 0:39:05  lr: 2.7300475013022676e-05  img/s: 127.31590116867105  loss: 1.2538 (1.2417)  acc1: 69.5312 (69.9005)  acc5: 87.5000 (88.1063)  time: 1.0080  data: 0.0003  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:04  loss: 0.5845 (0.5845)  acc1: 84.3750 (84.3750)  acc5: 94.5312 (94.5312)  time: 8.0063  data: 7.5076  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.216 Acc@5 90.054
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [40]  [   0/2503]  eta: 2:07:08  lr: 2.5000000000000025e-05  img/s: 434.0728997382  loss: 1.4059 (1.4059)  acc1: 65.6250 (65.6250)  acc5: 87.5000 (87.5000)  time: 3.0477  data: 2.7527  max mem: 15028
+Epoch: [40]  [ 100/2503]  eta: 0:41:06  lr: 2.5000000000000025e-05  img/s: 126.73874775616117  loss: 1.1899 (1.2261)  acc1: 69.5312 (70.4904)  acc5: 87.5000 (88.5442)  time: 1.0073  data: 0.0003  max mem: 15028
+Epoch: [40]  [ 200/2503]  eta: 0:39:01  lr: 2.5000000000000025e-05  img/s: 127.5894860947493  loss: 1.2285 (1.2269)  acc1: 69.5312 (70.3980)  acc5: 88.2812 (88.3784)  time: 1.0069  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:12:50  loss: 0.6130 (0.6130)  acc1: 83.5938 (83.5938)  acc5: 93.7500 (93.7500)  time: 7.8649  data: 7.3334  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.530 Acc@5 90.208
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [41]  [   0/2503]  eta: 2:01:55  lr: 2.2768048249248675e-05  img/s: 419.20016740805636  loss: 1.1422 (1.1422)  acc1: 68.7500 (68.7500)  acc5: 89.8438 (89.8438)  time: 2.9227  data: 2.6173  max mem: 15028
+Epoch: [41]  [ 100/2503]  eta: 0:41:03  lr: 2.2768048249248675e-05  img/s: 127.44688899033284  loss: 1.1932 (1.2242)  acc1: 71.8750 (70.9081)  acc5: 88.2812 (88.5752)  time: 1.0085  data: 0.0004  max mem: 15028
+Epoch: [41]  [ 200/2503]  eta: 0:38:59  lr: 2.2768048249248675e-05  img/s: 126.31329464754587  loss: 1.1335 (1.2291)  acc1: 73.4375 (70.5535)  acc5: 88.2812 (88.4212)  time: 1.0056  data: 0.0004  max mem: 15028
+Test:   [ 0/98]  eta: 0:12:29  loss: 0.5488 (0.5488)  acc1: 85.1562 (85.1562)  acc5: 96.0938 (96.0938)  time: 7.6457  data: 7.0758  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.310 Acc@5 90.068
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [42]  [   0/2503]  eta: 2:13:05  lr: 2.0610737385376362e-05  img/s: 450.79631450477314  loss: 1.1322 (1.1322)  acc1: 75.7812 (75.7812)  acc5: 89.8438 (89.8438)  time: 3.1904  data: 2.9064  max mem: 15028
+Epoch: [42]  [ 100/2503]  eta: 0:41:10  lr: 2.0610737385376362e-05  img/s: 126.78690592723704  loss: 1.1608 (1.2317)  acc1: 71.0938 (70.1501)  acc5: 89.0625 (88.3277)  time: 1.0075  data: 0.0003  max mem: 15028
+Epoch: [42]  [ 200/2503]  eta: 0:39:04  lr: 2.0610737385376362e-05  img/s: 127.73808585682661  loss: 1.2579 (1.2337)  acc1: 68.7500 (69.9316)  acc5: 88.2812 (88.2968)  time: 1.0075  data: 0.0003  max mem: 15028
+Test:   [ 0/98]  eta: 0:14:25  loss: 0.5470 (0.5470)  acc1: 84.3750 (84.3750)  acc5: 95.3125 (95.3125)  time: 8.8293  data: 8.5548  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.378 Acc@5 90.172
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [43]  [   0/2503]  eta: 1:58:47  lr: 1.8533980447508148e-05  img/s: 404.29827367558596  loss: 1.1935 (1.1935)  acc1: 67.1875 (67.1875)  acc5: 90.6250 (90.6250)  time: 2.8477  data: 2.5310  max mem: 15028
+Epoch: [43]  [ 100/2503]  eta: 0:41:08  lr: 1.8533980447508148e-05  img/s: 126.48345448351479  loss: 1.2391 (1.2218)  acc1: 68.7500 (70.7147)  acc5: 88.2812 (88.3199)  time: 1.0084  data: 0.0004  max mem: 15028
+Epoch: [43]  [ 200/2503]  eta: 0:39:03  lr: 1.8533980447508148e-05  img/s: 126.0014565233871  loss: 1.2249 (1.2292)  acc1: 70.3125 (70.5224)  acc5: 88.2812 (88.2035)  time: 1.0086  data: 0.0004  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:03  loss: 0.5720 (0.5720)  acc1: 84.3750 (84.3750)  acc5: 95.3125 (95.3125)  time: 7.9919  data: 7.4164  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.410 Acc@5 90.210
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [44]  [   0/2503]  eta: 1:52:38  lr: 1.6543469682057116e-05  img/s: 398.9463737681334  loss: 0.9969 (0.9969)  acc1: 76.5625 (76.5625)  acc5: 89.8438 (89.8438)  time: 2.7002  data: 2.3793  max mem: 15028
+Epoch: [44]  [ 100/2503]  eta: 0:41:06  lr: 1.6543469682057116e-05  img/s: 128.13282812516408  loss: 1.2348 (1.2461)  acc1: 69.5312 (70.5368)  acc5: 87.5000 (87.9022)  time: 1.0080  data: 0.0002  max mem: 15028
+Epoch: [44]  [ 200/2503]  eta: 0:39:02  lr: 1.6543469682057116e-05  img/s: 127.83526477667857  loss: 1.2006 (1.2186)  acc1: 69.5312 (70.8022)  acc5: 88.2812 (88.3473)  time: 1.0079  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:21  loss: 0.6344 (0.6344)  acc1: 81.2500 (81.2500)  acc5: 95.3125 (95.3125)  time: 8.1796  data: 7.5733  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.274 Acc@5 90.046
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [45]  [   0/2503]  eta: 2:03:33  lr: 1.4644660940672637e-05  img/s: 421.19646360952527  loss: 1.3524 (1.3524)  acc1: 69.5312 (69.5312)  acc5: 89.0625 (89.0625)  time: 2.9619  data: 2.6579  max mem: 15028
+Epoch: [45]  [ 100/2503]  eta: 0:41:02  lr: 1.4644660940672637e-05  img/s: 127.73951433512966  loss: 1.2303 (1.2174)  acc1: 70.3125 (70.4440)  acc5: 88.2812 (88.1420)  time: 1.0067  data: 0.0002  max mem: 15028
+Epoch: [45]  [ 200/2503]  eta: 0:39:00  lr: 1.4644660940672637e-05  img/s: 127.38559280812541  loss: 1.1677 (1.2160)  acc1: 70.3125 (70.3008)  acc5: 89.0625 (88.4445)  time: 1.0059  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:15:10  loss: 0.5450 (0.5450)  acc1: 85.1562 (85.1562)  acc5: 96.0938 (96.0938)  time: 9.2886  data: 8.8613  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.356 Acc@5 90.064
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [46]  [   0/2503]  eta: 2:08:29  lr: 1.2842758726130309e-05  img/s: 417.9951743817128  loss: 0.7542 (0.7542)  acc1: 78.1250 (78.1250)  acc5: 95.3125 (95.3125)  time: 3.0799  data: 2.7737  max mem: 15028
+Epoch: [46]  [ 100/2503]  eta: 0:41:09  lr: 1.2842758726130309e-05  img/s: 127.55968638907883  loss: 1.2724 (1.2503)  acc1: 69.5312 (70.8926)  acc5: 86.7188 (87.5851)  time: 1.0084  data: 0.0002  max mem: 15028
+Epoch: [46]  [ 200/2503]  eta: 0:39:03  lr: 1.2842758726130309e-05  img/s: 126.93238055202617  loss: 1.2164 (1.2284)  acc1: 69.5312 (71.0510)  acc5: 88.2812 (88.0442)  time: 1.0082  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:16:01  loss: 0.5944 (0.5944)  acc1: 82.0312 (82.0312)  acc5: 94.5312 (94.5312)  time: 9.8108  data: 9.2717  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.264 Acc@5 90.028
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [47]  [   0/2503]  eta: 2:06:03  lr: 1.1142701927151465e-05  img/s: 419.663838009893  loss: 1.1378 (1.1378)  acc1: 74.2188 (74.2188)  acc5: 86.7188 (86.7188)  time: 3.0217  data: 2.7166  max mem: 15028
+Epoch: [47]  [ 100/2503]  eta: 0:41:05  lr: 1.1142701927151465e-05  img/s: 126.47463467840156  loss: 1.2405 (1.2342)  acc1: 70.3125 (70.3202)  acc5: 88.2812 (87.8945)  time: 1.0086  data: 0.0002  max mem: 15028
+Epoch: [47]  [ 200/2503]  eta: 0:39:01  lr: 1.1142701927151465e-05  img/s: 127.3372808685115  loss: 1.2302 (1.2142)  acc1: 70.3125 (70.6507)  acc5: 88.2812 (88.3046)  time: 1.0077  data: 0.0003  max mem: 15028
+Test:   [ 0/98]  eta: 0:16:16  loss: 0.5945 (0.5945)  acc1: 84.3750 (84.3750)  acc5: 95.3125 (95.3125)  time: 9.9687  data: 9.8013  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.440 Acc@5 90.182
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [48]  [   0/2503]  eta: 1:55:50  lr: 9.549150281252641e-06  img/s: 387.32536371887124  loss: 0.8257 (0.8257)  acc1: 83.5938 (83.5938)  acc5: 93.7500 (93.7500)  time: 2.7767  data: 2.4462  max mem: 15028
+Epoch: [48]  [ 100/2503]  eta: 0:41:08  lr: 9.549150281252641e-06  img/s: 126.89979738424287  loss: 1.2079 (1.1972)  acc1: 71.0938 (71.6894)  acc5: 89.0625 (88.6525)  time: 1.0073  data: 0.0002  max mem: 15028
+Epoch: [48]  [ 200/2503]  eta: 0:39:03  lr: 9.549150281252641e-06  img/s: 126.76586028601666  loss: 1.2486 (1.2056)  acc1: 70.3125 (71.2920)  acc5: 86.7188 (88.1685)  time: 1.0083  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:15:51  loss: 0.5691 (0.5691)  acc1: 84.3750 (84.3750)  acc5: 94.5312 (94.5312)  time: 9.7084  data: 9.1682  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.452 Acc@5 90.142
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [49]  [   0/2503]  eta: 2:08:58  lr: 8.06647160272881e-06  img/s: 407.9082661933692  loss: 1.2189 (1.2189)  acc1: 72.6562 (72.6562)  acc5: 90.6250 (90.6250)  time: 3.0918  data: 2.7780  max mem: 15028
+Epoch: [49]  [ 100/2503]  eta: 0:41:12  lr: 8.06647160272881e-06  img/s: 127.74945378141263  loss: 1.2068 (1.2336)  acc1: 68.7500 (70.0340)  acc5: 88.2812 (88.0724)  time: 1.0094  data: 0.0002  max mem: 15028
+Epoch: [49]  [ 200/2503]  eta: 0:39:05  lr: 8.06647160272881e-06  img/s: 127.4697048948502  loss: 1.2178 (1.2316)  acc1: 68.7500 (70.3319)  acc5: 87.5000 (87.9897)  time: 1.0070  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:49  loss: 0.6008 (0.6008)  acc1: 82.8125 (82.8125)  acc5: 93.7500 (93.7500)  time: 8.4624  data: 8.0374  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.492 Acc@5 90.160
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [50]  [   0/2503]  eta: 1:45:17  lr: 6.69872981077807e-06  img/s: 403.94510142061847  loss: 1.3796 (1.3796)  acc1: 67.9688 (67.9688)  acc5: 82.8125 (82.8125)  time: 2.5238  data: 2.2069  max mem: 15028
+Epoch: [50]  [ 100/2503]  eta: 0:41:05  lr: 6.69872981077807e-06  img/s: 127.54292827726945  loss: 1.2389 (1.2198)  acc1: 68.7500 (70.5213)  acc5: 87.5000 (88.3663)  time: 1.0080  data: 0.0003  max mem: 15028
+Epoch: [50]  [ 200/2503]  eta: 0:39:03  lr: 6.69872981077807e-06  img/s: 127.2310571509079  loss: 1.1549 (1.2065)  acc1: 71.8750 (70.8100)  acc5: 89.8438 (88.4600)  time: 1.0110  data: 0.0004  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:31  loss: 0.5850 (0.5850)  acc1: 83.5938 (83.5938)  acc5: 95.3125 (95.3125)  time: 8.2774  data: 7.7129  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.556 Acc@5 90.198
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [51]  [   0/2503]  eta: 2:05:52  lr: 5.449673790581616e-06  img/s: 411.4533482115486  loss: 1.2586 (1.2586)  acc1: 71.8750 (71.8750)  acc5: 82.8125 (82.8125)  time: 3.0173  data: 2.7061  max mem: 15028
+Epoch: [51]  [ 100/2503]  eta: 0:41:10  lr: 5.449673790581616e-06  img/s: 126.84181314472752  loss: 1.1897 (1.2027)  acc1: 70.3125 (71.2485)  acc5: 89.0625 (88.4901)  time: 1.0090  data: 0.0003  max mem: 15028
+Epoch: [51]  [ 200/2503]  eta: 0:39:04  lr: 5.449673790581616e-06  img/s: 126.53559392341695  loss: 1.1856 (1.2137)  acc1: 71.0938 (70.8139)  acc5: 87.5000 (88.3240)  time: 1.0099  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:14:30  loss: 0.6036 (0.6036)  acc1: 84.3750 (84.3750)  acc5: 94.5312 (94.5312)  time: 8.8782  data: 8.4902  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.518 Acc@5 90.116
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [52]  [   0/2503]  eta: 1:50:43  lr: 4.322727117869955e-06  img/s: 418.910362058351  loss: 1.1947 (1.1947)  acc1: 67.9688 (67.9688)  acc5: 87.5000 (87.5000)  time: 2.6544  data: 2.3487  max mem: 15028
+Epoch: [52]  [ 100/2503]  eta: 0:41:09  lr: 4.322727117869955e-06  img/s: 126.47058274790308  loss: 1.1571 (1.2118)  acc1: 71.0938 (70.6451)  acc5: 89.0625 (88.4901)  time: 1.0071  data: 0.0002  max mem: 15028
+Epoch: [52]  [ 200/2503]  eta: 0:39:04  lr: 4.322727117869955e-06  img/s: 127.75766182958694  loss: 1.1504 (1.2159)  acc1: 71.0938 (70.8722)  acc5: 88.2812 (88.3979)  time: 1.0095  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:14:28  loss: 0.6743 (0.6743)  acc1: 80.4688 (80.4688)  acc5: 94.5312 (94.5312)  time: 8.8586  data: 8.2682  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.024 Acc@5 89.958
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [53]  [   0/2503]  eta: 2:08:21  lr: 3.3209786751399153e-06  img/s: 431.13123433561316  loss: 1.2439 (1.2439)  acc1: 69.5312 (69.5312)  acc5: 88.2812 (88.2812)  time: 3.0770  data: 2.7800  max mem: 15028
+Epoch: [53]  [ 100/2503]  eta: 0:41:11  lr: 3.3209786751399153e-06  img/s: 127.20211779663286  loss: 1.1587 (1.2177)  acc1: 71.0938 (71.0473)  acc5: 89.0625 (88.1420)  time: 1.0065  data: 0.0002  max mem: 15028
+Epoch: [53]  [ 200/2503]  eta: 0:39:05  lr: 3.3209786751399153e-06  img/s: 127.52414503242909  loss: 1.2109 (1.2075)  acc1: 69.5312 (71.0160)  acc5: 88.2812 (88.3901)  time: 1.0111  data: 0.0003  max mem: 15028
+Test:   [ 0/98]  eta: 0:14:03  loss: 0.6266 (0.6266)  acc1: 82.8125 (82.8125)  acc5: 95.3125 (95.3125)  time: 8.6028  data: 8.0906  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.292 Acc@5 89.988
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [54]  [   0/2503]  eta: 2:03:44  lr: 2.447174185242325e-06  img/s: 418.0713415218185  loss: 1.4679 (1.4679)  acc1: 64.0625 (64.0625)  acc5: 83.5938 (83.5938)  time: 2.9661  data: 2.6599  max mem: 15028
+Epoch: [54]  [ 100/2503]  eta: 0:41:02  lr: 2.447174185242325e-06  img/s: 128.00418104477004  loss: 1.2685 (1.2162)  acc1: 70.3125 (71.1092)  acc5: 87.5000 (88.3045)  time: 1.0084  data: 0.0003  max mem: 15028
+Epoch: [54]  [ 200/2503]  eta: 0:39:00  lr: 2.447174185242325e-06  img/s: 127.15123456351536  loss: 1.1522 (1.2088)  acc1: 69.5312 (71.1287)  acc5: 88.2812 (88.4873)  time: 1.0084  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:14:08  loss: 0.6376 (0.6376)  acc1: 82.0312 (82.0312)  acc5: 94.5312 (94.5312)  time: 8.6629  data: 8.2717  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.256 Acc@5 90.070
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [55]  [   0/2503]  eta: 1:42:18  lr: 1.7037086855465854e-06  img/s: 390.738587617086  loss: 1.2095 (1.2095)  acc1: 67.1875 (67.1875)  acc5: 87.5000 (87.5000)  time: 2.4524  data: 2.1248  max mem: 15028
+Epoch: [55]  [ 100/2503]  eta: 0:41:10  lr: 1.7037086855465854e-06  img/s: 127.71842473185171  loss: 1.2142 (1.1938)  acc1: 71.0938 (70.7225)  acc5: 88.2812 (88.9310)  time: 1.0073  data: 0.0003  max mem: 15028
+Epoch: [55]  [ 200/2503]  eta: 0:39:04  lr: 1.7037086855465854e-06  img/s: 126.97663162814194  loss: 1.1853 (1.2043)  acc1: 70.3125 (70.9344)  acc5: 88.2812 (88.5456)  time: 1.0079  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:14:25  loss: 0.6493 (0.6493)  acc1: 82.8125 (82.8125)  acc5: 95.3125 (95.3125)  time: 8.8344  data: 8.3659  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.250 Acc@5 89.908
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [56]  [   0/2503]  eta: 2:06:35  lr: 1.0926199633097164e-06  img/s: 444.1872455341002  loss: 1.3030 (1.3030)  acc1: 67.9688 (67.9688)  acc5: 85.9375 (85.9375)  time: 3.0346  data: 2.7463  max mem: 15028
+Epoch: [56]  [ 100/2503]  eta: 0:41:15  lr: 1.0926199633097164e-06  img/s: 126.82077923059624  loss: 1.0991 (1.2055)  acc1: 71.8750 (70.9623)  acc5: 89.8438 (88.5675)  time: 1.0082  data: 0.0002  max mem: 15028
+Epoch: [56]  [ 200/2503]  eta: 0:39:07  lr: 1.0926199633097164e-06  img/s: 127.63164780219898  loss: 1.2271 (1.2185)  acc1: 72.6562 (70.7984)  acc5: 87.5000 (88.4212)  time: 1.0106  data: 0.0002  max mem: 15028
+Test:   [ 0/98]  eta: 0:12:48  loss: 0.6218 (0.6218)  acc1: 81.2500 (81.2500)  acc5: 95.3125 (95.3125)  time: 7.8369  data: 7.1890  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.210 Acc@5 90.052
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [57]  [   0/2503]  eta: 2:07:14  lr: 6.155829702431174e-07  img/s: 402.84816251065513  loss: 1.1202 (1.1202)  acc1: 73.4375 (73.4375)  acc5: 92.9688 (92.9688)  time: 3.0502  data: 2.7324  max mem: 15028
+Epoch: [57]  [ 100/2503]  eta: 0:41:09  lr: 6.155829702431174e-07  img/s: 127.70372083010727  loss: 1.2521 (1.2144)  acc1: 70.3125 (70.9932)  acc5: 87.5000 (88.2735)  time: 1.0076  data: 0.0004  max mem: 15028
+Epoch: [57]  [ 200/2503]  eta: 0:39:04  lr: 6.155829702431174e-07  img/s: 127.1634319833004  loss: 1.2250 (1.2172)  acc1: 71.0938 (70.8916)  acc5: 89.0625 (88.4251)  time: 1.0091  data: 0.0004  max mem: 15028
+Test:   [ 0/98]  eta: 0:15:50  loss: 0.5603 (0.5603)  acc1: 84.3750 (84.3750)  acc5: 94.5312 (94.5312)  time: 9.7009  data: 9.1971  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.608 Acc@5 90.208
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [58]  [   0/2503]  eta: 2:07:32  lr: 2.7390523158633014e-07  img/s: 430.160208705908  loss: 1.2935 (1.2935)  acc1: 71.8750 (71.8750)  acc5: 84.3750 (84.3750)  time: 3.0571  data: 2.7595  max mem: 15028
+Epoch: [58]  [ 100/2503]  eta: 0:41:04  lr: 2.7390523158633014e-07  img/s: 127.62199971616889  loss: 1.1733 (1.2005)  acc1: 70.3125 (71.4496)  acc5: 88.2812 (88.6525)  time: 1.0078  data: 0.0003  max mem: 15028
+Epoch: [58]  [ 200/2503]  eta: 0:39:01  lr: 2.7390523158633014e-07  img/s: 126.57697235243164  loss: 1.1639 (1.2044)  acc1: 70.3125 (71.1210)  acc5: 89.0625 (88.6933)  time: 1.0096  data: 0.0003  max mem: 15028
+Test:   [ 0/98]  eta: 0:13:07  loss: 0.5518 (0.5518)  acc1: 84.3750 (84.3750)  acc5: 96.8750 (96.8750)  time: 8.0364  data: 7.6414  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.528 Acc@5 90.200
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Epoch: [59]  [   0/2503]  eta: 2:02:03  lr: 6.85232622713084e-08  img/s: 430.36572407004223  loss: 1.1389 (1.1389)  acc1: 71.8750 (71.8750)  acc5: 90.6250 (90.6250)  time: 2.9258  data: 2.6284  max mem: 15028
+Epoch: [59]  [ 100/2503]  eta: 0:41:14  lr: 6.85232622713084e-08  img/s: 126.78271420390476  loss: 1.1997 (1.2013)  acc1: 69.5312 (70.8075)  acc5: 88.2812 (88.6603)  time: 1.0081  data: 0.0003  max mem: 15028
+Epoch: [59]  [ 200/2503]  eta: 0:39:07  lr: 6.85232622713084e-08  img/s: 126.08295059013729  loss: 1.2463 (1.2042)  acc1: 69.5312 (70.8294)  acc5: 88.2812 (88.6622)  time: 1.0100  data: 0.0003  max mem: 15028
+Test:   [ 0/98]  eta: 0:14:44  loss: 0.6086 (0.6086)  acc1: 82.0312 (82.0312)  acc5: 95.3125 (95.3125)  time: 9.0214  data: 8.5779  max mem: 15028
+Test:  Total time: 0:00:31
+Test:  Acc@1 71.360 Acc@5 90.032
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+============= Diagnostic Run torch.onnx.export version 2.0.1+cu117 =============
+verbose: False, log level: Level.ERROR
+======================= 0 NONE 0 NOTE 0 WARNING 0 ERROR ========================
+
+Training time 6:59:18
