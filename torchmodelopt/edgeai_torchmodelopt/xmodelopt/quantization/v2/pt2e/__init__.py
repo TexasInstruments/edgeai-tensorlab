@@ -30,8 +30,5 @@
 #
 #################################################################################
 
-from . import fx
-from . import pt2e
 
-from .fx.quant_fx_module import QATFxModule, PTQFxModule
-from .pt2e.quant_pt2e_module import QATPT2EModule, PTQPT2EModule
+from .quant_pt2e_module import *

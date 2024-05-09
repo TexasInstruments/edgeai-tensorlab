@@ -1,4 +1,3 @@
-
 #################################################################################
 # Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
@@ -30,8 +29,16 @@
 #
 #################################################################################
 
-from . import fx
-from . import pt2e
+from .quant_fx_base import QuantFxBaseModule
 
-from .fx.quant_fx_module import QATFxModule, PTQFxModule
-from .pt2e.quant_pt2e_module import QATPT2EModule, PTQPT2EModule
+
+class QATFxModule(QuantFxBaseModule):
+    def __init__(self, *args, backend='qnnpack', is_qat=True, **kwargs):
+        super().__init__(*args, is_qat=is_qat, backend=backend, **kwargs)
+        raise FutureWarning("Fx based quantization wrapper will be depercated in the future after pt2e quantization wrapper is completed.")
+
+
+class PTQFxModule(QuantFxBaseModule):
+    def __init__(self, *args, backend='qnnpack', is_qat=False, **kwargs):
+        super().__init__(*args, is_qat=is_qat, backend=backend, **kwargs)
+        raise FutureWarning("Fx based quantization wrapper will be depercated in the future after pt2e quantization wrapper is completed.")

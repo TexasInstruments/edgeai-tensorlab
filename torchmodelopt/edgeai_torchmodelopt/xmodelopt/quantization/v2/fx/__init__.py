@@ -1,3 +1,4 @@
+
 #################################################################################
 # Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
@@ -29,15 +30,11 @@
 #
 #################################################################################
 
-from .quant_fx_base import QuantFxBaseModule
+from .observer_types import *
+from .fake_quanitze_types import *
+from .qconfig_types import *
+from .quant_fx_base import *
+from .quant_fx_module import *
+from .quant_fx_utils import *
 
-
-class QATFxModule(QuantFxBaseModule):
-    def __init__(self, *args, backend='qnnpack', is_qat=True, **kwargs):
-        super().__init__(*args, is_qat=is_qat, backend=backend, **kwargs)
-
-
-class PTQFxModule(QuantFxBaseModule):
-    def __init__(self, *args, backend='qnnpack', is_qat=False, **kwargs):
-        super().__init__(*args, is_qat=is_qat, backend=backend, **kwargs)
-
+from . import quant_fx_func

@@ -1,4 +1,3 @@
-
 #################################################################################
 # Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
@@ -30,8 +29,13 @@
 #
 #################################################################################
 
-from . import fx
-from . import pt2e
 
-from .fx.quant_fx_module import QATFxModule, PTQFxModule
-from .pt2e.quant_pt2e_module import QATPT2EModule, PTQPT2EModule
+
+class QATPT2EModule():
+    def __init__(self, *args, backend='qnnpack', is_qat=True, **kwargs):
+        raise NotImplementedError("QATPT2E Quantization is not supported yet")
+
+
+class PTQPT2EModule():
+    def __init__(self, *args, backend='qnnpack', is_qat=False, **kwargs):
+        raise NotImplementedError("QATPT2E Quantization is not supported yet")
