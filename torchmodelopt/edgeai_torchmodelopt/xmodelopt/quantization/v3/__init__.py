@@ -1,3 +1,4 @@
+
 #################################################################################
 # Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
@@ -31,11 +32,4 @@
 
 
 
-class QATPT2EModule():
-    def __init__(self, *args, backend='qnnpack', is_qat=True, **kwargs):
-        raise NotImplementedError("QATPT2E Quantization is not supported yet")
-
-
-class PTQPT2EModule():
-    def __init__(self, *args, backend='qnnpack', is_qat=False, **kwargs):
-        raise NotImplementedError("QATPT2E Quantization is not supported yet")
+from .quant_pt2e_module import QATPT2EModule, PTQPT2EModule

@@ -43,10 +43,7 @@ import types
 from torch.onnx import register_custom_op_symbolic
 import copy
 
-
-from ..... import xnn
-
-from ....surgery.v2 import custom_surgery_functions, replace_unsupported_layers
+from .... import xnn
 
 from ...surgery.v2 import custom_surgery_functions, replace_unsupported_layers
 
@@ -68,8 +65,8 @@ class ModelQuantFormat:
 
 
 def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qnnpack",
-                 total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
-                 qconfig_mode=qconfig_types.QConfigMode.DEFAULT, add_methods=True, **kwargs):
+            total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
+            qconfig_mode=qconfig_types.QConfigMode.DEFAULT, add_methods=True, **kwargs):
 
     if hasattr(model, '__quant_params__'):
         print('IGNORED: quant init called on a model that was already quantized')
@@ -77,7 +74,10 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
     #
 
     if not total_epochs:
-        raise RuntimeError("total_epochs must be provided")
+        if not is_qat:
+            total_epochs = 2
+        else:
+            raise RuntimeError("total_epochs must be provided")
     #
     
     if has_timm:
@@ -116,6 +116,7 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
     if is_qat:
         model = quantize_fx.prepare_qat_fx(model, qconfig_mapping, example_inputs)
     else:
+        model.eval()
         model = quantize_fx.prepare_fx(model, qconfig_mapping, example_inputs)
     #
 
@@ -128,13 +129,16 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
     model.__quant_params__.num_observer_update_epochs = num_observer_update_epochs
     model.__quant_params__.num_epochs_tracked = 0
     model.__quant_params__.total_epochs = total_epochs
+    model.__quant_params__.outlier_hooks = []
+    model.__quant_params__.bias_hooks = []
+    model.__quant_params__.bias_calibration_factor = kwargs.get("bias_calibration_factor", 0)
 
     # related to adaptive quantization
     model.__quant_params__.qconfig_mode = qconfig_types.QConfigMode(qconfig_mode)
     model.__quant_params__.forzen_layer_names_list = []
 
     model = qconfig_types.adjust_matmul_inputs_qconfig(model)
-    model = qconfig_types.adjust_fc_outlier_supression(model)
+    # model = qconfig_types.adjust_fc_outlier_supression_deprecated(model)
     model = qconfig_types.adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type)
 
     if add_methods:
@@ -146,10 +150,23 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
         model.unfreeze = types.MethodType(unfreeze, model)
         model.convert = types.MethodType(convert, model)
         model.export = types.MethodType(export, model)
-    #
+    #    
     return model
 
 
+def insert_all_hooks(model):
+    model.__quant_params__.bias_hooks += quant_fx_utils.add_bias_calibration_hook(model, \
+            calibration_factor = model.__quant_params__.bias_calibration_factor)
+    return model
+
+
+def remove_hooks(hooks):
+    for hook_handle in hooks:
+        hook_handle.remove()
+    hooks = []
+    return hooks
+    
+    
 def freeze(self, freeze_bn=True, freeze_observers=True):
     if freeze_observers is True:
         self.apply(torch.ao.quantization.disable_observer)
@@ -160,7 +177,7 @@ def freeze(self, freeze_bn=True, freeze_observers=True):
         self.apply(torch.nn.intrinsic.qat.freeze_bn_stats)
     elif freeze_bn is False:
         self.apply(torch.nn.intrinsic.qat.update_bn_stats)
-    #
+    #        
     return self
 
 
@@ -173,7 +190,8 @@ def forward(self, *input, **kwargs):
     return self(*input, **kwargs)
 
 
-def convert(self, device='cpu', model_quant_format=None, convert_custom_config=None, backend_config=None):
+def convert(self, device='cpu', model_quant_format=None, convert_custom_config=None, backend_config=None):          
+    self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)
     freeze(self)
     # convert requires cpu model
     self.to(torch.device(device))
@@ -195,7 +213,10 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
         symbolic_fn=quant_fx_utils.quantized_softmax, 
         opset_version=17)
     
+    # Through this, the quant_params will be passed, and if updated, will update in self as well
+    orig_quant_params = copy.deepcopy(self.__quant_params__)
     model = copy.deepcopy(self)
+    setattr(model, "__quant_params__", orig_quant_params)
     model = convert(model)
     if model_quant_format == ModelQuantFormat.INT_MODEL:
         # # Convert QDQ format to Int8 format
@@ -228,6 +249,7 @@ def train(self, mode: bool = True):
         self.__train_backup__(mode=mode)
     # also freeze the params if required
     if mode is True:
+        self = insert_all_hooks(self)
         # set the default epoch at which freeze occurs during training (if missing)
         num_batch_norm_update_epochs = self.__quant_params__.num_batch_norm_update_epochs or ((self.__quant_params__.total_epochs//2)-1)
         num_observer_update_epochs = self.__quant_params__.num_observer_update_epochs or ((self.__quant_params__.total_epochs//2)+1)
@@ -240,6 +262,7 @@ def train(self, mode: bool = True):
             xnn.utils.print_once('Freezing ranges for subsequent epochs')
         #
         freeze(self, freeze_bn=freeze_bn, freeze_observers=freeze_observers)
+            
         quant_fx_utils.adjust_gradual_quantization(self)
         self.__quant_params__.num_epochs_tracked += 1
     else:

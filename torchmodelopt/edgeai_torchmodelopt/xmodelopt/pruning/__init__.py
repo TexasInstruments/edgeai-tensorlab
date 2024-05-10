@@ -29,8 +29,9 @@
 #
 #################################################################################
 
-from . import fx
-from . import pt2e
+from . import v2
+from . import v3
+
 
 class PruningVersion():
     NO_PRUNING = 0

@@ -40,10 +40,10 @@ import torch.ao.quantization
 import torch.ao.quantization.quantize_fx
 from torch.ao.quantization.qconfig_mapping import _get_default_qconfig_mapping_with_default_qconfig
 
-from ..... import xnn
+from .... import xnn
 
 from . import observer_types
-from . import fake_quanitze_types
+from . import fake_quantize_types
 
 
 
@@ -134,8 +134,8 @@ def get_qconfig_from_dict(qconfig_dict):
     # custom qconfig_type parameters are given in a dict
     weight_observer = get_weight_observer_from_dict(qconfig_dict['weight']) if isinstance(qconfig_dict['weight'], dict) else qconfig_dict['weight']
     activation_observer = get_activation_observer_from_dict(qconfig_dict['activation']) if isinstance(qconfig_dict['activation'], dict) else qconfig_dict['activation']
-    qconfig_obj = QConfig(weight=fake_quanitze_types.AdaptiveWeightFakeQuantize.with_args(observer=weight_observer),
-                          activation=fake_quanitze_types.AdaptiveActivationFakeQuantize.with_args(observer=activation_observer))
+    qconfig_obj = QConfig(weight=fake_quantize_types.AdaptiveWeightFakeQuantize.with_args(observer=weight_observer),
+                          activation=fake_quantize_types.AdaptiveActivationFakeQuantize.with_args(observer=activation_observer))
     return qconfig_obj
 
 
@@ -212,10 +212,10 @@ def get_qconfig_mapping(is_qat, backend, qconfig_type=None):
 
 
 def _apply_qconfig(pmodule, cmodule, cname, qconfig_aux, current_device):
-    if isinstance(cmodule, fake_quanitze_types.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES):
+    if isinstance(cmodule, fake_quantize_types.ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES):
         setattr(pmodule, cname, qconfig_aux.weight().to(current_device))
     #
-    elif isinstance(cmodule, fake_quanitze_types.ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES):
+    elif isinstance(cmodule, fake_quantize_types.ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES):
         setattr(pmodule, cname, qconfig_aux.activation().to(current_device))
     #
 
@@ -233,7 +233,7 @@ def adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type):
     output_linear_module = None
     depthwise_conv_module = None
     for pname, pmodule in list(model.named_modules()):
-        if not input_fake_quant_module and isinstance(pmodule, fake_quanitze_types.AdaptiveActivationFakeQuantize):
+        if not input_fake_quant_module and isinstance(pmodule, fake_quantize_types.AdaptiveActivationFakeQuantize):
             # input activation_module
             input_fake_quant_module = pmodule
         if not input_conv_module and isinstance(pmodule, torch.nn.Conv2d) and pmodule.in_channels < 8:
@@ -283,50 +283,6 @@ def adjust_matmul_inputs_qconfig(model):
                     f.activation_post_process.symmetric = True
                     setattr(model, str(node), f)  
                 #
-            #
-        #
-    #
-    return model
-
-    
-def is_mlp_fc2_layer(all_modules, node, find_level, found_gelu=False):
-    if find_level<0:
-        return False
-    elif node.target in all_modules:
-        if isinstance(all_modules[node.target], nn.Linear):
-            if found_gelu: 
-                return True
-            else: 
-                # found linear before the gelu layer
-                return False
-            #
-        #
-        elif isinstance(all_modules[node.target], nn.GELU):
-            found_gelu = True
-        #
-    #
-    return is_mlp_fc2_layer(all_modules, node.args[0], find_level-1, found_gelu)
-    
-
-def adjust_fc_outlier_supression(model):
-    # changing the observer of the second fc layer in each mlp to outlier removal observer
-    all_modules = dict(model.named_modules())
-    for node in model.graph.nodes:
-        if (node.target in all_modules) and isinstance(all_modules[node.target], nn.Linear):
-            if is_mlp_fc2_layer(all_modules, node.args[0], 6):
-                new_activation_observer = xnn.utils.partialclass(observer_types.AdaptiveOutlierRemovalActivationObserver,
-                    quant_min=all_modules[node.next.target].activation_post_process.quant_min,
-                    quant_max=all_modules[node.next.target].activation_post_process.quant_max,
-                    dtype=all_modules[node.next.target].activation_post_process.dtype,
-                    qscheme=all_modules[node.next.target].activation_post_process.qscheme,
-                    power2_scale=all_modules[node.next.target].activation_post_process.power2_scale,
-                    range_max=all_modules[node.next.target].activation_post_process.range_max,
-                    fixed_range=all_modules[node.next.target].activation_post_process.fixed_range,
-                    class_name='OutlierRemoval' + all_modules[node.next.target].activation_post_process._get_name(),
-                    range_shrink_percentile=all_modules[node.next.target].activation_post_process.range_shrink_percentile)   
-                orig_fake_quantize = getattr(model, str(node.next))
-                new_fake_quantize = fake_quanitze_types.AdaptiveActivationFakeQuantize.with_args(observer=new_activation_observer)
-                setattr(model, str(node.next), new_fake_quantize().to(orig_fake_quantize.zero_point.device))
             #
         #
     #

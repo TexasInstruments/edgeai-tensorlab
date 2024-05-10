@@ -37,6 +37,7 @@ class QuantizationVersion():
     NO_QUANTIZATION = 0
     QUANTIZATION_V1 = QUANTIZATION_LEGACY = 1
     QUANTIZATION_V2 = QUANTIZATION_FX = 2
+    QUANTIZATION_V3 = QUANTIZATION_PT2E = 3
 
     @classmethod
     def get_dict(cls):

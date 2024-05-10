@@ -68,13 +68,25 @@ _unsupported_module_dict={
     nn.Hardsigmoid():nn.ReLU(),
     nn.LeakyReLU():nn.ReLU(),
     nn.Dropout(inplace=True):nn.Dropout(),
-    custom_modules.Focus():custom_modules.ConvBNRModule(3,12,(5,5),(2,2),2), # will only effective if focus appears jus after the input
+    # custom_modules.Focus():custom_modules.ConvBNRModule(3,12,(5,5),(2,2),2), # will only effective if focus appears jus after the input
+    custom_modules.Focus():custom_modules.OptimizedFocus(), # will only effective if focus appears jus after the input
     # 'layerNorm':custom_surgery_functions.replace_layer_norm, # not effective if len(input.shape) != 4 till date
     'upsample':custom_surgery_functions.replace_resize_with_scale_factor, # for segmentation model -> deeplabv3
     'maxpool_ge_5':custom_surgery_functions.replace_maxpool2d_kernel_size_ge_5, # for segmentation model -> deeplabv3
     'avgpool_ge_5':custom_surgery_functions.replace_avgpool2d_kernel_size_ge_5,
     'conv_ge_7':custom_surgery_functions.replace_conv2d_kernel_size_gt_7,
     'conv_6':custom_surgery_functions.replace_conv2d_kernel_size_6,
+}
+
+
+_unsupported_module_dict_no_retrain={
+    nn.ReLU(inplace=True):nn.ReLU(),
+    nn.ReLU():nn.ReLU(), # check if it might be required for QAT, if ranges are different #TODO
+    nn.Dropout(inplace=True):nn.Dropout(),
+    custom_modules.Focus():custom_modules.OptimizedFocus(), # will only effective if focus appears jus after the input
+    'upsample':custom_surgery_functions.replace_resize_with_scale_factor, # for segmentation model -> deeplabv3
+    'maxpool_ge_5':custom_surgery_functions.replace_maxpool2d_kernel_size_ge_5, # for segmentation model -> deeplabv3
+    'avgpool_ge_5':custom_surgery_functions.replace_avgpool2d_kernel_size_ge_5,   
 }
 
 
@@ -87,7 +99,7 @@ def _is_replacable(pattern:Union[GraphModule, nn.Module, callable]):
     return True
 
 
-def replace_unsupported_layers(model:nn.Module, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[], example_input=None, verbose_mode:bool=False):
+def replace_unsupported_layers(model:nn.Module, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[], example_input=None, can_retrain=True, verbose_mode:bool=False):
     '''
     main function that does the surgery
 
@@ -108,7 +120,11 @@ def replace_unsupported_layers(model:nn.Module, replacement_dict:Dict[Any,Union[
     else:
         is_train_mode = False
         
-    replacement_dict = replacement_dict or _unsupported_module_dict
+    if can_retrain:
+        replacement_dict = replacement_dict or _unsupported_module_dict
+    else:
+        replacement_dict = replacement_dict or _unsupported_module_dict_no_retrain
+        
     model = deepcopy(model)
 
     for pattern, replacement in replacement_dict.items():
