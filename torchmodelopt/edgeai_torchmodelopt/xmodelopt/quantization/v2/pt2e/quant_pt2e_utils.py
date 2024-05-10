@@ -29,26 +29,21 @@
 #
 #################################################################################
 
-import os
-import copy
 import torch
-from torch.ao.quantization import quantize_fx
-from torch.ao.quantization import QConfigMapping
-from torch.ao.quantization import FakeQuantize
 import statistics
-from functools import partial
-from torch.onnx import symbolic_helper
+from torch.onnx import symbolic_helper, register_custom_op_symbolic
 from torch.onnx._internal import jit_utils
 from torch import nn
+from torch import fx
 
-from ..... import xnn
-
-from . import observer_types
 from . import fake_quantize_types
 from . import qconfig_types
-
+import warnings
 
 def adjust_gradual_quantization(self):
+    warnings.warn("Adjust Gradual Quantization is not implemented")
+    return
+    
     '''
     adjust quantization parameters on epoch basis
     '''
@@ -150,17 +145,17 @@ def adaptive_freeze_layers(self, fake_quant_types, **kwargs):
     #
 
 
-def quantized_softmax(g: jit_utils.GraphContext, x, dim, op_scale, op_zero_point):
-    x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
-    output = g.op("Softmax", x)
-    return symbolic_helper.quantize_helper(g, output, op_scale, op_zero_point)
+# def quantized_softmax(g: jit_utils.GraphContext, x, dim, op_scale, op_zero_point):
+#     x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
+#     output = g.op("Softmax", x)
+#     return symbolic_helper.quantize_helper(g, output, op_scale, op_zero_point)
 
 
-def quantized_matmul(g: jit_utils.GraphContext, x, y, op_scale, op_zero_point):
-    x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
-    y, _, _, _ = symbolic_helper.dequantize_helper(g, y)
-    output = g.op("MatMul", x, y)
-    return symbolic_helper.quantize_helper(g, output, op_scale, op_zero_point)
+# def quantized_matmul(g: jit_utils.GraphContext, x, y, op_scale, op_zero_point):
+#     x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
+#     y, _, _, _ = symbolic_helper.dequantize_helper(g, y)
+#     output = g.op("MatMul", x, y)
+#     return symbolic_helper.quantize_helper(g, output, op_scale, op_zero_point)
 
 
 @torch.fx.wrap
@@ -206,7 +201,7 @@ class QuantAttention(nn.Module):
         q, k, v = qkv.unbind(0)
         q, k = self.q_norm(q), self.k_norm(k)
 
-        q = torch.mul(q, torch.tensor([self.scale]*self.head_dim))
+        q = torch.mul(q, torch.tensor(self.scale))
         attn = torch.matmul(q, k.transpose(-2, -1))
         if self.relative_position_bias_table is not None:
             attn = attn + _get_rel_pos_bias(self.relative_position_bias_table, self.relative_position_index, self.window_area)
@@ -223,7 +218,7 @@ class QuantAttention(nn.Module):
 @torch.fx.wrap
 def LayerNormWithoutGB(x, eps):
     mean = torch.mean(x, dim=-1, keepdim=True)
-    var = torch.pow(x - mean, 2).mean(dim=-1, keepdim=True)
+    var = torch.square(x - mean).mean(dim=-1, keepdim=True)
     return (x - mean) / torch.sqrt(var + eps)
 
 
@@ -241,60 +236,99 @@ class QuantLayerNorm(torch.nn.Module):
         y = torch.mul(y, self.weight)
         y = torch.add(y, self.bias)
         return y
+    
+    
+def register_onnx_symbolics():
 
+    def aten_softmax(g: jit_utils.GraphContext, x, *args):
+        output = g.op("Softmax", x)
+        return output
 
-def is_mlp_fc2_layer(all_modules, node, find_level, found_gelu=False):
-    if find_level<0:
-        return False
-    elif node.target in all_modules:
-        if isinstance(all_modules[node.target], nn.Linear):
-            if found_gelu: 
-                return True
-            else: 
-                # found linear before the gelu layer
-                return False
-            #
-        #
-        elif isinstance(all_modules[node.target], nn.GELU):
-            found_gelu = True
-        #
-    #
-    return is_mlp_fc2_layer(all_modules, node.args[0], find_level-1, found_gelu)
+    def aten_unsafe_view(g, x, dim, *args):
+        output = g.op("Reshape", x, dim)
+        return output
+        
+    def quantized_decomposed_quantize(g, x, op_scale, op_zero_point, *args):
+        # Tensor input, float scale, int zero_point, int quant_min, int quant_max, ScalarType dtype, *, ScalarType? out_dtype=None
+        # x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
+        # return x
+        return symbolic_helper.quantize_helper(g, x, op_scale, op_zero_point)
 
+    def quantized_decomposed_dequantize(g, x, op_scale, op_zero_point, *args):
+        # Tensor input, float scale, int zero_point, int quant_min, int quant_max, ScalarType dtype, *, ScalarType? out_dtype=None
+        x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
+        return x
 
-def _bias_calibration_hook(m, x, y, calibration_factor, bias_module):
-    bias_error = 0
-    if isinstance(x, tuple):
-        x = x[0]
-    if len(x.shape) == 3:
-        float_mean = x.mean(dim=(0,1))
-        quant_mean = y.mean(dim=(0,1))
-        bias_error = float_mean - quant_mean 
-    elif len(x.shape) == 4:
-        if x.shape[1] == bias_module.bias.shape[0]:
-            float_mean = x.mean(dim=(0,2,3))
-            quant_mean = y.mean(dim=(0,2,3)) 
-            bias_error = float_mean - quant_mean                                          
-        elif x.shape[3] == bias_module.bias.shape[0]:
-            float_mean = x.mean(dim=(0,1,2))    
-            quant_mean = y.mean(dim=(0,1,2))  
-            bias_error = float_mean - quant_mean 
-    bias_module.bias.data += (bias_error * calibration_factor)
-    return y
+    def quantized_decomposed_quantize_channel(g, x, op_scale, op_zero_point, axis, *args):
+        # Tensor input, Tensor scales, Tensor zero_points, int axis, int quant_min, int quant_max, ScalarType dtype, *, Tensor(a!) out) -> Tensor(a!)
+        # x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
+        # return x
+        return symbolic_helper.quantize_helper(g, x, op_scale, op_zero_point, axis)
 
+    register_custom_op_symbolic(
+        symbolic_name='aten::_softmax', 
+        symbolic_fn=aten_softmax, 
+        opset_version=17)
+    
+    register_custom_op_symbolic(
+        symbolic_name='aten::_unsafe_view', 
+        symbolic_fn=aten_unsafe_view, 
+        opset_version=17)
 
-def add_bias_calibration_hook(model, calibration_factor=0):
-    all_modules = dict(model.named_modules())
-    all_hooks = []
+    register_custom_op_symbolic(
+        symbolic_name='quantized_decomposed::quantize_per_tensor', 
+        symbolic_fn=quantized_decomposed_quantize, 
+        opset_version=17)
+
+    register_custom_op_symbolic(
+        symbolic_name='quantized_decomposed::dequantize_per_tensor', 
+        symbolic_fn=quantized_decomposed_dequantize, 
+        opset_version=17)
+
+    register_custom_op_symbolic(
+        symbolic_name='quantized_decomposed::quantize_per_channel', 
+        symbolic_fn=quantized_decomposed_quantize_channel, 
+        opset_version=17)
+
+    register_custom_op_symbolic(
+        symbolic_name='quantized_decomposed::dequantize_per_channel', 
+        symbolic_fn=quantized_decomposed_dequantize, 
+        opset_version=17)
+    
+    
+def remove_loss_branch(model): 
+    # loss branch exists in the model definition, as well as we are supporting it for model training, however, 
+    # the branch needs to be removed for onnx export, replacing the branch with identity
     for node in model.graph.nodes:
-        if (node.prev.target in all_modules) and (node.target in all_modules):
-            bias_module = all_modules[node.prev.target]
-            if getattr(bias_module, 'bias', None) is None and hasattr(bias_module, 'bn'):
-                bias_module = bias_module.bn
-            if getattr(bias_module, 'bias', None) is not None:
-                fake_quantize_module = all_modules[node.target]
-                _bias_calibration_hook_binded = partial(_bias_calibration_hook, \
-                    calibration_factor=calibration_factor, bias_module=bias_module)
-                this_hook = fake_quantize_module.register_forward_hook(_bias_calibration_hook_binded)
-                all_hooks.append(this_hook)
-    return all_hooks
+        if node.target=='output' and len(node.args[0])>1:
+            # output node has more than one input branches
+            assert ('dequantize' in node.args[0][0].name) or ('dequantize' in node.args[0][1].name), \
+                print("dequantize does not exist in the output branch, there could be some error") 
+            fc_out_node = node.args[0][0] if ('dequantize' in node.args[0][0].name) else node.args[0][1]
+            loss_end_node = node.args[0][0] if ('dequantize' not in node.args[0][0].name) else node.args[0][1]
+            # assumption that the output of the network(logits) would be quantized
+            loss_node = next((user for user in fc_out_node.users if user.name!='output'), None)
+            new_node = nn.Identity()
+            new_node_name = 'replaced_loss'
+            model.add_module(new_node_name, new_node)
+            with model.graph.inserting_before(loss_node):
+                args = []
+                for arg in loss_node.args:
+                    if type(arg) == fx.Node:
+                        if arg.op != "get_attr":
+                            args.append(arg)
+                new_node = model.graph.call_module(new_node_name, tuple(args),{})
+                ptr = loss_node
+                while ptr != loss_end_node:
+                    ptr.replace_all_uses_with(new_node)
+                    temp=ptr.next
+                    model.graph.erase_node(ptr)
+                    ptr=temp
+                
+                ptr.replace_all_uses_with(new_node)
+                model.graph.erase_node(loss_end_node)
+    
+    model.graph.lint()
+    model.recompile()
+    
+    return model

@@ -1,4 +1,3 @@
-
 #################################################################################
 # Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
@@ -30,11 +29,42 @@
 #
 #################################################################################
 
-from .observer_types import *
-from .fake_quantize_types import *
-from .qconfig_types import *
-from .quant_fx_base import *
-from .quant_fx_module import *
-from .quant_fx_utils import *
+import torch
+import torch.nn as nn
+from . import quant_pt2e_func
 
-from . import quant_fx_func
+
+class QuantPT2EBaseModule(nn.Module):
+    def __init__(self, model, *args, quantizer=None, **kwargs):
+        '''
+        model: input model to be used for inserting quantization
+        '''
+        super().__init__()
+        self.module = quant_pt2e_func.init(model, quantizer=quantizer, *args, **kwargs)
+        
+    def load_weights(self, *args, **kwargs):
+        quant_pt2e_func.load_weights(self.module, *args, **kwargs)
+
+    def train(self, *args, **kwargs):
+        return quant_pt2e_func.train(self.module, *args, **kwargs)
+    
+    def calibrate(self, *args, **kwargs):
+        return quant_pt2e_func.calibrate(self.module, *args, **kwargs)
+
+    def freeze(self, *args, **kwargs):
+        return quant_pt2e_func.freeze(self.module, *args, **kwargs)
+
+    def unfreeze(self, *args, **kwargs):
+        return quant_pt2e_func.unfreeze(self.module, *args, **kwargs)
+
+    def forward(self, *args, **kwargs):
+        return self.module(*args, **kwargs)
+
+    def convert(self, *args, **kwargs):
+        return quant_pt2e_func.convert(self.module, *args, **kwargs)
+
+    def export(self, *args, **kwargs):
+        return quant_pt2e_func.export(self.module, *args, **kwargs)
+        
+            
+    
