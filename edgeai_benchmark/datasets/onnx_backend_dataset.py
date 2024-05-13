@@ -19,6 +19,7 @@ class ONNXBackendDataset(DatasetBase):
             folder should include model.onnx
             subfolder test_data_set_0 should include inputs and outputs
         '''
+        super().__init__(**kwargs)
         self.path = path
 
         test_data_set_0 = os.path.join(path, "test_data_set_0")
@@ -26,6 +27,9 @@ class ONNXBackendDataset(DatasetBase):
         
         self.inputs           = {}
         self.expected_outputs = {}
+        in_counter     = 0
+        out_counter    = 0
+        onnx_model     = onnx.load(os.path.join(path,"model.onnx"))
         for fname in os.listdir(test_data_set_0):
             fpath = os.path.join(test_data_set_0, fname)
             assert os.path.splitext(fpath)[1] == ".pb", " non protobuf file found"
@@ -33,15 +37,21 @@ class ONNXBackendDataset(DatasetBase):
             file_bytes               = open(fpath, mode = 'rb').read()
             tensor                   = TensorProto.FromString(file_bytes)
             np_array                 = numpy_helper.to_array((tensor))
-            tensor_name              = tensor.name if tensor.name is not "" else "0"
-            if("input_" in fname):
+            tensor_name              = tensor.name 
+            
+            if("input_" in fname): 
+                if(tensor_name == ""):
+                    tensor_name = onnx_model.graph.input[in_counter].name
+
                 self.inputs[tensor_name] = np_array
+                in_counter += 1
             else:
                 assert "output_" in fname
-                self.expected_outputs[tensor_name] = np_array
+                if(tensor_name == ""):
+                    tensor_name = onnx_model.graph.output[in_counter].name
 
-        super().__init__(**kwargs)
-        ...
+                self.expected_outputs[tensor_name] = np_array
+                out_counter += 1
         
 
     def __getitem__(self, idx, **kwargs):
