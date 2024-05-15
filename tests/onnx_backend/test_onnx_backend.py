@@ -1,11 +1,9 @@
 import os
-import tempfile
-import argparse
-import cv2
 from edgeai_benchmark import *
 import pytest
 import onnx
-from .backend_test_known_results import cpu_failing_node_tests, compilation_failing_node_tests, inference_failing_node_tests
+from .backend_test_known_results import expected_fails
+from multiprocessing import Process
 
 '''
 Pytest file for ONNX Backend tests
@@ -14,8 +12,8 @@ Note: Pass in --run-infer to pytest command in order to run inference (default i
 '''
 
 import logging
-
 logger = logging.getLogger(__name__)
+logger.setLevel("INFO")
 
 # TODO: Maybe integrate within ONNX's formal backend test framework using Backend class
 # TODO: Add onnx backend full model tests
@@ -55,77 +53,134 @@ def tidl_offload(pytestconfig):
 def run_infer(pytestconfig):
     return pytestconfig.getoption("run_infer")
 
+@pytest.fixture(scope="session")
+def no_subprocess(pytestconfig):
+    return pytestconfig.getoption("no_subprocess")
 
-node_tests_to_run   = os.listdir(node_tests_root)
-simple_tests_to_run = os.listdir(simple_tests_root)
-pc_tests_to_run     = os.listdir(pc_tests_root)
-po_tests_to_run     = os.listdir(po_tests_root)
+def retrieve_tests(root_dir):
+    all_tests = os.listdir(root_dir)
+    tests_with_expected_fails_marked = [pytest.param(test, marks=pytest.mark.xfail) if test in expected_fails else test for test in all_tests]
+    return tests_with_expected_fails_marked
+
+node_tests_to_run   = retrieve_tests(node_tests_root)
+simple_tests_to_run = retrieve_tests(simple_tests_root)
+pc_tests_to_run     = retrieve_tests(pc_tests_root)
+po_tests_to_run     = retrieve_tests(po_tests_root)
 
 
 # Test onnx node test
 @pytest.mark.timeout(method="thread") # Needed to properly terminate test that are hanging
 @pytest.mark.parametrize("test_name", node_tests_to_run)
-def test_onnx_backend_node(tidl_offload : bool, run_infer : bool, node_tests_root_fixture : str, test_name : str):
+def test_onnx_backend_node(no_subprocess : bool, tidl_offload : bool, run_infer : bool, node_tests_root_fixture : str, test_name : str):
     '''
     Pytest for onnx backend node tests using the edgeai-benchmark framework
     Note command-line options --disable-tidl-offload (disable offload to TIDL) and --run-infer (default is import, this enables inference after import)
     Example of running a single test: test_onnx_backend.py::test_onnx_backend_node[test_conv_with_strides_no_padding] --disable-tidl-offload
     '''
 
-    # Skip tests that fail with CPU mode
-    if(test_name in cpu_failing_node_tests):
-        pytest.skip()
-
-    test_dir = os.path.join(node_tests_root_fixture, test_name)
-    test_onnx_backend(tidl_offload = tidl_offload, 
-                      run_infer    = run_infer, 
-                      test_dir     = test_dir)
+    perform_onnx_backend(no_subprocess=no_subprocess,
+                        tidl_offload    = tidl_offload, 
+                        run_infer       = run_infer, 
+                        test_name       = test_name,
+                        testdir_parent  = node_tests_root_fixture)
+    
 
 
 # Test onnx simple test
 @pytest.mark.parametrize("test_name", simple_tests_to_run)
-def test_onnx_backend_simple(tidl_offload : bool, run_infer : bool, simple_tests_root_fixture : str, test_name : str):
+def test_onnx_backend_simple(no_subprocess : bool, tidl_offload : bool, run_infer : bool, simple_tests_root_fixture : str, test_name : str):
     '''
     Pytest for onnx backend node tests using the edgeai-benchmark framework
     Note command-line options --disable-tidl-offload (disable offload to TIDL) and --run-infer (default is import, this enables inference after import)
     Example of running a single test: test_onnx_backend.py::test_onnx_backend_simple[test_expand_shape_model1] --disable-tidl-offload
     '''
-    test_dir = os.path.join(simple_tests_root_fixture, test_name)
-    test_onnx_backend(tidl_offload = tidl_offload, 
-                      run_infer    = run_infer, 
-                      test_dir     = test_dir)
+
+    perform_onnx_backend(no_subprocess  = no_subprocess,
+                         tidl_offload    = tidl_offload, 
+                         run_infer       = run_infer, 
+                         test_name       = test_name,
+                         testdir_parent  = simple_tests_root_fixture)
     
 
 # Test onnx pytorch-converted test
 @pytest.mark.parametrize("test_name", pc_tests_to_run)
-def test_onnx_backend_pc(tidl_offload : bool, run_infer : bool, pc_tests_root_fixture : str, test_name : str):
+def test_onnx_backend_pc(no_subprocess : bool, tidl_offload : bool, run_infer : bool, pc_tests_root_fixture : str, test_name : str):
     '''
     Pytest for onnx backend node tests using the edgeai-benchmark framework
     Note command-line options --disable-tidl-offload (disable offload to TIDL) and --run-infer (default is import, this enables inference after import)
     Example of running a single test: test_onnx_backend.py::test_onnx_backend_pc[test_AvgPool1d] --disable-tidl-offload
     '''
-    test_dir = os.path.join(pc_tests_root_fixture, test_name)
-    test_onnx_backend(tidl_offload = tidl_offload, 
-                      run_infer    = run_infer, 
-                      test_dir     = test_dir)
+
+    perform_onnx_backend(no_subprocess  = no_subprocess,
+                         tidl_offload    = tidl_offload, 
+                         run_infer       = run_infer, 
+                         test_name       = test_name,
+                         testdir_parent  = pc_tests_root_fixture)
+    
 
 # Test onnx pytorch-operator test
 @pytest.mark.parametrize("test_name", po_tests_to_run)
-def test_onnx_backend_po(tidl_offload : bool, run_infer : bool, po_tests_root_fixture : str, test_name : str):
+def test_onnx_backend_po(no_subprocess : bool, tidl_offload : bool, run_infer : bool, po_tests_root_fixture : str, test_name : str):
     '''
     Pytest for onnx backend node tests using the edgeai-benchmark framework
     Note command-line options --disable-tidl-offload (disable offload to TIDL) and --run-infer (default is import, this enables inference after import)
     Example of running a single test: test_onnx_backend.py::test_onnx_backend_po[test_operator_add_broadcast] --disable-tidl-offload
     '''
-    test_dir = os.path.join(po_tests_root_fixture, test_name)
-    test_onnx_backend(tidl_offload = tidl_offload, 
-                      run_infer    = run_infer, 
-                      test_dir     = test_dir)
 
+    perform_onnx_backend(no_subprocess  = no_subprocess,
+                         tidl_offload    = tidl_offload, 
+                         run_infer       = run_infer, 
+                         test_name       = test_name,
+                         testdir_parent  = po_tests_root_fixture)
+
+def perform_onnx_backend(no_subprocess : bool, tidl_offload : bool, run_infer : bool, testdir_parent : str, test_name : str):
+    '''
+    Performs an onnx backend test
+    '''
+    
+    if(no_subprocess):
+        perform_onnx_backend_oneprocess(tidl_offload    = tidl_offload, 
+                             run_infer       = run_infer, 
+                             test_name       = test_name,
+                             testdir_parent  = testdir_parent)
+    else:
+        perform_onnx_backend_subprocess(tidl_offload    = tidl_offload, 
+                             run_infer       = run_infer, 
+                             test_name       = test_name,
+                             testdir_parent  = testdir_parent)
+        
+
+
+def perform_onnx_backend_subprocess(tidl_offload : bool, run_infer : bool, test_name : str, testdir_parent : str):
+    '''
+    Perform an onnx backend test using a subprocess (in order to properly capture output for fatal errors)
+    Called by perform_onnx_backend
+    '''
+    
+    kwargs = {"tidl_offload"   : tidl_offload, 
+              "run_infer"      : run_infer, 
+              "test_name"      : test_name,
+              "testdir_parent" : testdir_parent}
+    p = Process(target=perform_onnx_backend_oneprocess, kwargs=kwargs)
+    p.start()
+    
+
+    # Note: This timeout parameter must be lower than the pytest-timeout parameter 
+    #       passed to the pytest command (on the command line or in pytest.ini)
+    p.join(timeout=14) 
+    if p.is_alive():
+        p.kill()
+
+    assert p.exitcode == 0, f"Received nonzero exit code: {p.exitcode}"
 
 # Utility function to perform onnx backend test
-def test_onnx_backend(tidl_offload : bool, run_infer : bool, test_dir : str):
-  
+def perform_onnx_backend_oneprocess(tidl_offload : bool, run_infer : bool, test_name : str, testdir_parent : str):
+    '''
+    Perform an onnx backend test using without a subprocess wrapper
+    Called by perform_onnx_backend_subprocess or directly by perform_onnx_backend if no_subprocess is specified
+    '''
+    test_dir = os.path.join(testdir_parent, test_name)
+
     # Check environment is set up correctly
     assert os.path.exists(test_dir), f"test path {test_dir} doesn't exist"
     assert os.environ.get('TIDL_RT_AVX_REF') is not None, "Make sure to source run_set_env.sh"
@@ -133,7 +188,8 @@ def test_onnx_backend(tidl_offload : bool, run_infer : bool, test_dir : str):
     assert os.path.exists(os.environ['ARM64_GCC_PATH'])
 
     # Declare config object
-    settings = config_settings.ConfigSettings('./onnx_backend.yaml', tidl_offload=tidl_offload)
+    cur_dir = os.path.dirname(__file__)
+    settings = config_settings.ConfigSettings(os.path.join(cur_dir,'onnx_backend.yaml'), tidl_offload=tidl_offload)
 
     # Declare ONNX Session
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
@@ -165,15 +221,22 @@ def test_onnx_backend(tidl_offload : bool, run_infer : bool, test_dir : str):
         settings.run_import    = False
         settings.run_inference = True
         results_list = interfaces.run_accuracy(settings, work_dir, pipeline_configs)
+        
+        assert len(results_list) > 0, " Results not found!!!! "
+        assert results_list[0].get("error") is None, " Internal OSRT/TIDL Error:\n {} ".format(results_list[0]["error"])
+
         logger.debug(results_list[0]['result'])
         
-        # TODO: Choose better threshold. 0.5 chosen for now to reveal worst offenders
-        assert results_list[0]['result']['max_nmse']<0.5, f" max_nmse of {results_list[0]['result']['max_nmse']} is too high"
+        threshold = settings.inference_nmse_thresholds.get(test_name) or settings.inference_nmse_thresholds.get("default")
+        if(results_list[0]['result']['max_nmse'] > threshold):
+            pytest.fail(f" max_nmse of {results_list[0]['result']['max_nmse']} is higher than threshold {threshold}")
     
     # Otherwise run import
     else:
         logger.debug("Importing")
-        interfaces.run_accuracy(settings, work_dir, pipeline_configs)
+        results_list = interfaces.run_accuracy(settings, work_dir, pipeline_configs)
+        assert len(results_list) > 0, " Results not found!!!! "
+        assert results_list[0].get("error") is None, " Internal OSRT/TIDL Error:\n {} ".format(results_list[0]["error"])
 
 
 
