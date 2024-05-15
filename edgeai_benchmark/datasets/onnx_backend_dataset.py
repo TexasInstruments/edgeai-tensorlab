@@ -50,7 +50,7 @@ class ONNXBackendDataset(DatasetBase):
             else:
                 assert "output_" in fname
                 if(tensor_name == ""):
-                    tensor_name = onnx_model.graph.output[in_counter].name
+                    tensor_name = onnx_model.graph.output[out_counter].name
 
                 self.expected_outputs[tensor_name] = np_array
                 out_counter += 1
