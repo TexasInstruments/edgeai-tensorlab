@@ -251,6 +251,7 @@ class ModelCompilation():
             print(edgeai_benchmark.utils.log_color('\nINFO', 'model import is in progress',
                                                    'please see the log file for status.'))
         #
+        self.settings.run_import = True
         self.settings.run_inference = False
         edgeai_benchmark.interfaces.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
         # run inference
@@ -259,6 +260,7 @@ class ModelCompilation():
             print(edgeai_benchmark.utils.log_color('\nINFO', 'model inference is in progress',
                                                    'please see the log file for status.'))
         #
+        self.settings.run_import = False
         self.settings.run_inference = True
         edgeai_benchmark.interfaces.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
 
