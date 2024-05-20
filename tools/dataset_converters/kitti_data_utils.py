@@ -79,8 +79,10 @@ def get_velodyne_path(idx,
                       training=True,
                       relative_path=True,
                       exist_check=True,
-                      use_prefix_id=False):
-    return get_kitti_info_path(idx, prefix, 'velodyne', '.bin', training,
+                      use_prefix_id=False,
+                      pts_prefix='velodyne',
+                      file_tail='.bin'):
+    return get_kitti_info_path(idx, prefix, pts_prefix, file_tail, training,
                                relative_path, exist_check, use_prefix_id)
 
 
@@ -173,7 +175,10 @@ def get_kitti_image_info(path,
                          extend_matrix=True,
                          num_worker=8,
                          relative_path=True,
-                         with_imageshape=True):
+                         with_imageshape=True,
+                         pts_prefix='velodyne',
+                         num_features=4,
+                         file_tail='.bin'):
     """
     KITTI annotation format version 2:
     {
@@ -208,14 +213,14 @@ def get_kitti_image_info(path,
 
     def map_func(idx):
         info = {}
-        pc_info = {'num_features': 4}
+        pc_info = {'num_features': num_features}
         calib_info = {}
 
         image_info = {'image_idx': idx}
         annotations = None
         if velodyne:
             pc_info['velodyne_path'] = get_velodyne_path(
-                idx, path, training, relative_path)
+                idx, path, training, relative_path, pts_prefix=pts_prefix, file_tail=file_tail)
         image_info['image_path'] = get_image_path(idx, path, training,
                                                   relative_path)
         if with_imageshape:

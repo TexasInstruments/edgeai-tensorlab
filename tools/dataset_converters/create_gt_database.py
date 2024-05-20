@@ -121,7 +121,8 @@ def create_groundtruth_database(dataset_class_name,
                                 lidar_only=False,
                                 bev_only=False,
                                 coors_range=None,
-                                with_mask=False):
+                                with_mask=False,
+                                use_color=True):
     """Given the raw data, generate the ground truth database.
 
     Args:
@@ -148,19 +149,28 @@ def create_groundtruth_database(dataset_class_name,
         type=dataset_class_name, data_root=data_path, ann_file=info_path)
     if dataset_class_name == 'KittiDataset':
         backend_args = None
+        if use_color == True:
+            load_dim= 8
+            use_dim = 8
+            pts_prefix = 'training/velodyne_painted'
+        else:
+            load_dim= 4
+            use_dim = 4
+            pts_prefix = 'training/velodyne_reduced'
+
         dataset_cfg.update(
             modality=dict(
                 use_lidar=True,
                 use_camera=with_mask,
             ),
             data_prefix=dict(
-                pts='training/velodyne_reduced', img='training/image_2'),
+                pts=pts_prefix, img='training/image_2'),
             pipeline=[
                 dict(
                     type='LoadPointsFromFile',
                     coord_type='LIDAR',
-                    load_dim=4,
-                    use_dim=4,
+                    load_dim=load_dim,
+                    use_dim=use_dim,
                     backend_args=backend_args),
                 dict(
                     type='LoadAnnotations3D',

@@ -82,9 +82,14 @@ class _NumPointsInGTCalculater:
             v_path = str(Path(self.data_path) / pc_info['velodyne_path'])
         else:
             v_path = pc_info['velodyne_path']
-        points_v = np.fromfile(
-            v_path, dtype=np.float32,
-            count=-1).reshape([-1, self.num_features])
+
+        if v_path.endswith('.npy'):
+            points_v = np.load(v_path)
+        else:
+            points_v = np.fromfile(v_path, dtype=np.float32)
+
+        points_v = points_v.reshape([-1, self.num_features])
+
         rect = calib['R0_rect']
         Trv2c = calib['Tr_velo_to_cam']
         P2 = calib['P2']
@@ -128,8 +133,13 @@ def _calculate_num_points_in_gt(data_path,
             v_path = str(Path(data_path) / pc_info['velodyne_path'])
         else:
             v_path = pc_info['velodyne_path']
-        points_v = np.fromfile(
-            v_path, dtype=np.float32, count=-1).reshape([-1, num_features])
+
+        if v_path.endswith('.npy'):
+            points_v = np.load(v_path)
+        else:
+            points_v = np.fromfile(v_path, dtype=np.float32)
+
+        points_v = points_v.reshape([-1, num_features])
         rect = calib['R0_rect']
         Trv2c = calib['Tr_velo_to_cam']
         P2 = calib['P2']
@@ -160,7 +170,10 @@ def create_kitti_info_file(data_path,
                            pkl_prefix='kitti',
                            with_plane=False,
                            save_path=None,
-                           relative_path=True):
+                           relative_path=True,
+                           pts_prefix='velodyne',
+                           num_features=4,
+                           file_tail='.bin'):
     """Create info file of KITTI dataset.
 
     Given the raw data, generate its related info file in pkl format.
@@ -193,8 +206,11 @@ def create_kitti_info_file(data_path,
         calib=True,
         with_plane=with_plane,
         image_ids=train_img_ids,
-        relative_path=relative_path)
-    _calculate_num_points_in_gt(data_path, kitti_infos_train, relative_path)
+        relative_path=relative_path,
+        pts_prefix=pts_prefix,
+        num_features=num_features,
+        file_tail=file_tail)
+    _calculate_num_points_in_gt(data_path, kitti_infos_train, relative_path, num_features=num_features)
     filename = save_path / f'{pkl_prefix}_infos_train.pkl'
     print(f'Kitti info train file is saved to {filename}')
     mmengine.dump(kitti_infos_train, filename)
@@ -205,8 +221,11 @@ def create_kitti_info_file(data_path,
         calib=True,
         with_plane=with_plane,
         image_ids=val_img_ids,
-        relative_path=relative_path)
-    _calculate_num_points_in_gt(data_path, kitti_infos_val, relative_path)
+        relative_path=relative_path,
+        pts_prefix=pts_prefix,
+        num_features=num_features,
+        file_tail=file_tail)
+    _calculate_num_points_in_gt(data_path, kitti_infos_val, relative_path, num_features=num_features)
     filename = save_path / f'{pkl_prefix}_infos_val.pkl'
     print(f'Kitti info val file is saved to {filename}')
     mmengine.dump(kitti_infos_val, filename)
@@ -222,7 +241,7 @@ def create_kitti_info_file(data_path,
         calib=True,
         with_plane=False,
         image_ids=test_img_ids,
-        relative_path=relative_path)
+        relative_path=relative_path) #TODO add pts_preifix, file_tailand num_features when test is executed with point painting
     filename = save_path / f'{pkl_prefix}_infos_test.pkl'
     print(f'Kitti info test file is saved to {filename}')
     mmengine.dump(kitti_infos_test, filename)
@@ -332,9 +351,13 @@ def _create_reduced_point_cloud(data_path,
 
         v_path = pc_info['velodyne_path']
         v_path = Path(data_path) / v_path
-        points_v = np.fromfile(
-            str(v_path), dtype=np.float32,
-            count=-1).reshape([-1, num_features])
+
+        if str(v_path).endswith('.npy'):
+            points_v = np.load(v_path)
+        else:
+            points_v = np.fromfile(v_path, dtype=np.float32)
+
+        points_v = points_v.reshape([-1, num_features])
         rect = calib['R0_rect']
         if front_camera_id == 2:
             P2 = calib['P2']
@@ -371,7 +394,8 @@ def create_reduced_point_cloud(data_path,
                                val_info_path=None,
                                test_info_path=None,
                                save_path=None,
-                               with_back=False):
+                               with_back=False,
+                               num_features=4):
     """Create reduced point clouds for training/validation/testing.
 
     Args:
@@ -396,11 +420,11 @@ def create_reduced_point_cloud(data_path,
         test_info_path = Path(data_path) / f'{pkl_prefix}_infos_test.pkl'
 
     print('create reduced point cloud for training set')
-    _create_reduced_point_cloud(data_path, train_info_path, save_path)
+    _create_reduced_point_cloud(data_path, train_info_path, save_path,num_features=num_features)
     print('create reduced point cloud for validation set')
-    _create_reduced_point_cloud(data_path, val_info_path, save_path)
+    _create_reduced_point_cloud(data_path, val_info_path, save_path,num_features=num_features)
     print('create reduced point cloud for testing set')
-    _create_reduced_point_cloud(data_path, test_info_path, save_path)
+    _create_reduced_point_cloud(data_path, test_info_path, save_path) #TODO need to add num_featuresif test is performed on painted data
     if with_back:
         _create_reduced_point_cloud(
             data_path, train_info_path, save_path, back=True)

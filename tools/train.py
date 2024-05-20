@@ -11,6 +11,11 @@ from mmengine.runner import Runner
 
 from mmdet3d.utils import replace_ceph_backend
 
+from mmengine.device import get_device
+
+import numpy as np
+import torch
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a 3D detector')
@@ -71,6 +76,7 @@ def main():
 
     # load config
     cfg = Config.fromfile(args.config)
+    cfg["device"] = get_device()
 
     # TODO: We will unify the ceph support approach with other OpenMMLab repos
     if args.ceph:
@@ -127,6 +133,33 @@ def main():
     elif args.resume is not None:
         cfg.resume = True
         cfg.load_from = args.resume
+
+    '''
+    #seeds are set inside mmdetection. Repeating here to control it properly
+    forced_deterministic = True
+    # setting --deterministic flag makes training deterministic, even on multiple GPU, multiple worker etc
+    # only upsample layer may create difference in run to run. This should be avoided and TrasCOnv instead should be used
+    # TIDL model usages upsample layer hence for TIDL model determinisrtic behaviour is not guranteeed.
+    # To avoid forgetting setting the flag --deterministic in training, it is set to deterministic by below setting of seeds.
+    if forced_deterministic:
+        import random
+        np.random.seed(seed)
+        random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        # When running on the CuDNN backend, two further options must be set
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+        # Set a fixed value for the hash seed
+        os.environ["PYTHONHASHSEED"] = str(seed)
+    '''
+
+    if hasattr(cfg,'save_onnx_model') is False:
+        cfg.save_onnx_model = False
+
+    if hasattr(cfg,'quantize') is False:
+        cfg.quantize = False
 
     # build the runner from config
     if 'runner_type' not in cfg:

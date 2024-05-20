@@ -132,6 +132,15 @@ def main():
         cfg.test_dataloader.dataset.pipeline = cfg.tta_pipeline
         cfg.model = ConfigDict(**cfg.tta_model, module=cfg.model)
 
+    if hasattr(cfg,'save_onnx_model') is False:
+        cfg.save_onnx_model = False
+
+    if hasattr(cfg,'quantize') is False:
+        cfg.quantize = False
+
+    if hasattr(cfg,'match_tidl_nms') is False:
+        cfg.match_tidl_nms = True
+
     # build the runner from config
     if 'runner_type' not in cfg:
         # build the default runner

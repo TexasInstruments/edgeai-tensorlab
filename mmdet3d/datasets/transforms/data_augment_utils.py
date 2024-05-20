@@ -304,7 +304,7 @@ def points_transform_(points, centers, point_masks, loc_transform,
             if valid_mask[j]:
                 if point_masks[i, j] == 1:
                     points[i, :3] -= centers[j, :3]
-                    points[i:i + 1, :3] = points[i:i + 1, :3] @ rot_mat_T[j]
+                    points[i:i + 1, :3] = points[i:i + 1, :3].copy() @ rot_mat_T[j]
                     points[i, :3] += centers[j, :3]
                     points[i, :3] += loc_transform[j]
                     break  # only apply first box's transform
