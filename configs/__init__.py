@@ -36,6 +36,7 @@ from . import classification
 from . import classification_v2
 from . import detection
 from . import detection_v2
+from . import detection_additional
 from . import face_detection
 from . import segmentation
 from . import human_pose_estimation
@@ -66,6 +67,12 @@ def get_configs(settings, work_dir):
     pipeline_configs.update(miscllaneous.get_configs(settings,work_dir))
 
     if settings.experimental_models:
+        from . import detection_additional
+        # now get the additional configs
+        pipeline_configs.update(detection_additional.get_configs(settings, work_dir))
+    #
+
+    if settings.experimental_models:
         from . import classification_experimental
         from . import detection_experimental
         from . import face_detection_experimental
@@ -82,6 +89,7 @@ def get_configs(settings, work_dir):
         pipeline_configs.update(detection_3d_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(stereo_disparity_experimental.get_configs(settings, work_dir))
     #
+
     return pipeline_configs
 
 

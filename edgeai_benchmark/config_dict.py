@@ -158,6 +158,8 @@ class ConfigDict(utils.AttrDict):
         self.verbose = False
         # capture_log mode - capture and redirect details logs to log file
         self.capture_log = False
+        # enable use of additional models - the actual model files may be in a different modelzoo repo (for example edgeai-modelzoo-cl)
+        self.additional_models = False
         # enable use of experimental models - the actual model files are not available in modelzoo
         self.experimental_models = False
         # rewrite results with latest params if the result exists
