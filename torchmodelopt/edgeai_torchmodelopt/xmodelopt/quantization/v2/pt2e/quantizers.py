@@ -67,6 +67,7 @@ def _mark_nodes_as_annotated(nodes: List[Node]):
                 node.meta["quantization_annotation"] = QuantizationAnnotation()
             node.meta["quantization_annotation"]._annotated = True
 
+
 def _is_annotated(nodes: List[Node]):
     annotated = False
     for node in nodes:
@@ -133,21 +134,25 @@ class TIDLRTQuantizer(Quantizer):
         return model
 
     def annotate_config(
-        self, model: torch.fx.GraphModule, config: QuantizationConfig
+        self, model: torch.fx.GraphModule, config: QuantizationConfig, allow_16bit_node_list: list = []
     ) -> torch.fx.GraphModule:
-        self._annotate_linear(model, config)
-        self._annotate_conv2d(model, config)
+        # allow_16bit_node_list :
+        # quantize the weight of that layer as well as the output to 16 bit, however, input is still 8 bit quantized
+        # further, the quantization also flows, which means, if the input is 16 bit, then weights will also be in 16 bit
+        # but the output will be in 8 bit
+        self._annotate_linear(model, config, allow_16bit_node_list)
+        self._annotate_conv2d(model, config, allow_16bit_node_list)
         self._annotate_maxpool2d(model, config)
         self._annotate_softmax(model, config)
         self._annotate_matmul(model, config)
         self._annotate_layernorm(model, config)
-        self._annotate_add(model, config)
         self._annotate_cat(model, config)
         self._annotate_mul(model, config)
+        self._annotate_add(model, config)
         return model
 
     def _annotate_conv2d(
-        self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
+        self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig, allow_16bit_node_list: list
     ) -> None:
         conv_partitions = get_source_partitions(
             gm.graph, [torch.nn.Conv2d, torch.nn.functional.conv2d]
@@ -214,7 +219,7 @@ class TIDLRTQuantizer(Quantizer):
             )
         
     def _annotate_linear(
-        self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
+        self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig, allow_16bit_node_list: list
     ) -> None:
         module_partitions = get_source_partitions(
             gm.graph, [torch.nn.Linear, torch.nn.functional.linear]
@@ -418,30 +423,26 @@ class TIDLRTQuantizer(Quantizer):
             # and need to modify its observer
             outlier_removal_act_qspec = qconfig_types.get_act_quantization_config(dict(
                 observer_or_fake_quant_ctr=AdaptiveOutlierRemovalActivationObserver)
-            )
+            )    
             
             input_qspec_map = {}
+            is_mlp_layer0 = False
+            is_mlp_layer1 = False
             
             input_act0 = add_node.args[0]
             if isinstance(input_act0, Node):
                 is_mlp_layer0, linear_node = is_mlp_add_layer(input_act0, 6)
-                if is_mlp_layer0:
-                    input_qspec_map[input_act0] = outlier_removal_act_qspec
-                    # incase of putting the outlier removal, we will have to change the observer for both the input of
-                    # add as well as the output of the fc layer feeding it 
-                    _annotate_output_qspec(linear_node.next, outlier_removal_act_qspec)
-                else:
-                    input_qspec_map[input_act0] = act_qspec
-            
+                
             input_act1 = add_node.args[1]
             if isinstance(input_act1, Node):
                 is_mlp_layer1, linear_node = is_mlp_add_layer(input_act1, 6)
-                if is_mlp_layer1:
-                    input_qspec_map[input_act1] = outlier_removal_act_qspec
-                    _annotate_output_qspec(linear_node.next, outlier_removal_act_qspec)
+                
+            if is_mlp_layer0 or is_mlp_layer1:
+                _annotate_output_qspec(linear_node.next, outlier_removal_act_qspec)
+                if is_mlp_layer0:
+                    input_qspec_map[input_act1] = act_qspec
                 else:
-                    input_qspec_map[input_act1] = act_qspec            
-
+                    input_qspec_map[input_act0] = act_qspec   
             
             add_node.meta["quantization_annotation"] = QuantizationAnnotation(  # type: ignore[union-attr]
                 input_qspec_map=input_qspec_map,
