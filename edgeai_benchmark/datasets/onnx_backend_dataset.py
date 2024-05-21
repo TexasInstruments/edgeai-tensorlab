@@ -84,9 +84,17 @@ class ONNXBackendDataset(DatasetBase):
             expected_output = self.expected_outputs.get(out_name)
             assert expected_output is not None, f" No expected output for output named {out_name}"
             
-            # Convert output to float
+            # If output is of object type, assert exact equality
+            if(output.dtype == object):
+                np.testing.assert_array_equal(output, expected_output)
+                max_nmse = 0
+                continue
+
             output          = np.squeeze(output.astype(float))
             expected_output = np.squeeze(expected_output.astype(float))
+
+            assert expected_output.shape == output.shape, f" Shape mismatch! Expected {expected_output.shape} got {output.shape}"       
+            max_nmse = max(max_nmse, ((expected_output - output)**2/np.maximum(expected_output,1**-20)).mean())
 
             assert expected_output.shape == output.shape, f" Shape mismatch! Expected {expected_output.shape} got {output.shape}"       
             max_nmse = max(max_nmse, ((expected_output - output)**2/np.maximum(expected_output,1**-20)).mean())
