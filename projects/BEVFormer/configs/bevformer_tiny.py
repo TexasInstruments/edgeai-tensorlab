@@ -190,16 +190,16 @@ test_transforms = [
 ]
 
 train_pipeline = [
-    dict(type='LoadMultiViewImageFromFiles', to_float32=True),
+    dict(type='LoadMultiViewImageFromFiles', to_float32=True, num_views=6),
     dict(type='PhotoMetricDistortionMultiViewImage'),
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True, with_attr_label=False),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectNameFilter', classes=class_names),
-    dict(type='NormalizeMultiviewImage', **img_norm_cfg),
+    #dict(type='NormalizeMultiviewImage', **img_norm_cfg),
     dict(type='RandomScaleImageMultiViewImage', scales=[0.5]),
-    dict(type='PadMultiViewImage', size_divisor=32),
+    #dict(type='PadMultiViewImage', size_divisor=32),
     #dict(type='DefaultFormatBundle3D', class_names=class_names),
-    dict(type='CustomCollect3D', keys=['gt_bboxes_3d', 'gt_labels_3d', 'img'])
+    dict(type='CustomPack3DdetInputs', keys=['gt_bboxes_3d', 'gt_labels_3d', 'img'])
 ]
 
 test_pipeline = [
@@ -245,14 +245,13 @@ train_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         ann_file='nuscenes_infos_temporal_train.pkl',
-        pipeline=train_pipeline,        
-        #classes=class_names,
+        pipeline=train_pipeline,
         metainfo=metainfo,
         modality=input_modality,
         test_mode=False,
-        use_valid_flag=True,        
+        use_valid_flag=True,
         data_prefix=data_prefix,
-        bev_size=(bev_h_, bev_w_),
+        bev_size=(bev_h_, bev_w_), # Do-Kyoung: do we need it? Double Check!
         queue_length=queue_length,
         # we use box_type_3d='LiDAR' in kitti and nuscenes dataset
         # and box_type_3d='Depth' in sunrgbd and scannet dataset.
@@ -269,7 +268,6 @@ val_dataloader = dict(
         data_root=data_root,
         ann_file='nuscenes_infos_temporal_val.pkl',
         pipeline=test_pipeline,
-        #classes=class_names,
         data_prefix=data_prefix,
         metainfo=metainfo,
         modality=input_modality,

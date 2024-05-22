@@ -24,6 +24,7 @@ from mmdet3d.datasets.convert_utils import (convert_annos,
 from mmdet3d.datasets.utils import convert_quaternion_to_matrix
 from mmdet3d.structures import points_cam2img
 
+update_bevformer = True
 
 def get_empty_instance():
     """Empty annotation for single instance."""
@@ -278,13 +279,15 @@ def update_nuscenes_infos(pkl_path, out_dir):
         temp_data_info = get_empty_standard_data_info(
             camera_types=camera_types)
         temp_data_info['sample_idx'] = i
+
         # for bevFormer #
-        temp_data_info['frame_idx'] = ori_info_dict['frame_idx']
-        temp_data_info['prev'] = ori_info_dict['prev']
-        temp_data_info['next'] = ori_info_dict['next']
-        temp_data_info['can_bus'] = ori_info_dict['can_bus']
-        temp_data_info['scene_token'] = ori_info_dict['scene_token']
-        #################        
+        if update_bevformer is True:
+            temp_data_info['frame_idx'] = ori_info_dict['frame_idx']
+            temp_data_info['prev'] = ori_info_dict['prev']
+            temp_data_info['next'] = ori_info_dict['next']
+            temp_data_info['can_bus'] = ori_info_dict['can_bus']
+            temp_data_info['scene_token'] = ori_info_dict['scene_token']
+
         temp_data_info['token'] = ori_info_dict['token']
         temp_data_info['ego2global'] = convert_quaternion_to_matrix(
             ori_info_dict['ego2global_rotation'],

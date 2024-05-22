@@ -117,12 +117,7 @@ model = dict(
         type='BEVDetHead',
         in_channels=256,
         tasks=[
-            dict(num_class=10, class_names=['car', 'truck',
-                                            'construction_vehicle',
-                                            'bus', 'trailer',
-                                            'barrier',
-                                            'motorcycle', 'bicycle',
-                                            'pedestrian', 'traffic_cone']),
+            dict(num_class=10, class_names=class_names),
         ],
         common_heads=dict(
             reg=(2, 2), height=(1, 2), dim=(3, 2), rot=(2, 2), vel=(2, 2)),
@@ -180,7 +175,7 @@ model = dict(
 # Data
 dataset_type = 'CustomNuScenesDataset'
 data_root = 'data/nuscenes/'
-file_client_args = dict(backend='disk')
+#file_client_args = dict(backend='disk')
 backend_args = None
 
 bda_aug_conf = dict(
@@ -191,9 +186,13 @@ bda_aug_conf = dict(
 
 train_pipeline = [
     dict(
-        type='PrepareImageInputs',
-        is_train=True,
-        data_config=ida_aug_conf),
+        type='LoadMultiViewImageFromFiles',
+        to_float32=True,
+        num_views=6,
+        backend_args=backend_args),
+    dict(type='ImageAug',
+         ida_aug_conf=ida_aug_conf,
+         is_train=True),
     dict(type='LoadAnnotations'),
     dict(
         type='BEVAug',
@@ -201,9 +200,10 @@ train_pipeline = [
         classes=class_names),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectNameFilter', classes=class_names),
-    dict(type='DefaultFormatBundle3D', class_names=class_names),
-    dict(
-        type='Collect3D', keys=['img_inputs', 'gt_bboxes_3d', 'gt_labels_3d'])
+    #dict(type='DefaultFormatBundle3D', class_names=class_names),
+    #dict(
+    #    type='Collect3D', keys=['img_inputs', 'gt_bboxes_3d', 'gt_labels_3d'])
+    dict(type='CustomPack3DDetInputs', keys=['img', 'gt_bboxes_3d', 'gt_labels_3d'])
 ]
 
 '''

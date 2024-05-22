@@ -42,6 +42,7 @@ model = dict(
         spec_name='V-99-eSE',
         norm_eval=True,
         frozen_stages=-1,
+        #init_cfg=dict(type='Pretrained', checkpoint='./pretrained_backbones/fcos3d_vovnet_imgbackbone-remapped.pth'),
         input_ch=3,
         out_features=(
             'stage4',
@@ -177,6 +178,7 @@ train_pipeline = [
     dict(
         type='LoadMultiViewImageFromFiles',
         to_float32=True,
+        num_views=6,
         backend_args=backend_args),
     dict(type='LoadMultiViewImageFromMultiSweepsFiles',
         sweeps_num=1,
@@ -204,8 +206,10 @@ train_pipeline = [
         type='Pack3DDetInputs',
         keys=[
             'img', 'gt_bboxes', 'gt_bboxes_labels', 'attr_labels',
-            'gt_bboxes_3d', 'gt_labels_3d', 'centers_2d', 'depths', 'timestamp'
-        ])
+            'gt_bboxes_3d', 'gt_labels_3d', 'centers_2d', 'depths'], 
+        meta_keys=['filename', 'ori_shape', 'img_shape', 'lidar2img', 'cam2img', 'lidar2cam',
+            'pad_shape', 'scale_factor', 'flip', 'box_mode_3d', 'box_type_3d',
+            'img_norm_cfg', 'sample_idx', 'timestamp', 'delta_timestamp'])
 ]
 test_pipeline = [
     dict(
@@ -223,15 +227,14 @@ test_pipeline = [
     dict(type='Pack3DDetInputs', keys=['img'], meta_keys=['filename', 'ori_shape', 'img_shape', 'lidar2img', 'cam2img', 'lidar2cam',
                 'pad_shape', 'scale_factor', 'flip', 'box_mode_3d', 'box_type_3d',
                 'img_norm_cfg', 'sample_idx', 'timestamp', 'delta_timestamp'])
-    #dict(type='Pack3DDetInputs', keys=['img'])
 ]
 
 train_dataloader = dict(
-    batch_size=1,
+    batch_size=2,
     num_workers=4,
     dataset=dict(
         type=dataset_type,
-        ann_file='mmdet3d_nuscenes_30f_infos_train.pkl',
+        ann_file='mmdet3d_nuscenes_30f_infos_latest_train.pkl',
         data_prefix=dict(
             pts='samples/LIDAR_TOP',
             CAM_FRONT='samples/CAM_FRONT',
@@ -325,14 +328,18 @@ param_scheduler = [
     )
 ]
 
-train_cfg = dict(max_epochs=num_epochs, val_interval=num_epochs)
-checkpoint_config = dict(interval=1, max_keep_ckpts=3)
+train_cfg = dict(max_epochs=num_epochs, val_interval=num_epochs/2)
+#checkpoint_config = dict(interval=1, max_keep_ckpts=3)
+
+default_hooks = dict(
+    checkpoint=dict(
+        type='CheckpointHook', interval=1, max_keep_ckpts=2, save_last=True))
 
 find_unused_parameters = False
 
 # pretrain_path can be found here:
 # https://drive.google.com/file/d/1ABI5BoQCkCkP4B0pO5KBJ3Ni0tei0gZi/view
-load_from = '/mnt/d/fcos3d_vovnet_imgbackbone-remapped.pth'
+load_from = './pretrained/fcos3d_vovnet_imgbackbone-remapped.pth'
 resume = False
 
 # --------------Original---------------
