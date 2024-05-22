@@ -21,7 +21,7 @@ MMDetection3D (./../README_mmdet3d.md) has large Model Zoo, supporting a lot of 
 |KITTI   |PointPillars Quantized (Car class)        |10000          |**82.45 - 74.59 - 67.31**  |configs/pointPillars/tidl_pointpillars_hv_secfpn_8x6b_160e_kitti-3d-car_qat.py|
 |KITTI   |PointPillars (3 class)                    |10000          |**73.84 - 62.66 - 57.88**  |configs/pointPillars/tidl_pointpillars_hv_secfpn_8x6b_160e_kitti-3d-3class.py|
 |KITTI   |PointPillars Quantized (3 class)          |10000          |**65.97 - 54.74 - 50.92**  |configs/pointPillars/tidl_pointpillars_hv_secfpn_8x6b_160e_kitti-3d-3class_qat.py|
-|KITTI   |PointPainting (3 class)                   |10000          |**TBD**  |configs/pointPillars/tidl_pointpillars_hv_secfpn_8xb6_160e_kitti-3d-3class-painted.py|
+|KITTI   |PointPainting (3 class)                   |10000          |**74.62 - 63.49 - 59.95**  |configs/pointPillars/tidl_pointpillars_hv_secfpn_8xb6_160e_kitti-3d-3class-painted.py|
 |KITTI   |PointPainting Quantized (3 class)         |10000          |**TBD**  |configs/pointPillars/tidl_pointpillars_hv_secfpn_8xb6_160e_kitti-3d-3class-painted_qat.py|
 
 ## References

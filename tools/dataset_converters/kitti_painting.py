@@ -247,7 +247,7 @@ class Painter:
             # points: N * 8
             points = self.augment_lidar_class_scores_both(scores_from_cam_r, scores_from_cam, points, calib_fromfile)
             
-            output_file =  self.save_path + ("%06d.npy" % idx)
+            output_file =  self.save_path + ("%06d.bin" % idx)
             #np.save(output_file, points)
             
             points.astype(np.float32).tofile(output_file)

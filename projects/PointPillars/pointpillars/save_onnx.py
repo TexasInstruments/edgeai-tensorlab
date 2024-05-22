@@ -64,7 +64,11 @@ def save_onnx_model(cfg, model, path, quantized_model=True,tag=''):
 
         device ='cpu'
 
-        raw_voxel_feat = torch.ones([1, cfg.model.voxel_encoder.in_channels+6, 
+        if hasattr(cfg.model.voxel_encoder, 'point_color_dim'):
+            point_color_dim = cfg.model.voxel_encoder.point_color_dim
+        else:
+            point_color_dim = 0
+        raw_voxel_feat = torch.ones([1, cfg.model.voxel_encoder.in_channels+point_color_dim+6, 
                                         cfg.model.data_preprocessor.voxel_layer.max_num_points, 
                                         cfg.model.data_preprocessor.voxel_layer.max_voxels[2]],
                                         device=torch.device(device))

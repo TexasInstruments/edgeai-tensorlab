@@ -86,7 +86,7 @@ def predict(self,
 cd <edgeai-mmdetection3d>/tools/data_converter
 python kitti_painting.py
 
-cd <edgeai-mmdetection3d>/tools/data_converter
+cd <edgeai-mmdetection3d>
 python tools/create_data.py kitti --root-path ./data/kitti --out-dir ./data/kitti --extra-tag kitti_point_painting --with-plane
 ```
 

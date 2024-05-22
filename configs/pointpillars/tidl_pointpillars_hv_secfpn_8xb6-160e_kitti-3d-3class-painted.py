@@ -43,7 +43,7 @@ model = dict(
 dataset_type = 'KittiDataset'
 data_root = 'data/kitti/'
 class_names = ['Pedestrian', 'Cyclist', 'Car']
-metainfo = dict(classes=class_names, pts_prefix='velodyne_painted_reduced')
+metainfo = dict(classes=class_names)
 backend_args = None
 
 # PointPillars adopted a different sampling strategies among classes
@@ -101,10 +101,10 @@ eval_pipeline = [
         use_color=True,
         backend_args=backend_args),
     dict(
-        type='DefaultFormatBundle3D',
+        type='Pack3DDetInputs',
         class_names=class_names,
-        with_label=False),
-    dict(type='Collect3D', keys=['points'])
+        with_label=False,
+        keys=['points'])
 ]
 
 test_pipeline = [
@@ -139,9 +139,9 @@ train_dataloader = dict(
     num_workers=2,
     dataset=dict(type='RepeatDataset',
                  times=2,
-                 dataset=dict(pipeline=train_pipeline, metainfo=metainfo)))
-test_dataloader = dict(dataset=dict(pipeline=test_pipeline, metainfo=metainfo))
-val_dataloader = dict(dataset=dict(pipeline=test_pipeline, metainfo=metainfo))
+                 dataset=dict(pipeline=train_pipeline,  metainfo=metainfo, data_prefix=dict(pts='training/velodyne_painted_reduced'))))
+test_dataloader = dict(dataset=dict(pipeline=test_pipeline,  metainfo=metainfo, data_prefix=dict(pts='training/velodyne_painted_reduced')))
+val_dataloader = dict(dataset=dict(pipeline=test_pipeline,  metainfo=metainfo, data_prefix=dict(pts='training/velodyne_painted_reduced')))
 
 
 save_onnx_model =True
@@ -187,3 +187,9 @@ else:
     load_from = './work_dirs/tidl_hv_pointpillars_secfpn_6x8_160e_kitti-3d-3class-painted/best.pth'
     work_dir = './work_dirs/3class_quant_train_dir_2/'
     #custom_hooks = dict(type='FreezeRangeHook')
+
+val_evaluator = dict(    
+    ann_file=data_root + 'kitti_point_painting_infos_val.pkl',
+    metric='bbox',
+    backend_args=backend_args)
+test_evaluator = val_evaluator

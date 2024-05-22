@@ -43,7 +43,7 @@ model = dict(
 dataset_type = 'KittiDataset'
 data_root = 'data/kitti/'
 class_names = ['Pedestrian', 'Cyclist', 'Car']
-metainfo = dict(classes=class_names, pts_prefix='velodyne_painted_reduced')
+metainfo = dict(classes=class_names)
 backend_args = None
 
 # PointPillars adopted a different sampling strategies among classes
@@ -99,12 +99,12 @@ eval_pipeline = [
         use_dim=8,
         color_dim=4,
         use_color=True,
-        file_client_args=file_client_args),
+        backend_args=backend_args),
     dict(
-        type='DefaultFormatBundle3D',
+        type='Pack3DDetInputs',
         class_names=class_names,
-        with_label=False),
-    dict(type='Collect3D', keys=['points'])
+        with_label=False,
+		keys=['points'])
 ]
 
 test_pipeline = [
@@ -135,13 +135,13 @@ test_pipeline = [
 ]
 
 train_dataloader = dict(
-    batch_size=2,
+    batch_size=6,
     num_workers=2,
     dataset=dict(type='RepeatDataset',
                  times=2,
-                 dataset=dict(pipeline=train_pipeline, metainfo=metainfo)))
-test_dataloader = dict(dataset=dict(pipeline=test_pipeline, metainfo=metainfo))
-val_dataloader = dict(dataset=dict(pipeline=test_pipeline, metainfo=metainfo))
+                 dataset=dict(pipeline=train_pipeline,  metainfo=metainfo, data_prefix=dict(pts='training/velodyne_painted_reduced'))))
+test_dataloader = dict(dataset=dict(pipeline=test_pipeline,  metainfo=metainfo, data_prefix=dict(pts='training/velodyne_painted_reduced')))
+val_dataloader = dict(dataset=dict(pipeline=test_pipeline,  metainfo=metainfo, data_prefix=dict(pts='training/velodyne_painted_reduced')))
 
 
 save_onnx_model = False
@@ -195,3 +195,8 @@ param_scheduler = [
 train_cfg = dict(by_epoch=True, max_epochs=epoch_num, val_interval=2)
 val_cfg = dict()
 test_cfg = dict()
+val_evaluator = dict(    
+    ann_file=data_root + 'kitti_point_painting_infos_val.pkl',
+    metric='bbox',
+    backend_args=backend_args)
+test_evaluator = val_evaluator
