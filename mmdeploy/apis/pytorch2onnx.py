@@ -3,9 +3,16 @@ import os.path as osp
 from typing import Any, Optional, Union
 
 import mmengine
+from mmengine.runner import load_checkpoint
+from mmdet.utils import convert_to_lite_model
+from mmdet.apis import init_detector
 
 from .core import PIPELINE_MANAGER
 
+def build_model_from_cfg(config_path, checkpoint_path, device):
+    model = init_detector(config_path, checkpoint_path, device=device)
+    model.eval()
+    return model
 
 @PIPELINE_MANAGER.register_pipeline()
 def torch2onnx(img: Any,
@@ -14,7 +21,8 @@ def torch2onnx(img: Any,
                deploy_cfg: Union[str, mmengine.Config],
                model_cfg: Union[str, mmengine.Config],
                model_checkpoint: Optional[str] = None,
-               device: str = 'cuda:0'):
+               device: str = 'cuda:0',
+               model_surgery: Any = 0):
     """Convert PyTorch model to ONNX model.
 
     Examples:
@@ -60,7 +68,9 @@ def torch2onnx(img: Any,
     from mmdeploy.apis import build_task_processor
     task_processor = build_task_processor(model_cfg, deploy_cfg, device)
 
-    torch_model = task_processor.build_pytorch_model(model_checkpoint)
+    # torch_model = task_processor.build_pytorch_model(model_checkpoint)
+    torch_model = build_model_from_cfg(model_cfg, model_checkpoint, device)
+
     data, model_inputs = task_processor.create_input(
         img,
         input_shape,
@@ -74,8 +84,8 @@ def torch2onnx(img: Any,
     # export to onnx
     context_info = dict()
     context_info['deploy_cfg'] = deploy_cfg
-    output_prefix = osp.join(work_dir,
-                             osp.splitext(osp.basename(save_file))[0])
+    # output_prefix = osp.join(work_dir,
+    #                          osp.splitext(osp.basename(save_file))[0])
     backend = get_backend(deploy_cfg).value
 
     onnx_cfg = get_onnx_config(deploy_cfg)
@@ -90,6 +100,12 @@ def torch2onnx(img: Any,
     keep_initializers_as_inputs = onnx_cfg.get('keep_initializers_as_inputs',
                                                True)
     optimize = onnx_cfg.get('optimize', False)
+
+    # model surgery
+    if model_surgery == 1 :
+        torch_model = convert_to_lite_model(torch_model, model_cfg)
+    load_checkpoint(torch_model, model_checkpoint, map_location='cpu')
+
     if backend == Backend.NCNN.value:
         """NCNN backend needs a precise blob counts, while using onnx optimizer
         will merge duplicate initilizers without reference count."""
@@ -99,7 +115,7 @@ def torch2onnx(img: Any,
             torch_model,
             model_inputs,
             input_metas=input_metas,
-            output_path_prefix=output_prefix,
+            save_file=save_file,
             backend=backend,
             input_names=input_names,
             output_names=output_names,

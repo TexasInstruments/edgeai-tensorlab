@@ -9,6 +9,8 @@ from mmdeploy.apis import (extract_model, get_predefined_partition_cfg,
 from mmdeploy.utils import (get_ir_config, get_partition_config,
                             get_root_logger, load_config)
 
+from edgeai_torchmodelopt import xonnx
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Export model to ONNX.')
@@ -22,6 +24,7 @@ def parse_args():
         help='Directory to save output files.')
     parser.add_argument(
         '--device', help='device used for conversion', default='cpu')
+    parser.add_argument('--model-surgery', type=int, default=0)
     parser.add_argument(
         '--log-level',
         help='set log level',
@@ -44,6 +47,10 @@ def main():
     deploy_cfg = load_config(args.deploy_cfg)[0]
     save_file = get_ir_config(deploy_cfg)['save_file']
 
+    save_file = osp.join(
+        args.work_dir,
+        osp.basename(args.checkpoint).replace('pth', 'onnx'))
+
     torch2onnx(
         args.img,
         args.work_dir,
@@ -51,7 +58,8 @@ def main():
         deploy_cfg=args.deploy_cfg,
         model_cfg=args.model_cfg,
         model_checkpoint=args.checkpoint,
-        device=args.device)
+        device=args.device,
+        model_surgery=args.model_surgery)
 
     # partition model
     partition_cfgs = get_partition_config(deploy_cfg)
@@ -79,6 +87,13 @@ def main():
                 dynamic_axes=dynamic_axes,
                 save_file=save_path)
     logger.info(f'torch2onnx finished. Results saved to {args.work_dir}')
+
+    output_prefix = osp.join(args.work_dir,
+                             osp.splitext(osp.basename(save_file))[0])
+    save_onnx_path = output_prefix + '.onnx'
+    # check the layers names and shorten it required.
+    if args.model_surgery:
+        xonnx.prune_layer_names(save_file, save_file, opset_version=11)
 
 
 if __name__ == '__main__':

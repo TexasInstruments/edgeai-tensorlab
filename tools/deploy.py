@@ -309,26 +309,26 @@ def main():
         extra['uri'] = args.uri
 
     # get backend inference result, try render
-    create_process(
-        f'visualize {backend.value} model',
-        target=visualize_model,
-        args=(model_cfg_path, deploy_cfg_path, backend_files, args.test_img,
-              args.device),
-        kwargs=extra,
-        ret_value=ret_value)
+    # create_process(
+    #     f'visualize {backend.value} model',
+    #     target=visualize_model,
+    #     args=(model_cfg_path, deploy_cfg_path, backend_files, args.test_img,
+    #           args.device),
+    #     kwargs=extra,
+    #     ret_value=ret_value)
 
     # get pytorch model inference result, try visualize if possible
-    create_process(
-        'visualize pytorch model',
-        target=visualize_model,
-        args=(model_cfg_path, deploy_cfg_path, [checkpoint_path],
-              args.test_img, args.device),
-        kwargs=dict(
-            backend=Backend.PYTORCH,
-            output_file=osp.join(args.work_dir, 'output_pytorch.jpg'),
-            show_result=args.show),
-        ret_value=ret_value)
-    logger.info('All process success.')
+    # create_process(
+    #     'visualize pytorch model',
+    #     target=visualize_model,
+    #     args=(model_cfg_path, deploy_cfg_path, [checkpoint_path],
+    #           args.test_img, args.device),
+    #     kwargs=dict(
+    #         backend=Backend.PYTORCH,
+    #         output_file=osp.join(args.work_dir, 'output_pytorch.jpg'),
+    #         show_result=args.show),
+    #     ret_value=ret_value)
+    # logger.info('All process success.')
 
 
 if __name__ == '__main__':
