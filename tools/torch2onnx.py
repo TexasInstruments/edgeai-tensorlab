@@ -17,6 +17,8 @@ from mmengine.logging import print_log
 
 from edgeai_torchmodelopt import xonnx
 
+from edgeai_torchmodelopt import xonnx
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Export model to ONNX.')
@@ -37,6 +39,7 @@ def parse_args():
         help='Directory to save output files.')
     parser.add_argument(
         '--device', help='device used for conversion', default='cpu')
+    parser.add_argument('--model-surgery', type=int, default=0)
     parser.add_argument(
         '--simplify',
         action='store_true',
@@ -129,7 +132,7 @@ def main():
     # save_onnx_path = output_prefix + '.onnx'
     # check the layers names and shorten it required.
     if not args.keep_layer_names:
-        xonnx.prune_layer_names(save_file, save_file, opset_version=11)
+        xonnx.prune_layer_names(save_file, save_file, opset_version=17)
     
     onnx_model = onnx.load(save_file)
     if args.simplify:
