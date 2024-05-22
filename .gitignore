@@ -167,3 +167,6 @@ tags
 
 # ruff
 .ruff_cache
+
+
+examples/pytorch/image-classification/imagenet/

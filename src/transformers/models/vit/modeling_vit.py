@@ -827,6 +827,10 @@ class ViTForImageClassification(ViTPreTrainedModel):
 
         # Initialize weights and apply final processing
         self.post_init()
+        
+        self.MSELoss = MSELoss()
+        self.CrossEntropyLoss = CrossEntropyLoss()
+        self.BCEWithLogitsLoss = BCEWithLogitsLoss()
 
     @add_start_docstrings_to_model_forward(VIT_INPUTS_DOCSTRING)
     @add_code_sample_docstrings(
@@ -879,16 +883,16 @@ class ViTForImageClassification(ViTPreTrainedModel):
                     self.config.problem_type = "multi_label_classification"
 
             if self.config.problem_type == "regression":
-                loss_fct = MSELoss()
+                loss_fct = self.MSELoss
                 if self.num_labels == 1:
                     loss = loss_fct(logits.squeeze(), labels.squeeze())
                 else:
                     loss = loss_fct(logits, labels)
             elif self.config.problem_type == "single_label_classification":
-                loss_fct = CrossEntropyLoss()
+                loss_fct = self.CrossEntropyLoss
                 loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
             elif self.config.problem_type == "multi_label_classification":
-                loss_fct = BCEWithLogitsLoss()
+                loss_fct = self.BCEWithLogitsLoss
                 loss = loss_fct(logits, labels)
 
         if not return_dict:

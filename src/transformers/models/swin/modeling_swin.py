@@ -699,10 +699,10 @@ class SwinLayer(nn.Module):
         output_attentions: Optional[bool] = False,
         always_partition: Optional[bool] = False,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        if not always_partition:
-            self.set_shift_and_window_size(input_dimensions)
-        else:
-            pass
+        # if not always_partition:
+        #     self.set_shift_and_window_size(input_dimensions)
+        # else:
+        #     pass
         height, width = input_dimensions
         batch_size, _, channels = hidden_states.size()
         shortcut = hidden_states
