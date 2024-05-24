@@ -252,7 +252,7 @@ class ConfigSettings(config_dict.ConfigDict):
             #################################
             'info': {
                 'prequantized_model_type': prequantized_model_type
-            }
+            },
         }
         if prequantized_model_type_v2:
             runtime_options.update({'advanced_options:prequantized_model': 1})

@@ -27,6 +27,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from edgeai_benchmark import constants, utils, datasets, preprocess, sessions, postprocess, metrics
+import onnxruntime
+
+
+# for transformer models we need to set graph_optimization_level = ORT_DISABLE_ALL for onnxruntime
+ORT_DISABLE_ALL = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
 
 
 def get_configs(settings, work_dir):
@@ -155,50 +160,50 @@ def get_configs(settings, work_dir):
         ################################## experimental transformer models - eg. deit/swin ##################
         'cl-6600':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'../edgeai-modelforest/models/vision/experimental/deit_tiny_1.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
         ),
         'cl-6610':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'../edgeai-modelforest/models/vision/experimental/deit_small_patch16_224_sim.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
         ),
         'cl-6620':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'../edgeai-modelforest/models/vision/experimental/deit3_small_patch16_224_sim.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
         ),
         'cl-6630':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'../edgeai-modelforest/models/vision/experimental/swin_tiny_1.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
         ),
         'cl-6640':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'../edgeai-modelforest/models/vision/experimental/swin_base_patch4_window12_384_1.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
         ),
         'cl-6650':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'../edgeai-modelforest/models/vision/experimental/swinv2_tiny_window8_256_sim.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
         ),
         'cl-6660':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'../edgeai-modelforest/models/vision/experimental/swinv2_base_window12to24_192to384_22kft1k.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
         ),
@@ -214,31 +219,59 @@ def get_configs(settings, work_dir):
         ################################## huggingface transformer models ##################
         'cl-6700':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/vit_tiny_patch16_224_transformers_simp.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=80)
+            model_info=dict(metric_reference={'accuracy_top1%':45.23}, model_shortlist=80)
         ),  
         'cl-6710':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/vit_base_patch16_224_transformers_simp.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':77.91}, model_shortlist=80)
+            model_info=dict(metric_reference={'accuracy_top1%':75.40}, model_shortlist=80)
         ),          
         'cl-6720':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/deit_tiny_patch16_224_transformers_simp.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':72.2}, model_shortlist=80)
+            model_info=dict(metric_reference={'accuracy_top1%':72.13}, model_shortlist=80)
         ),
         'cl-6730':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': 0}),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/levit_128_224_transformers_simp.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':78.59}, model_shortlist=80)
+        ),  
+        'cl-6740':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/levit_256_224_transformers_simp.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':81.59}, model_shortlist=80)
+        ),          
+        'cl-6750':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/swin_tiny_patch4_window7_224_transformers_simp.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':81.3}, model_shortlist=80)
-        ),                                         
+            model_info=dict(metric_reference={'accuracy_top1%':80.43}, model_shortlist=80)
+        ),  
+        'cl-6760':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/swin_small_patch4_window7_224_transformers_simp.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':83.07}, model_shortlist=80)
+        ),         
+        'cl-6770':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/swin_base_patch4_window7_224_transformers_simp.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':84.81}, model_shortlist=80)
+        ),                                                                                                  
     }
     return pipeline_configs
