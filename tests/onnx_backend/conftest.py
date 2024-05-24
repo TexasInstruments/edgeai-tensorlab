@@ -10,7 +10,7 @@ sys.stdout = sys.stderr
 
 
 def pytest_addoption(parser):
-    parser.addoption("--disable-tidl-offload", action="store_false", default=True)
+    parser.addoption("--disable-tidl-offload", action="store_true")
     parser.addoption("--run-infer", action="store_true", default=False)
     parser.addoption("--no-subprocess", action="store_true", default=False)
 

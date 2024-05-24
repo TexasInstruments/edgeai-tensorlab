@@ -4,6 +4,8 @@ import pytest
 import onnx
 from .backend_test_known_results import expected_fails
 from multiprocessing import Process
+import glob
+
 
 '''
 Pytest file for ONNX Backend tests
@@ -47,7 +49,7 @@ def simple_tests_root_fixture():
 
 @pytest.fixture(scope="session")
 def tidl_offload(pytestconfig):
-    return pytestconfig.getoption("disable_tidl_offload")
+    return not pytestconfig.getoption("disable_tidl_offload")
 
 @pytest.fixture(scope="session")
 def run_infer(pytestconfig):
@@ -161,6 +163,7 @@ def perform_onnx_backend_subprocess(tidl_offload : bool, run_infer : bool, test_
               "run_infer"      : run_infer, 
               "test_name"      : test_name,
               "testdir_parent" : testdir_parent}
+    
     p = Process(target=perform_onnx_backend_oneprocess, kwargs=kwargs)
     p.start()
     
@@ -169,7 +172,11 @@ def perform_onnx_backend_subprocess(tidl_offload : bool, run_infer : bool, test_
     #       passed to the pytest command (on the command line or in pytest.ini)
     p.join(timeout=14) 
     if p.is_alive():
-        p.kill()
+        p.terminate()
+
+        # Cleanup leftover files 
+        for f in glob.glob("/dev/shm/vashm_buff_*"):
+            os.remove(f)
 
     assert p.exitcode == 0, f"Received nonzero exit code: {p.exitcode}"
 
@@ -223,7 +230,7 @@ def perform_onnx_backend_oneprocess(tidl_offload : bool, run_infer : bool, test_
         results_list = interfaces.run_accuracy(settings, work_dir, pipeline_configs)
         
         assert len(results_list) > 0, " Results not found!!!! "
-        assert results_list[0].get("error") is None, " Internal OSRT/TIDL Error:\n {} ".format(results_list[0]["error"])
+        assert results_list[0].get("error") is None or len(results_list[0].get("error")) == 0, " Internal OSRT/TIDL Error:\n {} ".format(results_list[0]["error"])
 
         logger.debug(results_list[0]['result'])
         
@@ -237,8 +244,4 @@ def perform_onnx_backend_oneprocess(tidl_offload : bool, run_infer : bool, test_
         results_list = interfaces.run_accuracy(settings, work_dir, pipeline_configs)
         assert len(results_list) > 0, " Results not found!!!! "
         assert results_list[0].get("error") is None, " Internal OSRT/TIDL Error:\n {} ".format(results_list[0]["error"])
-
-
-
-
 
