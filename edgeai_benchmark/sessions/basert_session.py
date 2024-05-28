@@ -107,6 +107,9 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['with_onnxsim'] = self.kwargs.get('with_onnxsim', False)
         self.kwargs['shape_inference'] = self.kwargs.get('shape_inference', True)
 
+        # optimizations specific to TIDL
+        self.kwargs['tidl_onnx_model_optimizer'] = self.kwargs.get('tidl_onnx_model_optimizer', False)
+
         # store the current directory so that we can go back there any time
         self.cwd = os.getcwd()
 
@@ -522,13 +525,7 @@ class BaseRTSession(utils.ParamsBase):
         # for prequantized models, it may also be required to run onnx-simplifier (this will be run if it is set for the model)
         # also does shape_inference for onnx models
         apply_input_optimization = self._optimize_model(model_file,
-                                                 is_new_file=(not model_file_exists),
-                                                 input_optimization=self.kwargs['input_optimization'],
-                                                 tensor_bits=self.kwargs['tensor_bits'],
-                                                 input_mean=self.kwargs['input_mean'],
-                                                 input_scale=self.kwargs['input_scale'],
-                                                 with_onnxsim=self.kwargs['with_onnxsim'],
-                                                 shape_inference=self.kwargs['shape_inference'])
+                                                 is_new_file=(not model_file_exists))
         if apply_input_optimization:
             # set the mean and scale in kwargs to None as they have been absorbed inside.
             self.kwargs['input_mean'] = None
@@ -558,19 +555,19 @@ class BaseRTSession(utils.ParamsBase):
             self._replace_confidence_threshold(meta_file)
         #
 
-    def _optimize_model(self, model_file, is_new_file=True, input_optimization=False, tensor_bits=None,
-                        input_mean=None, input_scale=None, with_onnxsim=False, shape_inference=True):
+    def _optimize_model(self, model_file, is_new_file=True):
         model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
-        apply_input_optimization = (input_optimization and tensor_bits == 8 and input_mean is not None and input_scale is not None)
+        apply_input_optimization = (self.kwargs['input_optimization'] and self.kwargs['tensor_bits'] == 8 and \
+            self.kwargs['input_mean'] is not None and self.kwargs['input_scale'] is not None)
         if model_file0.endswith('.onnx'):
             if is_new_file:
                 # merge the mean & scale inside the model
                 if apply_input_optimization:
                     from osrt_model_tools.onnx_tools import onnx_model_opt as onnxopt
-                    onnxopt.tidlOnnxModelOptimize(model_file0, model_file0, input_scale, input_mean)
+                    onnxopt.tidlOnnxModelOptimize(model_file0, model_file0, self.kwargs['input_scale'], self.kwargs['input_mean'])
                 #
                 # run onnx simplifier on this model if with_onnxsim is set for this model
-                if with_onnxsim:
+                if self.kwargs['with_onnxsim']:
                     import onnx
                     from onnxsim import simplify
                     onnx_model = onnx.load(model_file0)
@@ -581,9 +578,14 @@ class BaseRTSession(utils.ParamsBase):
                 #
                 # run onnx shape inference on the model - tidl may thow errors if the onnx model doesn't have shapes
                 # run this only one time - that is what the (not model_file_exists) check does
-                if shape_inference:
+                if self.kwargs['shape_inference']:
                     import onnx
                     onnx.shape_inference.infer_shapes_path(model_file0, model_file0)
+                #
+                if self.kwargs['tidl_onnx_model_optimizer']:
+                    print("running tidl_onnx_model_optimizer on the model")
+                    import tidl_onnx_model_optimizer
+                    tidl_onnx_model_optimizer.optimize(model_file0, model_file0, expand_layernorm_to_component_ops=True, verbose=True)
                 #
             #
         elif model_file0.endswith('.tflite'):

@@ -29,6 +29,7 @@
 import os
 import sys
 import argparse
+import warnings
 from edgeai_benchmark import *
 
 def get_arg_parser():
@@ -81,5 +82,19 @@ if __name__ == '__main__':
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
-    # run the accuracy pipeline
-    interfaces.run_accuracy(settings, work_dir)
+    # Support import and inference in the same call of this script
+    # Running import and inference in the same run_accuracy call is not supported - splitting it into two runs
+    run_inference = settings.run_inference
+    run_import = settings.run_import
+    if settings.run_import and settings.run_inference:
+        warnings.warn("running import and inference in the same run_accuracy call is not supported - splitting it into two runs")
+    
+    if run_import:
+        settings.run_import = run_import
+        settings.run_inference = False
+        interfaces.run_accuracy(settings, work_dir)
+
+    if run_inference:
+        settings.run_import = False
+        settings.run_inference = run_inference
+        interfaces.run_accuracy(settings, work_dir)
