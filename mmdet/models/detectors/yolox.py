@@ -70,8 +70,20 @@ class YOLOX(SingleStageDetector):
         #
         return self
 
-    # def quant_convert(self, **kwargs):
-    #     return None
+    def quant_convert(self, device='cpu', **kwargs):
+        self.to(device=device)
+        self.backbone = self.backbone.convert()
+        self.neck = self.neck.convert()
+        # handle self.bbox_head
+        num_heads = len(self.bbox_head.multi_level_cls_convs)
+        for head_index in range(num_heads):
+            self.bbox_head.multi_level_cls_convs[head_index] = self.bbox_head.multi_level_cls_convs[head_index].convert()
+            self.bbox_head.multi_level_reg_convs[head_index] = self.bbox_head.multi_level_reg_convs[head_index].convert()
+            self.bbox_head.multi_level_conv_cls[head_index] = self.bbox_head.multi_level_conv_cls[head_index].convert()
+            self.bbox_head.multi_level_conv_reg[head_index] = self.bbox_head.multi_level_conv_reg[head_index].convert()
+            self.bbox_head.multi_level_conv_obj[head_index] = self.bbox_head.multi_level_conv_obj[head_index].convert()
+        #
+        return self
     #
     # def quant_export(self):
     #     return None

@@ -121,3 +121,5 @@ work_dirs/
 *.pth
 *.py~
 *.sh~
+
+*.onnx

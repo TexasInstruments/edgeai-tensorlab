@@ -9,6 +9,8 @@ from mmengine.registry import RUNNERS
 from mmengine.runner import Runner
 from mmengine.model import is_model_wrapper
 from mmengine.logging import print_log
+from mmengine.model.base_module import BaseModule
+from mmengine.runner.loops import EpochBasedTrainLoop
 
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 import mmdet.hooks
@@ -56,6 +58,8 @@ def parse_args():
     parser.add_argument('--local_rank', '--local-rank', type=int, default=0)
     parser.add_argument('--model-surgery', type=int, default=0)
     parser.add_argument('--quantization', type=int, default=0)
+    parser.add_argument('--quantize-type', type=str, default='QAT')
+    parser.add_argument('--quantize-calib-images', type=int, default=50)
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
@@ -111,6 +115,38 @@ def main():
         cfg.load_from = args.resume
 
     cfg.quantization = args.quantization
+    
+    if args.quantization:
+        if 'custom_hooks' in cfg:
+                hooks_to_remove = ['EMAHook']
+                for hook_type in hooks_to_remove:
+                    if any([hook_cfg.type == hook_type for hook_cfg in cfg.custom_hooks]):
+                        warnings.warn(f'{hook_type} is currently not supported in quantization - removing it')
+                    #
+                    cfg.custom_hooks = [hook_cfg for hook_cfg in cfg.custom_hooks if hook_cfg.type != hook_type]
+                #
+        else:
+            cfg.custom_hooks = []
+        
+         # remove the init_weights wrapper from model, else train always calls init_weights wrapper
+        del BaseModule.init_weights
+        
+        if args.quantize_type == 'PTQ':
+            # changing the run_epoch wrapper to run for only calib frames
+            del EpochBasedTrainLoop.run_epoch
+            
+            def run_epoch(self) -> None:
+                """Iterate one epoch."""
+                self.runner.call_hook('before_train_epoch')
+                self.runner.model.train()
+                for idx, data_batch in enumerate(self.dataloader):
+                    self.run_iter(idx, data_batch)
+                    if idx>args.quantize_calib_images:
+                        break
+                self.runner.call_hook('after_train_epoch')
+                self._epoch = self.runner.max_epochs
+                
+            setattr(EpochBasedTrainLoop, "run_epoch", run_epoch)
 
     # build the runner from config
     if 'runner_type' not in cfg:
@@ -159,14 +195,18 @@ def main():
             runner.model = xmodelopt.quantization.v1.QuantTrainModule(
                 runner.model, dummy_input=example_input, total_epochs=runner.max_epochs)
         elif args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V2:
+            if args.quantize_type == 'PTQ':
+                quantize_wrapper = xmodelopt.quantization.v2.PTQFxModule
+            else:
+                quantize_wrapper = xmodelopt.quantization.v2.QATFxModule
             if hasattr(runner.model, 'quant_init'):
                 print_log('wrapping the model to prepare for quantization')
                 runner.model = runner.model.quant_init(
-                    xmodelopt.quantization.v2.QATFxModule, total_epochs=runner.max_epochs)
+                    quantize_wrapper, total_epochs=runner.max_epochs)
             else:
                 print_log(
                     f'quant_init method is not supported for {type(runner.model)}. attempting to use the generic wrapper')
-                runner.model = xmodelopt.quantization.v2.QATFxModule(runner.model, total_epochs=runner.max_epochs)
+                runner.model = quantize_wrapper(runner.model, total_epochs=runner.max_epochs)
             #
         #
 
@@ -178,6 +218,15 @@ def main():
 
     # start training
     runner.train()
+    
+    # Exporting Model after Training : Uses custom mmdeploy
+    try:
+        from mmdeploy.apis import model2onnx
+    except:
+        raise ModuleNotFoundError
+    
+    model2onnx(img='./demo/demo.jpg', work_dir='./onnx_files/', save_file='model.onnx', model_cfg = args.config, \
+        deploy_cfg='../mmdeploy/configs/mmdet/detection/detection_onnxruntime_dynamic.py', model = runner.model)
 
 
 if __name__ == '__main__':
