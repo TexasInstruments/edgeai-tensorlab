@@ -155,6 +155,7 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
 
 
 def insert_all_hooks(model):
+    model.__quant_params__.outlier_hooks += quant_fx_utils.add_fc_outlier_supression_hook(model)
     model.__quant_params__.bias_hooks += quant_fx_utils.add_bias_calibration_hook(model, \
             calibration_factor = model.__quant_params__.bias_calibration_factor)
     return model
@@ -191,7 +192,7 @@ def forward(self, *input, **kwargs):
 
 
 def convert(self, device='cpu', model_quant_format=None, convert_custom_config=None, backend_config=None):          
-    self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)
+    self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)           
     freeze(self)
     # convert requires cpu model
     self.to(torch.device(device))
@@ -262,7 +263,7 @@ def train(self, mode: bool = True):
             xnn.utils.print_once('Freezing ranges for subsequent epochs')
         #
         freeze(self, freeze_bn=freeze_bn, freeze_observers=freeze_observers)
-            
+        
         quant_fx_utils.adjust_gradual_quantization(self)
         self.__quant_params__.num_epochs_tracked += 1
     else:

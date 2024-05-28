@@ -142,7 +142,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     return model
 
 
-def insert_all_hooks(model, insert_bias_hook = True):
+def insert_all_hooks(model, insert_outlier_hook=True, insert_bias_hook = True):
     if len(model.__quant_params__.bias_hooks)==0 and insert_bias_hook:
         model.__quant_params__.bias_hooks += quant_pt2e_utils.add_bias_calibration_hook(model, \
                 calibration_factor = model.__quant_params__.bias_calibration_factor)
@@ -225,6 +225,10 @@ def train(self, mode: bool = True):
             self = insert_all_hooks(self, insert_bias_hook=False)
         if len(self.__quant_params__.bias_hooks)==0:
             self = insert_all_hooks(self, insert_outlier_hook=False)
+        
+        # Removing the outlier hook when the observers are also frozen
+        if freeze_observers and len(self.__quant_params__.outlier_hooks)>0:
+            self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
           
         quant_pt2e_utils.adjust_gradual_quantization(self)
         self.__quant_params__.num_epochs_tracked += 1
