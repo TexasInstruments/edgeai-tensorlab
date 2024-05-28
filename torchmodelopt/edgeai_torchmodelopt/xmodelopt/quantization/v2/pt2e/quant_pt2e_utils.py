@@ -35,6 +35,10 @@ from torch.onnx import symbolic_helper, register_custom_op_symbolic
 from torch.onnx._internal import jit_utils
 from torch import nn
 from torch import fx
+from functools import partial
+from torch.fx.passes.utils.source_matcher_utils import get_source_partitions
+import itertools
+from torch.fx import Node
 
 from . import fake_quantize_types
 from . import qconfig_types
@@ -248,10 +252,14 @@ def register_onnx_symbolics():
         output = g.op("Reshape", x, dim)
         return output
         
-    def quantized_decomposed_quantize(g, x, op_scale, op_zero_point, *args):
+    def quantized_decomposed_quantize(g, x, op_scale, op_zero_point, quant_min, quant_max, dtype, *args):
         # Tensor input, float scale, int zero_point, int quant_min, int quant_max, ScalarType dtype, *, ScalarType? out_dtype=None
         # x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
         # return x
+        dtype = symbolic_helper._get_const(dtype, "i", "dtype")
+        op_zero_point = g.op("Cast", op_zero_point, to_i=symbolic_helper.scalar_type_to_onnx[dtype])
+        op_scale = g.op("Cast", op_scale, to_i=torch.onnx.TensorProtoDataType.FLOAT)
+        
         return symbolic_helper.quantize_helper(g, x, op_scale, op_zero_point)
 
     def quantized_decomposed_dequantize(g, x, op_scale, op_zero_point, *args):
@@ -259,10 +267,15 @@ def register_onnx_symbolics():
         x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
         return x
 
-    def quantized_decomposed_quantize_channel(g, x, op_scale, op_zero_point, axis, *args):
+    def quantized_decomposed_quantize_channel(g, x, op_scale, op_zero_point, axis, quant_min, quant_max, dtype, *args):
         # Tensor input, Tensor scales, Tensor zero_points, int axis, int quant_min, int quant_max, ScalarType dtype, *, Tensor(a!) out) -> Tensor(a!)
         # x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
         # return x
+        
+        dtype = symbolic_helper._get_const(dtype, "i", "dtype")
+        op_zero_point = g.op("Cast", op_zero_point, to_i=symbolic_helper.scalar_type_to_onnx[dtype])
+        op_scale = g.op("Cast", op_scale, to_i=torch.onnx.TensorProtoDataType.FLOAT)
+        
         return symbolic_helper.quantize_helper(g, x, op_scale, op_zero_point, axis)
 
     register_custom_op_symbolic(
@@ -308,6 +321,13 @@ def remove_loss_branch(model):
             loss_end_node = node.args[0][0] if ('dequantize' not in node.args[0][0].name) else node.args[0][1]
             # assumption that the output of the network(logits) would be quantized
             loss_node = next((user for user in fc_out_node.users if user.name!='output'), None)
+            if loss_node is None: # the dq layers for the output and loss are separated 
+                q_node_output = fc_out_node.args[0]
+                assert len(q_node_output.users) == 2, print("the q node does not have two outputs, which should be the general behaviour")
+                for user in q_node_output.users:
+                    if user != fc_out_node:
+                        loss_node = next(loss_user for loss_user in user.users)
+                
             new_node = nn.Identity()
             new_node_name = 'replaced_loss'
             model.add_module(new_node_name, new_node)
@@ -332,3 +352,135 @@ def remove_loss_branch(model):
     model.recompile()
     
     return model
+
+
+def _bias_calibration_hook(m, x, y, calibration_factor, bias_module):
+    bias_error = 0
+    if isinstance(x, tuple):
+        x = x[0]
+    if len(x.shape) == 3:
+        float_mean = x.mean(dim=(0,1))
+        quant_mean = y.mean(dim=(0,1))
+        bias_error = float_mean - quant_mean 
+    elif len(x.shape) == 4:
+        if x.shape[1] == bias_module.shape[0]:
+            float_mean = x.mean(dim=(0,2,3))
+            quant_mean = y.mean(dim=(0,2,3)) 
+            bias_error = float_mean - quant_mean                                          
+        elif x.shape[3] == bias_module.shape[0]:
+            float_mean = x.mean(dim=(0,1,2))    
+            quant_mean = y.mean(dim=(0,1,2))  
+            bias_error = float_mean - quant_mean 
+
+    bias_module.data += (bias_error * calibration_factor)
+    return y
+
+
+def add_bias_calibration_hook(model, calibration_factor=0):
+    all_hooks = []    
+    module_partitions = get_source_partitions(
+        model.graph, [torch.nn.Linear, torch.nn.functional.linear, torch.nn.Conv2d, torch.nn.functional.conv2d]
+    )
+
+    for module_or_fn_type, partitions in module_partitions.items():
+        for p in partitions:
+            bias_node = None
+            for param_node in p.params:
+                weight_or_bias = getattr(model, param_node.target)
+                if weight_or_bias.ndim == 1:  # type: ignore[attr-defined]
+                    bias_node = param_node
+                #
+            #
+            if bias_node is not None:
+                bias_module = getattr(model, bias_node.target)
+            else:
+                continue
+            
+            output_node = None
+            for out_node in p.output_nodes:
+                if out_node.target in [torch.ops.aten.convolution.default, torch.ops.aten.addmm.default, torch.ops.aten.view.default]:
+                    output_node = out_node
+                    break
+                #
+            #
+            if output_node is None:
+                raise ValueError(
+                    "Could not find an user of act node for conv within matched pattern."
+                )
+            #
+            fake_quantize_module = getattr(model, output_node.next.target)
+            
+            _bias_calibration_hook_binded = partial(_bias_calibration_hook, \
+                calibration_factor=calibration_factor, bias_module=bias_module)
+            this_hook = fake_quantize_module.register_forward_hook(_bias_calibration_hook_binded)
+            all_hooks.append(this_hook)
+        #
+    #
+    return all_hooks
+
+
+def _fc_outlier_supression_hook(m, x):
+    if isinstance(x, tuple):
+        x = x[0]
+    mean_val = x.mean(dim=(0,1))
+    std_val = x.std(dim=(0,1))
+    clip_val_max = mean_val + 3*std_val
+    clip_val_min = mean_val - 3*std_val
+    # clip_val_max = mean_val - 3*std_val
+    # clip_val_min = mean_val + 3*std_val
+    x = torch.clip(x, min=clip_val_min, max = clip_val_max)
+    return tuple([x])
+
+
+def is_mlp_fc2_layer(node, find_level, found_gelu=False):
+    if find_level < 0:
+        return False
+    if node.target is torch.ops.aten.addmm.default:
+        if found_gelu: 
+            return True
+        else: 
+            # found linear before the gelu layer
+            return False
+        #
+    #
+    elif node.target is torch.ops.aten.gelu.default:
+        found_gelu = True
+    #
+    return is_mlp_fc2_layer(node.args[0], find_level-1, found_gelu)
+
+
+def add_fc_outlier_supression_hook(model):
+    all_modules = dict(model.named_modules())
+    all_hooks = []
+    
+    module_partitions = get_source_partitions(
+        model.graph, [torch.nn.Linear, torch.nn.functional.linear]
+    )
+    
+    for module_or_fn_type, partitions in module_partitions.items():
+        for p in partitions:
+            inp_nodes = p.input_nodes 
+            prev_node = None
+            for node in inp_nodes:
+                if isinstance(node.prev.target, str) and 'param_constant' in node.prev.target:
+                    continue
+                else:
+                    prev_node = node
+        
+            assert prev_node is not None, print("prev_node is node in trying to iterate over nodes") 
+            
+            if is_mlp_fc2_layer(prev_node, 6):
+                output_node = None
+                for node in p.output_nodes:
+                    if not(isinstance(node.target,str) and 'param_constant' in node.target):
+                        output_node = node 
+                        break
+                if output_node is not None:
+                    if isinstance(output_node.target,str) and hasattr(model, output_node.target) and isinstance(getattr(model, output_node.target), torch.nn.Module):
+                        act_node = output_node
+                    else:
+                        act_node = output_node.next
+                this_hook = getattr(model, act_node.target).register_forward_pre_hook(_fc_outlier_supression_hook)
+                all_hooks.append(this_hook)
+                
+    return all_hooks

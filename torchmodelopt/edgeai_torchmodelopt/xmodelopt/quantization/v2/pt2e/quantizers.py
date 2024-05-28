@@ -86,7 +86,7 @@ def is_positive_function_present(node, find_level):
     else:
         return False
     
-    
+   
 def is_mlp_add_layer(node, find_level, found_linear=False, linear_node=None):
     if find_level < 0 or node is None :
         return False, linear_node
@@ -136,7 +136,7 @@ class TIDLRTQuantizer(Quantizer):
     def annotate_config(
         self, model: torch.fx.GraphModule, config: QuantizationConfig, allow_16bit_node_list: list = []
     ) -> torch.fx.GraphModule:
-        # allow_16bit_node_list :
+        # allow_16bit_node_list : TODO
         # quantize the weight of that layer as well as the output to 16 bit, however, input is still 8 bit quantized
         # further, the quantization also flows, which means, if the input is 16 bit, then weights will also be in 16 bit
         # but the output will be in 8 bit
@@ -420,29 +420,33 @@ class TIDLRTQuantizer(Quantizer):
             act_qspec = get_input_act_qspec(quantization_config)
                          
             # TODO right now manually modifying, need to get the orig config from quantization_config 
-            # and need to modify its observer
-            outlier_removal_act_qspec = qconfig_types.get_act_quantization_config(dict(
-                observer_or_fake_quant_ctr=AdaptiveOutlierRemovalActivationObserver)
-            )    
+            # and need to modify its observer, or hook will handle it
+            # outlier_removal_act_qspec = qconfig_types.get_act_quantization_config(dict(
+            #     observer_or_fake_quant_ctr=AdaptiveOutlierRemovalActivationObserver)
+            # )    
+            
+            # input_qspec_map = {}
+            # is_mlp_layer0 = False
+            # is_mlp_layer1 = False
+            
+            # input_act0 = add_node.args[0]
+            # if isinstance(input_act0, Node):
+            #     is_mlp_layer0, linear_node = is_mlp_add_layer(input_act0, 6)
+                
+            # input_act1 = add_node.args[1]
+            # if isinstance(input_act1, Node):
+            #     is_mlp_layer1, linear_node = is_mlp_add_layer(input_act1, 6)
+                
+            # if is_mlp_layer0 or is_mlp_layer1:
+            #     _annotate_output_qspec(linear_node.next, outlier_removal_act_qspec)
+            #     if is_mlp_layer0:
+            #         input_qspec_map[input_act1] = act_qspec
+            #     else:
+            #         input_qspec_map[input_act0] = act_qspec   
             
             input_qspec_map = {}
-            is_mlp_layer0 = False
-            is_mlp_layer1 = False
-            
-            input_act0 = add_node.args[0]
-            if isinstance(input_act0, Node):
-                is_mlp_layer0, linear_node = is_mlp_add_layer(input_act0, 6)
-                
-            input_act1 = add_node.args[1]
-            if isinstance(input_act1, Node):
-                is_mlp_layer1, linear_node = is_mlp_add_layer(input_act1, 6)
-                
-            if is_mlp_layer0 or is_mlp_layer1:
-                _annotate_output_qspec(linear_node.next, outlier_removal_act_qspec)
-                if is_mlp_layer0:
-                    input_qspec_map[input_act1] = act_qspec
-                else:
-                    input_qspec_map[input_act0] = act_qspec   
+            input_qspec_map[add_node.args[0]] = act_qspec
+            input_qspec_map[add_node.args[1]] = act_qspec
             
             add_node.meta["quantization_annotation"] = QuantizationAnnotation(  # type: ignore[union-attr]
                 input_qspec_map=input_qspec_map,

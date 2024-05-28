@@ -127,9 +127,10 @@ class MovingAverageRangeShrinkHistogramObserverBase(MinMaxObserver):
         )
         self.range_shrink_percentile = range_shrink_percentile
         self.moving_average = moving_average
+        self.freeze_observer = False
 
     def forward(self, x_orig):
-        if x_orig.numel() == 0:
+        if x_orig.numel() == 0 or self.freeze_observer:
             return x_orig
         x = x_orig.detach()  # avoid keeping autograd tape
         x = x.to(self.min_val.dtype)

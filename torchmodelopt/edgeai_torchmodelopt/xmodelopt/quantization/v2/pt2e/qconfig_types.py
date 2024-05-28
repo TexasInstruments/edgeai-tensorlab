@@ -42,6 +42,7 @@ from .observer_types import (
     AdaptiveActivationObserver,
     AdaptiveOutlierRemovalActivationObserver
 )
+from .fake_quantize_types import AdaptiveWeightFakeQuantize, AdaptiveActivationFakeQuantize
 from torch.ao.quantization.quantizer.quantizer import (
     Quantizer,
     QuantizationAnnotation,
@@ -53,6 +54,7 @@ from torch.ao.quantization.qconfig import _ObserverOrFakeQuantizeConstructor
 from typing import Callable, Dict, List, Optional, Set, Any
 import enum
 import warnings
+from ..... import xnn
     
 
 class QConfigMethod(enum.Enum):
@@ -158,51 +160,93 @@ def get_act_quantization_config(activation_qconfig):
     observer_name = 'CustomAdaptiveActivationObserver' + get_repr_string_from_dict(activation_qconfig)
     activation_bitwidth = activation_qconfig.get('bitwidth', 8)
     
+    activation_observer = xnn.utils.partialclass(activation_qconfig.get('observer_or_fake_quant_ctr', AdaptiveActivationObserver),
+                                             quant_min=activation_qconfig.get('quant_min', 0),
+                                             quant_max=activation_qconfig.get('quant_max', (2 ** activation_bitwidth) - 1),
+                                             dtype=activation_qconfig.get('dtype', torch.uint8),
+                                             qscheme=activation_qconfig.get('qscheme', torch.per_tensor_affine),
+                                             power2_scale=activation_qconfig.get('power2_scale', False),
+                                             range_max=activation_qconfig.get('range_max', None),
+                                             fixed_range=activation_qconfig.get('fixed_range', False),
+                                             class_name=activation_qconfig.get('observer_name', observer_name),
+                                             range_shrink_percentile=activation_qconfig.get('range_shrink_percentile', 0.01))
+    
+    # activation_observer = activation_qconfig.get('observer_or_fake_quant_ctr',\
+    #         AdaptiveActivationObserver).with_args(
+    #             quant_min=activation_qconfig.get('quant_min', 0),
+    #             quant_max=activation_qconfig.get('quant_max', (2 ** (activation_bitwidth)) - 1),
+    #             dtype=activation_qconfig.get('dtype', torch.uint8),
+    #             qscheme=activation_qconfig.get('qscheme', torch.per_tensor_affine),
+    #             power2_scale=activation_qconfig.get('power2_scale', False),
+    #             range_max=activation_qconfig.get('range_max', None),
+    #             fixed_range=activation_qconfig.get('fixed_range', False),
+    #             # class_name=activation_qconfig.get('observer_name', observer_name),
+    #             range_shrink_percentile=activation_qconfig.get('range_shrink_percentile', 0.01)
+    #         )
+            
+    # fake_quantized_activation_observer = AdaptiveActivationFakeQuantize.with_args(observer=AdaptiveActivationObserver, **activation_qconfig)
+    # fake_quantized_activation_observer = AdaptiveActivationFakeQuantize.with_args(observer=activation_observer)
+    fake_quantized_activation_observer = activation_observer
+    
     act_quantization_spec = QuantizationSpec(
         dtype=activation_qconfig.get('dtype', torch.uint8),
         quant_min=activation_qconfig.get('quant_min', 0),
         quant_max=activation_qconfig.get('quant_max', (2 ** (activation_bitwidth)) - 1),
         qscheme=activation_qconfig.get('qscheme', torch.per_tensor_affine),
         is_dynamic=activation_qconfig.get('is_dynamic', False),
-        observer_or_fake_quant_ctr=activation_qconfig.get('observer_or_fake_quant_ctr',\
-            AdaptiveActivationObserver).with_args(
-                quant_min=activation_qconfig.get('quant_min', 0),
-                quant_max=activation_qconfig.get('quant_max', (2 ** (activation_bitwidth)) - 1),
-                dtype=activation_qconfig.get('dtype', torch.uint8),
-                qscheme=activation_qconfig.get('qscheme', torch.per_tensor_affine),
-                power2_scale=activation_qconfig.get('power2_scale', False),
-                range_max=activation_qconfig.get('range_max', None),
-                fixed_range=activation_qconfig.get('fixed_range', False),
-                # class_name=activation_qconfig.get('observer_name', observer_name),
-                range_shrink_percentile=activation_qconfig.get('range_shrink_percentile', 0.01)
-            )
+        observer_or_fake_quant_ctr=fake_quantized_activation_observer
     )
     return act_quantization_spec
 
 
 def get_weight_activation_config(weight_qconfig):
-    observer_name = 'CustomAdaptiveWeightObserver' + '__' + get_repr_string_from_dict(weight_qconfig)
+    # observer_name = 'CustomAdaptiveWeightObserver' + '__' + get_repr_string_from_dict(weight_qconfig)
     weight_bitwidth = weight_qconfig.get('bitwidth', 8)
     weight_qscheme = weight_qconfig.get('qscheme', torch.per_channel_symmetric)
     WeightObserverBaseToUse = AdaptivePerChannelWeightObserver \
         if weight_qscheme == torch.per_channel_symmetric else AdaptiveWeightObserver
+    
+    
+    weight_observer = xnn.utils.partialclass(WeightObserverBaseToUse,
+                                             quant_min=weight_qconfig.get('quant_min', 0),
+                                             quant_max=weight_qconfig.get('quant_max', (2 ** weight_bitwidth) - 1),
+                                             dtype=weight_qconfig.get('dtype', torch.uint8),
+                                             qscheme=weight_qconfig.get('qscheme', torch.per_tensor_symmetric),
+                                             power2_scale=weight_qconfig.get('power2_scale', False),
+                                             range_max=weight_qconfig.get('range_max', None),
+                                             fixed_range=weight_qconfig.get('fixed_range', False))
+                                            #  class_name=weight_qconfig.get('observer_name', observer_name),
+                                            #  range_shrink_percentile=weight_qconfig.get('range_shrink_percentile', 0.01))
+    
+        
+    # weight_observer = WeightObserverBaseToUse.with_args(
+    #         # quant_min=weight_qconfig.get('quant_min',-127),  
+    #         # quant_max=weight_qconfig.get('quant_max', 127),
+    #         # dtype=weight_qconfig.get('dtype', torch.int8),
+    #         quant_min=weight_qconfig.get('quant_min',0),  
+    #         quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth)) - 1),
+    #         dtype=weight_qconfig.get('dtype', torch.uint8),
+    #         power2_scale=weight_qconfig.get('power2_scale', False),
+    #         range_max=weight_qconfig.get('range_max', None),
+    #         fixed_range=weight_qconfig.get('fixed_range', False),
+    #         # class_name=weight_qconfig.get('observer_name', observer_name)
+    #     )
+    
+    # fake_quantized_weight_observer = AdaptiveWeightFakeQuantize.with_args(observer=WeightObserverBaseToUse, **weight_qconfig)
+    # fake_quantized_weight_observer = AdaptiveWeightFakeQuantize.with_args(observer=weight_observer)
+    fake_quantized_weight_observer = weight_observer
         
     weight_quantization_spec = QuantizationSpec(
-        dtype=weight_qconfig.get('dtype', torch.uint8),
-        quant_min=weight_qconfig.get('quant_min', 0),  
-        quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth)) - 1),
+        dtype=weight_qconfig.get('dtype', torch.int8),
+        quant_min=weight_qconfig.get('quant_min', -127),  
+        quant_max=weight_qconfig.get('quant_max', 127),
+        # dtype=weight_qconfig.get('dtype', torch.uint8),
+        # quant_min=weight_qconfig.get('quant_min', 0),  
+        # quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth)) - 1),
         qscheme=weight_qscheme,
         ch_axis=weight_qconfig.get('ch_axis', 0),
         is_dynamic=weight_qconfig.get('is_dynamic', False),
-        observer_or_fake_quant_ctr=WeightObserverBaseToUse.with_args(
-            quant_min=weight_qconfig.get('quant_min',0),  
-            quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth)) - 1),
-            dtype=weight_qconfig.get('dtype', torch.uint8),
-            power2_scale=weight_qconfig.get('power2_scale', False),
-            range_max=weight_qconfig.get('range_max', None),
-            fixed_range=weight_qconfig.get('fixed_range', False),
-            # class_name=weight_qconfig.get('observer_name', observer_name)
-        )                                 
+        observer_or_fake_quant_ctr=fake_quantized_weight_observer                         
     )
     return weight_quantization_spec
 

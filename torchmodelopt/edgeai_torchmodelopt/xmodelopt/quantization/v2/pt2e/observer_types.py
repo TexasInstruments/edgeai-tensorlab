@@ -180,8 +180,11 @@ class AdaptiveOutlierRemovalActivationObserver(AdaptiveActivationObserver):
         self.power2_scale = power2_scale
         self.range_max = range_max
         self.fixed_range = fixed_range
+        self.range_shrink_percentile = 0
 
     def forward(self, x_orig):
+        if self.freeze_observer:
+            return x_orig
         mean_val = x_orig.mean(dim=(0,1))
         std_val = x_orig.std(dim=(0,1))
         clip_val_max = mean_val + 3*std_val
