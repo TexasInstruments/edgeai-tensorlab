@@ -172,3 +172,5 @@ demo/csharp/*/Properties
 
 # doxygen
 docs/cppapi/docs
+
+*.onnx
