@@ -6,8 +6,6 @@ from py.xml import html
 import re
 import os
 from datetime import datetime
-sys.stdout = sys.stderr
-
 
 def pytest_addoption(parser):
     parser.addoption("--disable-tidl-offload", action="store_true")

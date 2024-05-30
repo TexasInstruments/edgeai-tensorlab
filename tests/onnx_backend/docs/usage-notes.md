@@ -39,8 +39,6 @@ pytest --run-infer
     ```
     - Pytest-xdist cannot live-output stdout from tests. As a workaround we forward stdout to stderr in conftest.py
 
-- PyTest timeout is a PyTest plugin which allows you to terminate a test after a timeout threshold is reached. This is necessary for certain tests that hang indefinitely (even with timeout handled in)
-
 - PyTest-html is a plugin which allows you to output a test report to a convenient html file. Use the `--html` option to override the log file name. 
     -  In the latest version of pytest-html (4.1.1 as of writing this) the report was missing test cases where pytest-xdist workers crashed due to a fatal python error. Therefore we are using an old version 3.2.0
 
