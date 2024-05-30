@@ -131,7 +131,7 @@ def main():
          # remove the init_weights wrapper from model, else train always calls init_weights wrapper
         del BaseModule.init_weights
         
-        if args.quantize_type == 'PTQ':
+        if args.quantize_type in ['PTQ', 'PTC']:
             if args.quantize_calib_images:
                 # changing the run_epoch wrapper to run for only calib frames
                 del EpochBasedTrainLoop.run_epoch
@@ -196,7 +196,7 @@ def main():
             runner.model = xmodelopt.quantization.v1.QuantTrainModule(
                 runner.model, dummy_input=example_input, total_epochs=runner.max_epochs)
         elif args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V2:
-            if args.quantize_type == 'PTQ':
+            if args.quantize_type in ['PTQ', 'PTC']:
                 quantize_wrapper = xmodelopt.quantization.v2.PTCFxModule
             else:
                 quantize_wrapper = xmodelopt.quantization.v2.QATFxModule
@@ -226,8 +226,13 @@ def main():
     except:
         raise ModuleNotFoundError
     
-    model2onnx(img='./demo/demo.jpg', work_dir='./onnx_files/', save_file='model.onnx', model_cfg = args.config, \
-        deploy_cfg='../mmdeploy/configs/mmdet/detection/detection_onnxruntime_dynamic.py', model = runner.model)
+    if args.quantization:
+        save_file = args.config.split('/')[-1][:-3] + '_quantized.onnx' 
+    else:
+        save_file = args.config.split('/')[-1][:-3] + '.onnx' 
+    
+    model2onnx(img='./demo/demo.jpg', work_dir='./onnx_files/', save_file=save_file, model_cfg = args.config, \
+        deploy_cfg='../mmdeploy/configs/mmdet/detection/detection_onnxruntime_static.py', model = runner.model)
 
 
 if __name__ == '__main__':
