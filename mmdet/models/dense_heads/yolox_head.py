@@ -402,9 +402,9 @@ class YOLOXHead(BaseDenseHead):
 
     def loss_by_feat(
             self,
-            cls_scores: Sequence[Tensor],
             bbox_preds: Sequence[Tensor],
             objectnesses: Sequence[Tensor],
+            cls_scores: Sequence[Tensor],
             batch_gt_instances: Sequence[InstanceData],
             batch_img_metas: Sequence[dict],
             batch_gt_instances_ignore: OptInstanceList = None) -> dict:
