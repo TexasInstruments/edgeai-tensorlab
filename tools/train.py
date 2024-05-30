@@ -132,21 +132,22 @@ def main():
         del BaseModule.init_weights
         
         if args.quantize_type == 'PTQ':
-            # changing the run_epoch wrapper to run for only calib frames
-            del EpochBasedTrainLoop.run_epoch
-            
-            def run_epoch(self) -> None:
-                """Iterate one epoch."""
-                self.runner.call_hook('before_train_epoch')
-                self.runner.model.train()
-                for idx, data_batch in enumerate(self.dataloader):
-                    self.run_iter(idx, data_batch)
-                    if idx>args.quantize_calib_images:
-                        break
-                self.runner.call_hook('after_train_epoch')
-                self._epoch = self.runner.max_epochs
+            if args.quantize_calib_images:
+                # changing the run_epoch wrapper to run for only calib frames
+                del EpochBasedTrainLoop.run_epoch
                 
-            setattr(EpochBasedTrainLoop, "run_epoch", run_epoch)
+                def run_epoch(self) -> None:
+                    """Iterate one epoch."""
+                    self.runner.call_hook('before_train_epoch')
+                    self.runner.model.train()
+                    for idx, data_batch in enumerate(self.dataloader):
+                        self.run_iter(idx, data_batch)
+                        if idx > args.quantize_calib_images:
+                            break
+                    self.runner.call_hook('after_train_epoch')
+                    self._epoch = self.runner.max_epochs
+                    
+                setattr(EpochBasedTrainLoop, "run_epoch", run_epoch)
 
     # build the runner from config
     if 'runner_type' not in cfg:
@@ -196,7 +197,7 @@ def main():
                 runner.model, dummy_input=example_input, total_epochs=runner.max_epochs)
         elif args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V2:
             if args.quantize_type == 'PTQ':
-                quantize_wrapper = xmodelopt.quantization.v2.PTQFxModule
+                quantize_wrapper = xmodelopt.quantization.v2.PTCFxModule
             else:
                 quantize_wrapper = xmodelopt.quantization.v2.QATFxModule
             if hasattr(runner.model, 'quant_init'):
