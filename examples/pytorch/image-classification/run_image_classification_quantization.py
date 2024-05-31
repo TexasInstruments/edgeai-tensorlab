@@ -325,7 +325,7 @@ def main():
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         token=model_args.token,
-        trust_remote_code=model_args.trust_remote_code,
+        trust_remote_code=model_args.trust_remote_code
     )
     model = AutoModelForImageClassification.from_pretrained(
         model_args.model_name_or_path,
@@ -411,7 +411,7 @@ def main():
     example_input = next(iter(dataset["validation"]))
     example_input['labels'] = torch.tensor(example_input.pop('label')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
     example_input['pixel_values'] = example_input['pixel_values'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
-    model = xmodelopt.quantization.v2.QATPT2EModule(model, total_epochs=1, is_qat=False, qconfig_type="DEFAULT", example_inputs=example_input)
+    model = xmodelopt.quantization.v2.QATPT2EModule(model, total_epochs=1, is_qat=False, qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=True)
 
     # Initialize our trainer
     trainer = Trainer(
@@ -433,7 +433,7 @@ def main():
             checkpoint = last_checkpoint
         train_result = trainer.train(resume_from_checkpoint=checkpoint)
         # trainer.save_model()
-        model.export(example_input, filename=training_args.output_dir + '/model.onnx', simplify=True)
+        model.export(example_input, filename=training_args.output_dir + '/model.onnx', simplify=True, device="cuda:0")
         print("Model Export is now complete! \n")
         trainer.log_metrics("train", train_result.metrics)
         trainer.save_metrics("train", train_result.metrics)
