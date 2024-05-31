@@ -118,7 +118,8 @@ def model2onnx(img: Any,
                model_cfg: Union[str, mmengine.Config],
                deploy_cfg: Union[str, mmengine.Config],
                model: Any = None,
-               device: str = 'cpu'):
+               device: str = 'cpu',
+               simplify: bool = True):
     """Convert PyTorch model to ONNX model.
 
     Examples:
@@ -222,3 +223,10 @@ def model2onnx(img: Any,
             keep_initializers_as_inputs=keep_initializers_as_inputs,
             optimize=optimize)
     print("Model Export is complete!")
+    
+    if simplify:
+        import onnx
+        from onnxsim import simplify
+        onnx_model = onnx.load(output_prefix + '.onnx')
+        onnx_model, check = simplify(onnx_model)
+        onnx.save(onnx_model, output_prefix + '_simplified.onnx')      
