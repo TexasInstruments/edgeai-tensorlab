@@ -29,20 +29,33 @@
 #
 #################################################################################
 
-from . import fx
-from . import pt2e
 
-class PruningVersion():
-    NO_PRUNING = 0
-    PRUNING_V1 = PRUNING_LEGACY = 1 # not implemented
-    PRUNING_V2 = PRUNING_FX = 2
-    PRUNING_V3 = PRUNING_PT2E = 3
+import torch
+import torch.fx as fx
+import torchvision
+from edgeai_torchmodelopt.xmodelopt.pruning import create_channel_pruned_model2
+import copy
 
-    @classmethod
-    def get_dict(cls):
-        return {k:v for k,v in __class__.__dict__.items() if not k.startswith("__")}
+num_classes = 10
+model = torchvision.models.vit_b_16(num_classes =num_classes)
+# model = torchvision.models.resnet50()
+current_model_dict = model.state_dict()
+model_path = '/home/a0507161/Kunal/transformer_sparsity/outputs/vit_b_16/2024_05_21_17_58_52/last_checkpoint.pth'
+state_dict = torch.load(model_path)
+state_dict = state_dict['model']
 
-    @classmethod
-    def get_choices(cls):
-        return {v:k for k,v in __class__.__dict__.items() if not k.startswith("__")}
+new_state_dict={k:v if v.size()==current_model_dict[k].size()  else  current_model_dict[k] for k,v in zip(current_model_dict.keys(), state_dict.values())}
+model.load_state_dict(state_dict=new_state_dict)
 
+orig_model = copy.deepcopy(model)
+
+final_model = create_channel_pruned_model2(model)
+
+dummy_input = torch.randn(10, 3, 224, 224)
+print("The forward pass is starting \n")
+
+y = final_model(dummy_input)
+print("The forward pass completed \n")
+
+torch.onnx.export(orig_model, dummy_input, model_path[:-4]+"_orig.onnx")
+torch.onnx.export(final_model, dummy_input, model_path[:-4]+"_final.onnx")
