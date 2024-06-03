@@ -241,8 +241,8 @@ def main():
     else:
         save_file = args.config.split('/')[-1][:-3] + '.onnx' 
     
-    model2onnx(img='./demo/demo.jpg', work_dir='./onnx_files/', save_file=save_file, model_cfg = args.config, \
-        deploy_cfg='../mmdeploy/configs/mmdet/detection/detection_onnxruntime_static.py', model = runner.model)
+    model2onnx(img='./demo/demo.jpg', work_dir=cfg.work_dir, save_file=save_file, model_cfg = args.config, \
+        deploy_cfg='../edgeai-mmdeploy/configs/mmdet/detection/detection_onnxruntime_static.py', model = runner.model)
 
 
 if __name__ == '__main__':
