@@ -26,8 +26,7 @@ model = dict(
         use_depthwise=False,
         spp_kernal_sizes=(5, 9, 13),
         norm_cfg=dict(type='BN', momentum=0.03, eps=0.001),
-        # act_cfg=dict(type='Swish'),
-        act_cfg=dict(type='LeakyReLU')
+        act_cfg=dict(type='Swish'),
     ),
     neck=dict(
         type='YOLOXPAFPN',
@@ -37,8 +36,7 @@ model = dict(
         use_depthwise=False,
         upsample_cfg=dict(scale_factor=2, mode='nearest'),
         norm_cfg=dict(type='BN', momentum=0.03, eps=0.001),
-        # act_cfg=dict(type='Swish'),
-        act_cfg=dict(type='LeakyReLU')
+        act_cfg=dict(type='Swish'),
         ),
     bbox_head=dict(
         type='YOLOXHead',
@@ -49,8 +47,7 @@ model = dict(
         strides=(8, 16, 32),
         use_depthwise=False,
         norm_cfg=dict(type='BN', momentum=0.03, eps=0.001),
-        # act_cfg=dict(type='Swish'),
-        act_cfg=dict(type='LeakyReLU'),
+        act_cfg=dict(type='Swish'),
         loss_cls=dict(
             type='CrossEntropyLoss',
             use_sigmoid=True,
