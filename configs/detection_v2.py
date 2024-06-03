@@ -62,7 +62,7 @@ def get_configs(settings, work_dir):
         #################################################################
         #       ONNX MODELS
         #################onnx models#####################################
-        #DETR_ResNet50
+        #DETR_ResNet50 form mmdetection
         'od-8910':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((800,1066),(800,1066), resize_with_pad=True, backend='cv2'),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, #input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)
@@ -76,7 +76,21 @@ def get_configs(settings, work_dir):
                 model_path=f'../edgeai-modelforest/models/vision/experimental/detr_resnet-50-simplified.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,4),(-1,1),(-1,1)],logits_bbox_to_bbox_ls=True,formatter=postprocess.DetectionXYWH2XYXYCenterXY()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0,num_classes=91)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':30.7}, model_shortlist=80)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':42.0}, model_shortlist=None)
+        ),
+        # Transformer models from huggingface transformers
+        'od-8920':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx((800,1066),(800,1066), resize_with_pad=True, backend='cv2'),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_np2(
+                    det_options=True, ext_options={
+                     #'advanced_options:output_feature_16bit_names_list':'',
+                     'onnxruntime:graph_optimization_level': 0
+                     }),
+                model_path=f'{settings.models_path}/vision/detection/coco/hf-transformers/detr_resnet50_transformers_simp.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,4),(-1,1),(-1,1)],logits_bbox_to_bbox_ls=True,formatter=postprocess.DetectionXYWH2XYXYCenterXY()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0,num_classes=91)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':42.0}, model_shortlist=80)
         ),
     }
     return pipeline_configs

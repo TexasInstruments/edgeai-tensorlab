@@ -166,6 +166,23 @@ def get_configs(settings, work_dir):
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':59.80}, model_shortlist=40)
         ),
+        ###############huggingface transformer models######################
+        'ss-8750':utils.dict_update(ade20k_cfg,
+            preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_p2(),
+                model_path=f'{settings.models_path}/vision/segmentation/ade20k/hf-transformers/segformer_b0_finetuned_ade_512_512_transformers_simp.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':None}, model_shortlist=80)
+        ),
+        'ss-8760':utils.dict_update(ade20k_cfg,
+            preprocess=preproc_transforms.get_transform_jai((640,640), (640,640), backend='cv2', interpolation=cv2.INTER_AREA),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_p2(),
+                model_path=f'{settings.models_path}/vision/segmentation/ade20k/hf-transformers/segformer_b5_finetuned_ade_640_640_transformers_simp.onnx'),
+            postprocess=postproc_segmentation_onnx,
+            model_info=dict(metric_reference={'accuracy_mean_iou%':None}, model_shortlist=80)
+        ),
         ###############robokit segmentation model######################
         'ss-7618': utils.dict_update(robokitseg_cfg,
             preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
