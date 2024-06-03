@@ -209,7 +209,11 @@ class YOLOXHead(BaseDenseHead):
         bbox_pred = conv_reg(reg_feat)
         objectness = conv_obj(reg_feat)
 
-        return cls_score, bbox_pred, objectness
+        # concatenate and split for TIDL support
+        outs = torch.cat((bbox_pred, objectness, cls_score), dim=1)
+        outs = torch.split(outs,[4,1,80],dim=1)
+        return outs
+
 
     def forward(self, x: Tuple[Tensor]) -> Tuple[List]:
         """Forward features from the upstream network.
@@ -229,9 +233,9 @@ class YOLOXHead(BaseDenseHead):
                            self.multi_level_conv_obj)
 
     def predict_by_feat(self,
-                        cls_scores: List[Tensor],
                         bbox_preds: List[Tensor],
                         objectnesses: Optional[List[Tensor]],
+                        cls_scores: List[Tensor],
                         batch_img_metas: Optional[List[dict]] = None,
                         cfg: Optional[ConfigDict] = None,
                         rescale: bool = False,
@@ -398,9 +402,9 @@ class YOLOXHead(BaseDenseHead):
 
     def loss_by_feat(
             self,
-            cls_scores: Sequence[Tensor],
             bbox_preds: Sequence[Tensor],
             objectnesses: Sequence[Tensor],
+            cls_scores: Sequence[Tensor],
             batch_gt_instances: Sequence[InstanceData],
             batch_img_metas: Sequence[dict],
             batch_gt_instances_ignore: OptInstanceList = None) -> dict:

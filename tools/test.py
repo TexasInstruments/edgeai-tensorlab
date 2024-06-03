@@ -4,6 +4,7 @@ import os
 import os.path as osp
 import warnings
 from copy import deepcopy
+import torch
 
 from mmengine import ConfigDict
 from mmengine.config import Config, DictAction
@@ -16,8 +17,13 @@ from mmdet.evaluation import DumpDetResults
 from mmdet.registry import RUNNERS
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 import mmdet.hooks
+from mmdet.utils import convert_to_lite_model
 
 from edgeai_torchmodelopt import xmodelopt
+
+# from edgeai_torchtoolkit import xao
+# from edgeai_torchtoolkit import xnn
+
 
 # TODO: support fuse_conv_bn and format_only
 def parse_args():
@@ -152,23 +158,32 @@ def main():
     if args.model_surgery:
         runner._init_model_weights()
 
-        surgery_wrapper = xmodelopt.surgery.v1.convert_to_lite_model if args.model_surgery == 1 \
-                     else (xmodelopt.surgery.v2.convert_to_lite_fx if args.model_surgery == 2 else None)
+        if args.model_surgery == 1 :
+            runner.model = convert_to_lite_model(runner.model, cfg)
+            runner.model = runner.model.to(torch.device('cuda'))
+            # print("\n\n model summary : \n",runner.model)
 
-        is_wrapped = False
-        if is_model_wrapper(runner.model):
-            runner.model = runner.model.module
-            is_wrapped = True
-        #
-        if hasattr(runner.model, 'surgery_init'):
-            print('wrapping the model to prepare for surgery')
-            runner.model = runner.model.surgery_init(surgery_wrapper, total_epochs=runner.max_epochs)
-        else:
-            raise RuntimeError(f'surgery_init method is not supported for {type(runner.model)}')
-        #
-        if is_wrapped:
-            runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
-        #
+        else : 
+            surgery_wrapper = xmodelopt.surgery.v1.convert_to_lite_model if args.model_surgery == 1 \
+                        else (xmodelopt.surgery.v2.convert_to_lite_fx if args.model_surgery == 2 else None)
+
+            is_wrapped = False
+            if is_model_wrapper(runner.model):
+                runner.model = runner.model.module
+                is_wrapped = True
+            #
+            if hasattr(runner.model, 'surgery_init'):
+                print('wrapping the model to prepare for surgery')
+                runner.model = runner.model.surgery_init(surgery_wrapper, total_epochs=runner.max_epochs)
+            else:
+                # raise RuntimeError(f'surgery_init method is not supported for {type(runner.model)}')
+                runner.model.backbone = surgery_wrapper(runner.model.backbone)
+                # runner.model.neck = surgery_wrapper(runner.model.neck)
+                runner.model.bbox_head = surgery_wrapper(runner.model.bbox_head)
+            #
+            if is_wrapped:
+                runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
+            #
 
     if args.quantization:
         # load the checkpoint before quantization wrapper
@@ -200,9 +215,11 @@ def main():
             runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
         #
 
-    #print("\n\n model summary : \n",runner.model)
+    # print("\n\n model summary : \n",runner.model)
+    # for node in runner.model.modules():
+    #     print(node)
 
-    # start testing
+
     runner.test()
 
 

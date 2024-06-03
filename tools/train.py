@@ -3,6 +3,7 @@ import argparse
 import os
 import os.path as osp
 import warnings
+import torch
 
 from mmengine.config import Config, DictAction
 from mmengine.registry import RUNNERS
@@ -13,6 +14,7 @@ from mmengine.logging import print_log
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 import mmdet.hooks
 from edgeai_torchmodelopt import xmodelopt
+from mmdet.utils import convert_to_lite_model
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a detector')
@@ -123,24 +125,33 @@ def main():
 
     # model surgery
     if args.model_surgery:
-        runner._init_model_weights()
+        # runner._init_model_weights()
 
-        surgery_wrapper = xmodelopt.surgery.v1.convert_to_lite_model if args.model_surgery == 1 \
-                     else (xmodelopt.surgery.v2.convert_to_lite_fx if args.model_surgery == 2 else None)
+        if args.model_surgery == 1 :
+            runner.model = convert_to_lite_model(runner.model, cfg)
+            runner.model = runner.model.to(torch.device('cuda'))
+            # print("\n\n model summary : \n",runner.model)
 
-        is_wrapped = False
-        if is_model_wrapper(runner.model):
-            runner.model = runner.model.module
-            is_wrapped = True
-        #
-        if hasattr(runner.model, 'surgery_init'):
-            print_log('wrapping the model to prepare for surgery')
-            runner.model = runner.model.surgery_init(surgery_wrapper, total_epochs=runner.max_epochs)
-        else:
-            raise RuntimeError(f'surgery_init method is not supported for {type(runner.model)}')
-        #
-        if is_wrapped:
-            runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
+        else : 
+            surgery_wrapper = xmodelopt.surgery.v1.convert_to_lite_model if args.model_surgery == 1 \
+                        else (xmodelopt.surgery.v2.convert_to_lite_fx if args.model_surgery == 2 else None)
+
+            is_wrapped = False
+            if is_model_wrapper(runner.model):
+                runner.model = runner.model.module
+                is_wrapped = True
+            #
+            if hasattr(runner.model, 'surgery_init'):
+                print_log('wrapping the model to prepare for surgery')
+                runner.model = runner.model.surgery_init(surgery_wrapper)
+            else:
+                # raise RuntimeError(f'surgery_init method is not supported for {type(runner.model)}')
+                runner.model.backbone = surgery_wrapper(runner.model.backbone)
+                # runner.model.neck = surgery_wrapper(runner.model.neck)
+                runner.model.bbox_head = surgery_wrapper(runner.model.bbox_head)
+            #
+            if is_wrapped:
+                runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
         #
 
     if args.quantization:
@@ -174,9 +185,8 @@ def main():
             runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
         #
 
-    #print("\n\n model summary : \n",runner.model)
-
-    # start training
+    print("\n\n model summary---- : \n",runner.model)
+        
     runner.train()
 
 
