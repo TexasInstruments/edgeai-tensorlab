@@ -16,9 +16,9 @@ from mmdeploy.utils import Backend
     func_name='mmdet.models.dense_heads.yolox_head.'
     'YOLOXHead.predict_by_feat')
 def yolox_head__predict_by_feat(self,
-                                cls_scores: List[Tensor],
                                 bbox_preds: List[Tensor],
                                 objectnesses: Optional[List[Tensor]],
+                                cls_scores: List[Tensor],
                                 batch_img_metas: Optional[List[dict]] = None,
                                 cfg: Optional[ConfigDict] = None,
                                 rescale: bool = False,
@@ -124,9 +124,9 @@ def yolox_head__predict_by_feat(self,
     backend=Backend.NCNN.value)
 def yolox_head__predict_by_feat__ncnn(
         self,
-        cls_scores: List[Tensor],
         bbox_preds: List[Tensor],
         objectnesses: Optional[List[Tensor]],
+        cls_scores: List[Tensor],
         batch_img_metas: Optional[List[dict]] = None,
         cfg: Optional[ConfigDict] = None,
         rescale: bool = False,

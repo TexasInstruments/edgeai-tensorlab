@@ -257,7 +257,9 @@ def mark(func_name: Optional[str] = None,
             rets_level += 1
 
         def g(*args, **kwargs):
-            func_id = MARK_FUNCTION_COUNT[func_name]
+            # issue of different subgraph invocation faced. hard coding the func_id, might create some issues
+            # func_id = MARK_FUNCTION_COUNT[func_name]
+            func_id = 0
             MARK_FUNCTION_COUNT[func_name] += 1
             ctx = Context(input_names)
             args = mark_tensors(args, func, func_id, 'input', ctx, attrs,

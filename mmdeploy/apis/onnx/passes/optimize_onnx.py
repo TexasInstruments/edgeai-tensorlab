@@ -11,9 +11,10 @@ def optimize_onnx(ctx, graph, params_dict, torch_out):
         ts_optimizer.onnx._jit_pass_merge_shape_concate(graph)
         ts_optimizer.onnx._jit_pass_onnx_peephole(graph)
         ts_optimizer.onnx._jit_pass_flatten_cls_head(graph)
-        ts_optimizer.onnx._jit_pass_fuse_select_assign(graph, params_dict)
-        ts_optimizer.onnx._jit_pass_common_subgraph_elimination(
-            graph, params_dict)
+        # Removed below lines, was getting "RuntimeError: tensor does not have a device"
+        # ts_optimizer.onnx._jit_pass_fuse_select_assign(graph, params_dict)
+        # ts_optimizer.onnx._jit_pass_common_subgraph_elimination(
+        #     graph, params_dict)
     except ImportError:
         logger.warning(
             'Can not optimize model, please build torchscipt extension.\n'
