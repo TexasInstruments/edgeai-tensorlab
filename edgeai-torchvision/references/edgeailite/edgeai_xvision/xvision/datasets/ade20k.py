@@ -88,7 +88,7 @@ class ADE20KSegmentation:
         self.load_classes()
 
         # if a color representation is needed
-        self.colors = self.find_colors()
+        self.color_map = xnn.utils.get_color_palette(num_classes)
 
         image_dir = os.path.join(self.kwargs['path'], 'images', self.kwargs['split'])
         images_pattern = os.path.join(image_dir, '*.jpg')
@@ -190,9 +190,9 @@ class ADE20KSegmentation:
         g = seg_img.copy()
         b = seg_img.copy()
         for l in range(0, self.num_classes_):
-            r[seg_img == l] = self.colors[l][0]
-            g[seg_img == l] = self.colors[l][1]
-            b[seg_img == l] = self.colors[l][2]
+            r[seg_img == l] = self.color_map[l][0]
+            g[seg_img == l] = self.color_map[l][1]
+            b[seg_img == l] = self.color_map[l][2]
         #
 
         rgb = np.zeros((seg_img.shape[0], seg_img.shape[1], 3))
@@ -211,31 +211,6 @@ class ADE20KSegmentation:
             label_img[label_img >= self.num_classes_] = 0
         #
         return label_img
-
-    def find_colors(self):
-        num_classes_3 = np.power(self.num_classes_, 1.0/3)
-        delta_color = int(256/num_classes_3)
-        colors = [(r, g, b) for r in range(0,256,delta_color)
-                            for g in range(0,256,delta_color)
-                            for b in range(0,256,delta_color)]
-        # spread the colors list to self.num_classes_
-        color_step = len(colors) / self.num_classes_
-        colors_list = []
-        to_idx = 0
-        while len(colors_list) < self.num_classes_:
-            from_idx = round(color_step * to_idx)
-            if from_idx < len(colors):
-                colors_list.append(colors[from_idx])
-            else:
-                break
-            #
-            to_idx = to_idx + 1
-        #
-        shortage = self.num_classes_-len(colors_list)
-        if shortage > 0:
-            colors_list += colors[-shortage:]
-        #
-        return colors_list
 
     def evaluate(self, predictions, **kwargs):
         cmatrix = None

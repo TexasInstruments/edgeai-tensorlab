@@ -159,9 +159,9 @@ class CommonSegmentationPlus(CommonSegmentation):
         self.valid_classes = self.categories
         self.ignore_index = 255
         self.class_map = dict(zip(self.valid_classes, self.valid_classes))
-        self.colors = xnn.utils.get_color_palette(self.num_classes_used)
-        self.colors = (self.colors * self.num_classes_used)[:self.num_classes_used]
-        self.label_colours = dict(zip(range(self.num_classes_used), self.colors))
+        self.color_map = xnn.utils.get_color_palette(self.num_classes_used)
+        self.color_map = (self.color_map * self.num_classes_used)[:self.num_classes_used]
+        self.label_colours = dict(zip(range(self.num_classes_used), self.color_map))
         self.transforms = transforms
 
     def __getitem__(self, item):
