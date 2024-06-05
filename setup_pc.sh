@@ -50,7 +50,7 @@ sudo apt-get install -y cmake \
 
 #################################################################################
 # upgrade pip
-pip3 install --upgrade pip setuptools
+pip3 install --no-input --upgrade pip==23.3.1 setuptools==69.0.2
 
 ######################################################################
 echo 'Installing python packages...'
