@@ -38,6 +38,15 @@ USE_INTERNAL_REPO=0
 # set to 1 to enable other extra models
 PLUGINS_ENABLE_EXTRA=1
 
+# clone git repositories
+CLONE_GIT_REPOS=0
+
+# pull git repositories
+UPDATE_GIT_REPOS=0
+
+# use requirements from: pip list --format=freeze
+USE_PIP_FREEZE_REQUIREMENTS=1
+
 #################################################################################
 if [[ ${USE_INTERNAL_REPO} -eq 0 ]]; then
     SOURCE_LOCATION="https://github.com/TexasInstruments/"
@@ -49,19 +58,33 @@ echo "SOURCE_LOCATION="${SOURCE_LOCATION}
 
 #################################################################################
 # clone
-echo "cloning/updating git repositories. this may take some time..."
-echo "if there is any issue, please remove these folders and try again ../edgeai-benchmark ../edgeai-mmdetection ../edgeai-torchvision ../edgeai-modelzoo ../edgeai-yolox"
-if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; else cd ../edgeai-benchmark; git stash; git fetch origin r9.1; git checkout r9.1; git pull --rebase; fi
-if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; else cd ../edgeai-mmdetection; git stash; git fetch origin r9.1; git checkout r9.1; git pull --rebase; fi
-if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; else cd ../edgeai-torchvision; git stash; git fetch origin r9.1; git checkout r9.1; git pull --rebase; fi
-if [[ ! -d ../edgeai-modelzoo ]]; then git clone "--single-branch" --branch r9.1 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; else cd ../edgeai-modelzoo; git stash; git fetch origin r9.1; git checkout r9.1; git pull --rebase; fi
-
-if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
-  if [[ ! -d ../edgeai-yolox ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-yolox.git ../edgeai-yolox; else cd ../edgeai-yolox; git stash; git fetch origin r9.1; git checkout r9.1; git pull --rebase; fi
+if [[ ${CLONE_GIT_REPOS} -ne 0 ]]; then
+    echo "cloning git repositories. this may take some time..."
+    echo "if there is any issue, please remove these folders and try again ../edgeai-benchmark ../edgeai-mmdetection ../edgeai-torchvision ../edgeai-modelzoo ../edgeai-yolox"
+    if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
+    if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
+    if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
+    if [[ ! -d ../edgeai-modelzoo ]]; then git clone "--single-branch" --branch r9.2 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; fi
+    if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
+      if [[ ! -d ../edgeai-yolox ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-yolox.git ../edgeai-yolox; fi
+    fi
+    cd ../edgeai-modelmaker
+    echo "git clone done."
 fi
 
-cd ../edgeai-modelmaker
-echo "cloning/updating done."
+if [[ ${UPDATE_GIT_REPOS} -ne 0 ]]; then
+    echo "pulling git repositories. this may take some time..."
+    cd ../edgeai-benchmark; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase
+    cd ../edgeai-mmdetection; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase
+    cd ../edgeai-torchvision; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase
+    cd ../edgeai-modelzoo; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase
+    if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
+        cd ../edgeai-yolox; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase
+    fi
+    cd ../edgeai-modelmaker
+    echo "git pull done."
+fi
+
 
 #################################################################################
 # upgrade pip
@@ -79,15 +102,15 @@ echo "installing: edgeai-torchvision"
 cd ../edgeai-torchvision
 ./setup_cpu.sh
 
-echo "installing: edgeai-mmdetection"
-cd ../edgeai-mmdetection
-./setup_cpu.sh
-
 if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
   echo "installing: edgeai-yolox"
   cd ../edgeai-yolox
   ./setup_cpu.sh
 fi
+
+echo "installing: edgeai-mmdetection"
+cd ../edgeai-mmdetection
+./setup_cpu.sh
 
 # uninstall the onnxruntime was installed by setups above, so that the correct version can be installed.
 pip uninstall --yes onnxruntime
@@ -101,8 +124,11 @@ cd ../edgeai-modelmaker
 ./setup.sh
 
 # make sure that we are using pillow-simd (which is faster)
-pip uninstall --yes pillow
 pip install --no-input -U --force-reinstall pillow-simd
+
+if [[ ${USE_PIP_FREEZE_REQUIREMENTS} -ne 1 ]]; then
+    pip install -r requirements_freeze.txt
+fi
 
 ls -d ../edgeai-*
 
