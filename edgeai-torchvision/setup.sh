@@ -35,12 +35,11 @@ sudo apt-get install -y libjpeg-dev zlib1g-dev cmake libffi-dev protobuf-compile
 
 ######################################################################
 # upgrade pip
-pip3 install --no-input --upgrade pip setuptools
+pip3 install --no-input --upgrade pip==23.3.1 setuptools==69.0.2
 
 ######################################################################
 echo "installing pytorch - use the applopriate index-url from https://pytorch.org/get-started/locally/"
-# pip3 install --no-input torch==2.0.1+cu118 torchvision==0.15.2+cu118 -f https://download.pytorch.org/whl/torch_stable.html
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip3 install --no-input torch==2.0.1+cu118 torchvision==0.15.2+cu118 -f https://download.pytorch.org/whl/torch_stable.html
 
 echo 'Installing python packages...'
 # there as issue with installing pillow-simd through requirements - force it here
