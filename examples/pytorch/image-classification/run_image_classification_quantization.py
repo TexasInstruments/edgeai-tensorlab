@@ -185,18 +185,55 @@ class ModelArguments:
     )
 
 
+@dataclass
+class ModelOptimizationArguments:
+    """
+    Arguments pertaining to which type of model optimizations needs to be done.
+    """
+    
+    model_surgery: int = field(
+        default=0, 
+        metadata={
+            "help": "Whether we need to do model surgery in our network. (Options. 0(No Surgery), 1(native), 2(fx/pt2e))"
+    })
+    quantization: int = field(
+        default=0,
+        metadata={
+            "help" : "Whether we need to introduce quantization in our network. (Options. 0(No Surgery), 1(native), 2(fx/pt2e))"
+        }
+    )
+    quantize_type: str = field(
+        default='QAT',
+        metadata={
+            "help" : "How do we want to quantize our network (Options. QAT, PTC/PTQ). This is only applicable when quantization is set to 2"
+        }
+    )
+    quantize_calib_images: int = field(
+        default=50,
+        metadata={
+            "help" : "Incase of PTC/PTQ, the number of images to be used for calibration"
+        }
+    )
+    do_onnx_export: bool = field(
+        default=True,
+        metadata={
+            "help": "Whether we want to export the onnx network. (Default=True)"
+        }
+    )
+    
+
 def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
 
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments, ModelOptimizationArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
-        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+        model_args, data_args, training_args, model_optimization_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
     else:
-        model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+        model_args, data_args, training_args, model_optimization_args = parser.parse_args_into_dataclasses()
 
     if model_args.use_auth_token is not None:
         warnings.warn(
@@ -408,10 +445,19 @@ def main():
         # Set the validation transforms
         dataset["validation"].set_transform(val_transforms)
 
-    example_input = next(iter(dataset["validation"]))
-    example_input['labels'] = torch.tensor(example_input.pop('label')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
-    example_input['pixel_values'] = example_input['pixel_values'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
-    model = xmodelopt.quantization.v2.QATPT2EModule(model, total_epochs=1, is_qat=False, qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=True)
+    if model_optimization_args.quantization == 2:
+        example_input = next(iter(dataset["validation"]))
+        example_input['labels'] = torch.tensor(example_input.pop('label')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
+        example_input['pixel_values'] = example_input['pixel_values'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
+        convert_to_cuda = False if training_args.use_cpu else True
+        if model_optimization_args.quantize_type == "QAT":
+            model = xmodelopt.quantization.v2.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, \
+                qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda)
+        else:
+            training_args.max_steps = model_optimization_args.quantize_calib_images
+            training_args.num_train_epochs = 1
+            model = xmodelopt.quantization.v2.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=False, \
+                qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda)
 
     # Initialize our trainer
     trainer = Trainer(
@@ -433,11 +479,14 @@ def main():
             checkpoint = last_checkpoint
         train_result = trainer.train(resume_from_checkpoint=checkpoint)
         # trainer.save_model()
-        model.export(example_input, filename=training_args.output_dir + '/model.onnx', simplify=True, device="cuda:0")
-        print("Model Export is now complete! \n")
         trainer.log_metrics("train", train_result.metrics)
         trainer.save_metrics("train", train_result.metrics)
         trainer.save_state()
+        
+    if model_optimization_args.do_onnx_export:
+        export_device = 'cpu' if training_args.use_cpu else 'cuda:0'
+        model.export(example_input, filename=training_args.output_dir + '/model.onnx', simplify=True, device=export_device)
+        print("Model Export is now complete! \n")
 
     # Evaluation
     if training_args.do_eval:
