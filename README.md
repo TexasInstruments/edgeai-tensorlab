@@ -14,6 +14,74 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
+<h1 align="center"> EdgeAI-HF-Transformers </h1>
+
+We present a collection of transformers networks (as descibed in model zoo) that can be modified and quantized using the model optimization toolkit. They can be exported to onnx format as well which would then be inferred using ONNX Runtime or TIDL Runtime.  
+
+<h3> Installation </h3>
+
+This repository can be build using the below command : 
+```
+$ python setup.py develop
+```
+
+However, this repositiory utilizes the EdgeAI-ModelOptimization to introduce surgery and quantization in the networks, which can be build by : 
+
+```
+$ pip3 install --no-input git+https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-modeloptimization.git#subdirectory=torchmodelopt
+```
+
+The user can as well build the model optimization toolkit from source.
+
+<h3> Training and Testing </h3>
+
+<h4> Image Classification </h4>
+
+Quantization currently does not support distributed training. 
+
+```
+$ cd examples/pytorch/image-classification
+
+$ CUDA_VISIBLE_DEVICES=0 python run_image_classification_quantization.py 
+```
+
+Necessary Arguments : 
+
+| Argument | Value (or examples)   | Notes    |
+| :-----:  | :---:    | :---: |
+| train_dir  | ${imagenet_folder}/train      |    |
+| validation_dir  | ${imagenet_folder}/val      |    |
+| output_dir  | ${output_dir}      |  The trained network as well as the onnx model will be saved here  |
+|overwrite_output_dir | - | No Value is required|
+| remove_unused_columns | False | |
+| do_train | - | No Value is required |
+| do_eval | - | No Value is required |
+| per_device_train_batch_size | 128| To specify the batch size during training (per device)|
+| per_device_eval_batch_size | 128 | To specify the batch size during evaluation (per device)|
+| model_name_or_path | microsoft/swin-tiny-patch4-window7-224 | Models can be found on huggingface.co | 
+| dataloader_drop_last | True | Whether to drop the last incomplete batch (need to be true for faster pt2e based export now) |
+| label_names | labels | Needed to be specified to enable evaluation  |
+| ignore_mismatched_sizes | True | Will enable to load a pretrained model whose head dimensions are different.  |
+| quantization | 2 | Whether to introduce quantization, an value of 2 would introduce quantization, and 0 signifies no quantization  |
+| quantize_type | QAT | How do we want to quantize the network. (Options. QAT/ PTQ /PTC )   |
+| quantize_calib_images | 50 | The number of calibration images during Post-Training Quantization/Calibration  |
+
+
+<h4> Object Detection </h4>
+
+
+
+<h4> Instance Segmentation </h4>
+
+
+
+
+<h3> Model Zoo </h3>
+
+<h3> Quantization and ONNX Export</h3>
+
+The quantization scripts will take care of exporting the networks. The arguments necessary for quantization are mentioned in the training script.
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://huggingface.co/datasets/huggingface/documentation-images/raw/main/transformers-logo-dark.svg">
