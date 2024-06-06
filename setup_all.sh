@@ -44,6 +44,9 @@ CLONE_GIT_REPOS=0
 # pull git repositories
 UPDATE_GIT_REPOS=0
 
+# use requirements from: pip list --format=freeze
+USE_PIP_FREEZE_REQUIREMENTS=1
+
 #################################################################################
 if [[ ${USE_INTERNAL_REPO} -eq 0 ]]; then
     SOURCE_LOCATION="https://github.com/TexasInstruments/"
@@ -121,8 +124,11 @@ cd ../edgeai-modelmaker
 ./setup.sh
 
 # make sure that we are using pillow-simd (which is faster)
-pip uninstall --yes pillow
 pip install --no-input -U --force-reinstall pillow-simd
+
+if [[ ${USE_PIP_FREEZE_REQUIREMENTS} -ne 1 ]]; then
+    pip install -r requirements_freeze.txt
+fi
 
 ls -d ../edgeai-*
 
