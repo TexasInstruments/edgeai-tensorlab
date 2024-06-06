@@ -485,7 +485,10 @@ def main():
         
     if model_optimization_args.do_onnx_export:
         export_device = 'cpu' if training_args.use_cpu else 'cuda:0'
-        model.export(example_input, filename=training_args.output_dir + '/model.onnx', simplify=True, device=export_device)
+        file_name = model_args.model_name_or_path.split("/")[-1]
+        file_name = training_args.output_dir + '/' + file_name + '_quantized.onnx' if model_optimization_args.quantization else \
+            training_args.output_dir + '/' + file_name + '.onnx'
+        model.export(example_input, filename=file_name, simplify=True, device=export_device)
         print("Model Export is now complete! \n")
 
     # Evaluation
