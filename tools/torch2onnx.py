@@ -6,7 +6,8 @@ import os.path as osp
 
 import torch
 import onnx
-from mmdet.utils import save_model_proto
+# from mmdet.utils import save_model_proto
+from mmdeploy.utils import save_model_proto
 from mmdeploy.apis import (extract_model, get_predefined_partition_cfg,
                            torch2onnx)
 from mmdeploy.utils import (get_ir_config, get_partition_config,
@@ -42,6 +43,10 @@ def parse_args():
         help='Simplify onnx model by onnx-sim')
     parser.add_argument('--model-surgery', type=int, default=0)
     parser.add_argument(
+        '--keep-layer-names',
+        action='store_true',
+        help='do not rename onnx layers for TIDL')
+    parser.add_argument(
         '--log-level',
         help='set log level',
         default='INFO',
@@ -62,7 +67,7 @@ def main():
     # load deploy_cfg
     deploy_cfg = load_config(args.deploy_cfg)[0]
     model_cfg = load_config(args.model_cfg)[0]
-    save_file = get_ir_config(deploy_cfg)['save_file']
+    # save_file = get_ir_config(deploy_cfg)['save_file']
 
     save_file = osp.join(
         args.work_dir,
@@ -123,7 +128,7 @@ def main():
                              osp.splitext(osp.basename(save_file))[0])
     # save_onnx_path = output_prefix + '.onnx'
     # check the layers names and shorten it required.
-    if args.model_surgery:
+    if not args.keep_layer_names:
         xonnx.prune_layer_names(save_file, save_file, opset_version=11)
     
     onnx_model = onnx.load(save_file)
@@ -149,8 +154,6 @@ def main():
         # input_shape = input_shapes[0][2:]
         fake_input = torch.randn(*input_shapes[0]).to(args.device)
     save_model_proto(model_cfg, model, onnx_model, fake_input, save_file, feature_names=feature_names, output_names=output_names)
-
-    
 
 
 if __name__ == '__main__':

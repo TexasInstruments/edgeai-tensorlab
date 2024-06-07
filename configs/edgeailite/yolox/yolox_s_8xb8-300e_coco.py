@@ -1,48 +1,10 @@
-
-# modified from: https://github.com/open-mmlab/mmdetection/tree/master/configs/yolox
-
-img_scale = (416, 416)
-# input_size = img_scale
-samples_per_gpu = 8
-
-# dataset settings
-dataset_type = 'CocoDataset'
-num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8, 'WIDERFaceDataset':1}
-dataset_root_dict = {'CocoDataset':'data/coco/', 'VOCDataset':'data/VOCdevkit/', 'CityscapesDataset':'data/cityscapes/', 'WIDERFaceDataset':'data/WIDERFace/'}
-num_classes = num_classes_dict[dataset_type]
-data_root = dataset_root_dict[dataset_type]
-img_norm_cfg = dict(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], to_rgb=False)
-
-# replace complex activation functions with ReLU.
-# Also replace regular convolutions with depthwise-separable convolutions.
-# edgeai_torchmodelopt needs to be installed from edgeai-modeloptimization
-# convert_to_lite_model = dict(group_size_dw=None)
-
 _base_ = [
-    # f'../_xbase_/datasets/{dataset_type.lower()}.py',
-    f'../_xbase_/datasets/cocodataset.py',
-    '../_xbase_/hyper_params/yolox_config.py',
-    '../_xbase_/hyper_params/yolox_schedule.py',
-    
+    '../../_base_/schedules/schedule_1x.py', '../../_base_/default_runtime.py',
+    './yolox_tta.py'
 ]
 
-# settings for qat or calibration - set to True after doing floating point training
-quantize = False #'training' #'calibration'
-if quantize:
-    load_from = './work_dirs/yolox_s_lite/latest.pth'
-    max_epochs = (1 if quantize == 'calibration' else 12)
-    initial_learning_rate = 1e-4
-    num_last_epochs = max_epochs//2
-    interval = 10
-    resume_from = None
-else:
-    load_from = None #'https://download.openmmlab.com/mmdetection/v2.0/yolox/yolox_s_8x8_300e_coco/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth'
-    max_epochs = 300
-    initial_learning_rate = 0.01
-    num_last_epochs = 15
-    interval = 1
-    resume_from = None
-#
+img_scale = (640, 640)  # width, height
+load_from = '/data/files/a0508577/work/edgeai-algo/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth'
 
 # model settings
 model = dict(
@@ -53,29 +15,90 @@ model = dict(
         batch_augments=[
             dict(
                 type='BatchSyncRandomResize',
-                random_size_range=(320, 640),
+                random_size_range=(480, 800),
                 size_divisor=32,
                 interval=10)
-    ]),
-    backbone=dict(type='CSPDarknet', deepen_factor=0.33, widen_factor=0.375,act_cfg=dict(type='ReLU')),
+        ]),
+    backbone=dict(
+        type='CSPDarknet',
+        deepen_factor=0.33,
+        widen_factor=0.5,
+        out_indices=(2, 3, 4),
+        use_depthwise=False,
+        spp_kernal_sizes=(5, 9, 13),
+        norm_cfg=dict(type='BN', momentum=0.03, eps=0.001),
+        # act_cfg=dict(type='Swish'),
+        act_cfg=dict(type='ReLU')
+    ),
     neck=dict(
         type='YOLOXPAFPN',
-        in_channels=[96, 192, 384],
-        out_channels=96,
-        num_csp_blocks=1,act_cfg=dict(type='ReLU')),
+        in_channels=[128, 256, 512],
+        out_channels=128,
+        num_csp_blocks=1,
+        use_depthwise=False,
+        upsample_cfg=dict(scale_factor=2, mode='nearest'),
+        norm_cfg=dict(type='BN', momentum=0.03, eps=0.001),
+        # act_cfg=dict(type='Swish'),
+        act_cfg=dict(type='ReLU')
+        ),
     bbox_head=dict(
-        type='YOLOXHead', num_classes=num_classes, in_channels=96, feat_channels=96,act_cfg=dict(type='ReLU')),
+        type='YOLOXHead',
+        num_classes=80,
+        in_channels=128,
+        feat_channels=128,
+        stacked_convs=2,
+        strides=(8, 16, 32),
+        use_depthwise=False,
+        norm_cfg=dict(type='BN', momentum=0.03, eps=0.001),
+        # act_cfg=dict(type='Swish'),
+        act_cfg=dict(type='ReLU'),
+        loss_cls=dict(
+            type='CrossEntropyLoss',
+            use_sigmoid=True,
+            reduction='sum',
+            loss_weight=1.0),
+        loss_bbox=dict(
+            type='IoULoss',
+            mode='square',
+            eps=1e-16,
+            reduction='sum',
+            loss_weight=5.0),
+        loss_obj=dict(
+            type='CrossEntropyLoss',
+            use_sigmoid=True,
+            reduction='sum',
+            loss_weight=1.0),
+        loss_l1=dict(type='L1Loss', reduction='sum', loss_weight=1.0)),
     train_cfg=dict(assigner=dict(type='SimOTAAssigner', center_radius=2.5)),
     # In order to align the source code, the threshold of the val phase is
     # 0.01, and the threshold of the test phase is 0.001.
     test_cfg=dict(score_thr=0.01, nms=dict(type='nms', iou_threshold=0.65)))
 
+# dataset settings
+data_root = 'data/coco/'
+dataset_type = 'CocoDataset'
+
+# Example to use different file client
+# Method 1: simply set the data root and let the file I/O module
+# automatically infer from prefix (not support LMDB and Memcache yet)
+
+# data_root = 's3://openmmlab/datasets/detection/coco/'
+
+# Method 2: Use `backend_args`, `file_client_args` in versions before 3.0.0rc6
+# backend_args = dict(
+#     backend='petrel',
+#     path_mapping=dict({
+#         './data/': 's3://openmmlab/datasets/detection/',
+#         'data/': 's3://openmmlab/datasets/detection/'
+#     }))
+backend_args = None
 
 train_pipeline = [
     dict(type='Mosaic', img_scale=img_scale, pad_val=114.0),
     dict(
         type='RandomAffine',
-        scaling_ratio_range=(0.5, 1.5),
+        scaling_ratio_range=(0.1, 2),
+        # img_scale is (width, height)
         border=(-img_scale[0] // 2, -img_scale[1] // 2)),
     dict(
         type='MixUp',
@@ -87,6 +110,8 @@ train_pipeline = [
     # According to the official implementation, multi-scale
     # training is not considered here but in the
     # 'mmdet/models/detectors/yolox.py'.
+    # Resize and Pad are for the last 15 epochs when Mosaic,
+    # RandomAffine, and MixUp are closed by YOLOXModeSwitchHook.
     dict(type='Resize', scale=img_scale, keep_ratio=True),
     dict(
         type='Pad',
@@ -97,10 +122,6 @@ train_pipeline = [
     dict(type='FilterAnnotations', min_gt_bbox_wh=(1, 1), keep_empty=False),
     dict(type='PackDetInputs')
 ]
-
-
-
-backend_args = None
 
 train_dataset = dict(
     # use MultiImageMixDataset wrapper to support mosaic and mixup
@@ -138,7 +159,6 @@ train_dataloader = dict(
     persistent_workers=True,
     sampler=dict(type='DefaultSampler', shuffle=True),
     dataset=train_dataset)
-
 val_dataloader = dict(
     batch_size=8,
     num_workers=4,
@@ -162,9 +182,12 @@ val_evaluator = dict(
     backend_args=backend_args)
 test_evaluator = val_evaluator
 
-val_cfg = dict(type='ValLoop')
-train_cfg = dict( type='EpochBasedTrainLoop', max_epochs=max_epochs, val_interval=interval)
-test_cfg = dict(type='TestLoop')
+# training settings
+max_epochs = 30
+num_last_epochs = 15
+interval = 1
+
+train_cfg = dict(max_epochs=max_epochs, val_interval=interval)
 
 # optimizer
 # default 8 gpu
@@ -206,29 +229,27 @@ param_scheduler = [
     )
 ]
 
-
+default_hooks = dict(
+    checkpoint=dict(
+        interval=interval,
+        max_keep_ckpts=3  # only keep latest 3 checkpoints
+    ))
 
 custom_hooks = [
     dict(
         type='YOLOXModeSwitchHook',
         num_last_epochs=num_last_epochs,
         priority=48),
-    dict(
-        type='SyncNormHook',
-        # num_last_epochs=num_last_epochs,
-        # interval=interval,
-        priority=48),
+    dict(type='SyncNormHook', priority=48),
     dict(
         type='EMAHook',
         ema_type='ExpMomentumEMA',
-        # resume_from=resume_from,
         momentum=0.0001,
+        update_buffers=True,
         priority=49)
 ]
 
-
-# optimizer = dict(
-#     type='SGD',lr=initial_learning_rate)
-
-# lr_config = dict(
-#     num_last_epochs=num_last_epochs)
+# NOTE: `auto_scale_lr` is for automatically scaling LR,
+# USER SHOULD NOT CHANGE ITS VALUES.
+# base_batch_size = (8 GPUs) x (8 samples per GPU)
+auto_scale_lr = dict(base_batch_size=64)

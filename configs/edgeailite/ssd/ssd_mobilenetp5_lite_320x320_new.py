@@ -61,6 +61,7 @@ interval = 1
 
 ######################################################
 backbone_type = 'MobileNetV2P5Lite' #'MobileNetV2Lite' #'MobileNetV1Lite'
+# mobilenetv2_pretrained = '/data/files/a0508577/work/edgeai-algo/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetp5_lite_320x320_20230404_checkpoint.pth'
 mobilenetv2_pretrained = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2p5_20230201_checkpoint.pth'
 mobilenetv1_pretrained='https://software-dl.ti.com/jacinto7/esd/modelzoo/latest/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v1_20190906_checkpoint.pth'
 pretrained=(mobilenetv2_pretrained if backbone_type == 'MobileNetV2P5Lite' else mobilenetv1_pretrained)
@@ -71,7 +72,7 @@ basesize_ratio_range = (0.1, 0.9)
 
 conv_cfg = None
 norm_cfg = dict(type='BN')
-# convert_to_lite_model = dict(group_size_dw=1)
+convert_to_lite_model = dict(group_size_dw=1)
 
 # model settings
 data_preprocessor = dict(
@@ -140,31 +141,6 @@ train_pipeline = [
     dict(type='PackDetInputs')
 ]
 
-# train_pipeline = [
-#     dict(type='LoadImageFromFile', to_float32=True),
-#     dict(type='LoadAnnotations', with_bbox=True),
-#     dict(
-#         type='PhotoMetricDistortion',
-#         brightness_delta=32,
-#         contrast_range=(0.5, 1.5),
-#         saturation_range=(0.5, 1.5),
-#         hue_delta=18) if not quantize else dict(type='Bypass'),
-#     dict(
-#         type='Expand',
-#         mean=img_norm_cfg['mean'],
-#         to_rgb=img_norm_cfg['to_rgb'],
-#         ratio_range=(1, 4)),
-#     dict(
-#         type='MinIoURandomCrop',
-#         min_ious=(0.1, 0.3, 0.5, 0.7, 0.9),
-#         min_crop_size=0.3),
-#     dict(type='Resize', img_scale=input_size, keep_ratio=False),
-#     dict(type='Normalize', **img_norm_cfg),
-#     dict(type='RandomFlip', flip_ratio=0.5),
-#     dict(type='DefaultFormatBundle'),
-#     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
-# ]
-
 test_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='Resize', scale=(input_size, input_size), keep_ratio=False),
@@ -180,20 +156,6 @@ test_pipeline = [
                    'scale_factor'))
 ]
 
-# test_pipeline = [
-#     dict(type='LoadImageFromFile'),
-#     dict(
-#         type='MultiScaleFlipAug',
-#         img_scale=input_size,
-#         flip=False,
-#         transforms=[
-#             dict(type='Resize', keep_ratio=False),
-#             dict(type='RandomFlip'),
-#             dict(type='Normalize', **img_norm_cfg),
-#             dict(type='ImageToTensor', keys=['img']),
-#             dict(type='Collect', keys=['img']),
-#         ])
-# ]
 
 backend_args = None
 
