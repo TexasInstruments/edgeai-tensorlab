@@ -5,14 +5,10 @@ from typing import Any, Optional, Union
 import mmengine
 from mmengine.runner import load_checkpoint
 from mmdet.utils import convert_to_lite_model
-from mmdet.apis import init_detector
-
+from mmdeploy.utils import build_model_from_cfg
 from .core import PIPELINE_MANAGER
 
-def build_model_from_cfg(config_path, checkpoint_path, device):
-    model = init_detector(config_path, checkpoint_path, device=device)
-    model.eval()
-    return model
+
 
 @PIPELINE_MANAGER.register_pipeline()
 def torch2onnx(img: Any,
@@ -71,15 +67,18 @@ def torch2onnx(img: Any,
     # torch_model = task_processor.build_pytorch_model(model_checkpoint)
     torch_model = build_model_from_cfg(model_cfg, model_checkpoint, device)
 
-    data, model_inputs = task_processor.create_input(
-        img,
-        input_shape,
-        data_preprocessor=getattr(torch_model, 'data_preprocessor', None))
+    if not isinstance(img, str) :
+        model_inputs = img
+    else:
+        data, model_inputs = task_processor.create_input(
+            img,
+            input_shape,
+            data_preprocessor=getattr(torch_model, 'data_preprocessor', None))
 
-    if isinstance(model_inputs, list) and len(model_inputs) == 1:
-        model_inputs = model_inputs[0]
-    data_samples = data['data_samples']
-    input_metas = {'data_samples': data_samples, 'mode': 'predict'}
+        if isinstance(model_inputs, list) and len(model_inputs) == 1:
+            model_inputs = model_inputs[0]
+        data_samples = data['data_samples']
+        input_metas = {'data_samples': data_samples, 'mode': 'predict'}
 
     # export to onnx
     context_info = dict()
@@ -114,7 +113,7 @@ def torch2onnx(img: Any,
         export(
             torch_model,
             model_inputs,
-            input_metas=input_metas,
+            # input_metas=input_metas,
             save_file=save_file,
             backend=backend,
             input_names=input_names,

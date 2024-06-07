@@ -60,7 +60,7 @@ def yolox_head__predict_by_feat(self,
 
     # mark pred_maps
     @mark('yolo_head', inputs=['cls_scores', 'bbox_preds', 'objectnesses'])
-    def __mark_pred_maps(cls_scores, bbox_preds, objectnesses):
+    def __mark_pred_maps(bbox_preds, objectnesses,cls_scores):
         return cls_scores, bbox_preds, objectnesses
 
     cls_scores, bbox_preds, objectnesses = __mark_pred_maps(
