@@ -76,6 +76,7 @@ def init_params(*args, **kwargs):
             model_training_id=None,
             training_backend=None,
             pretrained_checkpoint_path=None,
+            pretrained_weight_state_dict_name=None,
             target_devices={},
             project_path=None,
             dataset_path=None,

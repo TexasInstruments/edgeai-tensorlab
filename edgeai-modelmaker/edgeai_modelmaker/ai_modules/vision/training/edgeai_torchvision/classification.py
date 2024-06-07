@@ -79,6 +79,7 @@ _model_descriptions = {
             input_resize=256,
             input_cropsize=224,
             pretrained_checkpoint_path=model_urls['mobilenet_v2_lite'],
+            pretrained_weight_state_dict_name='state_dict',
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=2.27,
@@ -115,6 +116,7 @@ _model_descriptions = {
             input_resize=256,
             input_cropsize=224,
             pretrained_checkpoint_path=model_urls['regnet_x_400mf'],
+            pretrained_weight_state_dict_name='model',
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=2.61,
@@ -151,6 +153,7 @@ _model_descriptions = {
             input_resize=256,
             input_cropsize=224,
             pretrained_checkpoint_path=model_urls['regnet_x_800mf'],
+            pretrained_weight_state_dict_name='model',
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=2.95,
@@ -185,6 +188,7 @@ _model_descriptions = {
     #         input_resize=256,
     #         input_cropsize=224,
     #         pretrained_checkpoint_path=model_urls['mobilenet_v3_small_lite'],
+    #         pretrained_weight_state_dict_name = 'state_dict',
     #         batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_CLASSIFICATION],
     #         target_devices={
     #             constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=1.45,
@@ -290,6 +294,7 @@ class ModelTraining:
         argv = ['--model', f'{self.params.training.model_training_id}',
                 '--model-surgery', '1',
                 '--weights', f'{self.params.training.pretrained_checkpoint_path}',
+                '--weights-state-dict-name', f'{self.params.training.pretrained_weight_state_dict_name}',
                 '--dataset', 'modelmaker',
                 '--data-path', f'{self.params.dataset.dataset_path}',
                 '--annotation-prefix', f'{self.params.dataset.annotation_prefix}',

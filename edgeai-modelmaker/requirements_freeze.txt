@@ -19,10 +19,10 @@ Cython==3.0.10
 decorator==5.1.1
 distro==1.9.0
 dlr==1.13.0
-edgeai-benchmark==9.1.0+ef74b0a
-edgeai-modelmaker==9.1.0+ef74b0a
-edgeai-torchmodelopt==9.1.0+c6958ab
-edgeai-xvision==9.0.0
+#edgeai-benchmark==9.1.0+ef74b0a
+#edgeai-modelmaker==9.1.0+ef74b0a
+#edgeai-torchmodelopt==9.1.0+c6958ab
+#edgeai-xvision==9.0.0
 exceptiongroup==1.2.1
 filelock==3.14.0
 flake8==7.0.0
