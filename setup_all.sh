@@ -61,12 +61,12 @@ echo "SOURCE_LOCATION="${SOURCE_LOCATION}
 if [[ ${CLONE_GIT_REPOS} -ne 0 ]]; then
     echo "cloning git repositories. this may take some time..."
     echo "if there is any issue, please remove these folders and try again ../edgeai-benchmark ../edgeai-mmdetection ../edgeai-torchvision ../edgeai-modelzoo ../edgeai-yolox"
-    if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
-    if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
-    if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
-    if [[ ! -d ../edgeai-modelzoo ]]; then git clone "--single-branch" --branch r9.2 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; fi
+    if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
+    if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
+    if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
+    if [[ ! -d ../edgeai-modelzoo ]]; then git clone "--single-branch" --branch r9.1 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; fi
     if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
-      if [[ ! -d ../edgeai-yolox ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-yolox.git ../edgeai-yolox; fi
+      if [[ ! -d ../edgeai-yolox ]]; then git clone --branch r9.1 ${SOURCE_LOCATION}edgeai-yolox.git ../edgeai-yolox; fi
     fi
     cd ../edgeai-modelmaker
     echo "git clone done."
@@ -74,12 +74,12 @@ fi
 
 if [[ ${UPDATE_GIT_REPOS} -ne 0 ]]; then
     echo "pulling git repositories. this may take some time..."
-    cd ../edgeai-benchmark; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase
-    cd ../edgeai-mmdetection; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase
-    cd ../edgeai-torchvision; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase
-    cd ../edgeai-modelzoo; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase
+    cd ../edgeai-benchmark; git stash; git fetch origin r9.1; git checkout r9.1; git pull --rebase
+    cd ../edgeai-mmdetection; git stash; git fetch origin r9.1; git checkout r9.1; git pull --rebase
+    cd ../edgeai-torchvision; git stash; git fetch origin r9.1; git checkout r9.1; git pull --rebase
+    cd ../edgeai-modelzoo; git stash; git fetch origin r9.1; git checkout r9.1; git pull --rebase
     if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
-        cd ../edgeai-yolox; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase
+        cd ../edgeai-yolox; git stash; git fetch origin r9.1; git checkout r9.1; git pull --rebase
     fi
     cd ../edgeai-modelmaker
     echo "git pull done."
