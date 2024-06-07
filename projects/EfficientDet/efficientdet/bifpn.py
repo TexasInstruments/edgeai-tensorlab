@@ -2,7 +2,7 @@ from typing import List
 
 import torch
 import torch.nn as nn
-from mmcv.cnn.bricks import Swish
+from mmcv.cnn.bricks import Swish, build_conv_layer
 from mmengine.model import BaseModule
 
 from mmdet.registry import MODELS
@@ -27,6 +27,7 @@ class BiFPNStage(nn.Module):
                  first_time: bool = False,
                  apply_bn_for_resampling: bool = True,
                  conv_bn_act_pattern: bool = False,
+                 conv_cfg: OptConfigType = dict(type='DepthWiseConvBlock'),
                  norm_cfg: OptConfigType = dict(
                      type='BN', momentum=1e-2, eps=1e-3),
                  epsilon: float = 1e-4) -> None:
@@ -37,6 +38,7 @@ class BiFPNStage(nn.Module):
         self.first_time = first_time
         self.apply_bn_for_resampling = apply_bn_for_resampling
         self.conv_bn_act_pattern = conv_bn_act_pattern
+        self.conv_cfg = conv_cfg
         self.norm_cfg = norm_cfg
         self.epsilon = epsilon
 
@@ -92,49 +94,49 @@ class BiFPNStage(nn.Module):
         self.p7_down_sample = MaxPool2dSamePadding(3, 2)
 
         # Fuse Conv Layers
-        self.conv6_up = DepthWiseConvBlock(
+        self.conv6_up = build_conv_layer(self.conv_cfg,
             out_channels,
             out_channels,
             apply_norm=self.apply_bn_for_resampling,
             conv_bn_act_pattern=self.conv_bn_act_pattern,
             norm_cfg=norm_cfg)
-        self.conv5_up = DepthWiseConvBlock(
+        self.conv5_up = build_conv_layer(self.conv_cfg,
             out_channels,
             out_channels,
             apply_norm=self.apply_bn_for_resampling,
             conv_bn_act_pattern=self.conv_bn_act_pattern,
             norm_cfg=norm_cfg)
-        self.conv4_up = DepthWiseConvBlock(
+        self.conv4_up = build_conv_layer(self.conv_cfg,
             out_channels,
             out_channels,
             apply_norm=self.apply_bn_for_resampling,
             conv_bn_act_pattern=self.conv_bn_act_pattern,
             norm_cfg=norm_cfg)
-        self.conv3_up = DepthWiseConvBlock(
+        self.conv3_up = build_conv_layer(self.conv_cfg,
             out_channels,
             out_channels,
             apply_norm=self.apply_bn_for_resampling,
             conv_bn_act_pattern=self.conv_bn_act_pattern,
             norm_cfg=norm_cfg)
-        self.conv4_down = DepthWiseConvBlock(
+        self.conv4_down = build_conv_layer(self.conv_cfg,
             out_channels,
             out_channels,
             apply_norm=self.apply_bn_for_resampling,
             conv_bn_act_pattern=self.conv_bn_act_pattern,
             norm_cfg=norm_cfg)
-        self.conv5_down = DepthWiseConvBlock(
+        self.conv5_down = build_conv_layer(self.conv_cfg,
             out_channels,
             out_channels,
             apply_norm=self.apply_bn_for_resampling,
             conv_bn_act_pattern=self.conv_bn_act_pattern,
             norm_cfg=norm_cfg)
-        self.conv6_down = DepthWiseConvBlock(
+        self.conv6_down = build_conv_layer(self.conv_cfg,
             out_channels,
             out_channels,
             apply_norm=self.apply_bn_for_resampling,
             conv_bn_act_pattern=self.conv_bn_act_pattern,
             norm_cfg=norm_cfg)
-        self.conv7_down = DepthWiseConvBlock(
+        self.conv7_down = build_conv_layer(self.conv_cfg,
             out_channels,
             out_channels,
             apply_norm=self.apply_bn_for_resampling,
@@ -283,6 +285,7 @@ class BiFPN(BaseModule):
                  epsilon: float = 1e-4,
                  apply_bn_for_resampling: bool = True,
                  conv_bn_act_pattern: bool = False,
+                 conv_cfg: OptConfigType = dict(type='DepthWiseConvBlock'),                 
                  norm_cfg: OptConfigType = dict(
                      type='BN', momentum=1e-2, eps=1e-3),
                  init_cfg: MultiConfig = None) -> None:
@@ -295,6 +298,7 @@ class BiFPN(BaseModule):
                 first_time=True if _ == 0 else False,
                 apply_bn_for_resampling=apply_bn_for_resampling,
                 conv_bn_act_pattern=conv_bn_act_pattern,
+                conv_cfg=conv_cfg,
                 norm_cfg=norm_cfg,
                 epsilon=epsilon) for _ in range(num_stages)
         ])

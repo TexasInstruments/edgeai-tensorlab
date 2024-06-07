@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 import torch
 import torch.nn as nn
-from mmcv.cnn.bricks import Swish, build_norm_layer
+from mmcv.cnn.bricks import Swish, build_norm_layer, build_conv_layer
 from mmengine.model import bias_init_with_prob
 from torch import Tensor
 
@@ -38,12 +38,14 @@ class EfficientDetSepBNHead(AnchorHead):
                  in_channels: int,
                  feat_channels: int,
                  stacked_convs: int = 3,
+                 conv_cfg: OptConfigType = dict(type='DepthWiseConvBlock'),
                  norm_cfg: OptConfigType = dict(
                      type='BN', momentum=1e-2, eps=1e-3),
                  init_cfg: OptMultiConfig = None,
                  **kwargs) -> None:
         self.num_ins = num_ins
         self.stacked_convs = stacked_convs
+        self.conv_cfg = conv_cfg
         self.norm_cfg = norm_cfg
         super().__init__(
             num_classes=num_classes,
@@ -59,10 +61,10 @@ class EfficientDetSepBNHead(AnchorHead):
         for i in range(self.stacked_convs):
             channels = self.in_channels if i == 0 else self.feat_channels
             self.reg_conv_list.append(
-                DepthWiseConvBlock(
+                build_conv_layer(self.conv_cfg,
                     channels, self.feat_channels, apply_norm=False))
             self.cls_conv_list.append(
-                DepthWiseConvBlock(
+                build_conv_layer(self.conv_cfg,
                     channels, self.feat_channels, apply_norm=False))
 
         self.reg_bn_list = nn.ModuleList([
@@ -81,11 +83,11 @@ class EfficientDetSepBNHead(AnchorHead):
             ]) for i in range(self.stacked_convs)
         ])
 
-        self.cls_header = DepthWiseConvBlock(
+        self.cls_header = build_conv_layer(self.conv_cfg,
             self.in_channels,
             self.num_base_priors * self.cls_out_channels,
             apply_norm=False)
-        self.reg_header = DepthWiseConvBlock(
+        self.reg_header = build_conv_layer(self.conv_cfg,
             self.in_channels, self.num_base_priors * 4, apply_norm=False)
         self.swish = Swish()
 

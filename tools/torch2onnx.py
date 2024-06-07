@@ -151,7 +151,6 @@ def main():
     # write prototxt
     if not args.img_size:
         input_shapes = [[d.dim_value for d in _input.type.tensor_type.shape.dim] for _input in onnx_model.graph.input]
-        # input_shape = input_shapes[0][2:]
         fake_input = torch.randn(*input_shapes[0]).to(args.device)
     save_model_proto(model_cfg, model, onnx_model, fake_input, save_file, feature_names=feature_names, output_names=output_names)
 
