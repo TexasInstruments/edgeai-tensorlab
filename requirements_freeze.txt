@@ -20,10 +20,10 @@ debugpy==1.8.1
 decorator==5.1.1
 distro==1.9.0
 dlr==1.13.0
-edgeai-benchmark==9.2.0+255adc4
-edgeai-modelmaker==9.2.0+255adc4
-edgeai-torchmodelopt==9.1.0+c6958ab
-edgeai-xvision==9.0.0
+#edgeai-benchmark==9.2.0+255adc4
+#edgeai-modelmaker==9.2.0+255adc4
+#edgeai-torchmodelopt==9.1.0+c6958ab
+#edgeai-xvision==9.0.0
 exceptiongroup==1.2.1
 filelock==3.14.0
 flake8==7.0.0
