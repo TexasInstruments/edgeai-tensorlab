@@ -224,6 +224,13 @@ class ModelCompilation():
         elif 'metric' in self.params.compilation:
             pipeline_config['metric'] = self.params.compilation.metric
         #
+        # num_classes may not have been available during dataset instanciation and hence color_map might not have ben created
+        # update it here.
+        dataset_info = val_dataset.get_dataset_info()
+        if 'color_map' not in dataset_info or dataset_info['color_map'] is None:
+            num_classes = val_dataset.get_num_classes()
+            dataset_info['color_map'] = val_dataset.get_color_map(num_classes)
+        #
         if isinstance(pipeline_config['metric'], dict) and 'label_offset_pred' in pipeline_config['metric']:
             dataset_info = val_dataset.get_dataset_info()
             categories = dataset_info['categories']
@@ -232,9 +239,10 @@ class ModelCompilation():
         #
         postprocess = pipeline_config['postprocess']
         for transform in postprocess.transforms:
+            # special case
             if isinstance(transform, edgeai_benchmark.postprocess.SegmentationImageSave):
-                num_classes = val_dataset.get_num_classes()
-                transform.compute_colors(num_classes)
+                dataset_info = val_dataset.get_dataset_info()
+                transform.update_color_map(dataset_info['color_map'])
             #
         #
         self.pipeline_configs = pipeline_configs
@@ -251,6 +259,7 @@ class ModelCompilation():
             print(edgeai_benchmark.utils.log_color('\nINFO', 'model import is in progress',
                                                    'please see the log file for status.'))
         #
+        self.settings.run_import = True
         self.settings.run_inference = False
         edgeai_benchmark.interfaces.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
         # run inference
@@ -259,6 +268,7 @@ class ModelCompilation():
             print(edgeai_benchmark.utils.log_color('\nINFO', 'model inference is in progress',
                                                    'please see the log file for status.'))
         #
+        self.settings.run_import = False
         self.settings.run_inference = True
         edgeai_benchmark.interfaces.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
 
