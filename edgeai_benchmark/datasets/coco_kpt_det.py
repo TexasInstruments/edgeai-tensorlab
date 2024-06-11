@@ -253,6 +253,9 @@ class COCOKeypointDetection(DatasetBase):
         return accuracy
 
     def get_dataset_info(self):
+        if 'dataset_info' in self.kwargs:
+            return self.kwargs['dataset_info']
+        #
         # return only info and categories for now as the whole thing could be quite large.
         dataset_store = dict()
         for key in ('info', 'categories'):
