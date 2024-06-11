@@ -298,7 +298,6 @@ class SegmentationImageSave():
         self.num_classes = num_classes
         self.num_output_frames = num_output_frames
         self.output_frame_idx = 0
-        self.compute_colors(num_classes)
 
     def update_color_map(self, color_map):
         self.color_map = color_map
