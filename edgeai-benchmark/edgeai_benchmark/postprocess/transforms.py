@@ -202,10 +202,6 @@ class IgnoreIndex():
 
 class ClassificationImageSave():
     def __init__(self, num_output_frames=None):
-        self.color_step = 64  # 32
-        self.colors = [(r, g, b) for r in range(0, 256, self.color_step) \
-                       for g in range(0, 256, self.color_step) \
-                       for b in range(0, 256, self.color_step)]
         self.thickness = 2
         self.thickness_txt = 1
         self.dataset_info = None
@@ -213,11 +209,15 @@ class ClassificationImageSave():
         self.label_offset_pred = None
         self.num_output_frames = num_output_frames
         self.output_frame_idx = 0
+        self.color_map = None
 
     def __call__(self, output, info_dict):
         if self.output_frame_idx >= self.num_output_frames:
             self.output_frame_idx += 1
             return output, info_dict
+        #
+        if self.color_map is None:
+            self.color_map = info_dict['dataset_info']['color_map']
         #
         data_path = info_dict['data_path']
         img_data = info_dict['data']
@@ -245,7 +245,7 @@ class ClassificationImageSave():
         output_id = apply_label_offset(output_id, self.label_offset_pred)
         output_name = self.dataset_categories_map[output_id] if output_id in self.dataset_categories_map else output_id
         output_txt = f'category: {output_name}'
-        label_color = self.colors[output_id % len(self.colors)]
+        label_color = self.color_map[output_id % len(self.color_map)]
         img_data = self.put_text(img_data, output_txt, label_color)
         if isinstance(img_data, np.ndarray):
             cv2.imwrite(save_path, img_data[:, :, ::-1])
@@ -298,17 +298,18 @@ class SegmentationImageSave():
         self.num_classes = num_classes
         self.num_output_frames = num_output_frames
         self.output_frame_idx = 0
+        self.color_map = None
+        self.palette = None
 
     def update_color_map(self, color_map):
         self.color_map = color_map
         # convert label to color here
-        self.palette = self.colors
+        self.palette = copy.deepcopy(color_map)
         for i, p in enumerate(self.palette):
             self.palette[i] = np.array(p, dtype=np.uint8)
             self.palette[i] = self.palette[i][..., ::-1]  # RGB->BGR, since palette is expected to be given in RGB format
         #
         self.palette = np.array(self.palette)
-        return self.colors
 
     def __call__(self, tensor, info_dict):
         if self.output_frame_idx >= self.num_output_frames:
@@ -333,7 +334,7 @@ class SegmentationImageSave():
 
         prediction = np.squeeze(prediction)
         prediction_size = info_dict['data_shape']
-        prediction = np.remainder(prediction, len(self.colors))
+        prediction = np.remainder(prediction, len(self.color_map))
         output_image = self.palette[prediction.ravel()].reshape(prediction_size)
 
         input_bgr = cv2.imread(data_path)  # Read the actual RGB image
@@ -523,10 +524,6 @@ class DetectionBoxSL2BoxLS(DetectionFormatting):
 
 class DetectionImageSave():
     def __init__(self, num_output_frames=None):
-        self.color_step = 64  # 32
-        self.colors = [(r, g, b) for r in range(0, 256, self.color_step) \
-                       for g in range(0, 256, self.color_step) \
-                       for b in range(0, 256, self.color_step)]
         self.thickness = 2
         self.thickness_txt = 1
         self.dataset_info = None
@@ -534,11 +531,15 @@ class DetectionImageSave():
         self.label_offset_pred = None
         self.num_output_frames = num_output_frames
         self.output_frame_idx = 0
+        self.color_map = None
 
     def __call__(self, bbox, info_dict):
         if self.output_frame_idx >= self.num_output_frames:
             self.output_frame_idx += 1
             return bbox, info_dict
+        #
+        if self.color_map is None:
+            self.color_map = info_dict['dataset_info']['color_map']
         #
         data_path = info_dict['data_path']
         img_data = info_dict['data']
@@ -564,7 +565,7 @@ class DetectionImageSave():
         img_data = np.array(img_data) if not is_ndarray else img_data
         for bbox_one in bbox:
             label = int(bbox_one[4])
-            label_color = self.colors[label % len(self.colors)]
+            label_color = self.color_map[label % len(self.color_map)]
             pt1 = (int(bbox_one[0]), int(bbox_one[1]))
             pt2 = (int(bbox_one[2]), int(bbox_one[3]))
             label = apply_label_offset(label, self.label_offset_pred)
