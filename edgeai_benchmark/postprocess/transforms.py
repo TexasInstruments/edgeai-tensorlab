@@ -300,14 +300,8 @@ class SegmentationImageSave():
         self.output_frame_idx = 0
         self.compute_colors(num_classes)
 
-    def compute_colors(self, num_classes):
-        self.num_classes = num_classes
-        if num_classes and num_classes < 8:
-            self.colors = [(0, 0, 0), (255,0,0), (0,255,0), (0,0,255), (255,255,0), (0,255,255), (255,0,255), (255,255,255)]
-        else:
-            color_step = 63 if not num_classes else (255 if num_classes < 8 else (127 if num_classes < 27 else 63))
-            self.colors = [(r, g, b) for r in range(0, 256, color_step) for g in range(0, 256, color_step) for b in range(0, 256, color_step)]
-        #
+    def update_color_map(self, color_map):
+        self.color_map = color_map
         # convert label to color here
         self.palette = self.colors
         for i, p in enumerate(self.palette):
@@ -321,6 +315,9 @@ class SegmentationImageSave():
         if self.output_frame_idx >= self.num_output_frames:
             self.output_frame_idx += 1
             return tensor, info_dict
+        #
+        if self.color_map is None or self.palette is None:
+            self.update_color_map(info_dict['dataset_info']['color_map'])
         #
         data_path = info_dict['data_path']
         # img_data = info_dict['data']
