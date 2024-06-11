@@ -94,6 +94,28 @@ class ADE20KSegmentation(DatasetBase):
         self.num_frames = self.kwargs['num_frames'] = min(self.kwargs['num_frames'], len(self.imgs)) \
             if (self.kwargs['num_frames'] is not None) else len(self.imgs)
 
+        self.dataset_store =dict(
+            info=dict(url='https://groups.csail.mit.edu/vision/datasets/ADE20K/, https://github.com/CSAILVision/ADE20K',
+                                           description='Scene parsing data and part segmentation data derived from ADE20K dataset',
+                      contributor='MIT CSAIL / MIT Scene Parsing Benchmark, ADE20K is composed of more than 27K images from the SUN and Places databases',
+                      year='2016'),
+                                 categories=[dict(id=class_entry_value, name=class_entry_key)  for class_entry_key, class_entry_value in self.classes.items()])
+        self.kwargs['dataset_info'] = self.get_dataset_info()
+
+    def get_dataset_info(self):
+        if 'dataset_info' in self.kwargs:
+            return self.kwargs['dataset_info']
+        #
+        # return only info and categories for now as the whole thing could be quite large.
+        dataset_store = dict()
+        for key in ('info', 'categories'):
+            if key in self.dataset_store.keys():
+                dataset_store.update({key: self.dataset_store[key]})
+            #
+        #
+        dataset_store.update(dict(color_map=self.get_color_map()))
+        return dataset_store
+
     def download(self, path, split):
         root = path
         images_folder = os.path.join(path, 'images')

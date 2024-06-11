@@ -8,3 +8,14 @@ class DatasetBase(utils.ParamsBase):
         self.kwargs = kwargs
         # call the utils.ParamsBase.initialize()
         super().initialize()
+
+    def get_color_map(self, num_classes=None):
+        if num_classes is None:
+            if 'num_classes' in self.kwargs and self.kwargs['num_classes']:
+                num_classes = self.kwargs['num_classes']
+            else:
+                raise RuntimeError("num_classes is not provided")
+            #
+        #
+        color_map = utils.get_color_palette(num_classes)
+        return color_map
