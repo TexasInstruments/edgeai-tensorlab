@@ -318,7 +318,7 @@ class SegmentationImageSave():
         self.color_map = None
         self.palette = None
 
-    def compute_colors(self, color_map):
+    def update_color_map(self, color_map):
         self.color_map = color_map
         # convert label to color here
         self.palette = copy.deepcopy(color_map)
@@ -334,7 +334,7 @@ class SegmentationImageSave():
             return tensor, info_dict
         #
         if self.color_map is None or self.palette is None:
-            self.compute_colors(info_dict['dataset_info']['color_map'])
+            self.update_color_map(info_dict['dataset_info']['color_map'])
         #
         data_path = info_dict['data_path']
         # img_data = info_dict['data']

@@ -131,6 +131,9 @@ class BaseImageNetCls(ImageClassification):
         return root
 
     def get_dataset_info(self):
+        if 'dataset_info' in self.kwargs:
+            return self.kwargs['dataset_info']
+        #
         if self.dataset_store is None:
             return None
         #
