@@ -240,7 +240,7 @@ class ModelCompilation():
         postprocess = pipeline_config['postprocess']
         for transform in postprocess.transforms:
             # special case
-            if isinstance(transform, edgeai_benchmark.postprocess.SegmentationImageSave):
+            if hasattr(transform, 'update_color_map'):
                 dataset_info = val_dataset.get_dataset_info()
                 transform.update_color_map(dataset_info['color_map'])
             #
