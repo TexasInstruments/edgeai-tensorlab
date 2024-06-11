@@ -64,12 +64,18 @@ class ModelMakerDetectionDataset(coco_det.COCODetection):
         return
 
     def get_dataset_info(self):
+        if 'dataset_info' in self.kwargs:
+            return self.kwargs['dataset_info']
+        #
         # return only info and categories for now as the whole thing could be quite large.
         dataset_store = dict()
         for key in ('info', 'categories'):
             if key in self.dataset_store.keys():
                 dataset_store.update({key: self.dataset_store[key]})
             #
+        #
+        if self.kwargs['num_classes'] is not None:
+            dataset_store.update(dict(color_map=self.get_color_map()))
         #
         return dataset_store
 
@@ -108,12 +114,18 @@ class ModelMakerClassificationDataset(DatasetBase):
         return
 
     def get_dataset_info(self):
+        if 'dataset_info' in self.kwargs:
+            return self.kwargs['dataset_info']
+        #
         # return only info and categories for now as the whole thing could be quite large.
         dataset_store = dict()
         for key in ('info', 'categories'):
             if key in self.dataset_store.keys():
                 dataset_store.update({key: self.dataset_store[key]})
             #
+        #
+        if self.kwargs['num_classes'] is not None:
+            dataset_store.update(dict(color_map=self.get_color_map()))
         #
         return dataset_store
 
@@ -326,6 +338,9 @@ class ModelMakerSegmentationDataset(DatasetBase):
         return accuracy
 
     def get_dataset_info(self):
+        if 'dataset_info' in self.kwargs:
+            return self.kwargs['dataset_info']
+        #
         # return only info and categories for now as the whole thing could be quite large.
         dataset_store = dict()
         for key in ('info', 'categories'):
@@ -336,6 +351,9 @@ class ModelMakerSegmentationDataset(DatasetBase):
         min_cat_id = min([cat['id'] for cat in dataset_store['categories']])
         if self.with_background_class and min_cat_id > 0:
             dataset_store['categories'] = [dict(id=0, supercategory=0, name='background')] + dataset_store['categories']
+        #
+        if self.kwargs['num_classes'] is not None:
+            dataset_store.update(dict(color_map=self.get_color_map()))
         #
         return dataset_store
 

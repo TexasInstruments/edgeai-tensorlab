@@ -63,6 +63,9 @@ class ImageSegmentation(ImagePixel2Pixel):
         return accuracy
 
     def get_dataset_info(self):
+        if 'dataset_info' in self.kwargs:
+            return self.kwargs['dataset_info']
+        #
         dataset_store = dict()
         dataset_store['info'] = {'description': 'Dataset Description'}
         dataset_store['categories'] = [{'id':k, 'name':str(k), 'supercategory': k} for k in range(self.num_classes)]
