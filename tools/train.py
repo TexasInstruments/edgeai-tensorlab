@@ -10,8 +10,6 @@ from mmengine.registry import RUNNERS
 from mmengine.runner import Runner
 from mmengine.model import is_model_wrapper
 from mmengine.logging import print_log
-from mmengine.model.base_module import BaseModule
-from mmengine.runner.loops import EpochBasedTrainLoop
 
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 import mmdet.hooks
@@ -58,7 +56,7 @@ def parse_args():
     # will pass the `--local-rank` parameter to `tools/train.py` instead
     # of `--local_rank`.
     parser.add_argument('--local_rank', '--local-rank', type=int, default=0)
-    parser.add_argument('--model-surgery', type=int, default=0)
+    parser.add_argument('--model-surgery', type=int, default=None)
     parser.add_argument('--quantization', type=int, default=0)
     parser.add_argument('--quantize-type', type=str, default='QAT')
     parser.add_argument('--quantize-calib-images', type=int, default=50)
@@ -160,14 +158,19 @@ def main():
         # if 'runner_type' is set in the cfg
         runner = RUNNERS.build(cfg)
 
+    model_surgery = args.model_surgery
+    if args.model_surgery is None:
+        if hasattr(cfg,'convert_to_lite_model'):
+            model_surgery = cfg.convert_to_lite_model.model_surgery
+
     # model surgery
-    if args.model_surgery:
+    if model_surgery:
         runner._init_model_weights()
 
-        if args.model_surgery == 1:
+        if model_surgery == 1:
             runner.model = convert_to_lite_model(runner.model, cfg)
             runner.model = runner.model.to(torch.device('cuda'))
-        elif args.model_surgery == 2: 
+        elif model_surgery == 2: 
             assert False, 'model surgery 2 is not supported currently'
             surgery_wrapper = xmodelopt.surgery.v2.convert_to_lite_fx
 

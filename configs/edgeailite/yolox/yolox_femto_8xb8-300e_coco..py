@@ -1,7 +1,9 @@
 
 # modified from: https://github.com/open-mmlab/mmdetection/tree/master/configs/yolox
 
-img_scale = (320,320)
+convert_to_lite_model = dict(model_surgery=1)
+
+img_scale = (320, 320)
 # input_size = img_scale
 samples_per_gpu = 8
 

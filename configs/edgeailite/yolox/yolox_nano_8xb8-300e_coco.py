@@ -1,5 +1,7 @@
 _base_ = './yolox_tiny_8xb8-300e_coco.py'
 
+convert_to_lite_model = dict(model_surgery=1)
+
 # model settings
 model = dict(
     backbone=dict(deepen_factor=0.33, widen_factor=0.25, use_depthwise=True),
