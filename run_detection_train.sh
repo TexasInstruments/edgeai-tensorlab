@@ -31,7 +31,7 @@
 ######################################################################
 
 
-# CONFIG_FILE="configs/edgeailite/yolox/yolox_femto_8xb8-300e_coco..py"
+# CONFIG_FILE="configs/edgeailite/yolox/yolox_femto_8xb8-300e_coco.py"
 # CONFIG_FILE="configs/edgeailite/yolox/yolox_pico_8xb8-300e_coco.py"
 # CONFIG_FILE="configs/edgeailite/yolox/yolox_tiny_8xb8-300e_coco.py"
 # CONFIG_FILE="configs/edgeailite/yolox/yolox_nano_8xb8-300e_coco.py"
