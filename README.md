@@ -81,7 +81,7 @@ Commands for single CPU/GPU training as well as disctibuted training is given in
 Run the below script to start the testing
 
 ```
-./run_detection_testing.sh
+./run_detection_test.sh
 ```
 
 ###  Export
