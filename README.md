@@ -68,58 +68,58 @@ python tools/misc/download_dataset.py --dataset-name coco2017
 
 ### Training
 
-Run the below command to start the training, work_dirs/yolox_tiny_8xb8-300e_coco folder will be automatically generated, the checkpoint file and the training config file will be saved in this folder. Make sure to use the proper config file path. The model-surgery flag uses the model optimization toolkit to convert the model to lite version(embedded friendly version).
+Run the below script to start the training. This script lists all the supported model configs. Assigned the designed config file to the variable CONFIG_FILE to use that for training as shown in the example in the script. 
 
 ```
-python tools/train.py configs/edgeailite/yolox/yolox_tiny_8xb8-300e_coco.py --model-surgery 1
+./run_detection_train.sh
 ```
-To run the training in multiple GPU in parallel, use the following command
-```
-./tools/dist_train.sh configs/edgeailite/yolox/yolox_tiny_8xb8-300e_coco.py {no. of GPUs}
-```
+
+Commands for single CPU/GPU training as well as disctibuted training is given in the script. Uncomment the desired lines to do the desired training.
 
 ### Testing
 
-Run the following command to get the test accuracy, provide the model config path and model checkpoint path as arguments
+Run the below script to start the testing
+
 ```
-python tools/test.py configs/edgeailite/yolox/yolox_tiny_8xb8-300e_coco.py work_dirs/yolox_tiny_8xb8-300e_coco/epoch_40.pth --model-surgery 1
+./run_detection_test.sh
 ```
-To run the test in multiple GPU use the following command
-```
-./tools/dist_test.sh configs/edgeailite/yolox/yolox_tiny_8xb8-300e_coco.py work_dirs/yolox_tiny_8xb8-300e_coco/epoch_40.pth {no. of GPUs}
-```
+**Note-**
+Make sure to use the correct config file, same as used while training and provide the correct path to the checkpoint
+
 ###  Export
 
 **Export of ONNX model (.onnx) and additional meta information (.prototxt)** is supported. The .prototxt contains meta information specified by **TIDL** for object detectors. 
 
-we use edegai-mmdeploy for exporting the models in onnx format. Install [Edgeai-MMDeploy](https://github.com/open-mmlab/mmdeploy) in the same python environment and use the torch2onnx.py script to export the model. A deployment config is required for deployment, we use the detection_onnxruntime_static.py config for our onnx export. The other required arguments for the export script are the model config, the model checkpoint, path to a demo image and path to the output directory where the onnx model and the prototxt file will be saved.  the flag --model-surgery==1 is used to perform model surgery on the model which will make it embedded friendly. Run the following code to export the model.
+Run the following code to export the model.
 
 ```
-python ./tools/torch2onnx.py \
-    {path to deployment config} \
-    {path to model config} \
-    {path to model chechpoint} \
-    {path to demo image} \
-    --work-dir {path to output directory} --model-surgery 1 --simplify
+./run_detection_export.sh
 ```
-Example : yolox_tiny
+**Note-**
+Make sure to use the correct config file, same as used while training and provide the correct path to the checkpoint 
 
-```
-python ./tools/torch2onnx.py \
-    ../edgeai-mmdeploy/configs/mmdet/detection/detection_onnxruntime_static.py \
-    configs/yolox/yolox_tiny_8xb8-300e_coco.py \
-    work_dirs/yolox_tiny_8xb8-300e_coco/yolox_tiny_lite_checkpoint.pth \
-	/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/demo/demo.jpg \
-    --work-dir /data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolox/ --model-surgery 1 --simplify
-```
-The model-surgery flag uses the model optimization toolkit to convert the model to an embedded friendly version.
+### Models 
+The models are grouped in terms of repositories used to train them or the repositories through they are made available.
 
+| Dataset | Model             | Input Size  | AP[0.5:0.95]%, AP50% | config file | Notes |
+|---------|-------------------|-------------|----------------------|-------------|-------|
+|         | **YOLOX models** 
+| COCO    | YOLOX-femto-lite    | 320x320     |	12.7, 21.9          | configs/edgeailite/yolox/yolox_femto_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-pico-lite       | 320x320     | 17.9, 29.4          | configs/edgeailite/yolox/yolox_pico_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-tiny-lite     | 416x416     | 24.8, 40.1          | configs/edgeailite/yolox/yolox_tiny_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-nano-lite     | 416x416     | 30.5, 47.4          | configs/edgeailite/yolox/yolox_nano_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-s-lite       | 640x640     | 38.3, 56.9          | configs/edgeailite/yolox/yolox_s_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-m-lite       | 640x640     | 44.4, 62.9          | configs/edgeailite/yolox/yolox_m_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-l-lite      | 640x640     | -                   | configs/edgeailite/yolox/yolox_l_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-x-lite       | 640x640     | -                   | configs/edgeailite/yolox/yolox_x_8xb8-300e_coco.py|       |
+|         | **FCOS models** 
+| COCO    | FCOS-r50-lite       | 512x512     | 36.6, 56.0          | configs/edgeailite/fcos/fcos_r50-caffe_fpn_bn-head_1x_coco.py|       |
+|         | **Centernet models** 
+| COCO    | Centernet-r18     | 512x512     | 25.9, 42.6          | configs/centernet/centernet_r18_8xb16-crop512-140e_coco.py|       |
+|         | **Efficientdet models** 
+| COCO    | Efficientdet-b0-lite    | 512x512     | 28.0, 45.9           | configs/edgeailite/efficientdet/efficientdet_effb0_bifpn_8xb16-crop512-300e_coco.py|      |
+| COCO    | Efficientdet-b1-lite    | 640x640     | -                    | configs/edgeailite/efficientdet/efficientdet_effb1_bifpn_8xb16-crop512-300e_coco.py|      |
 
-
-
-
-## Object Detection Model Zoo
-Complexity and Accuracy report of several trained models is available at the [Detection Model Zoo](https://github.com/TexasInstruments/edgeai-modelzoo) 
 
 
 ## Quantization
