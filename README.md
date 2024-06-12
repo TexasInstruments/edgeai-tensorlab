@@ -1,3 +1,177 @@
+# EdgeAI-MMDetection
+
+
+This repository is an extension of the popular [mmdetection](https://github.com/open-mmlab/mmdetection) open source repository for object detection training. While mmdetection focuses on a wide variety of models, typically at high complexity, we focus on models that are optimized for speed and accuracy so that they run efficiently on embedded devices. For this purpose, we have added a set of embedded friendly model configurations and scripts.
+
+If the accuracy degradation with Post Training Quantization (PTQ) is higher than expected, this repository provides instructions and functionality required to do Quantization Aware Training (QAT).
+
+<hr>
+
+## Environment
+We have tested this on Ubuntu 22.04 OS and pyenv Python environment manager. Here are the setup instructions.
+
+Make sure that you are using bash shell. If it is not bash shell, change it to bash. Verify it by typing:
+```
+echo ${SHELL}
+```
+
+Install system packages
+```
+sudo apt update
+sudo apt install build-essential curl libbz2-dev libffi-dev liblzma-dev libncursesw5-dev libreadline-dev libsqlite3-dev libssl-dev libxml2-dev libxmlsec1-dev llvm make tk-dev wget xz-utils zlib1g-dev
+```
+
+Install pyenv using the following command.
+```
+curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+
+echo '# pyenv settings ' >> ${HOME}/.bashrc
+echo 'command -v pyenv >/dev/null || export PATH=":${HOME}/.pyenv/bin:$PATH"' >> ${HOME}/.bashrc
+echo 'eval "$(pyenv init -)"' >> ${HOME}/.bashrc
+echo 'eval "$(pyenv virtualenv-init -)"' >> ${HOME}/.bashrc
+echo '' >> ${HOME}/.bashrc
+
+exec ${SHELL}
+```
+
+Create a Python 3.10 environment if you don't have it and activate it before following the rest of the instructions.
+```
+pyenv install 3.10
+pyenv virtualenv 3.10 edgeai-mmdetection
+pyenv activate edgeai-mmdetection
+pip install --upgrade pip setuptools
+```
+
+
+Activation of Python environment - this activation step needs to be done everytime one starts a new terminal or shell. (Alternately, this also can be written to the .bashrc, so that this will be the default penv environment).
+```
+pyenv activate edgeai-mmdetection
+```
+
+## Installation
+
+Run setup.sh file
+```
+./setup.sh
+```
+Please navigate to edgeai-mmdeploy and install it.
+
+## Download Dataset
+
+`tools/misc/download_dataset.py` supports downloading datasets such as `COCO`, `VOC`, `LVIS` and `Balloon`.
+
+```shell
+python tools/misc/download_dataset.py --dataset-name coco2017
+```
+
+## Get Started
+
+### Training
+
+Run the below command to start the training, work_dirs/yolox_tiny_8xb8-300e_coco folder will be automatically generated, the checkpoint file and the training config file will be saved in this folder. Make sure to use the proper config file path. The model-surgery flag uses the model optimization toolkit to convert the model to lite version(embedded friendly version).
+
+```
+python tools/train.py configs/edgeailite/yolox/yolox_tiny_8xb8-300e_coco.py --model-surgery 1
+```
+To run the training in multiple GPU in parallel, use the following command
+```
+./tools/dist_train.sh configs/edgeailite/yolox/yolox_tiny_8xb8-300e_coco.py {no. of GPUs}
+```
+
+### Testing
+
+Run the following command to get the test accuracy, provide the model config path and model checkpoint path as arguments
+```
+python tools/test.py configs/edgeailite/yolox/yolox_tiny_8xb8-300e_coco.py work_dirs/yolox_tiny_8xb8-300e_coco/epoch_40.pth --model-surgery 1
+```
+To run the test in multiple GPU use the following command
+```
+./tools/dist_test.sh configs/edgeailite/yolox/yolox_tiny_8xb8-300e_coco.py work_dirs/yolox_tiny_8xb8-300e_coco/epoch_40.pth {no. of GPUs}
+```
+###  Export
+
+**Export of ONNX model (.onnx) and additional meta information (.prototxt)** is supported. The .prototxt contains meta information specified by **TIDL** for object detectors. 
+
+we use edegai-mmdeploy for exporting the models in onnx format. Install [Edgeai-MMDeploy](https://github.com/open-mmlab/mmdeploy) in the same python environment and use the torch2onnx.py script to export the model. A deployment config is required for deployment, we use the detection_onnxruntime_static.py config for our onnx export. The other required arguments for the export script are the model config, the model checkpoint, path to a demo image and path to the output directory where the onnx model and the prototxt file will be saved.  the flag --model-surgery==1 is used to perform model surgery on the model which will make it embedded friendly. Run the following code to export the model.
+
+```
+python ./tools/torch2onnx.py \
+    {path to deployment config} \
+    {path to model config} \
+    {path to model chechpoint} \
+    {path to demo image} \
+    --work-dir {path to output directory} --model-surgery 1 --simplify
+```
+Example : yolox_tiny
+
+```
+python ./tools/torch2onnx.py \
+    ../edgeai-mmdeploy/configs/mmdet/detection/detection_onnxruntime_static.py \
+    configs/yolox/yolox_tiny_8xb8-300e_coco.py \
+    work_dirs/yolox_tiny_8xb8-300e_coco/yolox_tiny_lite_checkpoint.pth \
+	/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/demo/demo.jpg \
+    --work-dir /data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolox/ --model-surgery 1 --simplify
+```
+The model-surgery flag uses the model optimization toolkit to convert the model to an embedded friendly version.
+
+
+
+
+
+## Object Detection Model Zoo
+Complexity and Accuracy report of several trained models is available at the [Detection Model Zoo](https://github.com/TexasInstruments/edgeai-modelzoo) 
+
+
+## Quantization
+This tutorial explains more about quantization and how to do [Quantization Aware Training (QAT)](https://github.com/TexasInstruments/edgeai-modeloptimization/blob/main/torchmodelopt/docs/quantization.md) of detection models.
+
+ 
+## Acknowledgement
+
+This is an open source project that is contributed by researchers and engineers from various colleges and companies. We appreciate all the contributors who implement their methods or add new features, as well as users who give valuable feedbacks.
+
+We wish that the toolbox and benchmark could serve the growing research community by providing a flexible toolkit to train existing detectors and also to develop their own new detectors.
+
+
+## License
+
+Please see [LICENSE](./LICENSE) file of this repository.
+
+
+## Citation
+
+This package/toolbox is an extension of mmdetection (https://github.com/open-mmlab/mmdetection). If you use this repository or benchmark in your research or work, please cite the following:
+
+```
+@article{EdgeAI-MMDetection,
+  title   = {{EdgeAI-MMDetection}: An Extension To Open MMLab Detection Toolbox and Benchmark},
+  author  = {Texas Instruments EdgeAI Development Team, edgeai-devkit@list.ti.com},
+  journal = {https://github.com/TexasInstruments/edgeai},
+  year={2021}
+}
+```
+```
+@article{mmdetection,
+  title   = {{MMDetection}: Open MMLab Detection Toolbox and Benchmark},
+  author  = {Chen, Kai and Wang, Jiaqi and Pang, Jiangmiao and Cao, Yuhang and
+             Xiong, Yu and Li, Xiaoxiao and Sun, Shuyang and Feng, Wansen and
+             Liu, Ziwei and Xu, Jiarui and Zhang, Zheng and Cheng, Dazhi and
+             Zhu, Chenchen and Cheng, Tianheng and Zhao, Qijie and Li, Buyu and
+             Lu, Xin and Zhu, Rui and Wu, Yue and Dai, Jifeng and Wang, Jingdong
+             and Shi, Jianping and Ouyang, Wanli and Loy, Chen Change and Lin, Dahua},
+  journal= {arXiv preprint arXiv:1906.07155},
+  year={2019}
+}
+```
+
+
+## References
+[1] MMDetection: Open MMLab Detection Toolbox and Benchmark, https://arxiv.org/abs/1906.07155, Kai Chen, Jiaqi Wang, Jiangmiao Pang, Yuhang Cao, Yu Xiong, Xiaoxiao Li, Shuyang Sun, Wansen Feng, Ziwei Liu, Jiarui Xu, Zheng Zhang, Dazhi Cheng, Chenchen Zhu, Tianheng Cheng, Qijie Zhao, Buyu Li, Xin Lu, Rui Zhu, Yue Wu, Jifeng Dai, Jingdong Wang, Jianping Shi, Wanli Ouyang, Chen Change Loy, Dahua Lin
+
+
+# Original mmdetection documentation
+
+
 <div align="center">
   <img src="resources/mmdet-logo.png" width="600"/>
   <div>&nbsp;</div>

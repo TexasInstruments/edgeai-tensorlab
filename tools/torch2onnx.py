@@ -145,7 +145,6 @@ def main():
     model = build_model_from_cfg(args.model_cfg, args.checkpoint,
                                  args.device)
 
-    
     output_names = ['dets', 'labels']
     feature_names = [node.name for node in onnx_model.graph.output[2:]]
     # write prototxt

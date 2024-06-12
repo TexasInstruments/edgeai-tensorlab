@@ -162,11 +162,8 @@ def main():
         if args.model_surgery == 1 :
             runner.model = convert_to_lite_model(runner.model, cfg)
             runner.model = runner.model.to(torch.device('cuda'))
-        
-
-        else : 
-            # surgery_wrapper = xmodelopt.surgery.v1.convert_to_lite_model if args.model_surgery == 1 \
-            #             else (xmodelopt.surgery.v2.convert_to_lite_fx if args.model_surgery == 2 else None)
+        elif args.model_surgery == 2: 
+            assert False, 'model surgery 2 is not supported currently'
             surgery_wrapper = xmodelopt.surgery.v2.convert_to_lite_fx
 
             is_wrapped = False
