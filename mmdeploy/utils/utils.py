@@ -12,7 +12,12 @@ except ImportError:
     import multiprocess as mp
 
 from mmdeploy.utils.logging import get_logger
+from mmdet.apis import init_detector
 
+def build_model_from_cfg(config_path, checkpoint_path, device):
+    model = init_detector(config_path, checkpoint_path, device=device)
+    model.eval()
+    return model
 
 def target_wrapper(target: Callable,
                    log_level: int,

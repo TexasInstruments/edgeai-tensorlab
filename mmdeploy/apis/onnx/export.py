@@ -15,7 +15,7 @@ from .passes import optimize_onnx
 @PIPELINE_MANAGER.register_pipeline()
 def export(model: torch.nn.Module,
            args: Union[torch.Tensor, Tuple, Dict],
-           output_path_prefix: str,
+           save_file: str,
            backend: Union[Backend, str] = 'default',
            input_metas: Optional[Dict] = None,
            context_info: Dict = dict(),
@@ -68,7 +68,7 @@ def export(model: torch.nn.Module,
             each initializer.
         optimize (bool): Perform optimize on model.
     """
-    output_path = output_path_prefix + '.onnx'
+    output_path = save_file
 
     logger = get_root_logger()
     logger.info(f'Export PyTorch model to ONNX: {output_path}.')
