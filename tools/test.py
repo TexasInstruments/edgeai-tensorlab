@@ -68,7 +68,7 @@ def parse_args():
     # will pass the `--local-rank` parameter to `tools/train.py` instead
     # of `--local_rank`.
     parser.add_argument('--local_rank', '--local-rank', type=int, default=0)
-    parser.add_argument('--model-surgery', type=int, default=0)
+    parser.add_argument('--model-surgery', type=int, default=None)
     parser.add_argument('--quantization', type=int, default=0)
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
@@ -155,14 +155,19 @@ def main():
             'The dump file must be a pkl file.'
         runner.test_evaluator.metrics.append(
             DumpDetResults(out_file_path=args.out))
+        
+    model_surgery = args.model_surgery
+    if args.model_surgery is None:
+        if hasattr(cfg,'convert_to_lite_model'):
+            model_surgery = cfg.convert_to_lite_model.model_surgery
 
-    if args.model_surgery:
+    if model_surgery:
         runner._init_model_weights()
 
-        if args.model_surgery == 1 :
+        if model_surgery == 1:
             runner.model = convert_to_lite_model(runner.model, cfg)
             runner.model = runner.model.to(torch.device('cuda'))
-        elif args.model_surgery == 2: 
+        elif model_surgery == 2:
             assert False, 'model surgery 2 is not supported currently'
             surgery_wrapper = xmodelopt.surgery.v2.convert_to_lite_fx
 
@@ -173,15 +178,18 @@ def main():
             #
             if hasattr(runner.model, 'surgery_init'):
                 print('wrapping the model to prepare for surgery')
-                runner.model = runner.model.surgery_init(surgery_wrapper, total_epochs=runner.max_epochs)
+                runner.model = runner.model.surgery_init(
+                    surgery_wrapper, total_epochs=runner.max_epochs)
             else:
                 # raise RuntimeError(f'surgery_init method is not supported for {type(runner.model)}')
                 runner.model.backbone = surgery_wrapper(runner.model.backbone)
                 # runner.model.neck = surgery_wrapper(runner.model.neck)
-                runner.model.bbox_head = surgery_wrapper(runner.model.bbox_head)
+                runner.model.bbox_head = surgery_wrapper(
+                    runner.model.bbox_head)
             #
             if is_wrapped:
-                runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
+                runner.model = runner.wrap_model(
+                    runner.cfg.get('model_wrapper_cfg'), runner.model)
             #
 
     if args.quantization:

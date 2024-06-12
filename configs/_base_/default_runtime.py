@@ -20,5 +20,5 @@ visualizer = dict(
 log_processor = dict(type='LogProcessor', window_size=50, by_epoch=True)
 
 log_level = 'INFO'
-load_from = './ckpt_files/yolox_s_8x8_300e_coco_20211121_095711-4592a793.pth'
+load_from = None
 resume = False
