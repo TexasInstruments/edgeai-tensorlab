@@ -50,7 +50,7 @@ def replace_maxpool2d(m):
 
 def convert_to_lite_model(model, cfg):
     from mmdet.models.backbones.csp_darknet import Focus, FocusLite
-    if cfg.convert_to_lite_model : 
+    if hasattr(cfg,'convert_to_lite_model') : 
         convert_to_lite_model_args = cfg.convert_to_lite_model
     else:
         convert_to_lite_model_args = dict()

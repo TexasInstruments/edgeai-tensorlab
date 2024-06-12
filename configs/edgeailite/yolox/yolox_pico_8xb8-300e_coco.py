@@ -1,7 +1,7 @@
 
 # modified from: https://github.com/open-mmlab/mmdetection/tree/master/configs/yolox
 
-img_scale = (416, 416)
+img_scale = (320,320)
 # input_size = img_scale
 samples_per_gpu = 8
 
@@ -16,14 +16,13 @@ img_norm_cfg = dict(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], to_rgb=False)
 # replace complex activation functions with ReLU.
 # Also replace regular convolutions with depthwise-separable convolutions.
 # edgeai_torchmodelopt needs to be installed from edgeai-modeloptimization
-# convert_to_lite_model = dict(group_size_dw=None)
+convert_to_lite_model = dict(group_size_dw=None)
 
 _base_ = [
     # f'../_xbase_/datasets/{dataset_type.lower()}.py',
     f'../_xbase_/datasets/cocodataset.py',
     '../_xbase_/hyper_params/yolox_config.py',
-    '../_xbase_/hyper_params/yolox_schedule.py',
-    
+    '../_xbase_/hyper_params/yolox_schedule.py', 
 ]
 
 # settings for qat or calibration - set to True after doing floating point training
@@ -53,18 +52,18 @@ model = dict(
         batch_augments=[
             dict(
                 type='BatchSyncRandomResize',
-                random_size_range=(320, 640),
+                random_size_range=(480, 800),
                 size_divisor=32,
                 interval=10)
     ]),
-    backbone=dict(type='CSPDarknet', deepen_factor=0.33, widen_factor=0.375,act_cfg=dict(type='ReLU')),
+    backbone=dict(type='CSPDarknet', deepen_factor=0.33, widen_factor=0.1875,act_cfg=dict(type='ReLU')),
     neck=dict(
         type='YOLOXPAFPN',
-        in_channels=[96, 192, 384],
-        out_channels=96,
+        in_channels=[48,96,192],
+        out_channels=48,
         num_csp_blocks=1,act_cfg=dict(type='ReLU')),
     bbox_head=dict(
-        type='YOLOXHead', num_classes=num_classes, in_channels=96, feat_channels=96,act_cfg=dict(type='ReLU')),
+        type='YOLOXHead', num_classes=num_classes, in_channels=48, feat_channels=48,act_cfg=dict(type='ReLU')),
     train_cfg=dict(assigner=dict(type='SimOTAAssigner', center_radius=2.5)),
     # In order to align the source code, the threshold of the val phase is
     # 0.01, and the threshold of the test phase is 0.001.
@@ -75,7 +74,7 @@ train_pipeline = [
     dict(type='Mosaic', img_scale=img_scale, pad_val=114.0),
     dict(
         type='RandomAffine',
-        scaling_ratio_range=(0.5, 1.5),
+        scaling_ratio_range=(0.1, 2),
         border=(-img_scale[0] // 2, -img_scale[1] // 2)),
     dict(
         type='MixUp',
@@ -97,8 +96,6 @@ train_pipeline = [
     dict(type='FilterAnnotations', min_gt_bbox_wh=(1, 1), keep_empty=False),
     dict(type='PackDetInputs')
 ]
-
-
 
 backend_args = None
 
@@ -205,8 +202,6 @@ param_scheduler = [
         end=max_epochs,
     )
 ]
-
-
 
 custom_hooks = [
     dict(

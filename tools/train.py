@@ -162,22 +162,21 @@ def main():
 
     # model surgery
     if args.model_surgery:
-        # runner._init_model_weights()
+        runner._init_model_weights()
 
-        if args.model_surgery == 1 :
+        if args.model_surgery == 1:
             runner.model = convert_to_lite_model(runner.model, cfg)
             runner.model = runner.model.to(torch.device('cuda'))
-            # print("\n\n model summary : \n",runner.model)
-
-        else : 
-            surgery_wrapper = xmodelopt.surgery.v1.convert_to_lite_model if args.model_surgery == 1 \
-                        else (xmodelopt.surgery.v2.convert_to_lite_fx if args.model_surgery == 2 else None)
+        elif args.model_surgery == 2: 
+            assert False, 'model surgery 2 is not supported currently'
+            surgery_wrapper = xmodelopt.surgery.v2.convert_to_lite_fx
 
             is_wrapped = False
             if is_model_wrapper(runner.model):
                 runner.model = runner.model.module
                 is_wrapped = True
             #
+                
             if hasattr(runner.model, 'surgery_init'):
                 print_log('wrapping the model to prepare for surgery')
                 runner.model = runner.model.surgery_init(surgery_wrapper)
@@ -187,6 +186,7 @@ def main():
                 # runner.model.neck = surgery_wrapper(runner.model.neck)
                 runner.model.bbox_head = surgery_wrapper(runner.model.bbox_head)
             #
+                
             if is_wrapped:
                 runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
         #
@@ -200,7 +200,7 @@ def main():
             runner.model = runner.model.module
             is_wrapped = True
         #
-
+            
         if args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V1:
             test_loader = runner.build_dataloader(runner._test_dataloader)
             example_input = next(iter(test_loader))
@@ -221,13 +221,11 @@ def main():
                 runner.model = quantize_wrapper(runner.model, total_epochs=runner.max_epochs)
             #
         #
-
+                
         if is_wrapped:
             runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
         #
-
-    print("\n\n model summary---- : \n",runner.model)
-        
+ 
     runner.train()
     
     # Exporting Model after Training : Uses custom mmdeploy

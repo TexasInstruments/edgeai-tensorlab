@@ -211,7 +211,8 @@ class YOLOXHead(BaseDenseHead):
 
         # concatenate and split for TIDL support
         outs = torch.cat((bbox_pred, objectness, cls_score), dim=1)
-        outs = torch.split(outs,[4,1,80],dim=1)
+        shape_data = [bbox_pred.data.shape[1],objectness.data.shape[1],cls_score.data.shape[1]]
+        outs = torch.split(outs,shape_data,dim=1)
         return outs
 
 

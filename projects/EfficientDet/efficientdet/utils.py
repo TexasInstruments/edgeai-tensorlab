@@ -50,6 +50,25 @@ class Conv2dSamePadding(nn.Conv2d):
                         self.dilation, self.groups)
 
 
+@MODELS.register_module()
+class Conv2dSamePaddingDefault(nn.Conv2d):
+
+    def __init__(self,
+                 in_channels: int,
+                 out_channels: int,
+                 kernel_size: Union[int, Tuple[int, int]],
+                 stride: Union[int, Tuple[int, int]] = 1,
+                 padding: Union[int, Tuple[int, int]] = None, # Note: changed from 0 to None
+                 dilation: Union[int, Tuple[int, int]] = 1,
+                 groups: int = 1,
+                 bias: bool = True):
+
+        if padding is None:
+            padding = (kernel_size-1)//2 * dilation
+        super().__init__(in_channels, out_channels, kernel_size, stride, padding,
+                         dilation, groups, bias) 
+
+
 class MaxPool2dSamePadding(nn.Module):
 
     def __init__(self,
@@ -85,6 +104,7 @@ class MaxPool2dSamePadding(nn.Module):
         return x
 
 
+@MODELS.register_module()
 class DepthWiseConvBlock(nn.Module):
 
     def __init__(
@@ -93,17 +113,19 @@ class DepthWiseConvBlock(nn.Module):
         out_channels: int,
         apply_norm: bool = True,
         conv_bn_act_pattern: bool = False,
-        norm_cfg: OptConfigType = dict(type='BN', momentum=1e-2, eps=1e-3)
+        norm_cfg: OptConfigType = dict(type='BN', momentum=1e-2, eps=1e-3),
+        default_padding=False        
     ) -> None:
         super(DepthWiseConvBlock, self).__init__()
-        self.depthwise_conv = Conv2dSamePadding(
+        conv_type = Conv2dSamePaddingDefault if default_padding else Conv2dSamePadding        
+        self.depthwise_conv = conv_type(
             in_channels,
             in_channels,
             kernel_size=3,
             stride=1,
             groups=in_channels,
             bias=False)
-        self.pointwise_conv = Conv2dSamePadding(
+        self.pointwise_conv = conv_type(
             in_channels, out_channels, kernel_size=1, stride=1)
 
         self.apply_norm = apply_norm
@@ -124,6 +146,26 @@ class DepthWiseConvBlock(nn.Module):
 
         return x
 
+
+@MODELS.register_module()
+class DepthWiseConvBlockDefaultPadding(DepthWiseConvBlock):
+
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        apply_norm: bool = True,
+        conv_bn_act_pattern: bool = False,
+        norm_cfg: OptConfigType = dict(type='BN', momentum=1e-2, eps=1e-3),
+        default_padding=True        
+    ) -> None:
+        super(DepthWiseConvBlockDefaultPadding, self).__init__(in_channels=in_channels, 
+                                                 out_channels=out_channels,
+                                                 apply_norm=apply_norm,
+                                                 conv_bn_act_pattern=conv_bn_act_pattern,
+                                                 norm_cfg=norm_cfg,
+                                                 default_padding=default_padding)
+    
 
 class DownChannelBlock(nn.Module):
 

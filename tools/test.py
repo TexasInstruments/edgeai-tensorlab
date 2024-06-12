@@ -11,6 +11,7 @@ from mmengine.config import Config, DictAction
 from mmengine.runner import Runner
 from mmengine.model import is_model_wrapper
 from mmengine.logging import print_log
+from mmengine.runner import load_checkpoint
 
 from mmdet.engine.hooks.utils import trigger_visualization_hook
 from mmdet.evaluation import DumpDetResults
@@ -161,11 +162,9 @@ def main():
         if args.model_surgery == 1 :
             runner.model = convert_to_lite_model(runner.model, cfg)
             runner.model = runner.model.to(torch.device('cuda'))
-            # print("\n\n model summary : \n",runner.model)
-
-        else : 
-            surgery_wrapper = xmodelopt.surgery.v1.convert_to_lite_model if args.model_surgery == 1 \
-                        else (xmodelopt.surgery.v2.convert_to_lite_fx if args.model_surgery == 2 else None)
+        elif args.model_surgery == 2: 
+            assert False, 'model surgery 2 is not supported currently'
+            surgery_wrapper = xmodelopt.surgery.v2.convert_to_lite_fx
 
             is_wrapped = False
             if is_model_wrapper(runner.model):
@@ -214,12 +213,7 @@ def main():
         if is_wrapped:
             runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
         #
-
-    # print("\n\n model summary : \n",runner.model)
-    # for node in runner.model.modules():
-    #     print(node)
-
-
+            
     runner.test()
 
 

@@ -120,29 +120,6 @@ model = dict(
             )
             )
 
-#####
-    # train_cfg=dict(
-    #     assigner=dict(
-    #         type='MaxIoUAssigner',
-    #         pos_iou_thr=0.5,
-    #         neg_iou_thr=0.5,
-    #         min_pos_iou=0.,
-    #         ignore_iof_thr=-1,
-    #         gt_max_assign_all=False),
-    #     sampler=dict(type='PseudoSampler'),
-    #     smoothl1_beta=1.,
-    #     allowed_border=-1,
-    #     pos_weight=-1,
-    #     neg_pos_ratio=3,
-    #     debug=False),
-    # test_cfg=dict(
-    #     nms_pre=1000,
-    #     nms=dict(type='nms', iou_threshold=0.45),
-    #     min_bbox_size=0,
-    #     score_thr=0.02,
-    #     max_per_img=200)
-        # )
-
 env_cfg = dict(cudnn_benchmark=True)
 
 # dataset settings
@@ -170,31 +147,6 @@ train_pipeline = [
     dict(type='PackDetInputs')
 ]
 
-# train_pipeline = [
-#     dict(type='LoadImageFromFile', to_float32=True),
-#     dict(type='LoadAnnotations', with_bbox=True),
-#     dict(
-#         type='PhotoMetricDistortion',
-#         brightness_delta=32,
-#         contrast_range=(0.5, 1.5),
-#         saturation_range=(0.5, 1.5),
-#         hue_delta=18) if not quantize else dict(type='Bypass'),
-#     dict(
-#         type='Expand',
-#         mean=img_norm_cfg['mean'],
-#         to_rgb=img_norm_cfg['to_rgb'],
-#         ratio_range=(1, 4)),
-#     dict(
-#         type='MinIoURandomCrop',
-#         min_ious=(0.1, 0.3, 0.5, 0.7, 0.9),
-#         min_crop_size=0.3),
-#     dict(type='Resize', img_scale=input_size, keep_ratio=False),
-#     dict(type='Normalize', **img_norm_cfg),
-#     dict(type='RandomFlip', flip_ratio=0.5),
-#     dict(type='DefaultFormatBundle'),
-#     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
-# ]
-
 test_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='Resize', scale=(input_size, input_size), keep_ratio=False),
@@ -204,21 +156,6 @@ test_pipeline = [
         meta_keys=('img_id', 'img_path', 'ori_shape', 'img_shape',
                    'scale_factor'))
 ]
-
-# test_pipeline = [
-#     dict(type='LoadImageFromFile'),
-#     dict(
-#         type='MultiScaleFlipAug',
-#         img_scale=(input_size,input_size),
-#         flip=False,
-#         transforms=[
-#             dict(type='Resize', keep_ratio=False),
-#             dict(type='RandomFlip'),
-#             dict(type='Normalize', **img_norm_cfg),
-#             dict(type='ImageToTensor', keys=['img']),
-#             dict(type='Collect', keys=['img']),
-#         ])
-# ]
 
 backend_args = None
 
@@ -276,14 +213,6 @@ custom_hooks = [
     # dict(type='NumClassCheckHook'),
     dict(type='CheckInvalidLossHook', interval=50, priority='VERY_LOW')
 ]
-
-# data = dict(
-#     samples_per_gpu=samples_per_gpu,
-#     workers_per_gpu=0,
-#     train=dict(dataset=dict(pipeline=train_pipeline)),
-#     val=dict(pipeline=test_pipeline),
-#     test=dict(pipeline=test_pipeline))
-
 
 # NOTE: `auto_scale_lr` is for automatically scaling LR,
 # USER SHOULD NOT CHANGE ITS VALUES.
