@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2018-2021, Texas Instruments
+# Copyright (c) 2018-2023, Texas Instruments
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,19 @@
 
 ######################################################################
 
+pip3 install ninja
 
-CONFIG_FILE="configs/edgeailite/yolox/yolox_nano_8xb8-300e_coco.py"
-CHECKPOINT_FILE="work_dirs/yolox_nano_8xb8-300e_coco/epoch_1.pth"
-DEPLOY_CONFIG="../edgeai-mmdeploy/configs/mmdet/detection/detection_onnxruntime_static.py"
-DEMO_IMG_PATH="/demo/demo.jpg"
-EXPORT_PATH="work_dirs/onnx_exports/yolox_nano_8xb8-300e_coco"
-MODEL_SURGERY=1
+# choose an appropriate pytorch version from: https://pytorch.org/get-started/locally/
+# pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+pip install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/cpu
 
-python ./tools/torch2onnx.py ${DEPLOY_CONFIG} ${CONFIG_FILE} ${CHECKPOINT_FILE} ${DEMO_IMG_PATH} --work-dir ${EXPORT_PATH} --simplify --model-surgery ${MODEL_SURGERY}
+pip install -U openmim
+mim install mmengine
+mim install "mmcv-lite>=2.0.0"
+
+pip install -v -e .
+
+#pip install git+https://github.com/TexasInstruments/edgeai-modeloptimization.git@r9.1#subdirectory=torchmodelopt
+pip install -e ../edgeai-modeloptimization/torchmodelopt
+
+pip3 install --no-input protobuf==3.20.2 onnx==1.13.0

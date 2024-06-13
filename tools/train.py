@@ -12,9 +12,10 @@ from mmengine.model import is_model_wrapper
 from mmengine.logging import print_log
 
 from mmdet.utils import setup_cache_size_limit_of_dynamo
-import mmdet.hooks
-from edgeai_torchmodelopt import xmodelopt
+
 from mmdet.utils import convert_to_lite_model
+from edgeai_torchmodelopt import xmodelopt
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a detector')
