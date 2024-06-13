@@ -61,6 +61,7 @@ def parse_args():
     parser.add_argument('--quantization', type=int, default=0)
     parser.add_argument('--quantize-type', type=str, default='QAT')
     parser.add_argument('--quantize-calib-images', type=int, default=50)
+    parser.add_argument('--export-onnx-model', action='store_true', default=False, help='whether to export the onnx network' )
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
@@ -184,7 +185,7 @@ def main():
                 
             if hasattr(runner.model, 'surgery_init'):
                 print_log('wrapping the model to prepare for surgery')
-                runner.model = runner.model.surgery_init(surgery_wrapper)
+                runner.model = runner.model.surgery_init(surgery_wrapper, can_retrain=True)
             else:
                 # raise RuntimeError(f'surgery_init method is not supported for {type(runner.model)}')
                 runner.model.backbone = surgery_wrapper(runner.model.backbone)
@@ -232,20 +233,21 @@ def main():
         #
  
     runner.train()
-    
-    # Exporting Model after Training : Uses custom mmdeploy
-    try:
-        from mmdeploy.apis import torch2onnx
-    except:
-        raise ModuleNotFoundError
-    
-    if args.quantization:
-        save_file = args.config.split('/')[-1][:-3] + '_quantized.onnx' 
-    else:
-        save_file = args.config.split('/')[-1][:-3] + '.onnx' 
-    
-    torch2onnx(img='./demo/demo.jpg', work_dir=cfg.work_dir, save_file=save_file, model_cfg = args.config, \
-        deploy_cfg='../mmdeploy/configs/mmdet/detection/detection_onnxruntime_static.py', model = runner.model)
+
+    if args.export_onnx_model:
+        # Exporting Model after Training : Uses custom mmdeploy
+        try:
+            from mmdeploy.apis import torch2onnx
+        except:
+            raise ModuleNotFoundError
+        
+        if args.quantization:
+            save_file = args.config.split('/')[-1][:-3] + '_quantized.onnx' 
+        else:
+            save_file = args.config.split('/')[-1][:-3] + '.onnx' 
+        
+        torch2onnx(img='./demo/demo.jpg', work_dir=cfg.work_dir, save_file=save_file, model_cfg = args.config, \
+            deploy_cfg='../mmdeploy/configs/mmdet/detection/detection_onnxruntime_static.py', model = runner.model)
 
 
 if __name__ == '__main__':
