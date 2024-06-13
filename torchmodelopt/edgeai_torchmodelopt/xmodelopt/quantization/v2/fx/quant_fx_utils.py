@@ -41,7 +41,7 @@ from torch.onnx import symbolic_helper
 from torch.onnx._internal import jit_utils
 from torch import nn
 
-from .... import xnn
+from ..... import xnn
 
 from . import observer_types
 from . import fake_quanitze_types
