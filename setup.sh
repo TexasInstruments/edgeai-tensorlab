@@ -30,10 +30,19 @@
 
 ######################################################################
 
+pip3 install ninja
+
+# choose an appropriate pytorch version from: https://pytorch.org/get-started/locally/
+# pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/cu118
+
 pip install -U openmim
 mim install mmengine
 mim install "mmcv>=2.0.0"
 
 pip install -v -e .
 
-pip install git+https://github.com/TexasInstruments/edgeai-modeloptimization.git@r9.1#subdirectory=torchmodelopt
+#pip install git+https://github.com/TexasInstruments/edgeai-modeloptimization.git@r9.1#subdirectory=torchmodelopt
+pip install -e ../edgeai-modeloptimization/torchmodelopt
+
+pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
