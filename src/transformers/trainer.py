@@ -392,6 +392,9 @@ class Trainer:
                     " boolean argument which will be triggered after the last batch of the eval set to signal that the"
                     " summary statistics should be returned by the function."
                 )
+        if not(hasattr(args, "dont_update_parameters")):
+            args.dont_update_parameters = False
+            
         self.args = args
         # Seed must be set before instantiating the model when using model
         enable_full_determinism(self.args.seed) if self.args.full_determinism else set_seed(self.args.seed)
@@ -2276,8 +2279,9 @@ class Trainer:
                             grad_norm = _grad_norm
 
                     # Optimizer step
-                    self.optimizer.step()
-                    optimizer_was_run = not self.accelerator.optimizer_step_was_skipped
+                    if not(self.args.dont_update_parameters):
+                        self.optimizer.step()
+                    optimizer_was_run = not (self.accelerator.optimizer_step_was_skipped and self.args.dont_update_parameters)
                     if optimizer_was_run:
                         # Delay optimizer scheduling until metrics are generated
                         if not isinstance(self.lr_scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
@@ -3243,11 +3247,12 @@ class Trainer:
         if self.args.n_gpu > 1:
             loss = loss.mean()  # mean() to average on multi-gpu parallel training
 
-        if self.use_apex:
-            with amp.scale_loss(loss, self.optimizer) as scaled_loss:
-                scaled_loss.backward()
-        else:
-            self.accelerator.backward(loss)
+        if not(self.args.dont_update_parameters):
+            if self.use_apex:
+                with amp.scale_loss(loss, self.optimizer) as scaled_loss:
+                    scaled_loss.backward()
+            else:
+                self.accelerator.backward(loss)
 
         return loss.detach() / self.args.gradient_accumulation_steps
 
@@ -3262,6 +3267,27 @@ class Trainer:
         else:
             labels = None
         outputs = model(**inputs)
+# import onnxruntime
+# sess_options = onnxruntime.SessionOptions()
+# sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
+# session = onnxruntime.InferenceSession('/home/a0491009/quantization/edgeai-transformers/examples/pytorch/image-classification/imagenet/deit-tiny-patch16-224.onnx', sess_options)
+# input_name = session.get_inputs()[0].name
+# onnx_input = inputs['pixel_values'].cpu().data.numpy()
+# output = session.run([], {input_name: onnx_input})
+        
+        
+        
+# import onnxruntime
+# sess_options = onnxruntime.SessionOptions()
+# sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
+# session = onnxruntime.InferenceSession('/home/a0491009/quantization/edgeai-transformers/examples/pytorch/image-classification/imagenet/deit-tiny-patch16-224.onnx', sess_options)
+# input_name = session.get_inputs()[0].name
+# head_mask = session.get_inputs()[1].name
+# onnx_input = inputs['pixel_values'].cpu().data.numpy()
+# output = session.run([], {input_name: onnx_input,  head_mask: np.ones((20, 1), dtype=np.int64)})
+
+
+        
         # Save past state if it exists
         # TODO: this needs to be fixed and made cleaner later.
         if self.args.past_index >= 0:

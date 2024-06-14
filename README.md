@@ -18,11 +18,16 @@ limitations under the License.
 
 We present a collection of transformers networks (as descibed in model zoo) that can be modified and quantized using the model optimization toolkit. They can be exported to onnx format as well which would then be inferred using ONNX Runtime or TIDL Runtime.  
 
-<h3> Installation </h3>
+Currently experimented with torch2.2
+
+<h2> Installation </h2>
 
 This repository can be build using the below command : 
 ```
+$ pip install accelerate evaluate scikit-learn
 $ python setup.py develop
+$ pip uninstall huggingface-hub
+$ pip install huggingface-hub
 ```
 
 However, this repositiory utilizes the EdgeAI-ModelOptimization to introduce surgery and quantization in the networks, which can be build by : 
@@ -33,38 +38,52 @@ $ pip3 install --no-input git+https://github.com/TexasInstruments/edgeai-tensorl
 
 The user can as well build the model optimization toolkit from source.
 
-<h3> Training and Testing </h3>
+<h2> Model Zoo </h2>
 
-<h4> Image Classification </h4>
+<h2> Training and Testing </h2>
 
-Quantization currently does not support distributed training. 
+We provide the scripts for training the models that we currently support as mentioned in the model zoo. We also explain how can the user use their own dataset to train the models. These could be taken as examples to support other image classification, object detection and image segmentation models as well.
+
+<h3> Image Classification </h3>
+
+<h4> Dataset Preparation </h4>
+
+The dataset need to be in a folder based format, where the train and validation images need to be separate directories. The images corresponding to each label also needs to be put separate directories. This is how the folder-based builder generates an example : 
+
+![](image.png)
+
+This folder based builder is a no-code solution for quickly creating an image dataset with several thousand images. However, it cannot be scaled for more complex or large scale image datasets. We need to define our own writing script which is explained in detail in Advanced Usage section.
+
+
+<h4> Training </h4>
+
+We provide a script file to enable training. It can be invoked by:
+
+```
+$ sh ./run_image_classification.sh
+```
+
+The individual commands and the arguments are explained in the further section.
 
 ```
 $ cd examples/pytorch/image-classification
 
-$ CUDA_VISIBLE_DEVICES=0 python run_image_classification_quantization.py 
+$ python run_image_classification.py --train_dir ${dataset_folder}/train --validation_dir ${dataset_folder}/val --output_dir ${output_dir} --overwrite_output_dir --do-train --do-eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path facebook/deit-tiny-patch16-224 --ignore_mismatched_sizes True
 ```
-
-Necessary Arguments : 
 
 | Argument | Value (or examples)   | Notes    |
 | :-----:  | :---:    | :---: |
-| train_dir  | ${imagenet_folder}/train      |    |
-| validation_dir  | ${imagenet_folder}/val      |    |
+| train_dir  | ${dataset_folder}/train      |  The folder consisting of training images need to be specified.   |
+| validation_dir  | ${dataset_folder}/val      |  The folder consisting of validation images need to be specified.  |
 | output_dir  | ${output_dir}      |  The trained network as well as the onnx model will be saved here  |
-|overwrite_output_dir | - | No Value is required|
+| overwrite_output_dir | - | No Value is required, otherwise will be required to specify new output dir |
 | remove_unused_columns | False | |
-| do_train | - | No Value is required |
+| do_train | - | No Value is required, for only testing purpose, this flag need not be provided |
 | do_eval | - | No Value is required |
 | per_device_train_batch_size | 128| To specify the batch size during training (per device)|
 | per_device_eval_batch_size | 128 | To specify the batch size during evaluation (per device)|
-| model_name_or_path | microsoft/swin-tiny-patch4-window7-224 | Models can be found on huggingface.co | 
-| dataloader_drop_last | True | Whether to drop the last incomplete batch (need to be true for faster pt2e based export now) |
-| label_names | labels | Needed to be specified to enable evaluation  |
-| ignore_mismatched_sizes | True | Will enable to load a pretrained model whose head dimensions are different.  |
-| quantization | 2 | Whether to introduce quantization, an value of 2 would introduce quantization, and 0 signifies no quantization  |
-| quantize_type | QAT | How do we want to quantize the network. (Options. QAT/ PTQ /PTC )   |
-| quantize_calib_images | 50 | The number of calibration images during Post-Training Quantization/Calibration  |
+| model_name_or_path | microsoft/swin-tiny-patch4-window7-224 | Supported models are in Model Zoo, other models can be explored from huggingface.co | 
+| ignore_mismatched_sizes | True | Will enable to load a pretrained model whose head dimensions are different|
 
 
 <h4> Object Detection </h4>
@@ -75,12 +94,50 @@ Necessary Arguments :
 
 
 
+<h2> Quantization and ONNX Export </h2>
 
-<h3> Model Zoo </h3>
+We support quantization of the networks mentioned in the model zoo. Here, we describe the scripts and the arguments necessary to invoke quantization. 
 
-<h3> Quantization and ONNX Export</h3>
+Quantization currently does not support distributed training currently. 
 
-The quantization scripts will take care of exporting the networks. The arguments necessary for quantization are mentioned in the training script.
+
+<h3> Image Classification </h3>
+
+```
+$ cd examples/pytorch/image-classification
+
+$ CUDA_VISIBLE_DEVICES=0 python run_image_classification.py --train_dir ${dataset_folder}/train --validation_dir ${dataset_folder}/val --output_dir ${output_dir} --overwrite_output_dir --do-train --do-eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path facebook/deit-tiny-patch16-224 --ignore_mismatched_sizes True --label_names labels --quantization 2 --quantize_type PTQ --quantize_calib_images 100 
+```
+
+Necessary Arguments : 
+
+| Argument | Value (or examples)   | Notes    |
+| :-----:  | :---:    | :---: |
+| train_dir  | ${imagenet_folder}/train      |    |
+| validation_dir  | ${imagenet_folder}/val      |    |
+| output_dir  | ${output_dir}      |  The trained network as well as the onnx model will be saved here  |
+| overwrite_output_dir | - | No Value is required, otherwise will be required to specify new output dir |
+| remove_unused_columns | False | |
+| do_train | - | No Value is required |
+| do_eval | - | No Value is required |
+| per_device_train_batch_size | 128| To specify the batch size during training (per device)|
+| per_device_eval_batch_size | 128 | To specify the batch size during evaluation (per device), need to be same as train batch size currently |
+| model_name_or_path | microsoft/swin-tiny-patch4-window7-224 | Models can be found on huggingface.co | 
+| dataloader_drop_last | True | Whether to drop the last incomplete batch (need to be true for faster pt2e based export now) |
+| label_names | labels | Needed to be specified to enable evaluation  |
+| ignore_mismatched_sizes | True | Will enable to load a pretrained model whose head dimensions are different.  |
+| quantization | 2 | Whether to introduce quantization, an value of 2 would introduce quantization, and 0 signifies no quantization |
+| quantize_type | QAT | How do we want to quantize the network. (Options. QAT/ PTQ /PTC )   |
+| quantize_calib_images | 50 | The number of calibration images during Post-Training Quantization/Calibration  |
+
+
+<h3> Planned Tasks </h3>
+
+- [ ]  Supporting distributed training during quantization 
+- [ ]  Supporting model surgery for the networks 
+
+Here is the original documentation of the whole transformers repository. 
+--------------------------------------------
 
 <p align="center">
   <picture>
