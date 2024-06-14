@@ -63,4 +63,9 @@ Optional: Careful attention needs to be given to how the parameters of the pretr
 ### Compilation of QAT Models in TIDL
 
 #### Instructions for compiling QAT models in TIDL 9.1 (December 2023) onwards:
-TODO: Top be populated.
+
+A quantized (QDQ) onnx model can be used in TIDL by setting the flag in the runtime options that is passed for compilation.
+
+```
+advanced_options:prequantized_model: 1
+```
