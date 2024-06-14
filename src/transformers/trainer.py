@@ -437,6 +437,9 @@ class Trainer:
                     " boolean argument which will be triggered after the last batch of the eval set to signal that the"
                     " summary statistics should be returned by the function."
                 )
+        if not(hasattr(args, "dont_update_parameters")):
+            args.dont_update_parameters = False
+            
         if args.eval_strategy is not None and args.eval_strategy != "no" and eval_dataset is None:
             raise ValueError(
                 f"You have set `args.eval_strategy` to {args.eval_strategy} but you didn't pass an `eval_dataset` to `Trainer`. Either set `args.eval_strategy` to `no` or pass an `eval_dataset`. "
@@ -2581,11 +2584,12 @@ class Trainer:
 
                         self.control = self.callback_handler.on_pre_optimizer_step(args, self.state, self.control)
 
-                        self.optimizer.step()
+                        if not(self.args.dont_update_parameters):
+                                self.optimizer.step()
 
                         self.control = self.callback_handler.on_optimizer_step(args, self.state, self.control)
 
-                        optimizer_was_run = not self.accelerator.optimizer_step_was_skipped
+                        optimizer_was_run = not (self.accelerator.optimizer_step_was_skipped and self.args.dont_update_parameters)
                         if optimizer_was_run:
                             # Delay optimizer scheduling until metrics are generated
                             if not isinstance(self.lr_scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
@@ -3704,17 +3708,18 @@ class Trainer:
         if self.args.n_gpu > 1:
             loss = loss.mean()  # mean() to average on multi-gpu parallel training
 
-        if self.use_apex:
-            with amp.scale_loss(loss, self.optimizer) as scaled_loss:
-                scaled_loss.backward()
-        else:
-            # Finally we need to normalize the loss for reporting
-            if num_items_in_batch is None:
-                loss = loss / self.args.gradient_accumulation_steps
+        if not(self.args.dont_update_parameters):
+            if self.use_apex:
+                with amp.scale_loss(loss, self.optimizer) as scaled_loss:
+                    scaled_loss.backward()
+            else:
+                # Finally we need to normalize the loss for reporting
+                if num_items_in_batch is None:
+                    loss = loss / self.args.gradient_accumulation_steps
 
-            self.accelerator.backward(loss, **kwargs)
+                self.accelerator.backward(loss, **kwargs)
 
-            return loss.detach()
+                return loss.detach()
 
     def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
         """
@@ -3732,6 +3737,27 @@ class Trainer:
                 loss_kwargs["num_items_in_batch"] = num_items_in_batch
             inputs = {**inputs, **loss_kwargs}
         outputs = model(**inputs)
+# import onnxruntime
+# sess_options = onnxruntime.SessionOptions()
+# sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
+# session = onnxruntime.InferenceSession('/home/a0491009/quantization/edgeai-transformers/examples/pytorch/image-classification/imagenet/deit-tiny-patch16-224.onnx', sess_options)
+# input_name = session.get_inputs()[0].name
+# onnx_input = inputs['pixel_values'].cpu().data.numpy()
+# output = session.run([], {input_name: onnx_input})
+        
+        
+        
+# import onnxruntime
+# sess_options = onnxruntime.SessionOptions()
+# sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
+# session = onnxruntime.InferenceSession('/home/a0491009/quantization/edgeai-transformers/examples/pytorch/image-classification/imagenet/deit-tiny-patch16-224.onnx', sess_options)
+# input_name = session.get_inputs()[0].name
+# head_mask = session.get_inputs()[1].name
+# onnx_input = inputs['pixel_values'].cpu().data.numpy()
+# output = session.run([], {input_name: onnx_input,  head_mask: np.ones((20, 1), dtype=np.int64)})
+
+
+        
         # Save past state if it exists
         # TODO: this needs to be fixed and made cleaner later.
         if self.args.past_index >= 0:
