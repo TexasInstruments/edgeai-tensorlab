@@ -48,7 +48,7 @@ from torch.ao.quantization import quantize_fx
 import copy
 import math
 from .... import xnn
-from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, find_all_connected_nodes, get_net_weight_node_channel_prune, get_net_weights_all,create_channel_pruned_model,get_pruning_partitions,_call_functions_to_look
+from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, find_all_connected_nodes, get_net_weight_node_channel_prune, get_net_weights_all,get_pruning_partitions,_call_functions_to_look,get_num_heads_head_dims,get_parameter_indices
 
 
 def is_depthwise(fx_model,source,source_partition):
@@ -433,33 +433,7 @@ class BlendPruningParametrization(SoftPruningParametrization):
         return soft_mask   
 
 
-def get_num_heads_head_dims(fx_model,source,source_partition):
-    # TODO proper implementation for all attention layers with their variant
-    attn_layers = [nn.MultiheadAttention,
-                      tvmodels.swin_transformer.ShiftedWindowAttention,
-                      tvmodels.swin_transformer.shifted_window_attention,
-                      tmmodels.vision_transformer.Attention,
-                      tmmodels.swin_transformer.WindowAttention]
-    if source not in attn_layers:
-        raise Exception(f'This is only for attention layer of transformer models so expected any of\n {",".join(attn_layers)}\n as source but got {source}')
-    FINAL_EXCEPTION = Exception(f'Still not Supported for {source}' and {type(source_partition)})
-    if source == nn.MultiheadAttention:
-        if isinstance(source_partition,SourcePartition):
-            if len(source_partition.nodes) ==  52:
-                i = 30
-            if len(source_partition.nodes) == 43:
-                i = 23
-            elif len(source_partition.nodes) == 60:
-                i = 28     
-                    
-            shape = source_partition.nodes[i].args[1]
-            num_heads,head_dims =  shape[1],shape[3]
-        else: 
-            raise FINAL_EXCEPTION
-    else: 
-        raise FINAL_EXCEPTION
-            
-    return num_heads,head_dims
+
 
 
 #Experimental to check either only Channel Pruning works for  MultiHeadAttention Layer's inner_projection weights
@@ -795,7 +769,7 @@ class HeadChannelBlendPruningParametrization(BlendPruningParametrization):
 
 
 class PrunerModule(torch.nn.Module):
-    def __init__(self, module, example_args:list,example_kwargs:dict,pruning_ratio=None, total_epochs=None, pruning_class='blend',p=2.0, copy_args=[],
+    def __init__(self, module, example_args:list,example_kwargs:dict={},pruning_ratio=None, total_epochs=None, pruning_class='blend',p=2.0, copy_args=[],
                  pruning_global=False, pruning_type='channel', pruning_init_train_ep=5, pruning_m=None, **kwargs) -> None:
         super().__init__(**kwargs)
         if isinstance(module,fx.GraphModule):
@@ -1020,8 +994,8 @@ class PrunerModule(torch.nn.Module):
             'prunechannelunstructured':self.prunechannelunstructured, 
             'epoch_count':self.epoch_count, 
             'total_epochs':self.total_epochs, 
-             'binary_mask':binary_mask, 
-             'm':self.m,
+            'binary_mask':binary_mask, 
+            'm':self.m,
             }
         if self.pruning_class == BlendPruningParametrization:
             kwargs['p'] = self.p
@@ -1031,110 +1005,82 @@ class PrunerModule(torch.nn.Module):
             if node.target  not in self.net_weights:
                 continue 
             elif node.op == 'get_attr':
-                attr = params[node.target]
+                attr = params[f'parametrizations.{node.target}.original'] if  parametrize.is_parametrized(self.module,node.target) else params[node.target]
                 if isinstance(attr,nn.Parameter):
                     net_weight, dim = self.net_weights[node.target]
                     parametrization = self.pruning_class(fx_model=self.module,source=node,source_partition=node, net_weight = net_weight,pruning_dim = dim,**kwargs)
                     parametrize.register_parametrization(self.module, node.target, parametrization)
         
-        True           
         for cls,partitions in self.pruning_partitions.items():
             if cls == nn.Conv2d:
                 assert isinstance(partitions[0],SourcePartition)
                 for partition in partitions:
-                    param_name = partition.nodes[0].target
+                    i,j = get_parameter_indices(self.module,cls,partition)
+                    param_name = partition.nodes[i].target
                     net_weight,dim =  self.net_weights[param_name]
                     parametrization = self.pruning_class(fx_model=self.module,source=cls,source_partition=partition, net_weight = net_weight,pruning_dim = dim,**kwargs)
                     parametrize.register_parametrization(self.module, param_name, parametrization)
                     if len(partition.nodes) ==3 and self.channel_pruning:
-                        param_name = partition.nodes[1].target
+                        param_name = partition.nodes[j].target
                         parametrize.register_parametrization(self.module, param_name, parametrization)
                     
             elif cls == nn.BatchNorm2d:
                 assert isinstance(partitions[0],SourcePartition)
                 for partition in partitions:
-                    param_name = partition.nodes[3].target
+                    i,j = get_parameter_indices(self.module,cls,partition)
+                    param_name = partition.nodes[i].target
                     net_weight,dim =  self.net_weights[param_name]
                     parametrization = self.pruning_class(fx_model=self.module,source=cls,source_partition=partition, net_weight = net_weight,pruning_dim = dim,**kwargs)
                     parametrize.register_parametrization(self.module, param_name, parametrization)
                     if len(partition.nodes) ==11 and self.channel_pruning:
-                        param_name = partition.nodes[4].target
+                        param_name = partition.nodes[j].target
                         parametrize.register_parametrization(self.module, param_name, parametrization)
             elif cls == nn.Linear:
                 assert isinstance(partitions[0],SourcePartition)
                 for partition in partitions:
                     if any( 'output' in [n.op for n in out.users]for out in partition.output_nodes):
                         continue
-                    if len(partition.nodes) == 4:
-                        i= 0
-                        j=2
-                    elif len(partition.nodes) == 6:
-                        i= 1
-                        j= 3
-                    elif len(partition.nodes) == 8:
-                        i= 3
-                        j= 5
-                    elif len(partition.nodes) == 7:
-                        i= 2
-                        j= 4
+                    
+                    i,j = get_parameter_indices(self.module,cls,partition)
+
                     param_name = partition.nodes[i].target
                     net_weight,dim =  self.net_weights[param_name]
                     parametrization = self.pruning_class(fx_model=self.module,source=cls,source_partition=partition, net_weight = net_weight,pruning_dim = dim,**kwargs)
                     parametrize.register_parametrization(self.module, param_name, parametrization)
-                    if len(partition.nodes) in (4,6) and self.channel_pruning:
+                    if self.channel_pruning:
                         param_name = partition.nodes[j].target
                         parametrize.register_parametrization(self.module, param_name, parametrization)
             elif cls == nn.LayerNorm:
                 assert isinstance(partitions[0],SourcePartition)
                 for partition in partitions:
-                    param_name = partition.nodes[0].target
+                    i,j = get_parameter_indices(self.module,cls,partition)
+                    param_name = partition.nodes[i].target
                     net_weight,dim =  self.net_weights[param_name]
                     parametrization = self.pruning_class(fx_model=self.module,source=cls,source_partition=partition, net_weight = net_weight,pruning_dim = dim,**kwargs)
                     parametrize.register_parametrization(self.module, param_name, parametrization)
                     if len(partition.nodes) ==6 and self.channel_pruning:
-                        param_name = partition.nodes[1].target
+                        param_name = partition.nodes[j].target
                         parametrize.register_parametrization(self.module, param_name, parametrization)
             elif cls == nn.MultiheadAttention:
                 assert isinstance(partitions[0],SourcePartition)
                 for partition in partitions:
-                    if len(partition.nodes) ==43:
-                        i= 2
-                    elif len(partition.nodes) == 52:
-                        i = 1  
-                    elif len(partition.nodes) == 60:
-                        i = 1    
-                    param_name = partition.nodes[i].target
+                    i,j = get_parameter_indices(self.module,cls,partition)
+                    param_name = partition.nodes[i[0]].target
                     net_weight,dim =  self.net_weights[param_name]
                     if self.channel_pruning:
                         parametrization1 = attn_proj_class(fx_model=self.module,source=cls,source_partition=partition, net_weight = net_weight,**kwargs)
                     else: 
                         parametrization1 = self.pruning_class(fx_model=self.module,source=cls,source_partition=partition, net_weight = net_weight,pruning_dim = dim,**kwargs)
                     parametrize.register_parametrization(self.module, param_name, parametrization1)
-                    if len(partition.nodes) ==43:
-                        i= 37
-                    elif len(partition.nodes) == 52:
-                        i = 46        
-                    elif len(partition.nodes) == 60:
-                        i = 54
-                    param_name = partition.nodes[i].target
+                    param_name = partition.nodes[i[1]].target
                     net_weight,dim =  self.net_weights[param_name]
                     parametrization2 = self.pruning_class(fx_model=self.module,source=cls,source_partition=partition, net_weight = net_weight,pruning_dim = dim,**kwargs)
                     parametrize.register_parametrization(self.module, param_name, parametrization2)
                     
-                    if len(partition.nodes) ==43 and self.channel_pruning:
-                        param_name = partition.nodes[4].target
+                    if self.channel_pruning:                     
+                        param_name = partition.nodes[j[0]].target
                         parametrize.register_parametrization(self.module, param_name, parametrization1)
-                        param_name = partition.nodes[39].target
-                        parametrize.register_parametrization(self.module, param_name, parametrization2)
-                    if len(partition.nodes) ==52 and self.channel_pruning:
-                        param_name = partition.nodes[8].target
-                        parametrize.register_parametrization(self.module, param_name, parametrization1)
-                        param_name = partition.nodes[48].target
-                        parametrize.register_parametrization(self.module, param_name, parametrization2)
-                    if len(partition.nodes) ==60 and self.channel_pruning:
-                        param_name = partition.nodes[8].target
-                        parametrize.register_parametrization(self.module, param_name, parametrization1)
-                        param_name = partition.nodes[56].target
+                        param_name = partition.nodes[j[1]].target
                         parametrize.register_parametrization(self.module, param_name, parametrization2)
                                       
         return self

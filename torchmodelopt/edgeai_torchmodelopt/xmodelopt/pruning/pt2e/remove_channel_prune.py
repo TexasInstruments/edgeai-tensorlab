@@ -31,31 +31,39 @@
 
 
 import torch
+import torch._dynamo as torch_dynamo
 import torch.fx as fx
 import torchvision
-from edgeai_torchmodelopt.xmodelopt.pruning import create_channel_pruned_model2
+from edgeai_torchmodelopt.xmodelopt.pruning.pt2e.utils import create_channel_pruned_model,register_custom_ops_for_onnx
 import copy
-
 num_classes = 10
+torch.backends.cuda.enable_flash_sdp(False)
+
 model = torchvision.models.vit_b_16(num_classes =num_classes)
 # model = torchvision.models.resnet50()
-current_model_dict = model.state_dict()
-model_path = '/home/a0507161/Kunal/transformer_sparsity/outputs/vit_b_16/2024_05_21_17_58_52/last_checkpoint.pth'
+dummy_input = torch.randn(10, 3, 224, 224)
+m,_ = torch_dynamo.export(model,aten_graph=True)(dummy_input)
+
+current_model_dict = m.state_dict()
+model_path = '/home/a0507161/Kunal/transformer_sparsity/outputs/vit_b_16/2024_06_12_16_52_07/last_checkpoint.pth'
 state_dict = torch.load(model_path)
 state_dict = state_dict['model']
 
-new_state_dict={k:v if v.size()==current_model_dict[k].size()  else  current_model_dict[k] for k,v in zip(current_model_dict.keys(), state_dict.values())}
-model.load_state_dict(state_dict=new_state_dict)
+new_state_dict={}
+for k,v in state_dict.items():
+    param_names = k.split('.')
+    new_state_dict[param_names[-1] ] = v
+m.load_state_dict(state_dict=new_state_dict)
 
-orig_model = copy.deepcopy(model)
+orig_model = copy.deepcopy(m)
 
-final_model = create_channel_pruned_model2(model)
+final_model = create_channel_pruned_model(m)
+# print('\n'.join([str((n,p.shape)) for n,p in final_model.named_parameters()]))
 
-dummy_input = torch.randn(10, 3, 224, 224)
 print("The forward pass is starting \n")
 
 y = final_model(dummy_input)
 print("The forward pass completed \n")
-
+register_custom_ops_for_onnx(17)
 torch.onnx.export(orig_model, dummy_input, model_path[:-4]+"_orig.onnx")
 torch.onnx.export(final_model, dummy_input, model_path[:-4]+"_final.onnx")
