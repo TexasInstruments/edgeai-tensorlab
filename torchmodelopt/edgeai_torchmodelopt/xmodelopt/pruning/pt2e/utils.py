@@ -29,23 +29,24 @@
 #
 #################################################################################
 
-
+import operator
 from copy import deepcopy
-from curses.ascii import SO
 from typing import Any, Iterable, List
-from edgeai_torchmodelopt.xmodelopt import pruning
-
 from numpy import partition
 import torch
 import torch.fx as fx
 import torch.nn as nn
 from torch import _dynamo as torch_dynamo
 from torchvision import models as tvmodels
-from timm import models as tmmodels
 from torch.fx.passes.utils.source_matcher_utils import get_source_partitions, SourcePartition
 from torch.fx.passes.utils.matcher_utils import InternalMatch,SubgraphMatcher
 
-import operator
+try:
+    from timm import models as tmmodels
+    has_timm = True
+except:
+    has_timm = False
+
 
 _call_functions_to_look =[
     tvmodels.swin_transformer.shifted_window_attention,
@@ -130,12 +131,14 @@ def get_pruning_partitions(module:fx.GraphModule):
     visited_node_names = []
     
     result:dict[Any,List[SourcePartition]|tuple[fx.GraphModule,List[InternalMatch]]] = {}
-    mod= tmmodels.vision_transformer.Attention(192,3,True)
-    mod,_ = torch_dynamo.export(mod,aten_graph=True)(torch.ones(1,197,192))
-    other_patterns.append((tmmodels.vision_transformer.Attention,mod))
-    
-    for cls,mod in (other_patterns):
-        
+
+    # TODO: Add condition checks
+    if has_timm:
+        mod = tmmodels.vision_transformer.Attention(192,3,True)
+        mod,_ = torch_dynamo.export(mod,aten_graph=True)(torch.ones(1,197,192))
+        other_patterns.append((tmmodels.vision_transformer.Attention,mod))
+
+    for cls,mod in other_patterns:
         with mod.graph.inserting_after():
             for node in mod.graph.nodes:
                 if len(node.users)  == 0 and node.op != 'output':
@@ -151,7 +154,7 @@ def get_pruning_partitions(module:fx.GraphModule):
                 unique_matches.append(match)
                 visited_node_names.extend([n.name for n in nodes])
         if len(unique_matches):
-            result[cls] = (mod,unique_matches)  
+            result[cls] = (mod,unique_matches)
     
     nn_modules = [
         nn.MultiheadAttention,

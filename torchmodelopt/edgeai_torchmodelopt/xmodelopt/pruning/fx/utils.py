@@ -31,15 +31,12 @@
 
 
 from typing import Iterable
-from edgeai_torchmodelopt.xmodelopt import pruning
-
+import operator
 import torch
 import torch.fx as fx
 import torch.nn as nn
 from torchvision import models as tvmodels
-from timm import models as tmmodels
 
-import operator
 
 _call_functions_to_look =[
     tvmodels.swin_transformer.shifted_window_attention,

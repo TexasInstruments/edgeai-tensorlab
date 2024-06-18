@@ -3,8 +3,8 @@ import json
 import datetime
 from torch import nn
 
-from demo.demo_utils import  summary
-from demo.demo_utils import import_file_or_folder
+from demo_utils import  summary
+from demo_utils import import_file_or_folder
 from edgeai_torchmodelopt.xmodelopt.pruning.fx.utils import create_channel_pruned_model
 from edgeai_torchmodelopt.xmodelopt.pruning.fx.pruner_module import PrunerModule
 

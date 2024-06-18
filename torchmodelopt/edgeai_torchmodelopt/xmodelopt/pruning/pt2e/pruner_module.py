@@ -30,13 +30,7 @@
 #################################################################################
 
 
-from ast import mod
-from importlib.util import module_from_spec
-from re import S
-from edgeai_torchmodelopt.xmodelopt import pruning
 from numpy import source
-from timm import models as tmmodels
-from torchvision import models as tvmodels
 import torch
 from torch import _dynamo as torch_dynamo
 import torch.nn as nn

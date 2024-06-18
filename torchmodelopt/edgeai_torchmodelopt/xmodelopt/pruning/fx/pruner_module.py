@@ -30,10 +30,6 @@
 #################################################################################
 
 
-from ast import mod
-from importlib.util import module_from_spec
-from edgeai_torchmodelopt.xmodelopt import pruning
-from timm import models as tmmodels
 from torchvision import models as tvmodels
 import torch
 import torch.nn as nn
@@ -42,7 +38,16 @@ import torch.nn.utils.parametrize as parametrize
 from torch.ao.quantization import quantize_fx
 import copy
 import math
+
+try:
+    from timm import models as tmmodels
+    has_timm = True
+except:
+    has_timm = False
+
 from .... import xnn
+
+
 from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, find_all_connected_nodes, get_net_weight_node_channel_prune, get_net_weights_all,create_channel_pruned_model,_call_functions_to_look
 
 
@@ -420,7 +425,7 @@ class ChannelOnlyBlendPruningParametrization(BlendPruningParametrization):
             elif isinstance(module,(nn.Linear)):
                 module_name,attr = curr_node.target.rsplit('.',1)
                 module = modules[module_name]
-                if isinstance(module,(tmmodels.vision_transformer.Attention,tmmodels.swin_transformer.WindowAttention)):
+                if has_timm and isinstance(module,(tmmodels.vision_transformer.Attention,tmmodels.swin_transformer.WindowAttention)):
                     self.num_heads = module.num_heads
                 else:
                     raise Exception('This parametrization is only for inner projection layer of attention layers (for timm)')
@@ -536,7 +541,7 @@ class HeadOnlyBlendPruningParametrization(BlendPruningParametrization):
             elif isinstance(module,(nn.Linear)):
                 module_name,attr = curr_node.target.rsplit('.',1)
                 module = modules[module_name]
-                if isinstance(module,(tmmodels.vision_transformer.Attention,tmmodels.swin_transformer.WindowAttention)):
+                if has_timm and isinstance(module,(tmmodels.vision_transformer.Attention,tmmodels.swin_transformer.WindowAttention)):
                     self.num_heads = module.num_heads
                 else:
                     raise Exception('This parametrization is only for inner projection layer of attention layers (for timm)')
@@ -651,7 +656,7 @@ class HeadChannelBlendPruningParametrization(BlendPruningParametrization):
             elif isinstance(module,(nn.Linear)):
                 module_name,attr = curr_node.target.rsplit('.',1)
                 module = modules[module_name]
-                if isinstance(module,(tmmodels.vision_transformer.Attention,tmmodels.swin_transformer.WindowAttention)):
+                if has_timm and isinstance(module,(tmmodels.vision_transformer.Attention,tmmodels.swin_transformer.WindowAttention)):
                     self.num_heads = module.num_heads
                 else:
                     raise Exception('This parametrization is only for inner projection layer of attention layers (for timm)')
@@ -1149,7 +1154,7 @@ class PrunerModule(torch.nn.Module):
                     parent_module = modules[parent_module]
                     
                     #Layer inside attention of timm 
-                    if isinstance(parent_module,(tmmodels.swin_transformer.WindowAttention,tmmodels.vision_transformer.Attention)):
+                    if has_timm and isinstance(parent_module,(tmmodels.swin_transformer.WindowAttention,tmmodels.vision_transformer.Attention)):
                         # For  inner of Attention Layer
                         if name == 'qkv':
                             if self.channel_pruning:
