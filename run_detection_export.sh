@@ -34,7 +34,7 @@
 CONFIG_FILE="configs/edgeailite/yolox/yolox_nano_8xb8-300e_coco.py"
 CHECKPOINT_FILE="work_dirs/yolox_nano_8xb8-300e_coco/epoch_1.pth"
 DEPLOY_CONFIG="../edgeai-mmdeploy/configs/mmdet/detection/detection_onnxruntime_static.py"
-DEMO_IMG_PATH="/demo/demo.jpg"
+DEMO_IMG_PATH="demo/demo.jpg"
 EXPORT_PATH="work_dirs/onnx_exports/yolox_nano_8xb8-300e_coco"
 MODEL_SURGERY=1
 
