@@ -30,7 +30,6 @@
 #################################################################################
 
 
-from numpy import source
 import torch
 from torch import _dynamo as torch_dynamo
 import torch.nn as nn
@@ -41,8 +40,9 @@ import torch.nn.utils.parametrize as parametrize
 from torch.ao.quantization import quantize_fx
 import copy
 import math
+
 from .... import xnn
-from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, find_all_connected_nodes, get_net_weight_node_channel_prune, get_net_weights_all,get_pruning_partitions,_call_functions_to_look,get_num_heads_head_dims,get_parameter_indices
+from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, find_all_connected_nodes, get_net_weight_node_channel_prune, get_net_weights_all,get_pruning_partitions,get_num_heads_head_dims,get_parameter_indices
 
 
 def is_depthwise(fx_model,source,source_partition):

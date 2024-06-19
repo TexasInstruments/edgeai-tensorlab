@@ -31,15 +31,12 @@
 
 import operator
 from copy import deepcopy
-from typing import Any, Iterable, List
-from numpy import partition
+from typing import  Type,List,Dict,Any,Iterable
 import torch
 import torch.fx as fx
 import torch.nn as nn
 from torch import _dynamo as torch_dynamo
-from torchvision import models as tvmodels
-from torch.fx.passes.utils.source_matcher_utils import get_source_partitions, SourcePartition
-from torch.fx.passes.utils.matcher_utils import InternalMatch,SubgraphMatcher
+from torch.fx.passes.utils.source_matcher_utils import  SourcePartition
 
 try:
     from timm import models as tmmodels
@@ -47,12 +44,18 @@ try:
 except:
     has_timm = False
 
+try:
+    from torchvision import models as tvmodels
+    has_tv = True
+except:
+    has_tv = False
 
-_call_functions_to_look =[
-    tvmodels.swin_transformer.shifted_window_attention,
-    tvmodels.swin_transformer._get_relative_position_bias,
-]
-
+try:
+    from transformers import models as hfmodels
+    has_hf = True
+except:
+    has_hf = False
+    
 
 def remove_duplicates(items:list):
     result = []
@@ -94,7 +97,7 @@ def _is_a_proper_input_node(node:fx.Node,model:fx.graph_module.GraphModule,old_r
     old_results[node.name]=any([_is_a_proper_input_node(arg,model,old_results) for arg in args])
     return old_results[node.name]
 
-def _get_proper_input_args(curr_partition:fx.Node|SourcePartition|InternalMatch,fx_model:fx.GraphModule,):
+def _get_proper_input_args(curr_partition:fx.Node|SourcePartition,fx_model:fx.GraphModule,):
     args:List[fx.Node] = []
     if isinstance(curr_partition,fx.Node):
         node = curr_partition
@@ -109,76 +112,112 @@ def _get_proper_input_args(curr_partition:fx.Node|SourcePartition|InternalMatch,
         for arg in curr_partition.input_nodes:
             if _is_a_proper_input_node(arg,fx_model):
                 args.append(arg)
-    elif isinstance(curr_partition,InternalMatch):
-        for arg in curr_partition.placeholder_nodes:
-            if _is_a_proper_input_node(arg,fx_model):
-                args.append(arg)
     args = remove_duplicates(args)
     return args
+
+def get_source_partition(graph:fx.Graph,wanted_sources:list,filter_fn = None):
+    modules: Dict[Type, Dict[str, List[fx.Node]]] = {}
+    # a custom made get_source_partitions that can handle any type of modules and functions that are wrapped for fx
+    
+    for node in graph.nodes:
+        
+        if (nn_module_stack:= node.meta.get("nn_module_stack", None)):
+            key = None
+            for k,v in nn_module_stack.items():
+                if v[1] in wanted_sources:
+                    key = k
+                    break
+            if key is None:
+                continue
+            source_fn = nn_module_stack[key]
+        elif (source_fn_st := node.meta.get("source_fn_stack", None)):
+
+            source_fn = source_fn_st[-1]
+            if source_fn[1] not in wanted_sources:
+                continue
+        else:
+            continue
+
+        diff_modules = modules.setdefault(source_fn[1], {})
+        partition = diff_modules.setdefault(source_fn[0], [])
+        partition.append(node)
+    
+    def make_partition(nodes: List[fx.Node], module_type: Type) -> SourcePartition:
+        input_nodes = set()
+        output_nodes = set()
+        params = set()
+        for node in nodes:
+            for arg in node.args:
+                if isinstance(arg, fx.Node) and arg not in nodes:
+                    input_nodes.add(arg)
+
+            if node.op == "get_attr":
+                params.add(node)
+
+            for user in node.users.keys():
+                if user not in nodes:
+                    output_nodes.add(node)
+
+        return SourcePartition(
+            nodes,
+            module_type,
+            list(input_nodes),
+            list(output_nodes),
+            list(params),  # type: ignore[arg-type]
+        )
+    
+    ret: Dict[Type[Any], List[SourcePartition]] = {}
+    filter_fn = None
+    if filter_fn:
+        # for each partition, we apply filter_fn to filter out all partitions that doesn't satisfy the
+        # filter condition
+        filtered_modules = {}
+        for tp, name_to_partition in modules.items():
+            filtered_name_to_partition = {
+                name: partition
+                for name, partition in name_to_partition.items()
+                if all(map(filter_fn, partition))
+            }
+            filtered_modules[tp] = filtered_name_to_partition
+        modules = filtered_modules
+
+    for k, v in modules.items():
+        ret[k] = [make_partition(partition, k) for partition in v.values()]
+
+    return ret
 
 
 def get_pruning_partitions(module:fx.GraphModule):
     # some modules can contain other other module as submodule we have to go from larger modules to their submodule if they are required like Linear in MHA(Attention)
-    #backup for get_source_partition 
-    orig_module = deepcopy(module)
-    orig_module, module = module, orig_module
-    with module.graph.inserting_after():
-        for node in module.graph.nodes:
-            if node.op != 'output' and len(node.users) == 0:
-                module.graph.erase_node(node)
-    module.graph.lint(), module.recompile()
-    other_patterns:list[tuple[Any,fx.GraphModule]] = []
-    visited_node_names = []
-    
-    result:dict[Any,List[SourcePartition]|tuple[fx.GraphModule,List[InternalMatch]]] = {}
 
-    # TODO: Add condition checks
-    if has_timm:
-        mod = tmmodels.vision_transformer.Attention(192,3,True)
-        mod,_ = torch_dynamo.export(mod,aten_graph=True)(torch.ones(1,197,192))
-        other_patterns.append((tmmodels.vision_transformer.Attention,mod))
-
-    for cls,mod in other_patterns:
-        with mod.graph.inserting_after():
-            for node in mod.graph.nodes:
-                if len(node.users)  == 0 and node.op != 'output':
-                    mod.graph.erase_node(node)
-        mod.graph.lint(),mod.recompile()
-        subgraph_matcher = SubgraphMatcher(mod.graph,ignore_literals=True)
-        matches = subgraph_matcher.match(module.graph)
-        unique_matches:List[InternalMatch] = []
-        for match in matches:
-            nodes = [node for p,node in match.nodes_map.items()]
-            # if none of the match nodes is already visited it will be added
-            if not any(node.name in visited_node_names for node in nodes):
-                unique_matches.append(match)
-                visited_node_names.extend([n.name for n in nodes])
-        if len(unique_matches):
-            result[cls] = (mod,unique_matches)
     
-    nn_modules = [
-        nn.MultiheadAttention,
+    wanted_sources = [
         nn.Conv2d,
-        nn.LayerNorm,
         nn.BatchNorm2d,
+        nn.LayerNorm,
         nn.Linear,
+        nn.MultiheadAttention,
     ]
-    for layer in nn_modules:
-        res = get_source_partitions(orig_module.graph,[layer])
-        unique_matches = []
-        if layer in res:
-            matches = res[layer]
-            for match in matches:
-                nodes = match.nodes
-                if not any(node.name in visited_node_names for node in nodes):
-                    unique_matches.append(match)
-                    visited_node_names.extend([n.name for n in nodes])
-            result[layer] = unique_matches
+    if has_tv:
+        wanted_sources.extend([
+            tvmodels.swin_transformer.SwinTransformer,
+            tvmodels.swin_transformer.shifted_window_attention,
+        ])
     
+    if has_timm:
+        wanted_sources.extend([
+            tmmodels.vision_transformer.Attention,
+            tmmodels.swin_transformer.WindowAttention,
+        ])
+    if has_hf:
+        wanted_sources.extend([
+            hfmodels.vit.modeling_vit.ViTAttention,
+            hfmodels.swin.modeling_swin.SwinAttention,
+        ])
     
-    return result
+    return get_source_partition(module.graph,wanted_sources)
 
-def get_parameter_indices(fx_model:fx.GraphModule,source:type,partition:SourcePartition|InternalMatch):
+def get_parameter_indices(fx_model:fx.GraphModule,source:type,partition:SourcePartition):
     if source == nn.Conv2d:
         i = 0
         j = 1 if len(partition.nodes) == 3 else None
@@ -213,16 +252,28 @@ def get_parameter_indices(fx_model:fx.GraphModule,source:type,partition:SourcePa
             j = [8,56]
     return i,j
 
-def get_num_heads_head_dims(fx_model:fx.GraphModule,source:type,source_partition:SourcePartition|InternalMatch):
+def get_num_heads_head_dims(fx_model:fx.GraphModule,source:type,source_partition:SourcePartition):
     # TODO proper implementation for all attention layers with their variant
-    attn_layers = [nn.MultiheadAttention,
-                      tvmodels.swin_transformer.ShiftedWindowAttention,
-                      tvmodels.swin_transformer.shifted_window_attention,
-                      tmmodels.vision_transformer.Attention,
-                      tmmodels.swin_transformer.WindowAttention]
+    attn_layers = [nn.MultiheadAttention]
+
+    if has_tv:
+        attn_layers.extend([
+            tvmodels.swin_transformer.ShiftedWindowAttention,
+            tvmodels.swin_transformer.shifted_window_attention,
+        ])
+    if has_timm:
+        attn_layers.extend([
+            tmmodels.vision_transformer.Attention,
+            tmmodels.swin_transformer.WindowAttention
+        ])
+    if has_hf:
+        attn_layers.extend([
+            hfmodels.vit.modeling_vit.ViTAttention,
+            hfmodels.swin.modeling_swin.SwinAttention,
+        ])
     if source not in attn_layers:
         raise Exception(f'This is only for attention layer of transformer models so expected any of\n {",".join(attn_layers)}\n as source but got {source}')
-    FINAL_EXCEPTION = Exception(f'Still not Supported for {source}' and {type(source_partition)})
+    FINAL_EXCEPTION = Exception(f'Still not Supported for {source}')
     if source == nn.MultiheadAttention:
         if isinstance(source_partition,SourcePartition):
             if len(source_partition.nodes) ==  52:
@@ -242,7 +293,7 @@ def get_num_heads_head_dims(fx_model:fx.GraphModule,source:type,source_partition
     return num_heads,head_dims
 # def get_pruning_class
 
-def create_bn_conv_mapping(module:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]|tuple[fx.GraphModule,List[InternalMatch]]]):
+def create_bn_conv_mapping(module:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]]):
     # need to check all the layers connected to conv2d and linear and we would have to include them all in the mapping list
     next_bn_partitions:dict[Any,SourcePartition] = dict()
     
@@ -262,7 +313,7 @@ def create_bn_conv_mapping(module:fx.GraphModule,pattern_partitions:dict[Any,Lis
                     
     return next_bn_partitions
 
-def find_in_node(module:fx.GraphModule,orig_partition:SourcePartition, curr_partition:SourcePartition|fx.Node, pattern_partitions:dict[Any,List[SourcePartition]|tuple[fx.GraphModule,List[InternalMatch]]], next_conv_node_list:dict[Any,List[SourcePartition]]):
+def find_in_node(module:fx.GraphModule,orig_partition:SourcePartition, curr_partition:SourcePartition|fx.Node, pattern_partitions:dict[Any,List[SourcePartition]], next_conv_node_list:dict[Any,List[SourcePartition]]):
     # recursive call to find the related conv layers to the orig conv layer in its users (below layers)
     if isinstance(curr_partition,fx.Node) and  curr_partition.op == 'output':
         return
@@ -313,7 +364,7 @@ def find_in_node(module:fx.GraphModule,orig_partition:SourcePartition, curr_part
     return
 
                         
-def create_next_conv_node_list(module:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]|tuple[fx.GraphModule,List[InternalMatch]]]):
+def create_next_conv_node_list(module:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]]):
     # returns list of all nodes which are connected to the current node 
     next_conv_node_list:dict[Any,List[SourcePartition]] = dict()
     
@@ -374,7 +425,7 @@ def remove_channels_conv_next(module:fx.GraphModule, conv_partition:SourcePartit
         #BN parameters may not be removed, because we are just removing from input 
     return module 
 
-def find_next_prunned_partitions(node:fx.Node,model:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]|tuple[fx.GraphModule,List[InternalMatch]]],old_result:dict[str,list[tuple[type,SourcePartition]]]=None):
+def find_next_prunned_partitions(node:fx.Node,model:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]],old_result:dict[str,list[tuple[type,SourcePartition]]]=None):
     fx_model = model
     if old_result is None:
         old_result = {}
@@ -400,7 +451,7 @@ def find_next_prunned_partitions(node:fx.Node,model:fx.GraphModule,pattern_parti
     old_result[node.name] = result 
     return result
 
-def find_prev_pruned_partitions(node:fx.Node,model:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]|tuple[fx.GraphModule,List[InternalMatch]]],old_result:dict[str,list[tuple[type,SourcePartition]]] = None):
+def find_prev_pruned_partitions(node:fx.Node,model:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]],old_result:dict[str,list[tuple[type,SourcePartition]]] = None):
     
     if old_result is None:
         old_result = {}
@@ -455,7 +506,6 @@ def create_channel_pruned_model(model:fx.GraphModule):
             nodes = []
             if isinstance(partition,SourcePartition): 
                 nodes.extend(partition.nodes)
-            # if isinstance(partition,InternalMatch): nodes.extend(list(partition.nodes_map.values()))
             all_partition_nodes.extend([node.name for node in nodes])
     
     
@@ -517,7 +567,7 @@ def create_channel_pruned_model(model:fx.GraphModule):
                     reshape_changes[node.name] = (i,param_name,dim)        
     new_num_heads_head_dims :dict[str,tuple[int,int]] = {}         
     
-    def find_prev_pruned_partitions_for_ln(node:fx.Node,model:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]|tuple[fx.GraphModule,List[InternalMatch]]],old_result:dict[str,list[tuple[type,SourcePartition]]] = None):
+    def find_prev_pruned_partitions_for_ln(node:fx.Node,model:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]],old_result:dict[str,list[tuple[type,SourcePartition]]] = None):
         if old_result is None:
             old_result = {}
         if node.name in old_result:
@@ -800,8 +850,7 @@ def create_channel_pruned_model(model:fx.GraphModule):
                 
 
 # remove print statements #TODO
-#TODO for InternalMatch thing
-def find_layers_in_prev(node:fx.Node, connected_list:List[fx.Node|SourcePartition|InternalMatch],fx_model:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]|tuple[fx.GraphModule,List[InternalMatch]]],visited_nodes:list=None):
+def find_layers_in_prev(node:fx.Node, connected_list:List[fx.Node|SourcePartition],fx_model:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]],visited_nodes:list=None):
     # find all the connected nodes in the args(parents) of the current node, whenever a conv is found, we can stop our searching
     params = dict(fx_model.named_parameters())
     if visited_nodes is None:
@@ -816,7 +865,6 @@ def find_layers_in_prev(node:fx.Node, connected_list:List[fx.Node|SourcePartitio
             nodes = []
             if isinstance(partition,SourcePartition): nodes.extend(partition.nodes)
             
-            # if isinstance(partition,InternalMatch): nodes.extend(list(partition.nodes_map.values()))
             all_get_attr_nodes_in_partitions.extend([node.name for node in nodes if node.op == 'get_attr' ])
     args = [n for n in temp_args if n.op != 'get_attr']
     args.extend([n for n in temp_args if n.op == 'get_attr'])
@@ -897,7 +945,7 @@ def find_layers_in_prev(node:fx.Node, connected_list:List[fx.Node|SourcePartitio
     return 
 
 # TODO for other modules LayerNorm, MultiHeadAttention, Linear       
-def find_all_connected_nodes(model:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]|tuple[fx.GraphModule,List[InternalMatch]]]):
+def find_all_connected_nodes(model:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]]):
     # returns the list of all conv that share the same output
     fx_model = model
     params = dict(fx_model.named_parameters())
@@ -905,7 +953,7 @@ def find_all_connected_nodes(model:fx.GraphModule,pattern_partitions:dict[Any,Li
     connected_list_prev = ['init']
     all_connected_list = []
     
-    def extract_dims(connected_list_prev:list[fx.Node|str|SourcePartition|InternalMatch],pattern_partitions:dict[Any,List[SourcePartition]|tuple[fx.GraphModule,List[InternalMatch]]]):
+    def extract_dims(connected_list_prev:list[fx.Node|str|SourcePartition],pattern_partitions:dict[Any,List[SourcePartition]]):
         src_ptns = [match for match in connected_list_prev if isinstance(match,SourcePartition)]
         pruning_channels = None
         if src_ptns:
@@ -936,7 +984,6 @@ def find_all_connected_nodes(model:fx.GraphModule,pattern_partitions:dict[Any,Li
         for partition in partitions:
             nodes = []
             if isinstance(partition,SourcePartition): nodes.extend(partition.nodes)
-            # if isinstance(partition,InternalMatch): nodes.extend(list(partition.nodes_map.values()))
             all_partition_nodes.extend([node.name for node in nodes])
     
     for node in model_graph.nodes:
@@ -962,7 +1009,7 @@ def find_all_connected_nodes(model:fx.GraphModule,pattern_partitions:dict[Any,Li
     all_connected_list.append(connected_list_prev)          
     return all_connected_list[1:]
 
-def get_sum_of_all_conv_below(curr_node:fx.Node, module:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]|tuple[fx.GraphModule,List[InternalMatch]]], next_bn_partitions:dict[Any,SourcePartition], next_conv_node_list:dict[Any,List[SourcePartition]], node_weight_transposed:torch.Tensor, out_channels:int, ignore_node_name_list=[], global_pruning=False):
+def get_sum_of_all_conv_below(curr_node:fx.Node, module:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]], next_bn_partitions:dict[Any,SourcePartition], next_conv_node_list:dict[Any,List[SourcePartition]], node_weight_transposed:torch.Tensor, out_channels:int, ignore_node_name_list=[], global_pruning=False):
     if nn.Conv2d not in pattern_partitions:
         return None
     # gets the inner dimension concat of all the nodes conneected to the curr_node
@@ -980,7 +1027,7 @@ def get_sum_of_all_conv_below(curr_node:fx.Node, module:fx.GraphModule,pattern_p
             ignore_node_name_list.append(conv_match.output_nodes.name)
     return node_weight_transposed.mean(axis=1).unsqueeze(1) if (global_pruning and node_weight_transposed.shape[1]) else node_weight_transposed
 
-def search_for_first_conv(curr_node:fx.Node,module:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]|tuple[fx.GraphModule,List[InternalMatch]]]):
+def search_for_first_conv(curr_node:fx.Node,module:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]]):
     if nn.Conv2d in pattern_partitions:
         conv_partitions = pattern_partitions[nn.Conv2d]
     else: 
@@ -997,7 +1044,7 @@ def search_for_first_conv(curr_node:fx.Node,module:fx.GraphModule,pattern_partit
         return search_for_first_conv(node, module,pattern_partitions)
     return None
 
-def get_net_weight_node_channel_prune(curr_partition:fx.Node|SourcePartition|InternalMatch, module:fx.GraphModule, pattern_partitions:dict[Any,List[SourcePartition]|tuple[fx.GraphModule,List[InternalMatch]]], next_bn_partitions:dict[Any,SourcePartition], next_conv_node_list:dict[Any,List[SourcePartition]], ignore_node_name_list=[], global_pruning=False, net_weights = {}):
+def get_net_weight_node_channel_prune(curr_partition:fx.Node|SourcePartition, module:fx.GraphModule, pattern_partitions:dict[Any,List[SourcePartition]], next_bn_partitions:dict[Any,SourcePartition], next_conv_node_list:dict[Any,List[SourcePartition]], ignore_node_name_list=[], global_pruning=False, net_weights = {}):
     params = dict(module.named_parameters())
     # outputs the net weight for a node, incorporates the sum of nodes of the below( inner dimensions )
     # if the node is depthwise, we should output the net_weight of the previous conv to this depthwise
@@ -1043,7 +1090,7 @@ def get_weight_from_parameter(node:fx.Node,fx_model:fx.GraphModule,global_prunin
         attr = attr.reshape(attr.shape[0],-1)
         return attr.mean(1).unsqueeze(1) if global_pruning else attr
     
-def get_net_weights_all(module:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]|tuple[fx.GraphModule,List[InternalMatch]]], next_conv_node_list:dict[Any,List[SourcePartition]], all_connected_nodes:List[List[fx.Node|SourcePartition|InternalMatch]], next_bn_partitions:dict[Any,SourcePartition], channel_pruning, global_pruning=False):
+def get_net_weights_all(module:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]], next_conv_node_list:dict[Any,List[SourcePartition]], all_connected_nodes:List[List[fx.Node|SourcePartition]], next_bn_partitions:dict[Any,SourcePartition], channel_pruning, global_pruning=False):
     fx_model = module
     all_modules = dict(fx_model.named_modules())
     params = dict(fx_model.named_parameters())
@@ -1138,7 +1185,6 @@ def get_net_weights_all(module:fx.GraphModule,pattern_partitions:dict[Any,List[S
         for partition in partitions:
             nodes = []
             if isinstance(partition,SourcePartition): nodes.extend(partition.nodes)
-            # if isinstance(partition,InternalMatch): nodes.extend(list(partition.nodes_map.values()))
             all_partition_nodes.extend([node.name for node in nodes])                  
     
     for node in model_graph.nodes:
