@@ -4,7 +4,6 @@ _base_ = [
 ]
 convert_to_lite_model = dict(model_surgery=1)
 img_scale = (640, 640)  # width, height
-load_from = '/data/files/a0508577/work/edgeai-algo/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth'
 
 # model settings
 model = dict(
