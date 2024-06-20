@@ -161,7 +161,7 @@ def main():
 
     model_surgery = args.model_surgery
     if args.model_surgery is None:
-        if hasattr(cfg,'convert_to_lite_model'):
+        if hasattr(cfg, 'convert_to_lite_model'):
             model_surgery = cfg.convert_to_lite_model.model_surgery
 
     # model surgery

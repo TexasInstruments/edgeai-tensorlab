@@ -3,7 +3,8 @@ _base_ = [
     '../../_base_/schedules/schedule_1x.py', '../../_base_/default_runtime.py'
 ]
 
-# convert_to_lite_model = dict(group_size_dw=None)
+# convert_to_lite_model = dict(model_surgery=1)
+
 # model settings
 model = dict(
     type='FCOS',
