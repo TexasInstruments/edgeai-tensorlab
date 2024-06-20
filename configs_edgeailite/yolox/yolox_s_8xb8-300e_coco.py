@@ -1,5 +1,5 @@
 _base_ = [
-    '../../_base_/schedules/schedule_1x.py', '../../_base_/default_runtime.py',
+    '../../configs/_base_/schedules/schedule_1x.py', '../../configs/_base_/default_runtime.py',
     './yolox_tta.py'
 ]
 convert_to_lite_model = dict(model_surgery=1)
