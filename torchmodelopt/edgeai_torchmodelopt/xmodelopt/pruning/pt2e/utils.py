@@ -30,12 +30,10 @@
 #################################################################################
 
 import operator
-from copy import deepcopy
-from typing import  Type,List,Dict,Any,Iterable
+from typing import  Type, List, Dict, Any, Iterable
 import torch
 import torch.fx as fx
 import torch.nn as nn
-from torch import _dynamo as torch_dynamo
 from torch.fx.passes.utils.source_matcher_utils import  SourcePartition
 
 try:
@@ -64,7 +62,7 @@ def remove_duplicates(items:list):
             result.append(item)
     return result
 
-def _is_a_proper_input_node(node:fx.Node,model:fx.graph_module.GraphModule,old_results:dict[str:bool]={}):
+def _is_a_proper_input_node(node:fx.Node, model:fx.graph_module.GraphModule, old_results:dict[str:bool]={}):
     if node.name in old_results:
         return old_results[node.name]
 
@@ -97,7 +95,7 @@ def _is_a_proper_input_node(node:fx.Node,model:fx.graph_module.GraphModule,old_r
     old_results[node.name]=any([_is_a_proper_input_node(arg,model,old_results) for arg in args])
     return old_results[node.name]
 
-def _get_proper_input_args(curr_partition:fx.Node|SourcePartition,fx_model:fx.GraphModule,):
+def _get_proper_input_args(curr_partition:fx.Node|SourcePartition, fx_model:fx.GraphModule,):
     args:List[fx.Node] = []
     if isinstance(curr_partition,fx.Node):
         node = curr_partition
@@ -115,7 +113,7 @@ def _get_proper_input_args(curr_partition:fx.Node|SourcePartition,fx_model:fx.Gr
     args = remove_duplicates(args)
     return args
 
-def get_source_partition(graph:fx.Graph,wanted_sources:list,filter_fn = None):
+def get_source_partition(graph:fx.Graph, wanted_sources:list, filter_fn = None):
     modules: Dict[Type, Dict[str, List[fx.Node]]] = {}
     # a custom made get_source_partitions that can handle any type of modules and functions that are wrapped for fx
     
@@ -217,42 +215,43 @@ def get_pruning_partitions(module:fx.GraphModule):
     
     return get_source_partition(module.graph,wanted_sources)
 
-def get_parameter_indices(fx_model:fx.GraphModule,source:type,partition:SourcePartition):
+def get_parameter_indices(fx_model:fx.GraphModule, source:type, partition:SourcePartition):
     if source == nn.Conv2d:
-        i = 0
-        j = 1 if len(partition.nodes) == 3 else None
+        weight_index = 0
+        bias_index = 1 
     elif source == nn.BatchNorm2d:
-        i = 3
-        j = 4
+        weight_index = 3
+        bias_index = 4
     elif source == nn.Linear:
         if len(partition.nodes) == 4:
-            i= 0
-            j=2
+            weight_index = 0
+            bias_index = 2
         elif len(partition.nodes) == 6:
-            i= 1
-            j= 3
+            weight_index = 1
+            bias_index = 3
         elif len(partition.nodes) == 8:
-            i= 3
-            j= 5
+            weight_index = 3
+            bias_index = 5
         elif len(partition.nodes) == 7:
-            i= 2
-            j= 4
+            weight_index = 2
+            bias_index = 4
     elif source == nn.LayerNorm:
-         i = 0
-         j = 1
+         weight_index = 0
+         bias_index = 1
     elif source == nn.MultiheadAttention:
+        # for both weights and both biases (inner projection and outer projection)
         if len(partition.nodes) ==43:
-            i= [2,37]
-            j = [4,39]
+            weight_index = [2,37]
+            bias_index = [4,39]
         elif len(partition.nodes) == 52:
-            i = [1,46]  
-            j = [8,48]
+            weight_index = [1,46]  
+            bias_index = [8,48]
         elif len(partition.nodes) == 60:
-            i = [1,54]
-            j = [8,56]
-    return i,j
+            weight_index = [1,54]
+            bias_index = [8,56]
+    return weight_index, bias_index
 
-def get_num_heads_head_dims(fx_model:fx.GraphModule,source:type,source_partition:SourcePartition):
+def get_num_heads_head_dims(fx_model:fx.GraphModule, source:type, source_partition:SourcePartition):
     # TODO proper implementation for all attention layers with their variant
     attn_layers = [nn.MultiheadAttention]
 
@@ -273,27 +272,25 @@ def get_num_heads_head_dims(fx_model:fx.GraphModule,source:type,source_partition
         ])
     if source not in attn_layers:
         raise Exception(f'This is only for attention layer of transformer models so expected any of\n {",".join(attn_layers)}\n as source but got {source}')
+    
     FINAL_EXCEPTION = Exception(f'Still not Supported for {source}')
     if source == nn.MultiheadAttention:
-        if isinstance(source_partition,SourcePartition):
-            if len(source_partition.nodes) ==  52:
-                i = 30
-            if len(source_partition.nodes) == 43:
-                i = 23
-            elif len(source_partition.nodes) == 60:
-                i = 28     
-                    
-            shape = source_partition.nodes[i].args[1]
-            num_heads,head_dims =  shape[1],shape[3]
-        else: 
-            raise FINAL_EXCEPTION
+        if len(source_partition.nodes) ==  52:
+            node_index = 30
+        if len(source_partition.nodes) == 43:
+            node_index = 23
+        elif len(source_partition.nodes) == 60:
+            node_index = 28     
+                
+        shape = source_partition.nodes[node_index].args[1]
+        num_heads,head_dims =  shape[1],shape[3]
     else: 
         raise FINAL_EXCEPTION
             
     return num_heads,head_dims
 # def get_pruning_class
 
-def create_bn_conv_mapping(module:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]]):
+def create_bn_conv_mapping(module:fx.GraphModule, pattern_partitions:dict[Any,List[SourcePartition]]):
     # need to check all the layers connected to conv2d and linear and we would have to include them all in the mapping list
     next_bn_partitions:dict[Any,SourcePartition] = dict()
     
@@ -313,7 +310,7 @@ def create_bn_conv_mapping(module:fx.GraphModule,pattern_partitions:dict[Any,Lis
                     
     return next_bn_partitions
 
-def find_in_node(module:fx.GraphModule,orig_partition:SourcePartition, curr_partition:SourcePartition|fx.Node, pattern_partitions:dict[Any,List[SourcePartition]], next_conv_node_list:dict[Any,List[SourcePartition]]):
+def find_in_node(module:fx.GraphModule, orig_partition:SourcePartition, curr_partition:SourcePartition|fx.Node, pattern_partitions:dict[Any,List[SourcePartition]], next_conv_node_list:dict[Any,List[SourcePartition]]):
     # recursive call to find the related conv layers to the orig conv layer in its users (below layers)
     if isinstance(curr_partition,fx.Node) and  curr_partition.op == 'output':
         return
@@ -364,7 +361,7 @@ def find_in_node(module:fx.GraphModule,orig_partition:SourcePartition, curr_part
     return
 
                         
-def create_next_conv_node_list(module:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]]):
+def create_next_conv_node_list(module:fx.GraphModule, pattern_partitions:dict[Any,List[SourcePartition]]):
     # returns list of all nodes which are connected to the current node 
     next_conv_node_list:dict[Any,List[SourcePartition]] = dict()
     
@@ -377,7 +374,7 @@ def create_next_conv_node_list(module:fx.GraphModule,pattern_partitions:dict[Any
         find_in_node(module,match,match,pattern_partitions,next_conv_node_list)
     return next_conv_node_list
 
-def get_bn_adjusted_weight(module:fx.GraphModule,conv_partition:SourcePartition, next_bn_partitions:dict[Any,SourcePartition]):
+def get_bn_adjusted_weight(module:fx.GraphModule, conv_partition:SourcePartition, next_bn_partitions:dict[Any,SourcePartition]):
     params = dict(module.named_parameters())
     if conv_partition.output_nodes[0].name in next_bn_partitions:
         bn_partition = next_bn_partitions[conv_partition.output_nodes[0].name]
@@ -425,7 +422,7 @@ def remove_channels_conv_next(module:fx.GraphModule, conv_partition:SourcePartit
         #BN parameters may not be removed, because we are just removing from input 
     return module 
 
-def find_next_prunned_partitions(node:fx.Node,model:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]],old_result:dict[str,list[tuple[type,SourcePartition]]]=None):
+def find_next_prunned_partitions(node:fx.Node, model:fx.GraphModule, pattern_partitions:dict[Any,List[SourcePartition]], old_result:dict[str,list[tuple[type,SourcePartition]]]=None):
     fx_model = model
     if old_result is None:
         old_result = {}
@@ -451,7 +448,7 @@ def find_next_prunned_partitions(node:fx.Node,model:fx.GraphModule,pattern_parti
     old_result[node.name] = result 
     return result
 
-def find_prev_pruned_partitions(node:fx.Node,model:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]],old_result:dict[str,list[tuple[type,SourcePartition]]] = None):
+def find_prev_pruned_partitions(node:fx.Node, model:fx.GraphModule, pattern_partitions:dict[Any,List[SourcePartition]], old_result:dict[str,list[tuple[type,SourcePartition]]] = None):
     
     if old_result is None:
         old_result = {}
@@ -468,8 +465,6 @@ def find_prev_pruned_partitions(node:fx.Node,model:fx.GraphModule,pattern_partit
             continue
         found = False
         for cls,partitions in pattern_partitions.items():
-            if not isinstance(partitions[0],SourcePartition):
-                continue
             for partition in partitions:
                 if n_id in partition.nodes:
                     found = True
@@ -503,22 +498,18 @@ def create_channel_pruned_model(model:fx.GraphModule):
     all_partition_nodes =[] 
     for cls,partitions in pattern_partitions.items():
         for partition in partitions:
-            nodes = []
-            if isinstance(partition,SourcePartition): 
-                nodes.extend(partition.nodes)
-            all_partition_nodes.extend([node.name for node in nodes])
+            all_partition_nodes.extend([node.name for node in partition.nodes])
     
     
-    def adjust_weight_of_next_partitions(node:fx.Node,nonzero_idx:torch.Tensor):
+    def adjust_weight_of_next_partitions(node:fx.Node, nonzero_idx:torch.Tensor):
         next_pruned_nodes = find_next_prunned_partitions(node,model,pattern_partitions,)
         for cls,partition in next_pruned_nodes:
             if cls in (nn.LayerNorm,nn.BatchNorm2d):
                 continue
-            i,j =get_parameter_indices(model,cls,partition)
-            assert cls in (nn.Conv2d,nn.Linear,nn.MultiheadAttention)
+            weight_index, bias_index = get_parameter_indices(model,cls,partition)
             if cls == nn.MultiheadAttention:
-                i = i[0]
-            param_name = partition.nodes[i].target
+                weight_index = weight_index[0]
+            param_name = partition.nodes[weight_index].target
             if params[param_name].shape[1] != nonzero_idx.shape[0]:
                 continue
             params[param_name] = torch.nn.Parameter(params[param_name][:,nonzero_idx])            
@@ -556,10 +547,10 @@ def create_channel_pruned_model(model:fx.GraphModule):
             if len(prev_nodes) == 0:
                 continue
             cls,partition = prev_nodes[0]
-            i, j = get_parameter_indices(model,cls,partition)
+            weight_index, bias_index = get_parameter_indices(model,cls,partition)
             if cls == nn.MultiheadAttention:
-                i , j   = i[1],j[1]
-            param_name = partition.nodes[i].target
+                weight_index, bias_index = weight_index[1], bias_index[1]
+            param_name = partition.nodes[weight_index].target
             dim =pruning_dim [param_name]
             pruning_channels = params[param_name].shape[dim]
             for i,a in enumerate(node.args[1]):
@@ -567,7 +558,7 @@ def create_channel_pruned_model(model:fx.GraphModule):
                     reshape_changes[node.name] = (i,param_name,dim)        
     new_num_heads_head_dims :dict[str,tuple[int,int]] = {}         
     
-    def find_prev_pruned_partitions_for_ln(node:fx.Node,model:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]],old_result:dict[str,list[tuple[type,SourcePartition]]] = None):
+    def find_prev_pruned_partitions_for_ln(node:fx.Node, model:fx.GraphModule, pattern_partitions:dict[Any,List[SourcePartition]], old_result:dict[str,list[tuple[type,SourcePartition]]] = None):
         if old_result is None:
             old_result = {}
         if node.name in old_result:
@@ -611,17 +602,16 @@ def create_channel_pruned_model(model:fx.GraphModule):
                 
     for cls,partitions in pattern_partitions.items():
         if cls == nn.Conv2d:
-            assert isinstance(partitions[0],SourcePartition)
             for partition in partitions:
-                i,j =   get_parameter_indices(model,cls,partition)
+                weight_index, bias_index =   get_parameter_indices(model,cls,partition)
                 
-                param_name = partition.nodes[i].target
+                param_name = partition.nodes[weight_index].target
                 nonzero_idx = ~(params[param_name].view(params[param_name].shape[0], -1).sum(dim=1) == 0)
                 params[param_name].data = params[param_name].data[nonzero_idx].contiguous()
                 setattr(model,param_name,params[param_name])
                 # nn.Parameter can also be used over here
                 if len(partition.nodes) == 3: # not going here for some reason, need to see why, no bias seen
-                    param_name = partition.nodes[j].target
+                    param_name = partition.nodes[bias_index].target
                     params[param_name].data = params[param_name].data[nonzero_idx].contiguous()                
                     setattr(model,param_name,params[param_name])
                 for node in partition.output_nodes:
@@ -629,17 +619,16 @@ def create_channel_pruned_model(model:fx.GraphModule):
                 nonzero_idxs[partition.nodes[0].name] = nonzero_idx
                 
         elif cls == nn.Linear:
-            assert isinstance(partitions[0],SourcePartition)
             for partition in partitions:
                 if any( 'output' in [n.op for n in out.users]for out in partition.output_nodes):
                     continue
                 
-                i,j =   get_parameter_indices(model,cls,partition)
-                param_name = partition.nodes[i].target
+                weight_index, bias_index =   get_parameter_indices(model,cls,partition)
+                param_name = partition.nodes[weight_index].target
                 nonzero_idx = ~(params[param_name].view(params[param_name].shape[0], -1).sum(dim=1) == 0)
                 params[param_name].data =  params[param_name].data[nonzero_idx].contiguous()
                 setattr(model,param_name,params[param_name])
-                param_name = partition.nodes[j].target
+                param_name = partition.nodes[bias_index].target
                 params[param_name].data =  params[param_name].data[nonzero_idx].contiguous()
                 setattr(model,param_name,params[param_name])
                 for node in partition.output_nodes:
@@ -647,11 +636,10 @@ def create_channel_pruned_model(model:fx.GraphModule):
                 nonzero_idxs[partition.nodes[0].name] = nonzero_idx
                 
         elif cls == nn.MultiheadAttention:
-            assert isinstance(partitions[0],SourcePartition)
             for partition in partitions:
                 old_num_heads,old_head_dims = get_num_heads_head_dims(model,cls,partition)
-                i,j =   get_parameter_indices(model,cls,partition)
-                param_name = partition.nodes[i[0]].target
+                weight_indices, bias_indices =   get_parameter_indices(model,cls,partition)
+                param_name = partition.nodes[weight_indices[0]].target
                 
                 in_proj_weight = params[param_name]
                 in_proj_weight = in_proj_weight.reshape(3,old_num_heads,old_head_dims,in_proj_weight.shape[-1])
@@ -671,14 +659,14 @@ def create_channel_pruned_model(model:fx.GraphModule):
                 nonzero_idx1 = ~(params[param_name].view(params[param_name].shape[0], -1).sum(dim=1) == 0)
                 params[param_name].data =  params[param_name].data[nonzero_idx1].contiguous()
                 setattr(model,param_name,params[param_name])
-                param_name = partition.nodes[j[0]].target
+                param_name = partition.nodes[bias_indices[0]].target
                 params[param_name].data =  params[param_name].data[nonzero_idx1].contiguous()
                 setattr(model,param_name,params[param_name])
                 
                 new_head_dim = len(torch.where(in_proj_channel_nonzero_idx)[0])
                 new_num_heads = len(torch.where(in_proj_head_nonzero_idx)[0])
                 
-                param_name = partition.nodes[i[1]].target
+                param_name = partition.nodes[weight_indices[1]].target
                 out_proj_weight =  params[param_name]
                 out_proj_weight = out_proj_weight.permute(1,0)
                 out_proj_weight.data = out_proj_weight.data[in_proj_head_channel_nonzero_idx].contiguous()
@@ -689,7 +677,7 @@ def create_channel_pruned_model(model:fx.GraphModule):
                 nonzero_idx2 = ~(params[param_name].view(params[param_name].shape[0], -1).sum(dim=1) == 0)
                 params[param_name].data =  params[param_name].data[nonzero_idx2].contiguous()
                 setattr(model,param_name,params[param_name])
-                param_name = partition.nodes[j[1]].target
+                param_name = partition.nodes[bias_indices[1]].target
                 params[param_name].data =  params[param_name].data[nonzero_idx2].contiguous()
                 setattr(model,param_name,params[param_name])
                 new_num_heads_head_dims[partition.nodes[0].name] = (new_num_heads,new_head_dim)
@@ -699,7 +687,6 @@ def create_channel_pruned_model(model:fx.GraphModule):
     
     for cls, partitions in pattern_partitions.items():
         if cls == nn.BatchNorm2d:
-            assert isinstance(partitions[0],SourcePartition)
             for partition in partitions:
                 prev_pruned_partition = find_prev_pruned_partitions_for_ln(partition.input_nodes[0],model,pattern_partitions)
                 nonzero_idx = None
@@ -707,12 +694,12 @@ def create_channel_pruned_model(model:fx.GraphModule):
                     prev_cls,prev_partition = prev_pruned_partition[0]
                     nonzero_idx = nonzero_idxs[partition.nodes[0].name]
 
-                i,j =   get_parameter_indices(model,cls,partition)
-                param_name = partition.nodes[i].target
+                weight_index, bias_index =   get_parameter_indices(model,cls,partition)
+                param_name = partition.nodes[weight_index].target
                 nonzero_idx = ~(params[param_name].view(params[param_name].shape[0], -1).sum(dim=1) == 0)if nonzero_idx is None else nonzero_idx
                 params[param_name].data =  params[param_name].data[nonzero_idx].contiguous()
                 setattr(model,param_name,params[param_name])
-                param_name = partition.nodes[j].target
+                param_name = partition.nodes[bias_index].target
                 params[param_name].data =  params[param_name].data[nonzero_idx].contiguous()
                 setattr(model,param_name,params[param_name])
                 # modules[next_bn_partitions[node.target].target].track_running_stats = False
@@ -724,7 +711,6 @@ def create_channel_pruned_model(model:fx.GraphModule):
                     adjust_weight_of_next_partitions(node,nonzero_idx)
                 
         elif cls == nn.LayerNorm:
-            assert isinstance(partitions[0],SourcePartition)
             for partition in partitions:
                 prev_pruned_partition = find_prev_pruned_partitions_for_ln(partition.input_nodes[0],model,pattern_partitions)
                 nonzero_idx = None
@@ -732,18 +718,18 @@ def create_channel_pruned_model(model:fx.GraphModule):
                     prev_cls,prev_partition = prev_pruned_partition[0]
                     nonzero_idx = nonzero_idxs[prev_partition.nodes[0].name]
 
-                i,j =   get_parameter_indices(model,cls,partition)
-                param_name = partition.nodes[i].target
+                weight_index, bias_index =   get_parameter_indices(model,cls,partition)
+                param_name = partition.nodes[weight_index].target
                 nonzero_idx =  ~(params[param_name].view(params[param_name].shape[0], -1).sum(dim=1) == 0)if nonzero_idx is None else nonzero_idx
                 params[param_name].data =  params[param_name].data[nonzero_idx].contiguous()
                 setattr(model,param_name,params[param_name])
-                param_name = partition.nodes[j].target
+                param_name = partition.nodes[bias_index].target
                 params[param_name].data =  params[param_name].data[nonzero_idx].contiguous()
                 setattr(model,param_name,params[param_name])
                 for node in partition.output_nodes:
                     adjust_weight_of_next_partitions(node,nonzero_idx)
     
-    def change_argument(node:fx.Node,index:int,value):
+    def change_argument(node:fx.Node, index:int, value):
         expected_nodes = [torch.ops.aten.native_layer_norm.default,torch.ops.aten.expand.default,torch.ops.aten.view.default,torch.ops.aten._unsafe_view.default,operator.mul]
         if node.target in (torch.ops.aten.view.default,torch.ops.aten.expand.default,torch.ops.aten._unsafe_view.default):
             args = list(node.args)
@@ -769,8 +755,8 @@ def create_channel_pruned_model(model:fx.GraphModule):
             continue
         if cls == nn.LayerNorm:
             for partition in partitions:
-                i,  j = get_parameter_indices(model,cls,node)
-                weight = params[partition.nodes[i].target]
+                weight_index, bias_index = get_parameter_indices(model,cls,node)
+                weight = params[partition.nodes[weight_index].target]
                 new_normalized_shape = [weight.shape[0]]
                 change_argument(partition.nodes[2],1,new_normalized_shape)
         if cls ==  nn.Linear:
@@ -785,8 +771,8 @@ def create_channel_pruned_model(model:fx.GraphModule):
                     v1,v2 = 2,7
                 else:
                     continue
-                i, j = get_parameter_indices(model,cls,partition)
-                param_name = partition.nodes[i].target
+                weight_index, bias_index = get_parameter_indices(model,cls,partition)
+                param_name = partition.nodes[weight_index].target
                 weight = params[param_name]
                 out_features, in_features = list(weight.shape)
                 change_argument(partition.nodes[v1],1,in_features)
@@ -794,10 +780,10 @@ def create_channel_pruned_model(model:fx.GraphModule):
         if cls == nn.MultiheadAttention:
             for partition in partitions:
                 new_num_heads,new_head_dim = new_num_heads_head_dims[partition.nodes[0].name]
-                i,j = get_parameter_indices(model,cls,partition)
-                in_proj_weight = params[partition.nodes[i[0]].target]
+                weight_indices, bias_indices = get_parameter_indices(model,cls,partition)
+                in_proj_weight = params[partition.nodes[weight_indices[0]].target]
                 in_proj_out_features,in_proj_in_features =list(in_proj_weight.shape)
-                out_proj_weight = params[partition.nodes[i[1]].target]
+                out_proj_weight = params[partition.nodes[weight_indices[1]].target]
                 out_proj_out_features,out_proj_in_features =list(out_proj_weight.shape)
                 value_change_dict={
                     'new_head_dim':new_head_dim,   
@@ -807,6 +793,8 @@ def create_channel_pruned_model(model:fx.GraphModule):
                     'out_proj_out_features':out_proj_out_features, 
                     'out_proj_in_features':out_proj_in_features, 
                 }
+                # TODO For all other partition with different length
+                # changing argument where change is needed 
                 if len(partition.nodes) == 60:
                     indices_vals_dict:dict[int,list[tuple[int,str]]] = {
                         5:[(1,'in_proj_in_features')],
@@ -850,7 +838,7 @@ def create_channel_pruned_model(model:fx.GraphModule):
                 
 
 # remove print statements #TODO
-def find_layers_in_prev(node:fx.Node, connected_list:List[fx.Node|SourcePartition],fx_model:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]],visited_nodes:list=None):
+def find_layers_in_prev(node:fx.Node, connected_list:List[fx.Node|SourcePartition], fx_model:fx.GraphModule, pattern_partitions:dict[Any,List[SourcePartition]], visited_nodes:list=None):
     # find all the connected nodes in the args(parents) of the current node, whenever a conv is found, we can stop our searching
     params = dict(fx_model.named_parameters())
     if visited_nodes is None:
@@ -861,11 +849,8 @@ def find_layers_in_prev(node:fx.Node, connected_list:List[fx.Node|SourcePartitio
 
     all_get_attr_nodes_in_partitions = []
     for cls,partitions in pattern_partitions.items():
-        for partition in partitions:
-            nodes = []
-            if isinstance(partition,SourcePartition): nodes.extend(partition.nodes)
-            
-            all_get_attr_nodes_in_partitions.extend([node.name for node in nodes if node.op == 'get_attr' ])
+        for partition in partitions:            
+            all_get_attr_nodes_in_partitions.extend([node.name for node in partition.nodes if node.op == 'get_attr' ])
     args = [n for n in temp_args if n.op != 'get_attr']
     args.extend([n for n in temp_args if n.op == 'get_attr'])
     for n_id in args:
@@ -945,7 +930,7 @@ def find_layers_in_prev(node:fx.Node, connected_list:List[fx.Node|SourcePartitio
     return 
 
 # TODO for other modules LayerNorm, MultiHeadAttention, Linear       
-def find_all_connected_nodes(model:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]]):
+def find_all_connected_nodes(model:fx.GraphModule, pattern_partitions:dict[Any,List[SourcePartition]]):
     # returns the list of all conv that share the same output
     fx_model = model
     params = dict(fx_model.named_parameters())
@@ -958,10 +943,10 @@ def find_all_connected_nodes(model:fx.GraphModule,pattern_partitions:dict[Any,Li
         pruning_channels = None
         if src_ptns:
             src_ptn = src_ptns[0]
-            i,j = get_parameter_indices(model,src_ptn.source,src_ptn)
+            weight_index, bias_index = get_parameter_indices(model,src_ptn.source,src_ptn)
             if src_ptn.source == nn.MultiheadAttention:
-                i,j = i[1],j[1]
-            weight= params[src_ptn.nodes[i].target]
+                weight_index,bias_index = weight_index[1],bias_index[1]
+            weight= params[src_ptn.nodes[weight_index].target]
             pruning_channels =weight.size(0)
         partitions = src_ptns
         for index,item in enumerate(connected_list_prev):
@@ -981,10 +966,8 @@ def find_all_connected_nodes(model:fx.GraphModule,pattern_partitions:dict[Any,Li
     
     all_partition_nodes =[]
     for cls,partitions in pattern_partitions.items():
-        for partition in partitions:
-            nodes = []
-            if isinstance(partition,SourcePartition): nodes.extend(partition.nodes)
-            all_partition_nodes.extend([node.name for node in nodes])
+        for partition in partitions: 
+            all_partition_nodes.extend([node.name for node in partition.nodes])
     
     for node in model_graph.nodes:
         args = _get_proper_input_args(node,fx_model)
@@ -1009,7 +992,7 @@ def find_all_connected_nodes(model:fx.GraphModule,pattern_partitions:dict[Any,Li
     all_connected_list.append(connected_list_prev)          
     return all_connected_list[1:]
 
-def get_sum_of_all_conv_below(curr_node:fx.Node, module:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]], next_bn_partitions:dict[Any,SourcePartition], next_conv_node_list:dict[Any,List[SourcePartition]], node_weight_transposed:torch.Tensor, out_channels:int, ignore_node_name_list=[], global_pruning=False):
+def get_sum_of_all_conv_below(curr_node:fx.Node, module:fx.GraphModule, pattern_partitions:dict[Any,List[SourcePartition]], next_bn_partitions:dict[Any,SourcePartition], next_conv_node_list:dict[Any,List[SourcePartition]], node_weight_transposed:torch.Tensor, out_channels:int, ignore_node_name_list=[], global_pruning=False):
     if nn.Conv2d not in pattern_partitions:
         return None
     # gets the inner dimension concat of all the nodes conneected to the curr_node
@@ -1027,7 +1010,7 @@ def get_sum_of_all_conv_below(curr_node:fx.Node, module:fx.GraphModule,pattern_p
             ignore_node_name_list.append(conv_match.output_nodes.name)
     return node_weight_transposed.mean(axis=1).unsqueeze(1) if (global_pruning and node_weight_transposed.shape[1]) else node_weight_transposed
 
-def search_for_first_conv(curr_node:fx.Node,module:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]]):
+def search_for_first_conv(curr_node:fx.Node, module:fx.GraphModule, pattern_partitions:dict[Any,List[SourcePartition]]):
     if nn.Conv2d in pattern_partitions:
         conv_partitions = pattern_partitions[nn.Conv2d]
     else: 
@@ -1049,37 +1032,37 @@ def get_net_weight_node_channel_prune(curr_partition:fx.Node|SourcePartition, mo
     # outputs the net weight for a node, incorporates the sum of nodes of the below( inner dimensions )
     # if the node is depthwise, we should output the net_weight of the previous conv to this depthwise
     if isinstance(curr_partition,SourcePartition):
-        i,j = get_parameter_indices(module,curr_partition.source,curr_partition)
+        weight_index, bias_index = get_parameter_indices(module,curr_partition.source,curr_partition)
         if curr_partition.source == nn.Conv2d:
             
-            is_depthwise_node = (params[curr_partition.nodes[i].target].shape[1] == 1)
+            is_depthwise_node = (params[curr_partition.nodes[weight_index].target].shape[1] == 1)
             if is_depthwise_node:
                 # search in args until we find a conv
                 prev_conv_node  = search_for_first_conv(curr_partition.output_nodes[0], module,pattern_partitions)
                 return net_weights[prev_conv_node.name][0].unsqueeze(1)
                 
             else:
-                out_channels = params[curr_partition.nodes[i].target].shape[0]
+                out_channels = params[curr_partition.nodes[weight_index].target].shape[0]
                 net_weight = abs(get_bn_adjusted_weight(module,curr_partition,next_bn_partitions).reshape(out_channels, -1).detach())
                 net_weight = net_weight.mean(dim=1).unsqueeze(1) if global_pruning else net_weight
-                node_weight_transposed = torch.empty(out_channels,0).to(params[curr_partition.nodes[i].target].device)
+                node_weight_transposed = torch.empty(out_channels,0).to(params[curr_partition.nodes[weight_index].target].device)
                 node_weight_transposed = get_sum_of_all_conv_below(curr_partition.output_nodes[0], module,pattern_partitions, next_bn_partitions, next_conv_node_list, node_weight_transposed, out_channels, ignore_node_name_list, global_pruning)
                 # We cannot do global using these net weights because there could be multiple connections to one conv, whereas none for the next. Need some decay factor if we want to do global pruning # TODO
                 net_weight = torch.concat([net_weight, node_weight_transposed], axis=1)
             # the net_weight over here is a two dim output, No * (Ni*w*h)
         elif curr_partition.source == nn.Linear:
-            net_weight = params[curr_partition.nodes[i].target]
+            net_weight = params[curr_partition.nodes[weight_index].target]
         elif curr_partition.source == nn.LayerNorm:
-            net_weight = params[curr_partition.nodes[i].target][:,None]
+            net_weight = params[curr_partition.nodes[weight_index].target][:,None]
         elif curr_partition.source == nn.MultiheadAttention:
-            i =i[1]
-            net_weight = params[curr_partition.nodes[i].target]
+            weight_index =weight_index[1]
+            net_weight = params[curr_partition.nodes[weight_index].target]
         elif curr_partition.source == nn.BatchNorm2d:
-            net_weight = params[curr_partition.nodes[i].target][:,None]
+            net_weight = params[curr_partition.nodes[weight_index].target][:,None]
         
     return net_weight.mean(dim=1).unsqueeze(1) if global_pruning else net_weight
     
-def get_weight_from_parameter(node:fx.Node,fx_model:fx.GraphModule,global_pruning=False,dim:int=0):
+def get_weight_from_parameter(node:fx.Node, fx_model:fx.GraphModule, global_pruning=False, dim:int=0):
     params = dict(fx_model.named_parameters())
     attr = params[node.target]
     if isinstance(attr,nn.Parameter):
@@ -1090,9 +1073,8 @@ def get_weight_from_parameter(node:fx.Node,fx_model:fx.GraphModule,global_prunin
         attr = attr.reshape(attr.shape[0],-1)
         return attr.mean(1).unsqueeze(1) if global_pruning else attr
     
-def get_net_weights_all(module:fx.GraphModule,pattern_partitions:dict[Any,List[SourcePartition]], next_conv_node_list:dict[Any,List[SourcePartition]], all_connected_nodes:List[List[fx.Node|SourcePartition]], next_bn_partitions:dict[Any,SourcePartition], channel_pruning, global_pruning=False):
+def get_net_weights_all(module:fx.GraphModule, pattern_partitions:dict[Any,List[SourcePartition]], next_conv_node_list:dict[Any,List[SourcePartition]], all_connected_nodes:List[List[fx.Node|SourcePartition]], next_bn_partitions:dict[Any,SourcePartition], channel_pruning, global_pruning=False):
     fx_model = module
-    all_modules = dict(fx_model.named_modules())
     params = dict(fx_model.named_parameters())
     model_graph = fx_model.graph
     
@@ -1128,10 +1110,10 @@ def get_net_weights_all(module:fx.GraphModule,pattern_partitions:dict[Any,List[S
                 weight_sublist =  torch.empty(attr.shape[dim],0).to(attr.device)
             elif isinstance(partition,SourcePartition):
                 
-                i,j = get_parameter_indices(module,partition.source,partition)
+                weight_index, bias_index = get_parameter_indices(module,partition. source, partition)
                 if partition.source == nn.MultiheadAttention:
-                    i,j = i[1],j[1]
-                first_weight = params[partition.nodes[i].target]
+                    weight_index, bias_index = weight_index[1], bias_index[1]
+                first_weight = params[partition.nodes[weight_index].target]
                 weight_sublist =  torch.empty(first_weight.shape[dim],0).to(first_weight.device)
 
             for partition,dim in sublist:
@@ -1147,10 +1129,10 @@ def get_net_weights_all(module:fx.GraphModule,pattern_partitions:dict[Any,List[S
                 if isinstance(partition,fx.Node) and partition.op == 'get_attr':
                     param_name = partition.target
                 elif isinstance(partition,SourcePartition):
-                    i,j = get_parameter_indices(module,partition.source,partition)
+                    weight_index, bias_index = get_parameter_indices(module,partition. source, partition)
                     if partition.source == nn.MultiheadAttention:
-                        i,j = i[1],j[1]
-                    param_name = partition.nodes[i].target
+                        weight_index, bias_index = weight_index[1], bias_index[1]
+                    param_name = partition.nodes[weight_index].target
                 adjust_and_store_net_weight(weight_sublist,param_name,dim)
                 net_weights_added.append(partition)
                 
@@ -1159,33 +1141,31 @@ def get_net_weights_all(module:fx.GraphModule,pattern_partitions:dict[Any,List[S
                     #  for next batchnorm
                     bn_partition = next_bn_partitions.get(partition.output_nodes[0].name,None)
                     if bn_partition:
-                        i,j = get_parameter_indices(module,bn_partition.source,bn_partition)
-                        param_name = partition.nodes[i].target
+                        weight_index, bias_index = get_parameter_indices(module,bn_partition.source,bn_partition)
+                        param_name = partition.nodes[weight_index].target
                         adjust_and_store_net_weight(weight_sublist,param_name,0)
                         net_weights_added.append(bn_partition)
 
                     next_conv_nodes = next_conv_node_list[partition.output_nodes[0].name]
                     # for depthwise convs
                     for conv_partition in next_conv_nodes:
-                        i,j = get_parameter_indices(module,conv_partition.source,conv_partition)
-                        param_name = partition.nodes[i].target
-                        adjust_and_store_net_weight(weight_sublist,param_name,0)
+                        weight_index, bias_index = get_parameter_indices(module, conv_partition.source, conv_partition)
+                        param_name = partition.nodes[weight_index].target
+                        adjust_and_store_net_weight(weight_sublist, param_name, 0)
                         net_weights_added.append(conv_partition)
                         
                         #  for next batchnorm
                         bn_partition = next_bn_partitions.get(conv_partition.output_nodes[0].name,None)
                         if bn_partition:
-                            i,j = get_parameter_indices(module,bn_partition.source,bn_partition)
-                            param_name = partition.nodes[i].target
-                            adjust_and_store_net_weight(weight_sublist,param_name,0)
+                            weight_index, bias_index = get_parameter_indices(module, bn_partition.source, partition=bn_partition)
+                            param_name = partition.nodes[weight_index].target
+                            adjust_and_store_net_weight(weight_sublist, param_name, 0)
                             net_weights_added.append(bn_partition)
                             
     all_partition_nodes =[]
     for cls,partitions in pattern_partitions.items():
         for partition in partitions:
-            nodes = []
-            if isinstance(partition,SourcePartition): nodes.extend(partition.nodes)
-            all_partition_nodes.extend([node.name for node in nodes])                  
+            all_partition_nodes.extend([node.name for node in partition.nodes])                  
     
     for node in model_graph.nodes:
         if node.op=='get_attr': 
@@ -1198,38 +1178,37 @@ def get_net_weights_all(module:fx.GraphModule,pattern_partitions:dict[Any,List[S
     for cls,partitions in pattern_partitions.items():
         if cls == nn.MultiheadAttention:
             for partition in  partitions:               
-                i,j = get_parameter_indices(module,partition.source,partition)
-                if partition.source == nn.MultiheadAttention:
-                    i,j = i[0],i[1]   
-                param_name = partition.nodes[i].target
-                net_weights[param_name] = (params[param_name],0)
+                weight_indices, bias_indices = get_parameter_indices(module,partition. source, partition)
+                weight_index1,weight_index2 = weight_indices[0],weight_indices[1]   
+                param_name = partition.nodes[weight_index1].target
+                net_weights[param_name] = (params[param_name], 0)
                 if partition not in all_connected_nodes_separated:
-                    param_name = partition.nodes[j].target
-                    net_weights[param_name] = (params[param_name],0)
+                    param_name = partition.nodes[weight_index2].target
+                    net_weights[param_name] = (params[param_name], 0)
         elif cls == nn.LayerNorm:
             for partition in  partitions:               
-                i,j = get_parameter_indices(module,partition.source,partition)
+                weight_index, bias_index = get_parameter_indices(module,partition. source, partition)
                 if partition not in all_connected_nodes_separated:
-                    param_name = partition.nodes[i].target
-                    net_weights[param_name] = (params[param_name],0)
+                    param_name = partition.nodes[weight_index].target
+                    net_weights[param_name] = (params[param_name], 0)
         elif cls == nn.BatchNorm2d:
             for partition in  partitions:               
-                i,j = get_parameter_indices(module,partition.source,partition)
+                weight_index, bias_index = get_parameter_indices(module,partition. source, partition)
                 if partition not in all_connected_nodes_separated:
-                    param_name = partition.nodes[i].target
-                    net_weights[param_name] = (params[param_name],0)
+                    param_name = partition.nodes[weight_index].target
+                    net_weights[param_name] = (params[param_name], 0)
         elif cls == nn.Linear:
             for partition in  partitions:
-                i,j = get_parameter_indices(module,partition.source,partition)
+                weight_index, bias_index = get_parameter_indices(module,partition. source, partition)
                 if partition not in all_connected_nodes_separated:
-                    param_name = partition.nodes[i].target
-                    net_weights[param_name] = (params[param_name],0)
+                    param_name = partition.nodes[weight_index].target
+                    net_weights[param_name] = (params[param_name], 0)
         elif cls == nn.Conv2d:
             for partition in  partitions: 
-                i,j = get_parameter_indices(module,partition.source,partition)              
+                weight_index, bias_index = get_parameter_indices(module,partition. source, partition)              
                 if partition not in all_connected_nodes_separated:
-                    param_name = partition.nodes[i].target
-                    net_weights[param_name] = (params[param_name],0)
+                    param_name = partition.nodes[weight_index].target
+                    net_weights[param_name] = (params[param_name], 0)
                     
     return net_weights
 
