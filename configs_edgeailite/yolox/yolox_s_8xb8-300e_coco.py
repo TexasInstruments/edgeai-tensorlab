@@ -2,7 +2,12 @@ _base_ = [
     '../../configs/_base_/schedules/schedule_1x.py', '../../configs/_base_/default_runtime.py',
     './yolox_tta.py'
 ]
-convert_to_lite_model = dict(model_surgery=1)
+
+# replace complex activation functions with ReLU.
+# Also, if needed, regular convolutions can be replaced with depthwise-separable convolutions.
+# edgeai_torchmodelopt needs to be installed from edgeai-modeloptimization
+# convert_to_lite_model = dict(model_surgery=1)
+
 img_scale = (640, 640)  # width, height
 
 # model settings

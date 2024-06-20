@@ -1,7 +1,10 @@
 
 # modified from: https://github.com/open-mmlab/mmdetection/tree/master/configs/yolox
 
-convert_to_lite_model = dict(model_surgery=1)
+# replace complex activation functions with ReLU.
+# Also, if needed, regular convolutions can be replaced with depthwise-separable convolutions.
+# edgeai_torchmodelopt needs to be installed from edgeai-modeloptimization
+# convert_to_lite_model = dict(model_surgery=1)
 
 img_scale = (320, 320)
 # input_size = img_scale
@@ -14,11 +17,6 @@ dataset_root_dict = {'CocoDataset':'data/coco/', 'VOCDataset':'data/VOCdevkit/',
 num_classes = num_classes_dict[dataset_type]
 data_root = dataset_root_dict[dataset_type]
 img_norm_cfg = dict(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], to_rgb=False)
-
-# replace complex activation functions with ReLU.
-# Also replace regular convolutions with depthwise-separable convolutions.
-# edgeai_torchmodelopt needs to be installed from edgeai-modeloptimization
-convert_to_lite_model = dict(group_size_dw=None)
 
 _base_ = [
     # f'../_xbase_/datasets/{dataset_type.lower()}.py',
