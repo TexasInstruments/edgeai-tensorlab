@@ -31,24 +31,24 @@
 ######################################################################
 
 
-# CONFIG_FILE="configs/edgeailite/yolox/yolox_femto_8xb8-300e_coco.py"
-# CONFIG_FILE="configs/edgeailite/yolox/yolox_pico_8xb8-300e_coco.py"
-# CONFIG_FILE="configs/edgeailite/yolox/yolox_tiny_8xb8-300e_coco.py"
-# CONFIG_FILE="configs/edgeailite/yolox/yolox_nano_8xb8-300e_coco.py"
-# CONFIG_FILE="configs/edgeailite/yolox/yolox_s_8xb8-300e_coco.py"
-# CONFIG_FILE="configs/edgeailite/yolox/yolox_m_8xb8-300e_coco.py"
-# CONFIG_FILE="configs/edgeailite/yolox/yolox_l_8xb8-300e_coco.py"
-# CONFIG_FILE="configs/edgeailite/yolox/yolox_x_8xb8-300e_coco.py"
+# CONFIG_FILE="configs_edgeailite/yolox/yolox_femto_8xb8-300e_coco.py"
+# CONFIG_FILE="configs_edgeailite/yolox/yolox_pico_8xb8-300e_coco.py"
+# CONFIG_FILE="configs_edgeailite/yolox/yolox_tiny_8xb8-300e_coco.py"
+# CONFIG_FILE="configs_edgeailite/yolox/yolox_nano_8xb8-300e_coco.py"
+# CONFIG_FILE="configs_edgeailite/yolox/yolox_s_8xb8-300e_coco.py"
+# CONFIG_FILE="configs_edgeailite/yolox/yolox_m_8xb8-300e_coco.py"
+# CONFIG_FILE="configs_edgeailite/yolox/yolox_l_8xb8-300e_coco.py"
+# CONFIG_FILE="configs_edgeailite/yolox/yolox_x_8xb8-300e_coco.py"
 
 # CONFIG_FILE="configs/centernet/centernet_r18_8xb16-crop512-140e_coco.py"
 
-# CONFIG_FILE="configs/edgeailite/fcos/fcos_r50-caffe_fpn_bn-head_1x_coco.py"
+# CONFIG_FILE="configs_edgeailite/fcos/fcos_r50-caffe_fpn_bn-head_1x_coco.py"
 
-# CONFIG_FILE="configs/edgeailite/efficientdet/efficientdet_effb0_bifpn_8xb16-crop512-300e_coco.py"
-# CONFIG_FILE="configs/edgeailite/efficientdet/efficientdet_effb1_bifpn_8xb16-crop512-300e_coco.py"
+# CONFIG_FILE="configs_edgeailite/efficientdet/efficientdet_effb0_bifpn_8xb16-crop512-300e_coco.py"
+# CONFIG_FILE="configs_edgeailite/efficientdet/efficientdet_effb1_bifpn_8xb16-crop512-300e_coco.py"
 
 
-CONFIG_FILE="configs/edgeailite/yolox/yolox_nano_8xb8-300e_coco.py"
+CONFIG_FILE="configs_edgeailite/yolox/yolox_nano_8xb8-300e_coco.py"
 
 
 ######################################################################

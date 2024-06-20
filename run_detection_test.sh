@@ -31,7 +31,7 @@
 ######################################################################
 
 
-CONFIG_FILE="configs/edgeailite/yolox/yolox_nano_8xb8-300e_coco.py"
+CONFIG_FILE="configs_edgeailite/yolox/yolox_nano_8xb8-300e_coco.py"
 CHECKPOINT_FILE="work_dirs/yolox_nano_8xb8-300e_coco/epoch_1.pth"
 
 
