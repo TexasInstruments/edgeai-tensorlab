@@ -84,6 +84,6 @@ class YOLOX(SingleStageDetector):
             self.bbox_head.multi_level_conv_obj[head_index] = self.bbox_head.multi_level_conv_obj[head_index].convert()
         #
         return self
-    #
+    
     # def quant_export(self):
     #     return None

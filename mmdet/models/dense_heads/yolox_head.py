@@ -209,11 +209,12 @@ class YOLOXHead(BaseDenseHead):
         bbox_pred = conv_reg(reg_feat)
         objectness = conv_obj(reg_feat)
 
-        # concatenate and split for TIDL support
+        # return cls_score, bbox_pred, objectness
+        # concatenate and split - as TIDL requires the concatenated output
         outs = torch.cat((bbox_pred, objectness, cls_score), dim=1)
-        shape_data = [bbox_pred.data.shape[1],objectness.data.shape[1],cls_score.data.shape[1]]
-        outs = torch.split(outs,shape_data,dim=1)
-        return outs
+        shape_data = [bbox_pred.data.shape[1], objectness.data.shape[1], cls_score.data.shape[1]]
+        bbox_pred_split, objectness_split, cls_score_split = torch.split(outs, shape_data, dim=1)
+        return cls_score_split, bbox_pred_split, objectness_split
 
 
     def forward(self, x: Tuple[Tensor]) -> Tuple[List]:
@@ -234,9 +235,9 @@ class YOLOXHead(BaseDenseHead):
                            self.multi_level_conv_obj)
 
     def predict_by_feat(self,
+                        cls_scores: List[Tensor],
                         bbox_preds: List[Tensor],
                         objectnesses: Optional[List[Tensor]],
-                        cls_scores: List[Tensor],
                         batch_img_metas: Optional[List[dict]] = None,
                         cfg: Optional[ConfigDict] = None,
                         rescale: bool = False,
@@ -403,9 +404,9 @@ class YOLOXHead(BaseDenseHead):
 
     def loss_by_feat(
             self,
+            cls_scores: Sequence[Tensor],
             bbox_preds: Sequence[Tensor],
             objectnesses: Sequence[Tensor],
-            cls_scores: Sequence[Tensor],
             batch_gt_instances: Sequence[InstanceData],
             batch_img_metas: Sequence[dict],
             batch_gt_instances_ignore: OptInstanceList = None) -> dict:

@@ -3,7 +3,9 @@ _base_ = [
     'mmdet::_base_/schedules/schedule_1x.py',
     'mmdet::_base_/default_runtime.py'
 ]
+
 convert_to_lite_model = dict(model_surgery=1)
+
 custom_imports = dict(
     imports=['projects.EfficientDet.efficientdet'], allow_failed_imports=False)
 

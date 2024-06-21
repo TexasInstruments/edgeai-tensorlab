@@ -1,22 +1,26 @@
+# this is a modification of yolox_tiny
+
 _base_ = './yolox_s_8xb8-300e_coco.py'
 
 # replace complex activation functions with ReLU.
 # Also, if needed, regular convolutions can be replaced with depthwise-separable convolutions.
 # edgeai_torchmodelopt needs to be installed from edgeai-modeloptimization
-# convert_to_lite_model = dict(model_surgery=1)
+convert_to_lite_model = dict(model_surgery=1)
+
+test_img_scale = (320,320)
 
 # model settings
 model = dict(
     data_preprocessor=dict(batch_augments=[
         dict(
             type='BatchSyncRandomResize',
-            random_size_range=(320, 640),
+            random_size_range=(256, 480),
             size_divisor=32,
             interval=10)
     ]),
-    backbone=dict(deepen_factor=0.33, widen_factor=0.375),
-    neck=dict(in_channels=[96, 192, 384], out_channels=96),
-    bbox_head=dict(in_channels=96, feat_channels=96))
+    backbone=dict(deepen_factor=0.33, widen_factor=0.125),
+    neck=dict(in_channels=[32,64,128], out_channels=32, num_csp_blocks=1),
+    bbox_head=dict(in_channels=32, feat_channels=32))
 
 img_scale = (640, 640)  # width, height
 
@@ -42,7 +46,7 @@ train_pipeline = [
 
 test_pipeline = [
     dict(type='LoadImageFromFile', backend_args={{_base_.backend_args}}),
-    dict(type='Resize', scale=(416, 416), keep_ratio=True),
+    dict(type='Resize', scale=test_img_scale, keep_ratio=True),
     dict(
         type='Pad',
         pad_to_square=True,

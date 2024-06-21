@@ -31,34 +31,40 @@
 ######################################################################
 
 
-# CONFIG_FILE="configs_edgeailite/yolox/yolox_femto_8xb8-300e_coco.py"
-# CONFIG_FILE="configs_edgeailite/yolox/yolox_pico_8xb8-300e_coco.py"
-# CONFIG_FILE="configs_edgeailite/yolox/yolox_tiny_8xb8-300e_coco.py"
-# CONFIG_FILE="configs_edgeailite/yolox/yolox_nano_8xb8-300e_coco.py"
-# CONFIG_FILE="configs_edgeailite/yolox/yolox_s_8xb8-300e_coco.py"
-# CONFIG_FILE="configs_edgeailite/yolox/yolox_m_8xb8-300e_coco.py"
-# CONFIG_FILE="configs_edgeailite/yolox/yolox_l_8xb8-300e_coco.py"
-# CONFIG_FILE="configs_edgeailite/yolox/yolox_x_8xb8-300e_coco.py"
+# yolox-lite configs - modification of yolox configs in mmdetection
+# CONFIG_FILE="configs_edgeailite/yolox/yolox_nano_lite.py"
+# CONFIG_FILE="configs_edgeailite/yolox/yolox_tiny_lite.py"
+# CONFIG_FILE="configs_edgeailite/yolox/yolox_s_lite.py"
+# CONFIG_FILE="configs_edgeailite/yolox/yolox_m_lite.py"
+# CONFIG_FILE="configs_edgeailite/yolox/yolox_l_lite.py"
+# CONFIG_FILE="configs_edgeailite/yolox/yolox_x_lite.py"
 
+# ultra-small yolox-lite configs - not recommended, unless there is a real need.
+# CONFIG_FILE="configs_edgeailite/yolox/yolox_femto_lite.py"
+# CONFIG_FILE="configs_edgeailite/yolox/yolox_pico_lite.py"
+
+# centernet-lite config
 # CONFIG_FILE="configs/centernet/centernet_r18_8xb16-crop512-140e_coco.py"
 
+# fcos config
 # CONFIG_FILE="configs_edgeailite/fcos/fcos_r50-caffe_fpn_bn-head_1x_coco.py"
 
+# efficientdet-lite configs
 # CONFIG_FILE="configs_edgeailite/efficientdet/efficientdet_effb0_bifpn_8xb16-crop512-300e_coco.py"
 # CONFIG_FILE="configs_edgeailite/efficientdet/efficientdet_effb1_bifpn_8xb16-crop512-300e_coco.py"
 
 
-CONFIG_FILE="configs_edgeailite/yolox/yolox_nano_8xb8-300e_coco.py"
+CONFIG_FILE="configs_edgeailite/yolox/yolox_s_lite.py"
 
 
 ######################################################################
 # distributed training
-# NUM_GPUS=4
-# ./tools/dist_train.sh ${CONFIG_FILE} ${NUM_GPUS}
+NUM_GPUS=4
+./tools/dist_train.sh ${CONFIG_FILE} ${NUM_GPUS}
 
 ######################################################################
 # single GPU training
-python tools/train.py ${CONFIG_FILE}
+# python tools/train.py ${CONFIG_FILE}
 
 
 
