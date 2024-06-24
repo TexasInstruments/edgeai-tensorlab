@@ -100,8 +100,12 @@ def torch2onnx(img: Any,
                                                True)
     optimize = onnx_cfg.get('optimize', False)
 
+    if model_surgery is None:
+        if hasattr(model_cfg, 'convert_to_lite_model'):
+            model_surgery = model_cfg.convert_to_lite_model.model_surgery
+
     # model surgery
-    if model_surgery == 1 :
+    if model_surgery == 1:
         torch_model = convert_to_lite_model(torch_model, model_cfg)
     load_checkpoint(torch_model, model_checkpoint, map_location='cpu')
 
