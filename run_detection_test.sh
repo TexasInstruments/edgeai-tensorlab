@@ -31,9 +31,11 @@
 ######################################################################
 
 
-CONFIG_FILE="configs/edgeailite/yolox/yolox_nano_8xb8-300e_coco.py"
-CHECKPOINT_FILE="work_dirs/yolox_nano_8xb8-300e_coco/epoch_1.pth"
+# see this folder to get latest checkpoint paths https://github.com/TexasInstruments/edgeai-tensorlab/blob/main/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/
+# use a local file path for CHECKPOINT_FILE if you wish to evaluate using a local checkpoint file
 
+CONFIG_FILE="configs_edgeailite/yolox/yolox_s_lite.py"
+CHECKPOINT_FILE="http://software-dl.ti.com/jacinto7/esd/modelzoo/09_02_00/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth"
 
 ######################################################################
 # distributed testing

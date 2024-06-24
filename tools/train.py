@@ -161,7 +161,7 @@ def main():
 
     model_surgery = args.model_surgery
     if args.model_surgery is None:
-        if hasattr(cfg,'convert_to_lite_model'):
+        if hasattr(cfg, 'convert_to_lite_model'):
             model_surgery = cfg.convert_to_lite_model.model_surgery
 
     # model surgery
@@ -169,8 +169,9 @@ def main():
         runner._init_model_weights()
 
         if model_surgery == 1:
+            device = next(runner.model.parameters()).device
             runner.model = convert_to_lite_model(runner.model, cfg)
-            runner.model = runner.model.to(torch.device('cuda'))
+            runner.model = runner.model.to(torch.device(device))
         elif model_surgery == 2: 
             assert False, 'model surgery 2 is not supported currently'
             surgery_wrapper = xmodelopt.surgery.v2.convert_to_lite_fx

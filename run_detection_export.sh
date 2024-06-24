@@ -31,11 +31,14 @@
 ######################################################################
 
 
-CONFIG_FILE="configs/edgeailite/yolox/yolox_nano_8xb8-300e_coco.py"
-CHECKPOINT_FILE="work_dirs/yolox_nano_8xb8-300e_coco/epoch_1.pth"
-DEPLOY_CONFIG="../edgeai-mmdeploy/configs/mmdet/detection/detection_onnxruntime_static.py"
-DEMO_IMG_PATH="/demo/demo.jpg"
-EXPORT_PATH="work_dirs/onnx_exports/yolox_nano_8xb8-300e_coco"
-MODEL_SURGERY=1
+# see this folder to get latest checkpoint paths https://github.com/TexasInstruments/edgeai-tensorlab/blob/main/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/
+# use a local file path for CHECKPOINT_FILE if you wish to evaluate using a local checkpoint file
 
-python ./tools/torch2onnx.py ${DEPLOY_CONFIG} ${CONFIG_FILE} ${CHECKPOINT_FILE} ${DEMO_IMG_PATH} --work-dir ${EXPORT_PATH} --simplify --model-surgery ${MODEL_SURGERY}
+CONFIG_FILE="configs_edgeailite/yolox/yolox_s_lite.py"
+CHECKPOINT_FILE="http://software-dl.ti.com/jacinto7/esd/modelzoo/09_02_00/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth"
+
+DEPLOY_CONFIG="../edgeai-mmdeploy/configs/mmdet/detection/detection_onnxruntime_static.py"
+DEMO_IMG_PATH="demo/demo.jpg"
+EXPORT_PATH="work_dirs/onnx_exports"
+
+python ./tools/torch2onnx.py ${DEPLOY_CONFIG} ${CONFIG_FILE} ${CHECKPOINT_FILE} ${DEMO_IMG_PATH} --work-dir ${EXPORT_PATH} --simplify

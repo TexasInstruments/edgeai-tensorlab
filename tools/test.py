@@ -22,9 +22,6 @@ from mmdet.utils import convert_to_lite_model
 
 from edgeai_torchmodelopt import xmodelopt
 
-# from edgeai_torchtoolkit import xao
-# from edgeai_torchtoolkit import xnn
-
 
 # TODO: support fuse_conv_bn and format_only
 def parse_args():
@@ -165,8 +162,9 @@ def main():
         runner._init_model_weights()
 
         if model_surgery == 1:
+            device = next(runner.model.parameters()).device
             runner.model = convert_to_lite_model(runner.model, cfg)
-            runner.model = runner.model.to(torch.device('cuda'))
+            runner.model = runner.model.to(torch.device(device))
         elif model_surgery == 2:
             assert False, 'model surgery 2 is not supported currently'
             surgery_wrapper = xmodelopt.surgery.v2.convert_to_lite_fx
