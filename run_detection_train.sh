@@ -58,13 +58,10 @@ CONFIG_FILE="configs_edgeailite/yolox/yolox_s_lite.py"
 
 
 ######################################################################
-# distributed training
-NUM_GPUS=4
-./tools/dist_train.sh ${CONFIG_FILE} ${NUM_GPUS}
+# Distributed training
+##NUM_GPUS=4
+##./tools/dist_train.sh ${CONFIG_FILE} ${NUM_GPUS}
 
 ######################################################################
-# single GPU training
-# python tools/train.py ${CONFIG_FILE}
-
-
-
+# Single GPU training
+python tools/train.py ${CONFIG_FILE}
