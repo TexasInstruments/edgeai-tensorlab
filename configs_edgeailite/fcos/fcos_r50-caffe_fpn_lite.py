@@ -1,4 +1,4 @@
-_base_ = '../../configs/fcos/fcos_r50-caffe_fpn_gn-head_1x_coco.py'
+_base_ = '../../configs/fcos/fcos_r50-caffe_fpn_gn-head_ms-640-800-2x_coco.py'
 
 # replace complex activation functions with ReLU.
 # Also, if needed, regular convolutions can be replaced with depthwise-separable convolutions.
