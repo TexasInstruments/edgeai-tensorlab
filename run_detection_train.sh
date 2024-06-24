@@ -47,7 +47,7 @@
 # CONFIG_FILE="configs/centernet/centernet_r18_8xb16-crop512-140e_coco.py"
 
 # fcos config
-# CONFIG_FILE="configs_edgeailite/fcos/fcos_r50-caffe_fpn_bn-head_1x_coco.py"
+# CONFIG_FILE="configs_edgeailite/fcos/fcos_r50-caffe_fpn_lite.py"
 
 # efficientdet-lite configs
 # CONFIG_FILE="configs_edgeailite/efficientdet/efficientdet_effb0_bifpn_8xb16-crop512-300e_coco.py"
