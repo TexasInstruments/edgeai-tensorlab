@@ -77,7 +77,7 @@ def _replace_dummy(current_m):
     return current_m
 
 
-def _replace_conv2d(current_m=None, groups_dw=None, group_size_dw=1,
+def _replace_conv2d(current_m=None, groups_dw=None, group_size_dw=None,
                     with_normalization=(True,False), with_activation=(True,False)):
     '''replace a regular convolution such as 3x3 or 5x5 with depthwise separable.
     with_normalization: introduce a normaliztion after point convolution default: (True,False)
@@ -106,6 +106,15 @@ def _replace_conv2d(current_m=None, groups_dw=None, group_size_dw=1,
     return current_m
 
 
+def _replace_groupnorm(current_m=None):
+    assert current_m is not None, 'for replacing GroupNorm the current module must be provided'
+    if isinstance(current_m, torch.nn.GroupNorm):
+        new_m = torch.nn.BatchNorm2d(num_features=current_m.num_channels)
+        return new_m
+    #
+    return current_m
+
+
 def get_replacement_dict_default(groups_dw=None, group_size_dw=None):
     '''
     A dictionary with the fllowing structure.
@@ -120,6 +129,8 @@ def get_replacement_dict_default(groups_dw=None, group_size_dw=None):
         torch.nn.Hardswish: [torch.nn.ReLU], #'inplace' is not used
         torch.nn.SiLU: [torch.nn.ReLU], #'inplace' is not used
         torch.nn.LeakyReLU: [torch.nn.ReLU],  # 'inplace' is not used
+        torch.nn.GroupNorm: [_replace_groupnorm],
+        torch.nn.InstanceNorm2d: [torch.nn.BatchNorm2d, 'num_features'],
         SqueezeExcitation: [torch.nn.Identity],
         # with_normalization: whether to insert BN after replacing 3x3/5x5 conv etc. with dw-seperable conv
         # with_activation: whether to insert ReLU after replacing conv with dw-seperable conv
@@ -163,7 +174,7 @@ def _create_lite_model_impl(model_function, pretrained_backbone_names=None, repl
 
 
 def convert_to_lite_model(model, inplace=True, replacement_dict=None, **kwargs):
-    warnings.warn("WARNING - xnn.surgery is based on the modules. For superior functionality, please use the torch.fx based xmodelopt.surgery instead")
+    warnings.warn("WARNING - xmodelopt.v1.surgery is based on the modules. For superior functionality, please use the torch.fx based xmodelopt.v2.surgery instead")
     replacement_dict = replacement_dict or get_replacement_dict_default(**kwargs)
     model = replace_modules_func(model, inplace=inplace, replacement_dict=replacement_dict)
     return model
