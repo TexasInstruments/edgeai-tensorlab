@@ -185,7 +185,7 @@ def main():
                 
             if hasattr(runner.model, 'surgery_init'):
                 print_log('wrapping the model to prepare for surgery')
-                runner.model = runner.model.surgery_init(surgery_wrapper, can_retrain=True)
+                runner.model = runner.model.surgery_init(surgery_wrapper)
             else:
                 # raise RuntimeError(f'surgery_init method is not supported for {type(runner.model)}')
                 runner.model.backbone = surgery_wrapper(runner.model.backbone)
