@@ -10,6 +10,8 @@ from mmengine.registry import RUNNERS
 from mmengine.runner import Runner
 from mmengine.model import is_model_wrapper
 from mmengine.logging import print_log
+from mmengine.model.base_module import BaseModule
+from mmengine.runner.loops import EpochBasedTrainLoop
 
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 
