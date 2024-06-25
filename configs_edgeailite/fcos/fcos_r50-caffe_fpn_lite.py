@@ -5,6 +5,8 @@ _base_ = '../../configs/fcos/fcos_r50-caffe_fpn_gn-head_1x_coco.py'
 # edgeai_torchmodelopt needs to be installed from edgeai-modeloptimization
 # convert_to_lite_model = dict(model_surgery=1)
 
+# use scale factors (instead of output size) in Resize layers
+resize_with_scale_factor = True
 
 # for some reason, not able to train after doing the above model surgery - so manually replace
 # use BN instead of GN/InstanceNorm

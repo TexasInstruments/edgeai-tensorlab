@@ -21,6 +21,7 @@ import mmdet.hooks
 from mmdet.utils import convert_to_lite_model
 
 from edgeai_torchmodelopt import xmodelopt
+from edgeai_torchmodelopt import xnn
 
 
 # TODO: support fuse_conv_bn and format_only
@@ -157,6 +158,10 @@ def main():
     if args.model_surgery is None:
         if hasattr(cfg,'convert_to_lite_model'):
             model_surgery = cfg.convert_to_lite_model.model_surgery
+
+    if hasattr(cfg, 'resize_with_scale_factor') and cfg.resize_with_scale_factor:
+        torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
+        torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
 
     if model_surgery:
         runner._init_model_weights()

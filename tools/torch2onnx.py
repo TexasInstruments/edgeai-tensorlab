@@ -16,7 +16,7 @@ from mmdeploy.utils import build_model_from_cfg
 from mmengine.logging import print_log
 
 from edgeai_torchmodelopt import xonnx
-
+from edgeai_torchmodelopt import xnn
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Export model to ONNX.')
@@ -72,7 +72,10 @@ def main():
     save_file = osp.join(
         args.work_dir,
         osp.basename(args.model_cfg).replace('py', 'onnx'))
-    
+
+    if hasattr(model_cfg, 'resize_with_scale_factor') and model_cfg.resize_with_scale_factor:
+        torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
+        torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
 
     if args.img_size :
         fake_input = torch.randn(args.batch_size, 3,

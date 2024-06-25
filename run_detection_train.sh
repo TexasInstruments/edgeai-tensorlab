@@ -39,12 +39,9 @@
 # CONFIG_FILE="configs_edgeailite/yolox/yolox_l_lite.py"
 # CONFIG_FILE="configs_edgeailite/yolox/yolox_x_lite.py"
 
-# ultra-small yolox-lite configs - not recommended, unless there is a real need.
-# CONFIG_FILE="configs_edgeailite/yolox/yolox_femto_lite.py"
-# CONFIG_FILE="configs_edgeailite/yolox/yolox_pico_lite.py"
-
 # centernet-lite config
-# CONFIG_FILE="configs/centernet/centernet_r18_8xb16-crop512-140e_coco.py"
+# CONFIG_FILE="configs/centernet/centernet_r18_lite_crop512.py"
+# CONFIG_FILE="configs/centernet/centernet-update_r50-caffe_fpn_lite_ms-1x.py"
 
 # fcos config
 # CONFIG_FILE="configs_edgeailite/fcos/fcos_r50-caffe_fpn_lite.py"
