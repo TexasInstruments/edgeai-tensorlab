@@ -51,7 +51,8 @@ def replace_maxpool2d(m):
 def convert_to_lite_model(model, cfg):
     from mmdet.models.backbones.csp_darknet import Focus, FocusLite
     if hasattr(cfg,'convert_to_lite_model') : 
-        convert_to_lite_model_args = cfg.convert_to_lite_model
+        convert_to_lite_model_args = copy.deepcopy(cfg.convert_to_lite_model)
+        convert_to_lite_model_args.pop('model_surgery', None)
     else:
         convert_to_lite_model_args = dict()
     replacement_dict = copy.deepcopy(edgeai_torchmodelopt.xmodelopt.surgery.v1.get_replacement_dict_default())
