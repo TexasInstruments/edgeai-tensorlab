@@ -48,6 +48,7 @@
 
 # fcos config
 # CONFIG_FILE="configs_edgeailite/fcos/fcos_r50-caffe_fpn_lite.py"
+# CONFIG_FILE="configs_edgeailite/fcos/fcos_r50-caffe_fpn_lite_ms_2x.py"
 
 # efficientdet-lite configs
 # CONFIG_FILE="configs_edgeailite/efficientdet/efficientdet_effb0_bifpn_8xb16-crop512-300e_coco.py"
