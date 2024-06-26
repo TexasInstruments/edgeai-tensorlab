@@ -1,7 +1,7 @@
 # this uses regular convolution, where as the original yolox_nano in configs/yolox uses depthwise convolution
 # this change is debatable, but we did this as regular convolutions are easier to train and quantize.
 
-_base_ = './yolox_tiny_8xb8-300e_coco.py'
+_base_ = './yolox_tiny_lite.py'
 
 # replace complex activation functions with ReLU.
 # Also, if needed, regular convolutions can be replaced with depthwise-separable convolutions.
