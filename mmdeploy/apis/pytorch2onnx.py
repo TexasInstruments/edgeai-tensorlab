@@ -112,9 +112,8 @@ def torch2onnx(img: Any,
     optimize = onnx_cfg.get('optimize', False)
 
     if model_surgery is None:
-        if hasattr(model_cfg, 'convert_to_lite_model'):
+        if hasattr(model_cfg,'convert_to_lite_model'):
             model_surgery = model_cfg.convert_to_lite_model.model_surgery
-
     # model surgery
     if model_surgery == 1:
         torch_model = convert_to_lite_model(torch_model, model_cfg)
@@ -230,12 +229,12 @@ def model2onnx(img: Any,
         """NCNN backend needs a precise blob counts, while using onnx optimizer
         will merge duplicate initilizers without reference count."""
         optimize = False
-        
-    if hasattr(torch_model, 'quant_convert') and hasattr(torch_model.backbone, 'convert') :
+
+    if hasattr(torch_model, 'quant_convert') and hasattr(torch_model.backbone, 'convert'):
         torch_model = torch_model.quant_convert()
     else:
         torch_model.to(device=device)
-        
+
     print("Model is now converted, attempting to onnx export!")
     with no_mp():
         export(
@@ -253,10 +252,10 @@ def model2onnx(img: Any,
             keep_initializers_as_inputs=keep_initializers_as_inputs,
             optimize=optimize)
     print("Model Export is complete!")
-    
+
     if simplify:
         import onnx
         from onnxsim import simplify
         onnx_model = onnx.load(output_prefix + '.onnx')
         onnx_model, check = simplify(onnx_model)
-        onnx.save(onnx_model, output_prefix + '_simplified.onnx')      
+        onnx.save(onnx_model, output_prefix + '_simplified.onnx')

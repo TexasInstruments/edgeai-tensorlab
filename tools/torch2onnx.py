@@ -44,7 +44,7 @@ def parse_args():
         '--simplify',
         action='store_true',
         help='Simplify onnx model by onnx-sim')
-    parser.add_argument('--model-surgery', type=int, default=0)
+    parser.add_argument('--model-surgery', type=int, default=None)
     parser.add_argument(
         '--keep-layer-names',
         action='store_true',
