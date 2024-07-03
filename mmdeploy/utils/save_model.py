@@ -51,11 +51,17 @@ def save_model_proto(cfg, model, onnx_model, input, output_filename, input_names
     input_names = input_names or ('input',)
 
     if is_ssd:
-        _save_mmdet_proto_ssd(cfg, onnx_model, input_size, output_filename, input_names, feature_names, output_names)
-    # elif is_retinanet:
-    #     _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_names, feature_names, output_names)
-    # elif is_yolov3:
-    #     _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_names, feature_names, output_names)
+        feature_names = prepare_model_for_layer_outputs(onnx_model, export_layer_types='Conv', match_layer = 'Transpose',
+                                                        return_layer='Conv')
+        _save_mmdet_proto_ssd(cfg, model, input_size, output_filename, input_names, feature_names, output_names)
+    elif is_retinanet:
+        feature_names = prepare_model_for_layer_outputs(onnx_model, export_layer_types='Conv', match_layer = 'Transpose',
+                                                        return_layer='Conv')
+        _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_names, feature_names, output_names)
+    elif is_yolov3:
+        feature_names = prepare_model_for_layer_outputs(onnx_model, export_layer_types='Conv', match_layer = 'Transpose',
+                                                        return_layer='Conv')
+        _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_names, feature_names, output_names)
     elif is_yolox:
         feature_names = prepare_model_for_layer_outputs(onnx_model, export_layer_types='Conv', match_layer = 'Concat',
                                                         return_layer='Concat')
@@ -116,8 +122,11 @@ def prepare_model_for_layer_outputs(onnx_model, export_layer_types=None, match_l
 ###########################################################
 def _save_mmdet_proto_ssd(cfg, model, input_size, output_filename, input_names=None, proto_names=None, output_names=None):
     num_proto_names = len(proto_names)//2
-    cls_proto_names = proto_names[:num_proto_names]
-    reg_proto_names = proto_names[num_proto_names:]
+    cls_proto_names=[]
+    reg_proto_names=[]
+    for i in range(num_proto_names):
+        cls_proto_names.append(proto_names[i*2])
+        reg_proto_names.append(proto_names[i*2+1])
     bbox_head = model.bbox_head
     anchor_generator = bbox_head.anchor_generator
 
@@ -155,8 +164,11 @@ def _save_mmdet_proto_ssd(cfg, model, input_size, output_filename, input_names=N
 ###########################################################
 def _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_names=None, proto_names=None, output_names=None):
     num_proto_names = len(proto_names)//2
-    cls_proto_names = proto_names[:num_proto_names]
-    reg_proto_names = proto_names[num_proto_names:]
+    cls_proto_names=[]
+    reg_proto_names=[]
+    for i in range(num_proto_names):
+        cls_proto_names.append(proto_names[i*2])
+        reg_proto_names.append(proto_names[i*2+1])
     bbox_head = model.bbox_head
     anchor_generator = bbox_head.anchor_generator
 
@@ -224,7 +236,7 @@ def _save_mmdet_proto_efficientdet(cfg, model, input_size, output_filename, inpu
 ###########################################################
 def _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_names=None, proto_names=None, output_names=None):
     bbox_head = model.bbox_head
-    anchor_generator = bbox_head.anchor_generator
+    anchor_generator = bbox_head.prior_generator
     base_sizes = anchor_generator.base_sizes
 
     background_label_id = -1

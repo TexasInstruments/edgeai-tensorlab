@@ -73,12 +73,8 @@ def torch2onnx(img: Any,
     # torch_model = task_processor.build_pytorch_model(model_checkpoint)
     torch_model = build_model_from_cfg(model_cfg, model_checkpoint, device)
 
-    data, model_inputs = task_processor.create_input(
-        img,
-        input_shape,
-        data_preprocessor=getattr(torch_model, 'data_preprocessor', None))
-
-    if not isinstance(img, str) :
+    input_metas={}
+    if not isinstance(img, str):
         model_inputs = img
     else:
         data, model_inputs = task_processor.create_input(
