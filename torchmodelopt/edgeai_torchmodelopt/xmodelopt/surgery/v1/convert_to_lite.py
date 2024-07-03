@@ -115,7 +115,7 @@ def _replace_groupnorm(current_m=None):
     return current_m
 
 
-def get_replacement_dict_default(groups_dw=None, group_size_dw=None):
+def get_replacement_dict_default(groups_dw=None, group_size_dw=None, **kwargs):
     '''
     A dictionary with the fllowing structure.
     key: a torch.nn.Module that has to be replaced OR a callable which takes a module as input and returns boolean
