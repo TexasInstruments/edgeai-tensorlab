@@ -38,8 +38,7 @@ model = dict(
     neck=dict(
         type='BiFPN',
         num_stages=4,
-        # in_channels=[40, 112, 320],
-        in_channels=[40,112,320],
+        in_channels=[40, 112, 320],
         out_channels=88,
         start_level=0,
         conv_cfg=dict(type='DepthWiseConvBlockDefaultPadding'),        
@@ -91,9 +90,9 @@ model = dict(
         nms=dict(
             type='nms',
             iou_threshold=0.3,
-            # sigma=0.5,
-            # min_score=1e-3,
-            # method='gaussian'
+            sigma=0.5,
+            min_score=1e-3,
+            method='gaussian'
             ),
         max_per_img=100))
 
@@ -131,7 +130,7 @@ val_evaluator = dict(type=evalute_type)
 test_evaluator = val_evaluator
 
 optim_wrapper = dict(
-    optimizer=dict(lr=0.16, weight_decay=4e-5),
+    optimizer=dict(lr=0.16/100, weight_decay=4e-5),
     paramwise_cfg=dict(
         norm_decay_mult=0, bias_decay_mult=0, bypass_duplicate=True),
     clip_grad=dict(max_norm=10, norm_type=2))
@@ -158,7 +157,7 @@ vis_backends = [
 visualizer = dict(
     type='DetLocalVisualizer', vis_backends=vis_backends, name='visualizer')
 
-default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=5))
+# default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=5))
 custom_hooks = [
     dict(
         type='EMAHook',

@@ -1,6 +1,6 @@
 # this is a modification of yolox_tiny
 
-_base_ = './configs_edgeailite/yolox/yolox_s_lite.py'
+_base_ = './yolox_s_lite.py'
 
 # replace complex activation functions with ReLU.
 # Also, if needed, regular convolutions can be replaced with depthwise-separable convolutions.

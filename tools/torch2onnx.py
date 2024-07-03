@@ -76,10 +76,17 @@ def main():
     if hasattr(model_cfg, 'resize_with_scale_factor') and model_cfg.resize_with_scale_factor:
         torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
         torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
+    
+    img_size = args.img_size
+    if img_size is None and hasattr(model_cfg, 'input_size'):
+        if isinstance(model_cfg.input_size,tuple):
+            img_size = model_cfg.input_size
+        else:
+            img_size = (model_cfg.input_size,model_cfg.input_size)
 
-    if args.img_size :
+    if img_size :
         fake_input = torch.randn(args.batch_size, 3,
-                             *args.img_size).to(args.device)
+                             *img_size).to(args.device)
         torch2onnx(
             fake_input,
             args.work_dir,
@@ -132,7 +139,7 @@ def main():
     # save_onnx_path = output_prefix + '.onnx'
     # check the layers names and shorten it required.
     if not args.keep_layer_names:
-        xonnx.prune_layer_names(save_file, save_file, opset_version=11)
+        xonnx.prune_layer_names(save_file, save_file, opset_version=17)
     
     onnx_model = onnx.load(save_file)
     if args.simplify:

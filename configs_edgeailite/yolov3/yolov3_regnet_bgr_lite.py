@@ -1,6 +1,7 @@
 _base_ = ['../../configs/_base_/schedules/schedule_1x.py', '../../configs/_base_/default_runtime.py']
 input_size = (512,512) 
 
+resize_with_scale_factor = False
 ######################################################
 backbone_type = 'RegNet'
 backbone_arch = 'regnetx_1.6gf'                  # 'regnetx_800mf' #'regnetx_1.6gf' #'regnetx_3.2gf'

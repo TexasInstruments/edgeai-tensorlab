@@ -604,6 +604,8 @@ class SSDAnchorGenerator(AnchorGenerator):
         self.center_offset = 0
         self.base_anchors = self.gen_base_anchors()
         self.use_box_type = use_box_type
+        self.min_sizes = min_sizes
+        self.max_sizes=max_sizes
 
     def gen_base_anchors(self) -> List[Tensor]:
         """Generate base anchors.
