@@ -19,6 +19,7 @@ from edgeai_torchmodelopt import xonnx
 
 from edgeai_torchmodelopt import xonnx
 
+from edgeai_torchmodelopt import xnn
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Export model to ONNX.')
@@ -75,11 +76,21 @@ def main():
     save_file = osp.join(
         args.work_dir,
         osp.basename(args.model_cfg).replace('py', 'onnx'))
-    
 
-    if args.img_size :
+    if hasattr(model_cfg, 'resize_with_scale_factor') and model_cfg.resize_with_scale_factor:
+        torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
+        torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
+    
+    img_size = args.img_size
+    if img_size is None and hasattr(model_cfg, 'input_size'):
+        if isinstance(model_cfg.input_size,tuple):
+            img_size = model_cfg.input_size
+        else:
+            img_size = (model_cfg.input_size,model_cfg.input_size)
+
+    if img_size :
         fake_input = torch.randn(args.batch_size, 3,
-                             *args.img_size).to(args.device)
+                             *img_size).to(args.device)
         torch2onnx(
             fake_input,
             args.work_dir,
@@ -155,8 +166,6 @@ def main():
         input_shapes = [[d.dim_value for d in _input.type.tensor_type.shape.dim] for _input in onnx_model.graph.input]
         fake_input = torch.randn(*input_shapes[0]).to(args.device)
     save_model_proto(model_cfg, model, onnx_model, fake_input, save_file, feature_names=feature_names, output_names=output_names)
-
-    
 
 
 if __name__ == '__main__':
