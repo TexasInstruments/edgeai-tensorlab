@@ -6,8 +6,14 @@ import mmengine
 from mmengine.runner import load_checkpoint
 from mmdet.utils import convert_to_lite_model
 from mmdeploy.utils import build_model_from_cfg
+from mmdet.apis import init_detector
+
 from .core import PIPELINE_MANAGER
 
+def build_model_from_cfg(config_path, checkpoint_path, device):
+    model = init_detector(config_path, checkpoint_path, device=device)
+    model.eval()
+    return model
 
 
 @PIPELINE_MANAGER.register_pipeline()
@@ -67,7 +73,8 @@ def torch2onnx(img: Any,
     # torch_model = task_processor.build_pytorch_model(model_checkpoint)
     torch_model = build_model_from_cfg(model_cfg, model_checkpoint, device)
 
-    if not isinstance(img, str) :
+    input_metas={}
+    if not isinstance(img, str):
         model_inputs = img
     else:
         data, model_inputs = task_processor.create_input(
@@ -101,9 +108,8 @@ def torch2onnx(img: Any,
     optimize = onnx_cfg.get('optimize', False)
 
     if model_surgery is None:
-        if hasattr(model_cfg, 'convert_to_lite_model'):
+        if hasattr(model_cfg,'convert_to_lite_model'):
             model_surgery = model_cfg.convert_to_lite_model.model_surgery
-
     # model surgery
     if model_surgery == 1:
         torch_model = convert_to_lite_model(torch_model, model_cfg)
@@ -117,7 +123,7 @@ def torch2onnx(img: Any,
         export(
             torch_model,
             model_inputs,
-            # input_metas=input_metas,
+            input_metas=input_metas,
             save_file=save_file,
             backend=backend,
             input_names=input_names,
@@ -219,12 +225,12 @@ def model2onnx(img: Any,
         """NCNN backend needs a precise blob counts, while using onnx optimizer
         will merge duplicate initilizers without reference count."""
         optimize = False
-        
-    if hasattr(torch_model, 'quant_convert') and hasattr(torch_model.backbone, 'convert') :
+
+    if hasattr(torch_model, 'quant_convert') and hasattr(torch_model.backbone, 'convert'):
         torch_model = torch_model.quant_convert()
     else:
         torch_model.to(device=device)
-        
+
     print("Model is now converted, attempting to onnx export!")
     with no_mp():
         export(
@@ -242,10 +248,10 @@ def model2onnx(img: Any,
             keep_initializers_as_inputs=keep_initializers_as_inputs,
             optimize=optimize)
     print("Model Export is complete!")
-    
+
     if simplify:
         import onnx
         from onnxsim import simplify
         onnx_model = onnx.load(output_prefix + '.onnx')
         onnx_model, check = simplify(onnx_model)
-        onnx.save(onnx_model, output_prefix + '_simplified.onnx')      
+        onnx.save(onnx_model, output_prefix + '_simplified.onnx')

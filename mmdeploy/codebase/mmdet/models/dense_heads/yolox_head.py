@@ -63,7 +63,7 @@ def yolox_head__predict_by_feat(self,
     def __mark_pred_maps(bbox_preds, objectnesses,cls_scores):
         return cls_scores, bbox_preds, objectnesses
 
-    cls_scores, bbox_preds, objectnesses = __mark_pred_maps(
+    bbox_preds, objectnesses,cls_scores = __mark_pred_maps(
         cls_scores, bbox_preds, objectnesses)
     assert len(cls_scores) == len(bbox_preds) == len(objectnesses)
     device = cls_scores[0].device
