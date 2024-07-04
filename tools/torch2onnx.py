@@ -16,9 +16,6 @@ from mmdeploy.utils import build_model_from_cfg
 from mmengine.logging import print_log
 
 from edgeai_torchmodelopt import xonnx
-
-from edgeai_torchmodelopt import xonnx
-
 from edgeai_torchmodelopt import xnn
 
 def parse_args():
@@ -40,7 +37,6 @@ def parse_args():
         help='Directory to save output files.')
     parser.add_argument(
         '--device', help='device used for conversion', default='cpu')
-    parser.add_argument('--model-surgery', type=int, default=0)
     parser.add_argument(
         '--simplify',
         action='store_true',
