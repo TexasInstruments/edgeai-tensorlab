@@ -593,7 +593,7 @@ class BaseRTSession(utils.ParamsBase):
                 # merge the mean & scale inside the model
                 if apply_input_optimization:
                     from osrt_model_tools.tflite_tools import tflite_model_opt as tflopt
-                    tflopt.tidlTfliteModelOptimize(model_file0, model_file0, input_scale, input_mean)
+                    tflopt.tidlTfliteModelOptimize(model_file0, model_file0, self.kwargs['input_scale'], self.kwargs['input_mean'])
                 #
             #
         #
