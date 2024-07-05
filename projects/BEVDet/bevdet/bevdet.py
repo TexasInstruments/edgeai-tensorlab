@@ -108,6 +108,7 @@ class BEVDet(CenterPoint):
         pts_feats = None
         return (img_feats, pts_feats, depth)
 
+    '''
     def forward_train(self,
                       points=None,
                       img_metas=None,
@@ -150,6 +151,38 @@ class BEVDet(CenterPoint):
         losses_pts = self.forward_pts_train(img_feats, gt_bboxes_3d,
                                             gt_labels_3d, img_metas,
                                             gt_bboxes_ignore)
+        losses.update(losses_pts)
+        return losses
+    '''
+
+    def forward_pts_train(self,
+                          pts_feats,
+                          batch_data_samples):
+
+        outs = self.pts_bbox_head(pts_feats)
+        batch_gt_instance_3d = []
+        for data_sample in batch_data_samples:
+            batch_gt_instance_3d.append(data_sample.gt_instances_3d)
+        losses = self.pts_bbox_head.loss_by_feat(outs, batch_gt_instance_3d)
+
+        return losses
+
+
+    def loss(self, inputs=None, data_samples=None, **kwargs):
+
+        img = inputs['imgs']
+        img = [img] if img is None else img
+
+        batch_img_metas = [ds.metainfo for ds in data_samples]
+        for var, name in [(batch_img_metas, 'img_metas')]:
+            if not isinstance(var, list):
+                raise TypeError('{} must be a list, but got {}'.format(
+                    name, type(var)))
+
+        img_feats, _, _ = self.extract_feat(imgs=img, img_metas=batch_img_metas, **kwargs)
+        losses = dict()
+        losses_pts = self.forward_pts_train(img_feats, data_samples)
+
         losses.update(losses_pts)
         return losses
 
@@ -197,10 +230,9 @@ class BEVDet(CenterPoint):
         assert False
     '''
 
-
     def predict(self, inputs=None, data_samples=None, **kwargs):
         img = inputs['imgs']
-        points = inputs['points']
+        #points = inputs['points']
         img = [img] if img is None else img
 
         batch_img_metas = [ds.metainfo for ds in data_samples]
@@ -228,7 +260,6 @@ class BEVDet(CenterPoint):
         #print("==========================")
 
         return data_samples
-
 
 
     def simple_test(self,

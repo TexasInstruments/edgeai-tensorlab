@@ -17,6 +17,8 @@ from mmdet3d.models.dense_heads.centerpoint_head import CenterHead
 
 from mmcv.ops import nms_rotated
 
+from mmdet.utils import reduce_mean
+
 # This function duplicates functionality of mmcv.ops.iou_3d.nms_bev
 # from mmcv<=1.5, but using cuda ops from mmcv.ops.nms.nms_rotated.
 # Nms api will be unified in mmdetection3d one day.
@@ -318,3 +320,88 @@ class BEVDetHead(CenterHead):
 
             predictions_dicts.append(predictions_dict)
         return predictions_dicts
+
+    def loss_by_feat(self, preds_dicts: Tuple[List[dict]],
+                     batch_gt_instances_3d: List[InstanceData], *args,
+                     **kwargs):
+        """Loss function for CenterHead.
+
+        Args:
+            preds_dicts (tuple[list[dict]]): Prediction results of
+                multiple tasks. The outer tuple indicate  different
+                tasks head, and the internal list indicate different
+                FPN level.
+            batch_gt_instances_3d (list[:obj:`InstanceData`]): Batch of
+                gt_instances. It usually includes ``bboxes_3d`` and\
+                ``labels_3d`` attributes.
+
+        Returns:
+            dict[str,torch.Tensor]: Loss of heatmap and bbox of each task.
+        """
+
+        heatmaps, anno_boxes, inds, masks = self.get_targets(
+            batch_gt_instances_3d)
+        loss_dict = dict()
+        if not self.task_specific:
+            loss_dict['loss'] = 0
+        for task_id, preds_dict in enumerate(preds_dicts):
+            # heatmap focal loss
+            preds_dict[0]['heatmap'] = clip_sigmoid(preds_dict[0]['heatmap'])
+            num_pos = heatmaps[task_id].eq(1).float().sum().item()
+            cls_avg_factor = torch.clamp(
+                reduce_mean(heatmaps[task_id].new_tensor(num_pos)),
+                min=1).item()
+            loss_heatmap = self.loss_cls(
+                preds_dict[0]['heatmap'],
+                heatmaps[task_id],
+                avg_factor=max(num_pos, 1))
+            target_box = anno_boxes[task_id]
+            # reconstruct the anno_box from multiple reg heads
+            preds_dict[0]['anno_box'] = torch.cat(
+                (preds_dict[0]['reg'], preds_dict[0]['height'],
+                 preds_dict[0]['dim'], preds_dict[0]['rot'],
+                 preds_dict[0]['vel']),
+                dim=1)
+
+            # Regression loss for dimension, offset, height, rotation
+            ind = inds[task_id]
+            num = masks[task_id].float().sum()
+            pred = preds_dict[0]['anno_box'].permute(0, 2, 3, 1).contiguous()
+            pred = pred.view(pred.size(0), -1, pred.size(3))
+            pred = self._gather_feat(pred, ind)
+            mask = masks[task_id].unsqueeze(2).expand_as(target_box).float()
+            num = torch.clamp(
+                reduce_mean(target_box.new_tensor(num)), min=1e-4).item()
+            isnotnan = (~torch.isnan(target_box)).float()
+            mask *= isnotnan
+
+            code_weights = self.train_cfg.get('code_weights', None)
+            bbox_weights = mask * mask.new_tensor(code_weights)
+            if self.task_specific:
+                name_list = ['xy', 'z', 'whl', 'yaw', 'vel']
+                clip_index = [0, 2, 3, 6, 8, 10]
+                for reg_task_id in range(len(name_list)):
+                    pred_tmp = pred[
+                        ...,
+                        clip_index[reg_task_id]:clip_index[reg_task_id + 1]]
+                    target_box_tmp = target_box[
+                        ...,
+                        clip_index[reg_task_id]:clip_index[reg_task_id + 1]]
+                    bbox_weights_tmp = bbox_weights[
+                        ...,
+                        clip_index[reg_task_id]:clip_index[reg_task_id + 1]]
+                    loss_bbox_tmp = self.loss_bbox(
+                        pred_tmp,
+                        target_box_tmp,
+                        bbox_weights_tmp,
+                        avg_factor=(num + 1e-4))
+                    loss_dict[f'task{task_id}.loss_%s' %
+                              (name_list[reg_task_id])] = loss_bbox_tmp
+                loss_dict[f'task{task_id}.loss_heatmap'] = loss_heatmap
+            else:
+                loss_bbox = self.loss_bbox(
+                    pred, target_box, bbox_weights, avg_factor=(num + 1e-4))
+                loss_dict['loss'] += loss_bbox
+                loss_dict['loss'] += loss_heatmap
+
+        return loss_dict

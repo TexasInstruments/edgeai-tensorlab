@@ -39,7 +39,7 @@ metainfo = dict(classes=class_names)
 
 
 input_modality = dict(
-    use_lidar=True,
+    use_lidar=False,
     use_camera=True,
     use_radar=False,
     use_map=False,
@@ -193,7 +193,11 @@ train_pipeline = [
     dict(type='ImageAug',
          ida_aug_conf=ida_aug_conf,
          is_train=True),
-    dict(type='LoadAnnotations'),
+    dict(
+        type='LoadAnnotations3D',
+        with_bbox_3d=True,
+        with_label_3d=True,
+        with_attr_label=False),
     dict(
         type='BEVAug',
         bda_aug_conf=bda_aug_conf,
@@ -206,34 +210,6 @@ train_pipeline = [
     dict(type='CustomPack3DDetInputs', keys=['img', 'gt_bboxes_3d', 'gt_labels_3d'])
 ]
 
-'''
-test_pipeline = [
-    dict(type='PrepareImageInputs', data_config=data_config),
-    dict(type='LoadAnnotations'),
-    dict(type='BEVAug',
-         bda_aug_conf=bda_aug_conf,
-         classes=class_names,
-         is_train=False),
-    dict(
-        type='LoadPointsFromFile',
-        coord_type='LIDAR',
-        load_dim=5,
-        use_dim=5,
-        file_client_args=file_client_args),
-    dict(
-        type='MultiScaleFlipAug3D',
-        img_scale=(1333, 800),
-        pts_scale_ratio=1,
-        flip=False,
-        transforms=[
-            dict(
-                type='DefaultFormatBundle3D',
-                class_names=class_names,
-                with_label=False),
-            dict(type='Collect3D', keys=['points', 'img_inputs'])
-        ])
-]
-'''
 
 test_pipeline = [
     dict(
@@ -248,12 +224,12 @@ test_pipeline = [
          bda_aug_conf=bda_aug_conf,
          classes=class_names,
          is_train=False),
-    dict(
-        type='LoadPointsFromFile',
-        coord_type='LIDAR',
-        load_dim=5,
-        use_dim=5,
-        backend_args=backend_args),
+    #dict(
+    #    type='LoadPointsFromFile',
+    #    coord_type='LIDAR',
+    #    load_dim=5,
+    #    use_dim=5,
+    #    backend_args=backend_args),
     dict(
         type='CustomMultiScaleFlipAug3D',
         img_scale=(1333, 800),
@@ -267,8 +243,9 @@ test_pipeline = [
 
 
 train_dataloader = dict(
-    batch_size=1,
+    batch_size=4,
     num_workers=4,
+    sampler=dict(type='DefaultSampler', shuffle=True),
     dataset=dict(
         type=dataset_type,
         ann_file='bevdetv3-nuscenes_infos_train.pkl',
@@ -323,39 +300,6 @@ val_evaluator = dict(
 test_evaluator = val_evaluator
 
 
-'''
-share_data_config = dict(
-    type=dataset_type,
-    classes=class_names,
-    modality=input_modality,
-    img_info_prototype='bevdet',
-)
-
-test_data_config = dict(
-    pipeline=test_pipeline,
-    ann_file=data_root + 'bevdetv3-nuscenes_infos_val.pkl')
-
-data = dict(
-    samples_per_gpu=8,
-    workers_per_gpu=4,
-    train=dict(
-        data_root=data_root,
-        ann_file=data_root + 'bevdetv3-nuscenes_infos_train.pkl',
-        pipeline=train_pipeline,
-        classes=class_names,
-        test_mode=False,
-        use_valid_flag=True,
-        # we use box_type_3d='LiDAR' in kitti and nuscenes dataset
-        # and box_type_3d='Depth' in sunrgbd and scannet dataset.
-        box_type_3d='LiDAR'),
-    val=test_data_config,
-    test=test_data_config)
-
-for key in ['train', 'val', 'test']:f
-    data[key].update(share_data_conig)
-'''
-
-
 # Optimizer
 optim_wrapper = dict(
     optimizer=dict(type='AdamW', lr=2e-4, weight_decay=1e-07),
@@ -373,11 +317,13 @@ lr_config = dict(
     step=[24,])
 
 #runner = dict(type='EpochBasedRunner', max_epochs=24)
-train_cfg = dict(
-    type='EpochBasedTrainLoop', max_epochs=24, val_interval=4)
+train_cfg = dict(by_epoch=True, max_epochs=24, val_interval=6)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
 
+default_hooks = dict(
+    checkpoint=dict(
+        type='CheckpointHook', interval=2, max_keep_ckpts=4, save_last=True))
 
 custom_hooks = [
     dict(
@@ -386,5 +332,7 @@ custom_hooks = [
         priority='NORMAL',
     ),
 ]
+
+#load_from='checkpoints/BEVDet/epoch_1.pth'
 
 # fp16 = dict(loss_scale='dynamic')

@@ -1,6 +1,53 @@
 import torch
 import mmcv
 from mmdet3d.registry import TASK_UTILS
+from torch import Tensor
+
+
+@TASK_UTILS.register_module()
+class FocalLossCost(object):
+    """FocalLossCost.
+
+    Args:
+        alpha (Union[float, int]): focal_loss alpha. Defaults to 0.25.
+        gamma (Union[float, int]): focal_loss gamma. Defaults to 2.
+        eps (float): Defaults to 1e-12.
+        binary_input (bool): Whether the input is binary. Currently,
+            binary_input = True is for masks input, binary_input = False
+            is for label input. Defaults to False.
+        weight (Union[float, int]): Cost weight. Defaults to 1.
+    """
+
+    def __init__(self,
+                 alpha=0.25,
+                 gamma=2,
+                 eps: float = 1e-12,
+                 binary_input: bool = False,
+                 weight= 1.) -> None:
+        self.weight = weight
+        self.alpha = alpha
+        self.gamma = gamma
+        self.eps = eps
+        self.binary_input = binary_input
+
+    def __call__(self, cls_pred: Tensor, gt_labels: Tensor) -> Tensor:
+        """
+        Args:
+            cls_pred (Tensor): Predicted classification logits, shape
+                (num_queries, num_class).
+            gt_labels (Tensor): Label of `gt_bboxes`, shape (num_gt,).
+
+        Returns:
+            torch.Tensor: cls_cost value with weight
+        """
+        cls_pred = cls_pred.sigmoid()
+        neg_cost = -(1 - cls_pred + self.eps).log() * (
+            1 - self.alpha) * cls_pred.pow(self.gamma)
+        pos_cost = -(cls_pred + self.eps).log() * self.alpha * (
+            1 - cls_pred).pow(self.gamma)
+
+        cls_cost = pos_cost[:, gt_labels] - neg_cost[:, gt_labels]
+        return cls_cost * self.weight
 
 
 @TASK_UTILS.register_module()

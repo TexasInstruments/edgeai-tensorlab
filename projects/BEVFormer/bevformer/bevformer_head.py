@@ -20,6 +20,8 @@ from mmdet3d.registry import MODELS, TASK_UTILS
 
 from .util import normalize_bbox, denormalize_bbox
 
+from mmengine.structures import InstanceData
+
 
 @MODELS.register_module()
 class BEVFormerHead(AnchorFreeHead):
@@ -152,7 +154,11 @@ class BEVFormerHead(AnchorFreeHead):
             assigner = train_cfg['assigner']
             self.assigner = TASK_UTILS.build(assigner)
             if train_cfg.get('sampler', None) is not None:
-                raise RuntimeError('DETR do not build sampler.')
+                raise RuntimeError('BEVFormer do not build sampler.')
+
+            # Use PseudoSampler, format the result
+            sampler_cfg = dict(type='PseudoSampler')
+            self.sampler = TASK_UTILS.build(sampler_cfg)
 
         self.num_query = num_query
         self.num_classes = num_classes
@@ -365,11 +371,15 @@ class BEVFormerHead(AnchorFreeHead):
         # assigner and sampler
         gt_c = gt_bboxes.shape[-1]
 
+        # force to gpu
+        gt_labels = gt_labels.to(bbox_pred.device)
+        gt_bboxes = gt_bboxes.to(bbox_pred.device)
+
         assign_result = self.assigner.assign(bbox_pred, cls_score, gt_bboxes,
                                              gt_labels, gt_bboxes_ignore)
 
-        sampling_result = self.sampler.sample(assign_result, bbox_pred,
-                                              gt_bboxes)
+        sampling_result = self.sampler.sample(assign_result, InstanceData(priors=bbox_pred),
+                                              InstanceData(bboxes_3d=gt_bboxes))
         pos_inds = sampling_result.pos_inds
         neg_inds = sampling_result.neg_inds
 
@@ -629,6 +639,8 @@ class BEVFormerHead(AnchorFreeHead):
 
         return ret_list
 
+    # It is not used, but needed for abstract method
+    # Can be modifed so that it is identical to loss()
     def loss_by_feat(
         self,
         all_cls_scores_list: List[Tensor],

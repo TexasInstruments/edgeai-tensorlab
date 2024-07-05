@@ -172,7 +172,7 @@ model = dict(
             out_size_factor=4,
             assigner=dict(
                 type='HungarianAssigner3D',
-                cls_cost=dict(type='mmdet.FocalLossCost', weight=2.0),
+                cls_cost=dict(type='FocalLossCost', weight=2.0),
                 reg_cost=dict(type='BBox3DL1Cost', weight=0.25),
                 iou_cost=dict(type='mmdet.IoUCost', weight=0.0), # Fake cost. This is just to make it compatible with DETR head.
                 pc_range=point_cloud_range))))
@@ -191,15 +191,14 @@ test_transforms = [
 
 train_pipeline = [
     dict(type='LoadMultiViewImageFromFiles', to_float32=True, num_views=6),
-    dict(type='PhotoMetricDistortionMultiViewImage'),
+    dict(
+        type='MultiViewWrapper',
+        transforms=dict(type='PhotoMetricDistortion3D')),
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True, with_attr_label=False),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectNameFilter', classes=class_names),
-    #dict(type='NormalizeMultiviewImage', **img_norm_cfg),
     dict(type='RandomScaleImageMultiViewImage', scales=[0.5]),
-    #dict(type='PadMultiViewImage', size_divisor=32),
-    #dict(type='DefaultFormatBundle3D', class_names=class_names),
-    dict(type='CustomPack3DdetInputs', keys=['gt_bboxes_3d', 'gt_labels_3d', 'img'])
+    dict(type='CustomPack3DDetInputs', keys=['gt_bboxes_3d', 'gt_labels_3d', 'img'])
 ]
 
 test_pipeline = [
@@ -311,10 +310,13 @@ param_scheduler = [
 
 total_epochs = 24
 
-train_cfg = dict(
-    type='EpochBasedTrainLoop', max_epochs=total_epochs, val_interval=2)
+#train_cfg = dict(
+#    type='EpochBasedTrainLoop', max_epochs=total_epochs, val_interval=2)
+train_cfg = dict(max_epochs=total_epochs, val_interval=2)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
+
+#load_from = 'checkpoints/BEVFormer/bevformer_tiny_epoch_24.pth'
 
 
 #log_config = dict(

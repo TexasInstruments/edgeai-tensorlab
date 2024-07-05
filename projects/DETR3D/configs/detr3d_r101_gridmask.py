@@ -168,7 +168,7 @@ data_prefix = dict(
 
 train_dataloader = dict(
     batch_size=1,
-    num_workers=4,
+    num_workers=1,
     persistent_workers=True,
     drop_last=False,
     sampler=dict(type='DefaultSampler', shuffle=True),
@@ -189,7 +189,7 @@ train_dataloader = dict(
 
 val_dataloader = dict(
     batch_size=1,
-    num_workers=4,
+    num_workers=1,
     persistent_workers=True,
     drop_last=False,
     sampler=dict(type='DefaultSampler', shuffle=False),
@@ -249,7 +249,7 @@ test_cfg = dict(type='TestLoop')
 default_hooks = dict(
     checkpoint=dict(
         type='CheckpointHook', interval=1, max_keep_ckpts=1, save_last=True))
-load_from = 'ckpts/fcos3d.pth'
+load_from = 'pretrained/fcos3d.pth'
 
 # setuptools 65 downgrades to 58.
 # In mmlab-node we use setuptools 61 but occurs NO errors

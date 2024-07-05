@@ -119,6 +119,8 @@ class TemporalSelfAttention(BaseModule):
             grid_init[:, :, i, :] *= i + 1
 
         self.sampling_offsets.bias.data = grid_init.view(-1)
+        self.sampling_offsets = self.sampling_offsets.to(self.sampling_offsets.weight.device)
+
         constant_init(self.attention_weights, val=0., bias=0.)
         xavier_init(self.value_proj, distribution='uniform', bias=0.)
         xavier_init(self.output_proj, distribution='uniform', bias=0.)

@@ -198,7 +198,8 @@ class CustomPack3DDetInputs(Pack3DDetInputs):
                                 'cam2global', 'crop_offset', 'img_crop_offset',
                                 'resize_img_shape', 'lidar2cam', 'ori_lidar2img',
                                 'num_ref_frames', 'num_views', 'ego2global',
-                                'prev_idx', 'next_idx', 'scene_token', 'can_bus')
+                                'prev_idx', 'next_idx', 'scene_token', 'can_bus',
+                                'gt_bboxes_3d', 'gt_labels_3d')
     ) -> None:
         super(CustomPack3DDetInputs, self).__init__(keys, meta_keys)
 

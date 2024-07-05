@@ -3,6 +3,7 @@ import copy
 import numpy as np
 from mmdet3d.registry import DATASETS
 from mmdet3d.datasets import NuScenesDataset
+from mmengine.logging import print_log
 import mmcv
 from os import path as osp
 import torch
@@ -45,28 +46,35 @@ class CustomNuScenesDataset(NuScenesDataset):
         for i in index_list:
             i = max(0, i)
             input_dict = self.get_data_info(i)
-            if input_dict is None:
-                return None
-            self.pre_pipeline(input_dict)
+
+            # box_type_3d (str): 3D box type.
+            input_dict['box_type_3d'] = self.box_type_3d
+            # box_mode_3d (str): 3D box mode.
+            input_dict['box_mode_3d'] = self.box_mode_3d
+            
             example = self.pipeline(input_dict)
+
+            # pre-pipline return None to random another in `__getitem__`
             if self.filter_empty_gt and \
-                    (example is None or ~(example['gt_labels_3d']._data != -1).any()):
+                    (example is None or example['data_samples'].gt_labels_3d.shape[0] == 0):
                 return None
             queue.append(example)
 
-        return queue
-        #return self.union2one(queue)
+        return self.union2one(queue)
 
     # TO REVISIT
-    '''
+    #def set_metainfo(self, queue, index, metainfo):
+    #    queue[index]['data_samples'].metainfo = metainfo
+
+
     def union2one(self, queue):
-        imgs_list = [each['img'].data for each in queue]
+        imgs_list = [each['inputs']['img'].data for each in queue]  # [each['img'].data for each in queue]
         metas_map = {}
         prev_scene_token = None
         prev_pos = None
         prev_angle = None
         for i, each in enumerate(queue):
-            metas_map[i] = each['img_metas'].data
+            metas_map[i] = each['data_samples'].metainfo #each['img_metas'].data
             if metas_map[i]['scene_token'] != prev_scene_token:
                 metas_map[i]['prev_bev_exists'] = False
                 prev_scene_token = metas_map[i]['scene_token']
@@ -82,11 +90,12 @@ class CustomNuScenesDataset(NuScenesDataset):
                 metas_map[i]['can_bus'][-1] -= prev_angle
                 prev_pos = copy.deepcopy(tmp_pos)
                 prev_angle = copy.deepcopy(tmp_angle)
-        queue[-1]['img'] = DC(torch.stack(imgs_list), cpu_only=False, stack=True)
-        queue[-1]['img_metas'] = DC(metas_map, cpu_only=True)
+        queue[-1]['inputs']['img'] = torch.stack(imgs_list)
+        # cannot set queue[-1]['data_samples'].metainfo directly
+        queue[-1]['data_samples'].metainfo_queue = metas_map
+
         queue = queue[-1]
         return queue
-    '''
 
 
     def get_data_info(self, index):
@@ -115,11 +124,11 @@ class CustomNuScenesDataset(NuScenesDataset):
                 lidar2img_rt = (viewpad @ lidar2cam_rt)
                 lidar2img_rts.append(lidar2img_rt)
 
-                data_info.update(
-                    dict(
-                        img_timestamp=img_timestamp,
-                        lidar2img=lidar2img_rts
-                    ))
+            data_info.update(
+                dict(
+                    img_timestamp=img_timestamp,
+                    lidar2img=lidar2img_rts
+                ))
 
         matrot = data_info['ego2global']
         matrot = np.array(matrot)
@@ -240,3 +249,56 @@ class CustomNuScenesDataset(NuScenesDataset):
         detail['{}/NDS'.format(metric_prefix)] = metrics['nd_score']
         detail['{}/mAP'.format(metric_prefix)] = metrics['mean_ap']
         return detail
+
+    def __getitem__(self, idx: int) -> dict:
+        """Get the idx-th image and data information of dataset after
+        ``self.pipeline``, and ``full_init`` will be called if the dataset has
+        not been fully initialized.
+
+        During training phase, if ``self.pipeline`` get ``None``,
+        ``self._rand_another`` will be called until a valid image is fetched or
+         the maximum limit of refetech is reached.
+
+        Args:
+            idx (int): The index of self.data_list.
+
+        Returns:
+            dict: The idx-th image and data information of dataset after
+            ``self.pipeline``.
+        """
+        # Performing full initialization by calling `__getitem__` will consume
+        # extra memory. If a dataset is not fully initialized by setting
+        # `lazy_init=True` and then fed into the dataloader. Different workers
+        # will simultaneously read and parse the annotation. It will cost more
+        # time and memory, although this may work. Therefore, it is recommended
+        # to manually call `full_init` before dataset fed into dataloader to
+        # ensure all workers use shared RAM from master process.
+        if not self._fully_initialized:
+            print_log(
+                'Please call `full_init()` method manually to accelerate '
+                'the speed.',
+                logger='current',
+                level=logging.WARNING)
+            self.full_init()
+
+        if self.test_mode:
+            data = self.prepare_data(idx)
+            if data is None:
+                raise Exception('Test time pipline should not get `None` '
+                                'data_sample')
+            return data
+
+
+        while True:
+            data = self.prepare_train_data(idx)
+
+            # Broken images or random augmentations may cause the returned data
+            # to be None
+            if data is None:
+                idx = self._rand_another()
+                continue
+            return data
+
+        #raise Exception(f'Cannot find valid image after {self.max_refetch}! '
+        #                'Please check your image path and pipeline')
+

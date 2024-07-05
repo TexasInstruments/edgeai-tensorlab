@@ -1,13 +1,21 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+import math
 from numbers import Number
 
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
+import numpy as np
+import torch
 from mmdet3d.registry import MODELS
 from mmdet3d.utils import OptConfigType
 from mmdet.models.utils.misc import samplelist_boxtype2tensor
+from mmengine.utils import is_seq_of
+from mmengine.model import stack_batch
+from torch import Tensor
+from torch.nn import functional as F
 
 from mmdet3d.models.data_preprocessors.data_preprocessor import Det3DDataPreprocessor
+from mmdet3d.models.data_preprocessors.utils import multiview_img_stack_batch
 
 @MODELS.register_module()
 class BEVFormer3DDataPreprocessor(Det3DDataPreprocessor):
@@ -112,6 +120,146 @@ class BEVFormer3DDataPreprocessor(Det3DDataPreprocessor):
             non_blocking=non_blocking,
             batch_augments=batch_augments)
 
+    def collate_data(self, data: dict) -> dict:
+        """Copy data to the target device and perform normalization, padding
+        and bgr2rgb conversion and stack based on ``BaseDataPreprocessor``.
+
+        Collates the data sampled from dataloader into a list of dict and list
+        of labels, and then copies tensor to the target device.
+
+        Args:
+            data (dict): Data sampled from dataloader.
+
+        Returns:
+            dict: Data in the same format as the model input.
+        """
+        data = self.cast_data(data)  # type: ignore
+
+        if 'img' in data['inputs']:
+            _batch_imgs = data['inputs']['img']
+            # Process data with `pseudo_collate`.
+            if is_seq_of(_batch_imgs, torch.Tensor):
+                batch_imgs = []
+                img_dim = _batch_imgs[0].dim()
+                for _batch_img in _batch_imgs:
+                    if img_dim == 3:  # standard img
+                        _batch_img = self.preprocess_img(_batch_img)
+                    elif img_dim == 4:
+                        _batch_img = [
+                            self.preprocess_img(_img) for _img in _batch_img
+                        ]
+
+                        _batch_img = torch.stack(_batch_img, dim=0)
+                    elif img_dim == 5:
+                        # For training with queue
+                        Q, N, C, H, W = _batch_img.shape
+                        _batch_img = _batch_img.reshape(Q*N, C, H, W)
+                        _batch_img = [
+                            self.preprocess_img(_img) for _img in _batch_img
+                        ]
+                        _batch_img = torch.stack(_batch_img, dim=0)
+
+                    batch_imgs.append(_batch_img)
+
+                # Pad and stack Tensor.
+                if img_dim == 3:
+                    batch_imgs = stack_batch(batch_imgs, self.pad_size_divisor,
+                                             self.pad_value)
+                elif img_dim == 4 or img_dim == 5:
+                    batch_imgs = multiview_img_stack_batch(
+                        batch_imgs, self.pad_size_divisor, self.pad_value)
+
+                    if img_dim == 5:
+                        # reshpae batch_imgs
+                        _, _, C, H, W = batch_imgs.shape
+                        batch_imgs = batch_imgs.reshape(-1, Q, N, C, H, W)
+
+
+            # Process data with `default_collate`.
+            elif isinstance(_batch_imgs, torch.Tensor):
+                assert _batch_imgs.dim() == 4, (
+                    'The input of `ImgDataPreprocessor` should be a NCHW '
+                    'tensor or a list of tensor, but got a tensor with '
+                    f'shape: {_batch_imgs.shape}')
+                if self._channel_conversion:
+                    _batch_imgs = _batch_imgs[:, [2, 1, 0], ...]
+                # Convert to float after channel conversion to ensure
+                # efficiency
+                _batch_imgs = _batch_imgs.float()
+                if self._enable_normalize:
+                    _batch_imgs = (_batch_imgs - self.mean) / self.std
+                h, w = _batch_imgs.shape[2:]
+                target_h = math.ceil(
+                    h / self.pad_size_divisor) * self.pad_size_divisor
+                target_w = math.ceil(
+                    w / self.pad_size_divisor) * self.pad_size_divisor
+                pad_h = target_h - h
+                pad_w = target_w - w
+                batch_imgs = F.pad(_batch_imgs, (0, pad_w, 0, pad_h),
+                                   'constant', self.pad_value)
+            else:
+                raise TypeError(
+                    'Output of `cast_data` should be a list of dict '
+                    'or a tuple with inputs and data_samples, but got '
+                    f'{type(data)}: {data}')
+
+            data['inputs']['imgs'] = batch_imgs
+
+        data.setdefault('data_samples', None)
+
+        return data
+
+    def _get_pad_shape(self, data: dict) -> List[Tuple[int, int]]:
+        """Get the pad_shape of each image based on data and
+        pad_size_divisor."""
+        # rewrite `_get_pad_shape` for obtaining image inputs.        
+
+        #if isinstance(data['inputs']['img'], list):
+        #    _batch_inputs = data['inputs']['img'][0]
+        #else:
+        #    _batch_inputs = data['inputs']['img']
+
+        _batch_inputs = data['inputs']['img']
+
+        # Process data with `pseudo_collate`.
+        if is_seq_of(_batch_inputs, torch.Tensor):
+            batch_pad_shape = []
+            for ori_input in _batch_inputs:
+                if ori_input.dim() == 5:
+                    # mean temporal multiview input, select one of the
+                    # image to calculate the pad shape
+                    ori_input = ori_input[0, 0]
+                elif ori_input.dim() == 4:
+                    # mean multiview input, select one of the
+                    # image to calculate the pad shape
+                    ori_input = ori_input[0]
+
+                pad_h = int(
+                    np.ceil(ori_input.shape[1] /
+                            self.pad_size_divisor)) * self.pad_size_divisor
+                pad_w = int(
+                    np.ceil(ori_input.shape[2] /
+                            self.pad_size_divisor)) * self.pad_size_divisor
+                batch_pad_shape.append((pad_h, pad_w))
+        # Process data with `default_collate`.
+        elif isinstance(_batch_inputs, torch.Tensor):
+            assert _batch_inputs.dim() == 4, (
+                'The input of `ImgDataPreprocessor` should be a NCHW tensor '
+                'or a list of tensor, but got a tensor with shape: '
+                f'{_batch_inputs.shape}')
+            pad_h = int(
+                np.ceil(_batch_inputs.shape[1] /
+                        self.pad_size_divisor)) * self.pad_size_divisor
+            pad_w = int(
+                np.ceil(_batch_inputs.shape[2] /
+                        self.pad_size_divisor)) * self.pad_size_divisor
+            batch_pad_shape = [(pad_h, pad_w)] * _batch_inputs.shape[0]
+        else:
+            raise TypeError('Output of `cast_data` should be a list of dict '
+                            'or a tuple with inputs and data_samples, but got '
+                            f'{type(data)}: {data}')
+        return batch_pad_shape
+
 
     def simple_process(self, data: dict, training: bool = False) -> dict:
         """Perform normalization, padding and bgr2rgb conversion for img data
@@ -155,6 +303,11 @@ class BEVFormer3DDataPreprocessor(Det3DDataPreprocessor):
                         'pad_shape': pad_shape
                     })
 
+                    if training is True:
+                        for _, idx in enumerate(data_sample.metainfo_queue):
+                            data_sample.metainfo_queue[idx]['pad_shape'] = pad_shape
+                            data_sample.metainfo_queue[idx]['batch_input_shape'] = batch_input_shape
+
                 if self.boxtype2tensor:
                     samplelist_boxtype2tensor(data_samples)
                 if self.pad_mask:
@@ -167,9 +320,16 @@ class BEVFormer3DDataPreprocessor(Det3DDataPreprocessor):
                     imgs, data_samples = batch_aug(imgs, data_samples)
             batch_inputs['imgs'] = imgs
 
-        # update img_shape
-        for i in range(imgs.shape[1]):
-            data_samples[0].img_shape[i] = (imgs.shape[3], imgs.shape[4], imgs.shape[2])
+        # update img_shape        
+        for data_sample in data_samples:
+            for i in range(imgs.shape[-4]):
+                data_sample.img_shape[i] = (imgs.shape[-2], imgs.shape[-1], imgs.shape[-3])
 
+                if training is True:
+                    for _, idx in enumerate(data_sample.metainfo_queue):
+                        data_sample.metainfo_queue[idx]['img_shape'][i] = \
+                            (imgs.shape[-2], imgs.shape[-1], imgs.shape[-3])
+
+        # should we return batch_metainfo?
         return {'inputs': batch_inputs, 'data_samples': data_samples}
 

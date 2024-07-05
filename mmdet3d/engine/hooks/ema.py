@@ -76,7 +76,7 @@ class MEGVIIEMAHook(Hook):
     Detection/BEVDepth/blob/main/callbacks/ema.py.
     """
 
-    def __init__(self, init_updates=0, decay=0.9990, resume=None):
+    def __init__(self, batch_idx=0, init_updates=0, decay=0.9990, resume=None):
         super().__init__()
         self.init_updates = init_updates
         self.resume = resume
@@ -105,8 +105,8 @@ class MEGVIIEMAHook(Hook):
             load_state_dict(runner.ema_model.ema, cpt['state_dict'])
             runner.ema_model.updates = cpt['updates']
 
-    def after_train_iter(self, runner):
-        runner.ema_model.update(runner, runner.model.module)
+    def after_train_iter(self, runner, batch_idx, data_batch, outputs):
+        runner.ema_model.update(runner, runner.model)
 
     def after_train_epoch(self, runner):
         self.save_checkpoint(runner)

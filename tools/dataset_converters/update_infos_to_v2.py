@@ -24,7 +24,10 @@ from mmdet3d.datasets.convert_utils import (convert_annos,
 from mmdet3d.datasets.utils import convert_quaternion_to_matrix
 from mmdet3d.structures import points_cam2img
 
-update_bevformer = True
+
+# Set true for data converstion for the particular network
+update_bevformer = False
+update_bevdet = False
 
 def get_empty_instance():
     """Empty annotation for single instance."""
@@ -287,6 +290,9 @@ def update_nuscenes_infos(pkl_path, out_dir):
             temp_data_info['next'] = ori_info_dict['next']
             temp_data_info['can_bus'] = ori_info_dict['can_bus']
             temp_data_info['scene_token'] = ori_info_dict['scene_token']
+
+        if update_bevdet is True:
+            temp_data_info['ann_infos'] = ori_info_dict['ann_infos']
 
         temp_data_info['token'] = ori_info_dict['token']
         temp_data_info['ego2global'] = convert_quaternion_to_matrix(

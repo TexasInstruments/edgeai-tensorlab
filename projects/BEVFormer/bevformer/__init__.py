@@ -16,7 +16,7 @@ from .transform_3d import (PadMultiViewImage, CustomMultiViewWrapper, RandomResi
 
 from .hungarian_assigner_3d import HungarianAssigner3D
 from .nms_free_coder import NMSFreeCoder
-from .match_cost import BBox3DL1Cost, SmoothL1Cost
+from .match_cost import FocalLossCost, BBox3DL1Cost, SmoothL1Cost
 from .grid_mask import GridMask
 
 from .util import normalize_bbox, denormalize_bbox

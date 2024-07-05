@@ -5,6 +5,9 @@ from mmdet3d.registry import DATASETS
 from mmdet3d.datasets import NuScenesDataset
 import os
 
+from mmdet3d.structures import LiDARInstance3DBoxes
+from mmdet3d.structures.bbox_3d.cam_box3d import CameraInstance3DBoxes
+
 @DATASETS.register_module()
 class CustomNuScenesDataset(NuScenesDataset):
     r"""NuScenes Dataset.
@@ -106,3 +109,65 @@ class CustomNuScenesDataset(NuScenesDataset):
             self.data_bytes, self.data_address = self._serialize_data()
 
         self._fully_initialized = True
+
+
+    # BEVDet's loss computation is not correct. But when the right GT is used, somehow the model 
+    # is not trained properly. So we override parse_ann_info to make it identical to BEVDet.
+    def parse_ann_info(self, info: dict) -> dict:
+        """Process the `instances` in data info to `ann_info`.
+
+        Args:
+            info (dict): Data information of single data sample.
+
+        Returns:
+            dict: Annotation information consists of the following keys:
+
+                - gt_bboxes_3d (:obj:`LiDARInstance3DBoxes`):
+                  3D ground truth bboxes.
+                - gt_labels_3d (np.ndarray): Labels of ground truths.
+        """
+        ann_info = super(NuScenesDataset, self).parse_ann_info(info)
+
+        if ann_info is not None:
+            gt_bboxes_3d, gt_labels_3d = info['ann_infos']
+            gt_bboxes_3d, gt_labels_3d = np.array(gt_bboxes_3d), np.array(gt_labels_3d)
+
+            if len(gt_bboxes_3d) == 0:
+                gt_bboxes_3d = np.zeros((0, 9), dtype=np.float32)
+
+            ann_info['gt_bboxes_3d'] = gt_bboxes_3d
+            ann_info['gt_labels_3d'] = gt_labels_3d
+        else:
+            # empty instance
+            ann_info = dict()
+            if self.with_velocity:
+                ann_info['gt_bboxes_3d'] = np.zeros((0, 9), dtype=np.float32)
+            else:
+                ann_info['gt_bboxes_3d'] = np.zeros((0, 7), dtype=np.float32)
+            ann_info['gt_labels_3d'] = np.zeros(0, dtype=np.int64)
+
+            if self.load_type in ['fov_image_based', 'mv_image_based']:
+                ann_info['gt_bboxes'] = np.zeros((0, 4), dtype=np.float32)
+                ann_info['gt_bboxes_labels'] = np.array(0, dtype=np.int64)
+                ann_info['attr_labels'] = np.array(0, dtype=np.int64)
+                ann_info['centers_2d'] = np.zeros((0, 2), dtype=np.float32)
+                ann_info['depths'] = np.zeros((0), dtype=np.float32)
+
+        # the nuscenes box center is [0.5, 0.5, 0.5], we change it to be
+        # the same as KITTI (0.5, 0.5, 0)
+        # TODO: Unify the coordinates
+        if self.load_type in ['fov_image_based', 'mv_image_based']:
+            gt_bboxes_3d = CameraInstance3DBoxes(
+                ann_info['gt_bboxes_3d'],
+                box_dim=ann_info['gt_bboxes_3d'].shape[-1],
+                origin=(0.5, 0.5, 0.5))
+        else:
+            gt_bboxes_3d = LiDARInstance3DBoxes(
+                ann_info['gt_bboxes_3d'],
+                box_dim=ann_info['gt_bboxes_3d'].shape[-1],
+                origin=(0.5, 0.5, 0.5)).convert_to(self.box_mode_3d)
+
+        ann_info['gt_bboxes_3d'] = gt_bboxes_3d
+
+        return ann_info
+
