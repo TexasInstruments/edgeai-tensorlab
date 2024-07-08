@@ -36,7 +36,7 @@ import torch
 from torch.ao.quantization import MinMaxObserver, PerChannelMinMaxObserver, HistogramObserver, \
     MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver
 
-from ..... import xnn
+from .... import xnn
 from . import observer_utils
 
 

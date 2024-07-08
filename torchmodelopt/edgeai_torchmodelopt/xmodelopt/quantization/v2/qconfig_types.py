@@ -39,7 +39,7 @@ import torch.ao.quantization
 import torch.ao.quantization.quantize_fx
 import torch.nn as nn
 
-from ..... import xnn
+from .... import xnn
 
 from . import observer_types
 from . import fake_quantize_types

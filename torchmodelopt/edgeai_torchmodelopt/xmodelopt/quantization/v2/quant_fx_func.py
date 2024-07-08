@@ -43,9 +43,9 @@ import types
 from torch.onnx import register_custom_op_symbolic
 import copy
 
-from ..... import xnn
+from .... import xnn
 
-from ....surgery.v2 import custom_surgery_functions, replace_unsupported_layers
+from ...surgery.v2 import custom_surgery_functions, replace_unsupported_layers
 
 from . import qconfig_types
 from . import quant_fx_utils

@@ -419,6 +419,19 @@ def add_bias_calibration_hook(model, calibration_factor=0):
     return all_hooks
 
 
+def _fc_outlier_supression_hook(m, x):
+    if isinstance(x, tuple):
+        x = x[0]
+    mean_val = x.mean(dim=(0,1))
+    std_val = x.std(dim=(0,1))
+    clip_val_max = mean_val + 3*std_val
+    clip_val_min = mean_val - 3*std_val
+    # clip_val_max = mean_val - 3*std_val
+    # clip_val_min = mean_val + 3*std_val
+    x = torch.clip(x, min=clip_val_min, max = clip_val_max)
+    return tuple([x])
+
+
 def is_mlp_fc2_layer(node, find_level, found_gelu=False):
     if find_level < 0:
         return False
@@ -435,3 +448,39 @@ def is_mlp_fc2_layer(node, find_level, found_gelu=False):
     #
     return is_mlp_fc2_layer(node.args[0], find_level-1, found_gelu)
 
+
+def add_fc_outlier_supression_hook(model):
+    all_modules = dict(model.named_modules())
+    all_hooks = []
+    
+    module_partitions = get_source_partitions(
+        model.graph, [torch.nn.Linear, torch.nn.functional.linear]
+    )
+    
+    for module_or_fn_type, partitions in module_partitions.items():
+        for p in partitions:
+            inp_nodes = p.input_nodes 
+            prev_node = None
+            for node in inp_nodes:
+                if isinstance(node.prev.target, str) and 'param_constant' in node.prev.target:
+                    continue
+                else:
+                    prev_node = node
+        
+            assert prev_node is not None, print("prev_node is node in trying to iterate over nodes") 
+            
+            if is_mlp_fc2_layer(prev_node, 6):
+                output_node = None
+                for node in p.output_nodes:
+                    if not(isinstance(node.target,str) and 'param_constant' in node.target):
+                        output_node = node 
+                        break
+                if output_node is not None:
+                    if isinstance(output_node.target,str) and hasattr(model, output_node.target) and isinstance(getattr(model, output_node.target), torch.nn.Module):
+                        act_node = output_node
+                    else:
+                        act_node = output_node.next
+                this_hook = getattr(model, act_node.target).register_forward_pre_hook(_fc_outlier_supression_hook)
+                all_hooks.append(this_hook)
+                
+    return all_hooks
