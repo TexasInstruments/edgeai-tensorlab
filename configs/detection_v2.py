@@ -504,9 +504,9 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_np2(
                     det_options=True, ext_options={
                      'object_detection:meta_arch_type': 6, 
-                      'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov3_d53_relu_416x416_20210117_model.prototxt',
+                    #   'object_detection:meta_layers_names_list':f'',
                       'advanced_options:c7x_firmware_version':"09_02_09_00",
-                     #  'advanced_options:output_feature_16bit_names_list':'MatMul_1468,MatMul_1465,MatMul_1460',
+                    #  'advanced_options:output_feature_16bit_names_list':'MatMul_1468,MatMul_1465,MatMul_1460',
                     #  "deny_list:layer_name":"/Split",
                     #  "deny_list:layer_type":"Flatten",
                      'onnxruntime:graph_optimization_level': 0 
