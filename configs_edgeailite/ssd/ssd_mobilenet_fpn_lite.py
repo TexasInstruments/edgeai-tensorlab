@@ -27,56 +27,38 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ######################################################
-input_size = 512                      #(512,512) #(768,768) #(1024,1024)
-dataset_type = 'CocoDataset'
-num_classes_dict = {'CocoDataset':80, 'VOCDataset':20, 'CityscapesDataset':8, 'WIDERFaceDataset':1}
-dataset_root_dict = {'CocoDataset':'data/coco/', 'VOCDataset':'data/VOCdevkit/', 'CityscapesDataset':'data/cityscapes/', 'WIDERFaceDataset':'data/WIDERFace/'}
-num_classes = num_classes_dict[dataset_type]
-data_root = dataset_root_dict[dataset_type]
-img_norm_cfg = dict(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True) #imagenet mean/std
-
 _base_ = [
-    # f'../_xbase_/datasets/{dataset_type.lower()}.py',
-    f'../_xbase_/datasets/cocodataset.py',
-    '../_xbase_/hyper_params/common_config.py',
-    '../_xbase_/hyper_params/ssd_config.py',
-    '../_xbase_/hyper_params/common_schedule.py',
+    '../../configs/_base_/datasets/coco_detection.py',
+    '../../configs/_base_/schedules/schedule_1x.py', '../../configs/_base_/default_runtime.py'
 ]
 
-######################################################
-# settings for qat or calibration - uncomment after doing floating point training
-# also change dataset_repeats in the dataset config to 1 for fast learning
-quantize = False #'training' #'calibration'
-initial_learning_rate = 8e-2
-samples_per_gpu = 8
-if quantize:
-  load_from = './work_dirs/ssd_resnet_fpn/latest.pth'
-  optimizer = dict(type='SGD', lr=initial_learning_rate/100.0, momentum=0.9, weight_decay=1e-4)
-  total_epochs = 1 if quantize == 'calibration' else 12
-else:
-  optimizer = dict(type='SGD', lr=initial_learning_rate, momentum=0.9, weight_decay=1e-4)
-#
+input_size = 512 
+num_classes = 80
+img_norm_cfg = dict(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 
-interval = 1
+backbone_type = 'MobileNetV2Lite' #'MobileNetV2Lite' #'MobileNetV1Lite'
+mobilenetv2_pretrained='torchvision://mobilenet_v2'
+mobilenetv1_pretrained='./data/modelzoo/pytorch/image_classification/imagenet1k/jacinto_ai/mobilenet_v1_2019-09-06_17-15-44.pth'
+pretrained=(mobilenetv2_pretrained if backbone_type == 'MobileNetV2Lite' else mobilenetv1_pretrained)
+bacbone_out_channels=[24,32,96,320] if backbone_type == 'MobileNetV2Lite' else [128,256,512,1024]
 
-######################################################
-backbone_type = 'ResNet'
-backbone_depth = 50
-pretrained='torchvision://resnet50'
-bacbone_out_channels=[256, 512, 1024, 2048]
-backbone_out_indices = (0, 1, 2, 3)
+backbone_out_indices = (1, 2, 3, 4)
 
 fpn_in_channels = bacbone_out_channels
-fpn_out_channels = 256
 fpn_start_level = 1
 fpn_num_outs = 6
-fpn_upsample_mode =  'nearest' #'nearest' #'bilinear'
+fpn_upsample_mode = 'bilinear' #'nearest' #'bilinear'
 fpn_upsample_cfg = dict(scale_factor=2, mode=fpn_upsample_mode)
-
+decoder_fpn_type = 'FPN'
+fpn_num_blocks = 4
+fpn_width_fact = 4
+fpn_intermediate_channels = 64*fpn_width_fact
+fpn_out_channels = 64*fpn_width_fact
 basesize_ratio_range = (0.1, 0.9)
 
 conv_cfg = None
 norm_cfg = dict(type='BN')
+convert_to_lite_model = dict(group_size_dw=1, model_surgery=1)
 
 # model settings
 data_preprocessor = dict(
@@ -85,25 +67,22 @@ data_preprocessor = dict(
     std=[58.395, 57.12, 57.375],
     bgr_to_rgb=True,
     pad_size_divisor=1)
-
-
-
-
-
 model = dict(
     type='SingleStageDetector',
     data_preprocessor=data_preprocessor,
     backbone=dict(
-        type='ResNet',
-        depth=backbone_depth,
-        num_stages=4,
+        type=backbone_type,
+        strides=(2, 2, 2, 2, 2),
+        depth=None,
+        with_last_pool=False,
+        ceil_mode=True,
+        extra_channels=None,
         out_indices=backbone_out_indices,
-        norm_eval=False,
-        style='pytorch',
-        init_cfg=dict(type='Pretrained', checkpoint=pretrained)),
+        out_feature_indices=None,
+        l2_norm_scale=None,
+        ),
     neck=dict(
-        # type='FPNLite',
-        type='FPN',
+        type=decoder_fpn_type,
         in_channels=fpn_in_channels,
         out_channels=fpn_out_channels,
         start_level=fpn_start_level,
@@ -111,50 +90,50 @@ model = dict(
         add_extra_convs='on_input',
         upsample_cfg=fpn_upsample_cfg,
         conv_cfg=conv_cfg,
-        norm_cfg=norm_cfg),
+        norm_cfg=norm_cfg
+        ),
     bbox_head=dict(
         type='SSDHead',
         in_channels=[fpn_out_channels for _ in range(6)],
         num_classes=num_classes,
+        conv_cfg=conv_cfg,
+        norm_cfg=norm_cfg,
         anchor_generator=dict(
             type='SSDAnchorGenerator',
             scale_major=False,
             input_size=input_size,
             basesize_ratio_range=basesize_ratio_range,
             strides=[8, 16, 32, 64, 128, 256],
-            ratios=[[2], [2, 3], [2, 3], [2, 3], [2, 3], [2]]),
+            ratios=[[2], [2, 3], [2, 3], [2, 3], [2, 3], [2]],
+            ),
         bbox_coder=dict(
             type='DeltaXYWHBBoxCoder',
             target_means=[.0, .0, .0, .0],
             target_stds=[0.1, 0.1, 0.2, 0.2])),
-
-#####
-    # train_cfg=dict(
-    #     assigner=dict(
-    #         type='MaxIoUAssigner',
-    #         pos_iou_thr=0.5,
-    #         neg_iou_thr=0.5,
-    #         min_pos_iou=0.,
-    #         ignore_iof_thr=-1,
-    #         gt_max_assign_all=False),
-    #     sampler=dict(type='PseudoSampler'),
-    #     smoothl1_beta=1.,
-    #     allowed_border=-1,
-    #     pos_weight=-1,
-    #     neg_pos_ratio=3,
-    #     debug=False),
-    # test_cfg=dict(
-    #     nms_pre=1000,
-    #     nms=dict(type='nms', iou_threshold=0.45),
-    #     min_bbox_size=0,
-    #     score_thr=0.02,
-    #     max_per_img=200)
-        )
-
+    # model training and testing settings
+    train_cfg=dict(
+        assigner=dict(
+            type='MaxIoUAssigner',
+            pos_iou_thr=0.5,
+            neg_iou_thr=0.5,
+            min_pos_iou=0.,
+            ignore_iof_thr=-1,
+            gt_max_assign_all=False),
+        sampler=dict(type='PseudoSampler'),
+        smoothl1_beta=1.,
+        allowed_border=-1,
+        pos_weight=-1,
+        neg_pos_ratio=3,
+        debug=False),
+    test_cfg=dict(
+        nms_pre=1000,
+        nms=dict(type='nms', iou_threshold=0.45),
+        min_bbox_size=0,
+        score_thr=0.02,
+        max_per_img=200))
 env_cfg = dict(cudnn_benchmark=True)
 
 # dataset settings
-
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations', with_bbox=True),
@@ -167,7 +146,7 @@ train_pipeline = [
         type='MinIoURandomCrop',
         min_ious=(0.1, 0.3, 0.5, 0.7, 0.9),
         min_crop_size=0.3),
-    dict(type='Resize', scale=(input_size,input_size), keep_ratio=False),
+    dict(type='Resize', scale=(input_size, input_size), keep_ratio=False),
     dict(type='RandomFlip', prob=0.5),
     dict(
         type='PhotoMetricDistortion',
@@ -177,32 +156,6 @@ train_pipeline = [
         hue_delta=18),
     dict(type='PackDetInputs')
 ]
-
-# train_pipeline = [
-#     dict(type='LoadImageFromFile', to_float32=True),
-#     dict(type='LoadAnnotations', with_bbox=True),
-#     dict(
-#         type='PhotoMetricDistortion',
-#         brightness_delta=32,
-#         contrast_range=(0.5, 1.5),
-#         saturation_range=(0.5, 1.5),
-#         hue_delta=18) if not quantize else dict(type='Bypass'),
-#     dict(
-#         type='Expand',
-#         mean=img_norm_cfg['mean'],
-#         to_rgb=img_norm_cfg['to_rgb'],
-#         ratio_range=(1, 4)),
-#     dict(
-#         type='MinIoURandomCrop',
-#         min_ious=(0.1, 0.3, 0.5, 0.7, 0.9),
-#         min_crop_size=0.3),
-#     dict(type='Resize', img_scale=input_size, keep_ratio=False),
-#     dict(type='Normalize', **img_norm_cfg),
-#     dict(type='RandomFlip', flip_ratio=0.5),
-#     dict(type='DefaultFormatBundle'),
-#     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
-# ]
-
 test_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='Resize', scale=(input_size, input_size), keep_ratio=False),
@@ -212,55 +165,27 @@ test_pipeline = [
         meta_keys=('img_id', 'img_path', 'ori_shape', 'img_shape',
                    'scale_factor'))
 ]
-
-# test_pipeline = [
-#     dict(type='LoadImageFromFile'),
-#     dict(
-#         type='MultiScaleFlipAug',
-#         img_scale=(input_size,input_size),
-#         flip=False,
-#         transforms=[
-#             dict(type='Resize', keep_ratio=False),
-#             dict(type='RandomFlip'),
-#             dict(type='Normalize', **img_norm_cfg),
-#             dict(type='ImageToTensor', keys=['img']),
-#             dict(type='Collect', keys=['img']),
-#         ])
-# ]
-
-backend_args = None
-
 train_dataloader = dict(
     batch_size=24,
     num_workers=4,
     batch_sampler=None,
     dataset=dict(
-        # _delete_=True,
+        _delete_=True,
         type='RepeatDataset',
         times=5,
         dataset=dict(
-            type=dataset_type,
-            data_root=data_root,
+            type={{_base_.dataset_type}},
+            data_root={{_base_.data_root}},
             ann_file='annotations/instances_train2017.json',
             data_prefix=dict(img='train2017/'),
             filter_cfg=dict(filter_empty_gt=True, min_size=32),
             pipeline=train_pipeline)))
-val_dataloader = dict(batch_size=8,    dataset=dict(
-        type=dataset_type,
-        data_root=data_root,
-        ann_file='annotations/instances_val2017.json',
-        data_prefix=dict(img='val2017/'),
-        test_mode=True,
-        pipeline=test_pipeline,
-        backend_args=backend_args))
+val_dataloader = dict(batch_size=8, dataset=dict(pipeline=test_pipeline))
 test_dataloader = val_dataloader
 
 # training schedule
 max_epochs = 120
-train_cfg = dict(type='EpochBasedTrainLoop',max_epochs=max_epochs, val_interval=interval)
-
-val_cfg = dict(type='ValLoop')
-test_cfg = dict(type='TestLoop')
+train_cfg = dict(max_epochs=max_epochs, val_interval=5)
 
 # learning rate
 param_scheduler = [
@@ -281,19 +206,11 @@ optim_wrapper = dict(
     optimizer=dict(type='SGD', lr=0.015, momentum=0.9, weight_decay=4.0e-5))
 
 custom_hooks = [
-    # dict(type='NumClassCheckHook'),
+    dict(type='NumClassCheckHook'),
     dict(type='CheckInvalidLossHook', interval=50, priority='VERY_LOW')
 ]
-
-# data = dict(
-#     samples_per_gpu=samples_per_gpu,
-#     workers_per_gpu=0,
-#     train=dict(dataset=dict(pipeline=train_pipeline)),
-#     val=dict(pipeline=test_pipeline),
-#     test=dict(pipeline=test_pipeline))
-
 
 # NOTE: `auto_scale_lr` is for automatically scaling LR,
 # USER SHOULD NOT CHANGE ITS VALUES.
 # base_batch_size = (8 GPUs) x (24 samples per GPU)
-auto_scale_lr = dict(base_batch_size=32)
+auto_scale_lr = dict(base_batch_size=192)
