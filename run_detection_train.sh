@@ -39,11 +39,20 @@
 # CONFIG_FILE="configs_edgeailite/yolox/yolox_l_lite.py"
 # CONFIG_FILE="configs_edgeailite/yolox/yolox_x_lite.py"
 
-# centernet-lite config
+# SSD configs
+# CONFIG_FILE="configs_edgeailite/ssd/ssd_mobilenet_fpn_lite.py"
+# CONFIG_FILE="configs_edgeailite/ssd/ssd_mobilenet_lite.py"
+# CONFIG_FILE="configs_edgeailite/ssd/ssd_mobilenetp5_lite_320x320.py"
+# CONFIG_FILE="configs_edgeailite/ssd/ssd_regnetx_1p6gf_fpn_bgr_lite.py"
+# CONFIG_FILE="configs_edgeailite/ssd/ssd_regnetx_200mf_fpn_bgr_lite.py"
+# CONFIG_FILE="configs_edgeailite/ssd/ssd_regnetx_800mf_fpn_bgr_lite.py"
+# CONFIG_FILE="configs_edgeailite/ssd/ssd_regnetx_fpn_bgr_lite.py"
+
+# centernet-lite configs
 # CONFIG_FILE="configs/centernet/centernet_r18_lite_crop512.py"
 # CONFIG_FILE="configs/centernet/centernet-update_r50-caffe_fpn_lite_ms-1x.py"
 
-# fcos config
+# fcos configs
 # CONFIG_FILE="configs_edgeailite/fcos/fcos_r50-caffe_fpn_lite.py"
 # CONFIG_FILE="configs_edgeailite/fcos/fcos_r50-caffe_fpn_lite_ms_2x.py"
 
