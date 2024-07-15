@@ -51,7 +51,7 @@ dummy_input = torch.rand((1,3,384,768))
 
 # wrap your model in xnn.quantization.QuantTrainModule. 
 # once it is wrapped, the actual model is in model.module
-model = edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTrainModule(model, dummy_input=dummy_input)
+model = edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTrainModule(model, dummy_input=dummy_input, total_epochs=total_epochs)
 
 ## Note: if you want to test your model after QAT, loading of the QAT checkpoint/weights should be here into model.module
 ## pretrained_qat_data = torch.load(pretrained_qat_path)

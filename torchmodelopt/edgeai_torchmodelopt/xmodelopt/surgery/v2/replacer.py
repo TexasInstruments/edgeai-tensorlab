@@ -54,7 +54,7 @@ def _get_parent_name(target:str):
     return ( parent[0] if parent else ''), name
 
 
-def replace_module_nodes(model, pattern, replacement, verbose_mode:bool=False):
+def replace_module_nodes(model, pattern, replacement, copy_args=[], verbose_mode:bool=False):
     '''replaces a  modules of pattern type to replacement module in the module structure'''
     modules = dict(model.named_modules())
     replace_obj = replacement() if type(replacement) == type else replacement
@@ -69,6 +69,9 @@ def replace_module_nodes(model, pattern, replacement, verbose_mode:bool=False):
             n+=1
             parent_name, name = _get_parent_name(key_name)
             replace_obj = copy.deepcopy(replace_obj)
+            for copy_arg in copy_args:
+                if hasattr(module, copy_arg):
+                    setattr(replace_obj, copy_arg, getattr(module, copy_arg))
             # modules[key_name] = replace_obj
             modules[parent_name].__setattr__(name, replace_obj)
     if verbose_mode:

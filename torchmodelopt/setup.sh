@@ -34,3 +34,5 @@
 #pip3 install --no-input torch torchvision torchaudio
 echo 'installing the pytorch model optimization toolkit...'
 python3 ./setup.py develop
+
+echo "For running demo, run demo/setup.sh otherwise ignore this message"

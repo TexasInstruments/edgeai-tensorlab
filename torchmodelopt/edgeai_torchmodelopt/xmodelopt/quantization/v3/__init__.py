@@ -1,3 +1,4 @@
+
 #################################################################################
 # Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
@@ -29,22 +30,6 @@
 #
 #################################################################################
 
-from . import v1
-from . import v2
 
 
-class QuantizationVersion():
-    NO_QUANTIZATION = 0
-    QUANTIZATION_V1 = QUANTIZATION_LEGACY = 1
-    QUANTIZATION_V2 = QUANTIZATION_FX = 2
-    QUANTIZATION_V3 = QUANTIZATION_PT2E = 3
-
-    @classmethod
-    def get_dict(cls):
-        return {k:v for k,v in cls.__dict__.items() if not k.startswith("__")}
-
-    @classmethod
-    def get_choices(cls):
-        return {v:k for k,v in cls.__dict__.items() if not k.startswith("__")}
-
-
+from .quant_pt2e_module import QATPT2EModule, PTQPT2EModule

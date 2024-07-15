@@ -211,7 +211,7 @@ def replace_conv2d_kernel_size_gt_7(model:nn.Module, verbose_mode=False, **kwarg
         print('conv changed', no_of_conv)
     return traced_model
 
-def replace_conv2d_kernel_size_6(model:nn.Module, pattern= None, verbose_mode=False):
+def replace_conv2d_kernel_size_6(model:nn.Module, verbose_mode=False,**kwargs):
     '''
     replaces all conv2d module or function having kernel size greater than or equal to 7
     with a stack of conv2d modules having kernel size 3
@@ -304,7 +304,13 @@ def replace_layer_norm(model:nn.Module, example_input:torch.Tensor = None, verbo
     assert isinstance(example_input,torch.Tensor),f'The parmeter must be a tensor but got {example_input.__class__.__name__}'
     for node in traced_model.graph.nodes:
         module=None
+        prev = None
+        if node.op == 'call_function'  and node.target== nn.functional.layer_norm:
+            arg= node.args[0]
             args=[]
+            for arg1 in arg.args:
+                # searching for any global average pool or mean
+                args=[]
                 if isinstance(arg1,  Node):
                     args.append(arg1)
                 elif isinstance(arg,Iterable):
@@ -466,7 +472,7 @@ def remove_identiy(model:nn.Module, verbose_mode=False, **kwargs):
     n=0
     nodes=[]
     for node in traced_model.graph.nodes:
-        if (node.op == 'call_module'):
+        if (node.op == 'call_module') and isinstance(modules[node.target],nn.Identity):
                 nodes.append(node)
     for node in nodes:
         try:
@@ -474,7 +480,8 @@ def remove_identiy(model:nn.Module, verbose_mode=False, **kwargs):
             copy_found=False
             for node_1 in nodes:
                 if node!=node_1 and node.target==node_1.target:
-                   copy_found=True
+                    copy_found=True
+                    break
             if not copy_found:
                 parent_name,name=replacer._get_parent_name(node.target)           
                 modules[parent_name].__delattr__(name)
@@ -489,3 +496,45 @@ def remove_identiy(model:nn.Module, verbose_mode=False, **kwargs):
     if verbose_mode:
         print('Identity removed',n)
     return traced_model
+
+
+class ReplacementPermute(nn.Module):
+    def __init__(self, dims):
+        super().__init__()
+        self.dims = dims
+        
+    def forward(self, x):
+        return torch.permute(x, self.dims)
+        
+            
+def replace_permute_layer(model:nn.Module, pattern=None, verbose_mode=False):
+    model = torch.fx.symbolic_trace(model)
+    i = 0
+    for node in model.graph.nodes:
+        if node.op == 'call_method' and node.target=='permute':
+            replacement = ReplacementPermute(node.args[1:])
+            prepared_replacement = torch.fx.symbolic_trace(replacement)
+            with model.graph.inserting_before(node):
+                new_node_name = type(replacement).__name__+str(i)
+                model.add_submodule(new_node_name, deepcopy(prepared_replacement))
+                new_args = []
+                for arg in node.args:
+                    if type(arg) == Node:
+                        if arg.op != "get_attr":
+                            new_args.append(arg)
+                        #
+                    #
+                #
+                new_node = model.graph.call_module(new_node_name, tuple(new_args), {})
+                node.replace_all_uses_with(new_node)
+                model.graph.erase_node(node)
+            #
+            i+=1    
+        #
+    #
+    model.graph.lint()
+    model.recompile()
+    if verbose_mode:
+        print('reshape/permute : ', i)
+        
+    return model

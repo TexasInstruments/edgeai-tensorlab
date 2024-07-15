@@ -29,22 +29,42 @@
 #
 #################################################################################
 
-from . import v1
-from . import v2
+import torch
+import torch.nn as nn
+from . import quant_pt2e_func
 
 
-class QuantizationVersion():
-    NO_QUANTIZATION = 0
-    QUANTIZATION_V1 = QUANTIZATION_LEGACY = 1
-    QUANTIZATION_V2 = QUANTIZATION_FX = 2
-    QUANTIZATION_V3 = QUANTIZATION_PT2E = 3
+class QuantPT2EBaseModule(nn.Module):
+    def __init__(self, model, *args, quantizer=None, **kwargs):
+        '''
+        model: input model to be used for inserting quantization
+        '''
+        super().__init__()
+        self.module = quant_pt2e_func.init(model, quantizer=quantizer, *args, **kwargs)
+        
+    def load_weights(self, *args, **kwargs):
+        quant_pt2e_func.load_weights(self.module, *args, **kwargs)
 
-    @classmethod
-    def get_dict(cls):
-        return {k:v for k,v in cls.__dict__.items() if not k.startswith("__")}
+    def train(self, *args, **kwargs):
+        return quant_pt2e_func.train(self.module, *args, **kwargs)
+    
+    def calibrate(self, *args, **kwargs):
+        return quant_pt2e_func.calibrate(self.module, *args, **kwargs)
 
-    @classmethod
-    def get_choices(cls):
-        return {v:k for k,v in cls.__dict__.items() if not k.startswith("__")}
+    def freeze(self, *args, **kwargs):
+        return quant_pt2e_func.freeze(self.module, *args, **kwargs)
 
+    def unfreeze(self, *args, **kwargs):
+        return quant_pt2e_func.unfreeze(self.module, *args, **kwargs)
 
+    def forward(self, *args, **kwargs):
+        return self.module(*args, **kwargs)
+
+    def convert(self, *args, **kwargs):
+        return quant_pt2e_func.convert(self.module, *args, **kwargs)
+
+    def export(self, *args, **kwargs):
+        return quant_pt2e_func.export(self.module, *args, **kwargs)
+        
+            
+    

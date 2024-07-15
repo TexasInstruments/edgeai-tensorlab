@@ -30,3 +30,7 @@
 
 ######################################################################
 
+# Run setup.sh before running this file for first time
+
+echo "running demo using streamlit local engine"
+streamlit run model_optimization_demo.py

@@ -92,6 +92,16 @@ class Focus(nn.Module):
             dim=1,
         )
         return x
+    
+    
+# focus module for segmentation models
+class OptimizedFocus(nn.Module):
+    def forward(self,x):
+        B, C, H, W = x.shape
+        x = x.permute(0, 2, 3, 1)
+        x = x.reshape(B, H // 2, 2, W // 2, 2, C).permute(0, 1, 3, 4, 2, 5).flatten(3)
+        x = x.permute(0, 3, 1, 2)
+        return x
 
 
 # a typical convulation module to be used as replacement

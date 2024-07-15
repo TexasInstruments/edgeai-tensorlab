@@ -29,15 +29,15 @@
 #
 #################################################################################
 
-
-from .pruner_module import PrunerQuantModule, PrunerModule, SigmoidPruningParametrization, BlendPruningParametrization, IncrementalPruningParametrization
-from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, create_channel_pruned_model, get_net_weights_all
+from . import v2
+from . import v3
 
 
 class PruningVersion():
     NO_PRUNING = 0
     PRUNING_V1 = PRUNING_LEGACY = 1 # not implemented
     PRUNING_V2 = PRUNING_FX = 2
+    PRUNING_V3 = PRUNING_PT2E = 3
 
     @classmethod
     def get_dict(cls):

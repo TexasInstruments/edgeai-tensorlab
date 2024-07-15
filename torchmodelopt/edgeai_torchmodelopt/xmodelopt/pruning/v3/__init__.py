@@ -29,22 +29,10 @@
 #
 #################################################################################
 
-from . import v1
-from . import v2
 
+from .pruner_module import PrunerQuantModule, PrunerModule, SigmoidPruningParametrization, BlendPruningParametrization, IncrementalPruningParametrization
+from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, get_net_weights_all
+from .utils import create_channel_pruned_model
 
-class QuantizationVersion():
-    NO_QUANTIZATION = 0
-    QUANTIZATION_V1 = QUANTIZATION_LEGACY = 1
-    QUANTIZATION_V2 = QUANTIZATION_FX = 2
-    QUANTIZATION_V3 = QUANTIZATION_PT2E = 3
-
-    @classmethod
-    def get_dict(cls):
-        return {k:v for k,v in cls.__dict__.items() if not k.startswith("__")}
-
-    @classmethod
-    def get_choices(cls):
-        return {v:k for k,v in cls.__dict__.items() if not k.startswith("__")}
 
 

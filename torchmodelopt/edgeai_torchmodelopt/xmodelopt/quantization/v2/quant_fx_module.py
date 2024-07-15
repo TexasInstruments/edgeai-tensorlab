@@ -29,22 +29,24 @@
 #
 #################################################################################
 
-from . import v1
-from . import v2
+import torch
+from .quant_fx_base import QuantFxBaseModule
+import warnings
 
 
-class QuantizationVersion():
-    NO_QUANTIZATION = 0
-    QUANTIZATION_V1 = QUANTIZATION_LEGACY = 1
-    QUANTIZATION_V2 = QUANTIZATION_FX = 2
-    QUANTIZATION_V3 = QUANTIZATION_PT2E = 3
-
-    @classmethod
-    def get_dict(cls):
-        return {k:v for k,v in cls.__dict__.items() if not k.startswith("__")}
-
-    @classmethod
-    def get_choices(cls):
-        return {v:k for k,v in cls.__dict__.items() if not k.startswith("__")}
+class QATFxModule(QuantFxBaseModule):
+    def __init__(self, *args, backend='qnnpack', is_qat=True, **kwargs):
+        warnings.warn("Fx based quantization wrapper will be depercated in the future after pt2e quantization wrapper is completed.")
+        super().__init__(*args, is_qat=is_qat, backend=backend, **kwargs)
 
 
+class PTCFxModule(QuantFxBaseModule):
+    '''
+    Post Training Calibration (PTC) for Quantization is similar to Post Training Quantization
+    PTC can be integrated inton the training script easily with couple of lines of change. 
+    It is faster than QAT as it doesn't actively train the weights.
+    '''
+    def __init__(self, *args, backend='qnnpack', is_qat=False, bias_calibration_factor=0.01, **kwargs):
+        warnings.warn("Fx based quantization wrapper will be depercated in the future after pt2e quantization wrapper is completed.")
+        super().__init__(*args, is_qat=is_qat, backend=backend, bias_calibration_factor=bias_calibration_factor, \
+            num_batch_norm_update_epochs=0, num_observer_update_epochs=1, **kwargs)

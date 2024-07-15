@@ -33,6 +33,10 @@ from . import xnn
 from . import xmodelopt
 from . import xonnx
 
+# add shortcuts directly here for ease of use
+from .xmodelopt import surgery
+from .xmodelopt import pruning
+from .xmodelopt import quantization
 from .xmodelopt.surgery import SyrgeryVersion
 from .xmodelopt.pruning import PruningVersion
 from .xmodelopt.quantization import QuantizationVersion
