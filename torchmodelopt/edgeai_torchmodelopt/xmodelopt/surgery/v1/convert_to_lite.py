@@ -106,7 +106,7 @@ def _replace_conv2d(current_m=None, groups_dw=None, group_size_dw=None,
     return current_m
 
 
-def _replace_groupnorm(current_m=None):
+def _replace_group_norm(current_m=None):
     assert current_m is not None, 'for replacing GroupNorm the current module must be provided'
     if isinstance(current_m, torch.nn.GroupNorm):
         new_m = torch.nn.BatchNorm2d(num_features=current_m.num_channels)
@@ -115,7 +115,7 @@ def _replace_groupnorm(current_m=None):
     return current_m
 
 
-def get_replacement_dict_default(groups_dw=None, group_size_dw=None, **kwargs):
+def get_replacement_dict_default(groups_dw=None, group_size_dw=None, replace_group_norm=False, replace_instance_norm=False, **kwargs):
     '''
     A dictionary with the fllowing structure.
     key: a torch.nn.Module that has to be replaced OR a callable which takes a module as input and returns boolean
@@ -129,8 +129,6 @@ def get_replacement_dict_default(groups_dw=None, group_size_dw=None, **kwargs):
         torch.nn.Hardswish: [torch.nn.ReLU], #'inplace' is not used
         torch.nn.SiLU: [torch.nn.ReLU], #'inplace' is not used
         torch.nn.LeakyReLU: [torch.nn.ReLU],  # 'inplace' is not used
-        torch.nn.GroupNorm: [_replace_groupnorm],
-        torch.nn.InstanceNorm2d: [torch.nn.BatchNorm2d, 'num_features'],
         SqueezeExcitation: [torch.nn.Identity],
         # with_normalization: whether to insert BN after replacing 3x3/5x5 conv etc. with dw-seperable conv
         # with_activation: whether to insert ReLU after replacing conv with dw-seperable conv
@@ -139,6 +137,17 @@ def get_replacement_dict_default(groups_dw=None, group_size_dw=None, **kwargs):
         # the key should return a boolean and the first entry of value(list) should return an instance of torch.nn.Module
         _check_dummy: [_replace_dummy]
     }
+
+    if replace_group_norm:
+        replacement_dict_lite.update({
+            torch.nn.GroupNorm: [_replace_group_norm]
+        })
+
+    if replace_instance_norm:
+        replacement_dict_lite.update({
+            torch.nn.InstanceNorm2d: [torch.nn.BatchNorm2d, 'num_features']
+        })
+
     return replacement_dict_lite
 
 
