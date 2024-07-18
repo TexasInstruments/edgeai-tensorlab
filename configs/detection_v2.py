@@ -28,7 +28,11 @@
 
 import numpy as np
 from edgeai_benchmark import constants, utils, datasets, preprocess, sessions, postprocess, metrics
+import onnxruntime
 
+# for transformer models we need to set graph_optimization_level = ORT_DISABLE_ALL for onnxruntime
+ORT_DISABLE_ALL = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
+ORT_ENABLE_EXTENDED = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
 
 def get_configs(settings, work_dir):
     # get the sessions types to use for each model type
@@ -71,7 +75,7 @@ def get_configs(settings, work_dir):
                     det_options=True, ext_options={'object_detection:meta_arch_type': 6,
                      #  'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov3_d53_relu_416x416_20210117_model.prototxt',
                      'advanced_options:output_feature_16bit_names_list':'694, 698, 702',
-                     'onnxruntime:graph_optimization_level': 0 
+                     'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
                      }),
                 model_path=f'../edgeai-modelforest/models/vision/experimental/detr_resnet-50-simplified.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,4),(-1,1),(-1,1)],logits_bbox_to_bbox_ls=True,formatter=postprocess.DetectionXYWH2XYXYCenterXY()),
@@ -81,17 +85,90 @@ def get_configs(settings, work_dir):
         # Transformer models from huggingface transformers
         'od-8920':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((800,1066),(800,1066), resize_with_pad=True, backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
                 runtime_options=settings.runtime_options_onnx_np2(
                     det_options=True, ext_options={
                      #'advanced_options:output_feature_16bit_names_list':'',
-                     'onnxruntime:graph_optimization_level': 0
+                     'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
                      }),
                 model_path=f'{settings.models_path}/vision/detection/coco/hf-transformers/detr_resnet50_transformers_simp.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,4),(-1,1),(-1,1)],logits_bbox_to_bbox_ls=True,formatter=postprocess.DetectionXYWH2XYXYCenterXY()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0,num_classes=91)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':42.0}, model_shortlist=80)
         ),
+        'od-8930':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx((800,1216), (800,1216), reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(
+                   det_options=True, ext_options={
+                    #    'deny_list:layer_name': '/Mul'
+                    #    'deny_list:layer_type': 'TopK'
+                    # 'object_detection:meta_arch_type': 6,
+                    # 'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_model.prototxt',
+                    # 'advanced_options:output_feature_16bit_names_list': '1033, 711, 712, 713, 727, 728, 729, 743, 744, 745'
+                    }),
+                model_path=f'../edgeai-modelzoo/models/vision/detection/coco/mmdet/fcos_r50-caffe_fpn_gn-head_ms-640-800-2x_coco.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,5),(-1,1)], formatter=postprocess.DetectionBoxSL2BoxLS()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None}, model_shortlist=100)
+        ),
+        'od-8940':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx((800,1216), (800,1216), reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True,
+                                                                        deny_list_from_start_end_node = {
+                                                                            '/Sigmoid_1':None,
+                                                                            '/Sigmoid_4':None,
+                                                                            '/Sigmoid_3':None,
+                                                                            '/Sigmoid':None,
+                                                                            '/Sigmoid_2':None,
+                                                                            '/bbox_head/Clip':None,
+                                                                            '/bbox_head/Clip_2':None,
+                                                                            '/bbox_head/Clip_3':None,}),
+                runtime_options=settings.runtime_options_onnx_np2(
+                   det_options=True, ext_options={
+                    # 'object_detection:meta_arch_type': 6,
+                    # 'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_model.prototxt',
+                    # 'advanced_options:output_feature_16bit_names_list': '1033, 711, 712, 713, 727, 728, 729, 743, 744, 745'
+                    }),
+                model_path=f'../edgeai-modelzoo/models/vision/detection/coco/mmdet/centernet-update_r50-caffe_fpn_ms-1x.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,5),(-1,1)], formatter=postprocess.DetectionBoxSL2BoxLS()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None}, model_shortlist=100)
+        ),
+        'od-8950':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx((448, 672), (448, 672), reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=False, 
+                                                                        deny_list_from_start_end_node = {'/bbox_head/Sigmoid':None}),
+                runtime_options=settings.runtime_options_onnx_np2(
+                   det_options=True, ext_options={
+                    'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL
+                    # 'object_detection:meta_arch_type': 6,
+                    # 'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_model.prototxt',
+                    # 'advanced_options:output_feature_16bit_names_list': '1033, 711, 712, 713, 727, 728, 729, 743, 744, 745'
+                    }),
+                model_path=f'../edgeai-modelzoo/models/vision/detection/coco/mmdet/centernet_r18_crop512.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,5),(-1,1)], formatter=postprocess.DetectionBoxSL2BoxLS()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None}, model_shortlist=100)
+        ),
+        'od-fcos3d_experiment':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx((928,1600), (928,1600), reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(
+                   det_options=True, ext_options={
+                       'deny_list:layer_type': 'ScatterND'
+                    # 'object_detection:meta_arch_type': 6,
+                    # 'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_model.prototxt',
+                    # 'advanced_options:output_feature_16bit_names_list': '1033, 711, 712, 713, 727, 728, 729, 743, 744, 745'
+                    }),
+                model_path=f'../edgeai-mmdetection3d/fcos3d_simp.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,5),(-1,1)], formatter=postprocess.DetectionBoxSL2BoxLS()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None}, model_shortlist=None)
+        ),
+        
+        
+        
     }
     return pipeline_configs
 

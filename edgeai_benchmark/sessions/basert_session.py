@@ -109,6 +109,7 @@ class BaseRTSession(utils.ParamsBase):
 
         # optimizations specific to TIDL
         self.kwargs['tidl_onnx_model_optimizer'] = self.kwargs.get('tidl_onnx_model_optimizer', False)
+        self.kwargs['deny_list_from_start_end_node'] = self.kwargs.get('deny_list_from_start_end_node', None)
 
         # store the current directory so that we can go back there any time
         self.cwd = os.getcwd()
@@ -563,7 +564,7 @@ class BaseRTSession(utils.ParamsBase):
             if is_new_file:
                 # merge the mean & scale inside the model
                 if apply_input_optimization:
-                    from osrt_model_tools.onnx_tools import onnx_model_opt as onnxopt
+                    from osrt_model_tools.onnx_tools.tidl_onnx_model_utils import onnx_model_opt as onnxopt
                     onnxopt.tidlOnnxModelOptimize(model_file0, model_file0, self.kwargs['input_scale'], self.kwargs['input_mean'])
                 #
                 # run onnx simplifier on this model if with_onnxsim is set for this model
@@ -584,8 +585,14 @@ class BaseRTSession(utils.ParamsBase):
                 #
                 if self.kwargs['tidl_onnx_model_optimizer']:
                     print("running tidl_onnx_model_optimizer on the model")
-                    import tidl_onnx_model_optimizer
-                    tidl_onnx_model_optimizer.optimize(model_file0, model_file0, expand_layernorm_to_component_ops=True, verbose=True)
+                    from osrt_model_tools.onnx_tools.tidl_onnx_model_optimizer import optimize
+                    optimize(model_file0, model_file0)
+                    
+                if self.kwargs['deny_list_from_start_end_node']:
+                    print("Finding the deny list nodes from the given start and end node")
+                    from osrt_model_tools.onnx_tools.tidl_onnx_model_utils import get_all_node_names
+                    deny_list = get_all_node_names(model_file0, self.kwargs['deny_list_from_start_end_node'])
+                    self.kwargs['runtime_options']['deny_list:layer_name'] = deny_list
                 #
             #
         elif model_file0.endswith('.tflite'):
