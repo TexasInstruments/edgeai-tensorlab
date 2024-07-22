@@ -191,7 +191,7 @@ def forward(self, *input, **kwargs):
 
 
 def convert(self, device='cpu'):
-    self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)           
+    self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)                      
     self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
     freeze(self)
     # convert requires cpu model 
@@ -236,7 +236,7 @@ def train(self, mode: bool = True):
         quant_pt2e_utils.adjust_gradual_quantization(self)
         self.__quant_params__.num_epochs_tracked += 1
     else:
-        self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)           
+        self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)                      
         self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
         torch.ao.quantization.move_exported_model_to_eval(self)
         freeze(self)

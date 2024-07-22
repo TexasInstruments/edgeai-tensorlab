@@ -192,7 +192,7 @@ def forward(self, *input, **kwargs):
 
 
 def convert(self, device='cpu', model_quant_format=None, convert_custom_config=None, backend_config=None):          
-    self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)           
+    self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)                      
     self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
     freeze(self)
     # convert requires cpu model
@@ -268,7 +268,7 @@ def train(self, mode: bool = True):
         # Removing the outlier hook when the observers are also frozen
         if freeze_bn and freeze_observers:
             self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
-            
+        
         quant_fx_utils.adjust_gradual_quantization(self)
         self.__quant_params__.num_epochs_tracked += 1
     else:
