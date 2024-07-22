@@ -115,7 +115,6 @@ def main():
             model_cfg=args.model_cfg,
             model_checkpoint=args.checkpoint,
             device=args.device,
-            model_surgery=args.model_surgery,
             torch_model=torch_model)
     else :
         torch2onnx(
@@ -126,7 +125,6 @@ def main():
             model_cfg=args.model_cfg,
             model_checkpoint=args.checkpoint,
             device=args.device,
-            model_surgery=args.model_surgery,
             torch_model=torch_model)
 
     # partition model
