@@ -216,7 +216,7 @@ _model_descriptions = {
             }
         ),
         compilation=dict(
-            model_compilation_id='od-8210',
+            model_compilation_id='od-8211',
             runtime_options={
                 'advanced_options:output_feature_16bit_names_list': '/multi_level_conv_obj.2/Conv_output_0, /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0, /multi_level_conv_obj.1/Conv_output_0, /multi_level_conv_reg.1/Conv_output_0, /multi_level_conv_cls.1/Conv_output_0, /multi_level_conv_obj.0/Conv_output_0, /multi_level_conv_reg.0/Conv_output_0, /multi_level_conv_cls.0/Conv_output_0'
             },
@@ -336,55 +336,76 @@ class ModelTraining:
         dataset_style = 'coco' #'voc' #'coco'
         input_size = self.params.training.input_cropsize if isinstance(self.params.training.input_cropsize, (list,tuple)) else \
             (self.params.training.input_cropsize,self.params.training.input_cropsize)
-        base_config_path = os.path.join(edgeai_mmdetection_path, 'configs', 'edgeailite', self.params.training.model_architecture, self.params.training.model_training_id)
-
+        base_config_path = os.path.join(edgeai_mmdetection_path, 'configs_edgeailite', self.params.training.model_architecture, self.params.training.model_training_id, )
+        classes = tuple(self.object_categories)
         config_file = os.path.join(self.params.training.training_path, f'{self.params.training.model_name}.py')
         config_strs = []
         config_strs += [f'_base_   = ['
                         f'"{base_config_path}.py"]\n']
         config_strs += [f'work_dir   = "{self.params.training.training_path}"']
+        config_strs += [f'classes = {classes}']
         config_strs += [f'data_root   = "{self.params.dataset.dataset_path}"']
         config_strs += [f'total_epochs   = {self.params.training.training_epochs}']
-        config_strs += [f'export_model   = True']
-        config_strs += [f'optimizer=dict(\n'
-                        f'  lr={self.params.training.learning_rate}\n'                           
-                        f') \n']
+        config_strs += [f'export_onnx_model=True']
         config_strs += [f'model=dict(\n'
                         f'  bbox_head=dict(\n'
                         f'    num_classes={self.params.training.num_classes}\n'
                         f'  ) \n'                            
                         f') \n']
-        config_strs += [f'data=dict(\n'
-                        f'  samples_per_gpu={self.params.training.batch_size},\n'                        
-                        f'  train=dict(\n'
-                        f'    dataset=dict(\n'
-                        f'      type="ModelMakerDataset",\n'
-                        f'      ann_file = "{self.train_ann_file}",\n'
-                        f'      img_prefix = "{self.params.dataset.dataset_path}/train",\n'
-                        f'      classes = {self.object_categories}\n'
-                        f'    ) \n'                            
-                        f'  ), \n'                        
-                        f'  val=dict(\n'
-                        f'    type="ModelMakerDataset",\n'                        
-                        f'    ann_file = "{self.val_ann_file}",\n'
-                        f'    img_prefix = "{self.params.dataset.dataset_path}/val",\n'
-                        f'    classes = {self.object_categories}\n'                        
+        config_strs += [f'train_dataloader=dict(\n'
+                        f'  dataset=dict(\n'
+                        f'      dataset=dict(\n'
+                        f'      data_root   = "{self.params.dataset.dataset_path}",\n'
+                        f'          ann_file = "{self.train_ann_file}",\n'
+                        f'          data_prefix = dict(img="train/"),\n'
+                        f'          metainfo=dict(classes=classes),\n'
+                        f'          ) \n'
+                        f'      ) \n'
                         f'  ) \n'
-                        f')\n'
                         ]
-        config_strs += [f'runner = dict(\n'
-                        f'    type="EpochBasedRunner", max_epochs={self.params.training.training_epochs}\n'
-                        f')\n',
+        config_strs += [f'train_dataset=dict(\n'
+                        f'      dataset=dict(\n'
+                        f'          data_root   = "{self.params.dataset.dataset_path}",\n'
+                        f'          ann_file = "{self.train_ann_file}",\n'
+                        f'          data_prefix = dict(img="train/"),\n'
+                        f'          metainfo=dict(classes=classes),\n'
+                        f'      ) \n'
+                        f'  ) \n'
                         ]
-        yolox_lr_config_str = \
-                        f'    num_last_epochs={self.params.training.num_last_epochs},\n' if \
-                                self.params.training.model_architecture == 'yolox' else ''
-        config_strs += [f'lr_config = dict(\n'
-                        f'    warmup_by_epoch=True,\n',
-                        f'    warmup_iters={self.params.training.warmup_epochs},\n',
-                        f'{yolox_lr_config_str}',
-                        f')\n',
+        config_strs += [f'test_dataloader=dict(\n'
+                        f'  dataset=dict(\n'
+                        f'      data_root   = "{self.params.dataset.dataset_path}",\n'
+                        f'      ann_file = "{self.val_ann_file}",\n'
+                        f'      data_prefix = dict(img="val/"),\n'
+                        f'          metainfo=dict(classes=classes),\n'
+                        f'    ) \n'
+                        f') \n'
                         ]
+        config_strs += [f'val_dataloader=dict(\n'
+                        f'  dataset=dict(\n'
+                        f'      data_root   = "{self.params.dataset.dataset_path}",\n'
+                        f'      ann_file = "{self.val_ann_file}",\n'
+                        f'      data_prefix = dict(img="val/"),\n'
+                        f'      metainfo=dict(classes=classes),\n'
+                        f'    ) \n'
+                        f') \n'
+                        ]
+        config_strs += [f'test_evaluator = dict( \n'
+                        f'    ann_file="{self.val_ann_file}") \n'
+                        ]
+        config_strs += [f'val_evaluator = dict( \n'
+                        f'    ann_file="{self.val_ann_file}") \n'
+                        ]
+        config_strs += [f'train_cfg = dict(max_epochs={self.params.training.training_epochs}, type="EpochBasedTrainLoop", val_interval=1)\n']
+        # yolox_lr_config_str = \
+        #                 f'    num_last_epochs={self.params.training.num_last_epochs},\n' if \
+        #                         self.params.training.model_architecture == 'yolox' else ''
+        # config_strs += [f'lr_config = dict(\n'
+        #                 f'    warmup_by_epoch=True,\n',
+        #                 f'    warmup_iters={self.params.training.warmup_epochs},\n',
+        #                 f'{yolox_lr_config_str}',
+        #                 f')\n',
+        #                 ]
         config_strs += [f'load_from   = "{self.params.training.pretrained_checkpoint_path}"']
 
         # write the config file
