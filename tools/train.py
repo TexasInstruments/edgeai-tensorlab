@@ -4,6 +4,7 @@ import os
 import os.path as osp
 import warnings
 import torch
+import onnx
 
 from mmengine.config import Config, DictAction
 from mmengine.registry import RUNNERS
@@ -16,8 +17,13 @@ from mmengine.runner.loops import EpochBasedTrainLoop
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 
 from mmdet.utils import convert_to_lite_model
+# from mmdet.utils import save_model_proto
+from mmdeploy.utils import save_model_proto
+from mmdeploy.utils import build_model_from_cfg
+
 from edgeai_torchmodelopt import xmodelopt
 from edgeai_torchmodelopt import xnn
+from edgeai_torchmodelopt import xonnx
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a detector')
@@ -71,8 +77,9 @@ def parse_args():
     return args
 
 
-def main():
-    args = parse_args()
+def main(args=None):
+
+    args = args or parse_args()
 
     # Reduce the number of repeated compilations and improve
     # training speed.
@@ -99,7 +106,7 @@ def main():
         cfg.optim_wrapper.loss_scale = 'dynamic'
 
     # enable automatically scaling LR
-    if args.auto_scale_lr:
+    if args.auto_scale_lr or 'auto_scale_lr' in cfg:
         if 'auto_scale_lr' in cfg and \
                 'enable' in cfg.auto_scale_lr and \
                 'base_batch_size' in cfg.auto_scale_lr:
@@ -201,6 +208,7 @@ def main():
                 
             if is_wrapped:
                 runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
+        print_log('model surgery done')
         #
 
     if args.quantization:
@@ -240,20 +248,38 @@ def main():
  
     runner.train()
 
-    if args.export_onnx_model:
+    if args.export_onnx_model or (hasattr(cfg, 'export_onnx_model') and cfg.export_onnx_model):
         # Exporting Model after Training : Uses custom mmdeploy
         try:
             from mmdeploy.apis import torch2onnx
         except:
             raise ModuleNotFoundError
         
-        if args.quantization:
-            save_file = args.config.split('/')[-1][:-3] + '_quantized.onnx' 
-        else:
-            save_file = args.config.split('/')[-1][:-3] + '.onnx' 
+        save_file = 'model.onnx'
+        save_file = osp.join(cfg.work_dir,save_file)
         
-        torch2onnx(img='./demo/demo.jpg', work_dir=cfg.work_dir, save_file=save_file, model_cfg = args.config, \
-            deploy_cfg='../mmdeploy/configs/mmdet/detection/detection_onnxruntime_static.py', model = runner.model)
+        torch2onnx(img='../edgeai-mmdetection/demo/demo.jpg', work_dir=cfg.work_dir, save_file=save_file, model_cfg = cfg, \
+            deploy_cfg='../edgeai-mmdeploy/configs/mmdet/detection/detection_onnxruntime_static.py', torch_model = runner.model)
+        
+        xonnx.prune_layer_names(save_file, save_file, opset_version=17)
+    
+        onnx_model = onnx.load(save_file)
+        # if args.simplify:
+        #     try:
+        #         import onnxsim
+        #         onnx_model, check = onnxsim.simplify(onnx_model)
+        #         assert check, 'assert check failed'
+        #     except Exception as e:
+        #         print_log(f'Simplify failure: {e}')
+        # onnx.save(onnx_model, save_file)
+        # print_log(f'ONNX export success, save into {save_file}')
+
+        output_names = ['dets', 'labels']
+        feature_names = [node.name for node in onnx_model.graph.output[2:]]
+        # write prototxt
+        input_shapes = [[d.dim_value for d in _input.type.tensor_type.shape.dim] for _input in onnx_model.graph.input]
+        fake_input = torch.randn(*input_shapes[0]).to('cpu')
+        save_model_proto(cfg, runner.model, onnx_model, fake_input, save_file, feature_names=feature_names, output_names=output_names)
 
 
 if __name__ == '__main__':
