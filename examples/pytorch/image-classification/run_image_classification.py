@@ -84,11 +84,15 @@ class DataTrainingArguments:
     dataset_name: Optional[str] = field(
         default=None,
         metadata={
-            "help": "Name of a dataset from the hub (could be your own, possibly private dataset hosted on the hub)."
+            "help": "Name of a dataset from the hub or the path of the dataset (should have the loading file) \
+                (could be your own, possibly private dataset hosted on the hub)."
         },
     )
     dataset_config_name: Optional[str] = field(
         default=None, metadata={"help": "The configuration name of the dataset to use (via the datasets library)."}
+    )
+    loading_num_proc: Optional[int] = field(
+        default=8, metadata={"help": "Sharding of the dataset loading to make it faster"}
     )
     train_dir: Optional[str] = field(default=None, metadata={"help": "A folder containing the training data."})
     validation_dir: Optional[str] = field(default=None, metadata={"help": "A folder containing the validation data."})
@@ -208,6 +212,12 @@ class ModelOptimizationArguments:
             "help" : "Incase of PTC/PTQ, the number of images to be used for calibration"
         }
     )
+    bias_calibration_factor: float = field(
+        default=0,
+        metadata={
+            "help" : "The bias calibration factor to be used, 0 incase of no bias calibration "
+        }
+    )
     do_onnx_export: bool = field(
         default=True,
         metadata={
@@ -283,6 +293,7 @@ def main():
             cache_dir=model_args.cache_dir,
             token=model_args.token,
             trust_remote_code=model_args.trust_remote_code,
+            num_proc=data_args.loading_num_proc
         )
     else:
         data_files = {}
@@ -446,11 +457,14 @@ def main():
         example_input['pixel_values'] = example_input['pixel_values'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
         convert_to_cuda = False if training_args.use_cpu else True
         if model_optimization_args.quantize_type == "QAT":
-            model = xmodelopt.quantization.v2.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, \
-                qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda)
+            model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, 
+                qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
+                bias_calibration_factor=model_optimization_args.bias_calibration_factor)
         else:
-            model = xmodelopt.quantization.v2.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=False, \
-                qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda)
+            model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=False, 
+                qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
+                bias_calibration_factor=model_optimization_args.bias_calibration_factor, 
+                num_observer_update_epochs=model_optimization_args.quantize_calib_images)
             # need to turn the parameter update off during PTQ/PTC
             training_args.dont_update_parameters = True
 
